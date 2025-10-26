@@ -1,15 +1,25 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { translations } from './translations';
 
-const LanguageContext = createContext();
+interface LanguageContextType {
+  t: (key: string) => string;
+  language: string;
+  setLanguage: (lang: string) => void;
+}
 
-export const LanguageProvider = ({ children }) => {
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+interface LanguageProviderProps {
+  children: ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState('el'); // Changed to 'el' (Greek) as default
   
-  const t = (key) => {
+  const t = (key: string): string => {
     // Support nested keys like 'utils.title'
     const keys = key.split('.');
-    let value = translations[language];
+    let value: any = translations[language as keyof typeof translations];
 
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
