@@ -3,6 +3,11 @@
 #   MIEEK - AUT Automotive Engineering
 # ============================================================================
 
+# Parameters: Allow control-only mode (start backend, open HTML, exit script)
+param(
+    [switch]$ControlOnly
+)
+
 # Set window title
 $host.UI.RawUI.WindowTitle = "SMS - Starting..."
 
@@ -116,8 +121,22 @@ try {
 
 if ($backendRunning -and $frontendRunning) {
     Write-Host "Servers already running. Opening browser..." -ForegroundColor Green
+    if ($ControlOnly) {
+        Start-Process "http://localhost:$backendPort/control"
+        exit 0
+    }
     Start-Process "http://localhost:5173"
     exit 0
+}
+
+# If ControlOnly mode, only ensure backend is running; skip frontend; open /control and exit
+if ($ControlOnly) {
+    if ($backendRunning) {
+        Write-Host "Backend already running. Opening Control Panel..." -ForegroundColor Green
+        Start-Process "http://localhost:$backendPort/control"
+        exit 0
+    }
+    # Else: start backend, open control panel, and exit below (don't start frontend)
 }
 
 # ============================================================================
@@ -251,6 +270,9 @@ if (-not $backendRunning) {
 
 # Start Frontend
 if (-not $frontendRunning) {
+    if ($ControlOnly) {
+        Write-Host "Control-only mode: Skipping frontend startup." -ForegroundColor Yellow
+    } else {
     Write-Host "Checking frontend dependencies..." -ForegroundColor Cyan
 
     # Check if node_modules exists or if package.json is newer
@@ -355,6 +377,30 @@ if (-not $frontendRunning) {
         Read-Host "Press Enter to exit"
         exit 1
     }
+    }
+}
+
+# Control-only mode: Open control panel and exit script immediately
+if ($ControlOnly) {
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host "  Backend Started in Control-Only Mode!" -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  Backend:        http://localhost:$backendPort" -ForegroundColor Cyan
+    Write-Host "  Control Panel:  http://localhost:$backendPort/control" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  Opening Control Panel in your browser..." -ForegroundColor Yellow
+    Write-Host "  This script will exit. Use the Control Panel to manage services." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  Tip: Use 'Start Frontend' in the Control Panel to launch the frontend." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host ""
+    
+    Start-Process "http://localhost:$backendPort/control"
+    Start-Sleep -Seconds 1
+    exit 0
 }
 
 # Wait for servers to start
