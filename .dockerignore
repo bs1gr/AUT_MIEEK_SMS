@@ -1,0 +1,35 @@
+# VCS
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+backend/venv/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+backend/htmlcov/
+
+# Node
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+frontend/.eslintcache
+
+# Builds & artifacts
+build/
+dist/
+coverage/
+.backups/
+backups/
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+**/.dockerignore
+**/Dockerfile*
