@@ -11,6 +11,8 @@ import os
 import json
 import logging
 from datetime import datetime
+import re
+import unicodedata
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,78 @@ router = APIRouter(
 )
 
 from backend.db import get_session as get_db
+
+# --- Helpers: normalize/translate evaluation rule categories ---
+def _strip_accents(s: str) -> str:
+    try:
+        return ''.join(ch for ch in unicodedata.normalize('NFD', s) if unicodedata.category(ch) != 'Mn')
+    except Exception:
+        return s
+
+def _clean_cat(s: str) -> str:
+    s = s.strip()
+    s = re.sub(r"[\)\s]+$", "", s)  # drop trailing )/spaces
+    s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
+    s = re.sub(r"\s+", " ", s)
+    return s.strip()
+
+def _map_category(raw: str) -> str:
+    base = _clean_cat(str(raw))
+    base_noacc = _strip_accents(base).lower()
+    mapping = [
+        (["συμμετοχ"], "Class Participation"),
+        (["συνεχη", "διαρκ"], "Continuous Assessment"),
+        (["εργαστηρι"], "Lab Work"),
+        (["ασκησ"], "Exercises"),
+        (["εργασι"], "Assignments"),
+        (["εργασιων στο σπιτι", "στο σπιτι"], "Homework"),
+        (["ενδιαμεση", "προοδος"], "Midterm Exam"),
+        (["τελικ", "τελικη εξεταση"], "Final Exam"),
+        (["εξεταση"], "Exam"),
+        (["παρουσιασ"], "Presentation"),
+        (["project", "εργο"], "Project"),
+        (["quiz", "τεστ"], "Quiz"),
+        (["report", "εκθεση"], "Report"),
+    ]
+    for keys, label in mapping:
+        for k in keys:
+            if k in base_noacc:
+                return label
+    english_known = {
+        'class participation': 'Class Participation',
+        'continuous assessment': 'Continuous Assessment',
+        'lab assessment': 'Lab Work',
+        'lab work': 'Lab Work',
+        'assignments': 'Assignments',
+        'homework': 'Homework',
+        'midterm exam': 'Midterm Exam',
+        'final exam': 'Final Exam',
+        'exam': 'Exam',
+        'presentation': 'Presentation',
+        'project': 'Project',
+        'quiz': 'Quiz',
+        'report': 'Report',
+    }
+    low = base.lower()
+    if low in english_known:
+        return english_known[low]
+    return base
+
+def _translate_rules(rules: list[dict]) -> list[dict]:
+    out: list[dict] = []
+    seen: dict[str, float] = {}
+    for r in rules or []:
+        if not isinstance(r, dict):
+            continue
+        cat = _map_category(r.get('category', ''))
+        try:
+            w = float(str(r.get('weight', 0)).replace('%', '').replace(',', '.'))
+        except Exception:
+            w = 0.0
+        seen[cat] = w  # last one wins
+    for k, v in seen.items():
+        out.append({"category": k, "weight": v})
+    return out
 
 
 @router.get("/diagnose")
@@ -74,6 +148,78 @@ def import_courses(db: Session = Depends(get_db)):
         updated = 0
         errors: List[str] = []
         logger.info(f"Importing courses from: {COURSES_DIR}")
+        # --- Helper: normalize/translate evaluation rule categories ---
+        def _strip_accents(s: str) -> str:
+            try:
+                return ''.join(ch for ch in unicodedata.normalize('NFD', s) if unicodedata.category(ch) != 'Mn')
+            except Exception:
+                return s
+
+        def _clean_cat(s: str) -> str:
+            s = s.strip()
+            s = re.sub(r"[\)\s]+$", "", s)  # drop trailing )/spaces
+            s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
+            s = re.sub(r"\s+", " ", s)
+            return s.strip()
+
+        def _map_category(raw: str) -> str:
+            base = _clean_cat(str(raw))
+            base_noacc = _strip_accents(base).lower()
+            mapping = [
+                (["συμμετοχ"], "Class Participation"),
+                (["συνεχη", "διαρκ"], "Continuous Assessment"),
+                (["εργαστηρι"], "Lab Work"),
+                (["ασκησ"], "Exercises"),
+                (["εργασι"], "Assignments"),
+                (["εργασιων στο σπιτι", "στο σπιτι"], "Homework"),
+                (["ενδιαμεση", "προοδος"], "Midterm Exam"),
+                (["τελικ", "τελικη εξεταση"], "Final Exam"),
+                (["εξεταση"], "Exam"),
+                (["παρουσιασ"], "Presentation"),
+                (["project", "εργο"], "Project"),
+                (["quiz", "τεστ"], "Quiz"),
+                (["report", "εκθεση"], "Report"),
+            ]
+            for keys, label in mapping:
+                for k in keys:
+                    if k in base_noacc:
+                        return label
+            english_known = {
+                'class participation': 'Class Participation',
+                'continuous assessment': 'Continuous Assessment',
+                'lab assessment': 'Lab Work',
+                'lab work': 'Lab Work',
+                'assignments': 'Assignments',
+                'homework': 'Homework',
+                'midterm exam': 'Midterm Exam',
+                'final exam': 'Final Exam',
+                'exam': 'Exam',
+                'presentation': 'Presentation',
+                'project': 'Project',
+                'quiz': 'Quiz',
+                'report': 'Report',
+            }
+            low = base.lower()
+            if low in english_known:
+                return english_known[low]
+            return base
+
+        def _translate_rules(rules: list[dict]) -> list[dict]:
+            out: list[dict] = []
+            seen: dict[str, float] = {}
+            for r in rules or []:
+                if not isinstance(r, dict):
+                    continue
+                cat = _map_category(r.get('category', ''))
+                try:
+                    w = float(str(r.get('weight', 0)).replace('%', '').replace(',', '.'))
+                except Exception:
+                    w = 0.0
+                seen[cat] = w  # last one wins
+            for k, v in seen.items():
+                out.append({"category": k, "weight": v})
+            return out
+
         for name in os.listdir(COURSES_DIR):
             if not name.lower().endswith(('.json')):
                 continue
@@ -118,6 +264,7 @@ def import_courses(db: Session = Depends(get_db)):
                             obj['description'] = str(obj['description'])
                     if 'evaluation_rules' in obj:
                         er = obj['evaluation_rules']
+                        rules = []  # Initialize rules variable at the start
                         if isinstance(er, str):
                             try:
                                 obj['evaluation_rules'] = json.loads(er)
@@ -126,11 +273,11 @@ def import_courses(db: Session = Depends(get_db)):
                                 obj.pop('evaluation_rules', None)
                         elif isinstance(er, list):
                             if all(isinstance(x, dict) for x in er):
+                                # Keep as-is, will translate below
                                 pass
                             else:
                                 # First, join consecutive strings that might be part of a multi-line entry
                                 # A line ending with ':' followed by lines not containing ':' should be joined
-                                import re
                                 joined_entries = []
                                 current_entry = ""
                                 for x in er:
@@ -195,7 +342,6 @@ def import_courses(db: Session = Depends(get_db)):
                                             buf = []
                                 if not rules:
                                     # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                    import re
                                     pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
                                     for x in er:
                                         if isinstance(x, str):
@@ -210,11 +356,18 @@ def import_courses(db: Session = Depends(get_db)):
                                                 rules.append({"category": cat, "weight": weight})
                                 # Only use parsed rules that have valid percentages, ignore metadata entries
                                 obj['evaluation_rules'] = rules if rules else []
-                        elif isinstance(er, dict):
-                            obj['evaluation_rules'] = [er]
-                        else:
-                            errors.append(f"{name}: evaluation_rules unsupported type {type(er)}, dropping field")
-                            obj.pop('evaluation_rules', None)
+                            # Translate/localize categories if we have rules
+                            if isinstance(obj.get('evaluation_rules'), list):
+                                # Keep empty list silently; translate when non-empty
+                                if obj['evaluation_rules']:
+                                    obj['evaluation_rules'] = _translate_rules(obj['evaluation_rules'])
+                            elif isinstance(er, dict):
+                                obj['evaluation_rules'] = _translate_rules([er])
+                            else:
+                                # Only report/drop if the original payload wasn't a list either
+                                if not isinstance(er, list):
+                                    errors.append(f"{name}: evaluation_rules unsupported type {type(er)}, dropping field")
+                                obj.pop('evaluation_rules', None)
                     # Normalize teaching_schedule (JSON column): accept dict or JSON string (or empty list)
                     if 'teaching_schedule' in obj:
                         ts = obj['teaching_schedule']
@@ -234,9 +387,16 @@ def import_courses(db: Session = Depends(get_db)):
                             obj.pop('teaching_schedule', None)
                     db_course = db.query(Course).filter(Course.course_code == code).first()
                     if db_course:
-                        for field in ['course_name','semester','credits','description','evaluation_rules','hours_per_week','teaching_schedule']:
+                        # Avoid wiping evaluation_rules with empty list during bulk imports
+                        for field in ['course_name','semester','credits','description','hours_per_week','teaching_schedule']:
                             if field in obj:
                                 setattr(db_course, field, obj[field])
+                        if 'evaluation_rules' in obj:
+                            if isinstance(obj['evaluation_rules'], list) and len(obj['evaluation_rules']) == 0 and getattr(db_course, 'evaluation_rules', None):
+                                # Skip clearing; keep existing rules
+                                pass
+                            else:
+                                setattr(db_course, 'evaluation_rules', obj['evaluation_rules'])
                         updated += 1
                     else:
                         db_course = Course(**{k:v for k,v in obj.items() if k in ['course_code','course_name','semester','credits','description','evaluation_rules','hours_per_week','teaching_schedule']})
@@ -318,7 +478,7 @@ async def import_from_upload(
                 for item in batch:
                     yield item
 
-        # Start main import logic
+    # Start main import logic
         for obj in iter_items():
                 if norm == "courses":
                         code = obj.get('course_code') if isinstance(obj, dict) else None
@@ -355,6 +515,7 @@ async def import_from_upload(
                                 obj['description'] = str(obj['description'])
                         if 'evaluation_rules' in obj:
                             er = obj['evaluation_rules']
+                            rules = []  # Initialize rules variable at the start
                             if isinstance(er, str):
                                 try:
                                     obj['evaluation_rules'] = json.loads(er)
@@ -363,11 +524,11 @@ async def import_from_upload(
                                     obj.pop('evaluation_rules', None)
                             elif isinstance(er, list):
                                 if all(isinstance(x, dict) for x in er):
+                                    # Keep as-is, translate later
                                     pass
                                 else:
                                     # First, join consecutive strings that might be part of a multi-line entry
                                     # A line ending with ':' followed by lines not containing ':' should be joined
-                                    import re
                                     joined_entries = []
                                     current_entry = ""
                                     for x in er:
@@ -432,7 +593,6 @@ async def import_from_upload(
                                                 buf = []
                                     if not rules:
                                         # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                        import re
                                         pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
                                         for x in er:
                                             if isinstance(x, str):
@@ -447,10 +607,23 @@ async def import_from_upload(
                                                     rules.append({"category": cat, "weight": weight})
                                     # Only use parsed rules that have valid percentages, ignore metadata entries
                                 obj['evaluation_rules'] = rules if rules else []
+                            # Translate/localize categories if we have rules
+                            if isinstance(obj.get('evaluation_rules'), list):
+                                if obj['evaluation_rules']:
+                                    try:
+                                        obj['evaluation_rules'] = _translate_rules(obj['evaluation_rules'])
+                                    except Exception:
+                                        pass
+                                # else: keep empty list silently
                             elif isinstance(er, dict):
-                                obj['evaluation_rules'] = [er]
+                                try:
+                                    obj['evaluation_rules'] = _translate_rules([er])
+                                except Exception:
+                                    obj['evaluation_rules'] = [er]
                             else:
-                                errors.append(f"item: evaluation_rules unsupported type {type(er)}, dropping field")
+                                # Only report/drop if the original payload wasn't a list either
+                                if not isinstance(er, list):
+                                    errors.append(f"item: evaluation_rules unsupported type {type(er)}, dropping field")
                                 obj.pop('evaluation_rules', None)
                         if 'teaching_schedule' in obj:
                             ts = obj['teaching_schedule']
@@ -470,9 +643,14 @@ async def import_from_upload(
 
                         db_course = db.query(Course).filter(Course.course_code == code).first()
                         if db_course:
-                            for field in ['course_name','semester','credits','description','evaluation_rules','hours_per_week','teaching_schedule']:
+                            for field in ['course_name','semester','credits','description','hours_per_week','teaching_schedule']:
                                 if field in obj:
                                     setattr(db_course, field, obj[field])
+                            if 'evaluation_rules' in obj:
+                                if isinstance(obj['evaluation_rules'], list) and len(obj['evaluation_rules']) == 0 and getattr(db_course, 'evaluation_rules', None):
+                                    pass
+                                else:
+                                    setattr(db_course, 'evaluation_rules', obj['evaluation_rules'])
                             updated += 1
                         else:
                             db_course = Course(**{k:v for k,v in obj.items() if k in ['course_code','course_name','semester','credits','description','evaluation_rules','hours_per_week','teaching_schedule']})

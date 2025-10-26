@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';
+import { getLocalizedCategory, getCanonicalCategory } from '../../utils/categoryLabels';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -41,17 +42,17 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const [scheduleConflicts, setScheduleConflicts] = useState<any[]>([]);
   const [showConflictWarning, setShowConflictWarning] = useState<boolean>(false);
 
-  // Common grade categories using translations
+  // Common grade categories using translations (bilingual labels for datalist)
   const commonCategories = [
-    t('classParticipation'),
-    t('homework'),
-    t('continuousAssessment'),
-    t('quizzes'),
-    t('midtermExam'),
-    t('finalExam'),
-    t('labWork'),
-    t('project'),
-    t('presentation')
+    { en: 'Class Participation', translated: t('classParticipation') },
+    { en: 'Homework/Assignments', translated: t('homework') },
+    { en: 'Continuous Assessment', translated: t('continuousAssessment') },
+    { en: 'Quizzes', translated: t('quizzes') },
+    { en: 'Midterm Exam', translated: t('midtermExam') },
+    { en: 'Final Exam', translated: t('finalExam') },
+    { en: 'Lab Work', translated: t('labWork') },
+    { en: 'Project', translated: t('project') },
+    { en: 'Presentation', translated: t('presentation') }
   ];
 
   // Fixed: weekDays now properly stores both English and translated names
@@ -405,8 +406,14 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       }
 
       // Build payload with hours_per_week
+      // Normalize evaluation rule category names to canonical English before saving
+      const normalizedRules = (evaluationRules || []).map((r) => ({
+        ...r,
+        category: getCanonicalCategory(String(r.category || ''), t),
+      }));
+
       const payload: any = {
-        evaluation_rules: evaluationRules,
+        evaluation_rules: normalizedRules,
         teaching_schedule: scheduleList,
         hours_per_week: Number.isFinite(calculatedHours) ? calculatedHours : 0,
       };
@@ -600,6 +607,24 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
             {/* Evaluation Rules Tab */}
             {activeTab === 'evaluation' && (
               <div className="p-6">
+                {evaluationRules.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-600">{t('currentRules') || 'Current evaluation rules'}:</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {evaluationRules.map((rule, idx) => {
+                        const w = parseFloat(String(rule.weight));
+                        const weightStr = Number.isFinite(w) ? `${w}%` : '';
+                        const localizedCategory = getLocalizedCategory(String(rule.category || ''), t);
+                        return (
+                          <span key={`rule-pill-${idx}`} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-50 border border-indigo-200 text-indigo-800">
+                            <span className="font-medium">{localizedCategory || '-'}</span>
+                            {weightStr && <span className="ml-1 text-indigo-600">{weightStr}</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-800">{t('gradingComponents')}</h3>
                   <button
@@ -636,7 +661,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                             />
                             <datalist id={`categories-${index}`}>
                               {commonCategories.map((cat, i) => (
-                                <option key={i} value={cat} />
+                                <option key={i} value={cat.translated} label={`${cat.en} / ${cat.translated}`} />
                               ))}
                             </datalist>
                           </div>
@@ -1000,7 +1025,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                     setLoading(true);
                     try {
                       const payload: any = {
-                        evaluation_rules: evaluationRules,
+                        // When clearing schedule keep evaluation rules but normalize categories
+                        evaluation_rules: (evaluationRules || []).map((r) => ({ ...r, category: getCanonicalCategory(String(r.category || ''), t) })),
                         teaching_schedule: [], // Empty schedule
                         hours_per_week: 0,
                       };

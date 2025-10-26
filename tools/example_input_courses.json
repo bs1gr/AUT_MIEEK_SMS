@@ -1,0 +1,58 @@
+[
+  {
+    "course_code": "MIEEK101",
+    "course_name": ["Εισαγωγή", "στην", "Πληροφορική"],
+    "semester": ["Α'", "Εξάμηνο"],
+    "credits": "3",
+    "description": [
+      "Βασικές έννοιες πληροφορικής",
+      "Προγραμματισμός σε Python",
+      "Εισαγωγή στις βάσεις δεδομένων"
+    ],
+    "hours_per_week": "3.0",
+    "evaluation_rules": [
+      "Γλώσσα",
+      "Ελληνική",
+      "Midterm Exam:",
+      "30%",
+      "Final Exam: 40%",
+      "Homework",
+      "30"
+    ],
+    "teaching_schedule": {
+      "Monday": {
+        "periods": 2,
+        "start_time": "08:00",
+        "duration": 50
+      },
+      "Wednesday": {
+        "periods": 1,
+        "start_time": "10:00",
+        "duration": 50
+      }
+    }
+  },
+  {
+    "course_code": "MATH201",
+    "course_name": "Μαθηματικά Ι",
+    "semester": "Α' Εξάμηνο",
+    "credits": 4,
+    "description": "Διαφορικός και ολοκληρωτικός λογισμός",
+    "hours_per_week": 4.0,
+    "evaluation_rules": "Midterm: 35%, Final: 45%, Assignments: 20%",
+    "absence_penalty": 0.5
+  },
+  {
+    "course_code": "CS301",
+    "course_name": "Αλγόριθμοι και Δομές Δεδομένων",
+    "semester": "Γ' Εξάμηνο",
+    "credits": 5,
+    "description": "Προχωρημένοι αλγόριθμοι και πολυπλοκότητα",
+    "hours_per_week": 5.0,
+    "evaluation_rules": [
+      {"category": "Midterm Exam", "weight": 30},
+      {"category": "Final Exam", "weight": 40},
+      {"category": "Projects", "weight": 30}
+    ]
+  }
+]

@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
+import { getCanonicalCategory } from '../../utils/categoryLabels';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -123,11 +124,15 @@ const CourseEvaluationRules = () => {
 
     setLoading(true);
     try {
+      const normalized = (evaluationRules || []).map((r: any) => ({
+        ...r,
+        category: getCanonicalCategory(String(r.category || ''), t as any),
+      }));
       const response = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          evaluation_rules: evaluationRules,
+          evaluation_rules: normalized,
           absence_penalty: absencePenalty
         })
       });
@@ -245,13 +250,13 @@ const CourseEvaluationRules = () => {
                           value={rule.category}
                           onChange={(e) => updateRule(index, 'category', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                          placeholder={`e.g., ${t('midtermExam')}`}
+                          placeholder={`${t('exampleLabel')}: ${t('midtermExam')}`}
                           list={`categories-${index}`}
                         />
                         {/* FIXED: Now shows bilingual options (EN / EL) instead of separate options */}
                         <datalist id={`categories-${index}`}>
                           {commonCategories.map((cat, i) => (
-                            <option key={i} value={cat.translated} />
+                            <option key={i} value={cat.translated} label={`${cat.en} / ${cat.translated}`} />
                           ))}
                         </datalist>
                       </div>
