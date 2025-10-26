@@ -90,6 +90,10 @@ const HelpDocumentation = () => {
         {
           question: t('helpWhatIsAbsencePenalty'),
           answer: t('helpAbsencePenaltyAnswer')
+        },
+        {
+          question: t('helpDoesAttendanceAffectFinal'),
+          answer: t('helpAttendanceAffectAnswer')
         }
       ]
     },
@@ -126,6 +130,14 @@ const HelpDocumentation = () => {
         {
           question: t('helpHowDoesWeightWork'),
           answer: t('helpWeightAnswer')
+        },
+        {
+          question: t('helpHowIsFinalGradeCalculated'),
+          answer: t('helpFinalGradeCalculatedAnswer')
+        },
+        {
+          question: t('helpDoDailyPerformanceAffectFinal'),
+          answer: t('helpDailyPerformanceAffectAnswer')
         },
         {
           question: t('helpHowIsGPACalculated'),
@@ -202,6 +214,14 @@ const HelpDocumentation = () => {
         {
           question: t('helpWhatIsLocalized'),
           answer: t('helpLocalizedAnswer')
+        },
+        {
+          question: t('helpWhyGreekEnglishCategories'),
+          answer: t('helpLocalizationCategoriesAnswer')
+        },
+        {
+          question: t('helpArePlaceholdersBilingual'),
+          answer: t('helpPlaceholdersBilingualAnswer')
         }
       ]
     },
@@ -301,7 +321,6 @@ const HelpDocumentation = () => {
           ))
         )}
       </div>
-
       {/* Additional Resources */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
         <h3 className="text-lg font-bold text-gray-800 mb-4">{t('stillNeedHelp')}</h3>

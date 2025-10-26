@@ -1,7 +1,7 @@
 # Test Coverage Summary
 
 **Last Updated:** October 26, 2025  
-**Total Tests:** 61 passing  
+**Total Tests:** 64 passing  
 **Test Framework:** pytest 8.3.3 + FastAPI TestClient + httpx
 
 ## Test Breakdown
@@ -78,6 +78,11 @@
 ### Grade Calculation Logic (1 test) ✅
 - `test_grade_calculation_logic` - Logic review and documentation (non-integration)
 
+### Analytics Router (3 tests) ✅
+- `test_final_grade_with_grades_dailyperf_and_absence_penalty` - End-to-end final grade with regular grades, daily performance multiplier, and absence penalty
+- `test_final_grade_without_rules_returns_error` - No evaluation rules yields clear error response
+- `test_final_grade_with_attendance_category` - Attendance category contributes Present/Total% by weight; no penalty when absence_penalty=0
+
 ## Coverage Focus
 
 ### Schema Validation ✅
@@ -125,7 +130,7 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 1. ~~**Courses Router**~~ ✅ DONE - Create, update, delete, evaluation rules validation
 2. ~~**Attendance Router**~~ ✅ DONE - Status validation, date queries, bulk import, statistics
 3. ~~**Enrollments Router**~~ ✅ DONE - Student-course links, duplicate prevention, unenrollment
-4. **Analytics Router** - Final grade calculation integration tests
+4. ~~**Analytics Router**~~ ✅ DONE - Final grade calculation integration tests
 
 ### Medium Priority
 5. **DailyPerformance Router** - Category scoring, date ranges
