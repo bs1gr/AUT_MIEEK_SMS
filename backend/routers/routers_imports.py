@@ -28,6 +28,48 @@ router = APIRouter(
 from backend.db import get_session as get_db
 
 # --- Helpers: normalize/translate evaluation rule categories ---
+def _parse_date(value):
+    """Best-effort date parser. Accepts ISO (YYYY-MM-DD), DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY."""
+    if not value:
+        return None
+    if not isinstance(value, str):
+        return value
+    s = value.strip()
+    # Try ISO first
+    try:
+        return datetime.fromisoformat(s).date()
+    except Exception:
+        pass
+    # Common day-first formats
+    for fmt in ("%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except Exception:
+            pass
+    # Common month-first US-style
+    for fmt in ("%m/%d/%Y", "%m-%d-%Y", "%m.%d.%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except Exception:
+            pass
+    return None
+
+def _to_bool(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        return v.strip().lower() in {"true", "1", "yes", "y", "on"}
+    return None
+
+def _valid_email(s: str) -> bool:
+    if not isinstance(s, str):
+        return False
+    s = s.strip()
+    # Simple sanity check; detailed validation is handled elsewhere
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", s))
+
 def _strip_accents(s: str) -> str:
     try:
         return ''.join(ch for ch in unicodedata.normalize('NFD', s) if unicodedata.category(ch) != 'Mn')
@@ -657,25 +699,53 @@ async def import_from_upload(
                             db.add(db_course)
                             created += 1
                 else:  # students
-                    sid = obj.get('student_id') if isinstance(obj, dict) else None
-                    email = obj.get('email') if isinstance(obj, dict) else None
+                    if not isinstance(obj, dict):
+                        errors.append("item: not an object")
+                        continue
+                    sid = obj.get('student_id')
+                    email = obj.get('email')
                     if not sid or not email:
                         errors.append("item: missing student_id or email")
                         continue
-                    if 'enrollment_date' in obj and isinstance(obj['enrollment_date'], str):
-                        # Best-effort ISO parse
-                        try:
-                            obj['enrollment_date'] = datetime.fromisoformat(obj['enrollment_date']).date()
-                        except Exception:
-                            pass
+                    if not _valid_email(email):
+                        errors.append(f"item: invalid email '{email}'")
+                        continue
+                    # Normalize fields
+                    if 'first_name' in obj and isinstance(obj['first_name'], str):
+                        obj['first_name'] = obj['first_name'].strip()
+                    if 'last_name' in obj and isinstance(obj['last_name'], str):
+                        obj['last_name'] = obj['last_name'].strip()
+                    if 'enrollment_date' in obj:
+                        parsed = _parse_date(obj.get('enrollment_date'))
+                        if parsed is None:
+                            # Drop invalid date to avoid DB type errors
+                            errors.append("item: invalid enrollment_date, dropping field")
+                            obj.pop('enrollment_date', None)
+                        else:
+                            obj['enrollment_date'] = parsed
+                    if 'is_active' in obj:
+                        b = _to_bool(obj['is_active'])
+                        if b is None:
+                            obj.pop('is_active', None)
+                        else:
+                            obj['is_active'] = b
+                    # Whitelist allowed fields (include extended profile fields supported by model)
+                    allowed = ['first_name','last_name','email','student_id','enrollment_date','is_active',
+                               'father_name','mobile_phone','phone','health_issue','note','study_year']
+                    cleaned = {k: v for k, v in obj.items() if k in allowed}
+
+                    # Basic required checks for non-nullable columns
+                    if not cleaned.get('first_name') or not cleaned.get('last_name'):
+                        errors.append("item: first_name and last_name are required")
+                        continue
+
                     db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
                     if db_student:
-                        for field in ['first_name','last_name','email','student_id','enrollment_date','is_active']:
-                            if field in obj:
-                                setattr(db_student, field, obj[field])
+                        for field, val in cleaned.items():
+                            setattr(db_student, field, val)
                         updated += 1
                     else:
-                        db_student = Student(**{k:v for k,v in obj.items() if k in ['first_name','last_name','email','student_id','enrollment_date','is_active']})
+                        db_student = Student(**cleaned)
                         db.add(db_student)
                         created += 1
             
@@ -722,25 +792,50 @@ def import_students(db: Session = Depends(get_db)):
                     data = json.load(f)
                 items = data if isinstance(data, list) else [data]
                 for obj in items:
+                    if not isinstance(obj, dict):
+                        errors.append(f"{name}: item not an object")
+                        continue
                     sid = obj.get('student_id')
                     email = obj.get('email')
                     if not sid or not email:
-                        errors.append(f"Missing student_id or email in {name}")
+                        errors.append(f"{name}: missing student_id or email")
                         continue
+                    if not _valid_email(email):
+                        errors.append(f"{name}: invalid email '{email}'")
+                        continue
+                    # Normalize fields
+                    if 'first_name' in obj and isinstance(obj['first_name'], str):
+                        obj['first_name'] = obj['first_name'].strip()
+                    if 'last_name' in obj and isinstance(obj['last_name'], str):
+                        obj['last_name'] = obj['last_name'].strip()
+                    if 'enrollment_date' in obj:
+                        parsed = _parse_date(obj.get('enrollment_date'))
+                        if parsed is None:
+                            errors.append(f"{name}: invalid enrollment_date, dropping field")
+                            obj.pop('enrollment_date', None)
+                        else:
+                            obj['enrollment_date'] = parsed
+                    if 'is_active' in obj:
+                        b = _to_bool(obj['is_active'])
+                        if b is None:
+                            obj.pop('is_active', None)
+                        else:
+                            obj['is_active'] = b
+
+                    allowed = ['first_name','last_name','email','student_id','enrollment_date','is_active',
+                               'father_name','mobile_phone','phone','health_issue','note','study_year']
+                    cleaned = {k: v for k, v in obj.items() if k in allowed}
+                    if not cleaned.get('first_name') or not cleaned.get('last_name'):
+                        errors.append(f"{name}: first_name and last_name are required")
+                        continue
+
                     db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
                     if db_student:
-                        for field in ['first_name','last_name','email','student_id','enrollment_date','is_active']:
-                            if field in obj:
-                                setattr(db_student, field, obj[field])
+                        for field, val in cleaned.items():
+                            setattr(db_student, field, val)
                         updated += 1
                     else:
-                        # parse date if provided
-                        if 'enrollment_date' in obj and isinstance(obj['enrollment_date'], str):
-                            try:
-                                obj['enrollment_date'] = datetime.fromisoformat(obj['enrollment_date']).date()
-                            except Exception:
-                                pass
-                        db_student = Student(**{k:v for k,v in obj.items() if k in ['first_name','last_name','email','student_id','enrollment_date','is_active']})
+                        db_student = Student(**cleaned)
                         db.add(db_student)
                         created += 1
             except Exception as e:

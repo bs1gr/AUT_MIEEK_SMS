@@ -12,9 +12,10 @@ import axios from 'axios';
 
 // Base API URL - change this based on your environment
 // Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// For fullstack Docker deployment, use relative URL to work on any port
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 if (!import.meta.env.VITE_API_URL) {
-  console.warn('VITE_API_URL is not defined. Using default: http://localhost:8000/api/v1');
+  console.warn('VITE_API_URL is not defined. Using default relative URL: /api/v1');
 }
 
 // Create axios instance with default config

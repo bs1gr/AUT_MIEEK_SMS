@@ -14,7 +14,7 @@ import {
 } from '../../utils/gradeUtils';
 import { getLocalizedCategory } from '../../utils/categoryLabels';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 type StatCardProps = { title: string; value: any; icon: any; color: 'indigo'|'purple'|'green'|'yellow'; subtitle?: string };
 const StatCard = ({ title, value, icon: Icon, color, subtitle }: StatCardProps) => {

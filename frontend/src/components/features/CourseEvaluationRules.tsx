@@ -7,7 +7,7 @@ import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator } from 
 import { useLanguage } from '../../LanguageContext';
 import { getCanonicalCategory } from '../../utils/categoryLabels';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 const CourseEvaluationRules = () => {
   const { t } = (useLanguage() as any) || { t: (k: string) => k };
