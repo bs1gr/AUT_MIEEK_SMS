@@ -54,6 +54,30 @@ RUN.bat
 STOP.bat
 ```
 
+### Option 3: Docker (Single-host, production-like)
+
+If you have Docker installed, you can build and run the app with one command and access it at <http://localhost:8080>.
+
+```pwsh
+# From project root
+docker compose build
+docker compose up -d
+
+# Or use helper scripts on Windows
+./scripts/DOCKER_UP.ps1
+```
+
+Stop containers:
+
+```pwsh
+docker compose down
+
+# Or helper script
+./scripts/DOCKER_DOWN.ps1
+```
+
+See DOCKER.md for full details.
+
 ## System Requirements
 
 - **Python** 3.8 or higher
