@@ -4,18 +4,14 @@ import { useLanguage } from '../../LanguageContext';
 
 // Base URL without /api/v1 for direct server endpoints
 // @ts-ignore
-const API_BASE_URL = ((import.meta as any).env?.VITE_API_URL?.trim() || 'http://localhost:8000').replace(/\/api\/v1\/?$/, '');
+const API_BASE_URL = ((import.meta as any).env?.VITE_API_URL?.trim() || window.location.origin).replace(/\/api\/v1\/?$/, '');
 // Derive backend protocol/port from API_BASE_URL for accurate links
 let BACKEND_PROTOCOL = 'http:';
-let BACKEND_PORT = '8000';
+let BACKEND_PORT = '8080';
 try {
   const u = new URL(API_BASE_URL);
   BACKEND_PROTOCOL = u.protocol || 'http:';
-  BACKEND_PORT = u.port || (u.protocol === 'https:' ? '443' : '80');
-  // If default ports, prefer explicit 8000 fallback when host is localhost without port
-  if (!u.port && (u.hostname === 'localhost' || u.hostname === '127.0.0.1')) {
-    BACKEND_PORT = '8000';
-  }
+  BACKEND_PORT = u.port || '8080';
 } catch {}
 
 interface ServerStatus {

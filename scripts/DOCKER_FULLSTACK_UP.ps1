@@ -1,6 +1,7 @@
 # Build and run single-container fullstack image
 param(
     [switch]$Rebuild,
+    [switch]$NoCache,
     [int]$Port = 8080
 )
 
@@ -89,7 +90,10 @@ try {
 
     if ($Rebuild) {
         Write-Info "Building fullstack image..."
-        $b = Start-Process -FilePath "docker" -ArgumentList @("build","-f","docker/Dockerfile.fullstack","-t",$img,".") -NoNewWindow -PassThru
+        $args = @("build","-f","docker/Dockerfile.fullstack","-t",$img)
+        if ($NoCache) { $args += "--no-cache" }
+        $args += "."
+        $b = Start-Process -FilePath "docker" -ArgumentList $args -NoNewWindow -PassThru
         $b.WaitForExit()
         if ($b.ExitCode -ne 0) { Write-Err "Build failed ($($b.ExitCode))"; exit $b.ExitCode }
         Write-Ok "Build complete."

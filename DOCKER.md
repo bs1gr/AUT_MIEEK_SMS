@@ -49,9 +49,9 @@ Note: This value is compiled at build time by Vite.
 
 ## Persisting the Database
 
-The backend uses SQLite by default. A named volume `sms_data` stores the database file at `/data/student_management.db` inside the backend container.
+The backend uses SQLite by default. A named volume `sms_data` stores the database file at `/data/student_management.db` inside the fullstack container.
 
-Environment overrides in `docker-compose.yml`:
+Environment overrides in `docker-compose.yml` (legacy compose setup):
 
 - `DATABASE_URL=sqlite:////data/student_management.db` (four slashes for absolute path)
 - `CORS_ORIGINS=http://localhost:8080` to allow same-host frontend in dev
@@ -59,14 +59,30 @@ Environment overrides in `docker-compose.yml`:
 To reset data, remove the volume:
 
 ```pwsh
-docker volume rm sms_student-management-system_sms_data
+docker volume rm sms_data
 ```
 
-The exact volume name may differ; list volumes with:
+The exact volume name may differ in legacy compose (auto-prefixed), list all volumes with:
 
 ```pwsh
 docker volume ls
 ```
+
+### Backups and Restore (recommended)
+
+Use the Developer Tools menu for one-click database management:
+
+- Backup: DEVTOOLS → `[B]` Backup Database (to `./backups`)
+- Restore: DEVTOOLS → `[T]` Restore Database (from `./backups`)
+- Migrate: DEVTOOLS → `[M]` Migrate Compose → Fullstack Volume
+
+What each option does:
+
+- Backup copies `/data/student_management.db` from the `sms_data` volume to a timestamped file in the local `./backups` folder using an ephemeral Alpine container.
+- Restore stops the running container (if any) and copies a selected backup file back into the `sms_data` volume as `/data/student_management.db`.
+- Migrate copies all content from legacy compose volume `student-management-system_sms_data` into `sms_data`.
+
+Backups are safe to run while the app is running, but for consistency-sensitive operations you may prefer to stop briefly before restoring.
 
 ## Troubleshooting
 
@@ -134,9 +150,9 @@ This repo includes a release workflow to build and push images to GitHub Contain
 
 - Trigger via pushing a tag like `v1.0.0` or manually from Actions.
 - Images pushed (owner namespace, all lowercase):
-    - `ghcr.io/<owner>/sms-backend`
-    - `ghcr.io/<owner>/sms-frontend`
-    - `ghcr.io/<owner>/sms-fullstack`
+  - `ghcr.io/<owner>/sms-backend`
+  - `ghcr.io/<owner>/sms-frontend`
+  - `ghcr.io/<owner>/sms-fullstack`
 
 You can pull and run the fullstack image like:
 

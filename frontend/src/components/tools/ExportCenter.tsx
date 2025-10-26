@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 const ExportCenter = () => {
   const { t } = useLanguage();

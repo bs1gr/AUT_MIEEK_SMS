@@ -9,7 +9,7 @@ import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock
 import { useLanguage } from '../../LanguageContext';
 import Spinner from '../ui/Spinner';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = '/api/v1';
 
 const EnhancedAttendanceCalendar = () => {
   const { t, language } = useLanguage();

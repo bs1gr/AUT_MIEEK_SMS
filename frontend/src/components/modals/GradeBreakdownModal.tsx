@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { XCircle, PieChart, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 
-const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 interface Props {
   studentId: number;

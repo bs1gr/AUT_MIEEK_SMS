@@ -40,7 +40,7 @@ export default function DevTools() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/reset-database', {
+      const response = await fetch('/api/v1/admin/reset-database', {
         method: 'POST'
       });
 
@@ -58,7 +58,7 @@ export default function DevTools() {
   const backupDatabase = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/backup-database', {
+      const response = await fetch('/api/v1/admin/backup-database', {
         method: 'POST'
       });
 
@@ -87,7 +87,7 @@ export default function DevTools() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/sample-data', {
+      const response = await fetch('/api/v1/admin/sample-data', {
         method: 'POST'
       });
 
@@ -105,7 +105,7 @@ export default function DevTools() {
   const checkHealth = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch('/health');
       const data = await response.json();
 
       if (response.ok) {
@@ -125,7 +125,7 @@ export default function DevTools() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/shutdown', {
+      const response = await fetch('/api/v1/admin/shutdown', {
         method: 'POST'
       });
 
@@ -178,11 +178,11 @@ export default function DevTools() {
           <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
             <div className="bg-white/5 p-4 rounded-lg">
               <div className="text-purple-300">{t('devtools.backend') || 'Backend'}</div>
-              <div className="text-white font-mono">localhost:8000</div>
+              <div className="text-white font-mono">localhost:8080</div>
             </div>
             <div className="bg-white/5 p-4 rounded-lg">
               <div className="text-purple-300">{t('devtools.frontend') || 'Frontend'}</div>
-              <div className="text-white font-mono">localhost:5173</div>
+              <div className="text-white font-mono">localhost:8080</div>
             </div>
           </div>
         </div>
@@ -273,13 +273,13 @@ export default function DevTools() {
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
             <h3 className="text-xl font-bold text-white mb-3">🚀 {t('devtools.quickLinks') || 'Quick Links'}</h3>
             <div className="space-y-2 text-purple-200">
-              <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
+              <a href="/docs" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
                 → {t('devtools.apiDocs') || 'API Documentation'}
               </a>
-              <a href="http://localhost:8000/redoc" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
+              <a href="/redoc" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
                 → {t('devtools.apiRedoc') || 'API ReDoc'}
               </a>
-              <a href="http://localhost:8000/health" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
+              <a href="/health" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
                 → {t('devtools.healthEndpoint') || 'Health Check Endpoint'}
               </a>
             </div>

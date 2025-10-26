@@ -4,7 +4,7 @@ import { studentsAPI, gradesAPI, attendanceAPI, highlightsAPI } from '../../api/
 import { useLanguage } from '../../LanguageContext';
 import GradeBreakdownModal from '../modals/GradeBreakdownModal';
 
-const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 const StudentProfile = ({ studentId, onBack }: any) => {
   const { t } = (useLanguage() as any) || { t: (k: string) => k };
