@@ -23419,3 +23419,17 @@ UnboundLocalError: cannot access local variable 'rules' where it is not associat
 2025-10-26 16:39:49,584 - backend.routers.routers_attendance - INFO - Created attendance record: 3
 2025-10-26 16:39:49,585 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/attendance/ "HTTP/1.1 201 Created"
 2025-10-26 16:39:49,589 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/analytics/student/1/course/1/final-grade "HTTP/1.1 200 OK"
+2025-10-26 16:41:04,566 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:04,598 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:04,816 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:04,892 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:04,905 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:05,011 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 16:41:06,649 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 16:41:06,650 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 16:41:11,474 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 16:41:11,475 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 16:41:14,750 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 16:41:14,751 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 16:42:18,399 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 16:42:18,400 - backend.routers.routers_courses - INFO - Retrieved 26 courses
