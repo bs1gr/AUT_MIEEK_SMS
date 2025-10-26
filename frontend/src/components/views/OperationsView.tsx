@@ -4,7 +4,8 @@ import ExportCenter from '../tools/ExportCenter';
 import HelpDocumentation from '../tools/HelpDocumentation';
 import ServerControl from '../common/ServerControl';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+// Use same-origin relative API by default so it works in fullstack (8080) and dev
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 const DevToolsTab: React.FC = () => {
   const { t } = useLanguage() as any;
@@ -29,7 +30,7 @@ const DevToolsTab: React.FC = () => {
       }
       return API_BASE_URL + '/health';
     } catch {
-      return 'http://localhost:8000/health';
+      return '/health';
     }
   })();
 
@@ -243,6 +244,8 @@ const DevToolsTab: React.FC = () => {
               <div className="text-sm font-semibold mb-2">Available Endpoints</div>
               {(() => {
                 const frontendPort = String(window.location.port || '5173');
+                // Prefer current port (8080 in fullstack). Fallback to 8080 when unknown.
+                const backendPort = String(window.location.port || '8080');
                 const rawIps: string[] = Array.isArray(health?.network?.ips) ? health.network.ips : [];
                 const extras = [window.location.hostname, 'localhost', '127.0.0.1'].filter(Boolean) as string[];
                 const set = new Set<string>();
@@ -257,11 +260,11 @@ const DevToolsTab: React.FC = () => {
                       <div key={ip} className="text-xs">
                         <div className="font-mono text-gray-700 mb-1">{ip}</div>
                         <div className="flex flex-wrap gap-2">
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:8000/`} target="_blank" rel="noopener noreferrer">Backend</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/`} target="_blank" rel="noopener noreferrer">Backend</a>
                           <span className="text-gray-400">|</span>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:8000/docs`} target="_blank" rel="noopener noreferrer">Docs</a>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:8000/redoc`} target="_blank" rel="noopener noreferrer">ReDoc</a>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:8000/health`} target="_blank" rel="noopener noreferrer">Health</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/docs`} target="_blank" rel="noopener noreferrer">Docs</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/redoc`} target="_blank" rel="noopener noreferrer">ReDoc</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/health`} target="_blank" rel="noopener noreferrer">Health</a>
                           <span className="text-gray-400">|</span>
                           <a className="text-emerald-700 hover:underline" href={`http://${ip}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">Frontend</a>
                         </div>

@@ -8,7 +8,7 @@ import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';
 import { getLocalizedCategory, getCanonicalCategory } from '../../utils/categoryLabels';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 // ---- Types ----
 type Rule = { category: string; weight: string | number; description?: string };

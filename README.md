@@ -243,6 +243,20 @@ DEVTOOLS.bat
 # Then select option R: Reset Database (Delete Volume)
 ```
 
+#### Backup, Restore, and Migrate
+
+Use the Developer Tools menu for one-click database management:
+
+- Backup: DEVTOOLS → `[B]` Backup Database (to `./backups`)
+- Restore: DEVTOOLS → `[T]` Restore Database (from `./backups`)
+- Migrate: DEVTOOLS → `[M]` Migrate Compose → Fullstack Volume
+
+Notes:
+
+- Backup saves a timestamped copy of `/data/student_management.db` from the `sms_data` volume to the local `./backups` folder.
+- Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
+- Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
+
 ### Frontend Issues
 
 If the frontend isn't loading, try rebuilding:

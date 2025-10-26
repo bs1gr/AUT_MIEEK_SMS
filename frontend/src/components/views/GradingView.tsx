@@ -3,7 +3,7 @@ import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGra
 import apiClient, { gradesAPI } from '../../api/api';
 import { useLanguage } from '../../LanguageContext';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, courses })=>{
   const { t } = useLanguage();
