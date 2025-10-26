@@ -1,0 +1,365 @@
+2025-10-21 23:14:07,767 - logging_config - INFO - Logging initialized
+2025-10-21 23:14:07,768 - __main__ - INFO - Database engine ready
+2025-10-21 23:14:07,771 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-21 23:14:07,772 - __main__ - INFO - Admin router registered successfully
+2025-10-21 23:14:07,786 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-21 23:14:07,807 - __main__ - INFO - 
+======================================================================
+2025-10-21 23:14:07,808 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-21 23:14:07,808 - __main__ - INFO - ======================================================================
+2025-10-21 23:14:07,808 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-21 23:14:07,808 - __main__ - INFO - Database: SQLite
+2025-10-21 23:14:07,808 - __main__ - INFO - Framework: FastAPI
+2025-10-21 23:14:07,808 - __main__ - INFO - Logging: initialized
+2025-10-21 23:14:07,808 - __main__ - INFO - ======================================================================
+2025-10-21 23:14:33,168 - __main__ - INFO - 
+======================================================================
+2025-10-21 23:14:33,169 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-21 23:14:33,169 - __main__ - INFO - ======================================================================
+2025-10-21 23:14:33,169 - __main__ - INFO - Closing database connections...
+2025-10-21 23:14:33,169 - __main__ - INFO - Cleanup completed
+2025-10-21 23:14:33,169 - __main__ - INFO - ======================================================================
+2025-10-21 23:15:49,559 - logging_config - INFO - Logging initialized
+2025-10-21 23:15:49,560 - __main__ - INFO - Database engine ready
+2025-10-21 23:15:49,562 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-21 23:15:49,563 - __main__ - INFO - Admin router registered successfully
+2025-10-21 23:15:49,577 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-21 23:15:49,598 - __main__ - INFO - 
+======================================================================
+2025-10-21 23:15:49,599 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-21 23:15:49,599 - __main__ - INFO - ======================================================================
+2025-10-21 23:15:49,599 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-21 23:15:49,599 - __main__ - INFO - Database: SQLite
+2025-10-21 23:15:49,599 - __main__ - INFO - Framework: FastAPI
+2025-10-21 23:15:49,599 - __main__ - INFO - Logging: initialized
+2025-10-21 23:15:49,599 - __main__ - INFO - ======================================================================
+2025-10-21 23:16:38,522 - __main__ - INFO - 
+======================================================================
+2025-10-21 23:16:38,522 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-21 23:16:38,523 - __main__ - INFO - ======================================================================
+2025-10-21 23:16:38,523 - __main__ - INFO - Closing database connections...
+2025-10-21 23:16:38,523 - __main__ - INFO - Cleanup completed
+2025-10-21 23:16:38,523 - __main__ - INFO - ======================================================================
+2025-10-21 23:18:38,658 - logging_config - INFO - Logging initialized
+2025-10-21 23:18:38,660 - __main__ - INFO - Database engine ready
+2025-10-21 23:18:38,662 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-21 23:18:38,662 - __main__ - INFO - Admin router registered successfully
+2025-10-21 23:18:38,677 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-21 23:18:38,701 - __main__ - INFO - 
+======================================================================
+2025-10-21 23:18:38,701 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-21 23:18:38,701 - __main__ - INFO - ======================================================================
+2025-10-21 23:18:38,701 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-21 23:18:38,701 - __main__ - INFO - Database: SQLite
+2025-10-21 23:18:38,701 - __main__ - INFO - Framework: FastAPI
+2025-10-21 23:18:38,702 - __main__ - INFO - Logging: initialized
+2025-10-21 23:18:38,702 - __main__ - INFO - ======================================================================
+2025-10-22 00:03:51,197 - logging_config - INFO - Logging initialized
+2025-10-22 00:03:51,199 - __main__ - INFO - Database engine ready
+2025-10-22 00:03:51,201 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 00:03:51,202 - __main__ - INFO - Admin router registered successfully
+2025-10-22 00:03:51,214 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 00:03:51,235 - __main__ - INFO - 
+======================================================================
+2025-10-22 00:03:51,236 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 00:03:51,236 - __main__ - INFO - ======================================================================
+2025-10-22 00:03:51,236 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 00:03:51,236 - __main__ - INFO - Database: SQLite
+2025-10-22 00:03:51,236 - __main__ - INFO - Framework: FastAPI
+2025-10-22 00:03:51,236 - __main__ - INFO - Logging: initialized
+2025-10-22 00:03:51,236 - __main__ - INFO - ======================================================================
+2025-10-22 00:04:22,705 - __main__ - INFO - 
+======================================================================
+2025-10-22 00:04:22,705 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-22 00:04:22,705 - __main__ - INFO - ======================================================================
+2025-10-22 00:04:22,705 - __main__ - INFO - Closing database connections...
+2025-10-22 00:04:22,705 - __main__ - INFO - Cleanup completed
+2025-10-22 00:04:22,705 - __main__ - INFO - ======================================================================
+2025-10-22 02:39:44,474 - logging_config - INFO - Logging initialized
+2025-10-22 02:39:44,476 - __main__ - INFO - Database engine ready
+2025-10-22 02:39:44,478 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 02:39:44,479 - __main__ - INFO - Admin router registered successfully
+2025-10-22 02:39:44,493 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 02:39:44,527 - __main__ - INFO - 
+======================================================================
+2025-10-22 02:39:44,528 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 02:39:44,528 - __main__ - INFO - ======================================================================
+2025-10-22 02:39:44,528 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 02:39:44,528 - __main__ - INFO - Database: SQLite
+2025-10-22 02:39:44,528 - __main__ - INFO - Framework: FastAPI
+2025-10-22 02:39:44,528 - __main__ - INFO - Logging: initialized
+2025-10-22 02:39:44,528 - __main__ - INFO - ======================================================================
+2025-10-22 02:40:28,018 - logging_config - INFO - Logging initialized
+2025-10-22 02:40:28,019 - __main__ - INFO - Database engine ready
+2025-10-22 02:40:28,021 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 02:40:28,022 - __main__ - INFO - Admin router registered successfully
+2025-10-22 02:40:28,037 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 02:40:28,070 - __main__ - INFO - 
+======================================================================
+2025-10-22 02:40:28,071 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 02:40:28,071 - __main__ - INFO - ======================================================================
+2025-10-22 02:40:28,071 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 02:40:28,071 - __main__ - INFO - Database: SQLite
+2025-10-22 02:40:28,071 - __main__ - INFO - Framework: FastAPI
+2025-10-22 02:40:28,071 - __main__ - INFO - Logging: initialized
+2025-10-22 02:40:28,071 - __main__ - INFO - ======================================================================
+2025-10-22 03:11:16,659 - logging_config - INFO - Logging initialized
+2025-10-22 03:11:16,660 - __main__ - INFO - Database engine ready
+2025-10-22 03:11:16,662 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 03:11:16,663 - __main__ - INFO - Admin router registered successfully
+2025-10-22 03:11:16,677 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 03:11:16,710 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:11:16,710 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 03:11:16,710 - __main__ - INFO - ======================================================================
+2025-10-22 03:11:16,710 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 03:11:16,710 - __main__ - INFO - Database: SQLite
+2025-10-22 03:11:16,710 - __main__ - INFO - Framework: FastAPI
+2025-10-22 03:11:16,711 - __main__ - INFO - Logging: initialized
+2025-10-22 03:11:16,711 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:11,842 - logging_config - INFO - Logging initialized
+2025-10-22 03:14:11,843 - __main__ - INFO - Database engine ready
+2025-10-22 03:14:11,845 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 03:14:11,846 - __main__ - INFO - Admin router registered successfully
+2025-10-22 03:14:11,861 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 03:14:11,896 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:14:11,896 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 03:14:11,896 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:11,896 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 03:14:11,896 - __main__ - INFO - Database: SQLite
+2025-10-22 03:14:11,896 - __main__ - INFO - Framework: FastAPI
+2025-10-22 03:14:11,896 - __main__ - INFO - Logging: initialized
+2025-10-22 03:14:11,897 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:29,136 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:14:29,136 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-22 03:14:29,136 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:29,136 - __main__ - INFO - Closing database connections...
+2025-10-22 03:14:29,136 - __main__ - INFO - Cleanup completed
+2025-10-22 03:14:29,136 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:47,750 - logging_config - INFO - Logging initialized
+2025-10-22 03:14:47,751 - __main__ - INFO - Database engine ready
+2025-10-22 03:14:47,753 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 03:14:47,754 - __main__ - INFO - Admin router registered successfully
+2025-10-22 03:14:47,769 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 03:14:47,804 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:14:47,804 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 03:14:47,804 - __main__ - INFO - ======================================================================
+2025-10-22 03:14:47,805 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 03:14:47,805 - __main__ - INFO - Database: SQLite
+2025-10-22 03:14:47,805 - __main__ - INFO - Framework: FastAPI
+2025-10-22 03:14:47,805 - __main__ - INFO - Logging: initialized
+2025-10-22 03:14:47,805 - __main__ - INFO - ======================================================================
+2025-10-22 03:16:52,777 - logging_config - INFO - Logging initialized
+2025-10-22 03:16:52,779 - __main__ - INFO - Database engine ready
+2025-10-22 03:16:52,781 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 03:16:52,782 - __main__ - INFO - Admin router registered successfully
+2025-10-22 03:16:52,797 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 03:16:52,833 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:16:52,833 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 03:16:52,833 - __main__ - INFO - ======================================================================
+2025-10-22 03:16:52,833 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 03:16:52,833 - __main__ - INFO - Database: SQLite
+2025-10-22 03:16:52,833 - __main__ - INFO - Framework: FastAPI
+2025-10-22 03:16:52,833 - __main__ - INFO - Logging: initialized
+2025-10-22 03:16:52,833 - __main__ - INFO - ======================================================================
+2025-10-22 03:21:01,616 - logging_config - INFO - Logging initialized
+2025-10-22 03:21:01,617 - __main__ - INFO - Database engine ready
+2025-10-22 03:21:01,619 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-22 03:21:01,620 - __main__ - INFO - Admin router registered successfully
+2025-10-22 03:21:01,635 - __main__ - INFO - Some routers failed to load; see debug logs for details
+2025-10-22 03:21:01,670 - __main__ - INFO - 
+======================================================================
+2025-10-22 03:21:01,670 - __main__ - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-22 03:21:01,670 - __main__ - INFO - ======================================================================
+2025-10-22 03:21:01,670 - __main__ - INFO - Version: 3.0.1 - Production Ready
+2025-10-22 03:21:01,670 - __main__ - INFO - Database: SQLite
+2025-10-22 03:21:01,670 - __main__ - INFO - Framework: FastAPI
+2025-10-22 03:21:01,670 - __main__ - INFO - Logging: initialized
+2025-10-22 03:21:01,670 - __main__ - INFO - ======================================================================
+2025-10-24 11:38:54,489 - logging_config - INFO - Logging initialized
+2025-10-24 11:38:54,490 - main - INFO - Database engine ready
+2025-10-24 11:38:54,526 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-24 11:38:54,528 - main - INFO - Admin router registered successfully
+2025-10-24 11:38:54,544 - main - INFO - Some routers failed to load; see debug logs for details
+2025-10-24 11:38:54,545 - main - INFO - 
+======================================================================
+2025-10-24 11:38:54,545 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-24 11:38:54,545 - main - INFO - ======================================================================
+2025-10-24 11:38:54,546 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-24 11:38:54,546 - main - INFO - Database: SQLite
+2025-10-24 11:38:54,546 - main - INFO - Framework: FastAPI
+2025-10-24 11:38:54,546 - main - INFO - Logging: initialized
+2025-10-24 11:38:54,546 - main - INFO - ======================================================================
+2025-10-24 11:38:54,635 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-24 11:39:31,421 - main - INFO - 
+======================================================================
+2025-10-24 11:39:31,421 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-24 11:39:31,421 - main - INFO - ======================================================================
+2025-10-24 11:39:31,421 - main - INFO - Closing database connections...
+2025-10-24 11:39:31,421 - main - INFO - Cleanup completed
+2025-10-24 11:39:31,421 - main - INFO - ======================================================================
+2025-10-24 11:39:41,018 - logging_config - INFO - Logging initialized
+2025-10-24 11:39:41,019 - main - INFO - Database engine ready
+2025-10-24 11:39:41,032 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-24 11:39:41,033 - main - INFO - Admin router registered successfully
+2025-10-24 11:39:41,047 - main - INFO - Some routers failed to load; see debug logs for details
+2025-10-24 11:39:41,049 - main - INFO - 
+======================================================================
+2025-10-24 11:39:41,049 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-24 11:39:41,049 - main - INFO - ======================================================================
+2025-10-24 11:39:41,049 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-24 11:39:41,049 - main - INFO - Database: SQLite
+2025-10-24 11:39:41,049 - main - INFO - Framework: FastAPI
+2025-10-24 11:39:41,049 - main - INFO - Logging: initialized
+2025-10-24 11:39:41,049 - main - INFO - ======================================================================
+2025-10-24 11:39:41,050 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-24 11:39:54,433 - main - INFO - 
+======================================================================
+2025-10-24 11:39:54,434 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-24 11:39:54,434 - main - INFO - ======================================================================
+2025-10-24 11:39:54,434 - main - INFO - Closing database connections...
+2025-10-24 11:39:54,434 - main - INFO - Cleanup completed
+2025-10-24 11:39:54,434 - main - INFO - ======================================================================
+2025-10-24 11:40:03,543 - logging_config - INFO - Logging initialized
+2025-10-24 11:40:03,545 - main - INFO - Database engine ready
+2025-10-24 11:40:03,557 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-24 11:40:03,558 - main - INFO - Admin router registered successfully
+2025-10-24 11:40:03,572 - main - INFO - Some routers failed to load; see debug logs for details
+2025-10-24 11:40:03,573 - main - INFO - 
+======================================================================
+2025-10-24 11:40:03,573 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-24 11:40:03,573 - main - INFO - ======================================================================
+2025-10-24 11:40:03,574 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-24 11:40:03,574 - main - INFO - Database: SQLite
+2025-10-24 11:40:03,574 - main - INFO - Framework: FastAPI
+2025-10-24 11:40:03,574 - main - INFO - Logging: initialized
+2025-10-24 11:40:03,574 - main - INFO - ======================================================================
+2025-10-24 11:40:03,574 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-24 11:45:20,082 - main - INFO - Admin shutdown route called (redirecting to control API)
+2025-10-24 11:45:20,083 - main - INFO - Shutdown initiated: stopping all services
+2025-10-24 11:45:20,083 - main - INFO - Attempting to kill tracked frontend PID: 32948
+2025-10-24 11:45:20,187 - main - INFO - Stopped tracked frontend process (PID: 32948)
+2025-10-24 11:45:20,187 - main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-24 11:45:20,208 - main - INFO - Found PIDs on port 5173: [33912]
+2025-10-24 11:45:20,208 - main - INFO - Killing PID 33912 on port 5173
+2025-10-24 11:45:20,303 - main - INFO - Stopped frontend on port 5173 (PID: 33912), taskkill result: 0
+2025-10-24 11:45:20,394 - main - INFO - Backend stop requested
+2025-10-24 11:45:20,394 - main - INFO - Shutdown initiated: stopping all services
+2025-10-24 11:45:20,394 - main - INFO - No tracked frontend process to stop
+2025-10-24 11:45:20,394 - main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-24 11:45:20,432 - main - INFO - Checking for Node.js processes...
+2025-10-24 11:45:20,515 - main - INFO - No Node.js processes found
+2025-10-24 11:45:20,546 - main - INFO - Checking for Node.js processes...
+2025-10-24 11:45:20,625 - main - INFO - No Node.js processes found
+2025-10-24 11:45:21,144 - main - INFO - Executing backend shutdown
+2025-10-26 08:37:25,559 - logging_config - INFO - Logging initialized
+2025-10-26 08:37:25,590 - main - INFO - Database engine ready
+2025-10-26 08:37:25,739 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-26 08:37:25,740 - main - INFO - Admin router registered successfully
+2025-10-26 08:37:25,763 - main - INFO - Some routers failed to load; see debug logs for details
+2025-10-26 08:37:25,765 - main - INFO - 
+======================================================================
+2025-10-26 08:37:25,765 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 08:37:25,765 - main - INFO - ======================================================================
+2025-10-26 08:37:25,765 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 08:37:25,765 - main - INFO - Database: SQLite
+2025-10-26 08:37:25,765 - main - INFO - Framework: FastAPI
+2025-10-26 08:37:25,765 - main - INFO - Logging: initialized
+2025-10-26 08:37:25,765 - main - INFO - ======================================================================
+2025-10-26 08:37:25,766 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 08:45:18,947 - logging_config - INFO - Logging initialized
+2025-10-26 08:45:18,949 - main - INFO - Database engine ready
+2025-10-26 08:45:18,991 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-26 08:45:18,992 - main - INFO - Admin router registered successfully
+2025-10-26 08:45:19,174 - backend.models - INFO - Database initialized successfully: sqlite:///./student_management.db
+2025-10-26 08:45:20,691 - main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps, Highlights
+2025-10-26 08:45:20,693 - main - INFO - 
+======================================================================
+2025-10-26 08:45:20,694 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 08:45:20,694 - main - INFO - ======================================================================
+2025-10-26 08:45:20,694 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 08:45:20,694 - main - INFO - Database: SQLite
+2025-10-26 08:45:20,694 - main - INFO - Framework: FastAPI
+2025-10-26 08:45:20,694 - main - INFO - Logging: initialized
+2025-10-26 08:45:20,694 - main - INFO - ======================================================================
+2025-10-26 08:45:20,695 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 08:45:44,879 - main - INFO - 
+======================================================================
+2025-10-26 08:45:44,879 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-26 08:45:44,879 - main - INFO - ======================================================================
+2025-10-26 08:45:44,879 - main - INFO - Closing database connections...
+2025-10-26 08:45:44,879 - main - INFO - Cleanup completed
+2025-10-26 08:45:44,879 - main - INFO - ======================================================================
+2025-10-26 08:47:15,314 - logging_config - INFO - Logging initialized
+2025-10-26 08:47:15,315 - main - INFO - Database engine ready
+2025-10-26 08:47:15,325 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-26 08:47:15,327 - main - INFO - Admin router registered successfully
+2025-10-26 08:47:15,367 - backend.models - INFO - Database initialized successfully: sqlite:///./student_management.db
+2025-10-26 08:47:15,794 - main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps, Highlights
+2025-10-26 08:47:15,795 - main - INFO - 
+======================================================================
+2025-10-26 08:47:15,795 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 08:47:15,796 - main - INFO - ======================================================================
+2025-10-26 08:47:15,796 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 08:47:15,796 - main - INFO - Database: SQLite
+2025-10-26 08:47:15,796 - main - INFO - Framework: FastAPI
+2025-10-26 08:47:15,796 - main - INFO - Logging: initialized
+2025-10-26 08:47:15,796 - main - INFO - ======================================================================
+2025-10-26 08:47:15,797 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 08:47:15,797 - main - INFO - 
+======================================================================
+2025-10-26 08:47:15,798 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-26 08:47:15,798 - main - INFO - ======================================================================
+2025-10-26 08:47:15,798 - main - INFO - Closing database connections...
+2025-10-26 08:47:15,798 - main - INFO - Cleanup completed
+2025-10-26 08:47:15,798 - main - INFO - ======================================================================
+2025-10-26 08:49:15,384 - logging_config - INFO - Logging initialized
+2025-10-26 08:49:15,386 - main - INFO - Database engine ready
+2025-10-26 08:49:15,398 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-26 08:49:15,399 - main - INFO - Admin router registered successfully
+2025-10-26 08:49:15,444 - backend.models - INFO - Database initialized successfully: sqlite:///./student_management.db
+2025-10-26 08:49:15,859 - main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps, Highlights
+2025-10-26 08:49:15,860 - main - INFO - 
+======================================================================
+2025-10-26 08:49:15,860 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 08:49:15,860 - main - INFO - ======================================================================
+2025-10-26 08:49:15,860 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 08:49:15,861 - main - INFO - Database: SQLite
+2025-10-26 08:49:15,861 - main - INFO - Framework: FastAPI
+2025-10-26 08:49:15,861 - main - INFO - Logging: initialized
+2025-10-26 08:49:15,861 - main - INFO - ======================================================================
+2025-10-26 08:49:15,862 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 08:49:15,863 - main - INFO - 
+======================================================================
+2025-10-26 08:49:15,863 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-26 08:49:15,863 - main - INFO - ======================================================================
+2025-10-26 08:49:15,863 - main - INFO - Closing database connections...
+2025-10-26 08:49:15,863 - main - INFO - Cleanup completed
+2025-10-26 08:49:15,863 - main - INFO - ======================================================================
+2025-10-26 08:49:32,085 - logging_config - INFO - Logging initialized
+2025-10-26 08:49:32,087 - main - INFO - Database engine ready
+2025-10-26 08:49:32,098 - models - INFO - Database initialized successfully: sqlite:///student_management.db
+2025-10-26 08:49:32,099 - main - INFO - Admin router registered successfully
+2025-10-26 08:49:32,142 - backend.models - INFO - Database initialized successfully: sqlite:///./student_management.db
+2025-10-26 08:49:32,536 - main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps, Highlights
+2025-10-26 08:49:32,538 - main - INFO - 
+======================================================================
+2025-10-26 08:49:32,538 - main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 08:49:32,538 - main - INFO - ======================================================================
+2025-10-26 08:49:32,538 - main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 08:49:32,538 - main - INFO - Database: SQLite
+2025-10-26 08:49:32,538 - main - INFO - Framework: FastAPI
+2025-10-26 08:49:32,539 - main - INFO - Logging: initialized
+2025-10-26 08:49:32,539 - main - INFO - ======================================================================
+2025-10-26 08:49:32,539 - main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 08:49:45,032 - main - INFO - 
+======================================================================
+2025-10-26 08:49:45,033 - main - INFO - STUDENT MANAGEMENT SYSTEM - SHUTDOWN
+2025-10-26 08:49:45,033 - main - INFO - ======================================================================
+2025-10-26 08:49:45,033 - main - INFO - Closing database connections...
+2025-10-26 08:49:45,033 - main - INFO - Cleanup completed
+2025-10-26 08:49:45,033 - main - INFO - ======================================================================
