@@ -40,6 +40,8 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
   useEffect(() => { setFilteredCourses(courses || []); }, [courses]);
 
   // When course is chosen, restrict students to those enrolled in course
+  const studentsString = useMemo(() => students?.map(s => s.id).join(',') || '', [students]);
+  
   useEffect(() => {
     const run = async () => {
       if (!courseId) { setFilteredStudents(students || []); return; }
@@ -60,10 +62,11 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       setFilteredStudents(students || []);
     };
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId]);
+  }, [courseId, studentsString]); // Use studentsString to avoid infinite loop
 
   // When student is chosen, restrict courses to those the student is enrolled in
+  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
+  
   useEffect(() => {
     const run = async () => {
       if (!studentId) { setFilteredCourses(courses || []); return; }
@@ -89,8 +92,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       }
     };
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentId]);
+  }, [studentId, coursesString]); // Use coursesString to avoid infinite loop
 
   useEffect(()=>{ loadFinal(); },[studentId, courseId]);
 

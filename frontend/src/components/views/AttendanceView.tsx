@@ -81,6 +81,10 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   }, [localCourses?.length]);
 
   // Determine which courses have at least one enrolled student
+  // Only run when courses list changes length (not on every mutation)
+  const coursesLength = localCourses?.length || 0;
+  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
+  
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (!localCourses || localCourses.length === 0) { setCoursesWithEnrollment(new Set()); return; }
@@ -99,7 +103,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       } catch { setCoursesWithEnrollment(new Set()); }
     };
     fetchEnrollments();
-  }, [localCourses]);
+  }, [courseIds]); // Only depend on course IDs string, not entire array
 
   // Ensure selectedCourse is within the filtered list
   useEffect(() => {
@@ -118,9 +122,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   }, [localCourses, selectedCourse]);
 
   // Keep selected course up-to-date (teaching_schedule) by fetching details
+  // Only run once when course is selected, not continuously
+  const [courseDetailsFetched, setCourseDetailsFetched] = useState<Set<number>>(new Set());
+  
   useEffect(() => {
     const refreshSelectedCourse = async () => {
-      if (!selectedCourse) return;
+      if (!selectedCourse || courseDetailsFetched.has(selectedCourse as number)) return;
       try {
         const resp = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`);
         if (!resp.ok) return;
@@ -132,10 +139,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           next[idx] = { ...next[idx], ...detail };
           return next;
         });
+        setCourseDetailsFetched(prev => new Set(prev).add(selectedCourse as number));
       } catch { /* noop */ }
     };
     refreshSelectedCourse();
-  }, [selectedCourse]);
+  }, [selectedCourse]); // Only depend on selectedCourse, not localCourses
 
   // Load enrolled students for selected course
   useEffect(() => {
