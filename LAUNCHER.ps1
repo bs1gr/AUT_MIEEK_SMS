@@ -22,6 +22,10 @@ function Show-Menu {
     Write-Host "  [2] Stop Application (All Services)" -ForegroundColor Yellow
     Write-Host "  [3] Emergency Shutdown (Kill All Processes)" -ForegroundColor Red
     Write-Host ""
+    Write-Host "  [D] Docker Up (build+run)" -ForegroundColor Green
+    Write-Host "  [E] Docker Down (stop)" -ForegroundColor Yellow
+    Write-Host "  [O] Open Docker App (http://localhost:8080)" -ForegroundColor White
+    Write-Host ""
     Write-Host "  [4] Install Dependencies" -ForegroundColor Blue
     Write-Host "  [5] Check System Health" -ForegroundColor Blue
     Write-Host "  [6] Debug Port Conflicts" -ForegroundColor Blue
@@ -153,6 +157,27 @@ function New-DeploymentPackage {
     Write-Host "Creating Deployment Package..." -ForegroundColor Magenta
     Write-Host ""
     & ".\scripts\CREATE_PACKAGE.ps1"
+}
+
+function Docker-Up {
+    Write-Host "" 
+    Write-Host "Docker compose up (build+run)..." -ForegroundColor Green
+    Write-Host "" 
+    & ".\scripts\DOCKER_UP.ps1"
+}
+
+function Docker-Down {
+    Write-Host "" 
+    Write-Host "Docker compose down (stop+remove)..." -ForegroundColor Yellow
+    Write-Host "" 
+    & ".\scripts\DOCKER_DOWN.ps1"
+}
+
+function Open-DockerApp {
+    Write-Host "" 
+    Write-Host "Opening Docker app (http://localhost:8080)..." -ForegroundColor White
+    Write-Host "" 
+    Start-Process "http://localhost:8080"
 }
 
 function Start-Cleanup {
@@ -288,6 +313,12 @@ do {
         '5' { Test-SystemHealth }
         '6' { Debug-Ports }
         '7' { Test-Frontend }
+    'D' { Docker-Up; Read-Host "Press Enter to continue" }
+    'd' { Docker-Up; Read-Host "Press Enter to continue" }
+    'E' { Docker-Down; Read-Host "Press Enter to continue" }
+    'e' { Docker-Down; Read-Host "Press Enter to continue" }
+    'O' { Open-DockerApp }
+    'o' { Open-DockerApp }
         '8' { New-DeploymentPackage; Read-Host "Press Enter to continue" }
         '9' { Start-Cleanup }
         'V' { Show-VersionInfo; Read-Host "Press Enter to continue" }
