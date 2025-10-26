@@ -12,6 +12,7 @@ import {
   formatAllGrades,
   getLetterGrade,
 } from '../../utils/gradeUtils';
+import { getLocalizedCategory } from '../../utils/categoryLabels';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -213,7 +214,7 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {topPerformers.map((s: any, idx: number) => {
                   const gpa = Number(s.overallGPA || 0);
-                  const formatted = formatAllGrades(gpa);
+                  const formatted: any = formatAllGrades(gpa);
                   const pct = gpaToPercentage(gpa);
                   const letter = getLetterGrade(pct);
                   const arithmeticValue = (pct / 100 * 100).toFixed(0); // Keep one decimal for precision
@@ -255,7 +256,7 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
                 <div className="space-y-3">
                   {topPerformers.map((s: any, index: number) => {
                     const gpa = Number(s.overallGPA || 0);
-                    const formatted = formatAllGrades(gpa);
+                    const formatted: any = formatAllGrades(gpa);
                     const pct = gpaToPercentage(gpa);
                     const letter = getLetterGrade(pct);
                     const arithmeticValue = (pct / 100 * 100).toFixed(0); // No decimals for compact view
@@ -290,8 +291,38 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
                 {courses && courses.length > 0 ? (
                   courses.slice(0, 6).map((course: any) => (
                     <div key={course.id} className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between"><div><p className="font-bold text-gray-800">{course.course_code}</p><p className="text-sm text-gray-600 mt-1">{course.course_name}</p>{course.semester && (<p className="text-xs text-gray-500 mt-1">{course.semester}</p>)}</div><span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">{course.credits || 0} {t('creditsAbbr') || 'cr'}</span></div>
-                      {Array.isArray(course.evaluation_rules) && course.evaluation_rules.length > 0 && (<div className="mt-2 pt-2 border-t border-purple-200"><p className="text-xs text-gray-600 flex items-center space-x-1"><CheckCircle size={12} className="text-green-600" /><span>{t('evaluationRulesConfigured') || 'Evaluation rules configured'}</span></p></div>)}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-gray-800">{course.course_code}</p>
+                          <p className="text-sm text-gray-600 mt-1">{course.course_name}</p>
+                          {course.semester && (<p className="text-xs text-gray-500 mt-1">{course.semester}</p>)}
+                        </div>
+                        <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">{course.credits || 0} {t('creditsAbbr') || 'cr'}</span>
+                      </div>
+                      {Array.isArray(course.evaluation_rules) && course.evaluation_rules.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-purple-200">
+                          <p className="text-xs text-gray-600 flex items-center space-x-1">
+                            <CheckCircle size={12} className="text-green-600" />
+                            <span>{t('evaluationRules') || 'Evaluation rules'}:</span>
+                          </p>
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {(course.evaluation_rules || []).slice(0, 6).map((r: any, idx: number) => {
+                              const w = parseFloat(String(r?.weight ?? ''));
+                              const weightStr = Number.isFinite(w) ? `${Math.round(w)}%` : '';
+                              const localizedCategory = getLocalizedCategory(String(r?.category || ''), t);
+                              return (
+                                <span key={`${course.id}-rule-${idx}`} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-white/70 border border-purple-200 text-purple-800">
+                                  <span className="font-medium">{localizedCategory || '-'}</span>
+                                  {weightStr && <span className="ml-1 text-purple-600">{weightStr}</span>}
+                                </span>
+                              );
+                            })}
+                          </div>
+                          {course.evaluation_rules.length > 6 && (
+                            <p className="text-[11px] text-gray-500 mt-1">+{course.evaluation_rules.length - 6} more</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
