@@ -11269,3 +11269,327 @@ FROM courses
 2025-10-26 10:03:20,524 - backend.main - INFO - Executing backend shutdown
 2025-10-26 10:03:20,711 - backend.main - INFO - No Node.js processes found
 2025-10-26 10:03:20,732 - backend.main - INFO - No Node.js processes found
+2025-10-26 10:32:41,338 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:32:41,340 - backend.main - INFO - Database engine ready
+2025-10-26 10:32:42,129 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:32:42,129 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:32:42,129 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:33:30,674 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:33:30,675 - backend.main - INFO - Database engine ready
+2025-10-26 10:33:31,263 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:33:31,263 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:33:31,263 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:33:31,537 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,539 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,550 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,551 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,555 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with email: john1.doe1@example.com
+2025-10-26 10:33:31,556 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:33:31,567 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,569 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,572 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with ID: STD0001
+2025-10-26 10:33:31,573 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:33:31,584 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,587 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,591 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:33:31,592 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,595 - backend.routers.routers_students - WARNING - Student not found: 9999
+2025-10-26 10:33:31,596 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 10:33:31,608 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,609 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,612 - backend.routers.routers_students - INFO - Created student: 2 - STD0002
+2025-10-26 10:33:31,613 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,619 - backend.routers.routers_students - INFO - Created student: 3 - STD0003
+2025-10-26 10:33:31,620 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,623 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 10:33:31,625 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/ "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,628 - backend.routers.routers_students - INFO - Deactivated student: 2
+2025-10-26 10:33:31,629 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/2/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,633 - backend.routers.routers_students - INFO - Retrieved 2 students (skip=0, limit=100)
+2025-10-26 10:33:31,634 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=true "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,638 - backend.routers.routers_students - INFO - Retrieved 1 students (skip=0, limit=100)
+2025-10-26 10:33:31,639 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=false "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,641 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=0 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:33:31,644 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=1001 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:33:31,646 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?skip=-1 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:33:31,658 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,659 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,663 - backend.routers.routers_students - INFO - Updated student: 1
+2025-10-26 10:33:31,665 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,669 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:33:31,672 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:33:31,675 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:33:31,686 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,687 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,698 - backend.routers.routers_students - INFO - Deleted student: 1
+2025-10-26 10:33:31,700 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/students/1 "HTTP/1.1 204 No Content"
+2025-10-26 10:33:31,703 - backend.routers.routers_students - WARNING - Student not found: 1
+2025-10-26 10:33:31,704 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 404 Not Found"
+2025-10-26 10:33:31,714 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:33:31,716 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:33:31,719 - backend.routers.routers_students - INFO - Deactivated student: 1
+2025-10-26 10:33:31,720 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,723 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:33:31,724 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,726 - backend.routers.routers_students - INFO - Activated student: 1
+2025-10-26 10:33:31,727 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/activate "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,730 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:33:31,731 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:33:31,743 - backend.routers.routers_students - ERROR - Error in bulk create: (sqlite3.IntegrityError) UNIQUE constraint failed: students.email
+[SQL: INSERT INTO students (first_name, last_name, email, student_id, enrollment_date, is_active, father_name, mobile_phone, phone, health_issue, note, study_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id]
+[parameters: ('John3', 'Doe3', 'john1.doe1@example.com', 'STD0003', '2025-10-26', 1, None, None, None, None, None, 1)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+Traceback (most recent call last):
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 2118, in _exec_insertmany_context
+    dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~^
+        cursor,
+        ^^^^^^^
+    ...<2 lines>...
+        context,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: UNIQUE constraint failed: students.email
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\SMS\student-management-system\backend\routers\routers_students.py", line 308, in bulk_create_students
+    db.commit()
+    ~~~~~~~~~^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\orm\persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 1844, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 2126, in _exec_insertmany_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e,
+        ^^
+    ...<4 lines>...
+        is_sub_exec=True,
+        ^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py", line 2118, in _exec_insertmany_context
+    dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~^
+        cursor,
+        ^^^^^^^
+    ...<2 lines>...
+        context,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\Vasilis\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: students.email
+[SQL: INSERT INTO students (first_name, last_name, email, student_id, enrollment_date, is_active, father_name, mobile_phone, phone, health_issue, note, study_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id]
+[parameters: ('John3', 'Doe3', 'john1.doe1@example.com', 'STD0003', '2025-10-26', 1, None, None, None, None, None, 1)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-10-26 10:33:31,759 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 500 Internal Server Error"
+2025-10-26 10:34:59,743 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:34:59,744 - backend.main - INFO - Database engine ready
+2025-10-26 10:35:00,165 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:35:00,165 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:35:00,165 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:35:00,321 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,322 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,334 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,336 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,338 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with email: john1.doe1@example.com
+2025-10-26 10:35:00,339 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:00,350 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,352 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,355 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with ID: STD0001
+2025-10-26 10:35:00,355 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:00,366 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,367 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,370 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:00,371 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,373 - backend.routers.routers_students - WARNING - Student not found: 9999
+2025-10-26 10:35:00,375 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 10:35:00,386 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,387 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,390 - backend.routers.routers_students - INFO - Created student: 2 - STD0002
+2025-10-26 10:35:00,392 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,396 - backend.routers.routers_students - INFO - Created student: 3 - STD0003
+2025-10-26 10:35:00,398 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,401 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 10:35:00,402 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/ "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,406 - backend.routers.routers_students - INFO - Deactivated student: 2
+2025-10-26 10:35:00,407 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/2/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,411 - backend.routers.routers_students - INFO - Retrieved 2 students (skip=0, limit=100)
+2025-10-26 10:35:00,413 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=true "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,416 - backend.routers.routers_students - INFO - Retrieved 1 students (skip=0, limit=100)
+2025-10-26 10:35:00,417 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=false "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,420 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=0 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:00,423 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=1001 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:00,426 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?skip=-1 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:00,437 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,439 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,443 - backend.routers.routers_students - INFO - Updated student: 1
+2025-10-26 10:35:00,444 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,447 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:00,450 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:00,453 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:00,464 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,465 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,473 - backend.routers.routers_students - INFO - Deleted student: 1
+2025-10-26 10:35:00,474 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/students/1 "HTTP/1.1 204 No Content"
+2025-10-26 10:35:00,477 - backend.routers.routers_students - WARNING - Student not found: 1
+2025-10-26 10:35:00,478 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 404 Not Found"
+2025-10-26 10:35:00,489 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:00,490 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:00,494 - backend.routers.routers_students - INFO - Deactivated student: 1
+2025-10-26 10:35:00,496 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,498 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:00,500 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,503 - backend.routers.routers_students - INFO - Activated student: 1
+2025-10-26 10:35:00,503 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/activate "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,507 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:00,508 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:00,521 - backend.routers.routers_students - INFO - Bulk created 2 students, 1 errors
+2025-10-26 10:35:00,522 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 200 OK"
+2025-10-26 10:35:37,739 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:35:37,740 - backend.main - INFO - Database engine ready
+2025-10-26 10:35:38,154 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:35:38,154 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:35:38,154 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:35:38,359 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,361 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,373 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,375 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,378 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with email: john1.doe1@example.com
+2025-10-26 10:35:38,379 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:38,389 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,390 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,393 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with ID: STD0001
+2025-10-26 10:35:38,394 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:38,404 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,405 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,408 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:38,409 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,412 - backend.routers.routers_students - WARNING - Student not found: 9999
+2025-10-26 10:35:38,413 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 10:35:38,424 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,425 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,429 - backend.routers.routers_students - INFO - Created student: 2 - STD0002
+2025-10-26 10:35:38,430 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,435 - backend.routers.routers_students - INFO - Created student: 3 - STD0003
+2025-10-26 10:35:38,437 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,440 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 10:35:38,441 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/ "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,445 - backend.routers.routers_students - INFO - Deactivated student: 2
+2025-10-26 10:35:38,446 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/2/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,450 - backend.routers.routers_students - INFO - Retrieved 2 students (skip=0, limit=100)
+2025-10-26 10:35:38,451 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=true "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,454 - backend.routers.routers_students - INFO - Retrieved 1 students (skip=0, limit=100)
+2025-10-26 10:35:38,455 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=false "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,458 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=0 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:38,460 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=1001 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:38,464 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?skip=-1 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:35:38,475 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,476 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,481 - backend.routers.routers_students - INFO - Updated student: 1
+2025-10-26 10:35:38,482 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,485 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:38,487 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:38,490 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:35:38,501 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,503 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,512 - backend.routers.routers_students - INFO - Deleted student: 1
+2025-10-26 10:35:38,513 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/students/1 "HTTP/1.1 204 No Content"
+2025-10-26 10:35:38,517 - backend.routers.routers_students - WARNING - Student not found: 1
+2025-10-26 10:35:38,518 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 404 Not Found"
+2025-10-26 10:35:38,528 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:35:38,530 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:35:38,533 - backend.routers.routers_students - INFO - Deactivated student: 1
+2025-10-26 10:35:38,534 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,536 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:38,537 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,540 - backend.routers.routers_students - INFO - Activated student: 1
+2025-10-26 10:35:38,541 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/activate "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,544 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:35:38,545 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:35:38,558 - backend.routers.routers_students - INFO - Bulk created 2 students, 1 errors
+2025-10-26 10:35:38,559 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 200 OK"

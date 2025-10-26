@@ -231,7 +231,7 @@ def activate_student(
         if not db_student:
             raise HTTPException(status_code=404, detail="Student not found")
         
-        db_student.is_active = True
+        db_student.is_active = True  # type: ignore[assignment]
         db.commit()
         
         logger.info(f"Activated student: {student_id}")
@@ -258,7 +258,7 @@ def deactivate_student(
         if not db_student:
             raise HTTPException(status_code=404, detail="Student not found")
         
-        db_student.is_active = False
+        db_student.is_active = False  # type: ignore[assignment]
         db.commit()
         
         logger.info(f"Deactivated student: {student_id}")
@@ -287,33 +287,47 @@ def bulk_create_students(
     try:
         from backend.models import Student
         
-        created = []
-        errors = []
-        
+        created: List[str] = []
+        errors: List[dict] = []
+
+        # Commit per-student to avoid transaction-wide rollback on a single failure
+        from sqlalchemy.exc import IntegrityError
+
         for idx, student_data in enumerate(students_data):
             try:
-                # Check for duplicates
-                existing = db.query(Student).filter(Student.email == student_data.email).first()
-                if existing:
+                # Proactive duplicate checks (using committed state)
+                existing_email = db.query(Student).filter(Student.email == student_data.email).first()
+                if existing_email:
                     errors.append({"index": idx, "error": f"Email already exists: {student_data.email}"})
                     continue
-                
+
+                existing_sid = db.query(Student).filter(Student.student_id == student_data.student_id).first()
+                if existing_sid:
+                    errors.append({"index": idx, "error": f"Student ID already exists: {student_data.student_id}"})
+                    continue
+
                 db_student = Student(**student_data.model_dump())
                 db.add(db_student)
-                created.append(student_data.student_id)
-                
+                # Flush + commit to surface DB-level uniqueness early and persist successes
+                db.commit()
+                db.refresh(db_student)
+                created.append(str(db_student.student_id))
+
+            except IntegrityError as ie:
+                db.rollback()
+                msg = str(getattr(ie, "orig", ie))
+                errors.append({"index": idx, "error": f"Integrity error: {msg}"})
             except Exception as e:
+                db.rollback()
                 errors.append({"index": idx, "error": str(e)})
-        
-        db.commit()
-        
+
         logger.info(f"Bulk created {len(created)} students, {len(errors)} errors")
-        
+
         return {
             "created": len(created),
             "failed": len(errors),
             "created_ids": created,
-            "errors": errors
+            "errors": errors,
         }
         
     except Exception as e:
