@@ -24,7 +24,9 @@ function Show-Menu {
     Write-Host ""
     Write-Host "  [D] Docker Up (build+run)" -ForegroundColor Green
     Write-Host "  [E] Docker Down (stop)" -ForegroundColor Yellow
-    Write-Host "  [O] Open Docker App (http://localhost:8080)" -ForegroundColor White
+    Write-Host "  [F] Fullstack Up (single container)" -ForegroundColor Green
+    Write-Host "  [G] Fullstack Down (single container)" -ForegroundColor Yellow
+    Write-Host "  [O] Open App (http://localhost:8080)" -ForegroundColor White
     Write-Host ""
     Write-Host "  [4] Install Dependencies" -ForegroundColor Blue
     Write-Host "  [5] Check System Health" -ForegroundColor Blue
@@ -175,9 +177,33 @@ function Docker-Down {
 
 function Open-DockerApp {
     Write-Host "" 
-    Write-Host "Opening Docker app (http://localhost:8080)..." -ForegroundColor White
+    Write-Host "Opening app (http://localhost:8080)..." -ForegroundColor White
     Write-Host "" 
     Start-Process "http://localhost:8080"
+}
+
+function Docker-FullstackUp {
+    Write-Host "" 
+    Write-Host "Fullstack (single container) up..." -ForegroundColor Green
+    Write-Host "" 
+    $rebuild = Read-Host "Rebuild image first? (y/N)"
+    if ($rebuild -match '^(?i)y(es)?$') {
+        & ".\scripts\DOCKER_FULLSTACK_UP.ps1" -Rebuild
+    } else {
+        & ".\scripts\DOCKER_FULLSTACK_UP.ps1"
+    }
+}
+
+function Docker-FullstackDown {
+    Write-Host "" 
+    Write-Host "Fullstack (single container) down..." -ForegroundColor Yellow
+    Write-Host "" 
+    $rim = Read-Host "Also remove image? (y/N)"
+    if ($rim -match '^(?i)y(es)?$') {
+        & ".\scripts\DOCKER_FULLSTACK_DOWN.ps1" -RemoveImage
+    } else {
+        & ".\scripts\DOCKER_FULLSTACK_DOWN.ps1"
+    }
 }
 
 function Start-Cleanup {
@@ -317,6 +343,10 @@ do {
     'd' { Docker-Up; Read-Host "Press Enter to continue" }
     'E' { Docker-Down; Read-Host "Press Enter to continue" }
     'e' { Docker-Down; Read-Host "Press Enter to continue" }
+    'F' { Docker-FullstackUp; Read-Host "Press Enter to continue" }
+    'f' { Docker-FullstackUp; Read-Host "Press Enter to continue" }
+    'G' { Docker-FullstackDown; Read-Host "Press Enter to continue" }
+    'g' { Docker-FullstackDown; Read-Host "Press Enter to continue" }
     'O' { Open-DockerApp }
     'o' { Open-DockerApp }
         '8' { New-DeploymentPackage; Read-Host "Press Enter to continue" }

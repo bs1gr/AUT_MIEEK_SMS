@@ -88,6 +88,15 @@ docker run --rm -p 8080:8000 sms-fullstack
 # open http://localhost:8080
 ```
 
+On Windows, you can also use the helper scripts or the launcher menu:
+
+```pwsh
+./scripts/DOCKER_FULLSTACK_UP.ps1            # start (use existing image)
+./scripts/DOCKER_FULLSTACK_UP.ps1 -Rebuild   # rebuild then start
+./scripts/DOCKER_FULLSTACK_DOWN.ps1          # stop (and optionally remove image)
+```
+Launcher options: F (Fullstack Up), G (Fullstack Down).
+
 ## System Requirements
 
 - **Python** 3.8 or higher
@@ -120,8 +129,9 @@ RUN.bat
 ```
 
 This will start:
-- Backend server on http://localhost:8000
-- Frontend development server on http://localhost:5173
+
+- Backend server on <http://localhost:8000>
+- Frontend development server on <http://localhost:5173>
 
 The application will automatically open in your default browser.
 
@@ -208,8 +218,9 @@ student-management-system/
 ## API Documentation
 
 Once the backend is running, access the interactive API documentation:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+
+- Swagger UI: <http://localhost:8000/docs>
+- ReDoc: <http://localhost:8000/redoc>
 
 ## Troubleshooting
 
