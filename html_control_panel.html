@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SMS Control Panel</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; padding: 0; }
+    header { padding: 16px 20px; background: #111827; color: #e5e7eb; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 20px; max-width: 920px; margin: 0 auto; }
+    .card { background: #111827; color: #e5e7eb; border: 1px solid #374151; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .mt8 { margin-top: 8px; }
+    .gap10 { gap: 10px; }
+    .btn { padding: 10px 14px; border-radius: 8px; border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb; cursor: pointer; }
+    .btn:hover { background: #374151; }
+    .btn.primary { border-color: #6366f1; background: #4f46e5; }
+    .btn.primary:hover { background: #4338ca; }
+    .btn.danger { border-color: #ef4444; background: #b91c1c; }
+    .btn.danger:hover { background: #991b1b; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid #374151; background: #0b1020; color: #d1d5db; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .ok { background: #10b981; }
+    .warn { background: #f59e0b; }
+    .bad { background: #ef4444; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .muted { color: #9ca3af; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 760px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .note { font-size: 13px; color: #9ca3af; }
+    a.link { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Student Management System — Control Panel</h1>
+  </header>
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h2>System Status</h2>
+        <div class="row mt8 gap10">
+          <div id="status-backend" class="status"><span class="dot bad"></span><span>Backend</span><span class="muted mono" id="backend-port"></span></div>
+          <div id="status-frontend" class="status"><span class="dot bad"></span><span>Frontend</span><span class="muted mono" id="frontend-port"></span></div>
+          <button class="btn" id="btn-refresh" title="Refresh status">Refresh</button>
+        </div>
+        <p class="note mt8">This page is served by the backend. If it loads, the backend is running.</p>
+      </section>
+
+      <section class="card">
+        <h2>Controls</h2>
+        <div class="row mt8 gap10">
+          <button class="btn primary" id="btn-start">Start Frontend</button>
+          <button class="btn" id="btn-stop-fe">Stop Frontend</button>
+          <button class="btn danger" id="btn-stop-all">Stop All</button>
+          <button class="btn" id="btn-stop-be">Stop Backend</button>
+        </div>
+        <p class="note mt8">Start/Stop controls act on the Vite dev server (frontend) and this API server (backend).</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Open Application</h2>
+      <div class="row mt8 gap10">
+        <button class="btn" id="btn-open-app">Open Frontend</button>
+        <a class="btn" href="/docs" target="_blank" rel="noreferrer noopener">Open API Docs</a>
+        <a class="btn" href="/redoc" target="_blank" rel="noreferrer noopener">Open ReDoc</a>
+      </div>
+      <p class="note mt8">If the frontend port is not 5173, the button will open the detected port automatically.</p>
+    </section>
+
+    <section class="card">
+      <h2>Tips</h2>
+      <ul>
+        <li>For a simple run: open this Control Panel, click “Start Frontend”, then “Open Frontend”.</li>
+        <li>If “Start Frontend” fails, install Node.js 18+ and run “Install Dependencies” from the launcher.</li>
+        <li>To stop everything, click “Stop All”. If the page becomes unreachable afterwards, that is expected.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const els = {
+      be: document.getElementById('status-backend'),
+      bePort: document.getElementById('backend-port'),
+      fe: document.getElementById('status-frontend'),
+      fePort: document.getElementById('frontend-port'),
+      refresh: document.getElementById('btn-refresh'),
+      start: document.getElementById('btn-start'),
+      stopFE: document.getElementById('btn-stop-fe'),
+      stopAll: document.getElementById('btn-stop-all'),
+      stopBE: document.getElementById('btn-stop-be'),
+      openApp: document.getElementById('btn-open-app'),
+    };
+
+    function setStatus(el, ok, port) {
+      const dot = el.querySelector('.dot');
+      dot.className = 'dot ' + (ok ? 'ok' : 'bad');
+      const portEl = el.querySelector('.mono');
+      portEl.textContent = port ? `(:${port})` : '';
+    }
+
+    async function api(path, opts) {
+      const res = await fetch(`${window.location.origin}${path}`, {
+        method: opts?.method || 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: opts?.body ? JSON.stringify(opts.body) : undefined,
+      });
+      const text = await res.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch { /* HTML or empty */ }
+      if (!res.ok) throw new Error(data?.message || text || `${res.status}`);
+      return data;
+    }
+
+    let lastStatus = null;
+
+    async function refresh() {
+      try {
+        const s = await api('/control/api/status');
+        lastStatus = s;
+        setStatus(els.be, !!s.backend,  window.location.port || 8000);
+        setStatus(els.fe, !!s.frontend, s.frontend_port || (s.frontend ? 5173 : null));
+      } catch (e) {
+        console.error(e);
+        setStatus(els.be, false, null);
+        setStatus(els.fe, false, null);
+      }
+    }
+
+    async function startFE() {
+      try {
+        els.start.disabled = true;
+        await api('/control/api/start', { method: 'POST' });
+        await refresh();
+      } catch (e) {
+        alert('Failed to start frontend: ' + e.message);
+      } finally { els.start.disabled = false; }
+    }
+
+    async function stopFE() {
+      try {
+        els.stopFE.disabled = true;
+        await api('/control/api/stop', { method: 'POST' });
+        await refresh();
+      } catch (e) {
+        alert('Failed to stop frontend: ' + e.message);
+      } finally { els.stopFE.disabled = false; }
+    }
+
+    async function stopAll() {
+      if (!confirm('Stop frontend and backend now? This page will become unreachable.')) return;
+      try {
+        els.stopAll.disabled = true;
+        await api('/control/api/stop-all', { method: 'POST' });
+        setTimeout(() => { window.close(); }, 1000);
+      } catch (e) {
+        alert('Failed to stop all: ' + e.message);
+      } finally { els.stopAll.disabled = false; }
+    }
+
+    async function stopBE() {
+      if (!confirm('Stop backend now? This page will become unreachable.')) return;
+      try {
+        els.stopBE.disabled = true;
+        await api('/control/api/stop-backend', { method: 'POST' });
+        setTimeout(() => { window.close(); }, 1000);
+      } catch (e) {
+        alert('Failed to stop backend: ' + e.message);
+      } finally { els.stopBE.disabled = false; }
+    }
+
+    function openApp() {
+      const port = lastStatus?.frontend_port || 5173;
+      const url = `http://localhost:${port}`;
+      window.open(url, '_blank');
+    }
+
+    els.refresh.addEventListener('click', refresh);
+    els.start.addEventListener('click', startFE);
+    els.stopFE.addEventListener('click', stopFE);
+    els.stopAll.addEventListener('click', stopAll);
+    els.stopBE.addEventListener('click', stopBE);
+    els.openApp.addEventListener('click', openApp);
+
+    refresh();
+    setInterval(refresh, 4000);
+  </script>
+</body>
+</html>

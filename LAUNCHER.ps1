@@ -18,6 +18,7 @@ function Show-Menu {
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  [1] Start Application (Backend + Frontend)" -ForegroundColor Green
+    Write-Host "  [C] Start Control Panel Only (Lightweight)" -ForegroundColor Green
     Write-Host "  [2] Stop Application (All Services)" -ForegroundColor Yellow
     Write-Host "  [3] Emergency Shutdown (Kill All Processes)" -ForegroundColor Red
     Write-Host ""
@@ -42,6 +43,13 @@ function Start-Application {
     Write-Host "Starting Student Management System..." -ForegroundColor Green
     Write-Host ""
     & ".\scripts\RUN.ps1"
+}
+
+function Start-ControlPanelOnly {
+    Write-Host ""
+    Write-Host "Starting Control Panel (lightweight mode)..." -ForegroundColor Cyan
+    Write-Host ""
+    & ".\scripts\RUN.ps1" -ControlOnly
 }
 
 function Stop-Application {
@@ -272,6 +280,8 @@ do {
     
     switch ($choice) {
         '1' { Start-Application; Read-Host "Press Enter to continue" }
+        'C' { Start-ControlPanelOnly; Read-Host "Press Enter to continue" }
+        'c' { Start-ControlPanelOnly; Read-Host "Press Enter to continue" }
         '2' { Stop-Application; Read-Host "Press Enter to continue" }
         '3' { Stop-Emergency; Read-Host "Press Enter to continue" }
         '4' { Install-Dependencies; Read-Host "Press Enter to continue" }
