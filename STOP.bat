@@ -1,3 +1,5 @@
 @echo off
-REM Quick Stop - Stop Application
-powershell -ExecutionPolicy Bypass -File "%~dp0scripts\STOP.ps1"
+REM Stop Application - Student Management System
+REM Stops the fullstack Docker container
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0STOP.ps1" %*

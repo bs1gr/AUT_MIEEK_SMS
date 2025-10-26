@@ -2,25 +2,36 @@
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
 
-## How to run
+## Quick Start (3 Easy Steps)
 
-- **Quick start (fullstack Docker container)**:
+**1. First time setup:**
+
+```batch
+SETUP.bat
+```
+
+This builds the Docker image (one-time setup, takes a few minutes).
+
+**2. Start the application:**
 
 ```batch
 QUICKSTART.bat
 ```
 
-Runs the single-container fullstack image on http://localhost:8080 (build via `UTILITIES.bat` → Install if needed).
+Access at <http://localhost:8080>
 
-- **Utilities & troubleshooting**:
+**3. Stop the application:**
 
 ```batch
-UTILITIES.bat
+STOP.bat
 ```
 
-Provides install, diagnostics, Docker operations, and more.
-
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
+
+## System Requirements
+
+- **Docker Desktop** (Windows/macOS) or Docker Engine (Linux)
+- No Python or Node.js required on host (everything runs in Docker)
 
 ## Features
 
@@ -34,160 +45,49 @@ A comprehensive student management system with course evaluation, attendance tra
 - 🌐 **Bilingual** - Full support for English and Greek languages
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
 
-## Quick Start
+## Detailed Usage
 
-### Option 1: Quick Start (Recommended)
+### First Time Setup
 
-Run the fullstack Docker container:
+Run the setup script to build the Docker image:
+
+```batch
+SETUP.bat
+```
+
+Or with PowerShell:
+
+```powershell
+.\SETUP.ps1              # Build image
+.\SETUP.ps1 -SkipBuild   # Check environment only
+.\SETUP.ps1 -Help        # Show options
+```
+
+This will:
+
+1. Check Docker Desktop is installed and running
+2. Ensure Linux containers mode is enabled
+3. Build the fullstack Docker image
+4. Create the database volume
+
+### Starting the Application
+
+After setup, start the app with:
 
 ```batch
 QUICKSTART.bat
 ```
 
-This starts the single-container fullstack image on <http://localhost:8080>. If the image doesn't exist, build it first via `UTILITIES.bat` → Install.
-
 Or with options:
 
 ```powershell
-.\QUICKSTART.ps1              # Start fullstack on port 8080
+.\QUICKSTART.ps1              # Start on port 8080
 .\QUICKSTART.ps1 -Rebuild     # Rebuild image and start
-.\QUICKSTART.ps1 -Port 9000   # Start on custom port
+.\QUICKSTART.ps1 -Port 9000   # Use custom port
 .\QUICKSTART.ps1 -Help        # Show all options
 ```
 
-### Option 2: Utilities & Troubleshooting
-
-For diagnostics, installation, cleanup, and Docker management:
-
-```batch
-UTILITIES.bat
-```
-
-Provides interactive menu for:
-
-- Install/update dependencies
-- System health checks
-- Port conflict debugging
-- Docker operations (up/down/fullstack)
-- Deployment packaging
-- Version info and more
-
-### Option 3: Direct Commands
-
-```batch
-# First time installation
-INSTALL.bat
-
-# Start the application
-RUN.bat
-
-# Stop the application
-STOP.bat
-```
-
-### Option 4: Docker (Single-host, production-like)
-
-If you have Docker installed, you can build and run the app with one command and access it at <http://localhost:8080>.
-
-```pwsh
-# From project root
-docker compose build
-docker compose up -d
-
-# Or use helper scripts on Windows
-./scripts/DOCKER_UP.ps1
-```
-
-Stop containers:
-
-```pwsh
-docker compose down
-
-# Or helper script
-./scripts/DOCKER_DOWN.ps1
-```
-
-See DOCKER.md for full details.
-
-#### Fullstack (single container)
-
-Alternatively, build the fullstack image where the backend serves the SPA:
-
-```pwsh
-docker build -f docker/Dockerfile.fullstack -t sms-fullstack .
-docker run --rm -p 8080:8000 sms-fullstack
-# open http://localhost:8080
-```
-
-On Windows, you can also use the helper scripts or the launcher menu:
-
-```pwsh
-./scripts/DOCKER_FULLSTACK_UP.ps1            # start (use existing image)
-./scripts/DOCKER_FULLSTACK_UP.ps1 -Rebuild   # rebuild then start
-./scripts/DOCKER_FULLSTACK_DOWN.ps1          # stop (and optionally remove image)
-```
-Launcher options: F (Fullstack Up), G (Fullstack Down).
-
-## System Requirements
-
-- **Python** 3.8 or higher
-- **Node.js** 16 or higher
-- **npm** 8 or higher
-- **Windows** operating system
-
-## Installation
-
-1. Run the installer:
-   ```batch
-   INSTALL.bat
-   ```
-
-2. The installer will automatically:
-   - Create Python virtual environment
-   - Install backend dependencies
-   - Install frontend dependencies
-   - Create necessary directories
-   - Set up the database
-
-For detailed installation instructions, see [INSTALL_GUIDE.md](INSTALL_GUIDE.md)
-
-## Usage
-
-### Starting the Application
-
-```batch
-RUN.bat
-```
-
-This will start:
-
-- Backend server on <http://localhost:8000>
-- Frontend development server on <http://localhost:5173>
-
-The application will automatically open in your default browser.
-
-### Control Panel (Lightweight Mode)
-
-The **HTML Control Panel** provides a browser-based interface to manage the application:
-
-- **Access**: <http://localhost:8000/control> (backend must be running)
-- **Features**:
-  - Real-time backend and frontend status
-  - Start/stop frontend on demand
-  - Start/stop backend
-  - Quick links to open the app, API docs, and ReDoc
-- **Launching Control Panel Only**:
-  - Run `\.\QUICKSTART.ps1 -ControlOnly`, or
-  - Run `\.\scripts\RUN.ps1 -ControlOnly`
-  - This starts the backend, opens the control panel in your browser, and exits the script immediately
-  - Ideal for minimal, safe runs without long-running terminal processes
-
-**Use cases**:
-
-- Quick status checks
-- On-demand frontend starts (no permanent terminal windows)
-- Safer than full automatic startup for testing or demos
-- Clean exit after starting services
+The application will be available at <http://localhost:8080>
 
 ### Stopping the Application
 
@@ -195,170 +95,194 @@ The **HTML Control Panel** provides a browser-based interface to manage the appl
 STOP.bat
 ```
 
-This will gracefully shut down both frontend and backend servers.
+Or with options:
 
-### Emergency Shutdown
-
-If normal shutdown fails:
-
-```batch
-.\scripts\KILL_FRONTEND_NOW.bat
+```powershell
+.\STOP.ps1                # Stop container
+.\STOP.ps1 -RemoveImage   # Stop and remove image
+.\STOP.ps1 -Help          # Show options
 ```
 
-Or use option 3 in the launcher menu.
+### Developer Tools & Troubleshooting
+
+For advanced operations, diagnostics, and Docker management:
+
+```batch
+DEVTOOLS.bat
+```
+
+Interactive menu with:
+
+- Docker operations (build, logs, shell access)
+- Diagnostics (port conflicts, API tests, database info)
+- Docker Compose (legacy multi-container setup)
+- Native development mode (Python + Node.js)
+- Cleanup and maintenance tools
+
+### Control Panel (Optional)
+
+When the app is running, access the control panel at:
+
+<http://localhost:8080/control>
+
+Features:
+
+- Start/stop frontend dev server
+- System status monitoring
+- Service management
+
+See [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) for details.
+
+## Advanced Usage
+
+### Docker Compose (Multi-container)
+
+If you prefer the traditional multi-container setup with NGINX:
+
+```powershell
+# Build and start
+docker compose build
+docker compose up -d
+
+# Stop
+docker compose down
+```
+
+See [DOCKER.md](DOCKER.md) for full Docker documentation.
+
+### Native Development Mode
+
+For development with hot-reload (requires Python 3.8+ and Node.js 16+):
+
+```batch
+# Setup (first time)
+.\Obsolete\native_scripts\INSTALL.bat
+
+# Start backend + frontend
+.\Obsolete\native_scripts\RUN.bat
+
+# Stop
+.\scripts\STOP.ps1
+```
+
+Or use the DEVTOOLS menu → Native Dev Mode.
 
 ## Project Structure
 
-```
+```text
 student-management-system/
-├── backend/                 # FastAPI backend
-│   ├── main.py             # Application entry point
-│   ├── models.py           # Database models
-│   ├── config.py           # Configuration
-│   ├── routers/            # API route handlers
-│   ├── schemas/            # Pydantic schemas
-│   └── migrations/         # Alembic migrations
-├── frontend/               # React + TypeScript frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── api/            # API client
-│   │   ├── utils/          # Utility functions
-│   │   └── translations.js # Localization
-│   └── public/
-├── scripts/                # Utility scripts
-│   ├── INSTALL.ps1
-│   ├── RUN.ps1
-│   ├── STOP.ps1
-│   ├── DEBUG_PORTS.ps1
-│   ├── CLEANUP.ps1
-│   └── CREATE_PACKAGE.ps1
-├── QUICKSTART.bat          # Minimal quick start
-├── UTILITIES.bat           # Utilities & troubleshooting menu
-├── INSTALL.bat             # Quick installer
-├── RUN.bat                 # Quick start
-└── STOP.bat                # Quick stop
+├── SETUP.bat / .ps1           # First-time setup
+├── QUICKSTART.bat / .ps1      # Start application
+├── STOP.bat / .ps1            # Stop application
+├── DEVTOOLS.bat / .ps1        # Developer tools menu
+├── backend/                   # FastAPI backend
+│   ├── main.py               # Application entry point
+│   ├── models.py             # Database models
+│   ├── routers/              # API route handlers
+│   └── schemas/              # Pydantic schemas
+├── frontend/                  # React frontend
+│   └── src/                  # React components & logic
+├── docker/                    # Docker configuration
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   └── Dockerfile.fullstack  # Single-container image
+├── docker-compose.yml         # Multi-container setup
+└── scripts/                   # Utility scripts
 ```
 
 ## Documentation
 
-- [Installation Guide](INSTALL_GUIDE.md) - Detailed installation instructions
-- [Help Documentation](HELP_DOCUMENTATION_COMPLETE.md) - Complete feature documentation
-- [Code Improvements](CODE_IMPROVEMENTS.md) - Code quality analysis
-- [Daily Performance Guide](DAILY_PERFORMANCE_GUIDE.md) - Daily performance feature guide
-- [Teaching Schedule Guide](TEACHING_SCHEDULE_GUIDE.md) - Schedule management guide
+- [DOCKER.md](DOCKER.md) - Docker setup and configuration
+- [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) - Control panel usage
+- [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - Development session notes
+- [CHANGELOG.md](CHANGELOG.md) - Version history
 
 ## API Documentation
 
 Once the backend is running, access the interactive API documentation:
 
-- Swagger UI: <http://localhost:8000/docs>
-- ReDoc: <http://localhost:8000/redoc>
-- API Info: <http://localhost:8000/api> (JSON metadata)
+- Swagger UI: <http://localhost:8080/docs>
+- ReDoc: <http://localhost:8080/redoc>
+- API Info: <http://localhost:8080/api> (JSON metadata)
 
-**Note**: When running in fullstack mode (single Docker container), the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`. Use `/api` to view API metadata as JSON.
+**Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 
 ## Troubleshooting
 
 ### Port Conflicts
 
 Check for port conflicts:
+
 ```batch
-.\scripts\DEBUG_PORTS.bat
+DEVTOOLS.bat
+# Then select option 7: Debug Port Conflicts
 ```
 
-### System Health Check
+### Docker Issues
 
-Verify all dependencies are installed:
+Check Docker status:
+
 ```batch
-LAUNCHER.bat
-# Then select option 5: Check System Health
+DEVTOOLS.bat
+# Then select option 6: Check Docker Status
 ```
 
 ### Database Issues
 
 If you encounter database issues, check the logs:
+
+```batch
+DEVTOOLS.bat
+# Then select option 2: View Container Logs
 ```
-backend/logs/structured.json
+
+To reset the database:
+
+```batch
+DEVTOOLS.bat
+# Then select option R: Reset Database (Delete Volume)
 ```
 
 ### Frontend Issues
 
-Clear node_modules and reinstall:
+If the frontend isn't loading, try rebuilding:
+
 ```batch
-cd frontend
-Remove-Item -Recurse -Force node_modules
-npm install
+.\QUICKSTART.bat -Rebuild
 ```
 
 ## Development
 
 ### Backend Development
 
-```bash
-cd backend
-# Activate virtual environment
-..\venv\Scripts\Activate.ps1
-# Run with auto-reload
-uvicorn main:app --reload --port 8000
-```
+The backend is built with:
+
+- **FastAPI** - Modern web framework
+- **SQLAlchemy** - ORM for database
+- **Pydantic** - Data validation
+- **Alembic** - Database migrations
 
 ### Frontend Development
 
-```bash
-cd frontend
-npm run dev
-```
+The frontend uses:
 
-## Testing
-
-Run backend tests:
-```bash
-cd backend
-..\venv\Scripts\Activate.ps1
-pytest
-```
-
-## Building for Production
-
-Create a deployment package:
-```batch
-.\scripts\CREATE_PACKAGE.bat
-```
-
-This creates a `student-management-system-deploy-{date}.zip` file ready for deployment.
-
-## Technology Stack
-
-### Backend
-- **FastAPI** - Modern web framework
-- **SQLAlchemy** - ORM for database operations
-- **Pydantic** - Data validation
-- **SQLite** - Database
-- **Uvicorn** - ASGI server
-
-### Frontend
 - **React** - UI library
-- **TypeScript** - Type-safe JavaScript
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
 - **Vite** - Build tool
-- **Tailwind CSS** - Utility-first CSS
-- **lucide-react** - Icon library
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
-For help and documentation:
+Need help?
+
 1. Check the in-app Help section (Utils → Help Documentation)
-2. Review the [Help Documentation](HELP_DOCUMENTATION_COMPLETE.md)
-3. Check the [Installation Guide](INSTALL_GUIDE.md)
+2. Review the documentation files in this repository
+3. Check [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) for control panel usage
 
-## Contributing
+## License
 
-This is a student management system designed for educational institutions. For feature requests or bug reports, please create an issue.
+See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current Version: 1.0.0
-Last Updated: October 2025
+Current version: See [VERSION](VERSION) file.
