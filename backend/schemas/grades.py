@@ -29,7 +29,7 @@ class GradeCreate(BaseModel):
     def normalize_category(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        vv = v.strip()
+        vv = v.strip().title()
         return vv or None
 
     @model_validator(mode='after')
