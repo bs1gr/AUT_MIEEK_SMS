@@ -35,11 +35,12 @@ from typing import Optional
 from contextlib import asynccontextmanager
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 from typing import List
 
@@ -742,14 +743,7 @@ register_routers(app)
 # ROOT ENDPOINTS
 # ============================================================================
 
-@app.get("/")
-async def root():
-    """
-    Root endpoint providing API information.
-    
-    Returns:
-        dict: API metadata and documentation links
-    """
+def _api_metadata() -> dict:
     return {
         "message": "Student Management System API",
         "version": "3.0.1",
@@ -769,6 +763,32 @@ async def root():
     }
 
 
+@app.get("/")
+async def root():
+    """
+    Root endpoint.
+
+    Behavior:
+    - In fullstack/production mode (SERVE_FRONTEND=1 and built SPA exists), serve the SPA index.html
+      so the app loads at '/'.
+    - Otherwise return API metadata as JSON for developer visibility and tests.
+    """
+    try:
+        if SERVE_FRONTEND and SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
+            return FileResponse(str(SPA_INDEX_FILE))
+    except Exception:
+        # If anything goes wrong, fall back to JSON metadata
+        pass
+
+    return _api_metadata()
+
+
+@app.get("/api")
+async def api_info():
+    """Informational API metadata (JSON)."""
+    return _api_metadata()
+
+
 # ============================================================================
 # OPTIONAL: SERVE FRONTEND SPA (production mode without NGINX)
 # Set environment variable SERVE_FRONTEND=1 and build frontend (frontend/dist)
@@ -786,7 +806,7 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
         # Serve all static assets directly (Vite emits /assets/* by default)
         app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
 
-        # SPA fallback: serve index.html for any non-API GET path
+        # Paths that should never be intercepted by the SPA fallback
         EXCLUDE_PREFIXES = (
             "api/",
             "docs",
@@ -798,20 +818,23 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
             "assets/",
         )
 
-        @app.get("/{full_path:path}")
-        async def spa_fallback(full_path: str):
-            # Allow API and service endpoints to pass through
-            p = full_path.lstrip("/")
-            for pref in EXCLUDE_PREFIXES:
-                if p.startswith(pref):
-                    # Not a SPA route; return 404 so proper route can handle
-                    raise HTTPException(status_code=404, detail="Not Found")
-            # Serve index.html for SPA routes
-            if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
-                return FileResponse(str(SPA_INDEX_FILE))
-            raise HTTPException(status_code=404, detail="SPA index not found")
+        # Fallback via exception handler: if a route is not found (404),
+        # serve index.html for client-side routes that aren't API/docs/etc.
+        @app.exception_handler(StarletteHTTPException)
+        async def spa_404_handler(request: Request, exc: StarletteHTTPException):
+            if exc.status_code == 404:
+                p = request.url.path.lstrip("/")
+                # If the path is part of API/docs/control/etc, return the 404 as-is
+                for pref in EXCLUDE_PREFIXES:
+                    if p.startswith(pref):
+                        return JSONResponse({"detail": "Not Found"}, status_code=404)
+                # Otherwise, return SPA index.html
+                if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
+                    return FileResponse(str(SPA_INDEX_FILE))
+            # Default behavior for other errors
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
-        logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist'.")
+        logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.")
     except Exception as e:
         logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
 
