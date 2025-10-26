@@ -22,16 +22,24 @@ A comprehensive student management system with course evaluation, attendance tra
 LAUNCHER.bat
 ```
 
-The launcher provides a menu with 9 options:
-1. Start Application
-2. Stop Application
-3. Emergency Shutdown
-4. Install Dependencies
-5. Check System Health
-6. Debug Port Conflicts
-7. Create Deployment Package
-8. Cleanup Obsolete Files
-9. Open Application in Browser
+The launcher provides a menu with options:
+1. **Start Application** - Start backend and frontend (full mode)
+2. **Start Control Panel Only (Lightweight)** - Start backend only, open HTML control panel, and exit the launcher
+   - Minimal, safe run mode
+   - Control Panel allows you to start/stop frontend on demand
+   - No long-running terminal processes
+3. **Stop Application** - Stop all services
+4. **Emergency Shutdown** - Kill all processes forcefully
+5. **Install Dependencies** - Install/update dependencies
+6. **Check System Health** - Verify installation
+7. **Debug Port Conflicts** - Diagnose port issues
+8. **Diagnose Frontend Issues** - Troubleshoot frontend
+9. **Create Deployment Package** - Package the app for distribution
+10. **Cleanup Obsolete Files** - Remove old files
+11. **Show Version Info**
+12. **Open Application in Browser**
+
+**Recommended for quick runs:** Use option **C** (Control Panel Only) to start just the backend and access the lightweight HTML control panel at http://localhost:8000/control. From there, you can start the frontend on demand and manage all services from your browser.
 
 ### Option 2: Use Quick Commands
 
@@ -82,6 +90,29 @@ This will start:
 - Frontend development server on http://localhost:5173
 
 The application will automatically open in your default browser.
+
+### Control Panel (Lightweight Mode)
+
+The **HTML Control Panel** provides a browser-based interface to manage the application:
+
+- **Access**: <http://localhost:8000/control> (backend must be running)
+- **Features**:
+  - Real-time backend and frontend status
+  - Start/stop frontend on demand
+  - Start/stop backend
+  - Quick links to open the app, API docs, and ReDoc
+- **Launching Control Panel Only**:
+  - Run `LAUNCHER.bat` and choose option **C**, or
+  - Run `.\scripts\RUN.ps1 -ControlOnly`
+  - This starts the backend, opens the control panel in your browser, and exits the script immediately
+  - Ideal for minimal, safe runs without long-running terminal processes
+
+**Use cases**:
+
+- Quick status checks
+- On-demand frontend starts (no permanent terminal windows)
+- Safer than full automatic startup for testing or demos
+- Clean exit after starting services
 
 ### Stopping the Application
 
