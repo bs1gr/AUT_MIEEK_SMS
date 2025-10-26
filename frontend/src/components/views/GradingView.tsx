@@ -172,11 +172,11 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select className="border rounded px-3 py-2" value={studentId as any} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')}>
+        <select className="border rounded px-3 py-2" value={studentId as any} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>
           <option value="">{t('selectStudent')}</option>
           {filteredStudents.map(s=> (<option key={s.id} value={s.id}>{s.student_id} - {s.first_name} {s.last_name}</option>))}
         </select>
-        <select className="border rounded px-3 py-2" value={courseId as any} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')}>
+        <select className="border rounded px-3 py-2" value={courseId as any} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')} aria-label={t('selectCourse')}>
           <option value="">{t('selectCourse')}</option>
           {filteredCourses.map(c=> (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
         </select>
@@ -188,7 +188,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input className="border rounded px-3 py-2" placeholder={t('assignmentNamePlaceholder')} value={assignmentName} onChange={e=>setAssignmentName(e.target.value)} />
-          <select className="border rounded px-3 py-2" value={category} onChange={e=>setCategory(e.target.value)}>
+          <select className="border rounded px-3 py-2" value={category} onChange={e=>setCategory(e.target.value)} aria-label={t('categoryLabel') || 'Category'}>
             {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
