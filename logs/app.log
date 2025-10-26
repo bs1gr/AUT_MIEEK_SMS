@@ -11955,3 +11955,470 @@ sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed
 2025-10-26 10:57:33,728 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
 2025-10-26 10:57:33,741 - backend.routers.routers_students - INFO - Bulk created 2 students, 1 errors
 2025-10-26 10:57:33,743 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 200 OK"
+2025-10-26 10:58:01,785 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:58:01,786 - backend.main - INFO - Database engine ready
+2025-10-26 10:58:02,217 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:58:02,217 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:58:02,217 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:59:00,024 - backend.logging_config - INFO - Logging initialized
+2025-10-26 10:59:00,026 - backend.main - INFO - Database engine ready
+2025-10-26 10:59:00,475 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 10:59:00,475 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 10:59:00,475 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 10:59:00,651 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:00,654 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,661 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 10:59:00,662 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,677 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 10:59:00,679 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,694 - backend.routers.routers_students - INFO - Created student: 1 - STD0002
+2025-10-26 10:59:00,696 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,702 - backend.routers.routers_courses - INFO - Created course: MATH101 (1)
+2025-10-26 10:59:00,705 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,713 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:00,727 - backend.routers.routers_students - INFO - Created student: 1 - STD0003
+2025-10-26 10:59:00,729 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,737 - backend.routers.routers_courses - INFO - Created course: PHY101 (1)
+2025-10-26 10:59:00,739 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,743 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:00,757 - backend.routers.routers_students - INFO - Created student: 1 - STD0004
+2025-10-26 10:59:00,758 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,762 - backend.routers.routers_courses - INFO - Created course: ENG101 (1)
+2025-10-26 10:59:00,763 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,775 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 10:59:00,777 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,821 - backend.routers.routers_students - INFO - Created student: 1 - S1
+2025-10-26 10:59:00,823 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,830 - backend.routers.routers_students - INFO - Created student: 2 - S2
+2025-10-26 10:59:00,831 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,837 - backend.routers.routers_courses - INFO - Created course: C1 (1)
+2025-10-26 10:59:00,839 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,847 - backend.routers.routers_courses - INFO - Created course: C2 (2)
+2025-10-26 10:59:00,849 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,863 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 10:59:00,865 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,871 - backend.routers.routers_grades - INFO - Created grade: 2 for student 1
+2025-10-26 10:59:00,872 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,876 - backend.routers.routers_grades - INFO - Created grade: 3 for student 2
+2025-10-26 10:59:00,878 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,882 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?student_id=1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:00,889 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?course_id=1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:00,894 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?student_id=1&course_id=1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:00,909 - backend.routers.routers_students - INFO - Created student: 1 - STD0005
+2025-10-26 10:59:00,910 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,914 - backend.routers.routers_courses - INFO - Created course: CHEM101 (1)
+2025-10-26 10:59:00,915 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,924 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 10:59:00,925 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,928 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/grades/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:00,931 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/grades/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:00,944 - backend.routers.routers_students - INFO - Created student: 1 - STD0006
+2025-10-26 10:59:00,946 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,952 - backend.routers.routers_courses - INFO - Created course: BIO101 (1)
+2025-10-26 10:59:00,954 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,962 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 10:59:00,963 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:00,976 - backend.routers.routers_grades - INFO - Deleted grade: 1
+2025-10-26 10:59:00,977 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/grades/1 "HTTP/1.1 204 No Content"
+2025-10-26 10:59:00,982 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/1 "HTTP/1.1 404 Not Found"
+2025-10-26 10:59:05,089 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,099 - httpx - INFO - HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,111 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,112 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,123 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,125 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,127 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with email: john1.doe1@example.com
+2025-10-26 10:59:05,128 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:59:05,139 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,140 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,143 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with ID: STD0001
+2025-10-26 10:59:05,144 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 10:59:05,155 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,157 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,159 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:59:05,160 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,163 - backend.routers.routers_students - WARNING - Student not found: 9999
+2025-10-26 10:59:05,163 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 10:59:05,177 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,179 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,182 - backend.routers.routers_students - INFO - Created student: 2 - STD0002
+2025-10-26 10:59:05,183 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,187 - backend.routers.routers_students - INFO - Created student: 3 - STD0003
+2025-10-26 10:59:05,189 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,192 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 10:59:05,193 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/ "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,196 - backend.routers.routers_students - INFO - Deactivated student: 2
+2025-10-26 10:59:05,197 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/2/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,199 - backend.routers.routers_students - INFO - Retrieved 2 students (skip=0, limit=100)
+2025-10-26 10:59:05,201 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=true "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,204 - backend.routers.routers_students - INFO - Retrieved 1 students (skip=0, limit=100)
+2025-10-26 10:59:05,205 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=false "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,208 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=0 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:59:05,210 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=1001 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:59:05,213 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?skip=-1 "HTTP/1.1 400 Bad Request"
+2025-10-26 10:59:05,225 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,226 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,229 - backend.routers.routers_students - INFO - Updated student: 1
+2025-10-26 10:59:05,230 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,233 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:05,237 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:05,239 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 10:59:05,251 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,253 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,261 - backend.routers.routers_students - INFO - Deleted student: 1
+2025-10-26 10:59:05,263 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/students/1 "HTTP/1.1 204 No Content"
+2025-10-26 10:59:05,265 - backend.routers.routers_students - WARNING - Student not found: 1
+2025-10-26 10:59:05,267 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 404 Not Found"
+2025-10-26 10:59:05,279 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 10:59:05,280 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 10:59:05,283 - backend.routers.routers_students - INFO - Deactivated student: 1
+2025-10-26 10:59:05,284 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/deactivate "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,287 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:59:05,288 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,291 - backend.routers.routers_students - INFO - Activated student: 1
+2025-10-26 10:59:05,292 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/activate "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,294 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 10:59:05,295 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 10:59:05,308 - backend.routers.routers_students - INFO - Bulk created 2 students, 1 errors
+2025-10-26 10:59:05,309 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 200 OK"
+2025-10-26 11:00:35,189 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:00:35,191 - backend.main - INFO - Database engine ready
+2025-10-26 11:00:39,835 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 11:00:39,835 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 11:00:39,835 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 11:00:39,837 - backend.main - INFO - 
+======================================================================
+2025-10-26 11:00:39,837 - backend.main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 11:00:39,837 - backend.main - INFO - ======================================================================
+2025-10-26 11:00:39,838 - backend.main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 11:00:39,838 - backend.main - INFO - Database: SQLite
+2025-10-26 11:00:39,838 - backend.main - INFO - Framework: FastAPI
+2025-10-26 11:00:39,838 - backend.main - INFO - Logging: initialized
+2025-10-26 11:00:39,838 - backend.main - INFO - ======================================================================
+2025-10-26 11:00:39,878 - backend.main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 11:01:01,623 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 11:01:01,723 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:01:01,758 - backend.routers.routers_enrollments - INFO - Retrieved 9 enrollments (skip=0, limit=500)
+2025-10-26 11:01:04,432 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:01:09,399 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 11:01:09,439 - backend.routers.routers_enrollments - INFO - Retrieved 3 enrollments for student 1
+2025-10-26 11:01:09,444 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:01:09,444 - backend.routers.routers_courses - INFO - Retrieved course: 3
+2025-10-26 11:01:09,444 - backend.routers.routers_courses - INFO - Retrieved course: 2
+2025-10-26 11:05:31,362 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 11:05:31,362 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:05:37,850 - backend.routers.routers_adminops - INFO - Database backup created: D:\SMS\student-management-system\backups\backup_20251026_110537.db (source: D:\SMS\student-management-system\student_management.db)
+2025-10-26 11:06:11,476 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:06:11,479 - backend.routers.routers_courses - INFO - Retrieved 0 courses
+2025-10-26 11:06:18,879 - backend.routers.routers_courses - INFO - Retrieved 0 courses
+2025-10-26 11:06:18,879 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:06:42,664 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:06:42,667 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:10:00,853 - backend.routers.routers_courses - WARNING - Evaluation rules weights sum to 40.0%, not 100%
+2025-10-26 11:10:08,552 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:10:08,553 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:10:15,175 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:10:15,178 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:10:15,184 - backend.routers.routers_enrollments - INFO - Retrieved 0 enrollments (skip=0, limit=500)
+2025-10-26 11:10:17,151 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:10:17,151 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:10:32,315 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,321 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,446 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,457 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,579 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,643 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,717 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,726 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,824 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:32,834 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:10:37,968 - backend.main - INFO - Admin shutdown route called (redirecting to control API)
+2025-10-26 11:10:37,968 - backend.main - INFO - Shutdown initiated: stopping all services
+2025-10-26 11:10:37,968 - backend.main - INFO - Attempting to kill tracked frontend PID: 22940
+2025-10-26 11:10:38,122 - backend.main - INFO - Stopped tracked frontend process (PID: 22940)
+2025-10-26 11:10:38,122 - backend.main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-26 11:10:38,147 - backend.main - INFO - Found PIDs on port 5173: [24288]
+2025-10-26 11:10:38,147 - backend.main - INFO - Killing PID 24288 on port 5173
+2025-10-26 11:10:38,275 - backend.main - INFO - Shutdown initiated: stopping all services
+2025-10-26 11:10:38,275 - backend.main - INFO - Backend stop requested
+2025-10-26 11:10:38,276 - backend.main - INFO - No tracked frontend process to stop
+2025-10-26 11:10:38,276 - backend.main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-26 11:10:38,277 - backend.main - INFO - Stopped frontend on port 5173 (PID: 24288), taskkill result: 0
+2025-10-26 11:10:38,440 - backend.main - INFO - Checking for Node.js processes...
+2025-10-26 11:10:38,466 - backend.main - INFO - Checking for Node.js processes...
+2025-10-26 11:10:38,558 - backend.main - INFO - No Node.js processes found
+2025-10-26 11:10:38,579 - backend.main - INFO - No Node.js processes found
+2025-10-26 11:10:39,026 - backend.main - INFO - Executing backend shutdown
+2025-10-26 11:14:23,679 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:14:23,680 - backend.main - INFO - Database engine ready
+2025-10-26 11:14:26,788 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:14:26,790 - backend.main - INFO - Database engine ready
+2025-10-26 11:14:32,939 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:14:32,940 - backend.main - INFO - Database engine ready
+2025-10-26 11:14:34,076 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 11:14:34,076 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 11:14:34,076 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 11:14:34,077 - backend.main - INFO - 
+======================================================================
+2025-10-26 11:14:34,078 - backend.main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 11:14:34,078 - backend.main - INFO - ======================================================================
+2025-10-26 11:14:34,078 - backend.main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 11:14:34,078 - backend.main - INFO - Database: SQLite
+2025-10-26 11:14:34,078 - backend.main - INFO - Framework: FastAPI
+2025-10-26 11:14:34,078 - backend.main - INFO - Logging: initialized
+2025-10-26 11:14:34,078 - backend.main - INFO - ======================================================================
+2025-10-26 11:14:34,079 - backend.main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 11:14:47,021 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:14:47,023 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:14:47,030 - backend.routers.routers_enrollments - INFO - Retrieved 0 enrollments (skip=0, limit=500)
+2025-10-26 11:14:54,328 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:14:54,331 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:15:11,906 - backend.main - INFO - Admin shutdown route called (redirecting to control API)
+2025-10-26 11:15:11,906 - backend.main - INFO - Shutdown initiated: stopping all services
+2025-10-26 11:15:11,906 - backend.main - INFO - No tracked frontend process to stop
+2025-10-26 11:15:11,906 - backend.main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-26 11:15:11,931 - backend.main - INFO - Found PIDs on port 5173: [29612]
+2025-10-26 11:15:11,931 - backend.main - INFO - Killing PID 29612 on port 5173
+2025-10-26 11:15:12,070 - backend.main - INFO - Stopped frontend on port 5173 (PID: 29612), taskkill result: 0
+2025-10-26 11:15:12,221 - backend.main - INFO - Backend stop requested
+2025-10-26 11:15:12,222 - backend.main - INFO - Shutdown initiated: stopping all services
+2025-10-26 11:15:12,222 - backend.main - INFO - No tracked frontend process to stop
+2025-10-26 11:15:12,222 - backend.main - INFO - Checking frontend ports: [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+2025-10-26 11:15:12,226 - backend.main - INFO - Checking for Node.js processes...
+2025-10-26 11:15:12,340 - backend.main - INFO - No Node.js processes found
+2025-10-26 11:15:12,405 - backend.main - INFO - Checking for Node.js processes...
+2025-10-26 11:15:12,502 - backend.main - INFO - No Node.js processes found
+2025-10-26 11:15:12,972 - backend.main - INFO - Executing backend shutdown
+2025-10-26 11:16:35,902 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:16:35,903 - backend.main - INFO - Database engine ready
+2025-10-26 11:16:36,275 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 11:16:36,275 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 11:16:36,275 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 11:16:36,276 - backend.main - INFO - 
+======================================================================
+2025-10-26 11:16:36,276 - backend.main - INFO - STUDENT MANAGEMENT SYSTEM - STARTUP
+2025-10-26 11:16:36,277 - backend.main - INFO - ======================================================================
+2025-10-26 11:16:36,277 - backend.main - INFO - Version: 3.0.1 - Production Ready
+2025-10-26 11:16:36,277 - backend.main - INFO - Database: SQLite
+2025-10-26 11:16:36,277 - backend.main - INFO - Framework: FastAPI
+2025-10-26 11:16:36,277 - backend.main - INFO - Logging: initialized
+2025-10-26 11:16:36,277 - backend.main - INFO - ======================================================================
+2025-10-26 11:16:36,278 - backend.main - INFO - Database schema check completed (absence_penalty ensured)
+2025-10-26 11:16:44,604 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:16:44,604 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:16:44,612 - backend.routers.routers_enrollments - INFO - Retrieved 0 enrollments (skip=0, limit=500)
+2025-10-26 11:16:50,861 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:16:50,873 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:17:00,557 - backend.routers.routers_courses - WARNING - Evaluation rules weights sum to 40.0%, not 100%
+2025-10-26 11:17:10,870 - backend.routers.routers_students - INFO - Retrieved 0 students (skip=0, limit=100)
+2025-10-26 11:17:10,870 - backend.routers.routers_courses - INFO - Retrieved 26 courses
+2025-10-26 11:23:20,282 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:23:20,283 - backend.main - INFO - Database engine ready
+2025-10-26 11:23:21,208 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 11:23:21,208 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 11:23:21,208 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 11:23:22,201 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,204 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,320 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,322 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,432 - backend.routers.routers_courses - WARNING - Attempted to create duplicate course: CS101
+2025-10-26 11:23:22,434 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:22,572 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,575 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,629 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:22,631 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,671 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,678 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,732 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:22,740 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,809 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,813 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,853 - backend.routers.routers_courses - WARNING - Evaluation rules weights sum to 70.0%, not 100%
+2025-10-26 11:23:22,854 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:22,866 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:22,868 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,882 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,883 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,892 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:23:22,894 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,919 - backend.routers.routers_courses - WARNING - Course not found: 9999
+2025-10-26 11:23:22,920 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:22,935 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,936 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,941 - backend.routers.routers_courses - INFO - Created course: CS102 (2)
+2025-10-26 11:23:22,942 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,949 - backend.routers.routers_courses - INFO - Created course: CS103 (3)
+2025-10-26 11:23:22,950 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,956 - backend.routers.routers_courses - INFO - Retrieved 2 courses
+2025-10-26 11:23:22,957 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/?semester=Fall%202025 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,960 - backend.routers.routers_courses - INFO - Retrieved 1 courses
+2025-10-26 11:23:22,962 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/?semester=Spring%202026 "HTTP/1.1 200 OK"
+2025-10-26 11:23:22,977 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:22,979 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:22,991 - backend.routers.routers_courses - INFO - Deleted course: 1
+2025-10-26 11:23:22,992 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/courses/1 "HTTP/1.1 204 No Content"
+2025-10-26 11:23:23,008 - backend.routers.routers_courses - WARNING - Course not found: 1
+2025-10-26 11:23:23,009 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/1 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:33,686 - backend.logging_config - INFO - Logging initialized
+2025-10-26 11:23:33,687 - backend.main - INFO - Database engine ready
+2025-10-26 11:23:34,109 - backend.main - INFO - Registered routers: Students, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, AdminOps
+2025-10-26 11:23:34,109 - backend.main - WARNING - Some routers failed to load. Details:
+2025-10-26 11:23:34,109 - backend.main - WARNING -  - routers.highlights: No module named 'routers'
+2025-10-26 11:23:34,376 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,378 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,391 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,392 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,395 - backend.routers.routers_courses - WARNING - Attempted to create duplicate course: CS101
+2025-10-26 11:23:34,397 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:34,408 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,409 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,415 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:34,416 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,426 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,427 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,431 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:34,433 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,443 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,444 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,447 - backend.routers.routers_courses - WARNING - Evaluation rules weights sum to 70.0%, not 100%
+2025-10-26 11:23:34,448 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:34,453 - backend.routers.routers_courses - INFO - Updated course: 1
+2025-10-26 11:23:34,454 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,464 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,465 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,471 - backend.routers.routers_courses - INFO - Retrieved course: 1
+2025-10-26 11:23:34,472 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,482 - backend.routers.routers_courses - WARNING - Course not found: 9999
+2025-10-26 11:23:34,483 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:34,494 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,496 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,502 - backend.routers.routers_courses - INFO - Created course: CS102 (2)
+2025-10-26 11:23:34,503 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,507 - backend.routers.routers_courses - INFO - Created course: CS103 (3)
+2025-10-26 11:23:34,508 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,511 - backend.routers.routers_courses - INFO - Retrieved 2 courses
+2025-10-26 11:23:34,514 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/?semester=Fall%202025 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,518 - backend.routers.routers_courses - INFO - Retrieved 1 courses
+2025-10-26 11:23:34,519 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/?semester=Spring%202026 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,531 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,532 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,540 - backend.routers.routers_courses - INFO - Deleted course: 1
+2025-10-26 11:23:34,541 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/courses/1 "HTTP/1.1 204 No Content"
+2025-10-26 11:23:34,544 - backend.routers.routers_courses - WARNING - Course not found: 1
+2025-10-26 11:23:34,545 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/courses/1 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:34,574 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:34,575 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,581 - backend.routers.routers_courses - INFO - Created course: CS101 (1)
+2025-10-26 11:23:34,583 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,588 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 11:23:34,589 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,601 - backend.routers.routers_students - INFO - Created student: 1 - STD0002
+2025-10-26 11:23:34,602 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,606 - backend.routers.routers_courses - INFO - Created course: MATH101 (1)
+2025-10-26 11:23:34,607 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,611 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:34,623 - backend.routers.routers_students - INFO - Created student: 1 - STD0003
+2025-10-26 11:23:34,624 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,627 - backend.routers.routers_courses - INFO - Created course: PHY101 (1)
+2025-10-26 11:23:34,629 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,633 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:34,644 - backend.routers.routers_students - INFO - Created student: 1 - STD0004
+2025-10-26 11:23:34,645 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,649 - backend.routers.routers_courses - INFO - Created course: ENG101 (1)
+2025-10-26 11:23:34,650 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,655 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 11:23:34,656 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,668 - backend.routers.routers_students - INFO - Created student: 1 - S1
+2025-10-26 11:23:34,670 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,675 - backend.routers.routers_students - INFO - Created student: 2 - S2
+2025-10-26 11:23:34,676 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,681 - backend.routers.routers_courses - INFO - Created course: C1 (1)
+2025-10-26 11:23:34,682 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,686 - backend.routers.routers_courses - INFO - Created course: C2 (2)
+2025-10-26 11:23:34,687 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,691 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 11:23:34,692 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,696 - backend.routers.routers_grades - INFO - Created grade: 2 for student 1
+2025-10-26 11:23:34,698 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,702 - backend.routers.routers_grades - INFO - Created grade: 3 for student 2
+2025-10-26 11:23:34,703 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,707 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?student_id=1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,710 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?course_id=1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,714 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/?student_id=1&course_id=1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:34,725 - backend.routers.routers_students - INFO - Created student: 1 - STD0005
+2025-10-26 11:23:34,726 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,730 - backend.routers.routers_courses - INFO - Created course: CHEM101 (1)
+2025-10-26 11:23:34,732 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,736 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 11:23:34,737 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,740 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/grades/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:34,743 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/grades/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:34,755 - backend.routers.routers_students - INFO - Created student: 1 - STD0006
+2025-10-26 11:23:34,756 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,759 - backend.routers.routers_courses - INFO - Created course: BIO101 (1)
+2025-10-26 11:23:34,760 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/courses/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,766 - backend.routers.routers_grades - INFO - Created grade: 1 for student 1
+2025-10-26 11:23:34,767 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/grades/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:34,771 - backend.routers.routers_grades - INFO - Deleted grade: 1
+2025-10-26 11:23:34,771 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/grades/1 "HTTP/1.1 204 No Content"
+2025-10-26 11:23:34,775 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/grades/1 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:38,898 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2025-10-26 11:23:38,907 - httpx - INFO - HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2025-10-26 11:23:38,919 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:38,920 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,931 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:38,932 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,937 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with email: john1.doe1@example.com
+2025-10-26 11:23:38,937 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:38,948 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:38,950 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,954 - backend.routers.routers_students - WARNING - Attempted to create duplicate student with ID: STD0001
+2025-10-26 11:23:38,955 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:38,965 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:38,967 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,970 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 11:23:38,971 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:38,973 - backend.routers.routers_students - WARNING - Student not found: 9999
+2025-10-26 11:23:38,974 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/9999 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:38,986 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:38,987 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,990 - backend.routers.routers_students - INFO - Created student: 2 - STD0002
+2025-10-26 11:23:38,991 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:38,995 - backend.routers.routers_students - INFO - Created student: 3 - STD0003
+2025-10-26 11:23:38,996 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:39,000 - backend.routers.routers_students - INFO - Retrieved 3 students (skip=0, limit=100)
+2025-10-26 11:23:39,001 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/ "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,004 - backend.routers.routers_students - INFO - Deactivated student: 2
+2025-10-26 11:23:39,005 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/2/deactivate "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,008 - backend.routers.routers_students - INFO - Retrieved 2 students (skip=0, limit=100)
+2025-10-26 11:23:39,009 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=true "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,012 - backend.routers.routers_students - INFO - Retrieved 1 students (skip=0, limit=100)
+2025-10-26 11:23:39,014 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?is_active=false "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,017 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=0 "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:39,020 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?limit=1001 "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:39,022 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/?skip=-1 "HTTP/1.1 400 Bad Request"
+2025-10-26 11:23:39,035 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:39,037 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:39,040 - backend.routers.routers_students - INFO - Updated student: 1
+2025-10-26 11:23:39,041 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,044 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:39,046 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:39,049 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/students/1 "HTTP/1.1 422 Unprocessable Entity"
+2025-10-26 11:23:39,060 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:39,061 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:39,125 - backend.routers.routers_students - INFO - Deleted student: 1
+2025-10-26 11:23:39,127 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/students/1 "HTTP/1.1 204 No Content"
+2025-10-26 11:23:39,129 - backend.routers.routers_students - WARNING - Student not found: 1
+2025-10-26 11:23:39,130 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 404 Not Found"
+2025-10-26 11:23:39,141 - backend.routers.routers_students - INFO - Created student: 1 - STD0001
+2025-10-26 11:23:39,142 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/ "HTTP/1.1 201 Created"
+2025-10-26 11:23:39,145 - backend.routers.routers_students - INFO - Deactivated student: 1
+2025-10-26 11:23:39,146 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/deactivate "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,149 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 11:23:39,151 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,154 - backend.routers.routers_students - INFO - Activated student: 1
+2025-10-26 11:23:39,155 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/1/activate "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,157 - backend.routers.routers_students - INFO - Retrieved student: 1
+2025-10-26 11:23:39,158 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/students/1 "HTTP/1.1 200 OK"
+2025-10-26 11:23:39,172 - backend.routers.routers_students - INFO - Bulk created 2 students, 1 errors
+2025-10-26 11:23:39,174 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/students/bulk/create "HTTP/1.1 200 OK"
