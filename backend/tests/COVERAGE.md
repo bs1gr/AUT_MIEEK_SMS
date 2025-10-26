@@ -1,7 +1,7 @@
 # Test Coverage Summary
 
 **Last Updated:** October 26, 2025  
-**Total Tests:** 28 passing  
+**Total Tests:** 44 passing  
 **Test Framework:** pytest 8.3.3 + FastAPI TestClient + httpx
 
 ## Test Breakdown
@@ -27,6 +27,22 @@
 - `test_get_course_404` - Handle missing course
 - `test_list_courses_with_semester_filter` - Filter by semester
 - `test_delete_course` - Delete and verify removal
+
+### Attendance Router (16 tests) ✅
+- `test_create_attendance_success` - Basic attendance record creation
+- `test_create_attendance_invalid_student` - Validate student exists
+- `test_create_attendance_invalid_course` - Validate course exists
+- `test_create_duplicate_attendance` - Prevent duplicate records for same student/course/date/period
+- `test_get_all_attendance` - Retrieve all attendance records
+- `test_filter_attendance_by_student` - Filter by student_id
+- `test_filter_attendance_by_status` - Filter by status (Present/Absent/Late/Excused)
+- `test_get_student_attendance` - Get all attendance for specific student
+- `test_get_course_attendance` - Get all attendance for specific course
+- `test_get_attendance_by_date_and_course` - Query by date and course
+- `test_update_attendance` - Update attendance status
+- `test_delete_attendance` - Delete record and verify removal
+- `test_attendance_stats` - Calculate attendance statistics (total, present, absent, late, excused, rate)
+- `test_bulk_create_attendance` - Bulk create multiple attendance records
 
 ### Grades Router (7 tests) ✅
 - `test_create_grade_success` - Basic grade creation with student/course
@@ -89,7 +105,7 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 ### High Priority
 
 1. ~~**Courses Router**~~ ✅ DONE - Create, update, delete, evaluation rules validation
-2. **Attendance Router** - Status validation, date queries, bulk import
+2. ~~**Attendance Router**~~ ✅ DONE - Status validation, date queries, bulk import, statistics
 3. **Enrollments Router** - Student-course links, duplicate prevention
 4. **Analytics Router** - Final grade calculation integration tests
 
@@ -106,8 +122,8 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 ## Coverage Metrics Goal
 
 - **Target:** 70%+ line coverage for routers and schemas
-- **Current estimate:** ~50% (28 tests covering 3 main routers + health)
-- **Path to 70%:** Add 10-15 more tests across remaining routers (Attendance, Enrollments, Analytics)
+- **Current estimate:** ~60% (44 tests covering 4 main routers + health + grade calculation)
+- **Path to 70%:** Add 8-12 more tests across remaining routers (Enrollments, Analytics, DailyPerformance)
 
 ## Notes
 
