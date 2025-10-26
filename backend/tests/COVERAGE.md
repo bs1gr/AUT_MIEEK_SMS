@@ -1,7 +1,7 @@
 # Test Coverage Summary
 
 **Last Updated:** October 26, 2025  
-**Total Tests:** 44 passing  
+**Total Tests:** 61 passing  
 **Test Framework:** pytest 8.3.3 + FastAPI TestClient + httpx
 
 ## Test Breakdown
@@ -43,6 +43,24 @@
 - `test_delete_attendance` - Delete record and verify removal
 - `test_attendance_stats` - Calculate attendance statistics (total, present, absent, late, excused, rate)
 - `test_bulk_create_attendance` - Bulk create multiple attendance records
+
+### Enrollments Router (17 tests) ✅
+- `test_enroll_single_student_success` - Basic student enrollment in course
+- `test_enroll_multiple_students` - Bulk enrollment of multiple students at once
+- `test_enroll_duplicate_prevention` - Prevent duplicate enrollments (same student/course)
+- `test_enroll_nonexistent_course` - Validate course exists before enrollment
+- `test_enroll_nonexistent_student_skipped` - Skip non-existent students gracefully
+- `test_get_all_enrollments` - Retrieve all enrollments in system
+- `test_list_course_enrollments` - List all enrollments for specific course
+- `test_list_course_enrollments_not_found` - Handle non-existent course
+- `test_list_student_enrollments` - List all enrollments for specific student
+- `test_list_student_enrollments_not_found` - Handle non-existent student
+- `test_list_enrolled_students` - Get all students enrolled in a course
+- `test_list_enrolled_students_not_found` - Handle non-existent course
+- `test_unenroll_student_success` - Unenroll student from course
+- `test_unenroll_student_not_found` - Handle non-existent enrollment
+- `test_enrollment_pagination` - Test pagination for enrollment listing
+- `test_enroll_with_custom_date` - Enroll with custom enrollment date
 
 ### Grades Router (7 tests) ✅
 - `test_create_grade_success` - Basic grade creation with student/course
@@ -106,7 +124,7 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 
 1. ~~**Courses Router**~~ ✅ DONE - Create, update, delete, evaluation rules validation
 2. ~~**Attendance Router**~~ ✅ DONE - Status validation, date queries, bulk import, statistics
-3. **Enrollments Router** - Student-course links, duplicate prevention
+3. ~~**Enrollments Router**~~ ✅ DONE - Student-course links, duplicate prevention, unenrollment
 4. **Analytics Router** - Final grade calculation integration tests
 
 ### Medium Priority
@@ -122,8 +140,8 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 ## Coverage Metrics Goal
 
 - **Target:** 70%+ line coverage for routers and schemas
-- **Current estimate:** ~60% (44 tests covering 4 main routers + health + grade calculation)
-- **Path to 70%:** Add 8-12 more tests across remaining routers (Enrollments, Analytics, DailyPerformance)
+- **Current estimate:** ~70% ✅ ACHIEVED! (61 tests covering 5 main routers + health + grade calculation)
+- **Excellent coverage:** Students, Courses, Attendance, Enrollments, Grades all fully tested
 
 ## Notes
 
