@@ -393,13 +393,25 @@ if ($ControlOnly) {
     Write-Host "  Opening Control Panel in your browser..." -ForegroundColor Yellow
     Write-Host "  This script will exit. Use the Control Panel to manage services." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "  Tip: Use 'Start Frontend' in the Control Panel to launch the frontend." -ForegroundColor Gray
+    Write-Host "  Tip: Frontend will be started automatically; use the Control Panel to manage it." -ForegroundColor Gray
     Write-Host ""
     Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
     
+    # Open the Control Panel
     Start-Process "http://localhost:$backendPort/control"
-    Start-Sleep -Seconds 1
+    
+    # Also auto-start the frontend via the control API (idempotent)
+    try {
+        # Small delay to ensure backend is ready to serve control endpoints
+        Start-Sleep -Milliseconds 400
+        Invoke-WebRequest -Uri "http://localhost:$backendPort/control/api/start" -Method POST -TimeoutSec 4 -ErrorAction Stop | Out-Null
+        Write-Host "  Frontend auto-start requested via Control API" -ForegroundColor Gray
+    } catch {
+        Write-Host "  Warning: Failed to auto-start frontend (you can start it from the Control Panel)" -ForegroundColor Yellow
+    }
+
+    # Optional: do not wait for frontend; exit immediately to keep this mode lightweight
     exit 0
 }
 
