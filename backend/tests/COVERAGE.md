@@ -1,7 +1,7 @@
 # Test Coverage Summary
 
 **Last Updated:** October 26, 2025  
-**Total Tests:** 19 passing  
+**Total Tests:** 28 passing  
 **Test Framework:** pytest 8.3.3 + FastAPI TestClient + httpx
 
 ## Test Breakdown
@@ -16,6 +16,17 @@
 - `test_delete_student_and_then_404` - Delete and verify removal
 - `test_activate_deactivate_student` - Account activation toggle
 - `test_bulk_create_students_with_duplicates` - Bulk import with error handling
+
+### Courses Router (9 tests) ✅
+- `test_create_course_success` - Basic course creation
+- `test_create_course_duplicate_code` - Course code uniqueness validation
+- `test_update_course_basic_fields` - Update all course fields
+- `test_update_course_preserves_unset_fields` - Verify partial updates don't clear other fields
+- `test_update_course_evaluation_rules_validation` - Weights must sum to 100%
+- `test_get_course_by_id` - Retrieve by ID
+- `test_get_course_404` - Handle missing course
+- `test_list_courses_with_semester_filter` - Filter by semester
+- `test_delete_course` - Delete and verify removal
 
 ### Grades Router (7 tests) ✅
 - `test_create_grade_success` - Basic grade creation with student/course
@@ -76,7 +87,8 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 ## Next Steps for Expanded Coverage
 
 ### High Priority
-1. **Courses Router** - Create, update, delete, evaluation rules validation
+
+1. ~~**Courses Router**~~ ✅ DONE - Create, update, delete, evaluation rules validation
 2. **Attendance Router** - Status validation, date queries, bulk import
 3. **Enrollments Router** - Student-course links, duplicate prevention
 4. **Analytics Router** - Final grade calculation integration tests
@@ -94,8 +106,8 @@ python -m pytest backend/tests --cov=backend --cov-report=term-missing
 ## Coverage Metrics Goal
 
 - **Target:** 70%+ line coverage for routers and schemas
-- **Current estimate:** ~40% (19 tests covering 2 main routers + health)
-- **Path to 70%:** Add 15-20 more tests across remaining routers
+- **Current estimate:** ~50% (28 tests covering 3 main routers + health)
+- **Path to 70%:** Add 10-15 more tests across remaining routers (Attendance, Enrollments, Analytics)
 
 ## Notes
 
