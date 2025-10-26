@@ -1,5 +1,33 @@
 # Student Management System
 
+[![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
+
+## How to run
+
+- Quick start (Windows):
+
+```batch
+QUICKSTART.bat
+```
+
+- Utilities & troubleshooting:
+
+```batch
+UTILITIES.bat
+```
+
+- Docker (compose):
+
+```powershell
+./scripts/DOCKER_UP.ps1
+```
+
+- Fullstack (single container):
+
+```powershell
+./scripts/DOCKER_FULLSTACK_UP.ps1
+```
+
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
 
 ## Features
@@ -156,8 +184,8 @@ The **HTML Control Panel** provides a browser-based interface to manage the appl
   - Start/stop backend
   - Quick links to open the app, API docs, and ReDoc
 - **Launching Control Panel Only**:
-  - Run `LAUNCHER.bat` and choose option **C**, or
-  - Run `.\scripts\RUN.ps1 -ControlOnly`
+  - Run `\.\QUICKSTART.ps1 -ControlOnly`, or
+  - Run `\.\scripts\RUN.ps1 -ControlOnly`
   - This starts the backend, opens the control panel in your browser, and exits the script immediately
   - Ideal for minimal, safe runs without long-running terminal processes
 
@@ -211,7 +239,8 @@ student-management-system/
 │   ├── DEBUG_PORTS.ps1
 │   ├── CLEANUP.ps1
 │   └── CREATE_PACKAGE.ps1
-├── LAUNCHER.bat            # Main launcher menu
+├── QUICKSTART.bat          # Minimal quick start
+├── UTILITIES.bat           # Utilities & troubleshooting menu
 ├── INSTALL.bat             # Quick installer
 ├── RUN.bat                 # Quick start
 └── STOP.bat                # Quick stop
