@@ -16,32 +16,42 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ## Quick Start
 
-### Option 1: Use the Launcher Menu (Recommended)
+### Option 1: Quick Start (Recommended)
+
+Run the minimal launcher:
 
 ```batch
-LAUNCHER.bat
+QUICKSTART.bat
 ```
 
-The launcher provides a menu with options:
-1. **Start Application** - Start backend and frontend (full mode)
-2. **Start Control Panel Only (Lightweight)** - Start backend only, open HTML control panel, and exit the launcher
-   - Minimal, safe run mode
-   - Control Panel allows you to start/stop frontend on demand
-   - No long-running terminal processes
-3. **Stop Application** - Stop all services
-4. **Emergency Shutdown** - Kill all processes forcefully
-5. **Install Dependencies** - Install/update dependencies
-6. **Check System Health** - Verify installation
-7. **Debug Port Conflicts** - Diagnose port issues
-8. **Diagnose Frontend Issues** - Troubleshoot frontend
-9. **Create Deployment Package** - Package the app for distribution
-10. **Cleanup Obsolete Files** - Remove old files
-11. **Show Version Info**
-12. **Open Application in Browser**
+Or with options:
 
-**Recommended for quick runs:** Use option **C** (Control Panel Only) to start just the backend and access the lightweight HTML control panel at http://localhost:8000/control. From there, you can start the frontend on demand and manage all services from your browser.
+```powershell
+.\QUICKSTART.ps1                    # Start native (backend+frontend)
+.\QUICKSTART.ps1 -ControlOnly       # Start backend + control panel only
+.\QUICKSTART.ps1 -Mode docker       # Start via docker-compose
+.\QUICKSTART.ps1 -Mode fullstack    # Start single Docker container
+.\QUICKSTART.ps1 -Help              # Show all options
+```
 
-### Option 2: Use Quick Commands
+### Option 2: Utilities & Troubleshooting
+
+For diagnostics, installation, cleanup, and Docker management:
+
+```batch
+UTILITIES.bat
+```
+
+Provides interactive menu for:
+
+- Install/update dependencies
+- System health checks
+- Port conflict debugging
+- Docker operations (up/down/fullstack)
+- Deployment packaging
+- Version info and more
+
+### Option 3: Direct Commands
 
 ```batch
 # First time installation
@@ -54,7 +64,7 @@ RUN.bat
 STOP.bat
 ```
 
-### Option 3: Docker (Single-host, production-like)
+### Option 4: Docker (Single-host, production-like)
 
 If you have Docker installed, you can build and run the app with one command and access it at <http://localhost:8080>.
 
