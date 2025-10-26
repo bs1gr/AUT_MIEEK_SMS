@@ -103,8 +103,11 @@ Start-Process http://localhost:8080
 
 Notes:
 
-- The fullstack image sets `SERVE_FRONTEND=1` in the backend, enabling SPA serving with a fallback route.
-- API is available under the same origin at `/api/v1`.
+- The fullstack image sets `SERVE_FRONTEND=1` in the backend, enabling SPA serving.
+- Root URL `/` serves the SPA (index.html), while API endpoints remain at `/api/v1/*`.
+- API metadata is available at `/api` (JSON).
+- Swagger docs: `/docs`, ReDoc: `/redoc`, Health: `/health`.
+- Client-side routes (e.g., `/#power`) work via 404 fallback to index.html.
 
 ### Helper scripts (Windows)
 
