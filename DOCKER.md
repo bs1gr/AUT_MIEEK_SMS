@@ -106,6 +106,25 @@ Notes:
 - The fullstack image sets `SERVE_FRONTEND=1` in the backend, enabling SPA serving with a fallback route.
 - API is available under the same origin at `/api/v1`.
 
+### Helper scripts (Windows)
+
+On Windows, you can use the provided helper scripts:
+
+```pwsh
+# Build (optional) and run fullstack
+./scripts/DOCKER_FULLSTACK_UP.ps1           # run using existing image
+./scripts/DOCKER_FULLSTACK_UP.ps1 -Rebuild  # rebuild image first, then run
+
+# Stop container (and optionally remove the image)
+./scripts/DOCKER_FULLSTACK_DOWN.ps1
+./scripts/DOCKER_FULLSTACK_DOWN.ps1 -RemoveImage
+```
+
+You’ll also find these options in `LAUNCHER.bat` under:
+
+- F: Fullstack Up (single container)
+- G: Fullstack Down (single container)
+
 ## Publishing Images (GHCR)
 
 This repo includes a release workflow to build and push images to GitHub Container Registry (GHCR).

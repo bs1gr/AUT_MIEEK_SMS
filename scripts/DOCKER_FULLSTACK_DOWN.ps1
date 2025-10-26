@@ -1,4 +1,7 @@
-# Stop and remove Docker Compose for SMS
+# Stop and remove the single-container fullstack app
+param(
+    [switch]$RemoveImage
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -17,18 +20,20 @@ function Test-DockerAvailable {
     }
 }
 
-Push-Location (Split-Path -Parent $PSScriptRoot)
-try {
-    if (-not (Test-DockerAvailable)) {
-        Write-Warn "Docker is not available. Nothing to stop."
-        exit 0
-    }
+$ctn = "sms-fullstack"
+$img = "sms-fullstack"
 
-    Write-Info "Stopping containers (docker compose down)..."
-    & docker compose down
-    if ($LASTEXITCODE -ne 0) { Write-Err "docker compose down failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
-
-    Write-Ok "Done."
-} finally {
-    Pop-Location
+if (-not (Test-DockerAvailable)) {
+    Write-Warn "Docker is not available. Nothing to stop."
+    exit 0
 }
+
+Write-Info "Stopping and removing container $ctn ..."
+try { docker rm -f $ctn 1>$null 2>$null } catch { }
+
+if ($RemoveImage) {
+    Write-Warn "Removing image $img ..."
+    try { docker rmi -f $img 1>$null 2>$null } catch { }
+}
+
+Write-Ok "Done."
