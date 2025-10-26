@@ -4,29 +4,21 @@
 
 ## How to run
 
-- Quick start (Windows):
+- **Quick start (fullstack Docker container)**:
 
 ```batch
 QUICKSTART.bat
 ```
 
-- Utilities & troubleshooting:
+Runs the single-container fullstack image on http://localhost:8080 (build via `UTILITIES.bat` → Install if needed).
+
+- **Utilities & troubleshooting**:
 
 ```batch
 UTILITIES.bat
 ```
 
-- Docker (compose):
-
-```powershell
-./scripts/DOCKER_UP.ps1
-```
-
-- Fullstack (single container):
-
-```powershell
-./scripts/DOCKER_FULLSTACK_UP.ps1
-```
+Provides install, diagnostics, Docker operations, and more.
 
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
 
@@ -46,20 +38,21 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ### Option 1: Quick Start (Recommended)
 
-Run the minimal launcher:
+Run the fullstack Docker container:
 
 ```batch
 QUICKSTART.bat
 ```
 
+This starts the single-container fullstack image on <http://localhost:8080>. If the image doesn't exist, build it first via `UTILITIES.bat` → Install.
+
 Or with options:
 
 ```powershell
-.\QUICKSTART.ps1                    # Start native (backend+frontend)
-.\QUICKSTART.ps1 -ControlOnly       # Start backend + control panel only
-.\QUICKSTART.ps1 -Mode docker       # Start via docker-compose
-.\QUICKSTART.ps1 -Mode fullstack    # Start single Docker container
-.\QUICKSTART.ps1 -Help              # Show all options
+.\QUICKSTART.ps1              # Start fullstack on port 8080
+.\QUICKSTART.ps1 -Rebuild     # Rebuild image and start
+.\QUICKSTART.ps1 -Port 9000   # Start on custom port
+.\QUICKSTART.ps1 -Help        # Show all options
 ```
 
 ### Option 2: Utilities & Troubleshooting
