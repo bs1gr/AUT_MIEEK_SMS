@@ -35,12 +35,20 @@ This phase focuses on packaging, distribution, and updates across platforms.
 
 ## Prereqs/Housekeeping
 
-- Ensure .gitignore excludes caches, logs, DBs (done)
-- Resolve git push auth (SSH key or HTTPS token)
+- [x] Ensure .gitignore excludes caches, logs, DBs (done)
+- [x] Audit and harden start/stop/launcher scripts for minimal, reliable operation
+  - [x] Created html_control_panel.html for browser-based management
+  - [x] Added RUN.ps1 -ControlOnly mode (start backend, open control panel, exit)
+  - [x] Enhanced LAUNCHER.ps1 with Control Panel Only option \[C\]
+  - [x] Backend /control routes provide start/stop operations via API
+  - [x] Documented in README
+  - Result: Minimal, safe run path for demos and testing
+- [ ] Resolve git push auth (SSH key or HTTPS token)
 
 ## Tracking
 
 - [x] Analytics router tests for final grade
+- [x] Script audit and control panel for minimal runs
 - [ ] Dockerfiles + compose
 - [ ] Windows installer scripts
 - [ ] Auto-update service
