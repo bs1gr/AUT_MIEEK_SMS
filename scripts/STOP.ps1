@@ -1,67 +1,67 @@
-# Student Management System - Stop Script
+# ============================================================================
+#   Student Management System - Stop Application
+#   Stops and removes the fullstack Docker container
+# ============================================================================
 
-Write-Host ""
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  Stopping Student Management System..." -ForegroundColor Cyan
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host ""
+param(
+    [switch]$RemoveImage,
+    [switch]$Help
+)
 
-# Change to project root directory
-$projectRoot = Split-Path -Parent $PSScriptRoot
-Set-Location $projectRoot
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-# Try API shutdown first (attempt common backend ports)
-$apiStopped = $false
-foreach ($p in 8000..8010) {
-    try {
-        Invoke-WebRequest -Uri "http://localhost:$p/control/api/stop-all" -Method POST -TimeoutSec 2 -ErrorAction Stop | Out-Null
-        Write-Host "API shutdown initiated on port $p..." -ForegroundColor Green
-        $apiStopped = $true
-        break
-    } catch {
-        # continue trying other ports
+function Write-Info($msg)   { Write-Host $msg -ForegroundColor Cyan }
+function Write-Ok($msg)     { Write-Host $msg -ForegroundColor Green }
+function Write-Warn($msg)   { Write-Host $msg -ForegroundColor Yellow }
+
+function Show-Help {
+    Write-Host ""
+    Write-Host "STOP - Student Management System" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Stops the fullstack Docker container." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Usage:" -ForegroundColor Yellow
+    Write-Host "  .\STOP.ps1 [options]"
+    Write-Host ""
+    Write-Host "Options:" -ForegroundColor Yellow
+    Write-Host "  -RemoveImage    Also remove the Docker image (free up space)"
+    Write-Host "  -Help           Show this help message"
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor Yellow
+    Write-Host "  .\STOP.ps1                  # Stop container only"
+    Write-Host "  .\STOP.ps1 -RemoveImage     # Stop and remove image"
+    Write-Host ""
+}
+
+if ($Help) {
+    Show-Help
+    exit 0
+}
+
+Push-Location $PSScriptRoot
+try {
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host "  Student Management System - Stop" -ForegroundColor Cyan
+    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host ""
+
+    $scriptArgs = @()
+    if ($RemoveImage) {
+        $scriptArgs += '-RemoveImage'
     }
-}
-if (-not $apiStopped) {
-    Write-Host "API not available on ports 8000-8010, using force stop..." -ForegroundColor Yellow
-}
 
-# Kill backend (ports 8000-8010)
-Write-Host "Stopping backend (ports 8000-8010)..." -ForegroundColor Yellow
-for ($p = 8000; $p -le 8010; $p++) {
-    $netstatOut = netstat -ano | Select-String ":$p.*LISTENING"
-    foreach ($line in $netstatOut) {
-        if ($line -match "\s+(\d+)$") {
-            $processId = $Matches[1]
-            Write-Host "  Killing PID $processId on port $p" -ForegroundColor Gray
-            taskkill /F /T /PID $processId 2>&1 | Out-Null
-        }
+    Write-Info "Stopping fullstack container..."
+    & ".\scripts\DOCKER_FULLSTACK_DOWN.ps1" @scriptArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn "Stop completed with warnings (exit code: $LASTEXITCODE)"
+        exit $LASTEXITCODE
     }
-}
 
-# Kill frontend (ports 5173-5180)
-Write-Host "Stopping frontend (ports 5173-5180)..." -ForegroundColor Yellow
-for ($p = 5173; $p -le 5180; $p++) {
-    $netstatOut = netstat -ano | Select-String ":$p.*LISTENING"
-    foreach ($line in $netstatOut) {
-        if ($line -match "\s+(\d+)$") {
-            $processId = $Matches[1]
-            Write-Host "  Killing PID $processId on port $p" -ForegroundColor Gray
-            taskkill /F /T /PID $processId 2>&1 | Out-Null
-        }
-    }
-}
-
-# Clean up PID files
-Remove-Item ".backend.pid" -Force -ErrorAction SilentlyContinue
-Remove-Item ".frontend.pid" -Force -ErrorAction SilentlyContinue
-
-Write-Host ""
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  Servers stopped!" -ForegroundColor Green
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host ""
-
-if (-not $env:NO_PAUSE) {
-    Read-Host "Press Enter to exit"
+    Write-Ok "Stopped successfully!"
+    Write-Host ""
+} finally {
+    Pop-Location
 }

@@ -4,13 +4,13 @@
 
 ## Quick Start (3 Easy Steps)
 
-**1. First time setup:**
+**1. First time setup (optional):**
 
 ```batch
-SETUP.bat
+.\scripts\SETUP.bat
 ```
 
-This builds the Docker image (one-time setup, takes a few minutes).
+This builds the Docker image. If you skip this, QUICKSTART will build automatically on first run.
 
 **2. Start the application:**
 
@@ -23,7 +23,7 @@ Access at <http://localhost:8080>
 **3. Stop the application:**
 
 ```batch
-STOP.bat
+docker stop sms-fullstack
 ```
 
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
@@ -47,20 +47,20 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ## Detailed Usage
 
-### First Time Setup
+### First Time Setup (Optional)
 
-Run the setup script to build the Docker image:
+QUICKSTART includes automatic setup, but you can manually build the image:
 
 ```batch
-SETUP.bat
+.\scripts\SETUP.bat
 ```
 
 Or with PowerShell:
 
 ```powershell
-.\SETUP.ps1              # Build image
-.\SETUP.ps1 -SkipBuild   # Check environment only
-.\SETUP.ps1 -Help        # Show options
+.\scripts\SETUP.ps1              # Build image
+.\scripts\SETUP.ps1 -SkipBuild   # Check environment only
+.\scripts\SETUP.ps1 -Help        # Show options
 ```
 
 This will:
@@ -72,7 +72,7 @@ This will:
 
 ### Starting the Application
 
-After setup, start the app with:
+Start with one command:
 
 ```batch
 QUICKSTART.bat
@@ -87,18 +87,26 @@ Or with options:
 .\QUICKSTART.ps1 -Help        # Show all options
 ```
 
+**Automatic Recovery:**
+
+- If Docker image not found → Automatically runs SETUP
+- If Docker not running → Shows helpful error message
+- If port in use → Shows conflicting containers
+
 The application will be available at <http://localhost:8080>
 
 ### Stopping the Application
 
+Simple stop:
+
 ```batch
-STOP.bat
+docker stop sms-fullstack
 ```
 
-Or with options:
+Or use the stop script:
 
 ```powershell
-.\STOP.ps1                # Stop container
+.\scripts\STOP.ps1                # Stop container
 .\STOP.ps1 -RemoveImage   # Stop and remove image
 .\STOP.ps1 -Help          # Show options
 ```
@@ -171,10 +179,7 @@ Or use the DEVTOOLS menu → Native Dev Mode.
 
 ```text
 student-management-system/
-├── SETUP.bat / .ps1           # First-time setup
-├── QUICKSTART.bat / .ps1      # Start application
-├── STOP.bat / .ps1            # Stop application
-├── DEVTOOLS.bat / .ps1        # Developer tools menu
+├── QUICKSTART.bat / .ps1      # Start application (main entry point)
 ├── backend/                   # FastAPI backend
 │   ├── main.py               # Application entry point
 │   ├── models.py             # Database models
@@ -186,8 +191,12 @@ student-management-system/
 │   ├── Dockerfile.backend
 │   ├── Dockerfile.frontend
 │   └── Dockerfile.fullstack  # Single-container image
-├── docker-compose.yml         # Multi-container setup
-└── scripts/                   # Utility scripts
+├── scripts/                   # Utility scripts
+│   ├── SETUP.ps1             # Build Docker image
+│   ├── STOP.ps1              # Stop containers
+│   ├── DEVTOOLS.ps1          # Developer tools menu
+│   └── DOCKER_*.ps1          # Docker management
+└── tools/                     # Data import/export tools
 ```
 
 ## Documentation

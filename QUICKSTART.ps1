@@ -38,13 +38,19 @@ function Show-Help {
     Write-Host ""
     Write-Host "Prerequisites:" -ForegroundColor Cyan
     Write-Host "  - Docker Desktop installed and running"
-    Write-Host "  - Fullstack image built (run UTILITIES.ps1 → Install to build)"
+    Write-Host "  - Fullstack image built (automatic setup on first run)"
     Write-Host ""
-    Write-Host "For troubleshooting, diagnostics, and utilities, run:" -ForegroundColor Cyan
-    Write-Host "  .\UTILITIES.ps1"
+    Write-Host "Automatic Recovery:" -ForegroundColor Cyan
+    Write-Host "  If fullstack fails → Runs SETUP automatically"
+    Write-Host "  If SETUP fails → Shows DEVTOOLS instructions"
+    Write-Host ""
+    Write-Host "Manual Tools:" -ForegroundColor Cyan
+    Write-Host "  .\scripts\SETUP.ps1       - Build Docker image from scratch"
+    Write-Host "  .\scripts\DEVTOOLS.ps1    - Diagnostics and troubleshooting"
+    Write-Host "  .\scripts\STOP.ps1        - Stop all containers"
     Write-Host ""
     Write-Host "To stop the container:" -ForegroundColor Cyan
-    Write-Host "  .\scripts\DOCKER_FULLSTACK_DOWN.ps1"
+    Write-Host "  docker stop sms-fullstack"
     Write-Host ""
 }
 
@@ -75,9 +81,80 @@ try {
     & ".\scripts\DOCKER_FULLSTACK_UP.ps1" @scriptArgs
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Err "Start failed with exit code $LASTEXITCODE"
-        Write-Warn "Run .\UTILITIES.ps1 for diagnostics and troubleshooting."
-        exit $LASTEXITCODE
+        Write-Err "Failed to start fullstack container (exit code $LASTEXITCODE)"
+        Write-Host ""
+        Write-Warn "Possible causes:"
+        Write-Host "  - Docker image not built yet"
+        Write-Host "  - Docker Desktop not running"
+        Write-Host "  - Port $Port already in use"
+        Write-Host ""
+        Write-Info "Attempting automatic recovery..."
+        Write-Host ""
+        
+        # Check if Docker is running
+        try {
+            docker info 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Err "Docker is not running!"
+                Write-Host ""
+                Write-Warn "Please start Docker Desktop and try again."
+                Write-Host ""
+                exit 1
+            }
+        } catch {
+            Write-Err "Docker is not available!"
+            Write-Host ""
+            Write-Warn "Please install/start Docker Desktop and try again."
+            Write-Host ""
+            exit 1
+        }
+        
+        # Check if image exists
+        $imageExists = docker images --format "{{.Repository}}:{{.Tag}}" | Select-String -Pattern "sms-fullstack:latest" -Quiet
+        
+        if (-not $imageExists) {
+            Write-Warn "Docker image 'sms-fullstack' not found."
+            Write-Info "Running SETUP to build the image..."
+            Write-Host ""
+            
+            if (Test-Path ".\scripts\SETUP.ps1") {
+                & ".\scripts\SETUP.ps1"
+                
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host ""
+                    Write-Ok "Setup completed! Retrying QUICKSTART..."
+                    Write-Host ""
+                    & ".\scripts\DOCKER_FULLSTACK_UP.ps1" @scriptArgs
+                    
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Ok "Started successfully after setup!"
+                        Write-Host ""
+                        Write-Info "Access the app at: http://localhost:$Port"
+                        Write-Host ""
+                        exit 0
+                    }
+                }
+                
+                Write-Err "Setup failed or container still won't start."
+            } else {
+                Write-Err "SETUP script not found at .\scripts\SETUP.ps1"
+            }
+        } else {
+            Write-Warn "Docker image exists but container failed to start."
+            Write-Host ""
+            Write-Info "Possible port conflict. Checking for running containers..."
+            docker ps --filter "publish=$Port" --format "table {{.Names}}\t{{.Ports}}"
+        }
+        
+        Write-Host ""
+        Write-Warn "For manual diagnostics and troubleshooting, run:"
+        Write-Info "  .\scripts\DEVTOOLS.ps1"
+        Write-Host ""
+        Write-Warn "Or check the documentation:"
+        Write-Info "  README.md - General usage"
+        Write-Info "  DOCKER.md - Docker-specific help"
+        Write-Host ""
+        exit 1
     }
 
     Write-Ok "Started successfully!"
