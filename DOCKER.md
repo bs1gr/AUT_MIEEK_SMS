@@ -85,3 +85,39 @@ Uncomment the `ports` mapping under the `backend` service in `docker-compose.yml
 ```
 
 Then access backend docs at <http://localhost:8000/docs>.
+
+## Fullstack Image (Backend serves frontend)
+
+If you prefer a single container, you can build the fullstack image which serves the built frontend directly from FastAPI.
+
+```pwsh
+# Build fullstack image
+docker build -f docker/Dockerfile.fullstack -t sms-fullstack .
+
+# Run (maps container 8000 to host 8080)
+docker run --rm -p 8080:8000 sms-fullstack
+
+# Open the app
+Start-Process http://localhost:8080
+```
+
+Notes:
+
+- The fullstack image sets `SERVE_FRONTEND=1` in the backend, enabling SPA serving with a fallback route.
+- API is available under the same origin at `/api/v1`.
+
+## Publishing Images (GHCR)
+
+This repo includes a release workflow to build and push images to GitHub Container Registry (GHCR).
+
+- Trigger via pushing a tag like `v1.0.0` or manually from Actions.
+- Images pushed (owner namespace, all lowercase):
+    - `ghcr.io/<owner>/sms-backend`
+    - `ghcr.io/<owner>/sms-frontend`
+    - `ghcr.io/<owner>/sms-fullstack`
+
+You can pull and run the fullstack image like:
+
+```pwsh
+docker run --rm -p 8080:8000 ghcr.io/<owner>/sms-fullstack:latest
+```
