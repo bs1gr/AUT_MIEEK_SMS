@@ -18,6 +18,8 @@ backend/tests/__pycache__/
 # Databases & backups
 *.db
 backups/*.db
+backups/
+!backups/.gitkeep
 
 # Logs
 logs/
