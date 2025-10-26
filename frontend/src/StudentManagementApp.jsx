@@ -71,7 +71,35 @@ const StudentManagementApp = () => {
     }
   };
 
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations'
+  // Determine initial view from URL (hash or ?view=)
+  const getInitialView = () => {
+    try {
+      const hash = (window.location.hash || '').replace('#', '').trim().toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      const queryView = (params.get('view') || '').trim().toLowerCase();
+      const v = hash || queryView || 'dashboard';
+      const allowed = new Set(['dashboard','students','courses','attendance','grading','calendar','operations','power']);
+      return allowed.has(v) ? v : 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
+  };
+
+  const [activeView, setActiveView] = useState(getInitialView()); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power'
+
+  // Keep URL hash in sync and respond to external hash changes (deep-linking)
+  useEffect(() => {
+    const onHashChange = () => {
+      const hashView = (window.location.hash || '').replace('#','').trim().toLowerCase();
+      if (!hashView) return;
+      const allowed = new Set(['dashboard','students','courses','attendance','grading','calendar','operations','power']);
+      if (allowed.has(hashView)) {
+        setActiveView(hashView);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
@@ -99,7 +127,10 @@ const StudentManagementApp = () => {
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveView(tab.key)}
+            onClick={() => {
+              setActiveView(tab.key);
+              try { window.location.hash = `#${tab.key}`; } catch {}
+            }}
             className={`px-4 py-2 rounded-lg border ${
               activeView === tab.key
                 ? 'bg-indigo-600 text-white border-indigo-600'

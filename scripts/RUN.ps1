@@ -122,7 +122,8 @@ try {
 if ($backendRunning -and $frontendRunning) {
     Write-Host "Servers already running. Opening browser..." -ForegroundColor Green
     if ($ControlOnly) {
-        Start-Process "http://localhost:$backendPort/control"
+        # Single-window UX: open frontend directly at the Power/Control tab
+        Start-Process "http://localhost:5173/#power"
         exit 0
     }
     Start-Process "http://localhost:5173"
@@ -132,11 +133,34 @@ if ($backendRunning -and $frontendRunning) {
 # If ControlOnly mode, only ensure backend is running; skip frontend; open /control and exit
 if ($ControlOnly) {
     if ($backendRunning) {
-        Write-Host "Backend already running. Opening Control Panel..." -ForegroundColor Green
-        Start-Process "http://localhost:$backendPort/control"
+        Write-Host "Backend already running. Opening Frontend (Power tab)..." -ForegroundColor Green
+        if ($frontendRunning) {
+            Start-Process "http://localhost:5173/#power"
+        } else {
+            # Try to start frontend via control API and then open it
+            try {
+                Invoke-WebRequest -Uri "http://localhost:$backendPort/control/api/start" -Method POST -TimeoutSec 4 -ErrorAction Stop | Out-Null
+            } catch {}
+
+            # Wait briefly for frontend to bind
+            $tries = 0
+            $maxTries = 10
+            do {
+                Start-Sleep -Milliseconds 500
+                try { $frontendRunning = Test-NetConnection -ComputerName localhost -Port 5173 -InformationLevel Quiet -WarningAction SilentlyContinue } catch { $frontendRunning = $false }
+                $tries++
+            } while (-not $frontendRunning -and $tries -lt $maxTries)
+
+            if ($frontendRunning) {
+                Start-Process "http://localhost:5173/#power"
+            } else {
+                # Fallback: open backend control panel
+                Start-Process "http://localhost:$backendPort/control"
+            }
+        }
         exit 0
     }
-    # Else: start backend, open control panel, and exit below (don't start frontend)
+    # Else: start backend, then open frontend (handled below)
 }
 
 # ============================================================================
@@ -380,7 +404,7 @@ if (-not $frontendRunning) {
     }
 }
 
-# Control-only mode: Open control panel and exit script immediately
+# Control-only mode: Open frontend Power tab and exit script immediately (fallback to backend control)
 if ($ControlOnly) {
     Write-Host ""
     Write-Host "============================================================" -ForegroundColor Green
@@ -388,20 +412,17 @@ if ($ControlOnly) {
     Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Backend:        http://localhost:$backendPort" -ForegroundColor Cyan
-    Write-Host "  Control Panel:  http://localhost:$backendPort/control" -ForegroundColor Cyan
+    Write-Host "  Control Panel (fallback):  http://localhost:$backendPort/control" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Opening Control Panel in your browser..." -ForegroundColor Yellow
-    Write-Host "  This script will exit. Use the Control Panel to manage services." -ForegroundColor Yellow
+    Write-Host "  Opening Frontend (Power tab) in your browser..." -ForegroundColor Yellow
+    Write-Host "  This script will exit. Use the in-app Power tab to manage services." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  Tip: Frontend will be started automatically; use the Control Panel to manage it." -ForegroundColor Gray
     Write-Host ""
     Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
     
-    # Open the Control Panel
-    Start-Process "http://localhost:$backendPort/control"
-    
-    # Also auto-start the frontend via the control API (idempotent)
+    # Auto-start the frontend via the control API (idempotent)
     try {
         # Small delay to ensure backend is ready to serve control endpoints
         Start-Sleep -Milliseconds 400
@@ -411,7 +432,23 @@ if ($ControlOnly) {
         Write-Host "  Warning: Failed to auto-start frontend (you can start it from the Control Panel)" -ForegroundColor Yellow
     }
 
-    # Optional: do not wait for frontend; exit immediately to keep this mode lightweight
+    # Try to wait briefly for frontend to become available, then open it
+    $tries = 0
+    $maxTries = 12 # ~6 seconds
+    do {
+        Start-Sleep -Milliseconds 500
+        try { $frontendRunning = Test-NetConnection -ComputerName localhost -Port 5173 -InformationLevel Quiet -WarningAction SilentlyContinue } catch { $frontendRunning = $false }
+        $tries++
+    } while (-not $frontendRunning -and $tries -lt $maxTries)
+
+    if ($frontendRunning) {
+        Start-Process "http://localhost:5173/#power"
+    } else {
+        Write-Host "  Frontend not ready yet, opening backend Control Panel as fallback..." -ForegroundColor Yellow
+        Start-Process "http://localhost:$backendPort/control"
+    }
+
+    # Exit immediately to keep this mode lightweight
     exit 0
 }
 
