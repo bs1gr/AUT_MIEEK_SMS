@@ -1,3 +1,29 @@
 .backend.pid
 .frontend.pid
 /Obsolete
+
+# Python cache/artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Test build artifacts
+backend/tests/__pycache__/
+
+# Databases & backups
+*.db
+backups/*.db
+
+# Logs
+logs/
+backend/logs/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
