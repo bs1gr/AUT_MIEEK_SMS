@@ -1,0 +1,253 @@
+# Student Management System
+
+A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
+
+## Features
+
+- 📚 **Course Management** - Create and manage courses with customizable evaluation rules
+- 👥 **Student Management** - Track student information and enrollment
+- 📊 **Grade Calculation** - Automatic weighted grade calculation with Greek (0-20) and percentage scales
+- 📅 **Attendance Tracking** - Monitor student attendance with absence penalties
+- 📈 **Performance Analytics** - Detailed performance reports and trends
+- 📆 **Daily Performance** - Track daily student performance with weighted multipliers
+- 📤 **Data Export** - Export to Excel, PDF, and ICS calendar formats
+- 🌐 **Bilingual** - Full support for English and Greek languages
+- 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
+
+## Quick Start
+
+### Option 1: Use the Launcher Menu (Recommended)
+
+```batch
+LAUNCHER.bat
+```
+
+The launcher provides a menu with 9 options:
+1. Start Application
+2. Stop Application
+3. Emergency Shutdown
+4. Install Dependencies
+5. Check System Health
+6. Debug Port Conflicts
+7. Create Deployment Package
+8. Cleanup Obsolete Files
+9. Open Application in Browser
+
+### Option 2: Use Quick Commands
+
+```batch
+# First time installation
+INSTALL.bat
+
+# Start the application
+RUN.bat
+
+# Stop the application
+STOP.bat
+```
+
+## System Requirements
+
+- **Python** 3.8 or higher
+- **Node.js** 16 or higher
+- **npm** 8 or higher
+- **Windows** operating system
+
+## Installation
+
+1. Run the installer:
+   ```batch
+   INSTALL.bat
+   ```
+
+2. The installer will automatically:
+   - Create Python virtual environment
+   - Install backend dependencies
+   - Install frontend dependencies
+   - Create necessary directories
+   - Set up the database
+
+For detailed installation instructions, see [INSTALL_GUIDE.md](INSTALL_GUIDE.md)
+
+## Usage
+
+### Starting the Application
+
+```batch
+RUN.bat
+```
+
+This will start:
+- Backend server on http://localhost:8000
+- Frontend development server on http://localhost:5173
+
+The application will automatically open in your default browser.
+
+### Stopping the Application
+
+```batch
+STOP.bat
+```
+
+This will gracefully shut down both frontend and backend servers.
+
+### Emergency Shutdown
+
+If normal shutdown fails:
+
+```batch
+.\scripts\KILL_FRONTEND_NOW.bat
+```
+
+Or use option 3 in the launcher menu.
+
+## Project Structure
+
+```
+student-management-system/
+├── backend/                 # FastAPI backend
+│   ├── main.py             # Application entry point
+│   ├── models.py           # Database models
+│   ├── config.py           # Configuration
+│   ├── routers/            # API route handlers
+│   ├── schemas/            # Pydantic schemas
+│   └── migrations/         # Alembic migrations
+├── frontend/               # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── api/            # API client
+│   │   ├── utils/          # Utility functions
+│   │   └── translations.js # Localization
+│   └── public/
+├── scripts/                # Utility scripts
+│   ├── INSTALL.ps1
+│   ├── RUN.ps1
+│   ├── STOP.ps1
+│   ├── DEBUG_PORTS.ps1
+│   ├── CLEANUP.ps1
+│   └── CREATE_PACKAGE.ps1
+├── LAUNCHER.bat            # Main launcher menu
+├── INSTALL.bat             # Quick installer
+├── RUN.bat                 # Quick start
+└── STOP.bat                # Quick stop
+```
+
+## Documentation
+
+- [Installation Guide](INSTALL_GUIDE.md) - Detailed installation instructions
+- [Help Documentation](HELP_DOCUMENTATION_COMPLETE.md) - Complete feature documentation
+- [Code Improvements](CODE_IMPROVEMENTS.md) - Code quality analysis
+- [Daily Performance Guide](DAILY_PERFORMANCE_GUIDE.md) - Daily performance feature guide
+- [Teaching Schedule Guide](TEACHING_SCHEDULE_GUIDE.md) - Schedule management guide
+
+## API Documentation
+
+Once the backend is running, access the interactive API documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Troubleshooting
+
+### Port Conflicts
+
+Check for port conflicts:
+```batch
+.\scripts\DEBUG_PORTS.bat
+```
+
+### System Health Check
+
+Verify all dependencies are installed:
+```batch
+LAUNCHER.bat
+# Then select option 5: Check System Health
+```
+
+### Database Issues
+
+If you encounter database issues, check the logs:
+```
+backend/logs/structured.json
+```
+
+### Frontend Issues
+
+Clear node_modules and reinstall:
+```batch
+cd frontend
+Remove-Item -Recurse -Force node_modules
+npm install
+```
+
+## Development
+
+### Backend Development
+
+```bash
+cd backend
+# Activate virtual environment
+..\venv\Scripts\Activate.ps1
+# Run with auto-reload
+uvicorn main:app --reload --port 8000
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+npm run dev
+```
+
+## Testing
+
+Run backend tests:
+```bash
+cd backend
+..\venv\Scripts\Activate.ps1
+pytest
+```
+
+## Building for Production
+
+Create a deployment package:
+```batch
+.\scripts\CREATE_PACKAGE.bat
+```
+
+This creates a `student-management-system-deploy-{date}.zip` file ready for deployment.
+
+## Technology Stack
+
+### Backend
+- **FastAPI** - Modern web framework
+- **SQLAlchemy** - ORM for database operations
+- **Pydantic** - Data validation
+- **SQLite** - Database
+- **Uvicorn** - ASGI server
+
+### Frontend
+- **React** - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Build tool
+- **Tailwind CSS** - Utility-first CSS
+- **lucide-react** - Icon library
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For help and documentation:
+1. Check the in-app Help section (Utils → Help Documentation)
+2. Review the [Help Documentation](HELP_DOCUMENTATION_COMPLETE.md)
+3. Check the [Installation Guide](INSTALL_GUIDE.md)
+
+## Contributing
+
+This is a student management system designed for educational institutions. For feature requests or bug reports, please create an issue.
+
+## Version
+
+Current Version: 1.0.0
+Last Updated: October 2025
