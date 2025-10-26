@@ -260,6 +260,9 @@ Once the backend is running, access the interactive API documentation:
 
 - Swagger UI: <http://localhost:8000/docs>
 - ReDoc: <http://localhost:8000/redoc>
+- API Info: <http://localhost:8000/api> (JSON metadata)
+
+**Note**: When running in fullstack mode (single Docker container), the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`. Use `/api` to view API metadata as JSON.
 
 ## Troubleshooting
 
