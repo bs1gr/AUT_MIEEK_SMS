@@ -1,12 +1,11 @@
 # ============================================================================
 #   Student Management System - Quick Start
-#   Minimal automation to run the app with sane defaults
+#   Runs the fullstack Docker container (build via UTILITIES if needed)
 # ============================================================================
 
 param(
-    [ValidateSet('native', 'docker', 'fullstack')]
-    [string]$Mode = 'native',
-    [switch]$ControlOnly,
+    [int]$Port = 8080,
+    [switch]$Rebuild,
     [switch]$Help
 )
 
@@ -22,26 +21,30 @@ function Show-Help {
     Write-Host ""
     Write-Host "QUICKSTART - Student Management System" -ForegroundColor Cyan
     Write-Host ""
+    Write-Host "Runs the fullstack Docker container (backend serves SPA)." -ForegroundColor Gray
+    Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
     Write-Host "  .\QUICKSTART.ps1 [options]"
     Write-Host ""
-    Write-Host "Modes:" -ForegroundColor Yellow
-    Write-Host "  -Mode native      (default) Start native Python backend + Vite frontend"
-    Write-Host "  -Mode docker      Start via docker-compose (2 containers with NGINX)"
-    Write-Host "  -Mode fullstack   Start single Docker container (backend serves SPA)"
-    Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host "  -ControlOnly      (native mode only) Start backend + control panel, no frontend"
+    Write-Host "  -Port <number>    Host port to expose (default: 8080)"
+    Write-Host "  -Rebuild          Rebuild the Docker image before running"
     Write-Host "  -Help             Show this help message"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  .\QUICKSTART.ps1                    # Start native (backend+frontend)"
-    Write-Host "  .\QUICKSTART.ps1 -ControlOnly       # Start backend with control panel only"
-    Write-Host "  .\QUICKSTART.ps1 -Mode docker       # Start via docker-compose"
-    Write-Host "  .\QUICKSTART.ps1 -Mode fullstack    # Start single fullstack container"
+    Write-Host "  .\QUICKSTART.ps1              # Start fullstack on port 8080"
+    Write-Host "  .\QUICKSTART.ps1 -Rebuild     # Rebuild and start"
+    Write-Host "  .\QUICKSTART.ps1 -Port 9000   # Start on custom port"
+    Write-Host ""
+    Write-Host "Prerequisites:" -ForegroundColor Cyan
+    Write-Host "  - Docker Desktop installed and running"
+    Write-Host "  - Fullstack image built (run UTILITIES.ps1 → Install to build)"
     Write-Host ""
     Write-Host "For troubleshooting, diagnostics, and utilities, run:" -ForegroundColor Cyan
     Write-Host "  .\UTILITIES.ps1"
+    Write-Host ""
+    Write-Host "To stop the container:" -ForegroundColor Cyan
+    Write-Host "  .\scripts\DOCKER_FULLSTACK_DOWN.ps1"
     Write-Host ""
 }
 
@@ -55,29 +58,21 @@ try {
     Write-Host ""
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host "  Student Management System - Quick Start" -ForegroundColor Cyan
-    Write-Host "  Mode: $Mode" -ForegroundColor Gray
+    Write-Host "  Fullstack Docker Container" -ForegroundColor Gray
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host ""
 
-    switch ($Mode) {
-        'native' {
-            if ($ControlOnly) {
-                Write-Info "Starting in control panel mode (lightweight)..."
-                & ".\scripts\RUN.ps1" -ControlOnly
-            } else {
-                Write-Info "Starting native backend + frontend..."
-                & ".\scripts\RUN.ps1"
-            }
-        }
-        'docker' {
-            Write-Info "Starting via docker-compose (NGINX proxy + backend)..."
-            & ".\scripts\DOCKER_UP.ps1"
-        }
-        'fullstack' {
-            Write-Info "Starting fullstack Docker container (single container)..."
-            & ".\scripts\DOCKER_FULLSTACK_UP.ps1"
-        }
+    # Build args for DOCKER_FULLSTACK_UP.ps1
+    $scriptArgs = @()
+    if ($Rebuild) {
+        $scriptArgs += '-Rebuild'
     }
+    if ($Port -ne 8080) {
+        $scriptArgs += '-Port', $Port
+    }
+
+    Write-Info "Starting fullstack container on http://localhost:$Port ..."
+    & ".\scripts\DOCKER_FULLSTACK_UP.ps1" @scriptArgs
 
     if ($LASTEXITCODE -ne 0) {
         Write-Err "Start failed with exit code $LASTEXITCODE"
@@ -86,6 +81,8 @@ try {
     }
 
     Write-Ok "Started successfully!"
+    Write-Host ""
+    Write-Info "Access the app at: http://localhost:$Port"
     Write-Host ""
 } finally {
     Pop-Location
