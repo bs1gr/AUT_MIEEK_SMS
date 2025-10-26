@@ -77,8 +77,13 @@ try:
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
     CONTROL_HTML = PROJECT_ROOT / "html_control_panel.html"
+    # Optional SPA directory (built frontend)
+    SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
+    SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
 except Exception:
     CONTROL_HTML = None
+    SPA_DIST_DIR = None
+    SPA_INDEX_FILE = None
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 FRONTEND_PORT_PREFERRED = 5173
@@ -284,8 +289,12 @@ try:
     from pathlib import Path
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     CONTROL_HTML = PROJECT_ROOT / "html_control_panel.html"
+    SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
+    SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
 except Exception:
     CONTROL_HTML = None
+    SPA_DIST_DIR = None
+    SPA_INDEX_FILE = None
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 
@@ -758,6 +767,53 @@ async def root():
             "attendance": "/api/v1/attendance"
         }
     }
+
+
+# ============================================================================
+# OPTIONAL: SERVE FRONTEND SPA (production mode without NGINX)
+# Set environment variable SERVE_FRONTEND=1 and build frontend (frontend/dist)
+# ============================================================================
+
+def _is_true(val: str | None) -> bool:
+    if not val:
+        return False
+    return val.strip().lower() in {"1", "true", "yes", "on"}
+
+SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
+
+if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
+    try:
+        # Serve all static assets directly (Vite emits /assets/* by default)
+        app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
+
+        # SPA fallback: serve index.html for any non-API GET path
+        EXCLUDE_PREFIXES = (
+            "api/",
+            "docs",
+            "redoc",
+            "openapi.json",
+            "control",
+            "health",
+            "favicon.ico",
+            "assets/",
+        )
+
+        @app.get("/{full_path:path}")
+        async def spa_fallback(full_path: str):
+            # Allow API and service endpoints to pass through
+            p = full_path.lstrip("/")
+            for pref in EXCLUDE_PREFIXES:
+                if p.startswith(pref):
+                    # Not a SPA route; return 404 so proper route can handle
+                    raise HTTPException(status_code=404, detail="Not Found")
+            # Serve index.html for SPA routes
+            if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
+                return FileResponse(str(SPA_INDEX_FILE))
+            raise HTTPException(status_code=404, detail="SPA index not found")
+
+        logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist'.")
+    except Exception as e:
+        logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
 
 
 @app.get("/favicon.ico")

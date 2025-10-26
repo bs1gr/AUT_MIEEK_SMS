@@ -78,6 +78,16 @@ docker compose down
 
 See DOCKER.md for full details.
 
+#### Fullstack (single container)
+
+Alternatively, build the fullstack image where the backend serves the SPA:
+
+```pwsh
+docker build -f docker/Dockerfile.fullstack -t sms-fullstack .
+docker run --rm -p 8080:8000 sms-fullstack
+# open http://localhost:8080
+```
+
 ## System Requirements
 
 - **Python** 3.8 or higher
