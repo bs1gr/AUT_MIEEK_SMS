@@ -139,7 +139,7 @@ Features:
 - System status monitoring
 - Service management
 
-See [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) for details.
+See [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for details.
 
 ## Advanced Usage
 
@@ -156,7 +156,7 @@ docker compose up -d
 docker compose down
 ```
 
-See [DOCKER.md](DOCKER.md) for full Docker documentation.
+See [docs/DOCKER.md](docs/DOCKER.md) for full Docker documentation.
 
 ### Native Development Mode
 
@@ -201,10 +201,17 @@ student-management-system/
 
 ## Documentation
 
-- [DOCKER.md](DOCKER.md) - Docker setup and configuration
-- [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) - Control panel usage
-- [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - Development session notes
+### User Guides
+
+- [docs/DOCKER.md](docs/DOCKER.md) - Docker setup and configuration
+- [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) - Control panel usage
+- [docs/QUICKREF.md](docs/QUICKREF.md) - Quick reference guide
 - [CHANGELOG.md](CHANGELOG.md) - Version history
+
+### Developer Documentation
+
+- [docs/SESSION_SUMMARY.md](docs/SESSION_SUMMARY.md) - Development session notes
+- [docs/TODO.md](docs/TODO.md) - Project roadmap and tasks
 
 ## API Documentation
 
@@ -300,7 +307,7 @@ Need help?
 
 1. Check the in-app Help section (Utils → Help Documentation)
 2. Review the documentation files in this repository
-3. Check [CONTROL_PANEL_GUIDE.md](CONTROL_PANEL_GUIDE.md) for control panel usage
+3. Check [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for control panel usage
 
 ## License
 
