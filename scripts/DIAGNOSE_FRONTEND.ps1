@@ -1,6 +1,9 @@
 # Frontend Diagnostic Script
 # Helps troubleshoot frontend startup issues
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "  Frontend Diagnostic Tool" -ForegroundColor Cyan
