@@ -1277,12 +1277,33 @@ async def health_check(db: Session = Depends(get_db)):
             hostname = hostname or "localhost"
             ips = ["127.0.0.1"]
 
+        # Detect environment (Docker vs Native)
+        def detect_environment():
+            """Detect if running in Docker container"""
+            # Check for /.dockerenv file
+            if os.path.exists('/.dockerenv'):
+                return "docker"
+            # Check cgroup for docker/containerd
+            try:
+                with open('/proc/1/cgroup', 'r') as f:
+                    if 'docker' in f.read() or 'containerd' in f.read():
+                        return "docker"
+            except:
+                pass
+            # Check for DOCKER_CONTAINER env var (can be set in Dockerfile)
+            if os.getenv('DOCKER_CONTAINER') == 'true':
+                return "docker"
+            return "native"
+        
+        environment_mode = detect_environment()
+
         return {
             "status": "healthy",
             "version": app.version if hasattr(app, "version") else None,
             "database": "connected",
             "timestamp": datetime.now().isoformat(),
             "uptime": uptime_s,
+            "environment": environment_mode,
             "statistics": {
                 "students": students_count,
                 "courses": courses_count

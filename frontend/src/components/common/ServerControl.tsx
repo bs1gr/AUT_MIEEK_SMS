@@ -250,9 +250,9 @@ const ServerControl: React.FC = () => {
   };
 
   const getOverallStatus = () => {
-    if (status.backend === 'online' && status.frontend === 'online') return 'online';
-    if (status.backend === 'offline' || status.frontend === 'offline') return 'offline';
-    return 'checking';
+    if (status.backend === 'online' && status.frontend === 'online') return t('controlPanel.systemOnline') || 'System Online';
+    if (status.backend === 'offline' || status.frontend === 'offline') return t('controlPanel.systemOffline') || 'System Offline';
+    return t('controlPanel.checking') || 'Checking...';
   };
 
   if (isExiting) {
@@ -271,8 +271,8 @@ const ServerControl: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Activity size={48} className="animate-spin text-indigo-500 mb-4" />
-        <h2 className="text-lg font-semibold text-gray-700 mb-2">{t('loadingSystem')}</h2>
-        <p className="text-gray-500">Checking system status, please wait...</p>
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">{t('controlPanel.loadingSystem')}</h2>
+        <p className="text-gray-500">{t('controlPanel.checking')}</p>
       </div>
     );
   }
@@ -282,8 +282,8 @@ const ServerControl: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle size={48} className="text-red-400 mb-4" />
-        <h2 className="text-lg font-semibold text-red-700 mb-2">{t('systemOffline')}</h2>
-        <p className="text-gray-500">System is currently offline or starting up. Please refresh or try again in a moment.</p>
+        <h2 className="text-lg font-semibold text-red-700 mb-2">{t('controlPanel.systemOffline')}</h2>
+        <p className="text-gray-500">{t('controlPanel.checking')}</p>
       </div>
     );
   }
@@ -379,15 +379,24 @@ const ServerControl: React.FC = () => {
           </div>
           <span className="text-xs font-medium text-gray-700">Docker</span>
           <span className="text-xs font-mono text-gray-500 ml-2">
-            {healthData?.docker === 'online' ? t('ready') : healthData?.docker === 'offline' ? t('notRunning') : t('unknown')}
+            {healthData?.docker === 'online' ? t('controlPanel.ready') : healthData?.docker === 'offline' ? t('controlPanel.notRunning') : t('controlPanel.unknown')}
           </span>
         </div>
+
+        {/* Environment Info */}
+        {healthData?.environment && (
+          <div className="flex items-center space-x-2 px-2 py-1 bg-indigo-50 rounded">
+            <span className="text-xs font-medium text-indigo-700">{t('controlPanel.runningIn')}:</span>
+            <span className="text-xs font-semibold text-indigo-900">
+              {healthData.environment === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}
+            </span>
+          </div>
+        )}
 
         {/* Overall Status & Info */}
         <div className="flex flex-col">
           <span className="text-xs font-medium text-gray-700">
-            {getOverallStatus() === 'online' ? 'System Online' :
-             getOverallStatus() === 'offline' ? 'System Offline' : 'Checking...'}
+            {getOverallStatus()}
           </span>
           {status.backend === 'online' && currentUptime > 0 && (
             <span className="text-xs text-gray-500">
@@ -408,7 +417,7 @@ const ServerControl: React.FC = () => {
           <div className="px-4 py-3 text-white bg-slate-700">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <div className="font-semibold">System Health</div>
+                <div className="font-semibold">{t('controlPanel.systemHealth')}</div>
                 <div className="text-xs opacity-90 space-x-2">
                   {healthData?.version ? <span>v{healthData.version}</span> : null}
                   {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
@@ -434,6 +443,14 @@ const ServerControl: React.FC = () => {
                   ></span>
                   <span className="text-white/90 text-xs">Backend</span>
                 </div>
+                {/* Environment Badge */}
+                {healthData?.environment && (
+                  <div className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded">
+                    <span className="text-white/90 text-xs font-semibold">
+                      {healthData.environment === 'docker' ? '🐳 Docker' : '💻 ' + t('controlPanel.nativeMode')}
+                    </span>
+                  </div>
+                )}
                 {/* Controls */}
                 <div className="ml-auto flex items-center gap-3">
                   <label className="inline-flex items-center gap-1 text-xs text-white/90">
@@ -443,7 +460,7 @@ const ServerControl: React.FC = () => {
                       onChange={(e) => setAutoRefresh(e.target.checked)}
                       aria-label="Toggle auto refresh"
                     />
-                    Auto-refresh
+                    {t('controlPanel.autoRefresh')}
                   </label>
                   <select
                     value={String(intervalMs)}
@@ -467,7 +484,7 @@ const ServerControl: React.FC = () => {
               <div className="rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:col-span-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-indigo-900 mb-2">System Uptime</div>
+                    <div className="text-sm font-semibold text-indigo-900 mb-2">{t('controlPanel.uptime')}</div>
                     <div className="text-4xl font-bold text-indigo-600">
                       {Math.floor(currentUptime / 3600)}h {Math.floor((currentUptime % 3600) / 60)}m {currentUptime % 60}s
                     </div>
@@ -496,7 +513,7 @@ const ServerControl: React.FC = () => {
             
             {/* Available Endpoints - Only Active IPs */}
             <div className="rounded-lg border p-3 md:col-span-3">
-              <div className="text-sm font-semibold mb-2">Available Endpoints</div>
+              <div className="text-sm font-semibold mb-2">{t('controlPanel.environmentInfo')}</div>
               {(() => {
                 const frontendPort = String(window.location.port || '5173');
                 const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
