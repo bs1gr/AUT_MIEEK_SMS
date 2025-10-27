@@ -155,7 +155,7 @@ const DevToolsTab: React.FC = () => {
           >
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <div className="font-semibold">System Health</div>
+                <div className="font-semibold">{t('controlPanel.systemHealth')}</div>
                 <div className="text-xs opacity-90 space-x-2">
                   {health.version ? <span>v{health.version}</span> : null}
                   {health.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
@@ -193,7 +193,7 @@ const DevToolsTab: React.FC = () => {
                       onChange={(e) => setAutoRefresh(e.target.checked)}
                       aria-label="Toggle auto refresh"
                     />
-                    Auto-refresh
+                    {t('controlPanel.autoRefresh')}
                   </label>
                   <select
                     value={String(intervalMs)}

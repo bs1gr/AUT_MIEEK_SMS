@@ -14,6 +14,7 @@ export default {
   grades: 'Grades',
   calendar: 'Calendar',
   utilsTab: 'Utils',
+  powerTab: 'Power',
   power: 'Power',
   // Common States & Messages
   loading: 'Loading...',

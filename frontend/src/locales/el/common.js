@@ -14,7 +14,8 @@ export default {
   grades: 'Βαθμοί',
   calendar: 'Ημερολόγιο',
   utilsTab: 'Εργαλεία',
-  power: 'Τροφοδοσία',
+  powerTab: 'Έλεγχος',
+  power: 'Έλεγχος',
   // Καταστάσεις & Μηνύματα
   loading: 'Φόρτωση...',
   saving: 'Αποθήκευση...',
