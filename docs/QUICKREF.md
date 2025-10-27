@@ -2,6 +2,10 @@
 
 ## New Simplified Workflow (Docker-First)
 
+For a complete guide to all scripts (what each does, when to use, examples), see:
+
+- docs/SCRIPTS_HELP.md
+
 ### For End Users
 
 ```batch
