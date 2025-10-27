@@ -4,6 +4,10 @@
 
 ## Quick Start (3 Easy Steps)
 
+**🎯 Super Easy: Use the Control Panel**
+
+Just open `CONTROL_PANEL.html` in your browser! Click buttons to run commands - no PowerShell knowledge needed!
+
 **1. First time setup (optional):**
 
 ```batch
