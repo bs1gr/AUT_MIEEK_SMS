@@ -27,6 +27,21 @@ from backend.db import get_session as get_db
 
 
 def _normalize_evaluation_rules(er: Any) -> List[Dict[str, Any]]:
+    """
+    Normalize evaluation rules from various input formats to a standard list of dicts.
+    
+    Handles multiple input formats:
+    - List of dicts with 'category' and 'weight' keys
+    - Nested lists like [["category", 50], ["category", 50]]
+    - String format where category includes weight (e.g., "Midterm: 50%")
+    - JSON strings that need parsing
+    
+    Args:
+        er: Evaluation rules in any supported format
+    
+    Returns:
+        List of dicts with 'category' and 'weight' keys, normalized and validated
+    """
     try:
         if not er:
             return []
