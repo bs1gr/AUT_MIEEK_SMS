@@ -2,6 +2,10 @@
 
 This repository includes a production-friendly Docker setup that serves the built frontend with NGINX and proxies API requests to the FastAPI backend.
 
+For a complete overview of all helper scripts and when to use them, see the Scripts Guide:
+
+- docs/SCRIPTS_HELP.md
+
 ## Components
 
 - Backend: FastAPI (Uvicorn) on port 8000
