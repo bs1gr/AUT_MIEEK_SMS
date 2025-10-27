@@ -1,0 +1,58 @@
+export default {
+  // Γενικά & Σύστημα
+  systemTitle: 'Student Management System MIEEK - AUT Automotive Engineering',
+  systemSubtitle: 'Πλατφόρμα ολοκληρωμένης ακαδημαϊκής διαχείρισης',
+  // Τοπικοποίηση
+  locale: 'el-GR',
+  dayNames: 'Δε,Τρ,Τε,Πε,Πα,Σα,Κυ',
+  language: 'el',
+  // Πλοήγηση
+  dashboard: 'Επισκόπηση',
+  students: 'Σπουδαστές',
+  courses: 'Μαθήματα',
+  attendance: 'Παρουσίες',
+  grades: 'Βαθμοί',
+  calendar: 'Ημερολόγιο',
+  utilsTab: 'Εργαλεία',
+  power: 'Τροφοδοσία',
+  // Καταστάσεις & Μηνύματα
+  loading: 'Φόρτωση...',
+  saving: 'Αποθήκευση...',
+  downloading: 'Λήψη...',
+  dataLoadedSuccessfully: 'Τα δεδομένα φορτώθηκαν επιτυχώς',
+  failedToLoadData: 'Αποτυχία φόρτωσης δεδομένων',
+  failedToSaveData: 'Αποτυχία αποθήκευσης δεδομένων',
+  fillRequiredFields: 'Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία',
+  pleaseSelect: 'Παρακαλώ επιλέξτε σπουδαστή και μάθημα',
+  // Ημερομηνία/Ώρα/Βαρύτητα
+  date: 'Ημερομηνία',
+  selectedDate: 'Επιλεγμένη Ημερομηνία',
+  weight: 'Βαρύτητα',
+  weightHelp: 'Μεγαλύτερη βαρύτητα = πιο σημαντικό (1.0 είναι κανονικό)',
+  // Κλίμακες Βαθμολογίας
+  greekGradeSystem: 'Ελληνικό Σύστημα Βαθμολογίας (0-20)',
+  percentageSystem: 'Σύστημα Ποσοστών (0-100)',
+  americanSystem: 'Αμερικανικό Σύστημα (GPA 0-4.0)',
+  greekScale: 'Ελληνική Κλίμακα',
+  outOf20: '/ 20',
+  outOf100: '/ 100',
+  // Επιλογές Θέματος
+  themeAppearance: 'Εμφάνιση',
+  themeDescription: 'Επιλέξτε το προτιμώμενο θέμα σας ή ακολουθήστε την προτίμηση συστήματος',
+  themeLight: 'Φωτεινό',
+  themeDark: 'Σκούρο',
+  themeSystem: 'Σύστημα',
+  themeSystemInfo: 'Θέμα συστήματος:',
+  themeSystemDescription: 'Ταιριάζει αυτόματα με την προτίμηση φωτεινής ή σκούρας λειτουργίας του λειτουργικού σας συστήματος.',
+  settings: 'Ρυθμίσεις',
+  // Κατηγορίες
+  classParticipation: 'Συμμετοχή στο Μάθημα',
+  homework: 'Εκπόνηση Εργασιών',
+  continuousAssessment: 'Συνεχής Αξιολόγηση',
+  quizzes: 'Κουίζ',
+  midtermExam: 'Ενδιάμεση Εξέταση',
+  finalExam: 'Τελική Εξέταση',
+  labWork: 'Εργαστηριακή Εργασία',
+  project: 'Πρότζεκτ',
+  presentation: 'Παρουσίαση',
+};

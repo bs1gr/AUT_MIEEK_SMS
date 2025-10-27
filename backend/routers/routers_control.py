@@ -76,6 +76,17 @@ class OperationResult(BaseModel):
 
 # ============================================================================
 # Helper Functions
+def _in_docker_container() -> bool:
+    # Heuristic: check for /.dockerenv or cgroup mentioning 'docker'
+    if os.path.exists('/.dockerenv'):
+        return True
+    try:
+        with open('/proc/1/cgroup', 'rt') as f:
+            if 'docker' in f.read():
+                return True
+    except Exception:
+        pass
+    return False
 # ============================================================================
 
 def _is_port_open(port: int, host: str = "127.0.0.1") -> bool:
@@ -91,7 +102,7 @@ def _get_process_on_port(port: int) -> Optional[Dict[str, Any]]:
     """Get process information for a port"""
     try:
         for conn in psutil.net_connections(kind='inet'):
-            if conn.laddr.port == port and conn.status == 'LISTEN':
+            if conn.laddr.port == port and conn.status == 'LISTEN':  # type: ignore[attr-defined]
                 try:
                     proc = psutil.Process(conn.pid)
                     return {
@@ -129,6 +140,27 @@ def _check_docker_running() -> bool:
     """Check if Docker Desktop is running"""
     success, _, _ = _run_command(["docker", "info"], timeout=5)
     return success
+
+
+def _docker_volume_exists(name: str) -> bool:
+    ok, out, _ = _run_command(["docker", "volume", "ls", "--format", "{{.Name}}"])
+    if not ok:
+        return False
+    return name in [line.strip() for line in out.splitlines()]
+
+
+def _create_unique_volume(base_name: str) -> str:
+    """Create a unique docker volume name based on base_name and date, return the name."""
+    date_suffix = datetime.now().strftime("%Y%m%d")
+    candidate = f"{base_name}_v{date_suffix}"
+    idx = 1
+    while _docker_volume_exists(candidate):
+        idx += 1
+        candidate = f"{base_name}_v{date_suffix}_{idx}"
+    ok, _, err = _run_command(["docker", "volume", "create", candidate])
+    if not ok:
+        raise RuntimeError(f"Failed to create volume {candidate}: {err}")
+    return candidate
 
 
 def _check_node_installed() -> tuple[bool, Optional[str]]:
@@ -571,3 +603,133 @@ async def cleanup_system():
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+
+
+@router.post("/operations/cleanup-obsolete", response_model=OperationResult)
+async def cleanup_obsolete_files():
+    """
+    Remove obsolete markdown/docs and unused files as defined by scripts/CLEANUP_OBSOLETE_FILES.ps1
+    Runs natively in Python for cross-environment support.
+    """
+    project_root = Path(__file__).parent.parent.parent
+    if _in_docker_container():
+        return OperationResult(
+            success=False,
+            message=(
+                "Cleanup of repository files must be run on the host. "
+                "Please run scripts/CLEANUP_OBSOLETE_FILES.ps1 from the project root."
+            ),
+            details={"in_container": True}
+        )
+
+    # Mirror list from scripts/CLEANUP_OBSOLETE_FILES.ps1
+    obsolete_markdown = [
+        "VERSIONING_GUIDE.md",
+        "TEACHING_SCHEDULE_GUIDE.md",
+        "RUST_BUILDTOOLS_UPDATE.md",
+        "QUICK_REFERENCE.md",
+        "PACKAGE_VERSION_FIX.md",
+        "ORGANIZATION_SUMMARY.md",
+        "NODE_VERSION_UPDATE.md",
+        "INSTALL_GUIDE.md",
+        "IMPLEMENTATION_REPORT.md",
+        "HELP_DOCUMENTATION_COMPLETE.md",
+        "FRONTEND_TROUBLESHOOTING.md",
+        "DEPLOYMENT_QUICK_START.md",
+        "DEPENDENCY_UPDATE_LOG.md",
+        "DAILY_PERFORMANCE_GUIDE.md",
+        "COMPLETE_UPDATE_SUMMARY.md",
+        "CODE_IMPROVEMENTS.md",
+    ]
+
+    removed: List[str] = []
+    errors: List[str] = []
+
+    for rel in obsolete_markdown:
+        path = project_root / rel
+        try:
+            if path.exists():
+                path.unlink()
+                removed.append(str(path))
+        except Exception as e:
+            errors.append(f"Failed to remove {rel}: {e}")
+
+    return OperationResult(
+        success=len(errors) == 0,
+        message=(
+            f"Removed {len(removed)} obsolete file(s)" + (f" with {len(errors)} error(s)" if errors else "")
+        ),
+        details={"removed": removed, "errors": errors}
+    )
+
+
+@router.post("/operations/docker-update-volume", response_model=OperationResult)
+async def docker_update_volume(migrate: bool = True):
+    """
+    Create a new versioned Docker volume and generate docker-compose.override.yml to switch backend /data.
+    Optionally migrates data from existing 'sms_data' volume to the new one.
+    Does not stop/restart containers automatically.
+    """
+    if _in_docker_container():
+        return OperationResult(
+            success=False,
+            message=(
+                "Docker volume update must run on the host. "
+                "Run scripts/DOCKER_UPDATE_VOLUME.ps1 instead."
+            ),
+            details={"in_container": True}
+        )
+
+    if not _check_docker_running():
+        raise HTTPException(status_code=400, detail="Docker is not running")
+
+    project_root = Path(__file__).parent.parent.parent
+
+    base_volume = "sms_data"
+    try:
+        # Create new unique volume
+        new_volume = _create_unique_volume(base_volume)
+
+        # Migrate data if requested and old volume exists
+        migration_stdout = ""
+        migration_stderr = ""
+        if migrate and _docker_volume_exists(base_volume):
+            ok, out, err = _run_command([
+                "docker", "run", "--rm",
+                "-v", f"{base_volume}:/from",
+                "-v", f"{new_volume}:/to",
+                "alpine", "sh", "-c", "cd /from && cp -a . /to || true"
+            ], timeout=600)
+            migration_stdout = out
+            migration_stderr = err
+
+        # Write/Update docker-compose.override.yml
+        override_path = project_root / "docker-compose.override.yml"
+        override_contents = (
+            "services:\n"
+            "  backend:\n"
+            "    volumes:\n"
+            f"      - {new_volume}:/data\n"
+            "volumes:\n"
+            f"  {new_volume}:\n"
+            "    driver: local\n"
+        )
+        override_path.write_text(override_contents, encoding="utf-8")
+
+        return OperationResult(
+            success=True,
+            message="Created new data volume and wrote docker-compose.override.yml. Restart the stack to apply.",
+            details={
+                "new_volume": new_volume,
+                "override_file": str(override_path),
+                "migrated": bool(migrate and _docker_volume_exists(base_volume)),
+                "migration_stdout": migration_stdout[-500:] if migration_stdout else None,
+                "migration_stderr": migration_stderr[-500:] if migration_stderr else None,
+                "next_steps": [
+                    "docker compose down",
+                    "docker compose up -d"
+                ]
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Docker volume update failed: {e}")

@@ -115,6 +115,22 @@ try {
         if (-not $imageExists) {
             Write-Warn "Docker image 'sms-fullstack' not found."
             Write-Info "Running SETUP to build the image..."
+                    # Check for port conflicts before starting
+                    $conflictContainers = docker ps --format "{{.Names}} {{.Ports}}" | findstr "$Port" | ForEach-Object { $_.Split(' ')[0] }
+                    if ($conflictContainers) {
+                        Write-Warn "Port $Port is already in use by the following container(s): $conflictContainers"
+                        $response = Read-Host "Do you want to stop these container(s) automatically? (Y/N)"
+                        if ($response -eq 'Y') {
+                            foreach ($ctn in $conflictContainers) {
+                                Write-Info "Stopping container: $ctn"
+                                docker stop $ctn | Out-Null
+                            }
+                            Write-Ok "All conflicting containers stopped."
+                        } else {
+                            Write-Err "Cannot continue while port $Port is in use. Please stop the conflicting container(s) and retry."
+                            exit 1
+                        }
+                    }
             Write-Host ""
             
             if (Test-Path ".\scripts\SETUP.ps1") {
