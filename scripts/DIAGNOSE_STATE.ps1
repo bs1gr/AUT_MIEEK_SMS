@@ -86,8 +86,9 @@ if ($dockerAvailable) {
     Write-Host "`n[3/6] Checking Docker containers..." -ForegroundColor Yellow
     
     try {
-        # Check for SMS-related containers
-        $allContainers = docker ps -a --filter "name=sms" --format "{{.Names}}|{{.State}}|{{.Status}}" 2>&1
+        # Check for SMS-related containers (both naming patterns)
+        $allContainers = docker ps -a --format "{{.Names}}|{{.State}}|{{.Status}}" 2>&1 | 
+            Where-Object { $_ -match "student-management|sms" }
         
         if ($LASTEXITCODE -eq 0 -and $allContainers) {
             foreach ($line in $allContainers) {
@@ -209,13 +210,51 @@ $deploymentState = "UNKNOWN"
 $isRunning = $false
 
 if ($containersRunning.Count -gt 0) {
-    $deploymentState = "DOCKER_CONTAINERIZED"
-    $isRunning = $true
-    Write-Success "Deployment: DOCKER CONTAINERS (Running)"
+    # Check if it's compose or fullstack
+    $isCompose = $containersRunning | Where-Object { $_ -match "student-management-system" }
+    $isFullstack = $containersRunning | Where-Object { $_ -match "sms-fullstack" }
+    
+    if ($isCompose) {
+        # Check if we also have stopped compose containers
+        $stoppedCompose = $containersStopped | Where-Object { $_ -match "student-management-system" }
+        if ($stoppedCompose) {
+            $deploymentState = "DOCKER_COMPOSE_PARTIAL"
+            Write-Warning2 "Deployment: DOCKER COMPOSE (Partially Running - some services down)"
+            $isRunning = $true
+        } else {
+            $deploymentState = "DOCKER_COMPOSE"
+            Write-Success "Deployment: DOCKER COMPOSE (All services running)"
+            $isRunning = $true
+        }
+    } elseif ($isFullstack) {
+        $deploymentState = "DOCKER_CONTAINERIZED"
+        Write-Success "Deployment: DOCKER FULLSTACK CONTAINER (Running)"
+        $isRunning = $true
+    } else {
+        $deploymentState = "DOCKER_CONTAINERIZED"
+        Write-Success "Deployment: DOCKER CONTAINERS (Running)"
+        $isRunning = $true
+    }
 } elseif ($containersStopped.Count -gt 0) {
-    $deploymentState = "DOCKER_CONTAINERIZED_STOPPED"
-    $isRunning = $false
-    Write-Warning2 "Deployment: DOCKER CONTAINERS (Stopped)"
+    # Check if compose containers exist (even if stopped)
+    $isCompose = $containersStopped | Where-Object { $_ -match "student-management-system" }
+    if ($isCompose) {
+        # Check if any compose containers are running
+        $runningCompose = $containersRunning | Where-Object { $_ -match "student-management-system" }
+        if ($runningCompose) {
+            $deploymentState = "DOCKER_COMPOSE_PARTIAL"
+            Write-Warning2 "Deployment: DOCKER COMPOSE (Partially Running)"
+            $isRunning = $true
+        } else {
+            $deploymentState = "DOCKER_COMPOSE_STOPPED"
+            Write-Warning2 "Deployment: DOCKER COMPOSE (Stopped)"
+            $isRunning = $false
+        }
+    } else {
+        $deploymentState = "DOCKER_CONTAINERIZED_STOPPED"
+        Write-Warning2 "Deployment: DOCKER CONTAINERS (Stopped)"
+        $isRunning = $false
+    }
 } elseif ($backendProcess -or $frontendProcess) {
     $deploymentState = "NATIVE_HOST"
     $isRunning = $true
@@ -233,6 +272,9 @@ Write-Header "SUMMARY & RECOMMENDATIONS"
 
 Write-Host "Current State: " -NoNewline
 switch ($deploymentState) {
+    "DOCKER_COMPOSE" { Write-Host "RUNNING IN DOCKER COMPOSE" -ForegroundColor Green }
+    "DOCKER_COMPOSE_PARTIAL" { Write-Host "DOCKER COMPOSE (SOME SERVICES DOWN)" -ForegroundColor Yellow }
+    "DOCKER_COMPOSE_STOPPED" { Write-Host "DOCKER COMPOSE EXISTS BUT STOPPED" -ForegroundColor Yellow }
     "DOCKER_CONTAINERIZED" { Write-Host "RUNNING IN DOCKER CONTAINERS" -ForegroundColor Green }
     "DOCKER_CONTAINERIZED_STOPPED" { Write-Host "DOCKER CONTAINERS EXIST BUT STOPPED" -ForegroundColor Yellow }
     "NATIVE_HOST" { Write-Host "RUNNING NATIVELY ON HOST" -ForegroundColor Green }
