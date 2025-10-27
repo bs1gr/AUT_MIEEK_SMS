@@ -7,7 +7,8 @@ param(
     [ValidateSet('auto', 'docker', 'native', 'fullstack')]
     [string]$Mode = 'auto',
     [switch]$Help,
-    [switch]$Force
+    [switch]$Force,
+    [switch]$NoBrowser
 )
 
 Set-StrictMode -Version Latest
@@ -30,6 +31,7 @@ function Show-Help {
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  -Mode <mode>      Deployment mode: auto|docker|native|fullstack (default: auto)"
     Write-Host "  -Force            Stop conflicting processes/containers before starting"
+    Write-Host "  -NoBrowser        Don't automatically open browser after successful start"
     Write-Host "  -Help             Show this help message"
     Write-Host ""
     Write-Host "Modes:" -ForegroundColor Yellow
@@ -153,17 +155,28 @@ try {
             
             if ($LASTEXITCODE -eq 0) {
                 Write-Host ""
-                Write-Ok "✓ Services started successfully!"
+                Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+                Write-Host "║  ✓ SUCCESS! Application is running                            ║" -ForegroundColor Green
+                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
                 Write-Host ""
                 Write-Info "Access your application at:"
                 Write-Host "  → Frontend: " -NoNewline
-                Write-Host "http://localhost:8080" -ForegroundColor White
+                Write-Host "http://localhost:8080" -ForegroundColor White -BackgroundColor DarkBlue
                 Write-Host "  → API Docs: " -NoNewline
                 Write-Host "http://localhost:8080/api/docs" -ForegroundColor White
                 Write-Host ""
-                Write-Info "View logs: docker compose logs -f"
-                Write-Info "Stop: docker compose stop"
+                Write-Info "Quick Commands:"
+                Write-Info "  View logs: docker compose logs -f"
+                Write-Info "  Stop: docker compose stop"
                 Write-Host ""
+                
+                # Auto-open browser
+                if (-not $NoBrowser) {
+                    Write-Info "Opening browser..."
+                    Start-Sleep -Milliseconds 500
+                    Start-Process "http://localhost:8080"
+                }
+                
                 exit 0
             } else {
                 Write-Err "Failed to start Docker Compose services!"
