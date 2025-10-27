@@ -87,8 +87,13 @@ try {
     $composeContainers = @()
     if ($dockerAvailable) {
         try {
-            $composeContainers = docker compose ps --services --filter "status=running" 2>$null
-        } catch {}
+            $output = docker compose ps --services --filter "status=running" 2>$null
+            if ($output) {
+                $composeContainers = @($output)
+            }
+        } catch {
+            $composeContainers = @()
+        }
     }
     
     # Determine mode
@@ -97,7 +102,7 @@ try {
         Write-Info "Detecting best available mode..."
         Write-Host ""
         
-        if ($composeContainers.Count -gt 0) {
+        if ($composeContainers -and $composeContainers.Count -gt 0) {
             $selectedMode = 'docker'
             Write-Ok "Found running Docker Compose containers"
         } elseif ($dockerRunning -and $composeExists) {
