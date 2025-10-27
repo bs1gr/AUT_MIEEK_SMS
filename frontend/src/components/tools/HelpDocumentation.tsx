@@ -246,6 +246,54 @@ const HelpDocumentation = () => {
         {
           question: t('helpSystemHealth'),
           answer: t('helpSystemHealthAnswer')
+        },
+        {
+          question: t('helpHowToChangeTheme'),
+          answer: t('helpChangeThemeAnswer')
+        },
+        {
+          question: t('helpWhatIsSystemTheme'),
+          answer: t('helpSystemThemeAnswer')
+        },
+        {
+          question: t('helpCleanupObsolete'),
+          answer: t('helpCleanupObsoleteAnswer')
+        },
+        {
+          question: t('helpDockerVolumeUpdate'),
+          answer: t('helpDockerVolumeUpdateAnswer')
+        },
+        {
+          question: t('helpUpdateVolumeHowTo'),
+          answer: t('helpUpdateVolumeHowToAnswer')
+        },
+        {
+          question: t('helpUpdateVolumeRevert'),
+          answer: t('helpUpdateVolumeRevertAnswer')
+        },
+        {
+          question: t('helpUpdateVolumeMigrate'),
+          answer: t('helpUpdateVolumeMigrateAnswer')
+        }
+      ]
+    },
+    {
+      id: 'utils',
+      title: t('helpUtilsOperations'),
+      icon: MessageCircle,
+      color: 'text-blue-600',
+      items: [
+        {
+          question: t('helpWhatIsDevTools'),
+          answer: t('helpDevToolsAnswer')
+        },
+        {
+          question: t('helpHowToAccessControlPanel'),
+          answer: t('helpControlPanelAnswer')
+        },
+        {
+          question: t('helpWhatIsServerControl'),
+          answer: t('helpServerControlAnswer')
         }
       ]
     }

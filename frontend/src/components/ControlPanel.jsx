@@ -115,6 +115,30 @@ const ControlPanel = () => {
     }
   };
 
+  // Operation with full path (allows query params)
+  const runOperationPath = async (path, successMessage) => {
+    try {
+      setLoading(true);
+      setOperationStatus({ type: 'info', message: t('controlPanel.executing') });
+      const response = await axios.post(`${CONTROL_API}${path}`);
+      if (response.data.success) {
+        setOperationStatus({ type: 'success', message: successMessage });
+      } else {
+        setOperationStatus({ type: 'error', message: response.data.message || t('controlPanel.operationFailed') });
+      }
+      await fetchStatus();
+      await fetchDiagnostics();
+    } catch (error) {
+      setOperationStatus({ 
+        type: 'error', 
+        message: error.response?.data?.detail || error.message || t('controlPanel.operationFailed')
+      });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setOperationStatus(null), 5000);
+    }
+  };
+
   // Control operations (use legacy endpoints for start/stop)
   const startFrontend = async () => {
     try {
@@ -335,6 +359,44 @@ const ControlPanel = () => {
                   <span>{t('controlPanel.cleanupDesc')}</span>
                   <Trash2 size={18} />
                 </button>
+                <button
+                  onClick={() => runOperation('cleanup-obsolete', t('controlPanel.operationSuccess'))}
+                  disabled={loading}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  <span>{t('controlPanel.cleanupObsoleteDesc') || 'Cleanup obsolete files (docs, unused)'} </span>
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Container size={20} />
+                {t('controlPanel.dockerUpdateVolume') || 'Update Docker Data Volume'}
+              </h2>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    if (confirm(t('controlPanel.confirmDockerUpdateVolume') || 'Create a new versioned Docker data volume and update override. Migrate data from current volume if present?')) {
+                      runOperationPath('/operations/docker-update-volume?migrate=true', t('controlPanel.operationSuccess'))
+                    } else {
+                      if (confirm(t('controlPanel.confirmDockerUpdateNoMigrate') || 'Proceed without data migration?')) {
+                        runOperationPath('/operations/docker-update-volume?migrate=false', t('controlPanel.operationSuccess'))
+                      }
+                    }
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  <span>{t('controlPanel.dockerUpdateVolumeDesc') || 'Create and switch to a new versioned volume (writes docker-compose.override.yml)'}</span>
+                  <Container size={18} />
+                </button>
+                {!status?.docker && (
+                  <p className="text-sm text-yellow-400">
+                    {t('controlPanel.dockerStatus')}: {t('controlPanel.offline')}
+                  </p>
+                )}
               </div>
             </div>
           </div>

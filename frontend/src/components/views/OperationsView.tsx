@@ -3,6 +3,7 @@ import { useLanguage } from '../../LanguageContext';
 import ExportCenter from '../tools/ExportCenter';
 import HelpDocumentation from '../tools/HelpDocumentation';
 import ServerControl from '../common/ServerControl';
+import ThemeSelector from '../tools/ThemeSelector';
 
 // Use same-origin relative API by default so it works in fullstack (8080) and dev
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
@@ -386,7 +387,7 @@ const DevToolsTab: React.FC = () => {
 
 const OperationsView: React.FC<{ students: any[] }> = ({ students }) => {
   const { t } = useLanguage() as any;
-  const [tab, setTab] = useState<'exports' | 'help' | 'devtools'>('exports');
+  const [tab, setTab] = useState<'exports' | 'help' | 'devtools' | 'settings'>('exports');
 
   return (
     <div className="space-y-4">
@@ -421,11 +422,22 @@ const OperationsView: React.FC<{ students: any[] }> = ({ students }) => {
         >
           {t('utils.title')}
         </button>
+        <button
+          onClick={() => setTab('settings')}
+          className={`px-4 py-2 rounded border ${
+            tab === 'settings'
+              ? 'bg-indigo-600 text-white border-indigo-600'
+              : 'bg-white text-gray-700 border-gray-300'
+          }`}
+        >
+          {t('settings')}
+        </button>
       </div>
       <div className="bg-white border rounded-xl p-4">
         {tab === 'exports' && <ExportCenter />}
         {tab === 'help' && <HelpDocumentation />}
         {tab === 'devtools' && <DevToolsTab />}
+        {tab === 'settings' && <ThemeSelector />}
       </div>
     </div>
   );
