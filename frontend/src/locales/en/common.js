@@ -14,6 +14,8 @@ export default {
   grades: 'Grades',
   calendar: 'Calendar',
   utilsTab: 'Utils',
+   export: 'Export',
+   help: 'Help',
   powerTab: 'Power',
   power: 'Power',
   // Common States & Messages
@@ -56,4 +58,22 @@ export default {
   labWork: 'Lab Work',
   project: 'Project',
   presentation: 'Presentation',
+   // Misc
+  credits: 'Credits',
+  na: 'N/A',
+  // Error Messages
+  noFileSelected: 'No file selected',
+  confirmRequired: 'Confirm required',
+  noFilesSelected: 'No files selected',
+  // Semester/Time
+  currentSemester: 'Current Semester',
+  // Actions
+  enrollSelected: 'Enroll Selected',
+  allStudents: 'All Students',
+  enrolledStudents: 'Enrolled Students',
+  // Common UI
+  confirm: 'Confirm',
+  error: 'Error',
+  active: 'Active',
+  inactive: 'Inactive',
 };

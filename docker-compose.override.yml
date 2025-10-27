@@ -1,7 +1,7 @@
 services:
   backend:
     volumes:
-      - sms_data_v20251027_4:/data
+      - sms_data_v20251028:/data
 volumes:
-  sms_data_v20251027_4:
+  sms_data_v20251028:
     driver: local
