@@ -27,6 +27,28 @@ docker compose up -d
 Start-Process http://localhost:8080
 ```
 
+### Unified entry (Windows)
+
+Prefer using the unified helper that picks Compose vs Fullstack:
+
+```pwsh
+# Compose mode (default): rebuild and start both containers
+./scripts/DOCKER_RUN.ps1
+
+# Compose with no-cache rebuild
+./scripts/DOCKER_RUN.ps1 -NoCache
+
+# Fullstack single-image: build and run on port 8081
+./scripts/DOCKER_RUN.ps1 -Mode fullstack
+
+# Fullstack on a different host port
+./scripts/DOCKER_RUN.ps1 -Mode fullstack -Port 8082
+
+# Stop (Down) for either mode
+./scripts/DOCKER_RUN.ps1 -Mode compose -Down
+./scripts/DOCKER_RUN.ps1 -Mode fullstack -Down
+```
+
 Stop and remove containers:
 
 ```pwsh
@@ -137,6 +159,10 @@ On Windows, you can use the provided helper scripts:
 # Stop container (and optionally remove the image)
 ./scripts/DOCKER_FULLSTACK_DOWN.ps1
 ./scripts/DOCKER_FULLSTACK_DOWN.ps1 -RemoveImage
+
+# Refresh (rebuild + run) helpers
+./scripts/DOCKER_REFRESH.ps1                # compose rebuild + up -d
+./scripts/DOCKER_FULLSTACK_REFRESH.ps1 -Run # fullstack rebuild + run (port 8081)
 ```
 
 You’ll also find these options in `LAUNCHER.bat` under:
