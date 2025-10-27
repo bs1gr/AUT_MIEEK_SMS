@@ -1,5 +1,8 @@
 # Debug script to show what's running on ports
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 Write-Host ""
 Write-Host "=== Port Analysis ===" -ForegroundColor Cyan
 Write-Host ""
@@ -48,7 +51,7 @@ Write-Host "All Node.js processes:" -ForegroundColor Yellow
 $nodeProcs = Get-Process -Name node -ErrorAction SilentlyContinue
 if ($nodeProcs) {
     foreach ($proc in $nodeProcs) {
-        $cmdline = (Get-WmiObject Win32_Process -Filter "ProcessId = $($proc.Id)" -ErrorAction SilentlyContinue).CommandLine
+        $cmdline = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($proc.Id)" -ErrorAction SilentlyContinue).CommandLine
         Write-Host "  PID: $($proc.Id) - Command: $cmdline" -ForegroundColor Green
     }
 } else {

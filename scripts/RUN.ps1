@@ -8,6 +8,10 @@ param(
     [switch]$ControlOnly
 )
 
+# Safer scripting defaults
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 # Set window title
 $host.UI.RawUI.WindowTitle = "SMS - Starting..."
 
