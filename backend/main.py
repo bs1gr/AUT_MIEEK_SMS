@@ -68,7 +68,7 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # ============================================================================
-# CONTROL PANEL (serve HTML from project root)
+# CONTROL PANEL & SPA CONFIGURATION (project root paths)
 # ============================================================================
 
 try:
@@ -282,20 +282,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# =========================================================================
-# CONTROL PANEL (serve HTML from project root) — defined after app creation
-# =========================================================================
-
-try:
-    from pathlib import Path
-    PROJECT_ROOT = Path(__file__).resolve().parent.parent
-    CONTROL_HTML = PROJECT_ROOT / "html_control_panel.html"
-    SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
-    SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
-except Exception:
-    CONTROL_HTML = None
-    SPA_DIST_DIR = None
-    SPA_INDEX_FILE = None
+# ============================================================================
+# CONTROL PANEL API ENDPOINTS
+# ============================================================================
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 

@@ -350,11 +350,21 @@ const EnhancedAttendanceCalendar = () => {
         {/* Calendar */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <button onClick={previousMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button 
+              onClick={previousMonth} 
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label={t('previousMonth') || 'Previous month'}
+              title={t('previousMonth') || 'Previous month'}
+            >
               <ChevronLeft size={24} />
             </button>
             <h2 className="text-xl font-bold text-gray-800">{monthYear}</h2>
-            <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button 
+              onClick={nextMonth} 
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label={t('nextMonth') || 'Next month'}
+              title={t('nextMonth') || 'Next month'}
+            >
               <ChevronRight size={24} />
             </button>
           </div>
@@ -439,6 +449,8 @@ const EnhancedAttendanceCalendar = () => {
               value={selectedCourse || ''}
               onChange={(e) => setSelectedCourse(parseInt(e.target.value))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              aria-label={t('selectCourse') || 'Select course'}
+              title={t('selectCourse') || 'Select course'}
             >
               <option value="">{t('selectCourse')}</option>
               {courses.map(course => (
@@ -576,6 +588,8 @@ const EnhancedAttendanceCalendar = () => {
               <button
                 onClick={() => setShowPerformanceModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg"
+                aria-label={t('close') || 'Close'}
+                title={t('close') || 'Close'}
               >
                 <XCircle size={24} />
               </button>
@@ -616,6 +630,8 @@ const EnhancedAttendanceCalendar = () => {
                       value={currentScore}
                       onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)}
                       className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      aria-label={`${rule.category} score`}
+                      title={`${rule.category} score`}
                     />
 
                     <div className="flex justify-between mt-2 text-sm text-gray-600">

@@ -1,7 +1,7 @@
 # Fullstack image: Build frontend, run backend, and serve SPA from FastAPI
 
-# 1) Build frontend
-FROM node:20-alpine AS fe
+# 1) Build frontend - Using Node 22 LTS (more secure than 20)
+FROM node:22-alpine AS fe
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
