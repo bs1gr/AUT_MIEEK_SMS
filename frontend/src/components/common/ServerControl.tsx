@@ -25,15 +25,6 @@ interface ServerStatus {
 const ServerControl: React.FC = () => {
   const { t } = useLanguage() as any;
   
-  // Log the API base URL on component mount
-  useEffect(() => {
-    console.log('[ServerControl] API_BASE_URL:', API_BASE_URL);
-    console.log('[ServerControl] Environment:', {
-      VITE_API_URL: (import.meta as any).env?.VITE_API_URL,
-      location: window.location.href
-    });
-  }, []);
-  
   const [status, setStatus] = useState<ServerStatus>({
     backend: 'checking',
     frontend: 'checking',
@@ -58,16 +49,13 @@ const ServerControl: React.FC = () => {
 
   // Sync uptime from server when backend comes online or uptime changes significantly
   useEffect(() => {
-    console.log('[ServerControl] Uptime sync effect triggered:', { backend: status.backend, uptime: status.uptime, currentUptime });
     if (status.backend === 'online' && status.uptime !== undefined) {
       // Only update if uptime is significantly different (more than 5 seconds drift)
       // or if we're transitioning from offline to online
       if (currentUptime === 0 || Math.abs(currentUptime - status.uptime) > 5) {
-        console.log('[ServerControl] Updating currentUptime to:', status.uptime);
         setCurrentUptime(status.uptime);
       }
-    } else if (status.backend === 'offline') {
-      console.log('[ServerControl] Backend offline, resetting uptime to 0');
+    } else if (status.backend !== 'online') {
       setCurrentUptime(0);
     }
   }, [status.backend, status.uptime]);
@@ -75,20 +63,11 @@ const ServerControl: React.FC = () => {
   // Update uptime counter every second
   useEffect(() => {
     if (status.backend === 'online') {
-      console.log('[ServerControl] Starting uptime counter, initial value:', currentUptime);
       const uptimeInterval = setInterval(() => {
-        setCurrentUptime(prev => {
-          const newUptime = prev + 1;
-          // Only log every 10 seconds to reduce console spam
-          if (newUptime % 10 === 0) {
-            console.log('[ServerControl] Uptime:', newUptime);
-          }
-          return newUptime;
-        });
+        setCurrentUptime(prev => prev + 1);
       }, 1000);
 
       return () => {
-        console.log('[ServerControl] Stopping uptime counter');
         clearInterval(uptimeInterval);
       };
     }
@@ -96,7 +75,6 @@ const ServerControl: React.FC = () => {
 
   const checkStatus = async () => {
     try {
-      console.log('[ServerControl] Checking health at:', `${API_BASE_URL}/health`);
       // Check backend status with longer timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -121,13 +99,11 @@ const ServerControl: React.FC = () => {
         health = data;
       } else {
         error = `Backend error: ${backendResponse.status}`;
-        console.error('[ServerControl] Backend error:', error);
       }
 
       // Check frontend status (self-check - if this code is running, frontend is online)
       const frontendStatus: 'online' | 'offline' = 'online';
 
-      console.log('[ServerControl] Setting status:', { backendStatus, uptime, health });
       setStatus({
         backend: backendStatus,
         frontend: frontendStatus,
@@ -138,7 +114,6 @@ const ServerControl: React.FC = () => {
       setHealthData(health);
       setLastCheckedAt(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('[ServerControl] Connection error:', error);
       setStatus(prev => ({
         ...prev,
         backend: 'offline',
