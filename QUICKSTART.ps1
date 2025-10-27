@@ -1,12 +1,13 @@
 # ============================================================================
 #   Student Management System - Quick Start
-#   Runs the fullstack Docker container (build via UTILITIES if needed)
+#   Intelligently starts the app in the best available mode
 # ============================================================================
 
 param(
-    [int]$Port = 8080,
-    [switch]$Rebuild,
-    [switch]$Help
+    [ValidateSet('auto', 'docker', 'native', 'fullstack')]
+    [string]$Mode = 'auto',
+    [switch]$Help,
+    [switch]$Force
 )
 
 Set-StrictMode -Version Latest
@@ -21,36 +22,36 @@ function Show-Help {
     Write-Host ""
     Write-Host "QUICKSTART - Student Management System" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Runs the fullstack Docker container (backend serves SPA)." -ForegroundColor Gray
+    Write-Host "Intelligently starts the app in the best available mode." -ForegroundColor Gray
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
     Write-Host "  .\QUICKSTART.ps1 [options]"
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host "  -Port <number>    Host port to expose (default: 8080)"
-    Write-Host "  -Rebuild          Rebuild the Docker image before running"
+    Write-Host "  -Mode <mode>      Deployment mode: auto|docker|native|fullstack (default: auto)"
+    Write-Host "  -Force            Stop conflicting processes/containers before starting"
     Write-Host "  -Help             Show this help message"
     Write-Host ""
+    Write-Host "Modes:" -ForegroundColor Yellow
+    Write-Host "  auto              Detect and use the best available mode (recommended)"
+    Write-Host "  docker            Use Docker Compose (backend + frontend containers)"
+    Write-Host "  native            Run natively on host (Python + Node.js)"
+    Write-Host "  fullstack         Use fullstack container (single container)"
+    Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  .\QUICKSTART.ps1              # Start fullstack on port 8080"
-    Write-Host "  .\QUICKSTART.ps1 -Rebuild     # Rebuild and start"
-    Write-Host "  .\QUICKSTART.ps1 -Port 9000   # Start on custom port"
+    Write-Host "  .\QUICKSTART.ps1                    # Auto-detect best mode"
+    Write-Host "  .\QUICKSTART.ps1 -Mode docker       # Force Docker Compose"
+    Write-Host "  .\QUICKSTART.ps1 -Mode native       # Force native"
+    Write-Host "  .\QUICKSTART.ps1 -Force             # Stop conflicts automatically"
     Write-Host ""
-    Write-Host "Prerequisites:" -ForegroundColor Cyan
-    Write-Host "  - Docker Desktop installed and running"
-    Write-Host "  - Fullstack image built (automatic setup on first run)"
+    Write-Host "Access URLs:" -ForegroundColor Cyan
+    Write-Host "  Docker/Fullstack: http://localhost:8080"
+    Write-Host "  Native:           http://localhost:5173"
     Write-Host ""
-    Write-Host "Automatic Recovery:" -ForegroundColor Cyan
-    Write-Host "  If fullstack fails → Runs SETUP automatically"
-    Write-Host "  If SETUP fails → Shows DEVTOOLS instructions"
-    Write-Host ""
-    Write-Host "Manual Tools:" -ForegroundColor Cyan
-    Write-Host "  .\scripts\SETUP.ps1       - Build Docker image from scratch"
-    Write-Host "  .\scripts\DEVTOOLS.ps1    - Diagnostics and troubleshooting"
-    Write-Host "  .\scripts\STOP.ps1        - Stop all containers"
-    Write-Host ""
-    Write-Host "To stop the container:" -ForegroundColor Cyan
-    Write-Host "  docker stop sms-fullstack"
+    Write-Host "Management:" -ForegroundColor Cyan
+    Write-Host "  .\scripts\DIAGNOSE_STATE.ps1    - Check current state"
+    Write-Host "  .\scripts\STOP.ps1              - Stop everything"
+    Write-Host "  docs\STATE_MANAGEMENT_GUIDE.md  - Complete guide"
     Write-Host ""
 }
 
@@ -64,119 +65,186 @@ try {
     Write-Host ""
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host "  Student Management System - Quick Start" -ForegroundColor Cyan
-    Write-Host "  Fullstack Docker Container" -ForegroundColor Gray
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host ""
 
-    # Build args for DOCKER_FULLSTACK_UP.ps1
-    $scriptArgs = @()
-    if ($Rebuild) {
-        $scriptArgs += '-Rebuild'
-    }
-    if ($Port -ne 8080) {
-        $scriptArgs += '-Port', $Port
+    # Detect current state
+    $dockerAvailable = $false
+    $dockerRunning = $false
+    $composeExists = Test-Path "docker-compose.yml"
+    $nativeReady = (Test-Path "backend/venv") -and (Test-Path "frontend/node_modules")
+    
+    # Check Docker
+    try {
+        docker info 2>&1 | Out-Null
+        $dockerAvailable = ($LASTEXITCODE -eq 0)
+        $dockerRunning = $dockerAvailable
+    } catch {
+        $dockerAvailable = $false
     }
 
-    Write-Info "Starting fullstack container on http://localhost:$Port ..."
-    & ".\scripts\DOCKER_FULLSTACK_UP.ps1" @scriptArgs
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Err "Failed to start fullstack container (exit code $LASTEXITCODE)"
-        Write-Host ""
-        Write-Warn "Possible causes:"
-        Write-Host "  - Docker image not built yet"
-        Write-Host "  - Docker Desktop not running"
-        Write-Host "  - Port $Port already in use"
-        Write-Host ""
-        Write-Info "Attempting automatic recovery..."
+    # Check what's currently running
+    $composeContainers = @()
+    if ($dockerAvailable) {
+        try {
+            $composeContainers = docker compose ps --services --filter "status=running" 2>$null
+        } catch {}
+    }
+    
+    # Determine mode
+    $selectedMode = $Mode
+    if ($Mode -eq 'auto') {
+        Write-Info "Detecting best available mode..."
         Write-Host ""
         
-        # Check if Docker is running
-        try {
-            docker info 2>&1 | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Err "Docker is not running!"
-                Write-Host ""
+        if ($composeContainers.Count -gt 0) {
+            $selectedMode = 'docker'
+            Write-Ok "Found running Docker Compose containers"
+        } elseif ($dockerRunning -and $composeExists) {
+            $selectedMode = 'docker'
+            Write-Ok "Docker is available with compose configuration"
+        } elseif ($nativeReady) {
+            $selectedMode = 'native'
+            Write-Ok "Native environment is ready (venv + node_modules)"
+        } elseif ($dockerRunning) {
+            $selectedMode = 'docker'
+            Write-Ok "Docker is available (will use compose mode)"
+        } else {
+            $selectedMode = 'native'
+            Write-Warn "No Docker available, will attempt native mode"
+        }
+        
+        Write-Info "Selected mode: $selectedMode"
+        Write-Host ""
+    }
+    
+    # Handle conflicts if Force is specified
+    if ($Force) {
+        Write-Info "Stopping any conflicting processes/containers..."
+        & ".\scripts\STOP.ps1" -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    }
+    
+    # Start in selected mode
+    switch ($selectedMode) {
+        'docker' {
+            if (-not $dockerRunning) {
+                Write-Err "Docker mode requested but Docker is not running!"
                 Write-Warn "Please start Docker Desktop and try again."
                 Write-Host ""
                 exit 1
             }
-        } catch {
-            Write-Err "Docker is not available!"
+            
+            if (-not $composeExists) {
+                Write-Err "Docker Compose mode requested but docker-compose.yml not found!"
+                Write-Host ""
+                exit 1
+            }
+            
+            Write-Info "Starting Docker Compose services..."
             Write-Host ""
-            Write-Warn "Please install/start Docker Desktop and try again."
+            
+            docker compose up -d --build
+            
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host ""
+                Write-Ok "✓ Services started successfully!"
+                Write-Host ""
+                Write-Info "Access your application at:"
+                Write-Host "  → Frontend: " -NoNewline
+                Write-Host "http://localhost:8080" -ForegroundColor White
+                Write-Host "  → API Docs: " -NoNewline
+                Write-Host "http://localhost:8080/api/docs" -ForegroundColor White
+                Write-Host ""
+                Write-Info "View logs: docker compose logs -f"
+                Write-Info "Stop: docker compose stop"
+                Write-Host ""
+                exit 0
+            } else {
+                Write-Err "Failed to start Docker Compose services!"
+                Write-Host ""
+                Write-Warn "Run diagnostics: .\scripts\DIAGNOSE_STATE.ps1"
+                exit 1
+            }
+        }
+        
+        'native' {
+            Write-Info "Starting in native mode (Python + Node.js)..."
+            Write-Host ""
+            
+            # Check prerequisites
+            if (-not (Test-Path "backend/venv")) {
+                Write-Warn "Python virtual environment not found. Running setup..."
+                Write-Host ""
+                
+                if (Test-Path ".\scripts\SETUP.ps1") {
+                    & ".\scripts\SETUP.ps1"
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Err "Setup failed!"
+                        exit 1
+                    }
+                } else {
+                    Write-Err "Setup script not found!"
+                    exit 1
+                }
+            }
+            
+            if (-not (Test-Path "frontend/node_modules")) {
+                Write-Warn "Node modules not found. Running setup..."
+                Write-Host ""
+                
+                if (Test-Path ".\scripts\SETUP.ps1") {
+                    & ".\scripts\SETUP.ps1"
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Err "Setup failed!"
+                        exit 1
+                    }
+                } else {
+                    Write-Err "Setup script not found!"
+                    exit 1
+                }
+            }
+            
+            # Start native
+            if (Test-Path ".\scripts\RUN.ps1") {
+                & ".\scripts\RUN.ps1"
+                exit $LASTEXITCODE
+            } else {
+                Write-Err "RUN script not found at .\scripts\RUN.ps1"
+                exit 1
+            }
+        }
+        
+        'fullstack' {
+            if (-not $dockerRunning) {
+                Write-Err "Fullstack mode requested but Docker is not running!"
+                Write-Warn "Please start Docker Desktop and try again."
+                Write-Host ""
+                exit 1
+            }
+            
+            Write-Info "Starting fullstack container..."
+            Write-Host ""
+            
+            if (Test-Path ".\scripts\DOCKER_FULLSTACK_UP.ps1") {
+                & ".\scripts\DOCKER_FULLSTACK_UP.ps1"
+                exit $LASTEXITCODE
+            } else {
+                Write-Err "DOCKER_FULLSTACK_UP script not found!"
+                exit 1
+            }
+        }
+        
+        default {
+            Write-Err "Unknown mode: $selectedMode"
+            Write-Host ""
+            Write-Info "Valid modes: auto, docker, native, fullstack"
+            Write-Info "Run with -Help for more information"
             Write-Host ""
             exit 1
         }
-        
-        # Check if image exists
-        $imageExists = docker images --format "{{.Repository}}:{{.Tag}}" | Select-String -Pattern "sms-fullstack:latest" -Quiet
-        
-        if (-not $imageExists) {
-            Write-Warn "Docker image 'sms-fullstack' not found."
-            Write-Info "Running SETUP to build the image..."
-                    # Check for port conflicts before starting
-                    $conflictContainers = docker ps --format "{{.Names}} {{.Ports}}" | findstr "$Port" | ForEach-Object { $_.Split(' ')[0] }
-                    if ($conflictContainers) {
-                        Write-Warn "Port $Port is already in use by the following container(s): $conflictContainers"
-                        $response = Read-Host "Do you want to stop these container(s) automatically? (Y/N)"
-                        if ($response -eq 'Y') {
-                            foreach ($ctn in $conflictContainers) {
-                                Write-Info "Stopping container: $ctn"
-                                docker stop $ctn | Out-Null
-                            }
-                            Write-Ok "All conflicting containers stopped."
-                        } else {
-                            Write-Err "Cannot continue while port $Port is in use. Please stop the conflicting container(s) and retry."
-                            exit 1
-                        }
-                    }
-            Write-Host ""
-            
-            if (Test-Path ".\scripts\SETUP.ps1") {
-                & ".\scripts\SETUP.ps1"
-                
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Host ""
-                    Write-Ok "Setup completed! Retrying QUICKSTART..."
-                    Write-Host ""
-                    & ".\scripts\DOCKER_FULLSTACK_UP.ps1" @scriptArgs
-                    
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Ok "Started successfully after setup!"
-                        Write-Host ""
-                        Write-Info "Access the app at: http://localhost:$Port"
-                        Write-Host ""
-                        exit 0
-                    }
-                }
-                
-                Write-Err "Setup failed or container still won't start."
-            } else {
-                Write-Err "SETUP script not found at .\scripts\SETUP.ps1"
-            }
-        } else {
-            Write-Warn "Docker image exists but container failed to start."
-            Write-Host ""
-            Write-Info "Possible port conflict. Checking for running containers..."
-            docker ps --filter "publish=$Port" --format "table {{.Names}}\t{{.Ports}}"
-        }
-        
-        Write-Host ""
-        Write-Warn "For manual diagnostics and troubleshooting, run:"
-        Write-Info "  .\scripts\DEVTOOLS.ps1"
-        Write-Host ""
-        Write-Warn "Or check the documentation:"
-        Write-Info "  README.md - General usage"
-        Write-Info "  DOCKER.md - Docker-specific help"
-        Write-Host ""
-        exit 1
     }
-
-    Write-Ok "Started successfully!"
-    Write-Host ""
-    Write-Info "Access the app at: http://localhost:$Port"
-    Write-Host ""
+    
 } finally {
     Pop-Location
 }
