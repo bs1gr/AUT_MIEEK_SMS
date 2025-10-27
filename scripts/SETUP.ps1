@@ -152,12 +152,11 @@ function Build-FullstackImage {
     Write-Host ""
     
     try {
-        $buildProcess = Start-Process -FilePath "docker" `
-            -ArgumentList @("build", "-f", "docker/Dockerfile.fullstack", "-t", "sms-fullstack", ".") `
-            -NoNewWindow -PassThru -Wait
+        # Run docker build directly (not via Start-Process) to preserve build context
+        docker build -f docker/Dockerfile.fullstack -t sms-fullstack .
         
-        if ($buildProcess.ExitCode -ne 0) {
-            Write-Err "✗ Image build failed (exit code: $($buildProcess.ExitCode))"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "✗ Image build failed (exit code: $LASTEXITCODE)"
             return $false
         }
         
