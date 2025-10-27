@@ -1,5 +1,8 @@
 # Emergency frontend killer - use when backend is down
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 Write-Host ""
 Write-Host "=== Emergency Frontend Shutdown ===" -ForegroundColor Red
 Write-Host ""
