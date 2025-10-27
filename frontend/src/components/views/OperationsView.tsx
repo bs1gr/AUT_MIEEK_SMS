@@ -77,7 +77,7 @@ const DevToolsTab: React.FC = () => {
 
   const restore = async () => {
     if (!restoreFile) {
-      setResult({ op: 'restore', error: 'No file selected' });
+      setResult({ op: 'restore', error: t('noFileSelected') });
       return;
     }
     setOpLoading('restore');
@@ -97,7 +97,7 @@ const DevToolsTab: React.FC = () => {
 
   const clearDb = async () => {
     if (!clearConfirm) {
-      setResult({ op: 'clear', error: 'Confirm required' });
+      setResult({ op: 'clear', error: t('confirmRequired') });
       return;
     }
     setOpLoading('clear');
@@ -119,7 +119,7 @@ const DevToolsTab: React.FC = () => {
 
   const uploadImport = async () => {
     if (!files || files.length === 0) {
-      setResult({ op: 'upload', error: 'No files selected' });
+      setResult({ op: 'upload', error: t('noFilesSelected') });
       return;
     }
     setOpLoading('upload');
@@ -166,7 +166,7 @@ const DevToolsTab: React.FC = () => {
                 {/* LEDs */}
                 <div className="flex items-center gap-2">
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-300 shadow-[0_0_6px_rgba(16,185,129,0.9)]"></span>
-                  <span className="text-white/90 text-xs">Frontend</span>
+                  <span className="text-white/90 text-xs">{t('utils.frontend')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
@@ -179,7 +179,7 @@ const DevToolsTab: React.FC = () => {
                         : 'bg-rose-300 shadow-[0_0_6px_rgba(244,63,94,0.9)]')
                     }
                   ></span>
-                  <span className="text-white/90 text-xs">Backend</span>
+                  <span className="text-white/90 text-xs">{t('utils.backend')}</span>
                 </div>
                 {/* Controls */}
                 <div className="ml-auto flex items-center gap-3">
@@ -213,36 +213,36 @@ const DevToolsTab: React.FC = () => {
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white">
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Database</div>
+              <div className="text-xs text-gray-500">{t('controlPanel.database')}</div>
               <div className="text-sm font-semibold">
-                {health.database || health.db || 'unknown'}
+                {health.database || health.db || t('controlPanel.unknown')}
               </div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Students</div>
+              <div className="text-xs text-gray-500">{t('students')}</div>
               <div className="text-sm font-semibold">
-                {health.statistics?.students ?? health.students_count ?? '—'}
+                {health.statistics?.students ?? health.students_count ?? t('na')}
               </div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Courses</div>
+              <div className="text-xs text-gray-500">{t('courses')}</div>
               <div className="text-sm font-semibold">
-                {health.statistics?.courses ?? health.courses_count ?? '—'}
+                {health.statistics?.courses ?? health.courses_count ?? t('na')}
               </div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Frontend</div>
-              <div className="text-sm font-semibold">running on {window.location.hostname}:{window.location.port || '5173'}</div>
+              <div className="text-xs text-gray-500">{t('utils.frontend')}</div>
+              <div className="text-sm font-semibold">{window.location.hostname}:{window.location.port || '5173'}</div>
             </div>
             {typeof health.uptime !== 'undefined' && (
               <div className="rounded-lg border p-3 md:col-span-3">
-                <div className="text-xs text-gray-500">Uptime</div>
+                <div className="text-xs text-gray-500">{t('controlPanel.uptime')}</div>
                 <div className="text-sm font-semibold">{health.uptime}s</div>
               </div>
             )}
             {/* Available endpoints */}
             <div className="rounded-lg border p-3 md:col-span-3">
-              <div className="text-sm font-semibold mb-2">Available Endpoints</div>
+              <div className="text-sm font-semibold mb-2">{t('controlPanel.availableEndpoints')}</div>
               {(() => {
                 const frontendPort = String(window.location.port || '5173');
                 // Prefer current port (8080 in fullstack). Fallback to 8080 when unknown.
@@ -254,20 +254,20 @@ const DevToolsTab: React.FC = () => {
                   if (ip && typeof ip === 'string') set.add(ip);
                 });
                 const ips = Array.from(set);
-                if (!ips.length) return <div className="text-xs text-gray-600">No IPs available.</div>;
+                if (!ips.length) return <div className="text-xs text-gray-600">{t('controlPanel.noIpsAvailable')}</div>;
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {ips.map((ip) => (
                       <div key={ip} className="text-xs">
                         <div className="font-mono text-gray-700 mb-1">{ip}</div>
                         <div className="flex flex-wrap gap-2">
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/`} target="_blank" rel="noopener noreferrer">Backend</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/`} target="_blank" rel="noopener noreferrer">{t('utils.backend')}</a>
                           <span className="text-gray-400">|</span>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/docs`} target="_blank" rel="noopener noreferrer">Docs</a>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/redoc`} target="_blank" rel="noopener noreferrer">ReDoc</a>
-                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/health`} target="_blank" rel="noopener noreferrer">Health</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/docs`} target="_blank" rel="noopener noreferrer">{t('utils.apiDocs')}</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/redoc`} target="_blank" rel="noopener noreferrer">{t('utils.apiRedoc')}</a>
+                          <a className="text-indigo-600 hover:underline" href={`http://${ip}:${backendPort}/health`} target="_blank" rel="noopener noreferrer">{t('utils.healthEndpoint')}</a>
                           <span className="text-gray-400">|</span>
-                          <a className="text-emerald-700 hover:underline" href={`http://${ip}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">Frontend</a>
+                          <a className="text-emerald-700 hover:underline" href={`http://${ip}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">{t('utils.frontend')}</a>
                         </div>
                       </div>
                     ))}

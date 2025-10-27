@@ -53,11 +53,22 @@ try {
     }
 
     Write-Info "Stopping fullstack container..."
-    & ".\scripts\DOCKER_FULLSTACK_DOWN.ps1" @scriptArgs
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warn "Stop completed with warnings (exit code: $LASTEXITCODE)"
-        exit $LASTEXITCODE
+    $downScript = Join-Path $PSScriptRoot 'DOCKER_FULLSTACK_DOWN.ps1'
+    
+    if (-not (Test-Path $downScript)) {
+        Write-Warn "DOCKER_FULLSTACK_DOWN.ps1 not found at: $downScript"
+        Write-Info "Attempting docker-compose down..."
+        docker-compose down
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "docker-compose down failed (exit code: $LASTEXITCODE)"
+            exit $LASTEXITCODE
+        }
+    } else {
+        & $downScript @scriptArgs
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "Stop completed with warnings (exit code: $LASTEXITCODE)"
+            exit $LASTEXITCODE
+        }
     }
 
     Write-Ok "Stopped successfully!"

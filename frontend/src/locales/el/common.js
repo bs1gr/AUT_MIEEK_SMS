@@ -14,6 +14,8 @@ export default {
   grades: 'Βαθμοί',
   calendar: 'Ημερολόγιο',
   utilsTab: 'Εργαλεία',
+  export: 'Εξαγωγή',
+  help: 'Βοήθεια',
   powerTab: 'Έλεγχος',
   power: 'Έλεγχος',
   // Καταστάσεις & Μηνύματα
@@ -56,4 +58,22 @@ export default {
   labWork: 'Εργαστηριακή Εργασία',
   project: 'Πρότζεκτ',
   presentation: 'Παρουσίαση',
+  // Διάφορα
+  credits: 'Πιστωτικές Μονάδες',
+  na: '—',
+  // Μηνύματα Σφαλμάτων
+  noFileSelected: 'Δεν επιλέχθηκε αρχείο',
+  confirmRequired: 'Απαιτείται επιβεβαίωση',
+  noFilesSelected: 'Δεν επιλέχθηκαν αρχεία',
+  // Εξάμηνο/Χρόνος
+  currentSemester: 'Τρέχον Εξάμηνο',
+  // Ενέργειες
+  enrollSelected: 'Εγγραφή Επιλεγμένων',
+  allStudents: 'Όλοι οι Σπουδαστές',
+  enrolledStudents: 'Εγγεγραμμένοι Σπουδαστές',
+  // Κοινό UI
+  confirm: 'Επιβεβαίωση',
+  error: 'Σφάλμα',
+  active: 'Ενεργός',
+  inactive: 'Ανενεργός',
 };

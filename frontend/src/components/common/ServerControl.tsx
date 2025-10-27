@@ -294,7 +294,7 @@ const ServerControl: React.FC = () => {
         <div className="animate-spin">
           <RotateCw size={16} />
         </div>
-        <span className="text-sm font-medium text-blue-800">Restarting...</span>
+        <span className="text-sm font-medium text-blue-800">{t('restart')}...</span>
       </div>
     );
   }
@@ -358,7 +358,7 @@ const ServerControl: React.FC = () => {
           <div className={getStatusColor('backend')}>
             {getStatusIcon('backend')}
           </div>
-          <span className="text-xs font-medium text-gray-700">Backend</span>
+          <span className="text-xs font-medium text-gray-700">{t('utils.backend')}</span>
         </div>
 
         {/* Frontend Status */}
@@ -367,7 +367,7 @@ const ServerControl: React.FC = () => {
           <div className="text-green-500">
             <CheckCircle size={14} />
           </div>
-          <span className="text-xs font-medium text-gray-700">Frontend</span>
+          <span className="text-xs font-medium text-gray-700">{t('utils.frontend')}</span>
           <span className="text-xs font-mono text-gray-500 ml-2">{t('active')}</span>
         </div>
 
@@ -377,7 +377,7 @@ const ServerControl: React.FC = () => {
           <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
             {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
           </div>
-          <span className="text-xs font-medium text-gray-700">Docker</span>
+          <span className="text-xs font-medium text-gray-700">{t('controlPanel.docker')}</span>
           <span className="text-xs font-mono text-gray-500 ml-2">
             {healthData?.docker === 'online' ? t('controlPanel.ready') : healthData?.docker === 'offline' ? t('controlPanel.notRunning') : t('controlPanel.unknown')}
           </span>
@@ -405,7 +405,7 @@ const ServerControl: React.FC = () => {
           )}
           {status.error && (
             <span className="text-xs text-red-500 truncate max-w-32" title={status.error}>
-              Error: {status.error.substring(0, 20)}...
+              {t('error') || 'Error'}: {status.error.substring(0, 20)}...
             </span>
           )}
         </div>
@@ -421,14 +421,14 @@ const ServerControl: React.FC = () => {
                 <div className="text-xs opacity-90 space-x-2">
                   {healthData?.version ? <span>v{healthData.version}</span> : null}
                   {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
-                  {lastCheckedAt ? <span>(checked {lastCheckedAt})</span> : null}
+                  {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4">
                 {/* LEDs */}
                 <div className="flex items-center gap-2">
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-300 shadow-[0_0_6px_rgba(16,185,129,0.9)]"></span>
-                  <span className="text-white/90 text-xs">Frontend</span>
+                  <span className="text-white/90 text-xs">{t('utils.frontend')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
@@ -441,7 +441,7 @@ const ServerControl: React.FC = () => {
                         : 'bg-rose-300 shadow-[0_0_6px_rgba(244,63,94,0.9)]')
                     }
                   ></span>
-                  <span className="text-white/90 text-xs">Backend</span>
+                  <span className="text-white/90 text-xs">{t('utils.backend')}</span>
                 </div>
                 {/* Environment Badge */}
                 {healthData?.environment && (
@@ -495,20 +495,20 @@ const ServerControl: React.FC = () => {
             )}
             
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Database</div>
-              <div className="text-sm font-semibold">{healthData?.database || healthData?.db || 'unknown'}</div>
+              <div className="text-xs text-gray-500">{t('controlPanel.database')}</div>
+              <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('controlPanel.unknown')}</div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Students</div>
-              <div className="text-sm font-semibold">{healthData?.statistics?.students ?? healthData?.students_count ?? '—'}</div>
+              <div className="text-xs text-gray-500">{t('students')}</div>
+              <div className="text-sm font-semibold">{healthData?.statistics?.students ?? healthData?.students_count ?? t('na')}</div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Courses</div>
-              <div className="text-sm font-semibold">{healthData?.statistics?.courses ?? healthData?.courses_count ?? '—'}</div>
+              <div className="text-xs text-gray-500">{t('courses')}</div>
+              <div className="text-sm font-semibold">{healthData?.statistics?.courses ?? healthData?.courses_count ?? t('na')}</div>
             </div>
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">Frontend</div>
-              <div className="text-sm font-semibold">running on {window.location.hostname}:{window.location.port || '5173'}</div>
+              <div className="text-xs text-gray-500">{t('utils.frontend')}</div>
+              <div className="text-sm font-semibold">{window.location.hostname}:{window.location.port || '5173'}</div>
             </div>
             
             {/* Available Endpoints - Only Active IPs */}
@@ -538,7 +538,7 @@ const ServerControl: React.FC = () => {
                 }
                 
                 const ips = Array.from(set);
-                if (!ips.length) return <div className="text-xs text-gray-600">No active IPs available.</div>;
+                if (!ips.length) return <div className="text-xs text-gray-600">{t('controlPanel.noActiveIps')}</div>;
                 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -548,13 +548,13 @@ const ServerControl: React.FC = () => {
                         <div key={ip} className="text-xs">
                           <div className="font-mono text-gray-700 mb-1">{ip}</div>
                           <div className="flex flex-wrap gap-2">
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/`} target="_blank" rel="noopener noreferrer">Backend</a>
+                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/`} target="_blank" rel="noopener noreferrer">{t('utils.backend')}</a>
                             <span className="text-gray-400">|</span>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/docs`} target="_blank" rel="noopener noreferrer">Docs</a>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/redoc`} target="_blank" rel="noopener noreferrer">ReDoc</a>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/health`} target="_blank" rel="noopener noreferrer">Health</a>
+                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/docs`} target="_blank" rel="noopener noreferrer">{t('utils.apiDocs')}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/redoc`} target="_blank" rel="noopener noreferrer">{t('utils.apiRedoc')}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/health`} target="_blank" rel="noopener noreferrer">{t('utils.healthEndpoint')}</a>
                             <span className="text-gray-400">|</span>
-                            <a className="text-emerald-700 hover:underline" href={`http://${ipForUrl}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">Frontend</a>
+                            <a className="text-emerald-700 hover:underline" href={`http://${ipForUrl}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">{t('utils.frontend')}</a>
                           </div>
                         </div>
                       );

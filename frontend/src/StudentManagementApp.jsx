@@ -302,7 +302,7 @@ const StudentManagementApp = () => {
       {activeView === 'power' && (
         <div className="space-y-6">
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('power') || 'Power & Server Control'}</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('controlPanel.title')}</h2>
             <ServerControl />
           </div>
           <ControlPanel />

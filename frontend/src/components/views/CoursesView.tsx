@@ -456,7 +456,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       const courseData = {
         course_code: currentCourse.course_code,
         course_name: currentCourse.course_name,
-        semester: currentCourse.semester || 'Current Semester',
+        semester: currentCourse.semester || t('currentSemester'),
         teaching_schedule: scheduleArray,
       };
 

@@ -252,16 +252,96 @@ async def debug_processes():
 
 @router.post("/shutdown")
 async def shutdown_server():
-    """Fast shutdown of processes based on saved PID files."""
+    """
+    Intelligent shutdown that detects environment (Docker vs Native) and shuts down appropriately.
     
-    # 1. Start the shutdown process in a background thread
-    threading.Thread(target=_safe_shutdown_routine, daemon=True).start()
+    - Docker mode: Stops Docker containers via docker-compose down
+    - Native mode: Kills processes based on saved PID files
+    """
+    
+    # Detect if running in Docker
+    environment = _detect_environment()
+    
+    # 1. Start the appropriate shutdown process in a background thread
+    if environment == "docker":
+        threading.Thread(target=_docker_shutdown_routine, daemon=True).start()
+    else:
+        threading.Thread(target=_safe_shutdown_routine, daemon=True).start()
 
     # 2. Immediately return the successful response
     return JSONResponse(
-        content={"message": "Server shutdown initiated", "status": "stopping"},
+        content={
+            "message": "Server shutdown initiated", 
+            "status": "stopping",
+            "environment": environment
+        },
         status_code=200
     )
+
+
+def _detect_environment():
+    """Detect if running in Docker container"""
+    # Check for /.dockerenv file
+    if os.path.exists('/.dockerenv'):
+        return "docker"
+    # Check cgroup for docker/containerd
+    try:
+        with open('/proc/1/cgroup', 'r') as f:
+            content = f.read()
+            if 'docker' in content or 'containerd' in content:
+                return "docker"
+    except:
+        pass
+    # Check for DOCKER_CONTAINER env var (can be set in Dockerfile)
+    if os.getenv('DOCKER_CONTAINER') == 'true':
+        return "docker"
+    return "native"
+
+
+def _docker_shutdown_routine():
+    """
+    Shutdown routine for Docker environment.
+    Executes docker-compose down to stop all containers.
+    """
+    time.sleep(0.2)  # Allow response to be sent
+    
+    print("\n--- Starting Docker Shutdown Routine ---")
+    print("[Docker] Environment detected - stopping containers...")
+    
+    try:
+        # Try to find docker-compose command
+        compose_cmd = None
+        for cmd in ['docker-compose', 'docker compose']:
+            try:
+                result = os.system(f"{cmd} version > /dev/null 2>&1")
+                if result == 0:
+                    compose_cmd = cmd
+                    break
+            except:
+                pass
+        
+        if not compose_cmd:
+            print("[Docker] Warning: docker-compose not found, cannot stop containers gracefully")
+            print("[Docker] Container will stop when process exits")
+            time.sleep(1)
+            os.kill(os.getpid(), signal.SIGTERM)
+            return
+        
+        # Execute docker-compose down
+        print(f"[Docker] Executing: {compose_cmd} down")
+        result = os.system(f"cd {PROJECT_ROOT} && {compose_cmd} down")
+        
+        if result == 0:
+            print("[Docker] Successfully stopped containers")
+        else:
+            print(f"[Docker] docker-compose down returned exit code: {result}")
+            
+    except Exception as e:
+        print(f"[Docker] Error during shutdown: {e}")
+    finally:
+        # Ensure process exits
+        time.sleep(0.5)
+        os.kill(os.getpid(), signal.SIGTERM)
 
 
 def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
@@ -306,12 +386,12 @@ def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
 
 def _safe_shutdown_routine():
     """
-    The actual shutdown logic, run in a non-blocking thread.
+    The actual shutdown logic for native mode, run in a non-blocking thread.
     """
     # Small delay to ensure the HTTP response is sent
     time.sleep(0.2) 
 
-    print("\n--- Starting Safe Shutdown Routine ---")
+    print("\n--- Starting Safe Shutdown Routine (Native Mode) ---")
 
     # 1. Kill Frontend Process (using PID file)
     _kill_process_by_pid_file(PROJECT_ROOT / '.frontend.pid', "Frontend")
