@@ -23,6 +23,7 @@ interface ServerStatus {
 }
 
 const ServerControl: React.FC = () => {
+  // ...existing code...
   const { t } = useLanguage() as any;
   
   const [status, setStatus] = useState<ServerStatus>({
@@ -39,6 +40,10 @@ const ServerControl: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+
+  // Splash/loading state (must be after status is declared)
+  const isLoading = status.backend === 'checking' || status.frontend === 'checking';
+  const isOffline = status.backend === 'offline' || status.frontend === 'offline';
 
   // Check server status periodically
   useEffect(() => {
@@ -261,6 +266,28 @@ const ServerControl: React.FC = () => {
     );
   }
 
+  // Show splash/loading screen while checking status
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Activity size={48} className="animate-spin text-indigo-500 mb-4" />
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">{t('loadingSystem')}</h2>
+        <p className="text-gray-500">Checking system status, please wait...</p>
+      </div>
+    );
+  }
+
+  // Show friendly offline message if backend or frontend is offline
+  if (isOffline) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertCircle size={48} className="text-red-400 mb-4" />
+        <h2 className="text-lg font-semibold text-red-700 mb-2">{t('systemOffline')}</h2>
+        <p className="text-gray-500">System is currently offline or starting up. Please refresh or try again in a moment.</p>
+      </div>
+    );
+  }
+
   if (isRestarting) {
     return (
       <div className="flex items-center space-x-2 px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg">
@@ -299,9 +326,9 @@ const ServerControl: React.FC = () => {
       <div className="flex items-center space-x-2">
         <button
           onClick={handleRestart}
-          disabled={isRestarting}
+          disabled={isRestarting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={t('restart')}
+          title={status.backend !== 'online' ? t('restartDisabled') : t('restart')}
         >
           <RotateCw size={16} className={isRestarting ? 'animate-spin' : ''} />
           <span>{t('restart')}</span>
@@ -309,9 +336,9 @@ const ServerControl: React.FC = () => {
 
         <button
           onClick={handleExit}
-          disabled={isExiting}
+          disabled={isExiting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={t('exit')}
+          title={status.backend !== 'online' ? t('exitDisabled') : t('exit')}
         >
           <Power size={16} />
           <span>{t('exit')}</span>
@@ -324,25 +351,35 @@ const ServerControl: React.FC = () => {
         onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
         title="Click to toggle details and refresh"
       >
+
         {/* Backend Status */}
         <div className="flex items-center space-x-2">
           <Server size={14} className="text-gray-500" />
           <div className={getStatusColor('backend')}>
             {getStatusIcon('backend')}
           </div>
-          <span className="text-xs font-medium text-gray-700">
-            <span className="text-xs font-medium text-gray-700">Backend</span>
-          </span>
+          <span className="text-xs font-medium text-gray-700">Backend</span>
         </div>
 
         {/* Frontend Status */}
         <div className="flex items-center space-x-2">
           <Monitor size={14} className="text-gray-500" />
-          <div className={getStatusColor('frontend')}>
-            {getStatusIcon('frontend')}
+          <div className="text-green-500">
+            <CheckCircle size={14} />
           </div>
-          <span className="text-xs font-medium text-gray-700">
-            {status.frontend === 'online' ? 'Frontend' : status.frontend === 'offline' ? 'Frontend' : 'Frontend'}
+          <span className="text-xs font-medium text-gray-700">Frontend</span>
+          <span className="text-xs font-mono text-gray-500 ml-2">{t('active')}</span>
+        </div>
+
+        {/* Docker Status */}
+        <div className="flex items-center space-x-2">
+          <Server size={14} className="text-gray-500" />
+          <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
+            {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
+          </div>
+          <span className="text-xs font-medium text-gray-700">Docker</span>
+          <span className="text-xs font-mono text-gray-500 ml-2">
+            {healthData?.docker === 'online' ? t('ready') : healthData?.docker === 'offline' ? t('notRunning') : t('unknown')}
           </span>
         </div>
 

@@ -18,12 +18,14 @@ import {
   Server
 } from 'lucide-react';
 import axios from 'axios';
+import { useLanguage } from '../LanguageContext';
 
 const API_BASE = window.location.origin;
 const CONTROL_API = `${API_BASE}/api/v1/control/api`;
 const LEGACY_CONTROL_API = `${API_BASE}/control/api`;
 
 const ControlPanel = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [status, setStatus] = useState(null);
   const [diagnostics, setDiagnostics] = useState([]);
@@ -90,13 +92,13 @@ const ControlPanel = () => {
   const runOperation = async (endpoint, successMessage) => {
     try {
       setLoading(true);
-      setOperationStatus({ type: 'info', message: 'Operation in progress...' });
+      setOperationStatus({ type: 'info', message: t('controlPanel.executing') });
       const response = await axios.post(`${CONTROL_API}/operations/${endpoint}`);
       
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
       } else {
-        setOperationStatus({ type: 'error', message: response.data.message || 'Operation failed' });
+        setOperationStatus({ type: 'error', message: response.data.message || t('controlPanel.operationFailed') });
       }
       
       // Refresh data after operation
@@ -105,7 +107,7 @@ const ControlPanel = () => {
     } catch (error) {
       setOperationStatus({ 
         type: 'error', 
-        message: error.response?.data?.detail || error.message || 'Operation failed' 
+        message: error.response?.data?.detail || error.message || t('controlPanel.operationFailed')
       });
     } finally {
       setLoading(false);
@@ -173,12 +175,12 @@ const ControlPanel = () => {
     return isRunning ? (
       <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-900/30 text-green-400 rounded-full border border-green-700">
         <CheckCircle size={12} />
-        Running
+        {t('controlPanel.online')}
       </span>
     ) : (
       <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-900/30 text-red-400 rounded-full border border-red-700">
         <XCircle size={12} />
-        Stopped
+        {t('controlPanel.offline')}
       </span>
     );
   };
@@ -204,8 +206,8 @@ const ControlPanel = () => {
           <div className="flex items-center gap-3">
             <Settings className="text-indigo-400" size={28} />
             <div>
-              <h1 className="text-xl font-bold">System Control Panel</h1>
-              <p className="text-sm text-gray-400">Student Management System</p>
+              <h1 className="text-xl font-bold">{t('controlPanel.title')}</h1>
+              <p className="text-sm text-gray-400">{t('controlPanel.subtitle')}</p>
             </div>
           </div>
           
@@ -227,12 +229,12 @@ const ControlPanel = () => {
         <div className="px-6">
           <nav className="flex gap-1">
             {[
-              { id: 'dashboard', label: 'Dashboard', icon: Activity },
-              { id: 'operations', label: 'Operations', icon: Terminal },
-              { id: 'diagnostics', label: 'Diagnostics', icon: AlertTriangle },
-              { id: 'ports', label: 'Ports', icon: Server },
-              { id: 'logs', label: 'Logs', icon: FileText },
-              { id: 'environment', label: 'Environment', icon: Cpu }
+              { id: 'dashboard', label: t('controlPanel.dashboard'), icon: Activity },
+              { id: 'operations', label: t('controlPanel.operations'), icon: Terminal },
+              { id: 'diagnostics', label: t('controlPanel.diagnostics'), icon: AlertTriangle },
+              { id: 'ports', label: t('controlPanel.ports'), icon: Server },
+              { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
+              { id: 'environment', label: t('controlPanel.environment'), icon: Cpu }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -259,116 +261,13 @@ const ControlPanel = () => {
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-400">Backend</h3>
-                  {status && getStatusBadge(status.backend)}
-                </div>
-                <p className="text-2xl font-bold text-gray-100">
-                  {status?.backend ? 'Active' : 'Inactive'}
-                </p>
-              </div>
-
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-400">Frontend</h3>
-                  {status && getStatusBadge(status.frontend)}
-                </div>
-                <p className="text-2xl font-bold text-gray-100">
-                  {status?.frontend ? `Port ${status.frontend_port}` : 'Inactive'}
-                </p>
-              </div>
-
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-400">Docker</h3>
-                  {status && getStatusBadge(status.docker)}
-                </div>
-                <p className="text-2xl font-bold text-gray-100">
-                  {status?.docker ? 'Ready' : 'Not Running'}
-                </p>
-              </div>
-
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-400">Database</h3>
-                  {status && getStatusBadge(status.database)}
-                </div>
-                <p className="text-2xl font-bold text-gray-100">
-                  {status?.database ? 'Connected' : 'Disconnected'}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Terminal size={20} />
-                Quick Actions
+                <Activity size={20} />
+                {t('controlPanel.dashboard')}
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button
-                  onClick={startFrontend}
-                  disabled={loading || status?.frontend}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <Play size={18} />
-                  Start Frontend
-                </button>
-                <button
-                  onClick={stopFrontend}
-                  disabled={loading || !status?.frontend}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <Square size={18} />
-                  Stop Frontend
-                </button>
-                <button
-                  onClick={() => fetchStatus()}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <RefreshCw size={18} />
-                  Refresh
-                </button>
-                <button
-                  onClick={stopAll}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <Square size={18} />
-                  Stop All
-                </button>
-              </div>
+              <p className="text-gray-400">System status and controls are available above. Use the tabs for advanced diagnostics, operations, logs, and environment info.</p>
             </div>
-
-            {/* System Info */}
-            {status && (
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Cpu size={20} />
-                  System Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-400">Python Version:</span>
-                    <span className="ml-2 font-mono text-gray-200">{status.python_version}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Node.js Version:</span>
-                    <span className="ml-2 font-mono text-gray-200">{status.node_version || 'Not detected'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Last Updated:</span>
-                    <span className="ml-2 font-mono text-gray-200">
-                      {new Date(status.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -378,23 +277,23 @@ const ControlPanel = () => {
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={20} />
-                Dependency Management
+                {t('controlPanel.operationsTitle')}
               </h2>
               <div className="space-y-3">
                 <button
-                  onClick={() => runOperation('install-frontend-deps', 'Frontend dependencies installed')}
+                  onClick={() => runOperation('install-frontend-deps', t('controlPanel.operationSuccess'))}
                   disabled={loading}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <span>Install Frontend Dependencies (npm install)</span>
+                  <span>{t('controlPanel.installFrontendDeps')}</span>
                   <Package size={18} />
                 </button>
                 <button
-                  onClick={() => runOperation('install-backend-deps', 'Backend dependencies installed')}
+                  onClick={() => runOperation('install-backend-deps', t('controlPanel.operationSuccess'))}
                   disabled={loading}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <span>Install Backend Dependencies (pip install)</span>
+                  <span>{t('controlPanel.installBackendDeps')}</span>
                   <Package size={18} />
                 </button>
               </div>
@@ -403,20 +302,20 @@ const ControlPanel = () => {
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Container size={20} />
-                Docker Operations
+                {t('controlPanel.dockerBuild')}
               </h2>
               <div className="space-y-3">
                 <button
-                  onClick={() => runOperation('docker-build', 'Docker image built successfully')}
+                  onClick={() => runOperation('docker-build', t('controlPanel.operationSuccess'))}
                   disabled={loading || !status?.docker}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <span>Build Docker Fullstack Image</span>
+                  <span>{t('controlPanel.dockerBuildDesc')}</span>
                   <Container size={18} />
                 </button>
                 {!status?.docker && (
                   <p className="text-sm text-yellow-400">
-                    Docker is not running. Please start Docker Desktop first.
+                    {t('controlPanel.dockerStatus')}: {t('controlPanel.offline')}
                   </p>
                 )}
               </div>
@@ -425,15 +324,15 @@ const ControlPanel = () => {
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Trash2 size={20} />
-                Maintenance
+                {t('controlPanel.cleanup')}
               </h2>
               <div className="space-y-3">
                 <button
-                  onClick={() => runOperation('cleanup', 'System cleanup completed')}
+                  onClick={() => runOperation('cleanup', t('controlPanel.operationSuccess'))}
                   disabled={loading}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <span>Clean Python Cache (__pycache__, *.pyc)</span>
+                  <span>{t('controlPanel.cleanupDesc')}</span>
                   <Trash2 size={18} />
                 </button>
               </div>
