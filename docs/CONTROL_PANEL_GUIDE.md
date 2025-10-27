@@ -44,6 +44,14 @@ powershell -File .\scripts\RUN.ps1 -ControlOnly
 - **Open API Docs** - Opens Swagger UI at `/docs`
 - **Open ReDoc** - Opens ReDoc documentation at `/redoc`
 
+### Operations & Maintenance
+
+- **Install Frontend/Backend Dependencies** – Installs npm/pip dependencies
+- **Build Docker Image** – Builds the fullstack image for distribution
+- **Cleanup System** – Removes temporary files and Python caches
+- **Cleanup Obsolete Files** – Removes outdated, non-essential docs (host-only)
+- **Update Docker Data Volume** – Creates a new versioned data volume and writes `docker-compose.override.yml` to switch volumes (host-only; optional data migration). After running, apply with `docker compose down` then `docker compose up -d`.
+
 ## Use Cases
 
 ### Minimal Demo Run
@@ -115,6 +123,7 @@ powershell -File .\scripts\RUN.ps1 -ControlOnly
 
 - **Check backend status**: The control panel is served by the backend. If it won't load, the backend isn't running.
 - **Start backend manually**:
+
   ```powershell
   cd backend
   .\venv\Scripts\activate
@@ -138,7 +147,8 @@ If "Stop All" doesn't work:
 
 1. Use the launcher → option 3 (Emergency Shutdown)
 2. Or manually:
-   ```powershell
+
+  ```powershell
    taskkill /F /IM node.exe /T
    taskkill /F /IM python.exe /T
    ```

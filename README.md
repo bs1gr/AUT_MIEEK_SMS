@@ -141,6 +141,42 @@ Features:
 
 See [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for details.
 
+## Maintenance
+
+### Cleanup obsolete files
+
+Removes non-essential and outdated documentation files to keep the repository lean.
+
+- From the UI (when backend runs on host): Control Panel → Operations → Cleanup obsolete files
+- From Windows host: run the script
+
+```powershell
+scripts/CLEANUP_OBSOLETE_FILES.ps1
+```
+
+Note: When the backend runs inside Docker, it cannot modify files on your host filesystem; use the PowerShell script on the host.
+
+### Update Docker data volume (safe volume rotation)
+
+Creates a new versioned Docker volume for backend data and writes docker-compose.override.yml to switch the backend to the new volume. Optionally migrates data from the current volume. Old volumes are preserved.
+
+Recommended flow:
+
+```powershell
+# Create a new versioned volume and migrate existing data
+scripts/DOCKER_UPDATE_VOLUME.ps1
+
+# Or, create a fresh empty volume (no migration)
+scripts/DOCKER_UPDATE_VOLUME.ps1 -NoMigrate
+
+# Apply the override
+docker compose down
+docker compose up -d
+```
+
+Reverting: edit or delete docker-compose.override.yml and restart compose. Old volumes are preserved and can be listed with `docker volume ls`.
+
+
 ## Advanced Usage
 
 ### Docker Compose (Multi-container)
