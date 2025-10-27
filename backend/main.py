@@ -1071,6 +1071,7 @@ def register_routers(app: FastAPI) -> None:
         _try_add("backend.routers.routers_imports", "Imports")
         _try_add("backend.routers.routers_adminops", "AdminOps")
         _try_add("backend.routers.highlights", "Highlights")
+        _try_add("backend.routers.routers_control", "Control")
 
         if registered:
             logger.info(f"Registered routers: {', '.join(registered)}")
