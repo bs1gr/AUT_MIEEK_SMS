@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///student_management.db"
 
+    # API Pagination
+    DEFAULT_PAGE_SIZE: int = 100
+    MAX_PAGE_SIZE: int = 1000
+    MIN_PAGE_SIZE: int = 1
+
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
     CORS_ORIGINS: str = "http://localhost:5173"
 

@@ -11,6 +11,8 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import date
 import logging
 
+from backend.config import settings
+
 # Setup logging
 logger = logging.getLogger(__name__)
 
@@ -92,11 +94,12 @@ def get_all_students(
     - **is_active**: Filter by active status (optional)
     """
     try:
-        # Validate pagination parameters
-        if skip < 0:
-            raise HTTPException(status_code=400, detail="Skip cannot be negative")
-        if limit < 1 or limit > 1000:
-            raise HTTPException(status_code=400, detail="Limit must be between 1 and 1000")
+        # Validate limit
+        if limit < settings.MIN_PAGE_SIZE or limit > settings.MAX_PAGE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Limit must be between {settings.MIN_PAGE_SIZE} and {settings.MAX_PAGE_SIZE}"
+            )
         
         from backend.models import Student
         query = db.query(Student)
