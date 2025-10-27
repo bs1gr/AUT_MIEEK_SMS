@@ -55,6 +55,15 @@ def _parse_date(value):
     return None
 
 def _to_bool(v):
+    """
+    Convert various input types to boolean.
+    
+    Args:
+        v: Value to convert (bool, int, float, or string)
+    
+    Returns:
+        Boolean value or None if conversion fails
+    """
     if isinstance(v, bool):
         return v
     if isinstance(v, (int, float)):
@@ -64,6 +73,15 @@ def _to_bool(v):
     return None
 
 def _valid_email(s: str) -> bool:
+    """
+    Simple email validation check.
+    
+    Args:
+        s: String to validate as email
+    
+    Returns:
+        True if string matches basic email pattern, False otherwise
+    """
     if not isinstance(s, str):
         return False
     s = s.strip()
@@ -71,12 +89,32 @@ def _valid_email(s: str) -> bool:
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", s))
 
 def _strip_accents(s: str) -> str:
+    """
+    Remove accent marks from Unicode characters.
+    
+    Args:
+        s: String with potential accent marks
+    
+    Returns:
+        String with accents removed (normalized to ASCII-compatible form)
+    """
     try:
         return ''.join(ch for ch in unicodedata.normalize('NFD', s) if unicodedata.category(ch) != 'Mn')
     except Exception:
         return s
 
 def _clean_cat(s: str) -> str:
+    """
+    Clean and normalize category strings.
+    
+    Removes trailing parentheses and spaces, normalizes separators.
+    
+    Args:
+        s: Raw category string
+    
+    Returns:
+        Cleaned category string
+    """
     s = s.strip()
     s = re.sub(r"[\)\s]+$", "", s)  # drop trailing )/spaces
     s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
