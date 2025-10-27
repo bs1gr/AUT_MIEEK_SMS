@@ -120,6 +120,15 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
 
 
 def _letter_grade(percentage: float) -> str:
+    """
+    Convert a percentage grade to a letter grade.
+    
+    Args:
+        percentage: Numeric grade as a percentage (0-100)
+    
+    Returns:
+        Letter grade: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
+    """
     if percentage >= 90:
         return "A"
     if percentage >= 80:

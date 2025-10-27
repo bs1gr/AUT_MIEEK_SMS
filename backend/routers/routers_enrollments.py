@@ -93,10 +93,14 @@ def enroll_students(course_id: int, payload: EnrollmentCreate, db: Session = Dep
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
+        
+        # Fetch all students at once to avoid N+1 queries
+        students = db.query(Student).filter(Student.id.in_(payload.student_ids)).all()
+        valid_student_ids = {s.id for s in students}
+        
         created = 0
         for sid in payload.student_ids:
-            student = db.query(Student).filter(Student.id == sid).first()
-            if not student:
+            if sid not in valid_student_ids:
                 continue
             # Use locking to prevent race conditions
             existing = db.query(CourseEnrollment).filter(
