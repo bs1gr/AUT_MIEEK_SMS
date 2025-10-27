@@ -15,6 +15,7 @@ import Toast from './components/ui/Toast';
 import Spinner from './components/ui/Spinner';
 import LanguageToggle from './components/common/LanguageToggle';
 import ServerControl from './components/common/ServerControl';
+import ControlPanel from './components/ControlPanel';
 import { useLanguage } from './LanguageContext';
 
 import {
@@ -85,7 +86,7 @@ const StudentManagementApp = () => {
     }
   };
 
-  const [activeView, setActiveView] = useState(getInitialView()); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power'
+  const [activeView, setActiveView] = useState(getInitialView()); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power' | 'control'
 
   // Keep URL hash in sync and respond to external hash changes (deep-linking)
   useEffect(() => {
@@ -124,6 +125,7 @@ const StudentManagementApp = () => {
           { key: 'calendar', label: t('calendar') },
           { key: 'operations', label: t('utilsTab') },
           { key: 'power', label: t('powerTab') || 'Power' },
+          { key: 'control', label: '⚙️ System Control' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -303,6 +305,10 @@ const StudentManagementApp = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('power') || 'Power & Server Control'}</h2>
           <ServerControl />
         </div>
+      )}
+
+      {activeView === 'control' && (
+        <ControlPanel />
       )}
     </div>
   );
