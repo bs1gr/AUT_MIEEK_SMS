@@ -276,7 +276,7 @@ const ExportCenter = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-800">{course.course_code} - {course.course_name}</p>
-                      <p className="text-sm text-gray-600">{course.semester || 'N/A'} | {course.credits || 0} Credits</p>
+                      <p className="text-sm text-gray-600">{course.semester || t('na')} | {course.credits || 0} {t('credits')}</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
