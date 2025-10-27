@@ -86,7 +86,7 @@ const StudentManagementApp = () => {
     }
   };
 
-  const [activeView, setActiveView] = useState(getInitialView()); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power' | 'control'
+  const [activeView, setActiveView] = useState(getInitialView()); // 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power'
 
   // Keep URL hash in sync and respond to external hash changes (deep-linking)
   useEffect(() => {
@@ -125,7 +125,6 @@ const StudentManagementApp = () => {
           { key: 'calendar', label: t('calendar') },
           { key: 'operations', label: t('utilsTab') },
           { key: 'power', label: t('powerTab') || 'Power' },
-          { key: 'control', label: '⚙️ System Control' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -301,14 +300,13 @@ const StudentManagementApp = () => {
       )}
 
       {activeView === 'power' && (
-        <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('power') || 'Power & Server Control'}</h2>
-          <ServerControl />
+        <div className="space-y-6">
+          <div className="bg-white border rounded-xl p-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('power') || 'Power & Server Control'}</h2>
+            <ServerControl />
+          </div>
+          <ControlPanel />
         </div>
-      )}
-
-      {activeView === 'control' && (
-        <ControlPanel />
       )}
     </div>
   );
