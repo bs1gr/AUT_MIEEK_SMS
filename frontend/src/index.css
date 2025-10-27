@@ -21,6 +21,17 @@ body {
   min-height: 100vh;
 }
 
+/* Dark mode styles */
+.dark {
+  background-color: #1a202c;
+  color: #e2e8f0;
+}
+
+.dark body {
+  background-color: #1a202c;
+  color: #e2e8f0;
+}
+
 /* Custom animations */
 @keyframes slide-in {
   from {
