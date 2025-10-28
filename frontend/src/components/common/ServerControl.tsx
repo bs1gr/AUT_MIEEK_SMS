@@ -316,27 +316,29 @@ const ServerControl: React.FC = () => {
         <div className="animate-spin">
           <RotateCw size={16} />
         </div>
-        <span className="text-sm font-medium text-blue-800">{t('restart')}...</span>
+        <span className="text-sm font-medium text-blue-800">{t('controlPanel.restart')}...</span>
       </div>
     );
   }
 
   if (showConfirm) {
     return (
-      <div className="flex items-center space-x-2 px-3 py-2 bg-red-50 border border-red-300 rounded-lg">
-        <AlertCircle size={16} className="text-red-600" />
-        <span className="text-sm font-medium text-red-800">{t('confirmExit')}</span>
+      <div className="flex items-center space-x-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg w-full md:w-auto">
+        <AlertCircle size={20} className="text-red-600" />
+        <span className="text-base font-semibold text-red-800">{t('controlPanel.confirmExit')}</span>
         <button
           onClick={handleExit}
-          className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+          className="px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-colors"
+          aria-label={t('controlPanel.yesExit')}
         >
-          {t('yesExit')}
+          {t('controlPanel.yesExit')}
         </button>
         <button
           onClick={() => setShowConfirm(false)}
-          className="px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded hover:bg-gray-300 transition-colors"
+          className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
+          aria-label={t('controlPanel.cancel')}
         >
-          {t('cancel')}
+          {t('controlPanel.cancel')}
         </button>
       </div>
     );
