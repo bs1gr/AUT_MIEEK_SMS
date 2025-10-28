@@ -1,13 +1,18 @@
 """
-Admin routes for database management v4.00
+Admin routes for database management v4.1
 - Health check
 - Reset database
 - Backup database
 - Add sample data
 - Shutdown server
+
+Notes:
+- Uses centralized database engine and session dependency from backend.db
+- Avoids creating a separate engine to respect Settings.DATABASE_URL
+- Fixes imports so module works when imported as backend.admin_routes
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse, JSONResponse
 import os
 import shutil
@@ -17,33 +22,34 @@ import psutil
 import threading
 import time
 from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
+from typing import Optional
 
-# Import from models
-from models import (
-    Student, Course, Grade, Attendance, DailyPerformance,
-    init_db, get_session
-)
+from sqlalchemy.orm import Session
+
+# Robust imports when running as a package or directly
+try:  # When imported as backend.admin_routes
+    from backend.config import settings
+    from backend.db import get_session as get_db, engine
+    from backend.models import (
+        Student, Course, Grade, Attendance, DailyPerformance, Base
+    )
+except ModuleNotFoundError:  # Fallback for direct execution
+    from config import settings  # type: ignore
+    from db import get_session as get_db, engine  # type: ignore
+    from models import (  # type: ignore
+        Student, Course, Grade, Attendance, DailyPerformance, Base
+    )
 
 # Create router
 router = APIRouter()
-PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
-
-# Initialize engine
-engine = init_db()
-
-# Create Base for metadata operations
-Base = declarative_base()
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
 _server_start_time = time.time()
 
 @router.get("/health")
-async def health_check():
+async def health_check(db: Session = Depends(get_db)):
     """Check system health and database status"""
-    db = None
     try:
-        db = get_session(engine)
         students_count = db.query(Student).count()
         courses_count = db.query(Course).count()
 
@@ -58,65 +64,68 @@ async def health_check():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
-    finally:
-        if db:
-            db.close()
 
 @router.post("/reset-database")
 async def reset_database():
     """Drop all tables and recreate them (WARNING: Deletes all data!)"""
     try:
-        # Import Base from models to access metadata
-        from models import Base
-        
         # Close all connections
         engine.dispose()
-        
+
         # Drop all tables
         Base.metadata.drop_all(bind=engine)
-        
+
         # Recreate all tables
         Base.metadata.create_all(bind=engine)
-        
+
         return {"message": "Database reset successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reset database: {str(e)}")
 
 @router.post("/backup-database")
 async def backup_database():
-    """Create a backup of the database"""
+    """Create a backup of the database (supports SQLite only)."""
     try:
-        db_path = "student_management.db"
-        
+        db_url = settings.DATABASE_URL
+        # Only support sqlite URLs for file backup
+        if not db_url.startswith("sqlite"):
+            raise HTTPException(status_code=400, detail="Backup supported only for SQLite DB")
+
+        # Extract filesystem path (sqlite:///path or sqlite:////abs/path)
+        # Remove url scheme
+        path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
+        db_path = path_part.lstrip("/") if os.name == "nt" else path_part
+
         if not os.path.exists(db_path):
             raise HTTPException(status_code=404, detail="Database file not found")
-        
+
         # Create backups directory if it doesn't exist
         os.makedirs("backups", exist_ok=True)
-        
+
         # Create backup filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = f"backups/backup_{timestamp}.db"
-        
+        backup_dir = pathlib.Path("backups") / f"backup_{timestamp}"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / "student_management.db"
+
         # Copy database file
         shutil.copy2(db_path, backup_path)
-        
+
         # Return the backup file
         return FileResponse(
-            backup_path,
+            str(backup_path),
             media_type="application/x-sqlite3",
-            filename=f"backup_{timestamp}.db"
+            filename=backup_path.name,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to backup database: {str(e)}")
 
 @router.post("/sample-data")
-async def add_sample_data():
+async def add_sample_data(db: Session = Depends(get_db)):
     """Add sample data for testing"""
-    db = None
     try:
-        db = get_session(engine)
-        
         # Check if data already exists
         if db.query(Student).count() > 0:
             return {"message": "Sample data already exists"}
@@ -169,12 +178,8 @@ async def add_sample_data():
             "courses": len(courses)
         }
     except Exception as e:
-        if db:
-            db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to add sample data: {str(e)}")
-    finally:
-        if db:
-            db.close()
 
 @router.get("/debug-processes")
 async def debug_processes():

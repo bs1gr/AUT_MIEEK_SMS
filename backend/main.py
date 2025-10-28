@@ -1070,7 +1070,7 @@ def register_routers(app: FastAPI) -> None:
         _try_add("backend.routers.routers_enrollments", "Enrollments")
         _try_add("backend.routers.routers_imports", "Imports")
         _try_add("backend.routers.routers_adminops", "AdminOps")
-        _try_add("backend.routers.highlights", "Highlights")
+    # Highlights router is not present; skip to avoid noisy import errors
         _try_add("backend.routers.routers_control", "Control")
 
         if registered:
@@ -1095,7 +1095,7 @@ register_routers(app)
 def _api_metadata() -> dict:
     return {
         "message": "Student Management System API",
-        "version": "3.0.1",
+        "version": "3.0.3",
         "status": "running",
         "documentation": {
             "swagger": "/docs",
@@ -1351,7 +1351,7 @@ def main() -> None:
     print("\n" + "=" * 70)
     print("STUDENT MANAGEMENT SYSTEM API")
     print("=" * 70)
-    print("  Version: 3.0.1")
+    print("  Version: 3.0.3")
     print("  Status: Production Ready with All Fixes Applied")
     print("  Database: SQLite")
     print("  Framework: FastAPI")

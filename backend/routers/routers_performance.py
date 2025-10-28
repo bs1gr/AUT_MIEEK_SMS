@@ -4,7 +4,7 @@ Provides CRUD-like endpoints for daily performance records.
 """
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import date, datetime
 import logging
@@ -38,8 +38,7 @@ class DailyPerformanceResponse(BaseModel):
     max_score: float
     notes: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 from backend.db import get_session as get_db
 
