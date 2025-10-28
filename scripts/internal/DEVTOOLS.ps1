@@ -169,9 +169,9 @@ function Build-FullstackImage {
     Write-Host ""
     $useNoCache = Read-Host "Use no-cache rebuild? (y/N)"
     if ($useNoCache -match '^(y|yes)$') {
-        & ".\scripts\DOCKER_FULLSTACK_UP.ps1" -Rebuild -NoCache
+        & ".\scripts\docker\DOCKER_FULLSTACK_UP.ps1" -Rebuild -NoCache
     } else {
-        & ".\scripts\DOCKER_FULLSTACK_UP.ps1" -Rebuild
+        & ".\scripts\docker\DOCKER_FULLSTACK_UP.ps1" -Rebuild
     }
     Write-Host ""
     Pause-ForUser
@@ -229,7 +229,7 @@ function Test-DockerSmoke {
     Write-Host ""
     Write-Host "Docker Smoke Test..." -ForegroundColor Blue
     Write-Host ""
-    & ".\scripts\DOCKER_SMOKE.ps1"
+    & ".\scripts\docker\DOCKER_SMOKE.ps1"
     Write-Host ""
     Pause-ForUser
 }
@@ -316,7 +316,7 @@ function Start-DockerCompose {
     Write-Host ""
     Write-Host "Starting Docker Compose..." -ForegroundColor Green
     Write-Host ""
-    & ".\scripts\DOCKER_UP.ps1"
+    & ".\scripts\docker\DOCKER_UP.ps1"
     Write-Host ""
     Pause-ForUser
 }
@@ -326,7 +326,7 @@ function Stop-DockerCompose {
     Write-Host ""
     Write-Host "Stopping Docker Compose..." -ForegroundColor Yellow
     Write-Host ""
-    & ".\scripts\DOCKER_DOWN.ps1"
+    & ".\scripts\docker\DOCKER_DOWN.ps1"
     Write-Host ""
     Pause-ForUser
 }

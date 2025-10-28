@@ -310,7 +310,7 @@ switch ($deploymentState) {
         Write-Action "`nRebuild and restart:"
         Write-Host "  docker compose down" -ForegroundColor White
         Write-Host "  docker compose up -d --build" -ForegroundColor White
-        Write-Host "  .\scripts\DOCKER_REFRESH.ps1" -ForegroundColor Gray
+        Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
         
         Write-Action "`nAccess application:"
         Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
@@ -325,12 +325,12 @@ switch ($deploymentState) {
         Write-Host "  docker compose start" -ForegroundColor White
         Write-Host "  OR" -ForegroundColor Gray
         Write-Host "  docker compose up -d" -ForegroundColor White
-        Write-Host "  .\scripts\DOCKER_UP.ps1" -ForegroundColor Gray
+        Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
         
         Write-Action "`nRemove and recreate containers:"
         Write-Host "  docker compose down" -ForegroundColor White
         Write-Host "  docker compose up -d --build" -ForegroundColor White
-        Write-Host "  .\scripts\DOCKER_REFRESH.ps1" -ForegroundColor Gray
+        Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
         
         Write-Action "`nView container status:"
         Write-Host "  docker compose ps" -ForegroundColor White
@@ -362,7 +362,7 @@ switch ($deploymentState) {
         Write-Action "`nSwitch to Docker mode:"
         Write-Host "  1. Stop native processes: .\scripts\STOP.ps1" -ForegroundColor White
         Write-Host "  2. Start Docker: docker compose up -d --build" -ForegroundColor White
-        Write-Host "     OR use: .\scripts\DOCKER_UP.ps1" -ForegroundColor Gray
+        Write-Host "     OR use: .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
     }
     
     "NOT_RUNNING" {
@@ -375,8 +375,8 @@ switch ($deploymentState) {
             Write-Action "Quick Start (Docker):"
             Write-Host "  docker compose up -d --build" -ForegroundColor White
             Write-Host "  OR use:" -ForegroundColor Gray
-            Write-Host "  .\scripts\DOCKER_UP.ps1" -ForegroundColor White
-            Write-Host "  .\scripts\DOCKER_RUN.ps1 -Mode compose" -ForegroundColor Gray
+            Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor White
+            Write-Host "  .\scripts\docker\DOCKER_RUN.ps1 -Mode compose" -ForegroundColor Gray
             
             Write-Action "`nAccess after starting:"
             Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
@@ -417,10 +417,10 @@ Write-Host "  .\scripts\CLEANUP.ps1               # Clean build artifacts" -Fore
 
 Write-Action "`nDocker-specific tools:"
 if ($dockerAvailable) {
-    Write-Host "  .\scripts\DOCKER_REFRESH.ps1        # Rebuild and restart containers" -ForegroundColor White
-    Write-Host "  .\scripts\DOCKER_DOWN.ps1           # Stop and remove containers" -ForegroundColor White
-    Write-Host "  .\scripts\DOCKER_SMOKE.ps1          # Quick health check" -ForegroundColor White
-    Write-Host "  .\scripts\DOCKER_UPDATE_VOLUME.ps1  # Migrate to new data volume" -ForegroundColor White
+    Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1        # Rebuild and restart containers" -ForegroundColor White
+    Write-Host "  .\scripts\docker\DOCKER_DOWN.ps1           # Stop and remove containers" -ForegroundColor White
+    Write-Host "  .\scripts\docker\DOCKER_SMOKE.ps1          # Quick health check" -ForegroundColor White
+    Write-Host "  .\scripts\docker\DOCKER_UPDATE_VOLUME.ps1  # Migrate to new data volume" -ForegroundColor White
 } else {
     Write-Host "  (Docker not available)" -ForegroundColor Gray
 }
