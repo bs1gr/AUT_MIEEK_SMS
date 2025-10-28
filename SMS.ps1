@@ -11,6 +11,31 @@
     - Diagnostics and troubleshooting
     - System maintenance
 
+.NOTES
+     How to start with no cash (no paid services required):
+     1. Prerequisites (all free):
+         - Python 3.11+ (https://www.python.org/downloads/)
+         - Node.js 18+ (https://nodejs.org/)
+         - (Optional) Docker Desktop (https://www.docker.com/products/docker-desktop)
+     2. First-time setup:
+         - Open a terminal in your project root
+         - Run: .\QUICKSTART.ps1
+            (auto-detects environment, sets up everything locally)
+     3. Run the application:
+         - App starts in Docker or native mode (whichever is available)
+         - Access URLs are shown in the terminal
+     4. No paid services required:
+         - Database: SQLite (free)
+         - Backend: FastAPI (open source)
+         - Frontend: React + Vite (open source)
+         - All scripts/tools: PowerShell, Node, Python (free)
+     5. Development/testing:
+         - All tests/builds run locally
+         - Use VS Code (free) for editing/debugging
+
+     You can run, develop, and test the entire system with zero cost. All dependencies are open source and ready for local development.
+     For step-by-step instructions or free deployment options, see README.md or ask for help!
+
 .EXAMPLE
     .\SMS.ps1
     
@@ -261,7 +286,7 @@ function Show-SystemStatus {
 # ============================================================================
 
 function Start-Application {
-    param([string]$Mode = 'auto')
+    param([string]$Mode = 'auto', [switch]$NonInteractive)
     
     $status = Get-SystemStatus
     
@@ -269,11 +294,14 @@ function Start-Application {
     if ($status.State -in @('DOCKER', 'NATIVE')) {
         Write-Warning2 "Application is already running!"
         Write-Host "State: $($status.Message)" -ForegroundColor Yellow
-        Write-Host ""
-        $choice = Read-Host "Restart? (y/N)"
-        if ($choice -notmatch '^y') {
+        if ($NonInteractive) {
+            Write-Host "" 
+            Write-Info "Quick mode: leaving existing services running (no prompt)."
             return
         }
+        Write-Host ""
+        $choice = Read-Host "Restart? (y/N)"
+        if ($choice -notmatch '^y') { return }
         Stop-Application -Force
         Start-Sleep -Seconds 2
     }
@@ -295,14 +323,14 @@ function Start-Application {
         if (-not $status.Docker.Running) {
             Write-Error2 "Docker is not running!"
             Write-Info "Please start Docker Desktop and try again."
-            Pause-Safe
+            if (-not $NonInteractive) { Pause-Safe }
             return
         }
         
         Write-Host "Building and starting Docker containers..." -ForegroundColor Cyan
         Write-Host ""
         
-        docker compose up -d --build
+    docker compose up -d --build
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
@@ -311,11 +339,6 @@ function Start-Application {
             Write-Host "Access the application at:" -ForegroundColor Cyan
             Write-Host "  http://localhost:8080" -ForegroundColor White
             Write-Host ""
-            
-            $open = Read-Host "Open in browser? (Y/n)"
-            if ($open -notmatch '^n') {
-                Start-Process "http://localhost:8080"
-            }
         } else {
             Write-Error2 "Failed to start Docker containers"
             Write-Host "Run diagnostics: .\SMS.ps1 and select 'Diagnose Issues'" -ForegroundColor Yellow
@@ -368,7 +391,7 @@ function Start-Application {
             & $setupScript
             if ($LASTEXITCODE -ne 0) {
                 Write-Error2 "Setup failed"
-                Pause-Safe
+                if (-not $NonInteractive) { Pause-Safe }
                 return
             }
         }
@@ -379,7 +402,7 @@ function Start-Application {
     }
     
     Write-Host ""
-    Pause-Safe
+    if (-not $NonInteractive) { Pause-Safe }
 }
 
 function Stop-Application {
@@ -973,7 +996,7 @@ if ($Stop) {
 
 if ($Quick) {
     Write-Header "QUICK START"
-    Start-Application -Mode 'auto'
+    Start-Application -Mode 'auto' -NonInteractive
     exit 0
 }
 
