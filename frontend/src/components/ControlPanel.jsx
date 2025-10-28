@@ -20,6 +20,53 @@ import {
 import axios from 'axios';
 import { useLanguage } from '../LanguageContext';
 
+/**
+ * Control Panel Component
+ * 
+ * Comprehensive system management and monitoring dashboard with the following capabilities:
+ * 
+ * Dashboard Tab:
+ * - Real-time system status monitoring (Backend, Frontend, Docker, Database)
+ * - Service health indicators with color-coded status
+ * - Uptime tracking and system metrics
+ * - Quick actions for service management (Restart/Stop)
+ * 
+ * Operations Tab:
+ * - Frontend/Backend dependency installation
+ * - Docker image building and volume management
+ * - System cleanup and maintenance operations
+ * - Obsolete file removal
+ * - Docker data volume updates with optional migration
+ * 
+ * Diagnostics Tab:
+ * - Comprehensive system health checks
+ * - Dependency verification (Node.js, Python, Docker)
+ * - Configuration validation
+ * - API endpoint testing
+ * - Detailed diagnostic reports with pass/fail status
+ * 
+ * Ports Tab:
+ * - Network port monitoring
+ * - Port availability checking
+ * - Process identification for occupied ports
+ * - Port conflict detection
+ * 
+ * Logs Tab:
+ * - Backend log viewing with real-time updates
+ * - Log level filtering (Info, Warning, Error)
+ * - Timestamp tracking
+ * - Log refresh and clearing
+ * 
+ * Environment Tab:
+ * - System information display
+ * - Python/Node version details
+ * - Working directory and path information
+ * - Environment variables overview
+ * 
+ * Note: Some operations (like file cleanup) are only available when the backend
+ * runs directly on the host, not inside Docker containers.
+ */
+
 const API_BASE = window.location.origin;
 const CONTROL_API = `${API_BASE}/api/v1/control/api`;
 const LEGACY_CONTROL_API = `${API_BASE}/control/api`;

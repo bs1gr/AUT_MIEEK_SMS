@@ -14,7 +14,17 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState('el'); // Changed to 'el' (Greek) as default
+  // Load language from localStorage or default to 'el' (Greek)
+  const [language, setLanguageState] = useState(() => {
+    const stored = localStorage.getItem('language');
+    return stored === 'en' || stored === 'el' ? stored : 'el';
+  });
+  
+  // Persist language to localStorage whenever it changes
+  const setLanguage = (lang: string) => {
+    setLanguageState(lang);
+    localStorage.setItem('language', lang);
+  };
   
   const t = (key: string): string => {
     // Support nested keys like 'utils.title'
