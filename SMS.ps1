@@ -373,7 +373,7 @@ function Start-Application {
         }
         
         # Start services
-        & ".\scripts\RUN.ps1"
+        & ".\scripts\legacy\RUN.ps1"
     }
     
     Write-Host ""
@@ -691,7 +691,7 @@ function Debug-Ports {
 function Run-FullDiagnostics {
     Write-Host "Running full system diagnostics..." -ForegroundColor Cyan
     Write-Host ""
-    & ".\scripts\DIAGNOSE_STATE.ps1"
+    & ".\scripts\internal\DIAGNOSE_STATE.ps1"
     Pause-Safe
 }
 
@@ -999,7 +999,7 @@ while ($true) {
             Write-Host ""
             Write-Info "Opening Advanced Developer Tools..."
             Start-Sleep -Seconds 1
-            & ".\scripts\DEVTOOLS.ps1"
+            & ".\scripts\internal\DEVTOOLS.ps1"
         }
         "H" { Show-Help }
         "0" {
