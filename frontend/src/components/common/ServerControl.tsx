@@ -185,6 +185,11 @@ const ServerControl: React.FC = () => {
 
       // Show exit message
       setTimeout(() => {
+        // Capture translations before we destroy the DOM
+        const serverStoppedMsg = t('controlPanel.serverStopped');
+        const canCloseWindowMsg = t('controlPanel.canCloseWindow');
+        const systemTitleMsg = t('systemTitle') || 'Student Management System';
+        
         document.body.innerHTML = `
           <div style="
             display: flex;
@@ -198,10 +203,10 @@ const ServerControl: React.FC = () => {
           ">
             <div style="text-align: center; padding: 40px;">
               <div style="font-size: 64px; margin-bottom: 20px;">✓</div>
-              <h1 style="font-size: 32px; margin-bottom: 10px;">${t('serverStopped')}</h1>
-              <p style="font-size: 18px; opacity: 0.9;">${t('canCloseWindow')}</p>
+              <h1 style="font-size: 32px; margin-bottom: 10px;">${serverStoppedMsg}</h1>
+              <p style="font-size: 18px; opacity: 0.9;">${canCloseWindowMsg}</p>
               <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">
-                ${t('systemTitle')}
+                ${systemTitleMsg}
               </p>
             </div>
           </div>
@@ -345,20 +350,20 @@ const ServerControl: React.FC = () => {
           onClick={handleRestart}
           disabled={isRestarting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('restartDisabled') : t('restart')}
+          title={status.backend !== 'online' ? t('restartDisabled') : t('controlPanel.restart')}
         >
           <RotateCw size={16} className={isRestarting ? 'animate-spin' : ''} />
-          <span>{t('restart')}</span>
+          <span>{t('controlPanel.restart')}</span>
         </button>
 
         <button
           onClick={handleExit}
           disabled={isExiting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('exitDisabled') : t('exit')}
+          title={status.backend !== 'online' ? t('exitDisabled') : t('controlPanel.exit')}
         >
           <Power size={16} />
-          <span>{t('exit')}</span>
+          <span>{t('controlPanel.exit')}</span>
         </button>
       </div>
 
