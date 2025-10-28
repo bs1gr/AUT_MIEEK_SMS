@@ -18,6 +18,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
+from importlib import metadata as importlib_metadata  # Python 3.8+
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ class EnvironmentInfo(BaseModel):
     frontend_version: Optional[str] = None
     git_revision: Optional[str] = None
     environment_mode: Optional[str] = None
+    python_packages: Optional[Dict[str, str]] = None
 
 
 class OperationResult(BaseModel):
@@ -430,7 +432,7 @@ async def check_ports():
 
 
 @router.get("/environment", response_model=EnvironmentInfo)
-async def get_environment_info():
+async def get_environment_info(include_packages: bool = False):
     """Get detailed environment information"""
     node_ok, node_version = _check_node_installed()
     npm_ok, npm_version = _check_npm_installed()
@@ -498,6 +500,28 @@ async def get_environment_info():
 
     env_mode = "docker" if _in_docker_container() else "native"
 
+    packages: Optional[Dict[str, str]] = None
+    if include_packages:
+        # Common Python packages used by the application; fetched via importlib.metadata
+        pkg_names = [
+            "fastapi",
+            "starlette",
+            "uvicorn",
+            "sqlalchemy",
+            "pydantic",
+            "httpx",
+        ]
+        pkgs: Dict[str, str] = {}
+        for name in pkg_names:
+            try:
+                ver = importlib_metadata.version(name)
+                if ver:
+                    pkgs[name] = ver
+            except Exception:
+                # Package not installed or version not resolvable
+                continue
+        packages = pkgs if pkgs else None
+
     return EnvironmentInfo(
         python_path=sys.executable,
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
@@ -512,7 +536,8 @@ async def get_environment_info():
         api_version=api_version,
         frontend_version=frontend_version,
         git_revision=git_revision,
-        environment_mode=env_mode
+        environment_mode=env_mode,
+        python_packages=packages
     )
 
 
