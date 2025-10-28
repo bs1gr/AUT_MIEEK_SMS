@@ -1069,8 +1069,8 @@ def register_routers(app: FastAPI) -> None:
         _try_add("backend.routers.routers_exports", "Export")
         _try_add("backend.routers.routers_enrollments", "Enrollments")
         _try_add("backend.routers.routers_imports", "Imports")
+        _try_add("backend.routers.routers_highlights", "Highlights")
         _try_add("backend.routers.routers_adminops", "AdminOps")
-    # Highlights router is not present; skip to avoid noisy import errors
         _try_add("backend.routers.routers_control", "Control")
 
         if registered:
