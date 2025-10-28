@@ -52,6 +52,7 @@ export default {
   dockerCompose: 'Docker Compose',
   nativeMode: 'Native Mode',
   quickActions: 'Quick Actions',
+  toggleDetailsRefresh: 'Click to toggle details and refresh',
   startBackend: 'Start Backend',
   stopBackend: 'Stop Backend',
   restartBackend: 'Restart Backend',

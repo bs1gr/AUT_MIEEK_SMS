@@ -373,7 +373,7 @@ const ServerControl: React.FC = () => {
       <div
         className="flex items-center space-x-3 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
-        title="Click to toggle details and refresh"
+        title={t('controlPanel.toggleDetailsRefresh')}
       >
 
         {/* Backend Status */}
