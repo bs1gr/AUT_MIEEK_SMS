@@ -6,9 +6,9 @@ Handles attendance tracking and statistics
 
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session, joinedload
-from typing import List, Optional
+from typing import List, Optional, Tuple, cast
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import date, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,29 @@ from backend.schemas.attendance import AttendanceCreate, AttendanceUpdate, Atten
 
 # ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
+from backend.config import settings
+
+
+def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) -> Optional[Tuple[date, date]]:
+    """Normalize and validate a date range.
+
+    - If both are None: return None (no filtering)
+    - If only start_date: compute end_date = start_date + SEMESTER_WEEKS*7 - 1 day
+    - If only end_date: compute start_date = end_date - SEMESTER_WEEKS*7 + 1 day
+    - Validate start_date <= end_date
+    """
+    if start_date is None and end_date is None:
+        return None
+    weeks = int(getattr(settings, "SEMESTER_WEEKS", 14) or 14)
+    if start_date is not None and end_date is None:
+        end_date = start_date + timedelta(weeks=weeks) - timedelta(days=1)
+    elif start_date is None and end_date is not None:
+        start_date = end_date - timedelta(weeks=weeks) + timedelta(days=1)
+    # Final validation
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(status_code=400, detail="start_date must be before end_date")
+    # Both should be non-None here
+    return cast(Tuple[date, date], (start_date, end_date))
 
 
 # ========== ENDPOINTS ==========
@@ -90,6 +113,8 @@ def get_all_attendance(
     student_id: Optional[int] = None,
     course_id: Optional[int] = None,
     status: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -110,12 +135,19 @@ def get_all_attendance(
             query = query.filter(Attendance.course_id == course_id)
         if status:
             query = query.filter(Attendance.status == status)
+        # Date range filtering
+        rng = _normalize_date_range(start_date, end_date)
+        if rng:
+            s, e = rng
+            query = query.filter(Attendance.date >= s, Attendance.date <= e)
         
         attendance_records = query.offset(skip).limit(limit).all()
         logger.info(f"Retrieved {len(attendance_records)} attendance records")
         
         return attendance_records
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error retrieving attendance: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -125,6 +157,8 @@ def get_all_attendance(
 def get_student_attendance(
     student_id: int,
     course_id: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     db: Session = Depends(get_db)
 ):
     """Get all attendance records for a student"""
@@ -140,6 +174,10 @@ def get_student_attendance(
         
         if course_id:
             query = query.filter(Attendance.course_id == course_id)
+        rng = _normalize_date_range(start_date, end_date)
+        if rng:
+            s, e = rng
+            query = query.filter(Attendance.date.between(s, e))
         
         attendance_records = query.all()
         return attendance_records
@@ -154,6 +192,8 @@ def get_student_attendance(
 @router.get("/course/{course_id}", response_model=List[AttendanceResponse])
 def get_course_attendance(
     course_id: int,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     db: Session = Depends(get_db)
 ):
     """Get all attendance records for a course"""
@@ -165,7 +205,12 @@ def get_course_attendance(
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
         
-        attendance_records = db.query(Attendance).filter(Attendance.course_id == course_id).all()
+        query = db.query(Attendance).filter(Attendance.course_id == course_id)
+        rng = _normalize_date_range(start_date, end_date)
+        if rng:
+            s, e = rng
+            query = query.filter(Attendance.date.between(s, e))
+        attendance_records = query.all()
         return attendance_records
         
     except HTTPException:
