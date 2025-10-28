@@ -44,6 +44,8 @@ export default {
   loadingSystem: 'Φόρτωση Συστήματος...',
   systemHealth: 'Υγεία Συστήματος',
   autoRefresh: 'Αυτόματη ανανέωση',
+  autoRefreshInterval: 'Διάστημα αυτόματης ανανέωσης',
+  toggleAutoRefresh: 'Εναλλαγή αυτόματης ανανέωσης',
   environmentInfo: 'Πληροφορίες Περιβάλλοντος',
   runningIn: 'Εκτέλεση σε',
   dockerContainer: 'Κοντέινερ Docker',

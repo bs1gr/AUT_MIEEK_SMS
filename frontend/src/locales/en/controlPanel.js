@@ -44,6 +44,8 @@ export default {
   loadingSystem: 'Loading System...',
   systemHealth: 'System Health',
   autoRefresh: 'Auto-refresh',
+  autoRefreshInterval: 'Auto-refresh interval',
+  toggleAutoRefresh: 'Toggle auto-refresh',
   environmentInfo: 'Environment Information',
   runningIn: 'Running in',
   dockerContainer: 'Docker Container',
