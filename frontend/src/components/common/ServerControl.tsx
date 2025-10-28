@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Power, RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
+import { getHealthStatus } from '../../api/api';
 
 // Base URL without /api/v1 for direct server endpoints
 // @ts-ignore
@@ -80,31 +81,17 @@ const ServerControl: React.FC = () => {
 
   const checkStatus = async () => {
     try {
-      // Check backend status with longer timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const data = await getHealthStatus();
+      console.log('[ServerControl] Health data received:', data);
       
-      const backendResponse = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-
       let backendStatus: 'online' | 'offline' = 'offline';
       let uptime = 0;
       let error = '';
       let health: any = null;
 
-      if (backendResponse.ok) {
-        const data = await backendResponse.json();
-        console.log('[ServerControl] Health data received:', data);
-        backendStatus = 'online';
-        uptime = data.uptime || 0;
-        health = data;
-      } else {
-        error = `Backend error: ${backendResponse.status}`;
-      }
+      backendStatus = 'online';
+      uptime = data.uptime || 0;
+      health = data;
 
       // Check frontend status (self-check - if this code is running, frontend is online)
       const frontendStatus: 'online' | 'offline' = 'online';
