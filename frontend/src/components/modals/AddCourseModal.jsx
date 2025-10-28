@@ -9,6 +9,48 @@ const AddCourseModal = ({ onClose, onAdd }) => {
     semester: '',
     credits: 3,
   });
+  
+  // Semester selection state
+  const [semesterType, setSemesterType] = useState('spring'); // spring, winter, academic_year, school_year, custom
+  const [semesterYear, setSemesterYear] = useState(new Date().getFullYear().toString());
+  const [customSemester, setCustomSemester] = useState('');
+
+  // Generate semester string based on type and year
+  const generateSemester = (type, year, custom) => {
+    switch (type) {
+      case 'spring':
+        return `${t('springSemester')} ${year}`;
+      case 'winter':
+        return `${t('winterSemester')} ${year}`;
+      case 'academic_year':
+        return `${t('academicYear')} ${year}`;
+      case 'school_year':
+        return `${t('schoolYear')} ${year}`;
+      case 'custom':
+        return custom || '';
+      default:
+        return '';
+    }
+  };
+
+  // Update semester whenever type or year changes
+  const handleSemesterTypeChange = (type) => {
+    setSemesterType(type);
+    const newSemester = generateSemester(type, semesterYear, customSemester);
+    setCourseData({ ...courseData, semester: newSemester });
+  };
+
+  const handleSemesterYearChange = (year) => {
+    setSemesterYear(year);
+    const newSemester = generateSemester(semesterType, year, customSemester);
+    setCourseData({ ...courseData, semester: newSemester });
+  };
+
+  const handleCustomSemesterChange = (custom) => {
+    setCustomSemester(custom);
+    const newSemester = generateSemester(semesterType, semesterYear, custom);
+    setCourseData({ ...courseData, semester: newSemester });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,7 +60,7 @@ const AddCourseModal = ({ onClose, onAdd }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">{t('addNewCourse')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -37,14 +79,50 @@ const AddCourseModal = ({ onClose, onAdd }) => {
             className="w-full border px-4 py-2 rounded"
             required
           />
-          <input
-            type="text"
-            placeholder={t('semesterPlaceholder')}
-            value={courseData.semester}
-            onChange={(e) => setCourseData({ ...courseData, semester: e.target.value })}
-            className="w-full border px-4 py-2 rounded"
-            required
-          />
+          
+          {/* Semester Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t('semester')} *
+            </label>
+            <select
+              value={semesterType}
+              onChange={(e) => handleSemesterTypeChange(e.target.value)}
+              className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="spring">{t('springSemester')}</option>
+              <option value="winter">{t('winterSemester')}</option>
+              <option value="academic_year">{t('academicYear')}</option>
+              <option value="school_year">{t('schoolYear')}</option>
+              <option value="custom">{t('customSemester')}</option>
+            </select>
+            
+            {semesterType === 'custom' ? (
+              <input
+                type="text"
+                placeholder={t('customSemesterPlaceholder')}
+                value={customSemester}
+                onChange={(e) => handleCustomSemesterChange(e.target.value)}
+                className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            ) : (
+              <input
+                type="text"
+                placeholder={t('yearPlaceholder')}
+                value={semesterYear}
+                onChange={(e) => handleSemesterYearChange(e.target.value)}
+                className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            )}
+            
+            {/* Preview of generated semester */}
+            <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
+              <strong>{t('semester')}:</strong> {courseData.semester || t('selectSemester')}
+            </div>
+          </div>
+          
           <input
             type="number"
             placeholder={t('creditsPlaceholder')}
