@@ -1,5 +1,5 @@
 export default {
-  title: 'System Control Panel',
+  title: 'Control Panel',
   subtitle: 'Manage and monitor your system',
   dashboard: 'Dashboard',
   dashboardDescription: 'System status and controls are available above. Use the tabs for advanced diagnostics, operations, logs, and environment info.',
@@ -8,6 +8,8 @@ export default {
   ports: 'Ports',
   logs: 'Logs',
   environment: 'Environment',
+  nativeOperations: 'Native Operations',
+  dockerOperations: 'Docker Operations',
   // Dashboard
   systemStatus: 'System Status',
   allSystemsOperational: 'All systems operational',
@@ -48,6 +50,12 @@ export default {
   autoRefreshInterval: 'Auto-refresh interval',
   toggleAutoRefresh: 'Toggle auto-refresh',
   environmentInfo: 'Environment Information',
+  appInfo: 'Application Information',
+  appVersion: 'App Version',
+  apiVersion: 'API Version',
+  frontendVersion: 'Frontend Version',
+  gitRevision: 'Git Revision',
+  buildTag: 'Build Tag',
   runningIn: 'Running in',
   dockerContainer: 'Docker Container',
   dockerCompose: 'Docker Compose',

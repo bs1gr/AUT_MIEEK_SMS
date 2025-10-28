@@ -73,7 +73,7 @@ const LEGACY_CONTROL_API = `${API_BASE}/control/api`;
 
 const ControlPanel = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('operations');
   const [status, setStatus] = useState(null);
   const [diagnostics, setDiagnostics] = useState([]);
   const [ports, setPorts] = useState([]);
@@ -300,7 +300,6 @@ const ControlPanel = () => {
         <div className="px-6">
           <nav className="flex gap-1">
             {[
-              { id: 'dashboard', label: t('controlPanel.dashboard'), icon: Activity },
               { id: 'operations', label: t('controlPanel.operations'), icon: Terminal },
               { id: 'diagnostics', label: t('controlPanel.diagnostics'), icon: AlertTriangle },
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
@@ -329,26 +328,16 @@ const ControlPanel = () => {
 
       {/* Content */}
       <main className="p-6 max-w-7xl mx-auto">
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Activity size={20} />
-                {t('controlPanel.dashboard')}
-              </h2>
-              <p className="text-gray-400">{t('controlPanel.dashboardDescription')}</p>
-            </div>
-          </div>
-        )}
+        {/* Dashboard tab removed as redundant */}
 
         {/* Operations Tab */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
+            {/* Native operations */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={20} />
-                {t('controlPanel.operationsTitle')}
+                {t('controlPanel.nativeOperations')}
               </h2>
               <div className="space-y-3">
                 <button
@@ -367,37 +356,7 @@ const ControlPanel = () => {
                   <span>{t('controlPanel.installBackendDeps')}</span>
                   <Package size={18} />
                 </button>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Container size={20} />
-                {t('controlPanel.dockerBuild')}
-              </h2>
-              <div className="space-y-3">
-                <button
-                  onClick={() => runOperation('docker-build', t('controlPanel.operationSuccess'))}
-                  disabled={loading || !status?.docker}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
-                >
-                  <span>{t('controlPanel.dockerBuildDesc')}</span>
-                  <Container size={18} />
-                </button>
-                {!status?.docker && (
-                  <p className="text-sm text-yellow-400">
-                    {t('controlPanel.dockerStatus')}: {t('controlPanel.offline')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Trash2 size={20} />
-                {t('controlPanel.cleanup')}
-              </h2>
-              <div className="space-y-3">
+                <div className="h-px bg-gray-700 my-2" />
                 <button
                   onClick={() => runOperation('cleanup', t('controlPanel.operationSuccess'))}
                   disabled={loading}
@@ -417,12 +376,21 @@ const ControlPanel = () => {
               </div>
             </div>
 
+            {/* Docker operations */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Container size={20} />
-                {t('controlPanel.dockerUpdateVolume') || 'Update Docker Data Volume'}
+                {t('controlPanel.dockerOperations')}
               </h2>
               <div className="space-y-3">
+                <button
+                  onClick={() => runOperation('docker-build', t('controlPanel.operationSuccess'))}
+                  disabled={loading || !status?.docker}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  <span>{t('controlPanel.dockerBuildDesc')}</span>
+                  <Container size={18} />
+                </button>
                 <button
                   onClick={() => {
                     if (confirm(t('controlPanel.confirmDockerUpdateVolume') || 'Create a new versioned Docker data volume and update override. Migrate data from current volume if present?')) {
@@ -593,6 +561,28 @@ const ControlPanel = () => {
             
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <div className="space-y-4">
+                {/* Application Info */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.appInfo')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {environment.app_version && (
+                      <p className="text-sm"><span className="text-gray-400">{t('controlPanel.appVersion')}:</span> <span className="ml-2 font-mono">{environment.app_version}</span></p>
+                    )}
+                    {environment.api_version && (
+                      <p className="text-sm"><span className="text-gray-400">{t('controlPanel.apiVersion')}:</span> <span className="ml-2 font-mono">{environment.api_version}</span></p>
+                    )}
+                    {environment.frontend_version && (
+                      <p className="text-sm"><span className="text-gray-400">{t('controlPanel.frontendVersion')}:</span> <span className="ml-2 font-mono">{environment.frontend_version}</span></p>
+                    )}
+                    {environment.git_revision && (
+                      <p className="text-sm"><span className="text-gray-400">{t('controlPanel.gitRevision')}:</span> <span className="ml-2 font-mono">{environment.git_revision}</span></p>
+                    )}
+                    {environment.environment_mode && (
+                      <p className="text-sm"><span className="text-gray-400">{t('controlPanel.runningIn')}:</span> <span className="ml-2 font-mono">{environment.environment_mode === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}</span></p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-gray-400 mb-2">Python</h3>
