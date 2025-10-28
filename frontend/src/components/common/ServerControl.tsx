@@ -41,6 +41,10 @@ const ServerControl: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  // Startup grace period and retry backoff to avoid scary offline message during boot
+  const [startupGraceUntil] = useState<number>(() => Date.now() + 12000); // 12s grace
+  const [retryDelay, setRetryDelay] = useState<number>(1000); // start at 1s, backoff to 4s max
+  const [didShowOffline, setDidShowOffline] = useState<boolean>(false);
 
   // Splash/loading state (must be after status is declared)
   const isLoading = status.backend === 'checking' || status.frontend === 'checking';
@@ -105,16 +109,42 @@ const ServerControl: React.FC = () => {
       });
       setHealthData(health);
       setLastCheckedAt(new Date().toLocaleTimeString());
+      // Reset any offline indicators/backoff after successful check
+      setDidShowOffline(false);
+      setRetryDelay(1000);
     } catch (error) {
-      setStatus(prev => ({
-        ...prev,
-        backend: 'offline',
-        frontend: 'online', // Frontend is online if this code is running
-        lastCheck: new Date(),
-        error: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }));
-      setHealthData(null);
-      setLastCheckedAt(new Date().toLocaleTimeString());
+      const now = Date.now();
+      const withinGrace = now < startupGraceUntil;
+      if (withinGrace && !didShowOffline) {
+        // During grace period, keep showing checking state and retry soon, suppress error text
+        setStatus(prev => ({
+          ...prev,
+          backend: 'checking',
+          frontend: 'online',
+          lastCheck: new Date(),
+          error: undefined,
+        }));
+        setHealthData(null);
+        setLastCheckedAt(new Date().toLocaleTimeString());
+        // Schedule a retry with exponential backoff up to 4s
+        const nextDelay = Math.min(retryDelay * 2, 4000);
+        setTimeout(() => {
+          checkStatus();
+        }, retryDelay);
+        setRetryDelay(nextDelay);
+      } else {
+        // After grace period, show offline but keep polling via existing timers
+        setStatus(prev => ({
+          ...prev,
+          backend: 'offline',
+          frontend: 'online', // Frontend is online if this code is running
+          lastCheck: new Date(),
+          error: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }));
+        setHealthData(null);
+        setLastCheckedAt(new Date().toLocaleTimeString());
+        setDidShowOffline(true);
+      }
     }
   };
 
