@@ -263,6 +263,20 @@ Once the backend is running, access the interactive API documentation:
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 
+### Academic settings and date range filtering
+
+- Backend setting `SEMESTER_WEEKS` (default 14, allowed 1–52) controls the default window used when only one date bound is provided in queries.
+- Supported endpoints accept optional `start_date` and `end_date` query params (ISO date `YYYY-MM-DD`):
+  - Attendance: `GET /api/v1/attendance`, `GET /api/v1/attendance/student/{student_id}`, `GET /api/v1/attendance/course/{course_id}`
+  - Grades: `GET /api/v1/grades`, `GET /api/v1/grades/student/{student_id}`, `GET /api/v1/grades/course/{course_id}`
+- Behavior:
+  - Both provided: results within inclusive range from `start_date` to `end_date` (inclusive); if `start_date` > `end_date` → HTTP 400.
+  - Only start_date provided: end_date defaults to start_date + (`SEMESTER_WEEKS` × 7) − 1 day.
+  - Only end_date provided: start_date defaults to end_date − (`SEMESTER_WEEKS` × 7) + 1 day.
+- Grades-specific: pass `use_submitted=true` to filter by `date_submitted` instead of `date_assigned`.
+
+To change the default semester length, set `SEMESTER_WEEKS` in `backend/.env` (see `backend/.env.example`).
+
 ## Troubleshooting
 
 ### Port Conflicts

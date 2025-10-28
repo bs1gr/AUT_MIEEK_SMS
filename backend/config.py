@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Student Management System API"
-    APP_VERSION: str = "3.0.1"
+    APP_VERSION: str = "3.0.3"
 
     # Database
     DATABASE_URL: str = "sqlite:///student_management.db"
@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 100
     MAX_PAGE_SIZE: int = 1000
     MIN_PAGE_SIZE: int = 1
+
+    # Academic Settings
+    # Default number of weeks in an academic semester (can be overridden via env)
+    SEMESTER_WEEKS: int = 14
 
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
     CORS_ORIGINS: str = "http://localhost:5173"
@@ -48,6 +52,14 @@ class Settings(BaseSettings):
             except Exception:
                 pass
         return [part.strip() for part in s.split(",") if part.strip()]
+
+    @field_validator("SEMESTER_WEEKS")
+    @classmethod
+    def validate_semester_weeks(cls, v: int) -> int:
+        # Enforce reasonable bounds (1 to 52 weeks)
+        if v < 1 or v > 52:
+            raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
+        return v
 
 
 @lru_cache(maxsize=1)

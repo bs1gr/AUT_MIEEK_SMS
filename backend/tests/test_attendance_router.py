@@ -361,6 +361,64 @@ def test_get_attendance_by_date_and_course(client):
     assert all(a["course_id"] == course_id for a in data)
 
 
+def test_attendance_date_range_filtering(client):
+    """Filter attendance records by explicit start_date/end_date and validate defaults."""
+    # Create test data
+    student_resp = client.post("/api/v1/students/", json={
+        "student_id": "ATT014",
+        "email": "att014@test.com",
+        "first_name": "Test",
+        "last_name": "Student14"
+    })
+    student_id = student_resp.json()["id"]
+
+    course_resp = client.post("/api/v1/courses/", json={
+        "course_code": "CS114",
+        "course_name": "Test Course 14",
+        "semester": "Fall 2025",
+        "credits": 3
+    })
+    course_id = course_resp.json()["id"]
+
+    today = date.today()
+    d0 = today
+    d1 = today - timedelta(days=10)
+    d2 = today - timedelta(days=30)
+
+    # Create three records spread across dates
+    for d, status in [(d0, "Present"), (d1, "Absent"), (d2, "Late")]:
+        client.post("/api/v1/attendance/", json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(d),
+            "status": status,
+            "period_number": 1
+        })
+
+    # Range that should only include d1 (from 15 days ago to 5 days ago)
+    start = (today - timedelta(days=15)).isoformat()
+    end = (today - timedelta(days=5)).isoformat()
+    r = client.get(f"/api/v1/attendance/?student_id={student_id}&course_id={course_id}&start_date={start}&end_date={end}")
+    assert r.status_code == 200
+    js = r.json()
+    assert len(js) == 1
+    assert js[0]["date"] == d1.isoformat()
+
+    # Only start_date provided: end should default using SEMESTER_WEEKS (14w).
+    # With start=today-20d, should include d0 and d1, but exclude d2 (30d ago < start)
+    r2 = client.get(
+        f"/api/v1/attendance/?student_id={student_id}&course_id={course_id}&start_date={(today - timedelta(days=20)).isoformat()}"
+    )
+    assert r2.status_code == 200
+    dates = {x["date"] for x in r2.json()}
+    assert d0.isoformat() in dates and d1.isoformat() in dates
+    assert d2.isoformat() not in dates
+
+    # Invalid range (start after end)
+    bad = client.get(f"/api/v1/attendance/?start_date={(today).isoformat()}&end_date={(today - timedelta(days=1)).isoformat()}")
+    assert bad.status_code == 400
+
+
 def test_update_attendance(client):
     """Update attendance status"""
     # Create test data
