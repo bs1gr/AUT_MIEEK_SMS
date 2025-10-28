@@ -16,8 +16,8 @@ export default {
   utilsTab: 'Utils',
    export: 'Export',
    help: 'Help',
-  powerTab: 'Power',
-  power: 'Power',
+  powerTab: 'Control Panel',
+  power: 'Control Panel',
   // Common States & Messages
   loading: 'Loading...',
   saving: 'Saving...',
