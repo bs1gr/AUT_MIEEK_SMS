@@ -29,7 +29,6 @@ RUN python -m pip install --upgrade pip && \
 
 # Copy app code and built frontend
 COPY backend /app/backend
-COPY html_control_panel.html /app/html_control_panel.html
 COPY --from=fe /app/frontend/dist /app/frontend/dist
 
 # Create non-root user
