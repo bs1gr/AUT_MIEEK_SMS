@@ -16,6 +16,16 @@ import unicodedata
 
 logger = logging.getLogger(__name__)
 
+# File upload security constraints
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_MIME_TYPES = {
+    "application/json",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
+    "application/vnd.ms-excel",  # .xls
+    "text/plain",  # Sometimes browsers send JSON as text/plain
+}
+ALLOWED_EXTENSIONS = {".json", ".xlsx", ".xls"}
+
 COURSES_DIR = r"D:\SMS\student-management-system\templates\courses"
 STUDENTS_DIR = r"D:\SMS\student-management-system\templates\students"
 
@@ -26,6 +36,70 @@ router = APIRouter(
 )
 
 from backend.db import get_session as get_db
+
+# --- File Upload Validation ---
+async def validate_uploaded_file(file: UploadFile) -> bytes:
+    """
+    Validate uploaded file for security constraints.
+    
+    Args:
+        file: The uploaded file to validate
+        
+    Returns:
+        File contents as bytes
+        
+    Raises:
+        HTTPException: If file fails validation (size, type, extension)
+    """
+    # Check file extension
+    if file.filename:
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file extension '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+            )
+    
+    # Check MIME type
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid content type '{content_type}'. Allowed: {', '.join(ALLOWED_MIME_TYPES)}"
+        )
+    
+    # Read file content and check size
+    content = await file.read()
+    content_size = len(content)
+    
+    if content_size == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    
+    if content_size > MAX_FILE_SIZE:
+        size_mb = content_size / (1024 * 1024)
+        max_mb = MAX_FILE_SIZE / (1024 * 1024)
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large: {size_mb:.2f} MB. Maximum allowed: {max_mb:.0f} MB"
+        )
+    
+    # For JSON files, validate that content is valid JSON
+    if file.filename and file.filename.lower().endswith('.json'):
+        try:
+            json.loads(content.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid JSON format: {str(e)}"
+            )
+        except UnicodeDecodeError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file encoding. JSON files must be UTF-8 encoded"
+            )
+    
+    logger.info(f"File validation passed: {file.filename} ({content_size} bytes)")
+    return content
 
 # --- Helpers: normalize/translate evaluation rule categories ---
 def _parse_date(value):
@@ -535,20 +609,39 @@ async def import_from_upload(
         created = 0
         updated = 0
         errors: list[str] = []
-        # Process file uploads first
+        # Process file uploads first with validation
         for up in uploads:
             try:
-                content = await up.read()
+                # Validate file before processing
+                content = await validate_uploaded_file(up)
                 data = json.loads(content.decode("utf-8"))
                 data_batches.append(data if isinstance(data, list) else [data])
+            except HTTPException:
+                # Re-raise validation errors with proper status codes
+                raise
             except Exception as e:
                 errors.append(f"{up.filename}: {e}")
 
         # Process optional raw JSON text from form field
         if json_text:
             try:
+                # Validate size of raw JSON text
+                text_size = len(json_text.encode('utf-8'))
+                if text_size > MAX_FILE_SIZE:
+                    size_mb = text_size / (1024 * 1024)
+                    max_mb = MAX_FILE_SIZE / (1024 * 1024)
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"JSON text too large: {size_mb:.2f} MB. Maximum allowed: {max_mb:.0f} MB"
+                    )
+                
                 parsed = json.loads(json_text)
                 data_batches.append(parsed if isinstance(parsed, list) else [parsed])
+                logger.info(f"Raw JSON text validated and parsed ({text_size} bytes)")
+            except json.JSONDecodeError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid JSON format in 'json' field: {str(e)}")
+            except HTTPException:
+                raise
             except Exception as e:
                 errors.append(f"json: {e}")
 
