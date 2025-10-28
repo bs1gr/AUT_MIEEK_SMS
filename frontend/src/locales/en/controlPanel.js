@@ -2,6 +2,7 @@ export default {
   title: 'System Control Panel',
   subtitle: 'Manage and monitor your system',
   dashboard: 'Dashboard',
+  dashboardDescription: 'System status and controls are available above. Use the tabs for advanced diagnostics, operations, logs, and environment info.',
   operations: 'Operations',
   diagnostics: 'Diagnostics',
   ports: 'Ports',
