@@ -2,36 +2,52 @@
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
 
-## Quick Start (3 Easy Steps)
+## Quick Start (2 Easy Steps)
 
-**1. First time setup (optional):**
+**1. Start the application:**
 
-```batch
-.\scripts\SETUP.bat
+```powershell
+.\QUICKSTART.ps1
 ```
 
-This builds the Docker image. If you skip this, QUICKSTART will build automatically on first run.
+Or use the full management interface:
 
-**2. Start the application:**
-
-```batch
-QUICKSTART.bat
+```powershell
+.\SMS.ps1
 ```
 
-Access at <http://localhost:8080>
+**2. Access the application:**
 
-**3. Stop the application:**
+- Frontend: <http://localhost:5173> or <http://localhost:8080> (Docker)
+- API Documentation: <http://localhost:8000/docs>
+- Control Panel: <http://localhost:5173/control>
 
-```batch
-docker stop sms-fullstack
+That's it! The system will automatically:
+- Detect if Docker is available (preferred) or fall back to native mode
+- Install dependencies if needed
+- Set up the database
+- Open your browser
+
+**To stop everything:**
+
+```powershell
+.\scripts\STOP.ps1
 ```
+
+---
 
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
 
 ## System Requirements
 
-- **Docker Desktop** (Windows/macOS) or Docker Engine (Linux)
-- No Python or Node.js required on host (everything runs in Docker)
+**Recommended (Docker Mode):**
+- Docker Desktop (Windows/macOS) or Docker Engine (Linux)
+- No Python or Node.js required on host
+
+**Alternative (Native Mode):**
+- Python 3.11+
+- Node.js 18+
+- Both modes work equally well!
 
 ## Features
 
@@ -47,15 +63,33 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ## Detailed Usage
 
-### First Time Setup (Optional)
+### Using SMS.ps1 (Recommended)
 
-QUICKSTART includes automatic setup, but you can manually build the image:
+The **SMS.ps1** script provides an interactive menu for all operations:
 
-```batch
-.\scripts\SETUP.bat
+```powershell
+.\SMS.ps1
 ```
 
-Or with PowerShell:
+**Features:**
+- Start/Stop/Restart application (auto-detects Docker vs Native)
+- System diagnostics and troubleshooting
+- Database backup and restore
+- View logs and port usage
+- Docker management
+- Developer tools access
+
+**Command-line options:**
+
+```powershell
+.\SMS.ps1           # Interactive menu
+.\SMS.ps1 -Quick    # Quick start
+.\SMS.ps1 -Status   # Show system status
+.\SMS.ps1 -Stop     # Stop all services
+.\SMS.ps1 -Help     # Show help
+```
+
+### Using QUICKSTART.ps1 (Simple)
 
 ```powershell
 .\scripts\SETUP.ps1              # Build image
