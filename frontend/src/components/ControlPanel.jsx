@@ -337,7 +337,7 @@ const ControlPanel = () => {
                 <Activity size={20} />
                 {t('controlPanel.dashboard')}
               </h2>
-              <p className="text-gray-400">System status and controls are available above. Use the tabs for advanced diagnostics, operations, logs, and environment info.</p>
+              <p className="text-gray-400">{t('controlPanel.dashboardDescription')}</p>
             </div>
           </div>
         )}
@@ -453,14 +453,14 @@ const ControlPanel = () => {
         {activeTab === 'diagnostics' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">System Diagnostics</h2>
+              <h2 className="text-lg font-semibold">{t('controlPanel.diagnosticsTitle')}</h2>
               <button
                 onClick={fetchDiagnostics}
                 disabled={loading}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
               >
                 <RefreshCw size={16} />
-                Refresh
+                {t('controlPanel.refresh')}
               </button>
             </div>
 
@@ -496,13 +496,13 @@ const ControlPanel = () => {
         {activeTab === 'ports' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Port Usage</h2>
+              <h2 className="text-lg font-semibold">{t('controlPanel.portsTitle')}</h2>
               <button
                 onClick={fetchPorts}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
               >
                 <RefreshCw size={16} />
-                Refresh
+                {t('controlPanel.refresh')}
               </button>
             </div>
 
@@ -543,19 +543,19 @@ const ControlPanel = () => {
         {activeTab === 'logs' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Backend Logs</h2>
+              <h2 className="text-lg font-semibold">{t('controlPanel.logsTitle')}</h2>
               <button
                 onClick={fetchLogs}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
               >
                 <RefreshCw size={16} />
-                Refresh
+                {t('controlPanel.refresh')}
               </button>
             </div>
 
             <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto">
               {logs.length === 0 ? (
-                <p className="text-gray-500">No logs available</p>
+                <p className="text-gray-500">{t('controlPanel.noLogsAvailable')}</p>
               ) : (
                 logs.map((log, index) => {
                   try {
@@ -589,7 +589,7 @@ const ControlPanel = () => {
         {/* Environment Tab */}
         {activeTab === 'environment' && environment && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Environment Information</h2>
+            <h2 className="text-lg font-semibold">{t('controlPanel.environmentTitle')}</h2>
             
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <div className="space-y-4">

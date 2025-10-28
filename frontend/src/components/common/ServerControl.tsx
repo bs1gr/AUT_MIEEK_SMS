@@ -482,7 +482,7 @@ const ServerControl: React.FC = () => {
                       type="checkbox"
                       checked={autoRefresh}
                       onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label="Toggle auto refresh"
+                      aria-label={t('controlPanel.toggleAutoRefresh')}
                     />
                     {t('controlPanel.autoRefresh')}
                   </label>
@@ -490,7 +490,7 @@ const ServerControl: React.FC = () => {
                     value={String(intervalMs)}
                     onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
                     className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label="Auto refresh interval"
+                    aria-label={t('controlPanel.autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
                     <option className="text-black" value="3000">3s</option>
