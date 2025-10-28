@@ -52,6 +52,7 @@ param(
     [switch]$Quick,      # Quick start
     [switch]$Status,     # Show status and exit
     [switch]$Stop,       # Stop all services
+    [switch]$Restart,    # Restart all services
     [switch]$Help        # Show help
 )
 
@@ -969,6 +970,7 @@ function Show-Help {
     Write-Host "  .\SMS.ps1 -Quick    - Quick start (auto mode)" -ForegroundColor White
     Write-Host "  .\SMS.ps1 -Status   - Show status and exit" -ForegroundColor White
     Write-Host "  .\SMS.ps1 -Stop     - Stop all services" -ForegroundColor White
+    Write-Host "  .\SMS.ps1 -Restart  - Restart all services" -ForegroundColor White
     Write-Host "  .\SMS.ps1 -Help     - Show this help" -ForegroundColor White
     Write-Host ""
     
@@ -991,6 +993,20 @@ if ($Status) {
 
 if ($Stop) {
     Stop-Application -Force
+    exit 0
+}
+
+if ($Restart) {
+    Write-Header "RESTART APPLICATION"
+    $status = Get-SystemStatus
+    $mode = if ($status.State -in @('DOCKER', 'DOCKER_STOPPED')) { 'docker' } else { 'auto' }
+    
+    Write-Info "Stopping services..."
+    Stop-Application -Force
+    Start-Sleep -Seconds 3
+    
+    Write-Info "Starting services in $mode mode..."
+    Start-Application -Mode $mode -NonInteractive
     exit 0
 }
 
