@@ -210,16 +210,37 @@ const ControlPanel = () => {
   };
 
   const stopAll = async () => {
-    if (!confirm('Stop all services? The control panel will become unavailable.')) return;
+    // Check if running in Docker mode
+    const isDockerMode = environment?.environment_mode === 'docker';
+    
+    let confirmMessage = 'Stop all services? The control panel will become unavailable.';
+    if (isDockerMode) {
+      confirmMessage = 'IMPORTANT: Running in Docker mode.\n\n' +
+        'The "Stop All" button can only stop the backend container from within Docker.\n' +
+        'The frontend/nginx container will remain running.\n\n' +
+        'For a complete shutdown, use the host command:\n' +
+        '  .\\SMS.ps1 -Stop\n' +
+        '  or: docker compose stop\n\n' +
+        'Continue with partial stop (backend only)?';
+    }
+    
+    if (!confirm(confirmMessage)) return;
+    
     try {
       // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
       await axios.post(`${CONTROL_API}/operations/exit-all`, { });
-      setOperationStatus({ type: 'warning', message: 'All services stopping...' });
+      const msg = isDockerMode 
+        ? 'Backend stopping... Use host command to stop all containers.' 
+        : 'All services stopping...';
+      setOperationStatus({ type: 'warning', message: msg });
     } catch (error) {
       // Fallback to legacy stop-all if new endpoint is not available
       try {
         await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
-        setOperationStatus({ type: 'warning', message: 'All services stopping...' });
+        const msg = isDockerMode 
+          ? 'Backend stopping... Use host command to stop all containers.' 
+          : 'All services stopping...';
+        setOperationStatus({ type: 'warning', message: msg });
       } catch (_) {
         // Expected - backend will shut down or endpoint may be unreachable during shutdown
       }
@@ -342,6 +363,34 @@ const ControlPanel = () => {
         {/* Operations Tab */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
+            {/* System Control */}
+            <div className="bg-gray-800 border border-red-900/20 rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Square size={20} className="text-red-400" />
+                System Control
+              </h2>
+              {environment?.environment_mode === 'docker' && (
+                <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-md text-sm text-yellow-200">
+                  <AlertTriangle size={16} className="inline mr-2" />
+                  <strong>Docker Mode:</strong> "Stop All" from the web UI can only stop the backend container. 
+                  For complete shutdown, use host command: <code className="bg-gray-900 px-1 py-0.5 rounded">.\SMS.ps1 -Stop</code>
+                </div>
+              )}
+              <button
+                onClick={stopAll}
+                disabled={!status?.backend}
+                className="w-full flex items-center justify-between px-4 py-3 bg-red-900/30 hover:bg-red-900/50 disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-700 rounded-lg transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Square size={18} />
+                  Stop All Services
+                </span>
+                <span className="text-xs text-red-300">
+                  {environment?.environment_mode === 'docker' ? '(Backend only)' : '(All services)'}
+                </span>
+              </button>
+            </div>
+
             {/* Native operations */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
