@@ -1,6 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-class ErrorBoundary extends React.Component {
+class ErrorBoundaryCore extends React.Component {
   constructor(props) {
     super(props);
     this.state = { 
@@ -49,6 +50,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       const { error, errorInfo, showDetails } = this.state;
+      const { t } = this.props;
       
       return (
         <div style={{
@@ -97,13 +99,13 @@ class ErrorBoundary extends React.Component {
                 color: '#111827',
                 marginBottom: '0.5rem'
               }}>
-                Something went wrong
+                {t('errors.unknown') || 'Something went wrong'}
               </h2>
               <p style={{
                 color: '#6b7280',
                 fontSize: '0.875rem'
               }}>
-                We encountered an unexpected error. You can try reloading the page or return to the home page.
+                {t('messages.pleaseWait') || 'We encountered an unexpected error. You can try reloading the page or return to the home page.'}
               </p>
             </div>
 
@@ -130,7 +132,7 @@ class ErrorBoundary extends React.Component {
                   color: '#374151'
                 }}
               >
-                <span>Error Details</span>
+                <span>{t('common.info') || 'Error Details'}</span>
                 <svg 
                   style={{
                     width: '1.25rem',
@@ -163,7 +165,7 @@ class ErrorBoundary extends React.Component {
                     border: '1px solid #fee2e2',
                     overflowX: 'auto'
                   }}>
-                    {error?.toString() || 'Unknown error'}
+                    {error?.toString() || t('errors.unknown')}
                   </div>
                   
                   {errorInfo?.componentStack && (
@@ -211,7 +213,7 @@ class ErrorBoundary extends React.Component {
                 onMouseOver={e => e.target.style.backgroundColor = '#1d4ed8'}
                 onMouseOut={e => e.target.style.backgroundColor = '#2563eb'}
               >
-                Try Again
+                {t('common.reset') || 'Try Again'}
               </button>
               
               <button
@@ -231,7 +233,7 @@ class ErrorBoundary extends React.Component {
                 onMouseOver={e => e.target.style.backgroundColor = '#f9fafb'}
                 onMouseOut={e => e.target.style.backgroundColor = 'white'}
               >
-                Go Home
+                {t('common.home') || 'Go Home'}
               </button>
             </div>
 
@@ -257,5 +259,11 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+// Wrapper to provide i18n translation to class component
+const ErrorBoundary = ({ children }) => {
+  const { t } = useTranslation();
+  return <ErrorBoundaryCore t={t}>{children}</ErrorBoundaryCore>;
+};
 
 export default ErrorBoundary;
