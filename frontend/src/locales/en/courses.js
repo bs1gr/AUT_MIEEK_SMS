@@ -17,6 +17,17 @@ export default {
   courseNamePlaceholder: 'Course Name',
   semesterPlaceholder: 'Semester (e.g., Fall 2024)',
   creditsPlaceholder: 'Credits',
+  // Semester Options
+  semesterTypeLabel: 'Semester Type',
+  selectSemester: 'Select semester...',
+  springSemester: 'Spring Semester',
+  winterSemester: 'Winter Semester',
+  academicYear: 'Academic Year',
+  schoolYear: 'School Year',
+  yearLabel: 'Year',
+  yearPlaceholder: '2024',
+  customSemester: 'Custom',
+  customSemesterPlaceholder: 'Enter custom semester name',
   // Evaluation Rules & Schedule
   rulesTitle: 'Course Evaluation Rules',
   courseManagementTitle: 'Course Management',

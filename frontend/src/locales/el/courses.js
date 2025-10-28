@@ -17,6 +17,17 @@ export default {
   courseNamePlaceholder: 'Όνομα Μαθήματος',
   semesterPlaceholder: 'Εξάμηνο (π.χ., Χειμερινό 2024)',
   creditsPlaceholder: 'Πιστωτικές Μονάδες',
+  // Επιλογές Εξαμήνου
+  semesterTypeLabel: 'Τύπος Εξαμήνου',
+  selectSemester: 'Επιλέξτε εξάμηνο...',
+  springSemester: 'Εαρινό Εξάμηνο',
+  winterSemester: 'Χειμερινό Εξάμηνο',
+  academicYear: 'Ακαδημαϊκό Έτος',
+  schoolYear: 'Σχολικό Έτος',
+  yearLabel: 'Έτος',
+  yearPlaceholder: '2024',
+  customSemester: 'Προσαρμοσμένο',
+  customSemesterPlaceholder: 'Εισάγετε προσαρμοσμένο όνομα εξαμήνου',
   // Κανόνες & Πρόγραμμα
   rulesTitle: 'Κανόνες Αξιολόγησης Μαθημάτων',
   courseManagementTitle: 'Διαχείριση Μαθημάτων',

@@ -1,0 +1,10 @@
+line-length = 120
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "Q", "PL"]
+ignore = [
+  # Allow prints in small scripts
+  "T201",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

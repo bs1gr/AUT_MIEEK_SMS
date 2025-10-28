@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Power, RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
+import { getHealthStatus } from '../../api/api';
 
 // Base URL without /api/v1 for direct server endpoints
 // @ts-ignore
@@ -40,6 +41,10 @@ const ServerControl: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  // Startup grace period and retry backoff to avoid scary offline message during boot
+  const [startupGraceUntil] = useState<number>(() => Date.now() + 12000); // 12s grace
+  const [retryDelay, setRetryDelay] = useState<number>(1000); // start at 1s, backoff to 4s max
+  const [didShowOffline, setDidShowOffline] = useState<boolean>(false);
 
   // Splash/loading state (must be after status is declared)
   const isLoading = status.backend === 'checking' || status.frontend === 'checking';
@@ -80,31 +85,17 @@ const ServerControl: React.FC = () => {
 
   const checkStatus = async () => {
     try {
-      // Check backend status with longer timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const data = await getHealthStatus();
+      console.log('[ServerControl] Health data received:', data);
       
-      const backendResponse = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-
       let backendStatus: 'online' | 'offline' = 'offline';
       let uptime = 0;
       let error = '';
       let health: any = null;
 
-      if (backendResponse.ok) {
-        const data = await backendResponse.json();
-        console.log('[ServerControl] Health data received:', data);
-        backendStatus = 'online';
-        uptime = data.uptime || 0;
-        health = data;
-      } else {
-        error = `Backend error: ${backendResponse.status}`;
-      }
+      backendStatus = 'online';
+      uptime = data.uptime || 0;
+      health = data;
 
       // Check frontend status (self-check - if this code is running, frontend is online)
       const frontendStatus: 'online' | 'offline' = 'online';
@@ -118,16 +109,42 @@ const ServerControl: React.FC = () => {
       });
       setHealthData(health);
       setLastCheckedAt(new Date().toLocaleTimeString());
+      // Reset any offline indicators/backoff after successful check
+      setDidShowOffline(false);
+      setRetryDelay(1000);
     } catch (error) {
-      setStatus(prev => ({
-        ...prev,
-        backend: 'offline',
-        frontend: 'online', // Frontend is online if this code is running
-        lastCheck: new Date(),
-        error: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }));
-      setHealthData(null);
-      setLastCheckedAt(new Date().toLocaleTimeString());
+      const now = Date.now();
+      const withinGrace = now < startupGraceUntil;
+      if (withinGrace && !didShowOffline) {
+        // During grace period, keep showing checking state and retry soon, suppress error text
+        setStatus(prev => ({
+          ...prev,
+          backend: 'checking',
+          frontend: 'online',
+          lastCheck: new Date(),
+          error: undefined,
+        }));
+        setHealthData(null);
+        setLastCheckedAt(new Date().toLocaleTimeString());
+        // Schedule a retry with exponential backoff up to 4s
+        const nextDelay = Math.min(retryDelay * 2, 4000);
+        setTimeout(() => {
+          checkStatus();
+        }, retryDelay);
+        setRetryDelay(nextDelay);
+      } else {
+        // After grace period, show offline but keep polling via existing timers
+        setStatus(prev => ({
+          ...prev,
+          backend: 'offline',
+          frontend: 'online', // Frontend is online if this code is running
+          lastCheck: new Date(),
+          error: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }));
+        setHealthData(null);
+        setLastCheckedAt(new Date().toLocaleTimeString());
+        setDidShowOffline(true);
+      }
     }
   };
 
@@ -168,6 +185,11 @@ const ServerControl: React.FC = () => {
 
       // Show exit message
       setTimeout(() => {
+        // Capture translations before we destroy the DOM
+        const serverStoppedMsg = t('controlPanel.serverStopped');
+        const canCloseWindowMsg = t('controlPanel.canCloseWindow');
+        const systemTitleMsg = t('systemTitle') || 'Student Management System';
+        
         document.body.innerHTML = `
           <div style="
             display: flex;
@@ -181,10 +203,10 @@ const ServerControl: React.FC = () => {
           ">
             <div style="text-align: center; padding: 40px;">
               <div style="font-size: 64px; margin-bottom: 20px;">✓</div>
-              <h1 style="font-size: 32px; margin-bottom: 10px;">${t('serverStopped')}</h1>
-              <p style="font-size: 18px; opacity: 0.9;">${t('canCloseWindow')}</p>
+              <h1 style="font-size: 32px; margin-bottom: 10px;">${serverStoppedMsg}</h1>
+              <p style="font-size: 18px; opacity: 0.9;">${canCloseWindowMsg}</p>
               <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">
-                ${t('systemTitle')}
+                ${systemTitleMsg}
               </p>
             </div>
           </div>
@@ -294,27 +316,29 @@ const ServerControl: React.FC = () => {
         <div className="animate-spin">
           <RotateCw size={16} />
         </div>
-        <span className="text-sm font-medium text-blue-800">{t('restart')}...</span>
+        <span className="text-sm font-medium text-blue-800">{t('controlPanel.restart')}...</span>
       </div>
     );
   }
 
   if (showConfirm) {
     return (
-      <div className="flex items-center space-x-2 px-3 py-2 bg-red-50 border border-red-300 rounded-lg">
-        <AlertCircle size={16} className="text-red-600" />
-        <span className="text-sm font-medium text-red-800">{t('confirmExit')}</span>
+      <div className="flex items-center space-x-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg w-full md:w-auto">
+        <AlertCircle size={20} className="text-red-600" />
+        <span className="text-base font-semibold text-red-800">{t('controlPanel.confirmExit')}</span>
         <button
           onClick={handleExit}
-          className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+          className="px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-colors"
+          aria-label={t('controlPanel.yesExit')}
         >
-          {t('yesExit')}
+          {t('controlPanel.yesExit')}
         </button>
         <button
           onClick={() => setShowConfirm(false)}
-          className="px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded hover:bg-gray-300 transition-colors"
+          className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
+          aria-label={t('controlPanel.cancel')}
         >
-          {t('cancel')}
+          {t('controlPanel.cancel')}
         </button>
       </div>
     );
@@ -328,20 +352,20 @@ const ServerControl: React.FC = () => {
           onClick={handleRestart}
           disabled={isRestarting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('restartDisabled') : t('restart')}
+          title={status.backend !== 'online' ? t('restartDisabled') : t('controlPanel.restart')}
         >
           <RotateCw size={16} className={isRestarting ? 'animate-spin' : ''} />
-          <span>{t('restart')}</span>
+          <span>{t('controlPanel.restart')}</span>
         </button>
 
         <button
           onClick={handleExit}
           disabled={isExiting || status.backend !== 'online'}
           className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('exitDisabled') : t('exit')}
+          title={status.backend !== 'online' ? t('exitDisabled') : t('controlPanel.exit')}
         >
           <Power size={16} />
-          <span>{t('exit')}</span>
+          <span>{t('controlPanel.exit')}</span>
         </button>
       </div>
 
@@ -349,7 +373,7 @@ const ServerControl: React.FC = () => {
       <div
         className="flex items-center space-x-3 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
-        title="Click to toggle details and refresh"
+        title={t('controlPanel.toggleDetailsRefresh')}
       >
 
         {/* Backend Status */}
@@ -458,7 +482,7 @@ const ServerControl: React.FC = () => {
                       type="checkbox"
                       checked={autoRefresh}
                       onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label="Toggle auto refresh"
+                      aria-label={t('controlPanel.toggleAutoRefresh')}
                     />
                     {t('controlPanel.autoRefresh')}
                   </label>
@@ -466,7 +490,7 @@ const ServerControl: React.FC = () => {
                     value={String(intervalMs)}
                     onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
                     className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label="Auto refresh interval"
+                    aria-label={t('controlPanel.autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
                     <option className="text-black" value="3000">3s</option>
