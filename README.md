@@ -2,40 +2,52 @@
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
 
-## Quick Start (3 Easy Steps)
+## Quick Start (2 Easy Steps)
 
-**🎯 Super Easy: Use the Control Panel**
+**1. Start the application:**
 
-Just open `CONTROL_PANEL.html` in your browser! Click buttons to run commands - no PowerShell knowledge needed!
-
-**1. First time setup (optional):**
-
-```batch
-.\scripts\SETUP.bat
+```powershell
+.\QUICKSTART.ps1
 ```
 
-This builds the Docker image. If you skip this, QUICKSTART will build automatically on first run.
+Or use the full management interface:
 
-**2. Start the application:**
-
-```batch
-QUICKSTART.bat
+```powershell
+.\SMS.ps1
 ```
 
-Access at <http://localhost:8080>
+**2. Access the application:**
 
-**3. Stop the application:**
+- Frontend: <http://localhost:5173> or <http://localhost:8080> (Docker)
+- API Documentation: <http://localhost:8000/docs>
+- Control Panel: <http://localhost:5173/control>
 
-```batch
-docker stop sms-fullstack
+That's it! The system will automatically:
+- Detect if Docker is available (preferred) or fall back to native mode
+- Install dependencies if needed
+- Set up the database
+- Open your browser
+
+**To stop everything:**
+
+```powershell
+.\scripts\STOP.ps1
 ```
+
+---
 
 A comprehensive student management system with course evaluation, attendance tracking, grade calculation, and performance analytics.
 
 ## System Requirements
 
-- **Docker Desktop** (Windows/macOS) or Docker Engine (Linux)
-- No Python or Node.js required on host (everything runs in Docker)
+**Recommended (Docker Mode):**
+- Docker Desktop (Windows/macOS) or Docker Engine (Linux)
+- No Python or Node.js required on host
+
+**Alternative (Native Mode):**
+- Python 3.11+
+- Node.js 18+
+- Both modes work equally well!
 
 ## Features
 
@@ -51,15 +63,33 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ## Detailed Usage
 
-### First Time Setup (Optional)
+### Using SMS.ps1 (Recommended)
 
-QUICKSTART includes automatic setup, but you can manually build the image:
+The **SMS.ps1** script provides an interactive menu for all operations:
 
-```batch
-.\scripts\SETUP.bat
+```powershell
+.\SMS.ps1
 ```
 
-Or with PowerShell:
+**Features:**
+- Start/Stop/Restart application (auto-detects Docker vs Native)
+- System diagnostics and troubleshooting
+- Database backup and restore
+- View logs and port usage
+- Docker management
+- Developer tools access
+
+**Command-line options:**
+
+```powershell
+.\SMS.ps1           # Interactive menu
+.\SMS.ps1 -Quick    # Quick start
+.\SMS.ps1 -Status   # Show system status
+.\SMS.ps1 -Stop     # Stop all services
+.\SMS.ps1 -Help     # Show help
+```
+
+### Using QUICKSTART.ps1 (Simple)
 
 ```powershell
 .\scripts\SETUP.ps1              # Build image
@@ -98,6 +128,11 @@ Or with options:
 - If port in use → Shows conflicting containers
 
 The application will be available at <http://localhost:8080>
+
+Startup behavior:
+
+- The frontend now waits for the backend to become healthy before starting (Compose healthcheck + dependency), so you shouldn't see a temporary “offline/failed to connect” banner on first load anymore.
+- If the backend is still booting when you open the page, the UI shows a short “Checking…” state and silently retries a few times before showing any offline message.
 
 ### Stopping the Application
 
@@ -142,12 +177,58 @@ Features:
 - Start/stop frontend dev server
 - System status monitoring
 - Service management
-
-See [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for details.
+- Cleanup and maintenance operations
 
 ## Maintenance
 
-### Cleanup obsolete files
+### Comprehensive Project Cleanup
+
+Automated cleanup script that removes obsolete files across the entire project, including Docker-related artifacts:
+
+```powershell
+scripts/CLEANUP_COMPREHENSIVE.ps1
+```
+
+**What it cleans:**
+
+1. **Obsolete Components** - Old LanguageToggle component (replaced by LanguageSwitcher)
+2. **Obsolete Folders** - Old configs, docs, routers, scripts, tests
+3. **Old HTML Files** - Legacy control panels (replaced by React components)
+4. **Duplicate Structures** - Redundant sms/ subfolder
+5. **Backup Files** - Old .backup files
+6. **Old Backups** - Keeps 2 most recent, removes older ones
+7. **Python Cache** - `__pycache__` directories
+8. **Test Cache** - `.pytest_cache` directories
+9. **Build Cache** - Vite and frontend build artifacts
+10. **Docker Config** - QNAP-specific files (optional, interactive prompt)
+11. **Docker Images** - Reports dangling images (manual cleanup suggested)
+12. **Docker Cache** - Reports build cache size (manual cleanup suggested)
+13. **Docker Volumes** - Lists SMS-related volumes (manual cleanup suggested)
+14. **Dockerfiles** - Verifies all Dockerfile variants are in use
+
+**Docker Cleanup Commands (run manually when needed):**
+
+```powershell
+# Remove stopped containers
+docker container prune
+
+# Remove dangling images
+docker image prune
+
+# Remove build cache
+docker builder prune
+
+# Remove unused volumes (CAUTION: may delete data)
+docker volume prune
+
+# Remove specific volume
+docker volume rm <volume-name>
+
+# Full system cleanup (CAUTION: removes all unused Docker data)
+docker system prune -a
+```
+
+### Cleanup obsolete files (legacy)
 
 Removes non-essential and outdated documentation files to keep the repository lean.
 
@@ -196,24 +277,25 @@ docker compose up -d
 docker compose down
 ```
 
-See [docs/DOCKER.md](docs/DOCKER.md) for full Docker documentation.
-
 ### Native Development Mode
 
 For development with hot-reload (requires Python 3.8+ and Node.js 16+):
 
+**Backend:**
 ```batch
-# Setup (first time)
-.\Obsolete\native_scripts\INSTALL.bat
-
-# Start backend + frontend
-.\Obsolete\native_scripts\RUN.bat
-
-# Stop
-.\scripts\STOP.ps1
+cd backend
+pip install -r requirements.txt
+python main.py
 ```
 
-Or use the DEVTOOLS menu → Native Dev Mode.
+**Frontend (in separate terminal):**
+```batch
+cd frontend
+npm install
+npm run dev
+```
+
+Or use the DEVTOOLS menu for automated setup.
 
 ## Project Structure
 
@@ -241,17 +323,14 @@ student-management-system/
 
 ## Documentation
 
-### User Guides
+### Available Documentation
 
-- [docs/DOCKER.md](docs/DOCKER.md) - Docker setup and configuration
-- [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) - Control panel usage
-- [docs/QUICKREF.md](docs/QUICKREF.md) - Quick reference guide
-- [CHANGELOG.md](CHANGELOG.md) - Version history
-
-### Developer Documentation
-
-- [docs/SESSION_SUMMARY.md](docs/SESSION_SUMMARY.md) - Development session notes
-- [docs/TODO.md](docs/TODO.md) - Project roadmap and tasks
+- [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
+- [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) - Security audit and fixes
+- [docs/FRONTEND_ASSESSMENT.md](docs/FRONTEND_ASSESSMENT.md) - Frontend architecture assessment
+- [docs/DEPENDENCY_UPGRADES.md](docs/DEPENDENCY_UPGRADES.md) - Dependency management
+- [docs/QNAP.md](docs/QNAP.md) - QNAP deployment guide
+- [docs/SERVERLESS.md](docs/SERVERLESS.md) - Serverless deployment options
 
 ## API Documentation
 
@@ -262,6 +341,20 @@ Once the backend is running, access the interactive API documentation:
 - API Info: <http://localhost:8080/api> (JSON metadata)
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
+
+### Academic settings and date range filtering
+
+- Backend setting `SEMESTER_WEEKS` (default 14, allowed 1–52) controls the default window used when only one date bound is provided in queries.
+- Supported endpoints accept optional `start_date` and `end_date` query params (ISO date `YYYY-MM-DD`):
+  - Attendance: `GET /api/v1/attendance`, `GET /api/v1/attendance/student/{student_id}`, `GET /api/v1/attendance/course/{course_id}`
+  - Grades: `GET /api/v1/grades`, `GET /api/v1/grades/student/{student_id}`, `GET /api/v1/grades/course/{course_id}`
+- Behavior:
+  - Both provided: results within inclusive range from `start_date` to `end_date` (inclusive); if `start_date` > `end_date` → HTTP 400.
+  - Only start_date provided: end_date defaults to start_date + (`SEMESTER_WEEKS` × 7) − 1 day.
+  - Only end_date provided: start_date defaults to end_date − (`SEMESTER_WEEKS` × 7) + 1 day.
+- Grades-specific: pass `use_submitted=true` to filter by `date_submitted` instead of `date_assigned`.
+
+To change the default semester length, set `SEMESTER_WEEKS` in `backend/.env` (see `backend/.env.example`).
 
 ## Troubleshooting
 
@@ -347,7 +440,7 @@ Need help?
 
 1. Check the in-app Help section (Utils → Help Documentation)
 2. Review the documentation files in this repository
-3. Check [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for control panel usage
+3. Access the Control Panel at <http://localhost:8080/control> for system management
 
 ## License
 

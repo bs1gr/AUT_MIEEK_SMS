@@ -7,7 +7,7 @@ Features:
 - Index creation for frequently queried fields
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Date, ForeignKey, Text, Boolean, JSON, Index
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date, ForeignKey, Text, Boolean, JSON, Index, text
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime, date
@@ -155,7 +155,15 @@ class DailyPerformance(Base):
     @property
     def percentage(self):
         """Calculate percentage score"""
-        return (self.score / self.max_score) * 100 if self.max_score > 0 else 0
+        # Access instance values directly to avoid SQLAlchemy Column type confusion for type checkers
+        max_val = (getattr(self, "__dict__", {}).get("max_score", 0.0) or 0.0)
+        score_val = (getattr(self, "__dict__", {}).get("score", 0.0) or 0.0)
+        try:
+            max_val = float(max_val)
+            score_val = float(score_val)
+        except Exception:
+            return 0.0
+        return (score_val / max_val) * 100 if max_val > 0 else 0.0
     
     def __repr__(self):
         return f"<DailyPerformance(student={self.student_id}, category={self.category}, score={self.score})>"
@@ -190,7 +198,14 @@ class Grade(Base):
     @property
     def percentage(self):
         """Calculate percentage score"""
-        return (self.grade / self.max_grade) * 100 if self.max_grade > 0 else 0
+        max_val = (getattr(self, "__dict__", {}).get("max_grade", 0.0) or 0.0)
+        grade_val = (getattr(self, "__dict__", {}).get("grade", 0.0) or 0.0)
+        try:
+            max_val = float(max_val)
+            grade_val = float(grade_val)
+        except Exception:
+            return 0.0
+        return (grade_val / max_val) * 100 if max_val > 0 else 0.0
     
     def __repr__(self):
         return f"<Grade(student={self.student_id}, assignment={self.assignment_name}, grade={self.grade}/{self.max_grade})>"
@@ -236,6 +251,22 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     try:
         engine = create_engine(db_url, echo=False)
+
+        # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
+        try:
+            if engine.dialect.name == "sqlite":
+                with engine.connect() as conn:
+                    # Enable write-ahead logging for better concurrency
+                    conn.execute(text("PRAGMA journal_mode=WAL"))
+                    # Reasonable durability without being too slow for dev
+                    conn.execute(text("PRAGMA synchronous=NORMAL"))
+                    # Ensure foreign keys constraints are enforced
+                    conn.execute(text("PRAGMA foreign_keys=ON"))
+                    conn.commit()
+        except Exception:
+            # Best-effort; do not fail initialization on pragma errors
+            pass
+
         Base.metadata.create_all(bind=engine)
         logger.info(f"Database initialized successfully: {db_url}")
         return engine

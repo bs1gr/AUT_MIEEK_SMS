@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator, field_validator
+from pydantic import BaseModel, Field, model_validator, field_validator, ConfigDict
 from typing import Optional
 from datetime import date
 
@@ -76,5 +76,4 @@ class GradeResponse(BaseModel):
     date_submitted: Optional[date]
     notes: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

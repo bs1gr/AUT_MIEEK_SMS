@@ -1,6 +1,7 @@
 .backend.pid
 .frontend.pid
 /Obsolete
+*.pid
 
 # Python cache/artifacts
 __pycache__/
@@ -17,9 +18,11 @@ backend/tests/__pycache__/
 
 # Databases & backups
 *.db
+data/*.db
 backups/*.db
 backups/
 !backups/.gitkeep
+!data/.gitkeep
 
 # Logs
 logs/

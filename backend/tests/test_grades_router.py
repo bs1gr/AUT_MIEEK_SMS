@@ -252,3 +252,59 @@ def test_delete_grade(client):
     # Verify 404 after delete
     r_get = client.get(f"/api/v1/grades/{grade_id}")
     assert r_get.status_code == 404
+
+
+def test_grades_date_range_filtering_assigned_and_submitted(client):
+    """Validate date range filtering for grades using date_assigned (default) and date_submitted when requested."""
+    # Setup student and course
+    student = client.post("/api/v1/students/", json={
+        "first_name": "Eve",
+        "last_name": "Foster",
+        "email": "eve.f@example.com",
+        "student_id": "STD0101",
+    }).json()
+
+    course = client.post("/api/v1/courses/", json={
+        "course_code": "HIST101",
+        "course_name": "History I",
+        "semester": "Fall 2025",
+    }).json()
+
+    today = date.today()
+    d0 = today
+    d1 = today - timedelta(days=10)
+    d2 = today - timedelta(days=30)
+
+    # Create three grades with different assigned and submitted dates
+    client.post("/api/v1/grades/", json=make_grade_payload(1, student_id=student["id"], course_id=course["id"],
+              date_assigned=d0.isoformat(), date_submitted=(d0 + timedelta(days=1)).isoformat()))
+    client.post("/api/v1/grades/", json=make_grade_payload(2, student_id=student["id"], course_id=course["id"],
+              date_assigned=d1.isoformat(), date_submitted=(d1 + timedelta(days=1)).isoformat()))
+    client.post("/api/v1/grades/", json=make_grade_payload(3, student_id=student["id"], course_id=course["id"],
+              date_assigned=d2.isoformat(), date_submitted=(d2 + timedelta(days=1)).isoformat()))
+
+    # Filter by assigned date: range to include only d1
+    start = (today - timedelta(days=15)).isoformat()
+    end = (today - timedelta(days=5)).isoformat()
+    r_assigned = client.get(
+        f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&start_date={start}&end_date={end}"
+    )
+    assert r_assigned.status_code == 200
+    assigned_dates = {g["date_assigned"] for g in r_assigned.json()}
+    assert assigned_dates == {d1.isoformat()}
+
+    # Filter by submitted date using use_submitted=true: range to include only the submitted day for d1 (d1+1)
+    start2 = (today - timedelta(days=14)).isoformat()
+    end2 = (today - timedelta(days=6)).isoformat()
+    r_sub = client.get(
+        f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&start_date={start2}&end_date={end2}&use_submitted=true"
+    )
+    assert r_sub.status_code == 200
+    submitted_dates = {g["date_submitted"] for g in r_sub.json()}
+    assert submitted_dates == {(d1 + timedelta(days=1)).isoformat()}
+
+    # Invalid range (start after end)
+    bad = client.get(
+        f"/api/v1/grades/?start_date={(today).isoformat()}&end_date={(today - timedelta(days=1)).isoformat()}"
+    )
+    assert bad.status_code == 400

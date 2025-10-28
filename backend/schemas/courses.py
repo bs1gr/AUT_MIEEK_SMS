@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List, Dict, Any
 
 
@@ -23,8 +23,7 @@ class CourseCreate(BaseModel):
             raise ValueError("Course code must be alphanumeric (hyphens and underscores allowed)")
         return v.upper().strip()
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CourseUpdate(BaseModel):
@@ -51,5 +50,4 @@ class CourseResponse(BaseModel):
     hours_per_week: Optional[float]
     teaching_schedule: Optional[List[Dict[str, Any]]]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
