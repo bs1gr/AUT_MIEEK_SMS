@@ -13,6 +13,7 @@ import psutil
 import logging
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+import json
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -65,6 +66,12 @@ class EnvironmentInfo(BaseModel):
     platform: str
     cwd: str
     venv_active: bool
+    # Application info
+    app_version: Optional[str] = None
+    api_version: Optional[str] = None
+    frontend_version: Optional[str] = None
+    git_revision: Optional[str] = None
+    environment_mode: Optional[str] = None
 
 
 class OperationResult(BaseModel):
@@ -441,6 +448,56 @@ async def get_environment_info():
         if success:
             node_path = stdout.strip().split('\n')[0]
     
+    # Gather application info
+    project_root = Path(__file__).parent.parent.parent
+
+    # App version from VERSION file
+    app_version: Optional[str] = None
+    try:
+        ver_path = project_root / "VERSION"
+        if ver_path.exists():
+            app_version = ver_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        app_version = None
+
+    # API version from FastAPI app factory (best effort)
+    api_version: Optional[str] = None
+    try:
+        try:
+            from backend.main import create_app  # type: ignore
+        except ModuleNotFoundError:
+            from ..main import create_app  # type: ignore
+        api_version = getattr(create_app(), "version", None)
+    except Exception:
+        api_version = None
+
+    # Frontend version from package.json
+    frontend_version: Optional[str] = None
+    try:
+        pkg_path = project_root / "frontend" / "package.json"
+        if pkg_path.exists():
+            data = json.loads(pkg_path.read_text(encoding="utf-8"))
+            fv = data.get("version")
+            if isinstance(fv, str):
+                frontend_version = fv
+    except Exception:
+        frontend_version = None
+
+    # Git revision/tag (best effort)
+    git_revision: Optional[str] = None
+    try:
+        ok, out, _ = _run_command(["git", "describe", "--tags", "--always", "--dirty"], timeout=3)
+        if ok:
+            git_revision = out.strip()
+        else:
+            ok2, out2, _ = _run_command(["git", "rev-parse", "--short", "HEAD"], timeout=3)
+            if ok2:
+                git_revision = out2.strip()
+    except Exception:
+        git_revision = None
+
+    env_mode = "docker" if _in_docker_container() else "native"
+
     return EnvironmentInfo(
         python_path=sys.executable,
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
@@ -450,7 +507,12 @@ async def get_environment_info():
         docker_version=docker_version,
         platform=sys.platform,
         cwd=os.getcwd(),
-        venv_active=venv_active
+        venv_active=venv_active,
+        app_version=app_version,
+        api_version=api_version,
+        frontend_version=frontend_version,
+        git_revision=git_revision,
+        environment_mode=env_mode
     )
 
 
