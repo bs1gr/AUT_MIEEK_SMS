@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { translations } from './translations';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LanguageContextType {
   t: (key: string) => string;
@@ -14,32 +14,32 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  // Load language from localStorage or default to 'el' (Greek)
-  const [language, setLanguageState] = useState(() => {
-    const stored = localStorage.getItem('language');
-    return stored === 'en' || stored === 'el' ? stored : 'el';
-  });
+  const { t: i18nT, i18n } = useTranslation();
+  const [language, setLanguageState] = useState(i18n.language || 'el');
   
-  // Persist language to localStorage whenever it changes
+  // Sync with i18next when language changes
+  useEffect(() => {
+    setLanguageState(i18n.language);
+  }, [i18n.language]);
+  
+  // Update i18next when language is changed via setLanguage
   const setLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
     setLanguageState(lang);
-    localStorage.setItem('language', lang);
   };
   
+  // Create a wrapper for t() that handles nested keys for backward compatibility
   const t = (key: string): string => {
-    // Support nested keys like 'utils.title'
-    const keys = key.split('.');
-    let value: any = translations[language as keyof typeof translations];
-
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key; // Return the key itself if not found
-      }
+    // Try i18next first (it handles nested keys automatically)
+    const translation = i18nT(key);
+    
+    // If translation is the same as key, it wasn't found
+    if (translation === key) {
+      // Return the key itself as fallback
+      return key;
     }
-
-    return value || key;
+    
+    return translation;
   };
   
   return (
