@@ -512,6 +512,20 @@ export const checkAPIHealth = async () => {
 };
 
 /**
+ * Get backend health status
+ */
+export const getHealthStatus = async () => {
+  try {
+    // Health endpoint is at root, not /api/v1/health
+    const baseURL = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+    const response = await axios.get(`${baseURL}/health`, { timeout: 10000 });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Format date for API
  * @param {Date|string} date - Date to format
  */
@@ -520,6 +534,77 @@ export const formatDateForAPI = (date) => {
     return date.split('T')[0];
   }
   return date.toISOString().split('T')[0];
+};
+
+// ==================== ADMIN OPERATIONS API ====================
+
+export const adminOpsAPI = {
+  /**
+   * Create backup of database
+   */
+  async createBackup() {
+    try {
+      const response = await apiClient.post('/adminops/backup');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Restore database from backup file
+   * @param {File} file - Backup file
+   */
+  async restoreBackup(file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await apiClient.post('/adminops/restore', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Clear database
+   * @param {string} scope - 'all' or 'data_only'
+   */
+  async clearDatabase(scope = 'all') {
+    try {
+      const response = await apiClient.post('/adminops/clear', null, {
+        params: { scope }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// ==================== IMPORT API ====================
+
+export const importAPI = {
+  /**
+   * Upload import file (JSON or Excel)
+   * @param {File} file - Import file
+   * @param {string} type - 'courses' or 'students'
+   */
+  async uploadFile(file, type) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await apiClient.post('/imports/upload', formData, {
+        params: { data_type: type },
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 // Export the axios instance for custom requests
