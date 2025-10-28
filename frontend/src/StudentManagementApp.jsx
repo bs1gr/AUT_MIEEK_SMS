@@ -13,10 +13,11 @@ import AddCourseModal from './components/modals/AddCourseModal';
 import EditCourseModal from './components/modals/EditCourseModal';
 import Toast from './components/ui/Toast';
 import Spinner from './components/ui/Spinner';
-import LanguageToggle from './components/common/LanguageToggle';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import ServerControl from './components/common/ServerControl';
 import ControlPanel from './components/ControlPanel';
 import { useLanguage } from './LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 import {
   studentsAPI,
@@ -26,6 +27,7 @@ import {
 
 const StudentManagementApp = () => {
   const { t } = useLanguage();
+  const { t: ti18n } = useTranslation(); // i18n translation function
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +112,7 @@ const StudentManagementApp = () => {
       <div className="flex items-center justify-between pb-4">
         <h1 className="text-3xl font-bold text-gray-800">{t('systemTitle')}</h1>
         <div className="flex items-center space-x-4">
-          <LanguageToggle />
+          <LanguageSwitcher />
         </div>
       </div>
 

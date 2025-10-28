@@ -4,10 +4,6 @@
 
 ## Quick Start (3 Easy Steps)
 
-**🎯 Super Easy: Use the Control Panel**
-
-Just open `CONTROL_PANEL.html` in your browser! Click buttons to run commands - no PowerShell knowledge needed!
-
 **1. First time setup (optional):**
 
 ```batch
@@ -142,12 +138,58 @@ Features:
 - Start/stop frontend dev server
 - System status monitoring
 - Service management
-
-See [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for details.
+- Cleanup and maintenance operations
 
 ## Maintenance
 
-### Cleanup obsolete files
+### Comprehensive Project Cleanup
+
+Automated cleanup script that removes obsolete files across the entire project, including Docker-related artifacts:
+
+```powershell
+scripts/CLEANUP_COMPREHENSIVE.ps1
+```
+
+**What it cleans:**
+
+1. **Obsolete Components** - Old LanguageToggle component (replaced by LanguageSwitcher)
+2. **Obsolete Folders** - Old configs, docs, routers, scripts, tests
+3. **Old HTML Files** - Legacy control panels (replaced by React components)
+4. **Duplicate Structures** - Redundant sms/ subfolder
+5. **Backup Files** - Old .backup files
+6. **Old Backups** - Keeps 2 most recent, removes older ones
+7. **Python Cache** - `__pycache__` directories
+8. **Test Cache** - `.pytest_cache` directories
+9. **Build Cache** - Vite and frontend build artifacts
+10. **Docker Config** - QNAP-specific files (optional, interactive prompt)
+11. **Docker Images** - Reports dangling images (manual cleanup suggested)
+12. **Docker Cache** - Reports build cache size (manual cleanup suggested)
+13. **Docker Volumes** - Lists SMS-related volumes (manual cleanup suggested)
+14. **Dockerfiles** - Verifies all Dockerfile variants are in use
+
+**Docker Cleanup Commands (run manually when needed):**
+
+```powershell
+# Remove stopped containers
+docker container prune
+
+# Remove dangling images
+docker image prune
+
+# Remove build cache
+docker builder prune
+
+# Remove unused volumes (CAUTION: may delete data)
+docker volume prune
+
+# Remove specific volume
+docker volume rm <volume-name>
+
+# Full system cleanup (CAUTION: removes all unused Docker data)
+docker system prune -a
+```
+
+### Cleanup obsolete files (legacy)
 
 Removes non-essential and outdated documentation files to keep the repository lean.
 
@@ -196,24 +238,25 @@ docker compose up -d
 docker compose down
 ```
 
-See [docs/DOCKER.md](docs/DOCKER.md) for full Docker documentation.
-
 ### Native Development Mode
 
 For development with hot-reload (requires Python 3.8+ and Node.js 16+):
 
+**Backend:**
 ```batch
-# Setup (first time)
-.\Obsolete\native_scripts\INSTALL.bat
-
-# Start backend + frontend
-.\Obsolete\native_scripts\RUN.bat
-
-# Stop
-.\scripts\STOP.ps1
+cd backend
+pip install -r requirements.txt
+python main.py
 ```
 
-Or use the DEVTOOLS menu → Native Dev Mode.
+**Frontend (in separate terminal):**
+```batch
+cd frontend
+npm install
+npm run dev
+```
+
+Or use the DEVTOOLS menu for automated setup.
 
 ## Project Structure
 
@@ -241,17 +284,14 @@ student-management-system/
 
 ## Documentation
 
-### User Guides
+### Available Documentation
 
-- [docs/DOCKER.md](docs/DOCKER.md) - Docker setup and configuration
-- [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) - Control panel usage
-- [docs/QUICKREF.md](docs/QUICKREF.md) - Quick reference guide
-- [CHANGELOG.md](CHANGELOG.md) - Version history
-
-### Developer Documentation
-
-- [docs/SESSION_SUMMARY.md](docs/SESSION_SUMMARY.md) - Development session notes
-- [docs/TODO.md](docs/TODO.md) - Project roadmap and tasks
+- [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
+- [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) - Security audit and fixes
+- [docs/FRONTEND_ASSESSMENT.md](docs/FRONTEND_ASSESSMENT.md) - Frontend architecture assessment
+- [docs/DEPENDENCY_UPGRADES.md](docs/DEPENDENCY_UPGRADES.md) - Dependency management
+- [docs/QNAP.md](docs/QNAP.md) - QNAP deployment guide
+- [docs/SERVERLESS.md](docs/SERVERLESS.md) - Serverless deployment options
 
 ## API Documentation
 
@@ -361,7 +401,7 @@ Need help?
 
 1. Check the in-app Help section (Utils → Help Documentation)
 2. Review the documentation files in this repository
-3. Check [docs/CONTROL_PANEL_GUIDE.md](docs/CONTROL_PANEL_GUIDE.md) for control panel usage
+3. Access the Control Panel at <http://localhost:8080/control> for system management
 
 ## License
 

@@ -18,8 +18,9 @@ RUN python -m pip install --upgrade pip && \
 
 # Copy backend source
 COPY backend /app/backend
-# Control panel HTML (fallback UI)
-COPY html_control_panel.html /app/html_control_panel.html
+
+# Note: Legacy HTML control panel was removed during cleanup
+# If needed in the future, serve SPA from frontend container or React app
 
 # Expose backend port
 EXPOSE 8000
