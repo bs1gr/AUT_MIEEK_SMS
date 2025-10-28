@@ -50,7 +50,7 @@
 
 param(
     [switch]$Quick,      # Quick start
-    [switch]$Status,     # Show status and exit
+    [Alias('Status')][switch]$ShowStatus,     # Show status and exit
     [switch]$Stop,       # Stop all services
     [switch]$Restart,    # Restart all services
     [switch]$Help        # Show help
@@ -986,7 +986,7 @@ if ($Help) {
     exit 0
 }
 
-if ($Status) {
+if ($ShowStatus) {
     Show-SystemStatus -Detailed
     exit 0
 }
@@ -998,8 +998,8 @@ if ($Stop) {
 
 if ($Restart) {
     Write-Header "RESTART APPLICATION"
-    $status = Get-SystemStatus
-    $mode = if ($status.State -in @('DOCKER', 'DOCKER_STOPPED')) { 'docker' } else { 'auto' }
+    $sysStatus = Get-SystemStatus
+    $mode = if ($sysStatus.State -in @('DOCKER', 'DOCKER_STOPPED')) { 'docker' } else { 'auto' }
     
     Write-Info "Stopping services..."
     Stop-Application -Force
