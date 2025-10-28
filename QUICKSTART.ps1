@@ -1,268 +1,81 @@
-# ============================================================================
-#   Student Management System - Quick Start
-#   Intelligently starts the app in the best available mode
-# ============================================================================
+<#
+.SYNOPSIS
+    Student Management System - Quick Start Launcher
+
+.DESCRIPTION
+    Simple launcher that starts the application using the new unified SMS.ps1 interface.
+    This script provides a minimal entry point that delegates to SMS.ps1.
+
+.EXAMPLE
+    .\QUICKSTART.ps1
+    Quick start the application in auto mode
+
+.EXAMPLE
+    .\QUICKSTART.ps1 -Help
+    Show help and available options
+
+.NOTES
+    For advanced management, use: .\SMS.ps1
+    For full diagnostics, use: .\scripts\DIAGNOSE_STATE.ps1
+#>
 
 param(
-    [ValidateSet('auto', 'docker', 'native', 'fullstack')]
-    [string]$Mode = 'auto',
-    [switch]$Help,
-    [switch]$Force,
-    [switch]$NoBrowser
+    [switch]$Help
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Write-Info($msg)   { Write-Host $msg -ForegroundColor Cyan }
-function Write-Ok($msg)     { Write-Host $msg -ForegroundColor Green }
-function Write-Warn($msg)   { Write-Host $msg -ForegroundColor Yellow }
-function Write-Err($msg)    { Write-Host $msg -ForegroundColor Red }
-
-function Show-Help {
-    Write-Host ""
-    Write-Host "QUICKSTART - Student Management System" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "Intelligently starts the app in the best available mode." -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  .\QUICKSTART.ps1 [options]"
-    Write-Host ""
-    Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host "  -Mode <mode>      Deployment mode: auto|docker|native|fullstack (default: auto)"
-    Write-Host "  -Force            Stop conflicting processes/containers before starting"
-    Write-Host "  -NoBrowser        Don't automatically open browser after successful start"
-    Write-Host "  -Help             Show this help message"
-    Write-Host ""
-    Write-Host "Modes:" -ForegroundColor Yellow
-    Write-Host "  auto              Detect and use the best available mode (recommended)"
-    Write-Host "  docker            Use Docker Compose (backend + frontend containers)"
-    Write-Host "  native            Run natively on host (Python + Node.js)"
-    Write-Host "  fullstack         Use fullstack container (single container)"
-    Write-Host ""
-    Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  .\QUICKSTART.ps1                    # Auto-detect best mode"
-    Write-Host "  .\QUICKSTART.ps1 -Mode docker       # Force Docker Compose"
-    Write-Host "  .\QUICKSTART.ps1 -Mode native       # Force native"
-    Write-Host "  .\QUICKSTART.ps1 -Force             # Stop conflicts automatically"
-    Write-Host ""
-    Write-Host "Access URLs:" -ForegroundColor Cyan
-    Write-Host "  Docker/Fullstack: http://localhost:8080"
-    Write-Host "  Native:           http://localhost:5173"
-    Write-Host ""
-    Write-Host "Management:" -ForegroundColor Cyan
-    Write-Host "  .\scripts\DIAGNOSE_STATE.ps1    - Check current state"
-    Write-Host "  .\scripts\STOP.ps1              - Stop everything"
-    Write-Host "  docs\STATE_MANAGEMENT_GUIDE.md  - Complete guide"
-    Write-Host ""
-}
-
 if ($Help) {
-    Show-Help
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  STUDENT MANAGEMENT SYSTEM - Quick Start                      ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "USAGE:" -ForegroundColor Yellow
+    Write-Host "  .\QUICKSTART.ps1          Start the application (auto-detects best mode)"
+    Write-Host "  .\QUICKSTART.ps1 -Help    Show this help message"
+    Write-Host ""
+    Write-Host "WHAT THIS DOES:" -ForegroundColor Yellow
+    Write-Host "  • Automatically detects if Docker is available"
+    Write-Host "  • Starts the app in the best available mode"
+    Write-Host "  • Opens your browser to the application"
+    Write-Host ""
+    Write-Host "ACCESS URLS:" -ForegroundColor Yellow
+    Write-Host "  Docker mode:  http://localhost:8080"
+    Write-Host "  Native mode:  http://localhost:5173"
+    Write-Host ""
+    Write-Host "OTHER TOOLS:" -ForegroundColor Yellow
+    Write-Host "  .\SMS.ps1                       - Full management interface (menu-driven)"
+    Write-Host "  .\scripts\DIAGNOSE_STATE.ps1    - Comprehensive diagnostics"
+    Write-Host "  .\scripts\STOP.ps1              - Stop all services"
+    Write-Host ""
+    Write-Host "FIRST TIME SETUP:" -ForegroundColor Yellow
+    Write-Host "  If this is your first time, just run: .\QUICKSTART.ps1"
+    Write-Host "  The script will automatically set up everything needed."
+    Write-Host ""
     exit 0
 }
 
 Push-Location $PSScriptRoot
 try {
     Write-Host ""
-    Write-Host "============================================================" -ForegroundColor Cyan
-    Write-Host "  Student Management System - Quick Start" -ForegroundColor Cyan
-    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  STUDENT MANAGEMENT SYSTEM - Quick Start                      ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
-
-    # Detect current state
-    $dockerAvailable = $false
-    $dockerRunning = $false
-    $composeExists = Test-Path "docker-compose.yml"
-    $nativeReady = (Test-Path "backend/venv") -and (Test-Path "frontend/node_modules")
+    Write-Host "Starting application..." -ForegroundColor Cyan
+    Write-Host ""
     
-    # Check Docker
-    try {
-        docker info 2>&1 | Out-Null
-        $dockerAvailable = ($LASTEXITCODE -eq 0)
-        $dockerRunning = $dockerAvailable
-    } catch {
-        $dockerAvailable = $false
+    # Delegate to SMS.ps1 with Quick flag
+    if (Test-Path ".\SMS.ps1") {
+        & ".\SMS.ps1" -Quick
+        exit $LASTEXITCODE
+    } else {
+        Write-Host "ERROR: SMS.ps1 not found!" -ForegroundColor Red
+        Write-Host "Please ensure SMS.ps1 exists in the project root directory." -ForegroundColor Yellow
+        exit 1
     }
-
-    # Check what's currently running
-    $composeContainers = @()
-    if ($dockerAvailable) {
-        try {
-            $output = docker compose ps --services --filter "status=running" 2>$null
-            if ($output) {
-                $composeContainers = @($output)
-            }
-        } catch {
-            $composeContainers = @()
-        }
-    }
-    
-    # Determine mode
-    $selectedMode = $Mode
-    if ($Mode -eq 'auto') {
-        Write-Info "Detecting best available mode..."
-        Write-Host ""
-        
-        if ($composeContainers -and $composeContainers.Count -gt 0) {
-            $selectedMode = 'docker'
-            Write-Ok "Found running Docker Compose containers"
-        } elseif ($dockerRunning -and $composeExists) {
-            $selectedMode = 'docker'
-            Write-Ok "Docker is available with compose configuration"
-        } elseif ($nativeReady) {
-            $selectedMode = 'native'
-            Write-Ok "Native environment is ready (venv + node_modules)"
-        } elseif ($dockerRunning) {
-            $selectedMode = 'docker'
-            Write-Ok "Docker is available (will use compose mode)"
-        } else {
-            $selectedMode = 'native'
-            Write-Warn "No Docker available, will attempt native mode"
-        }
-        
-        Write-Info "Selected mode: $selectedMode"
-        Write-Host ""
-    }
-    
-    # Handle conflicts if Force is specified
-    if ($Force) {
-        Write-Info "Stopping any conflicting processes/containers..."
-        & ".\scripts\STOP.ps1" -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-    }
-    
-    # Start in selected mode
-    switch ($selectedMode) {
-        'docker' {
-            if (-not $dockerRunning) {
-                Write-Err "Docker mode requested but Docker is not running!"
-                Write-Warn "Please start Docker Desktop and try again."
-                Write-Host ""
-                exit 1
-            }
-            
-            if (-not $composeExists) {
-                Write-Err "Docker Compose mode requested but docker-compose.yml not found!"
-                Write-Host ""
-                exit 1
-            }
-            
-            Write-Info "Starting Docker Compose services..."
-            Write-Host ""
-            
-            docker compose up -d --build
-            
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host ""
-                Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-                Write-Host "║  ✓ SUCCESS! Application is running                            ║" -ForegroundColor Green
-                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
-                Write-Host ""
-                Write-Info "Access your application at:"
-                Write-Host "  → Frontend: " -NoNewline
-                Write-Host "http://localhost:8080" -ForegroundColor White -BackgroundColor DarkBlue
-                Write-Host "  → API Docs: " -NoNewline
-                Write-Host "http://localhost:8080/api/docs" -ForegroundColor White
-                Write-Host ""
-                Write-Info "Quick Commands:"
-                Write-Info "  View logs: docker compose logs -f"
-                Write-Info "  Stop: docker compose stop"
-                Write-Host ""
-                
-                # Auto-open browser
-                if (-not $NoBrowser) {
-                    Write-Info "Opening browser..."
-                    Start-Sleep -Milliseconds 500
-                    Start-Process "http://localhost:8080"
-                }
-                
-                exit 0
-            } else {
-                Write-Err "Failed to start Docker Compose services!"
-                Write-Host ""
-                Write-Warn "Run diagnostics: .\scripts\DIAGNOSE_STATE.ps1"
-                exit 1
-            }
-        }
-        
-        'native' {
-            Write-Info "Starting in native mode (Python + Node.js)..."
-            Write-Host ""
-            
-            # Check prerequisites
-            if (-not (Test-Path "backend/venv")) {
-                Write-Warn "Python virtual environment not found. Running setup..."
-                Write-Host ""
-                
-                if (Test-Path ".\scripts\SETUP.ps1") {
-                    & ".\scripts\SETUP.ps1"
-                    if ($LASTEXITCODE -ne 0) {
-                        Write-Err "Setup failed!"
-                        exit 1
-                    }
-                } else {
-                    Write-Err "Setup script not found!"
-                    exit 1
-                }
-            }
-            
-            if (-not (Test-Path "frontend/node_modules")) {
-                Write-Warn "Node modules not found. Running setup..."
-                Write-Host ""
-                
-                if (Test-Path ".\scripts\SETUP.ps1") {
-                    & ".\scripts\SETUP.ps1"
-                    if ($LASTEXITCODE -ne 0) {
-                        Write-Err "Setup failed!"
-                        exit 1
-                    }
-                } else {
-                    Write-Err "Setup script not found!"
-                    exit 1
-                }
-            }
-            
-            # Start native
-            if (Test-Path ".\scripts\RUN.ps1") {
-                & ".\scripts\RUN.ps1"
-                exit $LASTEXITCODE
-            } else {
-                Write-Err "RUN script not found at .\scripts\RUN.ps1"
-                exit 1
-            }
-        }
-        
-        'fullstack' {
-            if (-not $dockerRunning) {
-                Write-Err "Fullstack mode requested but Docker is not running!"
-                Write-Warn "Please start Docker Desktop and try again."
-                Write-Host ""
-                exit 1
-            }
-            
-            Write-Info "Starting fullstack container..."
-            Write-Host ""
-            
-            if (Test-Path ".\scripts\DOCKER_FULLSTACK_UP.ps1") {
-                & ".\scripts\DOCKER_FULLSTACK_UP.ps1"
-                exit $LASTEXITCODE
-            } else {
-                Write-Err "DOCKER_FULLSTACK_UP script not found!"
-                exit 1
-            }
-        }
-        
-        default {
-            Write-Err "Unknown mode: $selectedMode"
-            Write-Host ""
-            Write-Info "Valid modes: auto, docker, native, fullstack"
-            Write-Info "Run with -Help for more information"
-            Write-Host ""
-            exit 1
-        }
-    }
-    
 } finally {
     Pop-Location
 }
