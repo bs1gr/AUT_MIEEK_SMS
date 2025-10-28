@@ -52,6 +52,7 @@ export default {
   dockerCompose: 'Docker Compose',
   nativeMode: 'Εγγενή Λειτουργία',
   quickActions: 'Γρήγορες Ενέργειες',
+  toggleDetailsRefresh: 'Κάντε κλικ για εναλλαγή λεπτομερειών και ανανέωση',
   startBackend: 'Εκκίνηση Backend',
   stopBackend: 'Διακοπή Backend',
   restartBackend: 'Επανεκκίνηση Backend',
