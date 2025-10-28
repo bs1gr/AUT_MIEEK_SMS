@@ -16,7 +16,7 @@
 
 .NOTES
     For advanced management, use: .\SMS.ps1
-    For full diagnostics, use: .\scripts\DIAGNOSE_STATE.ps1
+    For full diagnostics, use: .\scripts\internal\DIAGNOSE_STATE.ps1
 #>
 
 param(
@@ -46,9 +46,9 @@ if ($Help) {
     Write-Host "  Native mode:  http://localhost:5173"
     Write-Host ""
     Write-Host "OTHER TOOLS:" -ForegroundColor Yellow
-    Write-Host "  .\SMS.ps1                       - Full management interface (menu-driven)"
-    Write-Host "  .\scripts\DIAGNOSE_STATE.ps1    - Comprehensive diagnostics"
-    Write-Host "  .\scripts\STOP.ps1              - Stop all services"
+    Write-Host "  .\SMS.ps1                              - Full management interface (menu-driven)"
+    Write-Host "  .\scripts\internal\DIAGNOSE_STATE.ps1  - Comprehensive diagnostics"
+    Write-Host "  .\scripts\STOP.ps1                     - Stop all services"
     Write-Host ""
     Write-Host "FIRST TIME SETUP:" -ForegroundColor Yellow
     Write-Host "  If this is your first time, just run: .\QUICKSTART.ps1"
