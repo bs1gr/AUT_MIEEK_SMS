@@ -4,6 +4,7 @@ import ExportCenter from '../tools/ExportCenter';
 import HelpDocumentation from '../tools/HelpDocumentation';
 import ServerControl from '../common/ServerControl';
 import ThemeSelector from '../tools/ThemeSelector';
+import { getHealthStatus, adminOpsAPI, importAPI } from '../../api/api';
 
 // Use same-origin relative API by default so it works in fullstack (8080) and dev
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
@@ -23,23 +24,10 @@ const DevToolsTab: React.FC = () => {
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
 
-  // Ensure health hits the root backend (not /api/v1)
-  const HEALTH_URL = (() => {
-    try {
-      if (API_BASE_URL.endsWith('/api/v1')) {
-        return API_BASE_URL.replace(/\/api\/v1$/, '') + '/health';
-      }
-      return API_BASE_URL + '/health';
-    } catch {
-      return '/health';
-    }
-  })();
-
   const ping = async () => {
     setLoading(true);
     try {
-      const res = await fetch(HEALTH_URL);
-      const data = await res.json();
+      const data = await getHealthStatus();
       setHealth(data);
       setLastCheckedAt(new Date().toLocaleTimeString());
     } catch {
@@ -57,7 +45,7 @@ const DevToolsTab: React.FC = () => {
     }, Math.max(2000, intervalMs));
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, intervalMs, HEALTH_URL, loading]);
+  }, [autoRefresh, intervalMs, loading]);
 
   // Removed diagnose operation (no longer needed)
 
@@ -65,8 +53,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('backup');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/adminops/backup`, { method: 'POST' });
-      const data = await res.json();
+      const data = await adminOpsAPI.createBackup();
       setResult({ op: 'backup', data });
     } catch {
       setResult({ op: 'backup', error: true });
@@ -83,10 +70,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('restore');
     setResult(null);
     try {
-      const form = new FormData();
-      form.append('file', restoreFile);
-      const res = await fetch(`${API_BASE_URL}/adminops/restore`, { method: 'POST', body: form });
-      const data = await res.json();
+      const data = await adminOpsAPI.restoreBackup(restoreFile);
       setResult({ op: 'restore', data });
     } catch {
       setResult({ op: 'restore', error: true });
@@ -103,12 +87,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('clear');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/adminops/clear`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: true, scope: clearScope }),
-      });
-      const data = await res.json();
+      const data = await adminOpsAPI.clearDatabase(clearScope);
       setResult({ op: 'clear', data });
     } catch {
       setResult({ op: 'clear', error: true });
@@ -125,11 +104,8 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('upload');
     setResult(null);
     try {
-      const form = new FormData();
-      form.append('import_type', importType);
-      Array.from(files).forEach((f) => form.append('files', f));
-      const res = await fetch(`${API_BASE_URL}/imports/upload`, { method: 'POST', body: form });
-      const data = await res.json();
+      // Upload first file (backend expects single file)
+      const data = await importAPI.uploadFile(files[0], importType);
       setResult({ op: 'upload', data });
     } catch {
       setResult({ op: 'upload', error: true });

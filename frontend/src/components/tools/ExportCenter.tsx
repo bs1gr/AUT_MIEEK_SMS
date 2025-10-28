@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
+import { studentsAPI, coursesAPI } from '../../api/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -17,12 +18,10 @@ const ExportCenter = () => {
 
   const loadData = async () => {
     try {
-      const [studentsRes, coursesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/students/`),
-        fetch(`${API_BASE_URL}/courses/`)
+      const [studentsData, coursesData] = await Promise.all([
+        studentsAPI.getAll(),
+        coursesAPI.getAll()
       ]);
-      const studentsData = await studentsRes.json();
-      const coursesData = await coursesRes.json();
       setStudents(Array.isArray(studentsData) ? studentsData : []);
       setCourses(Array.isArray(coursesData) ? coursesData : []);
     } catch (error) {

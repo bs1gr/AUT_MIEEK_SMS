@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, Star, TrendingUp, UserCheck, DumbbellIcon } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import Spinner from '../ui/Spinner';
+import { studentsAPI, coursesAPI } from '../../api/api';
 
 const API_BASE_URL = '/api/v1';
 
@@ -52,12 +53,10 @@ const EnhancedAttendanceCalendar = () => {
 
   const loadData = async () => {
     try {
-      const [studentsRes, coursesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/students/`),
-        fetch(`${API_BASE_URL}/courses/`)
+      const [studentsData, coursesData] = await Promise.all([
+        studentsAPI.getAll(),
+        coursesAPI.getAll()
       ]);
-      const studentsData = await studentsRes.json();
-      const coursesData = await coursesRes.json();
       setStudents(studentsData);
       setCourses(coursesData);
       if (coursesData.length > 0) {
