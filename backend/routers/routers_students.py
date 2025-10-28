@@ -94,23 +94,30 @@ def get_all_students(
     - **is_active**: Filter by active status (optional)
     """
     try:
+        # Validate pagination
+        if skip < 0:
+            # Enforce non-negative skip
+            raise HTTPException(
+                status_code=400,
+                detail="Skip cannot be negative"
+            )
         # Validate limit
         if limit < settings.MIN_PAGE_SIZE or limit > settings.MAX_PAGE_SIZE:
             raise HTTPException(
                 status_code=400,
                 detail=f"Limit must be between {settings.MIN_PAGE_SIZE} and {settings.MAX_PAGE_SIZE}"
             )
-        
+
         from backend.models import Student
         query = db.query(Student)
-        
+
         # Apply filters
         if is_active is not None:
             query = query.filter(Student.is_active == is_active)
-        
+
         students = query.offset(skip).limit(limit).all()
         logger.info(f"Retrieved {len(students)} students (skip={skip}, limit={limit})")
-        
+
         return students
         
     except HTTPException:

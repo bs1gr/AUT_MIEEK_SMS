@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import date
 
@@ -16,8 +16,7 @@ class EnrollmentResponse(BaseModel):
     course_id: int
     enrolled_at: date
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StudentBrief(BaseModel):
@@ -26,5 +25,4 @@ class StudentBrief(BaseModel):
     last_name: str
     student_id: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

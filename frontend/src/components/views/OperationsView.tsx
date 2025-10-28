@@ -4,6 +4,7 @@ import ExportCenter from '../tools/ExportCenter';
 import HelpDocumentation from '../tools/HelpDocumentation';
 import ServerControl from '../common/ServerControl';
 import ThemeSelector from '../tools/ThemeSelector';
+import { getHealthStatus, adminOpsAPI, importAPI } from '../../api/api';
 
 // Use same-origin relative API by default so it works in fullstack (8080) and dev
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
@@ -23,23 +24,10 @@ const DevToolsTab: React.FC = () => {
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
 
-  // Ensure health hits the root backend (not /api/v1)
-  const HEALTH_URL = (() => {
-    try {
-      if (API_BASE_URL.endsWith('/api/v1')) {
-        return API_BASE_URL.replace(/\/api\/v1$/, '') + '/health';
-      }
-      return API_BASE_URL + '/health';
-    } catch {
-      return '/health';
-    }
-  })();
-
   const ping = async () => {
     setLoading(true);
     try {
-      const res = await fetch(HEALTH_URL);
-      const data = await res.json();
+      const data = await getHealthStatus();
       setHealth(data);
       setLastCheckedAt(new Date().toLocaleTimeString());
     } catch {
@@ -57,7 +45,7 @@ const DevToolsTab: React.FC = () => {
     }, Math.max(2000, intervalMs));
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, intervalMs, HEALTH_URL, loading]);
+  }, [autoRefresh, intervalMs, loading]);
 
   // Removed diagnose operation (no longer needed)
 
@@ -65,8 +53,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('backup');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/adminops/backup`, { method: 'POST' });
-      const data = await res.json();
+      const data = await adminOpsAPI.createBackup();
       setResult({ op: 'backup', data });
     } catch {
       setResult({ op: 'backup', error: true });
@@ -83,10 +70,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('restore');
     setResult(null);
     try {
-      const form = new FormData();
-      form.append('file', restoreFile);
-      const res = await fetch(`${API_BASE_URL}/adminops/restore`, { method: 'POST', body: form });
-      const data = await res.json();
+      const data = await adminOpsAPI.restoreBackup(restoreFile);
       setResult({ op: 'restore', data });
     } catch {
       setResult({ op: 'restore', error: true });
@@ -103,12 +87,7 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('clear');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/adminops/clear`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: true, scope: clearScope }),
-      });
-      const data = await res.json();
+      const data = await adminOpsAPI.clearDatabase(clearScope);
       setResult({ op: 'clear', data });
     } catch {
       setResult({ op: 'clear', error: true });
@@ -125,11 +104,8 @@ const DevToolsTab: React.FC = () => {
     setOpLoading('upload');
     setResult(null);
     try {
-      const form = new FormData();
-      form.append('import_type', importType);
-      Array.from(files).forEach((f) => form.append('files', f));
-      const res = await fetch(`${API_BASE_URL}/imports/upload`, { method: 'POST', body: form });
-      const data = await res.json();
+      // Upload first file (backend expects single file)
+      const data = await importAPI.uploadFile(files[0], importType);
       setResult({ op: 'upload', data });
     } catch {
       setResult({ op: 'upload', error: true });
@@ -159,7 +135,7 @@ const DevToolsTab: React.FC = () => {
                 <div className="text-xs opacity-90 space-x-2">
                   {health.version ? <span>v{health.version}</span> : null}
                   {health.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
-                  {lastCheckedAt ? <span>(checked {lastCheckedAt})</span> : null}
+                  {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4">
@@ -191,7 +167,7 @@ const DevToolsTab: React.FC = () => {
                       type="checkbox"
                       checked={autoRefresh}
                       onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label="Toggle auto refresh"
+                      aria-label={t('controlPanel.toggleAutoRefresh')}
                     />
                     {t('controlPanel.autoRefresh')}
                   </label>
@@ -199,7 +175,7 @@ const DevToolsTab: React.FC = () => {
                     value={String(intervalMs)}
                     onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
                     className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label="Auto refresh interval"
+                    aria-label={t('controlPanel.autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
                     <option className="text-black" value="3000">3s</option>
@@ -300,7 +276,7 @@ const DevToolsTab: React.FC = () => {
               accept=".db"
               onChange={(e) => setRestoreFile(e.target.files?.[0] || null)}
               className="flex-1"
-              aria-label="Select backup database file to restore"
+              aria-label={t('utils.selectBackupFile')}
             />
             <button
               onClick={restore}
@@ -330,7 +306,7 @@ const DevToolsTab: React.FC = () => {
             value={clearScope}
             onChange={(e) => setClearScope(e.target.value as any)}
             className="w-full border rounded px-2 py-1 mb-2"
-            aria-label="Select clear database scope"
+            aria-label={t('utils.selectClearScope')}
           >
             <option value="all">{t('utils.allCoursesStudentsRecords')}</option>
             <option value="data_only">{t('utils.dataOnlyKeepCoursesStudents')}</option>
@@ -352,7 +328,7 @@ const DevToolsTab: React.FC = () => {
             value={importType}
             onChange={(e) => setImportType(e.target.value as any)}
             className="border rounded px-2 py-1 w-full md:w-auto"
-            aria-label="Select import type"
+            aria-label={t('utils.selectImportType')}
           >
             <option value="courses">{t('courses')}</option>
             <option value="students">{t('students')}</option>
@@ -363,7 +339,7 @@ const DevToolsTab: React.FC = () => {
             multiple
             onChange={(e) => setFiles(e.target.files)}
             className="w-full md:flex-1"
-            aria-label="Select JSON files to import"
+            aria-label={t('utils.selectJsonFiles')}
           />
           <button
             onClick={uploadImport}
