@@ -135,7 +135,7 @@ const DevToolsTab: React.FC = () => {
                 <div className="text-xs opacity-90 space-x-2">
                   {health.version ? <span>v{health.version}</span> : null}
                   {health.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
-                  {lastCheckedAt ? <span>(checked {lastCheckedAt})</span> : null}
+                  {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4">
@@ -167,7 +167,7 @@ const DevToolsTab: React.FC = () => {
                       type="checkbox"
                       checked={autoRefresh}
                       onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label="Toggle auto refresh"
+                      aria-label={t('controlPanel.toggleAutoRefresh')}
                     />
                     {t('controlPanel.autoRefresh')}
                   </label>
@@ -175,7 +175,7 @@ const DevToolsTab: React.FC = () => {
                     value={String(intervalMs)}
                     onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
                     className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label="Auto refresh interval"
+                    aria-label={t('controlPanel.autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
                     <option className="text-black" value="3000">3s</option>
@@ -276,7 +276,7 @@ const DevToolsTab: React.FC = () => {
               accept=".db"
               onChange={(e) => setRestoreFile(e.target.files?.[0] || null)}
               className="flex-1"
-              aria-label="Select backup database file to restore"
+              aria-label={t('utils.selectBackupFile')}
             />
             <button
               onClick={restore}
@@ -306,7 +306,7 @@ const DevToolsTab: React.FC = () => {
             value={clearScope}
             onChange={(e) => setClearScope(e.target.value as any)}
             className="w-full border rounded px-2 py-1 mb-2"
-            aria-label="Select clear database scope"
+            aria-label={t('utils.selectClearScope')}
           >
             <option value="all">{t('utils.allCoursesStudentsRecords')}</option>
             <option value="data_only">{t('utils.dataOnlyKeepCoursesStudents')}</option>
@@ -328,7 +328,7 @@ const DevToolsTab: React.FC = () => {
             value={importType}
             onChange={(e) => setImportType(e.target.value as any)}
             className="border rounded px-2 py-1 w-full md:w-auto"
-            aria-label="Select import type"
+            aria-label={t('utils.selectImportType')}
           >
             <option value="courses">{t('courses')}</option>
             <option value="students">{t('students')}</option>
@@ -339,7 +339,7 @@ const DevToolsTab: React.FC = () => {
             multiple
             onChange={(e) => setFiles(e.target.files)}
             className="w-full md:flex-1"
-            aria-label="Select JSON files to import"
+            aria-label={t('utils.selectJsonFiles')}
           />
           <button
             onClick={uploadImport}
