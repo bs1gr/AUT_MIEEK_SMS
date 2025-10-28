@@ -14,6 +14,12 @@ services:
       - sms_data_qnap:/app/data
     networks:
       - sms_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
 
   frontend:
     build:
@@ -28,6 +34,7 @@ services:
       - backend
     networks:
       - sms_net
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -41,6 +48,7 @@ services:
       - "8080:80"
     networks:
       - sms_net
+    restart: unless-stopped
     # Note: If you prefer to serve SPA directly from the frontend container,
     # you can omit this nginx service and rely on the frontend's built-in NGINX.
 
