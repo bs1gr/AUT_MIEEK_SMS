@@ -39,7 +39,7 @@ if ($Help) {
     Write-Host "WHAT THIS DOES:" -ForegroundColor Yellow
     Write-Host "  • Automatically detects if Docker is available"
     Write-Host "  • Starts the app in the best available mode"
-    Write-Host "  • Opens your browser to the application"
+    Write-Host "  • Runs non-interactively (no prompts); if already running, it exits"
     Write-Host ""
     # ACCESS URLS removed; user can check status for URLs if needed
     Write-Host "OTHER TOOLS:" -ForegroundColor Yellow
