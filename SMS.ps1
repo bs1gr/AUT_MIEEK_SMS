@@ -364,7 +364,8 @@ function Start-Application {
         if (-not (Test-Path "backend/venv") -or -not (Test-Path "frontend/node_modules")) {
             Write-Host ""
             Write-Info "First-time setup required..."
-            & ".\scripts\SETUP.ps1"
+            $setupScript = Join-Path $PSScriptRoot "scripts\SETUP.ps1"
+            & $setupScript
             if ($LASTEXITCODE -ne 0) {
                 Write-Error2 "Setup failed"
                 Pause-Safe
@@ -373,7 +374,8 @@ function Start-Application {
         }
         
         # Start services
-        & ".\scripts\legacy\RUN.ps1"
+        $runScript = Join-Path $PSScriptRoot "scripts\legacy\RUN.ps1"
+        & $runScript
     }
     
     Write-Host ""
@@ -406,7 +408,8 @@ function Stop-Application {
     
     if ($status.State -eq 'NATIVE') {
         Write-Host "Stopping native processes..." -ForegroundColor Yellow
-        & ".\scripts\STOP.ps1"
+        $stopScript = Join-Path $PSScriptRoot "scripts\STOP.ps1"
+        & $stopScript
         Write-Success "Native processes stopped"
     }
     
@@ -691,7 +694,8 @@ function Debug-Ports {
 function Run-FullDiagnostics {
     Write-Host "Running full system diagnostics..." -ForegroundColor Cyan
     Write-Host ""
-    & ".\scripts\internal\DIAGNOSE_STATE.ps1"
+    $diagScript = Join-Path $PSScriptRoot "scripts\internal\DIAGNOSE_STATE.ps1"
+    & $diagScript
     Pause-Safe
 }
 
@@ -901,7 +905,8 @@ function Run-Setup {
     }
     
     Write-Host ""
-    & ".\scripts\SETUP.ps1"
+    $setupScript = Join-Path $PSScriptRoot "scripts\SETUP.ps1"
+    & $setupScript
     
     Write-Host ""
     Pause-Safe
@@ -999,7 +1004,8 @@ while ($true) {
             Write-Host ""
             Write-Info "Opening Advanced Developer Tools..."
             Start-Sleep -Seconds 1
-            & ".\scripts\internal\DEVTOOLS.ps1"
+            $devtoolsScript = Join-Path $PSScriptRoot "scripts\internal\DEVTOOLS.ps1"
+            & $devtoolsScript
         }
         "H" { Show-Help }
         "0" {
