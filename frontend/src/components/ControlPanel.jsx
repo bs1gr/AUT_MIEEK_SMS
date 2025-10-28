@@ -212,10 +212,17 @@ const ControlPanel = () => {
   const stopAll = async () => {
     if (!confirm('Stop all services? The control panel will become unavailable.')) return;
     try {
-      await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
+      // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
+      await axios.post(`${CONTROL_API}/operations/exit-all`, { });
       setOperationStatus({ type: 'warning', message: 'All services stopping...' });
     } catch (error) {
-      // Expected - backend will shut down
+      // Fallback to legacy stop-all if new endpoint is not available
+      try {
+        await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
+        setOperationStatus({ type: 'warning', message: 'All services stopping...' });
+      } catch (_) {
+        // Expected - backend will shut down or endpoint may be unreachable during shutdown
+      }
     }
   };
 

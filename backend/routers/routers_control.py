@@ -150,6 +150,26 @@ def _check_docker_running() -> bool:
     success, _, _ = _run_command(["docker", "info"], timeout=5)
     return success
 
+def _docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60) -> tuple[bool, str, str]:
+    """Run a docker compose command with robust handling.
+    Returns (ok, stdout, stderr)."""
+    args = ["docker", "compose"] + cmd
+    try:
+        result = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=str(cwd) if cwd else None,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return result.returncode == 0, result.stdout, result.stderr
+    except subprocess.TimeoutExpired:
+        return False, "", f"docker compose {' '.join(cmd)} timed out after {timeout}s"
+    except Exception as e:
+        return False, "", str(e)
+
 
 def _docker_volume_exists(name: str) -> bool:
     ok, out, _ = _run_command(["docker", "volume", "ls", "--format", "{{.Name}}"])
@@ -630,6 +650,118 @@ async def build_docker_image():
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Build error: {str(e)}")
+
+
+@router.post("/operations/docker-stop", response_model=OperationResult)
+async def docker_stop_all(down: bool = False):
+    """
+    Stop (or remove) Docker containers for this project using docker compose.
+
+    - If running inside a Docker container, returns a safe message (cannot control host Docker).
+    - If Docker isn't running, returns success=False with guidance.
+    - When successful, stops containers (and removes them if down=true).
+    """
+    if _in_docker_container():
+        return OperationResult(
+            success=False,
+            message=(
+                "Cannot control Docker from inside a container. "
+                "Run this operation on the host machine."
+            ),
+            details={"in_container": True}
+        )
+
+    if not _check_docker_running():
+        raise HTTPException(status_code=400, detail="Docker is not running")
+
+    project_root = Path(__file__).parent.parent.parent
+    ok, out, err = _docker_compose(["stop"], cwd=project_root, timeout=120)
+    details: Dict[str, Any] = {"stop_stdout": out[-1000:], "stop_stderr": err[-1000:]}
+
+    if not ok:
+        return OperationResult(
+            success=False,
+            message="Failed to stop Docker containers",
+            details=details,
+        )
+
+    if down:
+        ok2, out2, err2 = _docker_compose(["down"], cwd=project_root, timeout=180)
+        details.update({
+            "down_stdout": out2[-1000:],
+            "down_stderr": err2[-1000:],
+        })
+        if not ok2:
+            return OperationResult(
+                success=False,
+                message="Containers stopped, but removal (down) failed",
+                details=details,
+            )
+
+    return OperationResult(
+        success=True,
+        message=("Docker containers stopped" + (" and removed" if down else "")),
+        details=details,
+    )
+
+
+@router.post("/operations/exit-all", response_model=OperationResult)
+async def exit_all(down: bool = False):
+    """
+    One-click exit: stop Docker containers (host only) and shut down all services (frontend/node/backend).
+
+    Behavior:
+    - If not in a container and Docker is running: docker compose stop (and optional down)
+    - Then trigger backend's comprehensive shutdown (frontend+node+backend)
+
+    Returns OperationResult with combined details and schedules backend termination.
+    """
+    details: Dict[str, Any] = {}
+
+    # Attempt Docker stop on host (best-effort)
+    docker_performed = False
+    if not _in_docker_container() and _check_docker_running():
+        project_root = Path(__file__).parent.parent.parent
+        ok_s, out_s, err_s = _docker_compose(["stop"], cwd=project_root, timeout=120)
+        details.update({
+            "docker_stop_ok": ok_s,
+            "docker_stop_stdout": out_s[-800:],
+            "docker_stop_stderr": err_s[-800:],
+        })
+        docker_performed = True
+        if down:
+            ok_d, out_d, err_d = _docker_compose(["down"], cwd=project_root, timeout=180)
+            details.update({
+                "docker_down_ok": ok_d,
+                "docker_down_stdout": out_d[-800:],
+                "docker_down_stderr": err_d[-800:],
+            })
+
+    # Trigger backend comprehensive shutdown (stop-all)
+    try:
+        try:
+            from backend.main import control_stop_all  # type: ignore
+        except ModuleNotFoundError:
+            from ..main import control_stop_all  # type: ignore
+        shutdown_info = control_stop_all()
+        details["shutdown"] = shutdown_info
+    except Exception as e:
+        details["shutdown_error"] = str(e)
+        return OperationResult(
+            success=False,
+            message="Failed to initiate backend shutdown",
+            details=details,
+        )
+
+    msg_parts = []
+    if docker_performed:
+        msg_parts.append("Docker containers stopped" + (" and removed" if down else ""))
+    msg_parts.append("System shutdown initiated")
+    return OperationResult(
+        success=True,
+        message="; ".join(msg_parts),
+        details=details,
+    )
 
 
 @router.get("/logs/backend")
