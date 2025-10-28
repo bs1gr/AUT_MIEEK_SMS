@@ -121,15 +121,17 @@ function Get-SystemStatus {
                 $status.Docker.Running = $true
                 
                 # Check for SMS containers
-                $containers = docker ps --format "{{.Names}}|{{.State}}" 2>&1 | 
-                    Where-Object { $_ -match "student-management|sms" }
+                $containers = @(docker ps --format "{{.Names}}|{{.State}}" 2>&1 | 
+                    Where-Object { $_ -match "student-management|sms" })
                 
                 foreach ($line in $containers) {
-                    $parts = $line -split '\|'
-                    if ($parts.Length -ge 2) {
-                        $status.Docker.Containers += @{
-                            Name = $parts[0]
-                            State = $parts[1]
+                    if ($line) {
+                        $parts = $line -split '\|'
+                        if ($parts.Length -ge 2) {
+                            $status.Docker.Containers += @{
+                                Name = $parts[0]
+                                State = $parts[1]
+                            }
                         }
                     }
                 }
@@ -155,7 +157,7 @@ function Get-SystemStatus {
     }
     
     # Determine state
-    $runningContainers = $status.Docker.Containers | Where-Object { $_.State -eq 'running' }
+    $runningContainers = @($status.Docker.Containers | Where-Object { $_.State -eq 'running' })
     
     if ($runningContainers.Count -gt 0) {
         $status.State = 'DOCKER'
@@ -163,7 +165,7 @@ function Get-SystemStatus {
     } elseif ($status.Native.BackendRunning -or $status.Native.FrontendRunning) {
         $status.State = 'NATIVE'
         $status.Message = "Running natively on host"
-    } elseif ($status.Docker.Containers.Count -gt 0) {
+    } elseif ($status.Docker.Containers -and $status.Docker.Containers.Count -gt 0) {
         $status.State = 'DOCKER_STOPPED'
         $status.Message = "Docker containers exist but stopped"
     } else {
@@ -194,7 +196,7 @@ function Show-SystemStatus {
         Write-Success "Installed"
         if ($status.Docker.Running) {
             Write-Success "Daemon running"
-            if ($status.Docker.Containers.Count -gt 0) {
+            if ($status.Docker.Containers -and $status.Docker.Containers.Count -gt 0) {
                 Write-Host "  Containers:" -ForegroundColor Gray
                 foreach ($c in $status.Docker.Containers) {
                     $color = if ($c.State -eq 'running') { 'Green' } else { 'Yellow' }
