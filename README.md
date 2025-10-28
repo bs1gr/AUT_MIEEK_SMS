@@ -95,6 +95,11 @@ Or with options:
 
 The application will be available at <http://localhost:8080>
 
+Startup behavior:
+
+- The frontend now waits for the backend to become healthy before starting (Compose healthcheck + dependency), so you shouldn't see a temporary “offline/failed to connect” banner on first load anymore.
+- If the backend is still booting when you open the page, the UI shows a short “Checking…” state and silently retries a few times before showing any offline message.
+
 ### Stopping the Application
 
 Simple stop:
