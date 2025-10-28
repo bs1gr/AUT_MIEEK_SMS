@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
-from datetime import date, datetime
+from datetime import date, datetime, UTC
 import re
 
 
@@ -19,8 +19,7 @@ class StudentCreate(BaseModel):
     note: Optional[str] = None
     study_year: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @field_validator('student_id')
     @classmethod
@@ -56,7 +55,7 @@ class StudentCreate(BaseModel):
     def validate_enrollment_date(cls, v: Optional[date]) -> Optional[date]:
         if v is None:
             return v
-        if v > datetime.utcnow().date():
+        if v > datetime.now(UTC).date():
             raise ValueError('enrollment_date cannot be in the future')
         return v
 
@@ -109,7 +108,7 @@ class StudentUpdate(BaseModel):
     def validate_enrollment_date(cls, v: Optional[date]) -> Optional[date]:
         if v is None:
             return v
-        if v > datetime.utcnow().date():
+        if v > datetime.now(UTC).date():
             raise ValueError('enrollment_date cannot be in the future')
         return v
 
@@ -129,5 +128,4 @@ class StudentResponse(BaseModel):
     note: str | None
     study_year: int | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
