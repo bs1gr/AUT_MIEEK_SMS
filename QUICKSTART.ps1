@@ -41,10 +41,7 @@ if ($Help) {
     Write-Host "  • Starts the app in the best available mode"
     Write-Host "  • Opens your browser to the application"
     Write-Host ""
-    Write-Host "ACCESS URLS:" -ForegroundColor Yellow
-    Write-Host "  Docker mode:  http://localhost:8080"
-    Write-Host "  Native mode:  http://localhost:5173"
-    Write-Host ""
+    # ACCESS URLS removed; user can check status for URLs if needed
     Write-Host "OTHER TOOLS:" -ForegroundColor Yellow
     Write-Host "  .\SMS.ps1                              - Full management interface (menu-driven)"
     Write-Host "  .\scripts\internal\DIAGNOSE_STATE.ps1  - Comprehensive diagnostics"
