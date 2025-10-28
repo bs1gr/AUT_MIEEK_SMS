@@ -2,8 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-import en from './locales/en.json';
-import el from './locales/el.json';
+import { translations } from '../translations';
 
 i18n
   // Detect user language
@@ -14,13 +13,13 @@ i18n
   .init({
     resources: {
       en: {
-        translation: en
+        translation: translations.en
       },
       el: {
-        translation: el
+        translation: translations.el
       }
     },
-    fallbackLng: 'en',
+    fallbackLng: 'el', // Default to Greek
     debug: false,
     interpolation: {
       escapeValue: false // React already protects from XSS
