@@ -24,8 +24,15 @@ class ErrorBoundaryCore extends React.Component {
     // Store error info in state
     this.setState({ errorInfo });
     
-    // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
-    // Example: Sentry.captureException(error, { extra: errorInfo });
+    // Send to backend error logging service
+    import('./utils/errorReporting').then(({ logErrorToBackend }) => {
+      logErrorToBackend(error, errorInfo, {
+        boundaryName: this.props.boundaryName || 'Root',
+        timestamp: new Date().toISOString(),
+      });
+    }).catch(err => {
+      console.warn('Failed to load error reporting:', err);
+    });
   }
 
   handleReset = () => {

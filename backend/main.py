@@ -1324,6 +1324,74 @@ async def liveness_check():
 
 
 # ============================================================================
+# FRONTEND ERROR LOGGING ENDPOINTS
+# ============================================================================
+
+@app.post("/api/logs/frontend-error")
+async def log_frontend_error(request: Request):
+    """
+    Receive and log frontend errors for centralized monitoring.
+    
+    Expected payload:
+    {
+        "message": "Error message",
+        "stack": "Stack trace",
+        "componentStack": "React component stack",
+        "timestamp": "ISO timestamp",
+        "userAgent": "Browser user agent",
+        "url": "Page URL",
+        "context": {},
+        "type": "error_type"
+    }
+    """
+    try:
+        error_data = await request.json()
+        
+        # Log to application logger
+        logger.error(
+            f"Frontend Error: {error_data.get('message', 'Unknown')}",
+            extra={
+                "request_id": getattr(request.state, 'request_id', '-'),
+                "frontend_error": True,
+                "url": error_data.get('url'),
+                "user_agent": error_data.get('userAgent'),
+                "error_type": error_data.get('type'),
+                "stack": error_data.get('stack', '')[:500],  # Limit stack trace length
+                "component_stack": error_data.get('componentStack', '')[:500],
+            }
+        )
+        
+        return {"status": "logged", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        logger.warning(f"Failed to log frontend error: {e}")
+        return {"status": "failed", "error": str(e)}
+
+
+@app.post("/api/logs/frontend-warning")
+async def log_frontend_warning(request: Request):
+    """
+    Receive and log frontend warnings.
+    """
+    try:
+        warning_data = await request.json()
+        
+        logger.warning(
+            f"Frontend Warning: {warning_data.get('message', 'Unknown')}",
+            extra={
+                "request_id": getattr(request.state, 'request_id', '-'),
+                "frontend_warning": True,
+                "url": warning_data.get('url'),
+                "user_agent": warning_data.get('userAgent'),
+            }
+        )
+        
+        return {"status": "logged", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        logger.warning(f"Failed to log frontend warning: {e}")
+        return {"status": "failed", "error": str(e)}
+
+
+# ============================================================================
 # STUDENT ENDPOINTS
 # ============================================================================
 """
