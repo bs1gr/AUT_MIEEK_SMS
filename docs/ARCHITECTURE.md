@@ -226,6 +226,15 @@ jobs:
 2. Choose "migrate data" to copy from native DB
 3. Restart Docker stack
 
+### Implemented Automation (Pre-start Version Check)
+
+As of this update, the host launcher (`SMS.ps1`) performs a pre-start schema version check when starting in Docker mode:
+
+- Non-interactive (Quick Start): If a mismatch is detected between the native DB schema and the Docker volume schema, a warning is shown with guidance to run `scripts/CHECK_VOLUME_VERSION.ps1 -AutoMigrate` or use the Control Panel Docker operation.
+- Interactive (Menu/CLI): If a mismatch is detected, you will be prompted to auto-migrate the Docker volume before containers start.
+
+This reduces accidental starts with incompatible schemas while keeping you in control.
+
 ### Proposed Automation
 
 #### Option A: Automatic Version Detection
@@ -310,8 +319,8 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
    - Track Docker volume version in override file
 
 2. **Automatic detection on start**:
-   - QUICKSTART checks if volumes need update
-   - Warns user and offers one-click migration
+   - SMS.ps1 checks for version mismatches before Docker start
+   - Non-interactive: warns and continues; Interactive: offers one-click migration
 
 3. **Keep manual control**:
    - Control Panel operation remains for explicit migrations
@@ -324,22 +333,25 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ### Development Workflow
 
 1. **Use Native mode for development**:
-   ```powershell
-   .\QUICKSTART.ps1  # Will auto-select Native if Docker not available
-   ```
+
+```powershell
+\.\QUICKSTART.ps1  # Will auto-select Native if Docker not available
+```
 
 2. **Run migrations immediately**:
-   ```powershell
-   cd backend
-   alembic revision --autogenerate -m "description"
-   alembic upgrade head
-   ```
+
+```powershell
+cd backend
+alembic revision --autogenerate -m "description"
+alembic upgrade head
+```
 
 3. **Test in Docker before deployment**:
-   ```powershell
-   .\SMS.ps1 -Stop
-   docker compose up -d --build
-   ```
+
+```powershell
+\.\SMS.ps1 -Stop
+docker compose up -d --build
+```
 
 ### Production Deployment
 
@@ -349,32 +361,37 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
    - Better isolation
 
 2. **Version your volumes**:
-   ```powershell
-   # Before major updates
-   docker compose exec backend sh -c "cd /data && tar czf backup.tar.gz student_management.db"
-   # Use Control Panel to create new versioned volume
-   ```
+
+```powershell
+# Before major updates
+docker compose exec backend sh -c "cd /data && tar czf backup.tar.gz student_management.db"
+# Use Control Panel to create new versioned volume
+```
 
 3. **Automate backups**:
-   ```powershell
-   # scripts/backup-docker-volume.ps1
-   $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-   docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
-     alpine tar czf "/backup/sms_data_$timestamp.tar.gz" -C /data .
-   ```
+
+```powershell
+# scripts/backup-docker-volume.ps1
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
+   alpine tar czf "/backup/sms_data_$timestamp.tar.gz" -C /data .
+```
 
 ### Troubleshooting
 
 **"Already running" after exit**:
+
 - Use `.\SMS.ps1 -Stop` instead of Control Panel in Docker mode
 - Or: `docker compose down` to fully remove containers
 
 **Schema mismatch errors**:
+
 - Check versions: `alembic current` in both native and Docker
 - Migrate Docker volume via Control Panel
 - Or: Export native DB → Import to Docker
 
 **Port conflicts**:
+
 - Run: `.\SMS.ps1` → Option 7 (Debug Port Conflicts)
 - Kill processes: `Stop-Process -Id <PID> -Force`
 
@@ -383,18 +400,22 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ## Summary
 
 ### ✅ Already Automated
+
 - ✅ One-command start: `QUICKSTART.ps1`
 - ✅ One-command stop: `SMS.ps1 -Stop`
 - ✅ Auto mode detection (Docker vs Native)
 - ✅ Manual volume migration (Control Panel)
+- ✅ Pre-start schema version check (warns/prompt to auto-migrate)
 
 ### 🔧 Can Be Improved
-- 🔄 Auto-detect schema version mismatches
+
+- 🔄 Extend auto-migration options and rollback support
 - 🔄 Pre-start volume migration hooks
 - 🔄 Scheduled restart/backup tasks
 - 🔄 Restart command (`SMS.ps1 -Restart`)
 
 ### 📋 Recommendations
+
 1. **For now**: Use current manual workflow for volume migrations
 2. **Next step**: Add automatic version detection and warnings
 3. **Future**: Full automated migration with rollback support
