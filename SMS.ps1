@@ -328,6 +328,34 @@ function Start-Application {
             return
         }
         
+        # Pre-start check: if schema versions mismatch between native DB and Docker volume,
+        # warn (non-interactive) or offer auto-migration (interactive)
+        try {
+            $checkScript = Join-Path $PSScriptRoot "scripts\CHECK_VOLUME_VERSION.ps1"
+            if (Test-Path $checkScript) {
+                if ($NonInteractive) {
+                    & $checkScript *> $null
+                    $exitCode = $LASTEXITCODE
+                    if ($exitCode -eq 1) {
+                        Write-Warning2 "Database schema mismatch detected (native vs Docker volume)."
+                        Write-Info "Run: scripts\\CHECK_VOLUME_VERSION.ps1 -AutoMigrate, or use Control Panel → Docker Operations → Update Data Volume."
+                    }
+                } else {
+                    & $checkScript
+                    $exitCode = $LASTEXITCODE
+                    if ($exitCode -eq 1) {
+                        $resp = Read-Host "Auto-migrate Docker volume now? (Y/n)"
+                        if ($resp -notmatch '^n') {
+                            & $checkScript -AutoMigrate
+                            Write-Info "If changes were applied, restarting Docker stack is recommended after migration."
+                        }
+                    }
+                }
+            }
+        } catch {
+            Write-Warning2 "Pre-start version check failed: $($_.Exception.Message)"
+        }
+
         Write-Host "Building and starting Docker containers..." -ForegroundColor Cyan
         Write-Host ""
         
