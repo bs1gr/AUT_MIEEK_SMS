@@ -4,7 +4,7 @@ Handles all student-related CRUD operations and endpoints
 Split from main.py for better organization
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field
@@ -12,6 +12,7 @@ from datetime import date
 import logging
 
 from backend.config import settings
+from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -34,12 +35,16 @@ from backend.db import get_session as get_db
 # ========== ENDPOINTS ==========
 
 @router.post("/", response_model=StudentResponse, status_code=201)
+@limiter.limit(RATE_LIMIT_WRITE)
 def create_student(
+    request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db)
 ):
     """
     Create a new student.
+    
+    **Rate Limit**: 10 requests per minute
     
     - **first_name**: Student's first name (required)
     - **last_name**: Student's last name (required)
@@ -80,7 +85,9 @@ def create_student(
 
 
 @router.get("/", response_model=List[StudentResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_all_students(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     is_active: Optional[bool] = None,
@@ -88,6 +95,8 @@ def get_all_students(
 ):
     """
     Retrieve all students with optional filtering.
+    
+    **Rate Limit**: 60 requests per minute
     
     - **skip**: Number of records to skip (pagination)
     - **limit**: Maximum records to return (default: 100, max: 1000)
