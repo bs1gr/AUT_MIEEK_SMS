@@ -238,7 +238,12 @@ class Highlight(Base):
 
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
-    Initialize the database and create all tables with indexes.
+    Initialize the database engine with performance optimizations.
+    
+    **IMPORTANT**: This function NO LONGER creates tables automatically.
+    Use Alembic migrations to manage schema changes:
+        - Run `alembic upgrade head` to create/update tables
+        - Run `alembic revision --autogenerate -m "message"` to create new migrations
     
     Args:
         db_url: Database connection string (default: SQLite)
@@ -267,11 +272,13 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             # Best-effort; do not fail initialization on pragma errors
             pass
 
-        Base.metadata.create_all(bind=engine)
-        logger.info(f"Database initialized successfully: {db_url}")
+        # NOTE: Base.metadata.create_all() removed - use Alembic migrations instead
+        # If you need to create tables for testing, use alembic or create_all() explicitly
+        logger.info(f"Database engine initialized: {db_url}")
+        logger.info("Run 'alembic upgrade head' to apply migrations")
         return engine
     except Exception as e:
-        logger.error(f"Failed to initialize database: {str(e)}", exc_info=True)
+        logger.error(f"Failed to initialize database engine: {str(e)}", exc_info=True)
         raise
 
 
@@ -291,21 +298,23 @@ def get_session(engine):
 
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print("DATABASE INITIALIZATION WITH ENHANCED INDEXING")
+    print("DATABASE MODELS DEFINED")
     print("="*60 + "\n")
     
-    engine = init_db()
-    
-    print("✓ Database created successfully!")
-    print("\nTables created with indexes:")
+    print("✓ Database models loaded successfully!")
+    print("\nDefined tables:")
     for table in Base.metadata.tables.keys():
-        print(f"  ✓ {table}")
+        print(f"  • {table}")
     
     print("\n" + "="*60)
-    print("PERFORMANCE IMPROVEMENTS:")
+    print("TO CREATE/UPDATE DATABASE SCHEMA:")
     print("="*60)
-    print("✓ Added indexes on frequently queried fields")
-    print("✓ Added composite indexes for common queries")
-    print("✓ Improved email/student_id lookups")
-    print("✓ Better date range query performance")
+    print("Use Alembic migrations:")
+    print("  1. Create migration:  alembic revision --autogenerate -m 'description'")
+    print("  2. Apply migrations:  alembic upgrade head")
+    print("  3. Check status:      alembic current")
+    print("\nDirect table creation (testing only):")
+    print("  from backend.models import Base, init_db")
+    print("  engine = init_db()")
+    print("  Base.metadata.create_all(bind=engine)")
     print("\n" + "="*60 + "\n")
