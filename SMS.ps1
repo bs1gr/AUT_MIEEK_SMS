@@ -488,28 +488,53 @@ function Rebuild-Application {
     Write-Host "Analyzing current configuration..." -ForegroundColor Cyan
     Write-Host ""
     
-    # Check for existing volumes
-    $allVolumes = docker volume ls --format "{{.Name}}" 2>&1 | Where-Object { $_ -match "sms" -or $_ -match "student-management" }
-    
-    # Detect current volume from docker-compose config or running containers
+    # Check for existing candidate volumes (old and new naming patterns)
+    $candidateVolumes = @()
+    try {
+        $candidateVolumes = docker volume ls --format "{{.Name}}" 2>&1 |
+            Where-Object { $_ -match "sms_data" -or $_ -match "student-management-system" -or $_ -match "sms_data_rebuild" } | Sort-Object -Unique
+    } catch {}
+
+    # Detect current volume from docker-compose.override.yml (explicit override)
     $currentVolume = $null
     $overrideFile = Join-Path $scriptDir "docker-compose.override.yml"
-    
+
     if (Test-Path $overrideFile) {
         $overrideContent = Get-Content $overrideFile -Raw
-        if ($overrideContent -match "- ([^:]+):/data") {
+        if ($overrideContent -match "-\s*([^:]+):/data") {
             $currentVolume = $matches[1]
         }
     }
-    
-    # If no override, check compose config
+
+    # If still unknown, try docker compose config
     if (-not $currentVolume) {
         try {
             $composeConfig = docker compose config 2>&1 | Out-String
-            if ($composeConfig -match "sms_data[^\s]*") {
-                $currentVolume = $matches[0]
+            if ($composeConfig -match "([a-zA-Z0-9_\-]+):\s*/data") {
+                $currentVolume = $matches[1]
             }
         } catch {}
+    }
+
+    # If no current volume determined, pick the candidate with the most recent DB file timestamp
+    if (-not $currentVolume -and $candidateVolumes.Count -gt 0) {
+        Write-Host "No explicit current volume found; scanning candidate volumes for latest data..." -ForegroundColor Yellow
+        $bestVol = $null
+        $bestTs = 0
+        foreach ($vol in $candidateVolumes) {
+            try {
+                # Try to read modification time of the database inside the volume (seconds since epoch)
+                $tsOut = docker run --rm -v "${vol}:/data:ro" alpine sh -c "if [ -f /data/student_management.db ]; then date -r /data/student_management.db +%s; else echo 0; fi" 2>$null
+                if ($tsOut -match '\\d+') { $ts = [int]($tsOut -replace '\\D','') } else { $ts = 0 }
+                if ($ts -gt $bestTs) { $bestTs = $ts; $bestVol = $vol }
+            } catch {
+                # ignore individual errors
+            }
+        }
+        if ($bestVol) {
+            $currentVolume = $bestVol
+            Write-Host "Auto-detected latest volume: $currentVolume (timestamp: $bestTs)" -ForegroundColor Yellow
+        }
     }
     
     # Check if current volume uses old naming
@@ -738,6 +763,26 @@ volumes:
     
     if ($LASTEXITCODE -eq 0) {
         Write-Success "✓ Containers started"
+        
+        # Step 7b: Initialize database if new empty volume was created
+        if ($createNewVolume -and -not $migrateData) {
+            Write-Host ""
+            Write-Host "Initializing empty database..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 3  # Give backend time to start
+            
+            $initResult = docker compose exec -T backend python -c "from backend.models import Base, init_db; engine = init_db('sqlite:////data/student_management.db'); Base.metadata.create_all(bind=engine); print('OK')" 2>&1
+            
+            if ($initResult -match 'OK') {
+                Write-Success "✓ Database initialized"
+                # Restart to ensure clean state
+                docker compose restart backend 2>&1 | Out-Null
+                Start-Sleep -Seconds 2
+            } else {
+                Write-Warning2 "⚠ Database initialization may have failed"
+                Write-Host "  You may need to run: docker compose exec backend python -c ""from backend.models import Base, init_db; engine = init_db('sqlite:////data/student_management.db'); Base.metadata.create_all(bind=engine)""" -ForegroundColor Gray
+            }
+        }
+        
         Write-Host ""
         Write-Success "════════════════════════════════════════════════════════" -ForegroundColor Green
         Write-Success "  REBUILD COMPLETED SUCCESSFULLY!" -ForegroundColor Green
@@ -751,7 +796,7 @@ volumes:
                 Write-Host "  ✓ Data migrated from: $currentVolume" -ForegroundColor White
                 Write-Host "  ℹ Old volume preserved for rollback" -ForegroundColor Yellow
             } else {
-                Write-Host "  ⚠ Volume is empty (no migration)" -ForegroundColor Yellow
+                Write-Host "  ✓ Database initialized (empty)" -ForegroundColor White
             }
         } else {
             Write-Host "  ✓ Volume: Using existing $currentVolume" -ForegroundColor White
