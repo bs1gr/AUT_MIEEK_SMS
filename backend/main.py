@@ -57,11 +57,13 @@ try:
     from backend.config import settings
     from backend.logging_config import initialize_logging
     from backend.db import get_session as db_get_session, engine as db_engine, ensure_schema as db_ensure_schema
+    from backend.request_id_middleware import RequestIDMiddleware
 except ModuleNotFoundError:
     # Running directly from backend directory
     from config import settings
     from logging_config import initialize_logging
     from db import get_session as db_get_session, engine as db_engine, ensure_schema as db_ensure_schema
+    from request_id_middleware import RequestIDMiddleware
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -305,6 +307,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ============================================================================
 # MIDDLEWARE CONFIGURATION
 # ============================================================================
+
+# Request ID tracking middleware (should be first to track all requests)
+app.add_middleware(RequestIDMiddleware)
 
 # CORS middleware for React frontend
 app.add_middleware(
