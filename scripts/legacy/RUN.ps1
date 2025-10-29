@@ -15,8 +15,8 @@ $ErrorActionPreference = 'Stop'
 # Set window title
 $host.UI.RawUI.WindowTitle = "SMS - Starting..."
 
-# Change to project root directory (parent of scripts folder)
-$projectRoot = Split-Path -Parent $PSScriptRoot
+# Change to project root directory (grandparent of scripts/legacy folder)
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $projectRoot
 
 # ============================================================================
@@ -245,18 +245,20 @@ if (-not $backendRunning) {
 
     if (-not $pythonPath) { $pythonPath = $pythonExe }
 
+    # Set PYTHONPATH so backend package can be imported (must be set before loop)
+    $env:PYTHONPATH = $projectRoot
+
     # Try to start backend and verify port binding; on failure, retry with next port
     $backendProc = $null
     $started = $false
+    
     for ($attempt = 0; $attempt -lt 10 -and -not $started; $attempt++) {
-        # Start backend server - run from project root, not backend directory
-        $psi = New-Object System.Diagnostics.ProcessStartInfo
-        $psi.FileName = $pythonPath
-        $psi.Arguments = "-m uvicorn backend.main:app --host 127.0.0.1 --port $backendPort"
-        $psi.WorkingDirectory = $projectRoot
-        $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Minimized
-        $psi.CreateNoWindow = $false
-        $backendProc = [System.Diagnostics.Process]::Start($psi)
+        # Start backend server using Start-Process cmdlet with custom environment
+        $backendProc = Start-Process -FilePath $pythonPath `
+            -ArgumentList "-m","uvicorn","backend.main:app","--host","127.0.0.1","--port","$backendPort" `
+            -WorkingDirectory $projectRoot `
+            -WindowStyle Minimized `
+            -PassThru
 
         # Wait for backend startup with progressive checking
         Start-Sleep -Milliseconds 2000
