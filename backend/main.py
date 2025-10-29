@@ -44,6 +44,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 from typing import List
 
+# Rate limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 # Database imports
 from sqlalchemy.orm import Session
 
@@ -185,6 +190,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ============================================================================
+# RATE LIMITING CONFIGURATION
+# ============================================================================
+
+# Import centralized rate limiter
+try:
+    from backend.rate_limiting import limiter
+except ModuleNotFoundError:
+    from rate_limiting import limiter
+
+# ============================================================================
 # SCHEMAS
 # ============================================================================
 # Schemas are defined within router modules or under `schemas/` when extracted.
@@ -281,7 +296,11 @@ async def lifespan(app: FastAPI):
 app = create_app()
 app.router.lifespan_context = lifespan
 
-    
+# Attach rate limiter to app state
+app.state.limiter = limiter
+
+# Register rate limit exceeded handler
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ============================================================================
 # MIDDLEWARE CONFIGURATION
