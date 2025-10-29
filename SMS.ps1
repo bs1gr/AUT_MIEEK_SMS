@@ -356,10 +356,12 @@ function Start-Application {
             Write-Warning2 "Pre-start version check failed: $($_.Exception.Message)"
         }
 
-        Write-Host "Building and starting Docker containers..." -ForegroundColor Cyan
+        Write-Host "Starting Docker containers..." -ForegroundColor Cyan
         Write-Host ""
         
-    docker compose up -d --build
+        # Set VERSION environment variable for docker-compose
+        $env:VERSION = $version
+    docker compose up -d
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
@@ -479,6 +481,292 @@ function Restart-Application {
     Start-Application -Mode $mode
 }
 
+function Rebuild-Application {
+    Write-Header "REBUILD APPLICATION FROM SCRATCH"
+    
+    # Step 0: Detect current volume state
+    Write-Host "Analyzing current configuration..." -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Check for existing volumes
+    $allVolumes = docker volume ls --format "{{.Name}}" 2>&1 | Where-Object { $_ -match "sms" -or $_ -match "student-management" }
+    
+    # Detect current volume from docker-compose config or running containers
+    $currentVolume = $null
+    $overrideFile = Join-Path $scriptDir "docker-compose.override.yml"
+    
+    if (Test-Path $overrideFile) {
+        $overrideContent = Get-Content $overrideFile -Raw
+        if ($overrideContent -match "- ([^:]+):/data") {
+            $currentVolume = $matches[1]
+        }
+    }
+    
+    # If no override, check compose config
+    if (-not $currentVolume) {
+        try {
+            $composeConfig = docker compose config 2>&1 | Out-String
+            if ($composeConfig -match "sms_data[^\s]*") {
+                $currentVolume = $matches[0]
+            }
+        } catch {}
+    }
+    
+    # Check if current volume uses old naming
+    $isOldNaming = $false
+    $needsMigration = $false
+    
+    if ($currentVolume) {
+        Write-Host "Current volume detected: " -NoNewline -ForegroundColor Yellow
+        Write-Host $currentVolume -ForegroundColor White
+        
+        # Check if it's old naming (no version in name)
+        if ($currentVolume -notmatch "v\d+\.\d+" -or $currentVolume -match "student-management-system") {
+            $isOldNaming = $true
+            Write-Host "  Status: Using old naming convention" -ForegroundColor Yellow
+            $needsMigration = $true
+        } else {
+            Write-Host "  Status: Using versioned naming" -ForegroundColor Green
+        }
+        
+        # Check if volume has data
+        $hasData = $false
+        try {
+            $volumeInfo = docker volume inspect $currentVolume 2>&1 | ConvertFrom-Json
+            if ($volumeInfo) {
+                $hasData = $true
+                Write-Host "  Data: Volume contains data" -ForegroundColor Cyan
+            }
+        } catch {}
+    } else {
+        Write-Host "No current volume detected - will create new one" -ForegroundColor Yellow
+        $needsMigration = $false
+    }
+    
+    Write-Host ""
+    
+    # Present options to user
+    Write-Host "This rebuild will:" -ForegroundColor Yellow
+    Write-Host "  • Stop all running containers" -ForegroundColor White
+    Write-Host "  • Remove existing images" -ForegroundColor White
+    Write-Host "  • Clear Docker build cache" -ForegroundColor White
+    Write-Host "  • Rebuild images with version: $version" -ForegroundColor White
+    
+    if ($needsMigration -and $currentVolume) {
+        Write-Host "  • Create NEW versioned volume and migrate data" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Recommended: Migrate data to new versioned volume" -ForegroundColor Cyan
+        Write-Host "  Old volume: $currentVolume" -ForegroundColor Gray
+        Write-Host "  New volume: sms_data_rebuild_v${version}_[TIMESTAMP]" -ForegroundColor Gray
+    } else {
+        Write-Host "  • Keep existing volume (optional: create new)" -ForegroundColor White
+    }
+    
+    Write-Host ""
+    $confirm = Read-Host "Continue with rebuild? (Y/n)"
+    if ($confirm -match '^n') {
+        Write-Info "Cancelled"
+        Pause-Safe
+        return
+    }
+    
+    # Determine volume strategy
+    $migrateData = $false
+    $createNewVolume = $false
+    
+    if ($needsMigration -and $currentVolume) {
+        Write-Host ""
+        Write-Host "Volume Migration Options:" -ForegroundColor Cyan
+        Write-Host "  [1] Migrate data to new versioned volume (Recommended)" -ForegroundColor Green
+        Write-Host "  [2] Keep using current volume (no migration)" -ForegroundColor Yellow
+        Write-Host "  [3] Create empty new volume (discard data)" -ForegroundColor Red
+        Write-Host ""
+        $volumeChoice = Read-Host "Select option [1-3]"
+        
+        switch ($volumeChoice) {
+            "1" { 
+                $createNewVolume = $true
+                $migrateData = $true
+                Write-Host "  → Will migrate data to new versioned volume" -ForegroundColor Green
+            }
+            "2" { 
+                $createNewVolume = $false
+                $migrateData = $false
+                Write-Host "  → Will keep using current volume" -ForegroundColor Yellow
+            }
+            "3" { 
+                $createNewVolume = $true
+                $migrateData = $false
+                Write-Host "  → Will create empty new volume" -ForegroundColor Red
+            }
+            default {
+                $createNewVolume = $true
+                $migrateData = $true
+                Write-Host "  → Default: Will migrate data to new versioned volume" -ForegroundColor Green
+            }
+        }
+    } elseif ($currentVolume) {
+        Write-Host ""
+        $newVolumeAnswer = Read-Host "Create a new volume? Current will be preserved (y/N)"
+        if ($newVolumeAnswer -match '^y') {
+            $createNewVolume = $true
+            $migrateAnswer = Read-Host "Migrate data from current volume? (Y/n)"
+            $migrateData = $migrateAnswer -notmatch '^n'
+        }
+    } else {
+        $createNewVolume = $true
+        $migrateData = $false
+    }
+    
+    Write-Host ""
+    Write-Host "Starting rebuild process..." -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Step 1: Stop containers
+    Write-Host "[1/7] Stopping containers..." -ForegroundColor Yellow
+    docker compose down 2>&1 | Out-Null
+    Write-Success "✓ Containers stopped"
+    
+    # Step 2: Remove images
+    Write-Host "[2/7] Removing old images..." -ForegroundColor Yellow
+    $images = docker images --filter "reference=sms-*" -q
+    if ($images) {
+        docker rmi -f $images 2>&1 | Out-Null
+        Write-Success "✓ Images removed"
+    } else {
+        # Also check for old naming pattern
+        $oldImages = docker images --filter "reference=student-management-system-*" -q
+        if ($oldImages) {
+            docker rmi -f $oldImages 2>&1 | Out-Null
+            Write-Success "✓ Old images removed"
+        } else {
+            Write-Info "  No existing images found"
+        }
+    }
+    
+    # Step 3: Clear build cache
+    Write-Host "[3/7] Clearing Docker build cache..." -ForegroundColor Yellow
+    docker builder prune -af 2>&1 | Out-Null
+    Write-Success "✓ Build cache cleared"
+    
+    # Step 4: Handle volume
+    if ($createNewVolume) {
+        Write-Host "[4/7] Creating new versioned volume..." -ForegroundColor Yellow
+        
+        $currentDate = Get-Date -Format 'yyyyMMdd'
+        $timestamp = Get-Date -Format 'HHmmss'
+        
+        # Create descriptive volume name: sms_data_rebuild_v1.1.0_20251029_143022
+        $newVolumeName = "sms_data_rebuild_v${version}_${currentDate}_${timestamp}"
+        
+        # Update docker-compose.override.yml
+        $overrideContent = @"
+services:
+  backend:
+    volumes:
+      - ${newVolumeName}:/data
+volumes:
+  ${newVolumeName}:
+    driver: local
+
+"@
+        Set-Content -Path $overrideFile -Value $overrideContent -Force
+        Write-Success "✓ New volume configured: $newVolumeName"
+        Write-Host "  Volume naming: sms_data_rebuild_v[VERSION]_[DATE]_[TIME]" -ForegroundColor Gray
+        
+        # Step 5: Migrate data if requested
+        if ($migrateData -and $currentVolume) {
+            Write-Host "[5/7] Migrating data from old volume..." -ForegroundColor Yellow
+            Write-Host "  Source: $currentVolume" -ForegroundColor Gray
+            Write-Host "  Target: $newVolumeName" -ForegroundColor Gray
+            
+            try {
+                # Create new volume if it doesn't exist
+                docker volume create $newVolumeName 2>&1 | Out-Null
+                
+                # Copy data using alpine container
+                $copyResult = docker run --rm `
+                    -v "${currentVolume}:/source:ro" `
+                    -v "${newVolumeName}:/target" `
+                    alpine sh -c "cp -av /source/. /target/" 2>&1
+                
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "✓ Data migrated successfully"
+                    Write-Host "  Old volume preserved: $currentVolume" -ForegroundColor Gray
+                } else {
+                    Write-Warning2 "Migration completed with warnings"
+                    Write-Host "  You may need to verify the data" -ForegroundColor Yellow
+                }
+            } catch {
+                Write-Error2 "✗ Migration failed: $($_.Exception.Message)"
+                Write-Host "  Continuing with empty volume..." -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "[5/7] No data migration needed" -ForegroundColor Yellow
+            Write-Info "  Starting with empty volume"
+        }
+    } else {
+        Write-Host "[4/7] Keeping existing data volume..." -ForegroundColor Yellow
+        Write-Info "  Using existing volume: $currentVolume"
+        Write-Host "[5/7] No data migration needed" -ForegroundColor Yellow
+        Write-Info "  Using existing data"
+    }
+    
+    # Step 6: Rebuild images
+    Write-Host "[6/7] Rebuilding images (this may take a few minutes)..." -ForegroundColor Yellow
+    
+    # Set VERSION environment variable for docker-compose
+    $env:VERSION = $version
+    
+    docker compose build --no-cache 2>&1 | ForEach-Object {
+        if ($_ -match '(Step \d+/\d+|Building|Successfully)') {
+            Write-Host "  $_" -ForegroundColor Gray
+        }
+    }
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "✓ Images rebuilt successfully"
+        Write-Host "  Image names: sms-backend:$version, sms-frontend:$version" -ForegroundColor Gray
+    } else {
+        Write-Error2 "✗ Build failed"
+        Pause-Safe
+        return
+    }
+    
+    # Step 7: Start containers
+    Write-Host "[7/7] Starting containers..." -ForegroundColor Yellow
+    docker compose up -d 2>&1 | Out-Null
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "✓ Containers started"
+        Write-Host ""
+        Write-Success "════════════════════════════════════════════════════════" -ForegroundColor Green
+        Write-Success "  REBUILD COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+        Write-Success "════════════════════════════════════════════════════════" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Summary:" -ForegroundColor Cyan
+        Write-Host "  ✓ Images: sms-backend:$version, sms-frontend:$version" -ForegroundColor White
+        if ($createNewVolume) {
+            Write-Host "  ✓ New volume: $newVolumeName" -ForegroundColor White
+            if ($migrateData -and $currentVolume) {
+                Write-Host "  ✓ Data migrated from: $currentVolume" -ForegroundColor White
+                Write-Host "  ℹ Old volume preserved for rollback" -ForegroundColor Yellow
+            } else {
+                Write-Host "  ⚠ Volume is empty (no migration)" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "  ✓ Volume: Using existing $currentVolume" -ForegroundColor White
+        }
+        Write-Host ""
+        Write-Host "Access the application at:" -ForegroundColor Cyan
+        Write-Host "  http://localhost:8080" -ForegroundColor White
+        Write-Host ""
+    } else {
+        Write-Error2 "✗ Failed to start containers"
+    }
+    
+    Pause-Safe
+}
+
 # ============================================================================
 #  DATABASE MANAGEMENT
 # ============================================================================
@@ -502,7 +790,7 @@ function Backup-Database {
         }
         
         $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        $backupFile = "student_management_$timestamp.db"
+        $backupFile = "sms_backup_v${version}_${timestamp}.db"
         
         Write-Host "Creating backup from Docker volume..." -ForegroundColor Cyan
         Write-Host "  Target: $backupFile" -ForegroundColor Gray
@@ -535,7 +823,7 @@ function Backup-Database {
         }
         
         $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        $backupFile = "student_management_$timestamp.db"
+        $backupFile = "sms_backup_v${version}_${timestamp}.db"
         $backupPath = Join-Path $backupDir $backupFile
         
         Write-Host "Creating backup..." -ForegroundColor Cyan
@@ -824,6 +1112,7 @@ function Show-Menu {
     Write-Host " │  3. Start Application (Native mode)                           │" -ForegroundColor White
     Write-Host " │  4. Stop Application                                          │" -ForegroundColor White
     Write-Host " │  5. Restart Application                                       │" -ForegroundColor White
+    Write-Host " │  X. Rebuild from Scratch (Clear cache, new images/volume)     │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     Write-Host ""
     
@@ -988,10 +1277,11 @@ function Show-Help {
     Write-Host ""
     
     Write-Host "Documentation Files:" -ForegroundColor Cyan
-    Write-Host "  • README.md               - Main documentation" -ForegroundColor White
-    Write-Host "  • docs/QUICKSTART.md      - Quick start guide" -ForegroundColor White
-    Write-Host "  • docs/DOCKER.md          - Docker deployment guide" -ForegroundColor White
-    Write-Host "  • docs/TROUBLESHOOTING.md - Common issues & solutions" -ForegroundColor White
+    Write-Host "  • README.md                           - Main documentation" -ForegroundColor White
+    Write-Host "  • docs/DOCKER_NAMING_CONVENTIONS.md   - Docker naming & version mgmt (NEW!)" -ForegroundColor Green
+    Write-Host "  • docs/QUICKSTART.md                  - Quick start guide" -ForegroundColor White
+    Write-Host "  • docs/DOCKER_CLEANUP.md              - Docker cleanup procedures" -ForegroundColor White
+    Write-Host "  • docs/TROUBLESHOOTING.md             - Common issues & solutions" -ForegroundColor White
     Write-Host ""
     
     Write-Host "Command Line Options:" -ForegroundColor Cyan
@@ -1058,6 +1348,7 @@ while ($true) {
         "3" { Start-Application -Mode 'native' }
         "4" { Stop-Application }
         "5" { Restart-Application }
+        "X" { Rebuild-Application }
         "6" { Show-Diagnostics }
         "7" { Debug-Ports }
         "8" { Run-FullDiagnostics }
