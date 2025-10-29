@@ -2,6 +2,15 @@
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
 
+## 📚 Documentation / Τεκμηρίωση
+
+- 🇬🇧 **English**: [README.md](README.md) (this file)
+- 🇬🇷 **Ελληνικά**: 
+  - [⚡ Γρήγορη Εκκίνηση](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md) - Quick start guide
+  - [📖 Πλήρης Οδηγός Χρήσης](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) - Complete user manual
+
+---
+
 ## Quick Start (2 Easy Steps)
 
 **1. Start the application:**
