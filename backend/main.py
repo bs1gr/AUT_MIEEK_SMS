@@ -1243,123 +1243,84 @@ async def favicon():
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     """
-    Health check endpoint.
+    Comprehensive health check endpoint.
     
     Verifies:
     - API is running
     - Database connection is working
-    - Basic statistics
+    - Disk space available
+    - Migration status
+    - System information
+    - Service dependencies
+    
+    Returns 200 if healthy/degraded, 503 if unhealthy.
     
     Args:
         db: Database session dependency
         
     Returns:
-        dict: Health status and database statistics
+        dict: Comprehensive health status
     """
     try:
-        try:
-            from backend.models import Student, Course
-        except ModuleNotFoundError:
-            from models import Student, Course
+        from backend.health_checks import HealthChecker
+    except ModuleNotFoundError:
+        from health_checks import HealthChecker
+    
+    checker = HealthChecker(app.state, db_engine)
+    return checker.check_health(db)
 
-        students_count = db.query(Student).count()
-        courses_count = db.query(Course).count()
 
-        # Compute uptime based on app start time recorded in lifespan
-        uptime_s: Optional[int] = None
-        try:
-            start = getattr(app.state, "start_time", None)
-            if start:
-                uptime_s = int(time.time() - start)
-        except Exception:
-            uptime_s = None
-
-        # Optional: detect if frontend is running on known ports
-        frontend_port = _detect_frontend_port()
-        frontend_running = frontend_port is not None
-
-        # Network info: hostname and available IPv4 addresses
-        hostname = socket.gethostname()
-        ips: List[str] = []
-        try:
-            try:
-                import psutil  # type: ignore
-            except Exception:  # pragma: no cover
-                psutil = None  # type: ignore
-            if psutil:
-                addrs = psutil.net_if_addrs()
-                for iface, addr_list in addrs.items():
-                    for a in addr_list:
-                        try:
-                            if getattr(a, 'family', None) == socket.AF_INET:
-                                ip = a.address
-                                # Filter out APIPA (169.254.x.x) addresses
-                                if ip and not ip.startswith("169.254.") and ip not in ips:
-                                    ips.append(ip)
-                        except Exception:
-                            continue
-            # Fallbacks
-            if not ips:
-                try:
-                    host_ips = socket.gethostbyname_ex(hostname)[2]
-                    for ip in host_ips:
-                        if ip and not ip.startswith("169.254.") and ip not in ips:
-                            ips.append(ip)
-                except Exception:
-                    pass
-            # Always include loopbacks for convenience
-            for ip in ("127.0.0.1",):
-                if ip not in ips:
-                    ips.append(ip)
-        except Exception:
-            hostname = hostname or "localhost"
-            ips = ["127.0.0.1"]
-
-        # Detect environment (Docker vs Native)
-        def detect_environment():
-            """Detect if running in Docker container"""
-            # Check for /.dockerenv file
-            if os.path.exists('/.dockerenv'):
-                return "docker"
-            # Check cgroup for docker/containerd
-            try:
-                with open('/proc/1/cgroup', 'r') as f:
-                    if 'docker' in f.read() or 'containerd' in f.read():
-                        return "docker"
-            except:
-                pass
-            # Check for DOCKER_CONTAINER env var (can be set in Dockerfile)
-            if os.getenv('DOCKER_CONTAINER') == 'true':
-                return "docker"
-            return "native"
+@app.get("/health/ready")
+async def readiness_check(db: Session = Depends(get_db)):
+    """
+    Readiness probe endpoint for Kubernetes/orchestration.
+    
+    Checks if the application is ready to accept traffic.
+    Returns 200 if ready, 503 if not ready.
+    
+    Use this for:
+    - Kubernetes readiness probes
+    - Load balancer health checks
+    - Service mesh health checks
+    
+    Args:
+        db: Database session dependency
         
-        environment_mode = detect_environment()
+    Returns:
+        dict: Readiness status
+    """
+    try:
+        from backend.health_checks import HealthChecker
+    except ModuleNotFoundError:
+        from health_checks import HealthChecker
+    
+    checker = HealthChecker(app.state, db_engine)
+    return checker.check_readiness(db)
 
-        return {
-            "status": "healthy",
-            "version": app.version if hasattr(app, "version") else None,
-            "database": "connected",
-            "timestamp": datetime.now().isoformat(),
-            "uptime": uptime_s,
-            "environment": environment_mode,
-            "statistics": {
-                "students": students_count,
-                "courses": courses_count
-            },
-            "services": {
-                "frontend": {
-                    "running": frontend_running,
-                    "port": frontend_port
-                }
-            },
-            "network": {
-                "host": hostname,
-                "ips": ips
-            }
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Health check failed")
+
+@app.get("/health/live")
+async def liveness_check():
+    """
+    Liveness probe endpoint for Kubernetes/orchestration.
+    
+    Minimal check to verify the application process is alive.
+    Should always return 200 unless the application is completely dead.
+    
+    Use this for:
+    - Kubernetes liveness probes
+    - Process monitoring
+    - Restart decisions
+    
+    Returns:
+        dict: Liveness status
+    """
+    try:
+        from backend.health_checks import HealthChecker
+    except ModuleNotFoundError:
+        from health_checks import HealthChecker
+    
+    checker = HealthChecker(app.state, db_engine)
+    return checker.check_liveness()
 
 
 # ============================================================================
