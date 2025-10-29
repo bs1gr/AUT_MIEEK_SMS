@@ -220,6 +220,7 @@ async def lifespan(app: FastAPI):
     Manage application lifespan events.
     
     Startup:
+    - Run database migrations
     - Initialize system
     - Setup database
     - Log startup information
@@ -233,7 +234,7 @@ async def lifespan(app: FastAPI):
     logger.info("\n" + "=" * 70)
     logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
     logger.info("=" * 70)
-    logger.info("Version: 3.0.1 - Production Ready")
+    logger.info("Version: 3.0.3 - Production Ready")
     logger.info("Database: SQLite")
     logger.info("Framework: FastAPI")
     logger.info("Logging: initialized")
@@ -245,12 +246,25 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
-    # Ensure database schema compatibility (best-effort, non-destructive)
+    # Run database migrations automatically on startup
+    logger.info("Checking for pending database migrations...")
+    try:
+        from backend.run_migrations import run_migrations
+        migration_success = run_migrations(verbose=False)
+        if migration_success:
+            logger.info("✓ Database migrations up to date")
+        else:
+            logger.warning("⚠ Database migrations failed - application may not function correctly")
+    except Exception as e:
+        logger.error(f"Migration runner error: {str(e)}")
+        logger.warning("Continuing without migration check...")
+
+    # Legacy schema compatibility check (kept for backward compatibility during transition)
     try:
         db_ensure_schema(db_engine)
-        logger.info("Database schema check completed (absence_penalty ensured)")
+        logger.info("Legacy schema check completed")
     except Exception as _e:
-        logger.warning(f"Database schema check failed (continuing): {_e}")
+        logger.warning(f"Legacy schema check failed (continuing): {_e}")
     
     yield
     
