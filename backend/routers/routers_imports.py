@@ -4,7 +4,7 @@ Bulk-import courses and students from JSON files in templates directories.
 - Courses dir: D:\SMS\student-management-system\templates\courses\
 - Students dir: D:\SMS\student-management-system\templates\students\
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 from typing import List
 import os
@@ -13,6 +13,8 @@ import logging
 from datetime import datetime
 import re
 import unicodedata
+
+from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 
 logger = logging.getLogger(__name__)
 
@@ -280,8 +282,12 @@ def diagnose_import_environment():
 
 
 @router.post("/courses")
-def import_courses(db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_HEAVY)
+def import_courses(request: Request, db: Session = Depends(get_db)):
     """Import all courses from JSON files in the courses templates directory.
+    
+    **Rate limit:** 5 requests per minute (heavy operation)
+    
     JSON schema example:
     {
       "course_code": "CS101",
@@ -579,7 +585,9 @@ def import_courses(db: Session = Depends(get_db)):
 
 
 @router.post("/upload")
+@limiter.limit(RATE_LIMIT_HEAVY)
 async def import_from_upload(
+    request: Request,
     import_type: str = Form(...),
     files: List[UploadFile] | None = File(None),
     file: str | None = Form(None),  # absorb stray text field named 'file'
@@ -587,6 +595,9 @@ async def import_from_upload(
     db: Session = Depends(get_db)
 ):
     """Import courses or students from uploaded JSON files.
+    
+    **Rate limit:** 5 requests per minute (heavy operation)
+    
     - import_type: 'courses' or 'students'
     - files: one or more .json files
     """
@@ -896,8 +907,12 @@ async def import_from_upload(
 
 
 @router.post("/students")
-def import_students(db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_HEAVY)
+def import_students(request: Request, db: Session = Depends(get_db)):
     """Import all students from JSON files in the students templates directory.
+    
+    **Rate limit:** 5 requests per minute (heavy operation)
+    
     JSON schema example:
     {
       "first_name": "John",
