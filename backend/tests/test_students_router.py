@@ -33,14 +33,9 @@ def test_create_student_success(client):
 
 def test_create_student_allows_empty_optional_strings(client):
     # Optional fields provided as empty strings should be treated as null/None
-    payload = make_student_payload(2,
-                                   father_name="",
-                                   mobile_phone="",
-                                   phone="",
-                                   health_issue="",
-                                   note="",
-                                   enrollment_date="",
-                                   study_year="")
+    payload = make_student_payload(
+        2, father_name="", mobile_phone="", phone="", health_issue="", note="", enrollment_date="", study_year=""
+    )
     r = client.post("/api/v1/students/", json=payload)
     assert r.status_code == 201, r.text
     data = r.json()

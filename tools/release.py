@@ -15,10 +15,10 @@ Usage examples:
 
 Exit code is non-zero on error.
 """
+
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import subprocess
 import sys
@@ -68,11 +68,11 @@ def find_versions() -> Tuple[str | None, dict[Path, str]]:
 def bump_version(ver: str, level: str) -> str:
     major, minor, patch = map(int, ver.split("."))
     if level == "major":
-        return f"{major+1}.0.0"
+        return f"{major + 1}.0.0"
     if level == "minor":
-        return f"{major}.{minor+1}.0"
+        return f"{major}.{minor + 1}.0"
     if level == "patch":
-        return f"{major}.{minor}.{patch+1}"
+        return f"{major}.{minor}.{patch + 1}"
     raise ValueError(f"Unknown level: {level}")
 
 
@@ -84,8 +84,10 @@ def update_versions(new_version: str) -> list[Path]:
         text = read_file_text(path)
         if not text:
             continue
+
         def _repl(m: re.Match) -> str:
             return f"{m.group(1)}{new_version}{m.group(3)}"
+
         new_text, n = rx.subn(_repl, text, count=1)
         if n:
             write_file_text(path, new_text)
@@ -107,7 +109,13 @@ def git_available() -> bool:
 
 def in_git_repo() -> bool:
     try:
-        cp = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, text=True)
+        cp = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            text=True,
+        )
         return cp.returncode == 0 and cp.stdout.strip() == "true"
     except Exception:
         return False

@@ -28,7 +28,9 @@ def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0):
     return client.post("/api/v1/courses/", json=payload).json()
 
 
-def _create_grade(client, student_id: int, course_id: int, name: str, category: str, grade: float, max_grade: float = 100.0):
+def _create_grade(
+    client, student_id: int, course_id: int, name: str, category: str, grade: float, max_grade: float = 100.0
+):
     return client.post(
         "/api/v1/grades/",
         json={

@@ -2,6 +2,7 @@
 Export Routes
 Provides endpoints to export data to Excel/PDF.
 """
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -32,6 +33,7 @@ from backend.db import get_session as get_db
 async def export_students_excel(db: Session = Depends(get_db)):
     try:
         from backend.models import Student
+
         students = db.query(Student).all()
 
         wb = openpyxl.Workbook()
@@ -71,6 +73,7 @@ async def export_students_excel(db: Session = Depends(get_db)):
 async def export_student_grades_excel(student_id: int, db: Session = Depends(get_db)):
     try:
         from backend.models import Student, Grade
+
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
@@ -122,10 +125,10 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
 def _letter_grade(percentage: float) -> str:
     """
     Convert a percentage grade to a letter grade.
-    
+
     Args:
         percentage: Numeric grade as a percentage (0-100)
-    
+
     Returns:
         Letter grade: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
     """
@@ -144,6 +147,7 @@ def _letter_grade(percentage: float) -> str:
 async def export_students_pdf(db: Session = Depends(get_db)):
     try:
         from backend.models import Student
+
         students = db.query(Student).all()
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -161,14 +165,16 @@ async def export_students_pdf(db: Session = Depends(get_db)):
         elements.append(Spacer(1, 0.2 * inch))
         data = [["ID", "Name", "Student ID", "Email", "Enrollment", "Status"]]
         for s in students:
-            data.append([
-                str(s.id),
-                f"{s.first_name} {s.last_name}",
-                s.student_id,
-                s.email,
-                str(s.enrollment_date),
-                "Active" if s.is_active else "Inactive",
-            ])
+            data.append(
+                [
+                    str(s.id),
+                    f"{s.first_name} {s.last_name}",
+                    s.student_id,
+                    s.email,
+                    str(s.enrollment_date),
+                    "Active" if s.is_active else "Inactive",
+                ]
+            )
         table = Table(data, colWidths=[0.5 * inch, 1.5 * inch, 1 * inch, 2 * inch, 1 * inch, 0.8 * inch])
         table.setStyle(
             TableStyle(
@@ -202,6 +208,7 @@ async def export_students_pdf(db: Session = Depends(get_db)):
 async def export_attendance_excel(db: Session = Depends(get_db)):
     try:
         from backend.models import Attendance
+
         records = db.query(Attendance).all()
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -240,6 +247,7 @@ async def export_courses_excel(db: Session = Depends(get_db)):
     """Export all courses to Excel"""
     try:
         from backend.models import Course
+
         courses = db.query(Course).all()
 
         wb = openpyxl.Workbook()
@@ -283,6 +291,7 @@ async def export_enrollments_excel(db: Session = Depends(get_db)):
     """Export all course enrollments to Excel"""
     try:
         from backend.models import CourseEnrollment, Student, Course
+
         enrollments = db.query(CourseEnrollment).all()
 
         wb = openpyxl.Workbook()
@@ -329,12 +338,26 @@ async def export_all_grades_excel(db: Session = Depends(get_db)):
     """Export all grades to Excel"""
     try:
         from backend.models import Grade, Student, Course
+
         grades = db.query(Grade).all()
 
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "All Grades"
-        headers = ["ID", "Student ID", "Student Name", "Course ID", "Course Name", "Assignment", "Category", "Score", "Max Score", "Percentage", "Weight", "Date Submitted"]
+        headers = [
+            "ID",
+            "Student ID",
+            "Student Name",
+            "Course ID",
+            "Course Name",
+            "Assignment",
+            "Category",
+            "Score",
+            "Max Score",
+            "Percentage",
+            "Weight",
+            "Date Submitted",
+        ]
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -381,12 +404,25 @@ async def export_daily_performance_excel(db: Session = Depends(get_db)):
     """Export all daily performance records to Excel"""
     try:
         from backend.models import DailyPerformance, Student, Course
+
         performances = db.query(DailyPerformance).all()
 
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Daily Performance"
-        headers = ["ID", "Student ID", "Student Name", "Course ID", "Course Name", "Date", "Category", "Score", "Max Score", "Percentage", "Notes"]
+        headers = [
+            "ID",
+            "Student ID",
+            "Student Name",
+            "Course ID",
+            "Course Name",
+            "Date",
+            "Category",
+            "Score",
+            "Max Score",
+            "Percentage",
+            "Notes",
+        ]
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -431,12 +467,23 @@ async def export_highlights_excel(db: Session = Depends(get_db)):
     """Export all student highlights to Excel"""
     try:
         from backend.models import Highlight, Student
+
         highlights = db.query(Highlight).all()
 
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Highlights"
-        headers = ["ID", "Student ID", "Student Name", "Semester", "Category", "Rating", "Highlight Text", "Date Created", "Is Positive"]
+        headers = [
+            "ID",
+            "Student ID",
+            "Student Name",
+            "Semester",
+            "Category",
+            "Rating",
+            "Highlight Text",
+            "Date Created",
+            "Is Positive",
+        ]
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -484,7 +531,7 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             raise HTTPException(status_code=404, detail="Student not found")
 
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
         elements = []
         styles = getSampleStyleSheet()
 
@@ -507,10 +554,12 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             spaceAfter=20,
             alignment=1,
         )
-        elements.append(Paragraph(
-            f"<b>{student.first_name} {student.last_name}</b> ({student.student_id})<br/>{student.email}",
-            info_style
-        ))
+        elements.append(
+            Paragraph(
+                f"<b>{student.first_name} {student.last_name}</b> ({student.student_id})<br/>{student.email}",
+                info_style,
+            )
+        )
         elements.append(Spacer(1, 0.3 * inch))
 
         # Attendance Summary
@@ -533,19 +582,23 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
 
         att_data = [
             ["Total Classes", "Present", "Absent", "Late", "Excused", "Attendance Rate"],
-            [str(total_att), str(present), str(absent), str(late), str(excused), f"{att_rate:.1f}%"]
+            [str(total_att), str(present), str(absent), str(late), str(excused), f"{att_rate:.1f}%"],
         ]
-        att_table = Table(att_data, colWidths=[1.2*inch, 1.2*inch, 1.2*inch, 1.2*inch, 1.2*inch, 1.3*inch])
-        att_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 10),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
+        att_table = Table(att_data, colWidths=[1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.3 * inch])
+        att_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
         elements.append(att_table)
         elements.append(Spacer(1, 0.3 * inch))
 
@@ -572,31 +625,39 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             for g in course_grade_list:
                 pct = (g.grade / g.max_grade * 100) if g.max_grade else 0
                 total_pct += pct
-                grade_data.append([
-                    g.assignment_name[:20],
-                    g.category or "N/A",
-                    str(g.grade),
-                    str(g.max_grade),
-                    f"{pct:.1f}%",
-                    _letter_grade(pct)
-                ])
+                grade_data.append(
+                    [
+                        g.assignment_name[:20],
+                        g.category or "N/A",
+                        str(g.grade),
+                        str(g.max_grade),
+                        f"{pct:.1f}%",
+                        _letter_grade(pct),
+                    ]
+                )
 
             avg_pct = total_pct / len(course_grade_list) if course_grade_list else 0
             grade_data.append(["", "", "", "Average:", f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
 
-            grade_table = Table(grade_data, colWidths=[2*inch, 1.2*inch, 0.8*inch, 1*inch, 1*inch, 0.8*inch])
-            grade_table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 9),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
-                ("BACKGROUND", (0, 1), (-1, -2), colors.beige),
-                ("BACKGROUND", (0, -1), (-1, -1), colors.lightgrey),
-                ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-                ("GRID", (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            grade_table = Table(
+                grade_data, colWidths=[2 * inch, 1.2 * inch, 0.8 * inch, 1 * inch, 1 * inch, 0.8 * inch]
+            )
+            grade_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 9),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+                        ("BACKGROUND", (0, 1), (-1, -2), colors.beige),
+                        ("BACKGROUND", (0, -1), (-1, -1), colors.lightgrey),
+                        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             elements.append(grade_table)
             elements.append(Spacer(1, 0.2 * inch))
 
@@ -618,10 +679,12 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             alignment=1,
         )
         elements.append(Spacer(1, 0.3 * inch))
-        elements.append(Paragraph(
-            f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>Student Management System",
-            footer_style
-        ))
+        elements.append(
+            Paragraph(
+                f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>Student Management System",
+                footer_style,
+            )
+        )
 
         doc.build(elements)
         buffer.seek(0)
@@ -643,6 +706,7 @@ async def export_courses_pdf(db: Session = Depends(get_db)):
     """Export all courses to PDF"""
     try:
         from backend.models import Course
+
         courses = db.query(Course).all()
 
         buffer = BytesIO()
@@ -663,25 +727,31 @@ async def export_courses_pdf(db: Session = Depends(get_db)):
 
         data = [["Code", "Course Name", "Semester", "Credits", "Hours/Week"]]
         for c in courses:
-            data.append([
-                c.course_code,
-                c.course_name[:30],
-                c.semester or "N/A",
-                str(c.credits or 0),
-                str(c.hours_per_week or 0),
-            ])
+            data.append(
+                [
+                    c.course_code,
+                    c.course_name[:30],
+                    c.semester or "N/A",
+                    str(c.credits or 0),
+                    str(c.hours_per_week or 0),
+                ]
+            )
 
-        table = Table(data, colWidths=[1*inch, 2.5*inch, 1.3*inch, 0.8*inch, 1*inch])
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 11),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
+        table = Table(data, colWidths=[1 * inch, 2.5 * inch, 1.3 * inch, 0.8 * inch, 1 * inch])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 11),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
         elements.append(table)
 
         doc.build(elements)
@@ -708,7 +778,7 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             raise HTTPException(status_code=404, detail="Course not found")
 
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch)
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch)
         elements = []
         styles = getSampleStyleSheet()
 
@@ -731,10 +801,12 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             spaceAfter=20,
             alignment=1,
         )
-        elements.append(Paragraph(
-            f"<b>{course.course_code} - {course.course_name}</b><br/>Semester: {course.semester or 'N/A'}<br/>Credits: {course.credits or 0}",
-            info_style
-        ))
+        elements.append(
+            Paragraph(
+                f"<b>{course.course_code} - {course.course_name}</b><br/>Semester: {course.semester or 'N/A'}<br/>Credits: {course.credits or 0}",
+                info_style,
+            )
+        )
         elements.append(Spacer(1, 0.3 * inch))
 
         # Get enrollments
@@ -775,17 +847,21 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             ["Lowest Grade", f"{lowest:.1f}%"],
         ]
 
-        stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
-        stats_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 11),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
+        stats_table = Table(stats_data, colWidths=[3 * inch, 2 * inch])
+        stats_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 11),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
         elements.append(stats_table)
         elements.append(Spacer(1, 0.3 * inch))
 
@@ -802,24 +878,28 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
 
             dist_data = [
                 ["Letter Grade", "Count", "Percentage"],
-                ["A (90-100%)", str(a_count), f"{a_count/len(grades)*100:.1f}%"],
-                ["B (80-89%)", str(b_count), f"{b_count/len(grades)*100:.1f}%"],
-                ["C (70-79%)", str(c_count), f"{c_count/len(grades)*100:.1f}%"],
-                ["D (60-69%)", str(d_count), f"{d_count/len(grades)*100:.1f}%"],
-                ["F (<60%)", str(f_count), f"{f_count/len(grades)*100:.1f}%"],
+                ["A (90-100%)", str(a_count), f"{a_count / len(grades) * 100:.1f}%"],
+                ["B (80-89%)", str(b_count), f"{b_count / len(grades) * 100:.1f}%"],
+                ["C (70-79%)", str(c_count), f"{c_count / len(grades) * 100:.1f}%"],
+                ["D (60-69%)", str(d_count), f"{d_count / len(grades) * 100:.1f}%"],
+                ["F (<60%)", str(f_count), f"{f_count / len(grades) * 100:.1f}%"],
             ]
 
-            dist_table = Table(dist_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
-            dist_table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                ("GRID", (0, 0), (-1, -1), 1, colors.black),
-            ]))
+            dist_table = Table(dist_data, colWidths=[2 * inch, 1.5 * inch, 1.5 * inch])
+            dist_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ]
+                )
+            )
             elements.append(dist_table)
 
         # Footer
@@ -831,10 +911,12 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             alignment=1,
         )
         elements.append(Spacer(1, 0.3 * inch))
-        elements.append(Paragraph(
-            f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>Student Management System",
-            footer_style
-        ))
+        elements.append(
+            Paragraph(
+                f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>Student Management System",
+                footer_style,
+            )
+        )
 
         doc.build(elements)
         buffer.seek(0)

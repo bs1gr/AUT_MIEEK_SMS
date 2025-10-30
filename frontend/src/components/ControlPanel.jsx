@@ -300,9 +300,9 @@ const ControlPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+  <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Settings className="text-indigo-400" size={28} />
@@ -326,7 +326,7 @@ const ControlPanel = () => {
       </header>
 
       {/* Tabs */}
-      <div className="bg-gray-800 border-b border-gray-700">
+  <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="px-6">
           <nav className="flex gap-1">
             {[
@@ -364,7 +364,7 @@ const ControlPanel = () => {
         {activeTab === 'operations' && (
           <div className="space-y-6">
             {/* System Control */}
-            <div className="bg-gray-800 border border-red-900/20 rounded-lg p-6">
+            <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/20 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
                 <Square size={20} className="text-red-400" />
                 System Control
@@ -379,7 +379,7 @@ const ControlPanel = () => {
               <button
                 onClick={stopAll}
                 disabled={!status?.backend}
-                className="w-full flex items-center justify-between px-4 py-3 bg-red-900/30 hover:bg-red-900/50 disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-700 rounded-lg transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-200 dark:border-red-700 rounded-lg transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <Square size={18} />
@@ -392,7 +392,7 @@ const ControlPanel = () => {
             </div>
 
             {/* Native operations */}
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={20} />
                 {t('controlPanel.nativeOperations')}
@@ -401,7 +401,7 @@ const ControlPanel = () => {
                 <button
                   onClick={() => runOperation('install-frontend-deps', t('controlPanel.operationSuccess'))}
                   disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.installFrontendDeps')}</span>
                   <Package size={18} />
@@ -409,16 +409,16 @@ const ControlPanel = () => {
                 <button
                   onClick={() => runOperation('install-backend-deps', t('controlPanel.operationSuccess'))}
                   disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.installBackendDeps')}</span>
                   <Package size={18} />
                 </button>
-                <div className="h-px bg-gray-700 my-2" />
+                <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
                 <button
                   onClick={() => runOperation('cleanup', t('controlPanel.operationSuccess'))}
                   disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.cleanupDesc')}</span>
                   <Trash2 size={18} />
@@ -426,16 +426,30 @@ const ControlPanel = () => {
                 <button
                   onClick={() => runOperation('cleanup-obsolete', t('controlPanel.operationSuccess'))}
                   disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.cleanupObsoleteDesc') || 'Cleanup obsolete files (docs, unused)'} </span>
+                  <Trash2 size={18} />
+                </button>
+                <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
+                <button
+                  onClick={async () => {
+                    const ok = confirm(t('controlPanel.confirmDockerCleanup') || 'Prune Docker (containers, images, build cache)?');
+                    if (!ok) return;
+                    const includeVolumes = confirm(t('controlPanel.confirmDockerCleanupVolumes') || 'Also prune unused volumes? WARNING: data volumes may be removed');
+                    await runOperationPath(`/operations/docker-prune?include_volumes=${includeVolumes ? 'true' : 'false'}`, t('controlPanel.operationSuccess'));
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-orange-50 dark:bg-gray-700 hover:bg-orange-100 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  <span>{t('controlPanel.dockerCleanupDesc') || 'Prune Docker (stopped containers, dangling images, build cache)'}</span>
                   <Trash2 size={18} />
                 </button>
               </div>
             </div>
 
             {/* Docker operations */}
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Container size={20} />
                 {t('controlPanel.dockerOperations')}
@@ -444,7 +458,7 @@ const ControlPanel = () => {
                 <button
                   onClick={() => runOperation('docker-build', t('controlPanel.operationSuccess'))}
                   disabled={loading || !status?.docker}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.dockerBuildDesc')}</span>
                   <Container size={18} />
@@ -460,7 +474,7 @@ const ControlPanel = () => {
                     }
                   }}
                   disabled={loading}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   <span>{t('controlPanel.dockerUpdateVolumeDesc') || 'Create and switch to a new versioned volume (writes docker-compose.override.yml)'}</span>
                   <Container size={18} />
@@ -491,7 +505,7 @@ const ControlPanel = () => {
             </div>
 
             {diagnostics.map((diag, index) => (
-              <div key={index} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   {getDiagnosticIcon(diag.status)}
                   <div className="flex-1">
@@ -507,7 +521,7 @@ const ControlPanel = () => {
                     </div>
                     <p className="text-sm text-gray-400 mt-1">{diag.message}</p>
                     {diag.details && Object.keys(diag.details).length > 0 && (
-                      <pre className="mt-2 text-xs bg-gray-900 p-2 rounded border border-gray-700 overflow-x-auto">
+                      <pre className="mt-2 text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
                         {JSON.stringify(diag.details, null, 2)}
                       </pre>
                     )}
@@ -532,9 +546,9 @@ const ControlPanel = () => {
               </button>
             </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-700">
+                <thead className="bg-gray-100 dark:bg-gray-700">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium">Port</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -579,7 +593,7 @@ const ControlPanel = () => {
               </button>
             </div>
 
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto">
+            <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto">
               {logs.length === 0 ? (
                 <p className="text-gray-500">{t('controlPanel.noLogsAvailable')}</p>
               ) : (
@@ -632,7 +646,7 @@ const ControlPanel = () => {
               </button>
             </div>
             
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <div className="space-y-4">
                 {/* Application Info */}
                 <div>
@@ -686,7 +700,7 @@ const ControlPanel = () => {
                   {showRuntimeDetails && environment.python_packages && (
                     <div className="md:col-span-2">
                       <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.runtimeDetails')}</h3>
-                      <div className="bg-gray-900 border border-gray-700 rounded p-3 overflow-x-auto">
+                      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 overflow-x-auto">
                         <div className="text-xs text-gray-400 mb-2">{t('controlPanel.pythonPackages')}</div>
                         <table className="w-full text-sm">
                           <thead>

@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
     CORS_ORIGINS: str = "http://localhost:5173"
 
+    # Security / JWT
+    # Names aligned with .env.example
+    SECRET_KEY: str = "change-me"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Feature flags
+    # Toggle authentication/authorization enforcement without code changes.
+    # Default disabled to preserve backward compatibility and keep tests passing.
+    AUTH_ENABLED: bool = False
+
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
         v: Any = getattr(self, "CORS_ORIGINS", "")
@@ -50,6 +61,7 @@ class Settings(BaseSettings):
         if s.startswith("[") and s.endswith("]"):
             try:
                 import json
+
                 data = json.loads(s)
                 if isinstance(data, list):
                     return [str(x).strip() for x in data if str(x).strip()]

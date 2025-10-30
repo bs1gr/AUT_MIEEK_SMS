@@ -49,7 +49,7 @@ def _ensure_column(engine, table: str, column: str, coltype_sql: str, default_sq
             else:
                 # Generic approach for other dialects
                 inspector = inspect(engine)
-                cols = [c['name'] for c in inspector.get_columns(table)]
+                cols = [c["name"] for c in inspector.get_columns(table)]
                 if column not in cols:
                     alter = f"ALTER TABLE {table} ADD COLUMN {column} {coltype_sql}"
                     if default_sql is not None:

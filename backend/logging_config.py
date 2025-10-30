@@ -7,19 +7,19 @@ from pathlib import Path
 
 def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> logging.Logger:
     level = getattr(logging, log_level.upper(), logging.INFO)
-    
+
     # Import RequestIDFilter
     try:
         from backend.request_id_middleware import RequestIDFilter
     except ModuleNotFoundError:
         from request_id_middleware import RequestIDFilter
-    
+
     # Format with request ID support
-    log_format = '%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s'
-    
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"
+
     # Configure basicConfig
     logging.basicConfig(level=level, format=log_format)
-    
+
     # Add RequestIDFilter to root logger to ensure all logs have request_id
     root_logger = logging.getLogger()
     for handler in root_logger.handlers:
@@ -36,7 +36,10 @@ def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> loggin
 
     root_logger = logging.getLogger()
     # Avoid duplicate handlers if reloaded
-    if not any(isinstance(h, RotatingFileHandler) and getattr(h, 'baseFilename', None) == str(log_file) for h in root_logger.handlers):
+    if not any(
+        isinstance(h, RotatingFileHandler) and getattr(h, "baseFilename", None) == str(log_file)
+        for h in root_logger.handlers
+    ):
         root_logger.addHandler(handler)
 
     logger = logging.getLogger(__name__)
