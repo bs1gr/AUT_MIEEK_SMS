@@ -73,6 +73,7 @@ httpx==0.27.2
 **Issue**: FastAPI's latest stable release as of late 2024 is 0.115.x. Version 0.120.0 doesn't exist in official releases.
 
 **Action Required**:
+
 ```bash
 # Check actual installed version
 pip show fastapi
@@ -82,6 +83,7 @@ pip install fastapi==0.115.4
 ```
 
 **Breaking Changes (if downgrading from typo'd version)**:
+
 - None expected if moving to real 0.115.x from 0.110.x series
 - Lifespan context manager is stable (used correctly in `main.py`)
 
@@ -96,6 +98,7 @@ pip install fastapi==0.115.4
 **Similar issue** to FastAPI - version 0.38.0 exceeds known releases.
 
 **Action**:
+
 ```bash
 pip show uvicorn
 pip install 'uvicorn[standard]==0.32.1'
@@ -112,6 +115,7 @@ pip install 'uvicorn[standard]==0.32.1'
 **Recommendation**: ✅ **Keep current** (ahead of latest)
 
 **Notes**:
+
 - Project correctly uses SQLAlchemy 2.0 API
 - Relationship cascades properly configured
 - Session management via dependency injection is best practice
@@ -194,7 +198,7 @@ pip install psutil==6.1.1  # Likely already on this version
 
 ```pip-requirements
 # Security
-python-jose[cryptography]==3.3.0  # JWT tokens
+PyJWT==2.9.0                      # JWT tokens (replaces python-jose)
 passlib[bcrypt]==1.7.4            # Password hashing
 
 # Rate Limiting
@@ -213,25 +217,33 @@ gunicorn==23.0.0                  # Process manager
 
 **Installation**:
 ```bash
-pip install python-jose[cryptography] passlib[bcrypt] slowapi python-dotenv
+pip install PyJWT passlib[bcrypt] slowapi python-dotenv
 ```
+
+Notes:
+
+- We migrated from python-jose to PyJWT. Update imports to `import jwt` and catch `jwt.InvalidTokenError` instead of jose exceptions.
+- Use timezone-aware datetimes (e.g., `datetime.now(tz=timezone.utc)`) for the `exp` claim to avoid `datetime.utcnow()` deprecation warnings on newer Python versions.
 
 ---
 
 ### Dependency Vulnerability Scan
 
 **Run pip-audit**:
+
 ```bash
 pip install pip-audit
 pip-audit --requirement backend/requirements.txt
 ```
 
 **Expected Output** (no critical issues in current versions):
-```
+
+```text
 No known vulnerabilities found
 ```
 
 **Alternative: Safety**:
+
 ```bash
 pip install safety
 safety check --file backend/requirements.txt
@@ -244,6 +256,7 @@ safety check --file backend/requirements.txt
 ### Current Versions (package.json)
 
 **Core Dependencies**:
+
 ```json
 {
   "axios": "^1.7.7",
@@ -255,6 +268,7 @@ safety check --file backend/requirements.txt
 ```
 
 **DevDependencies**:
+
 ```json
 {
   "@tailwindcss/line-clamp": "^0.4.4",
@@ -300,6 +314,7 @@ safety check --file backend/requirements.txt
 4. **Asset Loading API**: Better control over resource loading
 
 **Breaking Changes**:
+
 - `React.FC` type changes (TypeScript)
 - Deprecated `defaultProps` for function components
 - `useEffect` timing adjustments
@@ -308,21 +323,25 @@ safety check --file backend/requirements.txt
 **Migration Steps** (when ready):
 
 1. **Check Dependency Compatibility**:
+
    ```bash
    npm outdated  # Check for React 19-compatible versions
    ```
 
 2. **Update React Core**:
+
    ```bash
    npm install react@19 react-dom@19
    ```
 
 3. **Update Type Definitions**:
+
    ```bash
    npm install --save-dev @types/react@19 @types/react-dom@19
    ```
 
 4. **Run Tests**:
+
    ```bash
    npm run build  # Check for build errors
    ```
@@ -330,6 +349,7 @@ safety check --file backend/requirements.txt
 5. **Review Deprecation Warnings** in console
 
 **Rollback Plan**:
+
 ```bash
 npm install react@18.3.1 react-dom@18.3.1 @types/react@18.3.12 @types/react-dom@18.3.1
 ```
@@ -345,16 +365,19 @@ npm install react@18.3.1 react-dom@18.3.1 @types/react@18.3.12 @types/react-dom@
 **Recommendation**: ✅ **Safe to upgrade**
 
 **Changes**:
+
 - Bug fixes for request cancellation
 - Improved TypeScript definitions
 - Security patches
 
 **Upgrade**:
+
 ```bash
 npm install axios@1.7.9
 ```
 
 **Testing**:
+
 - Verify all API calls still work
 - Check request/response interceptors
 - Test file uploads (if any)
@@ -368,11 +391,13 @@ npm install axios@1.7.9
 **Recommendation**: ✅ **Safe to upgrade**
 
 **Changes**:
+
 - Bug fixes for nested routes
 - Improved scroll restoration
 - Type definition improvements
 
 **Upgrade**:
+
 ```bash
 npm install react-router-dom@6.28.2
 ```
@@ -386,11 +411,13 @@ npm install react-router-dom@6.28.2
 **Recommendation**: ✅ **Safe to upgrade**
 
 **Changes**:
+
 - HMR reliability improvements
 - Build optimization fixes
 - Dependency pre-bundling enhancements
 
 **Upgrade**:
+
 ```bash
 npm install --save-dev vite@5.4.11
 ```
@@ -404,16 +431,19 @@ npm install --save-dev vite@5.4.11
 **Recommendation**: ✅ **Safe to upgrade**
 
 **Changes**:
+
 - New utility classes
 - Bug fixes for arbitrary values
 - JIT mode optimizations
 
 **Upgrade**:
+
 ```bash
 npm install --save-dev tailwindcss@3.4.16
 ```
 
 **Testing**:
+
 - Verify CSS builds correctly
 - Check for visual regressions in UI
 
@@ -426,11 +456,13 @@ npm install --save-dev tailwindcss@3.4.16
 **Recommendation**: 🔄 **Low priority, safe if needed**
 
 **Changes**:
+
 - New icon additions
 - Icon design refinements
 - No breaking changes
 
 **Upgrade**:
+
 ```bash
 npm install lucide-react@0.460.0
 ```
@@ -468,23 +500,27 @@ npm install lucide-react@0.460.0
 ### Dependency Vulnerability Scan
 
 **Run npm audit**:
+
 ```bash
 cd frontend
 npm audit
 ```
 
 **Expected Output**:
-```
+
+```text
 found 0 vulnerabilities
 ```
 
 **If vulnerabilities found**:
+
 ```bash
 npm audit fix          # Automatic fixes (safe updates)
 npm audit fix --force  # Potentially breaking fixes (use with caution)
 ```
 
 **Alternative: Snyk**:
+
 ```bash
 npx snyk test
 ```
@@ -496,6 +532,7 @@ npx snyk test
 ### Phase 1: Safe Patch Updates (Week 1)
 
 **Backend**:
+
 ```bash
 cd backend
 pip install httpx==0.28.1
@@ -503,6 +540,7 @@ pytest -q  # Verify tests pass
 ```
 
 **Frontend**:
+
 ```bash
 cd frontend
 npm install axios@1.7.9 react-router-dom@6.28.2 vite@5.4.11 tailwindcss@3.4.16
@@ -510,6 +548,7 @@ npm run build  # Verify build succeeds
 ```
 
 **Validation**:
+
 - Run full test suite
 - Manual smoke testing of core features
 - Check CI/CD pipeline passes
@@ -519,7 +558,9 @@ npm run build  # Verify build succeeds
 ### Phase 2: Version Number Verification (Week 1-2)
 
 **Action Items**:
+
 1. Verify actual installed versions:
+
    ```bash
    pip freeze | grep -E 'fastapi|uvicorn|sqlalchemy|pydantic|psutil'
    ```
@@ -533,16 +574,18 @@ npm run build  # Verify build succeeds
 ### Phase 3: Security Additions (Week 2-3)
 
 **Add authentication libraries**:
+
 ```bash
-pip install python-jose[cryptography] passlib[bcrypt] slowapi python-dotenv
+pip install PyJWT passlib[bcrypt] slowapi python-dotenv
 ```
 
 **Update requirements.txt**:
+
 ```pip-requirements
 # ... existing dependencies
 
 # Security (added in v1.2)
-python-jose[cryptography]==3.3.0
+PyJWT==2.9.0
 passlib[bcrypt]==1.7.4
 slowapi==0.1.9
 python-dotenv==1.0.1
@@ -557,11 +600,13 @@ python-dotenv==1.0.1
 **Timeline**: After ecosystem stabilizes (March-April 2025)
 
 **Prerequisites**:
+
 1. Major libraries (react-router, axios) confirm React 19 support
 2. No critical bugs reported in React 19.1+
 3. Team completes React 19 training
 
 **Migration Steps**:
+
 1. Create feature branch: `react-19-migration`
 2. Update dependencies
 3. Fix deprecation warnings
@@ -788,7 +833,7 @@ alembic downgrade <revision_id>
 
 1. Verify and correct version numbers in `requirements.txt` (fastapi, uvicorn, psutil)
 2. Apply safe patch updates (httpx, axios, react-router, vite, tailwindcss)
-3. Add security dependencies (python-jose, passlib, slowapi)
+3. Add security dependencies (PyJWT, passlib, slowapi)
 4. Configure Dependabot for automated updates
 
 **Long-Term Planning**:

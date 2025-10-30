@@ -344,7 +344,29 @@
             padding: 20px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
+        }
+
+        .header-subtitle {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .diag-placeholder {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .footer-note {
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .link-inverted {
+            color: white;
+            text-decoration: underline;
         }
 
         .logs-container {
@@ -407,7 +429,7 @@
     <div class="container">
         <div class="header">
             <h1>🎓 Student Management System - Control Panel</h1>
-            <p style="color: #666; margin-top: 5px;">Real-time system monitoring and management</p>
+            <p class="header-subtitle">Real-time system monitoring and management</p>
             <div class="version-info" id="versionInfo">
                 <div class="version-badge">
                     <strong>App Version:</strong> <span id="appVersion">Loading...</span>
@@ -514,7 +536,7 @@
             <h2>🔬 System Diagnostics</h2>
             <button class="btn" onclick="runDiagnostics()">▶️ Run Diagnostics</button>
             <div class="diagnostic-list" id="diagnosticsList">
-                <p style="color: #666; text-align: center; padding: 20px;">Click "Run Diagnostics" to check system health</p>
+                <p class="diag-placeholder">Click "Run Diagnostics" to check system health</p>
             </div>
         </div>
 
@@ -527,7 +549,7 @@
 
         <div class="footer">
             <p><strong>Student Management System</strong> v<span id="footerVersion">1.2.0</span></p>
-            <p style="margin-top: 8px; opacity: 0.9;">For help, see <a href="/docs" style="color: white; text-decoration: underline;">API Documentation</a></p>
+            <p class="footer-note">For help, see <a href="/docs" class="link-inverted">API Documentation</a></p>
         </div>
     </div>
 

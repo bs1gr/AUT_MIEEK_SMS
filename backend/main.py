@@ -1,4 +1,3 @@
-
 """
 Student Management System - Final Fixed Version
 Version 3.0.1 - Production Ready with All Fixes Applied
@@ -67,8 +66,8 @@ except ModuleNotFoundError:
 
 if sys.platform == "win32":
     # Force UTF-8 encoding for console output on Windows
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # ============================================================================
 # CONTROL PANEL & SPA CONFIGURATION (project root paths)
@@ -76,6 +75,7 @@ if sys.platform == "win32":
 
 try:
     from pathlib import Path
+
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     # Ensure project root is on sys.path so absolute imports like 'backend.xxx' work
     if str(PROJECT_ROOT) not in sys.path:
@@ -93,6 +93,7 @@ FRONTEND_PROCESS: subprocess.Popen | None = None
 FRONTEND_PORT_PREFERRED = 5173
 FRONTEND_PORT_CANDIDATES = list(range(5173, 5181))  # 5173-5180
 
+
 def _is_port_open(host: str, port: int, timeout: float = 0.5) -> bool:
     try:
         with socket.create_connection((host, port), timeout=timeout):
@@ -100,11 +101,13 @@ def _is_port_open(host: str, port: int, timeout: float = 0.5) -> bool:
     except OSError:
         return False
 
+
 def _detect_frontend_port() -> int | None:
     for p in FRONTEND_PORT_CANDIDATES:
         if _is_port_open("127.0.0.1", p):
             return p
     return None
+
 
 def _find_pids_on_port(port: int) -> list[int]:
     """Return a list of PIDs listening on the given TCP port (Windows only)."""
@@ -138,6 +141,7 @@ def _find_pids_on_port(port: int) -> list[int]:
         logger.warning(f"Failed to find PIDs on port {port}: {e}")
         return []
 
+
 def _resolve_npm_command() -> str | None:
     """Resolve npm executable on Windows reliably.
     Returns a command string (quoted path) suitable for shell=True invocations, or None if not found.
@@ -153,7 +157,9 @@ def _resolve_npm_command() -> str | None:
     candidates = [
         os.path.join(os.environ.get("ProgramFiles", r"C:\\Program Files"), "nodejs", "npm.cmd"),
         os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)"), "nodejs", "npm.cmd"),
-        os.path.join(os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")), "Programs", "nodejs", "npm.cmd"),
+        os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")), "Programs", "nodejs", "npm.cmd"
+        ),
         os.path.join(os.environ.get("APPDATA", os.path.expandvars(r"%APPDATA%")), "npm", "npm.cmd"),
         os.path.join(nvm_home, "nodejs", "npm.cmd") if nvm_home else "",
         os.path.join(nvm_symlink, "npm.cmd") if nvm_symlink else "",
@@ -170,6 +176,7 @@ def _resolve_npm_command() -> str | None:
         return f'"{found_npx}"'
     return None
 
+
 # ============================================================================
 # ERROR HANDLING & LOGGING INITIALIZATION
 # ============================================================================
@@ -181,10 +188,7 @@ initialize_logging(log_dir="logs", log_level="INFO")
 # LOGGING CONFIGURATION
 # ============================================================================
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # ============================================================================
@@ -207,10 +211,11 @@ except ModuleNotFoundError:
 # FASTAPI APPLICATION FACTORY
 # ============================================================================
 
+
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Returns:
         FastAPI: Configured application instance
     """
@@ -227,17 +232,18 @@ def create_app() -> FastAPI:
 # LIFESPAN MANAGEMENT (Modern FastAPI approach)
 # ============================================================================
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Manage application lifespan events.
-    
+
     Startup:
     - Run database migrations
     - Initialize system
     - Setup database
     - Log startup information
-    
+
     Shutdown:
     - Cleanup tasks
     - Close database connections
@@ -263,6 +269,7 @@ async def lifespan(app: FastAPI):
     logger.info("Checking for pending database migrations...")
     try:
         from backend.run_migrations import run_migrations
+
         migration_success = run_migrations(verbose=False)
         if migration_success:
             logger.info("✓ Database migrations up to date")
@@ -278,9 +285,9 @@ async def lifespan(app: FastAPI):
         logger.info("Legacy schema check completed")
     except Exception as _e:
         logger.warning(f"Legacy schema check failed (continuing): {_e}")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("\n" + "=" * 70)
     logger.info("STUDENT MANAGEMENT SYSTEM - SHUTDOWN")
@@ -322,11 +329,13 @@ app.add_middleware(
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 
+
 @app.get("/control")
 def control_page():
     if CONTROL_HTML and CONTROL_HTML.exists():
         return FileResponse(str(CONTROL_HTML))
     return JSONResponse({"error": "control panel HTML not found"}, status_code=404)
+
 
 @app.get("/control/api/status")
 def control_status():
@@ -340,11 +349,12 @@ def control_status():
         "frontend_port": detected,
     }
 
+
 @app.post("/control/api/start")
 def control_start():
     """
     Start the frontend development server (Vite).
-    
+
     Professional startup sequence:
     1. Check if frontend is already running
     2. Validate frontend directory and package.json
@@ -352,33 +362,25 @@ def control_start():
     4. Auto-install dependencies if missing
     5. Start Vite dev server on dedicated port
     6. Wait for server readiness with timeout
-    
+
     Returns:
         JSONResponse with success status and detailed message
     """
     global FRONTEND_PROCESS
-    
+
     try:
         # 1. Check if frontend is already running
         if _is_port_open("127.0.0.1", FRONTEND_PORT_PREFERRED):
             logger.info(f"Frontend already running on port {FRONTEND_PORT_PREFERRED}")
-            return {
-                "success": True,
-                "message": "Frontend already running",
-                "port": FRONTEND_PORT_PREFERRED
-            }
-        
+            return {"success": True, "message": "Frontend already running", "port": FRONTEND_PORT_PREFERRED}
+
         # 2. Validate frontend directory structure
         frontend_dir = os.path.join(PROJECT_ROOT, "frontend")
         if not os.path.isdir(frontend_dir):
             logger.error("Frontend directory not found")
             return JSONResponse(
-                {
-                    "success": False,
-                    "message": "Frontend directory not found",
-                    "path": str(frontend_dir)
-                },
-                status_code=400
+                {"success": False, "message": "Frontend directory not found", "path": str(frontend_dir)},
+                status_code=400,
             )
 
         # 3. Resolve and validate npm command
@@ -386,13 +388,10 @@ def control_start():
         if not npm_cmd:
             logger.error("npm command not found - Node.js may not be installed")
             return JSONResponse(
-                {
-                    "success": False,
-                    "message": "npm not found. Please install Node.js (https://nodejs.org/)"
-                },
-                status_code=400
+                {"success": False, "message": "npm not found. Please install Node.js (https://nodejs.org/)"},
+                status_code=400,
             )
-        
+
         # Validate npm is executable
         try:
             version_check = subprocess.run(
@@ -403,7 +402,7 @@ def control_start():
                 shell=True,
                 check=False,
                 timeout=5,
-                text=True
+                text=True,
             )
             if version_check.returncode != 0:
                 raise subprocess.CalledProcessError(version_check.returncode, npm_cmd)
@@ -411,11 +410,8 @@ def control_start():
         except Exception as e:
             logger.error(f"npm validation failed: {e}")
             return JSONResponse(
-                {
-                    "success": False,
-                    "message": "npm validation failed. Ensure Node.js/npm are properly installed."
-                },
-                status_code=400
+                {"success": False, "message": "npm validation failed. Ensure Node.js/npm are properly installed."},
+                status_code=400,
             )
 
         # 4. Validate package.json and ensure dependencies
@@ -423,23 +419,18 @@ def control_start():
         if not os.path.isfile(pkg_path):
             logger.error("package.json not found in frontend directory")
             return JSONResponse(
-                {
-                    "success": False,
-                    "message": "package.json not found",
-                    "path": pkg_path
-                },
-                status_code=400
+                {"success": False, "message": "package.json not found", "path": pkg_path}, status_code=400
             )
 
         # Auto-install dependencies if node_modules is missing
         node_modules = os.path.join(frontend_dir, "node_modules")
         if not os.path.isdir(node_modules):
             logger.info("node_modules not found - installing dependencies...")
-            
+
             # Prefer npm ci (clean install) if lockfile exists
             lockfile = os.path.join(frontend_dir, "package-lock.json")
             install_cmd = f"{npm_cmd} ci" if os.path.isfile(lockfile) else f"{npm_cmd} install"
-            
+
             try:
                 logger.info(f"Running: {install_cmd}")
                 install_result = subprocess.run(
@@ -450,9 +441,9 @@ def control_start():
                     stderr=subprocess.STDOUT,
                     check=False,
                     text=True,
-                    timeout=300  # 5 minute timeout for npm install
+                    timeout=300,  # 5 minute timeout for npm install
                 )
-                
+
                 if install_result.returncode != 0:
                     # If npm ci failed, try npm install as fallback
                     if "ci" in install_cmd:
@@ -465,7 +456,7 @@ def control_start():
                             stderr=subprocess.STDOUT,
                             check=False,
                             text=True,
-                            timeout=300
+                            timeout=300,
                         )
                         if fallback_result.returncode != 0:
                             logger.error(f"npm install failed: {fallback_result.stdout}")
@@ -473,9 +464,9 @@ def control_start():
                                 {
                                     "success": False,
                                     "message": "Dependency installation failed. Try manually: npm install",
-                                    "details": fallback_result.stdout
+                                    "details": fallback_result.stdout,
                                 },
-                                status_code=500
+                                status_code=500,
                             )
                     else:
                         logger.error(f"npm install failed: {install_result.stdout}")
@@ -483,74 +474,54 @@ def control_start():
                             {
                                 "success": False,
                                 "message": "Dependency installation failed",
-                                "details": install_result.stdout
+                                "details": install_result.stdout,
                             },
-                            status_code=500
+                            status_code=500,
                         )
-                
+
                 logger.info("Dependencies installed successfully")
-                
+
             except subprocess.TimeoutExpired:
                 logger.error("npm install timed out after 5 minutes")
                 return JSONResponse(
-                    {
-                        "success": False,
-                        "message": "Dependency installation timed out. Try manually: npm install"
-                    },
-                    status_code=500
+                    {"success": False, "message": "Dependency installation timed out. Try manually: npm install"},
+                    status_code=500,
                 )
             except Exception as e:
                 logger.error(f"Failed to install dependencies: {e}")
                 return JSONResponse(
-                    {
-                        "success": False,
-                        "message": f"Failed to install dependencies: {str(e)}"
-                    },
-                    status_code=500
+                    {"success": False, "message": f"Failed to install dependencies: {str(e)}"}, status_code=500
                 )
 
         # 5. Start Vite dev server
         logger.info(f"Starting Vite dev server on port {FRONTEND_PORT_PREFERRED}...")
         start_cmd = f"{npm_cmd} run dev -- --host 127.0.0.1 --port {FRONTEND_PORT_PREFERRED} --strictPort"
-        
+
         try:
             FRONTEND_PROCESS = subprocess.Popen(
-                start_cmd,
-                cwd=frontend_dir,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                start_cmd, cwd=frontend_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             logger.info(f"Vite process started with PID: {FRONTEND_PROCESS.pid}")
         except Exception as e:
             logger.error(f"Failed to start Vite process: {e}")
             return JSONResponse(
-                {
-                    "success": False,
-                    "message": f"Failed to start frontend process: {str(e)}"
-                },
-                status_code=500
+                {"success": False, "message": f"Failed to start frontend process: {str(e)}"}, status_code=500
             )
-        
+
         # 6. Wait for server readiness (up to 30 seconds)
         logger.info("Waiting for frontend server to be ready...")
         max_attempts = 120  # 30 seconds (120 * 0.25s)
         for attempt in range(max_attempts):
             time.sleep(0.25)
-            
+
             # Check if process is still running
             if FRONTEND_PROCESS.poll() is not None:
                 logger.error("Frontend process terminated unexpectedly")
                 return JSONResponse(
-                    {
-                        "success": False,
-                        "message": "Frontend process terminated unexpectedly",
-                        "command": start_cmd
-                    },
-                    status_code=500
+                    {"success": False, "message": "Frontend process terminated unexpectedly", "command": start_cmd},
+                    status_code=500,
                 )
-            
+
             # Check if server is responding
             if _is_port_open("127.0.0.1", FRONTEND_PORT_PREFERRED):
                 logger.info(f"Frontend server ready on port {FRONTEND_PORT_PREFERRED}")
@@ -559,95 +530,86 @@ def control_start():
                     "message": "Frontend started successfully",
                     "port": FRONTEND_PORT_PREFERRED,
                     "url": f"http://localhost:{FRONTEND_PORT_PREFERRED}",
-                    "pid": FRONTEND_PROCESS.pid
+                    "pid": FRONTEND_PROCESS.pid,
                 }
-        
+
         # Timeout - server didn't start
         logger.error("Frontend server failed to start within 30 seconds")
-        
+
         # Kill the process since it's not responding
         try:
             subprocess.run(
                 ["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)],
                 check=False,
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
             )
         except Exception:
             pass
-        
+
         return JSONResponse(
             {
                 "success": False,
                 "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
                 "hint": "Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
-                "command": start_cmd
+                "command": start_cmd,
             },
-            status_code=500
+            status_code=500,
         )
-        
+
     except Exception as e:
         logger.error(f"Unexpected error starting frontend: {e}", exc_info=True)
-        return JSONResponse(
-            {
-                "success": False,
-                "message": f"Unexpected error: {str(e)}"
-            },
-            status_code=500
-        )
+        return JSONResponse({"success": False, "message": f"Unexpected error: {str(e)}"}, status_code=500)
+
 
 @app.post("/control/api/stop-all")
 def control_stop_all():
     """
     Comprehensive system shutdown - stops all services gracefully.
-    
+
     Professional shutdown sequence:
     1. Stop frontend processes (tracked and port-based detection)
     2. Terminate all Node.js processes (Vite dev server)
     3. Schedule backend shutdown with delayed exit (allows HTTP response)
-    
+
     Returns:
         JSONResponse with success status and list of stopped services
     """
     global FRONTEND_PROCESS
     logger.info("=== System Shutdown Initiated ===")
-    
+
     try:
         stopped_services = []
         errors = []
-        
+
         # ═══ PHASE 1: Stop Frontend Processes ═══
         logger.info("Phase 1: Stopping frontend processes...")
         frontend_stopped = False
-        
+
         # Stop tracked frontend process if exists
         if FRONTEND_PROCESS is not None:
             pid = None
             try:
                 pid = FRONTEND_PROCESS.pid
                 logger.info(f"Terminating tracked frontend process (PID: {pid})")
-                
+
                 result = subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(pid)],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=5
+                    ["taskkill", "/F", "/T", "/PID", str(pid)], check=False, capture_output=True, text=True, timeout=5
                 )
-                
+
                 if result.returncode == 0:
                     frontend_stopped = True
                     logger.info(f"✓ Stopped tracked frontend (PID: {pid})")
                 else:
                     logger.warning(f"taskkill returned {result.returncode} for PID {pid}")
-                    
+
             except subprocess.TimeoutExpired:
-                    if pid:
-                        logger.error(f"Timeout killing frontend PID {pid}")
-                        errors.append(f"Timeout killing frontend PID {pid}")
-                    else:
-                        logger.error("Timeout killing frontend process")
-                        errors.append("Timeout killing frontend process")
+                if pid:
+                    logger.error(f"Timeout killing frontend PID {pid}")
+                    errors.append(f"Timeout killing frontend PID {pid}")
+                else:
+                    logger.error("Timeout killing frontend process")
+                    errors.append("Timeout killing frontend process")
             except AttributeError:
                 logger.warning("Frontend process object exists but has no PID")
             except Exception as e:
@@ -657,11 +619,11 @@ def control_stop_all():
                 FRONTEND_PROCESS = None
         else:
             logger.info("No tracked frontend process")
-        
+
         # Kill any processes on frontend ports
         logger.info(f"Scanning frontend ports: {FRONTEND_PORT_CANDIDATES}")
         ports_cleared = 0
-        
+
         for port in FRONTEND_PORT_CANDIDATES:
             pids = _find_pids_on_port(port)
             if pids:
@@ -673,7 +635,7 @@ def control_stop_all():
                             check=False,
                             capture_output=True,
                             text=True,
-                            timeout=5
+                            timeout=5,
                         )
                         if result.returncode == 0:
                             frontend_stopped = True
@@ -688,16 +650,16 @@ def control_stop_all():
                     except Exception as e:
                         logger.error(f"Error killing PID {pid}: {e}")
                         errors.append(f"PID {pid}: {str(e)}")
-        
+
         if frontend_stopped:
             stopped_services.append(f"Frontend ({ports_cleared} port(s) cleared)")
             logger.info(f"✓ Frontend stopped ({ports_cleared} ports cleared)")
         else:
             logger.info("No frontend processes to stop")
-        
+
         # ═══ PHASE 2: Stop Node.js Processes ═══
         logger.info("Phase 2: Stopping Node.js processes...")
-        
+
         try:
             # Check for Node.js processes
             check_result = subprocess.run(
@@ -705,24 +667,20 @@ def control_stop_all():
                 capture_output=True,
                 text=True,
                 check=False,
-                timeout=5
+                timeout=5,
             )
-            
+
             if check_result.returncode == 0 and "node.exe" in check_result.stdout:
                 logger.info("Node.js processes detected - terminating all node.exe instances")
-                
+
                 kill_result = subprocess.run(
-                    ["taskkill", "/F", "/IM", "node.exe", "/T"],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=10
+                    ["taskkill", "/F", "/IM", "node.exe", "/T"], check=False, capture_output=True, text=True, timeout=10
                 )
-                
+
                 if kill_result.returncode == 0:
                     stopped_services.append("Node.js")
                     logger.info("✓ All Node.js processes terminated")
-                    
+
                     # Brief wait for process cleanup
                     time.sleep(0.5)
                 else:
@@ -731,28 +689,28 @@ def control_stop_all():
                         logger.warning(f"stderr: {kill_result.stderr}")
             else:
                 logger.info("No Node.js processes found")
-                
+
         except subprocess.TimeoutExpired:
             logger.error("Timeout while stopping Node.js processes")
             errors.append("Node.js termination timeout")
         except Exception as e:
             logger.error(f"Failed to stop Node.js processes: {e}")
             errors.append(f"Node.js: {str(e)}")
-        
+
         # ═══ PHASE 3: Schedule Backend Shutdown ═══
         logger.info("Phase 3: Scheduling backend shutdown...")
-        
+
         def _delayed_backend_shutdown():
             """Delayed shutdown to allow HTTP response to complete"""
             try:
                 time.sleep(1.0)  # 1 second delay for response transmission
                 logger.info("Executing backend shutdown sequence")
-                
+
                 current_pid = os.getpid()
                 parent_pid = os.getppid()
-                
+
                 logger.info(f"Terminating backend process tree (PIDs: {current_pid}, {parent_pid})")
-                
+
                 # Kill both current and parent (handles uvicorn --reload mode)
                 for pid in {current_pid, parent_pid}:
                     try:
@@ -761,88 +719,81 @@ def control_stop_all():
                             check=False,
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,
-                            timeout=3
+                            timeout=3,
                         )
                         logger.info(f"✓ Terminated PID {pid}")
                     except Exception as e:
                         logger.warning(f"Failed to kill PID {pid}: {e}")
-                        
+
             except Exception as e:
                 logger.error(f"Backend shutdown error: {e}", exc_info=True)
             finally:
                 # Force exit as final fallback
                 logger.info("=== Force Exit ===")
                 os._exit(0)
-        
+
         # Start shutdown thread
         shutdown_thread = threading.Thread(target=_delayed_backend_shutdown, daemon=True)
         shutdown_thread.start()
         stopped_services.append("Backend (shutdown scheduled)")
-        
+
         logger.info(f"✓ Shutdown sequence complete - stopped: {', '.join(stopped_services)}")
-        
+
         # Build response
         response_data = {
             "success": True,
             "message": "System shutdown complete",
             "stopped_services": stopped_services,
             "info": "Backend will terminate in 1 second",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-        
+
         if errors:
             response_data["warnings"] = errors
             logger.warning(f"Shutdown completed with {len(errors)} warning(s)")
-        
+
         return response_data
-        
+
     except Exception as e:
         logger.error(f"Critical shutdown error: {str(e)}", exc_info=True)
         return JSONResponse(
-            {
-                "success": False,
-                "message": f"Shutdown error: {str(e)}",
-                "timestamp": datetime.now().isoformat()
-            },
-            status_code=500
+            {"success": False, "message": f"Shutdown error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            status_code=500,
         )
+
 
 @app.post("/control/api/stop")
 def control_stop():
     """
     Stop frontend development server only (Vite).
-    
+
     Professional frontend termination:
     1. Terminate tracked frontend process if exists
     2. Scan and kill processes on frontend ports (5173-5180)
     3. Return detailed status of stopped processes
-    
+
     Returns:
         JSONResponse with success status and termination details
     """
     global FRONTEND_PROCESS
     logger.info("Frontend stop requested")
-    
+
     try:
         stopped_any = False
         stopped_pids = []
         errors = []
-        
+
         # Phase 1: Kill tracked frontend process
         if FRONTEND_PROCESS is not None:
             pid = None
             try:
                 pid = FRONTEND_PROCESS.pid
                 logger.info(f"Terminating tracked frontend (PID: {pid})")
-                
+
                 result = subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(pid)],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=5
+                    ["taskkill", "/F", "/T", "/PID", str(pid)], check=False, capture_output=True, text=True, timeout=5
                 )
-                
+
                 if result.returncode == 0:
                     stopped_any = True
                     stopped_pids.append(pid)
@@ -850,7 +801,7 @@ def control_stop():
                 else:
                     logger.warning(f"Failed to stop PID {pid}: return code {result.returncode}")
                     errors.append(f"PID {pid}: taskkill failed")
-                    
+
             except subprocess.TimeoutExpired:
                 if pid:
                     logger.error(f"Timeout killing PID {pid}")
@@ -867,7 +818,7 @@ def control_stop():
         # Phase 2: Kill processes on frontend ports
         logger.info(f"Scanning frontend ports: {FRONTEND_PORT_CANDIDATES}")
         ports_cleared = 0
-        
+
         for port in FRONTEND_PORT_CANDIDATES:
             pids = _find_pids_on_port(port)
             if pids:
@@ -879,9 +830,9 @@ def control_stop():
                             check=False,
                             capture_output=True,
                             text=True,
-                            timeout=5
+                            timeout=5,
                         )
-                        
+
                         if result.returncode == 0:
                             stopped_any = True
                             stopped_pids.append(pid)
@@ -890,7 +841,7 @@ def control_stop():
                         else:
                             logger.warning(f"Failed to stop PID {pid} on port {port}")
                             errors.append(f"Port {port} PID {pid}: taskkill failed")
-                            
+
                     except subprocess.TimeoutExpired:
                         logger.error(f"Timeout killing PID {pid} on port {port}")
                         errors.append(f"Timeout: port {port} PID {pid}")
@@ -900,64 +851,63 @@ def control_stop():
 
         # Build response
         if stopped_any:
-            message = f"Frontend stopped successfully ({len(stopped_pids)} process(es), {ports_cleared} port(s) cleared)"
+            message = (
+                f"Frontend stopped successfully ({len(stopped_pids)} process(es), {ports_cleared} port(s) cleared)"
+            )
             logger.info(f"✓ {message}")
         else:
             message = "No frontend processes detected"
             logger.info(message)
-        
+
         response_data = {
             "success": True,
             "message": message,
             "stopped_pids": stopped_pids,
             "ports_cleared": ports_cleared,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-        
+
         if errors:
             response_data["warnings"] = errors
             logger.warning(f"Stopped with {len(errors)} warning(s)")
-        
+
         return response_data
-        
+
     except Exception as e:
         logger.error(f"Frontend stop error: {str(e)}", exc_info=True)
         return JSONResponse(
-            {
-                "success": False,
-                "message": f"Frontend stop error: {str(e)}",
-                "timestamp": datetime.now().isoformat()
-            },
-            status_code=500
+            {"success": False, "message": f"Frontend stop error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            status_code=500,
         )
+
 
 @app.post("/control/api/stop-backend")
 def control_stop_backend():
     """
     Stop backend server only (FastAPI/Uvicorn).
-    
+
     Professional backend shutdown:
     1. Schedule delayed shutdown (allows HTTP response to complete)
     2. Terminate both current process and parent (handles uvicorn --reload)
     3. Force exit as fallback
-    
+
     Returns:
         JSONResponse with success status and shutdown timing
     """
     logger.info("Backend stop requested")
-    
+
     try:
         current_pid = os.getpid()
         parent_pid = os.getppid()
-        
+
         logger.info(f"Backend PIDs - Current: {current_pid}, Parent: {parent_pid}")
-        
+
         def _delayed_exit():
             """Delayed shutdown thread to allow HTTP response transmission"""
             try:
                 time.sleep(0.75)  # 750ms delay allows response to be sent
                 logger.info("Executing backend shutdown sequence")
-                
+
                 # Terminate process tree (handles uvicorn --reload mode)
                 if os.name == "nt":
                     for pid in {current_pid, parent_pid}:
@@ -967,14 +917,14 @@ def control_stop_backend():
                                 check=False,
                                 capture_output=True,
                                 text=True,
-                                timeout=3
+                                timeout=3,
                             )
-                            
+
                             if result.returncode == 0:
                                 logger.info(f"✓ Terminated backend PID: {pid}")
                             else:
                                 logger.warning(f"Failed to kill PID {pid}: return code {result.returncode}")
-                                
+
                         except subprocess.TimeoutExpired:
                             logger.error(f"Timeout killing backend PID {pid}")
                         except Exception as e:
@@ -982,40 +932,37 @@ def control_stop_backend():
                 else:
                     # Unix-like systems
                     import signal
+
                     try:
                         os.kill(current_pid, signal.SIGTERM)
                         logger.info(f"✓ Sent SIGTERM to PID: {current_pid}")
                     except Exception as e:
                         logger.error(f"Failed to send SIGTERM: {e}")
-                        
+
             except Exception as e:
                 logger.error(f"Backend shutdown error: {e}", exc_info=True)
             finally:
                 logger.info("Force exit backend")
                 os._exit(0)
-        
+
         # Start shutdown thread
         threading.Thread(target=_delayed_exit, daemon=True).start()
-        
+
         logger.info("Backend shutdown scheduled (750ms delay)")
-        
+
         return {
             "success": True,
             "message": "Backend shutdown initiated",
             "info": "Server will terminate in 750ms",
             "pids": {"current": current_pid, "parent": parent_pid},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-        
+
     except Exception as e:
         logger.error(f"Backend stop error: {str(e)}", exc_info=True)
         return JSONResponse(
-            {
-                "success": False,
-                "message": f"Backend stop error: {str(e)}",
-                "timestamp": datetime.now().isoformat()
-            },
-            status_code=500
+            {"success": False, "message": f"Backend stop error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            status_code=500,
         )
 
 
@@ -1051,13 +998,14 @@ get_db = db_get_session
 # ROUTER REGISTRATION (placeholder for modular routers)
 # ============================================================================
 
+
 def register_routers(app: FastAPI) -> None:
     """
     Register all API routers with the application.
-    
+
     Attempts to import routers from the routers directory.
     If routers don't exist, application runs in standalone mode.
-    
+
     Args:
         app: FastAPI application instance
     """
@@ -1072,7 +1020,18 @@ def register_routers(app: FastAPI) -> None:
             logger.info("Admin router registered successfully")
         except ImportError as e:
             logger.debug(f"Admin router not found: {e}")
-        
+
+        # Explicitly register Auth router (critical)
+        try:
+            try:
+                from backend.routers.routers_auth import router as auth_router
+            except ModuleNotFoundError:
+                from routers.routers_auth import router as auth_router
+            app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
+            logger.info("Auth router registered successfully")
+        except Exception as e:
+            logger.warning(f"Auth router failed to load: {e}")
+
         # Try to import modular routers using actual filenames under backend/routers/.
         # Import each router independently so one failure doesn't block others.
         registered = []
@@ -1114,7 +1073,7 @@ def register_routers(app: FastAPI) -> None:
             logger.warning("Some routers failed to load. Details:")
             for mod, err in errors:
                 logger.warning(f" - {mod}: {err}")
-            
+
     except Exception as e:
         logger.error(f"Unexpected error during router registration: {str(e)}", exc_info=True)
 
@@ -1126,23 +1085,20 @@ register_routers(app)
 # ROOT ENDPOINTS
 # ============================================================================
 
+
 def _api_metadata() -> dict:
     return {
         "message": "Student Management System API",
         "version": "3.0.3",
         "status": "running",
-        "documentation": {
-            "swagger": "/docs",
-            "redoc": "/redoc",
-            "openapi": "/openapi.json"
-        },
+        "documentation": {"swagger": "/docs", "redoc": "/redoc", "openapi": "/openapi.json"},
         "endpoints": {
             "health": "/health",
             "students": "/api/v1/students",
             "courses": "/api/v1/courses",
             "grades": "/api/v1/grades",
-            "attendance": "/api/v1/attendance"
-        }
+            "attendance": "/api/v1/attendance",
+        },
     }
 
 
@@ -1177,10 +1133,12 @@ async def api_info():
 # Set environment variable SERVE_FRONTEND=1 and build frontend (frontend/dist)
 # ============================================================================
 
+
 def _is_true(val: str | None) -> bool:
     if not val:
         return False
     return val.strip().lower() in {"1", "true", "yes", "on"}
+
 
 SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
 
@@ -1233,6 +1191,7 @@ async def favicon():
   <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
 </svg>"""
     from fastapi.responses import Response
+
     return Response(content=svg_content, media_type="image/svg+xml")
 
 
@@ -1240,7 +1199,7 @@ async def favicon():
 async def health_check(db: Session = Depends(get_db)):
     """
     Comprehensive health check endpoint.
-    
+
     Verifies:
     - API is running
     - Database connection is working
@@ -1248,12 +1207,12 @@ async def health_check(db: Session = Depends(get_db)):
     - Migration status
     - System information
     - Service dependencies
-    
+
     Returns 200 if healthy/degraded, 503 if unhealthy.
-    
+
     Args:
         db: Database session dependency
-        
+
     Returns:
         dict: Comprehensive health status
     """
@@ -1261,7 +1220,7 @@ async def health_check(db: Session = Depends(get_db)):
         from backend.health_checks import HealthChecker
     except ModuleNotFoundError:
         from health_checks import HealthChecker
-    
+
     checker = HealthChecker(app.state, db_engine)
     result = checker.check_health(db)
 
@@ -1293,18 +1252,18 @@ async def health_check(db: Session = Depends(get_db)):
 async def readiness_check(db: Session = Depends(get_db)):
     """
     Readiness probe endpoint for Kubernetes/orchestration.
-    
+
     Checks if the application is ready to accept traffic.
     Returns 200 if ready, 503 if not ready.
-    
+
     Use this for:
     - Kubernetes readiness probes
     - Load balancer health checks
     - Service mesh health checks
-    
+
     Args:
         db: Database session dependency
-        
+
     Returns:
         dict: Readiness status
     """
@@ -1312,7 +1271,7 @@ async def readiness_check(db: Session = Depends(get_db)):
         from backend.health_checks import HealthChecker
     except ModuleNotFoundError:
         from health_checks import HealthChecker
-    
+
     checker = HealthChecker(app.state, db_engine)
     return checker.check_readiness(db)
 
@@ -1321,15 +1280,15 @@ async def readiness_check(db: Session = Depends(get_db)):
 async def liveness_check():
     """
     Liveness probe endpoint for Kubernetes/orchestration.
-    
+
     Minimal check to verify the application process is alive.
     Should always return 200 unless the application is completely dead.
-    
+
     Use this for:
     - Kubernetes liveness probes
     - Process monitoring
     - Restart decisions
-    
+
     Returns:
         dict: Liveness status
     """
@@ -1337,7 +1296,7 @@ async def liveness_check():
         from backend.health_checks import HealthChecker
     except ModuleNotFoundError:
         from health_checks import HealthChecker
-    
+
     checker = HealthChecker(app.state, db_engine)
     return checker.check_liveness()
 
@@ -1346,11 +1305,12 @@ async def liveness_check():
 # FRONTEND ERROR LOGGING ENDPOINTS
 # ============================================================================
 
+
 @app.post("/api/logs/frontend-error")
 async def log_frontend_error(request: Request):
     """
     Receive and log frontend errors for centralized monitoring.
-    
+
     Expected payload:
     {
         "message": "Error message",
@@ -1365,21 +1325,21 @@ async def log_frontend_error(request: Request):
     """
     try:
         error_data = await request.json()
-        
+
         # Log to application logger
         logger.error(
             f"Frontend Error: {error_data.get('message', 'Unknown')}",
             extra={
-                "request_id": getattr(request.state, 'request_id', '-'),
+                "request_id": getattr(request.state, "request_id", "-"),
                 "frontend_error": True,
-                "url": error_data.get('url'),
-                "user_agent": error_data.get('userAgent'),
-                "error_type": error_data.get('type'),
-                "stack": error_data.get('stack', '')[:500],  # Limit stack trace length
-                "component_stack": error_data.get('componentStack', '')[:500],
-            }
+                "url": error_data.get("url"),
+                "user_agent": error_data.get("userAgent"),
+                "error_type": error_data.get("type"),
+                "stack": error_data.get("stack", "")[:500],  # Limit stack trace length
+                "component_stack": error_data.get("componentStack", "")[:500],
+            },
         )
-        
+
         return {"status": "logged", "timestamp": datetime.now().isoformat()}
     except Exception as e:
         logger.warning(f"Failed to log frontend error: {e}")
@@ -1393,17 +1353,17 @@ async def log_frontend_warning(request: Request):
     """
     try:
         warning_data = await request.json()
-        
+
         logger.warning(
             f"Frontend Warning: {warning_data.get('message', 'Unknown')}",
             extra={
-                "request_id": getattr(request.state, 'request_id', '-'),
+                "request_id": getattr(request.state, "request_id", "-"),
                 "frontend_warning": True,
-                "url": warning_data.get('url'),
-                "user_agent": warning_data.get('userAgent'),
-            }
+                "url": warning_data.get("url"),
+                "user_agent": warning_data.get("userAgent"),
+            },
         )
-        
+
         return {"status": "logged", "timestamp": datetime.now().isoformat()}
     except Exception as e:
         logger.warning(f"Failed to log frontend warning: {e}")
@@ -1427,7 +1387,7 @@ Student endpoints are defined in `backend/routers/routers_students.py` and mount
 def main() -> None:
     """
     Main entry point for running the application directly.
-    
+
     Configures and starts the Uvicorn server with:
     - Host: 127.0.0.1
     - Port: 8000
@@ -1449,12 +1409,12 @@ def main() -> None:
     print("  Health Check: http://localhost:8000/health")
     print("\n  Press CTRL+C to stop the server\n")
     print("=" * 70 + "\n")
-    
+
     uvicorn.run(
         app,
         host="127.0.0.1",
         port=8000,
-        log_level="info"
+        log_level="info",
         # reload disabled when running with -m flag
     )
 

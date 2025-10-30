@@ -17,14 +17,14 @@ class GradeCreate(BaseModel):
     date_submitted: Optional[date] = None
     notes: Optional[str] = None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_grade_not_exceeds_max(self):
         """Validate that grade does not exceed max_grade"""
         if self.grade > self.max_grade:
             raise ValueError(f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})")
         return self
 
-    @field_validator('category')
+    @field_validator("category")
     @classmethod
     def normalize_category(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
@@ -32,12 +32,13 @@ class GradeCreate(BaseModel):
         vv = v.strip().title()
         return vv or None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_dates(self):
         if self.date_assigned and self.date_submitted:
             if self.date_submitted < self.date_assigned:
-                raise ValueError('date_submitted cannot be earlier than date_assigned')
+                raise ValueError("date_submitted cannot be earlier than date_assigned")
         return self
+
 
 class GradeUpdate(BaseModel):
     grade: Optional[float] = Field(None, ge=0)
@@ -47,7 +48,7 @@ class GradeUpdate(BaseModel):
     date_assigned: Optional[date] = None
     date_submitted: Optional[date] = None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_grade_not_exceeds_max(self):
         """Validate that grade does not exceed max_grade if both are provided"""
         if self.grade is not None and self.max_grade is not None:
@@ -55,11 +56,11 @@ class GradeUpdate(BaseModel):
                 raise ValueError(f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})")
         return self
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_dates(self):
         if self.date_assigned and self.date_submitted:
             if self.date_submitted < self.date_assigned:
-                raise ValueError('date_submitted cannot be earlier than date_assigned')
+                raise ValueError("date_submitted cannot be earlier than date_assigned")
         return self
 
 

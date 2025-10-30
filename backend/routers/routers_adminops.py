@@ -2,7 +2,8 @@
 Admin Operations Router
 Provides backup, clear, and seed (insert) operations for the database.
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from pydantic import BaseModel
@@ -14,22 +15,20 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/adminops",
-    tags=["AdminOps"],
-    responses={404: {"description": "Not found"}}
-)
+router = APIRouter(prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}})
 
 _THIS_FILE = Path(__file__).resolve()
 _BACKEND_DIR = _THIS_FILE.parents[1]
 _PROJECT_ROOT = _THIS_FILE.parents[2]
 
-BACKUPS_DIR = str((_PROJECT_ROOT / 'backups').resolve())
-COURSES_DIR = str((_PROJECT_ROOT / 'templates' / 'courses').resolve())
-STUDENTS_DIR = str((_PROJECT_ROOT / 'templates' / 'students').resolve())
+BACKUPS_DIR = str((_PROJECT_ROOT / "backups").resolve())
+COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
+STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
 
 from backend.db import get_session as get_db
 from backend.db import engine as db_engine
+from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
+from .routers_auth import optional_require_role
 
 
 class ClearPayload(BaseModel):
@@ -39,23 +38,24 @@ class ClearPayload(BaseModel):
 
 def _get_db_file() -> str:
     try:
-        db_path = getattr(getattr(db_engine, 'url', None), 'database', None)
+        db_path = getattr(getattr(db_engine, "url", None), "database", None)
         if db_path:
             return str(Path(db_path).resolve())
     except Exception:
         pass
     # Fallback to backend-local sqlite file name
-    return str((_BACKEND_DIR / 'student_management.db').resolve())
+    return str((_BACKEND_DIR / "student_management.db").resolve())
 
 
 @router.post("/backup")
-def backup_database():
+@limiter.limit(RATE_LIMIT_HEAVY)
+def backup_database(request: Request, current_user=Depends(optional_require_role("admin"))):
     try:
         db_file = _get_db_file()
         if not os.path.isfile(db_file):
             raise HTTPException(status_code=404, detail=f"Database file not found: {db_file}")
         os.makedirs(BACKUPS_DIR, exist_ok=True)
-        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         target = os.path.join(BACKUPS_DIR, f"backup_{ts}.db")
         shutil.copyfile(db_file, target)
         logger.info(f"Database backup created: {target} (source: {db_file})")
@@ -68,7 +68,10 @@ def backup_database():
 
 
 @router.post("/restore")
-def restore_database(file: UploadFile = File(...)):
+@limiter.limit(RATE_LIMIT_HEAVY)
+def restore_database(
+    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_role("admin"))
+):
     """
     Restore the SQLite database from an uploaded .db file.
     Steps:
@@ -81,7 +84,7 @@ def restore_database(file: UploadFile = File(...)):
         os.makedirs(BACKUPS_DIR, exist_ok=True)
         # Save upload to temp
         temp_target = os.path.join(BACKUPS_DIR, f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
-        with open(temp_target, 'wb') as out:
+        with open(temp_target, "wb") as out:
             chunk = file.file.read(1024 * 1024)
             while chunk:
                 out.write(chunk)
@@ -96,7 +99,7 @@ def restore_database(file: UploadFile = File(...)):
         # Backup current DB
         db_file = _get_db_file()
         if os.path.isfile(db_file):
-            ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_before = os.path.join(BACKUPS_DIR, f"auto_before_restore_{ts}.db")
             shutil.copyfile(db_file, backup_before)
 
@@ -110,11 +113,18 @@ def restore_database(file: UploadFile = File(...)):
 
 
 @router.post("/clear")
-def clear_database(payload: ClearPayload, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_HEAVY)
+def clear_database(
+    request: Request,
+    payload: ClearPayload,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin")),
+):
     if not payload.confirm:
         raise HTTPException(status_code=400, detail="Confirmation required to clear database")
     try:
         from backend.models import Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student
+
         # Delete child tables first
         db.query(Attendance).delete(synchronize_session=False)
         db.query(DailyPerformance).delete(synchronize_session=False)
@@ -122,7 +132,7 @@ def clear_database(payload: ClearPayload, db: Session = Depends(get_db)):
         db.query(Highlight).delete(synchronize_session=False)
         db.query(CourseEnrollment).delete(synchronize_session=False)
         # Depending on scope, optionally keep courses/students
-        if payload.scope == 'all':
+        if payload.scope == "all":
             db.query(Course).delete(synchronize_session=False)
             db.query(Student).delete(synchronize_session=False)
         db.commit()
@@ -131,5 +141,3 @@ def clear_database(payload: ClearPayload, db: Session = Depends(get_db)):
         db.rollback()
         logger.error(f"Clear failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Clear failed")
-
-
