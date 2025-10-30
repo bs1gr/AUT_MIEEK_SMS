@@ -34,3 +34,10 @@ backend/logs/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
+
+# Environment files (use .env.example as template)
+.env
+backend/.env
+frontend/.env
+*.env
+!*.env.example
