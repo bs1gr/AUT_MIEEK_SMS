@@ -10,7 +10,6 @@ import os
 import shutil
 from datetime import datetime
 import logging
-import json
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

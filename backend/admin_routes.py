@@ -22,7 +22,6 @@ import psutil
 import threading
 import time
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -31,13 +30,13 @@ try:  # When imported as backend.admin_routes
     from backend.config import settings
     from backend.db import get_session as get_db, engine
     from backend.models import (
-        Student, Course, Grade, Attendance, DailyPerformance, Base
+        Student, Course, Grade, Base
     )
 except ModuleNotFoundError:  # Fallback for direct execution
     from config import settings  # type: ignore
     from db import get_session as get_db, engine  # type: ignore
     from models import (  # type: ignore
-        Student, Course, Grade, Attendance, DailyPerformance, Base
+        Student, Course, Grade, Base
     )
 
 # Create router

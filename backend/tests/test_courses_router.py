@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Dict
-import pytest
 
 
 def make_course_payload(i: int = 1, **overrides) -> Dict:

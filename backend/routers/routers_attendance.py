@@ -7,7 +7,6 @@ Handles attendance tracking and statistics
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional, Tuple, cast
-from pydantic import BaseModel, Field
 from datetime import date, timedelta
 import logging
 
@@ -20,7 +19,7 @@ router = APIRouter(
 )
 
 
-from backend.schemas.attendance import AttendanceCreate, AttendanceUpdate, AttendanceResponse, AttendanceStats
+from backend.schemas.attendance import AttendanceCreate, AttendanceUpdate, AttendanceResponse
 
 
 # ========== DEPENDENCY INJECTION ==========

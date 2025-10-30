@@ -3,10 +3,8 @@ Course Enrollments Router
 Provides endpoints to manage student enrollments to courses.
 """
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
-from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload
-from datetime import date
+from typing import List
+from sqlalchemy.orm import Session
 import logging
 
 logger = logging.getLogger(__name__)

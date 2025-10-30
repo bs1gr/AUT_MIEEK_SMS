@@ -1,17 +1,13 @@
 line-length = 120
 
 [lint]
-# Keep to essential correctness-only families to reduce noise.
+# Core correctness rules (E=errors, F=pyflakes)
 select = ["E", "F"]
 ignore = [
-  # Allow unused imports in init exports/tests and some modules
-  "F401",
   # Allow module-level imports after other code in special files (alembic/tests)
   "E402",
   # Allow bare except in controlled places (will revisit)
   "E722",
-  # Allow f-strings without placeholders (intentional messages)
-  "F541",
   # Don't enforce line-length in linter (editor/formatter handles it)
   "E501",
 ]

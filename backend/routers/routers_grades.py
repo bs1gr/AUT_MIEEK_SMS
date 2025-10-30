@@ -5,7 +5,7 @@ Handles grade CRUD and grade calculation operations
 """
 
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple, cast
 from datetime import date, timedelta
 from pydantic import BaseModel

@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Dict
 
-import pytest
 
 
 def make_grade_payload(i: int = 1, **overrides) -> Dict:
