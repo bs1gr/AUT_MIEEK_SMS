@@ -1,4 +1,3 @@
-
 """
 IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
@@ -13,11 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/grades",
-    tags=["Grades"],
-    responses={404: {"description": "Not found"}}
-)
+router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"description": "Not found"}})
 
 
 from backend.schemas.grades import GradeCreate, GradeUpdate, GradeResponse
@@ -25,6 +20,7 @@ from backend.schemas.grades import GradeCreate, GradeUpdate, GradeResponse
 
 class GradeAnalysis(BaseModel):
     """Schema for grade analysis"""
+
     student_id: int
     course_id: int
     total_grades: int
@@ -37,6 +33,7 @@ class GradeAnalysis(BaseModel):
 # ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
 from backend.config import settings
+from backend.routers.routers_auth import optional_require_role
 
 
 def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) -> Optional[Tuple[date, date]]:
@@ -61,20 +58,22 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
 
 # ========== ENDPOINTS ==========
 
+
 @router.post("/", response_model=GradeResponse, status_code=201)
 def create_grade(
     grade_data: GradeCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """
     Create a new grade record.
-    
+
     - **student_id**: Student ID
     - **course_id**: Course ID
     - **assignment_name**: Name of assignment
     - **grade**: Score received
     - **max_grade**: Maximum possible score (default: 100)
-    
+
     Note: Validation ensures grade <= max_grade
     """
     try:
@@ -84,20 +83,20 @@ def create_grade(
         student = db.query(Student).filter(Student.id == grade_data.student_id).first()
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
-        
+
         # Validate course exists
         course = db.query(Course).filter(Course.id == grade_data.course_id).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
-        
+
         db_grade = Grade(**grade_data.model_dump())
         db.add(db_grade)
         db.commit()
         db.refresh(db_grade)
-        
+
         logger.info(f"Created grade: {db_grade.id} for student {grade_data.student_id}")
         return db_grade
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -116,7 +115,7 @@ def get_all_grades(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     use_submitted: bool = False,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get all grades with optional filtering.
@@ -125,7 +124,7 @@ def get_all_grades(
         from backend.models import Grade
 
         query = db.query(Grade)
-        
+
         if student_id is not None:
             query = query.filter(Grade.student_id == student_id)
         if course_id is not None:
@@ -138,7 +137,7 @@ def get_all_grades(
             s, e = rng
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
             query = query.filter(date_col >= s, date_col <= e)
-        
+
         grades = query.offset(skip).limit(limit).all()
         return grades
     except HTTPException:
@@ -155,7 +154,7 @@ def get_student_grades(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     use_submitted: bool = False,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
@@ -165,9 +164,9 @@ def get_student_grades(
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
-        
+
         query = db.query(Grade).filter(Grade.student_id == student_id)
-        
+
         if course_id:
             query = query.filter(Grade.course_id == course_id)
         rng = _normalize_date_range(start_date, end_date)
@@ -175,10 +174,10 @@ def get_student_grades(
             s, e = rng
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
             query = query.filter(date_col.between(s, e))
-        
+
         grades = query.all()
         return grades
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -192,7 +191,7 @@ def get_course_grades(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     use_submitted: bool = False,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Get all grades for a course"""
     try:
@@ -202,7 +201,7 @@ def get_course_grades(
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
-        
+
         query = db.query(Grade).filter(Grade.course_id == course_id)
         rng = _normalize_date_range(start_date, end_date)
         if rng:
@@ -211,7 +210,7 @@ def get_course_grades(
             query = query.filter(date_col.between(s, e))
         grades = query.all()
         return grades
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -220,10 +219,7 @@ def get_course_grades(
 
 
 @router.get("/{grade_id}", response_model=GradeResponse)
-def get_grade(
-    grade_id: int,
-    db: Session = Depends(get_db)
-):
+def get_grade(grade_id: int, db: Session = Depends(get_db)):
     """
     Get a single grade by its ID.
     """
@@ -246,31 +242,32 @@ def get_grade(
 def update_grade(
     grade_id: int,
     grade_data: GradeUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """
     Update a grade record.
-    
+
     Note: Validation ensures grade <= max_grade
     """
     try:
         from backend.models import Grade
 
         db_grade = db.query(Grade).filter(Grade.id == grade_id).first()
-        
+
         if not db_grade:
             raise HTTPException(status_code=404, detail="Grade not found")
-        
+
         update_data = grade_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_grade, key, value)
-        
+
         db.commit()
         db.refresh(db_grade)
-        
+
         logger.info(f"Updated grade: {grade_id}")
         return db_grade
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -282,7 +279,8 @@ def update_grade(
 @router.delete("/{grade_id}", status_code=204)
 def delete_grade(
     grade_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Delete a grade record"""
     try:
@@ -295,10 +293,10 @@ def delete_grade(
 
         db.delete(db_grade)
         db.commit()
-        
+
         logger.info(f"Deleted grade: {grade_id}")
         return None
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -308,41 +306,35 @@ def delete_grade(
 
 
 @router.get("/analysis/student/{student_id}/course/{course_id}")
-def get_grade_analysis(
-    student_id: int,
-    course_id: int,
-    db: Session = Depends(get_db)
-):
+def get_grade_analysis(student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get grade analysis for a student in a course"""
     try:
         from backend.models import Grade
 
-        grades = db.query(Grade).filter(
-            Grade.student_id == student_id,
-            Grade.course_id == course_id
-        ).all()
-        
+        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.course_id == course_id).all()
+
         if not grades:
             return {"message": "No grades found for this student in this course"}
-        
-        percentages = [(g.grade / g.max_grade * 100) for g in grades]
-        
+
+        # Ensure numeric types for type checkers and runtime safety
+        percentages = [(float(getattr(g, "grade", 0.0)) / float(getattr(g, "max_grade", 1.0)) * 100.0) for g in grades]
+
         return {
             "student_id": student_id,
             "course_id": course_id,
             "total_grades": len(grades),
-            "average_grade": round(sum(percentages) / len(percentages), 2),
-            "highest_grade": round(max(percentages), 2),
-            "lowest_grade": round(min(percentages), 2),
+            "average_grade": round(float(sum(percentages)) / float(len(percentages)), 2),
+            "highest_grade": round(float(max(percentages)), 2),
+            "lowest_grade": round(float(min(percentages)), 2),
             "grade_distribution": {
-                "A (90-100)": len([p for p in percentages if p >= 90]),
-                "B (80-89)": len([p for p in percentages if 80 <= p < 90]),
-                "C (70-79)": len([p for p in percentages if 70 <= p < 80]),
-                "D (60-69)": len([p for p in percentages if 60 <= p < 70]),
-                "F (below 60)": len([p for p in percentages if p < 60])
-            }
+                "A (90-100)": len([float(p) for p in percentages if float(p) >= 90.0]),
+                "B (80-89)": len([float(p) for p in percentages if 80.0 <= float(p) < 90.0]),
+                "C (70-79)": len([float(p) for p in percentages if 70.0 <= float(p) < 80.0]),
+                "D (60-69)": len([float(p) for p in percentages if 60.0 <= float(p) < 70.0]),
+                "F (below 60)": len([float(p) for p in percentages if float(p) < 60.0]),
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error analyzing grades: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")

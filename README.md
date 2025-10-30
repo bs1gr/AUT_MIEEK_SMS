@@ -1,6 +1,6 @@
 # Student Management System
 
-[![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml)
+[![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 ## 📚 Documentation / Τεκμηρίωση
 
@@ -11,33 +11,47 @@
 
 ---
 
-## 🚀 ONE-CLICK START - For End Users
+> Deprecated wrappers
+>
+> - START.bat and ONE-CLICK.ps1/ONE-CLICK.bat are deprecated and only forward to the primary scripts.
+> - Prefer QUICKSTART.ps1 to start and SMS.ps1 for management.
+> - ONE-CLICK.ps1 forwards to SMART_SETUP.ps1; START.bat forwards to QUICKSTART.ps1.
 
-**NEW v1.2.0**: Universal batch file launcher with Docker-first approach!
+## 🔖 Releases
 
-### Just Run This:
+- Latest: [v1.2.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0)
+- All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-**Windows (Recommended - Works everywhere!):**
-```cmd
-START.bat
-```
+## 🚀 Quick Start (Recommended)
 
-**Or PowerShell (alternative):**
+Primary entry points:
+
+- QUICKSTART (auto-setup/start):
+
 ```powershell
-.\ONE-CLICK.ps1
+./QUICKSTART.ps1
 ```
 
-### Why START.bat is Better:
+- SMS (interactive management):
 
-✅ **Docker-First**: Automatically uses Docker if available (simplest, production-ready)  
-✅ **No PowerShell issues**: Works on all Windows versions (7, 8, 10, 11)  
-✅ **No execution policy blocks**: Batch files always run  
-✅ **No admin rights needed**: Simple double-click  
-✅ **Smart fallback**: Uses native mode only if Docker is unavailable
+```powershell
+./SMS.ps1
+```
 
-### Deployment Modes:
+Compatibility wrappers still available (will forward to the above):
+
+- START.bat (Windows batch wrapper → forwards to QUICKSTART.ps1)
+- ONE-CLICK.ps1 (legacy PowerShell wrapper → forwards to SMART_SETUP.ps1)
+- ONE-CLICK.bat (batch wrapper → calls ONE-CLICK.ps1)
+
+Note: These wrappers are kept for backwards compatibility and are considered deprecated. Prefer using QUICKSTART.ps1 to start and SMS.ps1 for management.
+
+Tip: QUICKSTART uses SMART_SETUP under the hood to auto-detect Docker vs Native and handle first-time installation.
+
+### Deployment Modes
 
 #### 🐳 Docker Mode (Recommended for End Users)
+
 - **One command** starts everything
 - **No version conflicts** - isolated environment
 - **Production-ready** - same as deployment
@@ -45,51 +59,44 @@ START.bat
 - **Access**: `http://localhost:8080`
 
 #### 🔧 Native Mode (For Developers Only)
+
 - **Hot reload** for code changes
 - **Direct debugging** capabilities
 - **Requirements**: Python 3.11+ AND Node.js 18+
 - **Access**: `http://localhost:5173` (frontend) + `http://localhost:8000` (backend)
 
-The launcher **automatically decides**:
+QUICKSTART automatically decides:
 
 - 🐳 **Docker available?** → Uses Docker (recommended)
 - 🔧 **Only Python/Node?** → Falls back to native development mode
 - 🆕 **First time?** → Guides installation based on what you have
 - 🏃 **Already running?** → Shows URLs and interactive menu
 
-### That's It!
-
 No manual configuration. No complex steps. Just works.
 
 **Quick Access:**
+
 - **Application**: Shown after start (port depends on mode)
 - **Control Panel**: `/control` endpoint (real-time monitoring)
 - **API Docs**: `/docs` endpoint (Swagger/ReDoc)
 
 ### Common Commands
 
-```cmd
+```powershell
 # Start (auto-detects best mode)
-START.bat
+./QUICKSTART.ps1
 
 # Stop everything
-.\SMS.ps1 -Stop
+./SMS.ps1 -Stop
 
 # Non-destructive cleanup (keeps data and Docker volumes)
-CLEANUP.bat
+./CLEANUP.bat
 
 # Full uninstall (removes venv/node_modules & images, keeps data/volumes)
-UNINSTALL.bat
+./UNINSTALL.bat
 
 # Interactive menu (status, diagnostics, restart)
-START.bat  # then choose from menu
-
-# Force Docker mode (PowerShell)
-docker-compose up -d
-
-# Force native mode (PowerShell - development only)
-cd backend && python -m uvicorn backend.main:app --reload
-cd frontend && npm run dev
+./SMS.ps1  # then choose from menu
 ```
 
 ---
@@ -116,8 +123,10 @@ docker ps  # If you see containers → Docker mode (port 8080)
 
 **Fix:**
 
+Use the batch wrapper if needed:
+
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ONE-CLICK.ps1
+./QUICKSTART.bat
 ```
 
 ### Port Already in Use
@@ -161,7 +170,25 @@ All complex/developer scripts moved to `scripts/internal/`:
 - `CLEANUP.ps1` - Clean temporary files
 - See `scripts/internal/README.md` for full list
 
-**For normal operations, use `ONE-CLICK.ps1` or `SMS.ps1` instead.**
+**For normal operations, use `QUICKSTART.ps1` or `SMS.ps1` instead.**
+
+---
+
+### 🧪 Testing (Backend)
+
+Always invoke pytest via the same Python interpreter that installed the backend dependencies to avoid environment mismatch (e.g., missing PyJWT leading to router import failures and 404s):
+
+```powershell
+cd backend
+python -m pytest -q               # run all tests
+python -m pytest -q tests/..\*    # run a subset
+python -m pytest --cov=backend --cov-report=term-missing
+```
+
+Troubleshooting:
+
+- If you see "ModuleNotFoundError: No module named 'jwt'" or many 404s for API routes during tests, you're likely using a different interpreter than the one that has dependencies installed. Run tests with `python -m pytest` (not just `pytest`) from the `backend` folder.
+- Health tests intentionally mock DB errors to exercise branches; error logs like "Database health check failed: Connection failed" are expected within those tests.
 
 ---
 
@@ -169,7 +196,7 @@ All complex/developer scripts moved to `scripts/internal/`:
 
 **Three deployment options:**
 
-1. **ONE-CLICK** (Recommended): Copy project → Run `START.bat` (Windows) or `ONE-CLICK.ps1` (PowerShell)
+1. Copy project → Run `QUICKSTART.ps1` (PowerShell) or `QUICKSTART.bat` (Windows)
 2. **Offline Package**: Run `scripts/internal/CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
@@ -185,8 +212,8 @@ All complex/developer scripts moved to `scripts/internal/`:
 
 ### For End Users
 
-- ✨ **START.bat**: Universal Windows launcher with Docker-first approach
-- ✨ **ONE-CLICK.ps1**: PowerShell alternative with full diagnostics
+- ✨ **QUICKSTART.ps1**: Intelligent setup and start (auto-detects mode)
+- ✨ **SMS.ps1**: Unified interactive management
 - 🎨 **Control Panel UI**: Modern web interface with real-time monitoring
 - 📊 **Version Display**: See all component versions (Python, Node, Docker, dependencies)
 - 🌍 **Complete Translations**: All features in English and Greek
@@ -229,6 +256,7 @@ A comprehensive student management system with course evaluation, attendance tra
 - 📤 **Data Export** - Export to Excel, PDF, and ICS calendar formats
 - 🌐 **Bilingual** - Full support for English and Greek languages
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
+- 🔐 **Authentication & Authorization** - Optional JWT-based auth with role-based access control (admin/teacher/student) - See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md)
 
 ## Detailed Usage
 
@@ -262,9 +290,9 @@ The **SMS.ps1** script provides an interactive menu for all operations:
 ### Using QUICKSTART.ps1 (Simple)
 
 ```powershell
-.\QUICKSTART.ps1           # Intelligent setup & start
-.\QUICKSTART.ps1 -Force    # Force reinstall everything
-.\QUICKSTART.ps1 -Help     # Show options
+./QUICKSTART.ps1           # Intelligent setup & start
+./QUICKSTART.ps1 -Force    # Force reinstall everything
+./QUICKSTART.ps1 -Help     # Show options
 ```
 
 This will:
@@ -301,31 +329,48 @@ Startup behavior:
 - The frontend now waits for the backend to become healthy before starting (Compose healthcheck + dependency), so you shouldn't see a temporary “offline/failed to connect” banner on first load anymore.
 - If the backend is still booting when you open the page, the UI shows a short “Checking…” state and silently retries a few times before showing any offline message.
 
+### Smoke Test (Fast validation)
+
+After startup, you can quickly verify everything with:
+
+```powershell
+./scripts/SMOKE_TEST.ps1
+```
+
+What it does:
+
+- Auto-detects mode and base URL (Docker 8080 or Native 8000)
+- Checks: /health, /health/ready, /health/live, /control and root page
+- Prints concise PASS/FAIL with HTTP status codes
+
 ### Stopping the Application
 
 Simple stop:
 
-```batch
-docker stop sms-fullstack
-```
-
-Or use the stop script:
+Use the management script:
 
 ```powershell
-.\scripts\STOP.ps1                # Stop container
-.\STOP.ps1 -RemoveImage   # Stop and remove image
-.\STOP.ps1 -Help          # Show options
+./SMS.ps1 -Stop             # Clean stop all services
+```
+
+Or the stop helper (compatibility):
+
+```powershell
+./scripts/STOP.ps1          # Stop container
+./scripts/STOP.ps1 -Help    # Show options
 ```
 
 ### Developer Tools & Troubleshooting
 
-For advanced operations, diagnostics, and Docker management:
+For advanced operations, diagnostics, and Docker management, use the unified menu:
 
-```batch
-DEVTOOLS.bat
+```powershell
+./SMS.ps1
+# Or advanced tools (optional)
+./scripts/internal/DEVTOOLS.ps1
 ```
 
-Interactive menu with:
+Menu provides:
 
 - Docker operations (build, logs, shell access)
 - Diagnostics (port conflicts, API tests, database info)
@@ -353,7 +398,7 @@ Features:
 Automated cleanup script that removes obsolete files across the entire project, including Docker-related artifacts:
 
 ```powershell
-scripts/CLEANUP_COMPREHENSIVE.ps1
+scripts/internal/CLEANUP_COMPREHENSIVE.ps1
 ```
 
 **What it cleans:**
@@ -403,7 +448,7 @@ Removes non-essential and outdated documentation files to keep the repository le
 - From Windows host: run the script
 
 ```powershell
-scripts/CLEANUP_OBSOLETE_FILES.ps1
+scripts/internal/CLEANUP_OBSOLETE_FILES.ps1
 ```
 
 Note: When the backend runs inside Docker, it cannot modify files on your host filesystem; use the PowerShell script on the host.
@@ -416,10 +461,10 @@ Recommended flow:
 
 ```powershell
 # Create a new versioned volume and migrate existing data
-scripts/DOCKER_UPDATE_VOLUME.ps1
+scripts/docker/DOCKER_UPDATE_VOLUME.ps1
 
 # Or, create a fresh empty volume (no migration)
-scripts/DOCKER_UPDATE_VOLUME.ps1 -NoMigrate
+scripts/docker/DOCKER_UPDATE_VOLUME.ps1 -NoMigrate
 
 # Apply the override
 docker compose down
@@ -468,19 +513,19 @@ docker compose down
 
 ### Native Development Mode
 
-For development with hot-reload (requires Python 3.8+ and Node.js 16+):
+For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 
 **Backend:**
 
-```batch
+```powershell
 cd backend
 pip install -r requirements.txt
-python main.py
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 **Frontend (in separate terminal):**
 
-```batch
+```powershell
 cd frontend
 npm install
 npm run dev
@@ -505,10 +550,11 @@ student-management-system/
 │   ├── Dockerfile.frontend
 │   └── Dockerfile.fullstack  # Single-container image
 ├── scripts/                   # Utility scripts
-│   ├── SETUP.ps1             # Build Docker image
-│   ├── STOP.ps1              # Stop containers
-│   ├── DEVTOOLS.ps1          # Developer tools menu
-│   └── DOCKER_*.ps1          # Docker management
+│   ├── SETUP.ps1             # Initial setup utilities
+│   ├── STOP.ps1              # Stop containers/processes
+│   ├── SMOKE_TEST.ps1        # Quick health validation
+│   ├── docker/               # Docker management helpers
+│   └── internal/             # Advanced developer tools (optional)
 └── tools/                     # Data import/export tools
 ```
 
@@ -516,6 +562,10 @@ student-management-system/
 
 ### Available Documentation
 
+- [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide** ⭐ NEW v1.2.0
+- [FRESH_CLONE_TEST_REPORT_V1.2.md](FRESH_CLONE_TEST_REPORT_V1.2.md) - **Fresh clone deployment test report** ⭐ NEW v1.2.0
+- [docs/RELEASE_NOTES_v1.2.md](docs/RELEASE_NOTES_v1.2.md) - Release notes for v1.2.0
+- [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes
 - [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management** ⭐ NEW
 - [docs/DOCKER_CLEANUP.md](docs/DOCKER_CLEANUP.md) - Docker cleanup procedures
 - [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
@@ -529,9 +579,9 @@ student-management-system/
 
 Once the backend is running, access the interactive API documentation:
 
-- Swagger UI: <http://localhost:8080/docs>
-- ReDoc: <http://localhost:8080/redoc>
-- API Info: <http://localhost:8080/api> (JSON metadata)
+- Swagger UI: <http://localhost:8080/docs> (Docker) or <http://localhost:8000/docs> (Native)
+- ReDoc: <http://localhost:8080/redoc> (Docker) or <http://localhost:8000/redoc> (Native)
+- API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 
@@ -555,43 +605,43 @@ To change the default semester length, set `SEMESTER_WEEKS` in `backend/.env` (s
 
 Check for port conflicts:
 
-```batch
-DEVTOOLS.bat
-# Then select option 7: Debug Port Conflicts
+```powershell
+./SMS.ps1
+# Then select: Debug Port Conflicts
 ```
 
 ### Docker Issues
 
 Check Docker status:
 
-```batch
-DEVTOOLS.bat
-# Then select option 6: Check Docker Status
+```powershell
+./SMS.ps1
+# Then select: Docker Status/Logs
 ```
 
 ### Database Issues
 
 If you encounter database issues, check the logs:
 
-```batch
-DEVTOOLS.bat
-# Then select option 2: View Container Logs
+```powershell
+./SMS.ps1
+# Then select: View Logs
 ```
 
 To reset the database:
 
-```batch
-DEVTOOLS.bat
-# Then select option R: Reset Database (Delete Volume)
+```powershell
+./SMS.ps1
+# Then select: Database → Reset (Delete Volume)
 ```
 
 #### Backup, Restore, and Migrate
 
-Use the Developer Tools menu for one-click database management:
+Use the unified menu for one-click database management:
 
-- Backup: DEVTOOLS → `[B]` Backup Database (to `./backups`)
-- Restore: DEVTOOLS → `[T]` Restore Database (from `./backups`)
-- Migrate: DEVTOOLS → `[M]` Migrate Compose → Fullstack Volume
+- Backup: SMS.ps1 → Backup Database (to `./backups`)
+- Restore: SMS.ps1 → Restore Database (from `./backups`)
+- Migrate: SMS.ps1 → Migrate Compose → Fullstack Volume
 
 Notes:
 
@@ -603,8 +653,8 @@ Notes:
 
 If the frontend isn't loading, try rebuilding:
 
-```batch
-.\QUICKSTART.bat -Rebuild
+```powershell
+./QUICKSTART.ps1 -Force
 ```
 
 ## Development
@@ -623,7 +673,7 @@ The backend is built with:
 The frontend uses:
 
 - **React** - UI library
-- **TypeScript** - Type safety
+- **JavaScript (JSX)** - Application code
 - **Tailwind CSS** - Styling
 - **Vite** - Build tool
 

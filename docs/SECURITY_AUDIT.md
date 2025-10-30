@@ -60,7 +60,7 @@ apiClient.interceptors.request.use(
 #### 1. Backend Dependencies
 
 ```bash
-pip install python-jose[cryptography] passlib[bcrypt]
+pip install PyJWT passlib[bcrypt]
 ```
 
 #### 2. User Model Addition
@@ -88,7 +88,7 @@ class User(Base):
 ```python
 # backend/auth.py
 from datetime import datetime, timedelta, timezone
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -118,13 +118,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+  try:
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    username: str = payload.get("sub")
+    if username is None:
+      raise credentials_exception
+  except jwt.InvalidTokenError:
+    raise credentials_exception
     
     user = session.query(User).filter(User.username == username).first()
     if user is None or not user.is_active:
@@ -816,8 +816,8 @@ async def add_security_headers(request: Request, call_next):
 
 ## Vulnerability Disclosure
 
-**Contact**: [security@example.com]  
-**PGP Key**: [Link to public key]  
+**Contact**: [security@example.com](mailto:security@example.com)
+**PGP Key**: [Public key](https://example.com/pgp.asc)
 **Response Time**: 48 hours for initial acknowledgment
 
 **Reporting Guidelines**:

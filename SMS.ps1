@@ -427,9 +427,20 @@ function Start-Application {
             }
         }
         
-        # Start services
-        $runScript = Join-Path $PSScriptRoot "scripts\legacy\RUN.ps1"
-        & $runScript
+        # Start services (modern path)
+        # Prefer SMART_SETUP in native mode to orchestrate backend/frontend
+        $smartSetup = Join-Path $PSScriptRoot "SMART_SETUP.ps1"
+        if (Test-Path $smartSetup) {
+            & $smartSetup -PreferNative
+        } else {
+            # Fallback: use QUICKSTART which delegates to SMART_SETUP
+            $quickstart = Join-Path $PSScriptRoot "QUICKSTART.ps1"
+            if (Test-Path $quickstart) {
+                & $quickstart
+            } else {
+                Write-Error2 "Neither SMART_SETUP.ps1 nor QUICKSTART.ps1 found; cannot start services."
+            }
+        }
     }
     
     Write-Host ""

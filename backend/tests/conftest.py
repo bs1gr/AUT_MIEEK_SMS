@@ -6,6 +6,7 @@ from sqlalchemy.pool import StaticPool
 # Ensure backend imports work regardless of current working dir
 import sys
 from pathlib import Path
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT.parent))
@@ -36,6 +37,7 @@ def override_get_db(_=None):
     finally:
         db.close()
 
+
 # Apply the dependency override for all tests
 app.dependency_overrides[main_get_db] = override_get_db
 app.dependency_overrides[db_get_session] = override_get_db
@@ -61,4 +63,5 @@ def clean_db():
 @pytest.fixture()
 def client():
     from fastapi.testclient import TestClient
+
     return TestClient(app)

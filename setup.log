@@ -1,0 +1,370 @@
+==== SMART_SETUP started 10/30/2025 23:28:54 ====
+[2025-10-30 23:28:54] [INFO] Detecting tooling...
+[2025-10-30 23:28:54] [INFO] Python: True, Node: True, Docker: True
+[2025-10-30 23:28:54] [INFO] Installing backend dependencies (pip)...
+[2025-10-30 23:29:00] [INFO] Installing frontend dependencies (npm ci)...
+[2025-10-30 23:29:35] [INFO] Running Alembic migrations...
+[2025-10-30 23:29:36] [INFO] Selected mode: docker
+[2025-10-30 23:29:36] [INFO] Starting Docker Compose (detached, build)...
+[2025-10-30 23:29:37] [INFO] #1 [internal] load local bake definitions
+[2025-10-30 23:29:37] [INFO] #1 reading from stdin 1.10kB done
+[2025-10-30 23:29:37] [INFO] #1 DONE 0.0s
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #2 [frontend internal] load build definition from Dockerfile.frontend
+[2025-10-30 23:29:38] [INFO] #2 transferring dockerfile: 782B 0.0s done
+[2025-10-30 23:29:38] [INFO] #2 DONE 0.0s
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #3 [backend internal] load build definition from Dockerfile.backend
+[2025-10-30 23:29:38] [INFO] #3 transferring dockerfile: 1.31kB done
+[2025-10-30 23:29:38] [INFO] #3 DONE 0.0s
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #4 [frontend internal] load metadata for docker.io/library/nginx:alpine
+[2025-10-30 23:29:38] [INFO] #4 ...
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #5 [auth] library/nginx:pull token for registry-1.docker.io
+[2025-10-30 23:29:38] [INFO] #5 DONE 0.0s
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #6 [auth] library/node:pull token for registry-1.docker.io
+[2025-10-30 23:29:38] [INFO] #6 DONE 0.0s
+[2025-10-30 23:29:38] [INFO] 
+[2025-10-30 23:29:38] [INFO] #7 [auth] library/python:pull token for registry-1.docker.io
+[2025-10-30 23:29:38] [INFO] #7 DONE 0.0s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #8 [backend internal] load metadata for docker.io/library/python:3.11-slim
+[2025-10-30 23:29:39] [INFO] #8 ...
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #9 [frontend internal] load metadata for docker.io/library/node:22-alpine
+[2025-10-30 23:29:39] [INFO] #9 DONE 1.4s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #8 [backend internal] load metadata for docker.io/library/python:3.11-slim
+[2025-10-30 23:29:39] [INFO] #8 DONE 1.4s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #10 [backend internal] load .dockerignore
+[2025-10-30 23:29:39] [INFO] #10 transferring context: 449B done
+[2025-10-30 23:29:39] [INFO] #10 DONE 0.0s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #4 [frontend internal] load metadata for docker.io/library/nginx:alpine
+[2025-10-30 23:29:39] [INFO] #4 ...
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #11 [backend 1/7] FROM docker.io/library/python:3.11-slim@sha256:8eb5fc663972b871c528fef04be4eaa9ab8ab4539a5316c4b8c133771214a617
+[2025-10-30 23:29:39] [INFO] #11 resolve docker.io/library/python:3.11-slim@sha256:8eb5fc663972b871c528fef04be4eaa9ab8ab4539a5316c4b8c133771214a617 0.0s done
+[2025-10-30 23:29:39] [INFO] #11 DONE 0.0s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #10 [frontend internal] load .dockerignore
+[2025-10-30 23:29:39] [INFO] #10 transferring context: 449B done
+[2025-10-30 23:29:39] [INFO] #10 DONE 0.0s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #4 [frontend internal] load metadata for docker.io/library/nginx:alpine
+[2025-10-30 23:29:39] [INFO] #4 DONE 1.6s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #12 [frontend build 1/6] FROM docker.io/library/node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5
+[2025-10-30 23:29:39] [INFO] #12 resolve docker.io/library/node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5
+[2025-10-30 23:29:39] [INFO] #12 resolve docker.io/library/node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5 0.1s done
+[2025-10-30 23:29:39] [INFO] #12 DONE 0.1s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #13 [frontend stage-1 1/3] FROM docker.io/library/nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+[2025-10-30 23:29:39] [INFO] #13 resolve docker.io/library/nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14 0.1s done
+[2025-10-30 23:29:39] [INFO] #13 DONE 0.1s
+[2025-10-30 23:29:39] [INFO] 
+[2025-10-30 23:29:39] [INFO] #14 [backend internal] load build context
+[2025-10-30 23:29:40] [INFO] #14 ...
+[2025-10-30 23:29:40] [INFO] 
+[2025-10-30 23:29:40] [INFO] #15 [frontend internal] load build context
+[2025-10-30 23:29:40] [INFO] #15 transferring context: 715.38kB 0.9s done
+[2025-10-30 23:29:40] [INFO] #15 DONE 1.0s
+[2025-10-30 23:29:40] [INFO] 
+[2025-10-30 23:29:40] [INFO] #16 [frontend build 2/6] WORKDIR /app/frontend
+[2025-10-30 23:29:40] [INFO] #16 CACHED
+[2025-10-30 23:29:40] [INFO] 
+[2025-10-30 23:29:40] [INFO] #17 [frontend build 3/6] COPY frontend/package*.json ./
+[2025-10-30 23:29:40] [INFO] #17 CACHED
+[2025-10-30 23:29:40] [INFO] 
+[2025-10-30 23:29:40] [INFO] #18 [frontend build 4/6] RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+[2025-10-30 23:29:40] [INFO] #18 CACHED
+[2025-10-30 23:29:40] [INFO] 
+[2025-10-30 23:29:40] [INFO] #14 [backend internal] load build context
+[2025-10-30 23:29:41] [INFO] #14 ...
+[2025-10-30 23:29:41] [INFO] 
+[2025-10-30 23:29:41] [INFO] #19 [frontend build 5/6] COPY frontend/ .
+[2025-10-30 23:29:41] [INFO] #19 DONE 0.4s
+[2025-10-30 23:29:41] [INFO] 
+[2025-10-30 23:29:41] [INFO] #14 [backend internal] load build context
+[2025-10-30 23:29:45] [INFO] #14 transferring context: 22.03MB 6.2s
+[2025-10-30 23:29:47] [INFO] #14 ...
+[2025-10-30 23:29:47] [INFO] 
+[2025-10-30 23:29:47] [INFO] #20 [frontend build 6/6] RUN npm run build
+[2025-10-30 23:29:47] [INFO] #20 1.395 
+[2025-10-30 23:29:47] [INFO] #20 1.395 > student-management-frontend@1.0.0 build
+[2025-10-30 23:29:47] [INFO] #20 1.395 > vite build
+[2025-10-30 23:29:47] [INFO] #20 1.395 
+[2025-10-30 23:29:47] [INFO] #20 1.734 vite v5.4.21 building for production...
+[2025-10-30 23:29:47] [INFO] #20 1.812 transforming...
+[2025-10-30 23:29:47] [INFO] #20 5.701 έεΥ 1707 modules transformed.
+[2025-10-30 23:29:47] [INFO] #20 6.052 rendering chunks...
+[2025-10-30 23:29:47] [INFO] #20 6.070 [plugin:vite:reporter] [plugin vite:reporter] 
+[2025-10-30 23:29:47] [INFO] #20 6.070 (!) /app/frontend/src/utils/errorReporting.js is dynamically imported by /app/frontend/src/ErrorBoundary.jsx but also statically imported by /app/frontend/src/main.jsx, dynamic import will not move module into another chunk.
+[2025-10-30 23:29:47] [INFO] #20 6.070 
+[2025-10-30 23:29:47] [INFO] #20 6.092 computing gzip size...
+[2025-10-30 23:29:47] [INFO] #20 6.116 dist/index.html                                 0.55 kB έΦΓ gzip:  0.33 kB
+[2025-10-30 23:29:47] [INFO] #20 6.116 dist/assets/index-Ca413LVt.css                 48.25 kB έΦΓ gzip:  7.99 kB
+[2025-10-30 23:29:47] [INFO] #20 6.121 dist/assets/StudentManagementApp-CRMLDi8a.js  240.82 kB έΦΓ gzip: 59.10 kB
+[2025-10-30 23:29:47] [INFO] #20 6.124 dist/assets/index-Clt6B8Jy.js                 298.51 kB έΦΓ gzip: 98.80 kB
+[2025-10-30 23:29:47] [INFO] #20 6.124 έεΥ built in 4.34s
+[2025-10-30 23:29:47] [INFO] #20 DONE 6.3s
+[2025-10-30 23:29:47] [INFO] 
+[2025-10-30 23:29:47] [INFO] #13 [frontend stage-1 1/3] FROM docker.io/library/nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+[2025-10-30 23:29:47] [INFO] #13 CACHED
+[2025-10-30 23:29:47] [INFO] 
+[2025-10-30 23:29:47] [INFO] #21 [frontend stage-1 2/3] COPY --from=build /app/frontend/dist /usr/share/nginx/html
+[2025-10-30 23:29:47] [INFO] #21 DONE 0.0s
+[2025-10-30 23:29:47] [INFO] 
+[2025-10-30 23:29:47] [INFO] #22 [frontend stage-1 3/3] COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+[2025-10-30 23:29:47] [INFO] #22 DONE 0.1s
+[2025-10-30 23:29:47] [INFO] 
+[2025-10-30 23:29:47] [INFO] #23 [frontend] exporting to image
+[2025-10-30 23:29:47] [INFO] #23 exporting layers
+[2025-10-30 23:29:47] [INFO] #23 exporting layers 0.2s done
+[2025-10-30 23:29:47] [INFO] #23 exporting manifest sha256:f679366a556e8e8a6f461bd59ae05ea090a6203371099900c8244a6bf2d319c2 0.0s done
+[2025-10-30 23:29:47] [INFO] #23 exporting config sha256:2439c4447f5ae385ec644d788ae0a62b15d3a097894573197c569cdb0989a6c1
+[2025-10-30 23:29:48] [INFO] #23 exporting config sha256:2439c4447f5ae385ec644d788ae0a62b15d3a097894573197c569cdb0989a6c1 0.0s done
+[2025-10-30 23:29:48] [INFO] #23 exporting attestation manifest sha256:4849697e6b29cf8596c1e48c4558dc29fa1fa5409b996bbbb123de7e35acc01b 0.0s done
+[2025-10-30 23:29:48] [INFO] #23 exporting manifest list sha256:d3af3d7aa13431810e29948f11c0471888a5e2176cc50f088b439444fc85a340 0.0s done
+[2025-10-30 23:29:48] [INFO] #23 naming to docker.io/library/sms-frontend:latest done
+[2025-10-30 23:29:48] [INFO] #23 unpacking to docker.io/library/sms-frontend:latest
+[2025-10-30 23:29:48] [INFO] #23 unpacking to docker.io/library/sms-frontend:latest 0.1s done
+[2025-10-30 23:29:48] [INFO] #23 DONE 0.5s
+[2025-10-30 23:29:48] [INFO] 
+[2025-10-30 23:29:48] [INFO] #14 [backend internal] load build context
+[2025-10-30 23:29:48] [INFO] #14 ...
+[2025-10-30 23:29:48] [INFO] 
+[2025-10-30 23:29:48] [INFO] #24 [frontend] resolving provenance for metadata file
+[2025-10-30 23:29:48] [INFO] #24 DONE 0.0s
+[2025-10-30 23:29:48] [INFO] 
+[2025-10-30 23:29:48] [INFO] #14 [backend internal] load build context
+[2025-10-30 23:29:50] [INFO] #14 transferring context: 33.17MB 11.3s
+[2025-10-30 23:29:55] [INFO] #14 transferring context: 55.34MB 16.4s
+[2025-10-30 23:29:56] [INFO] #14 transferring context: 62.92MB 17.0s done
+[2025-10-30 23:29:56] [INFO] #14 DONE 17.0s
+[2025-10-30 23:29:56] [INFO] 
+[2025-10-30 23:29:56] [INFO] #25 [backend 2/7] RUN apt-get update -y && apt-get install -y --no-install-recommends     build-essential curl ca-certificates     && rm -rf /var/lib/apt/lists/*
+[2025-10-30 23:29:56] [INFO] #25 CACHED
+[2025-10-30 23:29:56] [INFO] 
+[2025-10-30 23:29:56] [INFO] #26 [backend 3/7] WORKDIR /app
+[2025-10-30 23:29:56] [INFO] #26 CACHED
+[2025-10-30 23:29:56] [INFO] 
+[2025-10-30 23:29:56] [INFO] #27 [backend 4/7] COPY backend/requirements.txt /app/backend/requirements.txt
+[2025-10-30 23:29:56] [INFO] #27 DONE 0.1s
+[2025-10-30 23:29:56] [INFO] 
+[2025-10-30 23:29:56] [INFO] #28 [backend 5/7] RUN python -m pip install --upgrade pip &&      pip install --no-cache-dir -r /app/backend/requirements.txt
+[2025-10-30 23:29:58] [INFO] #28 1.541 Requirement already satisfied: pip in /usr/local/lib/python3.11/site-packages (24.0)
+[2025-10-30 23:29:58] [INFO] #28 1.846 Collecting pip
+[2025-10-30 23:29:58] [INFO] #28 2.181   Downloading pip-25.3-py3-none-any.whl.metadata (4.7 kB)
+[2025-10-30 23:29:59] [INFO] #28 2.253 Downloading pip-25.3-py3-none-any.whl (1.8 MB)
+[2025-10-30 23:29:59] [INFO] #28 2.625    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 1.8/1.8 MB 4.9 MB/s eta 0:00:00
+[2025-10-30 23:29:59] [INFO] #28 2.671 Installing collected packages: pip
+[2025-10-30 23:29:59] [INFO] #28 2.671   Attempting uninstall: pip
+[2025-10-30 23:29:59] [INFO] #28 2.674     Found existing installation: pip 24.0
+[2025-10-30 23:29:59] [INFO] #28 2.713     Uninstalling pip-24.0:
+[2025-10-30 23:29:59] [INFO] #28 2.890       Successfully uninstalled pip-24.0
+[2025-10-30 23:30:00] [INFO] #28 3.570 Successfully installed pip-25.3
+[2025-10-30 23:30:00] [INFO] #28 3.570 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+[2025-10-30 23:30:01] [INFO] #28 4.731 Collecting fastapi==0.120.0 (from -r /app/backend/requirements.txt (line 3))
+[2025-10-30 23:30:01] [INFO] #28 4.935   Downloading fastapi-0.120.0-py3-none-any.whl.metadata (28 kB)
+[2025-10-30 23:30:01] [INFO] #28 5.051 Collecting uvicorn==0.38.0 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:01] [INFO] #28 5.113   Downloading uvicorn-0.38.0-py3-none-any.whl.metadata (6.8 kB)
+[2025-10-30 23:30:02] [INFO] #28 5.510 Collecting sqlalchemy==2.0.44 (from -r /app/backend/requirements.txt (line 5))
+[2025-10-30 23:30:02] [INFO] #28 5.574   Downloading sqlalchemy-2.0.44-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (9.5 kB)
+[2025-10-30 23:30:02] [INFO] #28 5.730 Collecting pydantic==2.12.3 (from -r /app/backend/requirements.txt (line 6))
+[2025-10-30 23:30:02] [INFO] #28 5.793   Downloading pydantic-2.12.3-py3-none-any.whl.metadata (87 kB)
+[2025-10-30 23:30:02] [INFO] #28 5.929 Collecting email-validator==2.3.0 (from -r /app/backend/requirements.txt (line 7))
+[2025-10-30 23:30:02] [INFO] #28 5.993   Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+[2025-10-30 23:30:02] [INFO] #28 6.068 Collecting python-multipart==0.0.20 (from -r /app/backend/requirements.txt (line 8))
+[2025-10-30 23:30:02] [INFO] #28 6.132   Downloading python_multipart-0.0.20-py3-none-any.whl.metadata (1.8 kB)
+[2025-10-30 23:30:02] [INFO] #28 6.204 Collecting openpyxl==3.1.5 (from -r /app/backend/requirements.txt (line 9))
+[2025-10-30 23:30:03] [INFO] #28 6.265   Downloading openpyxl-3.1.5-py2.py3-none-any.whl.metadata (2.5 kB)
+[2025-10-30 23:30:03] [INFO] #28 6.445 Collecting reportlab==4.4.4 (from -r /app/backend/requirements.txt (line 10))
+[2025-10-30 23:30:03] [INFO] #28 6.508   Downloading reportlab-4.4.4-py3-none-any.whl.metadata (1.7 kB)
+[2025-10-30 23:30:03] [INFO] #28 6.581 Collecting pydantic-settings==2.11.0 (from -r /app/backend/requirements.txt (line 11))
+[2025-10-30 23:30:03] [INFO] #28 6.642   Downloading pydantic_settings-2.11.0-py3-none-any.whl.metadata (3.4 kB)
+[2025-10-30 23:30:03] [INFO] #28 6.717 Collecting alembic==1.17.0 (from -r /app/backend/requirements.txt (line 12))
+[2025-10-30 23:30:03] [INFO] #28 6.779   Downloading alembic-1.17.0-py3-none-any.whl.metadata (7.2 kB)
+[2025-10-30 23:30:03] [INFO] #28 6.897 Collecting psutil==7.1.1 (from -r /app/backend/requirements.txt (line 13))
+[2025-10-30 23:30:03] [INFO] #28 6.966   Downloading psutil-7.1.1-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (23 kB)
+[2025-10-30 23:30:03] [INFO] #28 7.056 Collecting pytest==8.3.3 (from -r /app/backend/requirements.txt (line 14))
+[2025-10-30 23:30:03] [INFO] #28 7.119   Downloading pytest-8.3.3-py3-none-any.whl.metadata (7.5 kB)
+[2025-10-30 23:30:03] [INFO] #28 7.193 Collecting pytest-cov==6.0.0 (from -r /app/backend/requirements.txt (line 15))
+[2025-10-30 23:30:04] [INFO] #28 7.255   Downloading pytest_cov-6.0.0-py3-none-any.whl.metadata (27 kB)
+[2025-10-30 23:30:04] [INFO] #28 7.334 Collecting httpx==0.27.2 (from -r /app/backend/requirements.txt (line 16))
+[2025-10-30 23:30:04] [INFO] #28 7.396   Downloading httpx-0.27.2-py3-none-any.whl.metadata (7.1 kB)
+[2025-10-30 23:30:04] [INFO] #28 7.466 Collecting slowapi==0.1.9 (from -r /app/backend/requirements.txt (line 17))
+[2025-10-30 23:30:04] [INFO] #28 7.528   Downloading slowapi-0.1.9-py3-none-any.whl.metadata (3.0 kB)
+[2025-10-30 23:30:04] [INFO] #28 7.593 Collecting passlib==1.7.4 (from passlib[bcrypt]==1.7.4->-r /app/backend/requirements.txt (line 18))
+[2025-10-30 23:30:04] [INFO] #28 7.653   Downloading passlib-1.7.4-py2.py3-none-any.whl.metadata (1.7 kB)
+[2025-10-30 23:30:04] [INFO] #28 7.721 Collecting python-jose==3.3.0 (from -r /app/backend/requirements.txt (line 19))
+[2025-10-30 23:30:04] [INFO] #28 7.784   Downloading python_jose-3.3.0-py2.py3-none-any.whl.metadata (5.4 kB)
+[2025-10-30 23:30:04] [INFO] #28 7.873 Collecting starlette<0.49.0,>=0.40.0 (from fastapi==0.120.0->-r /app/backend/requirements.txt (line 3))
+[2025-10-30 23:30:04] [INFO] #28 7.937   Downloading starlette-0.48.0-py3-none-any.whl.metadata (6.3 kB)
+[2025-10-30 23:30:04] [INFO] #28 8.016 Collecting typing-extensions>=4.8.0 (from fastapi==0.120.0->-r /app/backend/requirements.txt (line 3))
+[2025-10-30 23:30:04] [INFO] #28 8.078   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+[2025-10-30 23:30:04] [INFO] #28 8.144 Collecting annotated-doc>=0.0.2 (from fastapi==0.120.0->-r /app/backend/requirements.txt (line 3))
+[2025-10-30 23:30:04] [INFO] #28 8.208   Downloading annotated_doc-0.0.3-py3-none-any.whl.metadata (6.6 kB)
+[2025-10-30 23:30:04] [INFO] #28 8.277 Collecting annotated-types>=0.6.0 (from pydantic==2.12.3->-r /app/backend/requirements.txt (line 6))
+[2025-10-30 23:30:05] [INFO] #28 8.338   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+[2025-10-30 23:30:05] [INFO] #28 9.137 Collecting pydantic-core==2.41.4 (from pydantic==2.12.3->-r /app/backend/requirements.txt (line 6))
+[2025-10-30 23:30:05] [INFO] #28 9.199   Downloading pydantic_core-2.41.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+[2025-10-30 23:30:05] [INFO] #28 9.266 Collecting typing-inspection>=0.4.2 (from pydantic==2.12.3->-r /app/backend/requirements.txt (line 6))
+[2025-10-30 23:30:06] [INFO] #28 9.331   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+[2025-10-30 23:30:06] [INFO] #28 9.402 Collecting click>=7.0 (from uvicorn==0.38.0->uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:06] [INFO] #28 9.462   Downloading click-8.3.0-py3-none-any.whl.metadata (2.6 kB)
+[2025-10-30 23:30:06] [INFO] #28 9.527 Collecting h11>=0.8 (from uvicorn==0.38.0->uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:06] [INFO] #28 9.590   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+[2025-10-30 23:30:06] [INFO] #28 9.768 Collecting greenlet>=1 (from sqlalchemy==2.0.44->-r /app/backend/requirements.txt (line 5))
+[2025-10-30 23:30:06] [INFO] #28 9.833   Downloading greenlet-3.2.4-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (4.1 kB)
+[2025-10-30 23:30:06] [INFO] #28 9.904 Collecting dnspython>=2.0.0 (from email-validator==2.3.0->-r /app/backend/requirements.txt (line 7))
+[2025-10-30 23:30:06] [INFO] #28 9.968   Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+[2025-10-30 23:30:06] [INFO] #28 10.04 Collecting idna>=2.0.0 (from email-validator==2.3.0->-r /app/backend/requirements.txt (line 7))
+[2025-10-30 23:30:06] [INFO] #28 10.10   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+[2025-10-30 23:30:06] [INFO] #28 10.17 Collecting et-xmlfile (from openpyxl==3.1.5->-r /app/backend/requirements.txt (line 9))
+[2025-10-30 23:30:07] [INFO] #28 10.23   Downloading et_xmlfile-2.0.0-py3-none-any.whl.metadata (2.7 kB)
+[2025-10-30 23:30:07] [INFO] #28 10.46 Collecting pillow>=9.0.0 (from reportlab==4.4.4->-r /app/backend/requirements.txt (line 10))
+[2025-10-30 23:30:07] [INFO] #28 10.52   Downloading pillow-12.0.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+[2025-10-30 23:30:07] [INFO] #28 10.72 Collecting charset-normalizer (from reportlab==4.4.4->-r /app/backend/requirements.txt (line 10))
+[2025-10-30 23:30:07] [INFO] #28 10.78   Downloading charset_normalizer-3.4.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+[2025-10-30 23:30:07] [INFO] #28 10.87 Collecting python-dotenv>=0.21.0 (from pydantic-settings==2.11.0->-r /app/backend/requirements.txt (line 11))
+[2025-10-30 23:30:07] [INFO] #28 10.93   Downloading python_dotenv-1.2.1-py3-none-any.whl.metadata (25 kB)
+[2025-10-30 23:30:07] [INFO] #28 11.02 Collecting Mako (from alembic==1.17.0->-r /app/backend/requirements.txt (line 12))
+[2025-10-30 23:30:07] [INFO] #28 11.08   Downloading mako-1.3.10-py3-none-any.whl.metadata (2.9 kB)
+[2025-10-30 23:30:07] [INFO] #28 11.15 Collecting iniconfig (from pytest==8.3.3->-r /app/backend/requirements.txt (line 14))
+[2025-10-30 23:30:07] [INFO] #28 11.21   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+[2025-10-30 23:30:07] [INFO] #28 11.28 Collecting packaging (from pytest==8.3.3->-r /app/backend/requirements.txt (line 14))
+[2025-10-30 23:30:08] [INFO] #28 11.34   Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+[2025-10-30 23:30:08] [INFO] #28 11.41 Collecting pluggy<2,>=1.5 (from pytest==8.3.3->-r /app/backend/requirements.txt (line 14))
+[2025-10-30 23:30:08] [INFO] #28 11.47   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+[2025-10-30 23:30:08] [INFO] #28 11.88 Collecting coverage>=7.5 (from coverage[toml]>=7.5->pytest-cov==6.0.0->-r /app/backend/requirements.txt (line 15))
+[2025-10-30 23:30:08] [INFO] #28 11.95   Downloading coverage-7.11.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (9.0 kB)
+[2025-10-30 23:30:08] [INFO] #28 12.02 Collecting anyio (from httpx==0.27.2->-r /app/backend/requirements.txt (line 16))
+[2025-10-30 23:30:08] [INFO] #28 12.09   Downloading anyio-4.11.0-py3-none-any.whl.metadata (4.1 kB)
+[2025-10-30 23:30:08] [INFO] #28 12.16 Collecting certifi (from httpx==0.27.2->-r /app/backend/requirements.txt (line 16))
+[2025-10-30 23:30:08] [INFO] #28 12.23   Downloading certifi-2025.10.5-py3-none-any.whl.metadata (2.5 kB)
+[2025-10-30 23:30:08] [INFO] #28 12.30 Collecting httpcore==1.* (from httpx==0.27.2->-r /app/backend/requirements.txt (line 16))
+[2025-10-30 23:30:09] [INFO] #28 12.37   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+[2025-10-30 23:30:09] [INFO] #28 12.44 Collecting sniffio (from httpx==0.27.2->-r /app/backend/requirements.txt (line 16))
+[2025-10-30 23:30:09] [INFO] #28 12.50   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+[2025-10-30 23:30:09] [INFO] #28 12.58 Collecting limits>=2.3 (from slowapi==0.1.9->-r /app/backend/requirements.txt (line 17))
+[2025-10-30 23:30:09] [INFO] #28 12.64   Downloading limits-5.6.0-py3-none-any.whl.metadata (10 kB)
+[2025-10-30 23:30:09] [INFO] #28 12.72 Collecting ecdsa!=0.15 (from python-jose==3.3.0->-r /app/backend/requirements.txt (line 19))
+[2025-10-30 23:30:09] [INFO] #28 12.78   Downloading ecdsa-0.19.1-py2.py3-none-any.whl.metadata (29 kB)
+[2025-10-30 23:30:09] [INFO] #28 12.86 Collecting rsa (from python-jose==3.3.0->-r /app/backend/requirements.txt (line 19))
+[2025-10-30 23:30:09] [INFO] #28 12.93   Downloading rsa-4.9.1-py3-none-any.whl.metadata (5.6 kB)
+[2025-10-30 23:30:09] [INFO] #28 13.01 Collecting pyasn1 (from python-jose==3.3.0->-r /app/backend/requirements.txt (line 19))
+[2025-10-30 23:30:09] [INFO] #28 13.07   Downloading pyasn1-0.6.1-py3-none-any.whl.metadata (8.4 kB)
+[2025-10-30 23:30:09] [INFO] #28 13.18 Collecting bcrypt>=3.1.0 (from passlib[bcrypt]==1.7.4->-r /app/backend/requirements.txt (line 18))
+[2025-10-30 23:30:10] [INFO] #28 13.25   Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl.metadata (10 kB)
+[2025-10-30 23:30:10] [INFO] #28 13.42 Collecting httptools>=0.6.3 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:10] [INFO] #28 13.48   Downloading httptools-0.7.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+[2025-10-30 23:30:10] [INFO] #28 13.59 Collecting pyyaml>=5.1 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:10] [INFO] #28 13.65   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+[2025-10-30 23:30:10] [INFO] #28 13.74 Collecting uvloop>=0.15.1 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:10] [INFO] #28 13.82   Downloading uvloop-0.22.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.9 kB)
+[2025-10-30 23:30:10] [INFO] #28 13.95 Collecting watchfiles>=0.13 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:10] [INFO] #28 14.02   Downloading watchfiles-1.1.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+[2025-10-30 23:30:10] [INFO] #28 14.16 Collecting websockets>=10.4 (from uvicorn[standard]==0.38.0->-r /app/backend/requirements.txt (line 4))
+[2025-10-30 23:30:11] [INFO] #28 14.23   Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
+[2025-10-30 23:30:11] [INFO] #28 14.33 Collecting six>=1.9.0 (from ecdsa!=0.15->python-jose==3.3.0->-r /app/backend/requirements.txt (line 19))
+[2025-10-30 23:30:11] [INFO] #28 14.39   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+[2025-10-30 23:30:11] [INFO] #28 14.46 Collecting deprecated>=1.2 (from limits>=2.3->slowapi==0.1.9->-r /app/backend/requirements.txt (line 17))
+[2025-10-30 23:30:11] [INFO] #28 14.53   Downloading deprecated-1.3.1-py2.py3-none-any.whl.metadata (5.9 kB)
+[2025-10-30 23:30:11] [INFO] #28 14.76 Collecting wrapt<3,>=1.10 (from deprecated>=1.2->limits>=2.3->slowapi==0.1.9->-r /app/backend/requirements.txt (line 17))
+[2025-10-30 23:30:11] [INFO] #28 14.82   Downloading wrapt-2.0.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.8 kB)
+[2025-10-30 23:30:11] [INFO] #28 14.99 Collecting MarkupSafe>=0.9.2 (from Mako->alembic==1.17.0->-r /app/backend/requirements.txt (line 12))
+[2025-10-30 23:30:11] [INFO] #28 15.05   Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+[2025-10-30 23:30:11] [INFO] #28 15.12 Downloading fastapi-0.120.0-py3-none-any.whl (108 kB)
+[2025-10-30 23:30:12] [INFO] #28 15.21 Downloading pydantic-2.12.3-py3-none-any.whl (462 kB)
+[2025-10-30 23:30:12] [INFO] #28 15.35 Downloading uvicorn-0.38.0-py3-none-any.whl (68 kB)
+[2025-10-30 23:30:12] [INFO] #28 15.42 Downloading sqlalchemy-2.0.44-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+[2025-10-30 23:30:12] [INFO] #28 15.75    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 3.3/3.3 MB 9.9 MB/s  0:00:00
+[2025-10-30 23:30:12] [INFO] #28 15.81 Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+[2025-10-30 23:30:12] [INFO] #28 15.88 Downloading python_multipart-0.0.20-py3-none-any.whl (24 kB)
+[2025-10-30 23:30:12] [INFO] #28 15.94 Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+[2025-10-30 23:30:12] [INFO] #28 16.02 Downloading reportlab-4.4.4-py3-none-any.whl (2.0 MB)
+[2025-10-30 23:30:12] [INFO] #28 16.22    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 2.0/2.0 MB 9.8 MB/s  0:00:00
+[2025-10-30 23:30:13] [INFO] #28 16.28 Downloading pydantic_settings-2.11.0-py3-none-any.whl (48 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.35 Downloading alembic-1.17.0-py3-none-any.whl (247 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.42 Downloading psutil-7.1.1-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (290 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.50 Downloading pytest-8.3.3-py3-none-any.whl (342 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.59 Downloading pytest_cov-6.0.0-py3-none-any.whl (22 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.66 Downloading httpx-0.27.2-py3-none-any.whl (76 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.72 Downloading slowapi-0.1.9-py3-none-any.whl (14 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.79 Downloading passlib-1.7.4-py2.py3-none-any.whl (525 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.83    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 525.6/525.6 kB 21.6 MB/s  0:00:00
+[2025-10-30 23:30:13] [INFO] #28 16.89 Downloading python_jose-3.3.0-py2.py3-none-any.whl (33 kB)
+[2025-10-30 23:30:13] [INFO] #28 16.95 Downloading pydantic_core-2.41.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+[2025-10-30 23:30:13] [INFO] #28 17.13    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 2.1/2.1 MB 11.8 MB/s  0:00:00
+[2025-10-30 23:30:13] [INFO] #28 17.19 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+[2025-10-30 23:30:13] [INFO] #28 17.26 Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.33 Downloading starlette-0.48.0-py3-none-any.whl (73 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.39 Downloading anyio-4.11.0-py3-none-any.whl (109 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.47 Downloading annotated_doc-0.0.3-py3-none-any.whl (5.5 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.53 Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.59 Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl (278 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.67 Downloading click-8.3.0-py3-none-any.whl (107 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.74 Downloading coverage-7.11.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (248 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.82 Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.90 Downloading ecdsa-0.19.1-py2.py3-none-any.whl (150 kB)
+[2025-10-30 23:30:14] [INFO] #28 17.97 Downloading greenlet-3.2.4-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (587 kB)
+[2025-10-30 23:30:14] [INFO] #28 18.02    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 587.7/587.7 kB 13.6 MB/s  0:00:00
+[2025-10-30 23:30:14] [INFO] #28 18.08 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+[2025-10-30 23:30:14] [INFO] #28 18.14 Downloading httptools-0.7.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (456 kB)
+[2025-10-30 23:30:14] [INFO] #28 18.24 Downloading idna-3.11-py3-none-any.whl (71 kB)
+[2025-10-30 23:30:15] [INFO] #28 18.31 Downloading limits-5.6.0-py3-none-any.whl (60 kB)
+[2025-10-30 23:30:15] [INFO] #28 18.37 Downloading deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+[2025-10-30 23:30:15] [INFO] #28 18.44 Downloading wrapt-2.0.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (114 kB)
+[2025-10-30 23:30:15] [INFO] #28 18.51 Downloading packaging-25.0-py3-none-any.whl (66 kB)
+[2025-10-30 23:30:15] [INFO] #28 18.57 Downloading pillow-12.0.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+[2025-10-30 23:30:15] [INFO] #28 19.10    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 7.0/7.0 MB 13.8 MB/s  0:00:00
+[2025-10-30 23:30:15] [INFO] #28 19.16 Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+[2025-10-30 23:30:15] [INFO] #28 19.23 Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+[2025-10-30 23:30:16] [INFO] #28 19.29    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 806.6/806.6 kB 12.9 MB/s  0:00:00
+[2025-10-30 23:30:16] [INFO] #28 19.36 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+[2025-10-30 23:30:16] [INFO] #28 19.42 Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+[2025-10-30 23:30:16] [INFO] #28 19.49 Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+[2025-10-30 23:30:16] [INFO] #28 19.56 Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+[2025-10-30 23:30:16] [INFO] #28 19.62 Downloading uvloop-0.22.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.8 MB)
+[2025-10-30 23:30:16] [INFO] #28 19.86    έΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒέΦΒ 3.8/3.8 MB 15.8 MB/s  0:00:00
+[2025-10-30 23:30:16] [INFO] #28 19.93 Downloading watchfiles-1.1.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (456 kB)
+[2025-10-30 23:30:16] [INFO] #28 20.02 Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (182 kB)
+[2025-10-30 23:30:16] [INFO] #28 20.09 Downloading certifi-2025.10.5-py3-none-any.whl (163 kB)
+[2025-10-30 23:30:16] [INFO] #28 20.16 Downloading charset_normalizer-3.4.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (151 kB)
+[2025-10-30 23:30:16] [INFO] #28 20.23 Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+[2025-10-30 23:30:16] [INFO] #28 20.29 Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+[2025-10-30 23:30:17] [INFO] #28 20.36 Downloading mako-1.3.10-py3-none-any.whl (78 kB)
+[2025-10-30 23:30:17] [INFO] #28 20.43 Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+[2025-10-30 23:30:17] [INFO] #28 20.49 Downloading pyasn1-0.6.1-py3-none-any.whl (83 kB)
+[2025-10-30 23:30:17] [INFO] #28 20.56 Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+[2025-10-30 23:30:17] [INFO] #28 20.68 Installing collected packages: passlib, wrapt, websockets, uvloop, typing-extensions, sniffio, six, pyyaml, python-multipart, python-dotenv, pyasn1, psutil, pluggy, pillow, packaging, MarkupSafe, iniconfig, idna, httptools, h11, greenlet, et-xmlfile, dnspython, coverage, click, charset-normalizer, certifi, bcrypt, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, rsa, reportlab, pytest, pydantic-core, openpyxl, Mako, httpcore, email-validator, ecdsa, deprecated, anyio, watchfiles, starlette, python-jose, pytest-cov, pydantic, limits, httpx, alembic, slowapi, pydantic-settings, fastapi
+[2025-10-30 23:30:21] [INFO] #28 24.74 
+[2025-10-30 23:30:21] [INFO] #28 24.75 Successfully installed Mako-1.3.10 MarkupSafe-3.0.3 alembic-1.17.0 annotated-doc-0.0.3 annotated-types-0.7.0 anyio-4.11.0 bcrypt-5.0.0 certifi-2025.10.5 charset-normalizer-3.4.4 click-8.3.0 coverage-7.11.0 deprecated-1.3.1 dnspython-2.8.0 ecdsa-0.19.1 email-validator-2.3.0 et-xmlfile-2.0.0 fastapi-0.120.0 greenlet-3.2.4 h11-0.16.0 httpcore-1.0.9 httptools-0.7.1 httpx-0.27.2 idna-3.11 iniconfig-2.3.0 limits-5.6.0 openpyxl-3.1.5 packaging-25.0 passlib-1.7.4 pillow-12.0.0 pluggy-1.6.0 psutil-7.1.1 pyasn1-0.6.1 pydantic-2.12.3 pydantic-core-2.41.4 pydantic-settings-2.11.0 pytest-8.3.3 pytest-cov-6.0.0 python-dotenv-1.2.1 python-jose-3.3.0 python-multipart-0.0.20 pyyaml-6.0.3 reportlab-4.4.4 rsa-4.9.1 six-1.17.0 slowapi-0.1.9 sniffio-1.3.1 sqlalchemy-2.0.44 starlette-0.48.0 typing-extensions-4.15.0 typing-inspection-0.4.2 uvicorn-0.38.0 uvloop-0.22.1 watchfiles-1.1.1 websockets-15.0.1 wrapt-2.0.0
+[2025-10-30 23:30:21] [INFO] #28 24.75 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+[2025-10-30 23:30:22] [INFO] #28 DONE 25.9s
+[2025-10-30 23:30:22] [INFO] 
+[2025-10-30 23:30:22] [INFO] #29 [backend 6/7] COPY backend /app/backend
+[2025-10-30 23:30:23] [INFO] #29 DONE 0.5s
+[2025-10-30 23:30:23] [INFO] 
+[2025-10-30 23:30:23] [INFO] #30 [backend 7/7] RUN useradd -m appuser &&     chown -R appuser:appuser /app &&     mkdir -p /data &&     chown -R appuser:appuser /data
+[2025-10-30 23:30:29] [INFO] #30 DONE 6.8s
+[2025-10-30 23:30:30] [INFO] 
+[2025-10-30 23:30:30] [INFO] #31 [backend] exporting to image
+[2025-10-30 23:30:30] [INFO] #31 exporting layers
+[2025-10-30 23:30:34] [INFO] #31 exporting layers 4.6s done
+[2025-10-30 23:30:34] [INFO] #31 exporting manifest sha256:8fcc13d44ee94ec94e67a274c7eae222cc7bed79462d2e0d444b96b4cab1188e 0.0s done
+[2025-10-30 23:30:34] [INFO] #31 exporting config sha256:a7aa96105e6b2e48e3cdef4f74c483b9d2a5254d1dae55a4181d0165c759f69a 0.0s done
+[2025-10-30 23:30:34] [INFO] #31 exporting attestation manifest sha256:98b02b5478549ce02e1d892088fdd2a21bd1ab4e914f0a8f8a7d6dcd7f23fdf7 0.0s done
+[2025-10-30 23:30:34] [INFO] #31 exporting manifest list sha256:d1987ae5d22f1bbf8cadce55ff130a4151b90458652a1296e990c4764a6e9dd2 0.0s done
+[2025-10-30 23:30:34] [INFO] #31 naming to docker.io/library/sms-backend:latest done
+[2025-10-30 23:30:34] [INFO] #31 unpacking to docker.io/library/sms-backend:latest
+[2025-10-30 23:30:37] [INFO] #31 unpacking to docker.io/library/sms-backend:latest 2.6s done
+[2025-10-30 23:30:37] [INFO] #31 DONE 7.3s
+[2025-10-30 23:30:37] [INFO] 
+[2025-10-30 23:30:37] [INFO] #32 [backend] resolving provenance for metadata file
+[2025-10-30 23:30:37] [INFO] #32 DONE 0.0s
+[2025-10-30 23:30:45] [INFO] Service is up: http://localhost:8080/health

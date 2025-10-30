@@ -1,6 +1,7 @@
 """
 Quick test script to verify request ID tracking functionality.
 """
+
 from fastapi.testclient import TestClient
 from backend.main import app
 import sys
@@ -82,5 +83,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

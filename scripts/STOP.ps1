@@ -58,10 +58,15 @@ try {
     
     if (-not (Test-Path $downScript)) {
         Write-Warn "DOCKER_FULLSTACK_DOWN.ps1 not found at: $downScript"
-        Write-Info "Attempting docker-compose down..."
-        docker-compose down
+        Write-Info "Attempting 'docker compose down'..."
+        try {
+            docker compose down
+        } catch {
+            Write-Warn "'docker compose' not available or failed. Trying legacy 'docker-compose'..."
+            docker-compose down
+        }
         if ($LASTEXITCODE -ne 0) {
-            Write-Warn "docker-compose down failed (exit code: $LASTEXITCODE)"
+            Write-Warn "Docker stop failed (exit code: $LASTEXITCODE)"
             exit $LASTEXITCODE
         }
     } else {

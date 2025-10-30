@@ -2,7 +2,8 @@
 Daily Performance Routes
 Provides CRUD-like endpoints for daily performance records.
 """
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
@@ -40,13 +41,23 @@ class DailyPerformanceResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 from backend.db import get_session as get_db
+from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
+from .routers_auth import optional_require_role
 
 
 @router.post("/", response_model=DailyPerformanceResponse)
-def create_daily_performance(performance: DailyPerformanceCreate, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_WRITE)
+def create_daily_performance(
+    request: Request,
+    performance: DailyPerformanceCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
+):
     try:
         from backend.models import DailyPerformance
+
         db_performance = DailyPerformance(**performance.model_dump())
         db.add(db_performance)
         db.commit()
@@ -62,6 +73,7 @@ def create_daily_performance(performance: DailyPerformanceCreate, db: Session = 
 def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)):
     try:
         from backend.models import DailyPerformance
+
         return db.query(DailyPerformance).filter(DailyPerformance.student_id == student_id).all()
     except Exception as e:
         logger.error(f"Error fetching daily performance for student {student_id}: {e}", exc_info=True)
@@ -72,10 +84,15 @@ def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)
 def get_student_course_daily_performance(student_id: int, course_id: int, db: Session = Depends(get_db)):
     try:
         from backend.models import DailyPerformance
-        return db.query(DailyPerformance).filter(
-            DailyPerformance.student_id == student_id,
-            DailyPerformance.course_id == course_id,
-        ).all()
+
+        return (
+            db.query(DailyPerformance)
+            .filter(
+                DailyPerformance.student_id == student_id,
+                DailyPerformance.course_id == course_id,
+            )
+            .all()
+        )
     except Exception as e:
         logger.error(
             f"Error fetching daily performance for student {student_id} course {course_id}: {e}",
@@ -88,11 +105,16 @@ def get_student_course_daily_performance(student_id: int, course_id: int, db: Se
 def get_course_daily_performance_by_date(date_str: str, course_id: int, db: Session = Depends(get_db)):
     try:
         from backend.models import DailyPerformance
+
         target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-        return db.query(DailyPerformance).filter(
-            DailyPerformance.course_id == course_id,
-            DailyPerformance.date == target_date,
-        ).all()
+        return (
+            db.query(DailyPerformance)
+            .filter(
+                DailyPerformance.course_id == course_id,
+                DailyPerformance.date == target_date,
+            )
+            .all()
+        )
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     except Exception as e:

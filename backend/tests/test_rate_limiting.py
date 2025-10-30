@@ -1,6 +1,7 @@
 """
 Tests for rate limiting functionality.
 """
+
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
@@ -15,22 +16,22 @@ def app_with_rate_limiting():
     app = FastAPI()
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
-    
+
     @app.get("/read")
     @limiter.limit(RATE_LIMIT_READ)
     async def read_endpoint(request: Request):
         return {"message": "read"}
-    
+
     @app.post("/write")
     @limiter.limit(RATE_LIMIT_WRITE)
     async def write_endpoint(request: Request):
         return {"message": "write"}
-    
+
     @app.post("/heavy")
     @limiter.limit(RATE_LIMIT_HEAVY)
     async def heavy_endpoint(request: Request):
         return {"message": "heavy"}
-    
+
     return app
 
 
@@ -77,7 +78,7 @@ def test_heavy_endpoint_under_limit(client):
 def test_rate_limit_headers_present(client):
     """Test that rate limit headers are present in responses."""
     response = client.get("/read")
-    
+
     # Check for rate limit headers (slowapi adds these)
     # Note: Headers may vary by slowapi version
     assert response.status_code == 200
@@ -86,7 +87,7 @@ def test_rate_limit_headers_present(client):
 def test_limiter_instance():
     """Test that limiter instance is properly configured."""
     assert limiter is not None
-    assert hasattr(limiter, 'limit')
+    assert hasattr(limiter, "limit")
 
 
 def test_different_endpoints_have_different_limits():
@@ -94,10 +95,10 @@ def test_different_endpoints_have_different_limits():
     # This is a structure test - verify the limits are different
     assert RATE_LIMIT_HEAVY != RATE_LIMIT_WRITE
     assert RATE_LIMIT_WRITE != RATE_LIMIT_READ
-    
+
     # Heavy should be most restrictive
     heavy_limit = int(RATE_LIMIT_HEAVY.split("/")[0])
     write_limit = int(RATE_LIMIT_WRITE.split("/")[0])
     read_limit = int(RATE_LIMIT_READ.split("/")[0])
-    
+
     assert heavy_limit < write_limit < read_limit

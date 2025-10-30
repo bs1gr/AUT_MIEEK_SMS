@@ -14,7 +14,7 @@ class CourseCreate(BaseModel):
     absence_penalty: Optional[float] = Field(default=0.0, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
-    
+
     @classmethod
     def _none_if_empty(cls, v):
         if isinstance(v, str) and v.strip() == "":
@@ -38,18 +38,18 @@ class CourseCreate(BaseModel):
                 values[k] = cls._none_if_empty(values[k])
         return values
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def _normalize_before(cls, obj):
         if isinstance(obj, dict):
             return cls._pre_normalize(dict(obj))
         return obj
 
-    @field_validator('course_code')
+    @field_validator("course_code")
     @classmethod
     def validate_course_code(cls, v: str) -> str:
         """Ensure course code is uppercase and alphanumeric"""
-        if not v.replace('-', '').replace('_', '').isalnum():
+        if not v.replace("-", "").replace("_", "").isalnum():
             raise ValueError("Course code must be alphanumeric (hyphens and underscores allowed)")
         return v.upper().strip()
 
@@ -92,7 +92,7 @@ class CourseUpdate(BaseModel):
                 values[k] = cls._none_if_empty(values[k])
         return values
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def _normalize_before(cls, obj):
         if isinstance(obj, dict):

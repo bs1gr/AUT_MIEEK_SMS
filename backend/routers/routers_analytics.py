@@ -2,6 +2,7 @@
 Analytics Routes
 Provides endpoints for student analytics and final grade computations.
 """
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Dict, Any
@@ -46,10 +47,14 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
             return {"error": "No evaluation rules defined for this course"}
 
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.course_id == course_id).all()
-        dps = db.query(DailyPerformance).filter(
-            DailyPerformance.student_id == student_id,
-            DailyPerformance.course_id == course_id,
-        ).all()
+        dps = (
+            db.query(DailyPerformance)
+            .filter(
+                DailyPerformance.student_id == student_id,
+                DailyPerformance.course_id == course_id,
+            )
+            .all()
+        )
         att = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.course_id == course_id).all()
 
         category_scores: Dict[str, float] = {}
@@ -115,12 +120,12 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
         unexcused_absences = 0
         absence_deduction = 0.0
         try:
-            penalty_per_absence = float(getattr(course, 'absence_penalty', 0.0) or 0.0)
+            penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         except Exception:
             penalty_per_absence = 0.0
 
         if penalty_per_absence > 0:
-            unexcused_absences = len([a for a in att if str(a.status).lower() == 'absent'])
+            unexcused_absences = len([a for a in att if str(a.status).lower() == "absent"])
             absence_deduction = penalty_per_absence * unexcused_absences
             final_grade = max(0.0, final_grade - absence_deduction)
 
@@ -142,7 +147,7 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
             "category_breakdown": category_details,
             "absence_penalty": penalty_per_absence,
             "unexcused_absences": unexcused_absences,
-            "absence_deduction": round(absence_deduction, 2)
+            "absence_deduction": round(absence_deduction, 2),
         }
     except HTTPException:
         raise
@@ -163,7 +168,9 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
 
         # Get all course IDs in one go
         grade_courses = db.query(Grade.course_id).filter(Grade.student_id == student_id).distinct()
-        daily_courses = db.query(DailyPerformance.course_id).filter(DailyPerformance.student_id == student_id).distinct()
+        daily_courses = (
+            db.query(DailyPerformance.course_id).filter(DailyPerformance.student_id == student_id).distinct()
+        )
         course_ids = set([c[0] for c in grade_courses] + [c[0] for c in daily_courses])
 
         # Fetch all courses in ONE query instead of N queries (OPTIMIZATION)
@@ -187,14 +194,16 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
                 if isinstance(data, dict) and data.get("error"):
                     continue
 
-                summaries.append({
-                    "course_code": course.course_code,
-                    "course_name": course.course_name,
-                    "credits": course.credits,
-                    "final_grade": data["final_grade"],
-                    "gpa": data["gpa"],
-                    "letter_grade": data["letter_grade"],
-                })
+                summaries.append(
+                    {
+                        "course_code": course.course_code,
+                        "course_name": course.course_name,
+                        "credits": course.credits,
+                        "final_grade": data["final_grade"],
+                        "gpa": data["gpa"],
+                        "letter_grade": data["letter_grade"],
+                    }
+                )
                 overall_gpa += float(data["gpa"]) * int(course.credits or 0)
                 total_credits += int(course.credits or 0)
             except Exception as e:
@@ -223,12 +232,15 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
 def get_student_summary(student_id: int, db: Session = Depends(get_db)):
     try:
         from backend.models import Student, Attendance, Grade
+
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
 
         total_att = db.query(Attendance).filter(Attendance.student_id == student_id).count()
-        present = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.status == "Present").count()
+        present = (
+            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.status == "Present").count()
+        )
         attendance_rate = (present / total_att * 100) if total_att > 0 else 0
 
         grades = db.query(Grade).filter(Grade.student_id == student_id).all()

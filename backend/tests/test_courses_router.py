@@ -32,12 +32,9 @@ def test_create_course_success(client):
 
 def test_create_course_allows_empty_optional_strings(client):
     # Optional string/number fields sent as empty strings should be normalized
-    payload = make_course_payload(2,
-                                  description="",
-                                  evaluation_rules="",
-                                  absence_penalty="",
-                                  hours_per_week="",
-                                  teaching_schedule="")
+    payload = make_course_payload(
+        2, description="", evaluation_rules="", absence_penalty="", hours_per_week="", teaching_schedule=""
+    )
     r = client.post("/api/v1/courses/", json=payload)
     assert r.status_code == 201, r.text
     data = r.json()
@@ -53,7 +50,7 @@ def test_create_course_duplicate_code(client):
     payload = make_course_payload(1)
     r1 = client.post("/api/v1/courses/", json=payload)
     assert r1.status_code == 201
-    
+
     r2 = client.post("/api/v1/courses/", json=payload)
     assert r2.status_code == 400
     assert "already exists" in r2.json()["detail"].lower()
@@ -65,7 +62,7 @@ def test_update_course_basic_fields(client):
     payload = make_course_payload(1)
     r_create = client.post("/api/v1/courses/", json=payload)
     course = r_create.json()
-    
+
     # Update
     update_data = {
         "course_name": "Updated Course Name",
@@ -76,7 +73,7 @@ def test_update_course_basic_fields(client):
     }
     r_update = client.put(f"/api/v1/courses/{course['id']}", json=update_data)
     assert r_update.status_code == 200
-    
+
     updated = r_update.json()
     assert updated["course_name"] == "Updated Course Name"
     assert updated["credits"] == 4
@@ -98,14 +95,11 @@ def test_update_course_preserves_unset_fields(client):
     )
     r_create = client.post("/api/v1/courses/", json=payload)
     course = r_create.json()
-    
+
     # Update only course name
-    r_update = client.put(
-        f"/api/v1/courses/{course['id']}", 
-        json={"course_name": "New Name Only"}
-    )
+    r_update = client.put(f"/api/v1/courses/{course['id']}", json={"course_name": "New Name Only"})
     assert r_update.status_code == 200
-    
+
     updated = r_update.json()
     assert updated["course_name"] == "New Name Only"
     # Other fields should be preserved
@@ -120,29 +114,23 @@ def test_update_course_evaluation_rules_validation(client):
     payload = make_course_payload(1)
     r_create = client.post("/api/v1/courses/", json=payload)
     course = r_create.json()
-    
+
     # Try to update with invalid weights (sum != 100)
     bad_rules = [
         {"category": "Homework", "weight": 30},
         {"category": "Exams", "weight": 40},
         # Total: 70%, not 100%
     ]
-    r_bad = client.put(
-        f"/api/v1/courses/{course['id']}", 
-        json={"evaluation_rules": bad_rules}
-    )
+    r_bad = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": bad_rules})
     assert r_bad.status_code == 400
     assert "100" in r_bad.json()["detail"]
-    
+
     # Valid weights (sum = 100)
     good_rules = [
         {"category": "Homework", "weight": 30},
         {"category": "Exams", "weight": 70},
     ]
-    r_good = client.put(
-        f"/api/v1/courses/{course['id']}", 
-        json={"evaluation_rules": good_rules}
-    )
+    r_good = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": good_rules})
     assert r_good.status_code == 200
 
 
@@ -151,7 +139,7 @@ def test_get_course_by_id(client):
     payload = make_course_payload(1)
     r_create = client.post("/api/v1/courses/", json=payload)
     course_id = r_create.json()["id"]
-    
+
     r_get = client.get(f"/api/v1/courses/{course_id}")
     assert r_get.status_code == 200
     assert r_get.json()["id"] == course_id
@@ -169,12 +157,12 @@ def test_list_courses_with_semester_filter(client):
     client.post("/api/v1/courses/", json=make_course_payload(1, semester="Fall 2025"))
     client.post("/api/v1/courses/", json=make_course_payload(2, semester="Spring 2026"))
     client.post("/api/v1/courses/", json=make_course_payload(3, semester="Fall 2025"))
-    
+
     # Filter by semester
     r_fall = client.get("/api/v1/courses/?semester=Fall 2025")
     assert r_fall.status_code == 200
     assert len(r_fall.json()) == 2
-    
+
     r_spring = client.get("/api/v1/courses/?semester=Spring 2026")
     assert r_spring.status_code == 200
     assert len(r_spring.json()) == 1
@@ -185,10 +173,10 @@ def test_delete_course(client):
     payload = make_course_payload(1)
     r_create = client.post("/api/v1/courses/", json=payload)
     course_id = r_create.json()["id"]
-    
+
     r_del = client.delete(f"/api/v1/courses/{course_id}")
     assert r_del.status_code == 204
-    
+
     # Verify 404 after delete
     r_get = client.get(f"/api/v1/courses/{course_id}")
     assert r_get.status_code == 404
