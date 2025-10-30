@@ -26,7 +26,7 @@ from backend.schemas.courses import CourseCreate, CourseUpdate, CourseResponse
 from backend.db import get_session as get_db
 
 
-def _normalize_evaluation_rules(er: Any) -> List[Dict[str, Any]]:
+def _normalize_evaluation_rules(er: Any) -> Optional[List[Dict[str, Any]]]:
     """
     Normalize evaluation rules from various input formats to a standard list of dicts.
     
@@ -43,6 +43,9 @@ def _normalize_evaluation_rules(er: Any) -> List[Dict[str, Any]]:
         List of dicts with 'category' and 'weight' keys, normalized and validated
     """
     try:
+        # Preserve None distinctly from empty list
+        if er is None:
+            return None
         if not er:
             return []
         if isinstance(er, list):
@@ -147,7 +150,8 @@ def create_course(
         db.add(db_course)
         db.commit()
         db.refresh(db_course)
-        db_course.evaluation_rules = _normalize_evaluation_rules(db_course.evaluation_rules)
+        normalized = _normalize_evaluation_rules(db_course.evaluation_rules)
+        setattr(db_course, "evaluation_rules", normalized)
         
         logger.info(f"Created course: {db_course.course_code} ({db_course.id})")
         return db_course
@@ -185,7 +189,8 @@ def get_all_courses(
         courses = query.offset(skip).limit(limit).all()
         logger.info(f"Retrieved {len(courses)} courses")
         for c in courses:
-            c.evaluation_rules = _normalize_evaluation_rules(c.evaluation_rules)
+            normalized = _normalize_evaluation_rules(c.evaluation_rules)
+            setattr(c, "evaluation_rules", normalized)
         return courses
         
     except Exception as e:
@@ -213,7 +218,8 @@ def get_course(
             raise HTTPException(status_code=404, detail="Course not found")
         
         logger.info(f"Retrieved course: {course_id}")
-        course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
+        normalized = _normalize_evaluation_rules(course.evaluation_rules)
+        setattr(course, "evaluation_rules", normalized)
         return course
         
     except HTTPException:
@@ -264,7 +270,8 @@ def update_course(
         db.commit()
         db.refresh(db_course)
         # Normalize before returning
-        db_course.evaluation_rules = _normalize_evaluation_rules(db_course.evaluation_rules)
+        normalized = _normalize_evaluation_rules(db_course.evaluation_rules)
+        setattr(db_course, "evaluation_rules", normalized)
         
         logger.info(f"Updated course: {course_id}")
         return db_course
@@ -355,7 +362,8 @@ def update_evaluation_rules(
             raise HTTPException(status_code=404, detail="Course not found")
         
         incoming = rules_data.get("evaluation_rules", [])
-        db_course.evaluation_rules = _normalize_evaluation_rules(incoming)
+        normalized = _normalize_evaluation_rules(incoming)
+        setattr(db_course, "evaluation_rules", normalized)
         db.commit()
         db.refresh(db_course)
         

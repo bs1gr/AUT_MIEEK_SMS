@@ -3,24 +3,29 @@
     Student Management System - Quick Start Launcher
 
 .DESCRIPTION
-    Simple launcher that starts the application using the new unified SMS.ps1 interface.
-    This script provides a minimal entry point that delegates to SMS.ps1.
+    Intelligent quick start that:
+    - Detects first-time vs existing installation
+    - Automatically installs missing dependencies
+    - Chooses optimal deployment mode (Docker/Native)
+    - Starts the application
 
 .EXAMPLE
     .\QUICKSTART.ps1
-    Quick start the application in auto mode
+    Auto-detect and start the application
 
 .EXAMPLE
     .\QUICKSTART.ps1 -Help
     Show help and available options
 
 .NOTES
-    For advanced management, use: .\SMS.ps1
-    For full diagnostics, use: .\scripts\internal\DIAGNOSE_STATE.ps1
+    This now uses SMART_SETUP.ps1 for intelligent setup and deployment.
+    For manual control, use: .\SMS.ps1
 #>
 
 param(
-    [switch]$Help
+    [switch]$Help,
+    [switch]$Force,       # Force reinstall dependencies
+    [switch]$NoBrowser    # Do not auto-open the application in a browser
 )
 
 Set-StrictMode -Version Latest
@@ -33,23 +38,26 @@ if ($Help) {
     Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "USAGE:" -ForegroundColor Yellow
-    Write-Host "  .\QUICKSTART.ps1          Start the application (auto-detects best mode)"
+    Write-Host "  .\QUICKSTART.ps1              Auto-setup and start (intelligent mode)"
+    Write-Host "  .\QUICKSTART.ps1 -Force       Reinstall everything and start"
+    Write-Host "  .\QUICKSTART.ps1 -NoBrowser   Don't auto-open browser after start"
     Write-Host "  .\QUICKSTART.ps1 -Help    Show this help message"
     Write-Host ""
     Write-Host "WHAT THIS DOES:" -ForegroundColor Yellow
-    Write-Host "  • Automatically detects if Docker is available"
-    Write-Host "  • Starts the app in the best available mode"
-    Write-Host "  • Runs non-interactively (no prompts); if already running, it exits"
+    Write-Host "  • Detects if this is first-time installation"
+    Write-Host "  • Checks for Python, Node.js, and Docker"
+    Write-Host "  • Installs missing dependencies automatically"
+    Write-Host "  • Chooses best deployment mode (Docker/Native)"
+    Write-Host "  • Initializes database if needed"
+    Write-Host "  • Starts the application"
     Write-Host ""
-    # ACCESS URLS removed; user can check status for URLs if needed
     Write-Host "OTHER TOOLS:" -ForegroundColor Yellow
-    Write-Host "  .\SMS.ps1                              - Full management interface (menu-driven)"
-    Write-Host "  .\scripts\internal\DIAGNOSE_STATE.ps1  - Comprehensive diagnostics"
-    Write-Host "  .\scripts\STOP.ps1                     - Stop all services"
+    Write-Host "  .\SMS.ps1                - Manual management interface"
+    Write-Host "  .\SMART_SETUP.ps1        - Advanced setup with options"
+    Write-Host "  .\scripts\STOP.ps1       - Stop all services"
     Write-Host ""
-    Write-Host "FIRST TIME SETUP:" -ForegroundColor Yellow
-    Write-Host "  If this is your first time, just run: .\QUICKSTART.ps1"
-    Write-Host "  The script will automatically set up everything needed."
+    Write-Host "TROUBLESHOOTING:" -ForegroundColor Yellow
+    Write-Host "  If setup fails, check 'setup.log' in the project root."
     Write-Host ""
     exit 0
 }
@@ -61,16 +69,54 @@ try {
     Write-Host "║  STUDENT MANAGEMENT SYSTEM - Quick Start                      ║" -ForegroundColor Cyan
     Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Starting application..." -ForegroundColor Cyan
-    Write-Host ""
     
-    # Delegate to SMS.ps1 with Quick flag
-    if (Test-Path ".\SMS.ps1") {
-        & ".\SMS.ps1" -Quick
-        exit $LASTEXITCODE
+    function Wait-And-OpenBrowser {
+        param(
+            [switch]$NoBrowser
+        )
+        if ($NoBrowser) { return }
+
+        # Try to detect which port becomes available (Docker: 8080, Native: 5173)
+        $targets = @(
+            @{ Url = 'http://localhost:8080'; Name = 'Docker Frontend (8080)' },
+            @{ Url = 'http://localhost:5173'; Name = 'Native Frontend (5173)' }
+        )
+
+        $deadline = (Get-Date).AddSeconds(120)
+        $opened = $false
+        while ((Get-Date) -lt $deadline -and -not $opened) {
+            foreach ($t in $targets) {
+                try {
+                    $resp = Invoke-WebRequest -Uri $t.Url -Method GET -UseBasicParsing -TimeoutSec 3 2>$null
+                    if ($resp -and $resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {
+                        Write-Host "Opening $($t.Url) ..." -ForegroundColor Cyan
+                        try { Start-Process $t.Url } catch {}
+                        $opened = $true
+                        break
+                    }
+                } catch {
+                    # Not ready yet
+                }
+            }
+            if (-not $opened) { Start-Sleep -Seconds 2 }
+        }
+
+        if (-not $opened) {
+            Write-Host "Application started. Could not detect frontend readiness automatically." -ForegroundColor Yellow
+            Write-Host "Try opening: http://localhost:8080 or http://localhost:5173" -ForegroundColor Gray
+        }
+    }
+
+    # Use SMART_SETUP for intelligent setup and start
+    if (Test-Path ".\SMART_SETUP.ps1") {
+        if ($Force) { & ".\SMART_SETUP.ps1" -Force } else { & ".\SMART_SETUP.ps1" }
+        $exit = $LASTEXITCODE
+        # On successful start, try to open browser automatically (unless suppressed)
+        if ($exit -eq 0) { Wait-And-OpenBrowser -NoBrowser:$NoBrowser }
+        exit $exit
     } else {
-        Write-Host "ERROR: SMS.ps1 not found!" -ForegroundColor Red
-        Write-Host "Please ensure SMS.ps1 exists in the project root directory." -ForegroundColor Yellow
+        Write-Host "ERROR: SMART_SETUP.ps1 not found!" -ForegroundColor Red
+        Write-Host "Please ensure SMART_SETUP.ps1 exists in the project root directory." -ForegroundColor Yellow
         exit 1
     }
 } finally {

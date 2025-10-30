@@ -1267,7 +1267,30 @@ async def health_check(db: Session = Depends(get_db)):
         from health_checks import HealthChecker
     
     checker = HealthChecker(app.state, db_engine)
-    return checker.check_health(db)
+    result = checker.check_health(db)
+
+    # Backward-compatible shape expected by tests/legacy clients
+    try:
+        checks = result.get("checks", {})
+        system = result.get("system", {})
+        db_status = checks.get("database", {}).get("status", "unknown")
+        database_str = "connected" if db_status == "healthy" else "disconnected"
+
+        legacy_overlay = {
+            "database": database_str,
+            "services": {k: v.get("status", "unknown") for k, v in checks.items()},
+            "network": {
+                "hostname": system.get("hostname"),
+                "ips": system.get("ips", []),
+            },
+        }
+
+        # Merge overlay on top-level without removing original details
+        result.update(legacy_overlay)
+        return result
+    except Exception:
+        # If transformation fails, return original result
+        return result
 
 
 @app.get("/health/ready")

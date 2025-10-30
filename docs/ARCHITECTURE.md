@@ -201,8 +201,30 @@ jobs:
 - **Tool**: Alembic (SQLAlchemy migration tool)
 - **Location**: `backend/migrations/versions/`
 - **Current versions**:
-  - `0b65fa8f5f95` - Baseline schema
+  - `0b65fa8f5f95` - Baseline schema (creates all initial tables)
   - `3f2b1a9c0d7e` - Add absence_penalty to courses
+
+**Important**: The baseline migration (`0b65fa8f5f95`) creates all core tables on fresh databases:
+- `students`, `courses`, `attendances`, `course_enrollments`
+- `daily_performances`, `grades`, `highlights`
+- All necessary indexes for performance
+
+This ensures that first-time installations initialize properly without requiring existing tables.
+
+#### First-Run Database Validation
+- **Tool**: `backend/tools/validate_first_run.py`
+- **Purpose**: Test fresh database creation and migrations programmatically
+- **Usage**: 
+  ```powershell
+  cd backend
+  ..\.venv\Scripts\python.exe tools\validate_first_run.py
+  ```
+- **Checks**: 
+  - Database file creation
+  - Migration execution success
+  - Table count and schema verification
+  - Alembic version tracking
+- **When to use**: Troubleshooting first-time installs or testing migration changes
 
 #### Docker Volume Versioning
 - **Manual operation**: Control Panel → Docker Operations → "Update Docker Data Volume"
