@@ -55,6 +55,45 @@ No configuration needed. No manual steps. Just works.
 
 ---
 
+## ⚠️ Common Issues & Quick Fixes
+
+### "Failed to resolve import i18next" Error
+
+**Cause:** You're accessing the wrong URL for your deployment mode.
+
+**Fix:**
+
+- If using **Docker mode** → Use `http://localhost:8080` (not 5173)
+- If using **Native mode** → Run `cd frontend && npm install` then restart
+
+**How to check your mode:**
+
+```powershell
+docker ps  # If you see containers → Docker mode (port 8080)
+           # If no containers → Native mode (ports 8000 + 5173)
+```
+
+### Script Execution Policy Error
+
+**Fix:**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\ONE-CLICK.ps1
+```
+
+### Port Already in Use
+
+**Fix:**
+
+```powershell
+.\SMS.ps1
+# Select option 7: Debug Port Conflicts
+```
+
+**See:** [Fresh Deployment Troubleshooting Guide](docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md) for detailed solutions.
+
+---
+
 ## 🛠️ For Developers
 
 ### Manual Setup (Advanced)
