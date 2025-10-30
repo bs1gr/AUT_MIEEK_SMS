@@ -29,4 +29,11 @@ export default {
   healthIssuesPlaceholder: 'Health issues or special needs',
   notePlaceholder: 'Additional notes',
   studyYearPlaceholder: 'Year of Study',
+  // Student Form Labels
+  fatherName: "Father's Name",
+  mobilePhone: 'Mobile Phone',
+  phone: 'Phone Number',
+  healthIssues: 'Health Issues',
+  note: 'Notes',
+  studyYear: 'Year of Study',
 };

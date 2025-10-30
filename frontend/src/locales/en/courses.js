@@ -106,4 +106,10 @@ export default {
   courseDataSaved: 'Course data saved successfully!',
   scheduleCleared: 'Schedule cleared successfully!',
   saveChanges: 'Save Changes',
+  // Additional Course Fields
+  description: 'Description',
+  descriptionPlaceholder: 'Course description',
+  absencePenalty: 'Absence Penalty',
+  absencePenaltyPlaceholder: 'Penalty per absence (%)',
+  absencePenaltyHelp: 'Percentage deducted from final grade for each unexcused absence',
 };
