@@ -31,22 +31,18 @@ import time
 import shutil
 import threading
 from datetime import datetime
-from typing import Optional
 from contextlib import asynccontextmanager
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
-from typing import List
 
 # Rate limiting
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 # Database imports
@@ -567,7 +563,7 @@ def control_start():
                 }
         
         # Timeout - server didn't start
-        logger.error(f"Frontend server failed to start within 30 seconds")
+        logger.error("Frontend server failed to start within 30 seconds")
         
         # Kill the process since it's not responding
         try:

@@ -497,7 +497,7 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             spaceAfter=10,
             alignment=1,
         )
-        elements.append(Paragraph(f"Comprehensive Student Report", title_style))
+        elements.append(Paragraph("Comprehensive Student Report", title_style))
 
         # Student Info
         info_style = ParagraphStyle(
@@ -701,7 +701,7 @@ async def export_courses_pdf(db: Session = Depends(get_db)):
 async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_db)):
     """Export course analytics report to PDF"""
     try:
-        from backend.models import Course, Grade, Attendance, CourseEnrollment, Student
+        from backend.models import Course, Grade, CourseEnrollment
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -721,7 +721,7 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             spaceAfter=10,
             alignment=1,
         )
-        elements.append(Paragraph(f"Course Analytics Report", title_style))
+        elements.append(Paragraph("Course Analytics Report", title_style))
 
         # Course Info
         info_style = ParagraphStyle(

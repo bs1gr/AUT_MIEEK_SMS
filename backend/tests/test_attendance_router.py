@@ -13,7 +13,6 @@ Coverage:
 - Bulk create attendance
 """
 
-import pytest
 from datetime import date, timedelta
 
 
