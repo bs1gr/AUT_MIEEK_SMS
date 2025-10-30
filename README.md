@@ -75,6 +75,12 @@ START.bat
 # Stop everything
 .\SMS.ps1 -Stop
 
+# Non-destructive cleanup (keeps data and Docker volumes)
+CLEANUP.bat
+
+# Full uninstall (removes venv/node_modules & images, keeps data/volumes)
+UNINSTALL.bat
+
 # Interactive menu (status, diagnostics, restart)
 START.bat  # then choose from menu
 
@@ -421,6 +427,28 @@ docker compose up -d
 ```
 
 Reverting: edit or delete docker-compose.override.yml and restart compose. Old volumes are preserved and can be listed with `docker volume ls`.
+
+### Quick Maintenance Scripts (Windows)
+
+For convenience, two top-level batch scripts are included:
+
+- `CLEANUP.bat` — Non-destructive cleanup:
+  - Stops Docker services/containers related to this project
+  - Clears Python caches, pytest caches, backend logs, frontend build artifacts
+  - Preserves data (SQLite `data/student_management.db`) and Docker volumes
+  - Automatically backs up the native DB to `./backups/<timestamp>/native/`
+
+- `UNINSTALL.bat` — Full uninstall, preserving your data:
+  - Calls CLEANUP first
+  - Removes `backend/venv` and `frontend/node_modules`
+  - Removes project Docker images (`sms-backend`, `sms-frontend`, legacy `sms-fullstack`) while keeping volumes
+  - Keeps all backups in `./backups`
+
+If you truly want to remove the Docker data volume (this deletes your Docker-stored data), run manually:
+
+```powershell
+docker volume rm sms_data  # CAUTION: permanent data loss in the volume
+```
 
 
 ## Advanced Usage
