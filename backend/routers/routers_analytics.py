@@ -4,7 +4,7 @@ Provides endpoints for student analytics and final grade computations.
 """
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)

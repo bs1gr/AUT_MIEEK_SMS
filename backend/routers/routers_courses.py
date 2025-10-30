@@ -7,7 +7,6 @@ Split from main.py for better organization
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 import logging
 
 logger = logging.getLogger(__name__)

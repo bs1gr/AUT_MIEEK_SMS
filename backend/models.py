@@ -10,9 +10,8 @@ Features:
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, ForeignKey, Text, Boolean, JSON, Index, text
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from datetime import datetime, date
+from datetime import date
 import logging
-import os
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from typing import Generator
 from functools import wraps
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ValidationError
 

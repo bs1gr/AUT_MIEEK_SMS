@@ -2,7 +2,7 @@
 Tests for comprehensive health check system.
 """
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from backend.health_checks import HealthChecker, HealthCheckStatus
 from sqlalchemy.orm import Session
 

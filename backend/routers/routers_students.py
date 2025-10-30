@@ -7,8 +7,6 @@ Split from main.py for better organization
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr, Field
-from datetime import date
 import logging
 
 from backend.config import settings

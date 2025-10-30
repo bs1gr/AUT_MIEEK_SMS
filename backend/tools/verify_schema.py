@@ -6,7 +6,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.config import settings
 from backend.db import engine, ensure_schema
 
 # Apply schema guard

@@ -10,7 +10,6 @@ Coverage:
 - Validation (student/course existence)
 """
 
-import pytest
 from datetime import date
 
 
