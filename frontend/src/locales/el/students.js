@@ -29,4 +29,11 @@ export default {
   healthIssuesPlaceholder: 'Προβλήματα υγείας ή ειδικές ανάγκες',
   notePlaceholder: 'Πρόσθετες σημειώσεις',
   studyYearPlaceholder: 'Έτος Σπουδών',
+  // Ετικέτες Φόρμας Σπουδαστή
+  fatherName: 'Όνομα Πατέρα',
+  mobilePhone: 'Κινητό Τηλέφωνο',
+  phone: 'Τηλέφωνο',
+  healthIssues: 'Προβλήματα Υγείας',
+  note: 'Σημειώσεις',
+  studyYear: 'Έτος Σπουδών',
 };

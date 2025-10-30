@@ -106,4 +106,10 @@ export default {
   courseDataSaved: 'Τα δεδομένα μαθήματος αποθηκεύτηκαν επιτυχώς!',
   scheduleCleared: 'Το πρόγραμμα καθαρίστηκε επιτυχώς!',
   saveChanges: 'Αποθήκευση Αλλαγών',
+  // Πρόσθετα Πεδία Μαθήματος
+  description: 'Περιγραφή',
+  descriptionPlaceholder: 'Περιγραφή μαθήματος',
+  absencePenalty: 'Ποινή Απουσίας',
+  absencePenaltyPlaceholder: 'Ποινή ανά απουσία (%)',
+  absencePenaltyHelp: 'Ποσοστό που αφαιρείται από τον τελικό βαθμό για κάθε αδικαιολόγητη απουσία',
 };

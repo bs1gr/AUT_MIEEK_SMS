@@ -11,37 +11,113 @@
 
 ---
 
-## Quick Start (2 Easy Steps)
+## 🚀 ONE-CLICK START - For End Users
 
-**1. Start the application:**
+**NEW v1.2.0**: Intelligent one-click launcher!
+
+### Just Run This:
 
 ```powershell
-.\QUICKSTART.ps1
+.\ONE-CLICK.ps1
 ```
 
-Or use the full management interface:
+The launcher **automatically detects** what to do:
+
+- 🆕 **First time?** → Installs everything
+- ✅ **Already installed?** → Starts the application
+- 🔧 **Something broken?** → Offers diagnostics and repair
+- 🏃 **Already running?** → Shows interactive menu
+
+### That's It!
+
+No configuration needed. No manual steps. Just works.
+
+**Access Points:**
+- **Application**: Auto-opens in browser
+- **Control Panel**: http://localhost:8000/control (native) or http://localhost:8080/control (Docker)
+- **API Docs**: http://localhost:8000/docs
+
+### Common Tasks
 
 ```powershell
+# Start application
+.\ONE-CLICK.ps1
+
+# Stop everything
+.\SMS.ps1 -Stop
+
+# Repair/Reinstall
+.\ONE-CLICK.ps1 -ForceInstall
+
+# Interactive menu (advanced)
 .\SMS.ps1
 ```
 
-**2. Access the application:**
+---
 
-- Frontend: <http://localhost:5173> or <http://localhost:8080> (Docker)
-- API Documentation: <http://localhost:8000/docs>
-- Control Panel: <http://localhost:5173/control>
+## 🛠️ For Developers
 
-That's it! The system will automatically:
-- Detect if Docker is available (preferred) or fall back to native mode
-- Install dependencies if needed
-- Set up the database
-- Open your browser
+### Manual Setup (Advanced)
 
-**To stop everything:**
+If you prefer manual control:
 
 ```powershell
-.\scripts\STOP.ps1
+# Intelligent setup (same as ONE-CLICK for first-time)
+.\QUICKSTART.ps1
+
+# Force reinstall
+.\QUICKSTART.ps1 -Force
+
+# Choose deployment mode
+.\QUICKSTART.ps1 -PreferDocker   # Force Docker mode
+.\QUICKSTART.ps1 -PreferNative   # Force native mode
 ```
+
+### Developer Scripts
+
+All complex/developer scripts moved to `scripts/internal/`:
+
+- `CREATE_DEPLOYMENT_PACKAGE.ps1` - Create distribution package
+- `INSTALLER.ps1` - Advanced installation options
+- `DEVTOOLS.ps1` - Developer operations menu
+- `CLEANUP.ps1` - Clean temporary files
+- See `scripts/internal/README.md` for full list
+
+**For normal operations, use `ONE-CLICK.ps1` or `SMS.ps1` instead.**
+
+---
+
+## 📦 Deploying to Other Computers
+
+**Three deployment options:**
+
+1. **ONE-CLICK** (Recommended): Copy project → Run `ONE-CLICK.ps1`
+2. **Offline Package**: Run `scripts/internal/CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
+3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
+
+**Documentation:**
+
+- **[Quick Deployment Guide](QUICK_DEPLOYMENT.md)** - Fast reference card
+- **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Detailed instructions
+- **[Setup System Documentation](ONE_CLICK_SETUP_SUMMARY.md)** - Technical details
+
+---
+
+## 🎯 What's New in v1.2.0
+
+### For End Users
+- ✨ **ONE-CLICK.ps1**: Single launcher for all operations
+- 🎨 **Control Panel UI**: Modern web interface with real-time monitoring
+- 📊 **Version Display**: See all component versions (Python, Node, Docker, dependencies)
+- 🌍 **Complete Translations**: All features in English and Greek
+- 🧹 **Simplified Root**: Only essential files visible
+
+### Under the Hood
+- 🔍 **Intelligent Detection**: Auto-detects system state and required actions
+- 🛠️ **Auto-Repair**: Fixes common issues automatically
+- 📝 **Better Logging**: Comprehensive logs for troubleshooting
+- 🐳 **Docker Priority**: Prefers Docker for stability, falls back to native
+- 🔄 **Empty Field Fix**: Proper handling of optional fields in forms
 
 ---
 
@@ -50,10 +126,12 @@ A comprehensive student management system with course evaluation, attendance tra
 ## System Requirements
 
 **Recommended (Docker Mode):**
+
 - Docker Desktop (Windows/macOS) or Docker Engine (Linux)
 - No Python or Node.js required on host
 
 **Alternative (Native Mode):**
+
 - Python 3.11+
 - Node.js 18+
 - Both modes work equally well!
@@ -81,6 +159,7 @@ The **SMS.ps1** script provides an interactive menu for all operations:
 ```
 
 **Features:**
+
 - Start/Stop/Restart application (auto-detects Docker vs Native)
 - System diagnostics and troubleshooting
 - Database backup and restore
@@ -101,9 +180,9 @@ The **SMS.ps1** script provides an interactive menu for all operations:
 ### Using QUICKSTART.ps1 (Simple)
 
 ```powershell
-.\scripts\SETUP.ps1              # Build image
-.\scripts\SETUP.ps1 -SkipBuild   # Check environment only
-.\scripts\SETUP.ps1 -Help        # Show options
+.\QUICKSTART.ps1           # Intelligent setup & start
+.\QUICKSTART.ps1 -Force    # Force reinstall everything
+.\QUICKSTART.ps1 -Help     # Show options
 ```
 
 This will:
@@ -117,17 +196,14 @@ This will:
 
 Start with one command:
 
-```batch
-QUICKSTART.bat
+```powershell
+.\QUICKSTART.ps1
 ```
 
-Or with options:
+Or use the management interface:
 
 ```powershell
-.\QUICKSTART.ps1              # Start on port 8080
-.\QUICKSTART.ps1 -Rebuild     # Rebuild image and start
-.\QUICKSTART.ps1 -Port 9000   # Use custom port
-.\QUICKSTART.ps1 -Help        # Show all options
+.\SMS.ps1
 ```
 
 **Automatic Recovery:**
@@ -291,6 +367,7 @@ docker compose down
 For development with hot-reload (requires Python 3.8+ and Node.js 16+):
 
 **Backend:**
+
 ```batch
 cd backend
 pip install -r requirements.txt
@@ -298,6 +375,7 @@ python main.py
 ```
 
 **Frontend (in separate terminal):**
+
 ```batch
 cd frontend
 npm install
