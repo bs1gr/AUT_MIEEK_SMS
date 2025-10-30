@@ -15,33 +15,58 @@ You're accessing the wrong URL for your deployment mode.
 **Solution:**
 
 #### If using Docker mode (recommended):
+
 - ✅ **Correct URL**: http://localhost:8080
 - ❌ **Wrong URL**: http://localhost:5173 (this is for native mode only)
 
 Check which mode you're running:
-```powershell
-# Check if Docker containers are running
+```cmd
+REM Check if Docker containers are running
 docker ps
 
-# If you see containers, use port 8080
+REM If you see containers, use port 8080
 ```
 
 #### If using Native mode:
+
 The error means frontend dependencies weren't installed. Fix it:
 
-```powershell
-# Stop everything first
-.\SMS.ps1 -Stop
+```cmd
+REM Stop everything first
+SMS.ps1 -Stop
 
-# Install frontend dependencies
+REM Install frontend dependencies
 cd frontend
 npm install
 
-# Go back to root
+REM Go back to root
 cd ..
 
-# Start again
-.\ONE-CLICK.ps1
+REM Start again - USE THE BATCH FILE (recommended)
+START.bat
+```
+
+---
+
+## 🎯 Best Practice: Use START.bat
+
+**Avoid PowerShell issues entirely!**
+
+### Why START.bat is Better:
+
+✅ **No execution policy blocks** - Works immediately  
+✅ **No PowerShell version conflicts** - Works on Win 7/8/10/11  
+✅ **No security warnings** - Native Windows batch format  
+✅ **Just double-click and run** - Zero configuration
+
+### Usage:
+
+```cmd
+REM Simple - just double-click START.bat in Windows Explorer
+REM Or from command prompt:
+START.bat
+
+REM That's it! No PowerShell complications.
 ```
 
 ---
@@ -69,21 +94,36 @@ cd ..
 
 ---
 
-## Issue 2: ONE-CLICK.ps1 Script Failed
+## Issue 2: PowerShell Script Issues (ONE-CLICK.ps1)
+
+**🎯 SOLUTION: Use START.bat instead!**
+
+The batch file avoids ALL PowerShell problems:
+- No execution policy blocks
+- No version conflicts (PowerShell 5 vs 7)
+- No security warnings
+- Works on Windows 7, 8, 10, 11
+
+### But if you insist on using PowerShell:
 
 **Common Causes:**
 
 ### 1. Execution Policy Block
+
 **Error:** "cannot be loaded because running scripts is disabled"
 
 **Fix:**
-```powershell
-# Option A: Run with bypass
+
+```cmd
+REM Option A: Run with bypass (one-time)
 powershell -NoProfile -ExecutionPolicy Bypass -File .\ONE-CLICK.ps1
 
-# Option B: Set policy permanently (CurrentUser scope)
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+REM Option B: Set policy permanently (CurrentUser scope)
+powershell -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
 .\ONE-CLICK.ps1
+
+REM Option C: Just use the batch file (RECOMMENDED)
+START.bat
 ```
 
 ### 2. Missing Prerequisites

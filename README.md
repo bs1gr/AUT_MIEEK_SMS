@@ -13,13 +13,27 @@
 
 ## 🚀 ONE-CLICK START - For End Users
 
-**NEW v1.2.0**: Intelligent one-click launcher!
+**NEW v1.2.0**: Universal batch file launcher - works on ALL Windows versions!
 
-### Just Run This:
+### Just Run This (Recommended):
 
+**Windows Batch (No PowerShell issues!):**
+```cmd
+START.bat
+```
+
+**Or PowerShell (if you prefer):**
 ```powershell
 .\ONE-CLICK.ps1
 ```
+
+### Why START.bat is Recommended:
+
+✅ **No PowerShell version conflicts** - Works on Windows 7, 8, 10, 11  
+✅ **No execution policy blocks** - Batch files always run  
+✅ **No administrator rights needed** - Simple double-click  
+✅ **No security warnings** - Native Windows format  
+✅ **100% compatible** - Works everywhere, every time
 
 The launcher **automatically detects** what to do:
 
@@ -39,8 +53,11 @@ No configuration needed. No manual steps. Just works.
 
 ### Common Tasks
 
-```powershell
-# Start application
+```cmd
+# Start application (Windows - Recommended)
+START.bat
+
+# Or with PowerShell
 .\ONE-CLICK.ps1
 
 # Stop everything
