@@ -159,12 +159,14 @@ function Invoke-Installation {
     if (-not $prereqs.Python) {
         Write-Fail "Python 3.11+ is required but not found"
         Write-Info "Please install Python from: https://www.python.org/downloads/"
+        Read-Host "Press Enter to exit"
         return $false
     }
     
     if (-not $prereqs.Node) {
         Write-Fail "Node.js 18+ is required but not found"
         Write-Info "Please install Node.js from: https://nodejs.org/"
+        Read-Host "Press Enter to exit"
         return $false
     }
     
@@ -184,13 +186,34 @@ function Invoke-Installation {
     
     $setupScript = Join-Path $PROJECT_ROOT "QUICKSTART.ps1"
     
-    if ($setupArgs.Count -gt 0) {
-        & $setupScript @setupArgs
-    } else {
-        & $setupScript
+    if (-not (Test-Path $setupScript)) {
+        Write-Fail "QUICKSTART.ps1 not found at: $setupScript"
+        Write-Info "Make sure you're running this from the project root directory"
+        Read-Host "Press Enter to exit"
+        return $false
     }
     
-    return $LASTEXITCODE -eq 0
+    try {
+        if ($setupArgs.Count -gt 0) {
+            & $setupScript @setupArgs
+        } else {
+            & $setupScript
+        }
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Fail "Setup script exited with error code: $LASTEXITCODE"
+            Write-Info "Check the output above for details"
+            Read-Host "Press Enter to continue"
+            return $false
+        }
+        
+        return $true
+    } catch {
+        Write-Fail "Setup failed with error: $_"
+        Write-Info "Check setup.log for detailed information"
+        Read-Host "Press Enter to exit"
+        return $false
+    }
 }
 
 # Start services
@@ -216,22 +239,77 @@ function Start-Services {
             docker-compose up -d
             if ($LASTEXITCODE -eq 0) {
                 Write-Step "Application started successfully!"
-                Write-Info "Access at: http://localhost:8080"
-                Write-Info "Control Panel: http://localhost:8080/control"
+                Write-Host ""
+                Write-Host "  ╔════════════════════════════════════════════════╗" -ForegroundColor Cyan
+                Write-Host "  ║  🌐 ACCESS YOUR APPLICATION                    ║" -ForegroundColor Cyan
+                Write-Host "  ╠════════════════════════════════════════════════╣" -ForegroundColor Cyan
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ║  Application:    http://localhost:8080        ║" -ForegroundColor Green
+                Write-Host "  ║  Control Panel:  http://localhost:8080/control║" -ForegroundColor Green
+                Write-Host "  ║  API Docs:       http://localhost:8080/docs   ║" -ForegroundColor Green
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ║  Mode: Docker (Production)                     ║" -ForegroundColor Yellow
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ╚════════════════════════════════════════════════╝" -ForegroundColor Cyan
+                Write-Host ""
+                Write-Info "To stop: .\SMS.ps1 -Stop"
                 return $true
+            } else {
+                Write-Fail "Docker compose failed to start"
+                Write-Info "Check Docker Desktop is running and try again"
+                return $false
             }
+        } catch {
+            Write-Fail "Error starting Docker: $_"
+            return $false
         } finally {
             Pop-Location
         }
     } else {
         Write-Step "Starting in native development mode..."
         
+        # Ensure frontend dependencies are installed
+        $nodeModulesPath = Join-Path $PROJECT_ROOT "frontend\node_modules"
+        if (-not (Test-Path $nodeModulesPath)) {
+            Write-Warn "Frontend dependencies not found. Installing..."
+            Push-Location (Join-Path $PROJECT_ROOT "frontend")
+            try {
+                npm install
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Fail "npm install failed"
+                    Pop-Location
+                    return $false
+                }
+            } finally {
+                Pop-Location
+            }
+        }
+        
         # Use SMS.ps1 to start
         $smsScript = Join-Path $PROJECT_ROOT "SMS.ps1"
         if (Test-Path $smsScript) {
             Write-Info "Using SMS.ps1 management script..."
             & $smsScript -Start
-            return $LASTEXITCODE -eq 0
+            if ($LASTEXITCODE -eq 0) {
+                Write-Step "Application started successfully!"
+                Write-Host ""
+                Write-Host "  ╔════════════════════════════════════════════════╗" -ForegroundColor Cyan
+                Write-Host "  ║  🌐 ACCESS YOUR APPLICATION                    ║" -ForegroundColor Cyan
+                Write-Host "  ╠════════════════════════════════════════════════╣" -ForegroundColor Cyan
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ║  Backend API:    http://localhost:8000        ║" -ForegroundColor Green
+                Write-Host "  ║  Frontend:       http://localhost:5173        ║" -ForegroundColor Green
+                Write-Host "  ║  Control Panel:  http://localhost:8000/control║" -ForegroundColor Green
+                Write-Host "  ║  API Docs:       http://localhost:8000/docs   ║" -ForegroundColor Green
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ║  Mode: Native (Development)                    ║" -ForegroundColor Yellow
+                Write-Host "  ║                                                ║" -ForegroundColor Cyan
+                Write-Host "  ╚════════════════════════════════════════════════╝" -ForegroundColor Cyan
+                Write-Host ""
+                Write-Info "To stop: .\SMS.ps1 -Stop"
+                return $true
+            }
+            return $false
         } else {
             Write-Warn "SMS.ps1 not found - using direct startup..."
             
@@ -245,10 +323,24 @@ function Start-Services {
             Write-Info "Starting frontend..."
             Start-Process pwsh -ArgumentList "-NoExit", "-Command", "cd '$PROJECT_ROOT\frontend'; npm run dev"
             
+            Start-Sleep -Seconds 2
+            
             Write-Step "Application started successfully!"
-            Write-Info "Backend: http://localhost:8000"
-            Write-Info "Frontend: http://localhost:5173"
-            Write-Info "Control Panel: http://localhost:8000/control"
+            Write-Host ""
+            Write-Host "  ╔════════════════════════════════════════════════╗" -ForegroundColor Cyan
+            Write-Host "  ║  🌐 ACCESS YOUR APPLICATION                    ║" -ForegroundColor Cyan
+            Write-Host "  ╠════════════════════════════════════════════════╣" -ForegroundColor Cyan
+            Write-Host "  ║                                                ║" -ForegroundColor Cyan
+            Write-Host "  ║  Backend API:    http://localhost:8000        ║" -ForegroundColor Green
+            Write-Host "  ║  Frontend:       http://localhost:5173        ║" -ForegroundColor Green
+            Write-Host "  ║  Control Panel:  http://localhost:8000/control║" -ForegroundColor Green
+            Write-Host "  ║  API Docs:       http://localhost:8000/docs   ║" -ForegroundColor Green
+            Write-Host "  ║                                                ║" -ForegroundColor Cyan
+            Write-Host "  ║  Mode: Native (Development)                    ║" -ForegroundColor Yellow
+            Write-Host "  ║                                                ║" -ForegroundColor Cyan
+            Write-Host "  ╚════════════════════════════════════════════════╝" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Info "To stop: .\SMS.ps1 -Stop"
             return $true
         }
     }
