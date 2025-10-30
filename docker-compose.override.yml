@@ -1,8 +1,8 @@
 services:
   backend:
     volumes:
-      - sms_data_rebuild_v1.1.0_20251029_160248:/data
+      - sms_data_rebuild_v1.1.0_20251030_010403:/data
 volumes:
-  sms_data_rebuild_v1.1.0_20251029_160248:
+  sms_data_rebuild_v1.1.0_20251030_010403:
     driver: local
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict, model_validator
 from typing import Optional
-from datetime import date, datetime, UTC
+from datetime import date
 import re
 
 
@@ -20,6 +20,39 @@ class StudentCreate(BaseModel):
     study_year: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def _none_if_empty(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+    @classmethod
+    def _pre_normalize(cls, values: dict) -> dict:
+        # Coerce empty strings to None for optional fields commonly sent as ""
+        if not isinstance(values, dict):
+            return values
+        optional_keys = [
+            "father_name",
+            "mobile_phone",
+            "phone",
+            "health_issue",
+            "note",
+            "enrollment_date",
+            "study_year",
+        ]
+        for k in optional_keys:
+            if k in values:
+                values[k] = cls._none_if_empty(values[k])
+        return values
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize_before(cls, obj):
+        # Ensure empty strings are converted to None before type parsing
+        if isinstance(obj, dict):
+            return cls._pre_normalize(dict(obj))
+        return obj
 
     @field_validator('student_id')
     @classmethod
@@ -55,7 +88,8 @@ class StudentCreate(BaseModel):
     def validate_enrollment_date(cls, v: Optional[date]) -> Optional[date]:
         if v is None:
             return v
-        if v > datetime.now(UTC).date():
+        # Compare using local calendar date to avoid false "future" rejections across timezones
+        if v > date.today():
             raise ValueError('enrollment_date cannot be in the future')
         return v
 
@@ -73,6 +107,41 @@ class StudentUpdate(BaseModel):
     health_issue: Optional[str] = None
     note: Optional[str] = None
     study_year: Optional[int] = None
+
+    @classmethod
+    def _none_if_empty(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+    @classmethod
+    def _pre_normalize(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        optional_keys = [
+            "first_name",
+            "last_name",
+            "email",
+            "student_id",
+            "father_name",
+            "mobile_phone",
+            "phone",
+            "health_issue",
+            "note",
+            "enrollment_date",
+            "study_year",
+        ]
+        for k in optional_keys:
+            if k in values:
+                values[k] = cls._none_if_empty(values[k])
+        return values
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize_before(cls, obj):
+        if isinstance(obj, dict):
+            return cls._pre_normalize(dict(obj))
+        return obj
 
     @field_validator('student_id')
     @classmethod
@@ -108,7 +177,7 @@ class StudentUpdate(BaseModel):
     def validate_enrollment_date(cls, v: Optional[date]) -> Optional[date]:
         if v is None:
             return v
-        if v > datetime.now(UTC).date():
+        if v > date.today():
             raise ValueError('enrollment_date cannot be in the future')
         return v
 

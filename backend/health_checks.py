@@ -143,13 +143,15 @@ class HealthChecker:
             "migrations": migration_check,
             "frontend": frontend_check,
         }
-        
-        # Count status types
-        healthy_count = sum(1 for c in checks.values() if c["status"] == HealthCheckStatus.HEALTHY)
-        degraded_count = sum(1 for c in checks.values() if c["status"] == HealthCheckStatus.DEGRADED)
-        unhealthy_count = sum(1 for c in checks.values() if c["status"] == HealthCheckStatus.UNHEALTHY)
-        
-        # Determine overall status
+
+        # Only critical checks should influence overall health. Frontend and migrations are optional for API health.
+        critical_keys = ["database", "disk_space"]
+        critical_checks = {k: v for k, v in checks.items() if k in critical_keys}
+
+        unhealthy_count = sum(1 for c in critical_checks.values() if c["status"] == HealthCheckStatus.UNHEALTHY)
+        degraded_count = sum(1 for c in critical_checks.values() if c["status"] == HealthCheckStatus.DEGRADED)
+
+        # Determine overall status based on critical checks only
         if unhealthy_count > 0:
             overall_status = HealthCheckStatus.UNHEALTHY
             status_code = 503
@@ -267,9 +269,11 @@ class HealthChecker:
         """
         try:
             import subprocess
+            # Use the directory where this file resides (backend/) as working directory
+            backend_dir = str(Path(__file__).resolve().parent)
             result = subprocess.run(
                 ["alembic", "current"],
-                cwd="backend",
+                cwd=backend_dir,
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -325,15 +329,16 @@ class HealthChecker:
         """
         try:
             try:
-                from backend.models import Student, Course, Grade, Enrollment
+                # CourseEnrollment is the actual model name in this project
+                from backend.models import Student, Course, Grade, CourseEnrollment
             except ModuleNotFoundError:
-                from models import Student, Course, Grade, Enrollment
-            
+                from models import Student, Course, Grade, CourseEnrollment
+
             return {
                 "students": db.query(Student).count(),
                 "courses": db.query(Course).count(),
                 "grades": db.query(Grade).count(),
-                "enrollments": db.query(Enrollment).count(),
+                "enrollments": db.query(CourseEnrollment).count(),
             }
         except Exception as e:
             logger.warning(f"Could not fetch database stats: {e}")
