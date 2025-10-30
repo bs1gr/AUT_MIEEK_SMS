@@ -31,6 +31,24 @@ def test_create_course_success(client):
     assert data["credits"] == 3
 
 
+def test_create_course_allows_empty_optional_strings(client):
+    # Optional string/number fields sent as empty strings should be normalized
+    payload = make_course_payload(2,
+                                  description="",
+                                  evaluation_rules="",
+                                  absence_penalty="",
+                                  hours_per_week="",
+                                  teaching_schedule="")
+    r = client.post("/api/v1/courses/", json=payload)
+    assert r.status_code == 201, r.text
+    data = r.json()
+    assert data["description"] is None
+    assert data["evaluation_rules"] is None
+    assert data["absence_penalty"] is None or data["absence_penalty"] == 0.0
+    assert data["hours_per_week"] is None or data["hours_per_week"] == 3.0
+    assert data["teaching_schedule"] is None
+
+
 def test_create_course_duplicate_code(client):
     """Test that duplicate course codes are rejected."""
     payload = make_course_payload(1)

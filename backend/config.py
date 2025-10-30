@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import List, Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 from pydantic import field_validator
 
 
@@ -20,7 +21,10 @@ class Settings(BaseSettings):
     APP_VERSION: str = "3.0.3"
 
     # Database
-    DATABASE_URL: str = "sqlite:///student_management.db"
+    # Default to an absolute path under the project root: <repo>/data/student_management.db
+    # This avoids CWD-dependent relative paths that can fail on first run.
+    _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
+    DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_PATH}"
 
     # API Pagination
     DEFAULT_PAGE_SIZE: int = 100

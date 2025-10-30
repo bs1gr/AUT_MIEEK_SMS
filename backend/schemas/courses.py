@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
 from typing import Optional, List, Dict, Any
 
 
@@ -15,6 +15,36 @@ class CourseCreate(BaseModel):
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
     
+    @classmethod
+    def _none_if_empty(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+    @classmethod
+    def _pre_normalize(cls, values: dict) -> dict:
+        # Coerce empty strings to None for optional fields often posted as ""
+        if not isinstance(values, dict):
+            return values
+        optional_keys = [
+            "description",
+            "evaluation_rules",
+            "absence_penalty",
+            "hours_per_week",
+            "teaching_schedule",
+        ]
+        for k in optional_keys:
+            if k in values:
+                values[k] = cls._none_if_empty(values[k])
+        return values
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize_before(cls, obj):
+        if isinstance(obj, dict):
+            return cls._pre_normalize(dict(obj))
+        return obj
+
     @field_validator('course_code')
     @classmethod
     def validate_course_code(cls, v: str) -> str:
@@ -36,6 +66,38 @@ class CourseUpdate(BaseModel):
     absence_penalty: Optional[float] = Field(None, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
+
+    @classmethod
+    def _none_if_empty(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+    @classmethod
+    def _pre_normalize(cls, values: dict) -> dict:
+        if not isinstance(values, dict):
+            return values
+        optional_keys = [
+            "course_code",
+            "course_name",
+            "semester",
+            "description",
+            "evaluation_rules",
+            "absence_penalty",
+            "hours_per_week",
+            "teaching_schedule",
+        ]
+        for k in optional_keys:
+            if k in values:
+                values[k] = cls._none_if_empty(values[k])
+        return values
+
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize_before(cls, obj):
+        if isinstance(obj, dict):
+            return cls._pre_normalize(dict(obj))
+        return obj
 
 
 class CourseResponse(BaseModel):

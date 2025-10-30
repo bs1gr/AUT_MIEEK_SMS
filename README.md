@@ -13,61 +13,77 @@
 
 ## 🚀 ONE-CLICK START - For End Users
 
-**NEW v1.2.0**: Universal batch file launcher - works on ALL Windows versions!
+**NEW v1.2.0**: Universal batch file launcher with Docker-first approach!
 
-### Just Run This (Recommended):
+### Just Run This:
 
-**Windows Batch (No PowerShell issues!):**
+**Windows (Recommended - Works everywhere!):**
 ```cmd
 START.bat
 ```
 
-**Or PowerShell (if you prefer):**
+**Or PowerShell (alternative):**
 ```powershell
 .\ONE-CLICK.ps1
 ```
 
-### Why START.bat is Recommended:
+### Why START.bat is Better:
 
-✅ **No PowerShell version conflicts** - Works on Windows 7, 8, 10, 11  
-✅ **No execution policy blocks** - Batch files always run  
-✅ **No administrator rights needed** - Simple double-click  
-✅ **No security warnings** - Native Windows format  
-✅ **100% compatible** - Works everywhere, every time
+✅ **Docker-First**: Automatically uses Docker if available (simplest, production-ready)  
+✅ **No PowerShell issues**: Works on all Windows versions (7, 8, 10, 11)  
+✅ **No execution policy blocks**: Batch files always run  
+✅ **No admin rights needed**: Simple double-click  
+✅ **Smart fallback**: Uses native mode only if Docker is unavailable
 
-The launcher **automatically detects** what to do:
+### Deployment Modes:
 
-- 🆕 **First time?** → Installs everything
-- ✅ **Already installed?** → Starts the application
-- 🔧 **Something broken?** → Offers diagnostics and repair
-- 🏃 **Already running?** → Shows interactive menu
+#### 🐳 Docker Mode (Recommended for End Users)
+- **One command** starts everything
+- **No version conflicts** - isolated environment
+- **Production-ready** - same as deployment
+- **Requirement**: Docker Desktop installed
+- **Access**: `http://localhost:8080`
+
+#### 🔧 Native Mode (For Developers Only)
+- **Hot reload** for code changes
+- **Direct debugging** capabilities
+- **Requirements**: Python 3.11+ AND Node.js 18+
+- **Access**: `http://localhost:5173` (frontend) + `http://localhost:8000` (backend)
+
+The launcher **automatically decides**:
+
+- 🐳 **Docker available?** → Uses Docker (recommended)
+- 🔧 **Only Python/Node?** → Falls back to native development mode
+- 🆕 **First time?** → Guides installation based on what you have
+- 🏃 **Already running?** → Shows URLs and interactive menu
 
 ### That's It!
 
-No configuration needed. No manual steps. Just works.
+No manual configuration. No complex steps. Just works.
 
-**Access Points:**
-- **Application**: Auto-opens in browser
-- **Control Panel**: http://localhost:8000/control (native) or http://localhost:8080/control (Docker)
-- **API Docs**: http://localhost:8000/docs
+**Quick Access:**
+- **Application**: Shown after start (port depends on mode)
+- **Control Panel**: `/control` endpoint (real-time monitoring)
+- **API Docs**: `/docs` endpoint (Swagger/ReDoc)
 
-### Common Tasks
+### Common Commands
 
 ```cmd
-# Start application (Windows - Recommended)
+# Start (auto-detects best mode)
 START.bat
-
-# Or with PowerShell
-.\ONE-CLICK.ps1
 
 # Stop everything
 .\SMS.ps1 -Stop
 
-# Repair/Reinstall
-.\ONE-CLICK.ps1 -ForceInstall
+# Interactive menu (status, diagnostics, restart)
+START.bat  # then choose from menu
 
-# Interactive menu (advanced)
-.\SMS.ps1
+# Force Docker mode (PowerShell)
+docker-compose up -d
+
+# Force native mode (PowerShell - development only)
+cd backend && python -m uvicorn backend.main:app --reload
+cd frontend && npm run dev
 ```
 
 ---
@@ -147,28 +163,32 @@ All complex/developer scripts moved to `scripts/internal/`:
 
 **Three deployment options:**
 
-1. **ONE-CLICK** (Recommended): Copy project → Run `ONE-CLICK.ps1`
+1. **ONE-CLICK** (Recommended): Copy project → Run `START.bat` (Windows) or `ONE-CLICK.ps1` (PowerShell)
 2. **Offline Package**: Run `scripts/internal/CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
 **Documentation:**
 
 - **[Quick Deployment Guide](QUICK_DEPLOYMENT.md)** - Fast reference card
-- **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Detailed instructions
-- **[Setup System Documentation](ONE_CLICK_SETUP_SUMMARY.md)** - Technical details
+- **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Detailed instructions with troubleshooting
+- **[Fresh Deployment Troubleshooting](docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and fixes
 
 ---
 
 ## 🎯 What's New in v1.2.0
 
 ### For End Users
-- ✨ **ONE-CLICK.ps1**: Single launcher for all operations
+
+- ✨ **START.bat**: Universal Windows launcher with Docker-first approach
+- ✨ **ONE-CLICK.ps1**: PowerShell alternative with full diagnostics
 - 🎨 **Control Panel UI**: Modern web interface with real-time monitoring
 - 📊 **Version Display**: See all component versions (Python, Node, Docker, dependencies)
 - 🌍 **Complete Translations**: All features in English and Greek
 - 🧹 **Simplified Root**: Only essential files visible
+- 🐳 **Docker Priority**: Automatically uses Docker when available for simplest deployment
 
 ### Under the Hood
+
 - 🔍 **Intelligent Detection**: Auto-detects system state and required actions
 - 🛠️ **Auto-Repair**: Fixes common issues automatically
 - 📝 **Better Logging**: Comprehensive logs for troubleshooting

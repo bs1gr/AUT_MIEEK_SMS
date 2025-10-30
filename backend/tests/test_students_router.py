@@ -32,6 +32,29 @@ def test_create_student_success(client):
     assert data["is_active"] is True
 
 
+def test_create_student_allows_empty_optional_strings(client):
+    # Optional fields provided as empty strings should be treated as null/None
+    payload = make_student_payload(2,
+                                   father_name="",
+                                   mobile_phone="",
+                                   phone="",
+                                   health_issue="",
+                                   note="",
+                                   enrollment_date="",
+                                   study_year="")
+    r = client.post("/api/v1/students/", json=payload)
+    assert r.status_code == 201, r.text
+    data = r.json()
+    # Optional fields should come back as null
+    assert data["father_name"] is None
+    assert data["mobile_phone"] is None
+    assert data["phone"] is None
+    assert data["health_issue"] is None
+    assert data["note"] is None
+    assert data["enrollment_date"] is None
+    assert data["study_year"] is None
+
+
 def test_create_student_duplicate_email(client):
     p1 = make_student_payload(1)
     p2 = make_student_payload(2, email=p1["email"])  # duplicate email, different student_id

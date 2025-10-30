@@ -24,7 +24,7 @@ echo ╚════════════════════════
 echo.
 
 REM ========================================================================
-REM STEP 1: Detect what we have
+REM STEP 1: Detect what we have (Docker-first approach)
 REM ========================================================================
 
 echo [1/5] Checking system requirements...
@@ -35,31 +35,33 @@ set "NODE_OK=0"
 set "DOCKER_OK=0"
 set "INSTALLED=0"
 
-REM Check Python
+REM Check Docker FIRST (recommended for end users)
+docker --version >nul 2>&1
+if !errorlevel! equ 0 (
+    echo ✓ Docker: Found (RECOMMENDED)
+    set "DOCKER_OK=1"
+) else (
+    echo ✗ Docker: Not found
+    echo   Note: Docker is the simplest way to run this application
+    echo   Download from: https://www.docker.com/products/docker-desktop/
+)
+
+REM Check Python (for native development mode)
 python --version >nul 2>&1
 if !errorlevel! equ 0 (
-    echo ✓ Python: Found
+    echo ✓ Python: Found (for development mode)
     set "PYTHON_OK=1"
 ) else (
     echo ✗ Python: Not found
 )
 
-REM Check Node.js
+REM Check Node.js (for native development mode)
 node --version >nul 2>&1
 if !errorlevel! equ 0 (
-    echo ✓ Node.js: Found
+    echo ✓ Node.js: Found (for development mode)
     set "NODE_OK=1"
 ) else (
     echo ✗ Node.js: Not found
-)
-
-REM Check Docker
-docker --version >nul 2>&1
-if !errorlevel! equ 0 (
-    echo ✓ Docker: Found
-    set "DOCKER_OK=1"
-) else (
-    echo ✗ Docker: Not found
 )
 
 echo.
@@ -166,12 +168,100 @@ echo Action: Start the application
 goto :START
 
 REM ========================================================================
-REM INSTALL - First time installation
+REM INSTALL - First time installation (Docker-first approach)
 REM ========================================================================
 :INSTALL
 echo.
 echo ═══════════════════════════════════════════════════════════
 echo   🚀 FIRST-TIME INSTALLATION
+echo ═══════════════════════════════════════════════════════════
+echo.
+
+REM Strongly prefer Docker
+if !DOCKER_OK! equ 1 (
+    echo ✓ Docker detected - Using DOCKER MODE (recommended)
+    echo.
+    echo Docker mode benefits:
+    echo   • One-click deployment
+    echo   • No Python/Node.js version conflicts
+    echo   • Isolated environment
+    echo   • Production-ready configuration
+    echo.
+    goto :INSTALL_DOCKER
+)
+
+REM Docker not available - offer native mode for developers
+echo ═══════════════════════════════════════════════════════════
+echo   ⚠️  DOCKER NOT AVAILABLE
+echo ═══════════════════════════════════════════════════════════
+echo.
+echo Docker is the recommended way to run this application.
+echo.
+echo However, you can install in NATIVE DEVELOPMENT MODE if you are:
+echo   • A developer who needs hot-reload features
+echo   • Unable to install Docker on this system
+echo.
+echo Native mode requires:
+echo   • Python 3.11+
+echo   • Node.js 18+
+echo   • Manual dependency management
+echo.
+set /p "use_native=Do you want to proceed with Native mode? (yes/no): "
+if /i not "%use_native%"=="yes" (
+    echo.
+    echo Installation cancelled.
+    echo.
+    echo To use the recommended Docker mode:
+    echo   1. Install Docker Desktop: https://www.docker.com/products/docker-desktop/
+    echo   2. Restart this computer
+    echo   3. Run this script again
+    echo.
+    pause
+    exit /b 1
+)
+
+goto :INSTALL_NATIVE
+
+REM ========================================================================
+REM Docker Installation (Recommended)
+REM ========================================================================
+:INSTALL_DOCKER
+echo [5/5] Installing with Docker...
+echo.
+
+REM Check if docker-compose.yml exists
+if not exist "docker-compose.yml" (
+    echo ✗ ERROR: docker-compose.yml not found
+    pause
+    exit /b 1
+)
+
+echo Building Docker image (this may take a few minutes)...
+docker-compose build
+if !errorlevel! neq 0 (
+    echo ✗ Docker build failed
+    echo.
+    echo Troubleshooting:
+    echo   • Ensure Docker Desktop is running
+    echo   • Check your internet connection
+    echo   • Try restarting Docker Desktop
+    echo.
+    pause
+    exit /b 1
+)
+
+echo ✓ Docker installation completed!
+echo.
+set "INSTALLED=1"
+goto :START
+
+REM ========================================================================
+REM Native Installation (Development Mode)
+REM ========================================================================
+:INSTALL_NATIVE
+echo.
+echo ═══════════════════════════════════════════════════════════
+echo   🔧 NATIVE DEVELOPMENT MODE INSTALLATION
 echo ═══════════════════════════════════════════════════════════
 echo.
 
@@ -202,7 +292,7 @@ if !NODE_OK! equ 0 (
     exit /b 1
 )
 
-echo [5/5] Running installation...
+echo [5/5] Running native installation...
 echo.
 
 REM If QUICKSTART.ps1 exists and PowerShell is available, use it
@@ -271,14 +361,14 @@ if not exist "frontend\node_modules\" (
 
 :POST_INSTALL
 echo.
-echo ✓ Installation completed successfully!
+echo ✓ Native installation completed successfully!
 echo.
 echo Starting the application...
 timeout /t 2 /nobreak >nul
 goto :START
 
 REM ========================================================================
-REM START - Start the application
+REM START - Start the application (Docker-first)
 REM ========================================================================
 :START
 echo.
@@ -287,13 +377,13 @@ echo   ▶️  STARTING APPLICATION
 echo ═══════════════════════════════════════════════════════════
 echo.
 
-REM Prefer Docker if available
+REM Try Docker first (recommended)
 if !DOCKER_OK! equ 1 (
-    echo Starting in Docker mode...
+    echo Attempting to start in Docker mode (recommended)...
     docker-compose up -d
     if !errorlevel! equ 0 (
         echo.
-        echo ✓ Application started successfully!
+        echo ✓ Application started successfully in DOCKER MODE!
         echo.
         echo ═══════════════════════════════════════════════════════════
         echo   🌐 ACCESS YOUR APPLICATION
@@ -303,26 +393,49 @@ if !DOCKER_OK! equ 1 (
         echo   Control Panel:  http://localhost:8080/control
         echo   API Docs:       http://localhost:8080/docs
         echo.
-        echo   Mode: Docker (Production)
+        echo   Mode: Docker (Production-Ready)
         echo.
         echo ═══════════════════════════════════════════════════════════
         echo.
         echo To stop: Run this script again and select Stop option
+        echo Or use: docker-compose down
         echo.
         pause
         exit /b 0
     ) else (
-        echo ✗ Docker start failed
-        echo Falling back to native mode...
+        echo ⚠️  Docker start failed
         echo.
     )
 )
 
-REM Native mode
-echo Starting in Native mode...
-echo.
+REM Fallback to Native mode (development)
+if !PYTHON_OK! equ 1 if !NODE_OK! equ 1 (
+    echo Docker unavailable, falling back to Native Development Mode...
+    echo.
+    echo ⚠️  WARNING: Native mode is for developers only
+    echo    For production use, please install Docker
+    echo.
+    timeout /t 3 /nobreak
+    goto :START_NATIVE
+)
 
-REM Start backend
+REM Neither mode available
+echo ✗ ERROR: Cannot start application
+echo.
+echo Neither Docker nor Native mode prerequisites are met.
+echo.
+echo Recommended: Install Docker Desktop
+echo   Download: https://www.docker.com/products/docker-desktop/
+echo.
+echo Alternative: Install Python 3.11+ and Node.js 18+ for development mode
+echo.
+pause
+exit /b 1
+
+REM ========================================================================
+REM START NATIVE - Native development mode
+REM ========================================================================
+:START_NATIVE
 echo Starting backend server...
 start "SMS Backend" cmd /k "cd /d "%PROJECT_ROOT%backend" && venv\Scripts\activate.bat && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload"
 
@@ -334,10 +447,10 @@ echo Starting frontend server...
 start "SMS Frontend" cmd /k "cd /d "%PROJECT_ROOT%frontend" && npm run dev"
 
 echo.
-echo ✓ Application started successfully!
+echo ✓ Application started in NATIVE DEVELOPMENT MODE
 echo.
 echo ═══════════════════════════════════════════════════════════
-echo   🌐 ACCESS YOUR APPLICATION
+echo   🌐 ACCESS YOUR APPLICATION (Development Mode)
 echo ═══════════════════════════════════════════════════════════
 echo.
 echo   Backend API:    http://localhost:8000
@@ -345,12 +458,12 @@ echo   Frontend:       http://localhost:5173
 echo   Control Panel:  http://localhost:8000/control
 echo   API Docs:       http://localhost:8000/docs
 echo.
-echo   Mode: Native (Development)
+echo   Mode: Native (Development Only)
 echo.
 echo ═══════════════════════════════════════════════════════════
 echo.
 echo Both terminal windows will stay open for monitoring.
-echo Close them to stop the services.
+echo Close them to stop the services, or use the Stop option.
 echo.
 pause
 exit /b 0

@@ -45,16 +45,16 @@ def run_migrations(verbose: bool = False) -> bool:
         
         if result.returncode == 0:
             if verbose:
-                print("\n✓ Database migrations applied successfully")
+                print("\nOK: Database migrations applied successfully")
                 print("=" * 60)
             return True
         else:
-            print(f"\n✗ Migration failed with exit code {result.returncode}", file=sys.stderr)
+            print(f"\nERROR: Migration failed with exit code {result.returncode}", file=sys.stderr)
             print("=" * 60, file=sys.stderr)
             return False
             
     except Exception as e:
-        print(f"✗ Migration error: {str(e)}", file=sys.stderr)
+        print(f"ERROR: Migration error: {str(e)}", file=sys.stderr)
         return False
 
 

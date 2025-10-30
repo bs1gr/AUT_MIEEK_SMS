@@ -35,6 +35,7 @@ function Show-Help {
 }
 
 if ($Help) {
+    Write-Host "WARNING: This script is deprecated. Use .\\SMS.ps1 -Stop instead." -ForegroundColor Yellow
     Show-Help
     exit 0
 }

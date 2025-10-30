@@ -12,6 +12,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime, date
 import logging
+import os
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()
@@ -26,7 +28,8 @@ class Student(Base):
     last_name = Column(String(100), nullable=False, index=False)
     email = Column(String(255), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
     student_id = Column(String(50), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
-    enrollment_date = Column(Date, default=date.today, index=True)  # ✅ ADDED INDEX
+    # Remove Python-side default so that None stays None when not provided
+    enrollment_date = Column(Date, index=True)  # ✅ ADDED INDEX
     is_active = Column(Boolean, default=True, index=True)  # ✅ ADDED INDEX for filtering
 
     # Extended profile fields
@@ -255,6 +258,19 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         Exception: If database initialization fails
     """
     try:
+        # Ensure parent directory exists for SQLite file paths to prevent first-run failures
+        try:
+            if db_url.startswith("sqlite:///"):
+                db_path = db_url.replace("sqlite:///", "", 1)
+                # Normalize to absolute path (handles Windows drive letters too)
+                db_path_obj = Path(db_path)
+                parent_dir = db_path_obj.parent
+                if str(parent_dir).strip():
+                    parent_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            # Best-effort; don't fail engine creation if directory check has issues
+            pass
+
         engine = create_engine(db_url, echo=False)
 
         # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
