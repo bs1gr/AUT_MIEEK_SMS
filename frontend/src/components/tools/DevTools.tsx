@@ -40,8 +40,10 @@ export default function DevTools() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/admin/reset-database', {
-        method: 'POST'
+      const response = await fetch('/api/v1/adminops/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true, scope: 'all' })
       });
 
       if (response.ok) {
@@ -58,21 +60,13 @@ export default function DevTools() {
   const backupDatabase = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/admin/backup-database', {
+      const response = await fetch('/api/v1/adminops/backup', {
         method: 'POST'
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}.db`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        showMessage(t('devtools.backupSuccess') || '✅ Database backed up successfully!');
+        const data = await response.json();
+        showMessage(t('devtools.backupSuccess') || `✅ Database backed up to: ${data.backup_file}`);
       } else {
         showMessage(t('devtools.backupError') || '❌ Failed to backup database', true);
       }
@@ -87,6 +81,7 @@ export default function DevTools() {
 
     setLoading(true);
     try {
+      // admin_routes.py has the sample-data endpoint, not adminops
       const response = await fetch('/api/v1/admin/sample-data', {
         method: 'POST'
       });
