@@ -1,6 +1,12 @@
 # Frontend Dockerfile (multi-stage)
 # 1) Build static assets with Node 22 LTS (more secure)
 FROM node:22-alpine AS build
+
+# Build arguments for versioning
+ARG VERSION=latest
+ARG BUILD_DATE
+ARG VCS_REF
+
 WORKDIR /app/frontend
 
 # Dependencies
@@ -16,6 +22,15 @@ RUN npm run build
 
 # 2) Serve with NGINX and proxy API to backend service
 FROM nginx:alpine
+
+# OCI image labels for version tracking
+LABEL org.opencontainers.image.title="Student Management System - Frontend" \
+      org.opencontainers.image.description="React+Vite frontend served via nginx" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="https://github.com/bs1gr/AUT_MIEEK_SMS" \
+      maintainer="Student Management System"
 
 # Copy built assets
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
