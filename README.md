@@ -1,5 +1,41 @@
 # Student Management System
 
+## 🗂️ Script Organization (v1.2.3+)
+
+Scripts are now reorganized into two distinct, well-defined sets:
+
+### **Developer Workbench** ([scripts/dev/](scripts/dev/))
+For building, running, debugging, testing, and cleaning during development.
+
+**Key Scripts**:
+- `SMOKE_TEST.ps1` - Quick health check
+- `CLEANUP.bat` - Clean build artifacts
+- `internal/DIAGNOSE_STATE.ps1` - Full diagnostics
+- `internal/DEBUG_PORTS.ps1` - Port conflict debugging
+- `internal/DEVTOOLS.ps1` - Advanced developer tools
+
+[Read Developer Guide →](scripts/dev/README.md)
+
+### **End-User / DevOps** ([scripts/deploy/](scripts/deploy/))
+For deployment, Docker orchestration, and production maintenance.
+
+**Key Scripts**:
+- `SMART_SETUP.ps1` - Intelligent setup (main entry point)
+- `STOP.ps1` - Stop all services
+- `UNINSTALL.bat` - Complete uninstall
+- `CHECK_VOLUME_VERSION.ps1` - Check Docker volume versions
+- `docker/DOCKER_*.ps1` - Docker operations
+
+[Read Deployment Guide →](scripts/deploy/README.md)
+
+### **Root Scripts** (End-User Entry Points)
+- `SMS.ps1` - **Main management interface** (interactive menu, recommended)
+- `INSTALL.bat` - **One-click installer** (easiest way to get started)
+
+**📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
+
+**📋 Reorganization Summary**: See [SCRIPT_REORGANIZATION_SUMMARY.md](SCRIPT_REORGANIZATION_SUMMARY.md) for changes.
+
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 ## 📚 Documentation / Τεκμηρίωση
