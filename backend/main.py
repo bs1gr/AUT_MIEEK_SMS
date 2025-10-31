@@ -221,7 +221,7 @@ def create_app() -> FastAPI:
     """
     return FastAPI(
         title="Student Management System API",
-        version="1.2.2",
+        version="1.2.3",
         description="Bilingual Student Management System with Advanced Grading",
         docs_url="/docs",
         openapi_url="/openapi.json",
