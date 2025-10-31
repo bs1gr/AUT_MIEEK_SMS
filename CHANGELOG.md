@@ -15,11 +15,20 @@ Bug Fixes:
 - **Developer Tools API Endpoints**: Corrected API routes - reset endpoint now uses `/adminops/clear`, backup uses `/adminops/backup`
 - **Control Panel Environment Info**: Enhanced version display with comprehensive package information (FastAPI, SQLAlchemy, Pydantic, Uvicorn) and descriptive tooltips
 
+Enhancements:
+
+- **Docker Image Versioning**: Install scripts now read VERSION file and properly tag Docker images (e.g., `sms-backend:1.2.2` instead of `latest`)
+- **OCI Image Labels**: Added comprehensive metadata labels to Docker images (version, build date, git commit)
+- **Version Tracking**: Docker Compose now uses version from VERSION file for reproducible deployments
+- **Build Metadata Script**: Added `scripts/set-docker-metadata.ps1` for manual builds with proper versioning
+
 Technical:
 
 - Updated backend/main.py FastAPI version to match VERSION file
 - Improved frontend theme detection for Microsoft Edge browser compatibility
 - Fixed DevTools component to use correct adminops API endpoints
+- Docker images now include build args for VERSION, BUILD_DATE, and VCS_REF
+- Enhanced .env.example with VERSION variable for docker-compose
 
 ## [1.2.1] - 2025-10-31
 
