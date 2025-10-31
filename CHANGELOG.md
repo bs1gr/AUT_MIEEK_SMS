@@ -6,6 +6,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-10-31
+
+Enhancements:
+
+- **SMART_SETUP.ps1**: Added intelligent PowerShell installer with auto-detection, dependency management, and flexible deployment modes
+- **Version Consistency**: Backend API version now matches VERSION file (1.2.3) for proper OpenAPI schema generation
+- **Codebase Cleanup**: Removed obsolete installation scripts (DEPRECATIONS.md, ONE-CLICK.ps1, QUICKSTART.bat, START.bat)
+
+Technical:
+
+- Synchronized FastAPI application version with VERSION file
+- Streamlined installation entry points to INSTALL.bat and install.py
+
 ## [1.2.2] - 2025-10-31
 
 Bug Fixes:
