@@ -98,8 +98,18 @@ def setup_docker_mode():
     """Setup and start in Docker mode"""
     print_header("Setting Up Docker Mode")
     
-    # Check if .env exists, create from .env.example
+    # Read version from VERSION file
     root = Path(__file__).parent
+    version_file = root / "VERSION"
+    app_version = "latest"
+    if version_file.exists():
+        try:
+            app_version = version_file.read_text().strip()
+            print_info(f"Building version: {app_version}")
+        except Exception:
+            pass
+    
+    # Check if .env exists, create from .env.example
     env_file = root / ".env"
     env_example = root / ".env.example"
     
@@ -107,6 +117,23 @@ def setup_docker_mode():
         print_info("Creating .env from template...")
         shutil.copy(env_example, env_file)
         print_success("Environment file created")
+    
+    # Update or create .env with VERSION
+    env_lines = []
+    version_set = False
+    if env_file.exists():
+        with open(env_file, 'r') as f:
+            for line in f:
+                if line.startswith('VERSION='):
+                    env_lines.append(f'VERSION={app_version}\n')
+                    version_set = True
+                else:
+                    env_lines.append(line)
+    if not version_set:
+        env_lines.append(f'VERSION={app_version}\n')
+    
+    with open(env_file, 'w') as f:
+        f.writelines(env_lines)
     
     # Create backend/.env if needed
     backend_env = root / "backend" / ".env"
@@ -124,6 +151,9 @@ def setup_docker_mode():
     
     print_info("Building and starting Docker containers...")
     print_info("This may take a few minutes on first run...")
+    
+    # Set VERSION environment variable for docker-compose
+    os.environ['VERSION'] = app_version
     
     success, _ = run_command("docker compose up -d --build", check=False)
     

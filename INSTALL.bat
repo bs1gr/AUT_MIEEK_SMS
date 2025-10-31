@@ -85,7 +85,17 @@ REM Setup with Docker
 REM ========================================================================
 
 echo.
-echo [2/4] Creating environment files...
+echo [2/4] Reading version information...
+
+REM Read VERSION file
+set "APP_VERSION=latest"
+if exist "VERSION" (
+    set /p APP_VERSION=<VERSION
+    echo       Building version: !APP_VERSION!
+)
+
+echo.
+echo [3/4] Creating environment files...
 
 REM Create .env files from templates if they don't exist
 if not exist ".env" (
@@ -93,6 +103,19 @@ if not exist ".env" (
         copy /Y ".env.example" ".env" >nul
         echo       Created .env
     )
+)
+
+REM Update or add VERSION to .env
+if exist ".env" (
+    findstr /B /C:"VERSION=" ".env" >nul 2>&1
+    if !ERRORLEVEL! EQU 0 (
+        REM VERSION exists, update it
+        powershell -NoProfile -Command "(Get-Content '.env') -replace '^VERSION=.*', 'VERSION=!APP_VERSION!' | Set-Content '.env'"
+    ) else (
+        REM VERSION doesn't exist, append it
+        echo VERSION=!APP_VERSION!>> .env
+    )
+    echo       Set VERSION=!APP_VERSION! in .env
 )
 
 if not exist "backend\.env" (
@@ -110,9 +133,12 @@ if not exist "frontend\.env" (
 )
 
 echo.
-echo [3/4] Building Docker containers...
+echo [4/4] Building Docker containers with version !APP_VERSION!...
 echo       This may take a few minutes on first run...
 echo.
+
+REM Set VERSION environment variable for docker-compose
+set VERSION=!APP_VERSION!
 
 docker compose up -d --build
 if %ERRORLEVEL% NEQ 0 (
@@ -129,7 +155,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [4/4] Verifying containers...
+echo [5/5] Verifying containers...
 
 timeout /t 3 /nobreak >nul
 

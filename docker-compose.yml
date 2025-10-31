@@ -4,6 +4,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
+      args:
+        - VERSION=${VERSION:-latest}
+        - BUILD_DATE=${BUILD_DATE:-unknown}
+        - VCS_REF=${VCS_REF:-unknown}
     labels:
       - "org.opencontainers.image.title=sms-backend"
       - "org.opencontainers.image.version=${VERSION:-unknown}"
@@ -33,6 +37,9 @@ services:
       dockerfile: docker/Dockerfile.frontend
       args:
         - VITE_API_URL=/api/v1
+        - VERSION=${VERSION:-latest}
+        - BUILD_DATE=${BUILD_DATE:-unknown}
+        - VCS_REF=${VCS_REF:-unknown}
     labels:
       - "org.opencontainers.image.title=sms-frontend"
       - "org.opencontainers.image.version=${VERSION:-unknown}"
