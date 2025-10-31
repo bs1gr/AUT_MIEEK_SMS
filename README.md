@@ -22,31 +22,43 @@
 - Latest: [v1.2.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0)
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-## 🚀 Quick Start (Recommended)
+## 🚀 Quick Start - New Simplified Installation!
 
-Primary entry points:
+### **Easiest Method** (No PowerShell Issues!)
 
-- QUICKSTART (auto-setup/start):
+**Just one command:**
 
-```powershell
-./QUICKSTART.ps1
+```batch
+INSTALL.bat
 ```
 
-- SMS (interactive management):
+**Or with Python:**
 
-```powershell
-./SMS.ps1
+```bash
+python install.py
 ```
 
-Compatibility wrappers still available (will forward to the above):
+That's it! The installer handles everything automatically:
+- ✅ Detects Docker/Python/Node.js
+- ✅ Chooses best mode for your system  
+- ✅ Installs all dependencies
+- ✅ Starts the application
+- ✅ Opens your browser
 
-- START.bat (Windows batch wrapper → forwards to QUICKSTART.ps1)
-- ONE-CLICK.ps1 (legacy PowerShell wrapper → forwards to SMART_SETUP.ps1)
-- ONE-CLICK.bat (batch wrapper → calls ONE-CLICK.ps1)
+**See [INSTALL.md](INSTALL.md) for the simple guide!**
 
-Note: These wrappers are kept for backwards compatibility and are considered deprecated. Prefer using QUICKSTART.ps1 to start and SMS.ps1 for management.
+---
 
-Tip: QUICKSTART uses SMART_SETUP under the hood to auto-detect Docker vs Native and handle first-time installation.
+### Alternative Methods (Advanced Users)
+
+Using PowerShell scripts (requires execution policy):
+
+```powershell
+./QUICKSTART.ps1    # Auto-setup and start
+./SMS.ps1           # Interactive management
+```
+
+Note: If you get execution policy errors, just use `INSTALL.bat` instead - it works everywhere!
 
 ### Deployment Modes
 
