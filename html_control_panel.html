@@ -619,12 +619,48 @@
                 document.getElementById('envMode').textContent = data.environment_mode || 'unknown';
                 document.getElementById('footerVersion').textContent = data.app_version || '1.2.0';
                 
-                // Update environment details
+                // Update environment details with comprehensive package versions
                 const envDetails = document.getElementById('envDetails');
                 envDetails.innerHTML = `
                     <div class="info-row">
-                        <span class="info-label">Python Path</span>
-                        <span class="info-value" style="font-size: 0.8em;">${data.python_path.substring(0, 40)}...</span>
+                        <span class="info-label">
+                            Application Version
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Main application release version from VERSION file</span>
+                            </span>
+                        </span>
+                        <span class="info-value">${data.app_version || 'Unknown'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            API Version
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">FastAPI application version</span>
+                            </span>
+                        </span>
+                        <span class="info-value">${data.api_version || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            Frontend Version
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">React frontend application version from package.json</span>
+                            </span>
+                        </span>
+                        <span class="info-value">${data.frontend_version || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            Python Path
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Path to Python executable being used</span>
+                            </span>
+                        </span>
+                        <span class="info-value" style="font-size: 0.8em;">${data.python_path.substring(0, 50)}...</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Virtual Environment</span>
@@ -635,17 +671,58 @@
                         <span class="info-value">${data.platform}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Git Revision</span>
+                        <span class="info-label">
+                            Git Revision
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Current git commit hash or tag</span>
+                            </span>
+                        </span>
                         <span class="info-value">${data.git_revision || 'N/A'}</span>
                     </div>
                     ${data.python_packages ? `
+                    <div class="info-row" style="border-top: 2px solid #e0e0e0; margin-top: 10px; padding-top: 10px;">
+                        <span class="info-label" style="font-weight: bold; color: #333;">Backend Packages</span>
+                    </div>
                     <div class="info-row">
-                        <span class="info-label">FastAPI</span>
+                        <span class="info-label">
+                            FastAPI
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Modern Python web framework for building APIs</span>
+                            </span>
+                        </span>
                         <span class="info-value">${data.python_packages.fastapi || '-'}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">SQLAlchemy</span>
+                        <span class="info-label">
+                            SQLAlchemy
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Python SQL toolkit and ORM</span>
+                            </span>
+                        </span>
                         <span class="info-value">${data.python_packages.sqlalchemy || '-'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            Pydantic
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">Data validation using Python type hints</span>
+                            </span>
+                        </span>
+                        <span class="info-value">${data.python_packages.pydantic || '-'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">
+                            Uvicorn
+                            <span class="info-icon">
+                                i
+                                <span class="tooltip">ASGI web server for Python</span>
+                            </span>
+                        </span>
+                        <span class="info-value">${data.python_packages.uvicorn || '-'}</span>
                     </div>
                     ` : ''}
                 `;

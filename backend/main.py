@@ -221,10 +221,11 @@ def create_app() -> FastAPI:
     """
     return FastAPI(
         title="Student Management System API",
-        version="3.0.3",
-        description="Enhanced with Daily Performance Tracking and Final Grade Calculation",
+        version="1.2.1",
+        description="Bilingual Student Management System with Advanced Grading",
         docs_url="/docs",
         openapi_url="/openapi.json",
+        redoc_url="/redoc",
     )
 
 
@@ -253,7 +254,7 @@ async def lifespan(app: FastAPI):
     logger.info("\n" + "=" * 70)
     logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
     logger.info("=" * 70)
-    logger.info("Version: 3.0.3 - Production Ready")
+    logger.info("Version: 1.2.1 - Production Ready")
     logger.info("Database: SQLite")
     logger.info("Framework: FastAPI")
     logger.info("Logging: initialized")
