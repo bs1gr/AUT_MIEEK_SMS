@@ -1,6 +1,20 @@
 # Backend Dockerfile
 FROM python:3.11-slim
 
+# Build arguments for versioning
+ARG VERSION=latest
+ARG BUILD_DATE
+ARG VCS_REF
+
+# OCI image labels for version tracking
+LABEL org.opencontainers.image.title="Student Management System - Backend" \
+      org.opencontainers.image.description="FastAPI backend for SMS with SQLite database" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="https://github.com/bs1gr/AUT_MIEEK_SMS" \
+      maintainer="Student Management System"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
