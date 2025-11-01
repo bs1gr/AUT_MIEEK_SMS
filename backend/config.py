@@ -77,6 +77,51 @@ class Settings(BaseSettings):
             raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
         return v
 
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """Ensure SECRET_KEY is not default value and is sufficiently long."""
+        if v == "change-me":
+            raise ValueError(
+                "SECRET_KEY must be changed from default value 'change-me'. "
+                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        if len(v) < 32:
+            raise ValueError(
+                f"SECRET_KEY must be at least 32 characters (current length: {len(v)}). "
+                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        return v
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        """Validate database URL format and path security."""
+        if not v.startswith("sqlite:///"):
+            raise ValueError("Only SQLite databases are supported (URL must start with 'sqlite:///')")
+
+        # Extract and validate path
+        db_path_str = v.replace("sqlite:///", "")
+        try:
+            db_path = Path(db_path_str).resolve()
+
+            # Ensure path is within project directory (prevent path traversal)
+            project_root = Path(__file__).resolve().parents[1]
+            try:
+                # Check if db_path is relative to project_root
+                db_path.relative_to(project_root)
+            except ValueError:
+                raise ValueError(
+                    f"Database path must be within project directory.\n"
+                    f"Database path: {db_path}\n"
+                    f"Project root: {project_root}"
+                )
+
+        except Exception as e:
+            raise ValueError(f"Invalid database path in DATABASE_URL: {e}")
+
+        return v
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
