@@ -8,7 +8,7 @@ This module provides:
 - Log file management
 """
 
-from .base import Operation, OperationResult, ProcessInfo, get_project_root
+from .base import Operation, OperationResult, ProcessInfo, get_project_root, get_python_executable, OperationTimeouts
 from .diagnostics import SystemStatusChecker
 from pathlib import Path
 from typing import Optional, List
@@ -39,17 +39,7 @@ class BackendServer(Operation):
 
     def get_python_path(self) -> str:
         """Get path to Python executable (venv if exists)."""
-        venv_dir = self.backend_dir / 'venv'
-        if venv_dir.exists():
-            # Windows: Scripts/python.exe
-            python_path = venv_dir / 'Scripts' / 'python.exe'
-            if python_path.exists():
-                return str(python_path)
-            # Unix fallback
-            python_path = venv_dir / 'bin' / 'python'
-            if python_path.exists():
-                return str(python_path)
-        return 'python'
+        return get_python_executable(self.root_dir)
 
     def is_running(self) -> bool:
         """
@@ -183,7 +173,7 @@ class BackendServer(Operation):
                 self.save_pid(process.pid)
 
                 # Wait a moment to check if it started successfully
-                time.sleep(2)
+                time.sleep(OperationTimeouts.PROCESS_STARTUP_WAIT)
 
                 if self.is_running():
                     self.log_success(f"Backend started (PID: {process.pid})")
@@ -259,7 +249,7 @@ class BackendServer(Operation):
                 try:
                     process.send_signal(signal.CTRL_C_EVENT)
                     # Wait for graceful shutdown
-                    process.wait(timeout=5)
+                    process.wait(timeout=OperationTimeouts.PROCESS_SHUTDOWN_WAIT)
                     self.log_success("Backend stopped gracefully")
                 except (psutil.TimeoutExpired, AttributeError):
                     if force:
@@ -273,7 +263,7 @@ class BackendServer(Operation):
                 # Unix: SIGTERM
                 process.terminate()
                 try:
-                    process.wait(timeout=5)
+                    process.wait(timeout=OperationTimeouts.PROCESS_SHUTDOWN_WAIT)
                     self.log_success("Backend stopped gracefully")
                 except psutil.TimeoutExpired:
                     if force:
@@ -442,7 +432,7 @@ class ProcessManager(Operation):
                     process.terminate()
 
                 # Wait for termination
-                process.wait(timeout=5)
+                process.wait(timeout=OperationTimeouts.PROCESS_SHUTDOWN_WAIT)
                 return OperationResult.success_result(
                     f"Terminated process {proc_info.pid} on port {port}",
                     data={'pid': proc_info.pid, 'port': port}
