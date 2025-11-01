@@ -348,7 +348,7 @@ class OperationLogger:
 #  UTILITY FUNCTIONS
 # ============================================================================
 
-def format_size(size_bytes: int) -> str:
+def format_size(size_bytes: float) -> str:
     """
     Format byte size as human-readable string.
 
@@ -358,11 +358,13 @@ def format_size(size_bytes: int) -> str:
     Returns:
         Human-readable size string (e.g., "1.5 MB")
     """
+    # operate in floating point to avoid integer division/type issues
+    value = float(size_bytes)
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} PB"
+        if value < 1024.0:
+            return f"{value:.1f} {unit}"
+        value /= 1024.0
+    return f"{value:.1f} PB"
 
 
 def format_duration(duration_ms: int) -> str:
