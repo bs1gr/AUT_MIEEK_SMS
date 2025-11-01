@@ -5,6 +5,7 @@ from typing import List, Any
 import os
 import secrets
 import logging
+import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
@@ -91,15 +92,34 @@ class Settings(BaseSettings):
         # when an insecure placeholder is present. This keeps import-time
         # validation from failing in ephemeral CI/test runners while still
         # enforcing a strong key for production.
-        is_ci = os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CI") in ("true", "1")
-        is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PYTEST_RUNNING"))
-        allow_insecure_flag = os.environ.get("CI_ALLOW_INSECURE_SECRET", "").lower() in ("1", "true", "yes")
+        # Broadly detect CI environments and pytest runs:
+        is_ci = bool(
+            os.environ.get("GITHUB_ACTIONS")
+            or os.environ.get("CI")
+            or os.environ.get("GITLAB_CI")
+            or os.environ.get("GITHUB_RUN_ID")
+            or os.environ.get("CI_SERVER")
+            or os.environ.get("CONTINUOUS_INTEGRATION")
+        )
+        is_pytest = bool(
+            os.environ.get("PYTEST_CURRENT_TEST")
+            or os.environ.get("PYTEST_RUNNING")
+            or any("pytest" in (arg or "").lower() for arg in sys.argv)
+        )
+        allow_insecure_flag = os.environ.get("CI_ALLOW_INSECURE_SECRET", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
-        if v == "change-me":
+        insecure_names = {"change-me", "changeme", ""}
+        is_insecure_placeholder = v.lower() in insecure_names or v.lower().startswith("dev-placeholder")
+
+        if is_insecure_placeholder:
             if is_ci or is_pytest or allow_insecure_flag:
                 new_key = secrets.token_urlsafe(32)
                 logging.getLogger(__name__).warning(
-                    "Detected default SECRET_KEY in CI/test environment — auto-generating a temporary secret."
+                    "Detected insecure SECRET_KEY in CI/test environment — auto-generating a temporary secret."
                 )
                 return new_key
             raise ValueError(
