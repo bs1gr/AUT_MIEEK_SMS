@@ -6,6 +6,50 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.3.2] - 2025-11-01
+
+**Critical Security & Stability Fixes**
+
+This release implements 5 critical security and stability fixes identified in comprehensive code review. All fixes enhance input validation and prevent potential security vulnerabilities.
+
+Security Enhancements:
+
+- **SECRET_KEY Validation**: Added validator to prevent application startup with insecure default "change-me" value - enforces minimum 32-character length with clear error messages
+- **DATABASE_URL Path Validation**: Added path traversal protection - ensures database file stays within project directory, validates SQLite URL format
+- **Port Number Validation**: Added validation for ProcessManager.kill_process_on_port() - rejects invalid port numbers outside 0-65535 range
+- **URL Format Validation**: Added comprehensive URL validation in SetupOperations.wait_for_http() - validates scheme (http/https), host, and timeout values
+- **Atomic PID File Writes**: Implemented atomic write-then-rename pattern in BackendServer.save_pid() - prevents file corruption from race conditions
+
+Bug Fixes:
+
+- **Input Validation**: All external inputs now validated before use - port numbers, URLs, timeouts, and file paths
+- **Race Condition**: PID file writes now atomic using temp file + rename pattern (Windows compatible)
+- **Path Security**: Database path confined to project directory, prevents malicious .env configurations
+
+Technical:
+
+- Modified files: backend/config.py (+46 lines), backend/ops/server.py (+24 lines), backend/ops/setup.py (+27 lines)
+- Total changes: 3 files, ~97 lines added
+- All validations provide clear, actionable error messages
+- 100% backward compatible with existing configurations (once SECRET_KEY is set)
+
+Documentation:
+
+- [CODE_REVIEW_AND_IMPROVEMENTS.md](CODE_REVIEW_AND_IMPROVEMENTS.md) - Complete analysis of 15 issues with detailed fixes
+- [IMPROVEMENTS_SUMMARY_v1.3.1.md](IMPROVEMENTS_SUMMARY_v1.3.1.md) - Executive summary and timeline
+- [CRITICAL_FIXES_APPLIED.md](CRITICAL_FIXES_APPLIED.md) - Details of 5 implemented fixes
+
+**BREAKING CHANGE**: Application will not start with default SECRET_KEY="change-me". Users must generate and set a secure SECRET_KEY in backend/.env before starting the application.
+
+Migration:
+```bash
+# Generate secure key
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Add to backend/.env
+SECRET_KEY=<generated-key>
+```
+
 ## [1.3.1] - 2025-11-01
 
 **Architecture Improvements & Bug Fixes**
