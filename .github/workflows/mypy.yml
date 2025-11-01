@@ -26,5 +26,5 @@ jobs:
 
       - name: Run mypy
         run: |
-          python -m mypy backend --config-file mypy.ini || true
-        # allow job to succeed even if mypy reports errors so humans can iterate; job will still show mypy output
+          python -m mypy backend --config-file mypy.ini
+        # This job now fails the workflow on mypy errors to enforce type hygiene.
