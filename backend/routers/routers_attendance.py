@@ -136,7 +136,7 @@ def get_all_attendance(
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         query = db.query(Attendance).options(joinedload(Attendance.student), joinedload(Attendance.course))
 
@@ -260,7 +260,7 @@ def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -289,7 +289,7 @@ def update_attendance(
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -326,7 +326,7 @@ def delete_attendance(
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -353,7 +353,7 @@ def get_attendance_stats(student_id: int, course_id: int, db: Session = Depends(
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         attendance_records = (
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.course_id == course_id).all()
@@ -399,7 +399,7 @@ def bulk_create_attendance(
     try:
         from backend.import_resolver import import_names
 
-        Attendance, = import_names("models", "Attendance")
+        (Attendance,) = import_names("models", "Attendance")
 
         created = []
         errors = []

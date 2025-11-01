@@ -140,7 +140,7 @@ def create_course(
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         # Use database-level locking to prevent race conditions
         existing = db.query(Course).filter(Course.course_code == course.course_code).with_for_update().first()
@@ -178,7 +178,7 @@ def get_all_courses(skip: int = 0, limit: int = 100, semester: Optional[str] = N
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         query = db.query(Course)
 
@@ -207,7 +207,7 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         course = db.query(Course).filter(Course.id == course_id).first()
 
@@ -243,7 +243,7 @@ def update_course(
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         db_course = db.query(Course).filter(Course.id == course_id).first()
 
@@ -300,7 +300,7 @@ def delete_course(
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         db_course = db.query(Course).filter(Course.id == course_id).first()
 
@@ -328,7 +328,7 @@ def get_evaluation_rules(course_id: int, db: Session = Depends(get_db)):
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         course = db.query(Course).filter(Course.id == course_id).first()
 
@@ -359,7 +359,7 @@ def update_evaluation_rules(
     try:
         from backend.import_resolver import import_names
 
-        Course, = import_names("models", "Course")
+        (Course,) = import_names("models", "Course")
 
         db_course = db.query(Course).filter(Course.id == course_id).first()
 

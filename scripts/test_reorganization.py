@@ -3,12 +3,14 @@
 Comprehensive Test Suite for Script Reorganization
 Tests all operations and verifies everything works correctly
 """
+
 import subprocess
 from pathlib import Path
 
 # Define root and scripts directory
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = ROOT / "scripts"
+
 
 class TestResults:
     def __init__(self):
@@ -33,13 +35,13 @@ class TestResults:
         print(f"         {message}")
 
     def summary(self):
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("  TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print(f"  Passed:   {len(self.passed)}")
         print(f"  Failed:   {len(self.failed)}")
         print(f"  Warnings: {len(self.warnings)}")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
         if self.failed:
             print("FAILED TESTS:")
@@ -54,6 +56,7 @@ class TestResults:
             print()
 
         return len(self.failed) == 0
+
 
 results = TestResults()
 
@@ -116,6 +119,7 @@ EXPECTED_DOCS = [
     "REORGANIZATION_COMPLETE.md",
 ]
 
+
 def test_directory_structure():
     """Test 1: Verify directory structure exists"""
     print("\n[Test 1] Checking directory structure...")
@@ -132,8 +136,8 @@ def test_directory_structure():
         if d.exists() and d.is_dir():
             results.add_pass(f"Directory exists: {d.relative_to(ROOT)}")
         else:
-            results.add_fail(f"Directory missing: {d.relative_to(ROOT)}",
-                           "Required directory does not exist")
+            results.add_fail(f"Directory missing: {d.relative_to(ROOT)}", "Required directory does not exist")
+
 
 def test_dev_scripts():
     """Test 2: Verify all developer scripts are in place"""
@@ -146,6 +150,7 @@ def test_dev_scripts():
         else:
             results.add_fail(f"dev/{script}", "File not found")
 
+
 def test_deploy_scripts():
     """Test 3: Verify all deployment scripts are in place"""
     print("\n[Test 3] Checking deployment scripts...")
@@ -157,6 +162,7 @@ def test_deploy_scripts():
         else:
             results.add_fail(f"deploy/{script}", "File not found")
 
+
 def test_root_scripts():
     """Test 4: Verify root scripts exist"""
     print("\n[Test 4] Checking root scripts...")
@@ -167,6 +173,7 @@ def test_root_scripts():
             results.add_pass(f"root/{script}")
         else:
             results.add_fail(f"root/{script}", "File not found")
+
 
 def test_documentation():
     """Test 5: Verify documentation files exist"""
@@ -184,6 +191,7 @@ def test_documentation():
         else:
             results.add_fail(f"{doc}", "File not found")
 
+
 def test_readme_content():
     """Test 6: Verify README files have correct content"""
     print("\n[Test 6] Checking README content...")
@@ -191,7 +199,7 @@ def test_readme_content():
     # Check dev README
     dev_readme = SCRIPTS_DIR / "dev" / "README.md"
     if dev_readme.exists():
-        content = dev_readme.read_text(encoding='utf-8')
+        content = dev_readme.read_text(encoding="utf-8")
         if "Developer Workbench" in content and "SMOKE_TEST" in content:
             results.add_pass("dev/README.md has correct content")
         else:
@@ -200,7 +208,7 @@ def test_readme_content():
     # Check deploy README
     deploy_readme = SCRIPTS_DIR / "deploy" / "README.md"
     if deploy_readme.exists():
-        content = deploy_readme.read_text(encoding='utf-8')
+        content = deploy_readme.read_text(encoding="utf-8")
         if "End-User / DevOps" in content and "SMART_SETUP" in content:
             results.add_pass("deploy/README.md has correct content")
         else:
@@ -209,11 +217,12 @@ def test_readme_content():
     # Check main SCRIPTS_GUIDE
     guide = ROOT / "docs" / "SCRIPTS_GUIDE.md"
     if guide.exists():
-        content = guide.read_text(encoding='utf-8')
+        content = guide.read_text(encoding="utf-8")
         if "Developer Workbench" in content and "End-User/DevOps" in content:
             results.add_pass("SCRIPTS_GUIDE.md has correct content")
         else:
             results.add_fail("SCRIPTS_GUIDE.md", "Missing expected content")
+
 
 def test_main_readme_updated():
     """Test 7: Verify main README was updated"""
@@ -221,7 +230,7 @@ def test_main_readme_updated():
 
     readme = ROOT / "README.md"
     if readme.exists():
-        content = readme.read_text(encoding='utf-8')
+        content = readme.read_text(encoding="utf-8")
         checks = [
             ("scripts/dev/", "scripts/dev/ reference"),
             ("scripts/deploy/", "scripts/deploy/ reference"),
@@ -233,8 +242,8 @@ def test_main_readme_updated():
             if check_str in content:
                 results.add_pass(f"README contains: {check_name}")
             else:
-                results.add_fail(f"README missing: {check_name}",
-                               f"Expected to find '{check_str}'")
+                results.add_fail(f"README missing: {check_name}", f"Expected to find '{check_str}'")
+
 
 def test_no_duplicates():
     """Test 8: Check for duplicate files in old locations"""
@@ -256,6 +265,7 @@ def test_no_duplicates():
     if not duplicates_found:
         results.add_pass("No duplicate files in old locations")
 
+
 def test_script_syntax():
     """Test 9: Check PowerShell scripts for basic syntax errors"""
     print("\n[Test 9] Checking PowerShell script syntax...")
@@ -271,14 +281,14 @@ def test_script_syntax():
         if script.exists():
             try:
                 # Try to parse the script (basic check)
-                content = script.read_text(encoding='utf-8')
+                content = script.read_text(encoding="utf-8")
                 if "param(" in content or "function" in content or "#" in content:
                     results.add_pass(f"Syntax check: {script.name}")
                 else:
-                    results.add_warning(f"Syntax check: {script.name}",
-                                      "File seems empty or invalid")
+                    results.add_warning(f"Syntax check: {script.name}", "File seems empty or invalid")
             except Exception as e:
                 results.add_fail(f"Syntax check: {script.name}", str(e))
+
 
 def test_cross_references():
     """Test 10: Check for broken cross-references in documentation"""
@@ -287,7 +297,7 @@ def test_cross_references():
     # Check if SCRIPTS_GUIDE references exist
     guide = ROOT / "docs" / "SCRIPTS_GUIDE.md"
     if guide.exists():
-        content = guide.read_text(encoding='utf-8')
+        content = guide.read_text(encoding="utf-8")
 
         refs_to_check = [
             ("scripts/dev/README.md", SCRIPTS_DIR / "dev" / "README.md"),
@@ -301,11 +311,10 @@ def test_cross_references():
                 if path.exists():
                     results.add_pass(f"Cross-ref valid: {ref}")
                 else:
-                    results.add_fail(f"Cross-ref broken: {ref}",
-                                   f"Referenced file does not exist: {path}")
+                    results.add_fail(f"Cross-ref broken: {ref}", f"Referenced file does not exist: {path}")
             else:
-                results.add_warning(f"Cross-ref missing: {ref}",
-                                  "Not mentioned in SCRIPTS_GUIDE.md")
+                results.add_warning(f"Cross-ref missing: {ref}", "Not mentioned in SCRIPTS_GUIDE.md")
+
 
 def test_file_permissions():
     """Test 11: Verify script files are readable"""
@@ -322,10 +331,11 @@ def test_file_permissions():
         if f.exists():
             try:
                 # Try to read the file
-                f.read_text(encoding='utf-8')
+                f.read_text(encoding="utf-8")
                 results.add_pass(f"Readable: {f.name}")
             except Exception as e:
                 results.add_fail(f"Not readable: {f.name}", str(e))
+
 
 def test_git_status():
     """Test 12: Check git status (informational)"""
@@ -333,11 +343,10 @@ def test_git_status():
 
     try:
         # Check if we're in a git repo
-        result = subprocess.run(['git', 'status', '--porcelain'],
-                              capture_output=True, text=True, cwd=ROOT)
+        result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, cwd=ROOT)
 
         if result.returncode == 0:
-            changes = result.stdout.strip().split('\n')
+            changes = result.stdout.strip().split("\n")
             changes = [c for c in changes if c]  # Remove empty lines
 
             if changes:
@@ -354,13 +363,14 @@ def test_git_status():
     except Exception as e:
         results.add_warning("Git check", f"Could not run git: {e}")
 
+
 def test_reorganization_utility():
     """Test 13: Verify reorganization utility exists"""
     print("\n[Test 13] Checking reorganization utility...")
 
     util = SCRIPTS_DIR / "reorganize_scripts.py"
     if util.exists():
-        content = util.read_text(encoding='utf-8')
+        content = util.read_text(encoding="utf-8")
         if "def reorganize()" in content and "def move_file(" in content:
             results.add_pass("Reorganization utility is valid")
         else:
@@ -368,11 +378,12 @@ def test_reorganization_utility():
     else:
         results.add_fail("Reorganization utility", "File not found")
 
+
 def run_all_tests():
     """Run all tests"""
-    print("="*70)
+    print("=" * 70)
     print("  COMPREHENSIVE REORGANIZATION TEST SUITE")
-    print("="*70)
+    print("=" * 70)
 
     test_directory_structure()
     test_dev_scripts()
@@ -404,6 +415,7 @@ def run_all_tests():
         print("[FAILURE] Some tests failed!")
         print("\nPlease review the failures above and fix before committing.")
         return 1
+
 
 if __name__ == "__main__":
     exit(run_all_tests())

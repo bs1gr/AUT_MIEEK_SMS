@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from backend.import_resolver import import_names
 
-app, = import_names("main", "app")
+(app,) = import_names("main", "app")
 
 client = TestClient(app)
 

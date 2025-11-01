@@ -51,11 +51,9 @@ def _import_from_possible_locations(module_basename: str, names: Iterable[str]) 
 
 
 # Import required names (prefer package imports when available)
-settings, = _import_from_possible_locations("config", ["settings"])
+(settings,) = _import_from_possible_locations("config", ["settings"])
 get_db, engine = _import_from_possible_locations("db", ["get_session", "engine"])
-Student, Course, Grade, Base = _import_from_possible_locations(
-    "models", ["Student", "Course", "Grade", "Base"]
-)
+Student, Course, Grade, Base = _import_from_possible_locations("models", ["Student", "Course", "Grade", "Base"])
 
 # Create router
 router = APIRouter()

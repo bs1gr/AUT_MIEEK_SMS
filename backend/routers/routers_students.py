@@ -51,7 +51,7 @@ def create_student(
     - **enrollment_date**: Date of enrollment (optional)
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         # Use database-level locking to prevent race conditions
         # Check if student with same email already exists
@@ -107,7 +107,7 @@ def get_all_students(
                 status_code=400, detail=f"Limit must be between {settings.MIN_PAGE_SIZE} and {settings.MAX_PAGE_SIZE}"
             )
 
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         query = db.query(Student)
 
@@ -135,7 +135,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
     - **student_id**: The ID of the student to retrieve
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         student = db.query(Student).filter(Student.id == student_id).first()
 
@@ -167,7 +167,7 @@ def update_student(
     - **student_data**: Updated student information
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         db_student = db.query(Student).filter(Student.id == student_id).first()
 
@@ -208,7 +208,7 @@ def delete_student(
     WARNING: This will delete all grades, attendance records, and highlights for the student.
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         db_student = db.query(Student).filter(Student.id == student_id).first()
 
@@ -238,7 +238,7 @@ def activate_student(
 ):
     """Activate a student account"""
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         db_student = db.query(Student).filter(Student.id == student_id).first()
 
@@ -267,7 +267,7 @@ def deactivate_student(
 ):
     """Deactivate a student account"""
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         db_student = db.query(Student).filter(Student.id == student_id).first()
 
@@ -303,7 +303,7 @@ def bulk_create_students(
     Useful for importing student lists.
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         created: List[str] = []
         errors: List[dict] = []

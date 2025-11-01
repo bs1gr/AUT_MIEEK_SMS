@@ -301,7 +301,7 @@ def import_courses(
     }
     """
     try:
-        Course, = import_names('models', 'Course')
+        (Course,) = import_names("models", "Course")
 
         if not os.path.isdir(COURSES_DIR):
             raise HTTPException(status_code=404, detail=f"Courses directory not found: {COURSES_DIR}")
@@ -662,7 +662,7 @@ async def import_from_upload(
             norm = "students"
         else:
             raise HTTPException(status_code=400, detail="import_type must be 'courses' or 'students'")
-        Course, Student = import_names('models', 'Course', 'Student')
+        Course, Student = import_names("models", "Course", "Student")
 
         uploads: List[UploadFile] = []
         if files:
@@ -1035,7 +1035,7 @@ def import_students(
     }
     """
     try:
-        Student, = import_names('models', 'Student')
+        (Student,) = import_names("models", "Student")
 
         if not os.path.isdir(STUDENTS_DIR):
             raise HTTPException(status_code=404, detail=f"Students directory not found: {STUDENTS_DIR}")

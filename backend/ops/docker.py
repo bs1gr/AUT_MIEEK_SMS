@@ -27,19 +27,17 @@ except Exception:
 #  DOCKER COMPOSE OPERATIONS
 # ============================================================================
 
+
 class DockerComposeOperations(Operation):
     """Docker Compose lifecycle management"""
 
     def __init__(self, root_dir: Optional[Path] = None):
         super().__init__(root_dir or get_project_root())
-        self.compose_file = self.root_dir / 'docker-compose.yml'
-        self.override_file = self.root_dir / 'docker-compose.override.yml'
+        self.compose_file = self.root_dir / "docker-compose.yml"
+        self.override_file = self.root_dir / "docker-compose.override.yml"
 
     def _run_compose_command(
-        self,
-        args: List[str],
-        timeout: Optional[int] = 300,
-        env: Optional[Dict[str, str]] = None
+        self, args: List[str], timeout: Optional[int] = 300, env: Optional[Dict[str, str]] = None
     ) -> subprocess.CompletedProcess:
         """
         Run docker-compose command.
@@ -52,7 +50,7 @@ class DockerComposeOperations(Operation):
         Returns:
             CompletedProcess result
         """
-        cmd = ['docker', 'compose'] + args
+        cmd = ["docker", "compose"] + args
 
         # Merge environment variables
         full_env = os.environ.copy()
@@ -62,20 +60,11 @@ class DockerComposeOperations(Operation):
         self.log_debug(f"Running: {' '.join(cmd)}")
 
         return subprocess.run(
-            cmd,
-            cwd=str(self.root_dir),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env=full_env
+            cmd, cwd=str(self.root_dir), capture_output=True, text=True, timeout=timeout, env=full_env
         )
 
     def up(
-        self,
-        detach: bool = True,
-        build: bool = False,
-        no_cache: bool = False,
-        version: Optional[str] = None
+        self, detach: bool = True, build: bool = False, no_cache: bool = False, version: Optional[str] = None
     ) -> OperationResult:
         """
         Start Docker containers with docker-compose up.
@@ -90,23 +79,23 @@ class DockerComposeOperations(Operation):
             OperationResult with container information
         """
         try:
-            args = ['up']
+            args = ["up"]
 
             if detach:
-                args.append('-d')
+                args.append("-d")
 
             if build:
-                args.append('--build')
+                args.append("--build")
                 if no_cache:
-                    args.append('--no-cache')
+                    args.append("--no-cache")
 
             # Set VERSION environment variable
             env = {}
             if version:
-                env['VERSION'] = version
-            elif (self.root_dir / 'VERSION').exists():
-                version = (self.root_dir / 'VERSION').read_text(encoding='utf-8').strip()
-                env['VERSION'] = version
+                env["VERSION"] = version
+            elif (self.root_dir / "VERSION").exists():
+                version = (self.root_dir / "VERSION").read_text(encoding="utf-8").strip()
+                env["VERSION"] = version
 
             self.log_info("Starting Docker containers...")
             result = self._run_compose_command(args, timeout=600, env=env)
@@ -114,29 +103,22 @@ class DockerComposeOperations(Operation):
             if result.returncode == 0:
                 self.log_success("Docker containers started")
                 return OperationResult.success_result(
-                    "Containers started successfully",
-                    data={'output': result.stdout, 'version': version}
+                    "Containers started successfully", data={"output": result.stdout, "version": version}
                 )
             else:
                 return OperationResult.failure_result(
                     f"docker-compose up failed (exit code {result.returncode})",
-                    data={'stdout': result.stdout, 'stderr': result.stderr}
+                    data={"stdout": result.stdout, "stderr": result.stderr},
                 )
 
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("docker-compose up timed out")
         except FileNotFoundError:
-            return OperationResult.failure_result(
-                "docker or docker-compose not found - ensure Docker is installed"
-            )
+            return OperationResult.failure_result("docker or docker-compose not found - ensure Docker is installed")
         except Exception as e:
             return OperationResult.failure_result("Failed to start containers", e)
 
-    def down(
-        self,
-        remove_volumes: bool = False,
-        remove_images: bool = False
-    ) -> OperationResult:
+    def down(self, remove_volumes: bool = False, remove_images: bool = False) -> OperationResult:
         """
         Stop and remove Docker containers.
 
@@ -148,27 +130,24 @@ class DockerComposeOperations(Operation):
             OperationResult indicating success or failure
         """
         try:
-            args = ['down']
+            args = ["down"]
 
             if remove_volumes:
-                args.append('--volumes')
+                args.append("--volumes")
 
             if remove_images:
-                args.extend(['--rmi', 'local'])
+                args.extend(["--rmi", "local"])
 
             self.log_info("Stopping Docker containers...")
             result = self._run_compose_command(args)
 
             if result.returncode == 0:
                 self.log_success("Docker containers stopped")
-                return OperationResult.success_result(
-                    "Containers stopped successfully",
-                    data={'output': result.stdout}
-                )
+                return OperationResult.success_result("Containers stopped successfully", data={"output": result.stdout})
             else:
                 return OperationResult.failure_result(
                     f"docker-compose down failed (exit code {result.returncode})",
-                    data={'stdout': result.stdout, 'stderr': result.stderr}
+                    data={"stdout": result.stdout, "stderr": result.stderr},
                 )
 
         except subprocess.TimeoutExpired:
@@ -176,11 +155,7 @@ class DockerComposeOperations(Operation):
         except Exception as e:
             return OperationResult.failure_result("Failed to stop containers", e)
 
-    def build(
-        self,
-        no_cache: bool = False,
-        version: Optional[str] = None
-    ) -> OperationResult:
+    def build(self, no_cache: bool = False, version: Optional[str] = None) -> OperationResult:
         """
         Build Docker images.
 
@@ -192,18 +167,18 @@ class DockerComposeOperations(Operation):
             OperationResult indicating success or failure
         """
         try:
-            args = ['build']
+            args = ["build"]
 
             if no_cache:
-                args.append('--no-cache')
+                args.append("--no-cache")
 
             # Set VERSION environment variable
             env = {}
             if version:
-                env['VERSION'] = version
-            elif (self.root_dir / 'VERSION').exists():
-                version = (self.root_dir / 'VERSION').read_text(encoding='utf-8').strip()
-                env['VERSION'] = version
+                env["VERSION"] = version
+            elif (self.root_dir / "VERSION").exists():
+                version = (self.root_dir / "VERSION").read_text(encoding="utf-8").strip()
+                env["VERSION"] = version
 
             self.log_info("Building Docker images...")
             result = self._run_compose_command(args, timeout=900, env=env)
@@ -211,13 +186,12 @@ class DockerComposeOperations(Operation):
             if result.returncode == 0:
                 self.log_success("Docker images built")
                 return OperationResult.success_result(
-                    "Images built successfully",
-                    data={'output': result.stdout, 'version': version}
+                    "Images built successfully", data={"output": result.stdout, "version": version}
                 )
             else:
                 return OperationResult.failure_result(
                     f"docker-compose build failed (exit code {result.returncode})",
-                    data={'stdout': result.stdout, 'stderr': result.stderr}
+                    data={"stdout": result.stdout, "stderr": result.stderr},
                 )
 
         except subprocess.TimeoutExpired:
@@ -234,29 +208,23 @@ class DockerComposeOperations(Operation):
         """
         try:
             self.log_info("Restarting Docker containers...")
-            result = self._run_compose_command(['restart'])
+            result = self._run_compose_command(["restart"])
 
             if result.returncode == 0:
                 self.log_success("Docker containers restarted")
                 return OperationResult.success_result(
-                    "Containers restarted successfully",
-                    data={'output': result.stdout}
+                    "Containers restarted successfully", data={"output": result.stdout}
                 )
             else:
                 return OperationResult.failure_result(
                     f"docker-compose restart failed (exit code {result.returncode})",
-                    data={'stdout': result.stdout, 'stderr': result.stderr}
+                    data={"stdout": result.stdout, "stderr": result.stderr},
                 )
 
         except Exception as e:
             return OperationResult.failure_result("Failed to restart containers", e)
 
-    def logs(
-        self,
-        follow: bool = False,
-        tail: int = 100,
-        service: Optional[str] = None
-    ) -> OperationResult:
+    def logs(self, follow: bool = False, tail: int = 100, service: Optional[str] = None) -> OperationResult:
         """
         View container logs.
 
@@ -269,10 +237,10 @@ class DockerComposeOperations(Operation):
             OperationResult with log output
         """
         try:
-            args = ['logs', '--tail', str(tail)]
+            args = ["logs", "--tail", str(tail)]
 
             if follow:
-                args.append('-f')
+                args.append("-f")
 
             if service:
                 args.append(service)
@@ -280,15 +248,9 @@ class DockerComposeOperations(Operation):
             result = self._run_compose_command(args, timeout=30 if not follow else None)
 
             if result.returncode == 0:
-                return OperationResult.success_result(
-                    "Logs retrieved",
-                    data={'logs': result.stdout}
-                )
+                return OperationResult.success_result("Logs retrieved", data={"logs": result.stdout})
             else:
-                return OperationResult.failure_result(
-                    "Failed to get logs",
-                    data={'stderr': result.stderr}
-                )
+                return OperationResult.failure_result("Failed to get logs", data={"stderr": result.stderr})
 
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("docker-compose logs timed out")
@@ -324,6 +286,7 @@ class DockerComposeOperations(Operation):
 #  DOCKER VOLUME OPERATIONS
 # ============================================================================
 
+
 class DockerVolumeOperations(Operation):
     """Docker volume management"""
 
@@ -352,13 +315,15 @@ class DockerVolumeOperations(Operation):
                 if pattern and pattern not in volume.name:
                     continue
 
-                volumes.append(VolumeInfo(
-                    name=volume.name,
-                    driver=volume.attrs.get('Driver', 'unknown'),
-                    mountpoint=volume.attrs.get('Mountpoint', ''),
-                    created=volume.attrs.get('CreatedAt', ''),
-                    size_bytes=None  # Size requires inspection
-                ))
+                volumes.append(
+                    VolumeInfo(
+                        name=volume.name,
+                        driver=volume.attrs.get("Driver", "unknown"),
+                        mountpoint=volume.attrs.get("Mountpoint", ""),
+                        created=volume.attrs.get("CreatedAt", ""),
+                        size_bytes=None,  # Size requires inspection
+                    )
+                )
 
             return volumes
 
@@ -377,23 +342,14 @@ class DockerVolumeOperations(Operation):
             OperationResult indicating success or failure
         """
         try:
-            result = subprocess.run(
-                ['docker', 'volume', 'create', name],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            result = subprocess.run(["docker", "volume", "create", name], capture_output=True, text=True, timeout=30)
 
             if result.returncode == 0:
                 self.log_success(f"Volume created: {name}")
-                return OperationResult.success_result(
-                    f"Volume created: {name}",
-                    data={'name': name}
-                )
+                return OperationResult.success_result(f"Volume created: {name}", data={"name": name})
             else:
                 return OperationResult.failure_result(
-                    f"Failed to create volume (exit code {result.returncode})",
-                    data={'stderr': result.stderr}
+                    f"Failed to create volume (exit code {result.returncode})", data={"stderr": result.stderr}
                 )
 
         except subprocess.TimeoutExpired:
@@ -423,27 +379,31 @@ class DockerVolumeOperations(Operation):
 
             result = subprocess.run(
                 [
-                    'docker', 'run', '--rm',
-                    '-v', f'{source}:/source:ro',
-                    '-v', f'{target}:/target',
-                    'alpine',
-                    'sh', '-c', 'cp -av /source/. /target/'
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{source}:/source:ro",
+                    "-v",
+                    f"{target}:/target",
+                    "alpine",
+                    "sh",
+                    "-c",
+                    "cp -av /source/. /target/",
                 ],
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
             )
 
             if result.returncode == 0:
                 self.log_success(f"Volume migrated: {source} → {target}")
                 return OperationResult.success_result(
-                    "Volume migrated successfully",
-                    data={'source': source, 'target': target, 'output': result.stdout}
+                    "Volume migrated successfully", data={"source": source, "target": target, "output": result.stdout}
                 )
             else:
                 return OperationResult.failure_result(
-                    f"Volume migration failed (exit code {result.returncode})",
-                    data={'stderr': result.stderr}
+                    f"Volume migration failed (exit code {result.returncode})", data={"stderr": result.stderr}
                 )
 
         except subprocess.TimeoutExpired:
@@ -463,25 +423,19 @@ class DockerVolumeOperations(Operation):
             OperationResult indicating success or failure
         """
         try:
-            args = ['docker', 'volume', 'rm']
+            args = ["docker", "volume", "rm"]
             if force:
-                args.append('-f')
+                args.append("-f")
             args.append(name)
 
-            result = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
+            result = subprocess.run(args, capture_output=True, text=True, timeout=30)
 
             if result.returncode == 0:
                 self.log_success(f"Volume removed: {name}")
                 return OperationResult.success_result(f"Volume removed: {name}")
             else:
                 return OperationResult.failure_result(
-                    f"Failed to remove volume (exit code {result.returncode})",
-                    data={'stderr': result.stderr}
+                    f"Failed to remove volume (exit code {result.returncode})", data={"stderr": result.stderr}
                 )
 
         except subprocess.TimeoutExpired:
@@ -492,29 +446,28 @@ class DockerVolumeOperations(Operation):
     def execute(self, action: str = "list", **kwargs) -> OperationResult:
         """Execute volume operation."""
         if action == "list":
-            pattern = kwargs.get('pattern')
+            pattern = kwargs.get("pattern")
             volumes = self.list_volumes(pattern if isinstance(pattern, str) else None)
             return OperationResult.success_result(
-                f"Found {len(volumes)} volume(s)",
-                data={'volumes': [v.__dict__ for v in volumes]}
+                f"Found {len(volumes)} volume(s)", data={"volumes": [v.__dict__ for v in volumes]}
             )
 
         elif action == "create":
-            name = kwargs.get('name')
+            name = kwargs.get("name")
             if not isinstance(name, str):
                 return OperationResult.failure_result("Missing or invalid 'name' parameter")
             return self.create_volume(name)
 
         elif action == "migrate":
-            source = kwargs.get('source')
-            target = kwargs.get('target')
+            source = kwargs.get("source")
+            target = kwargs.get("target")
             if not isinstance(source, str) or not isinstance(target, str):
                 return OperationResult.failure_result("Missing or invalid 'source' or 'target' parameter")
             return self.migrate_volume(source, target)
 
         elif action == "remove":
-            name = kwargs.get('name')
-            force = bool(kwargs.get('force', False))
+            name = kwargs.get("name")
+            force = bool(kwargs.get("force", False))
             if not isinstance(name, str):
                 return OperationResult.failure_result("Missing or invalid 'name' parameter")
             return self.remove_volume(name, force)
@@ -526,6 +479,7 @@ class DockerVolumeOperations(Operation):
 # ============================================================================
 #  DOCKER IMAGE OPERATIONS
 # ============================================================================
+
 
 class DockerImageOperations(Operation):
     """Docker image management and cleanup"""
@@ -544,47 +498,38 @@ class DockerImageOperations(Operation):
         try:
             # Get images matching pattern
             result = subprocess.run(
-                ['docker', 'images', '--filter', f'reference={pattern}', '-q'],
+                ["docker", "images", "--filter", f"reference={pattern}", "-q"],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode != 0:
                 return OperationResult.failure_result("Failed to list images")
 
-            image_ids = result.stdout.strip().split('\n')
+            image_ids = result.stdout.strip().split("\n")
             image_ids = [img for img in image_ids if img]
 
             if not image_ids:
-                return OperationResult.warning_result(
-                    f"No images found matching: {pattern}"
-                )
+                return OperationResult.warning_result(f"No images found matching: {pattern}")
 
             # Remove images
-            args = ['docker', 'rmi']
+            args = ["docker", "rmi"]
             if force:
-                args.append('-f')
+                args.append("-f")
             args.extend(image_ids)
 
             self.log_info(f"Removing {len(image_ids)} image(s)...")
-            result = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                timeout=120
-            )
+            result = subprocess.run(args, capture_output=True, text=True, timeout=120)
 
             if result.returncode == 0:
                 self.log_success(f"Removed {len(image_ids)} image(s)")
                 return OperationResult.success_result(
-                    f"Removed {len(image_ids)} image(s)",
-                    data={'count': len(image_ids), 'ids': image_ids}
+                    f"Removed {len(image_ids)} image(s)", data={"count": len(image_ids), "ids": image_ids}
                 )
             else:
                 return OperationResult.failure_result(
-                    f"Failed to remove images (exit code {result.returncode})",
-                    data={'stderr': result.stderr}
+                    f"Failed to remove images (exit code {result.returncode})", data={"stderr": result.stderr}
                 )
 
         except subprocess.TimeoutExpired:
@@ -603,28 +548,19 @@ class DockerImageOperations(Operation):
             OperationResult indicating success or failure
         """
         try:
-            args = ['docker', 'builder', 'prune', '-f']
+            args = ["docker", "builder", "prune", "-f"]
             if all_cache:
-                args.append('-a')
+                args.append("-a")
 
             self.log_info("Pruning Docker build cache...")
-            result = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                timeout=120
-            )
+            result = subprocess.run(args, capture_output=True, text=True, timeout=120)
 
             if result.returncode == 0:
                 self.log_success("Build cache pruned")
-                return OperationResult.success_result(
-                    "Build cache pruned",
-                    data={'output': result.stdout}
-                )
+                return OperationResult.success_result("Build cache pruned", data={"output": result.stdout})
             else:
                 return OperationResult.failure_result(
-                    f"Failed to prune cache (exit code {result.returncode})",
-                    data={'stderr': result.stderr}
+                    f"Failed to prune cache (exit code {result.returncode})", data={"stderr": result.stderr}
                 )
 
         except subprocess.TimeoutExpired:
@@ -635,13 +571,13 @@ class DockerImageOperations(Operation):
     def execute(self, action: str = "prune", **kwargs) -> OperationResult:
         """Execute image operation."""
         if action == "remove":
-            pattern = kwargs.get('pattern')
-            force = bool(kwargs.get('force', False))
+            pattern = kwargs.get("pattern")
+            force = bool(kwargs.get("force", False))
             if not isinstance(pattern, str):
                 return OperationResult.failure_result("Missing or invalid 'pattern' parameter")
             return self.remove_images(pattern, force)
         elif action == "prune":
-            all_cache = bool(kwargs.get('all_cache', False))
+            all_cache = bool(kwargs.get("all_cache", False))
             return self.prune_build_cache(all_cache)
         else:
             return OperationResult.failure_result(f"Unknown action: {action}")
