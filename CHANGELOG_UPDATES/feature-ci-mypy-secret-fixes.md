@@ -13,11 +13,10 @@ Why
 What changed
 ------------
 - Tests: added an autouse pytest fixture to redirect backups to `tmp_path` and clean them up.
-- Config: a conservative dev/test-safe placeholder for `SECRET_KEY` to avoid import-time failures; CI includes a guard to prevent using the placeholder in real CI/deploys.
- - Config: a conservative dev/test-safe placeholder for `SECRET_KEY` to avoid import-time failures; the validator now auto-generates a secure, in-memory temporary secret when running in CI/tests to avoid import-time failures (keeps strict validation for production). The CI guard was added but later relaxed to warnings-only per maintainer preference.
+- Tests: added an autouse pytest fixture to redirect backups to `tmp_path` and clean them up.
+- Config: a conservative dev/test-safe placeholder for `SECRET_KEY` to avoid import-time failures. The validator now auto-generates a secure, in-memory temporary secret when running in CI/tests to avoid import-time failures (keeps strict validation for production). The CI guard was added but later relaxed to warnings-only per maintainer preference.
 - CI: added `.github/workflows/mypy.yml` to run `mypy`, and `.github/workflows/secret-guard.yml` to run the secret-guard check.
-- Tools: added `mypy.ini` and `backend/tools/check_secret.py` for the guard.
- - Tools: added `mypy.ini` and `backend/tools/check_secret.py` for the guard (the guard now prints warnings instead of failing CI by default; workflow uses a non-fatal step).
+- Tools: added `mypy.ini` and `backend/tools/check_secret.py` for the guard (the guard now prints warnings instead of failing CI by default; workflow uses a non-fatal step).
 - Linting/typing: ran `ruff --fix` and applied safe fixes; iteratively addressed `mypy` findings across `backend/*` (typing/annotation adjustments only).
 - Logging: reduced noisy health-check logging during tests/CI.
 
