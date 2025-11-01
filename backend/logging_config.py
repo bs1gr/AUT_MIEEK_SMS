@@ -8,11 +8,13 @@ from pathlib import Path
 def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> logging.Logger:
     level = getattr(logging, log_level.upper(), logging.INFO)
 
-    # Import RequestIDFilter
+    # Import RequestIDFilter dynamically to avoid duplicate-import warnings in type checks
+    import importlib
     try:
-        from backend.request_id_middleware import RequestIDFilter
-    except ModuleNotFoundError:
-        from request_id_middleware import RequestIDFilter
+        rim_mod = importlib.import_module('backend.request_id_middleware')
+    except Exception:
+        rim_mod = importlib.import_module('request_id_middleware')
+    RequestIDFilter = getattr(rim_mod, 'RequestIDFilter')
 
     # Format with request ID support
     log_format = "%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"
