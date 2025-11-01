@@ -15,6 +15,7 @@ from typing import Optional, List
 import signal
 import time
 import sys
+import subprocess
 
 
 # Windows-specific imports
