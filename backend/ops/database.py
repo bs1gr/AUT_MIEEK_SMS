@@ -85,7 +85,7 @@ class DatabaseOperations(Operation):
 
             self.log_success(f"Backup created: {backup_filename} ({format_size(size_bytes)})")
             return OperationResult.success_result(
-                f"Backup created successfully",
+                "Backup created successfully",
                 data={'backup': backup_info.__dict__, 'path': str(backup_path)}
             )
 
@@ -158,7 +158,7 @@ class DatabaseOperations(Operation):
 
             self.log_success(f"Docker backup created: {backup_filename} ({format_size(size_bytes)})")
             return OperationResult.success_result(
-                f"Docker backup created successfully",
+                "Docker backup created successfully",
                 data={'backup': backup_info.__dict__, 'path': str(backup_path)}
             )
 
@@ -360,7 +360,7 @@ class DatabaseOperations(Operation):
                 f"Permission denied: Cannot delete {backup_path.name}", e
             )
         except Exception as e:
-            return OperationResult.failure_result(f"Failed to delete backup", e)
+            return OperationResult.failure_result("Failed to delete backup", e)
 
     def clean_old_backups(self, keep_count: int = 10) -> OperationResult:
         """

@@ -22,9 +22,10 @@ from importlib import metadata as importlib_metadata  # Python 3.8+
 
 # Rate limiting for new endpoints (honors project guidance)
 try:
-    from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE
+    # RATE_LIMIT_WRITE isn't used in this module; import only what's needed
+    from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 except ModuleNotFoundError:
-    from ..rate_limiting import limiter, RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE
+    from ..rate_limiting import limiter, RATE_LIMIT_HEAVY
 
 logger = logging.getLogger(__name__)
 
@@ -814,8 +815,6 @@ async def docker_prune(request: Request, include_volumes: bool = False):
 
     if not _check_docker_running():
         raise HTTPException(status_code=400, detail="Docker is not running")
-
-    project_root = Path(__file__).parent.parent.parent
 
     summary: Dict[str, Any] = {"steps": []}
     errors: list[str] = []

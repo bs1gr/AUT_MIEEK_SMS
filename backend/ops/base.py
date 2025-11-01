@@ -48,9 +48,16 @@ class OperationResult:
         return cls(True, message, OperationStatus.SUCCESS, data)
 
     @classmethod
-    def failure_result(cls, message: str, error: Optional[Exception] = None) -> 'OperationResult':
-        """Create a failed result"""
-        return cls(False, message, OperationStatus.FAILURE, error=error)
+    def failure_result(
+        cls, message: str, error: Optional[Exception] = None, data: Optional[Dict[str, Any]] = None
+    ) -> 'OperationResult':
+        """Create a failed result
+
+        Backwards-compatible: accepts optional `data` kwarg because many callers
+        pass `data=` when building failure results. This prevents unexpected
+        keyword-argument mypy errors while keeping the runtime shape stable.
+        """
+        return cls(False, message, OperationStatus.FAILURE, data, error)
 
     @classmethod
     def warning_result(cls, message: str, data: Optional[Dict] = None) -> 'OperationResult':
