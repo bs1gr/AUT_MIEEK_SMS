@@ -141,8 +141,6 @@ class BackendServer(Operation):
                 # Windows: CREATE_NEW_PROCESS_GROUP to detach
                 # Unix: use Popen with different session
                 if sys.platform == "win32":
-                    import subprocess
-
                     # Windows: CREATE_NEW_PROCESS_GROUP = 0x00000200
                     process = subprocess.Popen(
                         cmd,
