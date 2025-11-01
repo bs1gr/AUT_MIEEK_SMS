@@ -520,6 +520,10 @@ const ControlPanel = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-400 mt-1">{diag.message}</p>
+                      {/* Show SMS Schema Version if present in DB health check */}
+                      {diag.category === 'Database' && diag.details && diag.details.sms_schema_version && (
+                        <p className="text-sm mt-2"><span className="text-gray-400">{t('controlPanel.smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{diag.details.sms_schema_version}</span></p>
+                      )}
                     {diag.details && Object.keys(diag.details).length > 0 && (
                       <pre className="mt-2 text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
                         {JSON.stringify(diag.details, null, 2)}
@@ -667,6 +671,9 @@ const ControlPanel = () => {
                     {environment.environment_mode && (
                       <p className="text-sm"><span className="text-gray-400">{t('controlPanel.runningIn')}:</span> <span className="ml-2 font-mono">{environment.environment_mode === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}</span></p>
                     )}
+                      {environment.sms_schema_version && (
+                        <p className="text-sm"><span className="text-gray-400">{t('controlPanel.smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{environment.sms_schema_version}</span></p>
+                      )}
                   </div>
                 </div>
 
