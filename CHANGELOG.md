@@ -6,6 +6,45 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.3.1] - 2025-11-01
+
+**Architecture Improvements & Bug Fixes**
+
+This release addresses critical bugs discovered during CLI testing and implements architectural improvements to prevent similar issues in the future.
+
+Enhancements:
+
+- **Standardized Dependency Injection**: Updated `Operation` base class to accept optional `root_dir` parameter, ensuring consistent constructor signatures across all 15+ operations
+- **Enhanced BackupInfo**: Added property aliases for improved usability:
+  - `created` - alias for `created_at` for more intuitive field naming
+  - `size_human` - automatic human-readable size formatting (e.g., "284.0 KB")
+- **Cleaner Inheritance**: Eliminated ~30 lines of redundant `self.root_dir` assignments across operation classes
+- **100% Backward Compatible**: All existing code continues to work without changes
+
+Bug Fixes:
+
+- **CRITICAL - Missing root_dir Parameter**: Fixed TypeError preventing ALL CLI commands from working - added PROJECT_ROOT and updated 65+ operation instantiations
+- **Missing service_name Attribute**: Fixed AttributeError in `diag ports` command - removed non-existent field from PortStatus
+- **Inconsistent __init__ Signatures**: Fixed TypeError in `diag deps` and `diag health` by standardizing Operation base class
+- **Windows Encoding - Emoji Characters**: Fixed UnicodeEncodeError on Windows - replaced emoji with ASCII text
+- **Dict vs Object Access**: Fixed `diag status` table rendering by using dict access pattern
+- **BackupInfo Field Mismatch**: Fixed `db list-backups` crash by adding missing property aliases
+
+Technical:
+
+- Updated 15+ operation classes to use new standardized DI pattern
+- Modified files: backend/ops/base.py, diagnostics.py, setup.py, database.py, server.py, docker.py, cleanup.py, frontend/ops/*.py
+- Added comprehensive documentation: ARCHITECTURE_IMPROVEMENTS_v1.3.1.md
+- CLI testing: 8 commands verified working (12% coverage)
+
+Documentation:
+
+- [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md) - Complete architecture improvements guide
+- [CLI_TESTING_SESSION_1.md](CLI_TESTING_SESSION_1.md) - Detailed bug reports
+- [CLI_TESTING_FINAL_SUMMARY.md](CLI_TESTING_FINAL_SUMMARY.md) - Testing summary and recommendations
+
+For migration guidance, see [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md#migration-guide).
+
 ## [1.2.3] - 2025-10-31
 
 Enhancements:
