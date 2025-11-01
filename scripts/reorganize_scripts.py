@@ -3,7 +3,6 @@
 Script Reorganization Utility
 Restructures operational scripts into dev/ and deploy/ directories
 """
-import os
 import shutil
 from pathlib import Path
 
@@ -121,7 +120,7 @@ def reorganize():
             print(f"  [WARN] {dest_path} not found")
 
     print("\n" + "="*70)
-    print(f"  REORGANIZATION COMPLETE")
+    print("  REORGANIZATION COMPLETE")
     print(f"  Developer scripts: {moved_dev} moved to scripts/dev/")
     print(f"  Deployment scripts: {moved_deploy} moved to scripts/deploy/")
     print(f"  Existing deploy scripts: {existing} verified")
