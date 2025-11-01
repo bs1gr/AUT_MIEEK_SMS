@@ -6,6 +6,39 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.3.3] - 2025-11-01
+
+**Code Quality & Performance Improvements**
+
+This release addresses code duplication, improves maintainability, and optimizes memory usage for large backup directories.
+
+Enhancements:
+
+- **Pagination for Backups**: Added optional pagination to `list_backups()` - prevents memory issues when many backups exist (supports limit/offset parameters)
+- **Shared Utilities**: Extracted `get_python_executable()` to base.py - eliminates code duplication across BackendServer, DatabaseManager, and SetupOperations
+- **Timeout Constants**: Added `OperationTimeouts` class with standardized timeout values - improves maintainability and prevents arbitrary magic numbers throughout codebase
+- **Reduced Code Duplication**: Eliminated ~30 lines of duplicated get_python_path() implementations
+
+Technical:
+
+- Modified files: backend/ops/base.py (+72 lines), backend/ops/database.py (+19 lines), backend/ops/server.py (-30 lines)
+- Total changes: 3 files, ~61 net lines added
+- All changes are 100% backward compatible
+- No breaking changes
+
+Documentation:
+
+- Updated inline documentation for new pagination parameters
+- Added comprehensive docstrings for shared utilities
+- Documented timeout constants with usage guidelines
+
+Benefits:
+
+- **Memory Efficiency**: Pagination prevents OOM when listing thousands of backups
+- **Maintainability**: Centralized timeout values and shared utilities reduce maintenance burden
+- **Code Quality**: DRY principle applied - no more duplicated get_python_path() methods
+- **Performance**: Faster list_backups() with limit parameter for CLI/API responses
+
 ## [1.3.2] - 2025-11-01
 
 **Critical Security & Stability Fixes**
