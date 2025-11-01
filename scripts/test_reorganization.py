@@ -3,10 +3,8 @@
 Comprehensive Test Suite for Script Reorganization
 Tests all operations and verifies everything works correctly
 """
-import os
 import subprocess
 from pathlib import Path
-from typing import List, Tuple
 
 # Define root and scripts directory
 ROOT = Path(__file__).resolve().parent.parent

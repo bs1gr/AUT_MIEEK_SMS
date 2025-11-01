@@ -138,4 +138,5 @@ export default {
   pythonPath: 'Διαδρομή Python',
   systemPath: 'Διαδρομή Συστήματος',
   environmentVariables: 'Μεταβλητές Περιβάλλοντος',
+  smsSchemaVersion: 'Έκδοση Σχήματος SMS',
 };

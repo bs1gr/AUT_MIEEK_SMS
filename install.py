@@ -160,9 +160,9 @@ def setup_docker_mode():
     if success:
         print_success("Docker containers started successfully!")
         print_info("\n🌐 Application URLs:")
-        print(f"   Frontend:      http://localhost:8080")
-        print(f"   API Docs:      http://localhost:8080/docs")
-        print(f"   Control Panel: http://localhost:8080/control")
+        print("   Frontend:      http://localhost:8080")
+        print("   API Docs:      http://localhost:8080/docs")
+        print("   Control Panel: http://localhost:8080/control")
         return True
     else:
         print_error("Failed to start Docker containers")
@@ -246,11 +246,11 @@ def setup_native_mode():
     print_success("\n✓ Setup complete!")
     print_info("\nTo start the application:")
     print(f"   Backend:  cd backend && {python_cmd} -m uvicorn backend.main:app --reload")
-    print(f"   Frontend: cd frontend && npm run dev")
+    print("   Frontend: cd frontend && npm run dev")
     print_info("\n🌐 Application URLs:")
-    print(f"   Frontend:      http://localhost:5173")
-    print(f"   API Docs:      http://localhost:8000/docs")
-    print(f"   Control Panel: http://localhost:8000/control")
+    print("   Frontend:      http://localhost:5173")
+    print("   API Docs:      http://localhost:8000/docs")
+    print("   Control Panel: http://localhost:8000/control")
     
     return True
 
@@ -266,19 +266,19 @@ def main():
     python_ok, python_msg = check_python()
     node_ok, node_msg = check_node()
     
-    print(f"Docker: ", end="")
+    print("Docker: ", end="")
     if docker_ok:
         print_success(docker_msg)
     else:
         print_warning(docker_msg)
     
-    print(f"Python: ", end="")
+    print("Python: ", end="")
     if python_ok:
         print_success(python_msg)
     else:
         print_error(python_msg)
     
-    print(f"Node.js: ", end="")
+    print("Node.js: ", end="")
     if node_ok:
         print_success(node_msg)
     else:
