@@ -595,9 +595,10 @@ export const importAPI = {
   async uploadFile(file, type) {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      // Backend expects 'files' for list uploads; also include import_type for clarity
+      formData.append('files', file);
+      formData.append('import_type', type);
       const response = await apiClient.post('/imports/upload', formData, {
-        params: { data_type: type },
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       return response.data;
