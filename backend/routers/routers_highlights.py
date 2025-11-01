@@ -9,7 +9,9 @@ from typing import Optional, cast
 import logging
 
 from backend.db import get_session as get_db
-from backend.models import Highlight, Student
+from backend.import_resolver import import_names
+
+Highlight, Student = import_names("models", "Highlight", "Student")
 from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 from .routers_auth import optional_require_role

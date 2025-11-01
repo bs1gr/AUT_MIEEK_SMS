@@ -251,7 +251,7 @@ class Operation(ABC):
         self.root_dir = root_dir or Path.cwd()
 
     @abstractmethod
-    def execute(self, **kwargs) -> OperationResult:
+    def execute(self, *args: Any, **kwargs: Any) -> OperationResult:
         """
         Execute the operation.
 

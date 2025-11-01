@@ -17,6 +17,7 @@ from backend.routers.routers_auth import optional_require_role
 
 # ===== Dependency =====
 from backend.db import get_session as get_db
+from backend.import_resolver import import_names
 
 
 # ===== Endpoints =====
@@ -24,7 +25,7 @@ from backend.db import get_session as get_db
 def get_all_enrollments(skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
     """Get all course enrollments"""
     try:
-        from backend.models import CourseEnrollment
+        CourseEnrollment, = import_names('models', 'CourseEnrollment')
 
         enrollments = db.query(CourseEnrollment).offset(skip).limit(limit).all()
         logger.info(f"Retrieved {len(enrollments)} enrollments (skip={skip}, limit={limit})")
@@ -37,7 +38,7 @@ def get_all_enrollments(skip: int = 0, limit: int = 1000, db: Session = Depends(
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
 def list_course_enrollments(course_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import CourseEnrollment, Course
+        CourseEnrollment, Course = import_names('models', 'CourseEnrollment', 'Course')
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -55,7 +56,7 @@ def list_course_enrollments(course_id: int, db: Session = Depends(get_db)):
 def list_student_enrollments(student_id: int, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
-        from backend.models import Student, CourseEnrollment
+        Student, CourseEnrollment = import_names('models', 'Student', 'CourseEnrollment')
 
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
@@ -73,7 +74,7 @@ def list_student_enrollments(student_id: int, db: Session = Depends(get_db)):
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
 def list_enrolled_students(course_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import Course, Student, CourseEnrollment
+        Course, Student, CourseEnrollment = import_names('models', 'Course', 'Student', 'CourseEnrollment')
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -103,7 +104,7 @@ def enroll_students(
     Uses database locking to prevent race conditions.
     """
     try:
-        from backend.models import CourseEnrollment, Course, Student
+        CourseEnrollment, Course, Student = import_names('models', 'CourseEnrollment', 'Course', 'Student')
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -148,7 +149,7 @@ def unenroll_student(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        from backend.models import CourseEnrollment
+        CourseEnrollment, = import_names('models', 'CourseEnrollment')
 
         enrollment = (
             db.query(CourseEnrollment)

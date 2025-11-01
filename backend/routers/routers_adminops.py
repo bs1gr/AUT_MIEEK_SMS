@@ -29,6 +29,7 @@ from backend.db import get_session as get_db
 from backend.db import engine as db_engine
 from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 from .routers_auth import optional_require_role
+from backend.import_resolver import import_names
 
 
 class ClearPayload(BaseModel):
@@ -123,7 +124,16 @@ def clear_database(
     if not payload.confirm:
         raise HTTPException(status_code=400, detail="Confirmation required to clear database")
     try:
-        from backend.models import Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student
+        Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student = import_names(
+            'models',
+            'Attendance',
+            'DailyPerformance',
+            'Grade',
+            'Highlight',
+            'CourseEnrollment',
+            'Course',
+            'Student',
+        )
 
         # Delete child tables first
         db.query(Attendance).delete(synchronize_session=False)
