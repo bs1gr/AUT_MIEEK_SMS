@@ -8,7 +8,7 @@ This module provides:
 - Backup management (list, delete, cleanup)
 """
 
-from .base import Operation, OperationResult, BackupInfo, get_project_root, format_size
+from .base import Operation, OperationResult, BackupInfo, get_project_root, format_size, get_python_executable, OperationTimeouts
 from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
@@ -32,12 +32,7 @@ class DatabaseOperations(Operation):
 
     def get_python_path(self) -> str:
         """Get path to Python executable (venv if exists)."""
-        venv_dir = self.backend_dir / 'venv'
-        if venv_dir.exists():
-            python_path = venv_dir / 'Scripts' / 'python.exe'
-            if python_path.exists():
-                return str(python_path)
-        return 'python'
+        return get_python_executable(self.root_dir)
 
     def run_migrations(self) -> OperationResult:
         """
@@ -138,7 +133,7 @@ class DatabaseOperations(Operation):
                 ],
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=OperationTimeouts.DOCKER_VOLUME_OP
             )
 
             if result.returncode != 0:
@@ -238,7 +233,7 @@ class DatabaseOperations(Operation):
                 ],
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=OperationTimeouts.DOCKER_VOLUME_OP
             )
 
             if result.returncode != 0:
@@ -314,7 +309,7 @@ class DatabaseOperations(Operation):
 
     def delete_backup(self, backup_path: Path) -> OperationResult:
         """
-        Delete a backup file.
+        Delete a backup file with comprehensive validation.
 
         Args:
             backup_path: Path to backup file
@@ -322,13 +317,48 @@ class DatabaseOperations(Operation):
         Returns:
             OperationResult indicating success or failure
         """
+        # Validate input type
+        if not isinstance(backup_path, Path):
+            return OperationResult.failure_result(
+                f"Invalid backup_path type: expected Path, got {type(backup_path).__name__}"
+            )
+
+        # Check if file exists
         if not backup_path.exists():
             return OperationResult.failure_result(f"Backup not found: {backup_path}")
+
+        # Security check: ensure backup is within backup directory
+        try:
+            backup_path_resolved = backup_path.resolve()
+            backup_dir_resolved = self.backup_dir.resolve()
+            backup_path_resolved.relative_to(backup_dir_resolved)
+        except ValueError:
+            return OperationResult.failure_result(
+                f"Security error: Backup must be within backup directory\n"
+                f"Backup path: {backup_path}\n"
+                f"Backup dir: {self.backup_dir}"
+            )
+
+        # Verify it's a file (not a directory)
+        if not backup_path.is_file():
+            return OperationResult.failure_result(
+                f"Not a file: {backup_path} (cannot delete directories)"
+            )
+
+        # Verify it's a .db file
+        if backup_path.suffix != '.db':
+            return OperationResult.failure_result(
+                f"Invalid backup file: {backup_path.name} (must be .db file)"
+            )
 
         try:
             backup_path.unlink()
             self.log_success(f"Deleted backup: {backup_path.name}")
             return OperationResult.success_result(f"Backup deleted: {backup_path.name}")
+        except PermissionError as e:
+            return OperationResult.failure_result(
+                f"Permission denied: Cannot delete {backup_path.name}", e
+            )
         except Exception as e:
             return OperationResult.failure_result(f"Failed to delete backup", e)
 
@@ -337,11 +367,22 @@ class DatabaseOperations(Operation):
         Delete old backups, keeping only the most recent ones.
 
         Args:
-            keep_count: Number of recent backups to keep
+            keep_count: Number of recent backups to keep (must be >= 1)
 
         Returns:
             OperationResult with cleanup information
         """
+        # Validate keep_count
+        if not isinstance(keep_count, int):
+            return OperationResult.failure_result(
+                f"Invalid keep_count type: expected int, got {type(keep_count).__name__}"
+            )
+
+        if keep_count < 1:
+            return OperationResult.failure_result(
+                f"keep_count must be at least 1 (got: {keep_count})"
+            )
+
         backups = self.list_backups()
 
         if len(backups) <= keep_count:
@@ -396,7 +437,7 @@ class DatabaseOperations(Operation):
                 cwd=str(self.backend_dir),
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=OperationTimeouts.QUICK_COMMAND
             )
 
             if result.returncode == 0:

@@ -8,7 +8,7 @@ This module provides:
 - Database migration execution
 """
 
-from .base import Operation, OperationResult, get_project_root
+from .base import Operation, OperationResult, get_project_root, get_python_executable, OperationTimeouts
 from .diagnostics import DependencyChecker
 from pathlib import Path
 from typing import Optional
@@ -121,7 +121,7 @@ class SetupOperations(Operation):
                 ['python', '-m', 'venv', str(venv_dir)],
                 check=True,
                 cwd=str(self.backend_dir),
-                timeout=120
+                timeout=OperationTimeouts.MEDIUM_COMMAND
             )
             self.log_success("Virtual environment created")
             return OperationResult.success_result("Virtual environment created")
@@ -186,7 +186,7 @@ class SetupOperations(Operation):
                 pip_cmd + ['install', '--disable-pip-version-check', '-q', '-U', 'pip'],
                 check=True,
                 cwd=str(self.backend_dir),
-                timeout=180
+                timeout=OperationTimeouts.MEDIUM_COMMAND
             )
 
             # Install requirements
@@ -205,7 +205,7 @@ class SetupOperations(Operation):
                 install_cmd,
                 check=True,
                 cwd=str(self.backend_dir),
-                timeout=600  # 10 minutes for large installs
+                timeout=OperationTimeouts.LONG_COMMAND  # 10 minutes for large installs
             )
 
             self.log_success("Backend dependencies installed")
@@ -250,7 +250,7 @@ class SetupOperations(Operation):
                 cmd,
                 check=True,
                 cwd=str(self.frontend_dir),
-                timeout=600  # 10 minutes for large installs
+                timeout=OperationTimeouts.LONG_COMMAND  # 10 minutes for large installs
             )
 
             self.log_success("Frontend dependencies installed")
@@ -304,22 +304,32 @@ class SetupOperations(Operation):
             )
 
         start_time = time.time()
+        last_error = None
+
         while (time.time() - start_time) < timeout:
             try:
-                response = requests.get(url, timeout=3)
+                response = requests.get(url, timeout=OperationTimeouts.HTTP_REQUEST)
                 if 200 <= response.status_code < 500:
                     elapsed = time.time() - start_time
                     return OperationResult.success_result(
                         f"Endpoint available after {elapsed:.1f}s",
                         data={'url': url, 'status_code': response.status_code}
                     )
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                pass
-            time.sleep(2)
+            except requests.exceptions.Timeout as e:
+                last_error = f"Connection timeout: {e}"
+                self.log_debug(f"HTTP check timed out, retrying... ({last_error})")
+            except requests.exceptions.ConnectionError as e:
+                last_error = f"Connection refused: {e}"
+                self.log_debug(f"Connection failed, retrying... ({last_error})")
+            except requests.exceptions.RequestException as e:
+                last_error = f"Request error: {e}"
+                self.log_debug(f"Request failed, retrying... ({last_error})")
+
+            time.sleep(OperationTimeouts.PROCESS_STARTUP_WAIT)
 
         return OperationResult.failure_result(
-            f"Endpoint not available after {timeout}s",
-            data={'url': url}
+            f"Endpoint not available after {timeout}s" + (f": {last_error}" if last_error else ""),
+            data={'url': url, 'last_error': last_error}
         )
 
     def setup_all(self, force: bool = False, skip_venv: bool = False) -> OperationResult:
@@ -431,23 +441,8 @@ class MigrationRunner(Operation):
         self.backend_dir = self.root_dir / 'backend'
 
     def get_python_path(self) -> str:
-        """
-        Get path to Python executable (venv if exists, otherwise system).
-
-        Returns:
-            Path to Python executable as string
-        """
-        venv_dir = self.backend_dir / 'venv'
-        if venv_dir.exists():
-            # Windows: venv/Scripts/python.exe
-            python_path = venv_dir / 'Scripts' / 'python.exe'
-            if python_path.exists():
-                return str(python_path)
-            # Unix fallback
-            python_path = venv_dir / 'bin' / 'python'
-            if python_path.exists():
-                return str(python_path)
-        return 'python'
+        """Get path to Python executable (venv if exists)."""
+        return get_python_executable(self.root_dir)
 
     def run_migrations(self) -> OperationResult:
         """
@@ -474,7 +469,7 @@ class MigrationRunner(Operation):
                 cwd=str(self.backend_dir),
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=OperationTimeouts.MEDIUM_COMMAND
             )
 
             if result.returncode == 0:
