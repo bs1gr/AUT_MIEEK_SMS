@@ -10,15 +10,16 @@ This module provides:
 
 from .base import Operation, OperationResult, VolumeInfo, get_project_root
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 import subprocess
 import os
 
 
 # Optional docker package import
+docker: Any
 try:
-    import docker
-except ImportError:
+    import docker  # type: ignore
+except Exception:
     docker = None
 
 
@@ -491,17 +492,33 @@ class DockerVolumeOperations(Operation):
     def execute(self, action: str = "list", **kwargs) -> OperationResult:
         """Execute volume operation."""
         if action == "list":
-            volumes = self.list_volumes(kwargs.get('pattern'))
+            pattern = kwargs.get('pattern')
+            volumes = self.list_volumes(pattern if isinstance(pattern, str) else None)
             return OperationResult.success_result(
                 f"Found {len(volumes)} volume(s)",
                 data={'volumes': [v.__dict__ for v in volumes]}
             )
+
         elif action == "create":
-            return self.create_volume(kwargs.get('name'))
+            name = kwargs.get('name')
+            if not isinstance(name, str):
+                return OperationResult.failure_result("Missing or invalid 'name' parameter")
+            return self.create_volume(name)
+
         elif action == "migrate":
-            return self.migrate_volume(kwargs.get('source'), kwargs.get('target'))
+            source = kwargs.get('source')
+            target = kwargs.get('target')
+            if not isinstance(source, str) or not isinstance(target, str):
+                return OperationResult.failure_result("Missing or invalid 'source' or 'target' parameter")
+            return self.migrate_volume(source, target)
+
         elif action == "remove":
-            return self.remove_volume(kwargs.get('name'), kwargs.get('force', False))
+            name = kwargs.get('name')
+            force = bool(kwargs.get('force', False))
+            if not isinstance(name, str):
+                return OperationResult.failure_result("Missing or invalid 'name' parameter")
+            return self.remove_volume(name, force)
+
         else:
             return OperationResult.failure_result(f"Unknown action: {action}")
 
@@ -618,8 +635,13 @@ class DockerImageOperations(Operation):
     def execute(self, action: str = "prune", **kwargs) -> OperationResult:
         """Execute image operation."""
         if action == "remove":
-            return self.remove_images(kwargs.get('pattern'), kwargs.get('force', False))
+            pattern = kwargs.get('pattern')
+            force = bool(kwargs.get('force', False))
+            if not isinstance(pattern, str):
+                return OperationResult.failure_result("Missing or invalid 'pattern' parameter")
+            return self.remove_images(pattern, force)
         elif action == "prune":
-            return self.prune_build_cache(kwargs.get('all_cache', False))
+            all_cache = bool(kwargs.get('all_cache', False))
+            return self.prune_build_cache(all_cache)
         else:
             return OperationResult.failure_result(f"Unknown action: {action}")

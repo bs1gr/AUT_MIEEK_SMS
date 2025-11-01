@@ -484,16 +484,19 @@ class ProcessManager(Operation):
     def execute(self, **kwargs) -> OperationResult:
         """Execute process management operation."""
         action = kwargs.get('action', 'kill_port')
-
         if action == 'kill_port':
-            return self.kill_process_on_port(
-                kwargs.get('port'),
-                kwargs.get('force', False)
-            )
+            port = kwargs.get('port')
+            force = bool(kwargs.get('force', False))
+            if not isinstance(port, int):
+                return OperationResult.failure_result("Missing or invalid 'port' parameter")
+            return self.kill_process_on_port(port, force)
+
         elif action == 'kill_all':
-            return self.kill_all_on_ports(
-                kwargs.get('ports', []),
-                kwargs.get('force', False)
-            )
+            ports = kwargs.get('ports', [])
+            force = bool(kwargs.get('force', False))
+            if not isinstance(ports, list) or not all(isinstance(p, int) for p in ports):
+                return OperationResult.failure_result("Missing or invalid 'ports' parameter")
+            return self.kill_all_on_ports(ports, force)
+
         else:
             return OperationResult.failure_result(f"Unknown action: {action}")
