@@ -8,7 +8,7 @@ This module provides:
 - Image management and cleanup
 """
 
-from .base import Operation, OperationResult, ContainerInfo, VolumeInfo, get_project_root
+from .base import Operation, OperationResult, VolumeInfo, get_project_root
 from pathlib import Path
 from typing import Optional, List, Dict
 import subprocess
@@ -414,7 +414,8 @@ class DockerVolumeOperations(Operation):
         try:
             # Create target volume if it doesn't exist
             self.log_info(f"Creating target volume: {target}")
-            create_result = self.create_volume(target)
+            # create_volume returns an OperationResult but we don't need the value here
+            self.create_volume(target)
 
             # Copy data using alpine container
             self.log_info(f"Migrating data: {source} → {target}")
@@ -435,7 +436,7 @@ class DockerVolumeOperations(Operation):
             if result.returncode == 0:
                 self.log_success(f"Volume migrated: {source} → {target}")
                 return OperationResult.success_result(
-                    f"Volume migrated successfully",
+                    "Volume migrated successfully",
                     data={'source': source, 'target': target, 'output': result.stdout}
                 )
             else:

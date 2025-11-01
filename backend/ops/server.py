@@ -8,11 +8,10 @@ This module provides:
 - Log file management
 """
 
-from .base import Operation, OperationResult, ProcessInfo, get_project_root, get_python_executable, OperationTimeouts
+from .base import Operation, OperationResult, get_project_root, get_python_executable, OperationTimeouts
 from .diagnostics import SystemStatusChecker
 from pathlib import Path
 from typing import Optional, List
-import subprocess
 import signal
 import time
 import sys
@@ -193,7 +192,7 @@ class BackendServer(Operation):
                     )
             else:
                 # Foreground mode (blocking)
-                result = subprocess.run(
+                subprocess.run(
                     cmd,
                     cwd=str(self.root_dir)
                 )

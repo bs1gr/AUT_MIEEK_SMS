@@ -55,9 +55,9 @@ class SetupOperations(Operation):
         try:
             shutil.copy2(template, env_file)
             self.log_success(f"Created .env in {directory.name}")
-            return OperationResult.success_result(f"Created .env from template")
+            return OperationResult.success_result("Created .env from template")
         except Exception as e:
-            return OperationResult.failure_result(f"Failed to create .env", e)
+            return OperationResult.failure_result("Failed to create .env", e)
 
     def set_version_in_env(self, version: str) -> OperationResult:
         """
