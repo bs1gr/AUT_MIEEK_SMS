@@ -11,10 +11,7 @@ Why
 - The repository lacked an enforced mypy step in CI.
 
 What changed
-------------
-- Tests: added an autouse pytest fixture to redirect backups to `tmp_path` and clean them up.
-- Tests: added an autouse pytest fixture to redirect backups to `tmp_path` and clean them up.
-- Config: a conservative dev/test-safe placeholder for `SECRET_KEY` to avoid import-time failures. The validator now auto-generates a secure, in-memory temporary secret when running in CI/tests to avoid import-time failures (keeps strict validation for production). The CI guard was added but later relaxed to warnings-only per maintainer preference.
+ 
 - CI: added `.github/workflows/mypy.yml` to run `mypy`, and `.github/workflows/secret-guard.yml` to run the secret-guard check.
 - Tools: added `mypy.ini` and `backend/tools/check_secret.py` for the guard (the guard now prints warnings instead of failing CI by default; workflow uses a non-fatal step).
 - Linting/typing: ran `ruff --fix` and applied safe fixes; iteratively addressed `mypy` findings across `backend/*` (typing/annotation adjustments only).
@@ -50,6 +47,10 @@ Notes on `SECRET_KEY` policy
 ---------------------------
 - For safety, production should set a proper `SECRET_KEY` via repo secrets or environment variables. The code change only auto-generates a temporary key in CI/test contexts to keep tests running.
 - The secret-guard workflow has been relaxed to warning-only so PRs and CI runs won't be blocked by missing placeholders. If you want stricter enforcement later, the guard can be reverted to fail-fast.
+
+Hotfix (2025-11-01)
+-------------------
+- Fixed an import-time ValidationError where Pydantic rejected placeholder `SECRET_KEY` values during CI/test runs. The validator now more reliably detects CI/pytest contexts and auto-generates a secure temporary key there (see commit 4885026). Ran `pytest` locally after the fix — tests passed and backups remained scoped to temporary directories.
 
 PR body (short)
 ---------------
