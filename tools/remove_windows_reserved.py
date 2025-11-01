@@ -2,6 +2,7 @@
 Utility to remove a file named with a reserved Windows device name (e.g., "nul") using extended path prefix.
 Run from repository root. Prints outcome.
 """
+
 import os
 from pathlib import Path
 

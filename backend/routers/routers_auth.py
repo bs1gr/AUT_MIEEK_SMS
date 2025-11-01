@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 import importlib
 import importlib.util
 
+
 def _resolve_backend_import(name: str, attr: str | None = None):
     """Attempt to import `backend.<name>` and fall back to `<name>` when running from backend/ directly."""
     try:
@@ -20,9 +21,14 @@ def _resolve_backend_import(name: str, attr: str | None = None):
         module = importlib.import_module(name)
     return getattr(module, attr) if attr else module
 
-get_db: Any = _resolve_backend_import('db', 'get_session')
-settings: Any = _resolve_backend_import('config', 'settings')
-models = importlib.import_module('backend.models') if importlib.util.find_spec('backend.models') else importlib.import_module('models')
+
+get_db: Any = _resolve_backend_import("db", "get_session")
+settings: Any = _resolve_backend_import("config", "settings")
+models = (
+    importlib.import_module("backend.models")
+    if importlib.util.find_spec("backend.models")
+    else importlib.import_module("models")
+)
 
 # For static type checking, import symbols into the TYPE_CHECKING block so mypy
 # can resolve types like models.User and schema classes while runtime still
@@ -33,22 +39,22 @@ if TYPE_CHECKING:
 else:
     schemas_mod = None
     try:
-        schemas_mod = importlib.import_module('backend.schemas')
+        schemas_mod = importlib.import_module("backend.schemas")
     except Exception:
-        schemas_mod = importlib.import_module('schemas')
+        schemas_mod = importlib.import_module("schemas")
 
-    UserCreate = getattr(schemas_mod, 'UserCreate')
-    UserLogin = getattr(schemas_mod, 'UserLogin')
-    UserResponse = getattr(schemas_mod, 'UserResponse')
-    Token = getattr(schemas_mod, 'Token')
+    UserCreate = getattr(schemas_mod, "UserCreate")
+    UserLogin = getattr(schemas_mod, "UserLogin")
+    UserResponse = getattr(schemas_mod, "UserResponse")
+    Token = getattr(schemas_mod, "Token")
 
 try:
-    rl_mod = importlib.import_module('backend.rate_limiting')
+    rl_mod = importlib.import_module("backend.rate_limiting")
 except Exception:
-    rl_mod = importlib.import_module('rate_limiting')
+    rl_mod = importlib.import_module("rate_limiting")
 
-limiter = getattr(rl_mod, 'limiter')
-RATE_LIMIT_AUTH = getattr(rl_mod, 'RATE_LIMIT_AUTH')
+limiter = getattr(rl_mod, "limiter")
+RATE_LIMIT_AUTH = getattr(rl_mod, "RATE_LIMIT_AUTH")
 
 router = APIRouter()
 

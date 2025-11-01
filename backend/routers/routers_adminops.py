@@ -125,14 +125,14 @@ def clear_database(
         raise HTTPException(status_code=400, detail="Confirmation required to clear database")
     try:
         Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student = import_names(
-            'models',
-            'Attendance',
-            'DailyPerformance',
-            'Grade',
-            'Highlight',
-            'CourseEnrollment',
-            'Course',
-            'Student',
+            "models",
+            "Attendance",
+            "DailyPerformance",
+            "Grade",
+            "Highlight",
+            "CourseEnrollment",
+            "Course",
+            "Student",
         )
 
         # Delete child tables first
