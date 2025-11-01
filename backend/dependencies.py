@@ -10,7 +10,7 @@ Includes:
 import logging
 import logging.handlers
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Optional
 from functools import wraps
 
 from fastapi import HTTPException
@@ -291,10 +291,10 @@ class ErrorResponse(BaseModel):
 
     status_code: int
     message: str
-    detail: str = None
+    detail: Optional[str] = None
 
 
-def create_error_response(status_code: int, message: str, detail: str = None) -> ErrorResponse:
+def create_error_response(status_code: int, message: str, detail: Optional[str] = None) -> ErrorResponse:
     """
     Create standardized error response.
 
@@ -336,7 +336,7 @@ def paginate_query(query, skip: int = 0, limit: int = 100):
 # ========== LOGGING UTILITIES ==========
 
 
-def log_api_call(method: str, endpoint: str, status_code: int = None):
+def log_api_call(method: str, endpoint: str, status_code: Optional[int] = None):
     """
     Log API call.
 
@@ -351,7 +351,7 @@ def log_api_call(method: str, endpoint: str, status_code: int = None):
         logger.info(f"{method} {endpoint}")
 
 
-def log_database_operation(operation: str, model: str, record_id: int = None):
+def log_database_operation(operation: str, model: str, record_id: Optional[int] = None):
     """
     Log database operation.
 
@@ -371,22 +371,22 @@ if __name__ == "__main__":
 
     # Test string validation
     try:
-        result = validate_string("John", "First Name", min_length=1, max_length=100)
-        print(f"✓ String validation passed: {result}")
+        result_str = validate_string("John", "First Name", min_length=1, max_length=100)
+        print(f"✓ String validation passed: {result_str}")
     except ValueError as e:
         print(f"✗ String validation failed: {e}")
 
     # Test grade validation
     try:
-        result = validate_grade(85.5, 100.0)
-        print(f"✓ Grade validation passed: {result}")
+        result_grade = validate_grade(85.5, 100.0)
+        print(f"✓ Grade validation passed: {result_grade}")
     except ValueError as e:
         print(f"✗ Grade validation failed: {e}")
 
     # Test percentage validation
     try:
-        result = validate_percentage(75.0)
-        print(f"✓ Percentage validation passed: {result}")
+        result_pct = validate_percentage(75.0)
+        print(f"✓ Percentage validation passed: {result_pct}")
     except ValueError as e:
         print(f"✗ Percentage validation failed: {e}")
 

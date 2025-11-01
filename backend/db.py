@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker, Session
+from typing import Generator
 
-# Local imports - handle both direct execution and module import
-try:
-    from backend.config import settings
-    from backend import models
-except ModuleNotFoundError:
-    # Running directly from backend directory
-    from config import settings
-    import models
+# Import settings and models dynamically to avoid import-time redefinition warnings
+import importlib
+
+from backend.import_resolver import import_from_possible_locations
+
+# Prefer package-qualified imports, fall back to bare module when running as a script
+config_mod = import_from_possible_locations("config")
+settings = config_mod.settings
+models = import_from_possible_locations("models")
 
 # Create engine from configuration using models.init_db for dev convenience
 try:
@@ -22,7 +24,7 @@ except Exception:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_session(_: object | None = None) -> Session:
+def get_session(_: object | None = None) -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db

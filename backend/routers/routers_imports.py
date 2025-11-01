@@ -36,6 +36,7 @@ STUDENTS_DIR = r"D:\SMS\student-management-system\templates\students"
 router = APIRouter(prefix="/imports", tags=["Imports"], responses={404: {"description": "Not found"}})
 
 from backend.db import get_session as get_db
+from backend.import_resolver import import_names
 
 
 # --- File Upload Validation ---
@@ -300,7 +301,7 @@ def import_courses(
     }
     """
     try:
-        from backend.models import Course
+        Course, = import_names('models', 'Course')
 
         if not os.path.isdir(COURSES_DIR):
             raise HTTPException(status_code=404, detail=f"Courses directory not found: {COURSES_DIR}")
@@ -661,7 +662,7 @@ async def import_from_upload(
             norm = "students"
         else:
             raise HTTPException(status_code=400, detail="import_type must be 'courses' or 'students'")
-        from backend.models import Course, Student
+        Course, Student = import_names('models', 'Course', 'Student')
 
         uploads: List[UploadFile] = []
         if files:
@@ -1034,7 +1035,7 @@ def import_students(
     }
     """
     try:
-        from backend.models import Student
+        Student, = import_names('models', 'Student')
 
         if not os.path.isdir(STUDENTS_DIR):
             raise HTTPException(status_code=404, detail=f"Students directory not found: {STUDENTS_DIR}")

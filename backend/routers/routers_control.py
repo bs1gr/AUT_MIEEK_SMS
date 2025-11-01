@@ -21,11 +21,9 @@ from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
 # Rate limiting for new endpoints (honors project guidance)
-try:
-    # RATE_LIMIT_WRITE isn't used in this module; import only what's needed
-    from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
-except ModuleNotFoundError:
-    from ..rate_limiting import limiter, RATE_LIMIT_HEAVY
+from backend.import_resolver import import_names
+
+limiter, RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
 
 logger = logging.getLogger(__name__)
 
@@ -513,10 +511,12 @@ async def get_environment_info(include_packages: bool = False):
     api_version: Optional[str] = None
     try:
         try:
-            from backend.main import create_app  # type: ignore
-        except ModuleNotFoundError:
-            from ..main import create_app  # type: ignore
-        api_version = getattr(create_app(), "version", None)
+            from backend.import_resolver import import_names
+
+            create_app, = import_names("main", "create_app")
+            api_version = getattr(create_app(), "version", None)
+        except Exception:
+            api_version = None
     except Exception:
         api_version = None
 
@@ -769,10 +769,9 @@ async def exit_all(down: bool = False):
 
     # Trigger backend comprehensive shutdown (stop-all)
     try:
-        try:
-            from backend.main import control_stop_all  # type: ignore
-        except ModuleNotFoundError:
-            from ..main import control_stop_all  # type: ignore
+        from backend.import_resolver import import_names
+
+        control_stop_all, = import_names("main", "control_stop_all")
         shutdown_info = control_stop_all()
         details["shutdown"] = shutdown_info
     except Exception as e:
