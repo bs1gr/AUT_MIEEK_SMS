@@ -10,11 +10,12 @@ def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> loggin
 
     # Import RequestIDFilter dynamically to avoid duplicate-import warnings in type checks
     import importlib
+
     try:
-        rim_mod = importlib.import_module('backend.request_id_middleware')
+        rim_mod = importlib.import_module("backend.request_id_middleware")
     except Exception:
-        rim_mod = importlib.import_module('request_id_middleware')
-    RequestIDFilter = getattr(rim_mod, 'RequestIDFilter')
+        rim_mod = importlib.import_module("request_id_middleware")
+    RequestIDFilter = getattr(rim_mod, "RequestIDFilter")
 
     # Format with request ID support
     log_format = "%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"

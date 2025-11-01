@@ -5,6 +5,7 @@ Per maintainer preference, this script prints warnings when the
 `SECRET_KEY` is missing or still the dev placeholder, but does not
 fail CI. The workflow controls whether to treat findings as fatal.
 """
+
 import os
 
 PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
@@ -19,7 +20,9 @@ def main() -> int:
         problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
 
     if secret == PLACEHOLDER:
-        problems.append("SECRET_KEY is set to the development placeholder. Replace it with a secure secret in CI/production.")
+        problems.append(
+            "SECRET_KEY is set to the development placeholder. Replace it with a secure secret in CI/production."
+        )
 
     if problems:
         print("WARNING: Secret guard found issues:")
@@ -35,5 +38,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

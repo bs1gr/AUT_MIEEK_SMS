@@ -6,6 +6,7 @@ Usage:
     from backend.import_resolver import import_names
     Student, = import_names('models', 'Student')
 """
+
 from __future__ import annotations
 
 from typing import Any, Tuple

@@ -513,7 +513,7 @@ async def get_environment_info(include_packages: bool = False):
         try:
             from backend.import_resolver import import_names
 
-            create_app, = import_names("main", "create_app")
+            (create_app,) = import_names("main", "create_app")
             api_version = getattr(create_app(), "version", None)
         except Exception:
             api_version = None
@@ -771,7 +771,7 @@ async def exit_all(down: bool = False):
     try:
         from backend.import_resolver import import_names
 
-        control_stop_all, = import_names("main", "control_stop_all")
+        (control_stop_all,) = import_names("main", "control_stop_all")
         shutdown_info = control_stop_all()
         details["shutdown"] = shutdown_info
     except Exception as e:
@@ -820,12 +820,14 @@ async def docker_prune(request: Request, include_volumes: bool = False):
 
     def _step(label: str, cmd: list[str]):
         ok, out, err = _run_command(cmd, timeout=300)
-        summary["steps"].append({
-            "label": label,
-            "ok": ok,
-            "stdout": (out[-1000:] if out else None),
-            "stderr": (err[-1000:] if err else None),
-        })
+        summary["steps"].append(
+            {
+                "label": label,
+                "ok": ok,
+                "stdout": (out[-1000:] if out else None),
+                "stderr": (err[-1000:] if err else None),
+            }
+        )
         if not ok:
             errors.append(f"{label} failed")
 
@@ -844,8 +846,9 @@ async def docker_prune(request: Request, include_volumes: bool = False):
     return OperationResult(
         success=(len(errors) == 0),
         message=(
-            "Docker resources pruned" + (" (including volumes)" if include_volumes else "") +
-            (" with some errors" if errors else "")
+            "Docker resources pruned"
+            + (" (including volumes)" if include_volumes else "")
+            + (" with some errors" if errors else "")
         ),
         details=summary,
     )

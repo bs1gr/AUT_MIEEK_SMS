@@ -52,29 +52,29 @@ import importlib
 import importlib.util
 
 # Detect whether package-style imports are available (importing as 'backend.*')
-if importlib.util.find_spec('backend.config') is not None:
-    config_mod = importlib.import_module('backend.config')
+if importlib.util.find_spec("backend.config") is not None:
+    config_mod = importlib.import_module("backend.config")
     settings = config_mod.settings
-    logging_mod = importlib.import_module('backend.logging_config')
+    logging_mod = importlib.import_module("backend.logging_config")
     initialize_logging = logging_mod.initialize_logging
-    db_mod = importlib.import_module('backend.db')
+    db_mod = importlib.import_module("backend.db")
     db_get_session = db_mod.get_session
-    db_engine = getattr(db_mod, 'engine')
-    db_ensure_schema = getattr(db_mod, 'ensure_schema')
-    rim_mod = importlib.import_module('backend.request_id_middleware')
-    RequestIDMiddleware = getattr(rim_mod, 'RequestIDMiddleware')
+    db_engine = getattr(db_mod, "engine")
+    db_ensure_schema = getattr(db_mod, "ensure_schema")
+    rim_mod = importlib.import_module("backend.request_id_middleware")
+    RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
 else:
     # Fallback for direct execution inside backend/ directory
-    config_mod = importlib.import_module('config')
+    config_mod = importlib.import_module("config")
     settings = config_mod.settings
-    logging_mod = importlib.import_module('logging_config')
+    logging_mod = importlib.import_module("logging_config")
     initialize_logging = logging_mod.initialize_logging
-    db_mod = importlib.import_module('db')
+    db_mod = importlib.import_module("db")
     db_get_session = db_mod.get_session
-    db_engine = getattr(db_mod, 'engine')
-    db_ensure_schema = getattr(db_mod, 'ensure_schema')
-    rim_mod = importlib.import_module('request_id_middleware')
-    RequestIDMiddleware = getattr(rim_mod, 'RequestIDMiddleware')
+    db_engine = getattr(db_mod, "engine")
+    db_ensure_schema = getattr(db_mod, "ensure_schema")
+    rim_mod = importlib.import_module("request_id_middleware")
+    RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -1033,8 +1033,10 @@ def register_routers(app: FastAPI) -> None:
     """
     # Try to import admin routes using importlib resolution
     try:
-        admin_mod_name = "backend.admin_routes" if importlib.util.find_spec("backend.admin_routes") else (
-            "admin_routes" if importlib.util.find_spec("admin_routes") else None
+        admin_mod_name = (
+            "backend.admin_routes"
+            if importlib.util.find_spec("backend.admin_routes")
+            else ("admin_routes" if importlib.util.find_spec("admin_routes") else None)
         )
         if admin_mod_name:
             admin_mod = importlib.import_module(admin_mod_name)
@@ -1250,7 +1252,7 @@ async def health_check(db: Session = Depends(get_db)):
     """
     from backend.import_resolver import import_names
 
-    HealthChecker, = import_names("health_checks", "HealthChecker")
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     result = checker.check_health(db)
@@ -1300,7 +1302,7 @@ async def readiness_check(db: Session = Depends(get_db)):
     """
     from backend.import_resolver import import_names
 
-    HealthChecker, = import_names("health_checks", "HealthChecker")
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     return checker.check_readiness(db)
@@ -1324,7 +1326,7 @@ async def liveness_check():
     """
     from backend.import_resolver import import_names
 
-    HealthChecker, = import_names("health_checks", "HealthChecker")
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     return checker.check_liveness()

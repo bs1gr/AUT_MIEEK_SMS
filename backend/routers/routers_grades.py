@@ -78,7 +78,7 @@ def create_grade(
     Note: Validation ensures grade <= max_grade
     """
     try:
-        Grade, Student, Course = import_names('models', 'Grade', 'Student', 'Course')
+        Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
         # Validate student exists
         student = db.query(Student).filter(Student.id == grade_data.student_id).first()
@@ -122,7 +122,7 @@ def get_all_grades(
     Get all grades with optional filtering.
     """
     try:
-        Grade, = import_names('models', 'Grade')
+        (Grade,) = import_names("models", "Grade")
 
         query = db.query(Grade)
 
@@ -159,7 +159,7 @@ def get_student_grades(
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
-        Grade, Student = import_names('models', 'Grade', 'Student')
+        Grade, Student = import_names("models", "Grade", "Student")
 
         # Validate student exists
         student = db.query(Student).filter(Student.id == student_id).first()
@@ -196,7 +196,7 @@ def get_course_grades(
 ):
     """Get all grades for a course"""
     try:
-        Grade, Course = import_names('models', 'Grade', 'Course')
+        Grade, Course = import_names("models", "Grade", "Course")
 
         # Validate course exists
         course = db.query(Course).filter(Course.id == course_id).first()
@@ -225,7 +225,7 @@ def get_grade(grade_id: int, db: Session = Depends(get_db)):
     Get a single grade by its ID.
     """
     try:
-        Grade, = import_names('models', 'Grade')
+        (Grade,) = import_names("models", "Grade")
 
         # Use Session.get for SQLAlchemy 2.x compatibility and performance
         grade = db.get(Grade, grade_id)
@@ -252,7 +252,7 @@ def update_grade(
     Note: Validation ensures grade <= max_grade
     """
     try:
-        Grade, = import_names('models', 'Grade')
+        (Grade,) = import_names("models", "Grade")
 
         db_grade = db.query(Grade).filter(Grade.id == grade_id).first()
 
@@ -285,7 +285,7 @@ def delete_grade(
 ):
     """Delete a grade record"""
     try:
-        Grade, = import_names('models', 'Grade')
+        (Grade,) = import_names("models", "Grade")
 
         db_grade = db.query(Grade).filter(Grade.id == grade_id).first()
 
@@ -310,7 +310,7 @@ def delete_grade(
 def get_grade_analysis(student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get grade analysis for a student in a course"""
     try:
-        Grade, = import_names('models', 'Grade')
+        (Grade,) = import_names("models", "Grade")
 
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.course_id == course_id).all()
 
