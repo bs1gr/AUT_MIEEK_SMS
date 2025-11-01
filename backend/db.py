@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 
 # Import settings and models dynamically to avoid import-time redefinition warnings
-import importlib
 
 from backend.import_resolver import import_from_possible_locations
 
