@@ -138,4 +138,5 @@ export default {
   pythonPath: 'Python Path',
   systemPath: 'System Path',
   environmentVariables: 'Environment Variables',
+  smsSchemaVersion: 'SMS Schema Version',
 };
