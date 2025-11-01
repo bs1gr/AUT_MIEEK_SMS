@@ -25,14 +25,14 @@ def main() -> int:
         )
 
     if problems:
-        print("WARNING: Secret guard found issues:")
+        print("ERROR: Secret guard found issues:")
         for p in problems:
             print(" - ", p)
-        # Return non-zero to allow workflows to decide if this should fail.
-        # Historically this exited with 1; maintainers requested warnings-only policy,
-        # so we return 0 by default. CI workflow may still treat non-zero exit codes
-        # as failures if desired.
-        return 0
+        # Now return non-zero so CI jobs that run this script will fail when
+        # SECRET_KEY is missing or set to the dev placeholder.
+        # This makes the secret-guard blocking by default; workflows can still
+        # override behavior if they explicitly want a non-fatal check.
+        return 1
 
     print("SECRET_KEY check passed.")
     return 0
