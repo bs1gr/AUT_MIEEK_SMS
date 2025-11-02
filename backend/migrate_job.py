@@ -1,6 +1,7 @@
 """One-shot migration runner that talks directly to Alembic without importing the application.
 This avoids starting the FastAPI app or importing modules that trigger server startup.
 """
+
 import os
 import sys
 import logging
