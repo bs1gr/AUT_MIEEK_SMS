@@ -49,9 +49,5 @@ USER appuser
 # Healthcheck against /health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
-# Copy entrypoint and use it so migrations are applied automatically prior to serving
-COPY docker/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
-# Use entrypoint script which runs migrations then starts uvicorn
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
+# Use Python entrypoint which runs migrations then starts uvicorn
+ENTRYPOINT ["python", "-u", "/app/backend/entrypoint.py"]
