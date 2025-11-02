@@ -49,6 +49,65 @@ docker run -p 80:80 vasileiossamaras/aut_mieek_sms-fullstack:1.3.5
 
 Then browse <http://localhost>.
 
+### Database in Docker
+
+When running in Docker the application commonly expects the SQLite database to be mounted at `/data/student_management.db`.
+
+- Set the `DATABASE_URL` environment variable to point at the mounted path. Example:
+
+```powershell
+docker run -p 80:80 \
+  -e DATABASE_URL="sqlite:////data/student_management.db" \
+  -v C:/sms/data:/data \
+  vasileiossamaras/aut_mieek_sms-fullstack:1.3.5
+```
+
+Notes:
+
+- The app validates database paths and will accept files inside the project by default or under `/data` when running in Docker. If you need to place the DB elsewhere, set the environment variable `ALLOW_EXTERNAL_DB_PATH=1` inside the container to explicitly opt-in.
+- On Windows the host path for the volume (`C:/sms/data` above) should be replaced with your local path.
+
+Kubernetes example (mount a PersistentVolume at `/data` and set env):
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sms-fullstack
+spec:
+  template:
+    spec:
+      containers:
+        - name: sms-fullstack
+          image: ghcr.io/bs1gr/sms-fullstack:1.3.5
+          env:
+            - name: DATABASE_URL
+              value: "sqlite:////data/student_management.db"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: sms-data-pvc
+```
+
+This allows the container to use `/data` for the SQLite file while keeping the project filesystem separate.
+
+## CI / Secrets and workflow
+
+When running migrations or tests in CI, provide the following secrets in your repository settings:
+
+- `DATABASE_URL` — the full SQLAlchemy connection string used by the application (for example: `sqlite:////data/student_management.db` for Docker-mounted SQLite, or a proper RDB connection string for managed DBs).
+- (Optional) `ALLOW_EXTERNAL_DB_PATH` — set to `1` in ephemeral test runners only when the DB path is outside the repository root and you explicitly accept the security tradeoff.
+
+A GitHub Actions workflow has been added at `.github/workflows/run-migrations.yml` that:
+
+- runs the programmatic migration runner `python -m backend.run_migrations -v` using the `DATABASE_URL` secret
+- runs the backend test suite (`pytest`) and uploads migration/test logs as artifacts
+
+To enable the workflow for production migrations, add `DATABASE_URL` as a repository secret that points to your production database and trigger the workflow via the Actions UI or wire it into your deployment pipeline. Be cautious: running migrations against production DB requires appropriate backups and maintenance windows.
+
 ## Run with separate services (backend + frontend)
 
 Run backend:
