@@ -31,18 +31,4 @@ spec:
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sms-frontend
-  labels:
-    app: sms-frontend
-spec:
-  selector:
-    app: sms-frontend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: ClusterIP
+# Service for sms-frontend moved to sms-frontend-service.yaml

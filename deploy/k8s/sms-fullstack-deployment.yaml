@@ -31,18 +31,4 @@ spec:
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sms-fullstack
-  labels:
-    app: sms-fullstack
-spec:
-  selector:
-    app: sms-fullstack
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: ClusterIP
+# Service for sms-fullstack moved to sms-fullstack-service.yaml
