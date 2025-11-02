@@ -21,8 +21,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Install runtime requirements (optional) and development/type-check deps
           if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
-          pip install mypy sqlalchemy2-stubs types-requests
+          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; else pip install mypy sqlalchemy2-stubs types-requests; fi
 
       - name: Run mypy
         run: |
