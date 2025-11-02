@@ -1,12 +1,6 @@
-# Implementation Summary: Modular CLI Migration
+This document has been archived and a canonical copy moved to `docs/archive/IMPLEMENTATION_SUMMARY.md`.
 
-## Overview
-
-Successfully migrated the Student Management System from imperative PowerShell scripts to a modular Python architecture with thin CLI wrappers.
-
-**Migration Date**: 2025-11-01
-**Version**: v1.3.1
-**Architecture Improvements**: See [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md)
+Please review the archived copy for full details. The repository now contains the archived version under `docs/archive/`.
 
 ---
 

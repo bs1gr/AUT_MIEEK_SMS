@@ -144,85 +144,9 @@ def save_pid(self, pid: int) -> None:
 ```python
 def list_backups(
     self,
-    limit: Optional[int] = None,
-    offset: int = 0
-) -> List[BackupInfo]:
-    """
-    List available backups with optional pagination.
+    This document has been archived and a canonical copy moved to `docs/archive/IMPROVEMENTS_SUMMARY_v1.3.1.md`.
 
-    Args:
-        limit: Maximum number of backups to return (None = all)
-        offset: Number of backups to skip
-
-    Returns:
-        List of BackupInfo objects, sorted by creation time (newest first)
-    """
-    if not self.backup_dir.exists():
-        return []
-
-    backups = []
-    for backup_file in self.backup_dir.glob("*.db"):
-        try:
-            backups.append(BackupInfo(
-                filename=backup_file.name,
-                path=backup_file,
-                size_bytes=backup_file.stat().st_size,
-                created_at=datetime.fromtimestamp(backup_file.stat().st_mtime),
-                version=self._parse_version_from_filename(backup_file.name)
-            ))
-        except Exception as e:
-            self.log_warning(f"Could not parse backup: {backup_file.name}: {e}")
-
-    # Sort and apply pagination
-    backups.sort(key=lambda b: b.created_at, reverse=True)
-
-    if limit is not None:
-        return backups[offset:offset + limit]
-    else:
-        return backups[offset:]
-```
-
----
-
-## Refactoring Recommendations
-
-### 1. Extract Shared Utilities
-
-**Create**: `backend/ops/utils.py`
-
-Move duplicated code:
-- `get_python_executable()` - used in 4 classes
-- `windows_path_to_docker()` - used in 2 places
-- `validate_port()`, `validate_url()` - new utilities
-
-**Impact**: Reduces code duplication from ~100 lines to ~20 lines
-
----
-
-### 2. Add Configuration Constants
-
-**Create**: `backend/ops/constants.py`
-
-Standardize hardcoded values:
-```python
-class OperationTimeouts:
-    PROCESS_STARTUP_WAIT = 2
-    PROCESS_SHUTDOWN_WAIT = 5
-    QUICK_COMMAND = 30
-    MEDIUM_COMMAND = 120
-    LONG_COMMAND = 600
-    DOCKER_BUILD = 900
-    HTTP_ENDPOINT_WAIT = 120
-
-class StandardPorts:
-    BACKEND = 8000
-    FRONTEND = 5173
-    DOCKER_PROXY = 8080
-```
-
-**Impact**: Easier to maintain, consistent timeouts
-
----
+    Please review the archived copy for full details. The repository now contains the archived version under `docs/archive/`.
 
 ### 3. Configure Logging Properly
 

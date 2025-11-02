@@ -9,4 +9,3 @@ If you need the original restored, view git history or run:
     git log --follow -- IMPROVEMENTS_SUMMARY_FINAL.md
 
 Thank you.
-
