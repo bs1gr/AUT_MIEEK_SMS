@@ -132,7 +132,7 @@ jobs:
       - name: Push image note
         if: ${{ steps.determine.outputs.push == 'false' }}
         run: |
-          echo "DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not set. Built images in runner but did not push. To push, add DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets in repository settings." 
+          echo "DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not set. Built images in runner but did not push. To push, add DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets in repository settings."
 
   create-release:
     needs: build-and-publish

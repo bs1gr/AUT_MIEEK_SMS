@@ -55,7 +55,7 @@ try {
 
     Write-Info "Stopping fullstack container..."
     $downScript = Join-Path $PSScriptRoot 'DOCKER_FULLSTACK_DOWN.ps1'
-    
+
     if (-not (Test-Path $downScript)) {
         Write-Warn "DOCKER_FULLSTACK_DOWN.ps1 not found at: $downScript"
         Write-Info "Attempting 'docker compose down'..."

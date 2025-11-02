@@ -7,12 +7,12 @@
     Compares the Alembic schema version between:
     - Native database (data/student_management.db)
     - Docker volume database (sms_data)
-    
+
     If versions don't match, suggests running volume migration.
 
 .EXAMPLE
     .\scripts\CHECK_VOLUME_VERSION.ps1
-    
+
 .EXAMPLE
     .\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
     Automatically migrate if version mismatch detected
@@ -108,11 +108,11 @@ except Exception as e:
 }
 function Get-AlembicVersion {
     param([string]$DbPath)
-    
+
     if (-not (Test-Path $DbPath)) {
         return $null
     }
-    
+
     try {
         # Query alembic_version table using Python
         $pythonCode = @"
@@ -132,13 +132,13 @@ except Exception as e:
     print(f"error: {e}", file=sys.stderr)
     sys.exit(1)
 "@
-        
+
         $tempFile = [System.IO.Path]::GetTempFileName() + ".py"
         $pythonCode | Set-Content -Path $tempFile -Encoding UTF8
-        
+
         $result = python $tempFile $DbPath 2>&1
         Remove-Item $tempFile -ErrorAction SilentlyContinue
-        
+
         if ($LASTEXITCODE -eq 0) {
             return $result.Trim()
         }
@@ -150,28 +150,28 @@ except Exception as e:
 
 function Get-DockerVolumeVersion {
     param([string]$VolumeName)
-    
+
     try {
         # Check if volume exists
         $volumeExists = docker volume inspect $VolumeName 2>$null
         if ($LASTEXITCODE -ne 0) {
             return $null
         }
-        
+
         # Extract database from volume and check version
         $tempDir = [System.IO.Path]::GetTempPath()
         $tempDb = Join-Path $tempDir "temp_sms_docker.db"
-        
+
         # Copy DB from volume
         docker run --rm -v "${VolumeName}:/data" -v "${tempDir}:/temp" alpine sh -c "cp /data/student_management.db /temp/temp_sms_docker.db" 2>&1 | Out-Null
-        
+
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $tempDb)) {
             return $null
         }
-        
+
         $version = Get-AlembicVersion -DbPath $tempDb
         Remove-Item $tempDb -ErrorAction SilentlyContinue
-        
+
         return $version
     } catch {
         return $null
@@ -250,11 +250,11 @@ if ($nativeVersion -and $dockerVersion) {
         Write-Host "  • Using Docker mode may cause errors" -ForegroundColor White
         Write-Host "  • You should migrate the Docker volume to match native" -ForegroundColor White
         Write-Host ""
-        
+
         if ($AutoMigrate) {
             Write-Info "Auto-migrate enabled. Creating new versioned volume..."
             Write-Host ""
-            
+
             # Call the volume update via backend API (if running) or PowerShell script
             $updateScript = Join-Path $projectRoot "scripts\DOCKER_UPDATE_VOLUME.ps1"
             if (Test-Path $updateScript) {

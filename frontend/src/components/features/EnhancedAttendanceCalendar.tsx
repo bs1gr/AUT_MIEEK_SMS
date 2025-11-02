@@ -349,8 +349,8 @@ const EnhancedAttendanceCalendar = () => {
         {/* Calendar */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <button 
-              onClick={previousMonth} 
+            <button
+              onClick={previousMonth}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label={t('previousMonth') || 'Previous month'}
               title={t('previousMonth') || 'Previous month'}
@@ -358,8 +358,8 @@ const EnhancedAttendanceCalendar = () => {
               <ChevronLeft size={24} />
             </button>
             <h2 className="text-xl font-bold text-gray-800">{monthYear}</h2>
-            <button 
-              onClick={nextMonth} 
+            <button
+              onClick={nextMonth}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label={t('nextMonth') || 'Next month'}
               title={t('nextMonth') || 'Next month'}

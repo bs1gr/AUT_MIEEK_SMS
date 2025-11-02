@@ -46,3 +46,4 @@ backend/.env
 frontend/.env
 *.env
 !*.env.example
+\n/frontend/node_modules/\n/frontend/dist/
