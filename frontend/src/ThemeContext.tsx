@@ -56,7 +56,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           void root.offsetHeight; // Force repaint for Edge
         }
       };
-      
+
       // Modern browsers including Edge support addEventListener
       mediaQuery.addEventListener('change', handler);
       return () => mediaQuery.removeEventListener('change', handler);

@@ -46,16 +46,16 @@ function getDayCode(day: string): string {
 function getNextDayOccurrence(startDate: Date, targetDay: string): Date {
   const dayCode = getDayCode(targetDay);
   const dayIndex = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].indexOf(dayCode);
-  
+
   const result = new Date(startDate);
   const currentDay = result.getDay();
   const daysUntilTarget = (dayIndex - currentDay + 7) % 7;
-  
+
   if (daysUntilTarget === 0 && result.getTime() === startDate.getTime()) {
     // If it's the same day and we haven't moved forward yet, use today
     return result;
   }
-  
+
   result.setDate(result.getDate() + daysUntilTarget);
   return result;
 }
@@ -114,7 +114,7 @@ export function generateCourseScheduleICS(
   semesterEndDate?: Date
 ): string {
   const schedule = course.teaching_schedule || [];
-  
+
   if (schedule.length === 0) {
     throw new Error('No teaching schedule available for this course');
   }
@@ -136,7 +136,7 @@ export function generateCourseScheduleICS(
 
     // Create VEVENT with recurrence rule
     const rrule = `FREQ=WEEKLY;UNTIL=${formatDateForICS(endDate)}T235959Z;BYDAY=${getDayCode(event.day)}`;
-    
+
     const vevent = [
       'BEGIN:VEVENT',
       `UID:${uid}`,
@@ -181,7 +181,7 @@ export function generateAllCoursesScheduleICS(
   semesterEndDate?: Date
 ): string {
   const coursesWithSchedule = courses.filter(c => c.teaching_schedule && c.teaching_schedule.length > 0);
-  
+
   if (coursesWithSchedule.length === 0) {
     throw new Error('No teaching schedules available');
   }
@@ -193,7 +193,7 @@ export function generateAllCoursesScheduleICS(
 
   coursesWithSchedule.forEach((course) => {
     const schedule = course.teaching_schedule || [];
-    
+
     schedule.forEach((event) => {
       const eventStartDate = getNextDayOccurrence(startDate, event.day);
       const uid = generateUID();
@@ -204,7 +204,7 @@ export function generateAllCoursesScheduleICS(
       );
 
       const rrule = `FREQ=WEEKLY;UNTIL=${formatDateForICS(endDate)}T235959Z;BYDAY=${getDayCode(event.day)}`;
-      
+
       const vevent = [
         'BEGIN:VEVENT',
         `UID:${uid}`,
@@ -248,11 +248,11 @@ export function downloadICS(content: string, filename: string): void {
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = filename.endsWith('.ics') ? filename : `${filename}.ics`;
-  
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   // Clean up
   setTimeout(() => URL.revokeObjectURL(link.href), 100);
 }

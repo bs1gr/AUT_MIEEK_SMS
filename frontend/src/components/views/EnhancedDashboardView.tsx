@@ -93,7 +93,7 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
         // Calculate average and active course count
         const coursesWithEnrollments = Object.keys(enrollmentCounts).length;
         setActiveCourseCount(coursesWithEnrollments);
-        
+
         if (coursesWithEnrollments > 0) {
           const totalEnrolled = Object.values(enrollmentCounts).reduce((sum, count) => sum + count, 0);
           const avg = totalEnrolled / coursesWithEnrollments;

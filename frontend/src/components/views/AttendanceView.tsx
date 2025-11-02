@@ -84,7 +84,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   // Only run when courses list changes length (not on every mutation)
   const coursesLength = localCourses?.length || 0;
   const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
-  
+
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (!localCourses || localCourses.length === 0) { setCoursesWithEnrollment(new Set()); return; }
@@ -124,7 +124,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   // Keep selected course up-to-date (teaching_schedule) by fetching details
   // Only run once when course is selected, not continuously
   const [courseDetailsFetched, setCourseDetailsFetched] = useState<Set<number>>(new Set());
-  
+
   useEffect(() => {
     const refreshSelectedCourse = async () => {
       if (!selectedCourse || courseDetailsFetched.has(selectedCourse as number)) return;
@@ -267,7 +267,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   const setAttendance = (studentId: number, status: string) => {
     setAttendanceRecords((prev) => ({ ...prev, [getAttendanceKey(studentId)]: status }));
-    
+
     // Clear daily performance scores when marking student as Absent
     if (status === 'Absent') {
       setDailyPerformance((prev) => {
@@ -456,8 +456,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                     <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${status === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
                     <button onClick={() => setAttendance(s.id, 'Excused')} aria-label={`${t('excused') || 'Excused'} - ${s.first_name} ${s.last_name}`} title={t('excused') || 'Excused'} className={`px-3 py-1 rounded text-sm ${status === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}><AlertCircle size={14} /></button>
                     {evaluationCategories.length > 0 && (
-                      <button 
-                        onClick={() => { setSelectedStudentForPerformance(s); setShowPerformanceModal(true); }} 
+                      <button
+                        onClick={() => { setSelectedStudentForPerformance(s); setShowPerformanceModal(true); }}
                         disabled={status === 'Absent'}
                         className={`ml-2 px-3 py-1 rounded text-sm flex items-center gap-1 ${status === 'Absent' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                       >
@@ -484,11 +484,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
             </div>
             <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            
+
             {(() => {
               const studentAttendanceStatus = attendanceRecords[getAttendanceKey(selectedStudentForPerformance.id)];
               const isAbsent = studentAttendanceStatus === 'Absent';
-              
+
               return (
                 <>
                   {isAbsent && (
@@ -512,17 +512,17 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                               <div className="text-[11px] text-gray-600">{t('outOf10') || 'out of 10'}</div>
                             </div>
                           </div>
-                          <input 
-                            type="range" 
-                            min={0} 
-                            max={10} 
-                            step={0.5} 
-                            value={curr} 
-                            onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)} 
+                          <input
+                            type="range"
+                            min={0}
+                            max={10}
+                            step={0.5}
+                            value={curr}
+                            onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)}
                             disabled={isAbsent}
                             aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${rule.category}`}
                             title={`${t('dailyPerformance') || 'Daily Performance'}: ${rule.category}`}
-                            className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`} 
+                            className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
                           />
                           <div className="flex justify-between text-[11px] text-gray-600"><span>{t('poor') || 'Poor'} (0)</span><span>{t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
                         </div>
@@ -532,7 +532,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                 </>
               );
             })()}
-            
+
             <div className="flex gap-2 mt-4">
               <button onClick={() => setShowPerformanceModal(false)} className="flex-1 border px-3 py-2 rounded">{t('close') || 'Close'}</button>
               <button onClick={() => { setShowPerformanceModal(false); showToast(t('performanceScoresRecorded') || 'Scores recorded', 'success'); }} className="flex-1 bg-indigo-600 text-white px-3 py-2 rounded">{t('done') || 'Done'}</button>

@@ -8,6 +8,7 @@ Bulk-import courses and students from JSON files in templates directories.
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 from typing import List
+from pathlib import Path
 import os
 import json
 import logging
@@ -30,8 +31,14 @@ ALLOWED_MIME_TYPES = {
 }
 ALLOWED_EXTENSIONS = {".json", ".xlsx", ".xls"}
 
-COURSES_DIR = r"D:\SMS\student-management-system\templates\courses"
-STUDENTS_DIR = r"D:\SMS\student-management-system\templates\students"
+# Default templates directories. In development these may be absolute paths on the
+# host (e.g. Windows paths). When running inside Docker the project is located
+# at the project root in the container image; prefer an environment override
+# or fall back to a project-relative `templates/` directory so imports work in
+# both local and containerized environments.
+project_root = Path(__file__).resolve().parents[2]
+COURSES_DIR = os.environ.get("IMPORT_COURSES_DIR") or str((project_root / "templates" / "courses").as_posix())
+STUDENTS_DIR = os.environ.get("IMPORT_STUDENTS_DIR") or str((project_root / "templates" / "students").as_posix())
 
 router = APIRouter(prefix="/imports", tags=["Imports"], responses={404: {"description": "Not found"}})
 

@@ -21,7 +21,7 @@ class SectionErrorBoundaryCore extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error(`SectionErrorBoundary (${this.props.section}) caught error:`, error, errorInfo);
-    
+
     // Log to backend
     import('../utils/errorReporting').then(({ logErrorToBackend }) => {
       logErrorToBackend(error, errorInfo, {
@@ -38,14 +38,14 @@ class SectionErrorBoundaryCore extends React.Component {
   render() {
     if (this.state.hasError) {
       const { fallback, section } = this.props;
-      
+
       // Use custom fallback if provided
       if (fallback) {
-        return typeof fallback === 'function' 
+        return typeof fallback === 'function'
           ? fallback(this.state.error, this.handleRetry)
           : fallback;
       }
-      
+
       // Default fallback UI
       return (
         <div style={{
@@ -104,8 +104,8 @@ class SectionErrorBoundaryCore extends React.Component {
 export const SectionErrorBoundary = ({ children, section, fallback }) => {
   const { t } = useTranslation();
   return (
-    <SectionErrorBoundaryCore 
-      t={t} 
+    <SectionErrorBoundaryCore
+      t={t}
       section={section}
       fallback={fallback}
     >
@@ -121,10 +121,10 @@ export const SectionErrorBoundary = ({ children, section, fallback }) => {
 class AsyncErrorBoundaryCore extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
+    this.state = {
+      hasError: false,
       error: null,
-      isRetrying: false 
+      isRetrying: false
     };
   }
 
@@ -134,7 +134,7 @@ class AsyncErrorBoundaryCore extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('AsyncErrorBoundary caught error:', error, errorInfo);
-    
+
     import('../utils/errorReporting').then(({ logErrorToBackend }) => {
       logErrorToBackend(error, errorInfo, {
         operationType: this.props.operation,
@@ -145,7 +145,7 @@ class AsyncErrorBoundaryCore extends React.Component {
 
   handleRetry = async () => {
     this.setState({ isRetrying: true });
-    
+
     // Call retry callback if provided
     if (this.props.onRetry) {
       try {
@@ -162,14 +162,14 @@ class AsyncErrorBoundaryCore extends React.Component {
   render() {
     const { hasError, error, isRetrying } = this.state;
     const { operation, fallback, children } = this.props;
-    
+
     if (hasError) {
       if (fallback) {
         return typeof fallback === 'function'
           ? fallback(error, this.handleRetry, isRetrying)
           : fallback;
       }
-      
+
       return (
         <div style={{
           padding: '1.5rem',
@@ -213,8 +213,8 @@ class AsyncErrorBoundaryCore extends React.Component {
               transition: 'background-color 0.2s'
             }}
           >
-            {isRetrying 
-              ? (this.props.t('common.retrying') || 'Retrying...') 
+            {isRetrying
+              ? (this.props.t('common.retrying') || 'Retrying...')
               : (this.props.t('common.retry') || 'Retry')}
           </button>
         </div>
