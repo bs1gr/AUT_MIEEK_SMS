@@ -449,7 +449,7 @@ Examples:
     --input D:/SMS/AUT/extract_mieek_pdfs.json \\
     --type courses \\
     --output templates/courses/
-  
+
   # Convert student data
   python tools/convert_pdf_to_import.py \\
     --input students_raw.json \\

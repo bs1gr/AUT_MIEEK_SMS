@@ -38,11 +38,11 @@
 
 .EXAMPLE
     .\SMS.ps1
-    
+
 .EXAMPLE
     .\SMS.ps1 -Quick
     Quick start the application (Docker if available, else native)
-    
+
 .EXAMPLE
     .\SMS.ps1 -Status
     Show current system status
@@ -73,8 +73,8 @@ if (Test-Path "VERSION") {
 #  UTILITY FUNCTIONS
 # ============================================================================
 
-function Write-Header { 
-    param($Text, $Color = 'Cyan') 
+function Write-Header {
+    param($Text, $Color = 'Cyan')
     Write-Host "`n╔════════════════════════════════════════════════════════════════════╗" -ForegroundColor $Color
     Write-Host ("  {0,-66}" -f $Text) -ForegroundColor $Color
     Write-Host "╚════════════════════════════════════════════════════════════════════╝" -ForegroundColor $Color
@@ -134,22 +134,22 @@ function Get-SystemStatus {
         State = 'NOT_RUNNING'
         Message = ''
     }
-    
+
     # Check Docker
     try {
         $dockerVersion = docker --version 2>&1
         if ($LASTEXITCODE -eq 0) {
             $status.Docker.Installed = $true
-            
+
             # Check if daemon is running
             $dockerInfo = docker info 2>&1
             if ($LASTEXITCODE -eq 0) {
                 $status.Docker.Running = $true
-                
+
                 # Check for SMS containers
-                $containers = @(docker ps --format "{{.Names}}|{{.State}}" 2>&1 | 
+                $containers = @(docker ps --format "{{.Names}}|{{.State}}" 2>&1 |
                     Where-Object { $_ -match "student-management|sms" })
-                
+
                 foreach ($line in $containers) {
                     if ($line) {
                         $parts = $line -split '\|'
@@ -164,7 +164,7 @@ function Get-SystemStatus {
             }
         }
     } catch {}
-    
+
     # Check native processes
     if (Test-Port 8000) {
         $backendPort = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
@@ -173,7 +173,7 @@ function Get-SystemStatus {
             $status.Native.BackendPID = $backendPort.OwningProcess
         }
     }
-    
+
     if (Test-Port 5173) {
         $frontendPort = Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue
         if ($frontendPort) {
@@ -181,10 +181,10 @@ function Get-SystemStatus {
             $status.Native.FrontendPID = $frontendPort.OwningProcess
         }
     }
-    
+
     # Determine state
     $runningContainers = @($status.Docker.Containers | Where-Object { $_.State -eq 'running' })
-    
+
     if ($runningContainers.Count -gt 0) {
         $status.State = 'DOCKER'
         $status.Message = "Running in Docker ($($runningContainers.Count) container(s))"
@@ -198,17 +198,17 @@ function Get-SystemStatus {
         $status.State = 'NOT_RUNNING'
         $status.Message = "Not running"
     }
-    
+
     return $status
 }
 
 function Show-SystemStatus {
     param([switch]$Detailed)
-    
+
     $status = Get-SystemStatus
-    
+
     Write-Header "SYSTEM STATUS"
-    
+
     Write-Host "`nApplication State: " -NoNewline
     switch ($status.State) {
         'DOCKER' { Write-Host $status.Message -ForegroundColor Green }
@@ -216,7 +216,7 @@ function Show-SystemStatus {
         'DOCKER_STOPPED' { Write-Host $status.Message -ForegroundColor Yellow }
         'NOT_RUNNING' { Write-Host $status.Message -ForegroundColor Red }
     }
-    
+
     Write-Host "`nDocker:" -ForegroundColor Yellow
     if ($status.Docker.Installed) {
         Write-Success "Installed"
@@ -237,20 +237,20 @@ function Show-SystemStatus {
     } else {
         Write-Info "Not installed"
     }
-    
+
     Write-Host "`nNative Processes:" -ForegroundColor Yellow
     if ($status.Native.BackendRunning) {
         Write-Success "Backend running (PID: $($status.Native.BackendPID), Port: 8000)"
     } else {
         Write-Info "Backend not running"
     }
-    
+
     if ($status.Native.FrontendRunning) {
         Write-Success "Frontend running (PID: $($status.Native.FrontendPID), Port: 5173)"
     } else {
         Write-Info "Frontend not running"
     }
-    
+
     # Show access URLs if running
     if ($status.State -in @('DOCKER', 'NATIVE')) {
         Write-Host "`nAccess URLs:" -ForegroundColor Yellow
@@ -264,21 +264,21 @@ function Show-SystemStatus {
             Write-Host "  Control Panel: http://localhost:5173/control" -ForegroundColor Cyan
         }
     }
-    
+
     if ($Detailed) {
         Write-Host "`nEnvironment:" -ForegroundColor Yellow
         if (Test-Path "backend/venv") { Write-Success "Python venv exists" } else { Write-Info "Python venv not found" }
         if (Test-Path "frontend/node_modules") { Write-Success "Node modules installed" } else { Write-Info "Node modules not installed" }
-        if (Test-Path "data/student_management.db") { 
+        if (Test-Path "data/student_management.db") {
             $dbSize = [math]::Round((Get-Item "data/student_management.db").Length / 1KB, 2)
             Write-Success "Database exists ($dbSize KB)"
-        } else { 
-            Write-Info "Database not found (will be created on first run)" 
+        } else {
+            Write-Info "Database not found (will be created on first run)"
         }
     }
-    
+
     Write-Host ""
-    
+
     return $status
 }
 
@@ -288,15 +288,15 @@ function Show-SystemStatus {
 
 function Start-Application {
     param([string]$Mode = 'auto', [switch]$NonInteractive)
-    
+
     $status = Get-SystemStatus
-    
+
     # Check if already running
     if ($status.State -in @('DOCKER', 'NATIVE')) {
         Write-Warning2 "Application is already running!"
         Write-Host "State: $($status.Message)" -ForegroundColor Yellow
         if ($NonInteractive) {
-            Write-Host "" 
+            Write-Host ""
             Write-Info "Quick mode: leaving existing services running (no prompt)."
             return
         }
@@ -306,7 +306,7 @@ function Start-Application {
         Stop-Application -Force
         Start-Sleep -Seconds 2
     }
-    
+
     # Determine mode
     if ($Mode -eq 'auto') {
         if ($status.Docker.Installed -and $status.Docker.Running) {
@@ -317,9 +317,9 @@ function Start-Application {
             Write-Info "Auto-selected native mode (Docker not available)"
         }
     }
-    
+
     Write-Header "STARTING APPLICATION - $($Mode.ToUpper()) MODE"
-    
+
     if ($Mode -eq 'docker') {
         if (-not $status.Docker.Running) {
             Write-Error2 "Docker is not running!"
@@ -327,7 +327,7 @@ function Start-Application {
             if (-not $NonInteractive) { Pause-Safe }
             return
         }
-        
+
         # Pre-start check: if schema versions mismatch between native DB and Docker volume,
         # warn (non-interactive) or offer auto-migration (interactive)
         try {
@@ -358,11 +358,11 @@ function Start-Application {
 
         Write-Host "Starting Docker containers..." -ForegroundColor Cyan
         Write-Host ""
-        
+
         # Set VERSION environment variable for docker-compose
         $env:VERSION = $version
     docker compose up -d
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
             Write-Success "Application started successfully!"
@@ -377,11 +377,11 @@ function Start-Application {
     } else {
         Write-Host "Starting native mode..." -ForegroundColor Cyan
         Write-Host ""
-        
+
         # Check prerequisites
         $pythonOk = $false
         $nodeOk = $false
-        
+
         try {
             $pyVersion = python --version 2>&1
             if ($LASTEXITCODE -eq 0 -and $pyVersion -match '3\.(1[1-9]|[2-9]\d)') {
@@ -393,7 +393,7 @@ function Start-Application {
         } catch {
             Write-Error2 "Python not found in PATH"
         }
-        
+
         try {
             $nodeVersion = node --version 2>&1
             if ($LASTEXITCODE -eq 0 -and $nodeVersion -match 'v(1[8-9]|[2-9]\d)') {
@@ -405,7 +405,7 @@ function Start-Application {
         } catch {
             Write-Error2 "Node.js not found in PATH"
         }
-        
+
         if (-not ($pythonOk -and $nodeOk)) {
             Write-Host ""
             Write-Error2 "Prerequisites not met. Cannot start in native mode."
@@ -413,7 +413,7 @@ function Start-Application {
             Pause-Safe
             return
         }
-        
+
         # Run setup if needed
         if (-not (Test-Path "backend/venv") -or -not (Test-Path "frontend/node_modules")) {
             Write-Host ""
@@ -426,7 +426,7 @@ function Start-Application {
                 return
             }
         }
-        
+
         # Start services (modern path)
         # Prefer SMART_SETUP in native mode to orchestrate backend/frontend
         $smartSetup = Join-Path $PSScriptRoot "SMART_SETUP.ps1"
@@ -442,51 +442,51 @@ function Start-Application {
             }
         }
     }
-    
+
     Write-Host ""
     if (-not $NonInteractive) { Pause-Safe }
 }
 
 function Stop-Application {
     param([switch]$Force)
-    
+
     $status = Get-SystemStatus
-    
+
     if ($status.State -eq 'NOT_RUNNING') {
         Write-Info "Application is not running"
         return
     }
-    
+
     Write-Header "STOPPING APPLICATION"
-    
+
     if ($status.State -in @('DOCKER', 'DOCKER_STOPPED')) {
         Write-Host "Stopping Docker containers..." -ForegroundColor Yellow
         docker compose stop
-        
+
         if ($Force) {
             Write-Host "Removing containers..." -ForegroundColor Yellow
             docker compose down
         }
-        
+
         Write-Success "Docker containers stopped"
     }
-    
+
     if ($status.State -eq 'NATIVE') {
         Write-Host "Stopping native processes..." -ForegroundColor Yellow
         $stopScript = Join-Path $PSScriptRoot "scripts\STOP.ps1"
         & $stopScript
         Write-Success "Native processes stopped"
     }
-    
+
     Write-Host ""
 }
 
 function Restart-Application {
     Write-Header "RESTARTING APPLICATION"
-    
+
     $status = Get-SystemStatus
     $mode = if ($status.State -eq 'DOCKER' -or $status.State -eq 'DOCKER_STOPPED') { 'docker' } else { 'native' }
-    
+
     Stop-Application
     Start-Sleep -Seconds 3
     Start-Application -Mode $mode
@@ -494,11 +494,11 @@ function Restart-Application {
 
 function Rebuild-Application {
     Write-Header "REBUILD APPLICATION FROM SCRATCH"
-    
+
     # Step 0: Detect current volume state
     Write-Host "Analyzing current configuration..." -ForegroundColor Cyan
     Write-Host ""
-    
+
     # Check for existing candidate volumes (old and new naming patterns)
     $candidateVolumes = @()
     try {
@@ -547,15 +547,15 @@ function Rebuild-Application {
             Write-Host "Auto-detected latest volume: $currentVolume (timestamp: $bestTs)" -ForegroundColor Yellow
         }
     }
-    
+
     # Check if current volume uses old naming
     $isOldNaming = $false
     $needsMigration = $false
-    
+
     if ($currentVolume) {
         Write-Host "Current volume detected: " -NoNewline -ForegroundColor Yellow
         Write-Host $currentVolume -ForegroundColor White
-        
+
         # Check if it's old naming (no version in name)
         if ($currentVolume -notmatch "v\d+\.\d+" -or $currentVolume -match "student-management-system") {
             $isOldNaming = $true
@@ -564,7 +564,7 @@ function Rebuild-Application {
         } else {
             Write-Host "  Status: Using versioned naming" -ForegroundColor Green
         }
-        
+
         # Check if volume has data
         $hasData = $false
         try {
@@ -578,16 +578,16 @@ function Rebuild-Application {
         Write-Host "No current volume detected - will create new one" -ForegroundColor Yellow
         $needsMigration = $false
     }
-    
+
     Write-Host ""
-    
+
     # Present options to user
     Write-Host "This rebuild will:" -ForegroundColor Yellow
     Write-Host "  • Stop all running containers" -ForegroundColor White
     Write-Host "  • Remove existing images" -ForegroundColor White
     Write-Host "  • Clear Docker build cache" -ForegroundColor White
     Write-Host "  • Rebuild images with version: $version" -ForegroundColor White
-    
+
     if ($needsMigration -and $currentVolume) {
         Write-Host "  • Create NEW versioned volume and migrate data" -ForegroundColor Green
         Write-Host ""
@@ -597,7 +597,7 @@ function Rebuild-Application {
     } else {
         Write-Host "  • Keep existing volume (optional: create new)" -ForegroundColor White
     }
-    
+
     Write-Host ""
     $confirm = Read-Host "Continue with rebuild? (Y/n)"
     if ($confirm -match '^n') {
@@ -605,11 +605,11 @@ function Rebuild-Application {
         Pause-Safe
         return
     }
-    
+
     # Determine volume strategy
     $migrateData = $false
     $createNewVolume = $false
-    
+
     if ($needsMigration -and $currentVolume) {
         Write-Host ""
         Write-Host "Volume Migration Options:" -ForegroundColor Cyan
@@ -618,19 +618,19 @@ function Rebuild-Application {
         Write-Host "  [3] Create empty new volume (discard data)" -ForegroundColor Red
         Write-Host ""
         $volumeChoice = Read-Host "Select option [1-3]"
-        
+
         switch ($volumeChoice) {
-            "1" { 
+            "1" {
                 $createNewVolume = $true
                 $migrateData = $true
                 Write-Host "  → Will migrate data to new versioned volume" -ForegroundColor Green
             }
-            "2" { 
+            "2" {
                 $createNewVolume = $false
                 $migrateData = $false
                 Write-Host "  → Will keep using current volume" -ForegroundColor Yellow
             }
-            "3" { 
+            "3" {
                 $createNewVolume = $true
                 $migrateData = $false
                 Write-Host "  → Will create empty new volume" -ForegroundColor Red
@@ -653,16 +653,16 @@ function Rebuild-Application {
         $createNewVolume = $true
         $migrateData = $false
     }
-    
+
     Write-Host ""
     Write-Host "Starting rebuild process..." -ForegroundColor Cyan
     Write-Host ""
-    
+
     # Step 1: Stop containers
     Write-Host "[1/7] Stopping containers..." -ForegroundColor Yellow
     docker compose down 2>&1 | Out-Null
     Write-Success "✓ Containers stopped"
-    
+
     # Step 2: Remove images
     Write-Host "[2/7] Removing old images..." -ForegroundColor Yellow
     $images = docker images --filter "reference=sms-*" -q
@@ -679,22 +679,22 @@ function Rebuild-Application {
             Write-Info "  No existing images found"
         }
     }
-    
+
     # Step 3: Clear build cache
     Write-Host "[3/7] Clearing Docker build cache..." -ForegroundColor Yellow
     docker builder prune -af 2>&1 | Out-Null
     Write-Success "✓ Build cache cleared"
-    
+
     # Step 4: Handle volume
     if ($createNewVolume) {
         Write-Host "[4/7] Creating new versioned volume..." -ForegroundColor Yellow
-        
+
         $currentDate = Get-Date -Format 'yyyyMMdd'
         $timestamp = Get-Date -Format 'HHmmss'
-        
+
         # Create descriptive volume name: sms_data_rebuild_v1.1.0_20251029_143022
         $newVolumeName = "sms_data_rebuild_v${version}_${currentDate}_${timestamp}"
-        
+
         # Update docker-compose.override.yml
         $overrideContent = @"
 services:
@@ -709,23 +709,23 @@ volumes:
         Set-Content -Path $overrideFile -Value $overrideContent -Force
         Write-Success "✓ New volume configured: $newVolumeName"
         Write-Host "  Volume naming: sms_data_rebuild_v[VERSION]_[DATE]_[TIME]" -ForegroundColor Gray
-        
+
         # Step 5: Migrate data if requested
         if ($migrateData -and $currentVolume) {
             Write-Host "[5/7] Migrating data from old volume..." -ForegroundColor Yellow
             Write-Host "  Source: $currentVolume" -ForegroundColor Gray
             Write-Host "  Target: $newVolumeName" -ForegroundColor Gray
-            
+
             try {
                 # Create new volume if it doesn't exist
                 docker volume create $newVolumeName 2>&1 | Out-Null
-                
+
                 # Copy data using alpine container
                 $copyResult = docker run --rm `
                     -v "${currentVolume}:/source:ro" `
                     -v "${newVolumeName}:/target" `
                     alpine sh -c "cp -av /source/. /target/" 2>&1
-                
+
                 if ($LASTEXITCODE -eq 0) {
                     Write-Success "✓ Data migrated successfully"
                     Write-Host "  Old volume preserved: $currentVolume" -ForegroundColor Gray
@@ -747,13 +747,13 @@ volumes:
         Write-Host "[5/7] No data migration needed" -ForegroundColor Yellow
         Write-Info "  Using existing data"
     }
-    
+
     # Step 6: Rebuild images
     Write-Host "[6/7] Rebuilding images (this may take a few minutes)..." -ForegroundColor Yellow
-    
+
     # Set VERSION environment variable for docker-compose
     $env:VERSION = $version
-    
+
     docker compose build --no-cache 2>&1 | ForEach-Object {
         if ($_ -match '(Step \d+/\d+|Building|Successfully)') {
             Write-Host "  $_" -ForegroundColor Gray
@@ -767,22 +767,22 @@ volumes:
         Pause-Safe
         return
     }
-    
+
     # Step 7: Start containers
     Write-Host "[7/7] Starting containers..." -ForegroundColor Yellow
     docker compose up -d 2>&1 | Out-Null
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Success "✓ Containers started"
-        
+
         # Step 7b: Initialize database if new empty volume was created
         if ($createNewVolume -and -not $migrateData) {
             Write-Host ""
             Write-Host "Initializing empty database..." -ForegroundColor Yellow
             Start-Sleep -Seconds 3  # Give backend time to start
-            
+
             $initResult = docker compose exec -T backend python -c "from backend.models import Base, init_db; engine = init_db('sqlite:////data/student_management.db'); Base.metadata.create_all(bind=engine); print('OK')" 2>&1
-            
+
             if ($initResult -match 'OK') {
                 Write-Success "✓ Database initialized"
                 # Restart to ensure clean state
@@ -793,7 +793,7 @@ volumes:
                 Write-Host "  You may need to run: docker compose exec backend python -c ""from backend.models import Base, init_db; engine = init_db('sqlite:////data/student_management.db'); Base.metadata.create_all(bind=engine)""" -ForegroundColor Gray
             }
         }
-        
+
         Write-Host ""
         Write-Success "════════════════════════════════════════════════════════" -ForegroundColor Green
         Write-Success "  REBUILD COMPLETED SUCCESSFULLY!" -ForegroundColor Green
@@ -819,7 +819,7 @@ volumes:
     } else {
         Write-Error2 "✗ Failed to start containers"
     }
-    
+
     Pause-Safe
 }
 
@@ -829,9 +829,9 @@ volumes:
 
 function Backup-Database {
     Write-Header "BACKUP DATABASE"
-    
+
     $status = Get-SystemStatus
-    
+
     if ($status.State -eq 'DOCKER') {
         # Docker mode - backup from volume
         if (-not $status.Docker.Running) {
@@ -839,24 +839,24 @@ function Backup-Database {
             Pause-Safe
             return
         }
-        
+
         $backupDir = Join-Path $scriptDir "backups"
         if (-not (Test-Path $backupDir)) {
             New-Item -ItemType Directory -Path $backupDir | Out-Null
         }
-        
+
         $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
         $backupFile = "sms_backup_v${version}_${timestamp}.db"
-        
+
         Write-Host "Creating backup from Docker volume..." -ForegroundColor Cyan
         Write-Host "  Target: $backupFile" -ForegroundColor Gray
         Write-Host ""
-        
+
         $backupDirUnix = $backupDir.Replace('\', '/').Replace(':', '').ToLower()
         if (-not $backupDirUnix.StartsWith('/')) { $backupDirUnix = '/' + $backupDirUnix }
-        
+
         docker run --rm -v sms_data:/data -v "${backupDirUnix}:/backup" alpine sh -c "cp /data/student_management.db /backup/$backupFile"
-        
+
         if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $backupDir $backupFile))) {
             $size = [math]::Round((Get-Item (Join-Path $backupDir $backupFile)).Length / 1KB, 2)
             Write-Success "Backup created successfully ($size KB)"
@@ -872,19 +872,19 @@ function Backup-Database {
             Pause-Safe
             return
         }
-        
+
         $backupDir = Join-Path $scriptDir "backups"
         if (-not (Test-Path $backupDir)) {
             New-Item -ItemType Directory -Path $backupDir | Out-Null
         }
-        
+
         $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
         $backupFile = "sms_backup_v${version}_${timestamp}.db"
         $backupPath = Join-Path $backupDir $backupFile
-        
+
         Write-Host "Creating backup..." -ForegroundColor Cyan
         Copy-Item $dbPath $backupPath
-        
+
         if (Test-Path $backupPath) {
             $size = [math]::Round((Get-Item $backupPath).Length / 1KB, 2)
             Write-Success "Backup created successfully ($size KB)"
@@ -893,66 +893,66 @@ function Backup-Database {
             Write-Error2 "Backup failed"
         }
     }
-    
+
     Write-Host ""
     Pause-Safe
 }
 
 function Restore-Database {
     Write-Header "RESTORE DATABASE"
-    
+
     $backupDir = Join-Path $scriptDir "backups"
     if (-not (Test-Path $backupDir)) {
         Write-Warning2 "No backups folder found"
         Pause-Safe
         return
     }
-    
+
     $backups = Get-ChildItem -Path $backupDir -Filter "*.db" | Sort-Object LastWriteTime -Descending
-    
+
     if ($backups.Count -eq 0) {
         Write-Warning2 "No backup files found"
         Pause-Safe
         return
     }
-    
+
     Write-Host "Available backups:`n" -ForegroundColor Cyan
     for ($i = 0; $i -lt $backups.Count; $i++) {
         $size = [math]::Round($backups[$i].Length / 1KB, 2)
         $age = (Get-Date) - $backups[$i].LastWriteTime
-        $ageStr = if ($age.Days -gt 0) { "$($age.Days)d ago" } 
+        $ageStr = if ($age.Days -gt 0) { "$($age.Days)d ago" }
                   elseif ($age.Hours -gt 0) { "$($age.Hours)h ago" }
                   else { "$($age.Minutes)m ago" }
         Write-Host ("  [{0}] {1}" -f $i, $backups[$i].Name) -ForegroundColor White
         Write-Host ("      {0} KB, {1}" -f $size, $ageStr) -ForegroundColor Gray
     }
-    
+
     Write-Host ""
     $selection = Read-Host "Select backup number (or Enter to cancel)"
     if ([string]::IsNullOrWhiteSpace($selection)) {
         Write-Info "Cancelled"
         return
     }
-    
+
     if ($selection -notmatch '^\d+$' -or [int]$selection -ge $backups.Count) {
         Write-Error2 "Invalid selection"
         Pause-Safe
         return
     }
-    
+
     $selectedBackup = $backups[[int]$selection]
-    
+
     Write-Host ""
     Write-Host "WARNING: This will overwrite the current database!" -ForegroundColor Red
     $confirm = Read-Host "Type 'RESTORE' to confirm"
-    
+
     if ($confirm -ne 'RESTORE') {
         Write-Info "Cancelled"
         return
     }
-    
+
     $status = Get-SystemStatus
-    
+
     # Stop application if running
     if ($status.State -ne 'NOT_RUNNING') {
         Write-Host ""
@@ -960,17 +960,17 @@ function Restore-Database {
         Stop-Application -Force
         Start-Sleep -Seconds 2
     }
-    
+
     Write-Host ""
     Write-Host "Restoring backup..." -ForegroundColor Cyan
-    
+
     if ($status.Docker.Installed -and $status.Docker.Running) {
         # Restore to Docker volume
         $backupDirUnix = $backupDir.Replace('\', '/').Replace(':', '').ToLower()
         if (-not $backupDirUnix.StartsWith('/')) { $backupDirUnix = '/' + $backupDirUnix }
-        
+
         docker run --rm -v sms_data:/data -v "${backupDirUnix}:/backup" alpine sh -c "cp /backup/$($selectedBackup.Name) /data/student_management.db"
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Database restored successfully"
         } else {
@@ -983,16 +983,16 @@ function Restore-Database {
         if (-not (Test-Path $dataDir)) {
             New-Item -ItemType Directory -Path $dataDir | Out-Null
         }
-        
+
         Copy-Item $selectedBackup.FullName $dbPath -Force
-        
+
         if (Test-Path $dbPath) {
             Write-Success "Database restored successfully"
         } else {
             Write-Error2 "Restore failed"
         }
     }
-    
+
     Write-Host ""
     Write-Info "Restart the application to use the restored database"
     Write-Host ""
@@ -1005,23 +1005,23 @@ function Restore-Database {
 
 function Show-Diagnostics {
     Write-Header "SYSTEM DIAGNOSTICS"
-    
+
     $status = Show-SystemStatus -Detailed
-    
+
     Write-Host "Common Issues:" -ForegroundColor Yellow
     Write-Host ""
-    
+
     # Check for port conflicts
     if (Test-Port 8000) {
         Write-Warning2 "Port 8000 is in use"
         Write-Host "  Action: Run port diagnostics (option 6) to see what's using it" -ForegroundColor Gray
     }
-    
+
     if (Test-Port 5173) {
         Write-Warning2 "Port 5173 is in use"
         Write-Host "  Action: Run port diagnostics (option 6) to see what's using it" -ForegroundColor Gray
     }
-    
+
     if (-not $status.Docker.Installed) {
         Write-Info "Docker is not installed"
         Write-Host "  Impact: Can only run in native mode" -ForegroundColor Gray
@@ -1030,33 +1030,33 @@ function Show-Diagnostics {
         Write-Warning2 "Docker is installed but not running"
         Write-Host "  Solution: Start Docker Desktop" -ForegroundColor Gray
     }
-    
+
     if (-not (Test-Path "backend/venv")) {
         Write-Warning2 "Python virtual environment not found"
         Write-Host "  Solution: Run setup (option S)" -ForegroundColor Gray
     }
-    
+
     if (-not (Test-Path "frontend/node_modules")) {
         Write-Warning2 "Node modules not installed"
         Write-Host "  Solution: Run setup (option S)" -ForegroundColor Gray
     }
-    
+
     Write-Host ""
     Pause-Safe
 }
 
 function Debug-Ports {
     Write-Header "PORT DIAGNOSTICS"
-    
+
     $ports = @(
         @{Port=8000; Service="Backend API"},
         @{Port=5173; Service="Frontend Dev Server"},
         @{Port=8080; Service="Docker Frontend"}
     )
-    
+
     foreach ($p in $ports) {
         Write-Host "$($p.Service) (Port $($p.Port)):" -ForegroundColor Cyan
-        
+
         try {
             $conn = Get-NetTCPConnection -LocalPort $p.Port -ErrorAction SilentlyContinue 2>$null
             if ($conn) {
@@ -1064,12 +1064,12 @@ function Debug-Ports {
                 if ($proc) {
                     Write-Host "  ✓ In use by: " -NoNewline -ForegroundColor Yellow
                     Write-Host "$($proc.ProcessName) (PID: $($proc.Id))" -ForegroundColor White
-                    
+
                     $cmdLine = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($proc.Id)" -ErrorAction SilentlyContinue).CommandLine
                     if ($cmdLine) {
                         Write-Host "    Command: $cmdLine" -ForegroundColor Gray
                     }
-                    
+
                     Write-Host "    To kill: " -NoNewline -ForegroundColor Gray
                     Write-Host "Stop-Process -Id $($proc.Id) -Force" -ForegroundColor White
                 } else {
@@ -1083,7 +1083,7 @@ function Debug-Ports {
         }
         Write-Host ""
     }
-    
+
     Pause-Safe
 }
 
@@ -1101,20 +1101,20 @@ function Run-FullDiagnostics {
 
 function Show-Logs {
     $status = Get-SystemStatus
-    
+
     Write-Header "VIEW LOGS"
-    
+
     if ($status.State -eq 'DOCKER') {
         Write-Host "Showing Docker container logs (last 100 lines)..." -ForegroundColor Cyan
         Write-Host "Press Ctrl+C to stop following logs`n" -ForegroundColor Gray
-        
+
         docker compose logs --tail=100 -f
     } elseif ($status.State -eq 'NATIVE') {
         Write-Host "Log locations:" -ForegroundColor Cyan
         Write-Host "  Backend:  backend/logs/structured.json" -ForegroundColor White
         Write-Host "  Frontend: Console output in terminal" -ForegroundColor White
         Write-Host ""
-        
+
         if (Test-Path "backend/logs/structured.json") {
             Write-Host "Last 20 backend log entries:" -ForegroundColor Yellow
             Write-Host ""
@@ -1123,14 +1123,14 @@ function Show-Logs {
     } else {
         Write-Warning2 "Application is not running"
     }
-    
+
     Write-Host ""
     Pause-Safe
 }
 
 function Open-InBrowser {
     $status = Get-SystemStatus
-    
+
     if ($status.State -in @('DOCKER', 'NATIVE')) {
         $url = if ($status.State -eq 'DOCKER') { "http://localhost:8080" } else { "http://localhost:5173" }
         Write-Info "Opening $url in browser..."
@@ -1144,14 +1144,14 @@ function Open-InBrowser {
 function Show-Menu {
     Clear-Host
     $status = Get-SystemStatus
-    
+
     Write-Host ""
     Write-Host "╔════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
     Write-Host "║        STUDENT MANAGEMENT SYSTEM - Control Panel                   ║" -ForegroundColor Cyan
     Write-Host "║        Version: $version".PadRight(68) + "║" -ForegroundColor Cyan
     Write-Host "╚════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
-    
+
     # Show current state
     Write-Host " Status: " -NoNewline
     switch ($status.State) {
@@ -1161,7 +1161,7 @@ function Show-Menu {
         'NOT_RUNNING' { Write-Host "○ Not Running" -ForegroundColor Red }
     }
     Write-Host ""
-    
+
     Write-Host " ┌─ APPLICATION CONTROL ─────────────────────────────────────────┐" -ForegroundColor Yellow
     Write-Host " │  1. Start Application (Auto-detect mode)                      │" -ForegroundColor White
     Write-Host " │  2. Start Application (Docker mode)                           │" -ForegroundColor White
@@ -1171,7 +1171,7 @@ function Show-Menu {
     Write-Host " │  X. Rebuild from Scratch (Clear cache, new images/volume)     │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host " ┌─ DIAGNOSTICS & TROUBLESHOOTING ───────────────────────────────┐" -ForegroundColor Yellow
     Write-Host " │  6. View System Status & Diagnostics                          │" -ForegroundColor White
     Write-Host " │  7. Debug Port Conflicts                                      │" -ForegroundColor White
@@ -1179,14 +1179,14 @@ function Show-Menu {
     Write-Host " │  9. View Application Logs                                     │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host " ┌─ DATABASE MANAGEMENT ─────────────────────────────────────────┐" -ForegroundColor Yellow
     Write-Host " │  B. Backup Database                                            │" -ForegroundColor White
     Write-Host " │  R. Restore Database from Backup                               │" -ForegroundColor White
     Write-Host " │  M. Manage Backups (List/Delete)                               │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host " ┌─ UTILITIES ───────────────────────────────────────────────────┐" -ForegroundColor Yellow
     Write-Host " │  O. Open Application in Browser                                │" -ForegroundColor White
     Write-Host " │  S. Run Setup (First-time setup or reinstall dependencies)    │" -ForegroundColor White
@@ -1194,7 +1194,7 @@ function Show-Menu {
     Write-Host " │  H. Help & Documentation                                       │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host " ┌─ EXIT ────────────────────────────────────────────────────────┐" -ForegroundColor Gray
     Write-Host " │  0. Exit                                                       │" -ForegroundColor White
     Write-Host " └────────────────────────────────────────────────────────────────┘" -ForegroundColor Gray
@@ -1203,31 +1203,31 @@ function Show-Menu {
 
 function Manage-Backups {
     Write-Header "BACKUP MANAGER"
-    
+
     $backupDir = Join-Path $scriptDir "backups"
-    
+
     if (-not (Test-Path $backupDir)) {
         Write-Info "No backups folder exists yet"
         Write-Host "Create a backup first (option B)" -ForegroundColor Gray
         Pause-Safe
         return
     }
-    
+
     $backups = Get-ChildItem -Path $backupDir -Filter "*.db" | Sort-Object LastWriteTime -Descending
-    
+
     if ($backups.Count -eq 0) {
         Write-Info "No backup files found"
         Pause-Safe
         return
     }
-    
+
     Write-Host "Available backups:`n" -ForegroundColor Cyan
     $totalSize = 0
     for ($i = 0; $i -lt $backups.Count; $i++) {
         $size = [math]::Round($backups[$i].Length / 1KB, 2)
         $totalSize += $backups[$i].Length
         $age = (Get-Date) - $backups[$i].LastWriteTime
-        $ageStr = if ($age.Days -gt 0) { "$($age.Days)d" } 
+        $ageStr = if ($age.Days -gt 0) { "$($age.Days)d" }
                   elseif ($age.Hours -gt 0) { "$($age.Hours)h" }
                   else { "$($age.Minutes)m" }
         Write-Host ("  [{0}] {1}" -f $i, $backups[$i].Name) -ForegroundColor White
@@ -1235,20 +1235,20 @@ function Manage-Backups {
     }
     $totalMB = [math]::Round($totalSize / 1MB, 2)
     Write-Host "`n  Total: $($backups.Count) backups, $totalMB MB`n" -ForegroundColor Cyan
-    
+
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  [Number] Delete specific backup" -ForegroundColor White
     Write-Host "  [O] Open backups folder in Explorer" -ForegroundColor White
     Write-Host "  [C] Clean old backups (keep latest 10)" -ForegroundColor White
     Write-Host "  [Enter] Return to main menu" -ForegroundColor Gray
     Write-Host ""
-    
+
     $choice = Read-Host "Select option"
-    
+
     if ([string]::IsNullOrWhiteSpace($choice)) {
         return
     }
-    
+
     switch ($choice.ToUpper()) {
         "O" {
             Start-Process "explorer.exe" -ArgumentList $backupDir
@@ -1292,38 +1292,38 @@ function Manage-Backups {
 
 function Run-Setup {
     Write-Header "SETUP & DEPENDENCY INSTALLATION"
-    
+
     Write-Host "This will install/update all dependencies..." -ForegroundColor Cyan
     Write-Host ""
-    
+
     $confirm = Read-Host "Continue? (Y/n)"
     if ($confirm -match '^n') {
         return
     }
-    
+
     Write-Host ""
     $setupScript = Join-Path $PSScriptRoot "scripts\SETUP.ps1"
     & $setupScript
-    
+
     Write-Host ""
     Pause-Safe
 }
 
 function Show-Help {
     Write-Header "HELP & DOCUMENTATION"
-    
+
     Write-Host "Quick Start Guide:" -ForegroundColor Cyan
     Write-Host "  1. First time: Select option 'S' to run setup" -ForegroundColor White
     Write-Host "  2. Start app: Select option '1' to start (auto-detects best mode)" -ForegroundColor White
     Write-Host "  3. Access: Open http://localhost:8080 (Docker) or http://localhost:5173 (Native)" -ForegroundColor White
     Write-Host "  4. Stop: Select option '4' to stop the application" -ForegroundColor White
     Write-Host ""
-    
+
     Write-Host "Deployment Modes:" -ForegroundColor Cyan
     Write-Host "  • Docker:  Runs in containers (recommended, easier)" -ForegroundColor White
     Write-Host "  • Native:  Runs directly on your system (requires Python + Node.js)" -ForegroundColor White
     Write-Host ""
-    
+
     Write-Host "Common Tasks:" -ForegroundColor Cyan
     Write-Host "  • Backup database:    Option 'B'" -ForegroundColor White
     Write-Host "  • Restore database:   Option 'R'" -ForegroundColor White
@@ -1331,7 +1331,7 @@ function Show-Help {
     Write-Host "  • Troubleshoot:       Option '6' or '8'" -ForegroundColor White
     Write-Host "  • Port conflicts:     Option '7'" -ForegroundColor White
     Write-Host ""
-    
+
     Write-Host "Documentation Files:" -ForegroundColor Cyan
     Write-Host "  • README.md                           - Main documentation" -ForegroundColor White
     Write-Host "  • docs/DOCKER_NAMING_CONVENTIONS.md   - Docker naming & version mgmt (NEW!)" -ForegroundColor Green
@@ -1339,7 +1339,7 @@ function Show-Help {
     Write-Host "  • docs/DOCKER_CLEANUP.md              - Docker cleanup procedures" -ForegroundColor White
     Write-Host "  • docs/TROUBLESHOOTING.md             - Common issues & solutions" -ForegroundColor White
     Write-Host ""
-    
+
     Write-Host "Command Line Options:" -ForegroundColor Cyan
     Write-Host "  .\SMS.ps1 -Quick    - Quick start (auto mode)" -ForegroundColor White
     Write-Host "  .\SMS.ps1 -Status   - Show status and exit" -ForegroundColor White
@@ -1347,7 +1347,7 @@ function Show-Help {
     Write-Host "  .\SMS.ps1 -Restart  - Restart all services" -ForegroundColor White
     Write-Host "  .\SMS.ps1 -Help     - Show this help" -ForegroundColor White
     Write-Host ""
-    
+
     Pause-Safe
 }
 
@@ -1374,11 +1374,11 @@ if ($Restart) {
     Write-Header "RESTART APPLICATION"
     $sysStatus = Get-SystemStatus
     $mode = if ($sysStatus.State -in @('DOCKER', 'DOCKER_STOPPED')) { 'docker' } else { 'auto' }
-    
+
     Write-Info "Stopping services..."
     Stop-Application -Force
     Start-Sleep -Seconds 3
-    
+
     Write-Info "Starting services in $mode mode..."
     Start-Application -Mode $mode -NonInteractive
     exit 0
@@ -1397,7 +1397,7 @@ if ($Quick) {
 while ($true) {
     Show-Menu
     $choice = Read-Host " Select option"
-    
+
     switch ($choice.ToUpper()) {
         "1" { Start-Application -Mode 'auto' }
         "2" { Start-Application -Mode 'docker' }
@@ -1414,7 +1414,7 @@ while ($true) {
         "M" { Manage-Backups }
         "O" { Open-InBrowser }
         "S" { Run-Setup }
-        "D" { 
+        "D" {
             Write-Host ""
             Write-Info "Opening Advanced Developer Tools..."
             Start-Sleep -Seconds 1

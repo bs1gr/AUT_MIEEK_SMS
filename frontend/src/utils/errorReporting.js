@@ -90,7 +90,7 @@ export function setupGlobalErrorHandlers() {
   // Catch unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
-    
+
     logErrorToBackend(
       event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
       { componentStack: 'Global: Unhandled Promise Rejection' },
@@ -104,7 +104,7 @@ export function setupGlobalErrorHandlers() {
   // Catch global errors
   window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
-    
+
     logErrorToBackend(
       event.error || new Error(event.message),
       { componentStack: 'Global: Window Error' },
@@ -128,7 +128,7 @@ export function setupGlobalErrorHandlers() {
  */
 export function initializeErrorReporting() {
   setupGlobalErrorHandlers();
-  
+
   if (import.meta.env.DEV) {
     console.log('✓ Error reporting initialized');
   }

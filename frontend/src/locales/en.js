@@ -9,12 +9,12 @@ export const en = {
   // ------------------------------------
   systemTitle: 'MIEEK Student Management System - AUT Automotive Engineering',
   systemSubtitle: 'Comprehensive Academic Management Platform',
-  
+
   // Localization & Utilities
   locale: 'en-US',
   dayNames: 'Sun,Mon,Tue,Wed,Thu,Fri,Sat',
   language: 'en',
-  
+
   // Navigation
   dashboard: 'Dashboard',
   students: 'Students',
@@ -23,7 +23,7 @@ export const en = {
   grades: 'Grades',
   calendar: 'Calendar',
   utilsTab: 'Utils',
-  
+
   // Common Actions
   save: 'Save',
   cancel: 'Cancel',
@@ -56,7 +56,7 @@ export const en = {
   exiting: 'Shutting down...',
   serverStopped: 'Server Stopped Successfully',
   canCloseWindow: 'You can now close this window',
-  
+
   // Common States & Messages
   loading: 'Loading...',
   saving: 'Saving...',
@@ -66,19 +66,19 @@ export const en = {
   failedToSaveData: 'Failed to save data',
   fillRequiredFields: 'Please fill in all required fields',
   pleaseSelect: 'Please select a student and course',
-  
+
   // Date/Time/Weight
   date: 'Date',
   selectedDate: 'Selected Date',
   weight: 'Weight',
   weightHelp: 'Higher weight = more important (1.0 is normal)',
-  
+
   // Grade Scales
   percentage: 'Percentage',
   gpa: 'GPA',
   letterGrade: 'Letter Grade',
   greekGrade: 'Greek Grade (0-20)',
-  
+
   // Continue with rest of translations...
   // (This is just the structure - would include all translations)
 };

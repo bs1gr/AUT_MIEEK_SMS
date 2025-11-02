@@ -41,7 +41,7 @@ For deployment, Docker orchestration, and production maintenance.
 ## 📚 Documentation / Τεκμηρίωση
 
 - 🇬🇧 **English**: [README.md](README.md) (this file)
-- 🇬🇷 **Ελληνικά**: 
+- 🇬🇷 **Ελληνικά**:
   - [⚡ Γρήγορη Εκκίνηση](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md) - Quick start guide
   - [📖 Πλήρης Οδηγός Χρήσης](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) - Complete user manual
 
@@ -76,7 +76,7 @@ python install.py
 
 That's it! The installer handles everything automatically:
 - ✅ Detects Docker/Python/Node.js
-- ✅ Chooses best mode for your system  
+- ✅ Chooses best mode for your system
 - ✅ Installs all dependencies
 - ✅ Starts the application
 - ✅ Opens your browser

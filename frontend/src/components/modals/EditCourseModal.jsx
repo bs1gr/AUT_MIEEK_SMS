@@ -4,7 +4,7 @@ import { useLanguage } from '../../LanguageContext';
 const EditCourseModal = ({ course, onClose, onUpdate }) => {
   const { t } = useLanguage();
   const [courseData, setCourseData] = useState({ ...course });
-  
+
   // Semester selection state - parse existing semester to detect type
   const [semesterType, setSemesterType] = useState('custom');
   const [semesterYear, setSemesterYear] = useState(new Date().getFullYear().toString());
@@ -13,16 +13,16 @@ const EditCourseModal = ({ course, onClose, onUpdate }) => {
   useEffect(() => {
     if (course) {
       setCourseData({ ...course });
-      
+
       // Parse existing semester to detect type
       const sem = course.semester || '';
       const currentYear = new Date().getFullYear();
-      
+
       // Try to extract year from semester string
       const yearMatch = sem.match(/\d{4}/);
       const extractedYear = yearMatch ? yearMatch[0] : currentYear.toString();
       setSemesterYear(extractedYear);
-      
+
       // Detect semester type based on keywords
       if (sem.includes(t('springSemester')) || sem.toLowerCase().includes('spring') || sem.toLowerCase().includes('εαρινό')) {
         setSemesterType('spring');
@@ -161,7 +161,7 @@ const EditCourseModal = ({ course, onClose, onUpdate }) => {
               <option value="school_year">{t('schoolYear')}</option>
               <option value="custom">{t('customSemester')}</option>
             </select>
-            
+
             {semesterType === 'custom' ? (
               <input
                 type="text"
@@ -181,7 +181,7 @@ const EditCourseModal = ({ course, onClose, onUpdate }) => {
                 required
               />
             )}
-            
+
             {/* Preview of generated semester */}
             <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
               <strong>{t('semester')}:</strong> {courseData.semester || t('selectSemester')}
@@ -235,15 +235,15 @@ const EditCourseModal = ({ course, onClose, onUpdate }) => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
-            <button 
-              type="button" 
-              onClick={onClose} 
+            <button
+              type="button"
+              onClick={onClose}
               className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               {t('cancel')}
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
             >
               {t('updateCourse')}

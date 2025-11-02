@@ -9,7 +9,7 @@ const AddCourseModal = ({ onClose, onAdd }) => {
     semester: '',
     credits: 3,
   });
-  
+
   // Semester selection state
   const [semesterType, setSemesterType] = useState('spring'); // spring, winter, academic_year, school_year, custom
   const [semesterYear, setSemesterYear] = useState(new Date().getFullYear().toString());
@@ -79,7 +79,7 @@ const AddCourseModal = ({ onClose, onAdd }) => {
             className="w-full border px-4 py-2 rounded"
             required
           />
-          
+
           {/* Semester Selection */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -96,7 +96,7 @@ const AddCourseModal = ({ onClose, onAdd }) => {
               <option value="school_year">{t('schoolYear')}</option>
               <option value="custom">{t('customSemester')}</option>
             </select>
-            
+
             {semesterType === 'custom' ? (
               <input
                 type="text"
@@ -116,13 +116,13 @@ const AddCourseModal = ({ onClose, onAdd }) => {
                 required
               />
             )}
-            
+
             {/* Preview of generated semester */}
             <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
               <strong>{t('semester')}:</strong> {courseData.semester || t('selectSemester')}
             </div>
           </div>
-          
+
           <input
             type="number"
             placeholder={t('creditsPlaceholder')}

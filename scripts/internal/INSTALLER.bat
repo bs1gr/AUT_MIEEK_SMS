@@ -1,7 +1,7 @@
 @echo off
 REM ============================================================================
 REM   Student Management System - One-Click Installer (Batch Wrapper)
-REM   
+REM
 REM   Double-click this file to start the installation!
 REM ============================================================================
 

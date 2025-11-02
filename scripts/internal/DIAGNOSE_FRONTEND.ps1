@@ -19,12 +19,12 @@ try {
     $nodeVersion = node --version 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  OK Node.js: $nodeVersion" -ForegroundColor Green
-        
+
         # Extract version number and check if it's >= 18
         $versionString = $nodeVersion.ToString().TrimStart('v')
         $versionParts = $versionString -split '\.'
         $majorVersion = [int]$versionParts[0]
-        
+
         if ($majorVersion -lt 18) {
             Write-Host "  X WARNING: Node.js version is too old for Vite 5.x!" -ForegroundColor Red
             Write-Host "    Current: $nodeVersion | Required: v18.0.0+" -ForegroundColor Yellow
@@ -67,7 +67,7 @@ Write-Host ""
 Write-Host "[4/7] Checking package.json..." -ForegroundColor Yellow
 if (Test-Path "frontend\package.json") {
     Write-Host "  OK package.json exists" -ForegroundColor Green
-    
+
     # Read and display scripts
     try {
         $packageJson = Get-Content "frontend\package.json" -Raw | ConvertFrom-Json

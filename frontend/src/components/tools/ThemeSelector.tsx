@@ -20,7 +20,7 @@ const ThemeSelector: React.FC = () => {
         {t('themeAppearance')}
       </h3>
       <p className="text-sm text-gray-600 mb-4">{t('themeDescription')}</p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <button
@@ -37,7 +37,7 @@ const ThemeSelector: React.FC = () => {
           </button>
         ))}
       </div>
-      
+
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-xs text-blue-800">
           <strong>{t('themeSystemInfo')}</strong> {t('themeSystemDescription')}

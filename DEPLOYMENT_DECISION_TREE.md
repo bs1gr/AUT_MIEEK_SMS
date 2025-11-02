@@ -140,26 +140,26 @@ Scenario E: "I want full control (manual)"
 Installation Mode: DOCKER (Recommended)
    ✓ Pros: Easiest, no Python/Node.js needed, consistent
    ✗ Cons: Requires Docker Desktop (~500 MB)
-   
+
    Requirements:
    [✓] Windows 10/11 (64-bit)
    [✓] Docker Desktop
    [✓] 4 GB RAM minimum (8 GB recommended)
    [✓] 10 GB free disk space
-   
+
    Best for: Most users, offline deployment, multiple computers
 
 Installation Mode: NATIVE (Alternative)
    ✓ Pros: No Docker, lighter weight, full control
    ✗ Cons: Need to install Python + Node.js
-   
+
    Requirements:
    [✓] Windows 10/11 (64-bit)
    [✓] Python 3.11+
    [✓] Node.js 18+
    [✓] 2 GB RAM minimum (4 GB recommended)
    [✓] 5 GB free disk space
-   
+
    Best for: Developers, when Docker not available
 ```
 
@@ -210,9 +210,9 @@ For Online Deployment (internet on target):
 For Offline Deployment (no internet on target):
    1️⃣ Create: deployment-package.zip
       (Run CREATE_DEPLOYMENT_PACKAGE.bat)
-   
+
    2️⃣ Transfer: Copy ZIP to target computer
-   
+
    3️⃣ Install: Extract → Run INSTALLER.bat
 
 For Manual Deployment (advanced):

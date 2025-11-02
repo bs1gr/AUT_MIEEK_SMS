@@ -1214,14 +1214,14 @@ function buildURL(url, params, options) {
   if (!params) {
     return url;
   }
-  
+
   const _encode = options && options.encode || encode;
 
   if (utils$1.isFunction(options)) {
     options = {
       serialize: options
     };
-  } 
+  }
 
   const serializeFn = options && options.serialize;
 
@@ -2481,7 +2481,7 @@ class ZlibHeaderTransformStream extends stream__default["default"].Transform {
       if (chunk[0] !== 120) { // Hex: 78
         const header = Buffer.alloc(2);
         header[0] = 120; // Hex: 78
-        header[1] = 156; // Hex: 9C 
+        header[1] = 156; // Hex: 9C
         this.push(header, encoding);
       }
     }
@@ -3582,7 +3582,7 @@ const resolveConfig = (config) => {
         }
       });
     }
-  }  
+  }
 
   // Add xsrf header
   // This is only done if running in a standard browser environment.
@@ -3710,7 +3710,7 @@ const xhrAdapter = isXHRAdapterSupported && function (config) {
        reject(err);
        request = null;
     };
-    
+
     // Handle timeout
     request.ontimeout = function handleTimeout() {
       let timeoutErrorMessage = _config.timeout ? 'timeout of ' + _config.timeout + 'ms exceeded' : 'timeout exceeded';
