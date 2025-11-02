@@ -207,9 +207,11 @@ class HealthChecker:
             except Exception:
                 is_mocked_execute = False
 
-            if is_mocked_execute or os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING"):
-                # Log a short warning without traceback to keep test logs quiet
-                logger.warning(f"Database health check failed (test/mocked): {e}")
+            # Quiet health-check logging when running tests or in CI testing mode.
+            testing_env = os.getenv("TESTING") == "true"
+            if is_mocked_execute or os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING") or testing_env:
+                # During tests or when TESTING=true, log at DEBUG to avoid noisy CI output
+                logger.debug(f"Database health check failed (test/mocked): {e}")
             else:
                 # In normal runs keep detailed error logs
                 logger.error(f"Database health check failed: {e}", exc_info=True)
