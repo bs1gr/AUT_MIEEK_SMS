@@ -34,12 +34,19 @@ COPY --from=fe /app/frontend/dist /app/frontend/dist
 # in deployments where templates are not mounted from the host.
 COPY templates /app/templates
 
-# Create non-root user
-RUN useradd -m appuser && chown -R appuser:appuser /app
+# Entrypoint that runs Alembic migrations programmatically before starting the app.
+# This ensures migrations are applied exactly once at container start and prevents
+# the application from serving requests before the schema is current.
+COPY docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Create non-root user and ensure data directory exists and is writable
+RUN useradd -m appuser && mkdir -p /app/data && chown -R appuser:appuser /app /app/data
 USER appuser
 
 # Healthcheck against /health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
 EXPOSE 8000
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use the entrypoint script which runs migrations and then execs the app server.
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
