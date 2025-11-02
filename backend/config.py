@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Student Management System API"
-    APP_VERSION: str = "3.0.3"
+    APP_VERSION: str = "1.3.5"
 
     # Database
     # Default to an absolute path under the project root: <repo>/data/student_management.db
