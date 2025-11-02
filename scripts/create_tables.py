@@ -2,13 +2,13 @@ import sys
 from pathlib import Path
 
 # Ensure project root is on sys.path when running inside container
-proj = Path('/app')
+proj = Path("/app")
 if str(proj) not in sys.path:
-	sys.path.insert(0, str(proj))
+    sys.path.insert(0, str(proj))
 
 from backend import models
 from backend.config import settings
 
 engine = models.init_db(settings.DATABASE_URL)
 models.Base.metadata.create_all(bind=engine)
-print('This helper script has been removed from the repository. It was used for local debugging only.')
+print("This helper script has been removed from the repository. It was used for local debugging only.")
