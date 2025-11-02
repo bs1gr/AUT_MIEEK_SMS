@@ -12,7 +12,6 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import logging
-from typing import Optional
 
 from alembic import command
 from alembic.config import Config
@@ -91,9 +90,16 @@ def check_migration_status(verbose: bool = False) -> str:
     try:
         backend_dir = Path(__file__).parent
         cfg = _alembic_config(backend_dir)
-        # Alembic's `current` prints info; use command.current and capture via logger
-        current = command.current(cfg, verbose=verbose)
-        return current or ""
+        # Alembic's `current` prints info; it does not return a value in some
+        # Alembic versions, so treat it as informational. Return an empty
+        # string when no programmatic value is available. For type-checkers
+        # explicitly annotate the result as Any to avoid errors.
+        from typing import Any, cast
+
+        current = cast(Any, command.current(cfg, verbose=verbose))
+        # If Alembic returned something usable, convert to string, otherwise
+        # return the empty string to indicate unknown.
+        return str(current) if current else ""
     except Exception as e:
         if verbose:
             print(f"Could not check migration status: {e}", file=sys.stderr)
