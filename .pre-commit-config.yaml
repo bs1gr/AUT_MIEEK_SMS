@@ -1,8 +1,6 @@
+exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
+
 repos:
-  # Skip checks for large generated directories (node_modules, built frontend)
-  # `exclude` is a top-level regex applied to paths evaluated by pre-commit.
-  exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
-  
   # Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4

@@ -1,8 +1,5 @@
 import importlib
-import os
 from pathlib import Path
-
-import pytest
 
 
 def test_run_migrations_creates_tables(tmp_path, monkeypatch):
