@@ -414,7 +414,7 @@ Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
      backend:
        image: sms-backend:${VERSION:-latest}
        build: ...
-     
+
      frontend:
        image: sms-frontend:${VERSION:-latest}
        build: ...

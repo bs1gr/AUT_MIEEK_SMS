@@ -75,7 +75,7 @@ def sanitize_text(text: str) -> str:
 # Apply in Pydantic validators
 class StudentCreate(BaseModel):
     notes: Optional[str] = None
-    
+
     @field_validator('notes')
     @classmethod
     def sanitize_notes(cls, v):
@@ -102,15 +102,15 @@ async def import_data(file: UploadFile):
     # 1. Validate content type
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(400, "Invalid file type")
-    
+
     # 2. Validate file size
     file.file.seek(0, 2)  # Seek to end
     size = file.file.tell()
     file.file.seek(0)  # Reset
-    
+
     if size > MAX_FILE_SIZE:
         raise HTTPException(413, f"File too large (max {MAX_FILE_SIZE} bytes)")
-    
+
     # 3. Validate file content (JSON structure)
     try:
         content = await file.read()
@@ -195,7 +195,7 @@ class ErrorResponse(BaseModel):
 async def global_exception_handler(request: Request, exc: Exception):
     error_id = str(uuid.uuid4())
     logger.error(f"[{error_id}] Unhandled exception: {str(exc)}", exc_info=True)
-    
+
     return JSONResponse(
         status_code=500,
         content={
@@ -221,7 +221,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "message": error["msg"],
             "type": error["type"]
         })
-    
+
     return JSONResponse(
         status_code=422,
         content={
@@ -318,7 +318,7 @@ class Student(Base):
     id = Column(Integer, primary_key=True)
     is_active = Column(Boolean, default=True)  # ✅ Already exists
     deleted_at = Column(DateTime, nullable=True)  # ➕ Add this
-    
+
     @property
     def is_deleted(self):
         return self.deleted_at is not None
@@ -329,7 +329,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(404, "Not found")
-    
+
     student.deleted_at = datetime.now()  # Soft delete
     student.is_active = False
     db.commit()
@@ -407,7 +407,7 @@ request_id_var: ContextVar[str] = ContextVar("request_id", default="")
 async def request_id_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     request_id_var.set(request_id)
-    
+
     response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
     return response
@@ -440,7 +440,7 @@ async def health_check(db: Session = Depends(get_db)):
         "status": "healthy",
         "checks": {}
     }
-    
+
     # Database check
     try:
         db.execute(text("SELECT 1"))
@@ -448,7 +448,7 @@ async def health_check(db: Session = Depends(get_db)):
     except Exception as e:
         health_status["status"] = "unhealthy"
         health_status["checks"]["database"] = f"error: {str(e)}"
-    
+
     # Disk space check
     try:
         import shutil
@@ -460,7 +460,7 @@ async def health_check(db: Session = Depends(get_db)):
         }
     except Exception as e:
         health_status["checks"]["disk_space"] = f"error: {str(e)}"
-    
+
     # Memory check (if psutil available)
     try:
         import psutil
@@ -471,7 +471,7 @@ async def health_check(db: Session = Depends(get_db)):
         }
     except ImportError:
         pass
-    
+
     status_code = 200 if health_status["status"] == "healthy" else 503
     return JSONResponse(health_status, status_code=status_code)
 ```
@@ -617,7 +617,7 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
-  
+
   frontend:
     restart: unless-stopped
     deploy:
@@ -655,7 +655,7 @@ services:
    ```python
    from functools import lru_cache
    from datetime import datetime, timedelta
-   
+
    @lru_cache(maxsize=128)
    def get_student_count(db_id: int, cache_time: datetime) -> int:
        # cache_time rounded to nearest 5 minutes for cache effectiveness
@@ -671,11 +671,11 @@ services:
    from sqlalchemy import event
    from sqlalchemy.engine import Engine
    import time
-   
+
    @event.listens_for(Engine, "before_cursor_execute")
    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
        context._query_start_time = time.time()
-   
+
    @event.listens_for(Engine, "after_cursor_execute")
    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
        total_time = time.time() - context._query_start_time
@@ -696,7 +696,7 @@ services:
    from fastapi_cache import FastAPICache
    from fastapi_cache.backends.redis import RedisBackend
    from fastapi_cache.decorator import cache
-   
+
    @router.get("/students/")
    @cache(expire=300)  # Cache for 5 minutes
    async def get_students(...):
@@ -726,13 +726,13 @@ services:
        # Create student
        response = client.post("/api/v1/students/", json={...})
        student_id = response.json()["id"]
-       
+
        # Enroll in course
        response = client.post(f"/api/v1/enrollments/", json={...})
-       
+
        # Add grades
        response = client.post("/api/v1/grades/", json={...})
-       
+
        # Verify analytics
        response = client.get(f"/api/v1/analytics/student/{student_id}")
        assert response.status_code == 200
@@ -742,14 +742,14 @@ services:
    ```python
    # Using locust
    from locust import HttpUser, task, between
-   
+
    class StudentManagementUser(HttpUser):
        wait_time = between(1, 3)
-       
+
        @task
        def get_students(self):
            self.client.get("/api/v1/students/")
-       
+
        @task(3)  # 3x weight
        def get_student_details(self):
            self.client.get("/api/v1/students/1")

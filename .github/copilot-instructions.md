@@ -86,7 +86,7 @@ async def create_item(item: ItemCreate, request: Request, db: Session = Depends(
 class GradeCreate(BaseModel):
     grade: float = Field(ge=0)
     max_grade: float = Field(gt=0)
-    
+
     @model_validator(mode='after')
     def validate_grade(self):
         if self.grade > self.max_grade:
@@ -228,11 +228,11 @@ alembic downgrade -1           # Rollback
 
 ## Don't Do This
 
-❌ **Never edit DB schema directly** → Use Alembic migrations  
-❌ **Never hardcode UI strings** → Use `t('i18n.key')`  
-❌ **Never use `@app.on_event()`** → Use `@asynccontextmanager` lifespan  
-❌ **Never stop Docker from Control Panel** → Use `SMS.ps1 -Stop` on host  
-❌ **Never forget date validation** → Check `start_date <= end_date`  
+❌ **Never edit DB schema directly** → Use Alembic migrations
+❌ **Never hardcode UI strings** → Use `t('i18n.key')`
+❌ **Never use `@app.on_event()`** → Use `@asynccontextmanager` lifespan
+❌ **Never stop Docker from Control Panel** → Use `SMS.ps1 -Stop` on host
+❌ **Never forget date validation** → Check `start_date <= end_date`
 ❌ **Never commit `.env` files** → Use `.env.example` templates
 
 ## Quick Troubleshooting

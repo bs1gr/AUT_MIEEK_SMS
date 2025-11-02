@@ -35,9 +35,9 @@ export const translations = {
     controlPanel: controlPanelEn,
     // Common (modular)
     ...commonEn,
-    
-    
-    
+
+
+
     // Dashboard & Student Profile (modular)
     ...dashboardEn,
   // Students (modular)
@@ -54,21 +54,21 @@ export const translations = {
   ...exportEn,
   // Help (modular)
   ...helpEn,
-    
-    
+
+
 
     // ------------------------------------
     // Utils/Operations translations
     // ------------------------------------
     utils: utilsEn
   },
-  
+
   el: {
     // ------------------------------------
     controlPanel: controlPanelEl,
     // Κοινά (modular)
     ...commonEl,
-    
+
     // Πίνακας Ελέγχου & Προφίλ Σπουδαστή (modular)
     ...dashboardEl,
   // Σπουδαστές (modular)

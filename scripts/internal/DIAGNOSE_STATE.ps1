@@ -43,7 +43,7 @@ try {
     if ($LASTEXITCODE -eq 0) {
         $dockerAvailable = $true
         Write-Success "Docker is installed: $dockerVersion"
-        
+
         # Check if Docker daemon is running
         $dockerInfo = docker info 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -63,7 +63,7 @@ try {
 # ============================================
 if ($dockerAvailable) {
     Write-Host "`n[2/6] Checking Docker Compose..." -ForegroundColor Yellow
-    
+
     try {
         $composeVersion = docker compose version 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -84,19 +84,19 @@ $containersStopped = @()
 
 if ($dockerAvailable) {
     Write-Host "`n[3/6] Checking Docker containers..." -ForegroundColor Yellow
-    
+
     try {
         # Check for SMS-related containers (both naming patterns)
-        $allContainers = docker ps -a --format "{{.Names}}|{{.State}}|{{.Status}}" 2>&1 | 
+        $allContainers = docker ps -a --format "{{.Names}}|{{.State}}|{{.Status}}" 2>&1 |
             Where-Object { $_ -match "student-management|sms" }
-        
+
         if ($LASTEXITCODE -eq 0 -and $allContainers) {
             foreach ($line in $allContainers) {
                 $parts = $line -split '\|'
                 if ($parts.Length -ge 2) {
                     $name = $parts[0]
                     $state = $parts[1]
-                    
+
                     if ($state -eq "running") {
                         $containersRunning += $name
                         Write-Success "Container running: $name"
@@ -106,7 +106,7 @@ if ($dockerAvailable) {
                     }
                 }
             }
-            
+
             if ($containersRunning.Count -eq 0 -and $containersStopped.Count -eq 0) {
                 Write-Info "No SMS containers found"
             }
@@ -213,7 +213,7 @@ if ($containersRunning.Count -gt 0) {
     # Check if it's compose or fullstack
     $isCompose = $containersRunning | Where-Object { $_ -match "student-management-system" }
     $isFullstack = $containersRunning | Where-Object { $_ -match "sms-fullstack" }
-    
+
     if ($isCompose) {
         # Check if we also have stopped compose containers
         $stoppedCompose = $containersStopped | Where-Object { $_ -match "student-management-system" }
@@ -290,67 +290,67 @@ Write-Host "`n" -NoNewline
 switch ($deploymentState) {
     "DOCKER_CONTAINERIZED" {
         Write-Header "HOW TO MANAGE (Docker Mode - Running)"
-        
+
         Write-Action "View logs:"
         Write-Host "  docker compose logs -f" -ForegroundColor White
         Write-Host "  docker compose logs backend -f" -ForegroundColor Gray
         Write-Host "  docker compose logs frontend -f" -ForegroundColor Gray
-        
+
         Write-Action "`nRestart services:"
         Write-Host "  docker compose restart" -ForegroundColor White
         Write-Host "  docker compose restart backend" -ForegroundColor Gray
-        
+
         Write-Action "`nStop services:"
         Write-Host "  docker compose stop" -ForegroundColor White
         Write-Host "  .\scripts\STOP.ps1" -ForegroundColor Gray
-        
+
         Write-Action "`nStop and remove containers:"
         Write-Host "  docker compose down" -ForegroundColor White
-        
+
         Write-Action "`nRebuild and restart:"
         Write-Host "  docker compose down" -ForegroundColor White
         Write-Host "  docker compose up -d --build" -ForegroundColor White
         Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
-        
+
         Write-Action "`nAccess application:"
         Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
         Write-Host "  Backend API: http://localhost:8000/docs" -ForegroundColor White
         Write-Host "  Control Panel: http://localhost:5173/control" -ForegroundColor White
     }
-    
+
     "DOCKER_CONTAINERIZED_STOPPED" {
         Write-Header "HOW TO MANAGE (Docker Mode - Stopped)"
-        
+
         Write-Action "Start existing containers:"
         Write-Host "  docker compose start" -ForegroundColor White
         Write-Host "  OR" -ForegroundColor Gray
         Write-Host "  docker compose up -d" -ForegroundColor White
         Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
-        
+
         Write-Action "`nRemove and recreate containers:"
         Write-Host "  docker compose down" -ForegroundColor White
         Write-Host "  docker compose up -d --build" -ForegroundColor White
         Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
-        
+
         Write-Action "`nView container status:"
         Write-Host "  docker compose ps" -ForegroundColor White
     }
-    
+
     "NATIVE_HOST" {
         Write-Header "HOW TO MANAGE (Native Host Mode - Running)"
-        
+
         Write-Action "Stop services:"
         Write-Host "  Press Ctrl+C in each terminal" -ForegroundColor White
         Write-Host "  OR use:" -ForegroundColor Gray
         Write-Host "  .\scripts\STOP.ps1" -ForegroundColor White
-        
+
     Write-Action "`nRestart services:"
     Write-Host "  1. Stop with Ctrl+C or STOP.ps1" -ForegroundColor White
     Write-Host "  2. Start with:" -ForegroundColor White
     Write-Host "     .\SMS.ps1 -Quick" -ForegroundColor Gray
     Write-Host "     OR" -ForegroundColor Gray
     Write-Host "     .\QUICKSTART.ps1" -ForegroundColor Gray
-        
+
         Write-Action "`nView process details:"
         if ($backendProcess) {
             Write-Host "  Backend PID: $($backendProcess.Id)" -ForegroundColor White
@@ -358,45 +358,45 @@ switch ($deploymentState) {
         if ($frontendProcess) {
             Write-Host "  Frontend PID: $($frontendProcess.Id)" -ForegroundColor White
         }
-        
+
         Write-Action "`nSwitch to Docker mode:"
         Write-Host "  1. Stop native processes: .\scripts\STOP.ps1" -ForegroundColor White
         Write-Host "  2. Start Docker: docker compose up -d --build" -ForegroundColor White
         Write-Host "     OR use: .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
     }
-    
+
     "NOT_RUNNING" {
         Write-Header "HOW TO START THE APPLICATION"
-        
+
         if ($dockerAvailable) {
             Write-Host "RECOMMENDED: Start with Docker (Easier, More Reliable)" -ForegroundColor Cyan
             Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-            
+
             Write-Action "Quick Start (Docker):"
             Write-Host "  docker compose up -d --build" -ForegroundColor White
             Write-Host "  OR use:" -ForegroundColor Gray
             Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor White
             Write-Host "  .\scripts\docker\DOCKER_RUN.ps1 -Mode compose" -ForegroundColor Gray
-            
+
             Write-Action "`nAccess after starting:"
             Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
             Write-Host "  Backend API: http://localhost:8000/docs" -ForegroundColor White
             Write-Host "`n"
         }
-        
+
         Write-Host "ALTERNATIVE: Start Natively on Host" -ForegroundColor Cyan
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        
+
         Write-Action "Prerequisites:"
         Write-Host "  - Python 3.11+ installed" -ForegroundColor White
         Write-Host "  - Node.js 18+ installed" -ForegroundColor White
-        
+
     Write-Action "`nQuick Start (Native):"
     Write-Host "  .\QUICKSTART.ps1" -ForegroundColor White
     Write-Host "  OR" -ForegroundColor Gray
     Write-Host "  .\scripts\SETUP.ps1  # First time setup" -ForegroundColor Gray
     Write-Host "  .\SMS.ps1 -Quick     # Subsequent runs" -ForegroundColor Gray
-        
+
         if (-not $dockerAvailable) {
             Write-Host "`n"
             Write-Warning2 "Docker is not available. Native host mode is your only option."

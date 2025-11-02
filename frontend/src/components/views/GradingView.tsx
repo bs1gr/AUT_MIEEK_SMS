@@ -41,7 +41,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
 
   // When course is chosen, restrict students to those enrolled in course
   const studentsString = useMemo(() => students?.map(s => s.id).join(',') || '', [students]);
-  
+
   useEffect(() => {
     const run = async () => {
       if (!courseId) { setFilteredStudents(students || []); return; }
@@ -66,7 +66,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
 
   // When student is chosen, restrict courses to those the student is enrolled in
   const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
-  
+
   useEffect(() => {
     const run = async () => {
       if (!studentId) { setFilteredCourses(courses || []); return; }

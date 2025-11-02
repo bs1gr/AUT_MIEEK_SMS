@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Settings,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   RefreshCw,
   Play,
@@ -22,47 +22,47 @@ import { useLanguage } from '../LanguageContext';
 
 /**
  * Control Panel Component
- * 
+ *
  * Comprehensive system management and monitoring dashboard with the following capabilities:
- * 
+ *
  * Dashboard Tab:
  * - Real-time system status monitoring (Backend, Frontend, Docker, Database)
  * - Service health indicators with color-coded status
  * - Uptime tracking and system metrics
  * - Quick actions for service management (Restart/Stop)
- * 
+ *
  * Operations Tab:
  * - Frontend/Backend dependency installation
  * - Docker image building and volume management
  * - System cleanup and maintenance operations
  * - Obsolete file removal
  * - Docker data volume updates with optional migration
- * 
+ *
  * Diagnostics Tab:
  * - Comprehensive system health checks
  * - Dependency verification (Node.js, Python, Docker)
  * - Configuration validation
  * - API endpoint testing
  * - Detailed diagnostic reports with pass/fail status
- * 
+ *
  * Ports Tab:
  * - Network port monitoring
  * - Port availability checking
  * - Process identification for occupied ports
  * - Port conflict detection
- * 
+ *
  * Logs Tab:
  * - Backend log viewing with real-time updates
  * - Log level filtering (Info, Warning, Error)
  * - Timestamp tracking
  * - Log refresh and clearing
- * 
+ *
  * Environment Tab:
  * - System information display
  * - Python/Node version details
  * - Working directory and path information
  * - Environment variables overview
- * 
+ *
  * Note: Some operations (like file cleanup) are only available when the backend
  * runs directly on the host, not inside Docker containers.
  */
@@ -143,19 +143,19 @@ const ControlPanel = () => {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('controlPanel.executing') });
       const response = await axios.post(`${CONTROL_API}/operations/${endpoint}`);
-      
+
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
       } else {
         setOperationStatus({ type: 'error', message: response.data.message || t('controlPanel.operationFailed') });
       }
-      
+
       // Refresh data after operation
       await fetchStatus();
       await fetchDiagnostics();
     } catch (error) {
-      setOperationStatus({ 
-        type: 'error', 
+      setOperationStatus({
+        type: 'error',
         message: error.response?.data?.detail || error.message || t('controlPanel.operationFailed')
       });
     } finally {
@@ -178,8 +178,8 @@ const ControlPanel = () => {
       await fetchStatus();
       await fetchDiagnostics();
     } catch (error) {
-      setOperationStatus({ 
-        type: 'error', 
+      setOperationStatus({
+        type: 'error',
         message: error.response?.data?.detail || error.message || t('controlPanel.operationFailed')
       });
     } finally {
@@ -212,7 +212,7 @@ const ControlPanel = () => {
   const stopAll = async () => {
     // Check if running in Docker mode
     const isDockerMode = environment?.environment_mode === 'docker';
-    
+
     let confirmMessage = 'Stop all services? The control panel will become unavailable.';
     if (isDockerMode) {
       confirmMessage = 'IMPORTANT: Running in Docker mode.\n\n' +
@@ -223,22 +223,22 @@ const ControlPanel = () => {
         '  or: docker compose stop\n\n' +
         'Continue with partial stop (backend only)?';
     }
-    
+
     if (!confirm(confirmMessage)) return;
-    
+
     try {
       // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
       await axios.post(`${CONTROL_API}/operations/exit-all`, { });
-      const msg = isDockerMode 
-        ? 'Backend stopping... Use host command to stop all containers.' 
+      const msg = isDockerMode
+        ? 'Backend stopping... Use host command to stop all containers.'
         : 'All services stopping...';
       setOperationStatus({ type: 'warning', message: msg });
     } catch (error) {
       // Fallback to legacy stop-all if new endpoint is not available
       try {
         await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
-        const msg = isDockerMode 
-          ? 'Backend stopping... Use host command to stop all containers.' 
+        const msg = isDockerMode
+          ? 'Backend stopping... Use host command to stop all containers.'
           : 'All services stopping...';
         setOperationStatus({ type: 'warning', message: msg });
       } catch (_) {
@@ -253,7 +253,7 @@ const ControlPanel = () => {
     fetchDiagnostics();
     fetchPorts();
   fetchEnvironment();
-    
+
     // Auto-refresh status
     const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
@@ -311,7 +311,7 @@ const ControlPanel = () => {
               <p className="text-sm text-gray-400">{t('controlPanel.subtitle')}</p>
             </div>
           </div>
-          
+
           {operationStatus && (
             <div className={`px-4 py-2 rounded-lg border ${
               operationStatus.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-400' :
@@ -372,7 +372,7 @@ const ControlPanel = () => {
               {environment?.environment_mode === 'docker' && (
                 <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-md text-sm text-yellow-200">
                   <AlertTriangle size={16} className="inline mr-2" />
-                  <strong>Docker Mode:</strong> "Stop All" from the web UI can only stop the backend container. 
+                  <strong>Docker Mode:</strong> "Stop All" from the web UI can only stop the backend container.
                   For complete shutdown, use host command: <code className="bg-gray-900 px-1 py-0.5 rounded">.\SMS.ps1 -Stop</code>
                 </div>
               )}
@@ -604,12 +604,12 @@ const ControlPanel = () => {
                 logs.map((log, index) => {
                   try {
                     const logData = JSON.parse(log);
-                    const levelColor = 
+                    const levelColor =
                       logData.level === 'ERROR' ? 'text-red-400' :
                       logData.level === 'WARNING' ? 'text-yellow-400' :
                       logData.level === 'INFO' ? 'text-blue-400' :
                       'text-gray-400';
-                    
+
                     return (
                       <div key={index} className="py-1 border-b border-gray-800">
                         <span className="text-gray-500">{logData.timestamp}</span>
@@ -649,7 +649,7 @@ const ControlPanel = () => {
                 {showRuntimeDetails ? t('controlPanel.hideRuntimeDetails') : t('controlPanel.showRuntimeDetails')}
               </button>
             </div>
-            
+
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <div className="space-y-4">
                 {/* Application Info */}

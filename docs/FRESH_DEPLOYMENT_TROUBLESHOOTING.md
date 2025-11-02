@@ -54,9 +54,9 @@ START.bat
 
 ### Why START.bat is Better:
 
-✅ **No execution policy blocks** - Works immediately  
-✅ **No PowerShell version conflicts** - Works on Win 7/8/10/11  
-✅ **No security warnings** - Native Windows batch format  
+✅ **No execution policy blocks** - Works immediately
+✅ **No PowerShell version conflicts** - Works on Win 7/8/10/11
+✅ **No security warnings** - Native Windows batch format
 ✅ **Just double-click and run** - Zero configuration
 
 ### Usage:
