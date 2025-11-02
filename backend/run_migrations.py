@@ -1,95 +1,103 @@
-"""
-Database Migration Runner
-Applies Alembic migrations programmatically for automated startup workflows.
+"""Database Migration Runner
+
+This module runs Alembic migrations programmatically and ensures they are
+applied against the same `DATABASE_URL` that the application uses. Using the
+Alembic command-line via subprocess may accidentally run against a different
+environment; here we use the Alembic API and explicitly set the SQLAlchemy URL
+from `backend.config.settings` so migrations target the expected database.
 """
 
-import sys
-import subprocess
+from __future__ import annotations
+
 from pathlib import Path
+import sys
+import logging
+from typing import Optional
+
+from alembic import command
+from alembic.config import Config
+
+from backend.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _alembic_config(backend_dir: Path) -> Config:
+    """Create an Alembic Config configured to use the project's alembic.ini and
+    the application's DATABASE_URL.
+    """
+    cfg_path = backend_dir / "alembic.ini"
+    cfg = Config(str(cfg_path))
+    # Ensure Alembic uses the same DB URL as application settings
+    cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+    # Ensure Alembic uses the correct absolute script_location so the
+    # migrations folder is resolved correctly regardless of the current
+    # working directory (fixes Windows and CI behaviors).
+    try:
+        cfg.set_main_option("script_location", str(backend_dir / "migrations"))
+    except Exception:
+        # Non-fatal; alembic will fall back to the value in alembic.ini
+        pass
+    return cfg
 
 
 def run_migrations(verbose: bool = False) -> bool:
-    """
-    Run Alembic migrations to upgrade database to latest version.
+    """Run Alembic migrations (upgrade head) using the Alembic API.
 
-    Args:
-        verbose: If True, print detailed migration output
-
-    Returns:
-        bool: True if migrations succeeded, False otherwise
+    Returns True on success, False on failure.
     """
     try:
         backend_dir = Path(__file__).parent
+        cfg = _alembic_config(backend_dir)
 
         if verbose:
             print("=" * 60)
             print("DATABASE MIGRATION CHECK")
             print("=" * 60)
             print(f"Backend directory: {backend_dir}")
-            print()
+            print(f"Using DATABASE_URL: {settings.DATABASE_URL}")
 
-        # Run alembic upgrade head
-        result = subprocess.run(
-            [sys.executable, "-m", "alembic", "upgrade", "head"],
-            cwd=backend_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        # Ensure logs directory exists and add a file handler for migration logs
+        try:
+            logs_dir = Path(__file__).resolve().parents[2] / "logs"
+            logs_dir.mkdir(parents=True, exist_ok=True)
+            fh = logging.FileHandler(logs_dir / "migrations.log")
+            fh.setLevel(logging.INFO)
+            fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            fh.setFormatter(fmt)
+            if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
+                logger.addHandler(fh)
+        except Exception:
+            # Non-fatal: migration logging is best-effort
+            pass
 
-        if verbose or result.returncode != 0:
-            print("Migration output:")
-            if result.stdout:
-                print(result.stdout)
-            if result.stderr:
-                print(result.stderr, file=sys.stderr)
+        # Run upgrade head
+        command.upgrade(cfg, "head")
 
-        if result.returncode == 0:
-            if verbose:
-                print("\nOK: Database migrations applied successfully")
-                print("=" * 60)
-            return True
-        else:
-            print(f"\nERROR: Migration failed with exit code {result.returncode}", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            return False
-
+        if verbose:
+            print("\nOK: Database migrations applied successfully")
+            print("=" * 60)
+        logger.info("Alembic migrations applied successfully")
+        return True
     except Exception as e:
-        print(f"ERROR: Migration error: {str(e)}", file=sys.stderr)
+        logger.exception("Failed to apply Alembic migrations: %s", e)
+        if verbose:
+            print(f"ERROR: Migration error: {e}", file=sys.stderr)
         return False
 
 
 def check_migration_status(verbose: bool = False) -> str:
-    """
-    Check current migration version.
-
-    Args:
-        verbose: If True, print status information
-
-    Returns:
-        str: Current migration version or empty string on error
-    """
+    """Return the current Alembic revision (or empty string on error)."""
     try:
         backend_dir = Path(__file__).parent
-
-        result = subprocess.run(
-            [sys.executable, "-m", "alembic", "current"], cwd=backend_dir, capture_output=True, text=True, check=False
-        )
-
-        if result.returncode == 0:
-            # Extract version from output (format: "revision_id (head)")
-            for line in result.stdout.splitlines():
-                line = line.strip()
-                if line and not line.startswith("INFO"):
-                    if verbose:
-                        print(f"Current migration: {line}")
-                    return line
-
-        return ""
-
+        cfg = _alembic_config(backend_dir)
+        # Alembic's `current` prints info; use command.current and capture via logger
+        current = command.current(cfg, verbose=verbose)
+        return current or ""
     except Exception as e:
         if verbose:
-            print(f"Could not check migration status: {str(e)}", file=sys.stderr)
+            print(f"Could not check migration status: {e}", file=sys.stderr)
+        logger.debug("Could not check migration status: %s", e)
         return ""
 
 

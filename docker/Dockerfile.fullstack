@@ -30,6 +30,9 @@ RUN python -m pip install --upgrade pip && \
 # Copy app code and built frontend
 COPY backend /app/backend
 COPY --from=fe /app/frontend/dist /app/frontend/dist
+# Include templates (courses/students JSON) inside the image so imports work
+# in deployments where templates are not mounted from the host.
+COPY templates /app/templates
 
 # Create non-root user
 RUN useradd -m appuser && chown -R appuser:appuser /app
