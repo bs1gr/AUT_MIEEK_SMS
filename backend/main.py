@@ -31,6 +31,7 @@ import shutil
 import threading
 from datetime import datetime
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 # FastAPI imports
 from fastapi import FastAPI, Depends, Request
@@ -90,8 +91,6 @@ if sys.platform == "win32":
 # ============================================================================
 
 try:
-    from pathlib import Path
-
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     # Ensure project root is on sys.path so absolute imports like 'backend.xxx' work
     if str(PROJECT_ROOT) not in sys.path:
@@ -104,6 +103,20 @@ except Exception:
     CONTROL_HTML = None
     SPA_DIST_DIR = None
     SPA_INDEX_FILE = None
+
+
+def get_version() -> str:
+    """Read version from VERSION file in project root."""
+    try:
+        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
+VERSION = get_version()
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 FRONTEND_PORT_PREFERRED = 5173
@@ -242,7 +255,7 @@ def create_app() -> FastAPI:
     """
     return FastAPI(
         title="Student Management System API",
-        version="1.2.3",
+        version=VERSION,
         description="Bilingual Student Management System with Advanced Grading",
         docs_url="/docs",
         openapi_url="/openapi.json",
@@ -275,7 +288,7 @@ async def lifespan(app: FastAPI):
     logger.info("\n" + "=" * 70)
     logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
     logger.info("=" * 70)
-    logger.info("Version: 1.2.1 - Production Ready")
+    logger.info(f"Version: {VERSION} - Production Ready")
     logger.info("Database: SQLite")
     logger.info("Framework: FastAPI")
     logger.info("Logging: initialized")
@@ -1123,7 +1136,7 @@ register_routers(app)
 def _api_metadata() -> dict:
     return {
         "message": "Student Management System API",
-        "version": "3.0.3",
+        "version": VERSION,
         "status": "running",
         "documentation": {"swagger": "/docs", "redoc": "/redoc", "openapi": "/openapi.json"},
         "endpoints": {
@@ -1428,7 +1441,7 @@ def main() -> None:
     print("\n" + "=" * 70)
     print("STUDENT MANAGEMENT SYSTEM API")
     print("=" * 70)
-    print("  Version: 3.0.3")
+    print(f"  Version: {VERSION}")
     print("  Status: Production Ready with All Fixes Applied")
     print("  Database: SQLite")
     print("  Framework: FastAPI")
