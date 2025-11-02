@@ -86,8 +86,7 @@ const ServerControl: React.FC = () => {
   const checkStatus = async () => {
     try {
       const data = await getHealthStatus();
-      console.log('[ServerControl] Health data received:', data);
-      
+
       let backendStatus: 'online' | 'offline' = 'offline';
       let uptime = 0;
       let error = '';
