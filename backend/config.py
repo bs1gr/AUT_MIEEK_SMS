@@ -8,6 +8,7 @@ import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 from pydantic import field_validator
+import os
 
 
 class Settings(BaseSettings):
@@ -135,15 +136,44 @@ class Settings(BaseSettings):
 
             # Ensure path is within project directory (prevent path traversal)
             project_root = Path(__file__).resolve().parents[1]
+            # Allow database path within project root
+            allow_external = os.environ.get("ALLOW_EXTERNAL_DB_PATH", "").lower() in ("1", "true", "yes")
+            data_mount = Path("/data").resolve()
+
+            within_project = True
             try:
                 # Check if db_path is relative to project_root
                 db_path.relative_to(project_root)
             except ValueError:
-                raise ValueError(
-                    f"Database path must be within project directory.\n"
-                    f"Database path: {db_path}\n"
-                    f"Project root: {project_root}"
-                )
+                within_project = False
+
+            # Allow when running in Docker with a mounted /data volume, or when
+            # the operator explicitly sets ALLOW_EXTERNAL_DB_PATH=1 in env.
+            if not within_project:
+                if allow_external:
+                    # operator explicitly allowed external DB paths
+                    pass
+                else:
+                    try:
+                        if db_path.samefile(data_mount) or data_mount in db_path.parents:
+                            # db is under /data (common Docker bind mount); accept it
+                            pass
+                        else:
+                            raise ValueError(
+                                f"Database path must be within project directory or under /data when running in Docker.\n"
+                                f"Database path: {db_path}\n"
+                                f"Project root: {project_root}"
+                            )
+                    except Exception:
+                        # samefile may fail on non-existent paths; fallback to string check
+                        if str(db_path).startswith(str(data_mount)):
+                            pass
+                        else:
+                            raise ValueError(
+                                f"Database path must be within project directory or under /data when running in Docker.\n"
+                                f"Database path: {db_path}\n"
+                                f"Project root: {project_root}"
+                            )
 
         except Exception as e:
             raise ValueError(f"Invalid database path in DATABASE_URL: {e}")

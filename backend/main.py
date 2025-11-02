@@ -314,6 +314,42 @@ async def lifespan(app: FastAPI):
         logger.error(f"Migration runner error: {str(e)}")
         logger.warning("Continuing without migration check...")
 
+    # Verify schema presence. In some environments migrations may report success
+    # but the target DB might be different or empty. Offer an opt-in fallback to
+    # create missing tables automatically if the operator set
+    # ALLOW_SCHEMA_AUTO_CREATE=1 in the environment. This protects production
+    # clusters from accidental implicit schema creation while allowing safe
+    # deployments to self-heal when explicitly permitted.
+    try:
+        from sqlalchemy import inspect
+
+        inspector = inspect(db_engine)
+        tables = inspector.get_table_names()
+        if not tables:
+            allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            )
+            if allow_auto:
+                # Last-resort: create tables using SQLAlchemy models metadata
+                try:
+                    from backend.models import Base
+
+                    logger.warning(
+                        "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled — creating tables via metadata.create_all()"
+                    )
+                    Base.metadata.create_all(bind=db_engine)
+                    logger.info("✓ Created missing database tables via metadata.create_all()")
+                except Exception as e:
+                    logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
+            else:
+                logger.warning(
+                    "No database tables detected after migrations. To allow automatic creation as a fallback, set ALLOW_SCHEMA_AUTO_CREATE=1 in the environment."
+                )
+    except Exception as e:
+        logger.warning(f"Schema verification failed (continuing): {e}")
+
     # Legacy schema compatibility check (kept for backward compatibility during transition)
     try:
         db_ensure_schema(db_engine)
