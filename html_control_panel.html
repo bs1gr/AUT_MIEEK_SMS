@@ -548,7 +548,7 @@
         </div>
 
         <div class="footer">
-            <p><strong>Student Management System</strong> v<span id="footerVersion">1.2.0</span></p>
+            <p><strong>Student Management System</strong> v<span id="footerVersion">1.3.5</span></p>
             <p class="footer-note">For help, see <a href="/docs" class="link-inverted">API Documentation</a></p>
         </div>
     </div>
@@ -617,7 +617,7 @@
                 document.getElementById('nodeVersion').textContent = data.node_version || 'Not installed';
                 document.getElementById('dockerVersion').textContent = data.docker_version ? data.docker_version.split(' ')[2] : 'Not installed';
                 document.getElementById('envMode').textContent = data.environment_mode || 'unknown';
-                document.getElementById('footerVersion').textContent = data.app_version || '1.2.0';
+                document.getElementById('footerVersion').textContent = data.app_version || '1.3.5';
                 
                 // Update environment details with comprehensive package versions
                 const envDetails = document.getElementById('envDetails');
