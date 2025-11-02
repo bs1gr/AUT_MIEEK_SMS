@@ -82,24 +82,24 @@ function Write-Step {
     Write-Host ("─" * 70) -ForegroundColor DarkGray
 }
 
-function Write-Success { 
-    param($Text) 
-    Write-Host "  ✓ $Text" -ForegroundColor Green 
+function Write-Success {
+    param($Text)
+    Write-Host "  ✓ $Text" -ForegroundColor Green
 }
 
-function Write-Warning2 { 
-    param($Text) 
-    Write-Host "  ⚠ $Text" -ForegroundColor Yellow 
+function Write-Warning2 {
+    param($Text)
+    Write-Host "  ⚠ $Text" -ForegroundColor Yellow
 }
 
-function Write-Error2 { 
-    param($Text) 
-    Write-Host "  ✗ $Text" -ForegroundColor Red 
+function Write-Error2 {
+    param($Text)
+    Write-Host "  ✗ $Text" -ForegroundColor Red
 }
 
-function Write-Info { 
-    param($Text) 
-    Write-Host "  ℹ $Text" -ForegroundColor Cyan 
+function Write-Info {
+    param($Text)
+    Write-Host "  ℹ $Text" -ForegroundColor Cyan
 }
 
 function Confirm-Action {
@@ -107,10 +107,10 @@ function Confirm-Action {
         [string]$Prompt,
         [switch]$DefaultYes
     )
-    
+
     $defaultChoice = if ($DefaultYes) { "Y" } else { "N" }
     $choices = if ($DefaultYes) { "Y/n" } else { "y/N" }
-    
+
     do {
         $response = Read-Host "$Prompt [$choices]"
         if ([string]::IsNullOrWhiteSpace($response)) {
@@ -118,7 +118,7 @@ function Confirm-Action {
         }
         $response = $response.Trim().ToUpper()
     } while ($response -notin @('Y', 'N', 'YES', 'NO'))
-    
+
     return $response -in @('Y', 'YES')
 }
 
@@ -132,13 +132,13 @@ function Invoke-AsAdministrator {
     if (-not (Test-Administrator)) {
         Write-Warning2 "Administrator privileges required for installation."
         Write-Info "Restarting script as Administrator..."
-        
+
         $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         if ($SkipPrereqCheck) { $arguments += " -SkipPrereqCheck" }
         if ($DockerOnly) { $arguments += " -DockerOnly" }
         if ($NativeOnly) { $arguments += " -NativeOnly" }
         if ($NoStart) { $arguments += " -NoStart" }
-        
+
         Start-Process powershell.exe -Verb RunAs -ArgumentList $arguments
         exit
     }
@@ -150,7 +150,7 @@ function Invoke-AsAdministrator {
 
 function Test-PortAvailable {
     param([int]$Port)
-    
+
     try {
         $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $Port)
         $listener.Start()
@@ -174,7 +174,7 @@ function Test-DockerRunning {
     if (-not (Test-DockerInstalled)) {
         return $false
     }
-    
+
     try {
         $null = docker version --format '{{.Server.Version}}' 2>&1
         return $LASTEXITCODE -eq 0
@@ -189,7 +189,7 @@ function Test-PythonInstalled {
         if ($null -eq $pythonCmd) {
             return $false
         }
-        
+
         $versionOutput = python --version 2>&1
         if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
             $installedVersion = [version]$matches[1]
@@ -207,7 +207,7 @@ function Test-NodeInstalled {
         if ($null -eq $nodeCmd) {
             return $false
         }
-        
+
         $versionOutput = node --version 2>&1
         if ($versionOutput -match "v(\d+\.\d+\.\d+)") {
             $installedVersion = [version]$matches[1]
@@ -245,7 +245,7 @@ function Get-SystemInfo {
 
 function Show-PrerequisiteReport {
     param($SystemInfo, $Mode)
-    
+
     Write-Host ""
     Write-Host "  System Information:" -ForegroundColor Cyan
     Write-Host "  ──────────────────" -ForegroundColor DarkGray
@@ -254,10 +254,10 @@ function Show-PrerequisiteReport {
     Write-Host "    RAM:        $($SystemInfo.RAM) GB" -ForegroundColor Gray
     Write-Host "    Disk Space: $($SystemInfo.DiskFree) GB free on C:" -ForegroundColor Gray
     Write-Host ""
-    
+
     Write-Host "  Prerequisites Check:" -ForegroundColor Cyan
     Write-Host "  ───────────────────" -ForegroundColor DarkGray
-    
+
     # Check based on mode
     if ($Mode -eq 'Docker' -or $Mode -eq 'Auto') {
         if ($SystemInfo.Docker) {
@@ -271,27 +271,27 @@ function Show-PrerequisiteReport {
             Write-Error2 "Docker Desktop is not installed"
         }
     }
-    
+
     if ($Mode -eq 'Native' -or $Mode -eq 'Auto') {
         if ($SystemInfo.Python) {
             Write-Success "Python 3.11+ is installed"
         } else {
             Write-Error2 "Python 3.11+ is not installed"
         }
-        
+
         if ($SystemInfo.Node) {
             Write-Success "Node.js 18+ is installed"
         } else {
             Write-Error2 "Node.js 18+ is not installed"
         }
     }
-    
+
     if ($SystemInfo.Git) {
         Write-Success "Git is installed"
     } else {
         Write-Warning2 "Git is not installed (optional but recommended)"
     }
-    
+
     Write-Host ""
 }
 
@@ -310,11 +310,11 @@ function Install-Docker {
     Write-Host "    5. Start Docker Desktop" -ForegroundColor Cyan
     Write-Host "    6. Re-run this installer" -ForegroundColor Cyan
     Write-Host ""
-    
+
     if (Confirm-Action "Open Docker Desktop download page in browser?" -DefaultYes) {
         Start-Process $Script:DownloadUrls.Docker
     }
-    
+
     return $false
 }
 
@@ -330,11 +330,11 @@ function Install-Python {
     Write-Host "    6. Restart PowerShell/Terminal" -ForegroundColor Cyan
     Write-Host "    7. Re-run this installer" -ForegroundColor Cyan
     Write-Host ""
-    
+
     if (Confirm-Action "Open Python download page in browser?" -DefaultYes) {
         Start-Process $Script:DownloadUrls.Python
     }
-    
+
     return $false
 }
 
@@ -349,47 +349,47 @@ function Install-NodeJS {
     Write-Host "    5. Restart PowerShell/Terminal" -ForegroundColor Cyan
     Write-Host "    6. Re-run this installer" -ForegroundColor Cyan
     Write-Host ""
-    
+
     if (Confirm-Action "Open Node.js download page in browser?" -DefaultYes) {
         Start-Process $Script:DownloadUrls.NodeJS
     }
-    
+
     return $false
 }
 
 function Start-DockerDesktop {
     Write-Info "Looking for Docker Desktop..."
-    
+
     $dockerPaths = @(
         "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
         "${env:ProgramFiles(x86)}\Docker\Docker\Docker Desktop.exe",
         "$env:LOCALAPPDATA\Docker\Docker Desktop.exe"
     )
-    
+
     $dockerExe = $dockerPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-    
+
     if ($dockerExe) {
         Write-Info "Starting Docker Desktop..."
         Start-Process $dockerExe
-        
+
         Write-Info "Waiting for Docker Engine to start (this may take 1-2 minutes)..."
         $maxWait = 120
         $waited = 0
-        
+
         while ($waited -lt $maxWait) {
             Start-Sleep -Seconds 5
             $waited += 5
-            
+
             if (Test-DockerRunning) {
                 Write-Success "Docker Desktop is now running!"
                 return $true
             }
-            
+
             if ($waited % 15 -eq 0) {
                 Write-Host "    Still waiting... ($waited seconds)" -ForegroundColor DarkGray
             }
         }
-        
+
         Write-Warning2 "Docker Desktop did not start within $maxWait seconds."
         Write-Info "Please ensure Docker Desktop is fully started and try again."
         return $false
@@ -405,22 +405,22 @@ function Start-DockerDesktop {
 
 function Initialize-Environment {
     param($Mode)
-    
+
     Write-Step 3 5 "Setting up application environment"
-    
+
     # Ensure we're in the correct directory
     if (-not (Test-Path ".\QUICKSTART.ps1")) {
         Write-Error2 "Cannot find QUICKSTART.ps1 in current directory!"
         Write-Info "Please run this installer from the project root directory."
         return $false
     }
-    
+
     if ($Mode -eq 'Docker') {
         Write-Info "Building Docker image (this may take several minutes)..."
-        
+
         if (Test-Path ".\scripts\SETUP.ps1") {
             & ".\scripts\SETUP.ps1"
-            
+
             if ($LASTEXITCODE -eq 0) {
                 Write-Success "Docker setup completed successfully!"
                 return $true
@@ -432,15 +432,15 @@ function Initialize-Environment {
             Write-Error2 "Setup script not found!"
             return $false
         }
-        
+
     } elseif ($Mode -eq 'Native') {
         Write-Info "Installing backend dependencies..."
-        
+
         Push-Location backend
         try {
             python -m pip install --upgrade pip 2>&1 | Out-Null
             pip install -r requirements.txt
-            
+
             if ($LASTEXITCODE -ne 0) {
                 throw "Backend dependency installation failed"
             }
@@ -451,13 +451,13 @@ function Initialize-Environment {
         } finally {
             Pop-Location
         }
-        
+
         Write-Info "Installing frontend dependencies..."
-        
+
         Push-Location frontend
         try {
             npm install
-            
+
             if ($LASTEXITCODE -ne 0) {
                 throw "Frontend dependency installation failed"
             }
@@ -468,24 +468,24 @@ function Initialize-Environment {
         } finally {
             Pop-Location
         }
-        
+
         return $true
     }
-    
+
     return $false
 }
 
 function Start-Application {
     param($Mode)
-    
+
     Write-Step 5 5 "Starting the application"
-    
+
     if (Test-Path ".\QUICKSTART.ps1") {
         Write-Info "Launching Student Management System..."
         Write-Host ""
-        
+
         & ".\QUICKSTART.ps1"
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
             Write-Success "Application started successfully!"
@@ -495,11 +495,11 @@ function Start-Application {
             Write-Host "    → API Docs:   http://localhost:8000/docs" -ForegroundColor Green
             Write-Host "    → Control:    http://localhost:8080/control" -ForegroundColor Green
             Write-Host ""
-            
+
             if (Confirm-Action "Open application in browser?" -DefaultYes) {
                 Start-Process "http://localhost:8080"
             }
-            
+
             return $true
         } else {
             Write-Error2 "Application failed to start!"
@@ -518,26 +518,26 @@ function Start-Application {
 
 function Start-Installation {
     Clear-Host
-    
+
     Write-Banner "STUDENT MANAGEMENT SYSTEM - ONE-CLICK INSTALLER" -Color Green
-    
+
     Write-Host "  This installer will:" -ForegroundColor Cyan
     Write-Host "    • Check your system for prerequisites" -ForegroundColor Gray
     Write-Host "    • Guide you through installing missing components" -ForegroundColor Gray
     Write-Host "    • Set up the Student Management System" -ForegroundColor Gray
     Write-Host "    • Start the application automatically" -ForegroundColor Gray
     Write-Host ""
-    
+
     if (-not (Confirm-Action "Continue with installation?" -DefaultYes)) {
         Write-Warning2 "Installation cancelled by user."
         return
     }
-    
+
     # Step 1: System Check
     Write-Step 1 5 "Checking system prerequisites"
-    
+
     $systemInfo = Get-SystemInfo
-    
+
     # Determine installation mode
     $mode = 'Auto'
     if ($DockerOnly) {
@@ -549,14 +549,14 @@ function Start-Installation {
     } else {
         Write-Info "Installation mode: Auto-detect (prefers Docker)"
     }
-    
+
     Show-PrerequisiteReport -SystemInfo $systemInfo -Mode $mode
-    
+
     # Step 2: Install missing prerequisites
     Write-Step 2 5 "Installing missing prerequisites"
-    
+
     $needsRestart = $false
-    
+
     if ($mode -in @('Docker', 'Auto')) {
         if (-not $systemInfo.Docker) {
             Write-Warning2 "Docker Desktop is required but not installed."
@@ -593,7 +593,7 @@ function Start-Installation {
             Write-Success "Docker is ready!"
         }
     }
-    
+
     if ($mode -in @('Native', 'Auto')) {
         if (-not $systemInfo.Python) {
             Write-Warning2 "Python 3.11+ is required but not installed."
@@ -605,7 +605,7 @@ function Start-Installation {
                 return
             }
         }
-        
+
         if (-not $systemInfo.Node) {
             Write-Warning2 "Node.js 18+ is required but not installed."
             if (Confirm-Action "Would you like to install Node.js?" -DefaultYes) {
@@ -616,12 +616,12 @@ function Start-Installation {
                 return
             }
         }
-        
+
         if ($systemInfo.Python -and $systemInfo.Node) {
             Write-Success "Python and Node.js are ready!"
         }
     }
-    
+
     if ($needsRestart) {
         Write-Host ""
         Write-Warning2 "Installation requires restart!"
@@ -634,7 +634,7 @@ function Start-Installation {
         Read-Host "Press ENTER to exit"
         return
     }
-    
+
     # Finalize mode selection
     if ($mode -eq 'Auto') {
         if ($systemInfo.DockerRunning) {
@@ -645,7 +645,7 @@ function Start-Installation {
             Write-Success "Using Native mode (Python + Node.js)"
         }
     }
-    
+
     # Step 3: Environment setup
     if (-not (Initialize-Environment -Mode $mode)) {
         Write-Error2 "Environment setup failed!"
@@ -653,10 +653,10 @@ function Start-Installation {
         Read-Host "Press ENTER to exit"
         return
     }
-    
+
     # Step 4: Port check
     Write-Step 4 5 "Checking port availability"
-    
+
     $portsOk = $true
     foreach ($port in $Script:RequiredPorts) {
         if (Test-PortAvailable -Port $port) {
@@ -666,7 +666,7 @@ function Start-Installation {
             $portsOk = $false
         }
     }
-    
+
     if (-not $portsOk) {
         Write-Warning2 "Some required ports are in use."
         Write-Info "The application may fail to start or use alternative ports."
@@ -675,7 +675,7 @@ function Start-Installation {
             return
         }
     }
-    
+
     # Step 5: Start application
     if (-not $NoStart) {
         Start-Application -Mode $mode
@@ -686,10 +686,10 @@ function Start-Installation {
         Write-Host "    .\QUICKSTART.ps1" -ForegroundColor Green
         Write-Host ""
     }
-    
+
     # Final summary
     Write-Banner "INSTALLATION COMPLETE" -Color Green
-    
+
     Write-Host "  Useful commands:" -ForegroundColor Cyan
     Write-Host "    Start:     .\QUICKSTART.ps1" -ForegroundColor Gray
     Write-Host "    Stop:      .\scripts\STOP.ps1" -ForegroundColor Gray
@@ -700,7 +700,7 @@ function Start-Installation {
     Write-Host "    English:   README.md" -ForegroundColor Gray
     Write-Host "    Greek:     ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md" -ForegroundColor Gray
     Write-Host ""
-    
+
     Read-Host "Press ENTER to exit"
 }
 

@@ -1,8 +1,8 @@
 # Release Notes - Version 1.1
 
-**Release Date:** October 28, 2025  
-**Branch:** v1.1 → main  
-**Commits:** 28 commits merged  
+**Release Date:** October 28, 2025
+**Branch:** v1.1 → main
+**Commits:** 28 commits merged
 
 ---
 

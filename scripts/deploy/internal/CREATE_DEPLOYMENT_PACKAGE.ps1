@@ -5,7 +5,7 @@
 .DESCRIPTION
     Creates a self-contained package that can be copied to another Windows
     computer for installation without internet access.
-    
+
     The package includes:
     - All application source code
     - Docker image (if available)
@@ -69,9 +69,9 @@ function Write-Info { param($Text) Write-Host "  ℹ $Text" -ForegroundColor Cya
 
 function Get-DirectorySize {
     param([string]$Path)
-    
+
     if (Test-Path $Path) {
-        $size = (Get-ChildItem -Path $Path -Recurse -File -ErrorAction SilentlyContinue | 
+        $size = (Get-ChildItem -Path $Path -Recurse -File -ErrorAction SilentlyContinue |
                  Measure-Object -Property Length -Sum).Sum
         return [math]::Round($size / 1MB, 2)
     }
@@ -83,9 +83,9 @@ function Copy-ProjectFiles {
         [string]$SourcePath,
         [string]$DestPath
     )
-    
+
     Write-Info "Copying application files..."
-    
+
     # Directories to copy
     $includeDirs = @(
         'backend',
@@ -96,7 +96,7 @@ function Copy-ProjectFiles {
         'tools',
         'templates'
     )
-    
+
     # Files to copy
     $includeFiles = @(
         '*.ps1',
@@ -109,24 +109,24 @@ function Copy-ProjectFiles {
         'VERSION',
         'LICENSE'
     )
-    
+
     # Create destination directory
     if (-not (Test-Path $DestPath)) {
         New-Item -ItemType Directory -Path $DestPath -Force | Out-Null
     }
-    
+
     # Copy directories
     foreach ($dir in $includeDirs) {
         $sourceDirPath = Join-Path $SourcePath $dir
         if (Test-Path $sourceDirPath) {
             $destDirPath = Join-Path $DestPath $dir
             Write-Host "    Copying $dir..." -ForegroundColor DarkGray
-            
+
             Copy-Item -Path $sourceDirPath -Destination $destDirPath -Recurse -Force
             Write-Success "Copied $dir"
         }
     }
-    
+
     # Copy root files
     foreach ($pattern in $includeFiles) {
         $files = Get-ChildItem -Path $SourcePath -Filter $pattern -File
@@ -134,7 +134,7 @@ function Copy-ProjectFiles {
             Copy-Item -Path $file.FullName -Destination $DestPath -Force
         }
     }
-    
+
     Write-Success "Application files copied"
 }
 
@@ -143,9 +143,9 @@ function Export-DockerImage {
         [string]$ImageName,
         [string]$OutputPath
     )
-    
+
     Write-Info "Exporting Docker image..."
-    
+
     try {
         # Check if Docker is available
         $null = docker version 2>&1
@@ -153,7 +153,7 @@ function Export-DockerImage {
             Write-Warning2 "Docker is not available, skipping image export"
             return $false
         }
-        
+
         # Check if image exists
         $imageExists = docker images -q $ImageName 2>$null
         if (-not $imageExists) {
@@ -161,13 +161,13 @@ function Export-DockerImage {
             Write-Info "Please build the image first with: .\scripts\SETUP.ps1"
             return $false
         }
-        
+
         # Export image
         $tarFile = Join-Path $OutputPath "docker-image-$ImageName.tar"
         Write-Host "    This may take several minutes..." -ForegroundColor DarkGray
-        
+
         docker save -o $tarFile $ImageName
-        
+
         if ($LASTEXITCODE -eq 0 -and (Test-Path $tarFile)) {
             $sizeMB = [math]::Round((Get-Item $tarFile).Length / 1MB, 2)
             Write-Success "Docker image exported ($sizeMB MB)"
@@ -184,7 +184,7 @@ function Export-DockerImage {
 
 function Create-DeploymentReadme {
     param([string]$PackagePath)
-    
+
     $readmeContent = @"
 # Student Management System - Deployment Package
 
@@ -332,7 +332,7 @@ Application version: $(if (Test-Path "VERSION") { Get-Content "VERSION" } else {
 
 function Create-LoadDockerImageScript {
     param([string]$PackagePath)
-    
+
     $scriptContent = @'
 <#
 .SYNOPSIS
@@ -407,7 +407,7 @@ Read-Host "Press ENTER to exit"
     $scriptPath = Join-Path $PackagePath "LOAD_DOCKER_IMAGE.ps1"
     $scriptContent | Out-File -FilePath $scriptPath -Encoding UTF8
     Write-Success "Created Docker image loader script"
-    
+
     # Also create a batch wrapper
     $batContent = @'
 @echo off
@@ -417,7 +417,7 @@ echo.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0LOAD_DOCKER_IMAGE.ps1"
 pause
 '@
-    
+
     $batPath = Join-Path $PackagePath "LOAD_DOCKER_IMAGE.bat"
     $batContent | Out-File -FilePath $batPath -Encoding ASCII
 }
@@ -428,18 +428,18 @@ pause
 
 function Start-PackageCreation {
     Clear-Host
-    
+
     Write-Banner "CREATE DEPLOYMENT PACKAGE" -Color Green
-    
+
     Write-Host "  This tool creates a portable package for offline installation" -ForegroundColor Cyan
     Write-Host ""
-    
+
     $startTime = Get-Date
-    
+
     # Resolve paths
     $sourcePath = $PSScriptRoot
     $destPath = Join-Path $sourcePath $OutputPath
-    
+
     # Clean up existing package
     if (Test-Path $destPath) {
         Write-Warning2 "Output directory already exists: $destPath"
@@ -452,19 +452,19 @@ function Start-PackageCreation {
             return
         }
     }
-    
+
     # Step 1: Copy application files
     Write-Step 1 4 "Copying application files"
     Copy-ProjectFiles -SourcePath $sourcePath -DestPath $destPath
-    
+
     $appSize = Get-DirectorySize -Path $destPath
     Write-Info "Application size: $appSize MB"
-    
+
     # Step 2: Export Docker image (if requested)
     if ($IncludeDockerImage) {
         Write-Step 2 4 "Exporting Docker image"
         $imageExported = Export-DockerImage -ImageName "sms-fullstack" -OutputPath $destPath
-        
+
         if ($imageExported) {
             Create-LoadDockerImageScript -PackagePath $destPath
         }
@@ -472,25 +472,25 @@ function Start-PackageCreation {
         Write-Step 2 4 "Skipping Docker image export"
         Write-Info "Use -IncludeDockerImage to include the Docker image"
     }
-    
+
     # Step 3: Create documentation
     Write-Step 3 4 "Creating deployment documentation"
     Create-DeploymentReadme -PackagePath $destPath
-    
+
     # Step 4: Compress (if requested)
     if ($CompressPackage) {
         Write-Step 4 4 "Compressing package"
-        
+
         $zipPath = "$destPath.zip"
         if (Test-Path $zipPath) {
             Remove-Item $zipPath -Force
         }
-        
+
         Write-Info "Creating ZIP archive..."
         Write-Host "    (This may take several minutes)" -ForegroundColor DarkGray
-        
+
         Compress-Archive -Path $destPath -DestinationPath $zipPath -CompressionLevel Optimal
-        
+
         if (Test-Path $zipPath) {
             $zipSize = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
             Write-Success "Package compressed: $zipSize MB"
@@ -499,34 +499,34 @@ function Start-PackageCreation {
         Write-Step 4 4 "Skipping compression"
         Write-Info "Use -CompressPackage to create a ZIP file"
     }
-    
+
     # Summary
     $endTime = Get-Date
     $duration = ($endTime - $startTime).TotalSeconds
-    
+
     Write-Banner "PACKAGE CREATED SUCCESSFULLY" -Color Green
-    
+
     Write-Host "  Package location:" -ForegroundColor Cyan
     Write-Host "    $destPath" -ForegroundColor White
     Write-Host ""
-    
+
     if ($CompressPackage -and (Test-Path "$destPath.zip")) {
         Write-Host "  ZIP archive:" -ForegroundColor Cyan
         Write-Host "    $destPath.zip" -ForegroundColor White
         Write-Host ""
     }
-    
+
     $totalSize = Get-DirectorySize -Path $destPath
     Write-Host "  Package size: $totalSize MB" -ForegroundColor Cyan
     Write-Host "  Build time: $([math]::Round($duration, 2)) seconds" -ForegroundColor Cyan
     Write-Host ""
-    
+
     Write-Host "  Deployment instructions:" -ForegroundColor Yellow
     Write-Host "    1. Copy the package to target computer" -ForegroundColor Gray
     Write-Host "    2. Run INSTALLER.bat" -ForegroundColor Gray
     Write-Host "    3. Follow the prompts" -ForegroundColor Gray
     Write-Host ""
-    
+
     Write-Host "  For detailed instructions, see:" -ForegroundColor Yellow
     Write-Host "    DEPLOYMENT_README.md (in the package)" -ForegroundColor Gray
     Write-Host ""
