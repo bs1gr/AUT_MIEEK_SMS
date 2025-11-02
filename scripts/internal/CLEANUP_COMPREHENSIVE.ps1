@@ -16,12 +16,12 @@ function Remove-SafeItem {
         [string]$Path,
         [string]$Description
     )
-    
+
     if (Test-Path $Path) {
         try {
             $size = (Get-ChildItem $Path -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
             if ($null -eq $size) { $size = 0 }
-            
+
             Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
             $sizeMB = [math]::Round($size / 1MB, 2)
             $script:totalSize += $size
@@ -125,21 +125,21 @@ try {
     $null = docker version --format '{{.Server.Version}}' 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Host "○ Docker is available" -ForegroundColor Gray
-        
+
         # Check for dangling images
         $danglingImages = docker images -f "dangling=true" -q 2>$null
         if ($danglingImages) {
             Write-Host "  Found dangling Docker images" -ForegroundColor Yellow
             Write-Host "  Run 'docker image prune' to remove them manually" -ForegroundColor Gray
         }
-        
+
         # Check build cache
         $buildCacheSize = docker system df --format '{{.Size}}' 2>$null | Select-Object -Skip 2 -First 1
         if ($buildCacheSize) {
             Write-Host "  Docker build cache: $buildCacheSize" -ForegroundColor Gray
             Write-Host "  Run 'docker builder prune' to clean build cache (optional)" -ForegroundColor Gray
         }
-        
+
         # Check for stopped containers
         $stoppedContainers = docker ps -a -f "status=exited" -q 2>$null
         if ($stoppedContainers) {
@@ -162,7 +162,7 @@ try {
         if ($volumes) {
             $volumeCount = ($volumes | Measure-Object).Count
             Write-Host "  Found $volumeCount Docker volume(s)" -ForegroundColor Gray
-            
+
             # Check for SMS-related volumes
             $smsVolumes = docker volume ls --format '{{.Name}}' 2>$null | Select-String -Pattern 'sms|student'
             if ($smsVolumes) {

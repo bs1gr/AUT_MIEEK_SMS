@@ -1,7 +1,7 @@
 /**
  * API Integration Client for Student Management System
  * Connects React Frontend to FastAPI Backend
- * 
+ *
  * Installation required:
  * Create a .env file in the frontend root directory and add VITE_API_URL.
  * Example: VITE_API_URL=http://localhost:8000
@@ -49,7 +49,7 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // Server responded with error
       console.error('API Error:', error.response.data);
-      
+
       // Handle specific status codes
       if (error.response.status === 404) {
         console.error('Resource not found');
@@ -257,7 +257,7 @@ export const attendanceAPI = {
    */
   bulkCreate: async (attendanceRecords) => {
     try {
-      const promises = attendanceRecords.map(record => 
+      const promises = attendanceRecords.map(record =>
         apiClient.post('/attendance/', record)
       );
       const responses = await Promise.all(promises);
@@ -319,9 +319,9 @@ export const gradesAPI = {
     try {
       const grades = await gradesAPI.getByStudent(studentId);
       const courseGrades = grades.filter(g => g.course_id === courseId);
-      
+
       if (courseGrades.length === 0) return 0;
-      
+
       // Note: This calculation is happening on the frontend.
       // For consistency and performance, consider creating a backend endpoint for this.
       const totalWeight = courseGrades.reduce((sum, g) => sum + g.weight, 0);
@@ -329,7 +329,7 @@ export const gradesAPI = {
         const percentage = (g.grade / g.max_grade) * 100;
         return sum + (percentage * g.weight);
       }, 0);
-      
+
       return totalWeight > 0 ? weightedSum / totalWeight : 0;
     } catch (error) {
       throw error;
@@ -417,7 +417,7 @@ export const analyticsAPI = {
   getAttendanceStats: async (studentId = null) => {
     try {
       let attendanceRecords;
-      
+
       if (studentId) {
         attendanceRecords = await attendanceAPI.getByStudent(studentId);
       } else {

@@ -44,15 +44,15 @@ $totalMismatches = 0
 foreach ($enFile in $enFiles) {
     $fileName = $enFile.Name
     $elFile = "frontend\src\locales\el\$fileName"
-    
+
     if (Test-Path $elFile) {
         $enContent = Get-Content $enFile.FullName -Raw
         $elContent = Get-Content $elFile -Raw
-        
+
         # Extract keys (simple regex match for key names)
         $enKeys = [regex]::Matches($enContent, '^\s*(\w+):' -Split "`n")
         $elKeys = [regex]::Matches($elContent, '^\s*(\w+):' -Split "`n")
-        
+
         Write-Host "  Checked $fileName - Keys appear consistent" -ForegroundColor Gray
     } else {
         Write-Host "  ❌ Missing Greek translation for $fileName" -ForegroundColor Red

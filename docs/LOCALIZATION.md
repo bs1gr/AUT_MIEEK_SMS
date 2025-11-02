@@ -89,7 +89,7 @@ import { useTranslation } from 'react-i18next';
 
 function MyComponent() {
   const { t } = useTranslation();
-  
+
   return (
     <div>
       <h1>{t('common.dashboard')}</h1>
@@ -195,7 +195,7 @@ import { useTranslation } from 'react-i18next';
 
 function MyFeature() {
   const { t } = useTranslation();
-  
+
   return (
     <div>
       <h2>{t('myFeature.title')}</h2>
@@ -296,7 +296,7 @@ import { useTranslation } from 'react-i18next';
 
 function Component() {
   const { t } = useTranslation();
-  
+
   return (
     <>
       <button>{t('common.save')}</button>
@@ -331,6 +331,6 @@ For questions or issues with localization:
 
 ---
 
-**Last Updated**: 2025-01-26  
-**Version**: 1.1  
+**Last Updated**: 2025-01-26
+**Version**: 1.1
 **Languages Supported**: English (EN), Greek (EL)

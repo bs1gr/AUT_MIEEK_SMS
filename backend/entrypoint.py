@@ -8,6 +8,7 @@ programmatic migration runner from `backend.run_migrations` and executes it.
 On success it execs Uvicorn. On failure it prints diagnostics and exits with
 non-zero code so orchestrators detect the failure.
 """
+
 from __future__ import annotations
 
 import logging
@@ -90,7 +91,9 @@ def main() -> int:
     try:
         logger.info("Starting Uvicorn server (exec)")
         # exec into uvicorn so signals are delivered to it
-        os.execvp("python", ["python", "-u", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"])
+        os.execvp(
+            "python", ["python", "-u", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+        )
 
     except Exception as exc:  # pragma: no cover - operational code path
         logger.error(f"Failed to exec uvicorn: {exc}")

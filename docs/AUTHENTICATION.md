@@ -57,13 +57,13 @@ from backend.models import User
 
 def create_admin():
     db = next(get_db())
-    
+
     # Check if admin exists
     existing = db.query(User).filter(User.email == "admin@school.edu").first()
     if existing:
         print("Admin user already exists")
         return
-    
+
     # Create admin
     admin = User(
         email="admin@school.edu",
@@ -351,7 +351,7 @@ if (response.status === 401) {
    from backend.db import get_db
    from backend.models import User
    from backend.routers.routers_auth import get_password_hash
-   
+
    db = next(get_db())
    admin = db.query(User).filter(User.email == "admin@school.edu").first()
    admin.hashed_password = get_password_hash("NewPassword123!")
@@ -382,7 +382,7 @@ pytest tests/test_rbac_enforcement.py -v
 All authenticated endpoints are rate-limited:
 
 - **Read operations:** 60 requests/minute
-- **Write operations:** 10 requests/minute  
+- **Write operations:** 10 requests/minute
 - **Heavy operations** (backups, imports): 5 requests/minute
 
 Rate limits apply per IP address, regardless of authentication status.
@@ -455,6 +455,6 @@ For issues or questions:
 
 ---
 
-**Version:** 1.2.0  
-**Last Updated:** October 30, 2025  
+**Version:** 1.2.0
+**Last Updated:** October 30, 2025
 **Maintainer:** Student Management System Team
