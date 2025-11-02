@@ -3,6 +3,11 @@
 /Obsolete
 *.pid
 
+# Temporary scripts
+tmp_*.ps1
+tmp_*.sh
+watch_run.ps1
+
 # Python cache/artifacts
 __pycache__/
 **/__pycache__/
