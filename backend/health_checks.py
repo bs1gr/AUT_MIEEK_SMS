@@ -14,6 +14,8 @@ from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+import importlib
+import importlib.util
 from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
@@ -197,7 +199,23 @@ class HealthChecker:
                 },
             }
         except Exception as e:
-            logger.error(f"Database health check failed: {e}", exc_info=True)
+            # Tests often mock the DB session and make execute() raise to simulate failures.
+            # In that case we don't want to spam CI logs with full tracebacks. Detect
+            # common mock signatures and downgrade the log level for mocked/test runs.
+            try:
+                is_mocked_execute = hasattr(db.execute, "mock_calls") or "Mock" in type(db.execute).__name__
+            except Exception:
+                is_mocked_execute = False
+
+            # Quiet health-check logging when running tests or in CI testing mode.
+            testing_env = os.getenv("TESTING") == "true"
+            if is_mocked_execute or os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING") or testing_env:
+                # During tests or when TESTING=true, log at DEBUG to avoid noisy CI output
+                logger.debug(f"Database health check failed (test/mocked): {e}")
+            else:
+                # In normal runs keep detailed error logs
+                logger.error(f"Database health check failed: {e}", exc_info=True)
+
             return {
                 "status": HealthCheckStatus.UNHEALTHY,
                 "message": f"Database connection failed: {str(e)}",
@@ -305,11 +323,23 @@ class HealthChecker:
             dict: Database statistics
         """
         try:
-            try:
-                # CourseEnrollment is the actual model name in this project
-                from backend.models import Student, Course, Grade, CourseEnrollment
-            except ModuleNotFoundError:
-                from models import Student, Course, Grade, CourseEnrollment
+            # Dynamically resolve models package whether running as package or
+            # as a script. Use importlib to avoid try/except local import
+            # patterns that confuse static checkers and cause redefinition
+            # warnings.
+            def _load_models_module() -> Any:
+                if importlib.util.find_spec("backend.models") is not None:
+                    return importlib.import_module("backend.models")
+                elif importlib.util.find_spec("models") is not None:
+                    return importlib.import_module("models")
+                else:
+                    raise ModuleNotFoundError("Could not locate models module")
+
+            mod = _load_models_module()
+            Student = getattr(mod, "Student")
+            Course = getattr(mod, "Course")
+            Grade = getattr(mod, "Grade")
+            CourseEnrollment = getattr(mod, "CourseEnrollment")
 
             return {
                 "students": db.query(Student).count(),

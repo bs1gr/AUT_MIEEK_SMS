@@ -1,0 +1,88 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.3.5)'
+        required: true
+        default: '1.3.5'
+      environment:
+        description: 'Target environment (production|staging)'
+        required: true
+        default: 'production'
+
+jobs:
+  deploy:
+    name: Deploy to cluster
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.30.0'
+
+      - name: Restore KUBECONFIG from secret
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          if [ -z "$KUBE_CONFIG" ]; then echo "KUBE_CONFIG secret is not set"; exit 1; fi
+          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig
+          chmod 600 kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Parse release notes for digests
+        id: parse
+        run: |
+          FILE="RELEASE_NOTES/docker-images-${{ inputs.version }}.md"
+          if [ ! -f "$FILE" ]; then echo "File $FILE not found"; exit 1; fi
+          # look for dockerhub-style repo@sha256 and fall back to GHCR entries
+          backend=$(grep -Eo 'aut_mieek_sms-backend@sha256:[a-f0-9]+' "$FILE" | head -n1)
+          frontend=$(grep -Eo 'aut_mieek_sms-frontend@sha256:[a-f0-9]+' "$FILE" | head -n1)
+          fullstack=$(grep -Eo 'aut_mieek_sms-fullstack@sha256:[a-f0-9]+' "$FILE" | head -n1)
+          if [ -z "$backend" ]; then backend=$(grep -Eo 'ghcr.io/bs1gr/sms-backend@sha256:[a-f0-9]+' "$FILE" | head -n1); fi
+          if [ -z "$frontend" ]; then frontend=$(grep -Eo 'ghcr.io/bs1gr/sms-frontend@sha256:[a-f0-9]+' "$FILE" | head -n1); fi
+          if [ -z "$fullstack" ]; then fullstack=$(grep -Eo 'ghcr.io/bs1gr/sms-fullstack@sha256:[a-f0-9]+' "$FILE" | head -n1); fi
+          echo "backend=$backend" >> $GITHUB_OUTPUT
+          echo "frontend=$frontend" >> $GITHUB_OUTPUT
+          echo "fullstack=$fullstack" >> $GITHUB_OUTPUT
+
+      - name: Deploy backend (if present)
+        if: steps.parse.outputs.backend != ''
+        env:
+          BACKEND_IMAGE: ${{ steps.parse.outputs.backend }}
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+        run: |
+          echo "Updating backend to $BACKEND_IMAGE"
+          kubectl set image deployment/sms-backend sms-backend="$BACKEND_IMAGE" -n ${{ inputs.environment }} --record
+          kubectl rollout status deployment/sms-backend -n ${{ inputs.environment }}
+
+      - name: Deploy frontend (if present)
+        if: steps.parse.outputs.frontend != ''
+        env:
+          FRONTEND_IMAGE: ${{ steps.parse.outputs.frontend }}
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+        run: |
+          echo "Updating frontend to $FRONTEND_IMAGE"
+          kubectl set image deployment/sms-frontend sms-frontend="$FRONTEND_IMAGE" -n ${{ inputs.environment }} --record
+          kubectl rollout status deployment/sms-frontend -n ${{ inputs.environment }}
+
+      - name: Deploy fullstack (if present)
+        if: steps.parse.outputs.fullstack != ''
+        env:
+          FULLSTACK_IMAGE: ${{ steps.parse.outputs.fullstack }}
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+        run: |
+          echo "Updating fullstack to $FULLSTACK_IMAGE"
+          kubectl set image deployment/sms-fullstack sms-fullstack="$FULLSTACK_IMAGE" -n ${{ inputs.environment }} --record
+          kubectl rollout status deployment/sms-fullstack -n ${{ inputs.environment }}
+
+      - name: Post-deploy smoke test (optional)
+        run: |
+          echo "You can add smoke test commands here (curl to health endpoints)."

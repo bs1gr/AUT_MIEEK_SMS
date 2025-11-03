@@ -6,13 +6,9 @@
 **Status**: CLI functional with critical bugs fixed + architectural improvements applied
 **Version**: v1.3.1
 
----
+ This document has been archived and a canonical copy moved to `docs/archive/CLI_TESTING_FINAL_SUMMARY.md`.
 
-## Executive Summary
-
-Initial integration testing of the modular Python CLI revealed **6 critical bugs** that prevented commands from working. All bugs have been fixed and the tested commands are now functional on Windows.
-
-**Update (v1.3.1)**: Architectural improvements have been implemented to address root causes. See [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md) for details.
+ Please review the archived copy for full details. The repository now contains the archived version under `docs/archive/`.
 
 ### Key Achievements
 - ✅ Fixed 6 critical architectural bugs

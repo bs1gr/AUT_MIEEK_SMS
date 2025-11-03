@@ -31,6 +31,7 @@ import shutil
 import threading
 from datetime import datetime
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 # FastAPI imports
 from fastapi import FastAPI, Depends, Request
@@ -47,18 +48,34 @@ from slowapi.errors import RateLimitExceeded
 # Database imports
 from sqlalchemy.orm import Session
 
-# Local imports - handle both direct execution and module import
-try:
-    from backend.config import settings
-    from backend.logging_config import initialize_logging
-    from backend.db import get_session as db_get_session, engine as db_engine, ensure_schema as db_ensure_schema
-    from backend.request_id_middleware import RequestIDMiddleware
-except ModuleNotFoundError:
-    # Running directly from backend directory
-    from config import settings
-    from logging_config import initialize_logging
-    from db import get_session as db_get_session, engine as db_engine, ensure_schema as db_ensure_schema
-    from request_id_middleware import RequestIDMiddleware
+# Local imports: prefer package imports, fall back to module imports when executed from backend/
+import importlib
+import importlib.util
+
+# Detect whether package-style imports are available (importing as 'backend.*')
+if importlib.util.find_spec("backend.config") is not None:
+    config_mod = importlib.import_module("backend.config")
+    settings = config_mod.settings
+    logging_mod = importlib.import_module("backend.logging_config")
+    initialize_logging = logging_mod.initialize_logging
+    db_mod = importlib.import_module("backend.db")
+    db_get_session = db_mod.get_session
+    db_engine = getattr(db_mod, "engine")
+    db_ensure_schema = getattr(db_mod, "ensure_schema")
+    rim_mod = importlib.import_module("backend.request_id_middleware")
+    RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
+else:
+    # Fallback for direct execution inside backend/ directory
+    config_mod = importlib.import_module("config")
+    settings = config_mod.settings
+    logging_mod = importlib.import_module("logging_config")
+    initialize_logging = logging_mod.initialize_logging
+    db_mod = importlib.import_module("db")
+    db_get_session = db_mod.get_session
+    db_engine = getattr(db_mod, "engine")
+    db_ensure_schema = getattr(db_mod, "ensure_schema")
+    rim_mod = importlib.import_module("request_id_middleware")
+    RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -74,8 +91,6 @@ if sys.platform == "win32":
 # ============================================================================
 
 try:
-    from pathlib import Path
-
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     # Ensure project root is on sys.path so absolute imports like 'backend.xxx' work
     if str(PROJECT_ROOT) not in sys.path:
@@ -88,6 +103,20 @@ except Exception:
     CONTROL_HTML = None
     SPA_DIST_DIR = None
     SPA_INDEX_FILE = None
+
+
+def get_version() -> str:
+    """Read version from VERSION file in project root."""
+    try:
+        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
+VERSION = get_version()
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
 FRONTEND_PORT_PREFERRED = 5173
@@ -195,11 +224,16 @@ logger = logging.getLogger(__name__)
 # RATE LIMITING CONFIGURATION
 # ============================================================================
 
-# Import centralized rate limiter
-try:
-    from backend.rate_limiting import limiter
-except ModuleNotFoundError:
-    from rate_limiting import limiter
+# Import centralized rate limiter via importlib to support package/script modes
+rl_mod = None
+if importlib.util.find_spec("backend.rate_limiting") is not None:
+    rl_mod = importlib.import_module("backend.rate_limiting")
+elif importlib.util.find_spec("rate_limiting") is not None:
+    rl_mod = importlib.import_module("rate_limiting")
+else:
+    rl_mod = None
+
+limiter = getattr(rl_mod, "limiter") if rl_mod is not None else None
 
 # ============================================================================
 # SCHEMAS
@@ -221,7 +255,7 @@ def create_app() -> FastAPI:
     """
     return FastAPI(
         title="Student Management System API",
-        version="1.2.3",
+        version=VERSION,
         description="Bilingual Student Management System with Advanced Grading",
         docs_url="/docs",
         openapi_url="/openapi.json",
@@ -254,7 +288,7 @@ async def lifespan(app: FastAPI):
     logger.info("\n" + "=" * 70)
     logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
     logger.info("=" * 70)
-    logger.info("Version: 1.2.1 - Production Ready")
+    logger.info(f"Version: {VERSION} - Production Ready")
     logger.info("Database: SQLite")
     logger.info("Framework: FastAPI")
     logger.info("Logging: initialized")
@@ -279,6 +313,42 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Migration runner error: {str(e)}")
         logger.warning("Continuing without migration check...")
+
+    # Verify schema presence. In some environments migrations may report success
+    # but the target DB might be different or empty. Offer an opt-in fallback to
+    # create missing tables automatically if the operator set
+    # ALLOW_SCHEMA_AUTO_CREATE=1 in the environment. This protects production
+    # clusters from accidental implicit schema creation while allowing safe
+    # deployments to self-heal when explicitly permitted.
+    try:
+        from sqlalchemy import inspect
+
+        inspector = inspect(db_engine)
+        tables = inspector.get_table_names()
+        if not tables:
+            allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            )
+            if allow_auto:
+                # Last-resort: create tables using SQLAlchemy models metadata
+                try:
+                    from backend.models import Base
+
+                    logger.warning(
+                        "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled — creating tables via metadata.create_all()"
+                    )
+                    Base.metadata.create_all(bind=db_engine)
+                    logger.info("✓ Created missing database tables via metadata.create_all()")
+                except Exception as e:
+                    logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
+            else:
+                logger.warning(
+                    "No database tables detected after migrations. To allow automatic creation as a fallback, set ALLOW_SCHEMA_AUTO_CREATE=1 in the environment."
+                )
+    except Exception as e:
+        logger.warning(f"Schema verification failed (continuing): {e}")
 
     # Legacy schema compatibility check (kept for backward compatibility during transition)
     try:
@@ -1010,73 +1080,85 @@ def register_routers(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
+    # Try to import admin routes using importlib resolution
     try:
-        # Try to import admin routes
-        try:
-            try:
-                from backend.admin_routes import router as admin_router
-            except ModuleNotFoundError:
-                from admin_routes import router as admin_router
+        admin_mod_name = (
+            "backend.admin_routes"
+            if importlib.util.find_spec("backend.admin_routes")
+            else ("admin_routes" if importlib.util.find_spec("admin_routes") else None)
+        )
+        if admin_mod_name:
+            admin_mod = importlib.import_module(admin_mod_name)
+            admin_router = getattr(admin_mod, "router")
             app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
             logger.info("Admin router registered successfully")
-        except ImportError as e:
-            logger.debug(f"Admin router not found: {e}")
+    except Exception as e:
+        logger.debug(f"Admin router not found or failed to register: {e}")
 
-        # Explicitly register Auth router (critical)
-        try:
-            try:
-                from backend.routers.routers_auth import router as auth_router
-            except ModuleNotFoundError:
-                from routers.routers_auth import router as auth_router
+    # Explicitly register Auth router (critical) via importlib resolution
+    try:
+        auth_mod_name = (
+            "backend.routers.routers_auth"
+            if importlib.util.find_spec("backend.routers.routers_auth")
+            else ("routers.routers_auth" if importlib.util.find_spec("routers.routers_auth") else None)
+        )
+        if auth_mod_name:
+            auth_mod = importlib.import_module(auth_mod_name)
+            auth_router = getattr(auth_mod, "router")
             app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
             logger.info("Auth router registered successfully")
-        except Exception as e:
-            logger.warning(f"Auth router failed to load: {e}")
-
-        # Try to import modular routers using actual filenames under backend/routers/.
-        # Import each router independently so one failure doesn't block others.
-        registered = []
-        errors = []
-
-        def _try_add(import_path: str, tag: str):
-            nonlocal registered, errors
-            try:
-                # Try with backend. prefix first, then without
-                try:
-                    module = __import__(import_path, fromlist=["router"])
-                except ModuleNotFoundError:
-                    # Remove backend. prefix for direct execution
-                    import_path = import_path.replace("backend.", "")
-                    module = __import__(import_path, fromlist=["router"])
-                app.include_router(module.router, prefix="/api/v1", tags=[tag])
-                registered.append(tag)
-            except Exception as ex:
-                errors.append((import_path, str(ex)))
-                logger.debug(f"Failed to register router '{import_path}': {ex}")
-
-        _try_add("backend.routers.routers_students", "Students")
-        _try_add("backend.routers.routers_courses", "Courses")
-        _try_add("backend.routers.routers_grades", "Grades")
-        _try_add("backend.routers.routers_attendance", "Attendance")
-        _try_add("backend.routers.routers_analytics", "Analytics")
-        _try_add("backend.routers.routers_performance", "DailyPerformance")
-        _try_add("backend.routers.routers_exports", "Export")
-        _try_add("backend.routers.routers_enrollments", "Enrollments")
-        _try_add("backend.routers.routers_imports", "Imports")
-        _try_add("backend.routers.routers_highlights", "Highlights")
-        _try_add("backend.routers.routers_adminops", "AdminOps")
-        _try_add("backend.routers.routers_control", "Control")
-
-        if registered:
-            logger.info(f"Registered routers: {', '.join(registered)}")
-        if errors:
-            # Elevate visibility so operators can see exactly which routers failed
-            logger.warning("Some routers failed to load. Details:")
-            for mod, err in errors:
-                logger.warning(f" - {mod}: {err}")
-
     except Exception as e:
-        logger.error(f"Unexpected error during router registration: {str(e)}", exc_info=True)
+        logger.warning(f"Auth router failed to load: {e}")
+
+    # Try to import modular routers using actual filenames under backend/routers/.
+    # Import each router independently so one failure doesn't block others.
+    registered = []
+    errors = []
+
+    def _try_add(import_path: str, tag: str):
+        nonlocal registered, errors
+        try:
+            # Prefer backend-prefixed module when available
+            backend_path = import_path
+            plain_path = import_path.replace("backend.", "")
+            chosen = None
+            if importlib.util.find_spec(backend_path) is not None:
+                chosen = backend_path
+            elif importlib.util.find_spec(plain_path) is not None:
+                chosen = plain_path
+            else:
+                chosen = None
+
+            if chosen is None:
+                raise ModuleNotFoundError(f"Module not found: {import_path}")
+
+            module = importlib.import_module(chosen)
+            app.include_router(getattr(module, "router"), prefix="/api/v1", tags=[tag])
+            registered.append(tag)
+        except Exception as ex:
+            errors.append((import_path, str(ex)))
+            logger.debug(f"Failed to register router '{import_path}': {ex}")
+
+    _try_add("backend.routers.routers_students", "Students")
+    _try_add("backend.routers.routers_courses", "Courses")
+    _try_add("backend.routers.routers_grades", "Grades")
+    _try_add("backend.routers.routers_attendance", "Attendance")
+    _try_add("backend.routers.routers_analytics", "Analytics")
+    _try_add("backend.routers.routers_performance", "DailyPerformance")
+    _try_add("backend.routers.routers_exports", "Export")
+    _try_add("backend.routers.routers_enrollments", "Enrollments")
+    _try_add("backend.routers.routers_imports", "Imports")
+    _try_add("backend.routers.routers_highlights", "Highlights")
+    _try_add("backend.routers.routers_adminops", "AdminOps")
+    _try_add("backend.routers.routers_control", "Control")
+
+    if registered:
+        logger.info(f"Registered routers: {', '.join(registered)}")
+    if errors:
+        # Elevate visibility so operators can see exactly which routers failed
+        logger.warning("Some routers failed to load. Details:")
+        for mod, err in errors:
+            logger.warning(f" - {mod}: {err}")
 
 
 # Register routers
@@ -1090,7 +1172,7 @@ register_routers(app)
 def _api_metadata() -> dict:
     return {
         "message": "Student Management System API",
-        "version": "3.0.3",
+        "version": VERSION,
         "status": "running",
         "documentation": {"swagger": "/docs", "redoc": "/redoc", "openapi": "/openapi.json"},
         "endpoints": {
@@ -1217,10 +1299,9 @@ async def health_check(db: Session = Depends(get_db)):
     Returns:
         dict: Comprehensive health status
     """
-    try:
-        from backend.health_checks import HealthChecker
-    except ModuleNotFoundError:
-        from health_checks import HealthChecker
+    from backend.import_resolver import import_names
+
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     result = checker.check_health(db)
@@ -1268,10 +1349,9 @@ async def readiness_check(db: Session = Depends(get_db)):
     Returns:
         dict: Readiness status
     """
-    try:
-        from backend.health_checks import HealthChecker
-    except ModuleNotFoundError:
-        from health_checks import HealthChecker
+    from backend.import_resolver import import_names
+
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     return checker.check_readiness(db)
@@ -1293,10 +1373,9 @@ async def liveness_check():
     Returns:
         dict: Liveness status
     """
-    try:
-        from backend.health_checks import HealthChecker
-    except ModuleNotFoundError:
-        from health_checks import HealthChecker
+    from backend.import_resolver import import_names
+
+    (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
     checker = HealthChecker(app.state, db_engine)
     return checker.check_liveness()
@@ -1398,7 +1477,7 @@ def main() -> None:
     print("\n" + "=" * 70)
     print("STUDENT MANAGEMENT SYSTEM API")
     print("=" * 70)
-    print("  Version: 3.0.3")
+    print(f"  Version: {VERSION}")
     print("  Status: Production Ready with All Fixes Applied")
     print("  Database: SQLite")
     print("  Framework: FastAPI")

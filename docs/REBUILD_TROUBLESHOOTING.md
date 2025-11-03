@@ -33,7 +33,7 @@ docker compose restart backend
 touch: cannot touch '/data/student_management.db': Permission denied
 ```
 
-**Solution:** 
+**Solution:**
 - Updated `docker/Dockerfile.backend` to create `/data` directory and set ownership during image build
 - This ensures proper permissions from the start for any new volume
 

@@ -25,20 +25,35 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+import importlib
+import importlib.util
+from typing import Iterable, Tuple, Any
+
+
 # Robust imports when running as a package or directly
-try:  # When imported as backend.admin_routes
-    from backend.config import settings
-    from backend.db import get_session as get_db, engine
-    from backend.models import Student, Course, Grade, Base
-except ModuleNotFoundError:  # Fallback for direct execution
-    from config import settings  # type: ignore
-    from db import get_session as get_db, engine  # type: ignore
-    from models import (  # type: ignore
-        Student,
-        Course,
-        Grade,
-        Base,
-    )
+def _import_from_possible_locations(module_basename: str, names: Iterable[str]) -> Tuple[Any, ...]:
+    """Try importing names from 'backend.<module_basename>' first, then fall back to '<module_basename>'.
+
+    Returns a tuple with attributes in the same order as `names`.
+    Raises ImportError if none of the candidates can be imported.
+    """
+    candidates = (f"backend.{module_basename}", module_basename)
+    for mod_name in candidates:
+        try:
+            if importlib.util.find_spec(mod_name) is None:
+                continue
+            mod = importlib.import_module(mod_name)
+            return tuple(getattr(mod, n) for n in names)
+        except Exception:
+            # try next candidate
+            continue
+    raise ImportError(f"Could not import {', '.join(names)} from {module_basename} or backend.{module_basename}")
+
+
+# Import required names (prefer package imports when available)
+(settings,) = _import_from_possible_locations("config", ["settings"])
+get_db, engine = _import_from_possible_locations("db", ["get_session", "engine"])
+Student, Course, Grade, Base = _import_from_possible_locations("models", ["Student", "Course", "Grade", "Base"])
 
 # Create router
 router = APIRouter()

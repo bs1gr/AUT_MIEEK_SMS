@@ -1,7 +1,7 @@
 @echo off
 REM ============================================================================
 REM   Create Deployment Package - Batch Wrapper
-REM   
+REM
 REM   Creates a portable package for offline deployment
 REM ============================================================================
 
