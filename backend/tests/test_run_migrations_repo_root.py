@@ -1,6 +1,5 @@
 import secrets
 from pathlib import Path
-import os
 
 
 def test_run_migrations_writes_log(tmp_path, monkeypatch):
