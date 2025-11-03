@@ -56,9 +56,19 @@ def run_migrations(verbose: bool = False) -> bool:
             print(f"Backend directory: {backend_dir}")
             print(f"Using DATABASE_URL: {settings.DATABASE_URL}")
 
-        # Ensure logs directory exists and add a file handler for migration logs
+        # Ensure logs directory exists and add a file handler for migration logs.
+        # Resolve repository root robustly (walk upwards for a .git or a project marker).
         try:
-            logs_dir = Path(__file__).resolve().parents[2] / "logs"
+            def _find_repo_root(start: Path) -> Path:
+                for p in (start, *start.parents):
+                    if (p / ".git").exists() or (p / "backend").exists() and (p / "backend").is_dir():
+                        return p
+                # Fallback to two levels up (legacy layout) or cwd
+                fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
+                return fallback
+
+            repo_root = _find_repo_root(Path(__file__).resolve().parent)
+            logs_dir = repo_root / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             fh = logging.FileHandler(logs_dir / "migrations.log")
             fh.setLevel(logging.INFO)
