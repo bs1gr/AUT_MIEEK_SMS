@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sms-fullstack
+  labels:
+    app: sms-fullstack
+spec:
+  selector:
+    app: sms-fullstack
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

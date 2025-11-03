@@ -1,7 +1,7 @@
 # Security Audit and Hardening Recommendations
 
-**Version**: 3.0.3 (v1.1 branch)  
-**Date**: 2025  
+**Version**: 3.0.3 (v1.1 branch)
+**Date**: 2025
 **Audit Scope**: Full-stack security assessment (frontend, backend, database, deployment)
 
 ---
@@ -72,7 +72,7 @@ from datetime import datetime, timezone
 
 class User(Base):
     __tablename__ = 'users'
-    
+
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
@@ -125,7 +125,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: Session
       raise credentials_exception
   except jwt.InvalidTokenError:
     raise credentials_exception
-    
+
     user = session.query(User).filter(User.username == username).first()
     if user is None or not user.is_active:
         raise credentials_exception
@@ -312,18 +312,18 @@ services:
    **Recommendation**:
    ```python
    from fastapi import UploadFile, HTTPException
-   
+
    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
    ALLOWED_TYPES = {"application/json", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-   
+
    async def validate_file(file: UploadFile):
        if file.content_type not in ALLOWED_TYPES:
            raise HTTPException(400, "Invalid file type")
-       
+
        content = await file.read()
        if len(content) > MAX_FILE_SIZE:
            raise HTTPException(413, "File too large")
-       
+
        await file.seek(0)  # Reset for processing
        return file
    ```
@@ -374,13 +374,13 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # ... existing fields
-    
+
     JWT_SECRET_KEY: str = Field(
         ...,  # Required field
         min_length=32,
         description="JWT signing key (use openssl rand -hex 32)"
     )
-    
+
     @validator('JWT_SECRET_KEY')
     def validate_jwt_secret(cls, v):
         if v in ['change_me', 'secret', 'dev_secret']:
@@ -451,7 +451,7 @@ async def export_data(request: Request, ...):
 # docker/nginx.conf
 http {
     limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-    
+
     server {
         location /api/ {
             limit_req zone=api_limit burst=20 nodelay;
@@ -730,7 +730,7 @@ services:
 # backend/models.py
 class DataAccessLog(Base):
     __tablename__ = 'data_access_logs'
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     resource_type = Column(String)  # 'student', 'grade', etc.
@@ -843,7 +843,7 @@ The v1.1 branch improvements (Docker hardening, CI workflow, environment templat
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025  
-**Next Review**: After authentication implementation  
+**Document Version**: 1.0
+**Last Updated**: 2025
+**Next Review**: After authentication implementation
 **Prepared By**: GitHub Copilot (AI Security Assessment)

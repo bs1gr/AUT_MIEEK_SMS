@@ -4,11 +4,11 @@ import { Globe } from 'lucide-react';
 
 /**
  * LanguageSwitcher Component
- * 
+ *
  * A compact language toggle component that allows users to switch between
  * English (EN) and Greek (EL) languages. The selected language is persisted
  * in localStorage and applied across the entire application.
- * 
+ *
  * Features:
  * - Visual indicator of current language
  * - Smooth transitions
@@ -17,10 +17,10 @@ import { Globe } from 'lucide-react';
  */
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
-  
+
   // Get current language (default to 'en' if not set)
   const currentLanguage = i18n.language || 'en';
-  
+
   // Toggle between English and Greek
   const toggleLanguage = () => {
     const newLanguage = currentLanguage === 'en' ? 'el' : 'en';

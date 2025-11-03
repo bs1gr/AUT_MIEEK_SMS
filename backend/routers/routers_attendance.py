@@ -67,7 +67,9 @@ def create_attendance(
     - **period_number**: Class period number (default: 1)
     """
     try:
-        from backend.models import Attendance, Student, Course
+        from backend.import_resolver import import_names
+
+        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
         # Validate student exists
         student = db.query(Student).filter(Student.id == attendance_data.student_id).first()
@@ -132,7 +134,9 @@ def get_all_attendance(
     - **status**: Filter by status (Present, Absent, Late, Excused)
     """
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         query = db.query(Attendance).options(joinedload(Attendance.student), joinedload(Attendance.course))
 
@@ -170,7 +174,9 @@ def get_student_attendance(
 ):
     """Get all attendance records for a student"""
     try:
-        from backend.models import Attendance, Student
+        from backend.import_resolver import import_names
+
+        Attendance, Student = import_names("models", "Attendance", "Student")
 
         # Validate student exists
         student = db.query(Student).filter(Student.id == student_id).first()
@@ -202,7 +208,9 @@ def get_course_attendance(
 ):
     """Get all attendance records for a course"""
     try:
-        from backend.models import Attendance, Course
+        from backend.import_resolver import import_names
+
+        Attendance, Course = import_names("models", "Attendance", "Course")
 
         # Validate course exists
         course = db.query(Course).filter(Course.id == course_id).first()
@@ -228,7 +236,9 @@ def get_course_attendance(
 def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db: Session = Depends(get_db)):
     """Get all attendance records for a specific course on a given date"""
     try:
-        from backend.models import Attendance, Course
+        from backend.import_resolver import import_names
+
+        Attendance, Course = import_names("models", "Attendance", "Course")
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -248,7 +258,9 @@ def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db:
 def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
     """Get a specific attendance record"""
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -275,7 +287,9 @@ def update_attendance(
 ):
     """Update an attendance record"""
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -310,7 +324,9 @@ def delete_attendance(
 ):
     """Delete an attendance record"""
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
 
@@ -335,7 +351,9 @@ def delete_attendance(
 def get_attendance_stats(student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get attendance statistics for a student in a course"""
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         attendance_records = (
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.course_id == course_id).all()
@@ -379,7 +397,9 @@ def bulk_create_attendance(
     Useful for recording attendance for an entire class.
     """
     try:
-        from backend.models import Attendance
+        from backend.import_resolver import import_names
+
+        (Attendance,) = import_names("models", "Attendance")
 
         created = []
         errors = []

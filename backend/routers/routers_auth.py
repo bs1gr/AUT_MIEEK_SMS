@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Any, TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
 from fastapi.security import OAuth2PasswordBearer
@@ -8,19 +8,53 @@ from jwt import InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-# Local imports resilient to run path
+# Local imports resilient to run path - use importlib to avoid redefinition warnings
+import importlib
+import importlib.util
+
+
+def _resolve_backend_import(name: str, attr: str | None = None):
+    """Attempt to import `backend.<name>` and fall back to `<name>` when running from backend/ directly."""
+    try:
+        module = importlib.import_module(f"backend.{name}")
+    except Exception:
+        module = importlib.import_module(name)
+    return getattr(module, attr) if attr else module
+
+
+get_db: Any = _resolve_backend_import("db", "get_session")
+settings: Any = _resolve_backend_import("config", "settings")
+models = (
+    importlib.import_module("backend.models")
+    if importlib.util.find_spec("backend.models")
+    else importlib.import_module("models")
+)
+
+# For static type checking, import symbols into the TYPE_CHECKING block so mypy
+# can resolve types like models.User and schema classes while runtime still
+# uses dynamic imports to support different execution entry paths.
+if TYPE_CHECKING:
+    from backend import models as models  # type: ignore
+    from backend.schemas import UserCreate, UserLogin, UserResponse, Token  # type: ignore
+else:
+    schemas_mod = None
+    try:
+        schemas_mod = importlib.import_module("backend.schemas")
+    except Exception:
+        schemas_mod = importlib.import_module("schemas")
+
+    UserCreate = getattr(schemas_mod, "UserCreate")
+    UserLogin = getattr(schemas_mod, "UserLogin")
+    UserResponse = getattr(schemas_mod, "UserResponse")
+    Token = getattr(schemas_mod, "Token")
+
 try:
-    from backend.db import get_session as get_db
-    from backend.config import settings
-    from backend import models
-    from backend.schemas import UserCreate, UserLogin, UserResponse, Token
-    from backend.rate_limiting import limiter, RATE_LIMIT_AUTH
-except ModuleNotFoundError:
-    from db import get_session as get_db
-    from config import settings
-    import models
-    from schemas import UserCreate, UserLogin, UserResponse, Token
-    from rate_limiting import limiter, RATE_LIMIT_AUTH
+    rl_mod = importlib.import_module("backend.rate_limiting")
+except Exception:
+    rl_mod = importlib.import_module("rate_limiting")
+
+limiter = getattr(rl_mod, "limiter")
+RATE_LIMIT_AUTH = getattr(rl_mod, "RATE_LIMIT_AUTH")
 
 router = APIRouter()
 
@@ -58,7 +92,7 @@ def decode_token(token: str) -> dict:
 
 
 # Dependency: get current user (optional require)
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Any:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -80,7 +114,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 def require_role(*roles: str):
-    def _dep(user: models.User = Depends(get_current_user)) -> models.User:
+    def _dep(user: Any = Depends(get_current_user)) -> Any:
         if roles and user.role not in roles:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
@@ -147,5 +181,5 @@ async def login(request: Request, payload: UserLogin = Body(...), db: Session = 
 
 @router.get("/auth/me", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def me(request: Request, current_user: models.User = Depends(get_current_user)):
+async def me(request: Request, current_user: Any = Depends(get_current_user)):
     return current_user

@@ -60,7 +60,7 @@ const StudentManagementApp = () => {
       ]);
       setStudents(Array.isArray(studentsData) ? studentsData : []);
       setCourses(Array.isArray(coursesData) ? coursesData : []);
-      
+
       if (!Array.isArray(studentsData) || !Array.isArray(coursesData)) {
         showToast('Failed to load some data. Endpoints might be missing.', 'error');
       }
@@ -144,7 +144,7 @@ const StudentManagementApp = () => {
           </button>
         ))}
       </div>
-      
+
 
       {/* Views */}
       {activeView === 'dashboard' && (

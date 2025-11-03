@@ -1,7 +1,7 @@
 /**
  * Grade Conversion Utilities
  * Location: frontend/src/utils/gradeUtils.js
- * 
+ *
  * Handles conversion between different grading systems:
  * - GPA (0-4.0) - American system
  * - Percentage (0-100)
@@ -119,7 +119,7 @@ export const getGreekGradeBgColor = (greekGrade) => {
 export const formatAllGrades = (gpa) => {
   const percentage = gpaToPercentage(gpa);
   const greekGrade = gpaToGreekScale(gpa);
-  
+
   return {
     gpa: gpa.toFixed(2),
     percentage: percentage.toFixed(1),

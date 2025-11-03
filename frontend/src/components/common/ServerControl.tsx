@@ -26,7 +26,7 @@ interface ServerStatus {
 const ServerControl: React.FC = () => {
   // ...existing code...
   const { t } = useLanguage() as any;
-  
+
   const [status, setStatus] = useState<ServerStatus>({
     backend: 'checking',
     frontend: 'checking',
@@ -86,8 +86,7 @@ const ServerControl: React.FC = () => {
   const checkStatus = async () => {
     try {
       const data = await getHealthStatus();
-      console.log('[ServerControl] Health data received:', data);
-      
+
       let backendStatus: 'online' | 'offline' = 'offline';
       let uptime = 0;
       let error = '';
@@ -189,7 +188,7 @@ const ServerControl: React.FC = () => {
         const serverStoppedMsg = t('controlPanel.serverStopped');
         const canCloseWindowMsg = t('controlPanel.canCloseWindow');
         const systemTitleMsg = t('systemTitle') || 'Student Management System';
-        
+
         document.body.innerHTML = `
           <div style="
             display: flex;
@@ -517,7 +516,7 @@ const ServerControl: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="rounded-lg border p-3">
               <div className="text-xs text-gray-500">{t('controlPanel.database')}</div>
               <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('controlPanel.unknown')}</div>
@@ -534,14 +533,14 @@ const ServerControl: React.FC = () => {
               <div className="text-xs text-gray-500">{t('utils.frontend')}</div>
               <div className="text-sm font-semibold">{window.location.hostname}:{window.location.port || '5173'}</div>
             </div>
-            
+
             {/* Available Endpoints - Only Active IPs */}
             <div className="rounded-lg border p-3 md:col-span-3">
               <div className="text-sm font-semibold mb-2">{t('controlPanel.environmentInfo')}</div>
               {(() => {
                 const frontendPort = String(window.location.port || '5173');
                 const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
-                
+
                 // Filter for active IPs: localhost, current hostname, and non-169.254 (APIPA) addresses
                 const activeIps = rawIps.filter(ip => {
                   if (!ip || typeof ip !== 'string') return false;
@@ -554,16 +553,16 @@ const ServerControl: React.FC = () => {
                   // Keep all other IPs (likely active network interfaces)
                   return true;
                 });
-                
+
                 // Remove duplicates and add current host if not present
                 const set = new Set<string>(activeIps);
                 if (window.location.hostname && !set.has(window.location.hostname)) {
                   set.add(window.location.hostname);
                 }
-                
+
                 const ips = Array.from(set);
                 if (!ips.length) return <div className="text-xs text-gray-600">{t('controlPanel.noActiveIps')}</div>;
-                
+
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {ips.map((ip) => {
@@ -587,7 +586,7 @@ const ServerControl: React.FC = () => {
                 );
               })()}
             </div>
-            
+
             {/* Copyright Footer */}
             <div className="rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:col-span-3">
               <div className="text-center space-y-1">

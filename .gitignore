@@ -3,6 +3,11 @@
 /Obsolete
 *.pid
 
+# Temporary scripts
+tmp_*.ps1
+tmp_*.sh
+watch_run.ps1
+
 # Python cache/artifacts
 __pycache__/
 **/__pycache__/
@@ -41,3 +46,7 @@ backend/.env
 frontend/.env
 *.env
 !*.env.example
+\n/frontend/node_modules/\n/frontend/dist/
+
+# Ignore release artifacts
+dist/

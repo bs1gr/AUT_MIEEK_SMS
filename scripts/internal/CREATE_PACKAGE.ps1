@@ -102,16 +102,16 @@ foreach ($pattern in $includeItems) {
                 break
             }
         }
-        
+
         if (-not $shouldExclude) {
             $relativePath = $file.FullName.Substring($PWD.Path.Length + 1)
             $destPath = Join-Path $tempDir $relativePath
             $destDir = Split-Path $destPath -Parent
-            
+
             if (-not (Test-Path $destDir)) {
                 New-Item -ItemType Directory -Path $destDir -Force | Out-Null
             }
-            
+
             Copy-Item $file.FullName $destPath -Force
             $copiedFiles++
         }

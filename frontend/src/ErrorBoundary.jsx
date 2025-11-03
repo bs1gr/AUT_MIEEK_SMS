@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 class ErrorBoundaryCore extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
-      showDetails: false 
+      showDetails: false
     };
   }
 
@@ -20,10 +20,10 @@ class ErrorBoundaryCore extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error to console for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     // Store error info in state
     this.setState({ errorInfo });
-    
+
     // Send to backend error logging service
     import('./utils/errorReporting').then(({ logErrorToBackend }) => {
       logErrorToBackend(error, errorInfo, {
@@ -37,11 +37,11 @@ class ErrorBoundaryCore extends React.Component {
 
   handleReset = () => {
     // Reset error state and attempt to recover
-    this.setState({ 
-      hasError: false, 
-      error: null, 
+    this.setState({
+      hasError: false,
+      error: null,
       errorInfo: null,
-      showDetails: false 
+      showDetails: false
     });
   };
 
@@ -58,7 +58,7 @@ class ErrorBoundaryCore extends React.Component {
     if (this.state.hasError) {
       const { error, errorInfo, showDetails } = this.state;
       const { t } = this.props;
-      
+
       return (
         <div style={{
           minHeight: '100vh',
@@ -140,21 +140,21 @@ class ErrorBoundaryCore extends React.Component {
                 }}
               >
                 <span>{t('common.info') || 'Error Details'}</span>
-                <svg 
+                <svg
                   style={{
                     width: '1.25rem',
                     height: '1.25rem',
                     transform: showDetails ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s'
                   }}
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showDetails && (
                 <div style={{
                   padding: '1rem',
@@ -174,7 +174,7 @@ class ErrorBoundaryCore extends React.Component {
                   }}>
                     {error?.toString() || t('errors.unknown')}
                   </div>
-                  
+
                   {errorInfo?.componentStack && (
                     <div style={{
                       fontSize: '0.75rem',
@@ -222,7 +222,7 @@ class ErrorBoundaryCore extends React.Component {
               >
                 {t('common.reset') || 'Try Again'}
               </button>
-              
+
               <button
                 onClick={this.handleGoHome}
                 style={{

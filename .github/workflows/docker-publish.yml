@@ -1,0 +1,201 @@
+name: Build and publish Docker images
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    outputs:
+      pushed: ${{ steps.determine.outputs.push }}
+      fullstack_digest: ${{ steps.build_fullstack.outputs.digest }}
+      fullstack_ghcr_digest: ${{ steps.get_fullstack_ghcr.outputs.digest }}
+      backend_digest: ${{ steps.build_backend.outputs.digest }}
+      backend_ghcr_digest: ${{ steps.get_backend_ghcr.outputs.digest }}
+      frontend_digest: ${{ steps.build_frontend.outputs.digest }}
+      frontend_ghcr_digest: ${{ steps.get_frontend_ghcr.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine whether to push images
+        id: determine
+        run: |
+          # Prefer explicit DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets.
+          # Fallback: if a secret named VASILEIOSSAMARAS exists, treat it as a Docker Hub token
+          # and use the default username 'vasileiossamaras'.
+          if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ] || [ -n "${{ secrets.VASILEIOSSAMARAS }}" ]; then
+            echo "push=true" >> $GITHUB_OUTPUT
+            if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+              echo "used=DOCKERHUB_TOKEN" >> $GITHUB_OUTPUT
+            else
+              echo "used=VASILEIOSSAMARAS" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "push=false" >> $GITHUB_OUTPUT
+            echo "used=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to Docker Hub
+        if: ${{ steps.determine.outputs.push == 'true' }}
+        run: |
+          USERNAME=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}
+          PASSWORD=${{ secrets.DOCKERHUB_TOKEN || secrets.VASILEIOSSAMARAS }}
+          echo "Pushing to Docker Hub as $USERNAME (secret used: ${{ steps.determine.outputs.used }})"
+          echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin
+
+      - name: Build & push fullstack image (multi-platform)
+        id: build_fullstack
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.fullstack
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms:${{ github.ref_name }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms:latest
+            ghcr.io/${{ github.repository_owner }}/sms-fullstack:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/sms-fullstack:latest
+          push: ${{ steps.determine.outputs.push }}
+
+      - name: Get GHCR digest for fullstack
+        id: get_fullstack_ghcr
+        if: ${{ steps.determine.outputs.push == 'true' }}
+        run: |
+          OWNER=${{ github.repository_owner }}
+          TAG=${{ github.ref_name }}
+          # Request manifest header to get Docker-Content-Digest
+          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-fullstack/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Build & push backend image (amd64)
+        id: build_backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          platforms: linux/amd64
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/backend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/sms-backend:${{ github.ref_name }}
+          push: ${{ steps.determine.outputs.push }}
+
+      - name: Get GHCR digest for backend
+        id: get_backend_ghcr
+        if: ${{ steps.determine.outputs.push == 'true' }}
+        run: |
+          OWNER=${{ github.repository_owner }}
+          TAG=${{ github.ref_name }}
+          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-backend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Build & push frontend image (amd64)
+        id: build_frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          platforms: linux/amd64
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/frontend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/sms-frontend:${{ github.ref_name }}
+          push: ${{ steps.determine.outputs.push }}
+
+      - name: Get GHCR digest for frontend
+        id: get_frontend_ghcr
+        if: ${{ steps.determine.outputs.push == 'true' }}
+        run: |
+          OWNER=${{ github.repository_owner }}
+          TAG=${{ github.ref_name }}
+          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-frontend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Push image note
+        if: ${{ steps.determine.outputs.push == 'false' }}
+        run: |
+          echo "DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not set. Built images in runner but did not push. To push, add DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets in repository settings."
+
+  create-release:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    if: needs.build-and-publish.outputs.pushed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read release notes file
+        id: read_notes
+        run: |
+          NOTES_FILE="RELEASE_NOTES/docker-images-1.3.5.md"
+          if [ -f "$NOTES_FILE" ]; then
+            # base64 to preserve newlines in output
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            cat "$NOTES_FILE" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            echo "(No RELEASE_NOTES file present)" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release (published) with image digests
+        id: create_rel
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Docker images for ${{ github.ref_name }}"
+          body: |
+            ${{ steps.read_notes.outputs.notes }}
+
+            ## CI pushed digests
+
+            Fullstack
+            - tag: docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.fullstack_digest }}
+
+            Backend
+            - tag: docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/backend:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.backend_digest }}
+
+            Frontend
+            - tag: docker.io/${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/frontend:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.frontend_digest }}
+
+            ## GHCR digests
+
+            Fullstack (GHCR)
+            - tag: ghcr.io/${{ github.repository_owner }}/sms-fullstack:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.fullstack_ghcr_digest }}
+
+            Backend (GHCR)
+            - tag: ghcr.io/${{ github.repository_owner }}/sms-backend:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.backend_ghcr_digest }}
+
+            Frontend (GHCR)
+            - tag: ghcr.io/${{ github.repository_owner }}/sms-frontend:${{ github.ref_name }}
+            - digest: ${{ needs.build-and-publish.outputs.frontend_ghcr_digest }}
+
+          draft: true
+          prerelease: false
+          files: RELEASE_NOTES/docker-images-1.3.5.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

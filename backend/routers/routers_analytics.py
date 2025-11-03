@@ -36,7 +36,11 @@ def get_letter_grade(percentage: float) -> str:
 def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Calculate final grade using evaluation rules, grades, daily performance, and attendance."""
     try:
-        from backend.models import Course, Grade, DailyPerformance, Attendance
+        from backend.import_resolver import import_names
+
+        Course, Grade, DailyPerformance, Attendance = import_names(
+            "models", "Course", "Grade", "DailyPerformance", "Attendance"
+        )
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
@@ -159,7 +163,11 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
 @router.get("/student/{student_id}/all-courses-summary")
 def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import Student, Course, Grade, DailyPerformance
+        from backend.import_resolver import import_names
+
+        Student, Course, Grade, DailyPerformance = import_names(
+            "models", "Student", "Course", "Grade", "DailyPerformance"
+        )
 
         # Single query with joinedload to avoid N+1
         student = db.query(Student).filter(Student.id == student_id).first()
@@ -231,7 +239,9 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
 @router.get("/student/{student_id}/summary")
 def get_student_summary(student_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import Student, Attendance, Grade
+        from backend.import_resolver import import_names
+
+        Student, Attendance, Grade = import_names("models", "Student", "Attendance", "Grade")
 
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:

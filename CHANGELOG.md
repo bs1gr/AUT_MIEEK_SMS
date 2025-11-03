@@ -6,6 +6,35 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Import-resolver sweep & CI enforcement (developer-maintenance)
+
+Unreleased changes are staged here. The release notes for the maintenance work are published in the
+section below under the released version.
+
+## [1.3.5] - 2025-11-02
+
+Import-resolver sweep & CI enforcement - 2025-11-02
+
+Small internal maintenance release that improves import robustness and CI enforcement.
+
+Highlights:
+
+- Centralized import fallback logic with `backend/import_resolver.py` and replaced ad-hoc try/except import patterns across backend modules.
+- Enforced static checks in CI: added `ruff` workflow and made `mypy` blocking in CI.
+- Made secret guard blocking on `main` (CI job will fail if `SECRET_KEY` missing or uses placeholder); PRs still get an informational check.
+- Added pre-commit hooks configuration (ruff/isort and file-cleanup hooks) to help contributors maintain code quality.
+- Deleted stale remote feature branch `chore/import-resolver-sweep` after merge.
+
+Technical:
+
+- Files added: `backend/import_resolver.py`, `.github/workflows/ruff.yml` (CI), pre-commit configuration updates
+- Files modified: many backend routers to use import_resolver, `.github/workflows/mypy.yml`, `.github/workflows/secret-guard.yml`
+- Tests: backend pytest runs hermetically using in-memory SQLite and pass on main
+
+Notes:
+
+- This is primarily a developer-facing maintenance change; no API or schema changes were introduced.
+
 ## [1.3.4] - 2025-11-01
 
 **Final Code Quality & Robustness Improvements**
@@ -271,8 +300,15 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
+
+[1.3.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5
+[1.3.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.4
+[1.3.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.3
+[1.3.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.2
+[1.3.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.1
+[1.2.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.3
 [1.2.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.2
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.3.5...HEAD
