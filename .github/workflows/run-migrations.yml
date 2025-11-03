@@ -27,6 +27,17 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Prepare DATABASE_URL (use secret when available, otherwise local sqlite)
+        run: |
+          if [ -n "${{ secrets.DATABASE_URL }}" ]; then
+            echo "Using provided DATABASE_URL secret"
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          else
+            echo "No DATABASE_URL secret provided; using local sqlite in runner workspace"
+            # Use an absolute path under the workspace for CI runs
+            echo "DATABASE_URL=sqlite:///${{ github.workspace }}/backend/data/student_management.db" >> $GITHUB_ENV
+          fi
+
       - name: Run migrations (verbose)
         working-directory: backend
         run: |
