@@ -10,6 +10,7 @@ import sys
 import subprocess
 import platform
 import shutil
+import shlex
 from pathlib import Path
 
 # Colors for terminal output
@@ -49,14 +50,28 @@ def print_info(text):
     print(f"{Colors.BLUE}ℹ {text}{Colors.END}")
 
 
-def run_command(cmd, check=True, shell=True, capture=False):
-    """Run a command and return success status"""
+def run_command(cmd, check=True, capture=False):
+    """Run a command and return success status.
+
+    This helper accepts either a list of argv or a string. Strings are
+    split using shlex.split() in a platform-appropriate way and the
+    resulting argv is executed with shell=False to avoid shell
+    injection and platform-dependent quoting problems.
+    """
     try:
+        # Accept both list (argv) and string commands
+        if isinstance(cmd, str):
+            # On Windows use posix=False so shlex uses Windows-style splitting
+            posix = platform.system() != "Windows"
+            args = shlex.split(cmd, posix=posix)
+        else:
+            args = list(cmd)
+
         if capture:
-            result = subprocess.run(cmd, shell=shell, check=check, capture_output=True, text=True)
+            result = subprocess.run(args, shell=False, check=check, capture_output=True, text=True)
             return result.returncode == 0, result.stdout.strip()
         else:
-            result = subprocess.run(cmd, shell=shell, check=check)
+            result = subprocess.run(args, shell=False, check=check)
             return result.returncode == 0, None
     except subprocess.CalledProcessError:
         return False, None
