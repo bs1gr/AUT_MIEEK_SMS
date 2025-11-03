@@ -385,7 +385,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Request ID tracking middleware (should be first to track all requests)
 try:
     # Guard registering RequestIDMiddleware in case it's not available or fails
-    if 'RequestIDMiddleware' in globals() and RequestIDMiddleware is not None:
+    if "RequestIDMiddleware" in globals() and RequestIDMiddleware is not None:
         try:
             app.add_middleware(RequestIDMiddleware)
         except Exception as _mw_err:
@@ -578,7 +578,7 @@ def control_start():
 
                 logger.info("Dependencies installed successfully")
 
-            except subprocess.TimeoutExpired as te:
+            except subprocess.TimeoutExpired:
                 logger.exception("npm install timed out after 5 minutes")
                 return JSONResponse(
                     {"success": False, "message": "Failed to install frontend dependencies"}, status_code=500
@@ -591,7 +591,17 @@ def control_start():
 
         # 5. Start Vite dev server
         logger.info(f"Starting Vite dev server on port {FRONTEND_PORT_PREFERRED}...")
-        start_args = [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1", "--port", str(FRONTEND_PORT_PREFERRED), "--strictPort"]
+        start_args = [
+            npm_cmd,
+            "run",
+            "dev",
+            "--",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(FRONTEND_PORT_PREFERRED),
+            "--strictPort",
+        ]
         start_cmd_str = " ".join(start_args)
 
         try:
@@ -620,9 +630,7 @@ def control_start():
         except Exception as e:
             # Log full exception details but return a normalized message to the client
             logger.exception(f"Failed to start Vite process: {e}")
-            return JSONResponse(
-                {"success": False, "message": "Failed to start frontend process"}, status_code=500
-            )
+            return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
 
         # 6. Wait for server readiness (up to 30 seconds)
         logger.info("Waiting for frontend server to be ready...")
