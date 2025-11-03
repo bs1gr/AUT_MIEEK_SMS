@@ -9,4 +9,4 @@ sqlalchemy2-stubs
 types-psutil==5.9.1
 types-passlib==1.7.0
 types-openpyxl==3.0.0
-types-reportlab==3.5.0
+types-reportlab
