@@ -15,7 +15,7 @@ def app_with_middleware():
     app = FastAPI()
     # `add_middleware` typing in starlette/fastapi stubs can be strict; tests are fine
     # at runtime so narrow the static-checker complaint here.
-    app.add_middleware(RequestIDMiddleware)  # type: ignore[arg-type]
+    app.add_middleware(RequestIDMiddleware)  # type: ignore[call-arg,arg-type]
 
     @app.get("/test")
     async def test_endpoint():
