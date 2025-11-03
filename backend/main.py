@@ -175,11 +175,11 @@ def _resolve_npm_command() -> str | None:
     """Resolve npm executable on Windows reliably.
     Returns a command string (quoted path) suitable for shell=True invocations, or None if not found.
     """
-    # Try PATH first
+    # Try PATH first (return raw executable path, do NOT quote)
     for name in ("npm", "npm.cmd"):
         found = shutil.which(name)
         if found:
-            return f'"{found}"'
+            return found
     # Common install locations
     nvm_home = os.environ.get("NVM_HOME", "")
     nvm_symlink = os.environ.get("NVM_SYMLINK", "")
@@ -196,13 +196,13 @@ def _resolve_npm_command() -> str | None:
     for path in candidates:
         try:
             if path and os.path.isfile(path):
-                return f'"{path}"'
+                return path
         except Exception:
             continue
     # Last resort: npx.cmd (may exist even if npm not on PATH)
     found_npx = shutil.which("npx.cmd") or shutil.which("npx")
     if found_npx:
-        return f'"{found_npx}"'
+        return found_npx
     return None
 
 
@@ -383,7 +383,21 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ============================================================================
 
 # Request ID tracking middleware (should be first to track all requests)
-app.add_middleware(RequestIDMiddleware)
+try:
+    # Guard registering RequestIDMiddleware in case it's not available or fails
+    if 'RequestIDMiddleware' in globals() and RequestIDMiddleware is not None:
+        try:
+            app.add_middleware(RequestIDMiddleware)
+        except Exception as _mw_err:
+            logger.warning(f"RequestIDMiddleware registration failed: {_mw_err}")
+    else:
+        logger.debug("RequestIDMiddleware not available; skipping middleware registration")
+except Exception as _e:
+    # Defensive fallback: don't let middleware registration prevent app import
+    try:
+        logger.warning(f"Error while attempting to register RequestIDMiddleware: {_e}")
+    except Exception:
+        pass
 
 # CORS middleware for React frontend
 app.add_middleware(
@@ -458,30 +472,39 @@ def control_start():
         npm_cmd = _resolve_npm_command()
         if not npm_cmd:
             logger.error("npm command not found - Node.js may not be installed")
+            # Normalized, platform-agnostic user-facing message
             return JSONResponse(
-                {"success": False, "message": "npm not found. Please install Node.js (https://nodejs.org/)"},
+                {
+                    "success": False,
+                    "message": "npm not found. Please install Node.js and npm (https://nodejs.org/)",
+                },
                 status_code=400,
             )
 
         # Validate npm is executable
         try:
+            # Run npm -v using a list argument to avoid shell=True
             version_check = subprocess.run(
-                f"{npm_cmd} -v",
+                [npm_cmd, "-v"],
                 cwd=frontend_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                shell=True,
+                shell=False,
                 check=False,
                 timeout=5,
                 text=True,
             )
             if version_check.returncode != 0:
-                raise subprocess.CalledProcessError(version_check.returncode, npm_cmd)
+                raise subprocess.CalledProcessError(version_check.returncode, [npm_cmd, "-v"])
             logger.info(f"npm version: {version_check.stdout.strip()}")
         except Exception as e:
-            logger.error(f"npm validation failed: {e}")
+            # Log full exception details for diagnostics, return a stable API message
+            logger.exception(f"npm validation failed: {e}")
             return JSONResponse(
-                {"success": False, "message": "npm validation failed. Ensure Node.js/npm are properly installed."},
+                {
+                    "success": False,
+                    "message": "npm not found or not executable. Ensure Node.js and npm are installed.",
+                },
                 status_code=400,
             )
 
@@ -504,10 +527,12 @@ def control_start():
 
             try:
                 logger.info(f"Running: {install_cmd}")
+                # install_cmd is either 'npm ci' or 'npm install' - build as list
+                install_args = [npm_cmd, "ci"] if "ci" in install_cmd else [npm_cmd, "install"]
                 install_result = subprocess.run(
-                    install_cmd,
+                    install_args,
                     cwd=frontend_dir,
-                    shell=True,
+                    shell=False,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     check=False,
@@ -520,9 +545,9 @@ def control_start():
                     if "ci" in install_cmd:
                         logger.warning("npm ci failed - falling back to npm install")
                         fallback_result = subprocess.run(
-                            f"{npm_cmd} install",
+                            [npm_cmd, "install"],
                             cwd=frontend_dir,
-                            shell=True,
+                            shell=False,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             check=False,
@@ -531,10 +556,11 @@ def control_start():
                         )
                         if fallback_result.returncode != 0:
                             logger.error(f"npm install failed: {fallback_result.stdout}")
+                            # Normalize the user message; include details for operators
                             return JSONResponse(
                                 {
                                     "success": False,
-                                    "message": "Dependency installation failed. Try manually: npm install",
+                                    "message": "Failed to install frontend dependencies",
                                     "details": fallback_result.stdout,
                                 },
                                 status_code=500,
@@ -544,7 +570,7 @@ def control_start():
                         return JSONResponse(
                             {
                                 "success": False,
-                                "message": "Dependency installation failed",
+                                "message": "Failed to install frontend dependencies",
                                 "details": install_result.stdout,
                             },
                             status_code=500,
@@ -552,31 +578,50 @@ def control_start():
 
                 logger.info("Dependencies installed successfully")
 
-            except subprocess.TimeoutExpired:
-                logger.error("npm install timed out after 5 minutes")
+            except subprocess.TimeoutExpired as te:
+                logger.exception("npm install timed out after 5 minutes")
                 return JSONResponse(
-                    {"success": False, "message": "Dependency installation timed out. Try manually: npm install"},
-                    status_code=500,
+                    {"success": False, "message": "Failed to install frontend dependencies"}, status_code=500
                 )
             except Exception as e:
-                logger.error(f"Failed to install dependencies: {e}")
+                logger.exception(f"Failed to install dependencies: {e}")
                 return JSONResponse(
-                    {"success": False, "message": f"Failed to install dependencies: {str(e)}"}, status_code=500
+                    {"success": False, "message": "Failed to install frontend dependencies"}, status_code=500
                 )
 
         # 5. Start Vite dev server
         logger.info(f"Starting Vite dev server on port {FRONTEND_PORT_PREFERRED}...")
-        start_cmd = f"{npm_cmd} run dev -- --host 127.0.0.1 --port {FRONTEND_PORT_PREFERRED} --strictPort"
+        start_args = [npm_cmd, "run", "dev", "--", "--host", "127.0.0.1", "--port", str(FRONTEND_PORT_PREFERRED), "--strictPort"]
+        start_cmd_str = " ".join(start_args)
 
         try:
+            # Windows: avoid creating a visible console window for child process
+            creationflags = 0
+            if sys.platform == "win32":
+                try:
+                    creationflags = subprocess.CREATE_NO_WINDOW
+                except Exception:
+                    creationflags = 0
+
+            # Ensure close_fds on POSIX to avoid fd leaks
+            close_fds = sys.platform != "win32"
+
             FRONTEND_PROCESS = subprocess.Popen(
-                start_cmd, cwd=frontend_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                start_args,
+                cwd=frontend_dir,
+                shell=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=creationflags,
+                close_fds=close_fds,
             )
             logger.info(f"Vite process started with PID: {FRONTEND_PROCESS.pid}")
         except Exception as e:
-            logger.error(f"Failed to start Vite process: {e}")
+            # Log full exception details but return a normalized message to the client
+            logger.exception(f"Failed to start Vite process: {e}")
             return JSONResponse(
-                {"success": False, "message": f"Failed to start frontend process: {str(e)}"}, status_code=500
+                {"success": False, "message": "Failed to start frontend process"}, status_code=500
             )
 
         # 6. Wait for server readiness (up to 30 seconds)
@@ -589,7 +634,7 @@ def control_start():
             if FRONTEND_PROCESS.poll() is not None:
                 logger.error("Frontend process terminated unexpectedly")
                 return JSONResponse(
-                    {"success": False, "message": "Frontend process terminated unexpectedly", "command": start_cmd},
+                    {"success": False, "message": "Frontend process terminated unexpectedly", "command": start_cmd_str},
                     status_code=500,
                 )
 
@@ -623,7 +668,7 @@ def control_start():
                 "success": False,
                 "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
                 "hint": "Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
-                "command": start_cmd,
+                "command": start_cmd_str,
             },
             status_code=500,
         )
@@ -801,6 +846,16 @@ def control_stop_all():
             finally:
                 # Force exit as final fallback
                 logger.info("=== Force Exit ===")
+                # Force immediate exit as a final fallback. In container/orchestration
+                # environments a softer termination may be preferred. Use the
+                # environment variable `ALLOW_SOFT_SHUTDOWN=1` to enable softer
+                # shutdown behaviour (attempt SIGTERM) in those environments.
+                if os.environ.get("ALLOW_SOFT_SHUTDOWN", "0") == "1":
+                    try:
+                        logger.info("ALLOW_SOFT_SHUTDOWN enabled; attempting graceful exit")
+                        return
+                    except Exception:
+                        pass
                 os._exit(0)
 
         # Start shutdown thread
