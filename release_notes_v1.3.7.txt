@@ -1,0 +1,13 @@
+v1.3.7 — Maintenance release
+
+This release collects recent repository housekeeping and CI hardening changes. See the full changelog in CHANGELOG.md.
+
+Highlights (from CHANGELOG Unreleased):
+
+- Import-resolver sweep & CI enforcement (developer-maintenance)
+
+Notes:
+- CI/logs: migration and pytest logs attached to the release for debugging: migrations.log, pytest-output.txt, setup.log
+- Non-destructive cleanup applied: .gitignore updates, scripts/clean_tmp_artifacts.ps1, docs/CI-LOGS.md
+
+For full notes and history, see CHANGELOG.md in the repository.
