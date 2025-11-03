@@ -70,12 +70,23 @@ def run_migrations(verbose: bool = False) -> bool:
             repo_root = _find_repo_root(Path(__file__).resolve().parent)
             logs_dir = repo_root / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
-            fh = logging.FileHandler(logs_dir / "migrations.log")
+            fh = logging.FileHandler(logs_dir / "migrations.log", mode="a")
             fh.setLevel(logging.INFO)
             fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
             fh.setFormatter(fmt)
-            if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
-                logger.addHandler(fh)
+            # Attach handler to the root logger so Alembic and other libraries
+            # that log to the root logger will also write into migrations.log.
+            root_logger = logging.getLogger()
+            existing = False
+            for h in root_logger.handlers:
+                try:
+                    if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == str((logs_dir / "migrations.log")):
+                        existing = True
+                        break
+                except Exception:
+                    continue
+            if not existing:
+                root_logger.addHandler(fh)
         except Exception:
             # Non-fatal: migration logging is best-effort
             pass
