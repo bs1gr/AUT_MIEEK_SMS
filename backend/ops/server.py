@@ -22,6 +22,7 @@ import subprocess
 psutil: Any = None
 try:
     import psutil as _psutil
+
     psutil = _psutil
 except ImportError:
     # Keep psutil as None when not available
