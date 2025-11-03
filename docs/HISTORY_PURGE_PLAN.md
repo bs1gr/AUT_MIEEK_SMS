@@ -67,4 +67,3 @@
 
 - Confirm the exact paths to remove and create the `repo-backup.bundle` as described above.
 - Follow the `git-filter-repo` procedure under a coordinated maintenance window and instruct all contributors to re-clone after the purge.
-
