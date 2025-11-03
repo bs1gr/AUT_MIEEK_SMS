@@ -58,3 +58,13 @@
 
  - This operation is destructive for repository history and cannot be partially undone once pushed and used by others.
  - If secrets are involved, rotating credentials is also required (change tokens, invalidate leaked keys).
+
+## Status
+
+- No destructive history rewrite was performed as part of the v1.3.7 maintenance changes. The repository was cleaned non-destructively (untracked large files, updated `.gitignore`, added cleanup helpers). This document remains a plan-only reference until an explicit approval is provided by the repository owner and collaborators.
+
+## Next steps if you approve a purge
+
+- Confirm the exact paths to remove and create the `repo-backup.bundle` as described above.
+- Follow the `git-filter-repo` procedure under a coordinated maintenance window and instruct all contributors to re-clone after the purge.
+
