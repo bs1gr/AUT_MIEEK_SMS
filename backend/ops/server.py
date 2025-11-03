@@ -11,18 +11,21 @@ This module provides:
 from .base import Operation, OperationResult, get_project_root, get_python_executable, OperationTimeouts
 from .diagnostics import SystemStatusChecker
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Any
 import signal
 import time
 import sys
 import subprocess
 
 
-# Windows-specific imports
+# Windows-specific imports (psutil optional)
+psutil: Any = None
 try:
-    import psutil
+    import psutil as _psutil
+    psutil = _psutil
 except ImportError:
-    psutil = None
+    # Keep psutil as None when not available
+    pass
 
 
 # ============================================================================
