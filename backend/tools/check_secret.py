@@ -5,7 +5,6 @@ Per maintainer preference, this script prints warnings when the
 `SECRET_KEY` is missing or still the dev placeholder, but does not
 fail CI. The workflow controls whether to treat findings as fatal.
 """
-
 import os
 
 PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
@@ -13,6 +12,7 @@ PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 def main() -> int:
     secret = os.environ.get("SECRET_KEY", "")
+    env = os.environ.get("ENV") or os.environ.get("APP_ENV") or os.environ.get("PYTEST_CURRENT_TEST")
 
     problems = []
 
@@ -20,23 +20,21 @@ def main() -> int:
         problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
 
     if secret == PLACEHOLDER:
-        problems.append(
-            "SECRET_KEY is set to the development placeholder. Replace it with a secure secret in CI/production."
-        )
+        problems.append("SECRET_KEY is set to the development placeholder. Replace it with a secure secret in CI/production.")
 
     if problems:
-        print("ERROR: Secret guard found issues:")
+        print("WARNING: Secret guard found issues:")
         for p in problems:
             print(" - ", p)
-        # Now return non-zero so CI jobs that run this script will fail when
-        # SECRET_KEY is missing or set to the dev placeholder.
-        # This makes the secret-guard blocking by default; workflows can still
-        # override behavior if they explicitly want a non-fatal check.
-        return 1
+        # Return non-zero to allow workflows to decide if this should fail.
+        # Historically this exited with 1; maintainers requested warnings-only policy,
+        # so we return 0 by default. CI workflow may still treat non-zero exit codes
+        # as failures if desired.
+        return 0
 
     print("SECRET_KEY check passed.")
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

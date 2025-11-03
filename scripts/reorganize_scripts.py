@@ -3,7 +3,6 @@
 Script Reorganization Utility
 Restructures operational scripts into dev/ and deploy/ directories
 """
-
 import shutil
 from pathlib import Path
 
@@ -60,9 +59,8 @@ RESTRUCTURE_PLAN = {
         "CHECK_VOLUME_VERSION.ps1": SCRIPTS_DIR / "deploy/CHECK_VOLUME_VERSION.ps1",
         "SMART_SETUP.ps1": SCRIPTS_DIR / "deploy/SMART_SETUP.ps1",
         "UNINSTALL.bat": SCRIPTS_DIR / "deploy/UNINSTALL.bat",
-    },
+    }
 }
-
 
 def ensure_directories():
     """Create target directories if they don't exist"""
@@ -71,7 +69,6 @@ def ensure_directories():
 
     (SCRIPTS_DIR / "deploy").mkdir(exist_ok=True)
     print("[OK] Ensured scripts/deploy/ exists")
-
 
 def move_file(source: Path, dest_relative: str, category: str):
     """Move a file from source to destination"""
@@ -90,12 +87,11 @@ def move_file(source: Path, dest_relative: str, category: str):
         print(f"  [ERROR] moving {source.name}: {e}")
         return False
 
-
 def reorganize():
     """Execute the reorganization plan"""
-    print("\n" + "=" * 70)
+    print("\n" + "="*70)
     print("  SCRIPT REORGANIZATION")
-    print("=" * 70 + "\n")
+    print("="*70 + "\n")
 
     print("[1/4] Creating directory structure...")
     ensure_directories()
@@ -123,15 +119,14 @@ def reorganize():
         else:
             print(f"  [WARN] {dest_path} not found")
 
-    print("\n" + "=" * 70)
+    print("\n" + "="*70)
     print("  REORGANIZATION COMPLETE")
     print(f"  Developer scripts: {moved_dev} moved to scripts/dev/")
     print(f"  Deployment scripts: {moved_deploy} moved to scripts/deploy/")
     print(f"  Existing deploy scripts: {existing} verified")
-    print("=" * 70 + "\n")
+    print("="*70 + "\n")
 
     return moved_dev, moved_deploy, existing
-
 
 def create_readme_files():
     """Create README.md files for both directories"""
@@ -302,12 +297,11 @@ The system uses versioned Docker volumes to prevent data loss:
 - For active development, use scripts in `../dev/` instead
 """
 
-    dev_readme.write_text(dev_content, encoding="utf-8")
+    dev_readme.write_text(dev_content, encoding='utf-8')
     print(f"  [OK] Created {dev_readme}")
 
-    deploy_readme.write_text(deploy_content, encoding="utf-8")
+    deploy_readme.write_text(deploy_content, encoding='utf-8')
     print(f"  [OK] Created {deploy_readme}")
-
 
 if __name__ == "__main__":
     # Execute reorganization
