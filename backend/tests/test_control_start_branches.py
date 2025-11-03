@@ -12,7 +12,13 @@ def test_control_start_success(monkeypatch):
 
     # Make frontend dir exist and node_modules present
     orig_isdir = os.path.isdir
-    monkeypatch.setattr(os.path, "isdir", lambda p: True if ("frontend" in str(p) and "node_modules" not in str(p)) or "node_modules" in str(p) else orig_isdir(p))
+    monkeypatch.setattr(
+        os.path,
+        "isdir",
+        lambda p: True
+        if ("frontend" in str(p) and "node_modules" not in str(p)) or "node_modules" in str(p)
+        else orig_isdir(p),
+    )
 
     # Simulate npm found
     monkeypatch.setattr(main, "_resolve_npm_command", lambda: "npm")
@@ -55,7 +61,9 @@ def test_control_start_install_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
     # Frontend dir exists but node_modules missing
-    monkeypatch.setattr(os.path, "isdir", lambda p: True if ("frontend" in str(p) and "node_modules" not in str(p)) else False)
+    monkeypatch.setattr(
+        os.path, "isdir", lambda p: True if ("frontend" in str(p) and "node_modules" not in str(p)) else False
+    )
 
     # npm found
     monkeypatch.setattr(main, "_resolve_npm_command", lambda: "npm")

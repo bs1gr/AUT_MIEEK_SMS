@@ -35,10 +35,7 @@ def test_control_start_npm_missing(monkeypatch):
     resp = client.post("/control/api/start")
     assert resp.status_code in (400, 500)
     data = resp.json()
-    assert (
-        data.get("message")
-        == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
-    )
+    assert data.get("message") == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
 
 
 def test_control_stop_kills_pids(monkeypatch):
@@ -46,7 +43,9 @@ def test_control_stop_kills_pids(monkeypatch):
     main.FRONTEND_PROCESS = None
 
     # Return a PID for the frontend port scan
-    monkeypatch.setattr(main, "_find_pids_on_port", lambda port: [12345] if port == main.FRONTEND_PORT_PREFERRED else [])
+    monkeypatch.setattr(
+        main, "_find_pids_on_port", lambda port: [12345] if port == main.FRONTEND_PORT_PREFERRED else []
+    )
 
     # Fake subprocess.run to always succeed for taskkill
     def fake_run(*args, **kwargs):
