@@ -12,6 +12,7 @@ PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 def main() -> int:
     secret = os.environ.get("SECRET_KEY", "")
+    block_on_fail = os.environ.get("BLOCK_ON_FAIL", "false").lower() in ("1", "true", "yes")
 
     problems = []
 
@@ -25,10 +26,12 @@ def main() -> int:
         print("WARNING: Secret guard found issues:")
         for p in problems:
             print(" - ", p)
-        # Return non-zero to allow workflows to decide if this should fail.
-        # Historically this exited with 1; maintainers requested warnings-only policy,
-        # so we return 0 by default. CI workflow may still treat non-zero exit codes
-        # as failures if desired.
+        # Allow workflow to decide whether this should be blocking.
+        if block_on_fail:
+            print("Blocking enabled (BLOCK_ON_FAIL). Exiting with error exit code.")
+            return 1
+        # Default to warnings-only to avoid surprising CI failures when a temporary
+        # secret is generated for runner environments.
         return 0
 
     print("SECRET_KEY check passed.")
