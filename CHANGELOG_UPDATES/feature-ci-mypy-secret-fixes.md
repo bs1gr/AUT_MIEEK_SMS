@@ -11,7 +11,7 @@ Why
 - The repository lacked an enforced mypy step in CI.
 
 What changed
-
+ 
 - CI: added `.github/workflows/mypy.yml` to run `mypy`, and `.github/workflows/secret-guard.yml` to run the secret-guard check.
 - Tools: added `mypy.ini` and `backend/tools/check_secret.py` for the guard (the guard now prints warnings instead of failing CI by default; workflow uses a non-fatal step).
 - Linting/typing: ran `ruff --fix` and applied safe fixes; iteratively addressed `mypy` findings across `backend/*` (typing/annotation adjustments only).
