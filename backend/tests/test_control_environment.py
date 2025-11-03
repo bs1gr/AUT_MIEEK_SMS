@@ -3,10 +3,9 @@ from typing import Any, Dict
 
 from fastapi.testclient import TestClient
 
-try:
-    from backend.main import app
-except ModuleNotFoundError:
-    from main import app  # type: ignore
+from backend.import_resolver import import_names
+
+(app,) = import_names("main", "app")
 
 client = TestClient(app)
 

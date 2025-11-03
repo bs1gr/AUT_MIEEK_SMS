@@ -303,10 +303,10 @@ For detailed troubleshooting, see: `docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
 
 ## Summary
 
-✅ **Download project**  
-✅ **Double-click START.bat**  
-✅ **Wait for setup (first time)**  
-✅ **Open the URL shown**  
+✅ **Download project**
+✅ **Double-click START.bat**
+✅ **Wait for setup (first time)**
+✅ **Open the URL shown**
 ✅ **Done!**
 
 No PowerShell complications. No execution policies. Just works. 🚀

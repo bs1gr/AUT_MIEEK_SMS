@@ -85,7 +85,7 @@ The installer will:
 
 1. **System Check**: Verifies Windows version, RAM, disk space
 2. **Prerequisites**: Checks for Docker/Python/Node.js
-3. **Installation Assistance**: 
+3. **Installation Assistance**:
    - Opens download pages for missing software
    - Provides step-by-step instructions
    - Detects when to restart
@@ -350,11 +350,11 @@ $packagePath = "\\server\share\sms-package"
 foreach ($computer in $computers) {
     Invoke-Command -ComputerName $computer -ScriptBlock {
         param($source)
-        
+
         $dest = "C:\SMS"
         Copy-Item -Path $source -Destination $dest -Recurse -Force
         Set-Location $dest
-        
+
         # Run installation
         & ".\INSTALLER.ps1" -DockerOnly -NoStart
     } -ArgumentList $packagePath
@@ -556,5 +556,5 @@ Remove-Item -Path "C:\SMS" -Recurse -Force
 
 ---
 
-**Last Updated**: 2025-10-29  
+**Last Updated**: 2025-10-29
 **Version**: 1.1+

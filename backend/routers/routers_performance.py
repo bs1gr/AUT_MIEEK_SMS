@@ -45,6 +45,7 @@ class DailyPerformanceResponse(BaseModel):
 from backend.db import get_session as get_db
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 from .routers_auth import optional_require_role
+from backend.import_resolver import import_names
 
 
 @router.post("/", response_model=DailyPerformanceResponse)
@@ -56,7 +57,7 @@ def create_daily_performance(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        from backend.models import DailyPerformance
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
 
         db_performance = DailyPerformance(**performance.model_dump())
         db.add(db_performance)
@@ -72,7 +73,7 @@ def create_daily_performance(
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
 def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import DailyPerformance
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
 
         return db.query(DailyPerformance).filter(DailyPerformance.student_id == student_id).all()
     except Exception as e:
@@ -83,7 +84,7 @@ def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)
 @router.get("/student/{student_id}/course/{course_id}", response_model=List[DailyPerformanceResponse])
 def get_student_course_daily_performance(student_id: int, course_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import DailyPerformance
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
 
         return (
             db.query(DailyPerformance)
@@ -104,7 +105,7 @@ def get_student_course_daily_performance(student_id: int, course_id: int, db: Se
 @router.get("/date/{date_str}/course/{course_id}", response_model=List[DailyPerformanceResponse])
 def get_course_daily_performance_by_date(date_str: str, course_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import DailyPerformance
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
 
         target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         return (

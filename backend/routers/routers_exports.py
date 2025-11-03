@@ -27,12 +27,13 @@ router = APIRouter(
 
 
 from backend.db import get_session as get_db
+from backend.import_resolver import import_names
 
 
 @router.get("/students/excel")
 async def export_students_excel(db: Session = Depends(get_db)):
     try:
-        from backend.models import Student
+        (Student,) = import_names("models", "Student")
 
         students = db.query(Student).all()
 
@@ -72,7 +73,7 @@ async def export_students_excel(db: Session = Depends(get_db)):
 @router.get("/grades/excel/{student_id}")
 async def export_student_grades_excel(student_id: int, db: Session = Depends(get_db)):
     try:
-        from backend.models import Student, Grade
+        Student, Grade = import_names("models", "Student", "Grade")
 
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
@@ -146,7 +147,7 @@ def _letter_grade(percentage: float) -> str:
 @router.get("/students/pdf")
 async def export_students_pdf(db: Session = Depends(get_db)):
     try:
-        from backend.models import Student
+        (Student,) = import_names("models", "Student")
 
         students = db.query(Student).all()
         buffer = BytesIO()
@@ -207,7 +208,7 @@ async def export_students_pdf(db: Session = Depends(get_db)):
 @router.get("/attendance/excel")
 async def export_attendance_excel(db: Session = Depends(get_db)):
     try:
-        from backend.models import Attendance
+        (Attendance,) = import_names("models", "Attendance")
 
         records = db.query(Attendance).all()
         wb = openpyxl.Workbook()
@@ -246,7 +247,7 @@ async def export_attendance_excel(db: Session = Depends(get_db)):
 async def export_courses_excel(db: Session = Depends(get_db)):
     """Export all courses to Excel"""
     try:
-        from backend.models import Course
+        (Course,) = import_names("models", "Course")
 
         courses = db.query(Course).all()
 
@@ -290,7 +291,7 @@ async def export_courses_excel(db: Session = Depends(get_db)):
 async def export_enrollments_excel(db: Session = Depends(get_db)):
     """Export all course enrollments to Excel"""
     try:
-        from backend.models import CourseEnrollment, Student, Course
+        CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
 
         enrollments = db.query(CourseEnrollment).all()
 
@@ -337,7 +338,7 @@ async def export_enrollments_excel(db: Session = Depends(get_db)):
 async def export_all_grades_excel(db: Session = Depends(get_db)):
     """Export all grades to Excel"""
     try:
-        from backend.models import Grade, Student, Course
+        Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
         grades = db.query(Grade).all()
 
@@ -403,7 +404,7 @@ async def export_all_grades_excel(db: Session = Depends(get_db)):
 async def export_daily_performance_excel(db: Session = Depends(get_db)):
     """Export all daily performance records to Excel"""
     try:
-        from backend.models import DailyPerformance, Student, Course
+        DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
         performances = db.query(DailyPerformance).all()
 
@@ -466,7 +467,7 @@ async def export_daily_performance_excel(db: Session = Depends(get_db)):
 async def export_highlights_excel(db: Session = Depends(get_db)):
     """Export all student highlights to Excel"""
     try:
-        from backend.models import Highlight, Student
+        Highlight, Student = import_names("models", "Highlight", "Student")
 
         highlights = db.query(Highlight).all()
 
@@ -524,7 +525,9 @@ async def export_highlights_excel(db: Session = Depends(get_db)):
 async def export_student_report_pdf(student_id: int, db: Session = Depends(get_db)):
     """Generate comprehensive student report PDF with grades, attendance, and analytics"""
     try:
-        from backend.models import Student, Grade, Attendance, Course, DailyPerformance
+        Student, Grade, Attendance, Course, DailyPerformance = import_names(
+            "models", "Student", "Grade", "Attendance", "Course", "DailyPerformance"
+        )
 
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
@@ -705,7 +708,7 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
 async def export_courses_pdf(db: Session = Depends(get_db)):
     """Export all courses to PDF"""
     try:
-        from backend.models import Course
+        (Course,) = import_names("models", "Course")
 
         courses = db.query(Course).all()
 
@@ -771,7 +774,7 @@ async def export_courses_pdf(db: Session = Depends(get_db)):
 async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_db)):
     """Export course analytics report to PDF"""
     try:
-        from backend.models import Course, Grade, CourseEnrollment
+        Course, Grade, CourseEnrollment = import_names("models", "Course", "Grade", "CourseEnrollment")
 
         course = db.query(Course).filter(Course.id == course_id).first()
         if not course:

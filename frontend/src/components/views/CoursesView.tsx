@@ -462,11 +462,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
 
       // Generate ICS content
       const icsContent = generateCourseScheduleICS(courseData);
-      
+
       // Download file
       const filename = `${currentCourse.course_code}_schedule.ics`;
       downloadICS(icsContent, filename);
-      
+
       showToast(t('scheduleExported'), 'success');
     } catch (error) {
       console.error('Export error:', error);

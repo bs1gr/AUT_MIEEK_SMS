@@ -16,7 +16,7 @@ Use this checklist to ensure successful deployment to other Windows computers.
 - [ ] **Online Deployment**: Target computer has internet access
   - Simplest method
   - Run `INSTALLER.bat` on target computer
-  
+
 - [ ] **Offline Deployment**: Target computer is air-gapped or has no internet
   - Create deployment package first
   - Transfer via USB or network share
@@ -68,14 +68,14 @@ Required ports should be available:
 - [ ] Copy the entire application folder to target computer
   - Or clone from GitHub
   - Or extract from ZIP file
-  
+
 - [ ] Open PowerShell in the application folder
   - Right-click folder → "Open in Terminal" or "Open PowerShell here"
-  
+
 - [ ] Run the installer
   - Double-click `INSTALLER.bat`
   - Or run: `.\INSTALLER.ps1`
-  
+
 - [ ] Follow the interactive prompts
   - Installer checks prerequisites
   - Guides through missing installations
@@ -86,17 +86,17 @@ Required ports should be available:
 
 - [ ] Extract `deployment-package.zip` on target computer
   - Recommended location: `C:\SMS`
-  
+
 - [ ] Open PowerShell in the extracted folder
-  
+
 - [ ] Load Docker image (if package includes it)
   - Double-click `LOAD_DOCKER_IMAGE.bat`
   - Or run: `docker load -i docker-image-sms-fullstack.tar`
-  
+
 - [ ] Run the installer
   - Double-click `INSTALLER.bat`
   - Installer detects pre-loaded image
-  
+
 - [ ] Application starts automatically
 
 ## Post-Installation Verification
@@ -168,11 +168,11 @@ After successful installation, users should know:
 
 - [ ] Showed user how to backup database
   - Run `SMS.ps1` → Database → Backup
-  
+
 - [ ] Showed user how to view logs
   - Docker: `docker logs sms-fullstack`
   - Native: Check `backend/logs/` folder
-  
+
 - [ ] Showed user how to restart if needed
   - Run `SMS.ps1` → Restart
 

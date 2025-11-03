@@ -214,12 +214,12 @@ This ensures that first-time installations initialize properly without requiring
 #### First-Run Database Validation
 - **Tool**: `backend/tools/validate_first_run.py`
 - **Purpose**: Test fresh database creation and migrations programmatically
-- **Usage**: 
+- **Usage**:
   ```powershell
   cd backend
   ..\.venv\Scripts\python.exe tools\validate_first_run.py
   ```
-- **Checks**: 
+- **Checks**:
   - Database file creation
   - Migration execution success
   - Table count and schema verification
@@ -278,15 +278,15 @@ async def auto_migrate_docker_volume():
     """
     native_db = Path("data/student_management.db")
     docker_volume = "sms_data"
-    
+
     native_version = get_db_schema_version(native_db)
     # Extract and check Docker volume version...
-    
+
     if native_version > docker_version:
         # Auto-create new volume and migrate
         await docker_update_volume(migrate=True)
         return {"action": "auto_migrated", "from": docker_version, "to": native_version}
-    
+
     return {"action": "none", "version": native_version}
 ```
 
@@ -297,16 +297,16 @@ async def auto_migrate_docker_volume():
 
 function Invoke-PreStartCheck {
     param([string]$Mode)
-    
+
     if ($Mode -eq 'docker') {
         # Check if schema versions match
         $nativeVersion = Get-DBSchemaVersion "data/student_management.db"
         $dockerVersion = Get-DockerVolumeSchemaVersion
-        
+
         if ($nativeVersion -ne $dockerVersion) {
             Write-Warning "Schema version mismatch detected!"
             Write-Host "Native DB: v$nativeVersion, Docker: v$dockerVersion"
-            
+
             $confirm = Read-Host "Auto-migrate Docker volume? (Y/n)"
             if ($confirm -notmatch '^n') {
                 Invoke-DockerVolumeMigration

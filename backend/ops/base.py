@@ -20,8 +20,10 @@ import logging
 #  ENUMERATIONS
 # ============================================================================
 
+
 class OperationStatus(Enum):
     """Status codes for operations"""
+
     SUCCESS = "success"
     FAILURE = "failure"
     WARNING = "warning"
@@ -32,9 +34,11 @@ class OperationStatus(Enum):
 #  CORE DATA STRUCTURES
 # ============================================================================
 
+
 @dataclass
 class OperationResult:
     """Standard result object returned by all operations"""
+
     success: bool
     message: str
     status: OperationStatus
@@ -43,22 +47,29 @@ class OperationResult:
     duration_ms: Optional[int] = None
 
     @classmethod
-    def success_result(cls, message: str, data: Optional[Dict] = None) -> 'OperationResult':
+    def success_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a successful result"""
         return cls(True, message, OperationStatus.SUCCESS, data)
 
     @classmethod
-    def failure_result(cls, message: str, error: Optional[Exception] = None) -> 'OperationResult':
-        """Create a failed result"""
-        return cls(False, message, OperationStatus.FAILURE, error=error)
+    def failure_result(
+        cls, message: str, error: Optional[Exception] = None, data: Optional[Dict[str, Any]] = None
+    ) -> "OperationResult":
+        """Create a failed result
+
+        Backwards-compatible: accepts optional `data` kwarg because many callers
+        pass `data=` when building failure results. This prevents unexpected
+        keyword-argument mypy errors while keeping the runtime shape stable.
+        """
+        return cls(False, message, OperationStatus.FAILURE, data, error)
 
     @classmethod
-    def warning_result(cls, message: str, data: Optional[Dict] = None) -> 'OperationResult':
+    def warning_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a warning result (operation succeeded but with warnings)"""
         return cls(True, message, OperationStatus.WARNING, data)
 
     @classmethod
-    def partial_result(cls, message: str, data: Optional[Dict] = None) -> 'OperationResult':
+    def partial_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a partial success result"""
         return cls(True, message, OperationStatus.PARTIAL, data)
 
@@ -66,6 +77,7 @@ class OperationResult:
 @dataclass
 class ProcessInfo:
     """Information about a running process"""
+
     pid: int
     name: str
     port: Optional[int] = None
@@ -77,6 +89,7 @@ class ProcessInfo:
 @dataclass
 class ContainerInfo:
     """Information about a Docker container"""
+
     name: str
     id: str
     state: str  # running, stopped, exited, etc.
@@ -89,6 +102,7 @@ class ContainerInfo:
 @dataclass
 class VolumeInfo:
     """Information about a Docker volume"""
+
     name: str
     driver: str
     mountpoint: str
@@ -104,6 +118,7 @@ class VolumeInfo:
 @dataclass
 class PortStatus:
     """Port availability and usage information"""
+
     port: int
     in_use: bool
     process: Optional[ProcessInfo] = None
@@ -112,6 +127,7 @@ class PortStatus:
 @dataclass
 class SystemStatus:
     """Comprehensive system status"""
+
     mode: str  # 'docker', 'native', 'not_running'
     docker_installed: bool
     docker_running: bool
@@ -127,12 +143,13 @@ class SystemStatus:
 
     def is_running(self) -> bool:
         """Check if any services are running"""
-        return self.mode in ('docker', 'native')
+        return self.mode in ("docker", "native")
 
 
 @dataclass
 class BackupInfo:
     """Information about a database backup"""
+
     filename: str
     path: Path
     size_bytes: int
@@ -184,6 +201,7 @@ class BackupInfo:
 @dataclass
 class DependencyStatus:
     """Status of system dependencies"""
+
     python_installed: bool
     python_version: Optional[str]
     python_sufficient: bool  # >= 3.11
@@ -196,10 +214,7 @@ class DependencyStatus:
 
     def is_satisfied(self) -> bool:
         """Check if all required dependencies are satisfied"""
-        return (
-            self.python_installed and self.python_sufficient and
-            self.node_installed and self.node_sufficient
-        )
+        return self.python_installed and self.python_sufficient and self.node_installed and self.node_sufficient
 
     def get_issues(self) -> List[str]:
         """Get list of dependency issues"""
@@ -220,6 +235,7 @@ class DependencyStatus:
 # ============================================================================
 #  BASE OPERATION CLASS
 # ============================================================================
+
 
 class Operation(ABC):
     """
@@ -244,7 +260,7 @@ class Operation(ABC):
         self.root_dir = root_dir or Path.cwd()
 
     @abstractmethod
-    def execute(self, **kwargs) -> OperationResult:
+    def execute(self, *args: Any, **kwargs: Any) -> OperationResult:
         """
         Execute the operation.
 
@@ -281,17 +297,14 @@ class Operation(ABC):
 #  LOGGING UTILITIES
 # ============================================================================
 
+
 class OperationLogger:
     """Structured logging for operations"""
 
     _configured = False
 
     @staticmethod
-    def configure(
-        log_file: Optional[Path] = None,
-        level: str = "INFO",
-        console: bool = True
-    ) -> None:
+    def configure(log_file: Optional[Path] = None, level: str = "INFO", console: bool = True) -> None:
         """
         Configure logging for operations.
 
@@ -307,10 +320,7 @@ class OperationLogger:
         numeric_level = getattr(logging, level.upper(), logging.INFO)
 
         # Create formatter
-        formatter = logging.Formatter(
-            '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
         # Configure root logger
         root_logger = logging.getLogger()
@@ -341,7 +351,8 @@ class OperationLogger:
 #  UTILITY FUNCTIONS
 # ============================================================================
 
-def format_size(size_bytes: int) -> str:
+
+def format_size(size_bytes: float) -> str:
     """
     Format byte size as human-readable string.
 
@@ -351,11 +362,13 @@ def format_size(size_bytes: int) -> str:
     Returns:
         Human-readable size string (e.g., "1.5 MB")
     """
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} PB"
+    # operate in floating point to avoid integer division/type issues
+    value = float(size_bytes)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if value < 1024.0:
+            return f"{value:.1f} {unit}"
+        value /= 1024.0
+    return f"{value:.1f} PB"
 
 
 def format_duration(duration_ms: int) -> str:
@@ -407,21 +420,21 @@ def get_python_executable(root_dir: Path) -> str:
         This is a shared utility to eliminate code duplication across operations.
         Used by BackendServer, DatabaseManager, and SetupOperations.
     """
-    venv_dir = root_dir / 'backend' / 'venv'
+    venv_dir = root_dir / "backend" / "venv"
 
     if venv_dir.exists():
         # Windows: venv/Scripts/python.exe
-        python_path = venv_dir / 'Scripts' / 'python.exe'
+        python_path = venv_dir / "Scripts" / "python.exe"
         if python_path.exists():
             return str(python_path)
 
         # Unix: venv/bin/python
-        python_path = venv_dir / 'bin' / 'python'
+        python_path = venv_dir / "bin" / "python"
         if python_path.exists():
             return str(python_path)
 
     # Fallback to system Python
-    return 'python'
+    return "python"
 
 
 class OperationTimeouts:
@@ -433,22 +446,22 @@ class OperationTimeouts:
     """
 
     # Process startup/shutdown
-    PROCESS_STARTUP_WAIT = 2       # Wait after starting process
-    PROCESS_SHUTDOWN_WAIT = 5      # Wait for graceful shutdown
+    PROCESS_STARTUP_WAIT = 2  # Wait after starting process
+    PROCESS_SHUTDOWN_WAIT = 5  # Wait for graceful shutdown
 
     # Command execution
-    QUICK_COMMAND = 30             # < 30s commands (git, docker ps, etc.)
-    MEDIUM_COMMAND = 120           # 1-2 minute commands (venv, alembic)
-    LONG_COMMAND = 600             # 5-10 minute commands (pip, npm install)
+    QUICK_COMMAND = 30  # < 30s commands (git, docker ps, etc.)
+    MEDIUM_COMMAND = 120  # 1-2 minute commands (venv, alembic)
+    LONG_COMMAND = 600  # 5-10 minute commands (pip, npm install)
 
     # Docker operations
-    DOCKER_BUILD = 900             # 15 minutes for builds
-    DOCKER_COMPOSE_UP = 600        # 10 minutes for compose up
-    DOCKER_VOLUME_OP = 60          # 1 minute for volume operations
+    DOCKER_BUILD = 900  # 15 minutes for builds
+    DOCKER_COMPOSE_UP = 600  # 10 minutes for compose up
+    DOCKER_VOLUME_OP = 60  # 1 minute for volume operations
 
     # HTTP/Network
-    HTTP_REQUEST = 3               # Individual HTTP request
-    HTTP_ENDPOINT_WAIT = 120       # Waiting for endpoint to become available
+    HTTP_REQUEST = 3  # Individual HTTP request
+    HTTP_ENDPOINT_WAIT = 120  # Waiting for endpoint to become available
 
 
 def ensure_directory(path: Path) -> None:

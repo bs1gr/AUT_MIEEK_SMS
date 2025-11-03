@@ -23,13 +23,14 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import declarative_base
+from typing import Any
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import date, datetime, timezone
 import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-Base = declarative_base()
+Base: Any = declarative_base()
 
 
 class Student(Base):
@@ -55,11 +56,16 @@ class Student(Base):
     study_year = Column(Integer)
 
     # Relationships with cascade delete
-    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
-    grades = relationship("Grade", back_populates="student", cascade="all, delete-orphan")
-    highlights = relationship("Highlight", back_populates="student", cascade="all, delete-orphan")
-    daily_performances = relationship("DailyPerformance", back_populates="student", cascade="all, delete-orphan")
-    enrollments = relationship("CourseEnrollment", back_populates="student", cascade="all, delete-orphan")
+    # These are runtime SQLAlchemy relationship() attributes. We avoid class-level
+    # typing annotations here because SQLAlchemy's declarative mapper interprets
+    # annotations as mapping hints; use SQLAlchemy's Mapped[] generics if stronger
+    # typing is desired in future (requires sqlalchemy2-stubs). Keeping plain
+    # assignments preserves runtime behavior and avoids mapper errors.
+    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    grades = relationship("Grade", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    highlights = relationship("Highlight", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    daily_performances = relationship("DailyPerformance", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    enrollments = relationship("CourseEnrollment", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
 
     # Composite index for active students
     __table_args__ = (Index("idx_student_active_email", "is_active", "email"),)
@@ -88,11 +94,11 @@ class Course(Base):
     teaching_schedule = Column(JSON)
 
     # Relationships
-    attendances = relationship("Attendance", back_populates="course")
-    grades = relationship("Grade", back_populates="course")
-    daily_performances = relationship("DailyPerformance", back_populates="course")
-    enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")
-    enrolled_students = relationship("Student", secondary="course_enrollments", viewonly=True)
+    attendances = relationship("Attendance", back_populates="course")  # type: ignore[var-annotated]
+    grades = relationship("Grade", back_populates="course")  # type: ignore[var-annotated]
+    daily_performances = relationship("DailyPerformance", back_populates="course")  # type: ignore[var-annotated]
+    enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    enrolled_students = relationship("Student", secondary="course_enrollments", viewonly=True)  # type: ignore[var-annotated]
 
     def __repr__(self):
         return f"<Course(code={self.course_code}, name={self.course_name}, hours={self.hours_per_week}h/week)>"
@@ -112,8 +118,8 @@ class Attendance(Base):
     notes = Column(Text)
 
     # Relationships
-    student = relationship("Student", back_populates="attendances")
-    course = relationship("Course", back_populates="attendances")
+    student = relationship("Student", back_populates="attendances")  # type: ignore[var-annotated]
+    course = relationship("Course", back_populates="attendances")  # type: ignore[var-annotated]
 
     # Composite index for common queries
     __table_args__ = (
@@ -138,8 +144,8 @@ class CourseEnrollment(Base):
     enrolled_at = Column(Date, default=date.today, index=True)
 
     # Relationships
-    student = relationship("Student", back_populates="enrollments")
-    course = relationship("Course", back_populates="enrollments")
+    student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]
+    course = relationship("Course", back_populates="enrollments")  # type: ignore[var-annotated]
 
     __table_args__ = (Index("idx_enrollment_student_course", "student_id", "course_id", unique=True),)
 
@@ -162,8 +168,8 @@ class DailyPerformance(Base):
     notes = Column(Text)
 
     # Relationships
-    student = relationship("Student", back_populates="daily_performances")
-    course = relationship("Course", back_populates="daily_performances")
+    student = relationship("Student", back_populates="daily_performances")  # type: ignore[var-annotated]
+    course = relationship("Course", back_populates="daily_performances")  # type: ignore[var-annotated]
 
     # Composite index for common queries
     __table_args__ = (
@@ -206,8 +212,8 @@ class Grade(Base):
     notes = Column(Text)
 
     # Relationships
-    student = relationship("Student", back_populates="grades")
-    course = relationship("Course", back_populates="grades")
+    student = relationship("Student", back_populates="grades")  # type: ignore[var-annotated]
+    course = relationship("Course", back_populates="grades")  # type: ignore[var-annotated]
 
     # Composite indexes for common queries
     __table_args__ = (
@@ -246,7 +252,7 @@ class Highlight(Base):
     is_positive = Column(Boolean, default=True)
 
     # Relationships
-    student = relationship("Student", back_populates="highlights")
+    student = relationship("Student", back_populates="highlights")  # type: ignore[var-annotated]
 
     # Composite index for common queries
     __table_args__ = (Index("idx_highlight_student_semester", "student_id", "semester"),)
@@ -321,14 +327,14 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
         try:
             if engine.dialect.name == "sqlite":
-                with engine.connect() as conn:
+                # Use a transaction context so PRAGMAs are applied consistently
+                with engine.begin() as conn:
                     # Enable write-ahead logging for better concurrency
                     conn.execute(text("PRAGMA journal_mode=WAL"))
                     # Reasonable durability without being too slow for dev
                     conn.execute(text("PRAGMA synchronous=NORMAL"))
                     # Ensure foreign keys constraints are enforced
                     conn.execute(text("PRAGMA foreign_keys=ON"))
-                    conn.commit()
         except Exception:
             # Best-effort; do not fail initialization on pragma errors
             pass

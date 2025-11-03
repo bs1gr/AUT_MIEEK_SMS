@@ -21,10 +21,9 @@ from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
 # Rate limiting for new endpoints (honors project guidance)
-try:
-    from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE
-except ModuleNotFoundError:
-    from ..rate_limiting import limiter, RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE
+from backend.import_resolver import import_names
+
+limiter, RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
 
 logger = logging.getLogger(__name__)
 
@@ -512,10 +511,12 @@ async def get_environment_info(include_packages: bool = False):
     api_version: Optional[str] = None
     try:
         try:
-            from backend.main import create_app  # type: ignore
-        except ModuleNotFoundError:
-            from ..main import create_app  # type: ignore
-        api_version = getattr(create_app(), "version", None)
+            from backend.import_resolver import import_names
+
+            (create_app,) = import_names("main", "create_app")
+            api_version = getattr(create_app(), "version", None)
+        except Exception:
+            api_version = None
     except Exception:
         api_version = None
 
@@ -768,10 +769,9 @@ async def exit_all(down: bool = False):
 
     # Trigger backend comprehensive shutdown (stop-all)
     try:
-        try:
-            from backend.main import control_stop_all  # type: ignore
-        except ModuleNotFoundError:
-            from ..main import control_stop_all  # type: ignore
+        from backend.import_resolver import import_names
+
+        (control_stop_all,) = import_names("main", "control_stop_all")
         shutdown_info = control_stop_all()
         details["shutdown"] = shutdown_info
     except Exception as e:
@@ -815,19 +815,19 @@ async def docker_prune(request: Request, include_volumes: bool = False):
     if not _check_docker_running():
         raise HTTPException(status_code=400, detail="Docker is not running")
 
-    project_root = Path(__file__).parent.parent.parent
-
     summary: Dict[str, Any] = {"steps": []}
     errors: list[str] = []
 
     def _step(label: str, cmd: list[str]):
         ok, out, err = _run_command(cmd, timeout=300)
-        summary["steps"].append({
-            "label": label,
-            "ok": ok,
-            "stdout": (out[-1000:] if out else None),
-            "stderr": (err[-1000:] if err else None),
-        })
+        summary["steps"].append(
+            {
+                "label": label,
+                "ok": ok,
+                "stdout": (out[-1000:] if out else None),
+                "stderr": (err[-1000:] if err else None),
+            }
+        )
         if not ok:
             errors.append(f"{label} failed")
 
@@ -846,8 +846,9 @@ async def docker_prune(request: Request, include_volumes: bool = False):
     return OperationResult(
         success=(len(errors) == 0),
         message=(
-            "Docker resources pruned" + (" (including volumes)" if include_volumes else "") +
-            (" with some errors" if errors else "")
+            "Docker resources pruned"
+            + (" (including volumes)" if include_volumes else "")
+            + (" with some errors" if errors else "")
         ),
         details=summary,
     )

@@ -72,7 +72,7 @@ npm run dev
 Install Docker Desktop from: https://www.docker.com/products/docker-desktop/
 
 ### "Python not found"
-Install Python 3.11+ from: https://www.python.org/downloads/  
+Install Python 3.11+ from: https://www.python.org/downloads/
 **Important:** Check "Add Python to PATH" during installation
 
 ### "Node.js not found"

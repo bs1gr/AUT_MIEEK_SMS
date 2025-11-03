@@ -163,7 +163,7 @@ function Show-Menu {
 
 function Build-FullstackImage {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "Building Fullstack Image..." -ForegroundColor Blue
     Write-Host ""
@@ -179,7 +179,7 @@ function Build-FullstackImage {
 
 function View-ContainerLogs {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "Container Logs (last 50 lines):" -ForegroundColor Blue
     Write-Host ""
@@ -190,7 +190,7 @@ function View-ContainerLogs {
 
 function Shell-IntoContainer {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "Opening shell in container..." -ForegroundColor Blue
     Write-Host "Type 'exit' to return to this menu." -ForegroundColor Gray
@@ -202,7 +202,7 @@ function Shell-IntoContainer {
 
 function Remove-AllDockerResources {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "WARNING: This will remove all SMS containers and images!" -ForegroundColor Red
     Write-Host ""
@@ -212,14 +212,14 @@ function Remove-AllDockerResources {
         Start-Sleep -Seconds 1
         return
     }
-    
+
     Write-Host ""
     Write-Host "Removing containers..." -ForegroundColor Yellow
     docker rm -f sms-fullstack sms-backend sms-frontend 2>$null
-    
+
     Write-Host "Removing images..." -ForegroundColor Yellow
     docker rmi -f sms-fullstack sms-backend sms-frontend 2>$null
-    
+
     Write-Host "Done." -ForegroundColor Green
     Write-Host ""
     Pause-ForUser
@@ -239,22 +239,22 @@ function Check-DockerStatus {
     Write-Host ""
     Write-Host "Docker Status:" -ForegroundColor Blue
     Write-Host ""
-    
+
     Write-Host "Docker Version:" -ForegroundColor Yellow
     docker version --format "  Client: {{.Client.Version}}`n  Server: {{.Server.Version}}"
-    
+
     Write-Host ""
     Write-Host "Running Containers:" -ForegroundColor Yellow
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    
+
     Write-Host ""
     Write-Host "Images:" -ForegroundColor Yellow
     docker images --filter "reference=sms-*" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
-    
+
     Write-Host ""
     Write-Host "Volumes:" -ForegroundColor Yellow
     docker volume ls --filter "name=sms" --format "table {{.Name}}\t{{.Driver}}"
-    
+
     Write-Host ""
     Pause-ForUser
 }
@@ -273,14 +273,14 @@ function View-DatabaseInfo {
     Write-Host ""
     Write-Host "Database Information:" -ForegroundColor Blue
     Write-Host ""
-    
+
     Write-Host "Volume Location:" -ForegroundColor Yellow
     docker volume inspect sms_data --format "  {{.Mountpoint}}" 2>$null
-    
+
     Write-Host ""
     Write-Host "Database File (in container):" -ForegroundColor Yellow
     docker exec sms-fullstack ls -lh /data/student_management.db 2>$null
-    
+
     Write-Host ""
     Pause-ForUser
 }
@@ -289,14 +289,14 @@ function Test-APIEndpoints {
     Write-Host ""
     Write-Host "Testing API Endpoints..." -ForegroundColor Blue
     Write-Host ""
-    
+
     $endpoints = @(
         @{Name="Root"; URL="http://localhost:8080/"},
         @{Name="Health"; URL="http://localhost:8080/health"},
         @{Name="API Info"; URL="http://localhost:8080/api"},
         @{Name="Docs"; URL="http://localhost:8080/docs"}
     )
-    
+
     foreach ($ep in $endpoints) {
         Write-Host "$($ep.Name): " -NoNewline -ForegroundColor Yellow
         try {
@@ -306,7 +306,7 @@ function Test-APIEndpoints {
             Write-Host "✗ Failed" -ForegroundColor Red
         }
     }
-    
+
     Write-Host ""
     Pause-ForUser
 }
@@ -336,16 +336,16 @@ function Cleanup-DockerResources {
     Write-Host ""
     Write-Host "Cleaning up Docker resources..." -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host "Pruning unused containers..." -ForegroundColor Gray
     docker container prune -f
-    
+
     Write-Host "Pruning unused images..." -ForegroundColor Gray
     docker image prune -f
-    
+
     Write-Host "Pruning unused networks..." -ForegroundColor Gray
     docker network prune -f
-    
+
     Write-Host ""
     Write-Host "Done." -ForegroundColor Green
     Write-Host ""
@@ -371,17 +371,17 @@ function Reset-Database {
         Start-Sleep -Seconds 1
         return
     }
-    
+
     Write-Host ""
     Write-Host "Stopping container..." -ForegroundColor Yellow
     docker stop sms-fullstack 2>$null
-    
+
     Write-Host "Removing volume..." -ForegroundColor Yellow
     docker volume rm sms_data 2>$null
-    
+
     Write-Host "Recreating volume..." -ForegroundColor Green
     docker volume create sms_data
-    
+
     Write-Host "Done. Restart the app to initialize a fresh database." -ForegroundColor Green
     Write-Host ""
     Pause-ForUser
@@ -389,10 +389,10 @@ function Reset-Database {
 
 function Backup-Database {
     if (-not (Ensure-DockerRunning)) { return }
-    
-    Write-Host "" 
+
+    Write-Host ""
     Write-Host "Backing up database from volume 'sms_data'..." -ForegroundColor Blue
-    Write-Host "" 
+    Write-Host ""
 
     $backupsDir = Join-Path $PSScriptRoot 'backups'
     if (-not (Test-Path $backupsDir)) {
@@ -405,7 +405,7 @@ function Backup-Database {
     $destPath = Join-Path $backupsDir $destFile
 
     Write-Host "Creating backup: $destFile" -ForegroundColor Yellow
-    
+
     # Use Alpine to copy the file from the volume to the mounted backup folder
     # Convert Windows path to Unix format for Docker
     $backupsDirUnix = $backupsDir.Replace('\', '/').Replace(':', '').ToLower()
@@ -429,16 +429,16 @@ function Backup-Database {
         Write-Host "✗ Backup failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
     }
 
-    Write-Host "" 
+    Write-Host ""
     Pause-ForUser
 }
 
 function Restore-Database {
     if (-not (Ensure-DockerRunning)) { return }
-    
-    Write-Host "" 
+
+    Write-Host ""
     Write-Host "Restore database from backup (./backups)..." -ForegroundColor Blue
-    Write-Host "" 
+    Write-Host ""
 
     $backupsDir = Join-Path $PSScriptRoot 'backups'
     if (-not (Test-Path $backupsDir)) {
@@ -496,7 +496,7 @@ function Restore-Database {
     docker run --rm -v sms_data:/data -v "${backupsDirUnix}:/backup" alpine sh -c $cmd
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Restore complete" -ForegroundColor Green
-        
+
         # Verify restored file
         Write-Host "Verifying restored database..." -ForegroundColor Yellow
         $verifyCmd = "ls -lh /data/student_management.db"
@@ -507,25 +507,25 @@ function Restore-Database {
         } else {
             Write-Host "⚠ Could not verify restored file" -ForegroundColor Yellow
         }
-        
+
         Write-Host ""
         Write-Host "Restart the app to use the restored database." -ForegroundColor Cyan
     } else {
         Write-Host "✗ Restore failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
     }
 
-    Write-Host "" 
+    Write-Host ""
     Pause-ForUser
 }
 
 function Migrate-ComposeToFullstack {
     if (-not (Ensure-DockerRunning)) { return }
-    
-    Write-Host "" 
+
+    Write-Host ""
     Write-Host "Migrate data: compose volume -> fullstack volume" -ForegroundColor Blue
     Write-Host "Source:   student-management-system_sms_data" -ForegroundColor Yellow
     Write-Host "Target:   sms_data" -ForegroundColor Yellow
-    Write-Host "" 
+    Write-Host ""
 
     $srcVol = 'student-management-system_sms_data'
     $dstVol = 'sms_data'
@@ -546,7 +546,7 @@ function Migrate-ComposeToFullstack {
     docker run --rm -v $($srcVol):/from -v $($dstVol):/to alpine sh -c $cmd
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Migration complete" -ForegroundColor Green
-        
+
         # Verify migrated data
         Write-Host "Verifying migrated database..." -ForegroundColor Yellow
         $verifyCmd = "ls -lh /data/student_management.db"
@@ -555,7 +555,7 @@ function Migrate-ComposeToFullstack {
             Write-Host "✓ Database file verified in target volume" -ForegroundColor Green
             Write-Host "  $output" -ForegroundColor Gray
         }
-        
+
         Write-Host ""
         Write-Host "Tip: You can remove the old volume if not needed:" -ForegroundColor Gray
         Write-Host "  docker volume rm $srcVol" -ForegroundColor Gray
@@ -563,14 +563,14 @@ function Migrate-ComposeToFullstack {
         Write-Host "✗ Migration failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
     }
 
-    Write-Host "" 
+    Write-Host ""
     Pause-ForUser
 }
 
 function Show-BackupManager {
     Write-Host ""
     $backupsDir = Join-Path $PSScriptRoot 'backups'
-    
+
     if (-not (Test-Path $backupsDir)) {
         Write-Host "Backups folder does not exist yet." -ForegroundColor Yellow
         Write-Host "Create a backup first (option B)." -ForegroundColor Gray
@@ -578,16 +578,16 @@ function Show-BackupManager {
         Pause-ForUser
         return
     }
-    
+
     $files = @(Get-ChildItem -File -Path $backupsDir -Filter '*.db' | Sort-Object LastWriteTime -Descending)
-    
+
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host "                    BACKUP MANAGER" -ForegroundColor Cyan
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Location: $backupsDir" -ForegroundColor Gray
     Write-Host ""
-    
+
     if ($files.Count -eq 0) {
         Write-Host "No backup files found." -ForegroundColor Yellow
         Write-Host ""
@@ -599,10 +599,10 @@ function Show-BackupManager {
             $sizeKB = [math]::Round($files[$i].Length / 1KB, 2)
             $totalSize += $files[$i].Length
             $age = (Get-Date) - $files[$i].LastWriteTime
-            $ageStr = if ($age.Days -gt 0) { "$($age.Days)d ago" } 
+            $ageStr = if ($age.Days -gt 0) { "$($age.Days)d ago" }
                       elseif ($age.Hours -gt 0) { "$($age.Hours)h ago" }
                       else { "$($age.Minutes)m ago" }
-            
+
             Write-Host ("  [{0,2}] {1}" -f $i, $files[$i].Name) -ForegroundColor White
             Write-Host ("       Size: {0} KB  |  Created: {1} ({2})" -f $sizeKB, $files[$i].LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"), $ageStr) -ForegroundColor Gray
         }
@@ -610,7 +610,7 @@ function Show-BackupManager {
         Write-Host ""
         Write-Host "Total: $($files.Count) backups, $totalSizeMB MB" -ForegroundColor Cyan
     }
-    
+
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  [O] Open folder in Explorer" -ForegroundColor White
@@ -619,7 +619,7 @@ function Show-BackupManager {
     Write-Host "  [Enter] Return to main menu" -ForegroundColor Gray
     Write-Host ""
     $choice = Read-Host "Select option"
-    
+
     switch ($choice.ToUpper()) {
         "O" {
             Start-Process "explorer.exe" -ArgumentList $backupsDir
@@ -670,12 +670,12 @@ function Show-BackupManager {
 function Open-BackupsFolder {
     Write-Host ""
     $backupsDir = Join-Path $PSScriptRoot 'backups'
-    
+
     if (-not (Test-Path $backupsDir)) {
         Write-Host "Creating backups folder..." -ForegroundColor Yellow
         New-Item -ItemType Directory -Path $backupsDir | Out-Null
     }
-    
+
     Write-Host "Opening backups folder in Explorer..." -ForegroundColor Blue
     Start-Process "explorer.exe" -ArgumentList $backupsDir
     Start-Sleep -Seconds 1
@@ -683,28 +683,28 @@ function Open-BackupsFolder {
 
 function List-AllVolumes {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host "                    DOCKER VOLUMES" -ForegroundColor Cyan
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host ""
-    
+
     Write-Host "All Volumes:" -ForegroundColor Yellow
     docker volume ls --format "table {{.Driver}}\t{{.Name}}"
-    
+
     Write-Host ""
     Write-Host "Volume Details:" -ForegroundColor Yellow
     Write-Host ""
-    
+
     $volumes = docker volume ls --format "{{.Name}}"
     foreach ($vol in $volumes -split "`n") {
         if ([string]::IsNullOrWhiteSpace($vol)) { continue }
         Write-Host "Volume: $vol" -ForegroundColor Cyan
-        
+
         $inspect = docker volume inspect $vol --format "  Mountpoint: {{.Mountpoint}}`n  Created: {{.CreatedAt}}" 2>$null
         Write-Host $inspect -ForegroundColor Gray
-        
+
         # Check if volume is in use
         $containers = docker ps -a --filter "volume=$vol" --format "{{.Names}}" 2>$null
         if ($containers) {
@@ -714,71 +714,71 @@ function List-AllVolumes {
         }
         Write-Host ""
     }
-    
+
     Write-Host "Disk Usage Summary:" -ForegroundColor Yellow
     docker system df -v | Select-String "VOLUME NAME" -Context 0,20
-    
+
     Write-Host ""
     Pause-ForUser
 }
 
 function Remove-OldVolumes {
     if (-not (Ensure-DockerRunning)) { return }
-    
+
     Write-Host ""
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host "              REMOVE OLD/UNUSED VOLUMES" -ForegroundColor Cyan
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host ""
-    
+
     # List all volumes
     Write-Host "Current Volumes:" -ForegroundColor Yellow
     $volumes = docker volume ls --format "{{.Name}}"
     $volumeList = @()
     $index = 0
-    
+
     foreach ($vol in $volumes -split "`n") {
         if ([string]::IsNullOrWhiteSpace($vol)) { continue }
-        
+
         # Check if volume is in use
         $containers = docker ps -a --filter "volume=$vol" --format "{{.Names}}" 2>$null
         $status = if ($containers) { "IN USE by $containers" } else { "UNUSED" }
         $statusColor = if ($containers) { "Green" } else { "Yellow" }
-        
+
         Write-Host ("  [{0}] {1} - " -f $index, $vol) -NoNewline
         Write-Host $status -ForegroundColor $statusColor
-        
+
         $volumeList += @{Index=$index; Name=$vol; InUse=($null -ne $containers); Containers=$containers}
         $index++
     }
-    
+
     if ($volumeList.Count -eq 0) {
         Write-Host "No volumes found." -ForegroundColor Green
         Start-Sleep -Seconds 2
         return
     }
-    
+
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Cyan
     Write-Host "  [Number] Remove specific volume by number" -ForegroundColor White
     Write-Host "  [A] Remove ALL unused volumes (prune)" -ForegroundColor Yellow
     Write-Host "  [Enter] Cancel and return to menu" -ForegroundColor Gray
     Write-Host ""
-    
+
     $choice = Read-Host "Select option"
-    
+
     if ([string]::IsNullOrWhiteSpace($choice)) {
         Write-Host "Cancelled." -ForegroundColor Yellow
         Start-Sleep -Seconds 1
         return
     }
-    
+
     if ($choice.ToUpper() -eq 'A') {
         Write-Host ""
         Write-Host "WARNING: This will remove ALL unused volumes!" -ForegroundColor Red
         Write-Host "Active volume 'sms_data' will be removed if no container is using it." -ForegroundColor Red
         Write-Host ""
-        
+
         # Show what will be removed
         $dangling = docker volume ls --filter 'dangling=true' --format "{{.Name}}"
         if ($dangling) {
@@ -792,7 +792,7 @@ function Remove-OldVolumes {
             Start-Sleep -Seconds 2
             return
         }
-        
+
         Write-Host ""
         $confirm = Read-Host "Type 'PRUNE' to confirm removal of all unused volumes"
         if ($confirm -ne 'PRUNE') {
@@ -800,12 +800,12 @@ function Remove-OldVolumes {
             Start-Sleep -Seconds 1
             return
         }
-        
+
         Write-Host ""
         Write-Host "Removing unused volumes..." -ForegroundColor Yellow
         docker volume prune -f
         Write-Host "✓ Cleanup complete" -ForegroundColor Green
-        
+
     } elseif ($choice -match '^[0-9]+$') {
         $idx = [int]$choice
         if ($idx -ge $volumeList.Count) {
@@ -813,10 +813,10 @@ function Remove-OldVolumes {
             Start-Sleep -Seconds 2
             return
         }
-        
+
         $selected = $volumeList[$idx]
         $volName = $selected.Name
-        
+
         Write-Host ""
         if ($selected.InUse) {
             Write-Host "WARNING: Volume '$volName' is IN USE by: $($selected.Containers)" -ForegroundColor Red
@@ -824,7 +824,7 @@ function Remove-OldVolumes {
         } else {
             Write-Host "Removing unused volume: $volName" -ForegroundColor Yellow
         }
-        
+
         Write-Host ""
         $confirm = Read-Host "Type the volume name to confirm removal"
         if ($confirm -ne $volName) {
@@ -832,7 +832,7 @@ function Remove-OldVolumes {
             Start-Sleep -Seconds 1
             return
         }
-        
+
         Write-Host ""
         Write-Host "Removing volume: $volName..." -ForegroundColor Yellow
         docker volume rm $volName 2>&1
@@ -845,7 +845,7 @@ function Remove-OldVolumes {
         Write-Host "Invalid option." -ForegroundColor Red
         Start-Sleep -Seconds 1
     }
-    
+
     Write-Host ""
     Pause-ForUser
 }
@@ -882,11 +882,11 @@ function Show-Version {
     Write-Host "Version Information:" -ForegroundColor Blue
     Write-Host ""
     Write-Host "Application Version: $version" -ForegroundColor White
-    
+
     Write-Host ""
     Write-Host "Docker:" -ForegroundColor Yellow
     docker version --format "  Client: {{.Client.Version}}`n  Server: {{.Server.Version}}" 2>$null
-    
+
     Write-Host ""
     Write-Host "Fullstack Image:" -ForegroundColor Yellow
     $imgDate = docker images sms-fullstack --format "{{.CreatedSince}}" 2>$null
@@ -895,7 +895,7 @@ function Show-Version {
     } else {
         Write-Host "  Not built yet" -ForegroundColor Red
     }
-    
+
     Write-Host ""
     Pause-ForUser
 }
@@ -936,7 +936,7 @@ Push-Location $PSScriptRoot
 while ($true) {
     Show-Menu
     $choice = Read-Host "Select an option"
-    
+
     switch ($choice.ToUpper()) {
         "1" { Build-FullstackImage }
         "2" { View-ContainerLogs }
@@ -965,7 +965,7 @@ while ($true) {
         "V" { Show-Version }
         "O" { Open-Application }
         "H" { Show-Help }
-        "0" { 
+        "0" {
             Write-Host ""
             Write-Host "Goodbye!" -ForegroundColor Cyan
             Pop-Location
