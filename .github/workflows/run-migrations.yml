@@ -48,8 +48,10 @@ jobs:
 
       - name: Run migrations (verbose)
         # Run from the repository root so the `backend` package is importable
+        # Capture stdout/stderr to logs/migrations.log so CI artifacts always contain
+        # the migration output regardless of in-process logging configuration.
         run: |
-          python -m backend.run_migrations -v
+          python -u -m backend.run_migrations -v 2>&1 | tee -a logs/migrations.log
       - name: Run backend tests (pytest)
         working-directory: backend
         run: |
