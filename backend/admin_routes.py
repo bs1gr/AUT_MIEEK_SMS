@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 
 import importlib
 import importlib.util
-from typing import Iterable, Tuple, Any
+from typing import Iterable, Tuple, Any, Dict
 
 
 # Robust imports when running as a package or directly
@@ -225,7 +225,8 @@ async def add_sample_data(db: Session = Depends(get_db)):
 @router.get("/debug-processes")
 async def debug_processes():
     """Debug endpoint to see what processes will be killed"""
-    processes_info = {
+    # Explicit typing to satisfy strict type checkers: values are lists or dicts
+    processes_info: Dict[str, Any] = {
         "frontend_on_port_5173": [],
         "vite_node_processes": [],
         "npm_shell_processes": [],

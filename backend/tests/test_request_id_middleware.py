@@ -13,7 +13,9 @@ import logging
 def app_with_middleware():
     """Create a test FastAPI app with request ID middleware."""
     app = FastAPI()
-    app.add_middleware(RequestIDMiddleware)
+    # `add_middleware` typing in starlette/fastapi stubs can be strict; tests are fine
+    # at runtime so narrow the static-checker complaint here.
+    app.add_middleware(RequestIDMiddleware)  # type: ignore[arg-type]
 
     @app.get("/test")
     async def test_endpoint():
@@ -91,9 +93,8 @@ def test_request_id_filter():
     result = filter.filter(record)
 
     assert result is True
-    assert hasattr(record, "request_id")
-    # Should be "-" when no request context
-    assert record.request_id == "-"
+    # Use getattr to avoid mypy complaining about LogRecord lacking the attribute
+    assert getattr(record, "request_id", None) == "-"
 
 
 def test_request_id_filter_with_existing_id():
@@ -104,12 +105,13 @@ def test_request_id_filter_with_existing_id():
     record = logging.LogRecord(
         name="test", level=logging.INFO, pathname="", lineno=0, msg="test message", args=(), exc_info=None
     )
-    record.request_id = "existing-id-123"
+    # Set attribute using setattr to avoid static type errors in tests
+    setattr(record, "request_id", "existing-id-123")
 
     result = filter.filter(record)
 
     assert result is True
-    assert record.request_id == "existing-id-123"
+    assert getattr(record, "request_id", None) == "existing-id-123"
 
 
 def test_multiple_concurrent_requests(client):
