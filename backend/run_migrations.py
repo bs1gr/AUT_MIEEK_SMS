@@ -59,6 +59,7 @@ def run_migrations(verbose: bool = False) -> bool:
         # Ensure logs directory exists and add a file handler for migration logs.
         # Resolve repository root robustly (walk upwards for a .git or a project marker).
         try:
+
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
                     if (p / ".git").exists() or (p / "backend").exists() and (p / "backend").is_dir():
@@ -80,7 +81,9 @@ def run_migrations(verbose: bool = False) -> bool:
             existing = False
             for h in root_logger.handlers:
                 try:
-                    if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == str((logs_dir / "migrations.log")):
+                    if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == str(
+                        (logs_dir / "migrations.log")
+                    ):
                         existing = True
                         break
                 except Exception:
