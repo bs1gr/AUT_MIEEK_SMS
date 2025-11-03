@@ -53,3 +53,7 @@ frontend/.env
 
 # Ignore release artifacts
 dist/
+
+# Temporary CI/local artifact folders
+tmp_artifacts*
+tmp_*
