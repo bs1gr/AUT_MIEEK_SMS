@@ -57,3 +57,9 @@ dist/
 # Temporary CI/local artifact folders
 tmp_artifacts*
 tmp_*
+
+# Generated artifacts to untrack
+setup.log
+bfg.jar
+repo-mirror.git
+repo-mirror.git.bfg-report
