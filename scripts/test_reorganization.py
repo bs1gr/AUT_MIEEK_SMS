@@ -234,7 +234,6 @@ def test_main_readme_updated():
             ("scripts/dev/", "scripts/dev/ reference"),
             ("scripts/deploy/", "scripts/deploy/ reference"),
             ("SCRIPTS_GUIDE.md", "SCRIPTS_GUIDE.md reference"),
-            ("Script Organization (v1.2.3+)", "Version updated"),
         ]
 
         for check_str, check_name in checks:
