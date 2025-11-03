@@ -25,7 +25,8 @@ jobs:
           if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
           if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; else pip install mypy sqlalchemy2-stubs types-requests; fi
 
-      - name: Run mypy
+      - name: Run mypy (strict)
         run: |
-          python -m mypy backend --config-file mypy.ini
+          # Run with --check-untyped-defs to ensure untyped function bodies are checked
+          python -m mypy backend --config-file mypy.ini --check-untyped-defs
         # This job now fails the workflow on mypy errors to enforce type hygiene.
