@@ -115,8 +115,8 @@ EXPECTED_DOCS = [
     "scripts/dev/README.md",
     "scripts/deploy/README.md",
     "docs/SCRIPTS_GUIDE.md",
-    "SCRIPT_REORGANIZATION_SUMMARY.md",
-    "REORGANIZATION_COMPLETE.md",
+    "docs/REMOVED_DOCS_SUMMARY.md",
+    "docs/REORGANIZATION_COMPLETE.md",
 ]
 
 
