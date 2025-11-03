@@ -12,7 +12,6 @@ PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 def main() -> int:
     secret = os.environ.get("SECRET_KEY", "")
-    env = os.environ.get("ENV") or os.environ.get("APP_ENV") or os.environ.get("PYTEST_CURRENT_TEST")
 
     problems = []
 
