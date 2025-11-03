@@ -39,7 +39,7 @@ jobs:
           fi
 
       - name: Run migrations (verbose)
-        working-directory: backend
+        # Run from the repository root so the `backend` package is importable
         run: |
           python -m backend.run_migrations -v
       - name: Run backend tests (pytest)
@@ -56,5 +56,5 @@ jobs:
         with:
           name: backend-logs
           path: |
-            backend/../logs/migrations.log
-            backend/../logs/pytest-output.txt
+            logs/migrations.log
+            logs/pytest-output.txt
