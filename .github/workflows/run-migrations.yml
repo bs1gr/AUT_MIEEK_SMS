@@ -38,6 +38,10 @@ jobs:
             echo "DATABASE_URL=sqlite:///${{ github.workspace }}/backend/data/student_management.db" >> $GITHUB_ENV
           fi
 
+      - name: Ensure backend data directory exists
+        run: |
+          mkdir -p backend/data
+
       - name: Run migrations (verbose)
         # Run from the repository root so the `backend` package is importable
         run: |
