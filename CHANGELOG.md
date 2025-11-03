@@ -35,6 +35,18 @@ Notes:
 
 - This is primarily a developer-facing maintenance change; no API or schema changes were introduced.
 
+### Control API: safer frontend start/stop (operational)
+
+Small operational hardening for the `/control` endpoints.
+
+- Replaced shell-based subprocess invocations with list-style calls (shell=False) in `backend/main.py` to avoid shell injection and platform quoting issues.
+- Normalized user-facing `/control` API messages to be platform-agnostic and stable for tests and operators.
+- Added Windows `creationflags` and POSIX `close_fds` handling when spawning the frontend process, and guarded middleware registration to avoid startup failures.
+- Added unit tests for `/control/api/start` branches (install failure, process terminated, success).
+
+PR: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/6
+Merge commit: 12e1b707087ccf447cd37c912a2caa4f05b5c285
+
 ## [1.3.4] - 2025-11-01
 
 **Final Code Quality & Robustness Improvements**
