@@ -86,6 +86,12 @@ def run_migrations(verbose: bool = False) -> bool:
                 except Exception:
                     continue
             if not existing:
+                # Ensure root logger level allows INFO logs to be emitted
+                try:
+                    if root_logger.level > logging.INFO:
+                        root_logger.setLevel(logging.INFO)
+                except Exception:
+                    pass
                 root_logger.addHandler(fh)
         except Exception:
             # Non-fatal: migration logging is best-effort
