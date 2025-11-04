@@ -24,6 +24,11 @@ coverage.xml
 
 # Test build artifacts
 backend/tests/__pycache__/
+# Generated CI/artifact reports
+backend/ruff-report.json
+backend/mypy-report.txt
+backend/pip-audit*.json
+ci-diagnose-*.zip
 
 # Databases & backups
 *.db
