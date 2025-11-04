@@ -16,9 +16,11 @@ feedback faster and CI runs cheaper, the following low-risk improvements were ap
   `actions/cache` (caching `~/.cache/pip` keyed on the hash of `backend/requirements-lock.txt` and
   `backend/requirements.txt`). This significantly reduces repeated pip install time on GH runners.
 
+
 - The `pre-commit` workflow (which runs on both `push` and `pull_request`) was updated so that the
   step that commits and pushes auto-applied pre-commit fixes runs only when the workflow was
   triggered by a `push` event. This prevents permission errors when the workflow runs on PRs.
+
 
 Recommendations / next steps
 ----------------------------
@@ -36,6 +38,7 @@ Recommendations / next steps
 
 Notes
 -----
+
 - The validator unit tests still use the project's runtime requirements to ensure test fidelity
   (they exercise the same imports used in `backend` code). The cache reduces the wall-clock time
   across repeated runs.
