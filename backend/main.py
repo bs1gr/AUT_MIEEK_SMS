@@ -216,8 +216,9 @@ initialize_logging(log_dir="logs", log_level="INFO")
 # ============================================================================
 # LOGGING CONFIGURATION
 # ============================================================================
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# Use the centralized initialize_logging from backend.logging_config to set up
+# handlers, formatting and request-id filters. Avoid calling logging.basicConfig
+# again here to prevent duplicate handlers or format overrides.
 logger = logging.getLogger(__name__)
 
 # ============================================================================

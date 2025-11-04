@@ -63,3 +63,13 @@ setup.log
 bfg.jar
 repo-mirror.git
 repo-mirror.git.bfg-report
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+
+# Local preview / temp working copies
+rewrite-preview-local/
+
+# Large test artifacts
+pytest-full-output.txt
