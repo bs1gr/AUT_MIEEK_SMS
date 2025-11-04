@@ -92,6 +92,50 @@ jobs:
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
           npm run build
 
+  static-analysis:
+    name: Static analysis (report-only)
+    runs-on: ubuntu-latest
+    needs: backend
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install backend deps (for accuracy)
+        run: |
+          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements.txt; fi
+
+      - name: Install analysis tools
+        run: |
+          pip install ruff mypy
+
+      - name: Run ruff (strict -> JSON report)
+        run: |
+          # Produce machine-readable report but do not fail the job
+          python -m ruff check --format json . > backend/ruff-report.json || true
+
+      - name: Run mypy (strict-ish -> text report)
+        run: |
+          # Collect mypy output; do not fail the job
+          python -m mypy backend --show-error-codes --no-color-output > backend/mypy-report.txt || true
+
+      - name: Upload ruff report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-report
+          path: backend/ruff-report.json
+
+      - name: Upload mypy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-report
+          path: backend/mypy-report.txt
+
   release-candidate:
     name: Draft release (manual)
     runs-on: ubuntu-latest
