@@ -8,6 +8,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  validator-tests:
+    name: Validator unit tests (fast)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install test deps
+        run: |
+          # Install backend dependencies so tests have required runtime packages
+          python -m pip install --upgrade pip
+          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements.txt; fi
+          # Ensure test runner and optional schema validator are present
+          pip install pytest jsonschema
+
+      - name: Run validator unit tests
+        run: |
+          # Run only the validator unit tests for fast PR feedback
+          pytest -q backend/tests/test_validate_ruff_report.py
+
   backend:
     name: Backend checks
     runs-on: ubuntu-latest
@@ -170,7 +195,8 @@ jobs:
       - name: Install analysis tools
         run: |
           # Ensure type stubs available for accurate mypy reports in CI
-          pip install --upgrade ruff mypy types-requests
+          # Also install jsonschema so the validator can run schema checks
+          pip install --upgrade ruff mypy types-requests jsonschema
 
       - name: Run mypy (strict-ish -> text report)
         run: |

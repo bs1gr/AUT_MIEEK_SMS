@@ -62,6 +62,12 @@ dist/
 tmp_artifacts/
 tmp_*
 
+# Local CI artifact folders and run logs created by automation runs
+artifacts*
+artifacts_run_*
+run*.log
+run_*.log
+
 # Generated artifacts to untrack
 setup.log
 bfg.jar
