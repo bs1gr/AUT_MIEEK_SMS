@@ -30,7 +30,8 @@ jobs:
 
       - name: Install dev tools
         run: |
-          pip install ruff mypy pytest pip-audit
+          # Install development tools and type stubs required for CI type-checks
+          pip install ruff mypy pytest pip-audit types-requests
 
       - name: Run pre-commit hooks
         # Run pre-commit early; allow automatic fixes in CI to avoid platform line-ending churn
@@ -111,7 +112,8 @@ jobs:
 
       - name: Install analysis tools
         run: |
-          pip install ruff mypy
+          # Ensure type stubs available for accurate mypy reports in CI
+          pip install ruff mypy types-requests
 
       - name: Run ruff (strict -> JSON report)
         run: |
