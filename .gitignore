@@ -10,7 +10,6 @@ watch_run.ps1
 
 # Temporary CI / local artifact folders (created by automation runs)
 tmp_artifacts/
-tmp_artifacts*
 
 # Python cache/artifacts
 __pycache__/
@@ -60,7 +59,7 @@ frontend/.env
 dist/
 
 # Temporary CI/local artifact folders
-tmp_artifacts*
+tmp_artifacts/
 tmp_*
 
 # Local CI artifact folders and run logs created by automation runs
@@ -96,7 +95,6 @@ frontend/.venv/
 
 # Node
 node_modules/
-/node_modules/
 
 # Temp migrations used only for tests
 tmp_test_migrations/
