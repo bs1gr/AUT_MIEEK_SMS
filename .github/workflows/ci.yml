@@ -119,9 +119,13 @@ jobs:
       - name: Run ruff (strict -> JSON report)
         run: |
           # Produce machine-readable report but do not fail the job
-          # Use the ruff CLI so --format is interpreted correctly
-          # Use the ruff CLI and explicit '=' form for the flag
-          ruff check --format=json . > backend/ruff-report.json || true
+          # Capture diagnostics so we can see ruff version/help and any stderr output
+          ruff --version > backend/ruff-version.txt 2>&1 || true
+          ruff --help > backend/ruff-help.txt 2>&1 || true
+          # Attempt JSON output capture (stdout -> json, stderr -> err)
+          ruff check --format=json . > backend/ruff-report.json 2> backend/ruff-report.err || true
+          # Also capture a plain run (no formatting flag) for comparison
+          ruff check . > backend/ruff-stdout.txt 2> backend/ruff-stderr.txt || true
 
       - name: Run mypy (strict-ish -> text report)
         run: |
@@ -132,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ruff-report
-          path: backend/ruff-report.json
+          path: backend/ruff-*
 
       - name: Upload mypy report
         uses: actions/upload-artifact@v4
