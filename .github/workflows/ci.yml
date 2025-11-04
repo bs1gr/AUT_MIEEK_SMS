@@ -32,6 +32,13 @@ jobs:
         run: |
           pip install ruff mypy pytest pip-audit
 
+      - name: Run pre-commit hooks
+        # Run pre-commit early to fail fast on formatting/linting issues
+        run: |
+          pip install pre-commit
+          # Ensure pre-commit fails the job if hooks detect problems
+          pre-commit run --all-files --show-diff-on-failure || (echo "pre-commit failed" && exit 1)
+
       - name: Lint (ruff)
         run: |
           python -m ruff check .
