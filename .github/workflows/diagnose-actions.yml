@@ -1,0 +1,40 @@
+name: Diagnose Actions Runners
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/diagnose-actions.yml'
+
+jobs:
+  diagnose:
+    name: Diagnose runner startup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print runner environment
+        run: |
+          echo "===== RUNNER ENV ====="
+          uname -a || true
+          echo
+          echo "===== PYTHON ====="
+          python --version || true
+          echo
+          echo "===== WHOAMI ====="
+          whoami || true
+          echo
+          echo "===== DISK USAGE ====="
+          df -h || true
+
+      - name: Quick pip sanity
+        run: |
+          python -m pip install --upgrade pip || true
+          pip --version || true
+
+      - name: Upload marker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnose-marker
+          path: README.md
