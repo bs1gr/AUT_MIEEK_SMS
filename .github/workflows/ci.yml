@@ -43,7 +43,8 @@ jobs:
 
       - name: Lint (ruff)
         run: |
-          python -m ruff check .
+          # Use the ruff CLI so flags like --format behave consistently if added later
+          ruff check .
 
       - name: Type check (mypy)
         run: |
@@ -118,7 +119,8 @@ jobs:
       - name: Run ruff (strict -> JSON report)
         run: |
           # Produce machine-readable report but do not fail the job
-          python -m ruff check --format json . > backend/ruff-report.json || true
+          # Use the ruff CLI so --format is interpreted correctly
+          ruff check --format json . > backend/ruff-report.json || true
 
       - name: Run mypy (strict-ish -> text report)
         run: |
