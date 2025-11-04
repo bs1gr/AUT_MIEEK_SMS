@@ -34,6 +34,9 @@ jobs:
           pre-commit run --all-files || true
 
       - name: Commit and push pre-commit fixes (if any)
+        # Only attempt to push fixes when this workflow runs on a push to main.
+        # Avoid pushing from pull_request runs (those are detached and not allowed).
+        if: ${{ github.event_name == 'push' }}
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
