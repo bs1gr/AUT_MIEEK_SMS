@@ -15,15 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache pip
+      - name: Cache pip + wheelhouse
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.cache/pip/wheels
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
+            ./.wheelhouse
+          key: ${{ runner.os }}-pip-wheelhouse-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-wheelhouse-
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -34,9 +35,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Install backend deps (locked)
+      - name: Install backend deps (locked) - prefer wheelhouse
         run: |
-          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements.txt; fi
+          if [ -f backend/requirements-lock.txt ]; then
+            # If we have a wheelhouse cached, install from it; otherwise build the wheelhouse then install.
+            if [ -d ./.wheelhouse ] && [ "$(ls -A ./.wheelhouse)" ]; then
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+            else
+              pip wheel --wheel-dir ./.wheelhouse -r backend/requirements-lock.txt
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+            fi
+          else
+            pip install -r backend/requirements.txt
+          fi
 
       - name: Install dev tools
         run: |
@@ -112,24 +123,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache pip
+      - name: Cache pip + wheelhouse
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.cache/pip/wheels
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
+            ./.wheelhouse
+          key: ${{ runner.os }}-pip-wheelhouse-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-wheelhouse-
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install backend deps (for accuracy)
+      - name: Install backend deps (for accuracy) - prefer wheelhouse
         run: |
-          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements.txt; fi
+          if [ -f backend/requirements-lock.txt ]; then
+            if [ -d ./.wheelhouse ] && [ "$(ls -A ./.wheelhouse)" ]; then
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+            else
+              pip wheel --wheel-dir ./.wheelhouse -r backend/requirements-lock.txt
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+            fi
+          else
+            pip install -r backend/requirements.txt
+          fi
 
       - name: Install analysis tools
         run: |
@@ -215,25 +236,31 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache pip
+      - name: Cache pip + wheelhouse
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.cache/pip/wheels
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
+            ./.wheelhouse
+          key: ${{ runner.os }}-pip-wheelhouse-${{ hashFiles('backend/requirements-lock.txt', 'backend/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-wheelhouse-
 
       - name: Install Python build tools
         run: |
           python -m pip install --upgrade pip
 
-      - name: Install runtime deps (locked when available)
+      - name: Install runtime deps (locked when available) - prefer wheelhouse
         run: |
           # Prefer a minimal runtime requirements file for fast validator tests.
           if [ -f backend/requirements-runtime.txt ]; then
-            pip install -r backend/requirements-runtime.txt
+            if [ -d ./.wheelhouse ] && [ "$(ls -A ./.wheelhouse)" ]; then
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-runtime.txt
+            else
+              pip wheel --wheel-dir ./.wheelhouse -r backend/requirements-runtime.txt || true
+              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-runtime.txt
+            fi
           else
             echo "No runtime requirements provided; skipping full backend deps install"
           fi
