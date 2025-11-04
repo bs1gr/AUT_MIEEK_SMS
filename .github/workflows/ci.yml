@@ -146,8 +146,8 @@ jobs:
           # Collect ruff diagnostics into files for deterministic post-processing
           ruff --version > backend/ruff-version.txt 2>&1 || true
           ruff --help > backend/ruff-help.txt 2>&1 || true
-          # Try to get JSON output (some ruff versions may reject --format); allow failure
-          ruff check --format=json . > backend/ruff-report.json 2> backend/ruff-report.err || true
+          # Try to get JSON output (use stable output flags); write to raw json for normalization
+          ruff check --output-format json --output-file backend/ruff-raw.json . 2> backend/ruff-report.err || true
           # Also capture plain-text output (helps when --format rejected)
           ruff check . > backend/ruff-stdout.txt 2> backend/ruff-stderr.txt || true
 
