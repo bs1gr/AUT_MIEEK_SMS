@@ -23,10 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: '1.30.0'
+      - name: Install kubectl (manual)
+        run: |
+          KUBECTL_VERSION=v1.30.0
+          echo "Installing kubectl ${KUBECTL_VERSION}"
+          curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          kubectl version --client
 
       - name: Restore KUBECONFIG from secret
         env:
