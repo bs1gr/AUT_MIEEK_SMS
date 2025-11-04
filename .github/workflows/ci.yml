@@ -140,12 +140,18 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-      - name: Create draft GitHub release
-        # Use GitHub-owned action; provide token input explicitly
-        uses: actions/create-release@v1
+      - name: Create draft GitHub release (via github-script)
+        uses: actions/github-script@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: "rc-${{ github.run_number }}"
-          release_name: "Release candidate ${{ github.run_number }}"
-          draft: true
-          prerelease: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runNumber = process.env.GITHUB_RUN_NUMBER || '';
+            const tag = `rc-${runNumber}`;
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `Release candidate ${runNumber}`,
+              draft: true,
+              prerelease: true,
+            });
