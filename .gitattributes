@@ -1,3 +1,14 @@
+# Enforce consistent line endings in the repository to avoid CI pre-commit fixes
+* text=auto eol=lf
+
+# Ensure common script types use LF in the repo (CI runs on Linux)
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=lf
 # Normalize text files to LF by default
 * text=auto eol=lf
 
