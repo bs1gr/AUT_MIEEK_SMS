@@ -21,55 +21,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to GHCR (docker CLI)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
 
       - name: Extract metadata (tags, labels)
         id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository_owner }}/sms-backend
-            ghcr.io/${{ github.repository_owner }}/sms-frontend
-            ghcr.io/${{ github.repository_owner }}/sms-fullstack
-          tags: |
-            type=raw,value=latest
-            type=sha
-            type=ref,event=tag
+        run: |
+          # Minimal labels metadata used by docker builds
+          echo "labels=org.opencontainers.image.revision=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
-      - name: Build and push backend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.backend
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/sms-backend:latest
-            ghcr.io/${{ github.repository_owner }}/sms-backend:${{ github.sha }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push backend (docker CLI)
+        id: build_backend
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/sms-backend
+          docker build -f docker/Dockerfile.backend -t ${IMAGE}:latest -t ${IMAGE}:${{ github.sha }} --label "${{ steps.meta.outputs.labels }}" .
+          docker push ${IMAGE}:latest
+          docker push ${IMAGE}:${{ github.sha }}
+          # Read pushed image digest (RepoDigest format: repo@sha256:...)
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE}:${{ github.sha }} 2>/dev/null || true)
+          if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
 
-      - name: Build and push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.frontend
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/sms-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/sms-frontend:${{ github.sha }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push frontend (docker CLI)
+        id: build_frontend
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/sms-frontend
+          docker build -f docker/Dockerfile.frontend -t ${IMAGE}:latest -t ${IMAGE}:${{ github.sha }} --label "${{ steps.meta.outputs.labels }}" .
+          docker push ${IMAGE}:latest
+          docker push ${IMAGE}:${{ github.sha }}
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE}:${{ github.sha }} 2>/dev/null || true)
+          if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
 
-      - name: Build and push fullstack
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.fullstack
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/sms-fullstack:latest
-            ghcr.io/${{ github.repository_owner }}/sms-fullstack:${{ github.sha }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push fullstack (docker CLI)
+        id: build_fullstack
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/sms-fullstack
+          docker build -f docker/Dockerfile.fullstack -t ${IMAGE}:latest -t ${IMAGE}:${{ github.sha }} --label "${{ steps.meta.outputs.labels }}" .
+          docker push ${IMAGE}:latest
+          docker push ${IMAGE}:${{ github.sha }}
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE}:${{ github.sha }} 2>/dev/null || true)
+          if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
