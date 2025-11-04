@@ -120,7 +120,8 @@ jobs:
         run: |
           # Produce machine-readable report but do not fail the job
           # Use the ruff CLI so --format is interpreted correctly
-          ruff check --format json . > backend/ruff-report.json || true
+          # Use the ruff CLI and explicit '=' form for the flag
+          ruff check --format=json . > backend/ruff-report.json || true
 
       - name: Run mypy (strict-ish -> text report)
         run: |
