@@ -22,7 +22,10 @@ jobs:
 
       - name: Install test deps
         run: |
+          # Install backend dependencies so tests have required runtime packages
           python -m pip install --upgrade pip
+          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements.txt; fi
+          # Ensure test runner and optional schema validator are present
           pip install pytest jsonschema
 
       - name: Run validator unit tests
