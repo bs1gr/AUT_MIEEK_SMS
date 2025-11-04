@@ -116,55 +116,26 @@ jobs:
           # Ensure type stubs available for accurate mypy reports in CI
           pip install --upgrade ruff mypy types-requests
 
-      - name: Run ruff (strict -> JSON report)
-        run: |
-          # Produce machine-readable report but do not fail the job
-          # Capture diagnostics so we can see ruff version/help and any stderr output
-          ruff --version > backend/ruff-version.txt 2>&1 || true
-          ruff --help > backend/ruff-help.txt 2>&1 || true
-          # Attempt JSON output capture (stdout -> json, stderr -> err)
-          ruff check --format=json . > backend/ruff-report.json 2> backend/ruff-report.err || true
-          # Also capture a plain run (no formatting flag) for comparison
-          ruff check . > backend/ruff-stdout.txt 2> backend/ruff-stderr.txt || true
-
       - name: Run mypy (strict-ish -> text report)
         run: |
           # Collect mypy output; do not fail the job
           python -m mypy backend --show-error-codes --no-color-output > backend/mypy-report.txt || true
 
-    - name: Normalize ruff outputs to a single JSON artifact
-    run: |
-      # Always produce a valid JSON report combining version, parsed issues and any stderr.
-      python - <<'PY'
-import json, re, pathlib
-root = pathlib.Path('backend')
-out = root / 'ruff-report.json'
-version = (root / 'ruff-version.txt').read_text().strip() if (root / 'ruff-version.txt').exists() else ''
-stdout_path = root / 'ruff-stdout.txt'
-stderr_path = root / 'ruff-stderr.txt'
-err_path = root / 'ruff-report.err'
-data = {'ruff_version': version, 'issues': [], 'stderr': '', 'stdout': ''}
-if err_path.exists() and err_path.stat().st_size > 0:
-  data['stderr'] = err_path.read_text()
-if stderr_path.exists() and stderr_path.stat().st_size > 0:
-  data['stderr'] = (data['stderr'] + '\n' + stderr_path.read_text()).strip()
-if stdout_path.exists() and stdout_path.stat().st_size > 0:
-  data['stdout'] = stdout_path.read_text()
-  lines = [l.rstrip('\n') for l in data['stdout'].splitlines() if l.strip()]
-else:
-  lines = []
-pat = re.compile(r'^(.*?):(\d+):(\d+):\s*([^\s]+)\s*(.*)$')
-for ln in lines:
-  m = pat.match(ln)
-  if m:
-    file, line, col, code, msg = m.groups()
-    data['issues'].append({'path': file, 'line': int(line), 'col': int(col), 'code': code, 'message': msg})
-  else:
-    if ln.strip():
-      data['issues'].append({'raw': ln})
-out.write_text(json.dumps(data, indent=2))
-print('Wrote ruff combined JSON with', len(data['issues']), 'issues')
-PY
+      - name: Capture ruff diagnostics
+        run: |
+          # Collect ruff diagnostics into files for deterministic post-processing
+          ruff --version > backend/ruff-version.txt 2>&1 || true
+          ruff --help > backend/ruff-help.txt 2>&1 || true
+          # Try to get JSON output (some ruff versions may reject --format); allow failure
+          ruff check --format=json . > backend/ruff-report.json 2> backend/ruff-report.err || true
+          # Also capture plain-text output (helps when --format rejected)
+          ruff check . > backend/ruff-stdout.txt 2> backend/ruff-stderr.txt || true
+
+      - name: Normalize ruff outputs to a single JSON artifact
+        run: |
+          # Invoke the normalization script committed to the repository.
+          python .github/scripts/normalize_ruff.py
+ 
 
       - name: Upload ruff report
         uses: actions/upload-artifact@v4
