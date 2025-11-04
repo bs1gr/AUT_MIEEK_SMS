@@ -35,20 +35,20 @@ if stderr_path.exists() and stderr_path.stat().st_size > 0:
     data['stderr'] = (data['stderr'] + '\n' + stderr_path.read_text()).strip()
 
 if stdout_path.exists() and stdout_path.stat().st_size > 0:
-    data['stdout'] = stdout_path.read_text()
-    lines = [l.rstrip('\n') for l in data['stdout'].splitlines() if l.strip()]
+    data["stdout"] = stdout_path.read_text()
+    lines = [line.rstrip("\n") for line in data["stdout"].splitlines() if line.strip()]
 else:
     lines = []
 
-pat = re.compile(r'^(.*?):(\d+):(\d+):\s*([^\s]+)\s*(.*)$')
-for ln in lines:
-    m = pat.match(ln)
-    if m:
-        file, line, col, code, msg = m.groups()
-        data['issues'].append({'path': file, 'line': int(line), 'col': int(col), 'code': code, 'message': msg})
+pat = re.compile(r"^(.*?):(\d+):(\d+):\s*([^\s]+)\s*(.*)$")
+for text_line in lines:
+    match = pat.match(text_line)
+    if match:
+        file_path, line_str, col_str, code, msg = match.groups()
+        data["issues"].append({"path": file_path, "line": int(line_str), "col": int(col_str), "code": code, "message": msg})
     else:
-        if ln.strip():
-            data['issues'].append({'raw': ln})
+        if text_line.strip():
+            data["issues"].append({"raw": text_line})
 
 out.write_text(json.dumps(data, indent=2))
 print('Wrote ruff combined JSON with', len(data['issues']), 'issues')
