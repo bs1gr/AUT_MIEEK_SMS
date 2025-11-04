@@ -26,10 +26,18 @@ jobs:
           fi
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: actions/github-script@v6
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: ${{ steps.prepare.outputs.body }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ github.ref_name }}';
+            const body = ${JSON.stringify('${{ steps.prepare.outputs.body }}')};
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              body: body,
+              draft: false,
+              prerelease: false,
+            });
