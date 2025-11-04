@@ -135,6 +135,11 @@ jobs:
         run: |
           # Invoke the normalization script committed to the repository.
           python .github/scripts/normalize_ruff.py
+
+      - name: Validate ruff JSON
+        run: |
+          # Ensure the normalized Ruff JSON artifact is well-formed before upload
+          python .github/scripts/validate_ruff_report.py
  
 
       - name: Upload ruff report
