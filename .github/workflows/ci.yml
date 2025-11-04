@@ -157,16 +157,44 @@ jobs:
           python .github/scripts/normalize_ruff.py
 
       - name: Validate ruff JSON
+        id: validate
+        continue-on-error: true
         run: |
           # Ensure the normalized Ruff JSON artifact is well-formed before upload
-          python .github/scripts/validate_ruff_report.py
+          python .github/scripts/validate_ruff_report.py backend/ruff-report.json
  
+
+      - name: Annotate PR if validation failed
+        if: ${{ always() && github.event_name == 'pull_request' && steps.validate.outcome == 'failure' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const pr = context.payload.pull_request.number;
+            let body = 'Ruff artifact validation failed. See attached normalized report below.';
+            try {
+              const report = fs.readFileSync('backend/ruff-report.json', 'utf8');
+              body += '\n\n```json\n' + report + '\n```';
+            } catch (err) {
+              body += '\n\n(Unable to read backend/ruff-report.json in workspace)';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr,
+              body,
+            });
+
+      - name: Cleanup temporary ruff files
+        run: |
+          rm -f backend/ruff-raw.json backend/ruff-stdout.txt backend/ruff-stderr.txt backend/ruff-report.err backend/ruff-stderr.log || true
 
       - name: Upload ruff report
         uses: actions/upload-artifact@v4
         with:
           name: ruff-report
-          path: backend/ruff-*
+          path: backend/ruff-report.json
 
       - name: Upload mypy report
         uses: actions/upload-artifact@v4
