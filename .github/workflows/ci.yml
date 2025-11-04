@@ -54,6 +54,24 @@ jobs:
       - name: Security audit (pip-audit)
         run: |
           pip-audit --progress-spinner=off --format=json --output backend/pip-audit-report-ci.json
+      - name: Upload pip-audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: backend/pip-audit-report-ci.json
+
+      - name: Generate SBOM (Syft)
+        uses: anchore/syft-action@v0.2.0
+        with:
+          output-file: backend/sbom-syft.json
+          output-format: json
+          # target '.' will analyze repository content; adjust if needed
+          target: '.'
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-syft
+          path: backend/sbom-syft.json
 
   frontend:
     name: Frontend build
