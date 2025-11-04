@@ -75,6 +75,13 @@ jobs:
         run: |
           pytest -q backend
 
+      - name: Upload wheelhouse artifact (if created)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheelhouse
+          path: ./.wheelhouse
+
       - name: Security audit (pip-audit)
         run: |
           pip-audit --progress-spinner=off --format=json --output backend/pip-audit-report-ci.json
@@ -122,6 +129,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download wheelhouse artifact (if available)
+        uses: actions/download-artifact@v4
+        with:
+          name: wheelhouse
+          path: ./.wheelhouse
+        # don't fail if artifact not present
+        continue-on-error: true
 
       - name: Cache pip + wheelhouse
         uses: actions/cache@v4
@@ -185,26 +200,37 @@ jobs:
           python .github/scripts/validate_ruff_report.py backend/ruff-report.json
  
 
-      - name: Annotate PR if validation failed
+      - name: Create a check-run annotation when validation failed
         if: ${{ always() && github.event_name == 'pull_request' && steps.validate.outcome == 'failure' }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const pr = context.payload.pull_request.number;
-            let body = 'Ruff artifact validation failed. See attached normalized report below.';
+            const pr = context.payload.pull_request;
+            const headSha = pr && pr.head && pr.head.sha ? pr.head.sha : context.sha;
+            let reportText = '(unable to load normalized report)';
             try {
-              const report = fs.readFileSync('backend/ruff-report.json', 'utf8');
-              body += '\n\n```json\n' + report + '\n```';
+              reportText = fs.readFileSync('backend/ruff-report.json', 'utf8');
             } catch (err) {
-              body += '\n\n(Unable to read backend/ruff-report.json in workspace)';
+              // keep fallback
             }
-            await github.rest.issues.createComment({
+            // Truncate long outputs to keep the check run compact
+            const maxLen = 60_000;
+            const truncated = reportText.length > maxLen ? reportText.slice(0, maxLen) + '\n\n...truncated...' : reportText;
+            const body = `Ruff artifact validation failed. Normalized report (truncated if large):\n\n\n${truncated}`;
+            await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: pr,
-              body,
+              name: 'ruff-validation',
+              head_sha: headSha,
+              status: 'completed',
+              conclusion: 'failure',
+              output: {
+                title: 'Ruff artifact validation failed',
+                summary: 'The normalized Ruff JSON failed validation in CI. See output below.',
+                text: body,
+              },
             });
 
       - name: Cleanup temporary ruff files
@@ -230,6 +256,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download wheelhouse artifact (if available)
+        uses: actions/download-artifact@v4
+        with:
+          name: wheelhouse
+          path: ./.wheelhouse
+        continue-on-error: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
