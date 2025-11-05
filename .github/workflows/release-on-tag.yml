@@ -31,7 +31,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tag = '${{ github.ref_name }}';
-            const body = ${JSON.stringify('${{ steps.prepare.outputs.body }}')};
+            const body = `${{ steps.prepare.outputs.body }}`;
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
