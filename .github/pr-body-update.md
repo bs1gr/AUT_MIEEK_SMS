@@ -55,4 +55,3 @@ If you'd like, I can also:
 
 - add a Kubernetes Job manifest (example) that runs migrations as a one-shot job,
 - or provide a sample operational runbook entry covering rollback steps.
-

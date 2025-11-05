@@ -179,4 +179,3 @@ def setup_sqlalchemy_query_monitoring(engine: Engine, settings: Any) -> SlowQuer
     else:  # pragma: no cover - fallback for exotic engines without info dict
         logger.debug("SQLAlchemy engine lacks info dict; skipping monitor attachment")
     return monitor
-

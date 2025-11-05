@@ -43,11 +43,7 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
             "models", "Course", "Grade", "DailyPerformance", "Attendance", "Student"
         )
 
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 404,
@@ -57,11 +53,7 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
                 context={"student_id": student_id},
             )
 
-        course = (
-            db.query(Course)
-            .filter(Course.id == course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 404,
@@ -212,11 +204,7 @@ def get_student_all_courses_summary(request: Request, student_id: int, db: Sessi
         )
 
         # Single query with joinedload to avoid N+1
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 404,
@@ -228,9 +216,7 @@ def get_student_all_courses_summary(request: Request, student_id: int, db: Sessi
 
         # Get all course IDs in one go
         grade_courses = (
-            db.query(Grade.course_id)
-            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
-            .distinct()
+            db.query(Grade.course_id).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).distinct()
         )
         daily_courses = (
             db.query(DailyPerformance.course_id)
@@ -242,11 +228,7 @@ def get_student_all_courses_summary(request: Request, student_id: int, db: Sessi
         # Fetch all courses in ONE query instead of N queries (OPTIMIZATION)
         courses_dict = {}
         if course_ids:
-            courses = (
-                db.query(Course)
-                .filter(Course.id.in_(course_ids), Course.deleted_at.is_(None))
-                .all()
-            )
+            courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all()
             courses_dict = {c.id: c for c in courses}
 
         summaries = []
@@ -305,11 +287,7 @@ def get_student_summary(request: Request, student_id: int, db: Session = Depends
 
         Student, Attendance, Grade = import_names("models", "Student", "Attendance", "Grade")
 
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 404,
@@ -320,9 +298,7 @@ def get_student_summary(request: Request, student_id: int, db: Session = Depends
             )
 
         total_att = (
-            db.query(Attendance)
-            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
-            .count()
+            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).count()
         )
         present = (
             db.query(Attendance)
@@ -335,11 +311,7 @@ def get_student_summary(request: Request, student_id: int, db: Session = Depends
         )
         attendance_rate = (present / total_att * 100) if total_att > 0 else 0
 
-        grades = (
-            db.query(Grade)
-            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
-            .all()
-        )
+        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
         avg_grade = sum((g.grade / g.max_grade * 100) for g in grades) / len(grades) if grades else 0
 
         return {

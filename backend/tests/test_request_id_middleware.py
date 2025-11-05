@@ -126,6 +126,7 @@ def test_request_id_filter_with_existing_id():
 
 def test_multiple_concurrent_requests(client):
     """Test that concurrent requests maintain separate request IDs."""
+
     def make_request():
         response = client.get("/test")
         return response.headers["X-Request-ID"]

@@ -8,6 +8,7 @@ Exit codes:
  - 0 = valid
  - 2 = missing or invalid
 """
+
 from __future__ import annotations
 
 import json
