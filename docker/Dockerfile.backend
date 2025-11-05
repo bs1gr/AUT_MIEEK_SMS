@@ -17,8 +17,10 @@ LABEL org.opencontainers.image.title="Student Management System - Backend" \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SMS_ENV=production \
     SMS_EXECUTION_MODE=docker
+
+# Note: SMS_ENV is NOT set here to allow tests and deployments to control it
+# Production deployments should set SMS_ENV=production via docker-compose or runtime
 
 # Install system dependencies (optional: for psycopg2 or others later)
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
