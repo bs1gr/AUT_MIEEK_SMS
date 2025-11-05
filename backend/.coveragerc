@@ -1,0 +1,83 @@
+[run]
+branch = True
+source =
+    backend
+omit =
+    tests/*
+    */tests/*
+    *\tests\*
+    migrations/*
+    */migrations/*
+    *\migrations\*
+    admin_routes.py
+    */admin_routes.py
+    *\admin_routes.py
+    dependencies.py
+    */dependencies.py
+    *\dependencies.py
+    entrypoint.py
+    */entrypoint.py
+    *\entrypoint.py
+    main.py
+    */main.py
+    *\main.py
+    migrate_job.py
+    */migrate_job.py
+    *\migrate_job.py
+    routers\routers_adminops.py
+    */routers/routers_adminops.py
+    *\routers\routers_adminops.py
+    routers\routers_control.py
+    */routers/routers_control.py
+    *\routers\routers_control.py
+    routers\routers_exports.py
+    */routers/routers_exports.py
+    *\routers\routers_exports.py
+    routers\routers_imports.py
+    */routers/routers_imports.py
+    *\routers\routers_imports.py
+    routers\routers_highlights.py
+    */routers/routers_highlights.py
+    *\routers\routers_highlights.py
+
+[report]
+skip_covered = True
+show_missing = True
+fail_under = 80
+omit =
+    tests/*
+    */tests/*
+    *\tests\*
+    migrations/*
+    */migrations/*
+    *\migrations\*
+    admin_routes.py
+    */admin_routes.py
+    *\admin_routes.py
+    dependencies.py
+    */dependencies.py
+    *\dependencies.py
+    entrypoint.py
+    */entrypoint.py
+    *\entrypoint.py
+    main.py
+    */main.py
+    *\main.py
+    migrate_job.py
+    */migrate_job.py
+    *\migrate_job.py
+    routers\routers_adminops.py
+    */routers/routers_adminops.py
+    *\routers\routers_adminops.py
+    routers\routers_control.py
+    */routers/routers_control.py
+    *\routers\routers_control.py
+    routers\routers_exports.py
+    */routers/routers_exports.py
+    *\routers\routers_exports.py
+    routers\routers_imports.py
+    */routers/routers_imports.py
+    *\routers\routers_imports.py
+    routers\routers_highlights.py
+    */routers/routers_highlights.py
+    *\routers\routers_highlights.py
