@@ -1,14 +1,19 @@
-"""
-Daily Performance Routes
-Provides CRUD-like endpoints for daily performance records.
-"""
+"""Daily performance routes provide CRUD-style endpoints."""
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
 from datetime import date, datetime
 import logging
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Session
+
+from backend.db import get_session as get_db
+from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.import_resolver import import_names
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from .routers_auth import optional_require_role
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +47,6 @@ class DailyPerformanceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-from backend.db import get_session as get_db
-from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
-from .routers_auth import optional_require_role
-from backend.import_resolver import import_names
-
-
 @router.post("/", response_model=DailyPerformanceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 def create_daily_performance(
@@ -65,7 +64,12 @@ def create_daily_performance(
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+            )
 
         course = (
             db.query(Course)
@@ -73,7 +77,12 @@ def create_daily_performance(
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+            )
 
         db_performance = DailyPerformance(**performance.model_dump())
         db.add(db_performance)
@@ -83,14 +92,14 @@ def create_daily_performance(
     except HTTPException:
         db.rollback()
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Error creating daily performance: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error("Error creating daily performance: %s", exc, exc_info=True)
+        raise internal_server_error(request=request) from exc
 
 
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
-def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)):
+def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
 
@@ -99,13 +108,20 @@ def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)
             .filter(DailyPerformance.student_id == student_id, DailyPerformance.deleted_at.is_(None))
             .all()
         )
-    except Exception as e:
-        logger.error(f"Error fetching daily performance for student {student_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error(
+            "Error fetching daily performance for student %s: %s", student_id, exc, exc_info=True
+        )
+        raise internal_server_error(request=request) from exc
 
 
 @router.get("/student/{student_id}/course/{course_id}", response_model=List[DailyPerformanceResponse])
-def get_student_course_daily_performance(student_id: int, course_id: int, db: Session = Depends(get_db)):
+def get_student_course_daily_performance(
+    student_id: int,
+    course_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
     try:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
 
@@ -118,16 +134,24 @@ def get_student_course_daily_performance(student_id: int, course_id: int, db: Se
             )
             .all()
         )
-    except Exception as e:
+    except Exception as exc:
         logger.error(
-            f"Error fetching daily performance for student {student_id} course {course_id}: {e}",
+            "Error fetching daily performance for student %s course %s: %s",
+            student_id,
+            course_id,
+            exc,
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request) from exc
 
 
 @router.get("/date/{date_str}/course/{course_id}", response_model=List[DailyPerformanceResponse])
-def get_course_daily_performance_by_date(date_str: str, course_id: int, db: Session = Depends(get_db)):
+def get_course_daily_performance_by_date(
+    date_str: str,
+    course_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
     try:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
 
@@ -141,11 +165,18 @@ def get_course_daily_performance_by_date(date_str: str, course_id: int, db: Sess
             )
             .all()
         )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
-    except Exception as e:
+    except ValueError as exc:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "Invalid date format. Use YYYY-MM-DD",
+            request,
+        ) from exc
+    except Exception as exc:
         logger.error(
-            f"Error fetching daily performance by date for course {course_id}: {e}",
+            "Error fetching daily performance by date for course %s: %s",
+            course_id,
+            exc,
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request) from exc

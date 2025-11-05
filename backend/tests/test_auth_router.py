@@ -62,11 +62,12 @@ def test_get_current_user_invalid_token():
 
     from backend.routers.routers_auth import get_current_user
     from backend.tests.conftest import TestingSessionLocal
+    from starlette.requests import Request
 
     session = TestingSessionLocal()
     try:
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(get_current_user(token="invalid", db=session))
+            asyncio.run(get_current_user(request=Request({"type": "http"}), token="invalid", db=session))
         assert exc.value.status_code == 401
     finally:
         session.close()
@@ -82,6 +83,7 @@ def test_get_current_user_inactive_user():
         get_password_hash,
     )
     from backend.tests.conftest import TestingSessionLocal
+    from starlette.requests import Request
 
     session = TestingSessionLocal()
     try:
@@ -97,7 +99,7 @@ def test_get_current_user_inactive_user():
 
         token = create_access_token(subject=str(user.email))
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(get_current_user(token=token, db=session))
+            asyncio.run(get_current_user(request=Request({"type": "http"}), token=token, db=session))
         assert exc.value.status_code == 401
     finally:
         session.close()
@@ -107,10 +109,11 @@ def test_require_role_denies_mismatch():
     from fastapi import HTTPException
 
     from backend.routers.routers_auth import require_role
+    from starlette.requests import Request
 
     dependency = require_role("admin")
     with pytest.raises(HTTPException) as exc:
-        dependency(SimpleNamespace(role="student"))
+        dependency(Request({"type": "http"}), SimpleNamespace(role="student"))
     assert exc.value.status_code == 403
 
 
@@ -120,7 +123,7 @@ def test_optional_require_role_returns_dummy_when_disabled(monkeypatch):
 
     monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", False)
     dependency = optional_require_role("admin")
-    dummy = dependency()
+    dummy = dependency()  # type: ignore[call-arg]
     assert dummy.role == "admin"
     assert dummy.is_active is True
 
@@ -128,8 +131,9 @@ def test_optional_require_role_returns_dummy_when_disabled(monkeypatch):
 def test_optional_require_role_enforces_when_enabled(monkeypatch):
     from backend.routers import routers_auth
     from backend.routers.routers_auth import optional_require_role
+    from starlette.requests import Request
 
     monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", True)
     dependency = optional_require_role("admin")
     admin = SimpleNamespace(role="admin")
-    assert dependency(admin) is admin  # type: ignore[misc]
+    assert dependency(Request({"type": "http"}), admin) is admin  # type: ignore[misc]

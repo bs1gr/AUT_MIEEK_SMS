@@ -324,7 +324,7 @@ def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends
         raise
     except Exception as exc:
         logger.exception("Error loading evaluation rules for course %s: %s", course_id, exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.put("/{course_id}/evaluation-rules")

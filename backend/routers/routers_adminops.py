@@ -30,6 +30,7 @@ from backend.db import engine as db_engine
 from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 from .routers_auth import optional_require_role
 from backend.import_resolver import import_names
+from backend.errors import ErrorCode, http_error
 
 
 class ClearPayload(BaseModel):
@@ -54,18 +55,24 @@ def backup_database(request: Request, current_user=Depends(optional_require_role
     try:
         db_file = _get_db_file()
         if not os.path.isfile(db_file):
-            raise HTTPException(status_code=404, detail=f"Database file not found: {db_file}")
+            raise http_error(
+                404,
+                ErrorCode.ADMINOPS_DB_NOT_FOUND,
+                "Database file not found",
+                request,
+                context={"path": db_file},
+            )
         os.makedirs(BACKUPS_DIR, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         target = os.path.join(BACKUPS_DIR, f"backup_{ts}.db")
         shutil.copyfile(db_file, target)
-        logger.info(f"Database backup created: {target} (source: {db_file})")
+        logger.info("Database backup created: %s (source: %s)", target, db_file)
         return {"backup_file": target, "source": db_file}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Backup failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Backup failed")
+    except Exception as exc:
+        logger.error("Backup failed: %s", exc, exc_info=True)
+        raise http_error(500, ErrorCode.ADMINOPS_BACKUP_FAILED, "Backup failed", request)
 
 
 @router.post("/restore")
@@ -108,9 +115,11 @@ def restore_database(
         shutil.copyfile(temp_target, db_file)
         logger.info(f"Database restored from {temp_target} -> {db_file}")
         return {"status": "restored", "source": temp_target, "target": db_file}
-    except Exception as e:
-        logger.error(f"Restore failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Restore failed")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Restore failed: %s", exc, exc_info=True)
+        raise http_error(500, ErrorCode.ADMINOPS_RESTORE_FAILED, "Restore failed", request)
 
 
 @router.post("/clear")
@@ -122,7 +131,12 @@ def clear_database(
     current_user=Depends(optional_require_role("admin")),
 ):
     if not payload.confirm:
-        raise HTTPException(status_code=400, detail="Confirmation required to clear database")
+        raise http_error(
+            400,
+            ErrorCode.ADMINOPS_CONFIRM_REQUIRED,
+            "Confirmation required to clear database",
+            request,
+        )
     try:
         Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student = import_names(
             "models",
@@ -147,7 +161,9 @@ def clear_database(
             db.query(Student).delete(synchronize_session=False)
         db.commit()
         return {"status": "cleared", "scope": payload.scope}
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Clear failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Clear failed")
+        logger.error("Clear failed: %s", exc, exc_info=True)
+        raise http_error(500, ErrorCode.ADMINOPS_CLEAR_FAILED, "Clear failed", request)
