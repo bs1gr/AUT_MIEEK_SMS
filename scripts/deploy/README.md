@@ -13,6 +13,7 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 - `SMART_SETUP.ps1` - Intelligent setup and deployment (auto-detects environment)
 - `STOP.ps1/.bat` - Stop all running services
 - `UNINSTALL.bat` - Complete uninstallation
+- `run-docker-release.sh` - Linux helper to start Docker release mode (delegates to SMART_SETUP.ps1)
 
 ### Docker Operations
 
@@ -61,6 +62,25 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 # Stop containers
 .\DOCKER_DOWN.ps1
+```
+
+### Linux Helpers (Bash)
+
+On Linux, you can use the helper scripts for a consistent setup that delegates to SMART_SETUP.ps1 via PowerShell (pwsh):
+
+```bash
+# Validate environment (Docker, Python, Node, pwsh, env files)
+./scripts/linux_env_check.sh
+./scripts/linux_env_check.sh --fix   # optional safe fixes (.env and folders)
+
+# Start in Docker release mode (recommended on Linux)
+./scripts/deploy/run-docker-release.sh
+```
+
+If pwsh isn’t installed, you can fall back to plain Docker:
+
+```bash
+docker compose up -d --build
 ```
 
 ### Maintenance

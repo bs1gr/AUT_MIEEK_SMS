@@ -39,7 +39,7 @@ For deployment, Docker orchestration, and production maintenance.
 
 **📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
 
-**📋 Reorganization Summary**: See [SCRIPT_REORGANIZATION_SUMMARY.md](SCRIPT_REORGANIZATION_SUMMARY.md) for changes.
+<!-- Removed broken link: SCRIPT_REORGANIZATION_SUMMARY.md (reorg summary now covered in docs/SCRIPTS_GUIDE.md) -->
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
@@ -101,6 +101,40 @@ Using PowerShell scripts (requires execution policy):
 ```
 
 Note: If you get execution policy errors, just use `INSTALL.bat` instead - it works everywhere!
+
+### 🐧 Linux Quick Start
+
+On Linux, you can validate your environment and start in either Docker (recommended) or native development mode:
+
+1) Validate prerequisites (Docker/Python/Node/pwsh):
+
+```bash
+./scripts/linux_env_check.sh            # validate only
+./scripts/linux_env_check.sh --fix      # auto-create .env files and folders
+```
+
+2) Start the app:
+
+- Docker release (recommended):
+
+```bash
+./scripts/deploy/run-docker-release.sh
+```
+
+- Native development (hot reload):
+
+```bash
+./scripts/dev/run-native.sh
+```
+
+Notes:
+
+- PowerShell 7+ (pwsh) is recommended on Linux, as helper scripts delegate to SMART_SETUP.ps1 for consistent behavior.
+- If pwsh isn’t installed, linux_env_check.sh will warn you. You can still run with plain Docker:
+
+```bash
+docker compose up -d --build
+```
 
 ### Deployment Modes
 
@@ -255,7 +289,7 @@ Troubleshooting:
 
 **Documentation:**
 
-- **[Quick Deployment Guide](QUICK_DEPLOYMENT.md)** - Fast reference card
+- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)** - Fast reference card
 - **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Detailed instructions with troubleshooting
 - **[Fresh Deployment Troubleshooting](docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and fixes
 
@@ -630,7 +664,7 @@ student-management-system/
 ### Available Documentation
 
 - [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
-- [FRESH_CLONE_TEST_REPORT_V1.2.md](FRESH_CLONE_TEST_REPORT_V1.2.md) - **Fresh clone deployment test report**
+<!-- Removed broken link: FRESH_CLONE_TEST_REPORT_V1.2.md (no longer present) -->
 - [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ Updated v1.3.8
 - [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) - **Release notes for v1.3.8** ⭐ NEW
 - [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes

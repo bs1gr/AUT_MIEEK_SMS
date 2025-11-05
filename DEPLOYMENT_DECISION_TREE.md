@@ -325,6 +325,6 @@ Installation complete! Now what?
 
 For detailed instructions, see:
 
-- **QUICK_DEPLOYMENT.md** - One-page reference
+- **docs/QUICK_START_GUIDE.md** - Quick start reference
 - **DEPLOYMENT_GUIDE.md** - Complete guide
 - **DEPLOYMENT_CHECKLIST.md** - Step-by-step checklist

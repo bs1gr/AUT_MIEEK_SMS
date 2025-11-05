@@ -267,4 +267,4 @@ alembic downgrade -1           # Rollback
 - **Architecture**: `docs/ARCHITECTURE.md` - System design, deployment modes
 - **Localization**: `docs/LOCALIZATION.md` - i18n setup, adding translations
 - **Docker**: `docs/DOCKER_NAMING_CONVENTIONS.md` - Volume versioning
-- **Deployment**: `DEPLOYMENT_GUIDE.md`, `QUICK_DEPLOYMENT.md`
+- **Deployment**: `DEPLOYMENT_GUIDE.md`, `docs/QUICK_START_GUIDE.md`

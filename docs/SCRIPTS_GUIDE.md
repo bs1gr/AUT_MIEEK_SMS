@@ -12,6 +12,7 @@ This document describes the complete script organization for the Student Managem
 - [Developer Scripts (`scripts/dev/`)](#developer-scripts-scriptsdev)
 - [Deployment Scripts (`scripts/deploy/`)](#deployment-scripts-scriptsdeploy)
 - [Common Usage Patterns](#common-usage-patterns)
+- [Linux Helpers](#linux-helpers)
 - [Migration Notes](#migration-notes)
 
 ## Overview
@@ -529,6 +530,16 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 # Restart with new version
 .\SMS.ps1 -Quick
 ```
+
+## Linux Helpers
+
+For Linux environments, a few helper scripts improve onboarding and consistency:
+
+- `scripts/linux_env_check.sh` — Validate Linux prerequisites (Docker engine access, Python>=3.11, Node>=18, PowerShell 7+), verify `.env` files and writable directories. Use `--fix` to auto-create safe items (folders and `.env` from `.env.example`).
+- `scripts/dev/run-native.sh` — Start native development mode (delegates to `SMART_SETUP.ps1` via pwsh). Sets `SMS_ENV=development`.
+- `scripts/deploy/run-docker-release.sh` — Start Docker release mode (delegates to `SMART_SETUP.ps1` via pwsh). Sets `SMS_ENV=production`.
+
+See also: Linux Quick Start in the main [README](../README.md#-linux-quick-start).
 
 ## Migration Notes
 
