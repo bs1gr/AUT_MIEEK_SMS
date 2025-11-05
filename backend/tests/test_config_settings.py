@@ -31,7 +31,7 @@ def test_secret_key_placeholder_generates_random_key(monkeypatch: pytest.MonkeyP
 
 
 def test_secret_key_placeholder_raises_when_not_in_test_env(monkeypatch: pytest.MonkeyPatch):
-    for flag in ("PYTEST_CURRENT_TEST", "CI", "GITHUB_ACTIONS", "CI_ALLOW_INSECURE_SECRET"):
+    for flag in ("PYTEST_CURRENT_TEST", "CI", "GITHUB_ACTIONS", "CI_ALLOW_INSECURE_SECRET", "TESTING"):
         monkeypatch.delenv(flag, raising=False)
     monkeypatch.setattr(sys, "argv", ["python"], raising=False)
 
