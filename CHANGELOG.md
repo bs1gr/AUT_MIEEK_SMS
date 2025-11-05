@@ -6,12 +6,37 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-### Import-resolver sweep & CI enforcement (developer-maintenance)
+Changes staged here will be included in the next release.
 
-Unreleased changes are staged here. The release notes for the maintenance work are published in the
-section below under the released version.
+## [1.3.8] - 2025-11-05
 
-## [1.3.5] - 2025-11-02
+### Testing & Quality Improvements Release
+
+Small release focused on improving test coverage, error handling consistency, and CI/CD infrastructure.
+
+Highlights:
+
+- Enhanced test coverage with comprehensive student router and import validation tests
+- Structured error handling refactored across all routers for consistency
+- Backend coverage reporting configuration with proper test infrastructure
+- CI/CD improvements: ruff normalization, GitHub Checks API integration, wheelhouse caching
+- Python entrypoint implementation replacing shell-based Docker entrypoint for better error handling
+- Docker environment improvements: SECRET_KEY validation, path traversal prevention for Docker mode
+
+Technical:
+
+- Files modified: backend/main.py, backend/config.py, backend/entrypoint.py (new), docker-compose.yml, multiple CI workflows
+- Tests: Expanded student router tests, new import validation tests, structured error handling validation
+- All 109 backend tests passing
+
+Notes:
+
+- No database migrations required
+- No breaking changes to API
+- Docker images should be rebuilt to use new Python entrypoint
+- Recommended: Review SECRET_KEY configuration in Docker deployments
+
+## [1.3.7] - 2025-11-03
 
 Import-resolver sweep & CI enforcement - 2025-11-02
 
@@ -313,6 +338,8 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
+[1.3.8]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8
+[1.3.7]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.7
 [1.3.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5
 [1.3.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.4
 [1.3.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.3
@@ -323,4 +350,5 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.3.5...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.3.8...HEAD
+

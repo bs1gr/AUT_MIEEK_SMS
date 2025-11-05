@@ -18,6 +18,7 @@ services:
       - CORS_ORIGINS=http://localhost:8080
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
+      - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
     volumes:
       - sms_data:/data
     expose:

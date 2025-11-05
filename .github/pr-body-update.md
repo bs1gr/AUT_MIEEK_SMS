@@ -12,15 +12,10 @@ Operator Notes (exact)
   - ALLOW_SCHEMA_AUTO_CREATE: leave unset or set to false in production. This flag enables SQLAlchemy metadata.create_all() fallback only when explicitly opted-in.
 
 - Container behavior
-  - The container entrypoint (/app/entrypoint.sh) runs the programmatic migrations runner (python -m backend.run_migrations -v) before starting the app server.
-  - If migrations fail, the entrypoint exits non-zero and the container stops. This makes deployment fail-fast so operators can inspect logs rather than running with a missing schema.
-  - The entrypoint prints /app/backend/migrations.log on failure if it exists — useful for diagnostics.
-  - A writable /app/data directory is created in the image to support the default SQLite file when DATABASE_URL is not set. For production, use a proper external DB and set DATABASE_URL accordingly.
-
-- CI behaviour
-  - The GitHub Actions workflow in this branch will run the same programmatic migration runner prior to running backend tests. Provide a `DATABASE_URL` repository secret for integration scenarios; otherwise tests run with an in-memory or repo-local DB depending on the workflow configuration.
-
----
+   - The container entrypoint (/app/backend/entrypoint.py) runs the programmatic migrations runner (python -m backend.run_migrations -v) before starting the app server.
+   - If migrations fail, the entrypoint exits non-zero and the container stops. This makes deployment fail-fast so operators can inspect logs rather than running with a missing schema.
+   - The entrypoint prints /app/backend/migrations.log on failure if it exists — useful for diagnostics.
+   - A writable /app/data directory is created in the image to support the default SQLite file when DATABASE_URL is not set. For production, use a proper external DB and set DATABASE_URL accordingly.
 
 Migration-run policy (recommended, exact steps)
 
@@ -57,5 +52,7 @@ Notes for reviewers
 ---
 
 If you'd like, I can also:
+
 - add a Kubernetes Job manifest (example) that runs migrations as a one-shot job,
-- or convert the shell entrypoint to a small Python entrypoint for unified logging/exit codes.
+- or provide a sample operational runbook entry covering rollback steps.
+
