@@ -35,6 +35,9 @@ RUN python -m pip install --upgrade pip && \
 # Copy backend source
 COPY backend /app/backend
 
+# Copy .github/scripts for CI validator tests
+COPY .github/scripts /app/.github/scripts
+
 # Note: Legacy HTML control panel was removed during cleanup
 # If needed in the future, serve SPA from frontend container or React app
 
