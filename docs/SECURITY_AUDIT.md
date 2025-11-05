@@ -289,6 +289,7 @@ services:
    - Email validation via `email-validator`
 
    Example:
+
    ```python
    class StudentCreate(BaseModel):
        name: str = Field(..., min_length=1, max_length=200)
@@ -310,6 +311,7 @@ services:
    - Excel/PDF parsing could be exploited
 
    **Recommendation**:
+
    ```python
    from fastapi import UploadFile, HTTPException
 
@@ -477,6 +479,7 @@ http {
 
 2. **File Paths**:
    - Admin operations return absolute paths:
+
      ```python
      return {"backup_path": str(backup_path)}
      ```
@@ -590,11 +593,13 @@ logger.info(f"Login attempt for user: {sanitize_log_input(username)}")
 
 1. **Image Scanning**:
    - Use `docker scan` or Trivy to detect vulnerabilities:
+
      ```bash
      docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image sms-backend:latest
      ```
 
 2. **Read-Only Root Filesystem**:
+
    ```yaml
    services:
      backend:
@@ -604,6 +609,7 @@ logger.info(f"Login attempt for user: {sanitize_log_input(username)}")
    ```
 
 3. **Drop Capabilities**:
+
    ```yaml
    services:
      backend:
@@ -615,6 +621,7 @@ logger.info(f"Login attempt for user: {sanitize_log_input(username)}")
 
 4. **Secrets Management**:
    - Use Docker secrets instead of environment variables:
+
      ```yaml
      services:
        backend:

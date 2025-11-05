@@ -22,6 +22,7 @@ The project's operational scripts have been reorganized into two distinct catego
 2. **End-User/DevOps** (`scripts/deploy/`) - For deployment, Docker operations, and production maintenance
 
 This separation ensures:
+
 - Clear responsibility boundaries
 - Easier onboarding for different user types
 - Reduced risk of accidental production operations during development
@@ -29,7 +30,7 @@ This separation ensures:
 
 ## Directory Structure
 
-```
+```text
 student-management-system/
 ├── SMS.ps1                        # Main management interface (END-USER)
 ├── INSTALL.bat                    # One-click installer (END-USER)
@@ -80,7 +81,8 @@ student-management-system/
 ### For End-Users
 
 #### `SMS.ps1`
-**Primary management interface for end-users**
+
+Primary management interface for end-users.
 
 The main control panel for all SMS operations.
 
@@ -94,6 +96,7 @@ The main control panel for all SMS operations.
 ```
 
 **Features**:
+
 - Interactive menu with all operations
 - Application control (start/stop/restart)
 - Database backup/restore
@@ -104,7 +107,8 @@ The main control panel for all SMS operations.
 **Target Audience**: End-users, system administrators
 
 #### `INSTALL.bat`
-**One-click installer for new deployments**
+
+One-click installer for new deployments.
 
 Simplest way to get started - works on any Windows system.
 
@@ -113,6 +117,7 @@ INSTALL.bat
 ```
 
 **Features**:
+
 - No PowerShell execution policy issues
 - Auto-detects Python/Docker
 - Chooses best deployment mode
@@ -128,6 +133,7 @@ Scripts for active development work. See [scripts/dev/README.md](../scripts/dev/
 ### Core Development Tools
 
 #### `SMOKE_TEST.ps1`
+
 Quick health check of running application.
 
 ```powershell
@@ -136,12 +142,14 @@ scripts\dev\SMOKE_TEST.ps1 -TimeoutSec 5
 ```
 
 Tests:
+
 - Frontend accessibility
 - Backend API health
 - Database connectivity
 - Core endpoints
 
 #### `debug_import_control.py`
+
 Debug Python import issues.
 
 ```powershell
@@ -151,6 +159,7 @@ python scripts\dev\debug_import_control.py
 ### Diagnostic Tools (`scripts/dev/internal/`)
 
 #### `DEBUG_PORTS.ps1/.bat`
+
 Check and debug port conflicts.
 
 ```powershell
@@ -160,6 +169,7 @@ scripts\dev\internal\DEBUG_PORTS.ps1
 Shows what's using ports 8000, 5173, 8080.
 
 #### `DIAGNOSE_STATE.ps1`
+
 Comprehensive system diagnostics.
 
 ```powershell
@@ -167,6 +177,7 @@ scripts\dev\internal\DIAGNOSE_STATE.ps1
 ```
 
 Checks:
+
 - Docker status
 - Python/Node.js versions
 - Running processes
@@ -175,6 +186,7 @@ Checks:
 - Configuration files
 
 #### `DIAGNOSE_FRONTEND.ps1/.bat`
+
 Frontend-specific diagnostics.
 
 ```powershell
@@ -182,6 +194,7 @@ scripts\dev\internal\DIAGNOSE_FRONTEND.ps1
 ```
 
 #### `DEVTOOLS.ps1/.bat`
+
 Advanced developer tools menu.
 
 ```powershell
@@ -189,6 +202,7 @@ scripts\dev\internal\DEVTOOLS.ps1
 ```
 
 Provides access to:
+
 - Code analysis tools
 - Performance profiling
 - Log viewing
@@ -197,6 +211,7 @@ Provides access to:
 ### Cleanup Tools
 
 #### `CLEANUP.bat`
+
 Quick, non-destructive cleanup.
 
 ```batch
@@ -204,18 +219,21 @@ scripts\dev\CLEANUP.bat
 ```
 
 Removes:
+
 - Python `__pycache__`
 - Frontend `dist/` builds
 - Backend logs
 - Temporary files
 
 Preserves:
+
 - Database
 - Docker volumes
 - node_modules
 - venv
 
 #### `CLEANUP_COMPREHENSIVE.ps1`
+
 Deep cleanup of all artifacts.
 
 ```powershell
@@ -225,6 +243,7 @@ scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
 Removes everything except source code and database.
 
 #### `CLEANUP_OBSOLETE_FILES.ps1`
+
 Remove deprecated/obsolete files.
 
 ```powershell
@@ -234,6 +253,7 @@ scripts\dev\internal\CLEANUP_OBSOLETE_FILES.ps1
 ### Utility Scripts
 
 #### `KILL_FRONTEND_NOW.ps1/.bat`
+
 Force-kill frontend processes.
 
 ```powershell
@@ -243,6 +263,7 @@ scripts\dev\internal\KILL_FRONTEND_NOW.ps1
 Use when frontend is stuck or won't stop normally.
 
 #### `TEST_TERMINAL.ps1`
+
 Test PowerShell environment.
 
 ```powershell
@@ -250,6 +271,7 @@ scripts\dev\internal\TEST_TERMINAL.ps1
 ```
 
 #### `VERIFY_LOCALIZATION.ps1`
+
 Verify localization files.
 
 ```powershell
@@ -263,6 +285,7 @@ Scripts for deployment and production operations. See [scripts/deploy/README.md]
 ### Primary Entry Points
 
 #### `SMART_SETUP.ps1`
+
 Intelligent setup and deployment script.
 
 ```powershell
@@ -273,6 +296,7 @@ scripts\deploy\SMART_SETUP.ps1 -SkipStart       # Setup only, don't start
 ```
 
 **Features**:
+
 - Auto-detects Docker/Python/Node.js
 - Installs dependencies
 - Initializes database
@@ -282,6 +306,7 @@ scripts\deploy\SMART_SETUP.ps1 -SkipStart       # Setup only, don't start
 **Replaces**: Old `SETUP.ps1` and `QUICKSTART.ps1`
 
 #### `STOP.ps1/.bat`
+
 Stop all running services.
 
 ```powershell
@@ -291,6 +316,7 @@ scripts\deploy\STOP.ps1
 Works with both Docker and native modes.
 
 #### `UNINSTALL.bat`
+
 Complete uninstallation.
 
 ```batch
@@ -298,6 +324,7 @@ scripts\deploy\UNINSTALL.bat
 ```
 
 Removes:
+
 - Services
 - Dependencies
 - Configuration files
@@ -306,6 +333,7 @@ Removes:
 ### Docker Operations (`scripts/deploy/docker/`)
 
 #### `DOCKER_UP.ps1`
+
 Start Docker containers.
 
 ```powershell
@@ -313,6 +341,7 @@ scripts\deploy\docker\DOCKER_UP.ps1
 ```
 
 #### `DOCKER_DOWN.ps1`
+
 Stop Docker containers.
 
 ```powershell
@@ -320,6 +349,7 @@ scripts\deploy\docker\DOCKER_DOWN.ps1
 ```
 
 #### `DOCKER_REFRESH.ps1`
+
 Rebuild and restart containers.
 
 ```powershell
@@ -327,6 +357,7 @@ scripts\deploy\docker\DOCKER_REFRESH.ps1
 ```
 
 #### `DOCKER_SMOKE.ps1`
+
 Smoke test Docker deployment.
 
 ```powershell
@@ -334,6 +365,7 @@ scripts\deploy\docker\DOCKER_SMOKE.ps1
 ```
 
 #### `DOCKER_UPDATE_VOLUME.ps1`
+
 Update or migrate Docker volumes.
 
 ```powershell
@@ -343,6 +375,7 @@ scripts\deploy\docker\DOCKER_UPDATE_VOLUME.ps1
 ### Volume Management
 
 #### `CHECK_VOLUME_VERSION.ps1`
+
 Check Docker volume schema version.
 
 ```powershell
@@ -353,6 +386,7 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 Detects schema mismatches between native DB and Docker volumes, offers migration.
 
 #### `set-docker-metadata.ps1`
+
 Set Docker image metadata.
 
 ```powershell
@@ -364,6 +398,7 @@ Tags images with version and metadata.
 ### Packaging Tools (`scripts/deploy/internal/`)
 
 #### `CREATE_DEPLOYMENT_PACKAGE.ps1/.bat`
+
 Create deployment-ready package.
 
 ```powershell
@@ -371,12 +406,14 @@ scripts\deploy\internal\CREATE_DEPLOYMENT_PACKAGE.ps1
 ```
 
 Creates a ZIP with:
+
 - Source code
 - Configuration templates
 - Installation scripts
 - Documentation
 
 #### `CREATE_PACKAGE.ps1/.bat`
+
 Create distribution package.
 
 ```powershell
@@ -384,6 +421,7 @@ scripts\deploy\internal\CREATE_PACKAGE.ps1
 ```
 
 #### `INSTALLER.ps1/.bat`
+
 Packaged installer for distribution.
 
 ```powershell
@@ -395,6 +433,7 @@ scripts\deploy\internal\INSTALLER.ps1
 ### For Developers
 
 #### Starting Development
+
 ```powershell
 # Quick start with auto-detection
 .\SMS.ps1 -Quick
@@ -405,6 +444,7 @@ scripts\deploy\internal\INSTALLER.ps1
 ```
 
 #### Running Tests
+
 ```powershell
 # Quick smoke test
 scripts\dev\SMOKE_TEST.ps1
@@ -415,6 +455,7 @@ python -m pytest
 ```
 
 #### Debugging Issues
+
 ```powershell
 # Check system state
 scripts\dev\internal\DIAGNOSE_STATE.ps1
@@ -427,6 +468,7 @@ scripts\dev\internal\DIAGNOSE_FRONTEND.ps1
 ```
 
 #### Cleanup After Development
+
 ```powershell
 # Quick cleanup (preserves data)
 scripts\dev\CLEANUP.bat
@@ -438,6 +480,7 @@ scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
 ### For End-Users/DevOps
 
 #### First-Time Installation
+
 ```batch
 REM Simplest method
 INSTALL.bat
@@ -447,6 +490,7 @@ REM Or with PowerShell
 ```
 
 #### Docker Deployment
+
 ```powershell
 # Setup and start
 scripts\deploy\SMART_SETUP.ps1 -PreferDocker
@@ -457,6 +501,7 @@ scripts\deploy\docker\DOCKER_SMOKE.ps1
 ```
 
 #### Maintenance
+
 ```powershell
 # Backup database
 .\SMS.ps1
@@ -470,6 +515,7 @@ scripts\deploy\STOP.ps1
 ```
 
 #### Updating/Upgrading
+
 ```powershell
 # Stop services
 scripts\deploy\STOP.ps1
@@ -491,18 +537,21 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 If you're upgrading from a version before the script reorganization:
 
 **Old locations → New locations**:
-- `CLEANUP.bat` (root) → `scripts/dev/CLEANUP.bat`
-- `QUICKSTART.ps1` (root) → Use `SMS.ps1 -Quick` or `scripts/deploy/SMART_SETUP.ps1`
-- `scripts/SETUP.ps1` → `scripts/deploy/SMART_SETUP.ps1` (or use wrapper)
-- `scripts/SMOKE_TEST.ps1` → `scripts/dev/SMOKE_TEST.ps1`
+
+- `CLEANUP.bat` (root) → `.\scripts\dev\CLEANUP.bat`
+- `QUICKSTART.ps1` (root) → Use `SMS.ps1 -Quick` or `.\scripts\deploy\SMART_SETUP.ps1`
+- `.\scripts\SETUP.ps1` → `.\scripts\deploy\SMART_SETUP.ps1` (or use wrapper)
+- `.\scripts\SMOKE_TEST.ps1` → `.\scripts\dev\SMOKE_TEST.ps1`
 - `scripts/internal/*` → Split between `scripts/dev/internal/` and `scripts/deploy/internal/`
 - `scripts/docker/*` → `scripts/deploy/docker/`
 
 **Deprecated scripts** (still work but forward to new locations):
-- `scripts/SETUP.ps1` - Forwards to `SMART_SETUP.ps1`
-- `scripts/SETUP.bat` - Forwards to `SMART_SETUP.ps1`
+
+- `.\scripts\SETUP.ps1` - Forwards to `SMART_SETUP.ps1`
+- `.\scripts\SETUP.bat` - Forwards to `SMART_SETUP.ps1`
 
 **Recommended workflow**:
+
 1. Use `SMS.ps1` as your primary interface
 2. Use `INSTALL.bat` for new installations
 3. Developers: Bookmark `scripts/dev/` scripts
@@ -538,6 +587,7 @@ None. All existing workflows continue to work through wrappers and forwards.
 ## Contributing
 
 When adding new scripts:
+
 1. Determine the target audience (Developer vs End-User/DevOps)
 2. Place in appropriate directory (`scripts/dev/` or `scripts/deploy/`)
 3. Update the relevant README.md
@@ -548,6 +598,7 @@ When adding new scripts:
 ---
 
 **Questions or Issues?**
-- File an issue: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
+
+- File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check troubleshooting: `.\SMS.ps1` → Option '8'

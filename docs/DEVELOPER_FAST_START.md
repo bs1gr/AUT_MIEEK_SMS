@@ -1,8 +1,8 @@
-Developer Fast Start — Pre-commit & tests
+# Developer Fast Start — Pre-commit & tests
 
 This short guide helps developers get up and running quickly with the repository's local tooling (Windows PowerShell and Unix shells).
 
-1) Set up Python environment (Windows PowerShell)
+1. Set up Python environment (Windows PowerShell)
 
 ```powershell
 cd backend
@@ -12,7 +12,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 ```
 
-2) Install and enable pre-commit hooks (recommended)
+1. Install and enable pre-commit hooks (recommended)
 
 ```powershell
 # from repository root
@@ -22,7 +22,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-3) Run tests locally
+1. Run tests locally
 
 ```powershell
 # activate backend venv (see above) then from repository root
@@ -30,7 +30,8 @@ pre-commit run --all-files
 pytest -q
 ```
 
-Notes
+## Notes
+
 - CI is configured to run `pre-commit` early in the backend job and will fail if hooks find issues.
 - If your editor applies different line endings, run the pre-commit hooks and commit again to normalize line endings.
 - For macOS/Linux, replace the Windows activate commands with `source backend/.venv/bin/activate`.

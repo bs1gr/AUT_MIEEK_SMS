@@ -109,10 +109,10 @@ Required ports should be available:
 
 ### Test Application Access
 
-- [ ] Open browser to http://localhost:8080
+- [ ] Open browser to <http://localhost:8080>
 - [ ] Frontend loads without errors
 - [ ] Can navigate between pages
-- [ ] API documentation accessible at http://localhost:8000/docs
+- [ ] API documentation accessible at <http://localhost:8000/docs>
 
 ### Test Basic Functionality
 
@@ -130,6 +130,7 @@ Run in PowerShell:
 ```
 
 Verify:
+
 - [ ] Application mode shown (Docker or Native)
 - [ ] Services are running
 - [ ] No error messages
@@ -195,7 +196,7 @@ Provide user with:
 - [ ] Location of documentation files
 - [ ] Common commands reference:
 
-```
+```text
 Start:     .\QUICKSTART.bat
 Stop:      .\scripts\STOP.ps1
 Manage:    .\SMS.ps1
@@ -270,9 +271,9 @@ Before considering deployment complete:
 
 ### Access URLs
 
-- Frontend: http://localhost:8080
-- API Docs: http://localhost:8000/docs
-- Control Panel: http://localhost:8080/control
+- Frontend: <http://localhost:8080>
+- API Docs: <http://localhost:8000/docs>
+- Control Panel: <http://localhost:8080/control>
 
 ---
 
@@ -280,6 +281,7 @@ Before considering deployment complete:
 
 Use this space to document deployment-specific information:
 
+<!-- markdownlint-disable MD035 -->
 **Computer Name**: ________________________________
 
 **Installation Date**: ________________________________
@@ -307,3 +309,4 @@ _______________________________________________
 **Date**: ________________________________
 
 **Signature**: ________________________________
+<!-- markdownlint-enable MD035 -->

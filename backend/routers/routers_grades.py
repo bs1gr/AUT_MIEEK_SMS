@@ -3,7 +3,7 @@ IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple, cast
 from datetime import date, timedelta
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"descript
 
 from backend.schemas.grades import GradeCreate, GradeUpdate, GradeResponse
 from backend.import_resolver import import_names
+from backend.errors import ErrorCode, http_error, internal_server_error
 
 
 class GradeAnalysis(BaseModel):
@@ -37,7 +38,9 @@ from backend.config import settings
 from backend.routers.routers_auth import optional_require_role
 
 
-def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) -> Optional[Tuple[date, date]]:
+def _normalize_date_range(
+    start_date: Optional[date], end_date: Optional[date], request: Optional[Request] = None
+) -> Optional[Tuple[date, date]]:
     """Normalize and validate a date range using SEMESTER_WEEKS default.
 
     - If both None: no filtering (return None)
@@ -53,7 +56,7 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
     elif start_date is None and end_date is not None:
         start_date = end_date - timedelta(weeks=weeks) + timedelta(days=1)
     if start_date and end_date and start_date > end_date:
-        raise HTTPException(status_code=400, detail="start_date must be before end_date")
+        raise http_error(400, ErrorCode.VALIDATION_FAILED, "start_date must be before end_date", request)
     return cast(Tuple[date, date], (start_date, end_date))
 
 
@@ -62,6 +65,7 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
 
 @router.post("/", response_model=GradeResponse, status_code=201)
 def create_grade(
+    request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("admin", "teacher")),
@@ -80,15 +84,27 @@ def create_grade(
     try:
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
-        # Validate student exists
-        student = db.query(Student).filter(Student.id == grade_data.student_id).first()
+        # Validate student exists and is not soft-deleted
+        student = db.query(Student).filter(Student.id == grade_data.student_id, Student.deleted_at.is_(None)).first()
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": grade_data.student_id},
+            )
 
-        # Validate course exists
-        course = db.query(Course).filter(Course.id == grade_data.course_id).first()
+        # Validate course exists and is not soft-deleted
+        course = db.query(Course).filter(Course.id == grade_data.course_id, Course.deleted_at.is_(None)).first()
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                404,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": grade_data.course_id},
+            )
 
         db_grade = Grade(**grade_data.model_dump())
         db.add(db_grade)
@@ -103,11 +119,12 @@ def create_grade(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating grade: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/", response_model=List[GradeResponse])
 def get_all_grades(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     student_id: Optional[int] = None,
@@ -124,7 +141,7 @@ def get_all_grades(
     try:
         (Grade,) = import_names("models", "Grade")
 
-        query = db.query(Grade)
+        query = db.query(Grade).filter(Grade.deleted_at.is_(None))
 
         if student_id is not None:
             query = query.filter(Grade.student_id == student_id)
@@ -133,7 +150,7 @@ def get_all_grades(
         if category is not None:
             query = query.filter(Grade.category.ilike(f"%{category}%"))
         # Date range filter
-        rng = _normalize_date_range(start_date, end_date)
+        rng = _normalize_date_range(start_date, end_date, request)
         if rng:
             s, e = rng
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
@@ -145,11 +162,12 @@ def get_all_grades(
         raise
     except Exception as e:
         logger.error(f"Error fetching all grades: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/student/{student_id}", response_model=List[GradeResponse])
 def get_student_grades(
+    request: Request,
     student_id: int,
     course_id: Optional[int] = None,
     start_date: Optional[date] = None,
@@ -162,15 +180,21 @@ def get_student_grades(
         Grade, Student = import_names("models", "Grade", "Student")
 
         # Validate student exists
-        student = db.query(Student).filter(Student.id == student_id).first()
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
-        query = db.query(Grade).filter(Grade.student_id == student_id)
+        query = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
 
         if course_id:
             query = query.filter(Grade.course_id == course_id)
-        rng = _normalize_date_range(start_date, end_date)
+        rng = _normalize_date_range(start_date, end_date, request)
         if rng:
             s, e = rng
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
@@ -183,11 +207,12 @@ def get_student_grades(
         raise
     except Exception as e:
         logger.error(f"Error retrieving student grades: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/course/{course_id}", response_model=List[GradeResponse])
 def get_course_grades(
+    request: Request,
     course_id: int,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
@@ -199,12 +224,18 @@ def get_course_grades(
         Grade, Course = import_names("models", "Grade", "Course")
 
         # Validate course exists
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                404,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
 
-        query = db.query(Grade).filter(Grade.course_id == course_id)
-        rng = _normalize_date_range(start_date, end_date)
+        query = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
+        rng = _normalize_date_range(start_date, end_date, request)
         if rng:
             s, e = rng
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
@@ -216,11 +247,11 @@ def get_course_grades(
         raise
     except Exception as e:
         logger.error(f"Error retrieving course grades: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/{grade_id}", response_model=GradeResponse)
-def get_grade(grade_id: int, db: Session = Depends(get_db)):
+def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     """
     Get a single grade by its ID.
     """
@@ -228,19 +259,30 @@ def get_grade(grade_id: int, db: Session = Depends(get_db)):
         (Grade,) = import_names("models", "Grade")
 
         # Use Session.get for SQLAlchemy 2.x compatibility and performance
-        grade = db.get(Grade, grade_id)
+        grade = (
+            db.query(Grade)
+            .filter(Grade.id == grade_id, Grade.deleted_at.is_(None))
+            .first()
+        )
         if not grade:
-            raise HTTPException(status_code=404, detail="Grade not found")
+            raise http_error(
+                404,
+                ErrorCode.GRADE_NOT_FOUND,
+                "Grade not found",
+                request,
+                context={"grade_id": grade_id},
+            )
         return grade
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching grade {grade_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.put("/{grade_id}", response_model=GradeResponse)
 def update_grade(
+    request: Request,
     grade_id: int,
     grade_data: GradeUpdate,
     db: Session = Depends(get_db),
@@ -254,10 +296,16 @@ def update_grade(
     try:
         (Grade,) = import_names("models", "Grade")
 
-        db_grade = db.query(Grade).filter(Grade.id == grade_id).first()
+        db_grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
 
         if not db_grade:
-            raise HTTPException(status_code=404, detail="Grade not found")
+            raise http_error(
+                404,
+                ErrorCode.GRADE_NOT_FOUND,
+                "Grade not found",
+                request,
+                context={"grade_id": grade_id},
+            )
 
         update_data = grade_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -274,11 +322,12 @@ def update_grade(
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating grade: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.delete("/{grade_id}", status_code=204)
 def delete_grade(
+    request: Request,
     grade_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("admin", "teacher")),
@@ -287,12 +336,18 @@ def delete_grade(
     try:
         (Grade,) = import_names("models", "Grade")
 
-        db_grade = db.query(Grade).filter(Grade.id == grade_id).first()
+        db_grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
 
         if not db_grade:
-            raise HTTPException(status_code=404, detail="Grade not found")
+            raise http_error(
+                404,
+                ErrorCode.GRADE_NOT_FOUND,
+                "Grade not found",
+                request,
+                context={"grade_id": grade_id},
+            )
 
-        db.delete(db_grade)
+        db_grade.mark_deleted()
         db.commit()
 
         logger.info(f"Deleted grade: {grade_id}")
@@ -303,16 +358,24 @@ def delete_grade(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting grade: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/analysis/student/{student_id}/course/{course_id}")
-def get_grade_analysis(student_id: int, course_id: int, db: Session = Depends(get_db)):
+def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get grade analysis for a student in a course"""
     try:
         (Grade,) = import_names("models", "Grade")
 
-        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.course_id == course_id).all()
+        grades = (
+            db.query(Grade)
+            .filter(
+                Grade.student_id == student_id,
+                Grade.course_id == course_id,
+                Grade.deleted_at.is_(None),
+            )
+            .all()
+        )
 
         if not grades:
             return {"message": "No grades found for this student in this course"}
@@ -338,4 +401,4 @@ def get_grade_analysis(student_id: int, course_id: int, db: Session = Depends(ge
 
     except Exception as e:
         logger.error(f"Error analyzing grades: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)

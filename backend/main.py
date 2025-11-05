@@ -36,6 +36,7 @@ from pathlib import Path
 # FastAPI imports
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -64,6 +65,7 @@ if importlib.util.find_spec("backend.config") is not None:
     db_ensure_schema = getattr(db_mod, "ensure_schema")
     rim_mod = importlib.import_module("backend.request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
+    env_mod = importlib.import_module("backend.environment")
 else:
     # Fallback for direct execution inside backend/ directory
     config_mod = importlib.import_module("config")
@@ -76,6 +78,7 @@ else:
     db_ensure_schema = getattr(db_mod, "ensure_schema")
     rim_mod = importlib.import_module("request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
+    env_mod = importlib.import_module("environment")
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -220,6 +223,8 @@ initialize_logging(log_dir="logs", log_level="INFO")
 # handlers, formatting and request-id filters. Avoid calling logging.basicConfig
 # again here to prevent duplicate handlers or format overrides.
 logger = logging.getLogger(__name__)
+RUNTIME_CONTEXT = env_mod.require_production_constraints()
+logger.info("Runtime context detected: %s", RUNTIME_CONTEXT.summary())
 
 # ============================================================================
 # RATE LIMITING CONFIGURATION
@@ -372,12 +377,13 @@ async def lifespan(app: FastAPI):
 # Create the application instance with lifespan
 app = create_app()
 app.router.lifespan_context = lifespan
+app.state.runtime_context = RUNTIME_CONTEXT
 
 # Attach rate limiter to app state
 app.state.limiter = limiter
 
 # Register rate limit exceeded handler
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # ============================================================================
 # MIDDLEWARE CONFIGURATION
@@ -408,6 +414,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Response compression
+try:
+    if getattr(settings, "ENABLE_GZIP", True):
+        app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)
+    else:
+        logger.debug("GZip middleware disabled via settings")
+except Exception as gzip_err:
+    logger.warning(f"Failed to configure GZipMiddleware: {gzip_err}")
 
 # ============================================================================
 # CONTROL PANEL API ENDPOINTS

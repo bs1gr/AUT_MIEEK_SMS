@@ -52,12 +52,15 @@ Comprehensive code review of **6,000+ lines** across 15 operation modules, 2 CLI
 **File**: [backend/config.py:43](backend/config.py#L43)
 
 **Current**:
-```python
-SECRET_KEY: str = "change-me"  # 🔴 No validation
 ```
 
+SECRET_KEY: str = "change-me"  # 🔴 No validation
+
+```text
+
 **Fix** (Add to Settings class):
-```python
+```
+
 @field_validator("SECRET_KEY")
 @classmethod
 def validate_secret_key(cls, v: str) -> str:
@@ -68,6 +71,7 @@ def validate_secret_key(cls, v: str) -> str:
             "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
         )
     return v
+
 ```
 
 **Priority**: Must fix before production deployment
@@ -76,4 +80,4 @@ def validate_secret_key(cls, v: str) -> str:
 
 ... (document continues)
 
-````
+```

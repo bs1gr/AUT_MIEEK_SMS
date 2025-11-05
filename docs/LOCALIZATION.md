@@ -14,7 +14,7 @@ The Student Management System now supports full internationalization with biling
 
 ### File Structure
 
-```
+```text
 frontend/src/
 ├── i18n/
 │   ├── config.js                 # i18n initialization and configuration
@@ -32,6 +32,7 @@ frontend/src/
 ### Language Detection
 
 The system detects language in the following order:
+
 1. **localStorage** - Previously selected language (persistent)
 2. **navigator** - Browser language settings (fallback)
 
@@ -71,11 +72,12 @@ Translation keys are organized by feature/module:
 
 Use dot notation to organize keys hierarchically:
 
-```
+```text
 module.component.element
 ```
 
 Examples:
+
 - `nav.students` → Navigation: Students
 - `students.add` → Students: Add Student
 - `errors.required` → Errors: This field is required
@@ -142,6 +144,7 @@ export default MyComponent;
 ### Fallback Behavior
 
 If a translation key is missing, the system will:
+
 1. Show the key itself (e.g., `students.unknownKey`)
 2. Use the provided fallback if specified: `t('key') || 'Fallback text'`
 
@@ -220,6 +223,7 @@ function MyFeature() {
 ### Browser Console
 
 Check i18n initialization:
+
 ```javascript
 // Check current language
 console.log(window.i18n.language);
@@ -285,12 +289,14 @@ window.i18n.changeLanguage('el');
 ### Converting Existing Components
 
 **Before (hardcoded):**
+
 ```jsx
 <button>Save</button>
 <h1>Student Management</h1>
 ```
 
 **After (localized):**
+
 ```jsx
 import { useTranslation } from 'react-i18next';
 
@@ -324,6 +330,7 @@ The app previously used a custom `LanguageContext`. This can coexist with i18nex
 ## Support
 
 For questions or issues with localization:
+
 1. Check this documentation first
 2. Review i18next documentation
 3. Check browser console for errors

@@ -17,6 +17,14 @@ import sys
 import traceback
 from pathlib import Path
 
+from backend.environment import get_runtime_context
+
+# Ensure production defaults inside the container runtime. Operators can still
+# override these before the process starts if necessary, but the defaults keep
+# release images aligned with the Docker-only execution policy.
+os.environ.setdefault("SMS_ENV", "production")
+os.environ.setdefault("SMS_EXECUTION_MODE", "docker")
+
 
 def setup_logging() -> logging.Logger:
     # Basic structured-ish logging for container startup
@@ -54,6 +62,14 @@ def main() -> int:
     logger = setup_logging()
 
     logger.info("entrypoint: starting migration check")
+
+    context = get_runtime_context()
+    try:
+        context.assert_valid()
+    except RuntimeError as exc:
+        logger.error(str(exc))
+        return 1
+    logger.info("Runtime context: %s", context.summary())
 
     # Ensure project root is available on sys.path (same as main.py behavior)
     try:

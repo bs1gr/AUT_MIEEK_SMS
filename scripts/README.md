@@ -2,7 +2,7 @@
 
 This directory contains management scripts for the Student Management System.
 
-Primary entry points (recommended): use `../QUICKSTART.ps1` to start and `../SMS.ps1` to manage. `../START.bat` and `../ONE-CLICK.ps1` remain as compatibility wrappers and will forward to the primary scripts.
+Primary entry points (recommended): use `..\QUICKSTART.ps1` to start and `..\SMS.ps1` to manage. `..\START.bat` and `..\ONE-CLICK.ps1` remain as compatibility wrappers and will forward to the primary scripts.
 
 ## 📂 Directory Structure
 
@@ -20,14 +20,14 @@ scripts/
 
 ### Quick Start
 
-- **Location:** `../QUICKSTART.ps1` (in project root)
+- **Location:** `..\QUICKSTART.ps1` (in project root)
 - **Purpose:** Simple one-command launcher to start the application
 - **Usage:** `.\QUICKSTART.ps1`
 - **When to use:** Every time you want to start the app
 
 ### Unified Management Interface ⭐ RECOMMENDED
 
-- **Location:** `../SMS.ps1` (in project root)
+- **Location:** `..\SMS.ps1` (in project root)
 - **Purpose:** Interactive menu-driven management interface for all operations
 - **Usage:** `.\SMS.ps1`
 - **Features:**
@@ -43,8 +43,8 @@ scripts/
 
 - **Script:** `STOP.ps1` / `STOP.bat`
 - **Purpose:** Stop all running services (Docker containers or native processes)
-- **Usage:** `\.\scripts\STOP.ps1`
-- **Preferred alternative:** `\.\SMS.ps1 -Stop`
+- **Usage:** `.\scripts\STOP.ps1`
+- **Preferred alternative:** `.\SMS.ps1 -Stop`
 - **When to use:** When you need to quickly stop everything
 
 ## 🔧 Setup & Installation
@@ -134,13 +134,13 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 → Use `SMS.ps1` → Option 4 (Database Management)
 
 **Port conflicts?**
-→ Use `SMS.ps1` → Option 7 (Debug Ports) or `internal/DEBUG_PORTS.ps1`
+→ Use `SMS.ps1` → Option 7 (Debug Ports) or `.\scripts\internal\DEBUG_PORTS.ps1`
 
 **Docker operations?**
 → Use `SMS.ps1` → Option 5 (Docker Management) or `docker/` scripts
 
 **Advanced development tasks?**
-→ Use `internal/DEVTOOLS.ps1` or SMS.ps1 menu
+→ Use `.\scripts\internal\DEVTOOLS.ps1` or SMS.ps1 menu
 
 ---
 

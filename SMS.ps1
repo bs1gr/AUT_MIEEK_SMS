@@ -114,6 +114,34 @@ function Test-Port {
     }
 }
 
+function Get-SmsRuntimeEnvironment {
+    param([string]$Fallback = 'development')
+
+    if ($env:SMS_ENV) {
+        return $env:SMS_ENV.Trim().ToLower()
+    }
+
+    $candidateFiles = @(
+        Join-Path $scriptDir 'backend' '.env',
+        Join-Path $scriptDir '.env'
+    )
+
+    foreach ($file in $candidateFiles) {
+        if (-not (Test-Path $file)) { continue }
+        foreach ($line in Get-Content -LiteralPath $file) {
+            $trim = $line.Trim()
+            if (-not $trim -or $trim.StartsWith('#')) { continue }
+            $match = [regex]::Match($trim, '^\s*SMS_ENV\s*=\s*(.+)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            if ($match.Success) {
+                $value = $match.Groups[1].Value.Trim().Trim('"').Trim("'")
+                if ($value) { return $value.ToLower() }
+            }
+        }
+    }
+
+    return $Fallback
+}
+
 # ============================================================================
 #  SYSTEM STATUS DETECTION
 # ============================================================================
@@ -377,6 +405,13 @@ function Start-Application {
     } else {
         Write-Host "Starting native mode..." -ForegroundColor Cyan
         Write-Host ""
+
+        $runtimeEnv = Get-SmsRuntimeEnvironment
+        if ($runtimeEnv -eq 'production' -or $runtimeEnv -eq 'release') {
+            Write-Error2 "Native execution is disabled when SMS_ENV indicates a production environment. Use Docker mode instead."
+            if (-not $NonInteractive) { Pause-Safe }
+            return
+        }
 
         # Check prerequisites
         $pythonOk = $false

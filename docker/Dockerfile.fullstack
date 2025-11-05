@@ -14,7 +14,9 @@ RUN npm run build
 FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SERVE_FRONTEND=1
+    SERVE_FRONTEND=1 \
+    SMS_ENV=production \
+    SMS_EXECUTION_MODE=docker
 WORKDIR /app
 
 # System deps

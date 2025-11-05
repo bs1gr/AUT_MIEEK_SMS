@@ -18,6 +18,11 @@ import importlib
 import importlib.util
 from fastapi import HTTPException
 
+try:  # Optional dependency (available in production image, optional in tests)
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - handled gracefully in _check_memory_usage
+    psutil = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 
@@ -89,6 +94,7 @@ class HealthChecker:
         checks = {
             "database": self._check_database(db),
             "disk_space": self._check_disk_space(),
+            "memory": self._check_memory_usage(),
         }
 
         # If any critical check fails, we're not ready
@@ -124,6 +130,7 @@ class HealthChecker:
         # Perform all health checks
         db_check = self._check_database(db)
         disk_check = self._check_disk_space()
+        memory_check = self._check_memory_usage()
         migration_check = self._check_migration_status()
         stats_check = self._get_database_stats(db)
         system_check = self._get_system_info()
@@ -133,12 +140,13 @@ class HealthChecker:
         checks = {
             "database": db_check,
             "disk_space": disk_check,
+            "memory": memory_check,
             "migrations": migration_check,
             "frontend": frontend_check,
         }
 
         # Only critical checks should influence overall health. Frontend and migrations are optional for API health.
-        critical_keys = ["database", "disk_space"]
+        critical_keys = ["database", "disk_space", "memory"]
         critical_checks = {k: v for k, v in checks.items() if k in critical_keys}
 
         unhealthy_count = sum(1 for c in critical_checks.values() if c["status"] == HealthCheckStatus.UNHEALTHY)
@@ -263,6 +271,48 @@ class HealthChecker:
             return {
                 "status": HealthCheckStatus.DEGRADED,
                 "message": f"Could not check disk space: {str(e)}",
+                "details": {},
+            }
+
+    def _check_memory_usage(self, threshold_percent: int = 90) -> Dict[str, Any]:
+        """Check system memory utilisation."""
+
+        if psutil is None:  # type: ignore[truthy-bool]
+            return {
+                "status": HealthCheckStatus.DEGRADED,
+                "message": "Memory check unavailable (psutil not installed)",
+                "details": {},
+            }
+
+        try:
+            stats = psutil.virtual_memory()  # type: ignore[attr-defined]
+            percent_used = float(stats.percent)
+            total_gb = stats.total / (1024**3)
+            available_gb = stats.available / (1024**3)
+            used_gb = (stats.total - stats.available) / (1024**3)
+
+            if percent_used >= threshold_percent:
+                status = HealthCheckStatus.DEGRADED
+                message = f"Memory usage high: {percent_used:.1f}% used"
+            else:
+                status = HealthCheckStatus.HEALTHY
+                message = f"Memory usage OK: {percent_used:.1f}% used"
+
+            return {
+                "status": status,
+                "message": message,
+                "details": {
+                    "total_gb": round(total_gb, 2),
+                    "used_gb": round(used_gb, 2),
+                    "available_gb": round(available_gb, 2),
+                    "percent_used": round(percent_used, 2),
+                },
+            }
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(f"Memory usage check failed: {exc}")
+            return {
+                "status": HealthCheckStatus.DEGRADED,
+                "message": "Could not determine memory usage",
                 "details": {},
             }
 
