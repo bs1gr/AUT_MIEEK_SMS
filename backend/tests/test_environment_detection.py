@@ -51,6 +51,11 @@ def _reset_environment_cache(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.mark.skipif(_RUNNING_IN_ACTUAL_DOCKER, reason="Cannot fully mock Docker detection when running in container")
 def test_default_environment_is_development(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Clear CI environment variables to ensure we get DEVELOPMENT default
+    for flag in ("CI", "GITHUB_ACTIONS", "TESTING", "PYTEST_CURRENT_TEST"):
+        monkeypatch.delenv(flag, raising=False)
+    environment.get_runtime_context.cache_clear()  # Clear cached context
+    
     ctx = environment.get_runtime_context()
     assert ctx.environment is environment.RuntimeEnvironment.DEVELOPMENT
     ctx.assert_valid()
