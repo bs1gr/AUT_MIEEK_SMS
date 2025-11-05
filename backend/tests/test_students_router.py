@@ -172,10 +172,27 @@ def test_bulk_create_students_with_duplicates(client):
         make_student_payload(1),
         make_student_payload(2),
         make_student_payload(3, email="john1.doe1@example.com"),  # duplicate email of #1
+        make_student_payload(4, student_id="STD0001"),  # duplicate student ID of #1
     ]
     r = client.post("/api/v1/students/bulk/create", json=students)
     assert r.status_code == 200
     data = r.json()
     assert data["created"] == 2
-    assert data["failed"] == 1
-    assert len(data["errors"]) == 1
+    assert data["failed"] == 2
+    assert len(data["errors"]) == 2
+    error_messages = " ".join(error["error"] for error in data["errors"])
+    assert "Email already exists" in error_messages
+    assert "Student ID already exists" in error_messages
+
+
+def test_create_student_handles_internal_error(client, monkeypatch):
+    from backend.routers import routers_students
+
+    def broken_import(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(routers_students, "import_names", broken_import)
+
+    r = client.post("/api/v1/students/", json=make_student_payload(10))
+    assert r.status_code == 500
+    assert r.json()["detail"] == "Internal server error"
