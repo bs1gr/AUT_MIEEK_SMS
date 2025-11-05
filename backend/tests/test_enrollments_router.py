@@ -12,6 +12,8 @@ Coverage:
 
 from datetime import date
 
+from backend.tests.utils import get_error_message
+
 
 def test_enroll_single_student_success(client):
     """Enroll a single student in a course"""
@@ -101,7 +103,9 @@ def test_enroll_nonexistent_course(client):
     response = client.post("/api/v1/enrollments/course/99999", json={"student_ids": [1]})
 
     assert response.status_code == 404
-    assert "Course not found" in response.json()["detail"]
+    payload = response.json()
+    assert get_error_message(payload) == "Course not found"
+    assert payload["detail"]["error_id"] == "CRS_NOT_FOUND"
 
 
 def test_enroll_nonexistent_student_skipped(client):
@@ -183,7 +187,9 @@ def test_list_course_enrollments_not_found(client):
     """Listing enrollments for non-existent course should fail"""
     response = client.get("/api/v1/enrollments/course/99999")
     assert response.status_code == 404
-    assert "Course not found" in response.json()["detail"]
+    payload = response.json()
+    assert get_error_message(payload) == "Course not found"
+    assert payload["detail"]["error_id"] == "CRS_NOT_FOUND"
 
 
 def test_list_student_enrollments(client):
@@ -225,7 +231,9 @@ def test_list_student_enrollments_not_found(client):
     """Listing enrollments for non-existent student should fail"""
     response = client.get("/api/v1/enrollments/student/99999")
     assert response.status_code == 404
-    assert "Student not found" in response.json()["detail"]
+    payload = response.json()
+    assert get_error_message(payload) == "Student not found"
+    assert payload["detail"]["error_id"] == "STD_NOT_FOUND"
 
 
 def test_list_enrolled_students(client):
@@ -265,7 +273,9 @@ def test_list_enrolled_students_not_found(client):
     """Listing enrolled students for non-existent course should fail"""
     response = client.get("/api/v1/enrollments/course/99999/students")
     assert response.status_code == 404
-    assert "Course not found" in response.json()["detail"]
+    payload = response.json()
+    assert get_error_message(payload) == "Course not found"
+    assert payload["detail"]["error_id"] == "CRS_NOT_FOUND"
 
 
 def test_unenroll_student_success(client):
@@ -318,7 +328,9 @@ def test_unenroll_student_not_found(client):
     # Try to unenroll without enrolling first
     response = client.delete(f"/api/v1/enrollments/course/{course_id}/student/{student_id}")
     assert response.status_code == 404
-    assert "Enrollment not found" in response.json()["detail"]
+    payload = response.json()
+    assert get_error_message(payload) == "Enrollment not found"
+    assert payload["detail"]["error_id"] == "ENR_NOT_FOUND"
 
 
 def test_enrollment_pagination(client):

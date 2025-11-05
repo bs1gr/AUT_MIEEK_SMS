@@ -3,24 +3,26 @@ IMPROVED: Attendance Management Routes
 Handles attendance tracking and statistics
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from sqlalchemy.orm import Session, joinedload
-from typing import List, Optional, Tuple, cast
 from datetime import date, timedelta
 import logging
+from typing import List, Optional, Tuple, cast
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session, joinedload
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"description": "Not found"}})
 
 
-from backend.schemas.attendance import AttendanceCreate, AttendanceUpdate, AttendanceResponse
+from backend.schemas.attendance import AttendanceCreate, AttendanceResponse, AttendanceUpdate
 
 
 # ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
 from backend.config import settings
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
+from backend.errors import ErrorCode, http_error, internal_server_error
 from .routers_auth import optional_require_role
 
 
@@ -41,7 +43,11 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
         start_date = end_date - timedelta(weeks=weeks) + timedelta(days=1)
     # Final validation
     if start_date and end_date and start_date > end_date:
-        raise HTTPException(status_code=400, detail="start_date must be before end_date")
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "start_date must be before end_date",
+        )
     # Both should be non-None here
     return cast(Tuple[date, date], (start_date, end_date))
 
@@ -78,7 +84,12 @@ def create_attendance(
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found or archived",
+                request,
+            )
 
         # Validate course exists and is active
         course = (
@@ -87,7 +98,12 @@ def create_attendance(
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found or archived",
+                request,
+            )
 
         # Use database-level locking to prevent duplicate attendance records
         existing = (
@@ -104,8 +120,11 @@ def create_attendance(
         )
 
         if existing:
-            raise HTTPException(
-                status_code=400, detail="Attendance record already exists for this student, course, date, and period"
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.ATTENDANCE_ALREADY_EXISTS,
+                "Attendance record already exists for this student, course, date, and period",
+                request,
             )
 
         db_attendance = Attendance(**attendance_data.model_dump())
@@ -121,11 +140,12 @@ def create_attendance(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/", response_model=List[AttendanceResponse])
 def get_all_attendance(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     student_id: Optional[int] = None,
@@ -174,11 +194,12 @@ def get_all_attendance(
         raise
     except Exception as e:
         logger.error(f"Error retrieving attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/student/{student_id}", response_model=List[AttendanceResponse])
 def get_student_attendance(
+    request: Request,
     student_id: int,
     course_id: Optional[int] = None,
     start_date: Optional[date] = None,
@@ -198,7 +219,12 @@ def get_student_attendance(
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found or archived",
+                request,
+            )
 
         query = (
             db.query(Attendance)
@@ -219,12 +245,16 @@ def get_student_attendance(
         raise
     except Exception as e:
         logger.error(f"Error retrieving student attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/course/{course_id}", response_model=List[AttendanceResponse])
 def get_course_attendance(
-    course_id: int, start_date: Optional[date] = None, end_date: Optional[date] = None, db: Session = Depends(get_db)
+    request: Request,
+    course_id: int,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    db: Session = Depends(get_db),
 ):
     """Get all attendance records for a course"""
     try:
@@ -239,7 +269,12 @@ def get_course_attendance(
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found or archived",
+                request,
+            )
 
         query = (
             db.query(Attendance)
@@ -256,11 +291,16 @@ def get_course_attendance(
         raise
     except Exception as e:
         logger.error(f"Error retrieving course attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/date/{attendance_date}/course/{course_id}", response_model=List[AttendanceResponse])
-def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db: Session = Depends(get_db)):
+def get_attendance_by_date_and_course(
+    request: Request,
+    attendance_date: date,
+    course_id: int,
+    db: Session = Depends(get_db),
+):
     """Get all attendance records for a specific course on a given date"""
     try:
         from backend.import_resolver import import_names
@@ -273,7 +313,12 @@ def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db:
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found or archived",
+                request,
+            )
         records = (
             db.query(Attendance)
             .filter(
@@ -288,11 +333,11 @@ def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db:
         raise
     except Exception as e:
         logger.error(f"Error retrieving attendance by date/course: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
-def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
+def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db)):
     """Get a specific attendance record"""
     try:
         from backend.import_resolver import import_names
@@ -306,7 +351,12 @@ def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
         )
 
         if not attendance:
-            raise HTTPException(status_code=404, detail="Attendance record not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.ATTENDANCE_NOT_FOUND,
+                "Attendance record not found",
+                request,
+            )
 
         return attendance
 
@@ -314,7 +364,7 @@ def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         logger.error(f"Error retrieving attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.put("/{attendance_id}", response_model=AttendanceResponse)
@@ -339,7 +389,12 @@ def update_attendance(
         )
 
         if not db_attendance:
-            raise HTTPException(status_code=404, detail="Attendance record not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.ATTENDANCE_NOT_FOUND,
+                "Attendance record not found",
+                request,
+            )
 
         update_data = attendance_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -356,7 +411,7 @@ def update_attendance(
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.delete("/{attendance_id}", status_code=204)
@@ -380,7 +435,12 @@ def delete_attendance(
         )
 
         if not db_attendance:
-            raise HTTPException(status_code=404, detail="Attendance record not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.ATTENDANCE_NOT_FOUND,
+                "Attendance record not found",
+                request,
+            )
 
         db_attendance.mark_deleted()
         db.commit()
@@ -393,11 +453,11 @@ def delete_attendance(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting attendance: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.get("/stats/student/{student_id}/course/{course_id}")
-def get_attendance_stats(student_id: int, course_id: int, db: Session = Depends(get_db)):
+def get_attendance_stats(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get attendance statistics for a student in a course"""
     try:
         from backend.import_resolver import import_names
@@ -436,7 +496,7 @@ def get_attendance_stats(student_id: int, course_id: int, db: Session = Depends(
 
     except Exception as e:
         logger.error(f"Error calculating attendance stats: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)
 
 
 @router.post("/bulk/create")
@@ -507,4 +567,4 @@ def bulk_create_attendance(
     except Exception as e:
         db.rollback()
         logger.error(f"Error in bulk create: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise internal_server_error(request=request)

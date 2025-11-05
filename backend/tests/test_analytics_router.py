@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from backend.errors import ErrorCode
+
 
 def _create_student(client, i: int = 1):
     return client.post(
@@ -162,7 +164,9 @@ def test_final_grade_course_not_found(client):
     s = _create_student(client, 4)
     r = client.get(f"/api/v1/analytics/student/{s['id']}/course/99999/final-grade")
     assert r.status_code == 404
-    assert r.json()["detail"].lower() == "course not found"
+    detail = r.json()["detail"]
+    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
+    assert detail["message"] == "Course not found"
 
 
 def test_student_all_courses_summary_with_mixed_courses(client):
@@ -217,7 +221,9 @@ def test_student_all_courses_summary_with_mixed_courses(client):
 def test_student_all_courses_summary_student_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/all-courses-summary")
     assert r.status_code == 404
-    assert r.json()["detail"].lower() == "student not found"
+    detail = r.json()["detail"]
+    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
+    assert detail["message"] == "Student not found"
 
 
 def test_student_summary_success(client):
@@ -249,4 +255,6 @@ def test_student_summary_success(client):
 def test_student_summary_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/summary")
     assert r.status_code == 404
-    assert r.json()["detail"].lower() == "student not found"
+    detail = r.json()["detail"]
+    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
+    assert detail["message"] == "Student not found"

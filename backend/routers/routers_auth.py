@@ -7,6 +7,7 @@ import jwt
 from jwt import InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from backend.errors import ErrorCode, http_error, internal_server_error
 
 # Local imports resilient to run path - use importlib to avoid redefinition warnings
 import importlib
@@ -64,6 +65,7 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
+
 # Password hashing helpers
 
 
@@ -92,10 +94,16 @@ def decode_token(token: str) -> dict:
 
 
 # Dependency: get current user (optional require)
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Any:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+async def get_current_user(
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> Any:
+    credentials_exception = http_error(
+        status.HTTP_401_UNAUTHORIZED,
+        ErrorCode.UNAUTHORIZED,
+        "Could not validate credentials",
+        request,
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -114,9 +122,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 def require_role(*roles: str):
-    def _dep(user: Any = Depends(get_current_user)) -> Any:
+    def _dep(request: Request, user: Any = Depends(get_current_user)) -> Any:
         if roles and user.role not in roles:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
+            raise http_error(
+                status.HTTP_403_FORBIDDEN,
+                ErrorCode.FORBIDDEN,
+                "Insufficient permissions",
+                request,
+                context={"required_roles": roles, "current_role": getattr(user, "role", None)},
+            )
         return user
 
     return _dep
@@ -145,38 +159,57 @@ def optional_require_role(*roles: str):
 @router.post("/auth/register", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
-    # Ensure email uniqueness
-    existing = db.query(models.User).filter(models.User.email == payload.email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    try:
+        existing = db.query(models.User).filter(models.User.email == payload.email).first()
+        if existing:
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.AUTH_EMAIL_EXISTS,
+                "Email already registered",
+                request,
+                context={"email": payload.email},
+            )
 
-    # Create user
-    user = models.User(
-        email=payload.email.lower().strip(),
-        full_name=(payload.full_name or "").strip() or None,
-        role=(payload.role or "teacher"),
-        hashed_password=get_password_hash(payload.password),
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+        user = models.User(
+            email=payload.email.lower().strip(),
+            full_name=(payload.full_name or "").strip() or None,
+            role=(payload.role or "teacher"),
+            hashed_password=get_password_hash(payload.password),
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Registration failed", request) from exc
 
 
 @router.post("/auth/login", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def login(request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db)):
-    user: Optional[models.User] = (
-        db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
-    )
-    hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
-    if not user or not verify_password(payload.password, hashed_pw):
-        # Use same error for both cases to avoid user enumeration
-        raise HTTPException(status_code=400, detail="Invalid email or password")
+    try:
+        user: Optional[models.User] = (
+            db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
+        )
+        hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
+        if not user or not verify_password(payload.password, hashed_pw):
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.AUTH_INVALID_CREDENTIALS,
+                "Invalid email or password",
+                request,
+            )
 
-    access_token = create_access_token(subject=str(getattr(user, "email", "")))
-    return Token(access_token=access_token)
+        access_token = create_access_token(subject=str(getattr(user, "email", "")))
+        return Token(access_token=access_token)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise internal_server_error("Login failed", request) from exc
 
 
 @router.get("/auth/me", response_model=UserResponse)
