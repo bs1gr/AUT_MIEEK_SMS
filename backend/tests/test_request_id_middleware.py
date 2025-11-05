@@ -1,12 +1,18 @@
-"""
-Tests for request ID tracking middleware.
-"""
+"""Tests for request ID tracking middleware."""
+
+import concurrent.futures
+import logging
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
-from backend.request_id_middleware import RequestIDMiddleware, get_request_id, RequestIDFilter
-import logging
+
+from backend.request_id_middleware import (
+    RequestIDFilter,
+    RequestIDMiddleware,
+    get_request_id,
+    request_id_context,
+)
 
 
 @pytest.fixture
@@ -20,6 +26,10 @@ def app_with_middleware():
     @app.get("/test")
     async def test_endpoint():
         return {"message": "test", "request_id": get_request_id()}
+
+    @app.get("/error")
+    async def error_endpoint():
+        raise HTTPException(status_code=418, detail="teapot")
 
     return app
 
@@ -116,8 +126,6 @@ def test_request_id_filter_with_existing_id():
 
 def test_multiple_concurrent_requests(client):
     """Test that concurrent requests maintain separate request IDs."""
-    import concurrent.futures
-
     def make_request():
         response = client.get("/test")
         return response.headers["X-Request-ID"]
@@ -129,3 +137,27 @@ def test_multiple_concurrent_requests(client):
 
     # All IDs should be unique
     assert len(set(request_ids)) == 10
+
+
+def test_request_id_cleared_after_request(client):
+    client.get("/test")
+    assert get_request_id() == ""
+
+
+def test_request_id_filter_uses_context_value():
+    token = request_id_context.set("ctx-123")
+    try:
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0, msg="message", args=(), exc_info=None
+        )
+        RequestIDFilter().filter(record)
+        assert getattr(record, "request_id", None) == "ctx-123"
+    finally:
+        request_id_context.reset(token)
+
+
+def test_request_id_header_present_on_error(client):
+    response = client.get("/error")
+    assert response.status_code == 418
+    assert "X-Request-ID" in response.headers
+    assert get_request_id() == ""

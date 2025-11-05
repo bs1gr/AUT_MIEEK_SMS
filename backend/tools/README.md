@@ -9,6 +9,7 @@ Utility scripts for database management, data conversion, and system diagnostics
 **Purpose**: Programmatically validate fresh database creation and migration execution.
 
 **What it does**:
+
 - Creates a temporary test database
 - Runs Alembic migrations from scratch
 - Verifies all tables were created correctly
@@ -16,6 +17,7 @@ Utility scripts for database management, data conversion, and system diagnostics
 - Reports success/failure with diagnostic info
 
 **Usage**:
+
 ```powershell
 # From backend directory
 cd backend
@@ -29,7 +31,8 @@ python tools\validate_first_run.py
 ```
 
 **Output**:
-```
+
+```text
 ============================================================
 DATABASE MIGRATION CHECK
 ============================================================
@@ -44,6 +47,7 @@ HAS_ALEMBIC_VERSION: True
 ```
 
 **When to use**:
+
 - Troubleshooting first-time installation issues
 - Testing migration changes before committing
 - Verifying baseline migration creates all tables
@@ -51,6 +55,7 @@ HAS_ALEMBIC_VERSION: True
 - After modifying Alembic migration files
 
 **Integration**:
+
 - Called automatically by `SMART_SETUP.ps1` after migrations in native mode
 - Can be run manually for diagnostics
 
@@ -69,6 +74,7 @@ See file header for usage details.
 ## Maintenance
 
 When adding new tools:
+
 1. Document purpose and usage here
 2. Include examples
 3. Note any dependencies

@@ -5,6 +5,7 @@
 **What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes.
 
 **Most common tasks:**
+
 ```powershell
 .\QUICKSTART.ps1              # Intelligent setup & start (detects first-time, installs deps, starts app)
 .\QUICKSTART.ps1 -Force       # Force reinstall everything
@@ -60,17 +61,20 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 ## Critical Patterns (Learn These First)
 
 ### Database Changes = Alembic Migration
+
 ```bash
 cd backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
 ```
+
 - Migrations run auto on startup (lifespan context)
 - Use `cascade="all, delete-orphan"` for dependent records
 - Index frequently queried fields: `email`, `student_id`, `course_code`, `date`
-- Check version mismatch: `scripts/CHECK_VOLUME_VERSION.ps1`
+- Check version mismatch: `.\scripts\CHECK_VOLUME_VERSION.ps1`
 
 ### API Endpoints Pattern
+
 ```python
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 
@@ -82,6 +86,7 @@ async def create_item(item: ItemCreate, request: Request, db: Session = Depends(
 ```
 
 ### Pydantic Validation Pattern
+
 ```python
 class GradeCreate(BaseModel):
     grade: float = Field(ge=0)
@@ -95,6 +100,7 @@ class GradeCreate(BaseModel):
 ```
 
 ### Frontend i18n Pattern (MANDATORY)
+
 ```jsx
 import { useTranslation } from 'react-i18next';
 
@@ -103,9 +109,11 @@ function MyComponent() {
   return <button>{t('common.save')}</button>;  // Never hardcode strings!
 }
 ```
+
 Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 
 ### Date Range Queries (Auto-fill Logic)
+
 ```python
 # If only start_date: end_date = start + SEMESTER_WEEKS*7 days
 # If only end_date: start_date = end - SEMESTER_WEEKS*7 days
@@ -115,6 +123,7 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 ## Common Workflows
 
 ### Start/Stop Application (NEW - Intelligent Setup)
+
 ```powershell
 .\QUICKSTART.ps1       # Intelligent: detects first-time, installs deps, chooses mode, starts
 .\QUICKSTART.ps1 -Force # Force reinstall all dependencies
@@ -140,6 +149,7 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 8. Logs everything to `setup.log` for troubleshooting
 
 ### Development Setup
+
 ```powershell
 .\QUICKSTART.ps1       # Start (auto-detects Docker/native, non-interactive)
 .\SMS.ps1              # Interactive menu (status, diagnostics, backups)
@@ -148,6 +158,7 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 ```
 
 ### Development Setup
+
 ```powershell
 # Backend (hot reload)
 cd backend && python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
@@ -162,14 +173,17 @@ cd frontend && npm run dev  # http://localhost:5173
 **Environment files:** Copy `.env.example` to `.env` in `backend/` and `frontend/` directories.
 
 ### Testing
+
 ```bash
 cd backend && pytest -q              # All tests
 pytest tests/test_students_router.py -v  # Specific file
 pytest --cov=backend --cov-report=html   # With coverage
 ```
+
 Tests use in-memory SQLite with `StaticPool` (see `backend/tests/conftest.py`).
 
 ### Database Migrations
+
 ```bash
 cd backend
 alembic revision --autogenerate -m "Add phone field"  # Create
@@ -184,12 +198,14 @@ alembic downgrade -1           # Rollback
 1. **Model** (if new table): Add to `backend/models.py` with indexes
 2. **Schema**: Create in `backend/schemas/{module}.py`, export in `__init__.py`
 3. **Router**: Add to `backend/routers/routers_{module}.py`
+
    ```python
    @router.post("/items/")
    @limiter.limit(RATE_LIMIT_WRITE)
    async def create_item(item: ItemCreate, db: Session = Depends(get_db)):
        pass
    ```
+
 4. **Register**: Add router in `backend/main.py` `register_routers()` if new file
 5. **Migration**: `alembic revision --autogenerate && alembic upgrade head`
 6. **Translations**: Add to `frontend/src/translations.js` (en + el)

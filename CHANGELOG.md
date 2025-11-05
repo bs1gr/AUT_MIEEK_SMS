@@ -44,12 +44,12 @@ Small operational hardening for the `/control` endpoints.
 - Added Windows `creationflags` and POSIX `close_fds` handling when spawning the frontend process, and guarded middleware registration to avoid startup failures.
 - Added unit tests for `/control/api/start` branches (install failure, process terminated, success).
 
-PR: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/6
+PR: <https://github.com/bs1gr/AUT_MIEEK_SMS/pull/6>
 Merge commit: 12e1b707087ccf447cd37c912a2caa4f05b5c285
 
 ## [1.3.4] - 2025-11-01
 
-**Final Code Quality & Robustness Improvements**
+### Final Code Quality & Robustness Improvements
 
 This release completes the code quality improvements from v1.3.3, eliminating all remaining code duplication and adding comprehensive validation.
 
@@ -75,7 +75,7 @@ Technical:
 
 ## [1.3.3] - 2025-11-01
 
-**Code Quality & Performance Improvements**
+### Code Quality & Performance Improvements
 
 This release addresses code duplication, improves maintainability, and optimizes memory usage for large backup directories.
 
@@ -108,7 +108,7 @@ Benefits:
 
 ## [1.3.2] - 2025-11-01
 
-**Critical Security & Stability Fixes**
+### Critical Security & Stability Fixes
 
 This release implements 5 critical security and stability fixes identified in comprehensive code review. All fixes enhance input validation and prevent potential security vulnerabilities.
 
@@ -142,6 +142,7 @@ Documentation:
 **BREAKING CHANGE**: Application will not start with default SECRET_KEY="change-me". Users must generate and set a secure SECRET_KEY in backend/.env before starting the application.
 
 Migration:
+
 ```bash
 # Generate secure key
 python -c "import secrets; print(secrets.token_urlsafe(32))"
@@ -152,7 +153,7 @@ SECRET_KEY=<generated-key>
 
 ## [1.3.1] - 2025-11-01
 
-**Architecture Improvements & Bug Fixes**
+### Architecture Improvements & Bug Fixes
 
 This release addresses critical bugs discovered during CLI testing and implements architectural improvements to prevent similar issues in the future.
 
@@ -169,7 +170,7 @@ Bug Fixes:
 
 - **CRITICAL - Missing root_dir Parameter**: Fixed TypeError preventing ALL CLI commands from working - added PROJECT_ROOT and updated 65+ operation instantiations
 - **Missing service_name Attribute**: Fixed AttributeError in `diag ports` command - removed non-existent field from PortStatus
-- **Inconsistent __init__ Signatures**: Fixed TypeError in `diag deps` and `diag health` by standardizing Operation base class
+- **Inconsistent **init** Signatures**: Fixed TypeError in `diag deps` and `diag health` by standardizing Operation base class
 - **Windows Encoding - Emoji Characters**: Fixed UnicodeEncodeError on Windows - replaced emoji with ASCII text
 - **Dict vs Object Access**: Fixed `diag status` table rendering by using dict access pattern
 - **BackupInfo Field Mismatch**: Fixed `db list-backups` crash by adding missing property aliases
@@ -216,7 +217,7 @@ Enhancements:
 - **Docker Image Versioning**: Install scripts now read VERSION file and properly tag Docker images (e.g., `sms-backend:1.2.2` instead of `latest`)
 - **OCI Image Labels**: Added comprehensive metadata labels to Docker images (version, build date, git commit)
 - **Version Tracking**: Docker Compose now uses version from VERSION file for reproducible deployments
-- **Build Metadata Script**: Added `scripts/set-docker-metadata.ps1` for manual builds with proper versioning
+- **Build Metadata Script**: Added `.\scripts\set-docker-metadata.ps1` for manual builds with proper versioning
 
 Technical:
 
@@ -228,7 +229,7 @@ Technical:
 
 ## [1.2.1] - 2025-10-31
 
-**Major Installation Overhaul - Simplified to ONE Command**
+### Major Installation Overhaul - Simplified to ONE Command
 
 Breaking Changes:
 
@@ -311,7 +312,6 @@ Docs:
 ---
 
 Unreleased changes will be added above as they land in main.
-
 
 [1.3.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5
 [1.3.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.4

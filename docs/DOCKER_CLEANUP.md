@@ -11,12 +11,14 @@ The comprehensive cleanup script (`CLEANUP_COMPREHENSIVE.ps1`) includes automate
 **Purpose:** Identifies and optionally removes QNAP-specific docker-compose files that may not be needed on standard deployments.
 
 **What it does:**
+
 - Detects `docker-compose.qnap.yml`
 - Prompts for confirmation before removal
 - Safe to remove if not deploying to QNAP Container Station
 
 **Interactive prompt:**
-```
+
+```text
 ○ Found docker-compose.qnap.yml
   This file is for QNAP Container Station deployment.
 Remove docker-compose.qnap.yml? (y/N):
@@ -27,12 +29,14 @@ Remove docker-compose.qnap.yml? (y/N):
 **Purpose:** Reports Docker build cache and dangling images for manual cleanup.
 
 **What it checks:**
+
 - **Dangling images** - Untagged images that can be safely removed
 - **Build cache** - Intermediate layers from Docker builds
 - **Stopped containers** - Exited containers taking up space
 
 **Output example:**
-```
+
+```text
 ○ Docker is available
   Docker build cache: 1.638MB
   Run 'docker builder prune' to clean build cache (optional)
@@ -47,12 +51,14 @@ Remove docker-compose.qnap.yml? (y/N):
 **Purpose:** Lists Docker volumes related to the Student Management System.
 
 **What it checks:**
+
 - Total number of Docker volumes on the system
 - SMS-specific volumes (containing 'sms' or 'student' in name)
 - Provides cleanup instructions
 
 **Output example:**
-```
+
+```text
 Found 8 Docker volume(s)
 SMS-related volumes:
   - sms_data
@@ -68,12 +74,14 @@ SMS-related volumes:
 **Purpose:** Verifies all Dockerfile variants are in active use.
 
 **Current active Dockerfiles:**
+
 - `Dockerfile.backend` - Backend service (FastAPI + SQLAlchemy)
 - `Dockerfile.frontend` - Frontend service (React + Vite + NGINX)
 - `Dockerfile.fullstack` - Combined single-container image
 
 **Output:**
-```
+
+```text
 Found Dockerfiles in docker/ directory:
   - Dockerfile.backend
   - Dockerfile.frontend
@@ -141,6 +149,7 @@ docker system prune -a
 ```
 
 **⚠️ CAUTION:** Removes:
+
 - All stopped containers
 - All networks not used by at least one container
 - All dangling images
@@ -170,7 +179,7 @@ Use the provided script for safe volume updates:
 
 ```powershell
 # Create new volume and migrate data
-scripts/DOCKER_UPDATE_VOLUME.ps1
+.\scripts\DOCKER_UPDATE_VOLUME.ps1
 
 # Apply changes
 docker compose down
@@ -182,17 +191,20 @@ This preserves old volumes as backups.
 ### Cleaning Old Volumes
 
 1. **Identify current volume:**
+
    ```powershell
    # Check docker-compose.override.yml
    Get-Content docker-compose.override.yml
    ```
 
 2. **List all SMS volumes:**
+
    ```powershell
    docker volume ls | Select-String -Pattern 'sms|student'
    ```
 
 3. **Remove old volumes (after verification):**
+
    ```powershell
    docker volume rm student-management-system_sms_data_v20251027
    ```
@@ -234,7 +246,7 @@ This preserves old volumes as backups.
 
 - **`.dockerignore`** - Build exclusions
   - VCS files (.git)
-  - Python caches (__pycache__)
+  - Python caches (**pycache**)
   - Node modules
   - Build artifacts
   - Logs and backups
@@ -253,6 +265,7 @@ This preserves old volumes as backups.
 **Cause:** Docker Desktop is not running or not installed.
 
 **Solution:**
+
 ```powershell
 # Check Docker status
 docker version
@@ -266,6 +279,7 @@ Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
 **Cause:** A container is currently using the volume.
 
 **Solution:**
+
 ```powershell
 # Stop all SMS containers
 docker compose down
@@ -282,6 +296,7 @@ docker volume rm <volume-name>
 **Cause:** Multiple image builds create intermediate layers.
 
 **Solution:**
+
 ```powershell
 # Check Docker disk usage
 docker system df
@@ -298,9 +313,11 @@ docker system prune -a
 **Cause:** Multiple runs of `DOCKER_UPDATE_VOLUME.ps1` create versioned volumes.
 
 **Solution:**
+
 1. Identify current volume from `docker-compose.override.yml`
 2. Keep 1-2 recent backup volumes
 3. Remove older versions:
+
    ```powershell
    docker volume rm student-management-system_sms_data_v20251026
    ```
@@ -333,6 +350,7 @@ cd d:\SMS\student-management-system
 ### Why Manual?
 
 Docker cleanup commands can affect:
+
 - Other Docker projects on your system
 - Running containers
 - Data volumes with important information

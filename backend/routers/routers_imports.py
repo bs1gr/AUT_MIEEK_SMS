@@ -46,6 +46,16 @@ from backend.db import get_session as get_db
 from backend.import_resolver import import_names
 
 
+def _reactivate_if_soft_deleted(record, *, entity: str, identifier: str) -> bool:
+    """Clear the soft-delete flag when importing archived records."""
+
+    if record is not None and getattr(record, "deleted_at", None) is not None:
+        record.deleted_at = None
+        logger.info("Reactivated archived %s during import: %s", entity, identifier)
+        return True
+    return False
+
+
 # --- File Upload Validation ---
 async def validate_uploaded_file(file: UploadFile) -> bytes:
     """
@@ -577,6 +587,7 @@ def import_courses(
                             obj.pop("teaching_schedule", None)
                     db_course = db.query(Course).filter(Course.course_code == code).first()
                     if db_course:
+                        _reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
                         # Avoid wiping evaluation_rules with empty list during bulk imports
                         for field in [
                             "course_name",
@@ -903,6 +914,7 @@ async def import_from_upload(
 
                 db_course = db.query(Course).filter(Course.course_code == code).first()
                 if db_course:
+                    _reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
                     for field in [
                         "course_name",
                         "semester",
@@ -998,6 +1010,11 @@ async def import_from_upload(
 
                 db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
                 if db_student:
+                    _reactivate_if_soft_deleted(
+                        db_student,
+                        entity="student",
+                        identifier=str(sid or email),
+                    )
                     for field, val in cleaned.items():
                         setattr(db_student, field, val)
                     updated += 1
@@ -1111,6 +1128,11 @@ def import_students(
                         db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
                     )
                     if db_student:
+                        _reactivate_if_soft_deleted(
+                            db_student,
+                            entity="student",
+                            identifier=str(sid or email),
+                        )
                         for field, val in cleaned.items():
                             setattr(db_student, field, val)
                         updated += 1

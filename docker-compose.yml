@@ -16,6 +16,8 @@ services:
       - DATABASE_URL=sqlite:////data/student_management.db
       # Allow frontend served from compose to call backend
       - CORS_ORIGINS=http://localhost:8080
+      - SMS_ENV=${SMS_ENV:-production}
+      - SMS_EXECUTION_MODE=docker
     volumes:
       - sms_data:/data
     expose:
@@ -46,6 +48,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      - SMS_ENV=${SMS_ENV:-production}
+      - SMS_EXECUTION_MODE=docker
     ports:
       - "8080:80"
 

@@ -5,21 +5,25 @@
 Scripts are now reorganized into two distinct, well-defined sets:
 
 ### **Developer Workbench** ([scripts/dev/](scripts/dev/))
+
 For building, running, debugging, testing, and cleaning during development.
 
 **Key Scripts**:
+
 - `SMOKE_TEST.ps1` - Quick health check
 - `CLEANUP.bat` - Clean build artifacts
-- `internal/DIAGNOSE_STATE.ps1` - Full diagnostics
-- `internal/DEBUG_PORTS.ps1` - Port conflict debugging
-- `internal/DEVTOOLS.ps1` - Advanced developer tools
+- `.\scripts\internal\DIAGNOSE_STATE.ps1` - Full diagnostics
+- `.\scripts\internal\DEBUG_PORTS.ps1` - Port conflict debugging
+- `.\scripts\internal\DEVTOOLS.ps1` - Advanced developer tools
 
 [Read Developer Guide →](scripts/dev/README.md)
 
 ### **End-User / DevOps** ([scripts/deploy/](scripts/deploy/))
+
 For deployment, Docker orchestration, and production maintenance.
 
 **Key Scripts**:
+
 - `SMART_SETUP.ps1` - Intelligent setup (main entry point)
 - `STOP.ps1` - Stop all services
 - `UNINSTALL.bat` - Complete uninstall
@@ -29,6 +33,7 @@ For deployment, Docker orchestration, and production maintenance.
 [Read Deployment Guide →](scripts/deploy/README.md)
 
 ### **Root Scripts** (End-User Entry Points)
+
 - `SMS.ps1` - **Main management interface** (interactive menu, recommended)
 - `INSTALL.bat` - **One-click installer** (easiest way to get started)
 
@@ -58,7 +63,7 @@ For deployment, Docker orchestration, and production maintenance.
 - Latest: [v1.3.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5)
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-## 🚀 Quick Start - New Simplified Installation!
+## 🚀 Quick Start - New Simplified Installation
 
 ### **Easiest Method** (No PowerShell Issues!)
 
@@ -75,6 +80,7 @@ python install.py
 ```
 
 That's it! The installer handles everything automatically:
+
 - ✅ Detects Docker/Python/Node.js
 - ✅ Chooses best mode for your system
 - ✅ Installs all dependencies
@@ -90,61 +96,60 @@ That's it! The installer handles everything automatically:
 Using PowerShell scripts (requires execution policy):
 
 ```powershell
-./QUICKSTART.ps1    # Auto-setup and start
-./SMS.ps1           # Interactive management
+.\QUICKSTART.ps1    # Auto-setup and start
+.\SMS.ps1           # Interactive management
 ```
 
 Note: If you get execution policy errors, just use `INSTALL.bat` instead - it works everywhere!
 
 ### Deployment Modes
 
-#### 🐳 Docker Mode (Recommended for End Users)
+The runtime now enforces a clear separation between release and development workflows.
 
-- **One command** starts everything
-- **No version conflicts** - isolated environment
-- **Production-ready** - same as deployment
-- **Requirement**: Docker Desktop installed
-- **Access**: `http://localhost:8080`
+#### 🐳 Release (Docker Full Stack Only)
 
-#### 🔧 Native Mode (For Developers Only)
+- Production and release builds **must** run via the Docker full-stack bundle.
+- Launch with `.\scripts\deploy\run-docker-release.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
+- `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
+- Access the stack at `http://localhost:8080` (frontend + API proxy).
 
-- **Hot reload** for code changes
-- **Direct debugging** capabilities
-- **Requirements**: Python 3.11+ AND Node.js 18+
-- **Access**: `http://localhost:5173` (frontend) + `http://localhost:8000` (backend)
+#### 🔧 Local Development (Native)
 
-QUICKSTART automatically decides:
+- Native execution is reserved for local development and fast iteration.
+- Use `.\scripts\dev\run-native.ps1` (PowerShell) or `scripts/dev/run-native.sh` (bash) to start backend (FastAPI) + frontend (Vite).
+- Helper scripts set `SMS_ENV=development` automatically; if `SMS_ENV` is `production`, the backend refuses to start natively.
+- Access the backend at `http://localhost:8000` and the frontend at `http://localhost:5173`.
 
-- 🐳 **Docker available?** → Uses Docker (recommended)
-- 🔧 **Only Python/Node?** → Falls back to native development mode
-- 🆕 **First time?** → Guides installation based on what you have
-- 🏃 **Already running?** → Shows URLs and interactive menu
+#### 🔁 Switching Modes
 
-No manual configuration. No complex steps. Just works.
+- Leave `SMS_ENV` unset (or set to `development`) for native workflows.
+- Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
+- `SMART_SETUP.ps1`, `SMS.ps1`, and the new helper scripts respect these guards to prevent configuration drift.
 
-**Quick Access:**
+### Environment Detection
 
-- **Application**: Shown after start (port depends on mode)
-- **Control Panel**: `/control` endpoint (real-time monitoring)
-- **API Docs**: `/docs` endpoint (Swagger/ReDoc)
+- `backend/environment.py` provides a single source of truth for runtime detection (development, test, production).
+- Production mode is triggered by `SMS_ENV=production`, Docker container heuristics, or explicit CI configuration.
+- When production is detected outside Docker, the backend fails fast with a clear error to avoid unsupported native releases.
+- Development and test runs default to native execution unless Docker is requested explicitly.
 
 ### Common Commands
 
 ```powershell
 # Start (auto-detects best mode)
-./QUICKSTART.ps1
+.\QUICKSTART.ps1
 
 # Stop everything
-./SMS.ps1 -Stop
+.\SMS.ps1 -Stop
 
 # Non-destructive cleanup (keeps data and Docker volumes)
-./CLEANUP.bat
+.\CLEANUP.bat
 
 # Full uninstall (removes venv/node_modules & images, keeps data/volumes)
-./UNINSTALL.bat
+.\UNINSTALL.bat
 
 # Interactive menu (status, diagnostics, restart)
-./SMS.ps1  # then choose from menu
+.\SMS.ps1  # then choose from menu
 ```
 
 ---
@@ -174,7 +179,7 @@ docker ps  # If you see containers → Docker mode (port 8080)
 Use the batch wrapper if needed:
 
 ```powershell
-./QUICKSTART.bat
+.\QUICKSTART.bat
 ```
 
 ### Port Already in Use
@@ -245,7 +250,7 @@ Troubleshooting:
 **Three deployment options:**
 
 1. Copy project → Run `QUICKSTART.ps1` (PowerShell) or `QUICKSTART.bat` (Windows)
-2. **Offline Package**: Run `scripts/internal/CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
+2. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
 **Documentation:**
@@ -353,9 +358,9 @@ The **SMS.ps1** script provides an interactive menu for all operations:
 ### Using QUICKSTART.ps1 (Simple)
 
 ```powershell
-./QUICKSTART.ps1           # Intelligent setup & start
-./QUICKSTART.ps1 -Force    # Force reinstall everything
-./QUICKSTART.ps1 -Help     # Show options
+.\QUICKSTART.ps1           # Intelligent setup & start
+.\QUICKSTART.ps1 -Force    # Force reinstall everything
+.\QUICKSTART.ps1 -Help     # Show options
 ```
 
 This will:
@@ -397,7 +402,7 @@ Startup behavior:
 After startup, you can quickly verify everything with:
 
 ```powershell
-./scripts/SMOKE_TEST.ps1
+.\scripts\SMOKE_TEST.ps1
 ```
 
 What it does:
@@ -413,14 +418,14 @@ Simple stop:
 Use the management script:
 
 ```powershell
-./SMS.ps1 -Stop             # Clean stop all services
+.\SMS.ps1 -Stop             # Clean stop all services
 ```
 
 Or the stop helper (compatibility):
 
 ```powershell
-./scripts/STOP.ps1          # Stop container
-./scripts/STOP.ps1 -Help    # Show options
+.\scripts\STOP.ps1          # Stop container
+.\scripts\STOP.ps1 -Help    # Show options
 ```
 
 ### Developer Tools & Troubleshooting
@@ -428,9 +433,9 @@ Or the stop helper (compatibility):
 For advanced operations, diagnostics, and Docker management, use the unified menu:
 
 ```powershell
-./SMS.ps1
+.\SMS.ps1
 # Or advanced tools (optional)
-./scripts/internal/DEVTOOLS.ps1
+.\scripts\internal\DEVTOOLS.ps1
 ```
 
 Menu provides:
@@ -461,7 +466,7 @@ Features:
 Automated cleanup script that removes obsolete files across the entire project, including Docker-related artifacts:
 
 ```powershell
-scripts/internal/CLEANUP_COMPREHENSIVE.ps1
+.\scripts\internal\CLEANUP_COMPREHENSIVE.ps1
 ```
 
 **What it cleans:**
@@ -511,7 +516,7 @@ Removes non-essential and outdated documentation files to keep the repository le
 - From Windows host: run the script
 
 ```powershell
-scripts/internal/CLEANUP_OBSOLETE_FILES.ps1
+.\scripts\internal\CLEANUP_OBSOLETE_FILES.ps1
 ```
 
 Note: When the backend runs inside Docker, it cannot modify files on your host filesystem; use the PowerShell script on the host.
@@ -524,10 +529,10 @@ Recommended flow:
 
 ```powershell
 # Create a new versioned volume and migrate existing data
-scripts/docker/DOCKER_UPDATE_VOLUME.ps1
+.\scripts\docker\DOCKER_UPDATE_VOLUME.ps1
 
 # Or, create a fresh empty volume (no migration)
-scripts/docker/DOCKER_UPDATE_VOLUME.ps1 -NoMigrate
+.\scripts\docker\DOCKER_UPDATE_VOLUME.ps1 -NoMigrate
 
 # Apply the override
 docker compose down
@@ -557,7 +562,6 @@ If you truly want to remove the Docker data volume (this deletes your Docker-sto
 ```powershell
 docker volume rm sms_data  # CAUTION: permanent data loss in the volume
 ```
-
 
 ## Advanced Usage
 
@@ -670,7 +674,7 @@ To change the default semester length, set `SEMESTER_WEEKS` in `backend/.env` (s
 Check for port conflicts:
 
 ```powershell
-./SMS.ps1
+.\SMS.ps1
 # Then select: Debug Port Conflicts
 ```
 
@@ -679,7 +683,7 @@ Check for port conflicts:
 Check Docker status:
 
 ```powershell
-./SMS.ps1
+.\SMS.ps1
 # Then select: Docker Status/Logs
 ```
 
@@ -688,14 +692,14 @@ Check Docker status:
 If you encounter database issues, check the logs:
 
 ```powershell
-./SMS.ps1
+.\SMS.ps1
 # Then select: View Logs
 ```
 
 To reset the database:
 
 ```powershell
-./SMS.ps1
+.\SMS.ps1
 # Then select: Database → Reset (Delete Volume)
 ```
 
@@ -718,7 +722,7 @@ Notes:
 If the frontend isn't loading, try rebuilding:
 
 ```powershell
-./QUICKSTART.ps1 -Force
+.\QUICKSTART.ps1 -Force
 ```
 
 ## Development

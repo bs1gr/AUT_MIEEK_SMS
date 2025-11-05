@@ -1,27 +1,28 @@
+# Frontend README
 
-### frontend/README.md
-```markdown
-# Frontend Setup
+## Frontend Setup
 
 1. Install dependencies:
-```bash
-npm install
-```
 
-2. Run development server:
-```bash
-npm run dev
-```
+    ```bash
+    npm install
+    ```
 
-3. Build for production:
-```bash
-npm run build
-```
+1. Run development server:
 
-App will run at: http://localhost:5173
-```
+    ```bash
+    npm run dev
+    ```
 
----
+1. Build for production:
+
+    ```bash
+    npm run build
+    ```
+
+The development server runs at <http://localhost:5173>.
+
+```text
 student-management-system/
 ├── backend/
 │   ├── main.py (UPDATED)
@@ -32,14 +33,15 @@ student-management-system/
 │   └── student_management.db
 │
 └── frontend/
-    └── src/
-        ├── components/
-        │   ├── CourseEvaluationRules.jsx (NEW)
-        │   ├── EnhancedGradeEntryForm.jsx (NEW)
-        │   ├── AttendanceCalendar.jsx
-        │   ├── ExportCenter.jsx
-        │   ├── HelpDocumentation.jsx
-        │   └── StudentProfile.jsx
-        ├── App.jsx (UPDATED)
-        ├── LanguageContext.jsx
-        └── index.js
+     └── src/
+          ├── components/
+          │   ├── CourseEvaluationRules.jsx (NEW)
+          │   ├── EnhancedGradeEntryForm.jsx (NEW)
+          │   ├── AttendanceCalendar.jsx
+          │   ├── ExportCenter.jsx
+          │   ├── HelpDocumentation.jsx
+          │   └── StudentProfile.jsx
+          ├── App.jsx (UPDATED)
+          ├── LanguageContext.jsx
+          └── index.js
+```

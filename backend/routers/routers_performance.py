@@ -57,13 +57,32 @@ def create_daily_performance(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        (DailyPerformance,) = import_names("models", "DailyPerformance")
+        DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
+
+        student = (
+            db.query(Student)
+            .filter(Student.id == performance.student_id, Student.deleted_at.is_(None))
+            .first()
+        )
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        course = (
+            db.query(Course)
+            .filter(Course.id == performance.course_id, Course.deleted_at.is_(None))
+            .first()
+        )
+        if not course:
+            raise HTTPException(status_code=404, detail="Course not found")
 
         db_performance = DailyPerformance(**performance.model_dump())
         db.add(db_performance)
         db.commit()
         db.refresh(db_performance)
         return db_performance
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating daily performance: {e}", exc_info=True)
@@ -75,7 +94,11 @@ def get_student_daily_performance(student_id: int, db: Session = Depends(get_db)
     try:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
 
-        return db.query(DailyPerformance).filter(DailyPerformance.student_id == student_id).all()
+        return (
+            db.query(DailyPerformance)
+            .filter(DailyPerformance.student_id == student_id, DailyPerformance.deleted_at.is_(None))
+            .all()
+        )
     except Exception as e:
         logger.error(f"Error fetching daily performance for student {student_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -91,6 +114,7 @@ def get_student_course_daily_performance(student_id: int, course_id: int, db: Se
             .filter(
                 DailyPerformance.student_id == student_id,
                 DailyPerformance.course_id == course_id,
+                DailyPerformance.deleted_at.is_(None),
             )
             .all()
         )
@@ -113,6 +137,7 @@ def get_course_daily_performance_by_date(date_str: str, course_id: int, db: Sess
             .filter(
                 DailyPerformance.course_id == course_id,
                 DailyPerformance.date == target_date,
+                DailyPerformance.deleted_at.is_(None),
             )
             .all()
         )

@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "Student Management System API"
     APP_VERSION: str = "3.0.3"
+    SMS_ENV: str = os.environ.get("SMS_ENV", "development")
+    SMS_EXECUTION_MODE: str = os.environ.get("SMS_EXECUTION_MODE", "native")
 
     # Database
     # Default to an absolute path under the project root: <repo>/data/student_management.db
@@ -55,6 +57,17 @@ class Settings(BaseSettings):
     # Toggle authentication/authorization enforcement without code changes.
     # Default disabled to preserve backward compatibility and keep tests passing.
     AUTH_ENABLED: bool = False
+
+    # Database performance monitoring
+    SQLALCHEMY_SLOW_QUERY_ENABLED: bool = True
+    SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS: int = 300
+    SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES: int = 200
+    SQLALCHEMY_SLOW_QUERY_EXPORT_PATH: str | None = None
+    SQLALCHEMY_SLOW_QUERY_INCLUDE_PARAMS: bool = True
+
+    # HTTP middleware
+    ENABLE_GZIP: bool = True
+    GZIP_MINIMUM_SIZE: int = 500
 
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
@@ -168,6 +181,27 @@ class Settings(BaseSettings):
         except Exception as e:
             raise ValueError(f"Invalid database path in DATABASE_URL: {e}")
 
+        return v
+
+    @field_validator("SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS")
+    @classmethod
+    def validate_slow_query_threshold(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS must be >= 0")
+        return v
+
+    @field_validator("SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES")
+    @classmethod
+    def validate_slow_query_max_entries(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES must be >= 1")
+        return v
+
+    @field_validator("GZIP_MINIMUM_SIZE")
+    @classmethod
+    def validate_gzip_minimum_size(cls, v: int) -> int:
+        if v < 128:
+            raise ValueError("GZIP_MINIMUM_SIZE must be at least 128 bytes to avoid compressing tiny payloads")
         return v
 
 

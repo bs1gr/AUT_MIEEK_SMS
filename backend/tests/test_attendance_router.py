@@ -480,6 +480,29 @@ def test_attendance_stats(client):
     assert data["attendance_rate"] == 60.0  # 3/5 * 100
 
 
+def test_attendance_stats_no_records_returns_message(client):
+    student_resp = client.post(
+        "/api/v1/students/",
+        json={
+            "student_id": "ATT015",
+            "email": "att015@test.com",
+            "first_name": "Test",
+            "last_name": "Student15",
+        },
+    )
+    student_id = student_resp.json()["id"]
+
+    course_resp = client.post(
+        "/api/v1/courses/",
+        json={"course_code": "CS115", "course_name": "Test Course 15", "semester": "Fall 2025", "credits": 3},
+    )
+    course_id = course_resp.json()["id"]
+
+    response = client.get(f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}")
+    assert response.status_code == 200
+    assert response.json() == {"message": "No attendance records found"}
+
+
 def test_bulk_create_attendance(client):
     """Bulk create attendance records"""
     # Create test data
@@ -519,3 +542,72 @@ def test_bulk_create_attendance(client):
     data = response.json()
     assert data["created"] == 3
     assert data["failed"] == 0
+
+
+def test_attendance_date_range_with_only_end_date(client):
+    student_resp = client.post(
+        "/api/v1/students/",
+        json={
+            "student_id": "ATT016",
+            "email": "att016@test.com",
+            "first_name": "Test",
+            "last_name": "Student16",
+        },
+    )
+    student_id = student_resp.json()["id"]
+
+    course_resp = client.post(
+        "/api/v1/courses/",
+        json={"course_code": "CS116", "course_name": "Test Course 16", "semester": "Fall 2025", "credits": 3},
+    )
+    course_id = course_resp.json()["id"]
+
+    today = date.today()
+    within_range = today - timedelta(days=5)
+    outside_range = today - timedelta(days=120)
+
+    for d, status in [(within_range, "Present"), (outside_range, "Absent")]:
+        client.post(
+            "/api/v1/attendance/",
+            json={
+                "student_id": student_id,
+                "course_id": course_id,
+                "date": str(d),
+                "status": status,
+                "period_number": 1,
+            },
+        )
+
+    response = client.get(
+        f"/api/v1/attendance/?student_id={student_id}&course_id={course_id}&end_date={today.isoformat()}"
+    )
+    assert response.status_code == 200
+    dates = {item["date"] for item in response.json()}
+    assert within_range.isoformat() in dates
+    assert outside_range.isoformat() not in dates
+
+
+def test_update_attendance_not_found(client):
+    response = client.put("/api/v1/attendance/9999", json={"status": "Late"})
+    assert response.status_code == 404
+
+
+def test_delete_attendance_not_found(client):
+    response = client.delete("/api/v1/attendance/9999")
+    assert response.status_code == 404
+
+
+def test_get_student_attendance_not_found(client):
+    response = client.get("/api/v1/attendance/student/9999")
+    assert response.status_code == 404
+
+
+def test_get_course_attendance_not_found(client):
+    response = client.get("/api/v1/attendance/course/9999")
+    assert response.status_code == 404
+
+
+def test_get_attendance_by_date_course_not_found(client):
+    today = date.today().isoformat()
+    response = client.get(f"/api/v1/attendance/date/{today}/course/9999")
+    assert response.status_code == 404

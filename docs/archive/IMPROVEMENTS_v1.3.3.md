@@ -22,7 +22,8 @@ Successfully implemented **3 major code quality improvements** from the comprehe
 **Problem**: `list_backups()` loaded all backup files into memory without pagination, risking OOM with thousands of backups.
 
 **Fix Applied**:
-```python
+```
+
 def list_backups(self, limit: Optional[int] = None, offset: int = 0) -> List[BackupInfo]:
     """
     List all available backups with optional pagination.
@@ -62,7 +63,8 @@ def list_backups(self, limit: Optional[int] = None, offset: int = 0) -> List[Bac
     if limit is not None:
         return backups[offset:offset + limit]
     return backups[offset:]
-```
+
+```text
 
 **Result**:
 - ✅ Prevents memory issues with large backup directories
@@ -79,7 +81,8 @@ def list_backups(self, limit: Optional[int] = None, offset: int = 0) -> List[Bac
 **Problem**: `get_python_path()` method duplicated across 4 classes (BackendServer, DatabaseManager, SetupOperations x2)
 
 **Fix Applied**:
-```python
+```
+
 def get_python_executable(root_dir: Path) -> str:
     """
     Get path to Python executable (venv if exists, otherwise system Python).
@@ -113,10 +116,12 @@ def get_python_executable(root_dir: Path) -> str:
 
     # Fallback to system Python
     return 'python'
+
 ```
 
 **Updated Classes to Use Shared Function**:
-```python
+```
+
 # backend/ops/server.py
 from .base import get_python_executable
 
@@ -124,7 +129,8 @@ class BackendServer(Operation):
     def get_python_path(self) -> str:
         """Get path to Python executable (venv if exists)."""
         return get_python_executable(self.root_dir)
-```
+
+```text
 
 **Result**:
 - ✅ Eliminated ~30 lines of duplicated code
@@ -141,7 +147,8 @@ class BackendServer(Operation):
 **Problem**: Timeout values were hardcoded and inconsistent across operations
 
 **Fix Applied**:
-```python
+```
+
 class OperationTimeouts:
     """
     Standard timeout values for operations (in seconds).
@@ -167,10 +174,12 @@ class OperationTimeouts:
     # HTTP/Network
     HTTP_REQUEST = 3               # Individual HTTP request
     HTTP_ENDPOINT_WAIT = 120       # Waiting for endpoint to become available
+
 ```
 
 **Updated Code to Use Constants**:
-```python
+```
+
 # backend/ops/server.py
 from .base import OperationTimeouts
 
@@ -179,7 +188,8 @@ time.sleep(OperationTimeouts.PROCESS_STARTUP_WAIT)
 
 # Instead of: process.wait(timeout=5)
 process.wait(timeout=OperationTimeouts.PROCESS_SHUTDOWN_WAIT)
-```
+
+```text
 
 **Result**:
 - ✅ Consistent timeout values across entire codebase
@@ -233,7 +243,8 @@ All changes are **100% backward compatible**:
 ## Testing Recommendations
 
 ### Pagination Testing
-```python
+```
+
 # Test empty directory
 backups = db_manager.list_backups()
 assert len(backups) == 0
@@ -254,6 +265,7 @@ backups = db_manager.list_backups(offset=-5)
 # Test limit=0 (should become 1)
 backups = db_manager.list_backups(limit=0)
 assert len(backups) <= 1
+
 ```
 
 ---
@@ -263,4 +275,4 @@ assert len(backups) <= 1
 **Version**: v1.3.3
 **Next Action**: Test improvements, then commit and push
 
-````
+```

@@ -11,6 +11,7 @@
 The frontend is built with **React 18.3.1**, **Vite 5.4.10**, and **Tailwind CSS 3.4.14**. It provides a comprehensive student management interface with grade tracking, attendance management, analytics, and administrative operations. The codebase demonstrates solid functionality but has opportunities for modernization and consistency improvements.
 
 **Key Findings**:
+
 - ✅ Modern React 18 with concurrent features
 - ✅ Well-structured component hierarchy
 - ✅ Centralized API client with axios
@@ -26,7 +27,8 @@ The frontend is built with **React 18.3.1**, **Vite 5.4.10**, and **Tailwind CSS
 ## Architecture Overview
 
 ### Tech Stack
-```
+
+```text
 React 18.3.1           - UI framework with concurrent rendering
 Vite 5.4.10            - Build tool and dev server (HMR, ESM)
 React Router DOM 6.28.0 - Client-side routing
@@ -37,7 +39,8 @@ TypeScript support     - Type definitions for React/React DOM
 ```
 
 ### Project Structure
-```
+
+```text
 frontend/src/
 ├── api/
 │   └── api.js                    # Centralized API client (axios)
@@ -85,6 +88,7 @@ frontend/src/
 ### State Management Patterns
 
 #### Context API Usage
+
 The app uses React Context for cross-cutting concerns:
 
 1. **LanguageContext** (`LanguageContext.tsx`):
@@ -101,13 +105,16 @@ The app uses React Context for cross-cutting concerns:
    - ✅ Well-implemented, responsive to OS changes
 
 #### Component-Level State
+
 Most components use local `useState` for:
+
 - Form inputs
 - Loading states
 - Modal visibility
 - Data fetching results
 
 **Pattern Example** (from `ExportCenter.tsx`):
+
 ```tsx
 const [students, setStudents] = useState([]);
 const [courses, setCourses] = useState([]);
@@ -124,6 +131,7 @@ const [toast, setToast] = useState(null);
 #### Centralized API Client (`src/api/api.js`)
 
 **Strengths**:
+
 - ✅ Single axios instance with interceptors
 - ✅ Organized into modules: `studentsAPI`, `coursesAPI`, `gradesAPI`, `attendanceAPI`, `highlightsAPI`, `analyticsAPI`
 - ✅ Configurable base URL via `VITE_API_URL`
@@ -131,6 +139,7 @@ const [toast, setToast] = useState(null);
 - ✅ Request/response interceptors for future auth integration
 
 **Configuration**:
+
 ```javascript
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -142,6 +151,7 @@ const apiClient = axios.create({
 ```
 
 **Interceptors**:
+
 - Request: Placeholder for auth tokens (commented out)
 - Response: Logs errors, handles 404/500 status codes
 
@@ -150,7 +160,9 @@ const apiClient = axios.create({
 **Problem**: Some components bypass the centralized API client and use raw `fetch()`.
 
 **Examples**:
+
 1. **ExportCenter.tsx** (lines 20-29):
+
    ```tsx
    const [studentsRes, coursesRes] = await Promise.all([
      fetch(`${API_BASE_URL}/students/`),
@@ -159,11 +171,13 @@ const apiClient = axios.create({
    ```
 
 2. **EnhancedAttendanceCalendar.tsx**:
+
    ```tsx
    const response = await fetch(`${API_BASE_URL}/students/`);
    ```
 
 3. **ServerControl.tsx**:
+
    ```tsx
    const backendResponse = await fetch(`${API_BASE_URL}/health`, {
      method: 'GET',
@@ -172,11 +186,13 @@ const apiClient = axios.create({
    ```
 
 4. **OperationsView.tsx**:
+
    ```tsx
    const res = await fetch(HEALTH_URL);
    ```
 
 **Impact**:
+
 - ❌ Loses centralized error handling
 - ❌ Loses timeout configuration (except when manually added via `AbortController`)
 - ❌ Future auth token integration requires updating every `fetch()` call
@@ -191,7 +207,9 @@ const apiClient = axios.create({
 **Issue**: Frontend has `highlightsAPI` module in `api.js`, but backend has **no CRUD router** for highlights (only export endpoint exists).
 
 **Current Frontend Usage**:
+
 - `StudentProfile.tsx` attempts to fetch highlights:
+
   ```tsx
   try {
     const highlightsData = await highlightsAPI.getByStudent(id);
@@ -202,10 +220,12 @@ const apiClient = axios.create({
   ```
 
 **Backend Reality**:
+
 - `/api/v1/exports/highlights/excel` exists (export only)
 - No GET/POST/PUT/DELETE endpoints for highlights CRUD
 
 **Recommendation**:
+
 - **Option 1**: Remove `highlightsAPI` from frontend until backend implements CRUD
 - **Option 2**: Implement backend highlights router in `backend/routers/routers_highlights.py`
 - **Option 3**: Document as "future feature" and guard all calls with try/catch (current approach)
@@ -217,6 +237,7 @@ const apiClient = axios.create({
 **Current State**: Project has **mixed** `.jsx` and `.tsx` files.
 
 ### TypeScript Files (.tsx)
+
 - `EnhancedDashboardView.tsx`
 - `StudentProfile.tsx`
 - `GradeBreakdownModal.tsx`
@@ -230,6 +251,7 @@ const apiClient = axios.create({
 - `LanguageContext.tsx`
 
 ### JavaScript Files (.jsx)
+
 - `StudentsView.jsx`
 - `AddStudentModal.jsx`
 - `EditCourseModal.jsx`
@@ -243,11 +265,13 @@ const apiClient = axios.create({
 - `api/api.js` (pure JavaScript)
 
 **Assessment**:
+
 - ⚠️ Inconsistent; creates confusion for contributors
 - ⚠️ TypeScript benefits (type safety, IntelliSense) not fully realized
 - ⚠️ Some TypeScript files use `any` types liberally (e.g., `(import.meta as any).env`)
 
 **Recommendation**:
+
 - **Short-term**: Add JSDoc comments to JavaScript files for basic type hints
 - **Long-term**: Migrate all components to TypeScript for consistency and safety
 - **Priority**: Start with `api/api.js` → typed API client provides immediate benefits
@@ -259,6 +283,7 @@ const apiClient = axios.create({
 ### Error Boundary
 
 **Current Implementation** (`ErrorBoundary.jsx`):
+
 ```jsx
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -280,6 +305,7 @@ class ErrorBoundary extends React.Component {
 ```
 
 **Assessment**:
+
 - ✅ Catches render errors
 - ❌ No error details logged (no `componentDidCatch`)
 - ❌ No recovery mechanism (e.g., retry, reset button)
@@ -287,6 +313,7 @@ class ErrorBoundary extends React.Component {
 - ❌ Only one boundary at root level (no granular boundaries)
 
 **Recommendation**:
+
 ```tsx
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -326,6 +353,7 @@ class ErrorBoundary extends React.Component {
 ### Component-Level Error Handling
 
 **Current Pattern**:
+
 ```tsx
 try {
   const response = await fetch(url);
@@ -338,11 +366,13 @@ try {
 ```
 
 **Issues**:
+
 - ❌ Errors logged to console but not shown to users
 - ❌ No distinction between network errors, 4xx, 5xx responses
 - ❌ Loading states sometimes not reset on error
 
 **Recommendation**:
+
 - Add toast/notification system for user feedback
 - Differentiate error types (network vs. server vs. validation)
 - Always reset loading states in `finally` blocks
@@ -352,10 +382,13 @@ try {
 ## Performance Considerations
 
 ### Positive Patterns
+
 - ✅ Lazy loading with `React.lazy` in `App.jsx`:
+
   ```jsx
   const StudentManagementApp = lazy(() => import('./StudentManagementApp'));
   ```
+
 - ✅ `useMemo` in `EnhancedDashboardView.tsx` for computed stats
 - ✅ `useCallback` for event handlers to prevent unnecessary re-renders
 
@@ -373,6 +406,7 @@ try {
    - `lucide-react` imports individual icons (good)
    - No code splitting beyond top-level lazy load
    - Consider route-based code splitting:
+
      ```jsx
      const StudentsView = lazy(() => import('./components/views/StudentsView'));
      ```
@@ -382,12 +416,14 @@ try {
 ## Accessibility (a11y)
 
 **Current State**:
+
 - ✅ Semantic HTML in most places (`<button>`, `<form>`, etc.)
 - ⚠️ Missing `aria-label` on icon-only buttons
 - ⚠️ No focus management for modals
 - ⚠️ Color-based status indicators (red/green) without text fallbacks (not colorblind-friendly)
 
 **Recommendations**:
+
 1. Add ARIA labels to all interactive elements
 2. Implement focus trapping in modals
 3. Add visible text labels alongside color indicators
@@ -398,18 +434,22 @@ try {
 ## Security Considerations (Frontend-Specific)
 
 ### XSS Protection
+
 - ✅ React escapes content by default (JSX prevents XSS)
 - ⚠️ If using `dangerouslySetInnerHTML` anywhere, ensure content is sanitized (not observed in current code)
 
 ### API Key Exposure
+
 - ✅ No API keys hardcoded in frontend
 - ✅ Uses environment variables (`VITE_API_URL`)
 
 ### CORS Configuration
+
 - ⚠️ Backend allows `localhost:5173` in CORS_ORIGINS (development)
 - ❌ Must be tightened for production (see SECURITY.md)
 
 ### Authentication
+
 - ❌ **No authentication system implemented**
 - ❌ API interceptors have commented-out token logic
 - ❌ All endpoints are publicly accessible

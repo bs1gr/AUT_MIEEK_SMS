@@ -1,6 +1,7 @@
 # Student Management System - Architecture & Automation Guide
 
 ## Table of Contents
+
 1. [System Architecture](#system-architecture)
 2. [Start/Stop Logic](#startstop-logic)
 3. [Automation Options](#automation-options)
@@ -13,7 +14,7 @@
 
 ### Components
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    SMS Application                          │
 ├─────────────────────────────────────────────────────────────┤
@@ -30,6 +31,7 @@
 ### Deployment Modes
 
 #### 1. **Native Mode** (Direct on Host)
+
 - **Frontend**: Node.js dev server on port 5173
 - **Backend**: Python/Uvicorn on port 8000
 - **Database**: SQLite file at `data/student_management.db`
@@ -37,6 +39,7 @@
 - **Cons**: Requires Node.js + Python on host
 
 #### 2. **Docker Mode** (Containerized)
+
 - **Frontend**: Nginx serving built SPA on port 8080
 - **Backend**: Python/Uvicorn in container (port 8000 internal)
 - **Database**: SQLite in Docker volume `sms_data`
@@ -49,13 +52,13 @@
 
 ### Current Flow Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Entry Points                        │
 ├─────────────────────────────────────────────────────────────┤
 │  QUICKSTART.ps1  →  SMS.ps1 -Quick  (non-interactive)       │
 │  SMS.ps1         →  Interactive menu                        │
-│  scripts/RUN.ps1 →  Direct native start (legacy)            │
+│  .\scripts\RUN.ps1 →  Direct native start (legacy)            │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -91,13 +94,13 @@
 
 ### Stop Logic
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Stop Entry Points                        │
 ├─────────────────────────────────────────────────────────────┤
 │  SMS.ps1 -Stop           →  PowerShell stop                 │
 │  Control Panel "Stop All" →  Backend API stop               │
-│  scripts/STOP.ps1        →  Legacy direct stop              │
+│  .\scripts\STOP.ps1        →  Legacy direct stop              │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────────┬──────────────────────────────────────┐
@@ -112,6 +115,7 @@
 ### Important: Control Panel Limitation
 
 **In Docker mode**, the Control Panel "Stop All" button:
+
 - ✅ **CAN**: Stop the backend container (from within)
 - ❌ **CANNOT**: Stop frontend/nginx container (isolation)
 - ✅ **SOLUTION**: Use `SMS.ps1 -Stop` on host for full shutdown
@@ -155,7 +159,8 @@ docker compose down     # Stop and remove
 
 ### 4. **Scheduled Automation** (Using Windows Task Scheduler)
 
-**Example: Auto-start on system boot**
+#### Example: Auto-start on system boot
+
 ```powershell
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
@@ -163,7 +168,8 @@ $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
 Register-ScheduledTask -TaskName "SMS-AutoStart" -Trigger $trigger -Action $action
 ```
 
-**Example: Auto-restart daily**
+#### Example: Auto-restart daily
+
 ```powershell
 $trigger = New-ScheduledTaskTrigger -Daily -At 3AM
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
@@ -198,6 +204,7 @@ jobs:
 ### Current State
 
 #### Schema Migrations (Alembic)
+
 - **Tool**: Alembic (SQLAlchemy migration tool)
 - **Location**: `backend/migrations/versions/`
 - **Current versions**:
@@ -205,6 +212,7 @@ jobs:
   - `3f2b1a9c0d7e` - Add absence_penalty to courses
 
 **Important**: The baseline migration (`0b65fa8f5f95`) creates all core tables on fresh databases:
+
 - `students`, `courses`, `attendances`, `course_enrollments`
 - `daily_performances`, `grades`, `highlights`
 - All necessary indexes for performance
@@ -212,13 +220,16 @@ jobs:
 This ensures that first-time installations initialize properly without requiring existing tables.
 
 #### First-Run Database Validation
+
 - **Tool**: `backend/tools/validate_first_run.py`
 - **Purpose**: Test fresh database creation and migrations programmatically
 - **Usage**:
+
   ```powershell
   cd backend
   ..\.venv\Scripts\python.exe tools\validate_first_run.py
   ```
+
 - **Checks**:
   - Database file creation
   - Migration execution success
@@ -227,6 +238,7 @@ This ensures that first-time installations initialize properly without requiring
 - **When to use**: Troubleshooting first-time installs or testing migration changes
 
 #### Docker Volume Versioning
+
 - **Manual operation**: Control Panel → Docker Operations → "Update Docker Data Volume"
 - **Creates**: Timestamped volumes like `sms_data_v20251028_152300`
 - **Optional migration**: Copies data from old volume to new
@@ -237,6 +249,7 @@ This ensures that first-time installations initialize properly without requiring
 **Scenario**: You update the native database schema (via Alembic migration), then want to use Docker mode.
 
 **Current flow (manual)**:
+
 1. Run migration in native mode: `alembic upgrade head`
 2. Native DB is now at new schema version
 3. Switch to Docker mode
@@ -244,6 +257,7 @@ This ensures that first-time installations initialize properly without requiring
 5. **Result**: Schema mismatch errors!
 
 **Current workaround**:
+
 1. Manually update Docker volume via Control Panel
 2. Choose "migrate data" to copy from native DB
 3. Restart Docker stack
@@ -252,7 +266,7 @@ This ensures that first-time installations initialize properly without requiring
 
 As of this update, the host launcher (`SMS.ps1`) performs a pre-start schema version check when starting in Docker mode:
 
-- Non-interactive (Quick Start): If a mismatch is detected between the native DB schema and the Docker volume schema, a warning is shown with guidance to run `scripts/CHECK_VOLUME_VERSION.ps1 -AutoMigrate` or use the Control Panel Docker operation.
+- Non-interactive (Quick Start): If a mismatch is detected between the native DB schema and the Docker volume schema, a warning is shown with guidance to run `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate` or use the Control Panel Docker operation.
 - Interactive (Menu/CLI): If a mismatch is detected, you will be prompted to auto-migrate the Docker volume before containers start.
 
 This reduces accidental starts with incompatible schemas while keeping you in control.
@@ -357,7 +371,7 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 1. **Use Native mode for development**:
 
 ```powershell
-\.\QUICKSTART.ps1  # Will auto-select Native if Docker not available
+.\QUICKSTART.ps1  # Will auto-select Native if Docker not available
 ```
 
 2. **Run migrations immediately**:
@@ -371,7 +385,7 @@ alembic upgrade head
 3. **Test in Docker before deployment**:
 
 ```powershell
-\.\SMS.ps1 -Stop
+.\SMS.ps1 -Stop
 docker compose up -d --build
 ```
 
@@ -393,7 +407,7 @@ docker compose exec backend sh -c "cd /data && tar czf backup.tar.gz student_man
 3. **Automate backups**:
 
 ```powershell
-# scripts/backup-docker-volume.ps1
+# .\scripts\backup-docker-volume.ps1
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
    alpine tar czf "/backup/sms_data_$timestamp.tar.gz" -C /data .

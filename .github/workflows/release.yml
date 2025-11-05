@@ -21,6 +21,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Build backend image for verification
+        run: |
+          docker build -f docker/Dockerfile.backend -t sms-backend:ci-verify .
+
+      - name: Run backend tests inside Docker
+        run: |
+          docker run --rm --entrypoint pytest sms-backend:ci-verify -q
+
+      - name: Verify frontend build via fullstack image
+        run: |
+          docker build -f docker/Dockerfile.fullstack -t sms-fullstack:ci-verify .
+
       - name: Log in to GHCR (docker CLI)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin

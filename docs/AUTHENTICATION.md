@@ -9,11 +9,13 @@ The Student Management System includes an optional JWT-based authentication syst
 ### Enable Authentication
 
 1. **Set environment variable** in `backend/.env`:
+
    ```bash
    AUTH_ENABLED=True
    ```
 
 2. **Configure JWT secret** (required for production):
+
    ```bash
    SECRET_KEY=your-secure-random-key-here-change-this-in-production
    ALGORITHM=HS256
@@ -21,18 +23,20 @@ The Student Management System includes an optional JWT-based authentication syst
    ```
 
 3. **Generate a secure secret key**:
+
    ```bash
    python -c "import secrets; print(secrets.token_urlsafe(32))"
    ```
 
 4. **Restart the application**:
+
    ```bash
    .\QUICKSTART.ps1
    ```
 
 ### Create Initial Admin User
 
-**Method 1: Via API (Recommended for first user)**
+#### Method 1: Via API (Recommended for first user)
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/auth/register \
@@ -45,7 +49,7 @@ curl -X POST http://localhost:8000/api/v1/auth/register \
   }'
 ```
 
-**Method 2: Via Python Script**
+#### Method 2: Via Python Script
 
 Create `backend/create_admin.py`:
 
@@ -81,6 +85,7 @@ if __name__ == "__main__":
 ```
 
 Run:
+
 ```bash
 cd backend
 python create_admin.py
@@ -89,6 +94,7 @@ python create_admin.py
 ## User Roles
 
 ### Admin
+
 - **Full system access**
 - Can create/update/delete all resources
 - Can perform administrative operations:
@@ -98,6 +104,7 @@ python create_admin.py
 - Can manage users (future feature)
 
 ### Teacher
+
 - **Read access** to all resources
 - **Write access** to:
   - Students (create, update, deactivate)
@@ -113,6 +120,7 @@ python create_admin.py
   - System-wide data clearing
 
 ### Student
+
 - **Read-only access** to their own data:
   - Personal information
   - Grades
@@ -138,6 +146,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -162,6 +171,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -177,6 +187,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -192,11 +203,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 When `AUTH_ENABLED=True`, the following endpoints require authentication:
 
 ### Admin-Only (403 for non-admins)
+
 - `POST /api/v1/adminops/backup`
 - `POST /api/v1/adminops/restore`
 - `POST /api/v1/adminops/clear-data`
 
 ### Admin or Teacher (403 for students, 401 for anonymous)
+
 - `POST /api/v1/students/`
 - `PUT /api/v1/students/{id}`
 - `DELETE /api/v1/students/{id}`
@@ -224,6 +237,7 @@ When `AUTH_ENABLED=True`, the following endpoints require authentication:
 - `POST /api/v1/imports/upload`
 
 ### Read Endpoints (No Authentication Required)
+
 All `GET` endpoints remain publicly accessible regardless of `AUTH_ENABLED` setting to support existing deployments and public dashboards.
 
 ## Password Requirements
@@ -304,6 +318,7 @@ if (response.status === 401) {
 ## Backward Compatibility
 
 ### Default Behavior (AUTH_ENABLED=False)
+
 - All endpoints are **publicly accessible**
 - No authentication required
 - No authorization checks
@@ -312,6 +327,7 @@ if (response.status === 401) {
 ### Migration Path
 
 1. **Enable auth in development:**
+
    ```bash
    AUTH_ENABLED=True
    ```
@@ -331,22 +347,27 @@ if (response.status === 401) {
 ## Troubleshooting
 
 ### "Not authenticated" (401)
+
 - Token missing or invalid
 - Token expired (check `ACCESS_TOKEN_EXPIRE_MINUTES`)
 - Wrong `Authorization` header format (must be `Bearer <token>`)
 
 ### "Forbidden" (403)
+
 - Valid token but insufficient permissions
 - User role doesn't have access to endpoint
 - Check user role: `GET /api/v1/auth/me`
 
 ### "User already registered" (400)
+
 - Email already exists in database
 - Use different email or update existing user
 
 ### Forgot Admin Password
+
 1. **Stop the application**
 2. **Reset in database:**
+
    ```python
    from backend.db import get_db
    from backend.models import User
@@ -357,6 +378,7 @@ if (response.status === 401) {
    admin.hashed_password = get_password_hash("NewPassword123!")
    db.commit()
    ```
+
 3. **Restart application**
 
 ## Testing
@@ -436,6 +458,7 @@ Rate limits apply per IP address, regardless of authentication status.
 ### Database Models
 
 **users** table:
+
 - `id`: Primary key
 - `email`: Unique, indexed
 - `hashed_password`: PBKDF2-SHA256 hash
@@ -448,6 +471,7 @@ Rate limits apply per IP address, regardless of authentication status.
 ## Support
 
 For issues or questions:
+
 1. Check logs: `backend/logs/app.log`
 2. Review test cases: `backend/tests/test_auth_router.py`
 3. Consult `docs/ARCHITECTURE.md` for system design
