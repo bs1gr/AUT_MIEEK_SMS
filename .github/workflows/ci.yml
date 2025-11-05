@@ -63,12 +63,12 @@ jobs:
       - name: Install backend deps (locked) - prefer wheelhouse
         run: |
           if [ -f backend/requirements-lock.txt ]; then
-            # If we have a wheelhouse cached, install from it; otherwise build the wheelhouse then install.
+            # If we have a wheelhouse cached, install from it with PyPI fallback.
             if [ -d ./.wheelhouse ] && [ "$(ls -A ./.wheelhouse)" ]; then
-              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+              pip install --find-links ./.wheelhouse -r backend/requirements-lock.txt
             else
               pip wheel --wheel-dir ./.wheelhouse -r backend/requirements-lock.txt
-              pip install --no-index --find-links ./.wheelhouse -r backend/requirements-lock.txt
+              pip install --find-links ./.wheelhouse -r backend/requirements-lock.txt
             fi
           else
             pip install -r backend/requirements.txt
