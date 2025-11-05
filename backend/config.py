@@ -12,6 +12,14 @@ from pathlib import Path
 from pydantic import field_validator
 
 
+def _path_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -22,7 +30,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Student Management System API"
-    APP_VERSION: str = "3.0.3"
+    APP_VERSION: str = "1.3.8"
     SMS_ENV: str = os.environ.get("SMS_ENV", "development")
     SMS_EXECUTION_MODE: str = os.environ.get("SMS_EXECUTION_MODE", "native")
 
@@ -168,14 +176,16 @@ class Settings(BaseSettings):
 
             # Ensure path is within project directory (prevent path traversal)
             project_root = Path(__file__).resolve().parents[1]
-            try:
-                # Check if db_path is relative to project_root
-                db_path.relative_to(project_root)
-            except ValueError:
+            allowed_roots = [project_root]
+            if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
+                allowed_roots.append(Path("/data"))
+
+            if not any(_path_within(db_path, root) for root in allowed_roots):
+                allowed_desc = ", ".join(str(root) for root in allowed_roots)
                 raise ValueError(
-                    f"Database path must be within project directory.\n"
+                    "Database path must be within an allowed directory.\n"
                     f"Database path: {db_path}\n"
-                    f"Project root: {project_root}"
+                    f"Allowed roots: {allowed_desc}"
                 )
 
         except Exception as e:

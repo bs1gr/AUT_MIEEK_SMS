@@ -19,6 +19,7 @@ Exit code is non-zero on error.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -28,6 +29,9 @@ from typing import Tuple
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_MAIN = PROJECT_ROOT / "backend" / "main.py"
 BACKEND_CONFIG = PROJECT_ROOT / "backend" / "config.py"
+VERSION_FILE = PROJECT_ROOT / "VERSION"
+FRONTEND_PACKAGE = PROJECT_ROOT / "frontend" / "package.json"
+FRONTEND_LOCK = PROJECT_ROOT / "frontend" / "package-lock.json"
 
 VERSION_REGEXES = [
     # backend/main.py -> version="x.y.z" in FastAPI app factory or startup logs
@@ -62,6 +66,34 @@ def find_versions() -> Tuple[str | None, dict[Path, str]]:
             per_file[path] = v
             if not found_version:
                 found_version = v
+    if VERSION_FILE.exists():
+        version_text = read_file_text(VERSION_FILE).strip()
+        if version_text:
+            per_file[VERSION_FILE] = version_text
+            if not found_version:
+                found_version = version_text
+    if FRONTEND_PACKAGE.exists():
+        try:
+            package_data = json.loads(read_file_text(FRONTEND_PACKAGE) or "{}")
+        except json.JSONDecodeError:
+            package_data = None
+        if isinstance(package_data, dict):
+            pkg_version = package_data.get("version")
+            if isinstance(pkg_version, str):
+                per_file[FRONTEND_PACKAGE] = pkg_version
+                if not found_version:
+                    found_version = pkg_version
+    if FRONTEND_LOCK.exists():
+        try:
+            lock_data = json.loads(read_file_text(FRONTEND_LOCK) or "{}")
+        except json.JSONDecodeError:
+            lock_data = None
+        if isinstance(lock_data, dict):
+            lock_version = lock_data.get("version")
+            if isinstance(lock_version, str):
+                per_file[FRONTEND_LOCK] = lock_version
+                if not found_version:
+                    found_version = lock_version
     return found_version, per_file
 
 
@@ -92,6 +124,40 @@ def update_versions(new_version: str) -> list[Path]:
         if n:
             write_file_text(path, new_text)
             updated.append(path)
+    if VERSION_FILE.exists():
+        current = read_file_text(VERSION_FILE).strip()
+        if current != new_version:
+            write_file_text(VERSION_FILE, f"{new_version}\n")
+            updated.append(VERSION_FILE)
+    if FRONTEND_PACKAGE.exists():
+        try:
+            package_data = json.loads(read_file_text(FRONTEND_PACKAGE) or "{}")
+        except json.JSONDecodeError:
+            package_data = None
+        if isinstance(package_data, dict):
+            if package_data.get("version") != new_version:
+                package_data["version"] = new_version
+                write_file_text(FRONTEND_PACKAGE, json.dumps(package_data, indent=2) + "\n")
+                updated.append(FRONTEND_PACKAGE)
+    if FRONTEND_LOCK.exists():
+        try:
+            lock_data = json.loads(read_file_text(FRONTEND_LOCK) or "{}")
+        except json.JSONDecodeError:
+            lock_data = None
+        if isinstance(lock_data, dict):
+            changed = False
+            if lock_data.get("version") != new_version:
+                lock_data["version"] = new_version
+                changed = True
+            packages = lock_data.get("packages")
+            if isinstance(packages, dict):
+                root_pkg = packages.get("")
+                if isinstance(root_pkg, dict) and root_pkg.get("version") != new_version:
+                    root_pkg["version"] = new_version
+                    changed = True
+            if changed:
+                write_file_text(FRONTEND_LOCK, json.dumps(lock_data, indent=2) + "\n")
+                updated.append(FRONTEND_LOCK)
     return updated
 
 
