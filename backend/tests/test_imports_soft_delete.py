@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date
 
 from backend import models
 from backend.tests.conftest import TestingSessionLocal

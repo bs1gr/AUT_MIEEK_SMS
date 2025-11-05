@@ -19,7 +19,7 @@ import unicodedata
 from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 from .routers_auth import optional_require_role
 
-from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.errors import ErrorCode, http_error
 logger = logging.getLogger(__name__)
 
 # File upload security constraints
