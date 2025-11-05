@@ -1,9 +1,18 @@
 import os
 from types import SimpleNamespace
+import pytest
 from fastapi.testclient import TestClient
 import backend.main as main
+from backend import environment
 
 client = TestClient(main.app)
+
+# Control panel tests are only relevant in native/development mode
+# In Docker, the frontend is served as static files, not via npm dev server
+pytestmark = pytest.mark.skipif(
+    environment.get_runtime_context().is_docker,
+    reason="Control panel tests require native environment with frontend source"
+)
 
 
 def test_control_start_success(monkeypatch):

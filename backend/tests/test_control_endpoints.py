@@ -1,14 +1,22 @@
 import os
 from pathlib import Path
 from types import SimpleNamespace
-
+import pytest
 from fastapi.testclient import TestClient
 
 import backend.main as main
 import backend.routers.routers_control as control
 from backend.errors import ErrorCode
+from backend import environment
 
 client = TestClient(main.app)
+
+# Control panel tests require frontend source directory (package.json, etc)
+# Skip in Docker where only built static files are present
+pytestmark = pytest.mark.skipif(
+    environment.get_runtime_context().is_docker,
+    reason="Control panel tests require native environment with frontend source"
+)
 
 
 def test_control_status_monkeypatched(monkeypatch):
