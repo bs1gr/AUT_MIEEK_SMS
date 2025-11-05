@@ -56,7 +56,9 @@ def test_create_student_duplicate_email(client):
     assert r1.status_code == 201
     r2 = client.post("/api/v1/students/", json=p2)
     assert r2.status_code == 400
-    assert r2.json()["detail"] == "Email already registered"
+    payload = r2.json()["detail"]
+    assert payload["message"] == "Email already registered"
+    assert payload["error_id"] == "STD_DUP_EMAIL"
 
 
 def test_create_student_duplicate_student_id(client):
@@ -66,7 +68,9 @@ def test_create_student_duplicate_student_id(client):
     assert r1.status_code == 201
     r2 = client.post("/api/v1/students/", json=p2)
     assert r2.status_code == 400
-    assert r2.json()["detail"] == "Student ID already exists"
+    payload = r2.json()["detail"]
+    assert payload["message"] == "Student ID already exists"
+    assert payload["error_id"] == "STD_DUP_ID"
 
 
 def test_get_student_by_id_and_404(client):
@@ -180,9 +184,9 @@ def test_bulk_create_students_with_duplicates(client):
     assert data["created"] == 2
     assert data["failed"] == 2
     assert len(data["errors"]) == 2
-    error_messages = " ".join(error["error"] for error in data["errors"])
-    assert "Email already exists" in error_messages
-    assert "Student ID already exists" in error_messages
+    error_ids = {entry["error"]["error_id"] for entry in data["errors"]}
+    assert "STD_DUP_EMAIL" in error_ids
+    assert "STD_DUP_ID" in error_ids
 
 
 def test_create_student_handles_internal_error(client, monkeypatch):
@@ -195,4 +199,6 @@ def test_create_student_handles_internal_error(client, monkeypatch):
 
     r = client.post("/api/v1/students/", json=make_student_payload(10))
     assert r.status_code == 500
-    assert r.json()["detail"] == "Internal server error"
+    payload = r.json()["detail"]
+    assert payload["error_id"] == "ERR_INTERNAL"
+    assert payload["message"] == "Internal server error"

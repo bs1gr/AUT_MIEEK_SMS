@@ -5,7 +5,8 @@
 ### Issue 1: "Failed to resolve import i18next" Error
 
 **Symptoms:**
-```
+
+```text
 [plugin:vite:import-analysis] Failed to resolve import "i18next" from "src/i18n/config.js"
 ```
 
@@ -14,12 +15,13 @@ You're accessing the wrong URL for your deployment mode.
 
 **Solution:**
 
-#### If using Docker mode (recommended):
+#### If using Docker mode (recommended)
 
-- ✅ **Correct URL**: http://localhost:8080
-- ❌ **Wrong URL**: http://localhost:5173 (this is for native mode only)
+- ✅ **Correct URL**: <http://localhost:8080>
+- ❌ **Wrong URL**: <http://localhost:5173> (this is for native mode only)
 
 Check which mode you're running:
+
 ```cmd
 REM Check if Docker containers are running
 docker ps
@@ -27,7 +29,7 @@ docker ps
 REM If you see containers, use port 8080
 ```
 
-#### If using Native mode:
+#### If using Native mode
 
 The error means frontend dependencies weren't installed. Fix it:
 
@@ -52,14 +54,14 @@ START.bat
 
 **Avoid PowerShell issues entirely!**
 
-### Why START.bat is Better:
+### Why START.bat is Better
 
 ✅ **No execution policy blocks** - Works immediately
 ✅ **No PowerShell version conflicts** - Works on Win 7/8/10/11
 ✅ **No security warnings** - Native Windows batch format
 ✅ **Just double-click and run** - Zero configuration
 
-### Usage:
+### Usage
 
 ```cmd
 REM Simple - just double-click START.bat in Windows Explorer
@@ -74,21 +76,23 @@ REM That's it! No PowerShell complications.
 ## Understanding Deployment Modes
 
 ### Docker Mode (Port 8080)
+
 - **Single container** serves both backend and built frontend
 - **URLs:**
-  - Application: http://localhost:8080
-  - Control Panel: http://localhost:8080/control
-  - API Docs: http://localhost:8080/docs
+  - Application: <http://localhost:8080>
+  - Control Panel: <http://localhost:8080/control>
+  - API Docs: <http://localhost:8080/docs>
 - **Preferred for:** Production, stability, first-time users
 - **No need for:** npm install or separate frontend process
 
 ### Native Mode (Ports 8000 + 5173)
+
 - **Two separate processes**: Backend + Frontend dev server
 - **URLs:**
-  - Backend API: http://localhost:8000
-  - Frontend (Vite): http://localhost:5173
-  - Control Panel: http://localhost:8000/control
-  - API Docs: http://localhost:8000/docs
+  - Backend API: <http://localhost:8000>
+  - Frontend (Vite): <http://localhost:5173>
+  - Control Panel: <http://localhost:8000/control>
+  - API Docs: <http://localhost:8000/docs>
 - **Preferred for:** Development, hot module reload
 - **Requires:** Both Python and Node.js installed, npm dependencies
 
@@ -99,12 +103,13 @@ REM That's it! No PowerShell complications.
 **🎯 SOLUTION: Use START.bat instead!**
 
 The batch file avoids ALL PowerShell problems:
+
 - No execution policy blocks
 - No version conflicts (PowerShell 5 vs 7)
 - No security warnings
 - Works on Windows 7, 8, 10, 11
 
-### But if you insist on using PowerShell:
+### But if you insist on using PowerShell
 
 **Common Causes:**
 
@@ -127,18 +132,22 @@ START.bat
 ```
 
 ### 2. Missing Prerequisites
+
 **Error:** "Python 3.11+ is required but not found"
 
 **Fix:**
-- Install Python 3.11+: https://www.python.org/downloads/
-- Install Node.js 18+: https://nodejs.org/
+
+- Install Python 3.11+: <https://www.python.org/downloads/>
+- Install Node.js 18+: <https://nodejs.org/>
 - Restart PowerShell after installation
 - Run ONE-CLICK.ps1 again
 
 ### 3. QUICKSTART.ps1 Not Found
+
 **Error:** "QUICKSTART.ps1 not found"
 
 **Fix:**
+
 ```powershell
 # Make sure you're in the correct directory
 cd D:\AUT_MIEEK_SMS-main  # Or wherever you extracted the files
@@ -149,9 +158,11 @@ dir  # Should show ONE-CLICK.ps1, QUICKSTART.ps1, etc.
 ```
 
 ### 4. npm Install Failed
+
 **Error:** "npm install failed" or dependency errors
 
 **Fix:**
+
 ```powershell
 # Clear npm cache
 npm cache clean --force
@@ -176,6 +187,7 @@ npm install -g npm@latest
 ## How to Check What's Running
 
 ### Quick Status Check
+
 ```powershell
 # Using SMS.ps1
 .\SMS.ps1 -Status
@@ -188,9 +200,10 @@ netstat -ano | findstr ":5173"  # Check if port 5173 is in use
 ```
 
 ### From Control Panel
+
 1. Open Control Panel at:
-   - Docker: http://localhost:8080/control
-   - Native: http://localhost:8000/control
+   - Docker: <http://localhost:8080/control>
+   - Native: <http://localhost:8000/control>
 2. Check "System Status" section
 3. Click "Run Diagnostics" for detailed health check
 
@@ -223,36 +236,44 @@ Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 ## Verifying Successful Installation
 
 ### 1. Check Services are Running
+
 ```powershell
 .\SMS.ps1 -Status
 ```
 
 Should show:
+
 - ✅ Backend: RUNNING
 - ✅ Frontend: RUNNING (or Docker: RUNNING)
 - ✅ Database: Connected
 
 ### 2. Access the Application
+
 Based on your mode:
 
 **Docker Mode:**
-- Go to http://localhost:8080
+
+- Go to <http://localhost:8080>
 - Should see the Student Management System login/dashboard
 
 **Native Mode:**
-- Go to http://localhost:5173
+
+- Go to <http://localhost:5173>
 - Should see the Student Management System login/dashboard
 
 ### 3. Test Control Panel
+
 Based on your mode:
 
 **Docker Mode:**
-- Go to http://localhost:8080/control
+
+- Go to <http://localhost:8080/control>
 - Should see version badges at top
 - Click "Run Diagnostics" - all should be green or have helpful warnings
 
 **Native Mode:**
-- Go to http://localhost:8000/control
+
+- Go to <http://localhost:8000/control>
 - Same checks as Docker mode
 
 ---
@@ -262,18 +283,21 @@ Based on your mode:
 If you're still stuck:
 
 1. **Check Logs:**
+
    ```powershell
    .\SMS.ps1
    # Select option 9: View Application Logs
    ```
 
 2. **Run Diagnostics:**
+
    ```powershell
    .\SMS.ps1
    # Select option 8: Run Full Diagnostics
    ```
 
 3. **Check setup.log:**
+
    ```powershell
    Get-Content setup.log -Tail 50
    ```
@@ -309,7 +333,7 @@ taskkill /PID 1234 /F
 **If you see the i18next error:**
 
 1. Check if Docker is running: `docker ps`
-2. If you see containers → Use **http://localhost:8080** (not 5173)
+2. If you see containers → Use **<http://localhost:8080>** (not 5173)
 3. If no containers → Run `cd frontend && npm install` then restart
 
 **That fixes 90% of fresh deployment issues.**

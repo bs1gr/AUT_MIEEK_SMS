@@ -131,6 +131,7 @@ pip install 'uvicorn[standard]==0.32.1'
 **Recommendation**: ✅ **Keep current**
 
 **Migration Status**:
+
 - ✅ Pydantic v2 migration completed in v1.1 branch
 - ✅ All schemas use `model_config = ConfigDict(from_attributes=True)`
 - ✅ No deprecation warnings
@@ -146,21 +147,25 @@ pip install 'uvicorn[standard]==0.32.1'
 **Recommendation**: 🔄 **Safe to upgrade**
 
 **Changes in 0.28.x**:
+
 - Performance improvements for HTTP/2
 - Enhanced proxy support
 - No breaking API changes
 
 **Upgrade Command**:
+
 ```bash
 pip install httpx==0.28.1
 ```
 
 **Testing Required**:
+
 ```bash
 pytest backend/tests -k test_  # Run all API tests
 ```
 
 **Rollback Plan**:
+
 ```bash
 pip install httpx==0.27.2
 ```
@@ -176,17 +181,20 @@ pip install httpx==0.27.2
 **Issue**: psutil 7.x doesn't exist. Latest is 6.1.x series.
 
 **Action**:
+
 ```bash
 pip show psutil  # Check actual version
 pip install psutil==6.1.1  # Likely already on this version
 ```
 
 **Usage in Project**:
+
 - Control panel system monitoring
 - Port detection
 - Resource usage stats
 
 **Breaking Changes (if moving from 5.x to 6.x)**:
+
 - `disk_partitions()` returns new `maxfile` and `maxpath` fields
 - No action needed if already on 5.9.x or 6.x
 
@@ -216,6 +224,7 @@ gunicorn==23.0.0                  # Process manager
 ```
 
 **Installation**:
+
 ```bash
 pip install PyJWT passlib[bcrypt] slowapi python-dotenv
 ```

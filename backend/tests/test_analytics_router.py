@@ -15,12 +15,12 @@ def _create_student(client, i: int = 1):
     ).json()
 
 
-def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0):
+def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0, credits: int = 3):
     payload = {
         "course_code": code,
         "course_name": f"Course {code}",
         "semester": "Fall 2025",
-        "credits": 3,
+        "credits": credits,
         "absence_penalty": absence_penalty,
     }
     if rules is not None:
@@ -156,3 +156,97 @@ def test_final_grade_with_attendance_category(client):
     assert data["absence_penalty"] == 0.0
     assert data["absence_deduction"] == 0.0
     assert data["unexcused_absences"] == 0
+
+
+def test_final_grade_course_not_found(client):
+    s = _create_student(client, 4)
+    r = client.get(f"/api/v1/analytics/student/{s['id']}/course/99999/final-grade")
+    assert r.status_code == 404
+    assert r.json()["detail"].lower() == "course not found"
+
+
+def test_student_all_courses_summary_with_mixed_courses(client):
+    s = _create_student(client, 5)
+
+    rules_valid_a = [
+        {
+            "category": "Homework",
+            "weight": 50.0,
+            "includeDailyPerformance": True,
+            "dailyPerformanceMultiplier": 0.5,
+        },
+        {"category": "Final", "weight": 50.0},
+    ]
+    rules_valid_b = [{"category": "Project", "weight": 100.0, "includeDailyPerformance": False}]
+
+    course_a = _create_course(client, "MIX1", rules=rules_valid_a, absence_penalty=0.0, credits=3)
+    course_b = _create_course(client, "MIX2", rules=rules_valid_b, absence_penalty=0.0, credits=2)
+    course_invalid = _create_course(client, "MIX0", rules=[], absence_penalty=0.0, credits=4)
+
+    assert _create_grade(client, s["id"], course_a["id"], "HW1", "Homework", 80).status_code == 201
+    assert _create_dp(client, s["id"], course_a["id"], "Homework", 8, 10).status_code == 200
+    assert _create_grade(client, s["id"], course_a["id"], "Final", "Final", 90).status_code == 201
+
+    assert _create_grade(client, s["id"], course_b["id"], "Project", "Project", 95).status_code == 201
+
+    # Ensure the invalid course is considered when gathering course IDs but skipped due to missing rules
+    assert _create_grade(client, s["id"], course_invalid["id"], "Quiz", "Quiz", 100).status_code == 201
+
+    r = client.get(f"/api/v1/analytics/student/{s['id']}/all-courses-summary")
+    assert r.status_code == 200
+    data = r.json()
+
+    assert data["student"]["id"] == s["id"]
+    assert data["total_credits"] == course_a["credits"] + course_b["credits"]
+    assert len(data["courses"]) == 2
+
+    courses_by_code = {c["course_code"]: c for c in data["courses"]}
+    assert set(courses_by_code.keys()) == {"MIX1", "MIX2"}
+
+    course_a_summary = courses_by_code["MIX1"]
+    assert course_a_summary["letter_grade"] == "B"
+    assert course_a_summary["final_grade"] == 85.0
+
+    course_b_summary = courses_by_code["MIX2"]
+    assert course_b_summary["letter_grade"] == "A"
+    assert course_b_summary["final_grade"] == 95.0
+
+    assert round(data["overall_gpa"], 2) == 3.56
+
+
+def test_student_all_courses_summary_student_not_found(client):
+    r = client.get("/api/v1/analytics/student/9999/all-courses-summary")
+    assert r.status_code == 404
+    assert r.json()["detail"].lower() == "student not found"
+
+
+def test_student_summary_success(client):
+    s = _create_student(client, 6)
+    c = _create_course(
+        client,
+        "SUM1",
+        rules=[{"category": "Homework", "weight": 100.0}],
+        absence_penalty=0.0,
+    )
+
+    for idx, status in enumerate(("Present", "Present", "Absent"), start=1):
+        assert _create_att(client, s["id"], c["id"], status, period=idx).status_code == 201
+
+    assert _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code == 201
+    assert _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code == 201
+
+    r = client.get(f"/api/v1/analytics/student/{s['id']}/summary")
+    assert r.status_code == 200
+    data = r.json()
+
+    assert data["student"]["student_id"] == s["student_id"]
+    assert data["total_classes"] == 3
+    assert data["attendance_rate"] == 66.67
+    assert data["average_grade"] == 85.0
+    assert data["total_assignments"] == 2
+
+
+def test_student_summary_not_found(client):
+    r = client.get("/api/v1/analytics/student/9999/summary")
+    assert r.status_code == 404
+    assert r.json()["detail"].lower() == "student not found"

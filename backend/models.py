@@ -33,7 +33,17 @@ logger = logging.getLogger(__name__)
 Base: Any = declarative_base()
 
 
-class Student(Base):
+class SoftDeleteMixin:
+    """Mixin providing soft-delete support with a nullable timestamp."""
+
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
+
+    def mark_deleted(self) -> None:
+        """Mark the instance as deleted using a timezone-aware timestamp."""
+        self.deleted_at = datetime.now(timezone.utc)
+
+
+class Student(SoftDeleteMixin, Base):
     """Student information table with indexes for common queries"""
 
     __tablename__ = "students"
@@ -74,7 +84,7 @@ class Student(Base):
         return f"<Student(id={self.id}, name={self.first_name} {self.last_name}, email={self.email})>"
 
 
-class Course(Base):
+class Course(SoftDeleteMixin, Base):
     """Course/Subject information with evaluation rules and schedule"""
 
     __tablename__ = "courses"
@@ -104,7 +114,7 @@ class Course(Base):
         return f"<Course(code={self.course_code}, name={self.course_name}, hours={self.hours_per_week}h/week)>"
 
 
-class Attendance(Base):
+class Attendance(SoftDeleteMixin, Base):
     """Daily attendance records with indexes for efficient querying"""
 
     __tablename__ = "attendances"
@@ -133,7 +143,7 @@ class Attendance(Base):
         )
 
 
-class CourseEnrollment(Base):
+class CourseEnrollment(SoftDeleteMixin, Base):
     """Enrollment linking students to courses"""
 
     __tablename__ = "course_enrollments"
@@ -153,7 +163,7 @@ class CourseEnrollment(Base):
         return f"<Enrollment(student={self.student_id}, course={self.course_id})>"
 
 
-class DailyPerformance(Base):
+class DailyPerformance(SoftDeleteMixin, Base):
     """Daily performance tracking with proper indexing"""
 
     __tablename__ = "daily_performances"
@@ -194,7 +204,7 @@ class DailyPerformance(Base):
         return f"<DailyPerformance(student={self.student_id}, category={self.category}, score={self.score})>"
 
 
-class Grade(Base):
+class Grade(SoftDeleteMixin, Base):
     """Student grades for assignments/exams with proper indexing"""
 
     __tablename__ = "grades"
@@ -237,7 +247,7 @@ class Grade(Base):
         return f"<Grade(student={self.student_id}, assignment={self.assignment_name}, grade={self.grade}/{self.max_grade})>"
 
 
-class Highlight(Base):
+class Highlight(SoftDeleteMixin, Base):
     """Semester highlights and ratings for students"""
 
     __tablename__ = "highlights"
@@ -338,6 +348,15 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         except Exception:
             # Best-effort; do not fail initialization on pragma errors
             pass
+
+        # Attach slow query monitoring if configured
+        try:
+            from backend.config import settings as app_settings
+            from backend.performance_monitor import setup_sqlalchemy_query_monitoring
+
+            setup_sqlalchemy_query_monitoring(engine, app_settings)
+        except Exception:
+            logger.warning("Unable to initialize slow query monitoring", exc_info=True)
 
         # NOTE: Base.metadata.create_all() removed - use Alembic migrations instead
         # If you need to create tables for testing, use alembic or create_all() explicitly

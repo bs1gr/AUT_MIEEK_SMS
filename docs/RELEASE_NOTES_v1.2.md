@@ -80,7 +80,7 @@ alembic upgrade head
 
 # Start
 cd ..
-./QUICKSTART.ps1
+.\QUICKSTART.ps1
 ```
 
 ## Known Issues

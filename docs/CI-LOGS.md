@@ -23,7 +23,7 @@ git rm --cached -r <path>
 git commit -m "chore: untrack accidentally committed artifact <path>"
 ```
 
-- For convenience, this repository includes a conservative cleanup script at `scripts/clean_tmp_artifacts.ps1`. The script does the following:
+- For convenience, this repository includes a conservative cleanup script at `.\scripts\clean_tmp_artifacts.ps1`. The script does the following:
   - Refuses to delete anything if any matching files are currently tracked by git (safe guard)
   - Appends ignore rules to `.gitignore` when missing and attempts to commit the change
   - Removes untracked local directories that match `tmp_artifacts*` and `tmp_*`

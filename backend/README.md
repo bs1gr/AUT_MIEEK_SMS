@@ -36,8 +36,9 @@ python -m backend.run_migrations -v
 ```
 
 Notes:
+
 - Ensure `DATABASE_URL` is set before importing backend modules or restart the process so
-	`backend.config` picks up the new value.
+ `backend.config` picks up the new value.
 - In CI, provide `DATABASE_URL` via secrets and run the above command before deploy.
 
 ## CI: run migrations + tests
@@ -56,5 +57,6 @@ pipeline before switching traffic to the new release.
 
 ---
 Small checklist:
+
 - [ ] Do NOT enable `ALLOW_EXTERNAL_DB_PATH` in production unless absolutely necessary.
 - [ ] Ensure `DATABASE_URL` points to the correct production DB in CI/deploy workflows.

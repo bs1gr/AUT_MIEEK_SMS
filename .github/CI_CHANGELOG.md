@@ -9,7 +9,7 @@ Summary
 - Fast validator unit tests: a `validator-tests` job runs lightweight unit tests for the Ruff validator to provide quick PR feedback without installing the full backend.
 - Developer-facing feedback: When validation fails on a PR, CI now creates a GitHub check-run (`ruff-validation`) with the normalized report (truncated) so failures appear natively in the PR checks UI.
 - CI caching & wheelhouse: added a `./.wheelhouse` wheel cache and explicit artifact upload/download to preserve built wheels between jobs and runs, reducing repeated wheel builds and network fetches.
-- Cleanup and tooling: added `scripts/cleanup-artifacts.ps1` to remove local temporary artifacts produced by CI smoke runs.
+- Cleanup and tooling: added `.\scripts\cleanup-artifacts.ps1` to remove local temporary artifacts produced by CI smoke runs.
 
 Why this change
 - Producing an authoritative static-analysis artifact in CI reduces heisenbugs and ensures reviewers see the same lint results CI used when generating reports.
@@ -28,7 +28,7 @@ Files added/changed (key)
 - `.github/scripts/validate_ruff_report.py` — artifact validator
 - `.github/tests/test_validate_ruff_report.py` — unit tests for the validator
 - `.github/workflows/ci.yml` — workflow updated (artifact upload, wheelhouse caching, checks API annotation)
-- `scripts/cleanup-artifacts.ps1` — convenience cleanup script for local runs
+- `.\scripts\cleanup-artifacts.ps1` — convenience cleanup script for local runs
 
 Notes / next steps
 - If you prefer stricter CI enforcement, we can flip the static-analysis job to block PRs on validation failures (currently report-only).

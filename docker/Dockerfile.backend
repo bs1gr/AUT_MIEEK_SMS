@@ -16,7 +16,9 @@ LABEL org.opencontainers.image.title="Student Management System - Backend" \
       maintainer="Student Management System"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    SMS_ENV=production \
+    SMS_EXECUTION_MODE=docker
 
 # Install system dependencies (optional: for psycopg2 or others later)
 RUN apt-get update -y && apt-get install -y --no-install-recommends \

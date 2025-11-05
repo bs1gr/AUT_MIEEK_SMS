@@ -27,7 +27,13 @@ def get_all_enrollments(skip: int = 0, limit: int = 1000, db: Session = Depends(
     try:
         (CourseEnrollment,) = import_names("models", "CourseEnrollment")
 
-        enrollments = db.query(CourseEnrollment).offset(skip).limit(limit).all()
+        enrollments = (
+            db.query(CourseEnrollment)
+            .filter(CourseEnrollment.deleted_at.is_(None))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
         logger.info(f"Retrieved {len(enrollments)} enrollments (skip={skip}, limit={limit})")
         return enrollments
     except Exception as e:
@@ -40,10 +46,14 @@ def list_course_enrollments(course_id: int, db: Session = Depends(get_db)):
     try:
         CourseEnrollment, Course = import_names("models", "CourseEnrollment", "Course")
 
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
-        enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.course_id == course_id).all()
+        enrollments = (
+            db.query(CourseEnrollment)
+            .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
         return enrollments
     except HTTPException:
         raise
@@ -58,10 +68,14 @@ def list_student_enrollments(student_id: int, db: Session = Depends(get_db)):
     try:
         Student, CourseEnrollment = import_names("models", "Student", "CourseEnrollment")
 
-        student = db.query(Student).filter(Student.id == student_id).first()
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
-        enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.student_id == student_id).all()
+        enrollments = (
+            db.query(CourseEnrollment)
+            .filter(CourseEnrollment.student_id == student_id, CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
         logger.info(f"Retrieved {len(enrollments)} enrollments for student {student_id}")
         return enrollments
     except HTTPException:
@@ -76,13 +90,17 @@ def list_enrolled_students(course_id: int, db: Session = Depends(get_db)):
     try:
         Course, Student, CourseEnrollment = import_names("models", "Course", "Student", "CourseEnrollment")
 
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
         q = (
             db.query(Student)
             .join(CourseEnrollment, CourseEnrollment.student_id == Student.id)
-            .filter(CourseEnrollment.course_id == course_id)
+            .filter(
+                CourseEnrollment.course_id == course_id,
+                CourseEnrollment.deleted_at.is_(None),
+                Student.deleted_at.is_(None),
+            )
         )
         return q.all()
     except HTTPException:
@@ -106,15 +124,20 @@ def enroll_students(
     try:
         CourseEnrollment, Course, Student = import_names("models", "CourseEnrollment", "Course", "Student")
 
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
         # Fetch all students at once to avoid N+1 queries
-        students = db.query(Student).filter(Student.id.in_(payload.student_ids)).all()
+        students = (
+            db.query(Student)
+            .filter(Student.id.in_(payload.student_ids), Student.deleted_at.is_(None))
+            .all()
+        )
         valid_student_ids = {s.id for s in students}
 
         created = 0
+        reactivated = 0
         for sid in payload.student_ids:
             if sid not in valid_student_ids:
                 continue
@@ -126,13 +149,18 @@ def enroll_students(
                 .first()
             )
             if existing:
+                if existing.deleted_at is not None:
+                    existing.deleted_at = None
+                    if payload.enrolled_at:
+                        existing.enrolled_at = payload.enrolled_at
+                    reactivated += 1
                 continue
             enrollment = CourseEnrollment(student_id=sid, course_id=course_id, enrolled_at=payload.enrolled_at)
             db.add(enrollment)
             created += 1
         db.commit()
-        logger.info(f"Enrolled {created} students in course {course_id}")
-        return {"created": created}
+        logger.info(f"Enrolled {created} students and reactivated {reactivated} enrollments in course {course_id}")
+        return {"created": created, "reactivated": reactivated}
     except HTTPException:
         raise
     except Exception as e:
@@ -153,12 +181,16 @@ def unenroll_student(
 
         enrollment = (
             db.query(CourseEnrollment)
-            .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.student_id == student_id)
+            .filter(
+                CourseEnrollment.course_id == course_id,
+                CourseEnrollment.student_id == student_id,
+                CourseEnrollment.deleted_at.is_(None),
+            )
             .first()
         )
         if not enrollment:
             raise HTTPException(status_code=404, detail="Enrollment not found")
-        db.delete(enrollment)
+        enrollment.mark_deleted()
         db.commit()
         return {"message": "Unenrolled"}
     except HTTPException:

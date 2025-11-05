@@ -2,7 +2,7 @@
 
 ## How to Deploy Student Management System to Windows Computers
 
-```
+```text
 START: Do you want to deploy the application?
    │
    ├─→ YES
@@ -59,7 +59,7 @@ START: Do you want to deploy the application?
 
 ## Installation Mode Decision
 
-```
+```text
 INSTALLER.bat starts...
    │
    ├─→ Checks: Is Docker Desktop installed?
@@ -98,7 +98,7 @@ INSTALLER.bat starts...
 
 ### Choose Your Path
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     DEPLOYMENT SCENARIOS                     │
 └─────────────────────────────────────────────────────────────┘
@@ -132,7 +132,7 @@ Scenario E: "I want full control (manual)"
 
 ## Prerequisites Decision Matrix
 
-```
+```text
 ╔══════════════════════════════════════════════════════════════╗
 ║                    WHAT DO YOU NEED?                         ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -165,7 +165,7 @@ Installation Mode: NATIVE (Alternative)
 
 ## Troubleshooting Decision Tree
 
-```
+```text
 Problem encountered?
    │
    ├─→ "Docker not found"
@@ -202,7 +202,7 @@ Problem encountered?
 
 ## Files You Need
 
-```
+```text
 For Online Deployment (internet on target):
    📂 The entire application folder
    📄 INSTALLER.bat ← JUST RUN THIS!
@@ -222,7 +222,7 @@ For Manual Deployment (advanced):
 
 ## Time Estimates
 
-```
+```text
 ┌────────────────────────────────────────────────────┐
 │                   HOW LONG?                         │
 └────────────────────────────────────────────────────┘
@@ -248,7 +248,7 @@ Application startup:
 
 ## Success Indicators
 
-```
+```text
 ✓ Installation Successful When:
    [✓] No error messages during install
    [✓] "Installation Complete" message shown
@@ -273,7 +273,7 @@ Application startup:
 
 ## Next Steps After Installation
 
-```
+```text
 Installation complete! Now what?
 
 1. Verify Everything Works
@@ -324,6 +324,7 @@ Installation complete! Now what?
 ---
 
 For detailed instructions, see:
+
 - **QUICK_DEPLOYMENT.md** - One-page reference
 - **DEPLOYMENT_GUIDE.md** - Complete guide
 - **DEPLOYMENT_CHECKLIST.md** - Step-by-step checklist

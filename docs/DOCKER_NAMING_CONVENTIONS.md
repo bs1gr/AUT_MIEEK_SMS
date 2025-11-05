@@ -13,19 +13,22 @@ This guide explains the standardized naming conventions used for Docker images, 
 **Format:** `sms-[service]:[VERSION]`
 
 **Examples:**
-```
+
+```text
 sms-backend:1.1.0
 sms-frontend:1.1.0
 sms-backend:1.2.0
 sms-frontend:1.2.0
-```
+```text
 
 **Components:**
+
 - `sms-` - Project prefix
 - `[service]` - Service name (backend or frontend)
 - `:[VERSION]` - Version tag from VERSION file
 
 **Benefits:**
+
 - ✅ Shorter, cleaner names than previous convention
 - ✅ Version tracking built-in
 - ✅ Easy to identify which version is running
@@ -38,25 +41,29 @@ sms-frontend:1.2.0
 **Format:** `sms_data_rebuild_v[VERSION]_[YYYYMMDD]_[HHMMSS]`
 
 **Examples:**
-```
+
+```text
 sms_data_rebuild_v1.1.0_20251029_143022
 sms_data_rebuild_v1.1.0_20251029_150845
 sms_data_rebuild_v1.2.0_20251030_091234
 ```
 
 **Components:**
+
 - `sms_data_rebuild` - Indicates volume created via rebuild process
 - `v[VERSION]` - App version when volume was created (e.g., v1.1.0)
 - `[YYYYMMDD]` - Date in ISO format (e.g., 20251029)
 - `[HHMMSS]` - Time in 24-hour format (e.g., 143022)
 
 **What it tells you:**
+
 - 📦 Purpose: Data volume for rebuild
 - 📌 Version: Which app version it was built for
 - 📅 Date: When it was created
 - ⏰ Time: Exact creation time
 
 **Benefits:**
+
 - ✅ Instantly know when volume was created
 - ✅ Track which app version it belongs to
 - ✅ Easy to identify latest rebuild
@@ -70,13 +77,15 @@ sms_data_rebuild_v1.2.0_20251030_091234
 **Format:** `sms_backup_v[VERSION]_[YYYYMMDD]_[HHMMSS].db`
 
 **Examples:**
-```
+
+```text
 sms_backup_v1.1.0_20251029_143022.db
 sms_backup_v1.1.0_20251029_150845.db
 sms_backup_v1.2.0_20251030_091234.db
 ```
 
 **Components:**
+
 - `sms_backup` - Indicates database backup file
 - `v[VERSION]` - App version at backup time (e.g., v1.1.0)
 - `[YYYYMMDD]` - Date in ISO format
@@ -84,12 +93,14 @@ sms_backup_v1.2.0_20251030_091234.db
 - `.db` - SQLite database file extension
 
 **What it tells you:**
+
 - 💾 Type: Database backup
 - 📌 Version: App version when backup was created
 - 📅 Date: Backup date
 - ⏰ Time: Exact backup time
 
 **Benefits:**
+
 - ✅ Know which version's data you're restoring
 - ✅ Easy to find backups by version
 - ✅ Chronological sorting works naturally
@@ -109,6 +120,7 @@ sms_backup_v1.2.0_20251030_091234.db
 ```
 
 **What happens:**
+
 - Reads version from `VERSION` file (e.g., 1.1.0)
 - Sets environment variable: `$env:VERSION = "1.1.0"`
 - Starts containers with tagged images: `sms-backend:1.1.0`, `sms-frontend:1.1.0`
@@ -116,6 +128,7 @@ sms_backup_v1.2.0_20251030_091234.db
 - Reuses existing data volume
 
 **When to use:**
+
 - ✅ Daily development work
 - ✅ After system restart
 - ✅ Quick testing
@@ -131,6 +144,7 @@ sms_backup_v1.2.0_20251030_091234.db
 ```
 
 **What happens:**
+
 1. **Stops** all running containers
 2. **Removes** existing images (both new and old naming patterns)
 3. **Clears** Docker build cache (no stale layers)
@@ -140,7 +154,8 @@ sms_backup_v1.2.0_20251030_091234.db
 7. **Starts** containers with fresh images
 
 **Output:**
-```
+
+```text
 [1/6] Stopping containers...
 ✓ Containers stopped
 
@@ -165,6 +180,7 @@ Rebuild completed successfully!
 ```
 
 **When to use:**
+
 - ✅ After major code changes
 - ✅ Troubleshooting Docker issues
 - ✅ Fresh start with empty database
@@ -182,13 +198,15 @@ Rebuild completed successfully!
 ```
 
 **What happens:**
+
 - Reads current version from VERSION file
 - Generates timestamp
 - Creates backup with format: `sms_backup_v[VERSION]_[DATE]_[TIME].db`
 - Saves to `backups/` folder
 
 **Example output:**
-```
+
+```text
 Creating backup from Docker volume...
   Target: sms_backup_v1.1.0_20251029_143022.db
 
@@ -197,6 +215,7 @@ Creating backup from Docker volume...
 ```
 
 **When to use:**
+
 - ✅ Before major data changes
 - ✅ Before version upgrades
 - ✅ Regular backup schedule
@@ -209,19 +228,22 @@ Creating backup from Docker volume...
 
 ### Updating Version
 
-**Step 1: Update VERSION File**
+#### Step 1: Update VERSION File
+
 ```powershell
 # Edit the VERSION file in project root
 echo "1.2.0" > VERSION
 ```
 
-**Step 2: Rebuild with New Version**
+#### Step 2: Rebuild with New Version
+
 ```powershell
 .\SMS.ps1
 # Select option 'X' - Rebuild from Scratch
 ```
 
 **Result:**
+
 - New images created: `sms-backend:1.2.0`, `sms-frontend:1.2.0`
 - New volume (if selected): `sms_data_rebuild_v1.2.0_20251029_153045`
 - Old v1.1.0 images and volumes remain for rollback
@@ -350,6 +372,7 @@ Remove-Item .\backups\sms_backup_v1.0.0_20251020_120000.db
 **Problem:** Images show as `sms-backend:latest` instead of `sms-backend:1.1.0`
 
 **Solution:**
+
 ```powershell
 # Ensure VERSION file exists and has content
 Get-Content VERSION
@@ -365,6 +388,7 @@ Get-Content VERSION
 **Problem:** Seeing `student-management-system-backend:latest` instead of new names
 
 **Solution:**
+
 ```powershell
 # Rebuild will clean up old images automatically
 .\SMS.ps1  # Option X
@@ -378,6 +402,7 @@ Get-Content VERSION
 **Problem:** Volume name already exists
 
 **Solution:**
+
 - The naming includes timestamp (down to the second), conflicts are extremely rare
 - If it happens, wait 1 second and try again
 - Or manually specify a different name in docker-compose.override.yml
@@ -389,6 +414,7 @@ Get-Content VERSION
 **Problem:** Backup files don't show version
 
 **Solution:**
+
 ```powershell
 # Old backups may use old naming
 # New backups (after update) use: sms_backup_v[VERSION]_[DATE]_[TIME].db
@@ -409,6 +435,7 @@ Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
    - Updated `Backup-Database` function with versioned filenames
 
 2. **`docker-compose.yml`**
+
    ```yaml
    services:
      backend:
@@ -421,7 +448,8 @@ Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
    ```
 
 3. **`VERSION`** (project root)
-   ```
+
+   ```text
    1.1.0
    ```
 

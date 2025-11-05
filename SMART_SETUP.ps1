@@ -95,6 +95,33 @@ function Set-ComposeEnvVersion {
   }
 }
 
+function Get-SmsRuntimeEnvironment {
+  param([string]$Fallback = 'development')
+  if ($env:SMS_ENV) {
+    return $env:SMS_ENV.Trim().ToLower()
+  }
+
+  $candidateFiles = @(
+    Join-Path $root 'backend' '.env',
+    Join-Path $root '.env'
+  )
+
+  foreach ($file in $candidateFiles) {
+    if (-not (Test-Path $file)) { continue }
+    foreach ($line in Get-Content -LiteralPath $file) {
+      $trim = $line.Trim()
+      if ($trim -eq '' -or $trim.StartsWith('#')) { continue }
+      $match = [regex]::Match($trim, '^\s*SMS_ENV\s*=\s*(.+)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+      if ($match.Success) {
+        $value = $match.Groups[1].Value.Trim().Trim('"').Trim("'")
+        if ($value) { return $value.ToLower() }
+      }
+    }
+  }
+
+  return $Fallback
+}
+
 function Install-Backend {
   Push-Location (Join-Path $root 'backend')
   try {
@@ -177,10 +204,25 @@ if ($mode -eq 'docker') {
   if (-not $hasDocker) { throw 'Docker not available' }
   # Ensure compose gets VERSION from root VERSION file
   Set-ComposeEnvVersion
-  Write-Log 'Starting Docker Compose (detached, build)...'
+  $composeFiles = @('docker-compose.yml')
+  $prodOverlayPath = Join-Path $root 'docker-compose.prod.yml'
+  if (Test-Path $prodOverlayPath) {
+    $composeFiles += 'docker-compose.prod.yml'
+  }
+
+  $composeArgs = @()
+  foreach ($file in $composeFiles) {
+    $composeArgs += '-f'
+    $composeArgs += $file
+  }
+  $composeArgs += 'up'
+  $composeArgs += '-d'
+  $composeArgs += '--build'
+
+  Write-Log ("Starting Docker Compose (detached, build) with files: {0}" -f ($composeFiles -join ', '))
   Push-Location $root
   try {
-    docker compose up -d --build | ForEach-Object { Write-Log $_ }
+    docker compose @composeArgs | ForEach-Object { Write-Log $_ }
   } finally { Pop-Location }
   $url = Wait-HttpUp -Urls @('http://localhost:8080/health','http://localhost:8080') -TimeoutSec 180
   if (-not $url) { throw 'Docker app did not become ready on port 8080' }
@@ -193,16 +235,22 @@ if ($mode -eq 'docker') {
 }
 else {
   if (-not $hasPy) { throw 'Python not available for native mode' }
+  $runtimeEnv = Get-SmsRuntimeEnvironment
+  if ($runtimeEnv -eq 'production' -or $runtimeEnv -eq 'release') {
+    throw 'Native execution is blocked when SMS_ENV indicates a production or release environment. Start the Docker stack instead.'
+  }
   Write-Log 'Starting backend (uvicorn) on http://127.0.0.1:8000 ...'
   $backendCmd = 'python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000'
-  Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command","Set-Location -LiteralPath '$root/backend'; $backendCmd" -WindowStyle Minimized | Out-Null
+  $backendLaunch = "Set-Location -LiteralPath '$root/backend'; `$env:SMS_ENV='development'; `$env:SMS_EXECUTION_MODE='native'; $backendCmd"
+  Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command",$backendLaunch -WindowStyle Minimized | Out-Null
   $url = Wait-HttpUp -Urls @('http://localhost:8000/health','http://127.0.0.1:8000/health') -TimeoutSec 120
   if (-not $url) { throw 'Backend did not become ready on port 8000' }
   Write-Log "Backend is up: $url"
   if ($hasNode) {
     try {
       Write-Log 'Starting frontend (Vite dev server) on http://localhost:5173 ...'
-      Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command","Set-Location -LiteralPath '$root/frontend'; npm run dev --silent" -WindowStyle Minimized | Out-Null
+      $frontendLaunch = "Set-Location -LiteralPath '$root/frontend'; `$env:SMS_ENV='development'; `$env:SMS_EXECUTION_MODE='native'; npm run dev --silent"
+      Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command",$frontendLaunch -WindowStyle Minimized | Out-Null
     } catch { Write-Log "Failed to start frontend dev server: $($_.Exception.Message)" 'WARN' }
   }
   Write-Host "Access URLs:" -ForegroundColor Cyan

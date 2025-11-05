@@ -38,11 +38,23 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
     try:
         from backend.import_resolver import import_names
 
-        Course, Grade, DailyPerformance, Attendance = import_names(
-            "models", "Course", "Grade", "DailyPerformance", "Attendance"
+        Course, Grade, DailyPerformance, Attendance, Student = import_names(
+            "models", "Course", "Grade", "DailyPerformance", "Attendance", "Student"
         )
 
-        course = db.query(Course).filter(Course.id == course_id).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        course = (
+            db.query(Course)
+            .filter(Course.id == course_id, Course.deleted_at.is_(None))
+            .first()
+        )
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
@@ -50,16 +62,33 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
         if not evaluation_rules:
             return {"error": "No evaluation rules defined for this course"}
 
-        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.course_id == course_id).all()
+        grades = (
+            db.query(Grade)
+            .filter(
+                Grade.student_id == student_id,
+                Grade.course_id == course_id,
+                Grade.deleted_at.is_(None),
+            )
+            .all()
+        )
         dps = (
             db.query(DailyPerformance)
             .filter(
                 DailyPerformance.student_id == student_id,
                 DailyPerformance.course_id == course_id,
+                DailyPerformance.deleted_at.is_(None),
             )
             .all()
         )
-        att = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.course_id == course_id).all()
+        att = (
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id,
+                Attendance.course_id == course_id,
+                Attendance.deleted_at.is_(None),
+            )
+            .all()
+        )
 
         category_scores: Dict[str, float] = {}
         category_details: Dict[str, Any] = {}
@@ -170,21 +199,35 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
         )
 
         # Single query with joinedload to avoid N+1
-        student = db.query(Student).filter(Student.id == student_id).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
 
         # Get all course IDs in one go
-        grade_courses = db.query(Grade.course_id).filter(Grade.student_id == student_id).distinct()
+        grade_courses = (
+            db.query(Grade.course_id)
+            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
+            .distinct()
+        )
         daily_courses = (
-            db.query(DailyPerformance.course_id).filter(DailyPerformance.student_id == student_id).distinct()
+            db.query(DailyPerformance.course_id)
+            .filter(DailyPerformance.student_id == student_id, DailyPerformance.deleted_at.is_(None))
+            .distinct()
         )
         course_ids = set([c[0] for c in grade_courses] + [c[0] for c in daily_courses])
 
         # Fetch all courses in ONE query instead of N queries (OPTIMIZATION)
         courses_dict = {}
         if course_ids:
-            courses = db.query(Course).filter(Course.id.in_(course_ids)).all()
+            courses = (
+                db.query(Course)
+                .filter(Course.id.in_(course_ids), Course.deleted_at.is_(None))
+                .all()
+            )
             courses_dict = {c.id: c for c in courses}
 
         summaries = []
@@ -243,17 +286,35 @@ def get_student_summary(student_id: int, db: Session = Depends(get_db)):
 
         Student, Attendance, Grade = import_names("models", "Student", "Attendance", "Grade")
 
-        student = db.query(Student).filter(Student.id == student_id).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
 
-        total_att = db.query(Attendance).filter(Attendance.student_id == student_id).count()
+        total_att = (
+            db.query(Attendance)
+            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
+            .count()
+        )
         present = (
-            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.status == "Present").count()
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id,
+                Attendance.status == "Present",
+                Attendance.deleted_at.is_(None),
+            )
+            .count()
         )
         attendance_rate = (present / total_att * 100) if total_att > 0 else 0
 
-        grades = db.query(Grade).filter(Grade.student_id == student_id).all()
+        grades = (
+            db.query(Grade)
+            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
+            .all()
+        )
         avg_grade = sum((g.grade / g.max_grade * 100) for g in grades) / len(grades) if grades else 0
 
         return {

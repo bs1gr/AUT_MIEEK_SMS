@@ -5,6 +5,7 @@
 Comprehensive code review of the Student Management System covering security, error handling, performance, architecture, and best practices across backend (FastAPI), frontend (React), and infrastructure (Docker).
 
 **Overall Assessment**: **Good** ⭐⭐⭐⭐☆ (4/5)
+
 - Solid architecture with modular design
 - Good error handling patterns
 - Proper database indexing
@@ -41,9 +42,11 @@ Comprehensive code review of the Student Management System covering security, er
 ### ⚠️ Areas for Improvement
 
 #### 1. Rate Limiting (Priority: HIGH)
+
 **Issue**: No rate limiting on API endpoints
 **Risk**: Potential for abuse, DoS attacks, resource exhaustion
 **Recommendation**:
+
 ```python
 # Add slowapi or similar rate limiting
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -58,13 +61,15 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @limiter.limit("10/minute")  # 10 requests per minute
 def create_student(...):
     ...
-```
+```yaml
 
 #### 2. Input Sanitization (Priority: MEDIUM)
+
 **Issue**: No explicit HTML/XSS sanitization on text fields
 **Risk**: Potential XSS if data is rendered without escaping
 **Affected Fields**: `notes`, `description`, `highlight_text`, `health_issue`
 **Recommendation**:
+
 ```python
 from bleach import clean
 
@@ -85,13 +90,16 @@ class StudentCreate(BaseModel):
 ```
 
 #### 3. File Upload Security (Priority: HIGH)
+
 **Issue**: Imports router accepts file uploads without strict validation
 **Location**: `backend/routers/routers_imports.py`
 **Risks**:
+
 - No file size limit enforcement
 - Limited content type validation
 - Potential for malicious file uploads
 **Recommendation**:
+
 ```python
 # Add strict file validation
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -120,9 +128,11 @@ async def import_data(file: UploadFile):
 ```
 
 #### 4. Docker Security Hardening (Priority: MEDIUM)
+
 **Issue**: Backend Dockerfile could be more secure
 **Current**: Uses `python:3.11-slim`, creates non-root user ✅
 **Recommendations**:
+
 ```dockerfile
 # 1. Use specific version tag instead of latest
 FROM python:3.11.6-slim-bookworm  # Pin specific version
@@ -152,6 +162,7 @@ USER appuser
 ### ✅ Strengths
 
 1. **Consistent Pattern Across Routers**
+
    ```python
    try:
        # Business logic
@@ -178,9 +189,11 @@ USER appuser
 ### ⚠️ Areas for Improvement
 
 #### 1. Generic Error Messages (Priority: LOW-MEDIUM)
+
 **Issue**: Internal errors return generic "Internal server error"
 **Impact**: Difficult debugging for developers
 **Recommendation**:
+
 ```python
 # Add error ID for tracking
 import uuid
@@ -207,8 +220,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 ```
 
 #### 2. Validation Error Details (Priority: LOW)
+
 **Issue**: Pydantic validation errors could be more user-friendly
 **Recommendation**:
+
 ```python
 from fastapi.exceptions import RequestValidationError
 
@@ -232,6 +247,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 ```
 
 #### 3. Missing Error Recovery in Control Panel (Priority: MEDIUM)
+
 **Issue**: Frontend stop commands may fail silently
 **Location**: `backend/main.py` - `control_stop_all()`, `control_stop()`
 **Recommendation**: Add retry logic and better error reporting
@@ -247,6 +263,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
    - Foreign keys indexed (`student_id`, `course_id`) ✅
    - Frequently queried fields indexed (`email`, `student_id`, `date`, `semester`) ✅
    - Composite indexes for common query patterns ✅
+
    ```python
    Index('idx_attendance_student_date', 'student_id', 'date')
    Index('idx_grade_student_course', 'student_id', 'course_id')
@@ -270,10 +287,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 ### ⚠️ Areas for Improvement
 
 #### 1. Missing Database Migrations System (Priority: HIGH)
+
 **Issue**: No Alembic integration for schema changes
 **Risk**: Schema changes require manual intervention or data loss
 **Evidence**: `alembic.ini` exists but migrations not integrated
 **Recommendation**:
+
 ```python
 # In backend/db.py - Remove direct create_all
 # Base.metadata.create_all(bind=engine)  # ❌ Remove
@@ -286,15 +305,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 ```
 
 **Action Items**:
+
 1. Create initial migration from current schema
 2. Update startup scripts to run migrations
 3. Document migration workflow
 4. Add migration health check
 
 #### 2. N+1 Query Problem (Priority: MEDIUM)
+
 **Issue**: Potential for N+1 queries when fetching related data
 **Example**: Getting all students and their courses
 **Recommendation**:
+
 ```python
 from sqlalchemy.orm import joinedload
 
@@ -310,8 +332,10 @@ students = db.query(Student).options(
 ```
 
 #### 3. Missing Soft Delete (Priority: LOW)
+
 **Issue**: Hard deletes lose data permanently
 **Recommendation**: Add soft delete pattern
+
 ```python
 class Student(Base):
     __tablename__ = 'students'
@@ -337,8 +361,10 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 ```
 
 #### 4. Missing Database Connection Pooling Configuration (Priority: LOW)
+
 **Issue**: Default connection pool settings may not be optimal
 **Recommendation**:
+
 ```python
 # In backend/db.py
 engine = create_engine(
@@ -383,8 +409,10 @@ engine = create_engine(
 ### ⚠️ Areas for Improvement
 
 #### 1. Missing API Versioning in Responses (Priority: LOW)
+
 **Issue**: API version only in URL, not in response headers
 **Recommendation**:
+
 ```python
 @app.middleware("http")
 async def add_version_header(request: Request, call_next):
@@ -395,8 +423,10 @@ async def add_version_header(request: Request, call_next):
 ```
 
 #### 2. No Request ID Tracking (Priority: MEDIUM)
+
 **Issue**: Difficult to track requests across services/logs
 **Recommendation**:
+
 ```python
 import uuid
 from contextvars import ContextVar
@@ -420,8 +450,10 @@ class RequestIDFilter(logging.Filter):
 ```
 
 #### 3. Inconsistent Error Logging (Priority: LOW)
+
 **Issue**: Some error handlers log with `exc_info=True`, others don't
 **Recommendation**: Standardize across all routers
+
 ```python
 # Always include traceback for unexpected errors:
 except Exception as e:
@@ -430,9 +462,11 @@ except Exception as e:
 ```
 
 #### 4. Missing Health Check Details (Priority: LOW)
+
 **Issue**: `/health` endpoint basic, doesn't check all dependencies
 **Current**: Only checks database connection
 **Recommendation**: Add comprehensive checks
+
 ```python
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
@@ -494,12 +528,16 @@ async def health_check(db: Session = Depends(get_db)):
 ### ⚠️ Areas for Improvement
 
 #### 1. Console.log in Production Code (Priority: LOW)
+
 **Issue**: Debug console.log found in ServerControl component
 **Location**: `frontend/src/components/common/ServerControl.tsx:89`
+
 ```typescript
 console.log('[ServerControl] Health data received:', data);  // ❌ Remove
 ```
+
 **Recommendation**:
+
 ```typescript
 // Use environment-aware logging
 const isDev = import.meta.env.DEV;
@@ -521,8 +559,10 @@ const logger = {
 ```
 
 #### 2. Missing Error Boundary (Priority: MEDIUM)
+
 **Issue**: No React Error Boundary for graceful error handling
 **Recommendation**:
+
 ```typescript
 // src/components/ErrorBoundary.tsx
 import React, { Component, ErrorInfo, ReactNode } from 'react';
@@ -575,6 +615,7 @@ export class ErrorBoundary extends Component<Props, State> {
 ```
 
 #### 3. Missing Loading States (Priority: LOW)
+
 **Recommendation**: Add skeleton loaders for better UX during API calls
 
 ---
@@ -591,8 +632,10 @@ export class ErrorBoundary extends Component<Props, State> {
 ### ⚠️ Areas for Improvement
 
 #### 1. Missing Healthcheck in Frontend Container (Priority: LOW)
+
 **Issue**: Frontend Dockerfile doesn't have HEALTHCHECK
 **Recommendation**:
+
 ```dockerfile
 # In docker/Dockerfile.frontend
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
@@ -600,8 +643,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
 ```
 
 #### 2. Docker Compose Production Settings (Priority: MEDIUM)
+
 **Issue**: Current compose may expose services unnecessarily
 **Recommendation**:
+
 ```yaml
 # docker-compose.prod.yml
 services:
@@ -628,9 +673,11 @@ services:
 ```
 
 #### 3. Missing .dockerignore (Priority: LOW)
+
 **Issue**: May copy unnecessary files into Docker images
 **Recommendation**: Create `.dockerignore`
-```
+
+```gitignore
 # .dockerignore
 **/.git
 **/.vscode
@@ -652,6 +699,7 @@ services:
 ### Database
 
 1. **Add Query Result Caching** (Priority: MEDIUM)
+
    ```python
    from functools import lru_cache
    from datetime import datetime, timedelta
@@ -667,6 +715,7 @@ services:
    - SQLAlchemy supports routing
 
 3. **Add Query Performance Monitoring** (Priority: MEDIUM)
+
    ```python
    from sqlalchemy import event
    from sqlalchemy.engine import Engine
@@ -686,12 +735,14 @@ services:
 ### API
 
 1. **Add Response Compression** (Priority: MEDIUM)
+
    ```python
    from fastapi.middleware.gzip import GZipMiddleware
    app.add_middleware(GZipMiddleware, minimum_size=1000)
    ```
 
 2. **Implement Response Caching** (Priority: LOW)
+
    ```python
    from fastapi_cache import FastAPICache
    from fastapi_cache.backends.redis import RedisBackend
@@ -708,18 +759,21 @@ services:
 ## 🧪 Testing Recommendations
 
 ### Current State
+
 - Test directory exists: `backend/tests/`
 - `pytest.ini` configured
 
 ### Recommendations
 
 1. **Increase Test Coverage** (Priority: HIGH)
+
    ```python
    # Target: 80%+ coverage
    # Run: pytest --cov=backend --cov-report=html
    ```
 
 2. **Add Integration Tests** (Priority: MEDIUM)
+
    ```python
    # tests/integration/test_student_workflow.py
    def test_complete_student_lifecycle(client, db):
@@ -739,6 +793,7 @@ services:
    ```
 
 3. **Add Load Testing** (Priority: LOW)
+
    ```python
    # Using locust
    from locust import HttpUser, task, between
@@ -780,18 +835,21 @@ services:
 ## 🎯 Priority Action Items
 
 ### Critical (Do First)
+
 1. ✅ **Fix native startup** - COMPLETED
-2. ⚠️ Add rate limiting to API endpoints
-3. ⚠️ Implement Alembic migrations
-4. ⚠️ Add file upload validation and size limits
+2. ✅ Add rate limiting to API endpoints *(see `backend/rate_limiting.py` and limiter usage in `backend/main.py`)*
+3. ✅ Implement Alembic migrations *(auto-run via `backend/run_migrations.py` and enforced in the container entrypoint)*
+4. ✅ Add file upload validation and size limits *(implemented in `backend/routers/routers_imports.py::validate_uploaded_file`)*
 
 ### High Priority (Do Soon)
-5. Add request ID tracking for better debugging
-6. Implement comprehensive health checks
-7. Increase test coverage to 80%+
-8. Add React Error Boundary
+
+5. ✅ Add request ID tracking for better debugging *(middleware in `backend/request_id_middleware.py` with logging filters applied)*
+6. ✅ Implement comprehensive health checks *(see endpoints powered by `backend/health_checks.py`)*
+7. ⚠️ Increase test coverage to 80%+
+8. ⚠️ Add React Error Boundary
 
 ### Medium Priority (Plan For)
+
 9. Add query performance monitoring
 10. Implement response compression
 11. Add soft delete functionality
@@ -799,6 +857,7 @@ services:
 13. Add Docker production configuration
 
 ### Low Priority (Nice to Have)
+
 14. Remove console.log from production frontend
 15. Add API version headers
 16. Implement query result caching

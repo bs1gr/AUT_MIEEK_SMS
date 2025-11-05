@@ -16,14 +16,16 @@ During extended development sessions with many terminal operations, command frag
 ### 1. Command Simplicity
 
 **DO:**
+
 ```powershell
 # Simple, atomic commands
 Get-Process -Name python
 Test-Path backend/venv
 docker compose ps
-```
+```text
 
 **AVOID:**
+
 ```powershell
 # Complex commands with multiple operations
 $backend = Test-NetConnection -ComputerName localhost -Port 8000 -InformationLevel Quiet -WarningAction SilentlyContinue; $frontend = Test-NetConnection -ComputerName localhost -Port 5173 -InformationLevel Quiet -WarningAction SilentlyContinue; Write-Host "Backend (8000): $backend"; Write-Host "Frontend (5173): $frontend"
@@ -32,6 +34,7 @@ $backend = Test-NetConnection -ComputerName localhost -Port 8000 -InformationLev
 ### 2. Session Management
 
 **Best Practices:**
+
 - Limit active terminals to **5 or fewer** concurrent sessions
 - Close finished terminal sessions promptly
 - Use fresh terminals for critical operations
@@ -51,7 +54,8 @@ $backend = Test-NetConnection -ComputerName localhost -Port 8000 -InformationLev
 ```
 
 **Detection pattern:**
-```
+
+```text
 Command sent: Get-Process -Name python
 Output: "o: The term 'o' is not recognized..."
 → TERMINAL CORRUPTED - Switch to new session
@@ -60,12 +64,14 @@ Output: "o: The term 'o' is not recognized..."
 ### 4. Command Structure
 
 **Prefer:**
+
 - Single-line commands
 - Simple variable assignments
 - Direct command execution
 - Separate commands with ; sparingly
 
 **Avoid:**
+
 - Multi-line complex pipelines in single command
 - Excessive variable interpolation
 - Deep nesting of subexpressions
@@ -137,6 +143,7 @@ When terminal issues occur:
 ## Monitoring
 
 **Red flags indicating terminal degradation:**
+
 - Commands taking longer to execute than normal
 - Partial output or truncated responses
 - Single-character execution errors

@@ -86,7 +86,8 @@ Systematic testing of CLI commands following the testing checklist:
 
 **Problem**: Three different constructor patterns across operations:
 
-```python
+```
+
 # Pattern A: No root_dir (2 operations)
 class DependencyChecker(Operation):
     pass  # Inherited base __init__() without root_dir
@@ -102,7 +103,8 @@ class SetupOperations(Operation):
     def __init__(self, root_dir: Optional[Path] = None):
         super().__init__()
         self.root_dir = root_dir or get_project_root()
-```
+
+```text
 
 **Consequences**:
 - CLI developers had to remember which operations accept `root_dir`
@@ -114,7 +116,8 @@ class SetupOperations(Operation):
 
 **Problem**: BackupInfo lacked common properties:
 
-```python
+```
+
 # CLI had to do this
 for backup in backups:
     size_kb = backup.size_bytes / 1024
@@ -126,6 +129,7 @@ for backup in backups:
 
     # Field name confusion
     created_str = backup.created_at.strftime(...)  # Why created_at?
+
 ```
 
 **Consequences**:
@@ -141,7 +145,8 @@ for backup in backups:
 
 **Solution**: Updated Operation base class to accept optional `root_dir`:
 
-```python
+```
+
 # backend/ops/base.py
 class Operation(ABC):
     def __init__(self, root_dir: Optional[Path] = None):
@@ -157,16 +162,19 @@ class Operation(ABC):
     @abstractmethod
     def execute(self, **kwargs) -> OperationResult:
         pass
-```
+
+```text
 
 **Updated All Subclasses** (15+ operations):
 
-```python
+```
+
 # New consistent pattern
 class SystemStatusChecker(Operation):
     def __init__(self, root_dir: Path):
         super().__init__(root_dir)  # Pass to base
         self.docker_client = None
+
 ```
 
 **Benefits**:
@@ -179,7 +187,8 @@ class SystemStatusChecker(Operation):
 
 **Solution**: Added property aliases:
 
-```python
+```
+
 # backend/ops/base.py
 @dataclass
 class BackupInfo:
@@ -201,11 +210,13 @@ class BackupInfo:
             return f"{self.size_kb:.1f} KB"
         else:
             return f"{self.size_mb:.1f} MB"
-```
+
+```text
 
 **Simplified CLI Code**:
 
-```python
+```
+
 # Before (manual calculations)
 for backup in backups:
     size_kb = backup.size_bytes / 1024
@@ -220,6 +231,7 @@ for backup in backups:
         backup.size_human,  # Property
         backup.created.strftime("%Y-%m-%d %H:%M:%S")  # Alias
     )
+
 ```
 
 **Benefits**:
@@ -348,4 +360,4 @@ for backup in backups:
 **Architecture Quality**: Excellent
 **Recommendation**: Safe for beta testing, continue systematic testing for production
 
-````
+```

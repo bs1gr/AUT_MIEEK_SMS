@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Any, Dict, List
+
+from backend.routers.routers_courses import _normalize_evaluation_rules
 
 
 def make_course_payload(i: int = 1, **overrides) -> Dict:
@@ -53,7 +55,12 @@ def test_create_course_duplicate_code(client):
 
     r2 = client.post("/api/v1/courses/", json=payload)
     assert r2.status_code == 400
-    assert "already exists" in r2.json()["detail"].lower()
+    detail_payload = r2.json().get("detail")
+    if isinstance(detail_payload, dict):
+        detail_text = detail_payload.get("message", "")
+    else:
+        detail_text = detail_payload or ""
+    assert "already exists" in detail_text.lower()
 
 
 def test_update_course_basic_fields(client):
@@ -123,7 +130,12 @@ def test_update_course_evaluation_rules_validation(client):
     ]
     r_bad = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": bad_rules})
     assert r_bad.status_code == 400
-    assert "100" in r_bad.json()["detail"]
+    bad_detail = r_bad.json().get("detail")
+    if isinstance(bad_detail, dict):
+        bad_detail_text = bad_detail.get("message", "")
+    else:
+        bad_detail_text = bad_detail or ""
+    assert "100" in bad_detail_text
 
     # Valid weights (sum = 100)
     good_rules = [
@@ -180,3 +192,52 @@ def test_delete_course(client):
     # Verify 404 after delete
     r_get = client.get(f"/api/v1/courses/{course_id}")
     assert r_get.status_code == 404
+
+
+def test_evaluation_rules_endpoints(client):
+    course = client.post("/api/v1/courses/", json=make_course_payload(10)).json()
+
+    r_get_missing = client.get("/api/v1/courses/9999/evaluation-rules")
+    assert r_get_missing.status_code == 404
+
+    update_payload = {"evaluation_rules": ["Homework", "40", "Exams", "60%"]}
+    r_update = client.put(f"/api/v1/courses/{course['id']}/evaluation-rules", json=update_payload)
+    assert r_update.status_code == 200
+    normalized: List[Dict[str, Any]] = r_update.json()["evaluation_rules"]
+    assert normalized == [
+        {"category": "Homework", "weight": 40.0},
+        {"category": "Exams", "weight": 60.0},
+    ]
+
+    r_update_missing = client.put("/api/v1/courses/9999/evaluation-rules", json=update_payload)
+    assert r_update_missing.status_code == 404
+
+
+def test_normalize_evaluation_rules_variants():
+    assert _normalize_evaluation_rules(None) is None
+    assert _normalize_evaluation_rules([]) == []
+
+    dict_rules = [{"category": "Midterm", "weight": 50}, {"category": "Final", "weight": 50}]
+    assert _normalize_evaluation_rules(dict_rules) == dict_rules
+
+    list_rules = ["Quiz", "20", "Project", 80]
+    assert _normalize_evaluation_rules(list_rules) == [
+        {"category": "Quiz", "weight": 20.0},
+        {"category": "Project", "weight": 80.0},
+    ]
+
+    string_rules = ["Lab: 30%"]
+    assert _normalize_evaluation_rules(string_rules) == [
+        {"category": "Lab", "weight": 30.0},
+    ]
+
+    fallback_strings = ["Unparsed entry", "Still unparsed"]
+    assert _normalize_evaluation_rules(fallback_strings) == [
+        {"category": "Unparsed entry", "weight": 0.0},
+    ]
+
+    wrapped = {"category": "Participation", "weight": 10}
+    assert _normalize_evaluation_rules(wrapped) == [wrapped]
+
+    garbage = [object(), {"not": "valid"}]
+    assert _normalize_evaluation_rules(garbage) == []

@@ -71,13 +71,21 @@ def create_attendance(
 
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
-        # Validate student exists
-        student = db.query(Student).filter(Student.id == attendance_data.student_id).first()
+        # Validate student exists and is active
+        student = (
+            db.query(Student)
+            .filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
 
-        # Validate course exists
-        course = db.query(Course).filter(Course.id == attendance_data.course_id).first()
+        # Validate course exists and is active
+        course = (
+            db.query(Course)
+            .filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None))
+            .first()
+        )
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
@@ -89,6 +97,7 @@ def create_attendance(
                 Attendance.course_id == attendance_data.course_id,
                 Attendance.date == attendance_data.date,
                 Attendance.period_number == attendance_data.period_number,
+                Attendance.deleted_at.is_(None),
             )
             .with_for_update()
             .first()
@@ -136,9 +145,13 @@ def get_all_attendance(
     try:
         from backend.import_resolver import import_names
 
-        (Attendance,) = import_names("models", "Attendance")
+        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
-        query = db.query(Attendance).options(joinedload(Attendance.student), joinedload(Attendance.course))
+        query = (
+            db.query(Attendance)
+            .options(joinedload(Attendance.student), joinedload(Attendance.course))
+            .filter(Attendance.deleted_at.is_(None))
+        )
 
         if student_id:
             query = query.filter(Attendance.student_id == student_id)
@@ -179,11 +192,18 @@ def get_student_attendance(
         Attendance, Student = import_names("models", "Attendance", "Student")
 
         # Validate student exists
-        student = db.query(Student).filter(Student.id == student_id).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
 
-        query = db.query(Attendance).filter(Attendance.student_id == student_id)
+        query = (
+            db.query(Attendance)
+            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
+        )
 
         if course_id:
             query = query.filter(Attendance.course_id == course_id)
@@ -213,11 +233,18 @@ def get_course_attendance(
         Attendance, Course = import_names("models", "Attendance", "Course")
 
         # Validate course exists
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = (
+            db.query(Course)
+            .filter(Course.id == course_id, Course.deleted_at.is_(None))
+            .first()
+        )
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
-        query = db.query(Attendance).filter(Attendance.course_id == course_id)
+        query = (
+            db.query(Attendance)
+            .filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
+        )
         rng = _normalize_date_range(start_date, end_date)
         if rng:
             s, e = rng
@@ -240,11 +267,21 @@ def get_attendance_by_date_and_course(attendance_date: date, course_id: int, db:
 
         Attendance, Course = import_names("models", "Attendance", "Course")
 
-        course = db.query(Course).filter(Course.id == course_id).first()
+        course = (
+            db.query(Course)
+            .filter(Course.id == course_id, Course.deleted_at.is_(None))
+            .first()
+        )
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
         records = (
-            db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.date == attendance_date).all()
+            db.query(Attendance)
+            .filter(
+                Attendance.course_id == course_id,
+                Attendance.date == attendance_date,
+                Attendance.deleted_at.is_(None),
+            )
+            .all()
         )
         return records
     except HTTPException:
@@ -262,7 +299,11 @@ def get_attendance(attendance_id: int, db: Session = Depends(get_db)):
 
         (Attendance,) = import_names("models", "Attendance")
 
-        attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+        attendance = (
+            db.query(Attendance)
+            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
+            .first()
+        )
 
         if not attendance:
             raise HTTPException(status_code=404, detail="Attendance record not found")
@@ -291,7 +332,11 @@ def update_attendance(
 
         (Attendance,) = import_names("models", "Attendance")
 
-        db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+        db_attendance = (
+            db.query(Attendance)
+            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
+            .first()
+        )
 
         if not db_attendance:
             raise HTTPException(status_code=404, detail="Attendance record not found")
@@ -322,18 +367,22 @@ def delete_attendance(
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
-    """Delete an attendance record"""
+    """Soft delete an attendance record"""
     try:
         from backend.import_resolver import import_names
 
         (Attendance,) = import_names("models", "Attendance")
 
-        db_attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+        db_attendance = (
+            db.query(Attendance)
+            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
+            .first()
+        )
 
         if not db_attendance:
             raise HTTPException(status_code=404, detail="Attendance record not found")
 
-        db.delete(db_attendance)
+        db_attendance.mark_deleted()
         db.commit()
 
         logger.info(f"Deleted attendance: {attendance_id}")
@@ -356,7 +405,13 @@ def get_attendance_stats(student_id: int, course_id: int, db: Session = Depends(
         (Attendance,) = import_names("models", "Attendance")
 
         attendance_records = (
-            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.course_id == course_id).all()
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id,
+                Attendance.course_id == course_id,
+                Attendance.deleted_at.is_(None),
+            )
+            .all()
         )
 
         if not attendance_records:
@@ -399,13 +454,43 @@ def bulk_create_attendance(
     try:
         from backend.import_resolver import import_names
 
-        (Attendance,) = import_names("models", "Attendance")
+        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
         created = []
         errors = []
 
         for idx, attendance_data in enumerate(attendance_list):
             try:
+                student = (
+                    db.query(Student)
+                    .filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None))
+                    .first()
+                )
+                if not student:
+                    raise ValueError("Student not found or archived")
+
+                course = (
+                    db.query(Course)
+                    .filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None))
+                    .first()
+                )
+                if not course:
+                    raise ValueError("Course not found or archived")
+
+                existing = (
+                    db.query(Attendance)
+                    .filter(
+                        Attendance.student_id == attendance_data.student_id,
+                        Attendance.course_id == attendance_data.course_id,
+                        Attendance.date == attendance_data.date,
+                        Attendance.period_number == attendance_data.period_number,
+                        Attendance.deleted_at.is_(None),
+                    )
+                    .first()
+                )
+                if existing:
+                    raise ValueError("Attendance record already exists for this student, course, date, and period")
+
                 db_attendance = Attendance(**attendance_data.model_dump())
                 db.add(db_attendance)
                 created.append(idx)

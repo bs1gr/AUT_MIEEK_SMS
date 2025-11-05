@@ -1,0 +1,35 @@
+from __future__ import annotations
+
+import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
+from backend import logging_config
+
+
+def test_initialize_logging_adds_rotating_file_handler(tmp_path):
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    for handler in original_handlers:
+        root_logger.removeHandler(handler)
+        handler.close()
+
+    log_dir = tmp_path / "logs"
+    logger = logging_config.initialize_logging(str(log_dir), log_level="DEBUG")
+    assert logger.name == "backend.logging_config"
+
+    rotating_handlers = [h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)]
+    assert len(rotating_handlers) == 1
+    file_handler = rotating_handlers[0]
+    assert Path(file_handler.baseFilename).parent == log_dir
+
+    # Second call should not add duplicate handlers
+    logging_config.initialize_logging(str(log_dir), log_level="DEBUG")
+    rotating_handlers_after = [h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)]
+    assert len(rotating_handlers_after) == 1
+
+    for handler in rotating_handlers_after:
+        root_logger.removeHandler(handler)
+        handler.close()
+    for handler in original_handlers:
+        root_logger.addHandler(handler)

@@ -26,7 +26,8 @@ Following the initial CLI testing session that discovered 6 critical bugs, we im
 
 **Before v1.3.1**, operations had inconsistent patterns:
 
-```python
+```
+
 # Pattern A: Some operations (DependencyChecker, HealthChecker)
 class DependencyChecker(Operation):
     # Inherited base __init__() without root_dir
@@ -43,7 +44,8 @@ class SetupOperations(Operation):
     def __init__(self, root_dir: Optional[Path] = None):
         super().__init__()
         self.root_dir = root_dir or get_project_root()
-```
+
+```text
 
 **Problems**:
 - CLI developers had to remember which operations accept `root_dir` and which don't
@@ -55,7 +57,8 @@ class SetupOperations(Operation):
 
 CLI code had to manually calculate common properties:
 
-```python
+```
+
 # Before - Manual calculations in CLI
 for backup in backups:
     size_kb = backup.size_bytes / 1024
@@ -70,6 +73,7 @@ for backup in backups:
         size_human,
         backup.created_at.strftime("%Y-%m-%d %H:%M:%S")  # Note: created_at
     )
+
 ```
 
 **Problems**:
@@ -86,7 +90,8 @@ for backup in backups:
 **File**: [backend/ops/base.py](backend/ops/base.py#L236-L244)
 
 **Before**:
-```python
+```
+
 class Operation(ABC):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -94,10 +99,12 @@ class Operation(ABC):
     @abstractmethod
     def execute(self, **kwargs) -> OperationResult:
         pass
-```
+
+```text
 
 **After**:
-```python
+```
+
 class Operation(ABC):
     def __init__(self, root_dir: Optional[Path] = None):
         """
@@ -112,6 +119,7 @@ class Operation(ABC):
     @abstractmethod
     def execute(self, **kwargs) -> OperationResult:
         pass
+
 ```
 
 **Benefits**:
@@ -124,7 +132,8 @@ class Operation(ABC):
 Updated 15+ operations across backend and frontend:
 
 **Pattern Applied**:
-```python
+```
+
 # Before
 class SystemStatusChecker(Operation):
     def __init__(self, root_dir: Path):
@@ -137,7 +146,8 @@ class SystemStatusChecker(Operation):
     def __init__(self, root_dir: Path):
         super().__init__(root_dir)  # Pass to base class
         self.docker_client = None
-```
+
+```text
 
 **Operations Updated**:
 
@@ -164,7 +174,8 @@ class SystemStatusChecker(Operation):
 **File**: [backend/ops/base.py](backend/ops/base.py#L170-L181)
 
 **Added Properties**:
-```python
+```
+
 @dataclass
 class BackupInfo:
     filename: str
@@ -187,6 +198,7 @@ class BackupInfo:
             return f"{self.size_mb:.1f} MB"
 
     # ... existing properties: size_kb, size_mb, age, age_str
+
 ```
 
 **Benefits**:
@@ -200,7 +212,8 @@ class BackupInfo:
 **File**: [native-cli.py](native-cli.py#L275-L280)
 
 **Before**:
-```python
+```
+
 for backup in backups:
     size_kb = backup.size_bytes / 1024
     size_mb = size_kb / 1024
@@ -211,16 +224,19 @@ for backup in backups:
         size_str,
         backup.created_at.strftime("%Y-%m-%d %H:%M:%S")
     )
-```
+
+```text
 
 **After**:
-```python
+```
+
 for backup in backups:
     table.add_row(
         backup.filename,
         backup.size_human,  # Using property
         backup.created.strftime("%Y-%m-%d %H:%M:%S")  # Using alias
     )
+
 ```
 
 **Impact**: 60% less code, more readable, no logic duplication.
@@ -235,7 +251,8 @@ If you have custom operations, update them to use the new pattern:
 
 **Step 1: Update Constructor**
 
-```python
+```
+
 # Before
 class MyCustomOperation(Operation):
     def __init__(self, root_dir: Optional[Path] = None):
@@ -248,7 +265,8 @@ class MyCustomOperation(Operation):
     def __init__(self, root_dir: Optional[Path] = None):
         super().__init__(root_dir or get_project_root())
         self.my_custom_field = "value"
-```
+
+```text
 
 **Step 2: Remove Manual Assignment**
 
@@ -257,25 +275,29 @@ Remove the line `self.root_dir = root_dir or ...` - it's now handled by the base
 **Step 3: Test**
 
 Verify your operation still works:
-```python
+```
+
 from pathlib import Path
 from my_module import MyCustomOperation
 
 # Both should work
 op1 = MyCustomOperation()  # Uses Path.cwd()
 op2 = MyCustomOperation(root_dir=Path("/custom/path"))
+
 ```
 
 ### For CLI Usage
 
 **No changes required!** The improvements are 100% backward compatible:
 
-```python
+```
+
 # All these patterns continue to work
 op1 = SystemStatusChecker(root_dir=PROJECT_ROOT)  # Explicit
 op2 = DependencyChecker()  # Default to cwd
 op3 = BackendServer(root_dir=Path("/custom"))  # Custom path
-```
+
+```text
 
 ---
 
@@ -297,6 +319,7 @@ All commands tested successfully after improvements:
 ### Example Output (db list-backups)
 
 ```
+
 Available Backups
 +---------------------------------------+----------+---------------------+
 | Filename                              | Size     | Created             |
@@ -307,7 +330,8 @@ Available Backups
 +---------------------------------------+
 
 Total backups: 22
-```
+
+```text
 
 Note the clean output using `size_human` property.
 
@@ -387,7 +411,8 @@ All improvements maintain full backward compatibility:
 
 ### Example
 
-```python
+```
+
 # All these patterns work
 backup = BackupInfo(...)
 
@@ -399,6 +424,7 @@ print(backup.created)     # datetime object
 print(backup.size_bytes)   # 290816
 print(backup.created_at)   # datetime object
 print(backup.size_kb)      # 284.0
+
 ```
 
 ---
@@ -448,4 +474,4 @@ These improvements provide a solid foundation for future CLI development and mak
 **Date**: 2025-11-01
 **Impact**: Architecture improvement, no user-facing changes
 
-````
+```

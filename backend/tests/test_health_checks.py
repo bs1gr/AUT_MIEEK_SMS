@@ -1,9 +1,13 @@
-"""
-Tests for comprehensive health check system.
-"""
+"""Tests for comprehensive health check system."""
+
+import io
+import socket
+import sys
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 import pytest
-from unittest.mock import Mock, patch
+
 from backend.health_checks import HealthChecker, HealthCheckStatus
 from sqlalchemy.orm import Session
 
@@ -59,7 +63,10 @@ def test_readiness_check_healthy(health_checker, mock_db_session):
         with patch.object(health_checker, "_check_disk_space") as mock_disk_check:
             mock_disk_check.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-            result = health_checker.check_readiness(mock_db_session)
+            with patch.object(health_checker, "_check_memory_usage") as mock_mem_check:
+                mock_mem_check.return_value = {"status": HealthCheckStatus.HEALTHY}
+
+                result = health_checker.check_readiness(mock_db_session)
 
     assert result["status"] == "ready"
     assert "checks" in result
@@ -75,13 +82,16 @@ def test_readiness_check_not_ready(health_checker, mock_db_session):
         with patch.object(health_checker, "_check_disk_space") as mock_disk_check:
             mock_disk_check.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-            # Should raise HTTPException with 503
-            from fastapi import HTTPException
+            with patch.object(health_checker, "_check_memory_usage") as mock_mem_check:
+                mock_mem_check.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-            with pytest.raises(HTTPException) as exc_info:
-                health_checker.check_readiness(mock_db_session)
+                # Should raise HTTPException with 503
+                from fastapi import HTTPException
 
-            assert exc_info.value.status_code == 503
+                with pytest.raises(HTTPException) as exc_info:
+                    health_checker.check_readiness(mock_db_session)
+
+                assert exc_info.value.status_code == 503
 
 
 def test_database_check_healthy(health_checker, mock_db_session):
@@ -136,6 +146,23 @@ def test_disk_space_check_degraded(health_checker):
     assert result["details"]["percent_used"] == 95.0
 
 
+def test_disk_space_check_exception(health_checker, monkeypatch):
+    def boom(_path):  # noqa: ANN001
+        raise OSError("boom")
+
+    monkeypatch.setattr("backend.health_checks.shutil.disk_usage", boom)
+    result = health_checker._check_disk_space()
+    assert result["status"] == HealthCheckStatus.DEGRADED
+    assert "Could not check" in result["message"]
+
+
+def test_memory_check_psutil_missing(health_checker, monkeypatch):
+    monkeypatch.setattr("backend.health_checks.psutil", None)
+    result = health_checker._check_memory_usage()
+    assert result["status"] == HealthCheckStatus.DEGRADED
+    assert "unavailable" in result["message"].lower()
+
+
 def test_migration_status_at_head(health_checker):
     """Test migration status check when at head."""
     mock_result = Mock()
@@ -165,6 +192,27 @@ def test_migration_status_not_at_head(health_checker):
     assert result["details"]["at_head"] is False
 
 
+def test_migration_status_command_failure(health_checker):
+    failure = Mock()
+    failure.returncode = 1
+    failure.stdout = ""
+    failure.stderr = "boom"
+
+    with patch("subprocess.run", return_value=failure):
+        result = health_checker._check_migration_status()
+
+    assert result["status"] == HealthCheckStatus.DEGRADED
+    assert "boom" in result["details"]["error"]
+
+
+def test_migration_status_exception(health_checker):
+    with patch("subprocess.run", side_effect=FileNotFoundError("no alembic")):
+        result = health_checker._check_migration_status()
+
+    assert result["status"] == HealthCheckStatus.DEGRADED
+    assert "unavailable" in result["message"].lower()
+
+
 def test_detect_environment_native(health_checker):
     """Test environment detection for native execution."""
     with patch("os.path.exists", return_value=False):
@@ -180,6 +228,37 @@ def test_detect_environment_docker(health_checker):
         result = health_checker._detect_environment()
 
     assert result == "docker"
+
+
+def test_detect_environment_cgroup_detection(health_checker, monkeypatch):
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+
+    def fake_open(*_args, **_kwargs):
+        return io.StringIO("12:devices:/docker/runtime")
+
+    monkeypatch.setattr("builtins.open", fake_open)
+    monkeypatch.setenv("DOCKER_CONTAINER", "false")
+
+    assert health_checker._detect_environment() == "docker"
+
+
+def test_detect_environment_cgroup_failure_defaults_native(health_checker, monkeypatch):
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+
+    def boom(*_args, **_kwargs):  # noqa: ANN001
+        raise OSError("no cgroup")
+
+    monkeypatch.setattr("builtins.open", boom)
+    monkeypatch.delenv("DOCKER_CONTAINER", raising=False)
+
+    assert health_checker._detect_environment() == "native"
+
+
+def test_detect_environment_env_var(health_checker, monkeypatch):
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+    monkeypatch.delenv("DOCKER_CONTAINER", raising=False)
+    monkeypatch.setenv("DOCKER_CONTAINER", "true")
+    assert health_checker._detect_environment() == "docker"
 
 
 def test_frontend_check_running(health_checker):
@@ -201,6 +280,15 @@ def test_frontend_check_not_running(health_checker):
     assert result["details"]["running"] is False
 
 
+def test_detect_frontend_port_handles_socket_errors(health_checker, monkeypatch):
+    class BoomSocket:
+        def __init__(self, *args, **kwargs):  # noqa: ANN001
+            raise OSError("fail")
+
+    monkeypatch.setattr("backend.health_checks.socket.socket", BoomSocket)
+    assert health_checker._detect_frontend_port() is None
+
+
 def test_comprehensive_health_check(health_checker, mock_db_session):
     """Test comprehensive health check with all components."""
     # Mock all checks to be healthy
@@ -213,17 +301,20 @@ def test_comprehensive_health_check(health_checker, mock_db_session):
             with patch.object(health_checker, "_check_migration_status") as mock_migration:
                 mock_migration.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                with patch.object(health_checker, "_check_frontend") as mock_frontend:
-                    mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
+                with patch.object(health_checker, "_check_memory_usage") as mock_memory:
+                    mock_memory.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                    with patch.object(health_checker, "_get_database_stats") as mock_stats:
-                        mock_stats.return_value = {"students": 10, "courses": 5}
+                    with patch.object(health_checker, "_check_frontend") as mock_frontend:
+                        mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                        with patch.object(health_checker, "_get_system_info") as mock_system:
-                            mock_system.return_value = {"hostname": "test"}
+                        with patch.object(health_checker, "_get_database_stats") as mock_stats:
+                            mock_stats.return_value = {"students": 10, "courses": 5}
 
-                            with patch("time.time", return_value=1000100):
-                                result = health_checker.check_health(mock_db_session)
+                            with patch.object(health_checker, "_get_system_info") as mock_system:
+                                mock_system.return_value = {"hostname": "test"}
+
+                                with patch("time.time", return_value=1000100):
+                                    result = health_checker.check_health(mock_db_session)
 
     assert result["status"] == HealthCheckStatus.HEALTHY
     assert "checks" in result
@@ -244,17 +335,20 @@ def test_health_check_degraded_state(health_checker, mock_db_session):
             with patch.object(health_checker, "_check_migration_status") as mock_migration:
                 mock_migration.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                with patch.object(health_checker, "_check_frontend") as mock_frontend:
-                    mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
+                with patch.object(health_checker, "_check_memory_usage") as mock_memory:
+                    mock_memory.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                    with patch.object(health_checker, "_get_database_stats") as mock_stats:
-                        mock_stats.return_value = {}
+                    with patch.object(health_checker, "_check_frontend") as mock_frontend:
+                        mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                        with patch.object(health_checker, "_get_system_info") as mock_system:
-                            mock_system.return_value = {}
+                        with patch.object(health_checker, "_get_database_stats") as mock_stats:
+                            mock_stats.return_value = {}
 
-                            with patch("time.time", return_value=1000100):
-                                result = health_checker.check_health(mock_db_session)
+                            with patch.object(health_checker, "_get_system_info") as mock_system:
+                                mock_system.return_value = {}
+
+                                with patch("time.time", return_value=1000100):
+                                    result = health_checker.check_health(mock_db_session)
 
     # Should return 200 but with degraded status
     assert result["status"] == HealthCheckStatus.DEGRADED
@@ -274,18 +368,75 @@ def test_health_check_unhealthy_state(health_checker, mock_db_session):
             with patch.object(health_checker, "_check_migration_status") as mock_migration:
                 mock_migration.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                with patch.object(health_checker, "_check_frontend") as mock_frontend:
-                    mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
+                with patch.object(health_checker, "_check_memory_usage") as mock_memory:
+                    mock_memory.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                    with patch.object(health_checker, "_get_database_stats") as mock_stats:
-                        mock_stats.return_value = {}
+                    with patch.object(health_checker, "_check_frontend") as mock_frontend:
+                        mock_frontend.return_value = {"status": HealthCheckStatus.HEALTHY}
 
-                        with patch.object(health_checker, "_get_system_info") as mock_system:
-                            mock_system.return_value = {}
+                        with patch.object(health_checker, "_get_database_stats") as mock_stats:
+                            mock_stats.return_value = {}
 
-                            with patch("time.time", return_value=1000100):
-                                # Should raise HTTPException with 503
-                                with pytest.raises(HTTPException) as exc_info:
-                                    health_checker.check_health(mock_db_session)
+                            with patch.object(health_checker, "_get_system_info") as mock_system:
+                                mock_system.return_value = {}
 
-                                assert exc_info.value.status_code == 503
+                                with patch("time.time", return_value=1000100):
+                                    # Should raise HTTPException with 503
+                                    with pytest.raises(HTTPException) as exc_info:
+                                        health_checker.check_health(mock_db_session)
+
+                                    assert exc_info.value.status_code == 503
+
+
+def test_get_database_stats_failure(health_checker, mock_db_session, monkeypatch):
+    def fake_find_spec(name):  # noqa: ANN001
+        return None
+
+    monkeypatch.setattr("backend.health_checks.importlib.util.find_spec", fake_find_spec)
+
+    result = health_checker._get_database_stats(mock_db_session)
+    assert result == {}
+
+
+def test_get_system_info_failure(health_checker, monkeypatch):
+    def boom_hostname():  # noqa: ANN001
+        raise OSError("boom")
+
+    monkeypatch.setattr("backend.health_checks.socket.gethostname", boom_hostname)
+    assert health_checker._get_system_info() == {}
+
+
+def test_get_network_ips_prefers_psutil(health_checker, monkeypatch):
+    class Addr:
+        def __init__(self, address: str):
+            self.family = socket.AF_INET
+            self.address = address
+
+    fake_psutil = SimpleNamespace(net_if_addrs=lambda: {"eth0": [Addr("10.0.0.5"), Addr("169.254.2.2")]})
+    monkeypatch.setitem(sys.modules, "psutil", fake_psutil)
+
+    result = health_checker._get_network_ips("host")
+    assert "10.0.0.5" in result
+    assert "169.254.2.2" not in result
+    assert "127.0.0.1" in result
+
+
+def test_get_network_ips_socket_fallback(health_checker, monkeypatch):
+    monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(net_if_addrs=lambda: {}))
+    monkeypatch.setattr("backend.health_checks.socket.gethostbyname_ex", lambda hostname: (hostname, [], ["192.168.1.5", "169.254.33.1"]))
+
+    result = health_checker._get_network_ips("host")
+    assert "192.168.1.5" in result
+    assert "127.0.0.1" in result
+
+
+def test_get_network_ips_exception(health_checker, monkeypatch):
+    monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(net_if_addrs=lambda: {}))
+
+    def boom(*_args, **_kwargs):  # noqa: ANN001
+        raise OSError("lookup failed")
+
+    monkeypatch.setattr("backend.health_checks.socket.gethostbyname_ex", boom)
+
+    result = health_checker._get_network_ips("host")
+    assert result == ["127.0.0.1"]
