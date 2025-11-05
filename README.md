@@ -1,6 +1,6 @@
 # Student Management System
 
-## 🗂️ Script Organization (v1.3.5+)
+## 🗂️ Script Organization (v1.3.8+)
 
 Scripts are now reorganized into two distinct, well-defined sets:
 
@@ -60,7 +60,7 @@ For deployment, Docker orchestration, and production maintenance.
 
 ## 🔖 Releases
 
-- Latest: [v1.3.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5)
+- Latest: [v1.3.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8)
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
 ## 🚀 Quick Start - New Simplified Installation
@@ -261,18 +261,18 @@ Troubleshooting:
 
 ---
 
-## 🎯 What's New in v1.3.5
+## 🎯 What's New in v1.3.8
 
-### Developer Maintenance Release
+### Testing & Quality Improvements Release
 
-- ✨ **Import Resolver**: Centralized import fallback logic across backend modules
-- 🔒 **CI Enforcement**: Added ruff workflow, made mypy & secret-guard blocking on main
-- 🏗️ **Pre-commit Hooks**: Automated code quality checks for contributors
-- 📦 **Docker Images**: Multi-platform images published to Docker Hub & GHCR
-- 🚀 **Deployment**: Kubernetes manifests and automated deployment workflows
-- 🧹 **Code Quality**: Version consolidation, cleanup, and improved test coverage (109 tests passing)
+- ✅ **Enhanced Test Coverage**: Expanded student router tests, imports validation, comprehensive error handling tests
+- 🔒 **Structured Error Handling**: Refactored error handling across all routers with consistent patterns
+- 🎯 **Backend Coverage Reporting**: Configured comprehensive coverage reporting for backend tests
+- 🔧 **CI/CD Enhancements**: Ruff normalization, validation improvements, wheelhouse caching, GitHub Checks API integration
+- 🐍 **Python Entrypoint**: Replaced shell entrypoint with robust Python implementation for better error handling
+- 🐋 **Docker Improvements**: Enhanced environment configuration, SECRET_KEY handling, path validation for Docker mode
 
-See [.github/RELEASE_NOTES_v1.3.5.md](.github/RELEASE_NOTES_v1.3.5.md) for complete details.
+See [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) for complete details.
 
 ---
 
@@ -631,8 +631,8 @@ student-management-system/
 
 - [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
 - [FRESH_CLONE_TEST_REPORT_V1.2.md](FRESH_CLONE_TEST_REPORT_V1.2.md) - **Fresh clone deployment test report**
-- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ NEW v1.3.5
-- [.github/RELEASE_NOTES_v1.3.5.md](.github/RELEASE_NOTES_v1.3.5.md) - **Release notes for v1.3.5** ⭐ NEW
+- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ Updated v1.3.8
+- [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) - **Release notes for v1.3.8** ⭐ NEW
 - [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes
 - [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management** ⭐ NEW
 - [docs/DOCKER_CLEANUP.md](docs/DOCKER_CLEANUP.md) - Docker cleanup procedures

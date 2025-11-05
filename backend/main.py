@@ -1,6 +1,6 @@
 """
 Student Management System - Final Fixed Version
-Version 3.0.1 - Production Ready with All Fixes Applied
+Version: See VERSION file - Production Ready with All Fixes Applied
 
 Fixes Applied:
 ✅ Proper initialization order
