@@ -15,7 +15,7 @@ This release introduces optional authentication with role-based access control, 
 - RBAC enforcement when `AUTH_ENABLED=True`
 - New users table and Alembic migrations
 - Complete documentation: see [docs/AUTHENTICATION.md](./AUTHENTICATION.md)
-- Fresh-clone validation report: see [FRESH_CLONE_TEST_REPORT_V1.2.md](../FRESH_CLONE_TEST_REPORT_V1.2.md)
+- Fresh-clone validation report: archived (see docs/REMOVED_DOCS_SUMMARY.md)
 
 ## Changes
 

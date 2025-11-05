@@ -341,3 +341,34 @@ For detailed troubleshooting, see: `docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
 ✅ **Done!**
 
 No PowerShell complications. No execution policies. Just works. 🚀
+
+---
+
+## 🐧 Note for Linux Users
+
+For Linux environments, use the helper scripts:
+
+- Validate prerequisites:
+
+```bash
+./scripts/linux_env_check.sh
+./scripts/linux_env_check.sh --fix
+```
+
+- Start in Docker (recommended):
+
+```bash
+./scripts/deploy/run-docker-release.sh
+```
+
+- Start in native development (hot reload):
+
+```bash
+./scripts/dev/run-native.sh
+```
+
+PowerShell 7+ (pwsh) is recommended on Linux, as the start helpers delegate to SMART_SETUP.ps1. If pwsh isn’t available, you can fall back to:
+
+```bash
+docker compose up -d --build
+```

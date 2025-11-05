@@ -400,7 +400,7 @@ services:
 
 - ✅ Main README.md (comprehensive, bilingual)
 - ✅ DEPLOYMENT_GUIDE.md (detailed)
-- ✅ QUICK_DEPLOYMENT.md (concise)
+- ✅ docs/QUICK_START_GUIDE.md (concise)
 - ✅ ARCHITECTURE.md (system design)
 - ✅ LOCALIZATION.md (i18n guide)
 - ✅ Multiple Greek docs (ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md, etc.)
