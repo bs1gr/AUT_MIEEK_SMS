@@ -1,9 +1,6 @@
-"""
-Highlights Router
-CRUD operations for student highlights/semester ratings.
-"""
+"""Highlights Router providing CRUD operations for student highlights."""
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional, cast
 import logging
@@ -15,6 +12,7 @@ Highlight, Student = import_names("models", "Highlight", "Student")
 from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 from .routers_auth import optional_require_role
+from backend.errors import ErrorCode, http_error, internal_server_error
 
 logger = logging.getLogger(__name__)
 
@@ -42,32 +40,49 @@ def create_highlight(
     Raises:
         404: Student not found
     """
-    # Verify student exists
-    student = (
-        db.query(Student)
-        .filter(Student.id == highlight.student_id, Student.deleted_at.is_(None))
-        .first()
-    )
-    if not student:
-        logger.warning(f"Student not found: {highlight.student_id}")
-        raise HTTPException(status_code=404, detail=f"Student with id {highlight.student_id} not found")
+    try:
+        student = (
+            db.query(Student)
+            .filter(Student.id == highlight.student_id, Student.deleted_at.is_(None))
+            .first()
+        )
+        if not student:
+            logger.warning("Student not found for highlight creation: %s", highlight.student_id)
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": highlight.student_id},
+            )
 
-    # Create highlight
-    db_highlight = Highlight(
-        student_id=highlight.student_id,
-        semester=highlight.semester,
-        rating=highlight.rating,
-        category=highlight.category,
-        highlight_text=highlight.highlight_text,
-        is_positive=highlight.is_positive,
-    )
+        db_highlight = Highlight(
+            student_id=highlight.student_id,
+            semester=highlight.semester,
+            rating=highlight.rating,
+            category=highlight.category,
+            highlight_text=highlight.highlight_text,
+            is_positive=highlight.is_positive,
+        )
 
-    db.add(db_highlight)
-    db.commit()
-    db.refresh(db_highlight)
+        db.add(db_highlight)
+        db.commit()
+        db.refresh(db_highlight)
 
-    logger.info(f"Created highlight: {db_highlight.id} for student {highlight.student_id}")
-    return db_highlight
+        logger.info("Created highlight %s for student %s", db_highlight.id, highlight.student_id)
+        return db_highlight
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.error(
+            "Unexpected error creating highlight for student %s: %s",
+            highlight.student_id,
+            exc,
+            exc_info=True,
+        )
+        raise internal_server_error(request=request)
 
 
 @router.get("/", response_model=HighlightListResponse)
@@ -120,7 +135,7 @@ def list_highlights(
 
 
 @router.get("/{highlight_id}", response_model=HighlightResponse)
-def get_highlight(highlight_id: int, db: Session = Depends(get_db)):
+def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db)):
     """
     Get a single highlight by ID.
 
@@ -134,21 +149,34 @@ def get_highlight(highlight_id: int, db: Session = Depends(get_db)):
     Raises:
         404: Highlight not found
     """
-    db_highlight = (
-        db.query(Highlight)
-        .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-        .first()
-    )
-    if not db_highlight:
-        logger.warning(f"Highlight not found: {highlight_id}")
-        raise HTTPException(status_code=404, detail=f"Highlight with id {highlight_id} not found")
+    try:
+        db_highlight = (
+            db.query(Highlight)
+            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
+            .first()
+        )
+        if not db_highlight:
+            logger.warning("Highlight not found: %s", highlight_id)
+            raise http_error(
+                404,
+                ErrorCode.HIGHLIGHT_NOT_FOUND,
+                "Highlight not found",
+                request,
+                context={"highlight_id": highlight_id},
+            )
 
-    logger.info(f"Retrieved highlight: {highlight_id}")
-    return db_highlight
+        logger.info("Retrieved highlight %s", highlight_id)
+        return db_highlight
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error retrieving highlight %s: %s", highlight_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.get("/student/{student_id}", response_model=list[HighlightResponse])
 def get_student_highlights(
+    request: Request,
     student_id: int,
     semester: Optional[str] = Query(None, description="Optional filter by semester"),
     db: Session = Depends(get_db),
@@ -167,28 +195,38 @@ def get_student_highlights(
     Raises:
         404: Student not found
     """
-    # Verify student exists
-    student = (
-        db.query(Student)
-        .filter(Student.id == student_id, Student.deleted_at.is_(None))
-        .first()
-    )
-    if not student:
-        logger.warning(f"Student not found: {student_id}")
-        raise HTTPException(status_code=404, detail=f"Student with id {student_id} not found")
+    try:
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
+        if not student:
+            logger.warning("Student not found when listing highlights: %s", student_id)
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
-    # Query highlights
-    query = (
-        db.query(Highlight)
-        .filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
-    )
-    if semester:
-        query = query.filter(Highlight.semester == semester)
+        query = (
+            db.query(Highlight)
+            .filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
+        )
+        if semester:
+            query = query.filter(Highlight.semester == semester)
 
-    highlights = query.order_by(Highlight.date_created.desc()).all()
+        highlights = query.order_by(Highlight.date_created.desc()).all()
 
-    logger.info(f"Retrieved {len(highlights)} highlights for student {student_id}")
-    return highlights
+        logger.info("Retrieved %s highlights for student %s", len(highlights), student_id)
+        return highlights
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error retrieving highlights for student %s: %s", student_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.put("/{highlight_id}", response_model=HighlightResponse)
@@ -214,25 +252,37 @@ def update_highlight(
     Raises:
         404: Highlight not found
     """
-    db_highlight = (
-        db.query(Highlight)
-        .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-        .first()
-    )
-    if not db_highlight:
-        logger.warning(f"Highlight not found: {highlight_id}")
-        raise HTTPException(status_code=404, detail=f"Highlight with id {highlight_id} not found")
+    try:
+        db_highlight = (
+            db.query(Highlight)
+            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
+            .first()
+        )
+        if not db_highlight:
+            logger.warning("Highlight not found for update: %s", highlight_id)
+            raise http_error(
+                404,
+                ErrorCode.HIGHLIGHT_NOT_FOUND,
+                "Highlight not found",
+                request,
+                context={"highlight_id": highlight_id},
+            )
 
-    # Update only provided fields
-    update_data = highlight_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_highlight, field, value)
+        update_data = highlight_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_highlight, field, value)
 
-    db.commit()
-    db.refresh(db_highlight)
+        db.commit()
+        db.refresh(db_highlight)
 
-    logger.info(f"Updated highlight: {highlight_id}")
-    return db_highlight
+        logger.info("Updated highlight %s", highlight_id)
+        return db_highlight
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.error("Error updating highlight %s: %s", highlight_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.delete("/{highlight_id}", status_code=204)
@@ -253,17 +303,30 @@ def delete_highlight(
     Raises:
         404: Highlight not found
     """
-    db_highlight = (
-        db.query(Highlight)
-        .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-        .first()
-    )
-    if not db_highlight:
-        logger.warning(f"Highlight not found: {highlight_id}")
-        raise HTTPException(status_code=404, detail=f"Highlight with id {highlight_id} not found")
+    try:
+        db_highlight = (
+            db.query(Highlight)
+            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
+            .first()
+        )
+        if not db_highlight:
+            logger.warning("Highlight not found for delete: %s", highlight_id)
+            raise http_error(
+                404,
+                ErrorCode.HIGHLIGHT_NOT_FOUND,
+                "Highlight not found",
+                request,
+                context={"highlight_id": highlight_id},
+            )
 
-    db_highlight.mark_deleted()
-    db.commit()
+        db_highlight.mark_deleted()
+        db.commit()
 
-    logger.info(f"Deleted highlight: {highlight_id}")
-    return None
+        logger.info("Deleted highlight %s", highlight_id)
+        return None
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        logger.error("Error deleting highlight %s: %s", highlight_id, exc, exc_info=True)
+        raise internal_server_error(request=request)

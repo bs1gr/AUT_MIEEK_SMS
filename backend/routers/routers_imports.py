@@ -19,6 +19,7 @@ import unicodedata
 from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 from .routers_auth import optional_require_role
 
+from backend.errors import ErrorCode, http_error, internal_server_error
 logger = logging.getLogger(__name__)
 
 # File upload security constraints
@@ -57,7 +58,7 @@ def _reactivate_if_soft_deleted(record, *, entity: str, identifier: str) -> bool
 
 
 # --- File Upload Validation ---
-async def validate_uploaded_file(file: UploadFile) -> bytes:
+async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
     """
     Validate uploaded file for security constraints.
 
@@ -74,15 +75,23 @@ async def validate_uploaded_file(file: UploadFile) -> bytes:
     if file.filename:
         ext = os.path.splitext(file.filename)[1].lower()
         if ext not in ALLOWED_EXTENSIONS:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid file extension '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_EXTENSION,
+                f"Invalid file extension '{ext}'.",
+                request,
+                context={"extension": ext, "allowed_extensions": sorted(ALLOWED_EXTENSIONS)},
             )
 
     # Check MIME type
     content_type = file.content_type or "application/octet-stream"
     if content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid content type '{content_type}'. Allowed: {', '.join(ALLOWED_MIME_TYPES)}"
+        raise http_error(
+            400,
+            ErrorCode.IMPORT_INVALID_MIME,
+            f"Invalid content type '{content_type}'.",
+            request,
+            context={"content_type": content_type, "allowed_types": sorted(ALLOWED_MIME_TYPES)},
         )
 
     # Read file content and check size
@@ -90,23 +99,38 @@ async def validate_uploaded_file(file: UploadFile) -> bytes:
     content_size = len(content)
 
     if content_size == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+        raise http_error(400, ErrorCode.IMPORT_EMPTY_FILE, "Uploaded file is empty", request)
 
     if content_size > MAX_FILE_SIZE:
         size_mb = content_size / (1024 * 1024)
         max_mb = MAX_FILE_SIZE / (1024 * 1024)
-        raise HTTPException(
-            status_code=413, detail=f"File too large: {size_mb:.2f} MB. Maximum allowed: {max_mb:.0f} MB"
+        raise http_error(
+            413,
+            ErrorCode.IMPORT_TOO_LARGE,
+            "Uploaded file exceeds maximum size",
+            request,
+            context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
         )
 
     # For JSON files, validate that content is valid JSON
     if file.filename and file.filename.lower().endswith(".json"):
         try:
             json.loads(content.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+        except json.JSONDecodeError as exc:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_JSON,
+                "Invalid JSON format",
+                request,
+                context={"error": str(exc)},
+            )
         except UnicodeDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid file encoding. JSON files must be UTF-8 encoded")
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_ENCODING,
+                "Invalid file encoding. JSON files must be UTF-8 encoded",
+                request,
+            )
 
     logger.info(f"File validation passed: {file.filename} ({content_size} bytes)")
     return content
@@ -272,7 +296,7 @@ def _translate_rules(rules: list[dict]) -> list[dict]:
 
 
 @router.get("/diagnose")
-def diagnose_import_environment():
+def diagnose_import_environment(request: Request):
     """Return diagnostics about import directories and files found."""
     try:
         courses_exists = os.path.isdir(COURSES_DIR)
@@ -291,9 +315,9 @@ def diagnose_import_environment():
             "course_json_files": courses_files,
             "student_json_files": students_files,
         }
-    except Exception as e:
-        logger.error(f"Diagnose failed: {e}")
-        raise HTTPException(status_code=500, detail="Diagnose failed")
+    except Exception as exc:
+        logger.error("Diagnose failed: %s", exc)
+        raise http_error(500, ErrorCode.IMPORT_DIAGNOSE_FAILED, "Diagnose failed", request)
 
 
 @router.post("/courses")
@@ -321,7 +345,13 @@ def import_courses(
         (Course,) = import_names("models", "Course")
 
         if not os.path.isdir(COURSES_DIR):
-            raise HTTPException(status_code=404, detail=f"Courses directory not found: {COURSES_DIR}")
+            raise http_error(
+                404,
+                ErrorCode.IMPORT_DIRECTORY_NOT_FOUND,
+                "Courses directory not found",
+                request,
+                context={"path": COURSES_DIR},
+            )
         created = 0
         updated = 0
         errors: List[str] = []
@@ -635,23 +665,31 @@ def import_courses(
                 errors.append(f"{name}: {e}")
         try:
             db.commit()
-        except Exception as e:
+        except Exception as exc:
             db.rollback()
-            logger.error(f"Commit failed during course import: {e}", exc_info=True)
-            errors.append(f"commit: {e}")
-            # Return 400 with details so frontend can display what's wrong
-            raise HTTPException(
-                status_code=400, detail={"message": "Course import failed during commit", "errors": errors}
+            logger.error("Commit failed during course import: %s", exc, exc_info=True)
+            errors.append(f"commit: {exc}")
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_PROCESSING_FAILED,
+                "Course import failed during commit",
+                request,
+                context={"errors": errors},
             )
         return {"created": created, "updated": updated, "errors": errors}
     except HTTPException:
         # bubbled up commit error with details
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Error importing courses: {e}", exc_info=True)
-        # Return details where possible
-        raise HTTPException(status_code=400, detail={"message": "Error importing courses", "error": str(e)})
+        logger.error("Error importing courses: %s", exc, exc_info=True)
+        raise http_error(
+            400,
+            ErrorCode.IMPORT_PROCESSING_FAILED,
+            "Error importing courses",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.post("/upload")
@@ -679,7 +717,13 @@ async def import_from_upload(
         elif norm in ("student", "students"):
             norm = "students"
         else:
-            raise HTTPException(status_code=400, detail="import_type must be 'courses' or 'students'")
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "import_type must be 'courses' or 'students'",
+                request,
+                context={"import_type": import_type},
+            )
         Course, Student = import_names("models", "Course", "Student")
 
         uploads: List[UploadFile] = []
@@ -688,22 +732,26 @@ async def import_from_upload(
         data_batches: List[List[dict]] = []
         # Prefer files when provided; otherwise allow 'json' text payload for convenience
         if not uploads and not json_text:
-            raise HTTPException(status_code=400, detail="No files uploaded and no 'json' form field provided")
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "No files uploaded and no 'json' form field provided",
+                request,
+            )
         created = 0
         updated = 0
         errors: list[str] = []
         # Process file uploads first with validation
         for up in uploads:
             try:
-                # Validate file before processing
-                content = await validate_uploaded_file(up)
+                content = await validate_uploaded_file(request, up)
                 data = json.loads(content.decode("utf-8"))
                 data_batches.append(data if isinstance(data, list) else [data])
             except HTTPException:
                 # Re-raise validation errors with proper status codes
                 raise
-            except Exception as e:
-                errors.append(f"{up.filename}: {e}")
+            except Exception as exc:
+                errors.append(f"{up.filename}: {exc}")
 
         # Process optional raw JSON text from form field
         if json_text:
@@ -713,20 +761,29 @@ async def import_from_upload(
                 if text_size > MAX_FILE_SIZE:
                     size_mb = text_size / (1024 * 1024)
                     max_mb = MAX_FILE_SIZE / (1024 * 1024)
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"JSON text too large: {size_mb:.2f} MB. Maximum allowed: {max_mb:.0f} MB",
+                    raise http_error(
+                        413,
+                        ErrorCode.IMPORT_TOO_LARGE,
+                        "JSON payload too large",
+                        request,
+                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
                     )
 
                 parsed = json.loads(json_text)
                 data_batches.append(parsed if isinstance(parsed, list) else [parsed])
                 logger.info(f"Raw JSON text validated and parsed ({text_size} bytes)")
-            except json.JSONDecodeError as e:
-                raise HTTPException(status_code=400, detail=f"Invalid JSON format in 'json' field: {str(e)}")
+            except json.JSONDecodeError as exc:
+                raise http_error(
+                    400,
+                    ErrorCode.IMPORT_INVALID_JSON,
+                    "Invalid JSON format in 'json' field",
+                    request,
+                    context={"error": str(exc)},
+                )
             except HTTPException:
                 raise
-            except Exception as e:
-                errors.append(f"json: {e}")
+            except Exception as exc:
+                errors.append(f"json: {exc}")
 
         # Flatten batches into items for processing
         def iter_items():
@@ -1025,19 +1082,29 @@ async def import_from_upload(
 
         try:
             db.commit()
-        except Exception as e:
+        except Exception as exc:
             db.rollback()
-            errors.append(f"commit: {e}")
-            raise HTTPException(
-                status_code=400, detail={"message": "Upload import failed during commit", "errors": errors}
+            errors.append(f"commit: {exc}")
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_PROCESSING_FAILED,
+                "Upload import failed during commit",
+                request,
+                context={"errors": errors},
             )
         return {"type": norm, "created": created, "updated": updated, "errors": errors}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Upload import failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error("Upload import failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.IMPORT_PROCESSING_FAILED,
+            "Upload import failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.post("/students")
@@ -1062,7 +1129,13 @@ def import_students(
         (Student,) = import_names("models", "Student")
 
         if not os.path.isdir(STUDENTS_DIR):
-            raise HTTPException(status_code=404, detail=f"Students directory not found: {STUDENTS_DIR}")
+            raise http_error(
+                404,
+                ErrorCode.IMPORT_DIRECTORY_NOT_FOUND,
+                "Students directory not found",
+                request,
+                context={"path": STUDENTS_DIR},
+            )
         created = 0
         updated = 0
         errors: List[str] = []
@@ -1147,7 +1220,13 @@ def import_students(
         return {"created": created, "updated": updated, "errors": errors}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Error importing students: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error("Error importing students: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.IMPORT_PROCESSING_FAILED,
+            "Error importing students",
+            request,
+            context={"error": str(exc)},
+        )

@@ -1,7 +1,12 @@
 import os
+from pathlib import Path
 from types import SimpleNamespace
+
 from fastapi.testclient import TestClient
+
 import backend.main as main
+import backend.routers.routers_control as control
+from backend.errors import ErrorCode
 
 client = TestClient(main.app)
 
@@ -57,3 +62,67 @@ def test_control_stop_kills_pids(monkeypatch):
     assert resp.status_code == 200
     data = resp.json()
     assert data.get("success") is True
+
+
+def test_install_frontend_deps_missing_package_json(monkeypatch):
+    package_path = str((Path(control.__file__).resolve().parents[2] / "frontend" / "package.json"))
+    original_exists = Path.exists
+
+    def fake_exists(self):
+        if str(self) == package_path:
+            return False
+        return original_exists(self)
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
+
+    resp = client.post("/api/v1/control/api/operations/install-frontend-deps")
+    assert resp.status_code == 404
+    detail = resp.json()["detail"]
+    assert detail["error_id"] == ErrorCode.CONTROL_PACKAGE_JSON_MISSING.value
+    assert Path(detail["context"]["path"]).name == "package.json"
+
+
+def test_install_frontend_deps_npm_missing(monkeypatch):
+    monkeypatch.setattr(control, "_check_npm_installed", lambda: (False, None))
+
+    resp = client.post("/api/v1/control/api/operations/install-frontend-deps")
+    assert resp.status_code == 400
+    detail = resp.json()["detail"]
+    assert detail["error_id"] == ErrorCode.CONTROL_NPM_NOT_FOUND.value
+    assert detail["context"]["command"] == "npm --version"
+
+
+def test_install_backend_deps_missing_requirements(monkeypatch):
+    requirements_path = str((Path(control.__file__).resolve().parents[2] / "backend" / "requirements.txt"))
+    original_exists = Path.exists
+
+    def fake_exists(self):
+        if str(self) == requirements_path:
+            return False
+        return original_exists(self)
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
+
+    resp = client.post("/api/v1/control/api/operations/install-backend-deps")
+    assert resp.status_code == 404
+    detail = resp.json()["detail"]
+    assert detail["error_id"] == ErrorCode.CONTROL_REQUIREMENTS_MISSING.value
+    assert Path(detail["context"]["path"]).name == "requirements.txt"
+
+
+def test_docker_build_when_docker_not_running(monkeypatch):
+    monkeypatch.setattr(control, "_check_docker_running", lambda: False)
+
+    resp = client.post("/api/v1/control/api/operations/docker-build")
+    assert resp.status_code == 400
+    detail = resp.json()["detail"]
+    assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
+
+
+def test_docker_update_volume_when_docker_not_running(monkeypatch):
+    monkeypatch.setattr(control, "_check_docker_running", lambda: False)
+
+    resp = client.post("/api/v1/control/api/operations/docker-update-volume")
+    assert resp.status_code == 400
+    detail = resp.json()["detail"]
+    assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value

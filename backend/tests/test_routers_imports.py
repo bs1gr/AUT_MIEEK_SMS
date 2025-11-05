@@ -1,11 +1,13 @@
 """Tests for the imports router helpers."""
 
 import asyncio
+from typing import Any, cast
 
 import pytest
 from fastapi import UploadFile, HTTPException
 from io import BytesIO
 from starlette.datastructures import Headers
+from starlette.requests import Request
 
 
 def _make_upload(filename: str, data: bytes, content_type: str | None) -> UploadFile:
@@ -14,6 +16,7 @@ def _make_upload(filename: str, data: bytes, content_type: str | None) -> Upload
     headers = Headers({"content-type": content_type}) if content_type else None
     return UploadFile(BytesIO(data), filename=filename, headers=headers)
 
+from backend.errors import ErrorCode
 from backend.routers.routers_imports import validate_uploaded_file
 
 
@@ -21,7 +24,7 @@ def test_validate_uploaded_file_accepts_valid_json():
     """A well-formed JSON upload should pass validation."""
     upload = _make_upload("students.json", b"{\"students\": []}", "application/json")
 
-    content = asyncio.run(validate_uploaded_file(upload))
+    content = asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert content == b"{\"students\": []}"
 
@@ -31,10 +34,12 @@ def test_validate_uploaded_file_rejects_bad_extension():
     upload = _make_upload("payload.exe", b"{}", "application/json")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 400
-    assert "Invalid file extension" in exc.value.detail
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_INVALID_EXTENSION.value
+    assert "Invalid file extension" in detail["message"]
 
 
 def test_validate_uploaded_file_rejects_bad_content_type():
@@ -42,10 +47,12 @@ def test_validate_uploaded_file_rejects_bad_content_type():
     upload = _make_upload("students.json", b"{}", "application/xml")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 400
-    assert "Invalid content type" in exc.value.detail
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_INVALID_MIME.value
+    assert "Invalid content type" in detail["message"]
 
 
 def test_validate_uploaded_file_rejects_empty_payload():
@@ -53,10 +60,12 @@ def test_validate_uploaded_file_rejects_empty_payload():
     upload = _make_upload("students.json", b"", "application/json")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == "Uploaded file is empty"
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_EMPTY_FILE.value
+    assert detail["message"] == "Uploaded file is empty"
 
 
 def test_validate_uploaded_file_rejects_oversized_payload(monkeypatch):
@@ -66,10 +75,12 @@ def test_validate_uploaded_file_rejects_oversized_payload(monkeypatch):
     upload = _make_upload("students.json", b"{" + b"x" * 20 + b"}", "application/json")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 413
-    assert "File too large" in exc.value.detail
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_TOO_LARGE.value
+    assert "Uploaded file exceeds maximum size" in detail["message"]
 
 
 def test_validate_uploaded_file_rejects_invalid_json():
@@ -77,10 +88,12 @@ def test_validate_uploaded_file_rejects_invalid_json():
     upload = _make_upload("students.json", b"{invalid json}", "application/json")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 400
-    assert "Invalid JSON format" in exc.value.detail
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_INVALID_JSON.value
+    assert "Invalid JSON format" in detail["message"]
 
 
 def test_validate_uploaded_file_rejects_invalid_encoding():
@@ -88,7 +101,9 @@ def test_validate_uploaded_file_rejects_invalid_encoding():
     upload = _make_upload("students.json", b"\xff\xfe\x00\x00", "application/json")
 
     with pytest.raises(HTTPException) as exc:
-        asyncio.run(validate_uploaded_file(upload))
+        asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == "Invalid file encoding. JSON files must be UTF-8 encoded"
+    detail = cast(dict[str, Any], exc.value.detail)
+    assert detail["error_id"] == ErrorCode.IMPORT_INVALID_ENCODING.value
+    assert detail["message"] == "Invalid file encoding. JSON files must be UTF-8 encoded"

@@ -3,13 +3,16 @@ Export Routes
 Provides endpoints to export data to Excel/PDF.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from io import BytesIO
 from datetime import datetime
+from typing import cast
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -28,10 +31,11 @@ router = APIRouter(
 
 from backend.db import get_session as get_db
 from backend.import_resolver import import_names
+from backend.errors import ErrorCode, http_error
 
 
 @router.get("/students/excel")
-async def export_students_excel(db: Session = Depends(get_db)):
+async def export_students_excel(request: Request, db: Session = Depends(get_db)):
     try:
         (Student,) = import_names("models", "Student")
 
@@ -42,7 +46,7 @@ async def export_students_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Students"
         headers = ["ID", "First Name", "Last Name", "Email", "Student ID", "Enrollment Date", "Status"]
         for col, header in enumerate(headers, 1):
@@ -59,7 +63,7 @@ async def export_students_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=6, value=str(s.enrollment_date))
             ws.cell(row=row, column=7, value="Active" if s.is_active else "Inactive")
         for col in range(1, len(headers) + 1):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 18
+            ws.column_dimensions[get_column_letter(col)].width = 18
         output = BytesIO()
         wb.save(output)
         output.seek(0)
@@ -69,13 +73,13 @@ async def export_students_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export students excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export students excel failed: %s", exc, exc_info=True)
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/grades/excel/{student_id}")
-async def export_student_grades_excel(student_id: int, db: Session = Depends(get_db)):
+async def export_student_grades_excel(student_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         Student, Grade = import_names("models", "Student", "Grade")
 
@@ -85,7 +89,13 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
         grades = (
             db.query(Grade)
             .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
@@ -93,7 +103,7 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Grades"
         ws.merge_cells("A1:H1")
         title = ws["A1"]
@@ -118,7 +128,7 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
             ws.cell(row=row, column=7, value=_letter_grade(pct))
             ws.cell(row=row, column=8, value=str(g.date_submitted) if g.date_submitted else "N/A")
         for col in range(1, 9):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 18
+            ws.column_dimensions[get_column_letter(col)].width = 18
         output = BytesIO()
         wb.save(output)
         output.seek(0)
@@ -130,9 +140,15 @@ async def export_student_grades_excel(student_id: int, db: Session = Depends(get
         )
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Export grades excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export grades excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 def _letter_grade(percentage: float) -> str:
@@ -157,7 +173,7 @@ def _letter_grade(percentage: float) -> str:
 
 
 @router.get("/students/pdf")
-async def export_students_pdf(db: Session = Depends(get_db)):
+async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
     try:
         (Student,) = import_names("models", "Student")
 
@@ -216,13 +232,19 @@ async def export_students_pdf(db: Session = Depends(get_db)):
             media_type="application/pdf",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export students pdf failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export students pdf failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/attendance/excel")
-async def export_attendance_excel(db: Session = Depends(get_db)):
+async def export_attendance_excel(request: Request, db: Session = Depends(get_db)):
     try:
         (Attendance,) = import_names("models", "Attendance")
 
@@ -232,7 +254,7 @@ async def export_attendance_excel(db: Session = Depends(get_db)):
             .all()
         )
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Attendance"
         headers = ["ID", "Student ID", "Course ID", "Date", "Status", "Period", "Notes"]
         for col, header in enumerate(headers, 1):
@@ -248,7 +270,7 @@ async def export_attendance_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=6, value=r.period_number)
             ws.cell(row=row, column=7, value=r.notes or "")
         for col in range(1, 8):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+            ws.column_dimensions[get_column_letter(col)].width = 15
         output = BytesIO()
         wb.save(output)
         output.seek(0)
@@ -258,13 +280,19 @@ async def export_attendance_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export attendance excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export attendance excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/courses/excel")
-async def export_courses_excel(db: Session = Depends(get_db)):
+async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
     """Export all courses to Excel"""
     try:
         (Course,) = import_names("models", "Course")
@@ -276,7 +304,7 @@ async def export_courses_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Courses"
         headers = ["ID", "Course Code", "Course Name", "Semester", "Credits", "Hours/Week", "Description"]
         for col, header in enumerate(headers, 1):
@@ -295,7 +323,7 @@ async def export_courses_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=7, value=c.description or "")
 
         for col in range(1, 8):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 20
+            ws.column_dimensions[get_column_letter(col)].width = 20
 
         output = BytesIO()
         wb.save(output)
@@ -306,13 +334,19 @@ async def export_courses_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export courses excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export courses excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/enrollments/excel")
-async def export_enrollments_excel(db: Session = Depends(get_db)):
+async def export_enrollments_excel(request: Request, db: Session = Depends(get_db)):
     """Export all course enrollments to Excel"""
     try:
         CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
@@ -324,7 +358,7 @@ async def export_enrollments_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Enrollments"
         headers = ["ID", "Student ID", "Student Name", "Course ID", "Course Code", "Course Name", "Enrolled Date"]
         for col, header in enumerate(headers, 1):
@@ -354,7 +388,7 @@ async def export_enrollments_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=7, value=str(e.enrolled_at))
 
         for col in range(1, 8):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 18
+            ws.column_dimensions[get_column_letter(col)].width = 18
 
         output = BytesIO()
         wb.save(output)
@@ -365,13 +399,19 @@ async def export_enrollments_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export enrollments excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export enrollments excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/grades/excel")
-async def export_all_grades_excel(db: Session = Depends(get_db)):
+async def export_all_grades_excel(request: Request, db: Session = Depends(get_db)):
     """Export all grades to Excel"""
     try:
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
@@ -383,7 +423,7 @@ async def export_all_grades_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "All Grades"
         headers = [
             "ID",
@@ -432,7 +472,7 @@ async def export_all_grades_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=12, value=str(g.date_submitted) if g.date_submitted else "N/A")
 
         for col in range(1, 13):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+            ws.column_dimensions[get_column_letter(col)].width = 15
 
         output = BytesIO()
         wb.save(output)
@@ -443,13 +483,19 @@ async def export_all_grades_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export all grades excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export all grades excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/performance/excel")
-async def export_daily_performance_excel(db: Session = Depends(get_db)):
+async def export_daily_performance_excel(request: Request, db: Session = Depends(get_db)):
     """Export all daily performance records to Excel"""
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
@@ -461,7 +507,7 @@ async def export_daily_performance_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Daily Performance"
         headers = [
             "ID",
@@ -507,7 +553,7 @@ async def export_daily_performance_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=11, value=p.notes or "")
 
         for col in range(1, 12):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+            ws.column_dimensions[get_column_letter(col)].width = 15
 
         output = BytesIO()
         wb.save(output)
@@ -518,13 +564,19 @@ async def export_daily_performance_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export daily performance excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export daily performance excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/highlights/excel")
-async def export_highlights_excel(db: Session = Depends(get_db)):
+async def export_highlights_excel(request: Request, db: Session = Depends(get_db)):
     """Export all student highlights to Excel"""
     try:
         Highlight, Student = import_names("models", "Highlight", "Student")
@@ -536,7 +588,7 @@ async def export_highlights_excel(db: Session = Depends(get_db)):
         )
 
         wb = openpyxl.Workbook()
-        ws = wb.active
+        ws = cast(Worksheet, wb.active)
         ws.title = "Highlights"
         headers = [
             "ID",
@@ -573,7 +625,7 @@ async def export_highlights_excel(db: Session = Depends(get_db)):
             ws.cell(row=row, column=9, value="Yes" if h.is_positive else "No")
 
         for col in range(1, 10):
-            ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 18
+            ws.column_dimensions[get_column_letter(col)].width = 18
 
         output = BytesIO()
         wb.save(output)
@@ -584,13 +636,19 @@ async def export_highlights_excel(db: Session = Depends(get_db)):
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export highlights excel failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export highlights excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/student-report/pdf/{student_id}")
-async def export_student_report_pdf(student_id: int, db: Session = Depends(get_db)):
+async def export_student_report_pdf(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Generate comprehensive student report PDF with grades, attendance, and analytics"""
     try:
         Student, Grade, Attendance, Course, DailyPerformance = import_names(
@@ -603,7 +661,13 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
@@ -790,13 +854,19 @@ async def export_student_report_pdf(student_id: int, db: Session = Depends(get_d
         )
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Export student report pdf failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export student report pdf failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/courses/pdf")
-async def export_courses_pdf(db: Session = Depends(get_db)):
+async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
     """Export all courses to PDF"""
     try:
         (Course,) = import_names("models", "Course")
@@ -860,13 +930,19 @@ async def export_courses_pdf(db: Session = Depends(get_db)):
             media_type="application/pdf",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        logger.error(f"Export courses pdf failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export courses pdf failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
 
 
 @router.get("/analytics/course/{course_id}/pdf")
-async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_db)):
+async def export_course_analytics_pdf(course_id: int, request: Request, db: Session = Depends(get_db)):
     """Export course analytics report to PDF"""
     try:
         Course, Grade, CourseEnrollment = import_names("models", "Course", "Grade", "CourseEnrollment")
@@ -877,7 +953,13 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                404,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch)
@@ -1042,6 +1124,12 @@ async def export_course_analytics_pdf(course_id: int, db: Session = Depends(get_
         )
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Export course analytics pdf failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Export failed")
+    except Exception as exc:
+        logger.error("Export course analytics pdf failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )

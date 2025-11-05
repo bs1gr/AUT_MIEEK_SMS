@@ -16,12 +16,13 @@ from typing import Optional, List, Dict, Any
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
+from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
 # Rate limiting for new endpoints (honors project guidance)
 from backend.import_resolver import import_names
+from backend.errors import ErrorCode, http_error
 
 limiter, RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
 
@@ -589,7 +590,7 @@ async def get_environment_info(include_packages: bool = False):
 
 
 @router.post("/operations/install-frontend-deps", response_model=OperationResult)
-async def install_frontend_dependencies(background_tasks: BackgroundTasks):
+async def install_frontend_dependencies(request: Request):
     """
     Install frontend npm dependencies
     Similar to npm install in INSTALL.ps1
@@ -597,13 +598,26 @@ async def install_frontend_dependencies(background_tasks: BackgroundTasks):
     project_root = Path(__file__).parent.parent.parent
     frontend_dir = project_root / "frontend"
 
-    if not (frontend_dir / "package.json").exists():
-        raise HTTPException(status_code=404, detail="package.json not found")
+    package_json = frontend_dir / "package.json"
+    if not package_json.exists():
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_PACKAGE_JSON_MISSING,
+            "Frontend package.json not found",
+            request,
+            context={"path": str(package_json)},
+        )
 
     # Check if npm is available
     npm_ok, _ = _check_npm_installed()
     if not npm_ok:
-        raise HTTPException(status_code=400, detail="npm not found - please install Node.js")
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_NPM_NOT_FOUND,
+            "npm is not available. Install Node.js to continue",
+            request,
+            context={"command": "npm --version"},
+        )
 
     try:
         # Run npm install
@@ -617,12 +631,18 @@ async def install_frontend_dependencies(background_tasks: BackgroundTasks):
             message="Frontend dependencies installed successfully" if success else "Installation failed",
             details={"stdout": stdout, "stderr": stderr},
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Installation error: {str(e)}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_INSTALL_ERROR,
+            "Frontend dependency installation failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/install-backend-deps", response_model=OperationResult)
-async def install_backend_dependencies():
+async def install_backend_dependencies(request: Request):
     """
     Install backend Python dependencies
     Similar to pip install in INSTALL.ps1
@@ -631,7 +651,13 @@ async def install_backend_dependencies():
     requirements_file = project_root / "backend" / "requirements.txt"
 
     if not requirements_file.exists():
-        raise HTTPException(status_code=404, detail="requirements.txt not found")
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_REQUIREMENTS_MISSING,
+            "Backend requirements.txt not found",
+            request,
+            context={"path": str(requirements_file)},
+        )
 
     try:
         # Run pip install
@@ -645,24 +671,36 @@ async def install_backend_dependencies():
             message="Backend dependencies installed successfully" if success else "Installation failed",
             details={"stdout": stdout, "stderr": stderr},
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Installation error: {str(e)}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_INSTALL_ERROR,
+            "Backend dependency installation failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/docker-build", response_model=OperationResult)
-async def build_docker_image():
+async def build_docker_image(request: Request):
     """
     Build Docker fullstack image
     Similar to SETUP.ps1
     """
     if not _check_docker_running():
-        raise HTTPException(status_code=400, detail="Docker is not running")
+        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
 
     project_root = Path(__file__).parent.parent.parent
     dockerfile = project_root / "docker" / "Dockerfile.fullstack"
 
     if not dockerfile.exists():
-        raise HTTPException(status_code=404, detail="Dockerfile.fullstack not found")
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_DOCKERFILE_MISSING,
+            "Dockerfile.fullstack not found",
+            request,
+            context={"path": str(dockerfile)},
+        )
 
     try:
         success, stdout, stderr = _run_command(
@@ -675,12 +713,18 @@ async def build_docker_image():
             message="Docker image built successfully" if success else "Build failed",
             details={"stdout": stdout, "stderr": stderr},
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Build error: {str(e)}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BUILD_FAILED,
+            "Docker image build failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/docker-stop", response_model=OperationResult)
-async def docker_stop_all(down: bool = False):
+async def docker_stop_all(request: Request, down: bool = False):
     """
     Stop (or remove) Docker containers for this project using docker compose.
 
@@ -696,7 +740,7 @@ async def docker_stop_all(down: bool = False):
         )
 
     if not _check_docker_running():
-        raise HTTPException(status_code=400, detail="Docker is not running")
+        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
 
     project_root = Path(__file__).parent.parent.parent
     ok, out, err = _docker_compose(["stop"], cwd=project_root, timeout=120)
@@ -813,7 +857,7 @@ async def docker_prune(request: Request, include_volumes: bool = False):
         )
 
     if not _check_docker_running():
-        raise HTTPException(status_code=400, detail="Docker is not running")
+        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
 
     summary: Dict[str, Any] = {"steps": []}
     errors: list[str] = []
@@ -855,7 +899,7 @@ async def docker_prune(request: Request, include_volumes: bool = False):
 
 
 @router.get("/logs/backend")
-async def get_backend_logs(lines: int = 100):
+async def get_backend_logs(request: Request, lines: int = 100):
     """Get recent backend logs"""
     try:
         project_root = Path(__file__).parent.parent.parent
@@ -870,12 +914,18 @@ async def get_backend_logs(lines: int = 100):
             recent_lines = all_lines[-lines:]
 
         return {"logs": [line.strip() for line in recent_lines], "total_lines": len(all_lines)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_LOGS_ERROR,
+            "Failed to read backend logs",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/cleanup", response_model=OperationResult)
-async def cleanup_system():
+async def cleanup_system(request: Request):
     """
     Clean up temporary files and caches
     Similar to CLEANUP.ps1
@@ -907,8 +957,14 @@ async def cleanup_system():
             message=f"Cleaned {len(cleaned)} items" + (f" with {len(errors)} errors" if errors else ""),
             details={"cleaned": cleaned[:20], "errors": errors[:10]},  # Limit output size
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_CLEANUP_FAILED,
+            "Repository cleanup failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/cleanup-obsolete", response_model=OperationResult)
@@ -968,7 +1024,7 @@ async def cleanup_obsolete_files():
 
 
 @router.post("/operations/docker-update-volume", response_model=OperationResult)
-async def docker_update_volume(migrate: bool = True):
+async def docker_update_volume(request: Request, migrate: bool = True):
     """
     Create a new versioned Docker volume and generate docker-compose.override.yml to switch backend /data.
     Optionally migrates data from existing 'sms_data' volume to the new one.
@@ -982,7 +1038,7 @@ async def docker_update_volume(migrate: bool = True):
         )
 
     if not _check_docker_running():
-        raise HTTPException(status_code=400, detail="Docker is not running")
+        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
 
     project_root = Path(__file__).parent.parent.parent
 
@@ -1039,5 +1095,11 @@ async def docker_update_volume(migrate: bool = True):
                 "next_steps": ["docker compose down", "docker compose up -d"],
             },
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Docker volume update failed: {e}")
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_VOLUME_UPDATE_FAILED,
+            "Docker volume update failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc

@@ -15,6 +15,9 @@ Coverage:
 
 from datetime import date, timedelta
 
+from backend.errors import ErrorCode
+from backend.tests.utils import get_error_message
+
 
 def test_create_attendance_success(client):
     """Create attendance record successfully"""
@@ -69,7 +72,10 @@ def test_create_attendance_invalid_student(client):
     )
 
     assert response.status_code == 404
-    assert "Student not found" in response.json()["detail"]
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
+    assert "Student not found" in get_error_message(payload)
 
 
 def test_create_attendance_invalid_course(client):
@@ -87,7 +93,10 @@ def test_create_attendance_invalid_course(client):
     )
 
     assert response.status_code == 404
-    assert "Course not found" in response.json()["detail"]
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
+    assert "Course not found" in get_error_message(payload)
 
 
 def test_create_duplicate_attendance(client):
@@ -120,7 +129,10 @@ def test_create_duplicate_attendance(client):
     # Try to create duplicate
     response2 = client.post("/api/v1/attendance/", json=attendance_data)
     assert response2.status_code == 400
-    assert "already exists" in response2.json()["detail"]
+    payload = response2.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.ATTENDANCE_ALREADY_EXISTS.value
+    assert "already exists" in get_error_message(payload)
 
 
 def test_get_all_attendance(client):
@@ -437,6 +449,9 @@ def test_delete_attendance(client):
     # Verify deleted
     get_resp = client.get(f"/api/v1/attendance/{attendance_id}")
     assert get_resp.status_code == 404
+    payload = get_resp.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
 
 
 def test_attendance_stats(client):
@@ -590,24 +605,44 @@ def test_attendance_date_range_with_only_end_date(client):
 def test_update_attendance_not_found(client):
     response = client.put("/api/v1/attendance/9999", json={"status": "Late"})
     assert response.status_code == 404
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
+    assert "Attendance record not found" in get_error_message(payload)
 
 
 def test_delete_attendance_not_found(client):
     response = client.delete("/api/v1/attendance/9999")
     assert response.status_code == 404
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
+    assert "Attendance record not found" in get_error_message(payload)
 
 
 def test_get_student_attendance_not_found(client):
     response = client.get("/api/v1/attendance/student/9999")
     assert response.status_code == 404
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
+    assert "Student not found" in get_error_message(payload)
 
 
 def test_get_course_attendance_not_found(client):
     response = client.get("/api/v1/attendance/course/9999")
     assert response.status_code == 404
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
+    assert "Course not found" in get_error_message(payload)
 
 
 def test_get_attendance_by_date_course_not_found(client):
     today = date.today().isoformat()
     response = client.get(f"/api/v1/attendance/date/{today}/course/9999")
     assert response.status_code == 404
+    payload = response.json()
+    detail = payload["detail"]
+    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
+    assert "Course not found" in get_error_message(payload)

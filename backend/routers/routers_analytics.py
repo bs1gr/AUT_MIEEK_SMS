@@ -3,7 +3,7 @@ Analytics Routes
 Provides endpoints for student analytics and final grade computations.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 import logging
@@ -18,6 +18,7 @@ router = APIRouter(
 
 
 from backend.db import get_session as get_db
+from backend.errors import ErrorCode, http_error, internal_server_error
 
 
 def get_letter_grade(percentage: float) -> str:
@@ -33,7 +34,7 @@ def get_letter_grade(percentage: float) -> str:
 
 
 @router.get("/student/{student_id}/course/{course_id}/final-grade")
-def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends(get_db)):
+def calculate_final_grade(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Calculate final grade using evaluation rules, grades, daily performance, and attendance."""
     try:
         from backend.import_resolver import import_names
@@ -48,7 +49,13 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
         course = (
             db.query(Course)
@@ -56,7 +63,13 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
             .first()
         )
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                404,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
 
         evaluation_rules = course.evaluation_rules or []
         if not evaluation_rules:
@@ -184,13 +197,13 @@ def calculate_final_grade(student_id: int, course_id: int, db: Session = Depends
         }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Final grade calculation failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Final grade calculation failed: %s", exc, exc_info=True)
+        raise internal_server_error("Final grade calculation failed", request)
 
 
 @router.get("/student/{student_id}/all-courses-summary")
-def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_db)):
+def get_student_all_courses_summary(request: Request, student_id: int, db: Session = Depends(get_db)):
     try:
         from backend.import_resolver import import_names
 
@@ -205,7 +218,13 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
         # Get all course IDs in one go
         grade_courses = (
@@ -241,7 +260,7 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
                 if not course:
                     continue
 
-                data = calculate_final_grade(student_id, cid, db)  # reuse logic
+                data = calculate_final_grade(request, student_id, cid, db)  # reuse logic
                 if isinstance(data, dict) and data.get("error"):
                     continue
 
@@ -274,13 +293,13 @@ def get_student_all_courses_summary(student_id: int, db: Session = Depends(get_d
         }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Student courses summary failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Student courses summary failed: %s", exc, exc_info=True)
+        raise internal_server_error("Student courses summary failed", request)
 
 
 @router.get("/student/{student_id}/summary")
-def get_student_summary(student_id: int, db: Session = Depends(get_db)):
+def get_student_summary(request: Request, student_id: int, db: Session = Depends(get_db)):
     try:
         from backend.import_resolver import import_names
 
@@ -292,7 +311,13 @@ def get_student_summary(student_id: int, db: Session = Depends(get_db)):
             .first()
         )
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                404,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
 
         total_att = (
             db.query(Attendance)
@@ -332,6 +357,6 @@ def get_student_summary(student_id: int, db: Session = Depends(get_db)):
         }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Student summary failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Student summary failed: %s", exc, exc_info=True)
+        raise internal_server_error("Student summary failed", request)

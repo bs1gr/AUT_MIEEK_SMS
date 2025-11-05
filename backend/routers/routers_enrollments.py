@@ -1,12 +1,10 @@
-"""
-Course Enrollments Router
-Provides endpoints to manage student enrollments to courses.
-"""
+"""Course enrollment endpoints with structured error responses."""
 
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List
-from sqlalchemy.orm import Session
 import logging
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +16,17 @@ from backend.routers.routers_auth import optional_require_role
 # ===== Dependency =====
 from backend.db import get_session as get_db
 from backend.import_resolver import import_names
+from backend.errors import ErrorCode, http_error, internal_server_error
 
 
 # ===== Endpoints =====
 @router.get("/", response_model=List[EnrollmentResponse])
-def get_all_enrollments(skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
+def get_all_enrollments(
+    request: Request,
+    skip: int = 0,
+    limit: int = 1000,
+    db: Session = Depends(get_db),
+):
     """Get all course enrollments"""
     try:
         (CourseEnrollment,) = import_names("models", "CourseEnrollment")
@@ -36,19 +40,25 @@ def get_all_enrollments(skip: int = 0, limit: int = 1000, db: Session = Depends(
         )
         logger.info(f"Retrieved {len(enrollments)} enrollments (skip={skip}, limit={limit})")
         return enrollments
-    except Exception as e:
-        logger.error(f"Error retrieving all enrollments: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Error retrieving all enrollments: %s", exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
-def list_course_enrollments(course_id: int, db: Session = Depends(get_db)):
+def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         CourseEnrollment, Course = import_names("models", "CourseEnrollment", "Course")
 
         course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
         enrollments = (
             db.query(CourseEnrollment)
             .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.deleted_at.is_(None))
@@ -57,20 +67,26 @@ def list_course_enrollments(course_id: int, db: Session = Depends(get_db)):
         return enrollments
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error listing enrollments: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Error listing enrollments for course %s: %s", course_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.get("/student/{student_id}", response_model=List[EnrollmentResponse])
-def list_student_enrollments(student_id: int, db: Session = Depends(get_db)):
+def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
         Student, CourseEnrollment = import_names("models", "Student", "CourseEnrollment")
 
         student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.STUDENT_NOT_FOUND,
+                "Student not found",
+                request,
+                context={"student_id": student_id},
+            )
         enrollments = (
             db.query(CourseEnrollment)
             .filter(CourseEnrollment.student_id == student_id, CourseEnrollment.deleted_at.is_(None))
@@ -80,19 +96,25 @@ def list_student_enrollments(student_id: int, db: Session = Depends(get_db)):
         return enrollments
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error listing student enrollments: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Error listing enrollments for student %s: %s", student_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
-def list_enrolled_students(course_id: int, db: Session = Depends(get_db)):
+def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         Course, Student, CourseEnrollment = import_names("models", "Course", "Student", "CourseEnrollment")
 
         course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
         q = (
             db.query(Student)
             .join(CourseEnrollment, CourseEnrollment.student_id == Student.id)
@@ -105,15 +127,16 @@ def list_enrolled_students(course_id: int, db: Session = Depends(get_db)):
         return q.all()
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error listing enrolled students: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    except Exception as exc:
+        logger.error("Error listing students for course %s: %s", course_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.post("/course/{course_id}")
 def enroll_students(
     course_id: int,
     payload: EnrollmentCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
@@ -126,7 +149,13 @@ def enroll_students(
 
         course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
-            raise HTTPException(status_code=404, detail="Course not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.COURSE_NOT_FOUND,
+                "Course not found",
+                request,
+                context={"course_id": course_id},
+            )
 
         # Fetch all students at once to avoid N+1 queries
         students = (
@@ -163,16 +192,17 @@ def enroll_students(
         return {"created": created, "reactivated": reactivated}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Error enrolling students: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error("Error enrolling students in course %s: %s", course_id, exc, exc_info=True)
+        raise internal_server_error(request=request)
 
 
 @router.delete("/course/{course_id}/student/{student_id}")
 def unenroll_student(
     course_id: int,
     student_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
@@ -189,13 +219,21 @@ def unenroll_student(
             .first()
         )
         if not enrollment:
-            raise HTTPException(status_code=404, detail="Enrollment not found")
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.ENROLLMENT_NOT_FOUND,
+                "Enrollment not found",
+                request,
+                context={"course_id": course_id, "student_id": student_id},
+            )
         enrollment.mark_deleted()
         db.commit()
         return {"message": "Unenrolled"}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        logger.error(f"Error unenrolling student: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(
+            "Error unenrolling student %s from course %s: %s", student_id, course_id, exc, exc_info=True
+        )
+        raise internal_server_error(request=request)
