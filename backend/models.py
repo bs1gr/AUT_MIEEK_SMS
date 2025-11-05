@@ -40,7 +40,7 @@ class SoftDeleteMixin:
 
     def mark_deleted(self) -> None:
         """Mark the instance as deleted using a timezone-aware timestamp."""
-        self.deleted_at = datetime.now(timezone.utc)
+        self.deleted_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
 
 class Student(SoftDeleteMixin, Base):
