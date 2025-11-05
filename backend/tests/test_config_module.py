@@ -19,7 +19,7 @@ def build_settings(**overrides):
         "CORS_ORIGINS": "http://localhost:5173",
     }
     base.update(overrides)
-    return Settings(**base)
+    return Settings(**base)  # type: ignore[arg-type]
 
 
 def test_semester_weeks_validation_bounds():
