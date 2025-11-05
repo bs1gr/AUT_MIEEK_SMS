@@ -181,7 +181,7 @@ After successful installation, users should know:
 
 Ensure user has access to:
 
-- [ ] **QUICK_DEPLOYMENT.md** - Quick reference
+- [ ] **docs/QUICK_START_GUIDE.md** - Quick reference
 - [ ] **DEPLOYMENT_GUIDE.md** - Complete deployment guide
 - [ ] **README.md** - Application documentation
 - [ ] **ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md** - Greek user manual (if needed)

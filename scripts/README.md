@@ -279,10 +279,16 @@ The `.ps1` versions are the canonical implementation.
 For more detailed documentation, see:
 
 - `../README.md` - Main project documentation
-- `../QUICK_DEPLOYMENT.md` - Quick deployment guide
+- `../docs/QUICK_START_GUIDE.md` - Quick start guide
 - `../DEPLOYMENT_GUIDE.md` - Complete deployment instructions
 - `../docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` - Fresh deployment troubleshooting
 - `../docs/REBUILD_TROUBLESHOOTING.md` - Rebuild troubleshooting
+
+### 🐧 Linux Helpers
+
+- `../scripts/linux_env_check.sh` — Validate Linux environment (Docker, Python, Node, pwsh, .env files); use `--fix` to auto-create safe items
+- `./dev/run-native.sh` — Start in native development mode (delegates to SMART_SETUP.ps1)
+- `./deploy/run-docker-release.sh` — Start in Docker release mode (delegates to SMART_SETUP.ps1)
 
 ## 🔐 Safety Notes
 
