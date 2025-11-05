@@ -423,7 +423,10 @@ def test_get_network_ips_prefers_psutil(health_checker, monkeypatch):
 
 def test_get_network_ips_socket_fallback(health_checker, monkeypatch):
     monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(net_if_addrs=lambda: {}))
-    monkeypatch.setattr("backend.health_checks.socket.gethostbyname_ex", lambda hostname: (hostname, [], ["192.168.1.5", "169.254.33.1"]))
+    monkeypatch.setattr(
+        "backend.health_checks.socket.gethostbyname_ex",
+        lambda hostname: (hostname, [], ["192.168.1.5", "169.254.33.1"]),
+    )
 
     result = health_checker._get_network_ips("host")
     assert "192.168.1.5" in result

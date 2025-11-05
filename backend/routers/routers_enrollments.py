@@ -32,11 +32,7 @@ def get_all_enrollments(
         (CourseEnrollment,) = import_names("models", "CourseEnrollment")
 
         enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.deleted_at.is_(None))
-            .offset(skip)
-            .limit(limit)
-            .all()
+            db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).offset(skip).limit(limit).all()
         )
         logger.info(f"Retrieved {len(enrollments)} enrollments (skip={skip}, limit={limit})")
         return enrollments
@@ -158,11 +154,7 @@ def enroll_students(
             )
 
         # Fetch all students at once to avoid N+1 queries
-        students = (
-            db.query(Student)
-            .filter(Student.id.in_(payload.student_ids), Student.deleted_at.is_(None))
-            .all()
-        )
+        students = db.query(Student).filter(Student.id.in_(payload.student_ids), Student.deleted_at.is_(None)).all()
         valid_student_ids = {s.id for s in students}
 
         created = 0
@@ -233,7 +225,5 @@ def unenroll_student(
         raise
     except Exception as exc:
         db.rollback()
-        logger.error(
-            "Error unenrolling student %s from course %s: %s", student_id, course_id, exc, exc_info=True
-        )
+        logger.error("Error unenrolling student %s from course %s: %s", student_id, course_id, exc, exc_info=True)
         raise internal_server_error(request=request)

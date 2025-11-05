@@ -79,9 +79,7 @@ def create_attendance(
 
         # Validate student exists and is active
         student = (
-            db.query(Student)
-            .filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None))
-            .first()
+            db.query(Student).filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None)).first()
         )
         if not student:
             raise http_error(
@@ -92,11 +90,7 @@ def create_attendance(
             )
 
         # Validate course exists and is active
-        course = (
-            db.query(Course)
-            .filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -213,11 +207,7 @@ def get_student_attendance(
         Attendance, Student = import_names("models", "Attendance", "Student")
 
         # Validate student exists
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -226,10 +216,7 @@ def get_student_attendance(
                 request,
             )
 
-        query = (
-            db.query(Attendance)
-            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
-        )
+        query = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
 
         if course_id:
             query = query.filter(Attendance.course_id == course_id)
@@ -263,11 +250,7 @@ def get_course_attendance(
         Attendance, Course = import_names("models", "Attendance", "Course")
 
         # Validate course exists
-        course = (
-            db.query(Course)
-            .filter(Course.id == course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -276,10 +259,7 @@ def get_course_attendance(
                 request,
             )
 
-        query = (
-            db.query(Attendance)
-            .filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
-        )
+        query = db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
         rng = _normalize_date_range(start_date, end_date)
         if rng:
             s, e = rng
@@ -307,11 +287,7 @@ def get_attendance_by_date_and_course(
 
         Attendance, Course = import_names("models", "Attendance", "Course")
 
-        course = (
-            db.query(Course)
-            .filter(Course.id == course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -345,9 +321,7 @@ def get_attendance(request: Request, attendance_id: int, db: Session = Depends(g
         (Attendance,) = import_names("models", "Attendance")
 
         attendance = (
-            db.query(Attendance)
-            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
-            .first()
+            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
         )
 
         if not attendance:
@@ -383,9 +357,7 @@ def update_attendance(
         (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = (
-            db.query(Attendance)
-            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
-            .first()
+            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
         )
 
         if not db_attendance:
@@ -429,9 +401,7 @@ def delete_attendance(
         (Attendance,) = import_names("models", "Attendance")
 
         db_attendance = (
-            db.query(Attendance)
-            .filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None))
-            .first()
+            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
         )
 
         if not db_attendance:
@@ -530,9 +500,7 @@ def bulk_create_attendance(
                     raise ValueError("Student not found or archived")
 
                 course = (
-                    db.query(Course)
-                    .filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None))
-                    .first()
+                    db.query(Course).filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None)).first()
                 )
                 if not course:
                     raise ValueError("Course not found or archived")

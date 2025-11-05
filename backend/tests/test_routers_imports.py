@@ -16,17 +16,18 @@ def _make_upload(filename: str, data: bytes, content_type: str | None) -> Upload
     headers = Headers({"content-type": content_type}) if content_type else None
     return UploadFile(BytesIO(data), filename=filename, headers=headers)
 
+
 from backend.errors import ErrorCode
 from backend.routers.routers_imports import validate_uploaded_file
 
 
 def test_validate_uploaded_file_accepts_valid_json():
     """A well-formed JSON upload should pass validation."""
-    upload = _make_upload("students.json", b"{\"students\": []}", "application/json")
+    upload = _make_upload("students.json", b'{"students": []}', "application/json")
 
     content = asyncio.run(validate_uploaded_file(Request({"type": "http"}), upload))
 
-    assert content == b"{\"students\": []}"
+    assert content == b'{"students": []}'
 
 
 def test_validate_uploaded_file_rejects_bad_extension():

@@ -380,10 +380,7 @@ def bulk_create_students(
                     continue
 
                 existing_sid = (
-                    db.query(Student)
-                    .filter(Student.student_id == student_data.student_id)
-                    .with_for_update()
-                    .first()
+                    db.query(Student).filter(Student.student_id == student_data.student_id).with_for_update().first()
                 )
                 if existing_sid:
                     if existing_sid.deleted_at is None:

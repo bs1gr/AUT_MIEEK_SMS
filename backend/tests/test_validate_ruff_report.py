@@ -55,7 +55,12 @@ def test_schema_failure_when_jsonschema_present(tmp_path: Path):
     # Create a schema that requires ruff_version to be a number
     schema_dir = tmp_path / ".github" / "schema"
     schema_dir.mkdir(parents=True)
-    schema = {"$schema": "http://json-schema.org/draft-07/schema#", "type": "object", "properties": {"ruff_version": {"type": "number"}}, "required": ["ruff_version", "issues"]}
+    schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {"ruff_version": {"type": "number"}},
+        "required": ["ruff_version", "issues"],
+    }
     (schema_dir / "ruff-report.schema.json").write_text(json.dumps(schema))
 
     # Create artifact that violates schema (ruff_version is string)
