@@ -11,7 +11,7 @@ client = TestClient(main.app)
 # In Docker, the frontend is served as static files, not via npm dev server
 pytestmark = pytest.mark.skipif(
     environment.get_runtime_context().is_docker,
-    reason="Control panel tests require native environment with frontend source"
+    reason="Control panel tests require native environment with frontend source",
 )
 
 

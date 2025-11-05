@@ -41,11 +41,7 @@ def create_highlight(
         404: Student not found
     """
     try:
-        student = (
-            db.query(Student)
-            .filter(Student.id == highlight.student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == highlight.student_id, Student.deleted_at.is_(None)).first()
         if not student:
             logger.warning("Student not found for highlight creation: %s", highlight.student_id)
             raise http_error(
@@ -150,11 +146,7 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
         404: Highlight not found
     """
     try:
-        db_highlight = (
-            db.query(Highlight)
-            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-            .first()
-        )
+        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
         if not db_highlight:
             logger.warning("Highlight not found: %s", highlight_id)
             raise http_error(
@@ -196,11 +188,7 @@ def get_student_highlights(
         404: Student not found
     """
     try:
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             logger.warning("Student not found when listing highlights: %s", student_id)
             raise http_error(
@@ -211,10 +199,7 @@ def get_student_highlights(
                 context={"student_id": student_id},
             )
 
-        query = (
-            db.query(Highlight)
-            .filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
-        )
+        query = db.query(Highlight).filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
         if semester:
             query = query.filter(Highlight.semester == semester)
 
@@ -253,11 +238,7 @@ def update_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = (
-            db.query(Highlight)
-            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-            .first()
-        )
+        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
         if not db_highlight:
             logger.warning("Highlight not found for update: %s", highlight_id)
             raise http_error(
@@ -304,11 +285,7 @@ def delete_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = (
-            db.query(Highlight)
-            .filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None))
-            .first()
-        )
+        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
         if not db_highlight:
             logger.warning("Highlight not found for delete: %s", highlight_id)
             raise http_error(

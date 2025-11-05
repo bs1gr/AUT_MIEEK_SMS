@@ -259,11 +259,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
         (Grade,) = import_names("models", "Grade")
 
         # Use Session.get for SQLAlchemy 2.x compatibility and performance
-        grade = (
-            db.query(Grade)
-            .filter(Grade.id == grade_id, Grade.deleted_at.is_(None))
-            .first()
-        )
+        grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
         if not grade:
             raise http_error(
                 404,

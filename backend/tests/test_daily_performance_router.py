@@ -91,9 +91,7 @@ def test_get_student_course_daily_performance_filters_by_course(client):
     _create_daily_performance(client, student["id"], course_a["id"], category="Presentation")
     _create_daily_performance(client, student["id"], course_b["id"], category="Homework")
 
-    response = client.get(
-        f"/api/v1/daily-performance/student/{student['id']}/course/{course_a['id']}"
-    )
+    response = client.get(f"/api/v1/daily-performance/student/{student['id']}/course/{course_a['id']}")
     assert response.status_code == 200
     items = response.json()
     assert len(items) == 1

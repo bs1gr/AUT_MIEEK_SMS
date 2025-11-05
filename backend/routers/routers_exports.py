@@ -39,11 +39,7 @@ async def export_students_excel(request: Request, db: Session = Depends(get_db))
     try:
         (Student,) = import_names("models", "Student")
 
-        students = (
-            db.query(Student)
-            .filter(Student.deleted_at.is_(None))
-            .all()
-        )
+        students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -83,11 +79,7 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
     try:
         Student, Grade = import_names("models", "Student", "Grade")
 
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 404,
@@ -96,11 +88,7 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
                 request,
                 context={"student_id": student_id},
             )
-        grades = (
-            db.query(Grade)
-            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
-            .all()
-        )
+        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -177,11 +165,7 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
     try:
         (Student,) = import_names("models", "Student")
 
-        students = (
-            db.query(Student)
-            .filter(Student.deleted_at.is_(None))
-            .all()
-        )
+        students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         elements = []
@@ -248,11 +232,7 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
     try:
         (Attendance,) = import_names("models", "Attendance")
 
-        records = (
-            db.query(Attendance)
-            .filter(Attendance.deleted_at.is_(None))
-            .all()
-        )
+        records = db.query(Attendance).filter(Attendance.deleted_at.is_(None)).all()
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
         ws.title = "Attendance"
@@ -297,11 +277,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
     try:
         (Course,) = import_names("models", "Course")
 
-        courses = (
-            db.query(Course)
-            .filter(Course.deleted_at.is_(None))
-            .all()
-        )
+        courses = db.query(Course).filter(Course.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -351,11 +327,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
     try:
         CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
 
-        enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.deleted_at.is_(None))
-            .all()
-        )
+        enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -368,16 +340,8 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
             cell.alignment = Alignment(horizontal="center")
 
         for row, e in enumerate(enrollments, 2):
-            student = (
-                db.query(Student)
-                .filter(Student.id == e.student_id, Student.deleted_at.is_(None))
-                .first()
-            )
-            course = (
-                db.query(Course)
-                .filter(Course.id == e.course_id, Course.deleted_at.is_(None))
-                .first()
-            )
+            student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
+            course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
 
             ws.cell(row=row, column=1, value=e.id)
             ws.cell(row=row, column=2, value=e.student_id)
@@ -416,11 +380,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
     try:
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
-        grades = (
-            db.query(Grade)
-            .filter(Grade.deleted_at.is_(None))
-            .all()
-        )
+        grades = db.query(Grade).filter(Grade.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -446,16 +406,8 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
             cell.alignment = Alignment(horizontal="center")
 
         for row, g in enumerate(grades, 2):
-            student = (
-                db.query(Student)
-                .filter(Student.id == g.student_id, Student.deleted_at.is_(None))
-                .first()
-            )
-            course = (
-                db.query(Course)
-                .filter(Course.id == g.course_id, Course.deleted_at.is_(None))
-                .first()
-            )
+            student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
+            course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
 
             ws.cell(row=row, column=1, value=g.id)
@@ -500,11 +452,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
-        performances = (
-            db.query(DailyPerformance)
-            .filter(DailyPerformance.deleted_at.is_(None))
-            .all()
-        )
+        performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -529,16 +477,8 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
             cell.alignment = Alignment(horizontal="center")
 
         for row, p in enumerate(performances, 2):
-            student = (
-                db.query(Student)
-                .filter(Student.id == p.student_id, Student.deleted_at.is_(None))
-                .first()
-            )
-            course = (
-                db.query(Course)
-                .filter(Course.id == p.course_id, Course.deleted_at.is_(None))
-                .first()
-            )
+            student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
+            course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
 
             ws.cell(row=row, column=1, value=p.id)
             ws.cell(row=row, column=2, value=p.student_id)
@@ -581,11 +521,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
     try:
         Highlight, Student = import_names("models", "Highlight", "Student")
 
-        highlights = (
-            db.query(Highlight)
-            .filter(Highlight.deleted_at.is_(None))
-            .all()
-        )
+        highlights = db.query(Highlight).filter(Highlight.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -608,11 +544,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
             cell.alignment = Alignment(horizontal="center")
 
         for row, h in enumerate(highlights, 2):
-            student = (
-                db.query(Student)
-                .filter(Student.id == h.student_id, Student.deleted_at.is_(None))
-                .first()
-            )
+            student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
 
             ws.cell(row=row, column=1, value=h.id)
             ws.cell(row=row, column=2, value=h.student_id)
@@ -655,11 +587,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             "models", "Student", "Grade", "Attendance", "Course", "DailyPerformance"
         )
 
-        student = (
-            db.query(Student)
-            .filter(Student.id == student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 404,
@@ -712,9 +640,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         elements.append(Paragraph("Attendance Summary", subtitle_style))
 
         attendance_records = (
-            db.query(Attendance)
-            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
-            .all()
+            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).all()
         )
         total_att = len(attendance_records)
         present = len([a for a in attendance_records if a.status == "Present"])
@@ -748,11 +674,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         # Grades by Course
         elements.append(Paragraph("Grades by Course", subtitle_style))
 
-        grades = (
-            db.query(Grade)
-            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
-            .all()
-        )
+        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
         course_grades = {}
         for g in grades:
             if g.course_id not in course_grades:
@@ -760,11 +682,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             course_grades[g.course_id].append(g)
 
         for course_id, course_grade_list in course_grades.items():
-            course = (
-                db.query(Course)
-                .filter(Course.id == course_id, Course.deleted_at.is_(None))
-                .first()
-            )
+            course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
             if not course:
                 continue
 
@@ -871,11 +789,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
     try:
         (Course,) = import_names("models", "Course")
 
-        courses = (
-            db.query(Course)
-            .filter(Course.deleted_at.is_(None))
-            .all()
-        )
+        courses = db.query(Course).filter(Course.deleted_at.is_(None)).all()
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -947,11 +861,7 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
     try:
         Course, Grade, CourseEnrollment = import_names("models", "Course", "Grade", "CourseEnrollment")
 
-        course = (
-            db.query(Course)
-            .filter(Course.id == course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 404,
@@ -1004,11 +914,7 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
         )
 
         # Get all grades for this course
-        grades = (
-            db.query(Grade)
-            .filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
-            .all()
-        )
+        grades = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None)).all()
 
         # Calculate statistics
         student_ids = set([e.student_id for e in enrollments])

@@ -169,12 +169,7 @@ def create_course(
     try:
         (Course,) = import_names("models", "Course")
 
-        existing = (
-            db.query(Course)
-            .filter(Course.course_code == course.course_code)
-            .with_for_update()
-            .first()
-        )
+        existing = db.query(Course).filter(Course.course_code == course.course_code).with_for_update().first()
         if existing:
             if existing.deleted_at is None:
                 raise http_error(400, ErrorCode.COURSE_DUPLICATE_CODE, "Course code already exists", request)

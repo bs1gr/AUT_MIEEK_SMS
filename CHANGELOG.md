@@ -351,4 +351,3 @@ Unreleased changes will be added above as they land in main.
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
 [Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.3.8...HEAD
-

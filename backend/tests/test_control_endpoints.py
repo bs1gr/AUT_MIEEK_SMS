@@ -15,7 +15,7 @@ client = TestClient(main.app)
 # Skip in Docker where only built static files are present
 pytestmark = pytest.mark.skipif(
     environment.get_runtime_context().is_docker,
-    reason="Control panel tests require native environment with frontend source"
+    reason="Control panel tests require native environment with frontend source",
 )
 
 

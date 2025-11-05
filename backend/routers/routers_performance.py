@@ -58,11 +58,7 @@ def create_daily_performance(
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
-        student = (
-            db.query(Student)
-            .filter(Student.id == performance.student_id, Student.deleted_at.is_(None))
-            .first()
-        )
+        student = db.query(Student).filter(Student.id == performance.student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -71,11 +67,7 @@ def create_daily_performance(
                 request,
             )
 
-        course = (
-            db.query(Course)
-            .filter(Course.id == performance.course_id, Course.deleted_at.is_(None))
-            .first()
-        )
+        course = db.query(Course).filter(Course.id == performance.course_id, Course.deleted_at.is_(None)).first()
         if not course:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -109,9 +101,7 @@ def get_student_daily_performance(student_id: int, request: Request, db: Session
             .all()
         )
     except Exception as exc:
-        logger.error(
-            "Error fetching daily performance for student %s: %s", student_id, exc, exc_info=True
-        )
+        logger.error("Error fetching daily performance for student %s: %s", student_id, exc, exc_info=True)
         raise internal_server_error(request=request) from exc
 
 
