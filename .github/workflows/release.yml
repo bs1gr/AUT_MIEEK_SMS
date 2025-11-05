@@ -27,7 +27,7 @@ jobs:
 
       - name: Run backend tests inside Docker
         run: |
-          docker run --rm --entrypoint pytest sms-backend:ci-verify -q
+          docker run --rm -e TESTING=true --entrypoint pytest sms-backend:ci-verify -q
 
       - name: Verify frontend build via fullstack image
         run: |

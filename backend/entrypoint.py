@@ -23,11 +23,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from backend.environment import get_runtime_context
 
-# Ensure production defaults inside the container runtime. Operators can still
-# override these before the process starts if necessary, but the defaults keep
-# release images aligned with the Docker-only execution policy.
-os.environ.setdefault("SMS_ENV", "production")
+# Set execution mode to docker, but allow SMS_ENV to be controlled externally
+# This allows tests to run properly while production deployments can set SMS_ENV=production
 os.environ.setdefault("SMS_EXECUTION_MODE", "docker")
+# Only set production if not in a test environment
+if not os.environ.get("TESTING") and not os.environ.get("PYTEST_CURRENT_TEST"):
+    os.environ.setdefault("SMS_ENV", "production")
 
 
 def setup_logging() -> logging.Logger:
