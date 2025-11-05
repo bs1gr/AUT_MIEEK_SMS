@@ -129,8 +129,13 @@ def _is_ci() -> bool:
 
 
 def _is_pytest() -> bool:
+    # Check explicit TESTING flag (used in CI Docker runs)
+    if _truthy(os.environ.get("TESTING")):
+        return True
+    # Check standard pytest env vars
     if any(os.environ.get(flag) for flag in _PYTEST_ENV_FLAGS):
         return True
+    # Check if pytest is in argv (fallback)
     argv = " ".join(sys.argv).lower()
     return "pytest" in argv
 
