@@ -189,7 +189,7 @@ try {
       Write-Log "Force rebuild requested (--no-cache)" 'WARN'
       $buildArgs += '--no-cache'
     }
-    
+
     $buildProcess = Start-Process -FilePath 'docker' -ArgumentList $buildArgs -NoNewWindow -Wait -PassThru
     if ($buildProcess.ExitCode -ne 0) {
       throw "Docker build failed with exit code $($buildProcess.ExitCode)"
@@ -239,10 +239,10 @@ try {
     $containerName = "sms-app"
     $imageName = "sms-fullstack:$version"
     $volumeName = "sms_data"
-    
+
     # Remove existing container if present
     docker rm -f $containerName 2>$null | Out-Null
-    
+
     # Start new container
     docker run -d `
       --name $containerName `
@@ -251,7 +251,7 @@ try {
       -v "${root}/templates:/app/templates:ro" `
       --restart unless-stopped `
       $imageName 2>&1 | ForEach-Object { Write-Log $_ }
-    
+
     if ($LASTEXITCODE -ne 0) {
       throw "Failed to start fullstack container"
     }

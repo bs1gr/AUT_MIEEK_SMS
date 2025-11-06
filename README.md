@@ -26,7 +26,7 @@ The first time you run this, it will:
 .\RUN.ps1 -Backup   # Create manual backup
 ```
 
-**Requirements:** 
+**Requirements:**
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
 - Docker Desktop must be running
 
@@ -47,7 +47,7 @@ If you need to develop features or debug, use the advanced setup:
 
 # Container management
 .\SMS.ps1 -Quick      # Start containers
-.\SMS.ps1 -Stop       # Stop containers  
+.\SMS.ps1 -Stop       # Stop containers
 .\SMS.ps1 -Status     # Show status
 .\SMS.ps1 -Logs       # View logs
 ```

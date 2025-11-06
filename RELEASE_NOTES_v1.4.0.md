@@ -1,7 +1,7 @@
 # Release Notes - v1.4.0 "One-Click Deployment"
 
-**Release Date**: November 6, 2025  
-**Type**: Minor Release  
+**Release Date**: November 6, 2025
+**Type**: Minor Release
 **Focus**: Deployment Simplification & User Experience
 
 ---
@@ -279,7 +279,7 @@ Total: 850MB in 1 container
 
 ## 💾 Data Migration
 
-**No migration needed!** 
+**No migration needed!**
 
 Data is stored in Docker volume `sms_data` which persists across container changes.
 
@@ -445,14 +445,14 @@ v1.4.0 delivers on the promise of "one-click deployment":
 - ✅ Comprehensive documentation
 - ✅ Production-ready deployment
 
-**Time to deploy**: < 5 minutes (after first-time build)  
-**User steps**: 1 command  
-**Data safety**: Automatic backups  
+**Time to deploy**: < 5 minutes (after first-time build)
+**User steps**: 1 command
+**Data safety**: Automatic backups
 
 **🎉 Thank you for using Student Management System!**
 
 ---
 
-**Version**: 1.4.0  
-**Release Date**: November 6, 2025  
+**Version**: 1.4.0
+**Release Date**: November 6, 2025
 **License**: MIT

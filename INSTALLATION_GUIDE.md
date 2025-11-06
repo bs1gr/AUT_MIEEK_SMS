@@ -1,6 +1,6 @@
 # Student Management System - Installation Guide
 
-**Version**: 1.4.0  
+**Version**: 1.4.0
 **Last Updated**: November 6, 2025
 
 ---
@@ -473,6 +473,6 @@ After installation:
 
 ---
 
-**Version**: 1.4.0  
-**Last Updated**: November 6, 2025  
+**Version**: 1.4.0
+**Last Updated**: November 6, 2025
 **License**: MIT
