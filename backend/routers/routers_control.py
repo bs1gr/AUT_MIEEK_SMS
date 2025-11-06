@@ -330,7 +330,9 @@ async def run_diagnostics():
                 )
         else:
             results.append(
-                DiagnosticResult(category="Node.js", status="error", message="Node.js not found or not in PATH", details={})
+                DiagnosticResult(
+                    category="Node.js", status="error", message="Node.js not found or not in PATH", details={}
+                )
             )
 
         # Check npm (only in native mode)
@@ -338,7 +340,10 @@ async def run_diagnostics():
         if npm_ok:
             results.append(
                 DiagnosticResult(
-                    category="npm", status="ok", message=f"npm {npm_version} installed", details={"version": npm_version}
+                    category="npm",
+                    status="ok",
+                    message=f"npm {npm_version} installed",
+                    details={"version": npm_version},
                 )
             )
         else:
@@ -349,7 +354,10 @@ async def run_diagnostics():
             docker_version = _check_docker_version()
             results.append(
                 DiagnosticResult(
-                    category="Docker", status="ok", message="Docker Desktop is running", details={"version": docker_version}
+                    category="Docker",
+                    status="ok",
+                    message="Docker Desktop is running",
+                    details={"version": docker_version},
                 )
             )
         else:
@@ -369,11 +377,12 @@ async def run_diagnostics():
         db_path = settings.DATABASE_URL.replace("sqlite:///", "")
         if os.path.exists(db_path):
             size = os.path.getsize(db_path)
-            
+
             # Try to get schema version from database
             schema_version = "Unknown"
             try:
                 from sqlalchemy import create_engine, text
+
                 engine = create_engine(settings.DATABASE_URL)
                 with engine.connect() as conn:
                     result = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1"))
@@ -382,17 +391,13 @@ async def run_diagnostics():
                         schema_version = row[0]
             except Exception:
                 pass
-            
+
             results.append(
                 DiagnosticResult(
                     category="Database",
                     status="ok",
                     message=f"Database operational ({size // 1024} KB)",
-                    details={
-                        "path": db_path,
-                        "size_bytes": size,
-                        "sms_schema_version": schema_version
-                    },
+                    details={"path": db_path, "size_bytes": size, "sms_schema_version": schema_version},
                 )
             )
         else:
