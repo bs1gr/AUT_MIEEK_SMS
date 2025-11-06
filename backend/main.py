@@ -366,7 +366,6 @@ async def lifespan(app: FastAPI):
     # Auto-import courses with evaluation rules if database is empty (works in both Docker and native modes)
     try:
         from sqlalchemy import text
-
         with db_engine.connect() as conn:
             result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
             if result == 0:
@@ -377,27 +376,25 @@ async def lifespan(app: FastAPI):
                     import threading
                     import time
                     import requests
-
+                    
                     def delayed_import():
                         """Wait for server to start, then trigger import."""
                         time.sleep(3)  # Give server time to fully start
                         try:
-                            port = getattr(settings, "API_PORT", 8000)
+                            port = getattr(settings, 'API_PORT', 8000)
                             response = requests.post(
                                 f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
                                 headers={"Content-Type": "application/json"},
-                                timeout=60,
+                                timeout=60
                             )
                             if response.status_code == 200:
                                 data = response.json()
-                                logger.info(
-                                    f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
-                                )
+                                logger.info(f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated")
                             else:
                                 logger.warning(f"Auto-import returned status {response.status_code}")
                         except Exception as e:
                             logger.warning(f"Auto-import request failed: {e}")
-
+                    
                     # Start import in background thread
                     import_thread = threading.Thread(target=delayed_import, daemon=True)
                     import_thread.start()
