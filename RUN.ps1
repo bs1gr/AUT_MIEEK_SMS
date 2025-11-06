@@ -612,9 +612,9 @@ if ($Backup) {
 
         if ($backups) {
             Write-Host "`nRecent backups:" -ForegroundColor Cyan
-            foreach ($backup in $backups) {
-                $size = "{0:N2}" -f ($backup.Length / 1MB)
-                Write-Host "  • $($backup.Name) (${size} MB)" -ForegroundColor White
+            foreach ($backupFile in $backups) {
+                $size = "{0:N2}" -f ($backupFile.Length / 1MB)
+                Write-Host "  • $($backupFile.Name) (${size} MB)" -ForegroundColor White
             }
         }
     } else {
