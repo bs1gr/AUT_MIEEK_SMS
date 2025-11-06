@@ -26,7 +26,6 @@ For deployment, Docker orchestration, and production maintenance.
 
 - `SMART_SETUP.ps1` - Intelligent setup (main entry point)
 - `STOP.ps1` - Stop all services
-- `UNINSTALL.bat` - Complete uninstall
 - `CHECK_VOLUME_VERSION.ps1` - Check Docker volume versions
 - `docker/DOCKER_*.ps1` - Docker operations
 
@@ -34,8 +33,8 @@ For deployment, Docker orchestration, and production maintenance.
 
 ### **Root Scripts** (End-User Entry Points)
 
-- `SMS.ps1` - **Main management interface** (interactive menu, recommended)
-- `INSTALL.bat` - **One-click installer** (easiest way to get started)
+- `SMART_SETUP.ps1` - **First-time setup** (Docker-only, checks requirements)
+- `SMS.ps1` - **Container management** (start/stop/restart/status/logs)
 
 **📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
 
@@ -63,46 +62,40 @@ For deployment, Docker orchestration, and production maintenance.
 - Latest: [v1.3.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8)
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-## 🚀 Quick Start - New Simplified Installation
+## 🚀 Quick Start - Docker Installation (v1.3.8+)
 
-### **Easiest Method** (No PowerShell Issues!)
+### **Recommended Method** - Docker-Only Release
 
-**Just one command:**
-
-```batch
-INSTALL.bat
-```
-
-**Or with Python:**
-
-```bash
-python install.py
-```
-
-That's it! The installer handles everything automatically:
-
-- ✅ Detects Docker/Python/Node.js
-- ✅ Chooses best mode for your system
-- ✅ Installs all dependencies
-- ✅ Starts the application
-- ✅ Opens your browser
-
-**See [INSTALL.md](INSTALL.md) for the simple guide!**
-
----
-
-### Alternative Methods (Advanced Users)
-
-Using PowerShell scripts (requires execution policy):
+**First-time setup:**
 
 ```powershell
-.\QUICKSTART.ps1    # Auto-setup and start
-.\SMS.ps1           # Interactive management
+.\SMART_SETUP.ps1
 ```
 
-Note: If you get execution policy errors, just use `INSTALL.bat` instead - it works everywhere!
+**Manage containers:**
 
-### 🐧 Linux Quick Start
+```powershell
+.\SMS.ps1 -Quick      # Start containers
+.\SMS.ps1 -Stop       # Stop containers
+.\SMS.ps1 -Restart    # Restart containers
+.\SMS.ps1 -Status     # Show status
+.\SMS.ps1 -Logs       # View logs
+.\SMS.ps1 -Help       # Show all options
+```
+
+**What happens:**
+
+- ✅ Checks Docker availability (fails if not installed)
+- ✅ Creates .env files from templates
+- ✅ Builds Docker images
+- ✅ Starts containers on port 8080
+- ✅ Provides access URLs
+
+**Requirements:** Docker Desktop installed and running
+
+**See [INSTALL.md](INSTALL.md) for detailed guide!**
+
+---
 
 On Linux, you can validate your environment and start in either Docker (recommended) or native development mode:
 
@@ -663,9 +656,10 @@ student-management-system/
 
 ### Available Documentation
 
+- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ Updated v1.3.8
+- [docs/DOCKER_OPERATIONS.md](docs/DOCKER_OPERATIONS.md) - **Docker operations and management** ⭐ NEW v1.3.8
 - [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
 <!-- Removed broken link: FRESH_CLONE_TEST_REPORT_V1.2.md (no longer present) -->
-- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ Updated v1.3.8
 - [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) - **Release notes for v1.3.8** ⭐ NEW
 - [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes
 - [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management** ⭐ NEW

@@ -1,21 +1,21 @@
 <#
 .SYNOPSIS
-  Intelligent setup and start for Student Management System
+  Intelligent setup and start for Student Management System (Docker-only Release)
 
 .DESCRIPTION
+  - RELEASE VERSION 1.3.8: Requires Docker (no native mode support)
   - Detects first-time vs existing installation
-  - Checks Python, Node.js, Docker availability
+  - Checks Docker availability and fails if not found
   - Installs missing dependencies automatically
   - Initializes database via Alembic
-  - Chooses optimal mode (Docker preferred) unless overridden
-  - Starts the application (Docker: 8080, Native: 8000 [+5173 if frontend started])
+  - Starts the application in Docker mode (port 8080)
   - Writes logs to setup.log
 
 .PARAMETER PreferDocker
-  Force Docker mode (fail if Docker not available)
+  (Ignored - Docker is always used in release mode)
 
 .PARAMETER PreferNative
-  Force Native mode (fail if Python missing)
+  (Ignored - Native mode not supported in release version)
 
 .PARAMETER Force
   Reinstall backend/frontend dependencies
@@ -95,6 +95,33 @@ function Set-ComposeEnvVersion {
   }
 }
 
+function Get-SmsRuntimeEnvironment {
+  param([string]$Fallback = 'development')
+  if ($env:SMS_ENV) {
+    return $env:SMS_ENV.Trim().ToLower()
+  }
+
+  $candidateFiles = @(
+    Join-Path $root 'backend' '.env',
+    Join-Path $root '.env'
+  )
+
+  foreach ($file in $candidateFiles) {
+    if (-not (Test-Path $file)) { continue }
+    foreach ($line in Get-Content -LiteralPath $file) {
+      $trim = $line.Trim()
+      if ($trim -eq '' -or $trim.StartsWith('#')) { continue }
+      $match = [regex]::Match($trim, '^\s*SMS_ENV\s*=\s*(.+)$', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+      if ($match.Success) {
+        $value = $match.Groups[1].Value.Trim().Trim('"').Trim("'")
+        if ($value) { return $value.ToLower() }
+      }
+    }
+  }
+
+  return $Fallback
+}
+
 function Install-Backend {
   Push-Location (Join-Path $root 'backend')
   try {
@@ -155,26 +182,27 @@ Write-Log "Python: $hasPy, Node: $hasNode, Docker: $hasDocker"
 Set-EnvFromTemplate -Dir (Join-Path $root 'backend')
 Set-EnvFromTemplate -Dir (Join-Path $root 'frontend')
 
-# Install deps
-if (-not $hasPy) { if ($PreferNative) { throw 'Python not found but PreferNative specified' } }
-if ($hasPy) { Install-Backend }
-if ($hasNode) { Install-Frontend } else { Write-Log 'Node.js not found; frontend dev server will be skipped' 'WARN' }
+# RELEASE VERSION: Docker-only mode - skip dependency installation
+# Dependencies are installed inside Docker containers during build
+Write-Log "RELEASE MODE: Skipping host dependency installation (Docker handles this)" 'INFO'
 
-# Initialize database
-if ($hasPy) { Invoke-DatabaseMigrations } else { Write-Log 'Skipping DB init: Python not available' 'WARN' }
+# Decide mode - RELEASE VERSION: DOCKER ONLY
+$mode = 'docker'
+Write-Log "RELEASE MODE: Docker deployment required" 'INFO'
 
-# Decide mode
-$mode = $null
-if ($PreferDocker -and $PreferNative) { throw 'PreferDocker and PreferNative cannot both be set' }
-if ($PreferDocker) { if (-not $hasDocker) { throw 'Docker not available' } $mode = 'docker' }
-elseif ($PreferNative) { if (-not $hasPy) { throw 'Python not available' } $mode = 'native' }
-else { 
-    if ($hasDocker) { 
-        $mode = 'docker' 
-    } else { 
-        $mode = 'native' 
-    } 
+if (-not $hasDocker) {
+    Write-Log "ERROR: Docker is required for this release version but is not available" 'ERROR'
+    Write-Host ""
+    Write-Host "This is a release version (1.3.8) that requires Docker to run." -ForegroundColor Red
+    Write-Host "Please install Docker Desktop from: https://www.docker.com/products/docker-desktop" -ForegroundColor Yellow
+    Write-Host ""
+    throw 'Docker is required but not available'
 }
+
+if ($PreferNative) {
+    Write-Log "WARNING: PreferNative flag ignored - release version requires Docker" 'WARN'
+}
+
 Write-Log "Selected mode: $mode"
 
 if ($SkipStart) { Write-Log 'SkipStart requested. Setup complete.'; exit 0 }
@@ -183,10 +211,25 @@ if ($mode -eq 'docker') {
   if (-not $hasDocker) { throw 'Docker not available' }
   # Ensure compose gets VERSION from root VERSION file
   Set-ComposeEnvVersion
-  Write-Log 'Starting Docker Compose (detached, build)...'
+  $composeFiles = @('docker-compose.yml')
+  $prodOverlayPath = Join-Path $root 'docker-compose.prod.yml'
+  if (Test-Path $prodOverlayPath) {
+    $composeFiles += 'docker-compose.prod.yml'
+  }
+
+  $composeArgs = @()
+  foreach ($file in $composeFiles) {
+    $composeArgs += '-f'
+    $composeArgs += $file
+  }
+  $composeArgs += 'up'
+  $composeArgs += '-d'
+  $composeArgs += '--build'
+
+  Write-Log ("Starting Docker Compose (detached, build) with files: {0}" -f ($composeFiles -join ', '))
   Push-Location $root
   try {
-    docker compose up -d --build | ForEach-Object { Write-Log $_ }
+    docker compose @composeArgs | ForEach-Object { Write-Log $_ }
   } finally { Pop-Location }
   $url = Wait-HttpUp -Urls @('http://localhost:8080/health','http://localhost:8080') -TimeoutSec 180
   if (-not $url) { throw 'Docker app did not become ready on port 8080' }
@@ -198,32 +241,7 @@ if ($mode -eq 'docker') {
   exit 0
 }
 else {
-  if (-not $hasPy) { throw 'Python not available for native mode' }
-  Write-Log 'Starting backend (uvicorn) on http://127.0.0.1:8000 ...'
-  $backendCmd = 'python -m uvicorn main:app --host 127.0.0.1 --port 8000'
-  $backendProc = Start-Process -FilePath pwsh -ArgumentList "-NoExit","-NoLogo","-Command","Set-Location -LiteralPath '$root/backend'; $backendCmd" -NoNewWindow -PassThru
-  Start-Sleep -Seconds 3
-  $url = Wait-HttpUp -Urls @('http://localhost:8000/health','http://127.0.0.1:8000/health') -TimeoutSec 30
-  if (-not $url) {
-    Write-Log 'Backend did not become ready on port 8000' 'ERROR'
-    Write-Host "Backend failed to start. Check logs in backend/logs/structured.json or run manually in a terminal." -ForegroundColor Red
-    exit 1
-  }
-  Write-Log "Backend is up: $url"
-  Write-Host "Backend started in persistent PowerShell window (leave open for service)." -ForegroundColor Green
-  if ($hasNode) {
-    try {
-      Write-Log 'Starting frontend (Vite dev server) on http://localhost:5173 ...'
-      $frontendProc = Start-Process -FilePath pwsh -ArgumentList "-NoExit","-NoLogo","-Command","Set-Location -LiteralPath '$root/frontend'; npm run dev" -NoNewWindow -PassThru
-      Start-Sleep -Seconds 3
-      Write-Host "Frontend started in persistent PowerShell window (leave open for service)." -ForegroundColor Green
-    } catch { Write-Log "Failed to start frontend dev server: $($_.Exception.Message)" 'WARN' }
-  }
-  Write-Host "Access URLs:" -ForegroundColor Cyan
-  Write-Host "  API:      http://localhost:8000" -ForegroundColor Green
-  Write-Host "  Control:  http://localhost:8000/control" -ForegroundColor Green
-  Write-Host "  Health:   http://localhost:8000/health" -ForegroundColor Green
-  Write-Host "  Frontend: http://localhost:5173 (if Node installed)" -ForegroundColor Green
-  Write-Host "To stop services, use SMS.ps1 -Stop or close the PowerShell windows running backend/frontend." -ForegroundColor Yellow
-  exit 0
+  # This should never be reached in release version
+  Write-Log "ERROR: Unexpected mode '$mode' - release version only supports Docker" 'ERROR'
+  throw "Invalid mode: $mode (expected 'docker')"
 }
