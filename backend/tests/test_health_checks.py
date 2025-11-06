@@ -216,13 +216,27 @@ def test_migration_status_exception(health_checker):
 
 @pytest.mark.skipif(
     os.path.exists("/.dockerenv") or os.getenv("SMS_DOCKERIZED"),
-    reason="Test assumes non-Docker environment but running in Docker"
+    reason="Test assumes non-Docker environment but running in Docker",
 )
 def test_detect_environment_native(health_checker):
     """Test environment detection for native execution."""
     # Mock Docker detection to return False
     with patch("os.path.exists", return_value=False):
-        with patch("os.getenv", side_effect=lambda k, d=None: None if k in ["SMS_DOCKERIZED", "RUNNING_IN_CONTAINER", "RUNNING_IN_DOCKER", "IN_DOCKER", "IS_DOCKER", "DOCKER", "CONTAINER"] else os.getenv(k, d)):
+        with patch(
+            "os.getenv",
+            side_effect=lambda k, d=None: None
+            if k
+            in [
+                "SMS_DOCKERIZED",
+                "RUNNING_IN_CONTAINER",
+                "RUNNING_IN_DOCKER",
+                "IN_DOCKER",
+                "IS_DOCKER",
+                "DOCKER",
+                "CONTAINER",
+            ]
+            else os.getenv(k, d),
+        ):
             result = health_checker._detect_environment()
 
     assert result == "native"
