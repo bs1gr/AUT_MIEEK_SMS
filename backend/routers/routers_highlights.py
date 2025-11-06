@@ -6,6 +6,7 @@ from typing import Optional, cast
 import logging
 
 from backend.db import get_session as get_db
+from backend.db_utils import transaction, get_by_id_or_404
 from backend.import_resolver import import_names
 
 Highlight, Student = import_names("models", "Highlight", "Student")
@@ -41,29 +42,21 @@ def create_highlight(
         404: Student not found
     """
     try:
-        student = db.query(Student).filter(Student.id == highlight.student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            logger.warning("Student not found for highlight creation: %s", highlight.student_id)
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": highlight.student_id},
+        student = get_by_id_or_404(db, Student, highlight.student_id)
+
+        with transaction(db):
+            db_highlight = Highlight(
+                student_id=highlight.student_id,
+                semester=highlight.semester,
+                rating=highlight.rating,
+                category=highlight.category,
+                highlight_text=highlight.highlight_text,
+                is_positive=highlight.is_positive,
             )
 
-        db_highlight = Highlight(
-            student_id=highlight.student_id,
-            semester=highlight.semester,
-            rating=highlight.rating,
-            category=highlight.category,
-            highlight_text=highlight.highlight_text,
-            is_positive=highlight.is_positive,
-        )
-
-        db.add(db_highlight)
-        db.commit()
-        db.refresh(db_highlight)
+            db.add(db_highlight)
+            db.flush()
+            db.refresh(db_highlight)
 
         logger.info("Created highlight %s for student %s", db_highlight.id, highlight.student_id)
         return db_highlight
@@ -71,7 +64,6 @@ def create_highlight(
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.error(
             "Unexpected error creating highlight for student %s: %s",
             highlight.student_id,
@@ -146,16 +138,7 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
         404: Highlight not found
     """
     try:
-        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
-        if not db_highlight:
-            logger.warning("Highlight not found: %s", highlight_id)
-            raise http_error(
-                404,
-                ErrorCode.HIGHLIGHT_NOT_FOUND,
-                "Highlight not found",
-                request,
-                context={"highlight_id": highlight_id},
-            )
+        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
 
         logger.info("Retrieved highlight %s", highlight_id)
         return db_highlight
@@ -188,16 +171,7 @@ def get_student_highlights(
         404: Student not found
     """
     try:
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            logger.warning("Student not found when listing highlights: %s", student_id)
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": student_id},
-            )
+        student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Highlight).filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
         if semester:
@@ -238,30 +212,20 @@ def update_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
-        if not db_highlight:
-            logger.warning("Highlight not found for update: %s", highlight_id)
-            raise http_error(
-                404,
-                ErrorCode.HIGHLIGHT_NOT_FOUND,
-                "Highlight not found",
-                request,
-                context={"highlight_id": highlight_id},
-            )
+        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
 
-        update_data = highlight_update.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_highlight, field, value)
-
-        db.commit()
-        db.refresh(db_highlight)
+        with transaction(db):
+            update_data = highlight_update.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(db_highlight, field, value)
+            db.flush()
+            db.refresh(db_highlight)
 
         logger.info("Updated highlight %s", highlight_id)
         return db_highlight
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.error("Error updating highlight %s: %s", highlight_id, exc, exc_info=True)
         raise internal_server_error(request=request)
 
@@ -285,25 +249,16 @@ def delete_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = db.query(Highlight).filter(Highlight.id == highlight_id, Highlight.deleted_at.is_(None)).first()
-        if not db_highlight:
-            logger.warning("Highlight not found for delete: %s", highlight_id)
-            raise http_error(
-                404,
-                ErrorCode.HIGHLIGHT_NOT_FOUND,
-                "Highlight not found",
-                request,
-                context={"highlight_id": highlight_id},
-            )
+        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
 
-        db_highlight.mark_deleted()
-        db.commit()
+        with transaction(db):
+            db_highlight.mark_deleted()
+            db.flush()
 
         logger.info("Deleted highlight %s", highlight_id)
         return None
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.error("Error deleting highlight %s: %s", highlight_id, exc, exc_info=True)
         raise internal_server_error(request=request)
