@@ -10,9 +10,8 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ### Primary Entry Points
 
-- `SMART_SETUP.ps1` - Intelligent setup and deployment (auto-detects environment)
+- `SMART_SETUP.ps1` - First-time Docker setup (checks Docker, builds images, starts containers)
 - `STOP.ps1/.bat` - Stop all running services
-- `UNINSTALL.bat` - Complete uninstallation
 - `run-docker-release.sh` - Linux helper to start Docker release mode (delegates to SMART_SETUP.ps1)
 
 ### Docker Operations
@@ -91,9 +90,6 @@ docker compose up -d --build
 
 # Stop all services
 .\STOP.ps1
-
-# Complete uninstall
-.\UNINSTALL.bat
 ```
 
 ### Creating Distribution Packages
