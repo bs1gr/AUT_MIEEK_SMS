@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from datetime import date
 
-from backend.errors import ErrorCode
-
 
 def _create_student(client, i: int = 1):
     return client.post(
