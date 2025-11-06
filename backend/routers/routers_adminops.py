@@ -149,7 +149,7 @@ def clear_database(
             "Student",
         )
 
-        # Delete child tables first
+        # Delete child tables first (maintains referential integrity)
         db.query(Attendance).delete(synchronize_session=False)
         db.query(DailyPerformance).delete(synchronize_session=False)
         db.query(Grade).delete(synchronize_session=False)
@@ -160,10 +160,12 @@ def clear_database(
             db.query(Course).delete(synchronize_session=False)
             db.query(Student).delete(synchronize_session=False)
         db.commit()
+        logger.info(f"Database cleared successfully with scope: {payload.scope}")
         return {"status": "cleared", "scope": payload.scope}
-    except HTTPException:
-        raise
     except Exception as exc:
         db.rollback()
         logger.error("Clear failed: %s", exc, exc_info=True)
+        # Re-raise HTTPException without wrapping
+        if isinstance(exc, HTTPException):
+            raise
         raise http_error(500, ErrorCode.ADMINOPS_CLEAR_FAILED, "Clear failed", request)
