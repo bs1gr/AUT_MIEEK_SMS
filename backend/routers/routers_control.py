@@ -706,8 +706,6 @@ async def get_backend_logs(request: Request, lines: int = 100):
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
-@router.post("/operations/database-backup", response_model=OperationResult)
-@router.post("/operations/database-backup", response_model=OperationResult)
 async def backup_database(request: Request):
     """
     Create a backup of the SQLite database
@@ -989,3 +987,243 @@ async def run_troubleshooter():
         )
 
     return results
+
+
+# ============================================================================
+# Operations Endpoints
+# ============================================================================
+
+
+@router.post("/operations/install-frontend-deps", response_model=OperationResult)
+async def install_frontend_deps(request: Request):
+    """
+    Install frontend dependencies using npm
+    Checks for package.json and npm availability
+    """
+    project_root = Path(__file__).parent.parent.parent
+    frontend_dir = project_root / "frontend"
+    package_json = frontend_dir / "package.json"
+
+    # Check if package.json exists
+    if not package_json.exists():
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_PACKAGE_JSON_MISSING,
+            "package.json not found",
+            request,
+            context={"path": str(package_json)},
+        )
+
+    # Check if npm is installed
+    npm_ok, npm_version = _check_npm_installed()
+    if not npm_ok:
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_NPM_NOT_FOUND,
+            "npm not found. Please install Node.js and npm (https://nodejs.org/)",
+            request,
+            context={"command": "npm --version"},
+        )
+
+    # Run npm install
+    try:
+        success, stdout, stderr = _run_command(
+            ["npm", "install"],
+            timeout=300,  # 5 minutes for npm install
+        )
+
+        if success:
+            return OperationResult(
+                success=True,
+                message="Frontend dependencies installed successfully",
+                details={
+                    "npm_version": npm_version,
+                    "directory": str(frontend_dir),
+                    "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+                },
+            )
+        else:
+            return OperationResult(
+                success=False,
+                message="npm install failed",
+                details={
+                    "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+                    "stderr": stderr[-500:] if len(stderr) > 500 else stderr,
+                },
+            )
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to install frontend dependencies",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.post("/operations/install-backend-deps", response_model=OperationResult)
+async def install_backend_deps(request: Request):
+    """
+    Install backend dependencies using pip
+    Checks for requirements.txt and pip availability
+    """
+    project_root = Path(__file__).parent.parent.parent
+    backend_dir = project_root / "backend"
+    requirements_file = backend_dir / "requirements.txt"
+
+    # Check if requirements.txt exists
+    if not requirements_file.exists():
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_REQUIREMENTS_MISSING,
+            "requirements.txt not found",
+            request,
+            context={"path": str(requirements_file)},
+        )
+
+    # Check if pip is available (should be, since we're running Python)
+    try:
+        success, stdout, stderr = _run_command(["pip", "--version"], timeout=5)
+        if not success:
+            raise http_error(
+                400,
+                ErrorCode.CONTROL_PIP_NOT_FOUND,
+                "pip not found",
+                request,
+                context={"command": "pip --version"},
+            )
+        pip_version = stdout.strip()
+    except Exception as exc:
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_PIP_NOT_FOUND,
+            "pip not found",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+    # Run pip install
+    try:
+        success, stdout, stderr = _run_command(
+            ["pip", "install", "-r", str(requirements_file)],
+            timeout=300,  # 5 minutes for pip install
+        )
+
+        if success:
+            return OperationResult(
+                success=True,
+                message="Backend dependencies installed successfully",
+                details={
+                    "pip_version": pip_version,
+                    "requirements_file": str(requirements_file),
+                    "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+                },
+            )
+        else:
+            return OperationResult(
+                success=False,
+                message="pip install failed",
+                details={
+                    "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+                    "stderr": stderr[-500:] if len(stderr) > 500 else stderr,
+                },
+            )
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to install backend dependencies",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.post("/operations/docker-build", response_model=OperationResult)
+async def docker_build(request: Request):
+    """
+    Build Docker images using docker compose
+    Checks if Docker is running first
+    """
+    # Check if Docker is running
+    if not _check_docker_running():
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_DOCKER_NOT_RUNNING,
+            "Docker is not running. Please start Docker Desktop.",
+            request,
+            context={"command": "docker info"},
+        )
+
+    project_root = Path(__file__).parent.parent.parent
+
+    try:
+        # Run docker compose build
+        success, stdout, stderr = _docker_compose(
+            ["build", "--no-cache"],
+            cwd=project_root,
+            timeout=600,  # 10 minutes for docker build
+        )
+
+        if success:
+            return OperationResult(
+                success=True,
+                message="Docker images built successfully",
+                details={
+                    "stdout": stdout[-1000:] if len(stdout) > 1000 else stdout,
+                },
+            )
+        else:
+            return OperationResult(
+                success=False,
+                message="Docker build failed",
+                details={
+                    "stdout": stdout[-1000:] if len(stdout) > 1000 else stdout,
+                    "stderr": stderr[-1000:] if len(stderr) > 1000 else stderr,
+                },
+            )
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to build Docker images",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.post("/operations/docker-update-volume", response_model=OperationResult)
+async def docker_update_volume(request: Request):
+    """
+    Update Docker volume with latest database schema
+    Checks if Docker is running first
+    """
+    # Check if Docker is running
+    if not _check_docker_running():
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_DOCKER_NOT_RUNNING,
+            "Docker is not running. Please start Docker Desktop.",
+            request,
+            context={"command": "docker info"},
+        )
+
+    try:
+        # Create a new volume with timestamp
+        new_volume = _create_unique_volume("sms_data")
+
+        return OperationResult(
+            success=True,
+            message=f"New Docker volume created: {new_volume}",
+            details={
+                "volume_name": new_volume,
+                "note": "Update docker-compose.yml to use the new volume and restart containers",
+            },
+        )
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to create Docker volume",
+            request,
+            context={"error": str(exc)},
+        ) from exc
