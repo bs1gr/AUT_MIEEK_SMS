@@ -1,8 +1,70 @@
 # Student Management System
 
-## 🗂️ Script Organization (v1.3.8+)
+## � Quick Start (v1.4.0+)
 
-Scripts are now reorganized into two distinct, well-defined sets:
+### **For End Users** - One-Click Deployment ⭐ **NEW!**
+
+The simplest way to run SMS:
+
+```powershell
+.\RUN.ps1           # That's it! One command to start everything
+```
+
+The first time you run this, it will:
+- ✅ Build the Docker image (takes 5-10 minutes)
+- ✅ Start the application
+- ✅ Show you the access URL
+
+**Daily usage:**
+
+```powershell
+.\RUN.ps1           # Start (or check if already running)
+.\RUN.ps1 -Stop     # Stop cleanly
+.\RUN.ps1 -Update   # Update with automatic backup
+.\RUN.ps1 -Status   # Check if running
+.\RUN.ps1 -Logs     # View application logs
+.\RUN.ps1 -Backup   # Create manual backup
+```
+
+**Requirements:** 
+- Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
+- Docker Desktop must be running
+
+**Access the application:** Open <http://localhost:8080> in your browser
+
+---
+
+### **For Developers** - Advanced Setup
+
+If you need to develop features or debug, use the advanced setup:
+
+```powershell
+# Fullstack mode (recommended for end users, single container)
+.\SMART_SETUP.ps1
+
+# Multi-container mode (for development, separate backend/frontend)
+.\SMART_SETUP.ps1 -DevMode
+
+# Container management
+.\SMS.ps1 -Quick      # Start containers
+.\SMS.ps1 -Stop       # Stop containers  
+.\SMS.ps1 -Status     # Show status
+.\SMS.ps1 -Logs       # View logs
+```
+
+**See [INSTALL.md](INSTALL.md) for detailed installation guide!**
+
+---
+
+## �🗂️ Script Organization (v1.4.0+)
+
+Scripts are organized into clear categories:
+
+### **End-User Entry Points** (Root Directory)
+
+- `RUN.ps1` ⭐ - **ONE-CLICK deployment** (start/stop/update/backup)
+- `SMART_SETUP.ps1` - Advanced setup (fullstack or multi-container modes)
+- `SMS.ps1` - Container management (for developers)
 
 ### **Developer Workbench** ([scripts/dev/](scripts/dev/))
 
@@ -18,29 +80,20 @@ For building, running, debugging, testing, and cleaning during development.
 
 [Read Developer Guide →](scripts/dev/README.md)
 
-### **End-User / DevOps** ([scripts/deploy/](scripts/deploy/))
+### **DevOps / Deployment** ([scripts/deploy/](scripts/deploy/))
 
 For deployment, Docker orchestration, and production maintenance.
 
 **Key Scripts**:
 
-- `SMART_SETUP.ps1` - Intelligent setup (main entry point)
-- `STOP.ps1` - Stop all services
 - `CHECK_VOLUME_VERSION.ps1` - Check Docker volume versions
 - `docker/DOCKER_*.ps1` - Docker operations
 
 [Read Deployment Guide →](scripts/deploy/README.md)
 
-### **Root Scripts** (End-User Entry Points)
-
-- `SMART_SETUP.ps1` - **First-time setup** (Docker-only, checks requirements)
-- `SMS.ps1` - **Container management** (start/stop/restart/status/logs)
-
 **📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
 
-<!-- Removed broken link: SCRIPT_REORGANIZATION_SUMMARY.md (reorg summary now covered in docs/SCRIPTS_GUIDE.md) -->
-
-[![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
+---
 
 ## 📚 Documentation / Τεκμηρίωση
 
@@ -51,18 +104,30 @@ For deployment, Docker orchestration, and production maintenance.
 
 ---
 
-> Deprecated wrappers
->
-> - START.bat and ONE-CLICK.ps1/ONE-CLICK.bat are deprecated and only forward to the primary scripts.
-> - Prefer QUICKSTART.ps1 to start and SMS.ps1 for management.
-> - ONE-CLICK.ps1 forwards to SMART_SETUP.ps1; START.bat forwards to QUICKSTART.ps1.
+[![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
-## 🔖 Releases
+## � Releases
 
-- Latest: [v1.3.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8)
+- Latest: [v1.4.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.4.0) - One-Click Deployment
+- Previous: [v1.3.9](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.9) - CSV Import Feature
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-## 🚀 Quick Start - Docker Installation (v1.3.8+)
+---
+
+## 📦 What's New in v1.4.0
+
+- 🚀 **One-click deployment** with `RUN.ps1`
+- 💾 **Automatic backups** before updates
+- 🛑 **Graceful shutdown** with Ctrl+C
+- 🏥 **Health check polling** with timeout
+- 📊 **Backup management** (keeps last 10 automatically)
+- 🔄 **Update command** with rollback capability
+- 🎯 **Fullstack Docker** as default (single container)
+- 🛠️ **Dev mode** option for multi-container setup
+
+---
+
+## 🚀 Quick Start - Legacy Installation (v1.3.x)
 
 ### **Recommended Method** - Docker-Only Release
 
