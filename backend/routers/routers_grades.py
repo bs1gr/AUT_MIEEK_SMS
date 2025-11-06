@@ -142,7 +142,9 @@ def get_all_grades(
             query = query.filter(date_col >= s, date_col <= e)
 
         result = paginate(query, skip=pagination.skip, limit=pagination.limit)
-        logger.info(f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})")
+        logger.info(
+            f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
+        )
         return result.dict()
     except HTTPException:
         raise
