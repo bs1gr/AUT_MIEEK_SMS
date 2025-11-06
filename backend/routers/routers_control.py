@@ -589,192 +589,6 @@ async def get_environment_info(include_packages: bool = False):
     )
 
 
-@router.post("/operations/install-frontend-deps", response_model=OperationResult)
-async def install_frontend_dependencies(request: Request):
-    """
-    Install frontend npm dependencies
-    Similar to npm install in INSTALL.ps1
-    """
-    project_root = Path(__file__).parent.parent.parent
-    frontend_dir = project_root / "frontend"
-
-    package_json = frontend_dir / "package.json"
-    if not package_json.exists():
-        raise http_error(
-            404,
-            ErrorCode.CONTROL_PACKAGE_JSON_MISSING,
-            "Frontend package.json not found",
-            request,
-            context={"path": str(package_json)},
-        )
-
-    # Check if npm is available
-    npm_ok, _ = _check_npm_installed()
-    if not npm_ok:
-        raise http_error(
-            400,
-            ErrorCode.CONTROL_NPM_NOT_FOUND,
-            "npm is not available. Install Node.js to continue",
-            request,
-            context={"command": "npm --version"},
-        )
-
-    try:
-        # Run npm install
-        success, stdout, stderr = _run_command(
-            ["npm", "install"],
-            timeout=300,  # 5 minutes
-        )
-
-        return OperationResult(
-            success=success,
-            message="Frontend dependencies installed successfully" if success else "Installation failed",
-            details={"stdout": stdout, "stderr": stderr},
-        )
-    except Exception as exc:
-        raise http_error(
-            500,
-            ErrorCode.CONTROL_INSTALL_ERROR,
-            "Frontend dependency installation failed",
-            request,
-            context={"error": str(exc)},
-        ) from exc
-
-
-@router.post("/operations/install-backend-deps", response_model=OperationResult)
-async def install_backend_dependencies(request: Request):
-    """
-    Install backend Python dependencies
-    Similar to pip install in INSTALL.ps1
-    """
-    project_root = Path(__file__).parent.parent.parent
-    requirements_file = project_root / "backend" / "requirements.txt"
-
-    if not requirements_file.exists():
-        raise http_error(
-            404,
-            ErrorCode.CONTROL_REQUIREMENTS_MISSING,
-            "Backend requirements.txt not found",
-            request,
-            context={"path": str(requirements_file)},
-        )
-
-    try:
-        # Run pip install
-        success, stdout, stderr = _run_command(
-            [sys.executable, "-m", "pip", "install", "-r", str(requirements_file)],
-            timeout=300,  # 5 minutes
-        )
-
-        return OperationResult(
-            success=success,
-            message="Backend dependencies installed successfully" if success else "Installation failed",
-            details={"stdout": stdout, "stderr": stderr},
-        )
-    except Exception as exc:
-        raise http_error(
-            500,
-            ErrorCode.CONTROL_INSTALL_ERROR,
-            "Backend dependency installation failed",
-            request,
-            context={"error": str(exc)},
-        ) from exc
-
-
-@router.post("/operations/docker-build", response_model=OperationResult)
-async def build_docker_image(request: Request):
-    """
-    Build Docker fullstack image
-    Similar to SETUP.ps1
-    """
-    if not _check_docker_running():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
-
-    project_root = Path(__file__).parent.parent.parent
-    dockerfile = project_root / "docker" / "Dockerfile.fullstack"
-
-    if not dockerfile.exists():
-        raise http_error(
-            404,
-            ErrorCode.CONTROL_DOCKERFILE_MISSING,
-            "Dockerfile.fullstack not found",
-            request,
-            context={"path": str(dockerfile)},
-        )
-
-    try:
-        success, stdout, stderr = _run_command(
-            ["docker", "build", "-f", str(dockerfile), "-t", "sms-fullstack", str(project_root)],
-            timeout=600,  # 10 minutes
-        )
-
-        return OperationResult(
-            success=success,
-            message="Docker image built successfully" if success else "Build failed",
-            details={"stdout": stdout, "stderr": stderr},
-        )
-    except Exception as exc:
-        raise http_error(
-            500,
-            ErrorCode.CONTROL_BUILD_FAILED,
-            "Docker image build failed",
-            request,
-            context={"error": str(exc)},
-        ) from exc
-
-
-@router.post("/operations/docker-stop", response_model=OperationResult)
-async def docker_stop_all(request: Request, down: bool = False):
-    """
-    Stop (or remove) Docker containers for this project using docker compose.
-
-    - If running inside a Docker container, returns a safe message (cannot control host Docker).
-    - If Docker isn't running, returns success=False with guidance.
-    - When successful, stops containers (and removes them if down=true).
-    """
-    if _in_docker_container():
-        return OperationResult(
-            success=False,
-            message=("Cannot control Docker from inside a container. Run this operation on the host machine."),
-            details={"in_container": True},
-        )
-
-    if not _check_docker_running():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
-
-    project_root = Path(__file__).parent.parent.parent
-    ok, out, err = _docker_compose(["stop"], cwd=project_root, timeout=120)
-    details: Dict[str, Any] = {"stop_stdout": out[-1000:], "stop_stderr": err[-1000:]}
-
-    if not ok:
-        return OperationResult(
-            success=False,
-            message="Failed to stop Docker containers",
-            details=details,
-        )
-
-    if down:
-        ok2, out2, err2 = _docker_compose(["down"], cwd=project_root, timeout=180)
-        details.update(
-            {
-                "down_stdout": out2[-1000:],
-                "down_stderr": err2[-1000:],
-            }
-        )
-        if not ok2:
-            return OperationResult(
-                success=False,
-                message="Containers stopped, but removal (down) failed",
-                details=details,
-            )
-
-    return OperationResult(
-        success=True,
-        message=("Docker containers stopped" + (" and removed" if down else "")),
-        details=details,
-    )
-
-
 @router.post("/operations/exit-all", response_model=OperationResult)
 async def exit_all(down: bool = False):
     """
@@ -837,67 +651,6 @@ async def exit_all(down: bool = False):
     )
 
 
-@router.post("/operations/docker-prune", response_model=OperationResult)
-@limiter.limit(RATE_LIMIT_HEAVY)
-async def docker_prune(request: Request, include_volumes: bool = False):
-    """
-    Prune Docker resources safely on the host:
-    - Prunes stopped containers, dangling images, build cache, and unused networks
-    - Optionally prunes unused volumes when include_volumes=True
-
-    Restrictions:
-    - Must run on the host (not inside the container)
-    - Docker Desktop must be running
-    """
-    if _in_docker_container():
-        return OperationResult(
-            success=False,
-            message=("Cannot prune Docker from inside a container. Run this operation on the host machine."),
-            details={"in_container": True},
-        )
-
-    if not _check_docker_running():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
-
-    summary: Dict[str, Any] = {"steps": []}
-    errors: list[str] = []
-
-    def _step(label: str, cmd: list[str]):
-        ok, out, err = _run_command(cmd, timeout=300)
-        summary["steps"].append(
-            {
-                "label": label,
-                "ok": ok,
-                "stdout": (out[-1000:] if out else None),
-                "stderr": (err[-1000:] if err else None),
-            }
-        )
-        if not ok:
-            errors.append(f"{label} failed")
-
-    # Prune stopped containers
-    _step("container prune", ["docker", "container", "prune", "-f"])
-    # Prune dangling images
-    _step("image prune", ["docker", "image", "prune", "-f"])
-    # Prune builder cache
-    _step("builder prune", ["docker", "builder", "prune", "-f"])
-    # Prune unused networks
-    _step("network prune", ["docker", "network", "prune", "-f"])
-
-    if include_volumes:
-        _step("volume prune", ["docker", "volume", "prune", "-f"])
-
-    return OperationResult(
-        success=(len(errors) == 0),
-        message=(
-            "Docker resources pruned"
-            + (" (including volumes)" if include_volumes else "")
-            + (" with some errors" if errors else "")
-        ),
-        details=summary,
-    )
-
-
 @router.get("/logs/backend")
 async def get_backend_logs(request: Request, lines: int = 100):
     """Get recent backend logs"""
@@ -924,182 +677,289 @@ async def get_backend_logs(request: Request, lines: int = 100):
         ) from exc
 
 
-@router.post("/operations/cleanup", response_model=OperationResult)
-async def cleanup_system(request: Request):
-    """
-    Clean up temporary files and caches
-    Similar to CLEANUP.ps1
-    """
-    cleaned = []
-    errors = []
+@router.post("/operations/database-backup", response_model=OperationResult)
 
+
+@router.post("/operations/database-backup", response_model=OperationResult)
+
+
+@router.post("/operations/database-backup", response_model=OperationResult)
+async def backup_database(request: Request):
+    """
+    Create a backup of the SQLite database
+    """
     try:
+        from backend.config import settings
+        
         project_root = Path(__file__).parent.parent.parent
-
-        # Clean Python cache
-        for pycache in project_root.rglob("__pycache__"):
-            try:
-                shutil.rmtree(pycache)
-                cleaned.append(str(pycache))
-            except Exception as e:
-                errors.append(f"Failed to remove {pycache}: {e}")
-
-        # Clean .pyc files
-        for pyc in project_root.rglob("*.pyc"):
-            try:
-                pyc.unlink()
-                cleaned.append(str(pyc))
-            except Exception as e:
-                errors.append(f"Failed to remove {pyc}: {e}")
-
-        return OperationResult(
-            success=len(errors) == 0,
-            message=f"Cleaned {len(cleaned)} items" + (f" with {len(errors)} errors" if errors else ""),
-            details={"cleaned": cleaned[:20], "errors": errors[:10]},  # Limit output size
-        )
-    except Exception as exc:
-        raise http_error(
-            500,
-            ErrorCode.CONTROL_CLEANUP_FAILED,
-            "Repository cleanup failed",
-            request,
-            context={"error": str(exc)},
-        ) from exc
-
-
-@router.post("/operations/cleanup-obsolete", response_model=OperationResult)
-async def cleanup_obsolete_files():
-    """
-    Remove obsolete markdown/docs and unused files as defined by scripts/CLEANUP_OBSOLETE_FILES.ps1
-    Runs natively in Python for cross-environment support.
-    """
-    project_root = Path(__file__).parent.parent.parent
-    if _in_docker_container():
-        return OperationResult(
-            success=False,
-            message=(
-                "Cleanup of repository files must be run on the host. "
-                "Please run scripts/CLEANUP_OBSOLETE_FILES.ps1 from the project root."
-            ),
-            details={"in_container": True},
-        )
-
-    # Mirror list from scripts/CLEANUP_OBSOLETE_FILES.ps1
-    obsolete_markdown = [
-        "VERSIONING_GUIDE.md",
-        "TEACHING_SCHEDULE_GUIDE.md",
-        "RUST_BUILDTOOLS_UPDATE.md",
-        "QUICK_REFERENCE.md",
-        "PACKAGE_VERSION_FIX.md",
-        "ORGANIZATION_SUMMARY.md",
-        "NODE_VERSION_UPDATE.md",
-        "INSTALL_GUIDE.md",
-        "IMPLEMENTATION_REPORT.md",
-        "HELP_DOCUMENTATION_COMPLETE.md",
-        "FRONTEND_TROUBLESHOOTING.md",
-        "DEPLOYMENT_QUICK_START.md",
-        "DEPENDENCY_UPDATE_LOG.md",
-        "DAILY_PERFORMANCE_GUIDE.md",
-        "COMPLETE_UPDATE_SUMMARY.md",
-        "CODE_IMPROVEMENTS.md",
-    ]
-
-    removed: List[str] = []
-    errors: List[str] = []
-
-    for rel in obsolete_markdown:
-        path = project_root / rel
-        try:
-            if path.exists():
-                path.unlink()
-                removed.append(str(path))
-        except Exception as e:
-            errors.append(f"Failed to remove {rel}: {e}")
-
-    return OperationResult(
-        success=len(errors) == 0,
-        message=(f"Removed {len(removed)} obsolete file(s)" + (f" with {len(errors)} error(s)" if errors else "")),
-        details={"removed": removed, "errors": errors},
-    )
-
-
-@router.post("/operations/docker-update-volume", response_model=OperationResult)
-async def docker_update_volume(request: Request, migrate: bool = True):
-    """
-    Create a new versioned Docker volume and generate docker-compose.override.yml to switch backend /data.
-    Optionally migrates data from existing 'sms_data' volume to the new one.
-    Does not stop/restart containers automatically.
-    """
-    if _in_docker_container():
-        return OperationResult(
-            success=False,
-            message=("Docker volume update must run on the host. Run scripts/DOCKER_UPDATE_VOLUME.ps1 instead."),
-            details={"in_container": True},
-        )
-
-    if not _check_docker_running():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running", request)
-
-    project_root = Path(__file__).parent.parent.parent
-
-    base_volume = "sms_data"
-    try:
-        # Create new unique volume
-        new_volume = _create_unique_volume(base_volume)
-
-        # Migrate data if requested and old volume exists
-        migration_stdout = ""
-        migration_stderr = ""
-        if migrate and _docker_volume_exists(base_volume):
-            ok, out, err = _run_command(
-                [
-                    "docker",
-                    "run",
-                    "--rm",
-                    "-v",
-                    f"{base_volume}:/from",
-                    "-v",
-                    f"{new_volume}:/to",
-                    "alpine",
-                    "sh",
-                    "-c",
-                    "cd /from && cp -a . /to || true",
-                ],
-                timeout=600,
-            )
-            migration_stdout = out
-            migration_stderr = err
-
-        # Write/Update docker-compose.override.yml
-        override_path = project_root / "docker-compose.override.yml"
-        override_contents = (
-            "services:\n"
-            "  backend:\n"
-            "    volumes:\n"
-            f"      - {new_volume}:/data\n"
-            "volumes:\n"
-            f"  {new_volume}:\n"
-            "    driver: local\n"
-        )
-        override_path.write_text(override_contents, encoding="utf-8")
-
+        db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+        
+        if not db_path.exists():
+            raise http_error(404, ErrorCode.CONTROL_DATABASE_NOT_FOUND, "Database file not found", request)
+        
+        # Create backups directory
+        backup_dir = project_root / "backups" / "database"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create backup with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = backup_dir / f"student_management_{timestamp}.db"
+        
+        # Copy database
+        shutil.copy2(db_path, backup_path)
+        
         return OperationResult(
             success=True,
-            message="Created new data volume and wrote docker-compose.override.yml. Restart the stack to apply.",
+            message=f"Database backed up successfully",
             details={
-                "new_volume": new_volume,
-                "override_file": str(override_path),
-                "migrated": bool(migrate and _docker_volume_exists(base_volume)),
-                "migration_stdout": migration_stdout[-500:] if migration_stdout else None,
-                "migration_stderr": migration_stderr[-500:] if migration_stderr else None,
-                "next_steps": ["docker compose down", "docker compose up -d"],
+                "backup_path": str(backup_path),
+                "original_size": os.path.getsize(db_path),
+                "backup_size": os.path.getsize(backup_path),
+                "timestamp": timestamp,
             },
         )
     except Exception as exc:
         raise http_error(
             500,
-            ErrorCode.CONTROL_VOLUME_UPDATE_FAILED,
-            "Docker volume update failed",
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Database backup failed",
             request,
             context={"error": str(exc)},
         ) from exc
+
+
+@router.get("/operations/database-backups", response_model=Dict[str, Any])
+async def list_database_backups(request: Request):
+    """
+    List available database backups
+    """
+    try:
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = project_root / "backups" / "database"
+        
+        if not backup_dir.exists():
+            return {"backups": [], "message": "No backups directory found"}
+        
+        backups = []
+        for backup_file in sorted(backup_dir.glob("*.db"), reverse=True):
+            stat = backup_file.stat()
+            backups.append({
+                "filename": backup_file.name,
+                "path": str(backup_file),
+                "size": stat.st_size,
+                "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            })
+        
+        return {"backups": backups, "total": len(backups)}
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+            "Failed to list backups",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.post("/operations/database-restore", response_model=OperationResult)
+async def restore_database(request: Request, backup_filename: str):
+    """
+    Restore database from a backup
+    ⚠️ WARNING: This will overwrite the current database!
+    """
+    try:
+        from backend.config import settings
+        
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = project_root / "backups" / "database"
+        backup_path = backup_dir / backup_filename
+        
+        if not backup_path.exists():
+            raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
+        
+        db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+        
+        # Create a safety backup of current database before restoring
+        safety_backup = None
+        if db_path.exists():
+            safety_backup = db_path.with_suffix(f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
+            shutil.copy2(db_path, safety_backup)
+        
+        # Restore backup
+        shutil.copy2(backup_path, db_path)
+        
+        return OperationResult(
+            success=True,
+            message="Database restored successfully. Restart may be required.",
+            details={
+                "restored_from": str(backup_path),
+                "database_path": str(db_path),
+                "safety_backup": str(safety_backup) if safety_backup else None,
+            },
+        )
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_RESTORE_FAILED,
+            "Database restore failed",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.get("/troubleshoot", response_model=List[DiagnosticResult])
+async def run_troubleshooter():
+    """
+    Run comprehensive troubleshooter with automatic fix suggestions
+    Goes beyond diagnostics to provide actionable solutions
+    """
+    results = []
+    
+    # Check 1: Port conflicts
+    common_ports = [8000, 8080, 5173]
+    for port in common_ports:
+        if _is_port_open(port):
+            proc_info = _get_process_on_port(port)
+            if proc_info:
+                results.append(
+                    DiagnosticResult(
+                        category="Port Conflict",
+                        status="warning",
+                        message=f"Port {port} is in use by {proc_info.get('name', 'unknown')}",
+                        details={
+                            "port": port,
+                            "process": proc_info,
+                            "solution": f"Stop the process or change application port",
+                        },
+                    )
+                )
+    
+    # Check 2: Missing dependencies
+    project_root = Path(__file__).parent.parent.parent
+    
+    # Frontend dependencies
+    node_modules = project_root / "frontend" / "node_modules"
+    if not node_modules.exists():
+        results.append(
+            DiagnosticResult(
+                category="Missing Dependencies",
+                status="error",
+                message="Frontend dependencies not installed",
+                details={
+                    "solution": "Run: cd frontend && npm install",
+                    "api_endpoint": "/control/api/operations/install-frontend-deps",
+                },
+            )
+        )
+    
+    # Backend dependencies
+    try:
+        import fastapi
+        import sqlalchemy
+    except ImportError as e:
+        results.append(
+            DiagnosticResult(
+                category="Missing Dependencies",
+                status="error",
+                message=f"Backend dependencies not installed: {e}",
+                details={
+                    "solution": "Run: pip install -r backend/requirements.txt",
+                    "api_endpoint": "/control/api/operations/install-backend-deps",
+                },
+            )
+        )
+    
+    # Check 3: Database issues
+    try:
+        from backend.config import settings
+        from backend.db import engine
+        
+        db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+        
+        if not db_path.exists():
+            results.append(
+                DiagnosticResult(
+                    category="Database",
+                    status="warning",
+                    message="Database file not found - will be created on first run",
+                    details={"solution": "Start the application to initialize database"},
+                )
+            )
+        else:
+            # Try to connect
+            try:
+                with engine.connect():
+                    pass
+                results.append(
+                    DiagnosticResult(
+                        category="Database",
+                        status="ok",
+                        message="Database connection successful",
+                        details={},
+                    )
+                )
+            except Exception as e:
+                results.append(
+                    DiagnosticResult(
+                        category="Database",
+                        status="error",
+                        message=f"Database connection failed: {e}",
+                        details={"solution": "Check database file permissions or restore from backup"},
+                    )
+                )
+    except Exception as e:
+        results.append(
+            DiagnosticResult(
+                category="Database",
+                status="error",
+                message=f"Database check failed: {e}",
+                details={},
+            )
+        )
+    
+    # Check 4: Docker issues
+    if not _check_docker_running():
+        results.append(
+            DiagnosticResult(
+                category="Docker",
+                status="warning",
+                message="Docker Desktop is not running (only needed for containerized deployment)",
+                details={"solution": "Start Docker Desktop if you want to run in Docker mode"},
+            )
+        )
+    
+    # Check 5: Environment configuration
+    env_file = project_root / "backend" / ".env"
+    if not env_file.exists():
+        results.append(
+            DiagnosticResult(
+                category="Configuration",
+                status="warning",
+                message="Backend .env file not found",
+                details={"solution": "Copy backend/.env.example to backend/.env"},
+            )
+        )
+    
+    frontend_env = project_root / "frontend" / ".env"
+    if not frontend_env.exists():
+        results.append(
+            DiagnosticResult(
+                category="Configuration",
+                status="warning",
+                message="Frontend .env file not found",
+                details={"solution": "Copy frontend/.env.example to frontend/.env"},
+            )
+        )
+    
+    # If no issues found
+    if not results:
+        results.append(
+            DiagnosticResult(
+                category="System Health",
+                status="ok",
+                message="No issues detected - system appears healthy",
+                details={},
+            )
+        )
+    
+    return results

@@ -323,6 +323,21 @@ const ControlPanel = () => {
             </div>
           )}
         </div>
+
+        {/* Mode Indicator Banner */}
+        {environment?.environment_mode === 'docker' && (
+          <div className="mt-4 px-4 py-3 bg-blue-900/20 border border-blue-700/50 rounded-lg flex items-center gap-3">
+            <Container size={20} className="text-blue-400" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-300">
+                {t('controlPanel.runningIn')}: Docker Container Mode
+              </p>
+              <p className="text-xs text-blue-400 mt-1">
+                Some native operations are hidden. Use host commands (SMS.ps1) for full system control.
+              </p>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Tabs */}
@@ -363,19 +378,62 @@ const ControlPanel = () => {
         {/* Operations Tab */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
+            {/* Docker Mode Consolidated Info Card */}
+            {environment?.environment_mode === 'docker' && (
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg p-6">
+                <div className="flex items-start gap-4">
+                  <Container size={24} className="text-blue-400 flex-shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-blue-300 mb-2">Docker Container Mode</h2>
+                    <p className="text-sm text-blue-200 mb-4">
+                      Some operations are disabled because they require host-level access. Use these PowerShell commands from your terminal:
+                    </p>
+                    
+                    {/* Commands in a clean grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
+                        <div className="text-xs text-gray-400 mb-1">Container Management:</div>
+                        <code className="text-xs text-green-400 font-mono block">.\SMS.ps1 -Quick</code>
+                        <code className="text-xs text-red-400 font-mono block mt-1">.\SMS.ps1 -Stop</code>
+                        <code className="text-xs text-yellow-400 font-mono block mt-1">.\SMS.ps1 -Restart</code>
+                      </div>
+                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
+                        <div className="text-xs text-gray-400 mb-1">Monitoring:</div>
+                        <code className="text-xs text-blue-400 font-mono block">.\SMS.ps1 -Status</code>
+                        <code className="text-xs text-purple-400 font-mono block mt-1">.\SMS.ps1 -Logs</code>
+                        <code className="text-xs text-cyan-400 font-mono block mt-1">.\SMS.ps1 -Help</code>
+                      </div>
+                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
+                        <div className="text-xs text-gray-400 mb-1">Build & Setup:</div>
+                        <code className="text-xs text-orange-400 font-mono block">docker compose build</code>
+                        <code className="text-xs text-cyan-400 font-mono block mt-1">.\SMART_SETUP.ps1</code>
+                      </div>
+                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
+                        <div className="text-xs text-gray-400 mb-1">Hidden Operations:</div>
+                        <div className="text-xs text-gray-300 mt-1">• Dependency installation</div>
+                        <div className="text-xs text-gray-300">• Container lifecycle</div>
+                        <div className="text-xs text-gray-300">• Volume management</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30">
+                      <span className="text-lg">💡</span>
+                      <p>
+                        <strong>Why?</strong> Docker containers can't manage their own lifecycle or install dependencies. 
+                        These operations must be performed from the host system for security and reliability.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* System Control */}
             <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/20 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Square size={20} className="text-red-400" />
                 System Control
               </h2>
-              {environment?.environment_mode === 'docker' && (
-                <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-md text-sm text-yellow-200">
-                  <AlertTriangle size={16} className="inline mr-2" />
-                  <strong>Docker Mode:</strong> "Stop All" from the web UI can only stop the backend container.
-                  For complete shutdown, use host command: <code className="bg-gray-900 px-1 py-0.5 rounded">.\SMS.ps1 -Stop</code>
-                </div>
-              )}
               <button
                 onClick={stopAll}
                 disabled={!status?.backend}
@@ -386,12 +444,13 @@ const ControlPanel = () => {
                   Stop All Services
                 </span>
                 <span className="text-xs text-red-300">
-                  {environment?.environment_mode === 'docker' ? '(Backend only)' : '(All services)'}
+                  {environment?.environment_mode === 'docker' ? '(Backend only - use .\SMS.ps1 -Stop for full shutdown)' : '(All services)'}
                 </span>
               </button>
             </div>
 
-            {/* Native operations */}
+            {/* Native Operations - Hidden in Docker mode */}
+            {environment?.environment_mode !== 'docker' && (
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={20} />
@@ -447,8 +506,10 @@ const ControlPanel = () => {
                 </button>
               </div>
             </div>
+            )}
 
-            {/* Docker operations */}
+            {/* Docker operations - Hidden in Docker mode */}
+            {environment?.environment_mode !== 'docker' && (
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Container size={20} />
@@ -486,6 +547,7 @@ const ControlPanel = () => {
                 )}
               </div>
             </div>
+            )}
           </div>
         )}
 

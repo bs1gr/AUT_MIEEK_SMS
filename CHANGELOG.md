@@ -8,6 +8,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 Changes staged here will be included in the next release.
 
+### CI and Repository Hygiene
+
+- Simplified CI to core checks only (backend lint/type/test/audit/SBOM and frontend build). Removed validator-only and report-only jobs that normalized and parsed ruff outputs to reduce noise and maintenance.
+- Deleted obsolete CI helper scripts and tests no longer referenced by the pipeline:
+  - .github/scripts/normalize_ruff.py
+  - .github/scripts/validate_ruff_report.py
+  - .github/tests/test_validate_ruff_report.py
+  - backend/tests/test_validate_ruff_report.py
+- Archived and removed a long-lived, risky unmerged branch to keep the repo clean:
+  - Deleted remote branch: `origin/ci/remove-vendor-actions`
+  - Preserved state via archive tag: `archive/ci-remove-vendor-actions-20251106`
+
 ## [1.3.8] - 2025-11-05
 
 ### Testing & Quality Improvements Release
