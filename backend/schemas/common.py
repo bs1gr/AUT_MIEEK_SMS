@@ -5,7 +5,7 @@ Common schemas used across multiple endpoints.
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Generic, TypeVar, List
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PaginationParams(BaseModel):
@@ -34,6 +34,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
             limit=100
         )
     """
+
     model_config = ConfigDict(from_attributes=True)
 
     items: List[T]
