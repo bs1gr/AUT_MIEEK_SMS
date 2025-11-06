@@ -366,44 +366,60 @@ async def lifespan(app: FastAPI):
     # Auto-import courses with evaluation rules if database is empty (works in both Docker and native modes)
     try:
         from sqlalchemy import text
-
         with db_engine.connect() as conn:
             result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
             if result == 0:
-                logger.info("No courses found in database - importing from templates...")
-                # Trigger import by making internal call to import endpoint logic
-                # This ensures evaluation rules are properly parsed with all the complex logic
+                logger.info("No courses found in database - scheduling auto-import...")
+                # Use threading with proper error boundaries and timeout
+                # This is more reliable than HTTP requests during startup
                 try:
                     import threading
                     import time
                     import requests
-
+                    
                     def delayed_import():
-                        """Wait for server to start, then trigger import."""
-                        time.sleep(3)  # Give server time to fully start
-                        try:
-                            port = getattr(settings, "API_PORT", 8000)
-                            response = requests.post(
-                                f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
-                                headers={"Content-Type": "application/json"},
-                                timeout=60,
-                            )
-                            if response.status_code == 200:
-                                data = response.json()
-                                logger.info(
-                                    f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                        """
+                        Wait for server to start, then trigger import.
+                        Includes retry logic and proper error handling.
+                        """
+                        max_retries = 3
+                        retry_delay = 3
+                        
+                        for attempt in range(max_retries):
+                            try:
+                                # Wait for server to be fully ready
+                                time.sleep(retry_delay * (attempt + 1))
+                                
+                                port = getattr(settings, 'API_PORT', 8000)
+                                response = requests.post(
+                                    f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=60
                                 )
-                            else:
-                                logger.warning(f"Auto-import returned status {response.status_code}")
-                        except Exception as e:
-                            logger.warning(f"Auto-import request failed: {e}")
-
+                                if response.status_code == 200:
+                                    data = response.json()
+                                    logger.info(f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated")
+                                    return  # Success
+                                else:
+                                    logger.warning(f"Auto-import attempt {attempt + 1} returned status {response.status_code}")
+                            except requests.exceptions.ConnectionError:
+                                logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
+                            except Exception as e:
+                                logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
+                        
+                        logger.error("Auto-import failed after all retries")
+                    
                     # Start import in background thread
-                    import_thread = threading.Thread(target=delayed_import, daemon=True)
+                    # Using daemon=True ensures it doesn't prevent shutdown
+                    import_thread = threading.Thread(
+                        target=delayed_import,
+                        daemon=True,
+                        name="course-auto-import"
+                    )
                     import_thread.start()
-                    logger.info("Started background course import thread")
+                    logger.info("Started background course import thread (will retry up to 3 times)")
                 except Exception as e:
-                    logger.warning(f"Failed to start auto-import: {e}")
+                    logger.warning(f"Failed to start auto-import thread: {e}")
             else:
                 logger.info(f"Courses already exist in database ({result} courses) - skipping auto-import")
     except Exception as e:
