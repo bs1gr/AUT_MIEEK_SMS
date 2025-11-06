@@ -75,15 +75,15 @@ Total: 850MB in 1 container (simpler!)
 
 ### For End Users: **Fullstack Docker Image Only**
 - **Single entry point**: `RUN.ps1` (auto-detects first-time vs restart)
-- **Installation**: 
+- **Installation**:
   ```powershell
   # Option 1: Docker Desktop installed
   .\RUN.ps1
-  
+
   # Option 2: Manual
   docker run -d -p 8080:8000 -v sms_data:/app/data sms-fullstack:1.3.9
   ```
-- **Updates**: 
+- **Updates**:
   ```powershell
   .\RUN.ps1 -Update  # Stops, pulls new image, restarts with backup
   ```
@@ -98,7 +98,7 @@ Total: 850MB in 1 container (simpler!)
   ```powershell
   SMS.ps1  # Interactive menu to start native mode
   ```
-- **Why both?**: 
+- **Why both?**:
   - Multi-container for testing Docker deployments
   - Native for backend debugging, schema changes, Alembic migrations
 
@@ -149,20 +149,20 @@ if ($Stop) {
 
 if ($Update) {
     Write-Host "🔄 Updating SMS..." -ForegroundColor Cyan
-    
+
     # Backup database
     Write-Host "Creating backup..." -ForegroundColor Yellow
     docker run --rm -v ${VOLUME}:/data -v ${PWD}/backups:/backups alpine `
         sh -c "cp /data/student_management.db /backups/backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').db"
-    
+
     # Stop and remove old container
     docker stop $CONTAINER 2>$null
     docker rm $CONTAINER 2>$null
-    
+
     # Pull new image
     Write-Host "Pulling latest image..." -ForegroundColor Yellow
     docker pull $IMAGE
-    
+
     # Start with new image
     & $MyInvocation.MyCommand.Path  # Recursive call to start
     exit 0
@@ -326,12 +326,12 @@ Day 1 (3-4 hours):
   ✅ Update SMART_SETUP.ps1 to build fullstack by default
   ✅ Add -DevMode flag for multi-container
   ✅ Test fullstack build and RUN.ps1
-  
+
 Day 2 (2 hours):
   ✅ Update README.md with new Quick Start
   ✅ Create end-user-focused docs/INSTALLATION_GUIDE.md
   ✅ Update ARCHITECTURE.md to recommend fullstack
-  
+
 Day 3 (1 hour):
   ✅ Test on QNAP
   ✅ Update GitHub release notes
@@ -344,7 +344,7 @@ Day 3 (1 hour):
 
 Native mode requires:
 1. ❌ Python 3.11+ installation
-2. ❌ Node.js 18+ installation  
+2. ❌ Node.js 18+ installation
 3. ❌ Virtual environment setup
 4. ❌ Port management (8000 + 5173 conflicts)
 5. ❌ Dependency management (pip + npm)

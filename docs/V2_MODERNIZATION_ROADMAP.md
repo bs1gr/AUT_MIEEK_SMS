@@ -1,7 +1,7 @@
 # Student Management System v2.0 - Modernization & Deployment Roadmap
 
-**Created**: November 6, 2025  
-**Current Version**: 1.3.9 (Production-Ready, CSV Import Complete)  
+**Created**: November 6, 2025
+**Current Version**: 1.3.9 (Production-Ready, CSV Import Complete)
 **Target Version**: 2.0.0 (Modern, Production-Grade, One-Click Deployment)
 
 ---
@@ -173,7 +173,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    - Then modals
    - Then views
    - Finally main app
-   
+
    **Priority order**:
    ```
    1. api/api.ts (types for all API responses)
@@ -203,7 +203,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    ```typescript
    // stores/useStudentsStore.ts
    import create from 'zustand';
-   
+
    interface StudentsStore {
      students: Student[];
      setStudents: (students: Student[]) => void;
@@ -211,7 +211,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
      updateStudent: (id: number, data: Partial<Student>) => void;
      deleteStudent: (id: number) => void;
    }
-   
+
    export const useStudentsStore = create<StudentsStore>((set) => ({
      students: [],
      setStudents: (students) => set({ students }),
@@ -219,7 +219,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
        students: [...state.students, student]
      })),
      updateStudent: (id, data) => set((state) => ({
-       students: state.students.map((s) => 
+       students: state.students.map((s) =>
          s.id === id ? { ...s, ...data } : s
        )
      })),
@@ -234,23 +234,23 @@ Transform SMS from a functional application into a **modern, production-grade, e
    // hooks/useStudents.ts
    import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
    import { studentsAPI } from '../api/api';
-   
+
    export const useStudents = () => {
      const queryClient = useQueryClient();
-     
+
      const { data, isLoading, error } = useQuery({
        queryKey: ['students'],
        queryFn: studentsAPI.getAll,
        staleTime: 5 * 60 * 1000, // 5 minutes
      });
-     
+
      const createMutation = useMutation({
        mutationFn: studentsAPI.create,
        onSuccess: () => {
          queryClient.invalidateQueries({ queryKey: ['students'] });
        },
      });
-     
+
      return {
        students: data ?? [],
        isLoading,
@@ -277,7 +277,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
 
 **Goal**: Break monolithic components into small, testable units
 
-**Before**: `StudentManagementApp.jsx` (318 lines, 13 useState, 10 imports)  
+**Before**: `StudentManagementApp.jsx` (318 lines, 13 useState, 10 imports)
 **After**: Clean orchestrator with 5-10 lines per view
 
 1. **Create atomic components** (6 hours)
@@ -318,7 +318,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    npx shadcn-ui@latest add dialog
    npx shadcn-ui@latest add tabs
    ```
-   
+
    **Why shadcn/ui?**
    - ✅ Copy-paste components (no bloat)
    - ✅ Tailwind-based (matches your stack)
@@ -330,7 +330,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    ```bash
    npm install framer-motion
    ```
-   
+
    - Page transitions
    - Modal slide-in
    - List item fade-in
@@ -341,19 +341,19 @@ Transform SMS from a functional application into a **modern, production-grade, e
    ```bash
    npm install react-hook-form zod @hookform/resolvers
    ```
-   
+
    ```typescript
    import { useForm } from 'react-hook-form';
    import { zodResolver } from '@hookform/resolvers/zod';
    import { z } from 'zod';
-   
+
    const studentSchema = z.object({
      first_name: z.string().min(2, 'Name too short'),
      last_name: z.string().min(2, 'Name too short'),
      email: z.string().email('Invalid email'),
      student_id: z.string().regex(/^[A-Z0-9]+$/, 'Invalid ID format'),
    });
-   
+
    const { register, handleSubmit, formState: { errors } } = useForm({
      resolver: zodResolver(studentSchema),
    });
@@ -403,18 +403,18 @@ Transform SMS from a functional application into a **modern, production-grade, e
    from datetime import timedelta
    from jose import JWTError, jwt
    from passlib.context import CryptContext
-   
+
    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
    SECRET_KEY = settings.secret_key
    ALGORITHM = "HS256"
    ACCESS_TOKEN_EXPIRE_MINUTES = 60
-   
+
    def create_access_token(data: dict):
        to_encode = data.copy()
        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
        to_encode.update({"exp": expire})
        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-   
+
    async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
        try:
            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -438,7 +438,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
            raise HTTPException(status_code=401, detail="Incorrect username or password")
        access_token = create_access_token(data={"sub": user.username})
        return {"access_token": access_token, "token_type": "bearer"}
-   
+
    @router.post("/register")
    async def register(user: UserCreate, db: Session = Depends(get_db)):
        # Check if user exists
@@ -459,12 +459,12 @@ Transform SMS from a functional application into a **modern, production-grade, e
 1. **Role-based permissions** (3 hours)
    ```python
    from enum import Enum
-   
+
    class Role(str, Enum):
        ADMIN = "admin"
        TEACHER = "teacher"
        STUDENT = "student"
-   
+
    def require_role(*allowed_roles: Role):
        def role_checker(current_user: User = Depends(get_current_user)):
            if current_user.role not in allowed_roles:
@@ -487,7 +487,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
        last_name: constr(min_length=2, max_length=50, strip_whitespace=True)
        email: EmailStr
        student_id: constr(regex=r'^[A-Z0-9]{4,10}$')
-       
+
        @validator('first_name', 'last_name')
        def no_special_chars(cls, v):
            if not re.match(r'^[A-Za-zΑ-Ωα-ω\s-]+$', v):
@@ -523,10 +523,10 @@ Transform SMS from a functional application into a **modern, production-grade, e
 1. **Code splitting** (3 hours)
    ```typescript
    import { lazy, Suspense } from 'react';
-   
+
    const StudentsView = lazy(() => import('./components/views/StudentsView'));
    const CoursesView = lazy(() => import('./components/views/CoursesView'));
-   
+
    <Suspense fallback={<LoadingSpinner />}>
      <StudentsView />
    </Suspense>
@@ -559,7 +559,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    const StudentCard = React.memo(({ student }) => {
      return <Card>...</Card>;
    });
-   
+
    const filteredStudents = useMemo(() => {
      return students.filter(s => s.name.includes(search));
    }, [students, search]);
@@ -571,9 +571,9 @@ Transform SMS from a functional application into a **modern, production-grade, e
    ```python
    import redis
    from functools import wraps
-   
+
    redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
-   
+
    def cache_result(expire: int = 300):
        def decorator(func):
            @wraps(func)
@@ -587,7 +587,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
                return result
            return wrapper
        return decorator
-   
+
    @router.get("/students/")
    @cache_result(expire=300)  # 5 minutes
    async def get_students(...):
@@ -600,7 +600,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
    - Query result pagination
    ```python
    from sqlalchemy.orm import joinedload
-   
+
    students = db.query(Student)\
        .options(joinedload(Student.courses))\
        .limit(100)\
@@ -611,7 +611,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
 3. **Background tasks** (2 hours)
    ```python
    from fastapi import BackgroundTasks
-   
+
    @router.post("/students/import")
    async def import_students(file: UploadFile, background_tasks: BackgroundTasks):
        background_tasks.add_task(process_csv, file)
@@ -639,10 +639,10 @@ Transform SMS from a functional application into a **modern, production-grade, e
    ```bash
    pip install prometheus-fastapi-instrumentator
    ```
-   
+
    ```python
    from prometheus_fastapi_instrumentator import Instrumentator
-   
+
    instrumentator = Instrumentator()
    instrumentator.instrument(app).expose(app, endpoint="/metrics")
    ```
@@ -658,7 +658,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
 1. **Structured logging** (3 hours)
    ```python
    import structlog
-   
+
    logger = structlog.get_logger()
    logger.info("student_created", student_id=student.id, user=current_user.username)
    ```
@@ -692,7 +692,7 @@ Transform SMS from a functional application into a **modern, production-grade, e
              npm test
          - name: Upload coverage
            uses: codecov/codecov-action@v3
-     
+
      build:
        needs: test
        runs-on: ubuntu-latest
@@ -714,13 +714,13 @@ Transform SMS from a functional application into a **modern, production-grade, e
 1. **Automated backups** (3 hours)
    ```python
    import schedule
-   
+
    def backup_database():
        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
        backup_path = f"/backups/sms_{timestamp}.db"
        shutil.copy2(settings.database_url, backup_path)
        # Upload to S3 or remote storage
-   
+
    schedule.every().day.at("02:00").do(backup_database)
    ```
 
