@@ -168,12 +168,12 @@ $mode = $null
 if ($PreferDocker -and $PreferNative) { throw 'PreferDocker and PreferNative cannot both be set' }
 if ($PreferDocker) { if (-not $hasDocker) { throw 'Docker not available' } $mode = 'docker' }
 elseif ($PreferNative) { if (-not $hasPy) { throw 'Python not available' } $mode = 'native' }
-else { 
-    if ($hasDocker) { 
-        $mode = 'docker' 
-    } else { 
-        $mode = 'native' 
-    } 
+else {
+    if ($hasDocker) {
+        $mode = 'docker'
+    } else {
+        $mode = 'native'
+    }
 }
 Write-Log "Selected mode: $mode"
 

@@ -678,11 +678,7 @@ async def get_backend_logs(request: Request, lines: int = 100):
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
-
-
 @router.post("/operations/database-backup", response_model=OperationResult)
-
-
 @router.post("/operations/database-backup", response_model=OperationResult)
 async def backup_database(request: Request):
     """
@@ -690,27 +686,27 @@ async def backup_database(request: Request):
     """
     try:
         from backend.config import settings
-        
+
         project_root = Path(__file__).parent.parent.parent
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
-        
+
         if not db_path.exists():
             raise http_error(404, ErrorCode.CONTROL_DATABASE_NOT_FOUND, "Database file not found", request)
-        
+
         # Create backups directory
         backup_dir = project_root / "backups" / "database"
         backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create backup with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = backup_dir / f"student_management_{timestamp}.db"
-        
+
         # Copy database
         shutil.copy2(db_path, backup_path)
-        
+
         return OperationResult(
             success=True,
-            message=f"Database backed up successfully",
+            message="Database backed up successfully",
             details={
                 "backup_path": str(backup_path),
                 "original_size": os.path.getsize(db_path),
@@ -736,20 +732,22 @@ async def list_database_backups(request: Request):
     try:
         project_root = Path(__file__).parent.parent.parent
         backup_dir = project_root / "backups" / "database"
-        
+
         if not backup_dir.exists():
             return {"backups": [], "message": "No backups directory found"}
-        
+
         backups = []
         for backup_file in sorted(backup_dir.glob("*.db"), reverse=True):
             stat = backup_file.stat()
-            backups.append({
-                "filename": backup_file.name,
-                "path": str(backup_file),
-                "size": stat.st_size,
-                "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            })
-        
+            backups.append(
+                {
+                    "filename": backup_file.name,
+                    "path": str(backup_file),
+                    "size": stat.st_size,
+                    "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                }
+            )
+
         return {"backups": backups, "total": len(backups)}
     except Exception as exc:
         raise http_error(
@@ -769,25 +767,25 @@ async def restore_database(request: Request, backup_filename: str):
     """
     try:
         from backend.config import settings
-        
+
         project_root = Path(__file__).parent.parent.parent
         backup_dir = project_root / "backups" / "database"
         backup_path = backup_dir / backup_filename
-        
+
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
-        
+
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
-        
+
         # Create a safety backup of current database before restoring
         safety_backup = None
         if db_path.exists():
             safety_backup = db_path.with_suffix(f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
             shutil.copy2(db_path, safety_backup)
-        
+
         # Restore backup
         shutil.copy2(backup_path, db_path)
-        
+
         return OperationResult(
             success=True,
             message="Database restored successfully. Restart may be required.",
@@ -814,7 +812,7 @@ async def run_troubleshooter():
     Goes beyond diagnostics to provide actionable solutions
     """
     results = []
-    
+
     # Check 1: Port conflicts
     common_ports = [8000, 8080, 5173]
     for port in common_ports:
@@ -829,14 +827,14 @@ async def run_troubleshooter():
                         details={
                             "port": port,
                             "process": proc_info,
-                            "solution": f"Stop the process or change application port",
+                            "solution": "Stop the process or change application port",
                         },
                     )
                 )
-    
+
     # Check 2: Missing dependencies
     project_root = Path(__file__).parent.parent.parent
-    
+
     # Frontend dependencies
     node_modules = project_root / "frontend" / "node_modules"
     if not node_modules.exists():
@@ -851,7 +849,7 @@ async def run_troubleshooter():
                 },
             )
         )
-    
+
     # Backend dependencies
     try:
         import fastapi
@@ -868,14 +866,14 @@ async def run_troubleshooter():
                 },
             )
         )
-    
+
     # Check 3: Database issues
     try:
         from backend.config import settings
         from backend.db import engine
-        
+
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
-        
+
         if not db_path.exists():
             results.append(
                 DiagnosticResult(
@@ -916,7 +914,7 @@ async def run_troubleshooter():
                 details={},
             )
         )
-    
+
     # Check 4: Docker issues
     if not _check_docker_running():
         results.append(
@@ -927,7 +925,7 @@ async def run_troubleshooter():
                 details={"solution": "Start Docker Desktop if you want to run in Docker mode"},
             )
         )
-    
+
     # Check 5: Environment configuration
     env_file = project_root / "backend" / ".env"
     if not env_file.exists():
@@ -939,7 +937,7 @@ async def run_troubleshooter():
                 details={"solution": "Copy backend/.env.example to backend/.env"},
             )
         )
-    
+
     frontend_env = project_root / "frontend" / ".env"
     if not frontend_env.exists():
         results.append(
@@ -950,7 +948,7 @@ async def run_troubleshooter():
                 details={"solution": "Copy frontend/.env.example to frontend/.env"},
             )
         )
-    
+
     # If no issues found
     if not results:
         results.append(
@@ -961,5 +959,5 @@ async def run_troubleshooter():
                 details={},
             )
         )
-    
+
     return results

@@ -106,7 +106,7 @@ function Get-ContainerStatus {
     .SYNOPSIS
         Get status of SMS Docker containers
     #>
-    
+
     if (-not (Test-DockerRunning)) {
         return @{
             DockerRunning = $false
@@ -118,7 +118,7 @@ function Get-ContainerStatus {
     try {
         # Get SMS containers
         $containers = docker ps -a --filter "name=student-management-system" --format "{{.Names}}|{{.Status}}|{{.Ports}}" 2>$null
-        
+
         $containerInfo = @()
         if ($containers) {
             foreach ($line in $containers) {
@@ -154,20 +154,20 @@ function Show-Status {
     .SYNOPSIS
         Display current system status
     #>
-    
+
     Write-Header "Student Management System v$version - Status" "Cyan"
-    
+
     $status = Get-ContainerStatus
-    
+
     if (-not $status.DockerRunning) {
         Write-Error2 "Docker Desktop is not running"
         Write-Info "Please start Docker Desktop and try again"
         return
     }
-    
+
     Write-Success "Docker Desktop is running"
     Write-Host ""
-    
+
     if ($status.Containers.Count -eq 0) {
         Write-Warning2 "No SMS containers found"
         Write-Info "Run '.\SMART_SETUP.ps1' to initialize the system"
@@ -178,19 +178,19 @@ function Show-Status {
         foreach ($container in $status.Containers) {
             $statusColor = if ($container.IsRunning) { "Green" } else { "Red" }
             $statusIcon = if ($container.IsRunning) { "✓" } else { "✗" }
-            
+
             Write-Host "  $statusIcon " -ForegroundColor $statusColor -NoNewline
             Write-Host "$($container.Name)" -ForegroundColor White
             Write-Host "     Status: " -ForegroundColor Gray -NoNewline
             Write-Host "$($container.Status)" -ForegroundColor $statusColor
-            
+
             if ($container.Ports) {
                 Write-Host "     Ports: $($container.Ports)" -ForegroundColor Gray
             }
         }
-        
+
         Write-Host ""
-        
+
         # Show access URLs if containers are running
         $runningContainers = $status.Containers | Where-Object { $_.IsRunning }
         if ($runningContainers.Count -gt 0) {
@@ -203,7 +203,7 @@ function Show-Status {
             Write-Host "http://localhost:8080 → Power Tab" -ForegroundColor Cyan
         }
     }
-    
+
     Write-Host ""
 }
 
@@ -212,20 +212,20 @@ function Start-Containers {
     .SYNOPSIS
         Start Docker containers
     #>
-    
+
     Write-Header "Starting SMS Containers" "Green"
-    
+
     if (-not (Test-DockerRunning)) {
         Write-Error2 "Docker Desktop is not running"
         Write-Info "Please start Docker Desktop first"
         return $false
     }
-    
+
     Write-Info "Starting containers with docker compose..."
-    
+
     try {
         $output = docker compose up -d 2>&1
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Containers started successfully"
             Write-Host ""
@@ -250,19 +250,19 @@ function Stop-Containers {
     .SYNOPSIS
         Stop Docker containers
     #>
-    
+
     Write-Header "Stopping SMS Containers" "Yellow"
-    
+
     if (-not (Test-DockerRunning)) {
         Write-Warning2 "Docker Desktop is not running (containers already stopped)"
         return $true
     }
-    
+
     Write-Info "Stopping containers with docker compose..."
-    
+
     try {
         $output = docker compose down 2>&1
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Containers stopped successfully"
             return $true
@@ -284,21 +284,21 @@ function Restart-Containers {
     .SYNOPSIS
         Restart Docker containers
     #>
-    
+
     Write-Header "Restarting SMS Containers" "Magenta"
-    
+
     if (-not (Test-DockerRunning)) {
         Write-Error2 "Docker Desktop is not running"
         Write-Info "Please start Docker Desktop first"
         return $false
     }
-    
+
     Write-Info "Restarting containers..."
-    
+
     try {
         # Try restart first (faster)
         $output = docker compose restart 2>&1
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Containers restarted successfully"
             Write-Host ""
@@ -329,30 +329,30 @@ function Show-Logs {
         [string]$Container = "backend",
         [int]$Lines = 50
     )
-    
+
     Write-Header "Container Logs - $Container" "Blue"
-    
+
     if (-not (Test-DockerRunning)) {
         Write-Error2 "Docker Desktop is not running"
         return
     }
-    
+
     try {
         $containerName = "student-management-system-$Container-1"
-        
+
         # Check if container exists
         $exists = docker ps -a --filter "name=$containerName" --format "{{.Names}}" 2>$null
-        
+
         if (-not $exists) {
             Write-Error2 "Container '$containerName' not found"
             Write-Info "Available containers:"
             docker ps -a --filter "name=student-management-system" --format "  {{.Names}}"
             return
         }
-        
+
         Write-Info "Showing last $Lines lines (press Ctrl+C to exit)..."
         Write-Host ""
-        
+
         docker logs --tail $Lines -f $containerName
     }
     catch {
@@ -365,9 +365,9 @@ function Show-Help {
     .SYNOPSIS
         Display help information
     #>
-    
+
     Write-Header "Student Management System v$version - Help" "Cyan"
-    
+
     Write-Host @"
 Docker-only Release - Simple Container Management
 
@@ -397,7 +397,7 @@ ADVANCED OPERATIONS:
   • Diagnostics & Troubleshooting
   • Port Monitoring
   • Environment Info
-  
+
   👉 Use the Control Panel in the web app:
      http://localhost:8080 → Power Tab
 
@@ -414,7 +414,7 @@ SUPPORT:
   • Version: $version
 
 "@
-    
+
     Write-Host ""
 }
 
