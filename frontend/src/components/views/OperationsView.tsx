@@ -4,6 +4,7 @@ import ExportCenter from '../tools/ExportCenter';
 import HelpDocumentation from '../tools/HelpDocumentation';
 import ServerControl from '../common/ServerControl';
 import ThemeSelector from '../tools/ThemeSelector';
+import Toast from '../ui/Toast';
 import { getHealthStatus, adminOpsAPI, importAPI } from '../../api/api';
 
 // Use same-origin relative API by default so it works in fullstack (8080) and dev
@@ -23,6 +24,7 @@ const DevToolsTab: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const ping = async () => {
     setLoading(true);
@@ -52,11 +54,14 @@ const DevToolsTab: React.FC = () => {
   const backup = async () => {
     setOpLoading('backup');
     setResult(null);
+    setToast(null);
     try {
       const data = await adminOpsAPI.createBackup();
       setResult({ op: 'backup', data });
+      setToast({ message: t('utils.backupSuccess') || 'Backup created successfully', type: 'success' });
     } catch {
       setResult({ op: 'backup', error: true });
+      setToast({ message: t('utils.backupError') || 'Backup failed', type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -65,15 +70,19 @@ const DevToolsTab: React.FC = () => {
   const restore = async () => {
     if (!restoreFile) {
       setResult({ op: 'restore', error: t('noFileSelected') });
+      setToast({ message: t('noFileSelected') || 'No file selected', type: 'error' });
       return;
     }
     setOpLoading('restore');
     setResult(null);
+    setToast(null);
     try {
       const data = await adminOpsAPI.restoreBackup(restoreFile);
       setResult({ op: 'restore', data });
+      setToast({ message: t('utils.restoreSuccess') || 'Database restored successfully', type: 'success' });
     } catch {
       setResult({ op: 'restore', error: true });
+      setToast({ message: t('utils.restoreError') || 'Restore failed', type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -82,15 +91,19 @@ const DevToolsTab: React.FC = () => {
   const clearDb = async () => {
     if (!clearConfirm) {
       setResult({ op: 'clear', error: t('confirmRequired') });
+      setToast({ message: t('confirmRequired') || 'Please confirm the operation', type: 'error' });
       return;
     }
     setOpLoading('clear');
     setResult(null);
+    setToast(null);
     try {
       const data = await adminOpsAPI.clearDatabase(clearScope);
       setResult({ op: 'clear', data });
+      setToast({ message: t('utils.clearSuccess') || 'Database cleared successfully', type: 'success' });
     } catch {
       setResult({ op: 'clear', error: true });
+      setToast({ message: t('utils.clearError') || 'Clear database failed', type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -99,16 +112,38 @@ const DevToolsTab: React.FC = () => {
   const uploadImport = async () => {
     if (!files || files.length === 0) {
       setResult({ op: 'upload', error: t('noFilesSelected') });
+      setToast({ message: t('noFilesSelected') || 'No files selected', type: 'error' });
       return;
     }
     setOpLoading('upload');
     setResult(null);
+    setToast(null);
     try {
       // Upload first file (backend expects single file)
       const data = await importAPI.uploadFile(files[0], importType);
       setResult({ op: 'upload', data });
-    } catch {
+      
+      // Show success with details
+      const created = data.created || 0;
+      const updated = data.updated || 0;
+      const errors = data.errors || [];
+      
+      let message = '';
+      if (created > 0 || updated > 0) {
+        message = `${t('utils.importSuccess') || 'Import completed'}: ${created} ${t('created') || 'created'}, ${updated} ${t('updated') || 'updated'}`;
+        if (errors.length > 0) {
+          message += ` (${errors.length} ${t('warnings') || 'warnings'})`;
+        }
+        setToast({ message, type: errors.length > 0 ? 'info' : 'success' });
+      } else if (errors.length > 0) {
+        setToast({ message: `${t('utils.importError') || 'Import failed'}: ${errors.length} ${t('errors') || 'errors'}`, type: 'error' });
+      } else {
+        setToast({ message: t('utils.importNoChanges') || 'No changes made', type: 'info' });
+      }
+    } catch (error: any) {
       setResult({ op: 'upload', error: true });
+      const errorMsg = error?.response?.data?.detail?.message || error?.message || t('utils.importError') || 'Import failed';
+      setToast({ message: errorMsg, type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -116,6 +151,14 @@ const DevToolsTab: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       {health && (
         <div className="border rounded-xl overflow-hidden">
