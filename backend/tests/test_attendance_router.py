@@ -74,8 +74,7 @@ def test_create_attendance_invalid_student(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
-    assert "Student not found" in get_error_message(payload)
+    assert "Student" in detail and "not found" in detail
 
 
 def test_create_attendance_invalid_course(client):
@@ -95,8 +94,7 @@ def test_create_attendance_invalid_course(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
-    assert "Course not found" in get_error_message(payload)
+    assert "Course" in detail and "not found" in detail
 
 
 def test_create_duplicate_attendance(client):
@@ -205,7 +203,8 @@ def test_filter_attendance_by_student(client):
     response = client.get(f"/api/v1/attendance/?student_id={student1_id}")
     assert response.status_code == 200
     data = response.json()
-    assert all(a["student_id"] == student1_id for a in data)
+    assert data["total"] >= 1
+    assert all(a["student_id"] == student1_id for a in data["items"])
 
 
 def test_filter_attendance_by_status(client):
@@ -241,7 +240,8 @@ def test_filter_attendance_by_status(client):
     response = client.get("/api/v1/attendance/?status=Absent")
     assert response.status_code == 200
     data = response.json()
-    assert all(a["status"] == "Absent" for a in data)
+    assert data["total"] >= 1
+    assert all(a["status"] == "Absent" for a in data["items"])
 
 
 def test_get_student_attendance(client):
@@ -370,8 +370,9 @@ def test_attendance_date_range_filtering(client):
     )
     assert r.status_code == 200
     js = r.json()
-    assert len(js) == 1
-    assert js[0]["date"] == d1.isoformat()
+    assert js["total"] == 1
+    assert len(js["items"]) == 1
+    assert js["items"][0]["date"] == d1.isoformat()
 
     # Only start_date provided: end should default using SEMESTER_WEEKS (14w).
     # With start=today-20d, should include d0 and d1, but exclude d2 (30d ago < start)
@@ -379,7 +380,8 @@ def test_attendance_date_range_filtering(client):
         f"/api/v1/attendance/?student_id={student_id}&course_id={course_id}&start_date={(today - timedelta(days=20)).isoformat()}"
     )
     assert r2.status_code == 200
-    dates = {x["date"] for x in r2.json()}
+    r2_data = r2.json()
+    dates = {x["date"] for x in r2_data["items"]}
     assert d0.isoformat() in dates and d1.isoformat() in dates
     assert d2.isoformat() not in dates
 
@@ -451,7 +453,7 @@ def test_delete_attendance(client):
     assert get_resp.status_code == 404
     payload = get_resp.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
+    assert "Attendance" in detail and "not found" in detail
 
 
 def test_attendance_stats(client):
@@ -597,7 +599,8 @@ def test_attendance_date_range_with_only_end_date(client):
         f"/api/v1/attendance/?student_id={student_id}&course_id={course_id}&end_date={today.isoformat()}"
     )
     assert response.status_code == 200
-    dates = {item["date"] for item in response.json()}
+    data = response.json()
+    dates = {item["date"] for item in data["items"]}
     assert within_range.isoformat() in dates
     assert outside_range.isoformat() not in dates
 
@@ -607,8 +610,7 @@ def test_update_attendance_not_found(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
-    assert "Attendance record not found" in get_error_message(payload)
+    assert "Attendance" in detail and "not found" in detail
 
 
 def test_delete_attendance_not_found(client):
@@ -616,8 +618,7 @@ def test_delete_attendance_not_found(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.ATTENDANCE_NOT_FOUND.value
-    assert "Attendance record not found" in get_error_message(payload)
+    assert "Attendance" in detail and "not found" in detail
 
 
 def test_get_student_attendance_not_found(client):
@@ -625,8 +626,7 @@ def test_get_student_attendance_not_found(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.STUDENT_NOT_FOUND.value
-    assert "Student not found" in get_error_message(payload)
+    assert "Student" in detail and "not found" in detail
 
 
 def test_get_course_attendance_not_found(client):
@@ -634,8 +634,7 @@ def test_get_course_attendance_not_found(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
-    assert "Course not found" in get_error_message(payload)
+    assert "Course" in detail and "not found" in detail
 
 
 def test_get_attendance_by_date_course_not_found(client):
@@ -644,5 +643,4 @@ def test_get_attendance_by_date_course_not_found(client):
     assert response.status_code == 404
     payload = response.json()
     detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.COURSE_NOT_FOUND.value
-    assert "Course not found" in get_error_message(payload)
+    assert "Course" in detail and "not found" in detail

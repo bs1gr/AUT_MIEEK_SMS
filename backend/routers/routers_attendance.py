@@ -16,6 +16,8 @@ router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"
 
 
 from backend.schemas.attendance import AttendanceCreate, AttendanceResponse, AttendanceUpdate
+from backend.schemas.common import PaginatedResponse, PaginationParams
+from backend.db_utils import transaction, get_by_id_or_404, paginate
 
 
 # ========== DEPENDENCY INJECTION ==========
@@ -77,54 +79,37 @@ def create_attendance(
 
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
-        # Validate student exists and is active
-        student = (
-            db.query(Student).filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None)).first()
-        )
-        if not student:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found or archived",
-                request,
+        # Validate student and course exist
+        student = get_by_id_or_404(db, Student, attendance_data.student_id)
+        course = get_by_id_or_404(db, Course, attendance_data.course_id)
+
+        with transaction(db):
+            # Use database-level locking to prevent duplicate attendance records
+            existing = (
+                db.query(Attendance)
+                .filter(
+                    Attendance.student_id == attendance_data.student_id,
+                    Attendance.course_id == attendance_data.course_id,
+                    Attendance.date == attendance_data.date,
+                    Attendance.period_number == attendance_data.period_number,
+                    Attendance.deleted_at.is_(None),
+                )
+                .with_for_update()
+                .first()
             )
 
-        # Validate course exists and is active
-        course = db.query(Course).filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found or archived",
-                request,
-            )
+            if existing:
+                raise http_error(
+                    status.HTTP_400_BAD_REQUEST,
+                    ErrorCode.ATTENDANCE_ALREADY_EXISTS,
+                    "Attendance record already exists for this student, course, date, and period",
+                    request,
+                )
 
-        # Use database-level locking to prevent duplicate attendance records
-        existing = (
-            db.query(Attendance)
-            .filter(
-                Attendance.student_id == attendance_data.student_id,
-                Attendance.course_id == attendance_data.course_id,
-                Attendance.date == attendance_data.date,
-                Attendance.period_number == attendance_data.period_number,
-                Attendance.deleted_at.is_(None),
-            )
-            .with_for_update()
-            .first()
-        )
-
-        if existing:
-            raise http_error(
-                status.HTTP_400_BAD_REQUEST,
-                ErrorCode.ATTENDANCE_ALREADY_EXISTS,
-                "Attendance record already exists for this student, course, date, and period",
-                request,
-            )
-
-        db_attendance = Attendance(**attendance_data.model_dump())
-        db.add(db_attendance)
-        db.commit()
-        db.refresh(db_attendance)
+            db_attendance = Attendance(**attendance_data.model_dump())
+            db.add(db_attendance)
+            db.flush()
+            db.refresh(db_attendance)
 
         logger.info(f"Created attendance record: {db_attendance.id}")
         return db_attendance
@@ -132,16 +117,14 @@ def create_attendance(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error creating attendance: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
 
-@router.get("/", response_model=List[AttendanceResponse])
+@router.get("/", response_model=PaginatedResponse[AttendanceResponse])
 def get_all_attendance(
     request: Request,
-    skip: int = 0,
-    limit: int = 100,
+    pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
     course_id: Optional[int] = None,
     status: Optional[str] = None,
@@ -179,10 +162,12 @@ def get_all_attendance(
             s, e = rng
             query = query.filter(Attendance.date >= s, Attendance.date <= e)
 
-        attendance_records = query.offset(skip).limit(limit).all()
-        logger.info(f"Retrieved {len(attendance_records)} attendance records")
+        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
+        logger.info(
+            f"Retrieved {len(result.items)} attendance records (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
+        )
 
-        return attendance_records
+        return result.dict()
 
     except HTTPException:
         raise
@@ -207,14 +192,7 @@ def get_student_attendance(
         Attendance, Student = import_names("models", "Attendance", "Student")
 
         # Validate student exists
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found or archived",
-                request,
-            )
+        student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
 
@@ -250,14 +228,7 @@ def get_course_attendance(
         Attendance, Course = import_names("models", "Attendance", "Course")
 
         # Validate course exists
-        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found or archived",
-                request,
-            )
+        course = get_by_id_or_404(db, Course, course_id)
 
         query = db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
         rng = _normalize_date_range(start_date, end_date)
@@ -287,14 +258,8 @@ def get_attendance_by_date_and_course(
 
         Attendance, Course = import_names("models", "Attendance", "Course")
 
-        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found or archived",
-                request,
-            )
+        course = get_by_id_or_404(db, Course, course_id)
+
         records = (
             db.query(Attendance)
             .filter(
@@ -320,18 +285,7 @@ def get_attendance(request: Request, attendance_id: int, db: Session = Depends(g
 
         (Attendance,) = import_names("models", "Attendance")
 
-        attendance = (
-            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
-        )
-
-        if not attendance:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.ATTENDANCE_NOT_FOUND,
-                "Attendance record not found",
-                request,
-            )
-
+        attendance = get_by_id_or_404(db, Attendance, attendance_id)
         return attendance
 
     except HTTPException:
@@ -356,24 +310,14 @@ def update_attendance(
 
         (Attendance,) = import_names("models", "Attendance")
 
-        db_attendance = (
-            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
-        )
+        db_attendance = get_by_id_or_404(db, Attendance, attendance_id)
 
-        if not db_attendance:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.ATTENDANCE_NOT_FOUND,
-                "Attendance record not found",
-                request,
-            )
-
-        update_data = attendance_data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_attendance, key, value)
-
-        db.commit()
-        db.refresh(db_attendance)
+        with transaction(db):
+            update_data = attendance_data.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(db_attendance, key, value)
+            db.flush()
+            db.refresh(db_attendance)
 
         logger.info(f"Updated attendance: {attendance_id}")
         return db_attendance
@@ -381,7 +325,6 @@ def update_attendance(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error updating attendance: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
@@ -400,20 +343,10 @@ def delete_attendance(
 
         (Attendance,) = import_names("models", "Attendance")
 
-        db_attendance = (
-            db.query(Attendance).filter(Attendance.id == attendance_id, Attendance.deleted_at.is_(None)).first()
-        )
+        db_attendance = get_by_id_or_404(db, Attendance, attendance_id)
 
-        if not db_attendance:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.ATTENDANCE_NOT_FOUND,
-                "Attendance record not found",
-                request,
-            )
-
-        db_attendance.mark_deleted()
-        db.commit()
+        with transaction(db):
+            db_attendance.mark_deleted()
 
         logger.info(f"Deleted attendance: {attendance_id}")
         return None
@@ -421,7 +354,6 @@ def delete_attendance(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error deleting attendance: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
@@ -489,50 +421,43 @@ def bulk_create_attendance(
         created = []
         errors = []
 
-        for idx, attendance_data in enumerate(attendance_list):
-            try:
-                student = (
-                    db.query(Student)
-                    .filter(Student.id == attendance_data.student_id, Student.deleted_at.is_(None))
-                    .first()
-                )
-                if not student:
-                    raise ValueError("Student not found or archived")
+        with transaction(db):
+            for idx, attendance_data in enumerate(attendance_list):
+                try:
+                    student = get_by_id_or_404(db, Student, attendance_data.student_id)
+                    course = get_by_id_or_404(db, Course, attendance_data.course_id)
 
-                course = (
-                    db.query(Course).filter(Course.id == attendance_data.course_id, Course.deleted_at.is_(None)).first()
-                )
-                if not course:
-                    raise ValueError("Course not found or archived")
-
-                existing = (
-                    db.query(Attendance)
-                    .filter(
-                        Attendance.student_id == attendance_data.student_id,
-                        Attendance.course_id == attendance_data.course_id,
-                        Attendance.date == attendance_data.date,
-                        Attendance.period_number == attendance_data.period_number,
-                        Attendance.deleted_at.is_(None),
+                    existing = (
+                        db.query(Attendance)
+                        .filter(
+                            Attendance.student_id == attendance_data.student_id,
+                            Attendance.course_id == attendance_data.course_id,
+                            Attendance.date == attendance_data.date,
+                            Attendance.period_number == attendance_data.period_number,
+                            Attendance.deleted_at.is_(None),
+                        )
+                        .first()
                     )
-                    .first()
-                )
-                if existing:
-                    raise ValueError("Attendance record already exists for this student, course, date, and period")
+                    if existing:
+                        raise ValueError("Attendance record already exists for this student, course, date, and period")
 
-                db_attendance = Attendance(**attendance_data.model_dump())
-                db.add(db_attendance)
-                created.append(idx)
+                    db_attendance = Attendance(**attendance_data.model_dump())
+                    db.add(db_attendance)
+                    created.append(idx)
 
-            except Exception as e:
-                errors.append({"index": idx, "error": str(e)})
+                except HTTPException as e:
+                    errors.append({"index": idx, "error": e.detail})
+                except Exception as e:
+                    errors.append({"index": idx, "error": str(e)})
 
-        db.commit()
+            db.flush()
 
         logger.info(f"Bulk created {len(created)} attendance records, {len(errors)} errors")
 
         return {"created": len(created), "failed": len(errors), "errors": errors}
 
+    except HTTPException:
+        raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error in bulk create: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
