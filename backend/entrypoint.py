@@ -111,6 +111,19 @@ def main() -> int:
     # Start the server by replacing the current process (PID 1) with uvicorn
     try:
         logger.info("Starting Uvicorn server (exec)")
+        
+        # Launch auto-import script in background before exec
+        import subprocess
+        try:
+            logger.info("Starting auto-import script in background...")
+            subprocess.Popen(
+                ["python", "-u", "-m", "backend.auto_import_courses"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        except Exception as e:
+            logger.warning(f"Failed to start auto-import script: {e}")
+        
         # exec into uvicorn so signals are delivered to it
         os.execvp(
             "python", ["python", "-u", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
