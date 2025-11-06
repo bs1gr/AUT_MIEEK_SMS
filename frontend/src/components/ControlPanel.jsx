@@ -388,7 +388,7 @@ const ControlPanel = () => {
                     <p className="text-sm text-blue-200 mb-4">
                       Some operations are disabled because they require host-level access. Use these PowerShell commands from your terminal:
                     </p>
-                    
+
                     {/* Commands in a clean grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                       <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
@@ -415,11 +415,11 @@ const ControlPanel = () => {
                         <div className="text-xs text-gray-300">• Volume management</div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30">
                       <span className="text-lg">💡</span>
                       <p>
-                        <strong>Why?</strong> Docker containers can't manage their own lifecycle or install dependencies. 
+                        <strong>Why?</strong> Docker containers can't manage their own lifecycle or install dependencies.
                         These operations must be performed from the host system for security and reliability.
                       </p>
                     </div>

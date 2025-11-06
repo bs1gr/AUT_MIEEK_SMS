@@ -1,6 +1,6 @@
 # Docker Operations Guide
 
-**Version:** 1.3.8+  
+**Version:** 1.3.8+
 **Mode:** Docker-Only Release
 
 This guide explains the operational architecture for the Student Management System Docker deployment and how to perform common tasks.
@@ -293,7 +293,7 @@ These operations require **host-level access** and must be run from PowerShell:
 - **Image:** `sms-backend:1.3.8`
 - **Base:** `python:3.11-slim`
 - **Ports:** 8000 (internal only)
-- **Volumes:** 
+- **Volumes:**
   - `sms_data:/data` (database)
   - `./backend:/app/backend` (dev only)
 - **Health Check:** `/health` endpoint
@@ -401,6 +401,6 @@ git pull origin main
 
 ---
 
-**Last Updated:** November 6, 2025  
-**Version:** 1.3.8  
+**Last Updated:** November 6, 2025
+**Version:** 1.3.8
 **Architecture:** Docker-First, Host/Container Separation
