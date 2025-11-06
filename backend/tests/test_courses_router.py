@@ -173,11 +173,15 @@ def test_list_courses_with_semester_filter(client):
     # Filter by semester
     r_fall = client.get("/api/v1/courses/?semester=Fall 2025")
     assert r_fall.status_code == 200
-    assert len(r_fall.json()) == 2
+    fall_data = r_fall.json()
+    assert fall_data["total"] == 2
+    assert len(fall_data["items"]) == 2
 
     r_spring = client.get("/api/v1/courses/?semester=Spring 2026")
     assert r_spring.status_code == 200
-    assert len(r_spring.json()) == 1
+    spring_data = r_spring.json()
+    assert spring_data["total"] == 1
+    assert len(spring_data["items"]) == 1
 
 
 def test_delete_course(client):

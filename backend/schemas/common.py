@@ -2,8 +2,10 @@
 Common schemas used across multiple endpoints.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Generic, TypeVar, List
+
+T = TypeVar('T')
 
 
 class PaginationParams(BaseModel):
@@ -20,7 +22,7 @@ class PaginationParams(BaseModel):
     limit: int = Field(100, ge=1, le=1000, description="Maximum records to return (max 1000)")
 
 
-class PaginatedResponse(BaseModel):
+class PaginatedResponse(BaseModel, Generic[T]):
     """
     Response schema for paginated endpoints.
 
@@ -32,16 +34,14 @@ class PaginatedResponse(BaseModel):
             limit=100
         )
     """
+    model_config = ConfigDict(from_attributes=True)
 
-    items: list
+    items: List[T]
     total: int
     skip: int
     limit: int
     pages: int
     current_page: int
-
-    class Config:
-        from_attributes = True
 
 
 class DateRangeParams(BaseModel):
