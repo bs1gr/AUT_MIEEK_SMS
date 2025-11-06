@@ -64,7 +64,7 @@ function Set-EnvFromTemplate {
   param([string]$Dir)
   $envFile = Join-Path $Dir '.env'
   $example = Join-Path $Dir '.env.example'
-  
+
   if (-not (Test-Path $envFile) -and (Test-Path $example)) {
     Copy-Item -LiteralPath $example -Destination $envFile -Force
     Write-Log "Created $envFile from template"
@@ -79,17 +79,17 @@ function Set-ComposeEnvVersion {
     $versionFile = Join-Path $root 'VERSION'
     $composeEnv = Join-Path $root '.env'
     $version = 'latest'
-    
+
     if (Test-Path $versionFile) {
       $v = Get-Content -LiteralPath $versionFile -Raw -ErrorAction Stop
       if ($v) { $version = $v.Trim() }
     }
-    
+
     if (Test-Path $composeEnv) {
       $lines = Get-Content -LiteralPath $composeEnv
       $found = $false
       $newLines = @()
-      
+
       foreach ($line in $lines) {
         if ($line -match '^VERSION=') {
           $newLines += "VERSION=$version"
@@ -98,13 +98,13 @@ function Set-ComposeEnvVersion {
           $newLines += $line
         }
       }
-      
+
       if (-not $found) { $newLines += "VERSION=$version" }
       Set-Content -LiteralPath $composeEnv -Value $newLines -Encoding UTF8
     } else {
       Set-Content -LiteralPath $composeEnv -Value @("VERSION=$version") -Encoding UTF8
     }
-    
+
     Write-Log "Set VERSION=$version in .env"
   } catch {
     Write-Log "Failed to set VERSION: $($_.Exception.Message)" 'WARN'
@@ -114,10 +114,10 @@ function Set-ComposeEnvVersion {
 # ===== WAIT FOR SERVICE =====
 function Wait-ServiceReady {
   param([string[]]$Urls, [int]$TimeoutSec = 180)
-  
+
   $deadline = (Get-Date).AddSeconds($TimeoutSec)
   Write-Log "Waiting for service to be ready (timeout: ${TimeoutSec}s)..."
-  
+
   while ((Get-Date) -lt $deadline) {
     foreach ($url in $Urls) {
       try {
@@ -132,7 +132,7 @@ function Wait-ServiceReady {
     }
     Start-Sleep -Seconds 2
   }
-  
+
   Write-Log "Service did not become ready within ${TimeoutSec}s" 'WARN'
   return $false
 }
@@ -170,7 +170,7 @@ try {
   if ($Verbose) {
     $buildArgs += '--progress=plain'
   }
-  
+
   $buildProcess = Start-Process -FilePath 'docker' -ArgumentList $buildArgs -NoNewWindow -Wait -PassThru
   if ($buildProcess.ExitCode -ne 0) {
     throw "Docker build failed with exit code $($buildProcess.ExitCode)"
