@@ -13,7 +13,7 @@ Highlight, Student = import_names("models", "Highlight", "Student")
 from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 from .routers_auth import optional_require_role
-from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.errors import internal_server_error
 
 logger = logging.getLogger(__name__)
 
