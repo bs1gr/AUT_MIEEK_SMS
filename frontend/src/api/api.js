@@ -80,7 +80,11 @@ export const studentsAPI = {
       const response = await apiClient.get('/students/', {
         params: { skip, limit }
       });
-      return response.data;
+      const data = response.data;
+      // Backend returns PaginatedResponse { items, total, skip, limit }
+      // Normalize to array for UI callers
+      if (data && Array.isArray(data.items)) return data.items;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       throw error;
     }
@@ -162,7 +166,10 @@ export const coursesAPI = {
   getAll: async () => {
     try {
       const response = await apiClient.get('/courses/');
-      return response.data;
+      const data = response.data;
+      // Normalize PaginatedResponse to array for UI callers
+      if (data && Array.isArray(data.items)) return data.items;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       throw error;
     }

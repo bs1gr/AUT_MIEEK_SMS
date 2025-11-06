@@ -90,7 +90,9 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     try {
       const resp = await fetch(`${API_BASE_URL}/students/`);
       const data = await resp.json();
-      setAllStudents(Array.isArray(data) ? data : []);
+      // Normalize PaginatedResponse to array
+      const studentsArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
+      setAllStudents(studentsArray);
     } catch (e) {
       showToast(t('failedToLoadData'), 'error');
     }
@@ -139,7 +141,10 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     try {
       const response = await fetch(`${API_BASE_URL}/courses/`);
       const data = await response.json();
-      setCourses(Array.isArray(data) ? (data as CourseType[]) : []);
+      // Backend returns PaginatedResponse { items, total, skip, limit }
+      // Normalize to array for UI
+      const coursesArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
+      setCourses(coursesArray as CourseType[]);
     } catch (error) {
       showToast(t('failedToLoadData'), 'error');
     }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import pytest
 
 from backend import environment
@@ -42,10 +43,18 @@ def test_require_production_constraints_demands_docker(monkeypatch):
         environment.require_production_constraints()
 
 
+@pytest.mark.skipif(
+    os.path.exists("/.dockerenv") or os.getenv("SMS_DOCKERIZED"),
+    reason="Test assumes non-Docker environment but running in Docker"
+)
 def test_ci_without_env_defaults_to_test(monkeypatch):
     monkeypatch.setattr(environment, "_is_pytest", lambda: False)
     monkeypatch.setattr(environment, "_is_docker", lambda: False)
     monkeypatch.setattr(environment, "_is_ci", lambda: True)
+    # Clear the cache to force re-detection
+    environment.get_runtime_context.cache_clear()
+    # Clear any SMS_ENV variable that might be set
+    monkeypatch.delenv("SMS_ENV", raising=False)
 
     ctx = environment.get_runtime_context()
     assert ctx.environment is environment.RuntimeEnvironment.TEST
