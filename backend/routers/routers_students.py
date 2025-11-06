@@ -10,6 +10,7 @@ from typing import List, Optional
 import logging
 
 from backend.config import settings
+from backend.db_utils import transaction, get_by_id_or_404, paginate
 from backend.errors import ErrorCode, build_error_detail, http_error, internal_server_error
 from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
 
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"desc
 
 
 from backend.schemas.students import StudentCreate, StudentUpdate, StudentResponse
+from backend.schemas.common import PaginatedResponse
 from backend.routers.routers_auth import optional_require_role
 from backend.import_resolver import import_names
 
@@ -53,77 +55,74 @@ def create_student(
     """
     try:
         (Student,) = import_names("models", "Student")
-
-        # Use database-level locking to prevent race conditions
-        # Check if student with same email already exists
-        existing = db.query(Student).filter(Student.email == student.email).with_for_update().first()
-        if existing:
-            if existing.deleted_at is None:
-                logger.warning(f"Attempted to create duplicate student with email: {student.email}")
-                raise http_error(
-                    400,
-                    ErrorCode.STUDENT_DUPLICATE_EMAIL,
-                    "Email already registered",
-                    request,
-                )
-            logger.warning(
-                "Attempted to create student with archived email %s; restoration required",
-                student.email,
-            )
-            raise http_error(
-                409,
-                ErrorCode.STUDENT_ARCHIVED,
-                "Student email is archived; contact support to restore",
-                request,
-                context={"email": student.email},
-            )
-
-        # Check if student_id already exists
-        existing_id = db.query(Student).filter(Student.student_id == student.student_id).with_for_update().first()
-        if existing_id:
-            if existing_id.deleted_at is None:
-                logger.warning(f"Attempted to create duplicate student with ID: {student.student_id}")
-                raise http_error(
-                    400,
-                    ErrorCode.STUDENT_DUPLICATE_ID,
-                    "Student ID already exists",
-                    request,
-                )
-            logger.warning(
-                "Attempted to create student with archived ID %s; restoration required",
-                student.student_id,
-            )
-            raise http_error(
-                409,
-                ErrorCode.STUDENT_ARCHIVED,
-                "Student ID is archived; contact support to restore",
-                request,
-                context={"student_id": student.student_id},
-            )
-
-        db_student = Student(**student.model_dump())
-        db.add(db_student)
-        db.commit()
-        db.refresh(db_student)
-
-        logger.info(f"Created student: {db_student.id} - {db_student.student_id}")
-        return db_student
-
-    except HTTPException:
-        raise
     except Exception as e:
-        db.rollback()
-        logger.error(f"Error creating student: {str(e)}", exc_info=True)
+        logger.error(f"Error importing models: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
+    # Use database-level locking to prevent race conditions
+    # Check if student with same email already exists
+    existing = db.query(Student).filter(Student.email == student.email).with_for_update().first()
+    if existing:
+        if existing.deleted_at is None:
+            logger.warning(f"Attempted to create duplicate student with email: {student.email}")
+            raise http_error(
+                400,
+                ErrorCode.STUDENT_DUPLICATE_EMAIL,
+                "Email already registered",
+                request,
+            )
+        logger.warning(
+            "Attempted to create student with archived email %s; restoration required",
+            student.email,
+        )
+        raise http_error(
+            409,
+            ErrorCode.STUDENT_ARCHIVED,
+            "Student email is archived; contact support to restore",
+            request,
+            context={"email": student.email},
+        )
 
-@router.get("/", response_model=List[StudentResponse])
+    # Check if student_id already exists
+    existing_id = db.query(Student).filter(Student.student_id == student.student_id).with_for_update().first()
+    if existing_id:
+        if existing_id.deleted_at is None:
+            logger.warning(f"Attempted to create duplicate student with ID: {student.student_id}")
+            raise http_error(
+                400,
+                ErrorCode.STUDENT_DUPLICATE_ID,
+                "Student ID already exists",
+                request,
+            )
+        logger.warning(
+            "Attempted to create student with archived ID %s; restoration required",
+            student.student_id,
+        )
+        raise http_error(
+            409,
+            ErrorCode.STUDENT_ARCHIVED,
+            "Student ID is archived; contact support to restore",
+            request,
+            context={"student_id": student.student_id},
+        )
+
+    with transaction(db):
+        db_student = Student(**student.model_dump())
+        db.add(db_student)
+        db.flush()
+        db.refresh(db_student)
+
+    logger.info(f"Created student: {db_student.id} - {db_student.student_id}")
+    return db_student
+
+
+@router.get("/", response_model=PaginatedResponse[StudentResponse])
 @limiter.limit(RATE_LIMIT_READ)
 def get_all_students(
     request: Request, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None, db: Session = Depends(get_db)
 ):
     """
-    Retrieve all students with optional filtering.
+    Retrieve all students with optional filtering and pagination.
 
     **Rate Limit**: 60 requests per minute
 
@@ -131,38 +130,18 @@ def get_all_students(
     - **limit**: Maximum records to return (default: 100, max: 1000)
     - **is_active**: Filter by active status (optional)
     """
-    try:
-        # Validate pagination
-        if skip < 0:
-            # Enforce non-negative skip
-            raise http_error(400, ErrorCode.VALIDATION_FAILED, "Skip cannot be negative", request)
-        # Validate limit
-        if limit < settings.MIN_PAGE_SIZE or limit > settings.MAX_PAGE_SIZE:
-            raise http_error(
-                400,
-                ErrorCode.VALIDATION_FAILED,
-                f"Limit must be between {settings.MIN_PAGE_SIZE} and {settings.MAX_PAGE_SIZE}",
-                request,
-            )
+    (Student,) = import_names("models", "Student")
 
-        (Student,) = import_names("models", "Student")
+    query = db.query(Student).filter(Student.deleted_at.is_(None))
 
-        query = db.query(Student).filter(Student.deleted_at.is_(None))
+    # Apply filters
+    if is_active is not None:
+        query = query.filter(Student.is_active == is_active)
 
-        # Apply filters
-        if is_active is not None:
-            query = query.filter(Student.is_active == is_active)
+    result = paginate(query, skip, limit)
+    logger.info(f"Retrieved {len(result.items)} students (skip={skip}, limit={limit})")
 
-        students = query.offset(skip).limit(limit).all()
-        logger.info(f"Retrieved {len(students)} students (skip={skip}, limit={limit})")
-
-        return students
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error retrieving students: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    return result
 
 
 @router.get("/{student_id}", response_model=StudentResponse)
@@ -172,23 +151,10 @@ def get_student(request: Request, student_id: int, db: Session = Depends(get_db)
 
     - **student_id**: The ID of the student to retrieve
     """
-    try:
-        (Student,) = import_names("models", "Student")
-
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-
-        if not student:
-            logger.warning(f"Student not found: {student_id}")
-            raise http_error(404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request)
-
-        logger.info(f"Retrieved student: {student_id}")
-        return student
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error retrieving student {student_id}: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    (Student,) = import_names("models", "Student")
+    student = get_by_id_or_404(db, Student, student_id)
+    logger.info(f"Retrieved student: {student_id}")
+    return student
 
 
 @router.put("/{student_id}", response_model=StudentResponse)
@@ -205,32 +171,20 @@ def update_student(
     - **student_id**: The ID of the student to update
     - **student_data**: Updated student information
     """
-    try:
-        (Student,) = import_names("models", "Student")
+    (Student,) = import_names("models", "Student")
+    db_student = get_by_id_or_404(db, Student, student_id)
 
-        db_student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-
-        if not db_student:
-            logger.warning(f"Attempted update on non-existent student: {student_id}")
-            raise http_error(404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request)
-
-        # Update only provided fields
-        update_data = student_data.model_dump(exclude_unset=True)
+    # Update only provided fields
+    update_data = student_data.model_dump(exclude_unset=True)
+    
+    with transaction(db):
         for key, value in update_data.items():
             setattr(db_student, key, value)
-
-        db.commit()
+        db.flush()
         db.refresh(db_student)
 
-        logger.info(f"Updated student: {student_id}")
-        return db_student
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error updating student {student_id}: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    logger.info(f"Updated student: {student_id}")
+    return db_student
 
 
 @router.delete("/{student_id}", status_code=204)
@@ -245,28 +199,15 @@ def delete_student(
 
     - **student_id**: The ID of the student to delete
     """
-    try:
-        (Student,) = import_names("models", "Student")
+    (Student,) = import_names("models", "Student")
+    db_student = get_by_id_or_404(db, Student, student_id)
 
-        db_student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-
-        if not db_student:
-            logger.warning(f"Attempted delete on non-existent student: {student_id}")
-            raise http_error(404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request)
-
+    with transaction(db):
         db_student.mark_deleted()
         db_student.is_active = False  # type: ignore[assignment]
-        db.commit()
 
-        logger.info(f"Soft-deleted student: {student_id}")
-        return None
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error deleting student {student_id}: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    logger.info(f"Soft-deleted student: {student_id}")
+    return None
 
 
 @router.post("/{student_id}/activate")
@@ -277,26 +218,14 @@ def activate_student(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Activate a student account"""
-    try:
-        (Student,) = import_names("models", "Student")
+    (Student,) = import_names("models", "Student")
+    db_student = get_by_id_or_404(db, Student, student_id)
 
-        db_student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-
-        if not db_student:
-            raise http_error(404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request)
-
+    with transaction(db):
         db_student.is_active = True  # type: ignore[assignment]
-        db.commit()
 
-        logger.info(f"Activated student: {student_id}")
-        return {"message": "Student activated successfully", "student_id": student_id}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error activating student {student_id}: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    logger.info(f"Activated student: {student_id}")
+    return {"message": "Student activated successfully", "student_id": student_id}
 
 
 @router.post("/{student_id}/deactivate")
@@ -307,25 +236,14 @@ def deactivate_student(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Deactivate a student account"""
-    try:
-        (Student,) = import_names("models", "Student")
-        db_student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
+    (Student,) = import_names("models", "Student")
+    db_student = get_by_id_or_404(db, Student, student_id)
 
-        if not db_student:
-            raise http_error(404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request)
-
+    with transaction(db):
         db_student.is_active = False  # type: ignore[assignment]
-        db.commit()
 
-        logger.info(f"Deactivated student: {student_id}")
-        return {"message": "Student deactivated successfully", "student_id": student_id}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error deactivating student {student_id}: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    logger.info(f"Deactivated student: {student_id}")
+    return {"message": "Student deactivated successfully", "student_id": student_id}
 
 
 # ========== BULK OPERATIONS ==========
@@ -343,109 +261,101 @@ def bulk_create_students(
 
     Useful for importing student lists.
     """
-    try:
-        (Student,) = import_names("models", "Student")
+    (Student,) = import_names("models", "Student")
 
-        created: List[str] = []
-        errors: List[dict] = []
+    created: List[str] = []
+    errors: List[dict] = []
 
-        # Commit per-student to avoid transaction-wide rollback on a single failure
-        from sqlalchemy.exc import IntegrityError
+    # Commit per-student to avoid transaction-wide rollback on a single failure
+    from sqlalchemy.exc import IntegrityError
 
-        for idx, student_data in enumerate(students_data):
-            try:
-                # Proactive duplicate checks (using committed state)
-                existing_email = db.query(Student).filter(Student.email == student_data.email).with_for_update().first()
-                if existing_email:
-                    if existing_email.deleted_at is None:
-                        errors.append(
-                            {
-                                "index": idx,
-                                "error": build_error_detail(
-                                    ErrorCode.STUDENT_DUPLICATE_EMAIL,
-                                    f"Email already exists: {student_data.email}",
-                                ),
-                            }
-                        )
-                    else:
-                        errors.append(
-                            {
-                                "index": idx,
-                                "error": build_error_detail(
-                                    ErrorCode.STUDENT_ARCHIVED,
-                                    f"Email archived; restore existing record: {student_data.email}",
-                                ),
-                            }
-                        )
-                    continue
+    for idx, student_data in enumerate(students_data):
+        try:
+            # Proactive duplicate checks (using committed state)
+            existing_email = db.query(Student).filter(Student.email == student_data.email).with_for_update().first()
+            if existing_email:
+                if existing_email.deleted_at is None:
+                    errors.append(
+                        {
+                            "index": idx,
+                            "error": build_error_detail(
+                                ErrorCode.STUDENT_DUPLICATE_EMAIL,
+                                f"Email already exists: {student_data.email}",
+                            ),
+                        }
+                    )
+                else:
+                    errors.append(
+                        {
+                            "index": idx,
+                            "error": build_error_detail(
+                                ErrorCode.STUDENT_ARCHIVED,
+                                f"Email archived; restore existing record: {student_data.email}",
+                            ),
+                        }
+                    )
+                continue
 
-                existing_sid = (
-                    db.query(Student).filter(Student.student_id == student_data.student_id).with_for_update().first()
-                )
-                if existing_sid:
-                    if existing_sid.deleted_at is None:
-                        errors.append(
-                            {
-                                "index": idx,
-                                "error": build_error_detail(
-                                    ErrorCode.STUDENT_DUPLICATE_ID,
-                                    f"Student ID already exists: {student_data.student_id}",
-                                ),
-                            }
-                        )
-                    else:
-                        errors.append(
-                            {
-                                "index": idx,
-                                "error": build_error_detail(
-                                    ErrorCode.STUDENT_ARCHIVED,
-                                    f"Student ID archived; restore existing record: {student_data.student_id}",
-                                ),
-                            }
-                        )
-                    continue
+            existing_sid = (
+                db.query(Student).filter(Student.student_id == student_data.student_id).with_for_update().first()
+            )
+            if existing_sid:
+                if existing_sid.deleted_at is None:
+                    errors.append(
+                        {
+                            "index": idx,
+                            "error": build_error_detail(
+                                ErrorCode.STUDENT_DUPLICATE_ID,
+                                f"Student ID already exists: {student_data.student_id}",
+                            ),
+                        }
+                    )
+                else:
+                    errors.append(
+                        {
+                            "index": idx,
+                            "error": build_error_detail(
+                                ErrorCode.STUDENT_ARCHIVED,
+                                f"Student ID archived; restore existing record: {student_data.student_id}",
+                            ),
+                        }
+                    )
+                continue
 
+            with transaction(db):
                 db_student = Student(**student_data.model_dump())
                 db.add(db_student)
-                # Flush + commit to surface DB-level uniqueness early and persist successes
-                db.commit()
+                db.flush()
                 db.refresh(db_student)
                 created.append(str(db_student.student_id))
 
-            except IntegrityError as ie:
-                db.rollback()
-                msg = str(getattr(ie, "orig", ie))
-                errors.append(
-                    {
-                        "index": idx,
-                        "error": build_error_detail(
-                            ErrorCode.VALIDATION_FAILED,
-                            f"Integrity error: {msg}",
-                        ),
-                    }
-                )
-            except Exception as e:
-                db.rollback()
-                errors.append(
-                    {
-                        "index": idx,
-                        "error": build_error_detail(
-                            ErrorCode.INTERNAL_SERVER_ERROR,
-                            str(e),
-                        ),
-                    }
-                )
+        except IntegrityError as ie:
+            msg = str(getattr(ie, "orig", ie))
+            errors.append(
+                {
+                    "index": idx,
+                    "error": build_error_detail(
+                        ErrorCode.VALIDATION_FAILED,
+                        f"Integrity error: {msg}",
+                    ),
+                }
+            )
+        except Exception as e:
+            errors.append(
+                {
+                    "index": idx,
+                    "error": build_error_detail(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        str(e),
+                    ),
+                }
+            )
 
-        logger.info(f"Bulk created {len(created)} students, {len(errors)} errors")
+    logger.info(f"Bulk created {len(created)} students, {len(errors)} errors")
 
-        return {
-            "created": len(created),
-            "failed": len(errors),
-            "created_ids": created,
-            "errors": errors,
-        }
-
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error in bulk create: {str(e)}", exc_info=True)
-        raise internal_server_error(request=request)
+    return {
+        "created": len(created),
+        "failed": len(errors),
+        "created_ids": created,
+        "errors": errors,
+    }
