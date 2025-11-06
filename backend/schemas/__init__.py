@@ -19,5 +19,8 @@ from .enrollments import (
     StudentBrief as StudentBrief,
 )
 from .auth import UserCreate as UserCreate, UserLogin as UserLogin, UserResponse as UserResponse, Token as Token
-from .common import PaginationParams as PaginationParams, PaginatedResponse as PaginatedResponse, DateRangeParams as DateRangeParams
-
+from .common import (
+    PaginationParams as PaginationParams,
+    PaginatedResponse as PaginatedResponse,
+    DateRangeParams as DateRangeParams,
+)
