@@ -19,7 +19,7 @@ router = APIRouter(
 
 from backend.db import get_session as get_db
 from backend.db_utils import get_by_id_or_404
-from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.errors import internal_server_error
 
 
 def get_letter_grade(percentage: float) -> str:
