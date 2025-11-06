@@ -28,7 +28,7 @@ Added comprehensive CSV import functionality specifically designed for Greek edu
 - Multi-encoding support: UTF-8, UTF-8-BOM, Latin-1 (handles Windows exports)
 - Automatic Greek-to-English field mapping:
   - Επώνυμο → last_name
-  - Όνομα → first_name  
+  - Όνομα → first_name
   - Όνομα Πατέρα → father_name
   - Ηλ. Ταχυδρομείο → email
   - Mobile/Phone → mobile_phone
@@ -126,7 +126,7 @@ curl -X POST "http://localhost:8080/api/v1/imports/upload" \
 
 **Python Caches:**
 - `.mypy_cache/` - Type checker cache
-- `.pytest_cache/` - Test runner cache  
+- `.pytest_cache/` - Test runner cache
 - `.ruff_cache/` - Linter cache
 
 **Virtual Environments:**

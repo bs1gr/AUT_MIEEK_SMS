@@ -45,7 +45,7 @@ def test_require_production_constraints_demands_docker(monkeypatch):
 
 @pytest.mark.skipif(
     os.path.exists("/.dockerenv") or os.getenv("SMS_DOCKERIZED"),
-    reason="Test assumes non-Docker environment but running in Docker"
+    reason="Test assumes non-Docker environment but running in Docker",
 )
 def test_ci_without_env_defaults_to_test(monkeypatch):
     monkeypatch.setattr(environment, "_is_pytest", lambda: False)

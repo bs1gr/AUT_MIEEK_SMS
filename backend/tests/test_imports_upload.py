@@ -116,4 +116,3 @@ def test_upload_courses_preserves_evaluation_rules(client: TestClient):
     # Verify all expected categories are present (may be translated)
     categories = [rule.get("category") for rule in er]
     assert len(categories) == 4
-

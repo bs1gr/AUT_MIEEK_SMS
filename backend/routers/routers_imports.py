@@ -306,7 +306,7 @@ def _translate_rules(rules: list[dict]) -> list[dict]:
 def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list[str]]:
     """
     Parse CSV content into student objects.
-    
+
     Supports Greek column names from the AUT registration CSV format.
     Maps CSV columns to Student model fields:
     - Επώνυμο: -> last_name
@@ -318,20 +318,20 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
     - Έτος Σπουδών: -> study_year (Α'=1, Β'=2, etc.)
     - Τυχόν σοβαρό πρόβλημα υγείας... -> health_issue
     - Αριθμός Δελτίου Ταυτότητας: -> student_id (with S prefix)
-    
+
     Args:
         content: Raw CSV file bytes
         filename: Original filename for error messages
-    
+
     Returns:
         Tuple of (list of student dicts, list of error messages)
     """
     students = []
     errors = []
-    
+
     try:
         # Try UTF-8 with BOM first, then UTF-8, then latin-1
-        for encoding in ['utf-8-sig', 'utf-8', 'latin-1']:
+        for encoding in ["utf-8-sig", "utf-8", "latin-1"]:
             try:
                 text = content.decode(encoding)
                 break
@@ -340,94 +340,94 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
         else:
             errors.append(f"{filename}: Could not decode CSV with any supported encoding")
             return students, errors
-        
+
         # Parse CSV with semicolon delimiter (common in Greek/European CSVs)
-        reader = csv.DictReader(io.StringIO(text), delimiter=';')
-        
+        reader = csv.DictReader(io.StringIO(text), delimiter=";")
+
         # Map of CSV column names to Student model fields
         # Note: CSV column names have trailing colons
         column_map = {
-            'Επώνυμο:': 'last_name',
-            'Όνομα:': 'first_name',
-            'Όνομα Πατέρα:': 'father_name',
-            'Ηλ. Ταχυδρομείο:': 'email',
-            'Αρ. Κινητού Τηλεφώνου:': 'mobile_phone',
-            'Αρ. Σταθερού Τηλεφώνου:': 'phone',
-            'Έτος Σπουδών:': 'study_year',
-            'Αριθμός Δελτίου Ταυτότητας:': 'student_id',
+            "Επώνυμο:": "last_name",
+            "Όνομα:": "first_name",
+            "Όνομα Πατέρα:": "father_name",
+            "Ηλ. Ταχυδρομείο:": "email",
+            "Αρ. Κινητού Τηλεφώνου:": "mobile_phone",
+            "Αρ. Σταθερού Τηλεφώνου:": "phone",
+            "Έτος Σπουδών:": "study_year",
+            "Αριθμός Δελτίου Ταυτότητας:": "student_id",
         }
-        
+
         # Health issue column has a long name, find it dynamically
         health_column = None
-        for fieldname in (reader.fieldnames or []):
-            if 'πρόβλημα υγείας' in fieldname or 'ανεπάρκεια' in fieldname:
+        for fieldname in reader.fieldnames or []:
+            if "πρόβλημα υγείας" in fieldname or "ανεπάρκεια" in fieldname:
                 health_column = fieldname
                 break
-        
+
         row_num = 1  # Start at 1 after header
         for row in reader:
             row_num += 1
             try:
                 student = {}
-                
+
                 # Map columns
                 for csv_col, model_field in column_map.items():
-                    value = row.get(csv_col, '').strip()
+                    value = row.get(csv_col, "").strip()
                     if value:
                         student[model_field] = value
-                
+
                 # Add health issue if present
-                if health_column and row.get(health_column, '').strip():
-                    student['health_issue'] = row[health_column].strip()
-                
+                if health_column and row.get(health_column, "").strip():
+                    student["health_issue"] = row[health_column].strip()
+
                 # Validate required fields
-                if not student.get('first_name') or not student.get('last_name'):
+                if not student.get("first_name") or not student.get("last_name"):
                     errors.append(f"{filename} row {row_num}: Missing first_name or last_name")
                     continue
-                
-                if not student.get('email'):
+
+                if not student.get("email"):
                     errors.append(f"{filename} row {row_num}: Missing email")
                     continue
-                
+
                 # Generate student_id from ID number if not present
-                if not student.get('student_id'):
-                    id_num = row.get('Αριθμός Δελτίου Ταυτότητας:', '').strip()
+                if not student.get("student_id"):
+                    id_num = row.get("Αριθμός Δελτίου Ταυτότητας:", "").strip()
                     if id_num:
-                        student['student_id'] = f"S{id_num}"
+                        student["student_id"] = f"S{id_num}"
                     else:
                         errors.append(f"{filename} row {row_num}: Missing student ID")
                         continue
-                elif not student['student_id'].startswith('S'):
+                elif not student["student_id"].startswith("S"):
                     # Ensure student_id has S prefix
-                    student['student_id'] = f"S{student['student_id']}"
-                
+                    student["student_id"] = f"S{student['student_id']}"
+
                 # Convert study year (Α'=1, Β'=2, Γ'=3, Δ'=4)
-                year_str = student.get('study_year', '').strip().upper()
-                year_map = {'Α\'': 1, 'Β\'': 2, 'Γ\'': 3, 'Δ\'': 4, 'A\'': 1, 'B\'': 2}
+                year_str = student.get("study_year", "").strip().upper()
+                year_map = {"Α'": 1, "Β'": 2, "Γ'": 3, "Δ'": 4, "A'": 1, "B'": 2}
                 if year_str in year_map:
-                    student['study_year'] = year_map[year_str]
+                    student["study_year"] = year_map[year_str]
                 elif year_str:
                     # Try to parse as integer
                     try:
-                        student['study_year'] = int(year_str)
+                        student["study_year"] = int(year_str)
                     except ValueError:
-                        student['study_year'] = 1  # Default to first year
+                        student["study_year"] = 1  # Default to first year
                 else:
-                    student['study_year'] = 1  # Default to first year
-                
+                    student["study_year"] = 1  # Default to first year
+
                 # Set defaults
-                student['is_active'] = True
-                student['enrollment_date'] = datetime.now().date()
-                
+                student["is_active"] = True
+                student["enrollment_date"] = datetime.now().date()
+
                 students.append(student)
-                
+
             except Exception as e:
                 errors.append(f"{filename} row {row_num}: {str(e)}")
                 continue
-        
+
     except Exception as e:
         errors.append(f"{filename}: CSV parsing failed - {str(e)}")
-    
+
     return students, errors
 
 
@@ -881,10 +881,10 @@ async def import_from_upload(
         for up in uploads:
             try:
                 content = await validate_uploaded_file(request, up)
-                
+
                 # Check file extension to determine format
                 filename = up.filename or ""
-                if filename.lower().endswith('.csv'):
+                if filename.lower().endswith(".csv"):
                     # Handle CSV files (only for students)
                     if norm != "students":
                         errors.append(f"{filename}: CSV import only supported for students")

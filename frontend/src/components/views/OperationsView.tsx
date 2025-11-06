@@ -122,12 +122,12 @@ const DevToolsTab: React.FC = () => {
       // Upload first file (backend expects single file)
       const data = await importAPI.uploadFile(files[0], importType);
       setResult({ op: 'upload', data });
-      
+
       // Show success with details
       const created = data.created || 0;
       const updated = data.updated || 0;
       const errors = data.errors || [];
-      
+
       let message = '';
       if (created > 0 || updated > 0) {
         message = `${t('utils.importSuccess') || 'Import completed'}: ${created} ${t('created') || 'created'}, ${updated} ${t('updated') || 'updated'}`;
