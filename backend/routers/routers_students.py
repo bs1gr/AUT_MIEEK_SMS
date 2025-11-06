@@ -4,12 +4,11 @@ Handles all student-related CRUD operations and endpoints
 Split from main.py for better organization
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
 
-from backend.config import settings
 from backend.db_utils import transaction, get_by_id_or_404, paginate
 from backend.errors import ErrorCode, build_error_detail, http_error, internal_server_error
 from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
@@ -176,7 +175,7 @@ def update_student(
 
     # Update only provided fields
     update_data = student_data.model_dump(exclude_unset=True)
-    
+
     with transaction(db):
         for key, value in update_data.items():
             setattr(db_student, key, value)
