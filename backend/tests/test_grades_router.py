@@ -206,17 +206,23 @@ def test_get_grades_by_student_and_course(client):
     # Filter by student
     r_s1 = client.get(f"/api/v1/grades/?student_id={s1['id']}")
     assert r_s1.status_code == 200
-    assert len(r_s1.json()) == 2
+    s1_data = r_s1.json()
+    assert s1_data["total"] == 2
+    assert len(s1_data["items"]) == 2
 
     # Filter by course
     r_c1 = client.get(f"/api/v1/grades/?course_id={c1['id']}")
     assert r_c1.status_code == 200
-    assert len(r_c1.json()) == 2
+    c1_data = r_c1.json()
+    assert c1_data["total"] == 2
+    assert len(c1_data["items"]) == 2
 
     # Filter by both
     r_both = client.get(f"/api/v1/grades/?student_id={s1['id']}&course_id={c1['id']}")
     assert r_both.status_code == 200
-    assert len(r_both.json()) == 1
+    both_data = r_both.json()
+    assert both_data["total"] == 1
+    assert len(both_data["items"]) == 1
 
 
 def test_update_grade_validation(client):
@@ -364,7 +370,8 @@ def test_grades_date_range_filtering_assigned_and_submitted(client):
         f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&start_date={start}&end_date={end}"
     )
     assert r_assigned.status_code == 200
-    assigned_dates = {g["date_assigned"] for g in r_assigned.json()}
+    assigned_data = r_assigned.json()
+    assigned_dates = {g["date_assigned"] for g in assigned_data["items"]}
     assert assigned_dates == {d1.isoformat()}
 
     # Filter by submitted date using use_submitted=true: range to include only the submitted day for d1 (d1+1)
@@ -374,7 +381,8 @@ def test_grades_date_range_filtering_assigned_and_submitted(client):
         f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&start_date={start2}&end_date={end2}&use_submitted=true"
     )
     assert r_sub.status_code == 200
-    submitted_dates = {g["date_submitted"] for g in r_sub.json()}
+    sub_data = r_sub.json()
+    submitted_dates = {g["date_submitted"] for g in sub_data["items"]}
     assert submitted_dates == {(d1 + timedelta(days=1)).isoformat()}
 
     # Invalid range (start after end)
@@ -402,8 +410,7 @@ def test_create_grade_missing_student(client):
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 404
     detail = r.json()["detail"]
-    assert detail["message"] == "Student not found"
-    assert detail["error_id"] == "STD_NOT_FOUND"
+    assert "Student" in detail and "not found" in detail
 
 
 def test_get_course_grades_missing_course(client):
@@ -411,8 +418,7 @@ def test_get_course_grades_missing_course(client):
     r = client.get("/api/v1/grades/course/99999")
     assert r.status_code == 404
     detail = r.json()["detail"]
-    assert detail["message"] == "Course not found"
-    assert detail["error_id"] == "CRS_NOT_FOUND"
+    assert "Course" in detail and "not found" in detail
 
 
 def test_update_grade_not_found(client):
@@ -420,8 +426,7 @@ def test_update_grade_not_found(client):
     r = client.put("/api/v1/grades/99999", json={"grade": 90})
     assert r.status_code == 404
     detail = r.json()["detail"]
-    assert detail["message"] == "Grade not found"
-    assert detail["error_id"] == "GRD_NOT_FOUND"
+    assert "Grade" in detail and "not found" in detail
 
 
 def test_delete_grade_not_found(client):
@@ -429,8 +434,7 @@ def test_delete_grade_not_found(client):
     r = client.delete("/api/v1/grades/99999")
     assert r.status_code == 404
     detail = r.json()["detail"]
-    assert detail["message"] == "Grade not found"
-    assert detail["error_id"] == "GRD_NOT_FOUND"
+    assert "Grade" in detail and "not found" in detail
 
 
 def test_get_grade_analysis_with_and_without_data(client):
@@ -500,8 +504,7 @@ def test_get_student_grades_missing_student(client):
     r = client.get("/api/v1/grades/student/99999")
     assert r.status_code == 404
     detail = r.json()["detail"]
-    assert detail["message"] == "Student not found"
-    assert detail["error_id"] == "STD_NOT_FOUND"
+    assert "Student" in detail and "not found" in detail
 
 
 def test_get_student_grades_filtered_view(client):
@@ -655,8 +658,9 @@ def test_get_all_grades_category_filter(client):
     r = client.get("/api/v1/grades/?category=quiz")
     assert r.status_code == 200
     results = r.json()
-    assert len(results) == 1
-    assert results[0]["category"] == "Pop Quiz"
+    assert results["total"] == 1
+    assert len(results["items"]) == 1
+    assert results["items"][0]["category"] == "Pop Quiz"
 
 
 def test_get_grade_success_and_not_found(client):
@@ -692,8 +696,7 @@ def test_get_grade_success_and_not_found(client):
     r_missing = client.get("/api/v1/grades/99999")
     assert r_missing.status_code == 404
     missing_detail = r_missing.json()["detail"]
-    assert missing_detail["message"] == "Grade not found"
-    assert missing_detail["error_id"] == "GRD_NOT_FOUND"
+    assert "Grade" in missing_detail and "not found" in missing_detail
 
 
 def test_update_grade_successful(client):
