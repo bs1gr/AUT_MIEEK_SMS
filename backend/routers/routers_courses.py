@@ -210,11 +210,11 @@ def get_all_courses(
             query = query.filter(Course.semester == semester)
 
         result = paginate(query, skip=pagination.skip, limit=pagination.limit)
-        
+
         # Normalize evaluation rules for all courses
         for course in result.items:
             course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
-        
+
         logger.info(
             f"Retrieved {len(result.items)} courses "
             f"(skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
@@ -298,10 +298,10 @@ def delete_course(
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
-        
+
         with transaction(db):
             course.mark_deleted()
-            
+
     except HTTPException:
         raise
     except Exception as exc:
