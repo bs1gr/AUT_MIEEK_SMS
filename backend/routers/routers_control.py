@@ -277,100 +277,122 @@ async def get_system_status():
 async def run_diagnostics():
     """
     Run comprehensive system diagnostics
-    Similar to DEVTOOLS.ps1 and DIAGNOSE_FRONTEND.ps1
+    Docker-aware: Only shows relevant checks based on execution mode
     """
     results = []
+    in_docker = _in_docker_container()
 
-    # Check Python environment
+    # Check Python environment (always relevant - shows what's running)
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     if sys.version_info >= (3, 10):
         results.append(
             DiagnosticResult(
-                category="Python",
+                category="Python Runtime",
                 status="ok",
-                message=f"Python {python_version} installed",
-                details={"path": sys.executable, "version": sys.version},
+                message=f"Python {python_version} ({'container' if in_docker else 'host'})",
+                details={"path": sys.executable, "version": sys.version, "mode": "docker" if in_docker else "native"},
             )
         )
     else:
         results.append(
             DiagnosticResult(
-                category="Python",
+                category="Python Runtime",
                 status="warning",
                 message=f"Python {python_version} - recommend 3.10+",
                 details={"path": sys.executable},
             )
         )
 
-    # Check Node.js
-    node_ok, node_version = _check_node_installed()
-    if node_ok and node_version:
-        major_version = int(node_version.strip("v").split(".")[0]) if node_version.startswith("v") else 0
-        if major_version >= 18:
+    # Docker mode: Skip native tooling checks (Node.js, npm, node_modules)
+    # These are baked into the Docker images and not relevant for diagnostics
+    if not in_docker:
+        # Check Node.js (only in native mode)
+        node_ok, node_version = _check_node_installed()
+        if node_ok and node_version:
+            major_version = int(node_version.strip("v").split(".")[0]) if node_version.startswith("v") else 0
+            if major_version >= 18:
+                results.append(
+                    DiagnosticResult(
+                        category="Node.js",
+                        status="ok",
+                        message=f"Node.js {node_version} installed",
+                        details={"version": node_version},
+                    )
+                )
+            else:
+                results.append(
+                    DiagnosticResult(
+                        category="Node.js",
+                        status="warning",
+                        message=f"Node.js {node_version} - recommend 18+",
+                        details={"version": node_version},
+                    )
+                )
+        else:
+            results.append(
+                DiagnosticResult(category="Node.js", status="error", message="Node.js not found or not in PATH", details={})
+            )
+
+        # Check npm (only in native mode)
+        npm_ok, npm_version = _check_npm_installed()
+        if npm_ok:
             results.append(
                 DiagnosticResult(
-                    category="Node.js",
-                    status="ok",
-                    message=f"Node.js {node_version} installed",
-                    details={"version": node_version},
+                    category="npm", status="ok", message=f"npm {npm_version} installed", details={"version": npm_version}
+                )
+            )
+        else:
+            results.append(DiagnosticResult(category="npm", status="error", message="npm not found", details={}))
+
+        # Check Docker availability (only relevant in native mode for switching to Docker)
+        if _check_docker_running():
+            docker_version = _check_docker_version()
+            results.append(
+                DiagnosticResult(
+                    category="Docker", status="ok", message="Docker Desktop is running", details={"version": docker_version}
                 )
             )
         else:
             results.append(
                 DiagnosticResult(
-                    category="Node.js",
+                    category="Docker",
                     status="warning",
-                    message=f"Node.js {node_version} - recommend 18+",
-                    details={"version": node_version},
+                    message="Docker not running (only needed for containerized deployment)",
+                    details={},
                 )
             )
-    else:
-        results.append(
-            DiagnosticResult(category="Node.js", status="error", message="Node.js not found or not in PATH", details={})
-        )
 
-    # Check npm
-    npm_ok, npm_version = _check_npm_installed()
-    if npm_ok:
-        results.append(
-            DiagnosticResult(
-                category="npm", status="ok", message=f"npm {npm_version} installed", details={"version": npm_version}
-            )
-        )
-    else:
-        results.append(DiagnosticResult(category="npm", status="error", message="npm not found", details={}))
-
-    # Check Docker
-    if _check_docker_running():
-        docker_version = _check_docker_version()
-        results.append(
-            DiagnosticResult(
-                category="Docker", status="ok", message="Docker Desktop is running", details={"version": docker_version}
-            )
-        )
-    else:
-        results.append(
-            DiagnosticResult(
-                category="Docker",
-                status="warning",
-                message="Docker not running (only needed for containerized deployment)",
-                details={},
-            )
-        )
-
-    # Check database file
+    # Check database file (always relevant)
     try:
         from backend.config import settings
 
         db_path = settings.DATABASE_URL.replace("sqlite:///", "")
         if os.path.exists(db_path):
             size = os.path.getsize(db_path)
+            
+            # Try to get schema version from database
+            schema_version = "Unknown"
+            try:
+                from sqlalchemy import create_engine, text
+                engine = create_engine(settings.DATABASE_URL)
+                with engine.connect() as conn:
+                    result = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1"))
+                    row = result.fetchone()
+                    if row:
+                        schema_version = row[0]
+            except Exception:
+                pass
+            
             results.append(
                 DiagnosticResult(
                     category="Database",
                     status="ok",
-                    message=f"Database file exists ({size} bytes)",
-                    details={"path": db_path, "size": size},
+                    message=f"Database operational ({size // 1024} KB)",
+                    details={
+                        "path": db_path,
+                        "size_bytes": size,
+                        "sms_schema_version": schema_version
+                    },
                 )
             )
         else:
@@ -389,67 +411,68 @@ async def run_diagnostics():
             )
         )
 
-    # Check frontend dependencies
-    project_root = Path(__file__).parent.parent.parent
-    frontend_dir = project_root / "frontend"
-    node_modules = frontend_dir / "node_modules"
-    package_json = frontend_dir / "package.json"
+    # Check frontend dependencies (only in native mode where they matter)
+    if not in_docker:
+        project_root = Path(__file__).parent.parent.parent
+        frontend_dir = project_root / "frontend"
+        node_modules = frontend_dir / "node_modules"
+        package_json = frontend_dir / "package.json"
 
-    if package_json.exists():
-        results.append(
-            DiagnosticResult(
-                category="Frontend", status="ok", message="package.json found", details={"path": str(package_json)}
+        if package_json.exists():
+            results.append(
+                DiagnosticResult(
+                    category="Frontend", status="ok", message="package.json found", details={"path": str(package_json)}
+                )
             )
-        )
 
-        if node_modules.exists():
+            if node_modules.exists():
+                results.append(
+                    DiagnosticResult(
+                        category="Frontend",
+                        status="ok",
+                        message="node_modules directory exists",
+                        details={"path": str(node_modules)},
+                    )
+                )
+            else:
+                results.append(
+                    DiagnosticResult(
+                        category="Frontend",
+                        status="warning",
+                        message="node_modules not found - run 'npm install'",
+                        details={"path": str(frontend_dir)},
+                    )
+                )
+        else:
             results.append(
                 DiagnosticResult(
                     category="Frontend",
+                    status="error",
+                    message="package.json not found",
+                    details={"expected": str(package_json)},
+                )
+            )
+
+        # Check backend venv (only in native mode)
+        venv_dir = project_root / "backend" / "venv"
+        if venv_dir.exists():
+            results.append(
+                DiagnosticResult(
+                    category="Backend",
                     status="ok",
-                    message="node_modules directory exists",
-                    details={"path": str(node_modules)},
+                    message="Python virtual environment exists",
+                    details={"path": str(venv_dir)},
                 )
             )
         else:
             results.append(
                 DiagnosticResult(
-                    category="Frontend",
+                    category="Backend",
                     status="warning",
-                    message="node_modules not found - run 'npm install'",
-                    details={"path": str(frontend_dir)},
+                    message="Virtual environment not found at backend/venv",
+                    details={},
                 )
             )
-    else:
-        results.append(
-            DiagnosticResult(
-                category="Frontend",
-                status="error",
-                message="package.json not found",
-                details={"expected": str(package_json)},
-            )
-        )
-
-    # Check backend venv
-    venv_dir = project_root / "backend" / "venv"
-    if venv_dir.exists():
-        results.append(
-            DiagnosticResult(
-                category="Backend",
-                status="ok",
-                message="Python virtual environment exists",
-                details={"path": str(venv_dir)},
-            )
-        )
-    else:
-        results.append(
-            DiagnosticResult(
-                category="Backend",
-                status="warning",
-                message="Virtual environment not found at backend/venv",
-                details={},
-            )
-        )
 
     return results
 
