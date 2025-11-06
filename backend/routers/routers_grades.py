@@ -16,8 +16,10 @@ router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"descript
 
 
 from backend.schemas.grades import GradeCreate, GradeUpdate, GradeResponse
+from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.db_utils import transaction, get_by_id_or_404, paginate
 
 
 class GradeAnalysis(BaseModel):
@@ -85,31 +87,16 @@ def create_grade(
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
         # Validate student exists and is not soft-deleted
-        student = db.query(Student).filter(Student.id == grade_data.student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": grade_data.student_id},
-            )
+        student = get_by_id_or_404(db, Student, grade_data.student_id)
 
         # Validate course exists and is not soft-deleted
-        course = db.query(Course).filter(Course.id == grade_data.course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                404,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found",
-                request,
-                context={"course_id": grade_data.course_id},
-            )
+        course = get_by_id_or_404(db, Course, grade_data.course_id)
 
-        db_grade = Grade(**grade_data.model_dump())
-        db.add(db_grade)
-        db.commit()
-        db.refresh(db_grade)
+        with transaction(db):
+            db_grade = Grade(**grade_data.model_dump())
+            db.add(db_grade)
+            db.flush()
+            db.refresh(db_grade)
 
         logger.info(f"Created grade: {db_grade.id} for student {grade_data.student_id}")
         return db_grade
@@ -117,16 +104,14 @@ def create_grade(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error creating grade: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
 
-@router.get("/", response_model=List[GradeResponse])
+@router.get("/", response_model=PaginatedResponse[GradeResponse])
 def get_all_grades(
     request: Request,
-    skip: int = 0,
-    limit: int = 100,
+    pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
     course_id: Optional[int] = None,
     category: Optional[str] = None,
@@ -156,8 +141,9 @@ def get_all_grades(
             date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
             query = query.filter(date_col >= s, date_col <= e)
 
-        grades = query.offset(skip).limit(limit).all()
-        return grades
+        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
+        logger.info(f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})")
+        return result.dict()
     except HTTPException:
         raise
     except Exception as e:
@@ -180,15 +166,7 @@ def get_student_grades(
         Grade, Student = import_names("models", "Grade", "Student")
 
         # Validate student exists
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": student_id},
-            )
+        student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
 
@@ -224,15 +202,7 @@ def get_course_grades(
         Grade, Course = import_names("models", "Grade", "Course")
 
         # Validate course exists
-        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                404,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found",
-                request,
-                context={"course_id": course_id},
-            )
+        course = get_by_id_or_404(db, Course, course_id)
 
         query = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
         rng = _normalize_date_range(start_date, end_date, request)
@@ -258,16 +228,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     try:
         (Grade,) = import_names("models", "Grade")
 
-        # Use Session.get for SQLAlchemy 2.x compatibility and performance
-        grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
-        if not grade:
-            raise http_error(
-                404,
-                ErrorCode.GRADE_NOT_FOUND,
-                "Grade not found",
-                request,
-                context={"grade_id": grade_id},
-            )
+        grade = get_by_id_or_404(db, Grade, grade_id)
         return grade
     except HTTPException:
         raise
@@ -292,23 +253,15 @@ def update_grade(
     try:
         (Grade,) = import_names("models", "Grade")
 
-        db_grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
+        db_grade = get_by_id_or_404(db, Grade, grade_id)
 
-        if not db_grade:
-            raise http_error(
-                404,
-                ErrorCode.GRADE_NOT_FOUND,
-                "Grade not found",
-                request,
-                context={"grade_id": grade_id},
-            )
+        with transaction(db):
+            update_data = grade_data.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(db_grade, key, value)
 
-        update_data = grade_data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_grade, key, value)
-
-        db.commit()
-        db.refresh(db_grade)
+            db.flush()
+            db.refresh(db_grade)
 
         logger.info(f"Updated grade: {grade_id}")
         return db_grade
@@ -316,7 +269,6 @@ def update_grade(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error updating grade: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
@@ -332,19 +284,10 @@ def delete_grade(
     try:
         (Grade,) = import_names("models", "Grade")
 
-        db_grade = db.query(Grade).filter(Grade.id == grade_id, Grade.deleted_at.is_(None)).first()
+        db_grade = get_by_id_or_404(db, Grade, grade_id)
 
-        if not db_grade:
-            raise http_error(
-                404,
-                ErrorCode.GRADE_NOT_FOUND,
-                "Grade not found",
-                request,
-                context={"grade_id": grade_id},
-            )
-
-        db_grade.mark_deleted()
-        db.commit()
+        with transaction(db):
+            db_grade.mark_deleted()
 
         logger.info(f"Deleted grade: {grade_id}")
         return None
@@ -352,7 +295,6 @@ def delete_grade(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
         logger.error(f"Error deleting grade: {str(e)}", exc_info=True)
         raise internal_server_error(request=request)
 
