@@ -574,8 +574,9 @@ export const adminOpsAPI = {
    */
   async clearDatabase(scope = 'all') {
     try {
-      const response = await apiClient.post('/adminops/clear', null, {
-        params: { scope }
+      const response = await apiClient.post('/adminops/clear', {
+        confirm: true,
+        scope: scope
       });
       return response.data;
     } catch (error) {
