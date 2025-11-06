@@ -18,6 +18,7 @@ router = APIRouter(
 
 
 from backend.db import get_session as get_db
+from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 
 
@@ -43,25 +44,8 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
             "models", "Course", "Grade", "DailyPerformance", "Attendance", "Student"
         )
 
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": student_id},
-            )
-
-        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                404,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found",
-                request,
-                context={"course_id": course_id},
-            )
+        student = get_by_id_or_404(db, Student, student_id)
+        course = get_by_id_or_404(db, Course, course_id)
 
         evaluation_rules = course.evaluation_rules or []
         if not evaluation_rules:
@@ -204,15 +188,7 @@ def get_student_all_courses_summary(request: Request, student_id: int, db: Sessi
         )
 
         # Single query with joinedload to avoid N+1
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": student_id},
-            )
+        student = get_by_id_or_404(db, Student, student_id)
 
         # Get all course IDs in one go
         grade_courses = (
@@ -287,15 +263,7 @@ def get_student_summary(request: Request, student_id: int, db: Session = Depends
 
         Student, Attendance, Grade = import_names("models", "Student", "Attendance", "Grade")
 
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                404,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-                context={"student_id": student_id},
-            )
+        student = get_by_id_or_404(db, Student, student_id)
 
         total_att = (
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).count()
