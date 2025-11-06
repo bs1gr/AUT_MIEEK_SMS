@@ -8,11 +8,13 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
+from backend.db_utils import transaction, get_by_id_or_404, paginate
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.routers.routers_auth import optional_require_role
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
+from backend.schemas.common import PaginationParams, PaginatedResponse
 
 
 logger = logging.getLogger(__name__)
@@ -150,14 +152,6 @@ def _normalize_evaluation_rules(er: Any) -> Optional[List[Dict[str, Any]]]:
     return []
 
 
-def _ensure_course_exists(db: Session, course_id: int, request: Optional[Request] = None):
-    (Course,) = import_names("models", "Course")
-    course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
-    if not course:
-        raise http_error(404, ErrorCode.COURSE_NOT_FOUND, "Course not found", request)
-    return course
-
-
 @router.post("/", response_model=CourseResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 def create_course(
@@ -169,7 +163,7 @@ def create_course(
     try:
         (Course,) = import_names("models", "Course")
 
-        existing = db.query(Course).filter(Course.course_code == course.course_code).with_for_update().first()
+        existing = db.query(Course).filter(Course.course_code == course.course_code).first()
         if existing:
             if existing.deleted_at is None:
                 raise http_error(400, ErrorCode.COURSE_DUPLICATE_CODE, "Course code already exists", request)
@@ -184,10 +178,11 @@ def create_course(
         payload = course.model_dump()
         payload["evaluation_rules"] = _normalize_evaluation_rules(payload.get("evaluation_rules"))
 
-        db_course = Course(**payload)
-        db.add(db_course)
-        db.commit()
-        db.refresh(db_course)
+        with transaction(db):
+            db_course = Course(**payload)
+            db.add(db_course)
+            db.flush()
+            db.refresh(db_course)
 
         db_course.evaluation_rules = _normalize_evaluation_rules(db_course.evaluation_rules)
         return db_course
@@ -195,17 +190,15 @@ def create_course(
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.exception("Error creating course: %s", exc)
         raise internal_server_error(request=request)
 
 
-@router.get("/", response_model=List[CourseResponse])
+@router.get("/", response_model=PaginatedResponse[CourseResponse])
 @limiter.limit(RATE_LIMIT_READ)
 def get_all_courses(
     request: Request,
-    skip: int = 0,
-    limit: int = 100,
+    pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
@@ -216,10 +209,17 @@ def get_all_courses(
         if semester:
             query = query.filter(Course.semester == semester)
 
-        courses = query.offset(max(skip, 0)).limit(max(limit, 1)).all()
-        for course in courses:
+        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
+        
+        # Normalize evaluation rules for all courses
+        for course in result.items:
             course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
-        return courses
+        
+        logger.info(
+            f"Retrieved {len(result.items)} courses "
+            f"(skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
+        )
+        return result.dict()
 
     except HTTPException:
         raise
@@ -232,7 +232,8 @@ def get_all_courses(
 @limiter.limit(RATE_LIMIT_READ)
 def get_course(request: Request, course_id: int, db: Session = Depends(get_db)):
     try:
-        course = _ensure_course_exists(db, course_id, request)
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
         course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
         return course
     except HTTPException:
@@ -252,7 +253,8 @@ def update_course(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        course = _ensure_course_exists(db, course_id, request)
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
         update_data = course_data.model_dump(exclude_unset=True)
 
         if "evaluation_rules" in update_data:
@@ -269,18 +271,18 @@ def update_course(
             course.evaluation_rules = normalized
             update_data.pop("evaluation_rules")
 
-        for key, value in update_data.items():
-            setattr(course, key, value)
+        with transaction(db):
+            for key, value in update_data.items():
+                setattr(course, key, value)
+            db.flush()
+            db.refresh(course)
 
-        db.commit()
-        db.refresh(course)
         course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
         return course
 
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.exception("Error updating course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
 
@@ -294,13 +296,15 @@ def delete_course(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        course = _ensure_course_exists(db, course_id, request)
-        course.mark_deleted()
-        db.commit()
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
+        
+        with transaction(db):
+            course.mark_deleted()
+            
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.exception("Error deleting course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
 
@@ -309,7 +313,8 @@ def delete_course(
 @limiter.limit(RATE_LIMIT_READ)
 def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db)):
     try:
-        course = _ensure_course_exists(db, course_id, request)
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
         return {
             "course_id": course_id,
             "course_code": course.course_code,
@@ -332,7 +337,8 @@ def update_evaluation_rules(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        course = _ensure_course_exists(db, course_id, request)
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
         normalized = _normalize_evaluation_rules(rules_data.get("evaluation_rules"))
 
         if normalized:
@@ -345,9 +351,10 @@ def update_evaluation_rules(
                     request,
                 )
 
-        course.evaluation_rules = normalized
-        db.commit()
-        db.refresh(course)
+        with transaction(db):
+            course.evaluation_rules = normalized
+            db.flush()
+            db.refresh(course)
 
         return {
             "course_id": course_id,
@@ -356,6 +363,5 @@ def update_evaluation_rules(
     except HTTPException:
         raise
     except Exception as exc:
-        db.rollback()
         logger.exception("Error updating evaluation rules for course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
