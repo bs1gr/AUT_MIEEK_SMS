@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
+from backend.db_utils import transaction, get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
@@ -58,34 +59,18 @@ def create_daily_performance(
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
-        student = db.query(Student).filter(Student.id == performance.student_id, Student.deleted_at.is_(None)).first()
-        if not student:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.STUDENT_NOT_FOUND,
-                "Student not found",
-                request,
-            )
+        student = get_by_id_or_404(db, Student, performance.student_id)
+        course = get_by_id_or_404(db, Course, performance.course_id)
 
-        course = db.query(Course).filter(Course.id == performance.course_id, Course.deleted_at.is_(None)).first()
-        if not course:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.COURSE_NOT_FOUND,
-                "Course not found",
-                request,
-            )
-
-        db_performance = DailyPerformance(**performance.model_dump())
-        db.add(db_performance)
-        db.commit()
-        db.refresh(db_performance)
+        with transaction(db):
+            db_performance = DailyPerformance(**performance.model_dump())
+            db.add(db_performance)
+            db.flush()
+            db.refresh(db_performance)
         return db_performance
     except HTTPException:
-        db.rollback()
         raise
     except Exception as exc:
-        db.rollback()
         logger.error("Error creating daily performance: %s", exc, exc_info=True)
         raise internal_server_error(request=request) from exc
 
