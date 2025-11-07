@@ -8,6 +8,7 @@ export default {
   legend: 'Legend',
   present: 'Present',
   absent: 'Absent',
+  absences: 'Absences',
   late: 'Late',
   excused: 'Excused',
   clear: 'Clear',
@@ -63,4 +64,7 @@ export default {
   scheduleExported: 'Schedule exported successfully',
   scheduleExportError: 'Failed to export schedule',
   noScheduleToExport: 'No teaching schedule to export',
+  attendanceRecorded: 'Attendance recorded',
+  noAttendanceYet: 'No attendance yet',
+  selectedDate: 'Selected date',
 };

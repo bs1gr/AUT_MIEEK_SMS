@@ -75,16 +75,29 @@ export const studentsAPI = {
    * @param {number} skip - Number of records to skip (pagination)
    * @param {number} limit - Maximum number of records to return
    */
+  /**
+   * Get all students
+   * @param {number} skip - Number of records to skip (pagination)
+   * @param {number} limit - Maximum number of records to return
+   * @returns {Promise<Student[]>}
+   */
+  /**
+   * Get all students
+   * @param {number} skip - Number of records to skip (pagination)
+   * @param {number} limit - Maximum number of records to return
+   * @returns {Promise<Student[]>}
+   */
   getAll: async (skip = 0, limit = 100) => {
     try {
       const response = await apiClient.get('/students/', {
         params: { skip, limit }
       });
       const data = response.data;
-      // Backend returns PaginatedResponse { items, total, skip, limit }
-      // Normalize to array for UI callers
+      // Always return an array of students
       if (data && Array.isArray(data.items)) return data.items;
-      return Array.isArray(data) ? data : [];
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.results)) return data.results;
+      return [];
     } catch (error) {
       throw error;
     }

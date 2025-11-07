@@ -90,4 +90,6 @@ export default {
   failedToCalculateFinalGrade: 'Failed to calculate final grade',
   totalScoresUsed: 'Total scores used',
   basedOn: 'Based on',
+  totalBeforePenalty: 'Total (before penalty)',
+  outOf100: '0-100',
 };

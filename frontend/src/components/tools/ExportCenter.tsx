@@ -5,12 +5,21 @@ import { studentsAPI, coursesAPI } from '../../api/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+
+interface Student {
+  id: number | string;
+  student_id: string;
+  first_name: string;
+  last_name: string;
+  [key: string]: any;
+}
+
 const ExportCenter = () => {
   const { t } = useLanguage();
-  const [students, setStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState({});
-  const [toast, setToast] = useState(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -32,12 +41,12 @@ const ExportCenter = () => {
     }
   };
 
-  const showToast = (message, type = 'info') => {
+  const showToast = (message: string, type: string = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleExport = async (endpoint, filename, exportType) => {
+  const handleExport = async (endpoint: string, filename: string, exportType: string) => {
     setLoading(prev => ({ ...prev, [exportType]: true }));
 
     try {
@@ -213,48 +222,108 @@ const ExportCenter = () => {
           </div>
           <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
 
+          {/* DEBUG: Show number of students loaded */}
+          <div className="mb-2 text-xs text-gray-500">{`Loaded students: ${students.length}`}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {students.map(student => (
-              <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {student.first_name[0]}{student.last_name[0]}
+            {students.length === 0 ? (
+              <div className="col-span-2 text-center text-gray-400 py-8">No students found. Please check if students are imported and available.</div>
+            ) : (
+              students.map(student => (
+                <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {student.first_name[0]}{student.last_name[0]}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{student.first_name} {student.last_name}</p>
+                        <p className="text-sm text-gray-600">{student.student_id}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">{student.first_name} {student.last_name}</p>
-                      <p className="text-sm text-gray-600">{student.student_id}</p>
+                    <div className="flex space-x-2">
+                      {/* Grades (Excel) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/grades/excel/${student.id}`,
+                          `grades_${student.student_id}.xlsx`,
+                          `grades-${student.id}`
+                        )}
+                        disabled={loading[`grades-${student.id}`]}
+                        className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportGrades') + ' (Excel)'}
+                      >
+                        <FileSpreadsheet size={20} />
+                      </button>
+                      {/* Attendance (Excel) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/attendance/excel/${student.id}`,
+                          `attendance_${student.student_id}.xlsx`,
+                          `attendance-${student.id}`
+                        )}
+                        disabled={loading[`attendance-${student.id}`]}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportAttendance') + ' (Excel)'}
+                      >
+                        <Calendar size={20} />
+                      </button>
+                      {/* Daily Performance (Excel) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/performance/excel/${student.id}`,
+                          `performance_${student.student_id}.xlsx`,
+                          `performance-${student.id}`
+                        )}
+                        disabled={loading[`performance-${student.id}`]}
+                        className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportPerformance') + ' (Excel)'}
+                      >
+                        <TrendingUp size={20} />
+                      </button>
+                      {/* Highlights (Excel) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/highlights/excel/${student.id}`,
+                          `highlights_${student.student_id}.xlsx`,
+                          `highlights-${student.id}`
+                        )}
+                        disabled={loading[`highlights-${student.id}`]}
+                        className="p-2 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportHighlights') + ' (Excel)'}
+                      >
+                        <Award size={20} />
+                      </button>
+                      {/* Enrollments (Excel) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/enrollments/excel/${student.id}`,
+                          `enrollments_${student.student_id}.xlsx`,
+                          `enrollments-${student.id}`
+                        )}
+                        disabled={loading[`enrollments-${student.id}`]}
+                        className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportEnrollments') + ' (Excel)'}
+                      >
+                        <Briefcase size={20} />
+                      </button>
+                      {/* Full Report (PDF) */}
+                      <button
+                        onClick={() => handleExport(
+                          `/export/student-report/pdf/${student.id}`,
+                          `report_${student.student_id}.pdf`,
+                          `report-${student.id}`
+                        )}
+                        disabled={loading[`report-${student.id}`]}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                        title={t('exportReport') + ' (PDF)'}
+                      >
+                        <FileText size={20} />
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleExport(
-                        `/export/grades/excel/${student.id}`,
-                        `grades_${student.student_id}.xlsx`,
-                        `grades-${student.id}`
-                      )}
-                      disabled={loading[`grades-${student.id}`]}
-                      className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
-                      title={t('exportGrades') + ' (Excel)'}
-                    >
-                      <FileSpreadsheet size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleExport(
-                        `/export/student-report/pdf/${student.id}`,
-                        `report_${student.student_id}.pdf`,
-                        `report-${student.id}`
-                      )}
-                      disabled={loading[`report-${student.id}`]}
-                      className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
-                      title={t('exportReport') + ' (PDF)'}
-                    >
-                      <FileText size={20} />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

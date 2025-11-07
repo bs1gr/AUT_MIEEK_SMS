@@ -2,6 +2,7 @@ export default {
   // Calendar
   calendarTitle: 'Academic Calendar',
   viewCalendar: 'View Calendar',
+  teachingSchedule: 'Teaching Schedule',
   monday: 'Monday',
   tuesday: 'Tuesday',
   wednesday: 'Wednesday',
@@ -41,4 +42,6 @@ export default {
   upcomingEvents: 'Upcoming Events',
   noClassScheduled: 'No class scheduled',
   noClasses: 'No classes',
+  class: 'class',
+  classes: 'classes',
 };

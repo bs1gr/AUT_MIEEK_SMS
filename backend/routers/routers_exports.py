@@ -1,9 +1,76 @@
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
+
+# Simple i18n dict for EN/EL (expand as needed)
+TRANSLATIONS = {
+    'en': {
+        'report_title': 'Comprehensive Student Report',
+        'attendance_summary': 'Attendance Summary',
+        'total_classes': 'Total Classes',
+        'present': 'Present',
+        'absent': 'Absent',
+        'late': 'Late',
+        'excused': 'Excused',
+        'attendance_rate': 'Attendance Rate',
+        'grades_by_course': 'Grades by Course',
+        'assignment': 'Assignment',
+        'category': 'Category',
+        'score': 'Score',
+        'max_score': 'Max Score',
+        'percentage': 'Percentage',
+        'letter': 'Letter',
+        'average': 'Average:',
+        'daily_performance_summary': 'Daily Performance Summary',
+        'total_daily_entries': 'Total Daily Performance Entries',
+        'avg_performance': 'Average Performance',
+        'generated_on': 'Generated on',
+        'system': 'Student Management System',
+    },
+    'el': {
+        'report_title': 'Αναλυτική Αναφορά Σπουδαστή',
+        'attendance_summary': 'Σύνοψη Παρουσιών',
+        'total_classes': 'Σύνολο Μαθημάτων',
+        'present': 'Παρόν',
+        'absent': 'Απών',
+        'late': 'Καθυστέρηση',
+        'excused': 'Δικαιολογημένη',
+        'attendance_rate': 'Ποσοστό Παρουσιών',
+        'grades_by_course': 'Βαθμοί ανά Μάθημα',
+        'assignment': 'Άσκηση',
+        'category': 'Κατηγορία',
+        'score': 'Βαθμός',
+        'max_score': 'Μέγιστος Βαθμός',
+        'percentage': 'Ποσοστό',
+        'letter': 'Γράμμα',
+        'average': 'Μέσος όρος:',
+        'daily_performance_summary': 'Σύνοψη Ημερήσιας Επίδοσης',
+        'total_daily_entries': 'Σύνολο Καταχωρήσεων Ημερήσιας Επίδοσης',
+        'avg_performance': 'Μέση Επίδοση',
+        'generated_on': 'Δημιουργήθηκε στις',
+        'system': 'Σύστημα Διαχείρισης Σπουδαστών',
+    }
+}
+
+def get_lang(request: Request):
+    # Try query param, then Accept-Language header
+    lang = request.query_params.get('lang')
+    if lang and lang.lower() in TRANSLATIONS:
+        return lang.lower()
+    accept = request.headers.get('accept-language', '').lower()
+    if 'el' in accept:
+        return 'el'
+    return 'en'
+
+def t(key: str, lang: str) -> str:
+    return TRANSLATIONS.get(lang, TRANSLATIONS['en']).get(key, key)
 """
 Export Routes
 Provides endpoints to export data to Excel/PDF.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from io import BytesIO
@@ -586,7 +653,24 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         Student, Grade, Attendance, Course, DailyPerformance = import_names(
             "models", "Student", "Grade", "Attendance", "Course", "DailyPerformance"
         )
-
+        lang = get_lang(request)
+        # Register DejaVu Sans font for Unicode/Greek support
+        font_path = os.path.join(os.path.dirname(__file__), "../fonts/DejaVuSans.ttf")
+        pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
+        elements = []
+        styles = getSampleStyleSheet()
+        # Title
+        title_style = ParagraphStyle(
+            "CustomTitle",
+            parent=styles["Heading1"],
+            fontName="DejaVuSans",
+            fontSize=20,
+            textColor=colors.HexColor("#4F46E5"),
+            spaceAfter=10,
+            alignment=1,
+        )
         student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
         if not student:
             raise http_error(
@@ -596,27 +680,12 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                 request,
                 context={"student_id": student_id},
             )
-
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
-        elements = []
-        styles = getSampleStyleSheet()
-
-        # Title
-        title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=20,
-            textColor=colors.HexColor("#4F46E5"),
-            spaceAfter=10,
-            alignment=1,
-        )
-        elements.append(Paragraph("Comprehensive Student Report", title_style))
-
+        elements.append(Paragraph(t('report_title', lang), title_style))
         # Student Info
         info_style = ParagraphStyle(
             "InfoStyle",
             parent=styles["Normal"],
+            fontName="DejaVuSans",
             fontSize=12,
             spaceAfter=20,
             alignment=1,
@@ -628,17 +697,16 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             )
         )
         elements.append(Spacer(1, 0.3 * inch))
-
         # Attendance Summary
         subtitle_style = ParagraphStyle(
             "SubtitleStyle",
             parent=styles["Heading2"],
+            fontName="DejaVuSans",
             fontSize=14,
             textColor=colors.HexColor("#4F46E5"),
             spaceAfter=10,
         )
-        elements.append(Paragraph("Attendance Summary", subtitle_style))
-
+        elements.append(Paragraph(t('attendance_summary', lang), subtitle_style))
         attendance_records = (
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).all()
         )
@@ -648,9 +716,15 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         late = len([a for a in attendance_records if a.status == "Late"])
         excused = len([a for a in attendance_records if a.status == "Excused"])
         att_rate = (present / total_att * 100) if total_att > 0 else 0
-
         att_data = [
-            ["Total Classes", "Present", "Absent", "Late", "Excused", "Attendance Rate"],
+            [
+                t('total_classes', lang),
+                t('present', lang),
+                t('absent', lang),
+                t('late', lang),
+                t('excused', lang),
+                t('attendance_rate', lang),
+            ],
             [str(total_att), str(present), str(absent), str(late), str(excused), f"{att_rate:.1f}%"],
         ]
         att_table = Table(att_data, colWidths=[1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.3 * inch])
@@ -660,7 +734,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                     ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
                     ("FONTSIZE", (0, 0), (-1, 0), 10),
                     ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
@@ -670,44 +744,42 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         )
         elements.append(att_table)
         elements.append(Spacer(1, 0.3 * inch))
-
         # Grades by Course
-        elements.append(Paragraph("Grades by Course", subtitle_style))
-
+        elements.append(Paragraph(t('grades_by_course', lang), subtitle_style))
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
         course_grades = {}
         for g in grades:
             if g.course_id not in course_grades:
                 course_grades[g.course_id] = []
             course_grades[g.course_id].append(g)
-
         for course_id, course_grade_list in course_grades.items():
             course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
             if not course:
                 continue
-
-            elements.append(Paragraph(f"<b>{course.course_code} - {course.course_name}</b>", styles["Normal"]))
+            elements.append(Paragraph(f"<b>{course.course_code} - {course.course_name}</b>", ParagraphStyle("CourseTitle", parent=styles["Normal"], fontName="DejaVuSans")))
             elements.append(Spacer(1, 0.1 * inch))
-
-            grade_data = [["Assignment", "Category", "Score", "Max Score", "Percentage", "Letter"]]
+            grade_data = [[
+                t('assignment', lang),
+                t('category', lang),
+                t('score', lang),
+                t('max_score', lang),
+                t('percentage', lang),
+                t('letter', lang),
+            ]]
             total_pct = 0
             for g in course_grade_list:
                 pct = (g.grade / g.max_grade * 100) if g.max_grade else 0
                 total_pct += pct
-                grade_data.append(
-                    [
-                        g.assignment_name[:20],
-                        g.category or "N/A",
-                        str(g.grade),
-                        str(g.max_grade),
-                        f"{pct:.1f}%",
-                        _letter_grade(pct),
-                    ]
-                )
-
+                grade_data.append([
+                    g.assignment_name[:20],
+                    g.category or "N/A",
+                    str(g.grade),
+                    str(g.max_grade),
+                    f"{pct:.1f}%",
+                    _letter_grade(pct),
+                ])
             avg_pct = total_pct / len(course_grade_list) if course_grade_list else 0
-            grade_data.append(["", "", "", "Average:", f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
-
+            grade_data.append(["", "", "", t('average', lang), f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
             grade_table = Table(
                 grade_data, colWidths=[2 * inch, 1.2 * inch, 0.8 * inch, 1 * inch, 1 * inch, 0.8 * inch]
             )
@@ -717,19 +789,18 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F46E5")),
                         ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
                         ("FONTSIZE", (0, 0), (-1, 0), 9),
                         ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
                         ("BACKGROUND", (0, 1), (-1, -2), colors.beige),
                         ("BACKGROUND", (0, -1), (-1, -1), colors.lightgrey),
-                        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                        ("FONTNAME", (0, -1), (-1, -1), "DejaVuSans"),
                         ("GRID", (0, 0), (-1, -1), 1, colors.black),
                     ]
                 )
             )
             elements.append(grade_table)
             elements.append(Spacer(1, 0.2 * inch))
-
         # Daily Performance Summary
         daily_perf = (
             db.query(DailyPerformance)
@@ -740,16 +811,16 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             .all()
         )
         if daily_perf:
-            elements.append(Paragraph("Daily Performance Summary", subtitle_style))
+            elements.append(Paragraph(t('daily_performance_summary', lang), subtitle_style))
             avg_perf = sum(dp.percentage for dp in daily_perf) / len(daily_perf)
-            perf_text = f"Total Daily Performance Entries: {len(daily_perf)}<br/>Average Performance: {avg_perf:.1f}%"
-            elements.append(Paragraph(perf_text, styles["Normal"]))
+            perf_text = f"{t('total_daily_entries', lang)}: {len(daily_perf)}<br/>{t('avg_performance', lang)}: {avg_perf:.1f}%"
+            elements.append(Paragraph(perf_text, ParagraphStyle("PerfText", parent=styles["Normal"], fontName="DejaVuSans")))
             elements.append(Spacer(1, 0.2 * inch))
-
         # Footer
         footer_style = ParagraphStyle(
             "FooterStyle",
             parent=styles["Normal"],
+            fontName="DejaVuSans",
             fontSize=8,
             textColor=colors.grey,
             alignment=1,
@@ -757,11 +828,10 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         elements.append(Spacer(1, 0.3 * inch))
         elements.append(
             Paragraph(
-                f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>Student Management System",
+                f"{t('generated_on', lang)} {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>{t('system', lang)}",
                 footer_style,
             )
         )
-
         doc.build(elements)
         buffer.seek(0)
         filename = f"student_report_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.pdf"
