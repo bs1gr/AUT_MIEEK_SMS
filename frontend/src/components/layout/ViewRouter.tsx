@@ -19,26 +19,26 @@ export interface ViewRouterProps {
   students: Student[];
   courses: Course[];
   loading: boolean;
-  
+
   // Dashboard specific
   dashboardStats?: {
     totalStudents: number;
     activeStudents: number;
     totalCourses: number;
   };
-  
+
   // Students view specific
   showStudentsView: boolean;
   onAddStudent: () => void;
   onEditStudent: (student: Student) => void;
   onDeleteStudent: (id: number) => Promise<void>;
   onViewProfile: (studentId: number) => void;
-  
+
   // Courses view specific
   onAddCourse: () => void;
   onEditCourse: (course: Course) => void;
   onDeleteCourse: (courseId: number) => Promise<void>;
-  
+
   // Power view specific (render props pattern)
   renderPowerView?: () => JSX.Element;
 }

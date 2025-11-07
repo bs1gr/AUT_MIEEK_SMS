@@ -96,15 +96,22 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
             total_item_weight: float = 0.0
 
             # For Midterm and Final Exam, only use the latest grade (most recent date_submitted or id)
-            exam_categories = ["Midterm", "Midterm Exam", "Final Exam", "Final", "Ενδιάμεση", "Ενδιάμεση Εξέταση", "Τελική Εξέταση", "Τελική"]
+            exam_categories = [
+                "Midterm",
+                "Midterm Exam",
+                "Final Exam",
+                "Final",
+                "Ενδιάμεση",
+                "Ενδιάμεση Εξέταση",
+                "Τελική Εξέταση",
+                "Τελική",
+            ]
             category_grades = [gr for gr in grades if gr.category == category]
-            
+
             if category in exam_categories and category_grades:
                 # Sort by date_submitted (most recent first), fall back to id
                 category_grades = sorted(
-                    category_grades,
-                    key=lambda g: (g.date_submitted or '1970-01-01', g.id),
-                    reverse=True
+                    category_grades, key=lambda g: (g.date_submitted or "1970-01-01", g.id), reverse=True
                 )
                 # Keep only the latest grade
                 category_grades = category_grades[:1]

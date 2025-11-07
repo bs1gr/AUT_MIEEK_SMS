@@ -1,6 +1,6 @@
 /**
  * Validation schemas barrel export
- * 
+ *
  * All zod validation schemas for form validation throughout the app.
  * Matches backend API requirements for data integrity.
  */

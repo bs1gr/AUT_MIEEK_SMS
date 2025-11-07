@@ -14,7 +14,7 @@ export const attendanceSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid student ID');
       return num;
     })),
-  
+
   course_id: z
     .number()
     .int('Course ID must be a whole number')
@@ -24,7 +24,7 @@ export const attendanceSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid course ID');
       return num;
     })),
-  
+
   date: z
     .string()
     .min(1, 'Date is required')
@@ -32,12 +32,12 @@ export const attendanceSchema = z.object({
       val => !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
-  
+
   status: z
     .enum(['present', 'absent', 'late', 'excused'], {
       message: 'Status must be one of: present, absent, late, excused',
     }),
-  
+
   notes: z
     .string()
     .max(500, 'Notes must be less than 500 characters')
@@ -54,7 +54,7 @@ export const bulkAttendanceSchema = z.object({
     .number()
     .int('Course ID must be a whole number')
     .positive('Course ID must be positive'),
-  
+
   date: z
     .string()
     .min(1, 'Date is required')
@@ -62,7 +62,7 @@ export const bulkAttendanceSchema = z.object({
       val => !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
-  
+
   attendance_records: z
     .array(z.object({
       student_id: z.number().int().positive(),

@@ -8,7 +8,7 @@ interface CoursesState {
   selectedCourse: Course | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setCourses: (courses: Course[]) => void;
   addCourse: (course: Course) => void;
@@ -28,15 +28,15 @@ export const useCoursesStore = create<CoursesState>()(
       selectedCourse: null,
       isLoading: false,
       error: null,
-      
+
       // Actions
       setCourses: (courses) => set({ courses, error: null }),
-      
+
       addCourse: (course) => set((state) => ({
         courses: [...state.courses, course],
         error: null,
       })),
-      
+
       updateCourse: (id, updates) => set((state) => ({
         courses: state.courses.map((c) =>
           c.id === id ? { ...c, ...updates } : c
@@ -46,19 +46,19 @@ export const useCoursesStore = create<CoursesState>()(
           : state.selectedCourse,
         error: null,
       })),
-      
+
       deleteCourse: (id) => set((state) => ({
         courses: state.courses.filter((c) => c.id !== id),
         selectedCourse: state.selectedCourse?.id === id ? null : state.selectedCourse,
         error: null,
       })),
-      
+
       selectCourse: (course) => set({ selectedCourse: course }),
-      
+
       setLoading: (loading) => set({ isLoading: loading }),
-      
+
       setError: (error) => set({ error }),
-      
+
       clearError: () => set({ error: null }),
     }),
     { name: 'CoursesStore' }

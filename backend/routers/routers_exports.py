@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -6,66 +5,70 @@ import os
 
 # Simple i18n dict for EN/EL (expand as needed)
 TRANSLATIONS = {
-    'en': {
-        'report_title': 'Comprehensive Student Report',
-        'attendance_summary': 'Attendance Summary',
-        'total_classes': 'Total Classes',
-        'present': 'Present',
-        'absent': 'Absent',
-        'late': 'Late',
-        'excused': 'Excused',
-        'attendance_rate': 'Attendance Rate',
-        'grades_by_course': 'Grades by Course',
-        'assignment': 'Assignment',
-        'category': 'Category',
-        'score': 'Score',
-        'max_score': 'Max Score',
-        'percentage': 'Percentage',
-        'letter': 'Letter',
-        'average': 'Average:',
-        'daily_performance_summary': 'Daily Performance Summary',
-        'total_daily_entries': 'Total Daily Performance Entries',
-        'avg_performance': 'Average Performance',
-        'generated_on': 'Generated on',
-        'system': 'Student Management System',
+    "en": {
+        "report_title": "Comprehensive Student Report",
+        "attendance_summary": "Attendance Summary",
+        "total_classes": "Total Classes",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "excused": "Excused",
+        "attendance_rate": "Attendance Rate",
+        "grades_by_course": "Grades by Course",
+        "assignment": "Assignment",
+        "category": "Category",
+        "score": "Score",
+        "max_score": "Max Score",
+        "percentage": "Percentage",
+        "letter": "Letter",
+        "average": "Average:",
+        "daily_performance_summary": "Daily Performance Summary",
+        "total_daily_entries": "Total Daily Performance Entries",
+        "avg_performance": "Average Performance",
+        "generated_on": "Generated on",
+        "system": "Student Management System",
     },
-    'el': {
-        'report_title': 'Αναλυτική Αναφορά Σπουδαστή',
-        'attendance_summary': 'Σύνοψη Παρουσιών',
-        'total_classes': 'Σύνολο Μαθημάτων',
-        'present': 'Παρόν',
-        'absent': 'Απών',
-        'late': 'Καθυστέρηση',
-        'excused': 'Δικαιολογημένη',
-        'attendance_rate': 'Ποσοστό Παρουσιών',
-        'grades_by_course': 'Βαθμοί ανά Μάθημα',
-        'assignment': 'Άσκηση',
-        'category': 'Κατηγορία',
-        'score': 'Βαθμός',
-        'max_score': 'Μέγιστος Βαθμός',
-        'percentage': 'Ποσοστό',
-        'letter': 'Γράμμα',
-        'average': 'Μέσος όρος:',
-        'daily_performance_summary': 'Σύνοψη Ημερήσιας Επίδοσης',
-        'total_daily_entries': 'Σύνολο Καταχωρήσεων Ημερήσιας Επίδοσης',
-        'avg_performance': 'Μέση Επίδοση',
-        'generated_on': 'Δημιουργήθηκε στις',
-        'system': 'Σύστημα Διαχείρισης Σπουδαστών',
-    }
+    "el": {
+        "report_title": "Αναλυτική Αναφορά Σπουδαστή",
+        "attendance_summary": "Σύνοψη Παρουσιών",
+        "total_classes": "Σύνολο Μαθημάτων",
+        "present": "Παρόν",
+        "absent": "Απών",
+        "late": "Καθυστέρηση",
+        "excused": "Δικαιολογημένη",
+        "attendance_rate": "Ποσοστό Παρουσιών",
+        "grades_by_course": "Βαθμοί ανά Μάθημα",
+        "assignment": "Άσκηση",
+        "category": "Κατηγορία",
+        "score": "Βαθμός",
+        "max_score": "Μέγιστος Βαθμός",
+        "percentage": "Ποσοστό",
+        "letter": "Γράμμα",
+        "average": "Μέσος όρος:",
+        "daily_performance_summary": "Σύνοψη Ημερήσιας Επίδοσης",
+        "total_daily_entries": "Σύνολο Καταχωρήσεων Ημερήσιας Επίδοσης",
+        "avg_performance": "Μέση Επίδοση",
+        "generated_on": "Δημιουργήθηκε στις",
+        "system": "Σύστημα Διαχείρισης Σπουδαστών",
+    },
 }
+
 
 def get_lang(request: Request):
     # Try query param, then Accept-Language header
-    lang = request.query_params.get('lang')
+    lang = request.query_params.get("lang")
     if lang and lang.lower() in TRANSLATIONS:
         return lang.lower()
-    accept = request.headers.get('accept-language', '').lower()
-    if 'el' in accept:
-        return 'el'
-    return 'en'
+    accept = request.headers.get("accept-language", "").lower()
+    if "el" in accept:
+        return "el"
+    return "en"
+
 
 def t(key: str, lang: str) -> str:
-    return TRANSLATIONS.get(lang, TRANSLATIONS['en']).get(key, key)
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
+
 """
 Export Routes
 Provides endpoints to export data to Excel/PDF.
@@ -680,7 +683,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                 request,
                 context={"student_id": student_id},
             )
-        elements.append(Paragraph(t('report_title', lang), title_style))
+        elements.append(Paragraph(t("report_title", lang), title_style))
         # Student Info
         info_style = ParagraphStyle(
             "InfoStyle",
@@ -706,7 +709,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             textColor=colors.HexColor("#4F46E5"),
             spaceAfter=10,
         )
-        elements.append(Paragraph(t('attendance_summary', lang), subtitle_style))
+        elements.append(Paragraph(t("attendance_summary", lang), subtitle_style))
         attendance_records = (
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).all()
         )
@@ -718,12 +721,12 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         att_rate = (present / total_att * 100) if total_att > 0 else 0
         att_data = [
             [
-                t('total_classes', lang),
-                t('present', lang),
-                t('absent', lang),
-                t('late', lang),
-                t('excused', lang),
-                t('attendance_rate', lang),
+                t("total_classes", lang),
+                t("present", lang),
+                t("absent", lang),
+                t("late", lang),
+                t("excused", lang),
+                t("attendance_rate", lang),
             ],
             [str(total_att), str(present), str(absent), str(late), str(excused), f"{att_rate:.1f}%"],
         ]
@@ -745,7 +748,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         elements.append(att_table)
         elements.append(Spacer(1, 0.3 * inch))
         # Grades by Course
-        elements.append(Paragraph(t('grades_by_course', lang), subtitle_style))
+        elements.append(Paragraph(t("grades_by_course", lang), subtitle_style))
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
         course_grades = {}
         for g in grades:
@@ -756,30 +759,39 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
             if not course:
                 continue
-            elements.append(Paragraph(f"<b>{course.course_code} - {course.course_name}</b>", ParagraphStyle("CourseTitle", parent=styles["Normal"], fontName="DejaVuSans")))
+            elements.append(
+                Paragraph(
+                    f"<b>{course.course_code} - {course.course_name}</b>",
+                    ParagraphStyle("CourseTitle", parent=styles["Normal"], fontName="DejaVuSans"),
+                )
+            )
             elements.append(Spacer(1, 0.1 * inch))
-            grade_data = [[
-                t('assignment', lang),
-                t('category', lang),
-                t('score', lang),
-                t('max_score', lang),
-                t('percentage', lang),
-                t('letter', lang),
-            ]]
+            grade_data = [
+                [
+                    t("assignment", lang),
+                    t("category", lang),
+                    t("score", lang),
+                    t("max_score", lang),
+                    t("percentage", lang),
+                    t("letter", lang),
+                ]
+            ]
             total_pct = 0
             for g in course_grade_list:
                 pct = (g.grade / g.max_grade * 100) if g.max_grade else 0
                 total_pct += pct
-                grade_data.append([
-                    g.assignment_name[:20],
-                    g.category or "N/A",
-                    str(g.grade),
-                    str(g.max_grade),
-                    f"{pct:.1f}%",
-                    _letter_grade(pct),
-                ])
+                grade_data.append(
+                    [
+                        g.assignment_name[:20],
+                        g.category or "N/A",
+                        str(g.grade),
+                        str(g.max_grade),
+                        f"{pct:.1f}%",
+                        _letter_grade(pct),
+                    ]
+                )
             avg_pct = total_pct / len(course_grade_list) if course_grade_list else 0
-            grade_data.append(["", "", "", t('average', lang), f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
+            grade_data.append(["", "", "", t("average", lang), f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
             grade_table = Table(
                 grade_data, colWidths=[2 * inch, 1.2 * inch, 0.8 * inch, 1 * inch, 1 * inch, 0.8 * inch]
             )
@@ -811,10 +823,14 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             .all()
         )
         if daily_perf:
-            elements.append(Paragraph(t('daily_performance_summary', lang), subtitle_style))
+            elements.append(Paragraph(t("daily_performance_summary", lang), subtitle_style))
             avg_perf = sum(dp.percentage for dp in daily_perf) / len(daily_perf)
-            perf_text = f"{t('total_daily_entries', lang)}: {len(daily_perf)}<br/>{t('avg_performance', lang)}: {avg_perf:.1f}%"
-            elements.append(Paragraph(perf_text, ParagraphStyle("PerfText", parent=styles["Normal"], fontName="DejaVuSans")))
+            perf_text = (
+                f"{t('total_daily_entries', lang)}: {len(daily_perf)}<br/>{t('avg_performance', lang)}: {avg_perf:.1f}%"
+            )
+            elements.append(
+                Paragraph(perf_text, ParagraphStyle("PerfText", parent=styles["Normal"], fontName="DejaVuSans"))
+            )
             elements.append(Spacer(1, 0.2 * inch))
         # Footer
         footer_style = ParagraphStyle(

@@ -9,7 +9,7 @@ The Control Panel at `http://localhost:8080/control` now **automatically detects
 ### Docker Mode
 ```
 🐳 Running in Docker Mode
-Showing Docker-compatible operations only. For full control, 
+Showing Docker-compatible operations only. For full control,
 use SMS.ps1 or SMART_SETUP.ps1 on host machine.
 ```
 
@@ -56,7 +56,7 @@ use SMS.ps1 or SMART_SETUP.ps1 on host machine.
 ### What You Should NOT See
 - ❌ "Start Application" button
 - ❌ "Restart Application" button
-- ❌ "Install Frontend Dependencies" button  
+- ❌ "Install Frontend Dependencies" button
 - ❌ "Install Backend Dependencies" button
 - ❌ Error messages when clicking impossible operations
 
@@ -73,10 +73,10 @@ use SMS.ps1 or SMART_SETUP.ps1 on host machine.
 
 ## Benefits
 
-✅ **No Confusion** - Only see operations that work  
-✅ **No Error Messages** - Impossible operations hidden, not shown  
-✅ **Clear Guidance** - Banner explains how to get full control  
-✅ **Simplified UX** - Matches Docker-only release goal  
+✅ **No Confusion** - Only see operations that work
+✅ **No Error Messages** - Impossible operations hidden, not shown
+✅ **Clear Guidance** - Banner explains how to get full control
+✅ **Simplified UX** - Matches Docker-only release goal
 
 ## For Advanced Operations
 

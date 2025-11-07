@@ -14,7 +14,7 @@ export const gradeSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid student ID');
       return num;
     })),
-  
+
   course_id: z
     .number()
     .int('Course ID must be a whole number')
@@ -24,13 +24,13 @@ export const gradeSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid course ID');
       return num;
     })),
-  
+
   component_type: z
     .string()
     .min(1, 'Component type is required')
     .max(100, 'Component type must be less than 100 characters')
     .trim(),
-  
+
   grade: z
     .number()
     .min(0, 'Grade must be non-negative')
@@ -40,7 +40,7 @@ export const gradeSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid grade');
       return num;
     })),
-  
+
   max_grade: z
     .number()
     .positive('Max grade must be positive')
@@ -50,7 +50,7 @@ export const gradeSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid max grade');
       return num;
     })),
-  
+
   weight: z
     .number()
     .min(0, 'Weight must be non-negative')
@@ -60,7 +60,7 @@ export const gradeSchema = z.object({
       if (isNaN(num)) throw new Error('Invalid weight');
       return num;
     })),
-  
+
   date_assigned: z
     .string()
     .optional()
@@ -70,7 +70,7 @@ export const gradeSchema = z.object({
       val => !val || !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
-  
+
   date_submitted: z
     .string()
     .optional()
@@ -80,7 +80,7 @@ export const gradeSchema = z.object({
       val => !val || !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
-  
+
   notes: z
     .string()
     .max(500, 'Notes must be less than 500 characters')

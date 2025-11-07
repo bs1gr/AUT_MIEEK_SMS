@@ -7,7 +7,7 @@ import type { Course, CourseFormData } from '@/types';
 export const courseKeys = {
   all: ['courses'] as const,
   lists: () => [...courseKeys.all, 'list'] as const,
-  list: (filters?: { search?: string; active?: boolean; semester?: string }) => 
+  list: (filters?: { search?: string; active?: boolean; semester?: string }) =>
     [...courseKeys.lists(), filters] as const,
   details: () => [...courseKeys.all, 'detail'] as const,
   detail: (id: number) => [...courseKeys.details(), id] as const,
@@ -26,7 +26,7 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
       try {
         const response = await coursesAPI.getAll();
         const courses = response.items || [];
-        
+
         // Apply filters client-side
         let filteredCourses = courses;
         if (filters?.search) {
@@ -43,7 +43,7 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
         if (filters?.semester) {
           filteredCourses = filteredCourses.filter((c: Course) => c.semester === filters.semester);
         }
-        
+
         setCourses(filteredCourses);
         setError(null);
         return filteredCourses;
