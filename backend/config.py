@@ -22,7 +22,7 @@ def _path_within(path: Path, root: Path) -> bool:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file="/app/backend/.env",  # Always use the container path
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",  # ignore extra keys in .env (e.g., unrelated settings)

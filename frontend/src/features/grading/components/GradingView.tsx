@@ -29,6 +29,17 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
 
   const [studentId, setStudentId] = useState<number | ''>('');
   const [courseId, setCourseId] = useState<number | ''>('');
+
+  // On mount, check sessionStorage for grading_filter_student and grading_filter_course
+  useEffect(() => {
+    const storedStudent = sessionStorage.getItem('grading_filter_student');
+    const storedCourse = sessionStorage.getItem('grading_filter_course');
+    if (storedStudent && !studentId) setStudentId(Number(storedStudent));
+    if (storedCourse && !courseId) setCourseId(Number(storedCourse));
+    // Optionally clear after use
+    sessionStorage.removeItem('grading_filter_student');
+    sessionStorage.removeItem('grading_filter_course');
+  }, []);
   const [category, setCategory] = useState('Midterm');
   const [gradeValue, setGradeValue] = useState<number | ''>('');
   const [maxGrade, setMaxGrade] = useState<number | ''>('');

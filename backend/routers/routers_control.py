@@ -46,6 +46,7 @@ class SystemStatus(BaseModel):
     python_version: str = Field(description="Python version")
     node_version: Optional[str] = Field(None, description="Node.js version if installed")
     timestamp: str = Field(description="Status check timestamp")
+    process_start_time: Optional[str] = Field(None, description="Backend process start time (ISO format)")
 
 
 class DiagnosticResult(BaseModel):
@@ -241,7 +242,7 @@ def _get_frontend_port() -> Optional[int]:
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_system_status():
+async def get_system_status(request: Request):
     """
     Get comprehensive system status
     Checks backend, frontend, Docker, database, and environment
@@ -261,6 +262,16 @@ async def get_system_status():
 
     node_installed, node_version = _check_node_installed()
 
+    # Get process start time from app state if available
+    process_start_time = None
+    try:
+        process_start = getattr(request.app.state, "start_time", None)
+        if process_start:
+            from datetime import datetime, timezone
+            process_start_time = datetime.fromtimestamp(process_start, tz=timezone.utc).isoformat()
+    except Exception:
+        pass
+
     return SystemStatus(
         backend=True,  # If this endpoint responds, backend is running
         frontend=frontend_port is not None,
@@ -270,6 +281,7 @@ async def get_system_status():
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         node_version=node_version,
         timestamp=datetime.now().isoformat(),
+        process_start_time=process_start_time,
     )
 
 

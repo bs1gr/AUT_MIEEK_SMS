@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 
@@ -52,6 +53,15 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
     byDay[day].sort((a, b) => (a.sched.start_time > b.sched.start_time ? 1 : -1));
   });
 
+
+  const navigate = useNavigate ? useNavigate() : undefined;
+
+  const handleGoToExport = () => {
+    if (navigate) {
+      navigate('/tools/export', { state: { scrollTo: 'print-calendar' } });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -59,6 +69,12 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
           <CalendarIcon size={22} className="text-indigo-600" />
           <span>{t('teachingSchedule')}</span>
         </h2>
+        <button
+          onClick={handleGoToExport}
+          className="ml-4 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg shadow hover:scale-105 transition-all"
+        >
+          {t('printCalendar')}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

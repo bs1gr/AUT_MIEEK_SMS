@@ -220,8 +220,10 @@ def test_migration_status_exception(health_checker):
 )
 def test_detect_environment_native(health_checker):
     """Test environment detection for native execution."""
+
     # Mock Docker detection to return False
     with patch("os.path.exists", return_value=False):
+        original_getenv = os.getenv
         with patch(
             "os.getenv",
             side_effect=lambda k, d=None: None
@@ -235,7 +237,7 @@ def test_detect_environment_native(health_checker):
                 "DOCKER",
                 "CONTAINER",
             ]
-            else os.getenv(k, d),
+            else original_getenv(k, d),
         ):
             result = health_checker._detect_environment()
 

@@ -544,12 +544,38 @@ function Start-Application {
     # Start container
     Write-Info "Starting container..."
 
+
+    # Load SECRET_KEY from .env (root) or backend/.env
+    $envSecret = $null
+    $envPaths = @(
+        (Join-Path $SCRIPT_DIR ".env"),
+        (Join-Path $SCRIPT_DIR "backend/.env")
+    )
+    foreach ($envPath in $envPaths) {
+        if (Test-Path $envPath) {
+            $allLines = @(Get-Content $envPath)
+            $lines = $allLines | Where-Object { $_ -match '^SECRET_KEY\s*=\s*.+$' }
+            if ($null -eq $lines) { $lines = @() }
+            if ($lines.Count -gt 0) {
+                $splitLine = $lines[0] -split '=',2
+                if ($splitLine.Count -eq 2) {
+                    $envSecret = $splitLine[1].Trim()
+                    break
+                }
+            }
+        }
+    }
+    if (-not $envSecret -or $envSecret.Length -lt 32) {
+        $envSecret = "local-dev-secret-key-20251105-change-me"
+        Write-Host "[WARN] Using fallback insecure SECRET_KEY. Please set a strong SECRET_KEY in .env for production." -ForegroundColor Yellow
+    }
+
     docker run -d `
         --name $CONTAINER_NAME `
         -p ${PORT}:${INTERNAL_PORT} `
         -e SMS_ENV=production `
         -e SMS_EXECUTION_MODE=docker `
-        -e SECRET_KEY=local-dev-secret-key-20251105-change-me `
+        -e SECRET_KEY=$envSecret `
         -e DATABASE_URL=sqlite:////app/data/student_management.db `
         -v ${VOLUME_NAME}:/app/data `
         -v "${SCRIPT_DIR}/templates:/app/templates:ro" `

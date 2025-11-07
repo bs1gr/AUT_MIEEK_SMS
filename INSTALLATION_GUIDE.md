@@ -1,7 +1,7 @@
 # Student Management System - Installation Guide
 
-**Version**: 1.4.0
-**Last Updated**: November 6, 2025
+**Version**: 1.5.0
+**Last Updated**: November 7, 2025
 
 ---
 
@@ -77,9 +77,15 @@ cd AUT_MIEEK_SMS
    ```
    (Replace with your actual path)
 
-3. **Start SMS**
+
+3. **Start SMS (Docker, recommended)**
    ```powershell
    .\RUN.ps1
+   ```
+
+   **For native development (devs only):**
+   ```powershell
+   pwsh -NoProfile -File scripts/dev/run-native.ps1
    ```
 
 4. **Wait for first-time setup**
@@ -106,6 +112,7 @@ The application is now running. Here's what you can do:
 | <http://localhost:8080/docs> | API documentation |
 | <http://localhost:8080/health> | Health status |
 
+
 ### Daily Usage
 
 ```powershell
@@ -115,6 +122,11 @@ The application is now running. Here's what you can do:
 .\RUN.ps1 -Logs     # View application logs
 .\RUN.ps1 -Update   # Update to latest version (with automatic backup)
 .\RUN.ps1 -Backup   # Create manual database backup
+```
+
+**For native development:**
+```powershell
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
 ---
@@ -234,9 +246,9 @@ After installation, you'll have:
 
 ```
 student-management-system/
-├── RUN.ps1                    ← Your main entry point
-├── SMART_SETUP.ps1            ← Advanced setup (optional)
-├── SMS.ps1                    ← Container management (optional)
+├── RUN.ps1                    ← Canonical Docker entry point (one-click)
+├── scripts/dev/run-native.ps1 ← Canonical native entry point (dev only)
+├── SMS.ps1                    ← Docker management (optional)
 ├── VERSION                    ← Current version number
 ├── docker/                    ← Docker configuration
 ├── backend/                   ← Application code
@@ -250,6 +262,7 @@ student-management-system/
 ---
 
 ## 💾 Backup and Data
+
 
 ### Automatic Backups
 
@@ -266,6 +279,7 @@ Create a backup anytime:
 ```powershell
 .\RUN.ps1 -Backup
 ```
+
 
 ### Restore from Backup
 
@@ -365,42 +379,19 @@ To run SMS on a QNAP NAS:
 
 ---
 
+
 ## 🔧 Advanced Installation (Mac/Linux)
 
-### Mac (with Docker Desktop)
+### Mac/Linux (with Docker)
 
 Same as Windows, but use Terminal instead of PowerShell:
 
 ```bash
-# Make script executable
-chmod +x RUN.ps1
-
-# Start SMS
+# Start SMS (Docker)
 ./RUN.ps1
 ```
 
-### Linux (with Docker)
-
-1. **Install Docker**:
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get update
-   sudo apt-get install docker.io docker-compose
-   sudo systemctl start docker
-   sudo systemctl enable docker
-   ```
-
-2. **Add user to docker group**:
-   ```bash
-   sudo usermod -aG docker $USER
-   # Log out and back in
-   ```
-
-3. **Run SMS**:
-   ```bash
-   chmod +x RUN.ps1
-   ./RUN.ps1
-   ```
+> **Note:** Only RUN.ps1 (Docker) and scripts/dev/run-native.ps1 (native, dev only) are supported as entry points in v1.5.0+. All other scripts are deprecated or removed.
 
 ---
 
@@ -473,6 +464,6 @@ After installation:
 
 ---
 
-**Version**: 1.4.0
-**Last Updated**: November 6, 2025
+**Version**: 1.5.0
+**Last Updated**: November 7, 2025
 **License**: MIT

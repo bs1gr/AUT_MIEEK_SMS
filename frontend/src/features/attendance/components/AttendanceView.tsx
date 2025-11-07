@@ -112,15 +112,33 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         const results = await Promise.all(localCourses.map(async (c) => {
           try {
             const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
-            if (!r.ok) return { id: c.id, count: 0 };
+            if (!r.ok) {
+              console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
+              return { id: c.id, count: 0 };
+            }
             const arr = await r.json();
-            return { id: c.id, count: Array.isArray(arr) ? arr.length : 0 };
-          } catch { return { id: c.id, count: 0 }; }
+            console.log(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+            // Accept both array and object-with-items
+            if (Array.isArray(arr)) {
+              return { id: c.id, count: arr.length };
+            } else if (arr && Array.isArray(arr.items)) {
+              return { id: c.id, count: arr.items.length };
+            } else {
+              return { id: c.id, count: 0 };
+            }
+          } catch (err) {
+            console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, err);
+            return { id: c.id, count: 0 };
+          }
         }));
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
+        console.log('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
         setCoursesWithEnrollment(ids);
-      } catch { setCoursesWithEnrollment(new Set()); }
+      } catch (err) {
+        console.error('[AttendanceView] Error in fetchEnrollments:', err);
+        setCoursesWithEnrollment(new Set());
+      }
     };
     fetchEnrollments();
   }, [courseIds]); // Only depend on course IDs string, not entire array

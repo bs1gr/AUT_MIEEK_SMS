@@ -1,4 +1,15 @@
 export default {
+  exportGradesLink: 'Εξαγωγή Βαθμών',
+  exportStudentsLink: 'Εξαγωγή Σπουδαστών',
+  exportCoursesLink: 'Εξαγωγή Μαθημάτων',
+  printCalendar: 'Εκτύπωση Ημερολογίου',
+  printCalendarDesc: 'Εκτύπωση προβολής ημερολογίου με όλα τα προγραμματισμένα μαθήματα',
+  studentsListCSV: 'Λίστα Σπουδαστών (CSV)',
+  exportAllStudentsCSV: 'Εξαγωγή όλων των πληροφοριών σπουδαστών σε CSV',
+  exportAllDataZIP: 'Εξαγωγή Όλων των Δεδομένων (ZIP)',
+  exportAllDataDescription: 'Λήψη αρχείου ZIP με όλα τα δεδομένα σε όλες τις μορφές',
+  noStudentsFound: 'Δεν βρέθηκαν σπουδαστές. Ελέγξτε αν έχουν εισαχθεί και είναι διαθέσιμοι.',
+  exportTipsHeader: '📊',
   // Κέντρο Εξαγωγής
   exportCenter: 'Κέντρο Εξαγωγής',
   downloadYourData: 'Λήψη δεδομένων σε διάφορες μορφές',
@@ -35,4 +46,10 @@ export default {
   exportTipPDF: '<b>Αρχεία PDF</b> είναι τέλεια για εκτύπωση και κοινοποίηση επαγγελματικών αναφορών',
   exportTipStudentReports: '<b>Οι ατομικές αναφορές</b> περιλαμβάνουν βαθμούς, παρουσίες και συνόψεις απόδοσης',
   exportTipTimestamp: 'Όλες οι εξαγωγές περιλαμβάνουν χρονοσήμανση στο όνομα αρχείου για εύκολη οργάνωση',
+  studentsListCSV: 'Λίστα Σπουδαστών (CSV)',
+  exportAllStudentsCSV: 'Εξαγωγή όλων των πληροφοριών σπουδαστών σε CSV',
+  exportAllDataZIP: 'Εξαγωγή Όλων των Δεδομένων (ZIP)',
+  exportAllDataDescription: 'Λήψη αρχείου ZIP με όλα τα δεδομένα σε όλες τις μορφές',
+  noStudentsFound: 'Δεν βρέθηκαν σπουδαστές. Ελέγξτε αν έχουν εισαχθεί και είναι διαθέσιμοι.',
+  exportTipsHeader: '📊',
 };
