@@ -332,7 +332,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                   const letter = getLetterGrade(pct);
                   const arithmeticValue = (pct / 100 * 100).toFixed(0); // No decimals for compact view
                   const failedCount = s.failedCourses || 0;
-                  const statusLabel = failedCount > 0 
+                  const statusLabel = failedCount > 0
                     ? t('failedCoursesCount', { count: failedCount }).replace('{count}', String(failedCount))
                     : formatted.description;
                   return (
