@@ -7,7 +7,7 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, courses })=>{
   const { t } = useLanguage();
-  
+
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
     const categoryMap: Record<string, string> = {

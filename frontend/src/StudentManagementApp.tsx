@@ -25,11 +25,11 @@ interface ToastState {
 const StudentManagementApp = () => {
   const { t } = useLanguage();
   const { t: ti18n } = useTranslation(); // i18n translation function
-  
+
   // Use React Query hooks for data fetching
   const { isLoading: studentsLoading, refetch: refetchStudents } = useStudents();
   const { isLoading: coursesLoading, refetch: refetchCourses } = useCourses();
-  
+
   // Get data from Zustand stores
   const students = useStudentsStore((state) => state.students);
   const courses = useCoursesStore((state) => state.courses);
@@ -37,7 +37,7 @@ const StudentManagementApp = () => {
   const selectedCourse = useCoursesStore((state) => state.selectedCourse);
   const selectStudent = useStudentsStore((state) => state.selectStudent);
   const selectCourse = useCoursesStore((state) => state.selectCourse);
-  
+
   // Mutations
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
@@ -45,11 +45,11 @@ const StudentManagementApp = () => {
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
   const deleteCourse = useDeleteCourse();
-  
+
   // Modal management hooks
   const studentModals = useStudentModals();
   const courseModals = useCourseModals();
-  
+
   const loading = studentsLoading || coursesLoading;
   const [toast, setToast] = useState<ToastState | null>(null);
 

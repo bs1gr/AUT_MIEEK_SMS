@@ -7,7 +7,7 @@ interface GradesState {
   grades: Grade[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setGrades: (grades: Grade[]) => void;
   addGrade: (grade: Grade) => void;
@@ -26,36 +26,36 @@ export const useGradesStore = create<GradesState>()(
       grades: [],
       isLoading: false,
       error: null,
-      
+
       // Actions
       setGrades: (grades) => set({ grades, error: null }),
-      
+
       addGrade: (grade) => set((state) => ({
         grades: [...state.grades, grade],
         error: null,
       })),
-      
+
       updateGrade: (id, updates) => set((state) => ({
         grades: state.grades.map((g) =>
           g.id === id ? { ...g, ...updates } : g
         ),
         error: null,
       })),
-      
+
       deleteGrade: (id) => set((state) => ({
         grades: state.grades.filter((g) => g.id !== id),
         error: null,
       })),
-      
+
       bulkAddGrades: (grades) => set((state) => ({
         grades: [...state.grades, ...grades],
         error: null,
       })),
-      
+
       setLoading: (loading) => set({ isLoading: loading }),
-      
+
       setError: (error) => set({ error }),
-      
+
       clearError: () => set({ error: null }),
     }),
     { name: 'GradesStore' }

@@ -42,7 +42,7 @@ export async function logErrorToBackend(
 ): Promise<void> {
   try {
     const err = error instanceof Error ? error : new Error(String(error));
-    
+
     const errorData: ErrorData = {
       message: err.message || 'Unknown error',
       stack: err.stack || '',

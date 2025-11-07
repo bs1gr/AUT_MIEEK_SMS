@@ -230,13 +230,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         setDatesWithAttendance(new Set());
         return;
       }
-      
+
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1; // JS months are 0-indexed
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month, 0).getDate();
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-      
+
       try {
         const res = await fetch(`${API_BASE_URL}/attendance/course/${selectedCourse}?start_date=${startDate}&end_date=${endDate}`);
         if (res.ok) {
@@ -252,7 +252,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         setDatesWithAttendance(new Set());
       }
     };
-    
+
     fetchDatesWithAttendance();
   }, [selectedCourse, currentMonth]);
 

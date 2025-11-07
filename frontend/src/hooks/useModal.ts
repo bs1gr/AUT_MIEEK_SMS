@@ -9,11 +9,11 @@ export interface UseModalReturn {
 
 /**
  * Generic modal management hook
- * 
+ *
  * @example
  * const addModal = useModal();
  * const editModal = useModal();
- * 
+ *
  * // Later in JSX:
  * <button onClick={addModal.open}>Add</button>
  * {addModal.isOpen && <Modal onClose={addModal.close}>...</Modal>}

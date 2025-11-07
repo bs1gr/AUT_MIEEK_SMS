@@ -27,7 +27,7 @@ interface EditStudentModalProps {
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, onUpdate }) => {
   const { t } = useLanguage();
-  
+
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
@@ -72,7 +72,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         variants={backdropVariants}
         initial="hidden"
@@ -80,7 +80,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
         exit="exit"
         onClick={onClose}
       >
-        <motion.div 
+        <motion.div
           className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           variants={modalVariants}
           initial="hidden"

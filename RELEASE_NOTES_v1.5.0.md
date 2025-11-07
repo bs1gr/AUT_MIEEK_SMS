@@ -1,7 +1,7 @@
 # Release Notes v1.5.0 - Frontend Modernization
 
-**Release Date:** November 6, 2025  
-**Type:** Major Feature Release  
+**Release Date:** November 6, 2025
+**Type:** Major Feature Release
 **Focus:** Complete Frontend Modernization with TypeScript, Modern State Management, and Professional Animations
 
 ---
@@ -10,8 +10,8 @@
 
 Version 1.5.0 represents a **comprehensive frontend modernization** of the Student Management System. This release transforms the user interface from JavaScript to TypeScript, implements modern React patterns, adds professional animations, and significantly improves the overall user experience.
 
-**Total Development Time:** ~46.5 hours across 8 phases  
-**Bundle Size Impact:** 364KB → 483KB (+33%) for professional features  
+**Total Development Time:** ~46.5 hours across 8 phases
+**Bundle Size Impact:** 364KB → 483KB (+33%) for professional features
 **TypeScript Coverage:** 100% of frontend codebase
 
 ---
@@ -484,8 +484,8 @@ docker-compose up -d --build
 
 ## 📞 Support
 
-**Issues:** https://github.com/bs1gr/AUT_MIEEK_SMS/issues  
-**Documentation:** See `docs/` folder  
+**Issues:** https://github.com/bs1gr/AUT_MIEEK_SMS/issues
+**Documentation:** See `docs/` folder
 **Quick Start:** Run `.\QUICKSTART.ps1`
 
 ---
@@ -512,6 +512,6 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 *For detailed technical documentation, see:*
 - `docs/ARCHITECTURE.md` - System design
-- `docs/LOCALIZATION.md` - i18n implementation  
+- `docs/LOCALIZATION.md` - i18n implementation
 - `docs/DEVELOPER_FAST_START.md` - Quick setup guide
 - `.github/copilot-instructions.md` - Development patterns

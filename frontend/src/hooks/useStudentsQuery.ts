@@ -7,7 +7,7 @@ import type { Student, StudentFormData } from '@/types';
 export const studentKeys = {
   all: ['students'] as const,
   lists: () => [...studentKeys.all, 'list'] as const,
-  list: (filters?: { search?: string; active?: boolean }) => 
+  list: (filters?: { search?: string; active?: boolean }) =>
     [...studentKeys.lists(), filters] as const,
   details: () => [...studentKeys.all, 'detail'] as const,
   detail: (id: number) => [...studentKeys.details(), id] as const,

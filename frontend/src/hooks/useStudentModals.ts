@@ -4,10 +4,10 @@ import { useModal, type UseModalReturn } from './useModal';
 export interface UseStudentModalsReturn {
   // Add modal
   addModal: UseModalReturn;
-  
+
   // Edit modal
   editModal: UseModalReturn;
-  
+
   // Profile viewing
   viewingStudentId: number | null;
   viewProfile: (studentId: number) => void;
@@ -17,16 +17,16 @@ export interface UseStudentModalsReturn {
 
 /**
  * Manages all student-related modal states
- * 
+ *
  * @example
  * const studentModals = useStudentModals();
- * 
+ *
  * // Open add modal
  * <button onClick={studentModals.addModal.open}>Add Student</button>
- * 
+ *
  * // View profile
  * <button onClick={() => studentModals.viewProfile(123)}>View</button>
- * 
+ *
  * // Check states
  * {studentModals.addModal.isOpen && <AddStudentModal />}
  * {studentModals.isViewingProfile && <StudentProfile />}

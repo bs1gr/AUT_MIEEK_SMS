@@ -104,7 +104,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                   </div>
                   <div className="text-xs text-gray-500 mt-1">{t('outOf100') || '0-100'}</div>
                 </div>
-                
+
                 {/* Greek Scale */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="text-sm text-gray-600 mb-1">{t('greekScale') || 'Greek Scale'}</div>
@@ -113,7 +113,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                   </div>
                   <div className="text-xs text-gray-500 mt-1">{data.greek_description || t('fail') || 'Status'}</div>
                 </div>
-                
+
                 {/* Letter Grade */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="text-sm text-gray-600 mb-1">{t('letterGrade') || 'Letter Grade'}</div>
