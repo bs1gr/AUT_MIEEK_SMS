@@ -1,0 +1,17 @@
+.export-referral-link {
+  font-size: 0.75rem;
+  color: #4f46e5;
+  background: none;
+  border: none;
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.export-referral-link:hover, .export-referral-link:focus {
+  color: #3730a3;
+  text-decoration: underline;
+  background: #eef2ff;
+  outline: none;
+}

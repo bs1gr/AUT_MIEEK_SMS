@@ -45,6 +45,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     console.log('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
 
+<<<<<<< HEAD
     // Apply theme to document with Edge browser compatibility
     const root = document.documentElement;
     const body = document.body;
@@ -53,29 +54,45 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     root.classList.remove('dark', 'relaxing');
     body.classList.remove('dark', 'relaxing');
 
+=======
+    // Apply theme to document with extra null checks
+    const root = typeof document !== 'undefined' ? document.documentElement : null;
+    const body = typeof document !== 'undefined' ? document.body : null;
+    if (!root || !body) {
+      console.warn('[ThemeProvider] document root or body is null, skipping theme application');
+      return;
+    }
+    // Remove all theme classes first, with guards
+    if (root.classList) root.classList.remove('dark', 'relaxing');
+    if (body.classList) body.classList.remove('dark', 'relaxing');
+>>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
     if (resolved === 'dark') {
-      root.classList.add('dark');
-      body.classList.add('dark');
+      if (root.classList) root.classList.add('dark');
+      if (body.classList) body.classList.add('dark');
       void root.offsetHeight;
     } else if (resolved === 'relaxing') {
-      root.classList.add('relaxing');
-      body.classList.add('relaxing');
+      if (root.classList) root.classList.add('relaxing');
+      if (body.classList) body.classList.add('relaxing');
       void root.offsetHeight;
     } else {
       // Light theme - ensure all theme classes are removed
-      if (root.classList.contains('dark') || root.classList.contains('relaxing')) {
+      if (root.classList && (root.classList.contains('dark') || root.classList.contains('relaxing'))) {
         console.warn('[ThemeProvider] Failed to remove theme classes, forcing...');
         root.className = root.className.replace(/\b(dark|relaxing)\b/g, '').trim();
       }
-      if (body.classList.contains('dark') || body.classList.contains('relaxing')) {
+      if (body.classList && (body.classList.contains('dark') || body.classList.contains('relaxing'))) {
         console.warn('[ThemeProvider] Failed to remove theme classes from body, forcing...');
         body.className = body.className.replace(/\b(dark|relaxing)\b/g, '').trim();
       }
       void root.offsetHeight;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
     // Log actual state after applying
     setTimeout(() => {
+      if (!root || !body) return;
       console.log('[ThemeProvider] After apply - html classes:', root.className, '| body classes:', body.className, '| has dark:', root.classList.contains('dark'), '| has relaxing:', root.classList.contains('relaxing'));
     }, 0);
 

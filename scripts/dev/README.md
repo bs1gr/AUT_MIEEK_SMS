@@ -35,18 +35,19 @@ Developers actively working on the codebase.
 
 ## Usage Patterns
 
+
+
 ### Quick Development Cycle
 
 ```powershell
-# Start development
-.\..\SMS.ps1 -Quick
+# Start native development mode (v1.5.0+)
+pwsh -NoProfile -File run-native.ps1
 
-# Run tests
-.\SMOKE_TEST.ps1
-
-# Debug issues
-.\DIAGNOSE_STATE.ps1
+# Manage Docker containers (if needed)
+pwsh -NoProfile -File ..\..\SMS.ps1
 ```
+
+> **Note:** As of v1.5.0, only `run-native.ps1` is supported for native development. All other entry points and legacy scripts are deprecated or removed. Use `RUN.ps1` from the project root for Docker/fullstack mode.
 
 ### Cleanup After Development
 

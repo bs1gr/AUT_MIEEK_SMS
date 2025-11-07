@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
-import ServerControl from '@/components/common/ServerControl';
 import ThemeSelector from '@/components/tools/ThemeSelector';
 import Toast from '@/components/ui/Toast';
 import { getHealthStatus, adminOpsAPI, importAPI } from '@/api/api';

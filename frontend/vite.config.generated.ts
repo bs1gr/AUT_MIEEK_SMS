@@ -1,10 +1,9 @@
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { readFileSync } from 'fs'
 
-// Inject version from package.json
+// Read version from package.json
 let version = 'dev';
 try {
   const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));

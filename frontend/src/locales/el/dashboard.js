@@ -1,4 +1,7 @@
 export default {
+  // Ημερολόγιο/Σήμερα/Αύριο Μαθήματα
+  todaysAndNextCourses: 'Σημερινά & Αυριανά Μαθήματα',
+  noCoursesTodayOrTomorrow: 'Δεν υπάρχουν μαθήματα για σήμερα ή αύριο.',
   // Πίνακας Ελέγχου
   dashboardTitle: 'Πίνακας Επισκόπησης',
   systemInformation: 'Πληροφορίες Συστήματος',

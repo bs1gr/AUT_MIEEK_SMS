@@ -1,4 +1,21 @@
 export default {
+  // Student & Course Management (Toasts, Confirmations)
+  failedToLoadSomeData: 'Failed to load some data. Endpoints might be missing.',
+  failedToLoadDataServer: 'Failed to load data. Server returned an error.',
+  confirmDeleteStudent: 'Are you sure you want to delete this student?',
+  studentDeleted: 'Student deleted successfully!',
+  failedToDeleteStudent: 'Failed to delete student. Please try again.',
+  studentAdded: 'Student added successfully!',
+  failedToAddStudent: 'Failed to add student. Please check the form and try again.',
+  studentUpdated: 'Student updated successfully!',
+  failedToUpdateStudent: 'Failed to update student. Please try again.',
+  confirmDeleteCourse: 'Are you sure you want to delete this course?',
+  courseDeleted: 'Course deleted successfully!',
+  failedToDeleteCourse: 'Failed to delete course. Please try again.',
+  courseAdded: 'Course added successfully!',
+  failedToAddCourse: 'Failed to add course. Please try again.',
+  courseUpdated: 'Course updated successfully!',
+  failedToUpdateCourse: 'Failed to update course. Please try again.',
   // System & General UI (Common)
   systemTitle: 'Student Management System MIEEK - AUT Automotive Engineering',
   systemSubtitle: 'Comprehensive academic management platform',

@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
   Settings,
-  Activity,
   AlertTriangle,
   CheckCircle,
   XCircle,
   RefreshCw,
-  Play,
   Square,
   Terminal,
   Package,
@@ -25,7 +23,7 @@ interface SystemStatus {
   frontend: string;
   docker: string;
   database: string;
-  uptime?: string;
+  process_start_time?: string; // ISO string from backend
 }
 
 interface DiagnosticItem {
@@ -120,7 +118,7 @@ interface OperationStatus {
 
 const API_BASE = window.location.origin;
 const CONTROL_API = `${API_BASE}/api/v1/control/api`;
-const LEGACY_CONTROL_API = `${API_BASE}/control/api`;
+// Removed unused LEGACY_CONTROL_API constant
 
 const ControlPanel: React.FC = () => {
   const { t } = useLanguage();
@@ -133,12 +131,50 @@ const ControlPanel: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
+  const [uptime, setUptime] = useState<string>('');
+  const [uptimeTimer, setUptimeTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Helper to format uptime from seconds
+  function formatUptime(seconds: number): string {
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let str = '';
+    if (d > 0) str += `${d}d `;
+    if (h > 0 || d > 0) str += `${h}h `;
+    if (m > 0 || h > 0 || d > 0) str += `${m}m `;
+    str += `${s}s`;
+    return str.trim();
+  }
+
+  // Update uptime based on process_start_time
+  const updateUptime = (startIso: string | undefined) => {
+    if (!startIso) {
+      setUptime('');
+      return;
+    }
+    const start = new Date(startIso).getTime();
+    const now = Date.now();
+    const diff = Math.floor((now - start) / 1000);
+    setUptime(formatUptime(diff));
+  };
 
   // Fetch status
   const fetchStatus = async () => {
     try {
       const response = await axios.get(`${CONTROL_API}/status`);
       setStatus(response.data);
+      if (response.data.process_start_time) {
+        updateUptime(response.data.process_start_time);
+        // Clear previous timer
+        if (uptimeTimer) clearInterval(uptimeTimer);
+        // Start new timer
+        const timer = setInterval(() => {
+          updateUptime(response.data.process_start_time);
+        }, 1000);
+        setUptimeTimer(timer);
+      }
     } catch (error) {
       console.error('Failed to fetch status:', error);
     }
@@ -256,74 +292,23 @@ const ControlPanel: React.FC = () => {
   };
 
   // Control operations (use legacy endpoints for start/stop)
-  const startFrontend = async (): Promise<void> => {
-    try {
-      await axios.post(`${LEGACY_CONTROL_API}/start`);
-      setOperationStatus({ type: 'success', message: 'Frontend started successfully' });
-      await fetchStatus();
-    } catch (error) {
-      setOperationStatus({ type: 'error', message: 'Failed to start frontend' });
-    }
-  };
+  // Removed unused startFrontend and stopFrontend for linter compliance
 
-  const stopFrontend = async (): Promise<void> => {
-    try {
-      await axios.post(`${LEGACY_CONTROL_API}/stop`);
-      setOperationStatus({ type: 'success', message: 'Frontend stopped successfully' });
-      await fetchStatus();
-    } catch (error) {
-      setOperationStatus({ type: 'error', message: 'Failed to stop frontend' });
-    }
-  };
-
-  const stopAll = async () => {
-    // Check if running in Docker mode
-    const isDockerMode = environment?.environment_mode === 'docker';
-
-    let confirmMessage = 'Stop all services? The control panel will become unavailable.';
-    if (isDockerMode) {
-      confirmMessage = 'IMPORTANT: Running in Docker mode.\n\n' +
-        'The "Stop All" button can only stop the backend container from within Docker.\n' +
-        'The frontend/nginx container will remain running.\n\n' +
-        'For a complete shutdown, use the host command:\n' +
-        '  .\\SMS.ps1 -Stop\n' +
-        '  or: docker compose stop\n\n' +
-        'Continue with partial stop (backend only)?';
-    }
-
-    if (!confirm(confirmMessage)) return;
-
-    try {
-      // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
-      await axios.post(`${CONTROL_API}/operations/exit-all`, { });
-      const msg = isDockerMode
-        ? 'Backend stopping... Use host command to stop all containers.'
-        : 'All services stopping...';
-      setOperationStatus({ type: 'warning', message: msg });
-    } catch (error) {
-      // Fallback to legacy stop-all if new endpoint is not available
-      try {
-        await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
-        const msg = isDockerMode
-          ? 'Backend stopping... Use host command to stop all containers.'
-          : 'All services stopping...';
-        setOperationStatus({ type: 'warning', message: msg });
-      } catch (_) {
-        // Expected - backend will shut down or endpoint may be unreachable during shutdown
-      }
-    }
-  };
+  // Removed unused stopAll function after removing Stop All Services button
 
   // Initial load
   useEffect(() => {
     fetchStatus();
     fetchDiagnostics();
     fetchPorts();
-  fetchEnvironment();
+    fetchEnvironment();
 
     // Auto-refresh status
     const interval = setInterval(fetchStatus, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (uptimeTimer) clearInterval(uptimeTimer);
+    };
   }, []);
 
   // Tab change effects
@@ -339,17 +324,7 @@ const ControlPanel: React.FC = () => {
     }
   }, [activeTab]);
 
-    const getStatusBadge = (isRunning: boolean): React.ReactNode => {
-    return isRunning ? (
-      <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded">
-        {t('controlPanel.running') || 'Running'}
-      </span>
-    ) : (
-      <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded">
-        {t('controlPanel.stopped') || 'Stopped'}
-      </span>
-    );
-  };
+  // Removed unused getStatusBadge for linter compliance
 
   const getDiagnosticIcon = (status: string): React.ReactNode => {
     switch (status) {
@@ -376,6 +351,14 @@ const ControlPanel: React.FC = () => {
               <p className="text-sm text-gray-400">{t('controlPanel.subtitle')}</p>
             </div>
           </div>
+
+          {/* Uptime display */}
+          {uptime && (
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300">
+              <span className="font-semibold">{t('controlPanel.uptime') || 'Uptime'}:</span>
+              <span className="font-mono">{uptime}</span>
+            </div>
+          )}
 
           {operationStatus && (
             <div className={`px-4 py-2 rounded-lg border ${
@@ -499,19 +482,42 @@ const ControlPanel: React.FC = () => {
                 <Square size={20} className="text-red-400" />
                 System Control
               </h2>
-              <button
-                onClick={stopAll}
-                disabled={!status?.backend}
-                className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-200 dark:border-red-700 rounded-lg transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <Square size={18} />
-                  Stop All Services
-                </span>
-                <span className="text-xs text-red-300">
-                  {environment?.environment_mode === 'docker' ? '(Backend only - use .\SMS.ps1 -Stop for full shutdown)' : '(All services)'}
-                </span>
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setOperationStatus({ type: 'info', message: 'Restart is not implemented in the web UI. Please use .\\SMS.ps1 -Restart or restart the container/service manually.' })}
+                  disabled={!status?.backend}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-yellow-50 dark:bg-yellow-900/30 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-yellow-200 dark:border-yellow-700 rounded-lg transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <RefreshCw size={18} />
+                    Restart
+                  </span>
+                  <span className="text-xs text-yellow-400">(Host/Container only)</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!status?.backend) return;
+                    if (!confirm('Exit will completely shut down all backend/frontend services. Are you sure?')) return;
+                    setLoading(true);
+                    try {
+                      await axios.post(`${CONTROL_API}/operations/exit-all`);
+                      setOperationStatus({ type: 'warning', message: 'System shutdown initiated. The app will become unavailable.' });
+                    } catch (e) {
+                      setOperationStatus({ type: 'error', message: 'Failed to initiate shutdown.' });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={!status?.backend}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-200 dark:border-red-700 rounded-lg transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Square size={18} />
+                    Exit (Full Shutdown)
+                  </span>
+                  <span className="text-xs text-red-300">(All services)</span>
+                </button>
+              </div>
             </div>
 
             {/* Native Operations - Hidden in Docker mode */}

@@ -49,10 +49,19 @@ const StudentManagementApp = () => {
     loadData();
   }, []);
 
-  const showToast = (message, type = 'info') => {
+  const showToast = (messageKey, type = 'info', options = {}) => {
+    // messageKey: string (i18n key) or { key, values }
+    let message = '';
+    if (typeof messageKey === 'string') {
+      message = t(messageKey);
+    } else if (messageKey && typeof messageKey === 'object' && messageKey.key) {
+      message = t(messageKey.key, messageKey.values || {});
+    } else {
+      message = String(messageKey);
+    }
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }
 
   const loadData = async () => {
     setLoading(true);
@@ -67,10 +76,10 @@ const StudentManagementApp = () => {
       setCourses(Array.isArray(coursesData) ? coursesData : []);
 
       if (!Array.isArray(studentsData) || !Array.isArray(coursesData)) {
-        showToast('Failed to load some data. Endpoints might be missing.', 'error');
+        showToast('failedToLoadSomeData', 'error');
       }
     } catch (error) {
-      showToast('Failed to load data. Server returned an error.', 'error');
+      showToast('failedToLoadDataServer', 'error');
       // Ensure state is an empty array on error to prevent crashes
       setStudents([]);
       setCourses([]);
@@ -183,12 +192,12 @@ const StudentManagementApp = () => {
             }}
             onDelete={async (id) => {
               try {
-                if (!window.confirm('Are you sure you want to delete this student?')) return;
+                if (!window.confirm(t('confirmDeleteStudent'))) return;
                 await studentsAPI.delete(id);
                 setStudents((prev) => (Array.isArray(prev) ? prev.filter((s) => s.id !== id) : []));
-                showToast('Student deleted successfully!', 'success');
+                showToast('studentDeleted', 'success');
               } catch (error) {
-                showToast('Failed to delete student. Please try again.', 'error');
+                showToast('failedToDeleteStudent', 'error');
               }
             }}
             onViewProfile={(studentId) => {
@@ -205,9 +214,9 @@ const StudentManagementApp = () => {
             try {
               const created = await studentsAPI.create(newStudent);
               setStudents((prev) => Array.isArray(prev) ? [created, ...prev] : [created]);
-              showToast('Student added successfully!', 'success');
+              showToast('studentAdded', 'success');
             } catch (error) {
-              showToast('Failed to add student. Please check the form and try again.', 'error');
+              showToast('failedToAddStudent', 'error');
             } finally {
               setShowAddStudentModal(false);
             }
@@ -223,9 +232,9 @@ const StudentManagementApp = () => {
             try {
               const saved = await studentsAPI.update(updatedStudent.id, updatedStudent);
               setStudents((prev) => (Array.isArray(prev) ? prev.map((s) => (s.id === saved.id ? saved : s)) : [saved]));
-              showToast('Student updated successfully!', 'success');
+              showToast('studentUpdated', 'success');
             } catch (error) {
-              showToast('Failed to update student. Please try again.', 'error');
+              showToast('failedToUpdateStudent', 'error');
             } finally {
               setShowEditStudentModal(false);
             }
@@ -240,9 +249,9 @@ const StudentManagementApp = () => {
             try {
               const created = await coursesAPI.create(newCourse);
               setCourses((prev) => Array.isArray(prev) ? [...prev, created] : [created]);
-              showToast('Course added successfully!', 'success');
+              showToast('courseAdded', 'success');
             } catch (error) {
-              showToast('Failed to add course. Please try again.', 'error');
+              showToast('failedToAddCourse', 'error');
             } finally {
               setShowAddCourseModal(false);
             }
@@ -258,9 +267,9 @@ const StudentManagementApp = () => {
             try {
               const saved = await coursesAPI.update(updatedCourse.id, updatedCourse);
               setCourses((prev) => (Array.isArray(prev) ? prev.map((c) => (c.id === saved.id ? saved : c)) : [saved]));
-              showToast('Course updated successfully!', 'success');
+              showToast('courseUpdated', 'success');
             } catch (error) {
-              showToast('Failed to update course. Please try again.', 'error');
+              showToast('failedToUpdateCourse', 'error');
             } finally {
               setShowEditCourseModal(false);
             }
@@ -279,12 +288,12 @@ const StudentManagementApp = () => {
           }}
           onDelete={async (courseId) => {
             try {
-              if (!window.confirm('Are you sure you want to delete this course?')) return;
+              if (!window.confirm(t('confirmDeleteCourse'))) return;
               await coursesAPI.delete(courseId);
               setCourses((prev) => (Array.isArray(prev) ? prev.filter((c) => c.id !== courseId) : []));
-              showToast('Course deleted successfully!', 'success');
+              showToast('courseDeleted', 'success');
             } catch (error) {
-              showToast('Failed to delete course. Please try again.', 'error');
+              showToast('failedToDeleteCourse', 'error');
             }
           }}
         />
@@ -295,7 +304,7 @@ const StudentManagementApp = () => {
       )}
 
       {activeView === 'grading' && (
-        <GradingView students={students} courses={courses} />
+        <GradingView key={window.location.hash} students={students} courses={courses} />
       )}
 
       {activeView === 'calendar' && (

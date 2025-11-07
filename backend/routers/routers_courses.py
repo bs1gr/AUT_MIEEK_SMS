@@ -201,6 +201,7 @@ def get_all_courses(
     pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
     db: Session = Depends(get_db),
+    # No authentication required for GET /courses
 ):
     try:
         (Course,) = import_names("models", "Course")
