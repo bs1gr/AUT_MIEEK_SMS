@@ -2,15 +2,15 @@
 
 This directory contains management scripts for the Student Management System.
 
-Primary entry points (recommended): use `..\QUICKSTART.ps1` to start and `..\SMS.ps1` to manage. `..\START.bat` and `..\ONE-CLICK.ps1` remain as compatibility wrappers and will forward to the primary scripts.
+**Canonical entry points (v1.5.0+):** Use `..\RUN.ps1` (Docker, one-click) or `scripts/dev/run-native.ps1` (native dev only). Use `..\SMS.ps1` for Docker management. All other scripts are deprecated or internal.
 
 ## 📂 Directory Structure
 
 ```text
 scripts/
 ├── README.md                  # This file
-├── SETUP.ps1/.bat            # Initial setup scripts
-├── STOP.ps1/.bat             # Emergency stop scripts
+├── CLEANUP.bat               # Non-destructive cleanup
+├── CLEANUP_COMPREHENSIVE.ps1 # Deep cleanup
 ├── SMOKE_TEST.ps1            # Quick health validation
 ├── internal/                 # Internal utility scripts (advanced)
 └── docker/                   # Docker-specific scripts
@@ -18,46 +18,47 @@ scripts/
 
 ## 🎯 Main Scripts (For End Users)
 
-### Quick Start
 
-- **Location:** `..\QUICKSTART.ps1` (in project root)
-- **Purpose:** Simple one-command launcher to start the application
-- **Usage:** `.\QUICKSTART.ps1`
-- **When to use:** Every time you want to start the app
+### Fullstack Docker Start (Recommended)
+
+- **Location:** `..\RUN.ps1` (in project root)
+- **Purpose:** One-command launcher for fullstack Docker deployment
+- **Usage:** `.\RUN.ps1`
+- **When to use:** Always use this for production, end-user, or test deployments (v1.5.0+)
+
+### Native Development Start
+
+- **Location:** `scripts/dev/run-native.ps1`
+- **Purpose:** Start backend and frontend in native development mode (hot reload)
+- **Usage:** `pwsh -NoProfile -File scripts/dev/run-native.ps1`
+- **When to use:** For local development and debugging (only supported native entry point as of v1.5.0)
 
 ### Unified Management Interface ⭐ RECOMMENDED
 
 - **Location:** `..\SMS.ps1` (in project root)
-- **Purpose:** Interactive menu-driven management interface for all operations
+- **Purpose:** Interactive menu-driven management interface for Docker containers
 - **Usage:** `.\SMS.ps1`
 - **Features:**
-  - Start/Stop/Restart application (Docker or Native mode)
+  - Start/Stop/Restart Docker containers
   - System diagnostics and troubleshooting
   - Database backup and restore
   - View logs and environment info
   - Port conflict detection
   - Advanced developer tools access
-- **Why use this:** All-in-one interface, supersedes most individual scripts
+- **Why use this:** All-in-one interface, supersedes most individual scripts. Use for all Docker management.
 
-### Emergency Stop (compatibility)
+### Emergency Stop (deprecated)
 
-- **Script:** `STOP.ps1` / `STOP.bat`
-- **Purpose:** Stop all running services (Docker containers or native processes)
-- **Usage:** `.\scripts\STOP.ps1`
-- **Preferred alternative:** `.\SMS.ps1 -Stop`
-- **When to use:** When you need to quickly stop everything
+- **Script:** `STOP.ps1` / `STOP.bat` (deprecated)
+- **Purpose:** Deprecated. Use `.\SMS.ps1 -Stop` instead. All direct stop scripts are removed in v1.5.0+.
 
 ## 🔧 Setup & Installation
 
+
+
 ### Initial Setup
 
-- **Script:** `SETUP.ps1` / `SETUP.bat`
-- **Purpose:** First-time installation of dependencies
-- **Usage:** `.\scripts\SETUP.ps1`
-- **Installs:**
-  - Python virtual environment
-  - Python packages
-  - Node.js dependencies
+> **Note:** As of v1.5.0, all setup is handled automatically by `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native). All other setup scripts are deprecated.
 
 ---
 
@@ -67,18 +68,17 @@ scripts/
 
 These scripts are used internally by SMS.ps1 or for specialized maintenance tasks. Most users won't need to run these directly.
 
-**Diagnostics & Debugging:**
 
-- `DEBUG_PORTS.ps1/.bat` - Show processes using ports 8000, 5173, 8080
-- `DIAGNOSE_FRONTEND.ps1/.bat` - Frontend-specific diagnostics
-- `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
+**Diagnostics & Debugging:**
+  - `DEBUG_PORTS.ps1/.bat` - Show processes using ports 8000, 5173, 8080
+  - `DIAGNOSE_FRONTEND.ps1/.bat` - Frontend-specific diagnostics
+  - `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
 
 **Maintenance & Cleanup:**
-
-- `CLEANUP.ps1/.bat` - Clean temporary files and caches
-- `CLEANUP_COMPREHENSIVE.ps1` - Thorough cleanup (temp files, logs, build artifacts)
-- `CLEANUP_DOCS.ps1` - Clean documentation artifacts
-- `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
+  - `CLEANUP.bat` - Non-destructive cleanup
+  - `CLEANUP_COMPREHENSIVE.ps1` - Deep cleanup (temp files, logs, build artifacts)
+  - `CLEANUP_DOCS.ps1` - Clean documentation artifacts
+  - `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
 
 **Development Tools:**
 
@@ -112,20 +112,23 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 - `DOCKER_UPDATE_VOLUME.ps1` - Migrate data between volume configurations
 
-<!-- Note: legacy/ folder removed; wrappers consolidated into SMS.ps1 and START.bat. -->
+<!-- Note: All legacy/ and setup/stop scripts removed or deprecated in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
 
 ---
 
 ## 🎯 Decision Tree: Which Script Should I Use?
 
+
 **Starting the application?**
-→ Use `QUICKSTART.ps1` (simple) or `SMS.ps1` (full control)
+→ Use `RUN.ps1` (Docker, one-click) or `scripts/dev/run-native.ps1` (native dev only)
+
 
 **Need to stop everything?**
-→ Use `STOP.ps1` or SMS.ps1 menu
+→ Use `SMS.ps1 -Stop` or SMS.ps1 menu
+
 
 **First time setup?**
-→ Use `SETUP.ps1` or SMS.ps1 Setup menu
+→ Use `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native)
 
 **Troubleshooting issues?**
 → Use `SMS.ps1` → Option 6 (Diagnostics)
@@ -146,14 +149,16 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 ## 🔧 Script Reference (Alphabetical)
 
+
 ### Main User-Facing Scripts (Root & scripts/)
 
 | Script | Location | Purpose |
 |--------|----------|---------|
-| QUICKSTART.ps1 | Root | Simple launcher to start application |
+| RUN.ps1 | Root | Canonical Docker entry point (one-click) |
+| scripts/dev/run-native.ps1 | scripts/dev/ | Canonical native entry point (dev only) |
 | SMS.ps1 | Root | Unified management interface (recommended) |
-| SETUP.ps1/.bat | scripts/ | Initial setup and dependency installation |
-| STOP.ps1/.bat | scripts/ | Emergency stop for all services (compatibility; prefer `SMS.ps1 -Stop`) |
+| CLEANUP.bat | scripts/ | Non-destructive cleanup |
+| CLEANUP_COMPREHENSIVE.ps1 | scripts/ | Deep cleanup |
 
 ### Internal Utility Scripts (scripts/internal/)
 
@@ -185,7 +190,7 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 | DOCKER_UP.ps1 | Start Docker Compose |
 | DOCKER_UPDATE_VOLUME.ps1 | Migrate volume data |
 
-<!-- Legacy table removed (no scripts/legacy/). Use SMS.ps1 unified menu. -->
+<!-- Legacy table removed. All legacy scripts are deprecated/removed in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
 
 ---
 
@@ -200,17 +205,19 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 ## 🚀 Recommended Workflow
 
+
 ### First Time Setup
 
 ```powershell
-.\QUICKSTART.ps1    # Automatically runs setup if needed
+.\RUN.ps1    # One-click Docker setup and start (recommended)
+pwsh -NoProfile -File scripts/dev/run-native.ps1   # Native dev only
 ```
 
 ### Daily Usage
 
 ```powershell
 # Start
-.\QUICKSTART.ps1
+.\RUN.ps1
 
 # Stop (preferred)
 .\SMS.ps1 -Stop
@@ -232,11 +239,12 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 .\SMS.ps1    # Select diagnostics options
 ```
 
+
 ### Development
 
 ```powershell
-# Access all tools
-.\scripts\DEVTOOLS.ps1
+# Native dev mode (hot reload)
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
 ## 📝 Legacy Scripts
@@ -300,7 +308,7 @@ For more detailed documentation, see:
 
 ## 💡 Tips
 
-1. **Use QUICKSTART.ps1** for simplicity - it handles everything automatically
+1. **Use RUN.ps1** for simplicity - it handles everything automatically
 2. **Use SMS.ps1** for interactive management - menu-driven, can't go wrong
 3. **Use DIAGNOSE_STATE.ps1** when confused - shows current state and next steps
 4. **Backup before resetting** - Use SMS.ps1 → Backup before destructive operations

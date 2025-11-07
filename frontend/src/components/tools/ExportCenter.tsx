@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI } from '../../api/api';
+import CalendarView from '@/features/calendar/components/CalendarView';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -15,11 +18,39 @@ interface Student {
 }
 
 const ExportCenter = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const [showPrintCalendar, setShowPrintCalendar] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  // Map of refs for each export card
+  const exportCardRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
+  const location = useLocation();
+  // Scroll/focus export card if navigated with scrollTo or hash
+  useEffect(() => {
+    let scrollToId = location.state && location.state.scrollTo;
+    if (!scrollToId && window.location.hash) {
+      const hash = window.location.hash.replace('#', '');
+      // Accept both id and id with dashes/underscores
+      scrollToId = hash;
+    }
+    if (scrollToId && exportCardRefs.current[scrollToId]) {
+      setTimeout(() => {
+        const ref = exportCardRefs.current[scrollToId];
+        if (ref) {
+          ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          ref.focus?.();
+        }
+      }, 200);
+    }
+  }, [location]);
+  const printCalendar = useReactToPrint({
+    contentRef: calendarRef,
+    onAfterPrint: () => setShowPrintCalendar(false),
+    // removeAfterPrint: true, // not supported in this version
+  });
 
   useEffect(() => {
     loadData();
@@ -50,7 +81,11 @@ const ExportCenter = () => {
     setLoading(prev => ({ ...prev, [exportType]: true }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        headers: {
+          'Accept-Language': language || 'en',
+        },
+      });
 
       if (!response.ok) {
         throw new Error('Export failed');
@@ -74,7 +109,43 @@ const ExportCenter = () => {
     }
   };
 
+  const handlePrintCalendar = () => {
+    setShowPrintCalendar(true);
+    setTimeout(() => {
+      printCalendar && printCalendar();
+    }, 100);
+  };
+
   const exportOptions = [
+    {
+      id: 'print-calendar',
+      title: t('printCalendar'),
+      description: t('printCalendarDesc'),
+      icon: Calendar,
+      color: 'from-indigo-500 to-indigo-700',
+      onClick: handlePrintCalendar,
+      format: 'Print'
+    },
+    {
+      id: 'students-csv',
+      title: t('studentsListCSV'),
+      description: t('exportAllStudentsCSV'),
+      icon: Users,
+      color: 'from-yellow-500 to-yellow-600',
+      endpoint: '/export/students/csv',
+      filename: 'students.csv',
+      format: 'CSV'
+    },
+    {
+      id: 'all-data-zip',
+      title: t('exportAllDataZIP'),
+      description: t('exportAllDataDescription'),
+      icon: Download,
+      color: 'from-gray-500 to-gray-700',
+      endpoint: '/export/all/zip',
+      filename: 'all_data.zip',
+      format: 'ZIP'
+    },
     {
       id: 'students-excel',
       title: t('studentsListExcel'),
@@ -169,6 +240,15 @@ const ExportCenter = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+      {/* Print Calendar Modal/Section */}
+      {showPrintCalendar && (
+        <div className="print-calendar-hidden">
+          <div ref={calendarRef}>
+            <CalendarView courses={courses} />
+          </div>
+        </div>
+      )}
+      {/* Print trigger for react-to-print is handled by useReactToPrint hook */}
       {toast && (
         <div className={`fixed top-4 right-4 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-6 py-3 rounded-lg shadow-lg z-50`}>
           {toast.message}
@@ -188,29 +268,45 @@ const ExportCenter = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {exportOptions.map(option => (
-            <div key={option.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div
+              key={option.id}
+              className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+              ref={el => (exportCardRefs.current[option.id] = el)}
+              tabIndex={0}
+            >
               <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>
                 <option.icon className="text-white" size={32} />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
               <p className="text-gray-600 text-sm mb-4">{option.description}</p>
-              <button
-                onClick={() => handleExport(option.endpoint, option.filename, option.id)}
-                disabled={loading[option.id]}
-                className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
-              >
-                {loading[option.id] ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>{t('exporting')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Download size={20} />
-                    <span>{t('exportTo' + option.format)}</span>
-                  </>
-                )}
-              </button>
+              {option.id === 'print-calendar' ? (
+                <button
+                  onClick={option.onClick}
+                  disabled={loading[option.id]}
+                  className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
+                >
+                  <Download size={20} />
+                  <span>{t('exportTo' + option.format)}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={option.onClick ? option.onClick : () => handleExport(option.endpoint!, option.filename!, option.id)}
+                  disabled={loading[option.id]}
+                  className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
+                >
+                  {loading[option.id] ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>{t('exporting')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={20} />
+                      <span>{t('exportTo' + option.format)}</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -226,7 +322,7 @@ const ExportCenter = () => {
           <div className="mb-2 text-xs text-gray-500">{`Loaded students: ${students.length}`}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {students.length === 0 ? (
-              <div className="col-span-2 text-center text-gray-400 py-8">No students found. Please check if students are imported and available.</div>
+              <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
             ) : (
               students.map(student => (
                 <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -368,7 +464,7 @@ const ExportCenter = () => {
         </div>
 
         <div className="mt-8 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-2xl p-6 border border-indigo-200">
-          <h3 className="text-lg font-bold text-gray-800 mb-3">📊 {t('exportTips')}</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-3">{t('exportTipsHeader')} {t('exportTips')}</h3>
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">•</span>

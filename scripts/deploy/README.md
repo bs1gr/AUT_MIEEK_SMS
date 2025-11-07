@@ -8,21 +8,20 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ## Scripts
 
-### Primary Entry Points
 
-- `SMART_SETUP.ps1` - First-time Docker setup (checks Docker, builds images, starts containers)
-- `STOP.ps1/.bat` - Stop all running services
-- `run-docker-release.sh` - Linux helper to start Docker release mode (delegates to SMART_SETUP.ps1)
 
-### Docker Operations
+### Primary Entry Points (v1.5.0+)
 
-- `DOCKER_UP.ps1` - Start Docker containers
-- `DOCKER_DOWN.ps1` - Stop Docker containers
-- `DOCKER_RUN.ps1` - Run Docker in interactive mode
-- `DOCKER_REFRESH.ps1` - Rebuild and restart containers
-- `DOCKER_SMOKE.ps1` - Smoke test Docker deployment
-- `DOCKER_UPDATE_VOLUME.ps1` - Update Docker volumes
-- `DOCKER_FULLSTACK_*.ps1` - Fullstack Docker operations
+- `RUN.ps1` (root) - Canonical one-click fullstack Docker deployment (recommended for all users)
+- `SMS.ps1` (root) - Management interface for Docker containers
+
+> **Note:** As of v1.5.0, only `RUN.ps1` is supported for Docker deployment. All other setup/start scripts are deprecated or removed.
+
+
+
+### Docker Operations (Advanced)
+
+- `DOCKER_UP.ps1`, `DOCKER_DOWN.ps1`, etc. - Advanced/legacy scripts (use SMS.ps1 for most operations; direct use is discouraged)
 
 ### Database & Volume Management
 
@@ -38,29 +37,18 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 - `set-docker-metadata.ps1` - Set Docker image metadata
 
-## Usage Patterns
 
-### First-Time Deployment
 
-```powershell
-# Smart setup (auto-detects Docker/Native)
-.\SMART_SETUP.ps1
+### Usage Patterns
 
-# Or Docker-specific setup
-.\SMART_SETUP.ps1 -PreferDocker
-```
-
-### Docker Deployment
+#### Fullstack Docker (Recommended)
 
 ```powershell
-# Start containers
-.\DOCKER_UP.ps1
+# Start (one-click, v1.5.0+)
+pwsh -NoProfile -File ..\..\RUN.ps1
 
-# Rebuild and refresh
-.\DOCKER_REFRESH.ps1
-
-# Stop containers
-.\DOCKER_DOWN.ps1
+# Manage containers
+pwsh -NoProfile -File ..\..\SMS.ps1
 ```
 
 ### Linux Helpers (Bash)
@@ -82,6 +70,7 @@ If pwsh isn’t installed, you can fall back to plain Docker:
 docker compose up -d --build
 ```
 
+
 ### Maintenance
 
 ```powershell
@@ -89,7 +78,7 @@ docker compose up -d --build
 .\CHECK_VOLUME_VERSION.ps1
 
 # Stop all services
-.\STOP.ps1
+pwsh -NoProfile -File ..\..\SMS.ps1 -Stop
 ```
 
 ### Creating Distribution Packages
@@ -110,10 +99,12 @@ The system uses versioned Docker volumes to prevent data loss:
 - `CHECK_VOLUME_VERSION.ps1` detects schema mismatches
 - Automatic migration available when upgrading versions
 
+
 ## Notes
 
-- `SMART_SETUP.ps1` is the recommended entry point for most users
+- `RUN.ps1` is the only supported entry point for Docker deployments as of v1.5.0
+- All other setup/start scripts (SMART_SETUP.ps1, run-docker-release.ps1, etc.) are deprecated or removed
 - Docker mode is recommended for production deployments
-- Native mode requires Python 3.11+ and Node.js 18+
+- Native mode requires Python 3.11+ and Node.js 18+ (see scripts/dev/)
 - All scripts support both Windows and cross-platform usage
 - For active development, use scripts in `../dev/` instead

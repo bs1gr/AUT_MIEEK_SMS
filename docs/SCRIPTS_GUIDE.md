@@ -1,6 +1,6 @@
 # Scripts Organization Guide
 
-**Last Updated**: October 2025 | **Version**: 1.2.3+
+**Last Updated**: November 2025 | **Version**: 1.5.0
 
 This document describes the complete script organization for the Student Management System, including the purpose, audience, and usage of all operational scripts.
 
@@ -19,8 +19,11 @@ This document describes the complete script organization for the Student Managem
 
 The project's operational scripts have been reorganized into two distinct categories:
 
-1. **Developer Workbench** (`scripts/dev/`) - For active development: build, run, debug, test, clean
-2. **End-User/DevOps** (`scripts/deploy/`) - For deployment, Docker operations, and production maintenance
+
+1. **Developer Workbench** (`scripts/dev/`) - For active development: build, run, debug, test, clean (use `run-native.ps1` for native mode)
+2. **End-User/DevOps** (`scripts/deploy/`) - For deployment, Docker operations, and production maintenance (use `RUN.ps1` for fullstack Docker)
+
+> **Note:** As of v1.5.0, only `RUN.ps1` (Docker), `scripts/dev/run-native.ps1` (native), and `SMS.ps1` (management) are supported entry points. All other setup/start/stop scripts are deprecated or removed.
 
 This separation ensures:
 
@@ -33,9 +36,9 @@ This separation ensures:
 
 ```text
 student-management-system/
+├── RUN.ps1                        # Canonical Docker entry point (one-click)
 ├── SMS.ps1                        # Main management interface (END-USER)
-├── INSTALL.bat                    # One-click installer (END-USER)
-├──scripts/
+├── scripts/
 │   ├── dev/                       # DEVELOPER scripts
 │   │   ├── README.md              # Developer documentation
 │   │   ├── CLEANUP.bat            # Clean build artifacts
@@ -53,9 +56,6 @@ student-management-system/
 │   │
 │   ├── deploy/                    # END-USER/DEVOPS scripts
 │   │   ├── README.md              # Deployment documentation
-│   │   ├── SMART_SETUP.ps1        # Intelligent setup
-│   │   ├── STOP.ps1/.bat          # Stop services
-│   │   ├── UNINSTALL.bat          # Uninstall
 │   │   ├── CHECK_VOLUME_VERSION.ps1
 │   │   ├── set-docker-metadata.ps1
 │   │   ├── docker/                # Docker operations
@@ -69,7 +69,6 @@ student-management-system/
 │   │       ├── CREATE_DEPLOYMENT_PACKAGE.ps1/.bat
 │   │       └── INSTALLER.ps1/.bat
 │   │
-│   ├── SETUP.ps1/.bat             # (Deprecated - forwards to SMART_SETUP)
 │   └── reorganize_scripts.py      # Reorganization utility
 │
 └── docs/
@@ -79,75 +78,45 @@ student-management-system/
 
 ## Root-Level Scripts
 
+
 ### For End-Users
 
-#### `SMS.ps1`
 
-Primary management interface for end-users.
+#### `RUN.ps1` (root)
 
-The main control panel for all SMS operations.
+Canonical one-click fullstack Docker deployment (recommended for all users)
 
 ```powershell
-.\SMS.ps1              # Interactive menu
-.\SMS.ps1 -Quick       # Quick start (auto-detects mode)
-.\SMS.ps1 -Status      # Show system status
-.\SMS.ps1 -Stop        # Stop all services
-.\SMS.ps1 -Restart     # Restart services
-.\SMS.ps1 -Help        # Show help
+pwsh -NoProfile -File RUN.ps1
 ```
 
-**Features**:
 
-- Interactive menu with all operations
-- Application control (start/stop/restart)
-- Database backup/restore
-- System diagnostics
-- Docker operations
-- Automatic mode detection (Docker/Native)
+#### `SMS.ps1` (root)
 
-**Target Audience**: End-users, system administrators
+Management interface for Docker containers
 
-#### `INSTALL.bat`
-
-One-click installer for new deployments.
-
-Simplest way to get started - works on any Windows system.
-
-```batch
-INSTALL.bat
+```powershell
+pwsh -NoProfile -File SMS.ps1
 ```
 
-**Features**:
 
-- No PowerShell execution policy issues
-- Auto-detects Python/Docker
-- Chooses best deployment mode
-- Creates all necessary configurations
-- Opens browser automatically
-
-**Target Audience**: First-time users, quick evaluations
+<!-- INSTALL.bat and all legacy setup scripts are deprecated/removed in v1.5.0. Use RUN.ps1 for all new deployments. -->
 
 ## Developer Scripts (`scripts/dev/`)
 
 Scripts for active development work. See [scripts/dev/README.md](../scripts/dev/README.md) for detailed documentation.
 
+
 ### Core Development Tools
 
-#### `SMOKE_TEST.ps1`
 
-Quick health check of running application.
+#### `run-native.ps1` (scripts/dev/)
+
+Start backend and frontend in native development mode (hot reload)
 
 ```powershell
-scripts\dev\SMOKE_TEST.ps1
-scripts\dev\SMOKE_TEST.ps1 -TimeoutSec 5
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
-
-Tests:
-
-- Frontend accessibility
-- Backend API health
-- Database connectivity
-- Core endpoints
 
 #### `debug_import_control.py`
 
@@ -283,53 +252,10 @@ scripts\dev\internal\VERIFY_LOCALIZATION.ps1
 
 Scripts for deployment and production operations. See [scripts/deploy/README.md](../scripts/deploy/README.md) for detailed documentation.
 
-### Primary Entry Points
 
-#### `SMART_SETUP.ps1`
+### Primary Entry Points (v1.5.0+)
 
-Intelligent setup and deployment script.
-
-```powershell
-scripts\deploy\SMART_SETUP.ps1                  # Auto-detect mode
-scripts\deploy\SMART_SETUP.ps1 -PreferDocker    # Prefer Docker
-scripts\deploy\SMART_SETUP.ps1 -PreferNative    # Prefer native
-scripts\deploy\SMART_SETUP.ps1 -SkipStart       # Setup only, don't start
-```
-
-**Features**:
-
-- Auto-detects Docker/Python/Node.js
-- Installs dependencies
-- Initializes database
-- Configures environment
-- Starts services
-
-**Replaces**: Old `SETUP.ps1` and `QUICKSTART.ps1`
-
-#### `STOP.ps1/.bat`
-
-Stop all running services.
-
-```powershell
-scripts\deploy\STOP.ps1
-```
-
-Works with both Docker and native modes.
-
-#### `UNINSTALL.bat`
-
-Complete uninstallation.
-
-```batch
-scripts\deploy\UNINSTALL.bat
-```
-
-Removes:
-
-- Services
-- Dependencies
-- Configuration files
-- (Optionally) Database
+<!-- All setup/start/stop scripts (SMART_SETUP.ps1, STOP.ps1, UNINSTALL.bat, etc.) are deprecated/removed in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
 
 ### Docker Operations (`scripts/deploy/docker/`)
 
@@ -431,17 +357,14 @@ scripts\deploy\internal\INSTALLER.ps1
 
 ## Common Usage Patterns
 
+
 ### For Developers
 
 #### Starting Development
 
 ```powershell
-# Quick start with auto-detection
-.\SMS.ps1 -Quick
-
-# Or use the interactive menu
-.\SMS.ps1
-# Then select option 1 (Start Application)
+# Native development mode
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
 #### Running Tests
@@ -478,28 +401,20 @@ scripts\dev\CLEANUP.bat
 scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
 ```
 
+
 ### For End-Users/DevOps
 
-#### First-Time Installation
 
-```batch
-REM Simplest method
-INSTALL.bat
-
-REM Or with PowerShell
-.\SMS.ps1 -Quick
-```
-
-#### Docker Deployment
+#### Fullstack Docker (Recommended)
 
 ```powershell
-# Setup and start
-scripts\deploy\SMART_SETUP.ps1 -PreferDocker
-
-# Or use individual scripts
-scripts\deploy\docker\DOCKER_UP.ps1
-scripts\deploy\docker\DOCKER_SMOKE.ps1
+# Start (one-click, v1.5.0+)
+pwsh -NoProfile -File RUN.ps1
 ```
+
+
+<!-- All Docker deployment should use RUN.ps1 as of v1.5.0. All other setup scripts are deprecated/removed. -->
+
 
 #### Maintenance
 
@@ -512,14 +427,15 @@ scripts\deploy\docker\DOCKER_SMOKE.ps1
 scripts\deploy\CHECK_VOLUME_VERSION.ps1
 
 # Stop services
-scripts\deploy\STOP.ps1
+.\SMS.ps1 -Stop
 ```
+
 
 #### Updating/Upgrading
 
 ```powershell
 # Stop services
-scripts\deploy\STOP.ps1
+.\SMS.ps1 -Stop
 
 # Pull new code
 git pull
@@ -547,30 +463,27 @@ See also: Linux Quick Start in the main [README](../README.md#-linux-quick-start
 
 If you're upgrading from a version before the script reorganization:
 
+
+
 **Old locations → New locations**:
 
 - `CLEANUP.bat` (root) → `.\scripts\dev\CLEANUP.bat`
-- `QUICKSTART.ps1` (root) → Use `SMS.ps1 -Quick` or `.\scripts\deploy\SMART_SETUP.ps1`
-- `.\scripts\SETUP.ps1` → `.\scripts\deploy\SMART_SETUP.ps1` (or use wrapper)
+- `QUICKSTART.ps1`, `SETUP.ps1`, `SMART_SETUP.ps1`, `STOP.ps1`, `UNINSTALL.bat` → **Removed** (use `RUN.ps1` or `SMS.ps1`)
 - `.\scripts\SMOKE_TEST.ps1` → `.\scripts\dev\SMOKE_TEST.ps1`
 - `scripts/internal/*` → Split between `scripts/dev/internal/` and `scripts/deploy/internal/`
 - `scripts/docker/*` → `scripts/deploy/docker/`
 
-**Deprecated scripts** (still work but forward to new locations):
+**Recommended workflow (v1.5.0+)**:
 
-- `.\scripts\SETUP.ps1` - Forwards to `SMART_SETUP.ps1`
-- `.\scripts\SETUP.bat` - Forwards to `SMART_SETUP.ps1`
-
-**Recommended workflow**:
-
-1. Use `SMS.ps1` as your primary interface
-2. Use `INSTALL.bat` for new installations
+1. Use `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native dev) as your entry point
+2. Use `SMS.ps1` for all management/maintenance
 3. Developers: Bookmark `scripts/dev/` scripts
 4. DevOps: Bookmark `scripts/deploy/` scripts
 
+
 ### Breaking Changes
 
-None. All existing workflows continue to work through wrappers and forwards.
+All legacy setup/start/stop scripts are removed in v1.5.0. Use only the canonical entry points.
 
 ### Benefits of New Organization
 

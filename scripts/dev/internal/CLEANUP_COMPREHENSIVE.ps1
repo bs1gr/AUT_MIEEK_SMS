@@ -39,6 +39,85 @@ function Remove-SafeItem {
 Write-Host "Starting cleanup..." -ForegroundColor Yellow
 Write-Host ""
 
+# --- Subroutine: Remove non-essential Markdown documentation, keeping only README files ---
+function Invoke-CleanupDocs {
+    Write-Host "[DOCS] Cleaning up non-essential Markdown documentation..." -ForegroundColor Cyan
+    $projectRoot = Split-Path -Parent $PSScriptRoot
+    $keepPaths = @(
+        (Join-Path $projectRoot 'README.md').ToLower(),
+        (Join-Path $projectRoot 'frontend' 'README.md').ToLower()
+    )
+    $mdFiles = Get-ChildItem -Path $projectRoot -Filter *.md -File -Recurse
+    $deleted = 0
+    $kept = 0
+    foreach ($f in $mdFiles) {
+        $full = $f.FullName.ToLower()
+        if ($keepPaths -contains $full) {
+            $kept++
+            continue
+        }
+        try {
+            Remove-Item -Path $f.FullName -Force
+            Write-Host "Removed: $($f.FullName)" -ForegroundColor DarkGray
+            $deleted++
+        } catch {
+            Write-Host "Failed to remove: $($f.FullName) -> $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+    Write-Host "Doc cleanup complete. Kept: $kept, Removed: $deleted" -ForegroundColor Green
+}
+
+# --- Subroutine: Remove obsolete markdown files (from CLEANUP_OBSOLETE_FILES.ps1) ---
+function Invoke-CleanupObsoleteFiles {
+    Write-Host "[OBSOLETE] Removing obsolete markdown files..." -ForegroundColor Cyan
+    # (keepFiles and projectRoot not used in this function)
+    $obsoleteMarkdownFiles = @(
+        "VERSIONING_GUIDE.md",
+        "TEACHING_SCHEDULE_GUIDE.md",
+        "RUST_BUILDTOOLS_UPDATE.md",
+        "QUICK_REFERENCE.md",
+        "PACKAGE_VERSION_FIX.md",
+        "ORGANIZATION_SUMMARY.md",
+        "NODE_VERSION_UPDATE.md",
+        "INSTALL_GUIDE.md",
+        "IMPLEMENTATION_REPORT.md",
+        "HELP_DOCUMENTATION_COMPLETE.md",
+        "FRONTEND_TROUBLESHOOTING.md",
+        "DEPLOYMENT_QUICK_START.md",
+        "DEPENDENCY_UPDATE_LOG.md",
+        "DAILY_PERFORMANCE_GUIDE.md",
+        "COMPLETE_UPDATE_SUMMARY.md",
+        "CODE_IMPROVEMENTS.md"
+    )
+    $filesToRemove = @()
+    foreach ($file in $obsoleteMarkdownFiles) {
+        if (Test-Path $file) {
+            try {
+                Remove-Item $file -Force
+                Write-Host "  √ Removed: $file" -ForegroundColor Green
+                $filesToRemove += $file
+            } catch {
+                Write-Host "  X Failed to remove: $file" -ForegroundColor Red
+                Write-Host "    Error: $($_.Exception.Message)" -ForegroundColor Gray
+            }
+        }
+    }
+    if ($filesToRemove.Count -eq 0) {
+        Write-Host "  No obsolete files found." -ForegroundColor Green
+    } else {
+        Write-Host "Removed $($filesToRemove.Count) obsolete file(s)." -ForegroundColor White
+    }
+}
+
+# Optionally run doc and obsolete file cleanup as part of comprehensive cleanup
+param(
+    [switch]$Docs,
+    [switch]$Obsolete
+)
+
+if ($Docs) { Invoke-CleanupDocs }
+if ($Obsolete) { Invoke-CleanupObsoleteFiles }
+
 # 1. Remove obsolete LanguageToggle component (replaced by LanguageSwitcher)
 Write-Host "[1/14] Removing obsolete LanguageToggle component..." -ForegroundColor Cyan
 Remove-SafeItem "frontend\src\components\common\LanguageToggle.tsx" "Old LanguageToggle component"

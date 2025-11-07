@@ -52,7 +52,7 @@ If you need to develop features or debug, use the advanced setup:
 .\SMS.ps1 -Logs       # View logs
 ```
 
-**See [INSTALL.md](INSTALL.md) for detailed installation guide!**
+**See [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) for detailed installation guide!**
 
 ---
 
@@ -63,8 +63,9 @@ Scripts are organized into clear categories:
 ### **End-User Entry Points** (Root Directory)
 
 - `RUN.ps1` ⭐ - **ONE-CLICK deployment** (start/stop/update/backup)
-- `SMART_SETUP.ps1` - Advanced setup (fullstack or multi-container modes)
 - `SMS.ps1` - Container management (for developers)
+
+> **Note:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app in v1.5.0+. All other scripts are deprecated or removed.
 
 ### **Developer Workbench** ([scripts/dev/](scripts/dev/))
 
@@ -106,10 +107,19 @@ For deployment, Docker orchestration, and production maintenance.
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
-## � Releases
 
-- Latest: [v1.4.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.4.0) - One-Click Deployment
-- Previous: [v1.3.9](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.9) - CSV Import Feature
+## 🆕 What's New in v1.5.0
+
+- 🟢 **Canonical entry points:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app. All legacy scripts removed or deprecated.
+- 🔒 **Security:** `SECRET_KEY` is now always loaded from `.env` or `backend/.env` for Docker deployments. Fallback to insecure key is logged with a warning; production deployments must set a strong key.
+- 🧹 **Script cleanup:** All obsolete scripts (`QUICKSTART.ps1`, `SETUP.ps1`, etc.) removed. Documentation and references updated.
+- 🛡️ **Robust error handling:** PowerShell scripts now handle null/empty values and pipeline errors gracefully.
+- 📄 **Documentation:** All guides updated to reflect the new minimal entry points and security best practices.
+
+## 📦 Releases
+
+- Latest: [v1.5.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.5.0) - Minimal, robust, and secure entry points
+- Previous: [v1.4.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.4.0) - One-Click Deployment
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
 ---
@@ -158,7 +168,7 @@ For deployment, Docker orchestration, and production maintenance.
 
 **Requirements:** Docker Desktop installed and running
 
-**See [INSTALL.md](INSTALL.md) for detailed guide!**
+**See [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) for detailed guide!**
 
 ---
 
@@ -633,21 +643,13 @@ docker compose up -d
 
 Reverting: edit or delete docker-compose.override.yml and restart compose. Old volumes are preserved and can be listed with `docker volume ls`.
 
+
 ### Quick Maintenance Scripts (Windows)
 
-For convenience, two top-level batch scripts are included:
+> **Note:** As of v1.5.0, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
 
-- `CLEANUP.bat` — Non-destructive cleanup:
-  - Stops Docker services/containers related to this project
-  - Clears Python caches, pytest caches, backend logs, frontend build artifacts
-  - Preserves data (SQLite `data/student_management.db`) and Docker volumes
-  - Automatically backs up the native DB to `./backups/<timestamp>/native/`
-
-- `UNINSTALL.bat` — Full uninstall, preserving your data:
-  - Calls CLEANUP first
-  - Removes `backend/venv` and `frontend/node_modules`
-  - Removes project Docker images (`sms-backend`, `sms-frontend`, legacy `sms-fullstack`) while keeping volumes
-  - Keeps all backups in `./backups`
+- `CLEANUP.bat` — Non-destructive cleanup: stops Docker services, clears caches/logs, preserves data and Docker volumes, backs up native DB.
+- `CLEANUP_COMPREHENSIVE.ps1` — Deep cleanup of all artifacts, logs, and build files.
 
 If you truly want to remove the Docker data volume (this deletes your Docker-stored data), run manually:
 
@@ -670,64 +672,50 @@ docker compose up -d
 docker compose down
 ```
 
+
 ### Native Development Mode
 
 For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 
-**Backend:**
-
 ```powershell
-cd backend
-pip install -r requirements.txt
-python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
-**Frontend (in separate terminal):**
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-Or use the DEVTOOLS menu for automated setup.
+> **Note:** This is the only supported native entry point as of v1.5.0. All manual setup instructions are deprecated.
 
 ## Project Structure
 
+
 ```text
 student-management-system/
-├── QUICKSTART.bat / .ps1      # Start application (main entry point)
-├── backend/                   # FastAPI backend
+├── RUN.ps1                   # Canonical Docker entry point (one-click)
+├── backend/                  # FastAPI backend
 │   ├── main.py               # Application entry point
 │   ├── models.py             # Database models
 │   ├── routers/              # API route handlers
 │   └── schemas/              # Pydantic schemas
-├── frontend/                  # React frontend
+├── frontend/                 # React frontend
 │   └── src/                  # React components & logic
-├── docker/                    # Docker configuration
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── Dockerfile.fullstack  # Single-container image
-├── scripts/                   # Utility scripts
-│   ├── SETUP.ps1             # Initial setup utilities
-│   ├── STOP.ps1              # Stop containers/processes
-│   ├── SMOKE_TEST.ps1        # Quick health validation
+├── scripts/
+│   ├── dev/run-native.ps1    # Canonical native entry point (dev only)
+│   ├── CLEANUP.bat           # Non-destructive cleanup
+│   ├── CLEANUP_COMPREHENSIVE.ps1 # Deep cleanup
 │   ├── docker/               # Docker management helpers
 │   └── internal/             # Advanced developer tools (optional)
-└── tools/                     # Data import/export tools
+└── tools/                    # Data import/export tools
 ```
 
 ## Documentation
 
+
 ### Available Documentation
 
-- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide** ⭐ Updated v1.3.8
-- [docs/DOCKER_OPERATIONS.md](docs/DOCKER_OPERATIONS.md) - **Docker operations and management** ⭐ NEW v1.3.8
+- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide**
+- [docs/DOCKER_OPERATIONS.md](docs/DOCKER_OPERATIONS.md) - **Docker operations and management**
 - [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
-<!-- Removed broken link: FRESH_CLONE_TEST_REPORT_V1.2.md (no longer present) -->
-- [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) - **Release notes for v1.3.8** ⭐ NEW
+- [RELEASE_NOTES_v1.5.0.md](RELEASE_NOTES_v1.5.0.md) - **Release notes for v1.5.0**
 - [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes
-- [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management** ⭐ NEW
+- [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management**
 - [docs/DOCKER_CLEANUP.md](docs/DOCKER_CLEANUP.md) - Docker cleanup procedures
 - [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
 - [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) - Security audit and fixes
@@ -743,6 +731,9 @@ Once the backend is running, access the interactive API documentation:
 - Swagger UI: <http://localhost:8080/docs> (Docker) or <http://localhost:8000/docs> (Native)
 - ReDoc: <http://localhost:8080/redoc> (Docker) or <http://localhost:8000/redoc> (Native)
 - API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
+
+
+**Security Note:** As of v1.5.0, `SECRET_KEY` is always loaded from `.env` or `backend/.env` for Docker deployments. If not set, a warning is logged and a fallback is used. For production, always set a strong, unique `SECRET_KEY`.
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 
@@ -850,6 +841,7 @@ Need help?
 
 See [LICENSE](LICENSE) file for details.
 
+
 ## Version
 
-Current version: See [VERSION](VERSION) file.
+Current version: 1.5.0 (see [VERSION](VERSION) file)

@@ -1,58 +1,57 @@
-# 🚀 Quick Start Guide - Universal Windows Launcher
+
+# 🚀 Quick Start Guide (v1.5.0)
+
 
 ## The Easy Way (Recommended)
 
 ### Step 1: Download
 
 - Download the project from GitHub
-- Extract the ZIP file to a folder (e.g., `C:\SMS` or `D:\AUT_MIEEK_SMS`)
+- Extract the ZIP file to a folder (e.g., `C:\SMS\student-management-system`)
 
-### Step 2: Run
+### Step 2: Run (Docker, recommended)
 
-- Navigate to the extracted folder
-- **Double-click `START.bat`**
-- That's it!
+- Open PowerShell in the extracted folder
+- Run:
 
-```text
-Your Folder
-│
-├── START.bat          ← DOUBLE-CLICK THIS!
-├── ONE-CLICK.ps1      ← Alternative (PowerShell)
-├── SMS.ps1
-├── README.md
-├── backend\
-├── frontend\
-└── ...
+```powershell
+.\RUN.ps1
+```
+
+### For Native Development (Developers Only)
+
+```powershell
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
 ---
 
-## What START.bat Does Automatically
+
+## What RUN.ps1 Does Automatically
 
 ### First Time
 
-1. ✅ Checks for Python and Node.js
-2. ✅ Installs all dependencies
-3. ✅ Creates database
-4. ✅ Chooses best mode (Docker or Native)
-5. ✅ Starts the application
-6. ✅ Shows you the URL to open
+1. ✅ Checks for Docker Desktop
+2. ✅ Installs all dependencies (in container)
+3. ✅ Creates database (in container)
+4. ✅ Starts the application
+5. ✅ Shows you the access URL
 
 ### Already Installed
 
 1. ✅ Detects existing installation
 2. ✅ Starts the application
-3. ✅ Shows you the URL to open
+3. ✅ Shows you the access URL
 
 ### Already Running
 
 1. ✅ Detects running services
 2. ✅ Shows current URLs
-3. ✅ Offers interactive menu
 
 ---
 
 ## What You'll See
+
 
 ### When Running Docker Mode
 
@@ -72,7 +71,7 @@ Your Folder
 
 **Open your browser and go to:** `http://localhost:8080`
 
-### When Running Native Mode
+### When Running Native Mode (Developers Only)
 
 ```text
 ═══════════════════════════════════════════════════════════
@@ -93,88 +92,50 @@ Your Folder
 
 ---
 
-## Interactive Menu
 
-If the system is already running, you'll see an interactive menu:
+## Management Menu
 
-```text
-╔══════════════════════════════════════════════════════════════╗
-║   🎓 STUDENT MANAGEMENT SYSTEM - INTERACTIVE MENU           ║
-╚══════════════════════════════════════════════════════════════╝
-
-  1. Start Application
-  2. Stop Application
-  3. Show Status
-  4. Restart Application
-  5. Force Reinstall
-  6. Open Application in Browser
-  7. Open Control Panel
-  8. View Documentation
-  0. Exit
-
-Select option (0-8):
-```
+Use `.\SMS.ps1` for interactive management, status, logs, backup, and troubleshooting.
 
 ---
 
-## Why START.bat is Better Than PowerShell
 
-| Feature | START.bat | ONE-CLICK.ps1 |
-|---------|-----------|---------------|
-| **Works on ALL Windows versions** | ✅ Yes (7/8/10/11) | ⚠️ Depends on PS version |
-| **No execution policy blocks** | ✅ Never | ❌ Often blocked |
-| **No security warnings** | ✅ Clean | ⚠️ Sometimes warns |
-| **Just double-click** | ✅ Always works | ⚠️ May need right-click |
-| **No admin rights needed** | ✅ Never | ⚠️ Sometimes |
-| **Works without PowerShell 7** | ✅ Yes | ⚠️ Best with PS7 |
+<!-- All batch and legacy PowerShell launchers are deprecated/removed in v1.5.0. Use RUN.ps1 or scripts/dev/run-native.ps1 only. -->
 
 ---
+
 
 ## Prerequisites
 
-### Minimum Required
+- **Windows 10/11** (64-bit)
+- **Docker Desktop** (recommended, for production and end users)
+- **PowerShell 7+** (pwsh, for native dev mode)
+- **Python 3.11+** and **Node.js 18+** (for native dev mode only)
 
-- **Windows 7 or newer**
-- **Python 3.11+** - [Download here](https://www.python.org/downloads/)
-- **Node.js 18+** - [Download here](https://nodejs.org/)
-
-### Optional (for Docker mode)
-
-- **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop)
-
-**Note:** START.bat will detect what you have and choose the best mode automatically.
+> **Note:** RUN.ps1 will detect Docker and guide you. Native mode is for developers only.
 
 ---
 
 ## Common Scenarios
 
-### Scenario 1: Fresh Windows PC
+
+### Scenario 1: End User (Recommended)
 
 ```text
-1. Install Python 3.11+ (check "Add to PATH")
-2. Install Node.js 18+ (default options)
-3. Extract project to a folder
-4. Double-click START.bat
-5. Wait for installation (first time only)
-6. Open browser to shown URL
+1. Install Docker Desktop
+2. Extract project to a folder
+3. Open PowerShell in the folder
+4. Run .\RUN.ps1
+5. Open browser to http://localhost:8080
 ```
 
-### Scenario 2: Have Docker Desktop
+### Scenario 2: Developer Setup (Native Mode)
 
 ```text
-1. Make sure Docker Desktop is running
-2. Double-click START.bat
-3. System will use Docker mode (preferred)
-4. Open http://localhost:8080
-```
-
-### Scenario 3: Developer Setup
-
-```text
-1. Install Python + Node.js (no Docker)
-2. Double-click START.bat
-3. System will use Native mode (dev server)
-4. Open http://localhost:5173
+1. Install Python 3.11+ and Node.js 18+
+2. Open PowerShell 7+ in the folder
+3. Run pwsh -NoProfile -File scripts/dev/run-native.ps1
+4. Open browser to http://localhost:5173
 5. Hot reload enabled for development
 ```
 
@@ -235,118 +196,89 @@ REM Wait for fresh installation
 
 ## Quick Reference
 
+
 ### To Start
 
-```cmd
-START.bat
+```powershell
+.\RUN.ps1
 ```
 
 ### To Stop
 
-```cmd
-START.bat
-REM Select option 2: Stop Application
+```powershell
+.\RUN.ps1 -Stop
 ```
 
 ### To Check Status
 
-```cmd
-START.bat
-REM Select option 3: Show Status
+```powershell
+.\RUN.ps1 -Status
 ```
 
 ### To Open in Browser
 
-```cmd
-START.bat
-REM Select option 6: Open Application in Browser
-```
+Open <http://localhost:8080> (Docker) or <http://localhost:5173> (native dev)
 
 ---
 
-## Advanced: Command Line Usage
 
-You can also use START.bat from Command Prompt:
-
-```cmd
-REM Just start (auto-detect)
-START.bat
-
-REM The batch file is interactive, so just follow the prompts
-```
-
-For advanced scripting, use the PowerShell scripts:
-
-```powershell
-.\ONE-CLICK.ps1 -PreferDocker    # Force Docker mode
-.\ONE-CLICK.ps1 -PreferNative    # Force Native mode
-.\ONE-CLICK.ps1 -ForceInstall    # Force reinstall
-```
-
-But for 99% of users, just **double-click START.bat** and you're done! 🎉
+<!-- All advanced scripting and legacy PowerShell scripts are deprecated/removed in v1.5.0. Use only RUN.ps1 or scripts/dev/run-native.ps1. -->
 
 ---
+
 
 ## What Happens Behind the Scenes
 
 ### Detection Phase
 
-1. START.bat checks if Python is installed
-2. Checks if Node.js is installed
-3. Checks if Docker is installed and running
-4. Checks if system is already installed
-5. Checks if services are already running
+1. RUN.ps1 checks if Docker is installed and running
+2. Checks if system is already installed
+3. Checks if services are already running
 
-### Decision Phase
+### Installation Phase (Docker)
 
-- **If not installed:** Runs installation
-- **If installed but stopped:** Starts services
-- **If already running:** Shows status and menu
-
-### Installation Phase
-
-1. Creates Python virtual environment
-2. Installs Python dependencies (FastAPI, SQLAlchemy, etc.)
-3. Runs database migrations
-4. Installs Node.js dependencies (React, Vite, etc.)
-5. Chooses Docker or Native based on availability
+1. Builds Docker image (if needed)
+2. Installs all dependencies in container
+3. Runs database migrations in container
 
 ### Startup Phase
 
-- **Docker mode:** Runs `docker-compose up -d`
-- **Native mode:** Starts backend + frontend in separate windows
+- **Docker mode:** Runs fullstack container and shows access URL
+- **Native mode:** (devs only) Starts backend + frontend with hot reload
 
 ---
+
 
 ## Getting Help
 
 If you're stuck:
 
-1. **Check the URLs shown by START.bat** - Use the correct one for your mode
+1. **Check the URLs shown by RUN.ps1** - Use the correct one for your mode
 2. **Read the error messages** - They usually tell you what's wrong
-3. **Try Force Reinstall** - Option 5 in the menu
-4. **Check the documentation** - `README.md` and `docs/` folder
-5. **Run diagnostics** - Open Control Panel and click "Run Diagnostics"
+3. **Check the documentation** - `README.md` and `docs/` folder
+4. **Run diagnostics** - Use `.\SMS.ps1` for troubleshooting
 
 For detailed troubleshooting, see: `docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
 
 ---
 
+
 ## Summary
 
 ✅ **Download project**
-✅ **Double-click START.bat**
+✅ **Run .\RUN.ps1**
 ✅ **Wait for setup (first time)**
 ✅ **Open the URL shown**
 ✅ **Done!**
 
-No PowerShell complications. No execution policies. Just works. 🚀
+No legacy scripts. No execution policy issues. Just works. 🚀
 
 ---
 
+
 ## 🐧 Note for Linux Users
 
-For Linux environments, use the helper scripts:
+For Linux environments:
 
 - Validate prerequisites:
 
@@ -358,16 +290,16 @@ For Linux environments, use the helper scripts:
 - Start in Docker (recommended):
 
 ```bash
-./scripts/deploy/run-docker-release.sh
+./RUN.ps1
 ```
 
-- Start in native development (hot reload):
+- Start in native development (hot reload, devs only):
 
 ```bash
-./scripts/dev/run-native.sh
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
-PowerShell 7+ (pwsh) is recommended on Linux, as the start helpers delegate to SMART_SETUP.ps1. If pwsh isn’t available, you can fall back to:
+If PowerShell 7+ (pwsh) is not available, you can fall back to:
 
 ```bash
 docker compose up -d --build

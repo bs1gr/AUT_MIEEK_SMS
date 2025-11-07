@@ -11,7 +11,9 @@ import { Navigation } from './components/layout';
 import { useLanguage } from './LanguageContext';
 import Toast from './components/ui/Toast';
 import { useState } from 'react';
+
 import { useCourses, useStudents } from './hooks';
+import Footer from './components/Footer';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,7 +52,7 @@ function AppLayout({ children }: AppLayoutProps) {
   }, [location.pathname]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header with Title and Language Toggle */}
@@ -77,7 +79,9 @@ function AppLayout({ children }: AppLayoutProps) {
       />
 
       {/* Page Content */}
-      {children}
+      <div className="flex-1">{children}</div>
+
+      <Footer />
     </div>
   );
 }

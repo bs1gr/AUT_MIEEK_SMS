@@ -1,4 +1,7 @@
 export default {
+  // Calendar/Today/Next Courses
+  todaysAndNextCourses: "Today's & Next Day's Courses",
+  noCoursesTodayOrTomorrow: 'No courses scheduled for today or tomorrow.',
   // Dashboard
   dashboardTitle: 'Dashboard Overview',
   systemInformation: 'System Information',

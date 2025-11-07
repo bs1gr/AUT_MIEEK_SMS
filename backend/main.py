@@ -438,9 +438,11 @@ async def lifespan(app: FastAPI):
 
 
 # Create the application instance with lifespan
+
 app = create_app()
 app.router.lifespan_context = lifespan
 app.state.runtime_context = RUNTIME_CONTEXT
+app.state.version = VERSION  # Ensure health endpoint always returns backend version
 
 # Attach rate limiter to app state
 app.state.limiter = limiter
