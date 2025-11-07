@@ -1,6 +1,6 @@
 export default {
   // Γενικά & Σύστημα
-  systemTitle: 'Student Management System MIEEK - AUT Automotive Engineering',
+  systemTitle: 'Σύστημα Διαχείρισης Σπουδαστών ΜΙΕΕΚ - AUT Μηχανική Αυτοκινήτου',
   systemSubtitle: 'Πλατφόρμα ολοκληρωμένης ακαδημαϊκής διαχείρισης',
   // Τοπικοποίηση
   locale: 'el-GR',
@@ -27,11 +27,27 @@ export default {
   failedToSaveData: 'Αποτυχία αποθήκευσης δεδομένων',
   fillRequiredFields: 'Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία',
   pleaseSelect: 'Παρακαλώ επιλέξτε σπουδαστή και μάθημα',
+  // Κοινές Ενέργειες
+  save: 'Αποθήκευση',
+  cancel: 'Ακύρωση',
+  delete: 'Διαγραφή',
+  edit: 'Επεξεργασία',
+  view: 'Προβολή',
+  close: 'Κλείσιμο',
+  add: 'Προσθήκη',
+  search: 'Αναζήτηση',
+  filter: 'Φίλτρο',
+  clear: 'Καθαρισμός',
+  submit: 'Υποβολή',
+  back: 'Πίσω',
+  next: 'Επόμενο',
+  previous: 'Προηγούμενο',
   // Ημερομηνία/Ώρα/Βαρύτητα
   date: 'Ημερομηνία',
   selectedDate: 'Επιλεγμένη Ημερομηνία',
   weight: 'Βαρύτητα',
   weightHelp: 'Μεγαλύτερη βαρύτητα = πιο σημαντικό (1.0 είναι κανονικό)',
+  contribution: 'Συνεισφορά',
   // Κλίμακες Βαθμολογίας
   greekGradeSystem: 'Ελληνικό Σύστημα Βαθμολογίας (0-20)',
   percentageSystem: 'Σύστημα Ποσοστών (0-100)',
@@ -44,6 +60,7 @@ export default {
   themeDescription: 'Επιλέξτε το προτιμώμενο θέμα σας ή ακολουθήστε την προτίμηση συστήματος',
   themeLight: 'Φωτεινό',
   themeDark: 'Σκούρο',
+  themeRelaxing: 'Χαλαρωτικό',
   themeSystem: 'Σύστημα',
   themeSystemInfo: 'Θέμα συστήματος:',
   themeSystemDescription: 'Ταιριάζει αυτόματα με την προτίμηση φωτεινής ή σκούρας λειτουργίας του λειτουργικού σας συστήματος.',
@@ -61,19 +78,58 @@ export default {
   // Διάφορα
   credits: 'Πιστωτικές Μονάδες',
   na: '—',
+  year: 'Έτος',
+  notes: 'Σημειώσεις',
+  note: 'Σημείωση',
+  present: 'Παρών',
+  assignments: 'Εργασίες',
+  assignment: 'Εργασία',
+  overall: 'Συνολικά',
+  average: 'Μέσος Όρος',
+  averageGrade: 'Μέσος Όρος',
+  averageScale: 'Μέση Κλίμακα',
+  classes: 'Μαθήματα',
+  basedOn: 'Με βάση',
+  progressSoFar: 'Πρόοδος μέχρι τώρα',
+  grade: 'βαθμό',
+  gradesAccusative: 'βαθμούς',
+  byCourse: 'Ανά Μάθημα',
+  course: 'Μάθημα',
+  viewDetails: 'Προβολή Λεπτομερειών',
   // Μηνύματα Σφαλμάτων
   noFileSelected: 'Δεν επιλέχθηκε αρχείο',
   confirmRequired: 'Απαιτείται επιβεβαίωση',
   noFilesSelected: 'Δεν επιλέχθηκαν αρχεία',
+  chooseFile: 'Επιλογή Αρχείου',
+  noFileChosen: 'Δεν επιλέχθηκε αρχείο',
+  filesSelected: 'αρχεία επιλέχθηκαν',
   // Εξάμηνο/Χρόνος
   currentSemester: 'Τρέχον Εξάμηνο',
+  semester: 'Εξάμηνο',
   // Ενέργειες
   enrollSelected: 'Εγγραφή Επιλεγμένων',
   allStudents: 'Όλοι οι Σπουδαστές',
   enrolledStudents: 'Εγγεγραμμένοι Σπουδαστές',
+  // Στατιστικά
+  attendanceDetails: 'Λεπτομέρειες Παρουσιών',
+  totalClasses: 'Σύνολο Μαθημάτων',
+  attendanceRate: 'Ποσοστό Παρουσίας',
+  gradeStatistics: 'Στατιστικά Βαθμών',
+  totalAssignments: 'Σύνολο Εργασιών',
+  highest: 'Υψηλότερος',
+  lowest: 'Χαμηλότερος',
+  noGradesYet: 'Δεν υπάρχουν ακόμη βαθμοί',
   // Κοινό UI
   confirm: 'Επιβεβαίωση',
   error: 'Σφάλμα',
   active: 'Ενεργός',
   inactive: 'Ανενεργός',
+  info: 'Πληροφορίες',
+  // Φωλιασμένα αντικείμενα για δομημένες μεταφράσεις
+  errors: {
+    unknown: 'Προέκυψε άγνωστο σφάλμα',
+  },
+  messages: {
+    pleaseWait: 'Παρακαλώ περιμένετε...',
+  },
 };

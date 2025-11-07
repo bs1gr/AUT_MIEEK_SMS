@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../ThemeContext';
 import { useLanguage } from '../../LanguageContext';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor, Flower2 } from 'lucide-react';
 
 const ThemeSelector: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -10,6 +10,7 @@ const ThemeSelector: React.FC = () => {
   const themeOptions = [
     { value: 'light', label: t('themeLight'), icon: Sun },
     { value: 'dark', label: t('themeDark'), icon: Moon },
+    { value: 'relaxing', label: t('themeRelaxing'), icon: Flower2 },
     { value: 'system', label: t('themeSystem'), icon: Monitor }
   ] as const;
 
@@ -21,7 +22,7 @@ const ThemeSelector: React.FC = () => {
       </h3>
       <p className="text-sm text-gray-600 mb-4">{t('themeDescription')}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <button
             key={value}

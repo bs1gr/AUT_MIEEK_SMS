@@ -8,6 +8,7 @@ export default {
   legend: 'Υπόμνημα',
   present: 'Παρών',
   absent: 'Απών',
+  absences: 'Απουσίες',
   late: 'Αργοπορία',
   excused: 'Δικαιολογημένος',
   clear: 'Άκυρο',
@@ -63,4 +64,7 @@ export default {
   scheduleExported: 'Το πρόγραμμα εξήχθη επιτυχώς',
   scheduleExportError: 'Αποτυχία εξαγωγής προγράμματος',
   noScheduleToExport: 'Δεν υπάρχει πρόγραμμα διδασκαλίας για εξαγωγή',
+  attendanceRecorded: 'Καταγράφηκε παρουσία',
+  noAttendanceYet: 'Δεν έχει καταγραφεί παρουσία',
+  selectedDate: 'Επιλεγμένη ημερομηνία',
 };

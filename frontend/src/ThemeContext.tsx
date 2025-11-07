@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark' | 'relaxing' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  effectiveTheme: 'light' | 'dark';
+  effectiveTheme: 'light' | 'dark' | 'relaxing';
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -13,10 +13,23 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem('theme');
-    return (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'light';
+    const initialTheme = (stored === 'light' || stored === 'dark' || stored === 'relaxing' || stored === 'system') ? stored : 'light';
+    console.log('[ThemeProvider] Initializing with theme:', initialTheme, 'from localStorage:', stored);
+    return initialTheme;
   });
 
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark' | 'relaxing'>(() => {
+    // Initialize effectiveTheme based on stored theme to avoid flash
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark') return 'dark';
+    if (stored === 'light') return 'light';
+    if (stored === 'relaxing') return 'relaxing';
+    if (stored === 'system') {
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return systemPrefersDark ? 'dark' : 'light';
+    }
+    return 'light';
+  });
 
   useEffect(() => {
     const resolveTheme = () => {
@@ -29,31 +42,58 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const resolved = resolveTheme();
     setEffectiveTheme(resolved);
+    
+    console.log('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
 
     // Apply theme to document with Edge browser compatibility
     const root = document.documentElement;
+    const body = document.body;
+    
+    // Remove all theme classes first
+    root.classList.remove('dark', 'relaxing');
+    body.classList.remove('dark', 'relaxing');
+    
     if (resolved === 'dark') {
       root.classList.add('dark');
-      // Force Edge to recalculate styles
+      body.classList.add('dark');
+      void root.offsetHeight;
+    } else if (resolved === 'relaxing') {
+      root.classList.add('relaxing');
+      body.classList.add('relaxing');
       void root.offsetHeight;
     } else {
-      root.classList.remove('dark');
-      // Force Edge to recalculate styles
+      // Light theme - ensure all theme classes are removed
+      if (root.classList.contains('dark') || root.classList.contains('relaxing')) {
+        console.warn('[ThemeProvider] Failed to remove theme classes, forcing...');
+        root.className = root.className.replace(/\b(dark|relaxing)\b/g, '').trim();
+      }
+      if (body.classList.contains('dark') || body.classList.contains('relaxing')) {
+        console.warn('[ThemeProvider] Failed to remove theme classes from body, forcing...');
+        body.className = body.className.replace(/\b(dark|relaxing)\b/g, '').trim();
+      }
       void root.offsetHeight;
     }
+    
+    // Log actual state after applying
+    setTimeout(() => {
+      console.log('[ThemeProvider] After apply - html classes:', root.className, '| body classes:', body.className, '| has dark:', root.classList.contains('dark'), '| has relaxing:', root.classList.contains('relaxing'));
+    }, 0);
 
     // Listen for system theme changes when 'system' is selected
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (e: MediaQueryListEvent | MediaQueryList) => {
         const newResolved = ('matches' in e ? e.matches : mediaQuery.matches) ? 'dark' : 'light';
+        console.log('[ThemeProvider] System theme changed to:', newResolved);
         setEffectiveTheme(newResolved);
+        root.classList.remove('dark', 'relaxing');
+        body.classList.remove('dark', 'relaxing');
         if (newResolved === 'dark') {
           root.classList.add('dark');
-          void root.offsetHeight; // Force repaint for Edge
+          body.classList.add('dark');
+          void root.offsetHeight;
         } else {
-          root.classList.remove('dark');
-          void root.offsetHeight; // Force repaint for Edge
+          void root.offsetHeight;
         }
       };
 
@@ -64,8 +104,13 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
+    try {
+      setThemeState(newTheme);
+      localStorage.setItem('theme', newTheme);
+      console.log('[ThemeProvider] Theme set to:', newTheme);
+    } catch (error) {
+      console.error('[ThemeProvider] Failed to save theme:', error);
+    }
   };
 
   return (
