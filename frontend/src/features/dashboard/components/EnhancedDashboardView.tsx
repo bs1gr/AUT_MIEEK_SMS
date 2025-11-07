@@ -138,10 +138,10 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
 
           const data = await response.json();
           // Count failed courses (letter grade F or GPA < 1.0)
-          const failedCourses = (data.courses || []).filter((c: any) => 
+          const failedCourses = (data.courses || []).filter((c: any) =>
             c.letter_grade === 'F' || (c.gpa && parseFloat(c.gpa) < 1.0)
           ).length;
-          
+
           return {
             ...student,
             overallGPA: data.overall_gpa || 0,
@@ -271,7 +271,7 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
                     const letter = getLetterGrade(pct);
                     const arithmeticValue = (pct / 100 * 100).toFixed(0); // No decimals for compact view
                     const failedCount = s.failedCourses || 0;
-                    const statusLabel = failedCount > 0 
+                    const statusLabel = failedCount > 0
                       ? t('failedCoursesCount', { count: failedCount }).replace('{count}', String(failedCount))
                       : formatted.description;
                     return (
@@ -301,7 +301,7 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
             </div>
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><BookOpen size={24} className="text-purple-600" /><span>{t('activeCourses') || 'Active Courses'}</span></h3>
-              <motion.div 
+              <motion.div
                 className="space-y-3"
                 variants={listContainerVariants}
                 initial="hidden"
@@ -314,8 +314,8 @@ const EnhancedDashboardView = ({ students, courses, stats, onOpenAnalytics }: En
                   ))
                 ) : courses && courses.length > 0 ? (
                   courses.slice(0, 6).map((course: any) => (
-                    <motion.div 
-                      key={course.id} 
+                    <motion.div
+                      key={course.id}
                       className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 hover:shadow-md transition-shadow"
                       variants={listItemVariants}
                     >

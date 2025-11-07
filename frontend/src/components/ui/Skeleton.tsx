@@ -9,8 +9,8 @@ interface SkeletonProps {
   animate?: boolean;
 }
 
-export const Skeleton = ({ 
-  className = '', 
+export const Skeleton = ({
+  className = '',
   variant = 'rectangular',
   width,
   height,
@@ -18,7 +18,7 @@ export const Skeleton = ({
 }: SkeletonProps) => {
   const baseClasses = 'bg-gray-200';
   const animateClasses = animate ? 'animate-pulse' : '';
-  
+
   const variantClasses = {
     text: 'rounded h-4',
     circular: 'rounded-full',
@@ -99,11 +99,11 @@ export const DashboardStatSkeleton = () => (
   </div>
 );
 
-export const ListSkeleton = ({ 
-  count = 3, 
-  itemComponent: ItemComponent = StudentCardSkeleton 
-}: { 
-  count?: number; 
+export const ListSkeleton = ({
+  count = 3,
+  itemComponent: ItemComponent = StudentCardSkeleton
+}: {
+  count?: number;
   itemComponent?: React.ComponentType;
 }) => (
   <div className="space-y-2">

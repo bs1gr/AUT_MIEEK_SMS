@@ -388,7 +388,7 @@ const DevToolsTab: React.FC = () => {
             <label className="flex items-center gap-2 px-3 py-2 bg-gray-100 border border-gray-300 rounded cursor-pointer hover:bg-gray-200 transition-colors">
               <span className="text-sm font-medium">{t('chooseFile')}</span>
               <span className="text-xs text-gray-600 truncate flex-1">
-                {files && files.length > 0 
+                {files && files.length > 0
                   ? `${files.length} ${t('filesSelected')}`
                   : t('noFileChosen')}
               </span>

@@ -24,13 +24,13 @@ export type { TextareaProps } from './textarea';
 export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField, useFormField } from './form';
 
 // Skeleton loaders
-export { 
-  Skeleton, 
-  StudentCardSkeleton, 
-  CourseCardSkeleton, 
-  TableRowSkeleton, 
-  DashboardStatSkeleton, 
-  ListSkeleton 
+export {
+  Skeleton,
+  StudentCardSkeleton,
+  CourseCardSkeleton,
+  TableRowSkeleton,
+  DashboardStatSkeleton,
+  ListSkeleton
 } from './Skeleton';
 
 // Custom components (keep our Modal for now)

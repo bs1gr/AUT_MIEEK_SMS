@@ -430,7 +430,7 @@
         <div class="header">
             <h1>🎓 Student Management System - Control Panel</h1>
             <p class="header-subtitle">Real-time system monitoring and management</p>
-            
+
             <!-- Mode Indicator Badge -->
             <div id="modeIndicator" style="display: none; margin: 15px 0; padding: 12px 20px; border-radius: 8px; background: #e0f2fe; border-left: 4px solid #0284c7;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -443,7 +443,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="version-info" id="versionInfo">
                 <div class="version-badge">
                     <strong>App Version:</strong> <span id="appVersion">Loading...</span>
@@ -658,7 +658,7 @@
                 if (isDockerMode) {
                     // Show mode indicator badge
                     document.getElementById('modeIndicator').style.display = 'block';
-                    
+
                     // Hide all native-only operations (data-mode="native")
                     document.querySelectorAll('[data-mode="native"]').forEach(el => {
                         el.style.display = 'none';
@@ -666,7 +666,7 @@
                 } else {
                     // Hide mode indicator in native mode
                     document.getElementById('modeIndicator').style.display = 'none';
-                    
+
                     // Show all operations in native mode
                     document.querySelectorAll('[data-mode="native"]').forEach(el => {
                         el.style.display = '';
@@ -963,7 +963,7 @@
                 const data = await response.json();
 
                 const container = document.getElementById('backupsList');
-                
+
                 if (!data.backups || data.backups.length === 0) {
                     container.innerHTML = '<p class="diag-placeholder">No backups found</p>';
                     return;
@@ -991,8 +991,8 @@
             if (!confirm(`⚠️ WARNING: This will overwrite the current database with backup "${filename}". A safety backup will be created. Continue?`)) return;
 
             try {
-                const response = await fetch(`/api/v1/control/api/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, { 
-                    method: 'POST' 
+                const response = await fetch(`/api/v1/control/api/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
+                    method: 'POST'
                 });
                 const data = await response.json();
 
@@ -1020,8 +1020,8 @@
                     <div class="diagnostic-item ${item.status}">
                         <strong>${item.category}</strong>
                         <span>${item.message}</span>
-                        ${item.details && item.details.solution ? 
-                            `<span style="margin-top: 8px; display: block; color: #667eea; font-weight: 600;">💡 Solution: ${item.details.solution}</span>` 
+                        ${item.details && item.details.solution ?
+                            `<span style="margin-top: 8px; display: block; color: #667eea; font-weight: 600;">💡 Solution: ${item.details.solution}</span>`
                             : ''
                         }
                     </div>

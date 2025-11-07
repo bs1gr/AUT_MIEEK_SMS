@@ -20,13 +20,13 @@ export const studentSchema = z.object({
     .min(1, 'First name is required')
     .max(100, 'First name must be less than 100 characters')
     .trim(),
-  
+
   last_name: z
     .string()
     .min(1, 'Last name is required')
     .max(100, 'Last name must be less than 100 characters')
     .trim(),
-  
+
   email: z
     .string()
     .min(1, 'Email is required')
@@ -34,17 +34,17 @@ export const studentSchema = z.object({
     .max(255, 'Email must be less than 255 characters')
     .toLowerCase()
     .trim(),
-  
+
   phone: z
     .string()
     .max(20, 'Phone number must be less than 20 characters')
     .optional(),
-  
+
   address: z
     .string()
     .max(500, 'Address must be less than 500 characters')
     .optional(),
-  
+
   date_of_birth: z
     .string()
     .optional()
@@ -52,7 +52,7 @@ export const studentSchema = z.object({
       val => !val || !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
-  
+
   enrollment_date: z
     .string()
     .min(1, 'Enrollment date is required')

@@ -141,7 +141,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         variants={backdropVariants}
         initial="hidden"
@@ -149,7 +149,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
         exit="exit"
         onClick={onClose}
       >
-        <motion.div 
+        <motion.div
           className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           variants={modalVariants}
           initial="hidden"
@@ -247,9 +247,9 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                   <FormItem>
                     <FormLabel>{t('creditsPlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder={t('creditsPlaceholder')} 
+                      <Input
+                        type="number"
+                        placeholder={t('creditsPlaceholder')}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
@@ -266,8 +266,8 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                   <FormItem>
                     <FormLabel>{t('yearPlaceholder') || 'Year'}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         placeholder={t('yearPlaceholder') || 'Year'}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
@@ -300,8 +300,8 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                 <FormItem>
                   <FormLabel>{t('absencePenalty') || 'Absence Penalty'}</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.1"
                       placeholder={t('absencePenalty') || 'Absence Penalty'}
                       {...field}

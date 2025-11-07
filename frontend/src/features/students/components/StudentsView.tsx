@@ -229,15 +229,15 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       )}
 
       {!loading && filtered.length > 0 && (
-        <motion.ul 
+        <motion.ul
           className="space-y-2"
           variants={listContainerVariants}
           initial="hidden"
           animate="visible"
         >
           {filtered.map((student) => (
-            <motion.li 
-              key={student.id} 
+            <motion.li
+              key={student.id}
               className="border p-4 rounded shadow-sm"
               variants={listItemVariants}
             >
@@ -309,7 +309,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                         <div className="text-2xl font-bold">{statsById[student.id].grades.average}%</div>
                         <div className="text-xs opacity-90">{statsById[student.id].grades.count} {t('assignments')}</div>
                       </div>
-                      
+
                       {/* Greek Scale Average */}
                       {statsById[student.id].gradesList && statsById[student.id].gradesList!.length > 0 && (
                         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md">
@@ -323,14 +323,14 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                           <div className="text-xs opacity-90">0-20</div>
                         </div>
                       )}
-                      
+
                       {/* Attendance */}
                       <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
                         <div className="text-xs opacity-75 mb-1">{t('absences') || 'Absences'}</div>
                         <div className="text-2xl font-bold">{statsById[student.id].attendance.absent}/{statsById[student.id].attendance.total}</div>
                         <div className="text-xs opacity-90">{statsById[student.id].attendance.attendanceRate}%</div>
                       </div>
-                      
+
                       {/* Letter Grade */}
                       {statsById[student.id].gradesList && statsById[student.id].gradesList!.length > 0 && (
                         <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-4 text-white shadow-md">
@@ -366,12 +366,12 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                             <div className="space-y-4">
                               {Object.entries(gradesByCourse).map(([courseIdStr, courseGrades]) => {
                                 const courseId = parseInt(courseIdStr);
-                                
+
                                 // Get course info from coursesMap
                                 const courseInfo = coursesMap.get(courseId);
                                 const courseName = courseInfo?.course_name || `${t('course') || 'Course'} #${courseId}`;
                                 const courseCode = courseInfo?.course_code || '';
-                                
+
                                 // Calculate course average
                                 const percentages = courseGrades.map(g => (g.grade / g.max_grade) * 100);
                                 const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
@@ -458,7 +458,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Performance Details & Statistics */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Attendance Details */}
@@ -512,7 +512,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                             const avgGreek = percentageToGreekScale(avgPercentage);
                             const maxGreek = percentageToGreekScale(maxPercentage);
                             const minGreek = percentageToGreekScale(minPercentage);
-                            
+
                             return (
                               <>
                                 <div className="flex justify-between items-center py-2 border-b">
@@ -551,7 +551,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                           distribution[letter as keyof typeof distribution]++;
                         });
                         const total = grades.length;
-                        
+
                         return (
                           <div className="space-y-3">
                             {Object.entries(distribution).map(([grade, count]) => {
@@ -563,7 +563,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                                 D: 'bg-orange-500',
                                 F: 'bg-red-500'
                               };
-                              
+
                               return (
                                 <div key={grade}>
                                   <div className="flex items-center justify-between mb-2">
@@ -581,7 +581,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                       })()}
                     </div>
                   )}
-                  
+
                   {/* Notes Section */}
                   <div className="border rounded-lg p-4 bg-white shadow-md">
                     <div className="font-semibold text-gray-800 mb-2">{t('notes')}</div>

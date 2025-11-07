@@ -11,18 +11,18 @@ export const courseSchema = z.object({
     .max(50, 'Course code must be less than 50 characters')
     .regex(/^[A-Z0-9-]+$/, 'Course code must be uppercase letters, numbers, and hyphens only')
     .trim(),
-  
+
   course_name: z
     .string()
     .min(1, 'Course name is required')
     .max(200, 'Course name must be less than 200 characters')
     .trim(),
-  
+
   description: z
     .string()
     .max(1000, 'Description must be less than 1000 characters')
     .optional(),
-  
+
   credits: z
     .number()
     .int('Credits must be a whole number')
@@ -32,13 +32,13 @@ export const courseSchema = z.object({
       const num = parseInt(val, 10);
       return isNaN(num) ? 0 : num;
     })),
-  
+
   semester: z
     .string()
     .min(1, 'Semester is required')
     .max(50, 'Semester must be less than 50 characters')
     .trim(),
-  
+
   year: z
     .number()
     .int('Year must be a whole number')
@@ -48,12 +48,12 @@ export const courseSchema = z.object({
       const num = parseInt(val, 10);
       return isNaN(num) ? new Date().getFullYear() : num;
     })),
-  
+
   instructor: z
     .string()
     .max(200, 'Instructor name must be less than 200 characters')
     .optional(),
-  
+
   absence_penalty: z
     .number()
     .min(0, 'Absence penalty must be non-negative')

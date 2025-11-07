@@ -42,17 +42,17 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const resolved = resolveTheme();
     setEffectiveTheme(resolved);
-    
+
     console.log('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
 
     // Apply theme to document with Edge browser compatibility
     const root = document.documentElement;
     const body = document.body;
-    
+
     // Remove all theme classes first
     root.classList.remove('dark', 'relaxing');
     body.classList.remove('dark', 'relaxing');
-    
+
     if (resolved === 'dark') {
       root.classList.add('dark');
       body.classList.add('dark');
@@ -73,7 +73,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       void root.offsetHeight;
     }
-    
+
     // Log actual state after applying
     setTimeout(() => {
       console.log('[ThemeProvider] After apply - html classes:', root.className, '| body classes:', body.className, '| has dark:', root.classList.contains('dark'), '| has relaxing:', root.classList.contains('relaxing'));
