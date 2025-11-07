@@ -95,8 +95,22 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
             weighted_sum: float = 0.0
             total_item_weight: float = 0.0
 
+            # For Midterm and Final Exam, only use the latest grade (most recent date_submitted or id)
+            exam_categories = ["Midterm", "Midterm Exam", "Final Exam", "Final", "Ενδιάμεση", "Ενδιάμεση Εξέταση", "Τελική Εξέταση", "Τελική"]
+            category_grades = [gr for gr in grades if gr.category == category]
+            
+            if category in exam_categories and category_grades:
+                # Sort by date_submitted (most recent first), fall back to id
+                category_grades = sorted(
+                    category_grades,
+                    key=lambda g: (g.date_submitted or '1970-01-01', g.id),
+                    reverse=True
+                )
+                # Keep only the latest grade
+                category_grades = category_grades[:1]
+
             # regular grades (percentage) with weight 1.0 each
-            for g in (gr for gr in grades if gr.category == category):
+            for g in category_grades:
                 if getattr(g, "max_grade", 0):
                     grade_pct = (g.grade / g.max_grade) * 100
                     weighted_sum += grade_pct * 1.0  # Each grade has weight 1.0

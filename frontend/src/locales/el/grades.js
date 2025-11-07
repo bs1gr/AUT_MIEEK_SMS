@@ -90,4 +90,6 @@ export default {
   failedToCalculateFinalGrade: 'Αποτυχία υπολογισμού τελικού βαθμού',
   totalScoresUsed: 'Σύνολο βαθμών που χρησιμοποιήθηκαν',
   basedOn: 'Βασισμένο σε',
+  totalBeforePenalty: 'Σύνολο (πριν την ποινή)',
+  outOf100: '0-100',
 };

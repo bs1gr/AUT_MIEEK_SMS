@@ -26,6 +26,9 @@ import {
 } from './api/api';
 
 const StudentManagementApp = () => {
+  useEffect(() => {
+    console.log('[StudentManagementApp] students state changed:', students);
+  }, [students]);
   const { t } = useLanguage();
   const { t: ti18n } = useTranslation(); // i18n translation function
   const [students, setStudents] = useState([]);
@@ -58,7 +61,9 @@ const StudentManagementApp = () => {
         studentsAPI.getAll(),
         coursesAPI.getAll(),
       ]);
-      setStudents(Array.isArray(studentsData) ? studentsData : []);
+      const arr = Array.isArray(studentsData) ? studentsData : [];
+      setStudents(arr);
+      console.log('[StudentManagementApp] setStudents: studentsData =', studentsData, '| arr =', arr);
       setCourses(Array.isArray(coursesData) ? coursesData : []);
 
       if (!Array.isArray(studentsData) || !Array.isArray(coursesData)) {

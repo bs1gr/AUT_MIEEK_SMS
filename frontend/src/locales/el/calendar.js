@@ -2,6 +2,7 @@ export default {
   // Ημερολόγιο
   calendarTitle: 'Ακαδημαϊκό Ημερολόγιο',
   viewCalendar: 'Προβολή Ημερολόγιου',
+  teachingSchedule: 'Πρόγραμμα Διδασκαλίας',
   monday: 'Δευτέρα',
   tuesday: 'Τρίτη',
   wednesday: 'Τετάρτη',
@@ -38,4 +39,6 @@ export default {
   noEvents: 'Δεν υπάρχουν συμβάντα',
   noClassScheduled: 'Δεν έχει προγραμματιστεί μάθημα',
   noClasses: 'Δεν υπάρχουν μαθήματα',
+  class: 'μάθημα',
+  classes: 'μαθήματα',
 };

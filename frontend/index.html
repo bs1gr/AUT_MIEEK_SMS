@@ -24,27 +24,43 @@
               // Modern syntax - works in all browsers including Edge
               mediaQuery.addEventListener('change', function(e) {
                 var currentTheme = localStorage.getItem('theme');
-                if (currentTheme === 'system' || !currentTheme) {
+                // Only react to system changes if user selected 'system' theme
+                if (currentTheme === 'system') {
                   var root = document.documentElement;
+                  root.classList.remove('dark', 'relaxing');
+                  document.body.classList.remove('dark', 'relaxing');
                   if (e.matches) {
                     root.classList.add('dark');
-                  } else {
-                    root.classList.remove('dark');
+                    document.body.classList.add('dark');
                   }
                 }
               });
             }
           }
 
-          var theme = stored || 'system';
+          var theme = stored || 'light';  // Default to 'light' to match React ThemeProvider
           var isDark = (theme === 'dark') || (theme === 'system' && prefersDark);
+          var isRelaxing = (theme === 'relaxing');
           var root = document.documentElement;
+
+          console.log('[HTML Init] Stored theme:', stored, '| Resolved theme:', theme, '| System prefers dark:', prefersDark, '| Applying dark:', isDark, '| Applying relaxing:', isRelaxing);
+
+          // Remove all theme classes first
+          root.classList.remove('dark', 'relaxing');
+          document.body.classList.remove('dark', 'relaxing');
 
           if (isDark) {
             root.classList.add('dark');
-          } else {
-            root.classList.remove('dark');
+            document.body.classList.add('dark');
+          } else if (isRelaxing) {
+            root.classList.add('relaxing');
+            document.body.classList.add('relaxing');
           }
+          
+          // Double-check and log the actual classes applied
+          setTimeout(function() {
+            console.log('[HTML Init] After apply - html classes:', root.className, '| body classes:', document.body.className);
+          }, 0);
 
           // Force style recalculation for Edge
           if (typeof root.offsetHeight !== 'undefined') {
@@ -59,6 +75,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

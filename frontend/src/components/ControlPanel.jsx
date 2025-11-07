@@ -189,23 +189,24 @@ const ControlPanel = () => {
   };
 
   // Control operations (use legacy endpoints for start/stop)
+
   const startFrontend = async () => {
     try {
       await axios.post(`${LEGACY_CONTROL_API}/start`);
-      setOperationStatus({ type: 'success', message: 'Frontend started successfully' });
+      setOperationStatus({ type: 'success', message: t('controlPanel.frontendStarted') });
       await fetchStatus();
     } catch (error) {
-      setOperationStatus({ type: 'error', message: 'Failed to start frontend' });
+      setOperationStatus({ type: 'error', message: t('controlPanel.frontendStartFailed') });
     }
   };
 
   const stopFrontend = async () => {
     try {
       await axios.post(`${LEGACY_CONTROL_API}/stop`);
-      setOperationStatus({ type: 'success', message: 'Frontend stopped successfully' });
+      setOperationStatus({ type: 'success', message: t('controlPanel.frontendStopped') });
       await fetchStatus();
     } catch (error) {
-      setOperationStatus({ type: 'error', message: 'Failed to stop frontend' });
+      setOperationStatus({ type: 'error', message: t('controlPanel.frontendStopFailed') });
     }
   };
 
@@ -213,15 +214,10 @@ const ControlPanel = () => {
     // Check if running in Docker mode
     const isDockerMode = environment?.environment_mode === 'docker';
 
-    let confirmMessage = 'Stop all services? The control panel will become unavailable.';
+
+    let confirmMessage = t('controlPanel.confirmStopAll');
     if (isDockerMode) {
-      confirmMessage = 'IMPORTANT: Running in Docker mode.\n\n' +
-        'The "Stop All" button can only stop the backend container from within Docker.\n' +
-        'The frontend/nginx container will remain running.\n\n' +
-        'For a complete shutdown, use the host command:\n' +
-        '  .\\SMS.ps1 -Stop\n' +
-        '  or: docker compose stop\n\n' +
-        'Continue with partial stop (backend only)?';
+      confirmMessage = t('controlPanel.confirmStopAllDocker');
     }
 
     if (!confirm(confirmMessage)) return;
@@ -230,16 +226,16 @@ const ControlPanel = () => {
       // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
       await axios.post(`${CONTROL_API}/operations/exit-all`, { });
       const msg = isDockerMode
-        ? 'Backend stopping... Use host command to stop all containers.'
-        : 'All services stopping...';
+        ? t('controlPanel.backendStoppingDocker')
+        : t('controlPanel.allServicesStopping');
       setOperationStatus({ type: 'warning', message: msg });
     } catch (error) {
       // Fallback to legacy stop-all if new endpoint is not available
       try {
         await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
         const msg = isDockerMode
-          ? 'Backend stopping... Use host command to stop all containers.'
-          : 'All services stopping...';
+          ? t('controlPanel.backendStoppingDocker')
+          : t('controlPanel.allServicesStopping');
         setOperationStatus({ type: 'warning', message: msg });
       } catch (_) {
         // Expected - backend will shut down or endpoint may be unreachable during shutdown
@@ -432,7 +428,7 @@ const ControlPanel = () => {
             <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/20 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Square size={20} className="text-red-400" />
-                System Control
+                {t('controlPanel.systemControl')}
               </h2>
               <button
                 onClick={stopAll}
@@ -441,7 +437,7 @@ const ControlPanel = () => {
               >
                 <span className="flex items-center gap-2">
                   <Square size={18} />
-                  Stop All Services
+                  {t('controlPanel.stopAllServices')}
                 </span>
                 <span className="text-xs text-red-300">
                   {environment?.environment_mode === 'docker' ? '(Backend only - use .\SMS.ps1 -Stop for full shutdown)' : '(All services)'}

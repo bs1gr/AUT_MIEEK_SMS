@@ -12,7 +12,10 @@
       "Bash(cat:*)",
       "Bash(\"/c/Users/Vasilis/AppData/Local/Programs/Python/Python313/python.exe\" start.py)",
       "Bash(/c/Users/Vasilis/AppData/Local/Programs/Python/Python313/python.exe:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(powershell -Command \"Remove-Item ''d:\\SMS\\student-management-system\\frontend\\src\\StudentManagementApp.jsx'' -Force\")",
+      "Bash(powershell -Command:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
