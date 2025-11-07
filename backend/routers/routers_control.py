@@ -268,6 +268,7 @@ async def get_system_status(request: Request):
         process_start = getattr(request.app.state, "start_time", None)
         if process_start:
             from datetime import datetime, timezone
+
             process_start_time = datetime.fromtimestamp(process_start, tz=timezone.utc).isoformat()
     except Exception:
         pass
