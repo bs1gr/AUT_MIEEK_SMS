@@ -2,18 +2,18 @@
 
 ## One-Command Install
 
-### Windows
+### Recommended (All platforms)
 
-```batch
-INSTALL.bat
+Use the canonical one-click entrypoint provided by the project. This replaces older helpers such as `INSTALL.bat` or `install.py`.
+
+```powershell
+.\RUN.ps1           # One command to install (Docker) and start the application
 ```
 
-Just double-click `INSTALL.bat` - that's it!
+For native development workflows use the supported native entry point:
 
-### Any Platform (with Python)
-
-```bash
-python install.py
+```powershell
+pwsh -NoProfile -File scripts/dev/run-native.ps1
 ```
 
 ---
@@ -37,17 +37,22 @@ The installer automatically:
 
 You need **ONE** of these:
 
+
 ### Option A: Docker (Recommended - Easiest)
 
 - Install Docker Desktop: <https://www.docker.com/products/docker-desktop/>
 - Start Docker Desktop
-- Run: `INSTALL.bat`
+- Run: `.\RUN.ps1`
 
-### Option B: Python + Node.js
+### Option B: Python + Node.js (Developer / Advanced)
 
 - Python 3.11+: <https://www.python.org/downloads/>
 - Node.js 18+: <https://nodejs.org/>
-- Run: `python install.py`
+- Use the native dev entrypoint for backend+frontend during development:
+
+```powershell
+pwsh -NoProfile -File scripts/dev/run-native.ps1
+```
 
 ---
 
@@ -95,7 +100,7 @@ Install Node.js 18+ from: <https://nodejs.org/>
 Run diagnostics:
 
 ```bash
-python install.py
+# The old `install.py` helper has been removed. See `INSTALLATION_GUIDE.md` or use `.\RUN.ps1`.
 ```
 
 The installer will tell you exactly what's missing.
@@ -104,7 +109,7 @@ The installer will tell you exactly what's missing.
 
 ## That's It
 
-Download → run `INSTALL.bat` → start using the app.
+Download → run `.\RUN.ps1` → start using the app.
 
 No execution policies, no complex setup, no PowerShell issues.
 
