@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 import backend.main as main
 
+
 def test_list_routes():
     client = TestClient(main.app)
     resp = client.get("/openapi.json")
