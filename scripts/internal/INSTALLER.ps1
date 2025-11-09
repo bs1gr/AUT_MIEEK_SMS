@@ -409,8 +409,8 @@ function Initialize-Environment {
     Write-Step 3 5 "Setting up application environment"
 
     # Ensure we're in the correct directory
-    if (-not (Test-Path ".\QUICKSTART.ps1")) {
-        Write-Error2 "Cannot find QUICKSTART.ps1 in current directory!"
+    if (-not (Test-Path ".\RUN.ps1")) {
+        Write-Error2 "Cannot find RUN.ps1 in current directory!"
         Write-Info "Please run this installer from the project root directory."
         return $false
     }
@@ -480,11 +480,11 @@ function Start-Application {
 
     Write-Step 5 5 "Starting the application"
 
-    if (Test-Path ".\QUICKSTART.ps1") {
+    if (Test-Path ".\RUN.ps1") {
         Write-Info "Launching Student Management System..."
         Write-Host ""
 
-        & ".\QUICKSTART.ps1"
+        & ".\RUN.ps1"
 
         if ($LASTEXITCODE -eq 0) {
             Write-Host ""
@@ -507,7 +507,7 @@ function Start-Application {
             return $false
         }
     } else {
-        Write-Error2 "QUICKSTART.ps1 not found!"
+        Write-Error2 "RUN.ps1 not found!"
         return $false
     }
 }
@@ -683,7 +683,7 @@ function Start-Installation {
         Write-Success "Installation completed successfully!"
         Write-Host ""
         Write-Host "  To start the application, run:" -ForegroundColor Cyan
-        Write-Host "    .\QUICKSTART.ps1" -ForegroundColor Green
+        Write-Host "    .\RUN.ps1" -ForegroundColor Green
         Write-Host ""
     }
 
@@ -691,7 +691,7 @@ function Start-Installation {
     Write-Banner "INSTALLATION COMPLETE" -Color Green
 
     Write-Host "  Useful commands:" -ForegroundColor Cyan
-    Write-Host "    Start:     .\QUICKSTART.ps1" -ForegroundColor Gray
+    Write-Host "    Start:     .\RUN.ps1" -ForegroundColor Gray
     Write-Host "    Stop:      .\scripts\STOP.ps1" -ForegroundColor Gray
     Write-Host "    Manage:    .\SMS.ps1" -ForegroundColor Gray
     Write-Host "    Help:      See README.md" -ForegroundColor Gray
