@@ -12,7 +12,7 @@ services:
       - "org.opencontainers.image.title=sms-backend"
       - "org.opencontainers.image.version=${VERSION:-unknown}"
     environment:
-      # Persist DB to volume
+      # Persist DB to volume (explicit for Docker)
       - DATABASE_URL=sqlite:////data/student_management.db
       # Allow frontend served from compose to call backend
       - CORS_ORIGINS=http://localhost:8080
@@ -22,6 +22,7 @@ services:
     volumes:
       - sms_data:/data
       - ./templates:/app/templates:ro  # Mount templates directory for imports
+      - ./backups:/app/backups  # Ensure backups are visible on host
     expose:
       - "8000"
     healthcheck:

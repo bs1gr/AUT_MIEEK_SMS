@@ -36,9 +36,13 @@ def test_database_url_must_reside_in_project(monkeypatch):
 
 
 def test_secret_key_auto_generates_secure_value(monkeypatch):
-    insecure = build_settings(SECRET_KEY="change-me")
+    # With AUTH_ENABLED True, insecure key is auto-generated
+    insecure = build_settings(SECRET_KEY="change-me", AUTH_ENABLED=True)
     assert insecure.SECRET_KEY != "change-me"
     assert len(insecure.SECRET_KEY) >= 32
+    # With AUTH_ENABLED False, insecure key is allowed as-is
+    insecure = build_settings(SECRET_KEY="change-me", AUTH_ENABLED=False)
+    assert insecure.SECRET_KEY == "change-me"
 
 
 def test_cors_origins_list_parses_json_string():

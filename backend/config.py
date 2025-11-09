@@ -20,6 +20,26 @@ def _path_within(path: Path, root: Path) -> bool:
         return False
 
 
+
+# Select default DB path based on execution mode
+if os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker":
+    _DEFAULT_DB_PATH = "/data/student_management.db"
+else:
+    _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
+
+
+def _get_app_version() -> str:
+    # Try to read from VERSION file in project root
+    try:
+        version_file = Path(__file__).resolve().parents[1] / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except Exception:
+        pass
+    # Fallback to env or default
+    return os.environ.get("APP_VERSION", "1.3.8")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file="/app/backend/.env",  # Always use the container path
@@ -30,14 +50,11 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Student Management System API"
-    APP_VERSION: str = "1.3.8"
+    APP_VERSION: str = _get_app_version()
     SMS_ENV: str = os.environ.get("SMS_ENV", "development")
     SMS_EXECUTION_MODE: str = os.environ.get("SMS_EXECUTION_MODE", "native")
 
     # Database
-    # Default to an absolute path under the project root: <repo>/data/student_management.db
-    # This avoids CWD-dependent relative paths that can fail on first run.
-    _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
     DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_PATH}"
 
     # API Pagination
@@ -105,15 +122,12 @@ class Settings(BaseSettings):
             raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
         return v
 
-    @field_validator("SECRET_KEY")
-    @classmethod
-    def validate_secret_key(cls, v: str) -> str:
-        """Ensure SECRET_KEY is not default value and is sufficiently long."""
-        # Allow test/CI environments to proceed by auto-generating a secure key
-        # when an insecure placeholder is present. This keeps import-time
-        # validation from failing in ephemeral CI/test runners while still
-        # enforcing a strong key for production.
-        # Broadly detect CI environments and pytest runs:
+
+    from pydantic import model_validator
+
+    @model_validator(mode="after")
+    def check_secret_key(self) -> "Settings":
+        """Allow insecure SECRET_KEY if AUTH_ENABLED is False, else enforce strong key."""
         is_ci = bool(
             os.environ.get("GITHUB_ACTIONS")
             or os.environ.get("CI")
@@ -133,8 +147,12 @@ class Settings(BaseSettings):
             "yes",
         )
 
+        # If AUTH_ENABLED is False, allow any key for development
+        if not self.AUTH_ENABLED:
+            return self
+
         insecure_names = {"change-me", "changeme", ""}
-        is_insecure_placeholder = v.lower() in insecure_names or v.lower().startswith("dev-placeholder")
+        is_insecure_placeholder = self.SECRET_KEY.lower() in insecure_names or self.SECRET_KEY.lower().startswith("dev-placeholder")
 
         if is_insecure_placeholder:
             if is_ci or is_pytest or allow_insecure_flag:
@@ -142,25 +160,27 @@ class Settings(BaseSettings):
                 logging.getLogger(__name__).warning(
                     "Detected insecure SECRET_KEY in CI/test environment — auto-generating a temporary secret."
                 )
-                return new_key
+                object.__setattr__(self, "SECRET_KEY", new_key)
+                return self
             raise ValueError(
                 "SECRET_KEY must be changed from default value 'change-me'. "
                 "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
             )
 
-        if len(v) < 32:
+        if len(self.SECRET_KEY) < 32:
             if is_ci or is_pytest or allow_insecure_flag:
                 new_key = secrets.token_urlsafe(32)
                 logging.getLogger(__name__).warning(
                     "Provided SECRET_KEY is too short in CI/test environment — auto-generating a temporary secret."
                 )
-                return new_key
+                object.__setattr__(self, "SECRET_KEY", new_key)
+                return self
             raise ValueError(
-                f"SECRET_KEY must be at least 32 characters (current length: {len(v)}). "
+                f"SECRET_KEY must be at least 32 characters (current length: {len(self.SECRET_KEY)}). "
                 "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
             )
 
-        return v
+        return self
 
     @field_validator("DATABASE_URL")
     @classmethod

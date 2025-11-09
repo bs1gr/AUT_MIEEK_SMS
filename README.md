@@ -137,25 +137,28 @@ For deployment, Docker orchestration, and production maintenance.
 
 ---
 
-## 🚀 Quick Start - Legacy Installation (v1.3.x)
 
-### **Recommended Method** - Docker-Only Release
+## 🚀 Quick Start (v1.5.0+)
 
-**First-time setup:**
+### **Recommended Method** - One-Click Docker Deployment
+
+**Start/Stop/Update:**
 
 ```powershell
-.\SMART_SETUP.ps1
+.\RUN.ps1           # Start, stop, update, backup, status (all-in-one)
+.\RUN.ps1 -Stop     # Stop cleanly
+.\RUN.ps1 -Update   # Update with automatic backup
+.\RUN.ps1 -Status   # Check if running
+.\RUN.ps1 -Logs     # View application logs
+.\RUN.ps1 -Backup   # Create manual backup
 ```
 
-**Manage containers:**
+**For Developers:**
 
 ```powershell
-.\SMS.ps1 -Quick      # Start containers
-.\SMS.ps1 -Stop       # Stop containers
-.\SMS.ps1 -Restart    # Restart containers
-.\SMS.ps1 -Status     # Show status
-.\SMS.ps1 -Logs       # View logs
-.\SMS.ps1 -Help       # Show all options
+.\scripts\deploy\SMART_SETUP.ps1      # Intelligent setup (Docker or native)
+.\scripts\dev\run-native.ps1          # Native dev mode (backend+frontend)
+.\SMS.ps1                             # Interactive management menu
 ```
 
 **What happens:**
@@ -172,53 +175,21 @@ For deployment, Docker orchestration, and production maintenance.
 
 ---
 
-On Linux, you can validate your environment and start in either Docker (recommended) or native development mode:
-
-1) Validate prerequisites (Docker/Python/Node/pwsh):
-
-```bash
-./scripts/linux_env_check.sh            # validate only
-./scripts/linux_env_check.sh --fix      # auto-create .env files and folders
-```
-
-2) Start the app:
-
-- Docker release (recommended):
-
-```bash
-./scripts/deploy/run-docker-release.sh
-```
-
-- Native development (hot reload):
-
-```bash
-./scripts/dev/run-native.sh
-```
-
-Notes:
-
-- PowerShell 7+ (pwsh) is recommended on Linux, as helper scripts delegate to SMART_SETUP.ps1 for consistent behavior.
-- If pwsh isn’t installed, linux_env_check.sh will warn you. You can still run with plain Docker:
-
-```bash
-docker compose up -d --build
-```
-
 ### Deployment Modes
 
-The runtime now enforces a clear separation between release and development workflows.
+The runtime enforces a clear separation between release and development workflows.
 
 #### 🐳 Release (Docker Full Stack Only)
 
 - Production and release builds **must** run via the Docker full-stack bundle.
-- Launch with `.\scripts\deploy\run-docker-release.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
+- Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
 - `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
 - Access the stack at `http://localhost:8080` (frontend + API proxy).
 
 #### 🔧 Local Development (Native)
 
 - Native execution is reserved for local development and fast iteration.
-- Use `.\scripts\dev\run-native.ps1` (PowerShell) or `scripts/dev/run-native.sh` (bash) to start backend (FastAPI) + frontend (Vite).
+- Use `scripts/dev/run-native.ps1` (PowerShell) or `scripts/dev/run-native.sh` (bash) to start backend (FastAPI) + frontend (Vite).
 - Helper scripts set `SMS_ENV=development` automatically; if `SMS_ENV` is `production`, the backend refuses to start natively.
 - Access the backend at `http://localhost:8000` and the frontend at `http://localhost:5173`.
 
@@ -239,10 +210,10 @@ The runtime now enforces a clear separation between release and development work
 
 ```powershell
 # Start (auto-detects best mode)
-.\QUICKSTART.ps1
+.\RUN.ps1
 
 # Stop everything
-.\SMS.ps1 -Stop
+.\RUN.ps1 -Stop
 
 # Non-destructive cleanup (keeps data and Docker volumes)
 .\CLEANUP.bat
@@ -457,27 +428,13 @@ The **SMS.ps1** script provides an interactive menu for all operations:
 .\SMS.ps1 -Help     # Show help
 ```
 
-### Using QUICKSTART.ps1 (Simple)
-
-```powershell
-.\QUICKSTART.ps1           # Intelligent setup & start
-.\QUICKSTART.ps1 -Force    # Force reinstall everything
-.\QUICKSTART.ps1 -Help     # Show options
-```
-
-This will:
-
-1. Check Docker Desktop is installed and running
-2. Ensure Linux containers mode is enabled
-3. Build the fullstack Docker image
-4. Create the database volume
 
 ### Starting the Application
 
 Start with one command:
 
 ```powershell
-.\QUICKSTART.ps1
+.\RUN.ps1
 ```
 
 Or use the management interface:
@@ -485,12 +442,6 @@ Or use the management interface:
 ```powershell
 .\SMS.ps1
 ```
-
-**Automatic Recovery:**
-
-- If Docker image not found → Automatically runs SETUP
-- If Docker not running → Shows helpful error message
-- If port in use → Shows conflicting containers
 
 The application will be available at <http://localhost:8080>
 
@@ -705,16 +656,15 @@ student-management-system/
 └── tools/                    # Data import/export tools
 ```
 
-## Documentation
 
+## Documentation
 
 ### Available Documentation
 
+- [CHANGELOG.md](CHANGELOG.md) - **Single source of release history**
 - [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide**
 - [docs/DOCKER_OPERATIONS.md](docs/DOCKER_OPERATIONS.md) - **Docker operations and management**
 - [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
-- [RELEASE_NOTES_v1.5.0.md](RELEASE_NOTES_v1.5.0.md) - **Release notes for v1.5.0**
-- [CHANGELOG.md](CHANGELOG.md) - Version history with links to detailed release notes
 - [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management**
 - [docs/DOCKER_CLEANUP.md](docs/DOCKER_CLEANUP.md) - Docker cleanup procedures
 - [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
@@ -801,12 +751,13 @@ Notes:
 - Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
 - Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
 
+
 ### Frontend Issues
 
 If the frontend isn't loading, try rebuilding:
 
 ```powershell
-.\QUICKSTART.ps1 -Force
+.\RUN.ps1 -Update
 ```
 
 ## Development
