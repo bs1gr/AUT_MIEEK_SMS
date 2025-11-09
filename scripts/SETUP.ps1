@@ -10,11 +10,11 @@ This script has been superseded by SMART_SETUP.ps1 which handles:
 - Build and run orchestration
 
 Please use:
-    .\QUICKSTART.ps1            # Intelligent setup & start
+    .\RUN.ps1                    # One-click install & start (Docker)
 or:
     .\SMART_SETUP.ps1 -PreferDocker -SkipStart   # Setup only (Docker)
 
-This wrapper will forward to SMART_SETUP for compatibility.
+This wrapper will forward to SMART_SETUP for compatibility. For development/native workflows prefer `scripts/dev/run-native.ps1`.
 #>
 
 param(
@@ -24,7 +24,7 @@ param(
 
 if ($Help) {
     Write-Host "\nThis script is deprecated." -ForegroundColor Yellow
-    Write-Host "Use .\\QUICKSTART.ps1 or .\\SMART_SETUP.ps1 instead." -ForegroundColor Yellow
+    Write-Host "Use .\\RUN.ps1 or .\\SMART_SETUP.ps1 instead." -ForegroundColor Yellow
     exit 0
 }
 
@@ -34,7 +34,7 @@ if ($SkipBuild) { $forwardArgs += '-SkipStart' } else { $forwardArgs += '-SkipSt
 $smart = Join-Path (Split-Path $PSScriptRoot -Parent) 'SMART_SETUP.ps1'
 if (-not (Test-Path $smart)) {
     Write-Host "SMART_SETUP.ps1 not found at $smart" -ForegroundColor Red
-    Write-Host "Please run .\\QUICKSTART.ps1" -ForegroundColor Yellow
+    Write-Host "Please run .\\RUN.ps1" -ForegroundColor Yellow
     exit 1
 }
 
