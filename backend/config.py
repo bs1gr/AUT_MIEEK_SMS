@@ -20,7 +20,6 @@ def _path_within(path: Path, root: Path) -> bool:
         return False
 
 
-
 # Select default DB path based on execution mode
 if os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker":
     _DEFAULT_DB_PATH = "/data/student_management.db"
@@ -122,7 +121,6 @@ class Settings(BaseSettings):
             raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
         return v
 
-
     from pydantic import model_validator
 
     @model_validator(mode="after")
@@ -152,7 +150,9 @@ class Settings(BaseSettings):
             return self
 
         insecure_names = {"change-me", "changeme", ""}
-        is_insecure_placeholder = self.SECRET_KEY.lower() in insecure_names or self.SECRET_KEY.lower().startswith("dev-placeholder")
+        is_insecure_placeholder = self.SECRET_KEY.lower() in insecure_names or self.SECRET_KEY.lower().startswith(
+            "dev-placeholder"
+        )
 
         if is_insecure_placeholder:
             if is_ci or is_pytest or allow_insecure_flag:

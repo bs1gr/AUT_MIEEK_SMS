@@ -1213,7 +1213,7 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
     """
     from pathlib import Path
     import shutil
-    import os
+
     # Validate file extension
     if not file.filename or not file.filename.lower().endswith(".db"):
         raise http_error(
@@ -1228,6 +1228,7 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
     backups_dir.mkdir(parents=True, exist_ok=True)
     # Use timestamp to avoid collisions
     import datetime
+
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     dest_filename = f"uploaded_{timestamp}_{file.filename}"
     dest_path = backups_dir / dest_filename
@@ -1256,7 +1257,7 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
     """
     from pathlib import Path
     import shutil
-    import os
+
     # Validate file extension
     if not file.filename or not file.filename.lower().endswith(".db"):
         raise http_error(
@@ -1271,6 +1272,7 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
     backups_dir.mkdir(parents=True, exist_ok=True)
     # Use timestamp to avoid collisions
     import datetime
+
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     dest_filename = f"uploaded_{timestamp}_{file.filename}"
     dest_path = backups_dir / dest_filename

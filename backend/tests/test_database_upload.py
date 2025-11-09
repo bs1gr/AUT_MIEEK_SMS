@@ -1,9 +1,9 @@
 import io
-import os
 from pathlib import Path
 from fastapi.testclient import TestClient
 import backend.main as main
 from backend.errors import ErrorCode
+
 
 def test_database_upload_valid():
     client = TestClient(main.app)
@@ -21,6 +21,7 @@ def test_database_upload_valid():
     if uploaded.exists():
         uploaded.unlink()
 
+
 def test_database_upload_invalid_extension():
     client = TestClient(main.app)
     files = {"file": ("test.txt", io.BytesIO(b"not a db"), "application/octet-stream")}
@@ -28,6 +29,7 @@ def test_database_upload_invalid_extension():
     assert resp.status_code == 400
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_INVALID_FILE_TYPE.value
+
 
 def test_database_upload_invalid_magic():
     client = TestClient(main.app)
