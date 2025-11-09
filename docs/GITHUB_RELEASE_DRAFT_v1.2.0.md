@@ -11,7 +11,7 @@ A focused release adding optional authentication/authorization, timezone-safe ti
 
 ## Links
 
-- Detailed release notes: [docs/RELEASE_NOTES_v1.2.md](../docs/RELEASE_NOTES_v1.2.md)
+- Detailed release notes: [CHANGELOG.md](../CHANGELOG.md)
 - Changelog: [CHANGELOG.md](../CHANGELOG.md)
 - Fresh clone test report: archived (see docs/REMOVED_DOCS_SUMMARY.md)
 - Authentication guide: [docs/AUTHENTICATION.md](../docs/AUTHENTICATION.md)

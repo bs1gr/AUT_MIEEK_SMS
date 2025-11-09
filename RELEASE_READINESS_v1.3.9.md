@@ -264,7 +264,7 @@ pytest -q
 ### Immediate
 1. ✅ Tag release in git: `git tag -a v1.3.9 -m "Release v1.3.9"`
 2. ✅ Push tag: `git push origin v1.3.9`
-3. ✅ Create GitHub release with RELEASE_NOTES_v1.3.9.md
+3. ✅ Create GitHub release; detailed release notes consolidated into [CHANGELOG.md](CHANGELOG.md)
 4. ✅ Update Docker Hub images (if applicable)
 
 ### Monitoring
@@ -339,7 +339,7 @@ Test Breakdown:
 - `CHANGELOG.md` (v1.3.9 section added)
 
 **Documentation:**
-- `RELEASE_NOTES_v1.3.9.md` (NEW)
+- `RELEASE_NOTES_v1.3.9.md` (consolidated) — details moved to [CHANGELOG.md](CHANGELOG.md)
 - `RELEASE_READINESS_v1.3.9.md` (NEW)
 
 **Cleanup:**

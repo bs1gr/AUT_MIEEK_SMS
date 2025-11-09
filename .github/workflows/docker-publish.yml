@@ -154,7 +154,7 @@ jobs:
       - name: Read release notes file
         id: read_notes
         run: |
-          NOTES_FILE="RELEASE_NOTES/docker-images-1.3.5.md"
+          NOTES_FILE="RELEASE_NOTES/README.md"
           if [ -f "$NOTES_FILE" ]; then
             # base64 to preserve newlines in output
             echo "notes<<EOF" >> $GITHUB_OUTPUT
@@ -184,7 +184,7 @@ jobs:
               prerelease: false,
             });
             const fs = require('fs');
-            const path = 'RELEASE_NOTES/docker-images-1.3.5.md';
+            const path = 'RELEASE_NOTES/README.md';
             if (fs.existsSync(path)) {
               const content = fs.readFileSync(path);
               await github.rest.repos.uploadReleaseAsset({
