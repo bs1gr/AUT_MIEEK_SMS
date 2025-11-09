@@ -67,7 +67,7 @@ Version 1.3.9 is production-ready with comprehensive CSV import support for Gree
 | Document | Status | Location |
 |----------|--------|----------|
 | **CHANGELOG.md** | ✅ Updated | Root directory |
-| **RELEASE_NOTES_v1.3.9.md** | ✅ Created | Root directory |
+| **Release notes** | ✅ Consolidated | See [CHANGELOG.md](CHANGELOG.md) |
 | **VERSION** | ✅ Updated | `1.3.9` |
 | **Copilot Instructions** | ✅ Current | `.github/copilot-instructions.md` |
 | **API Docs** | ✅ Auto-generated | `/docs` endpoint |
