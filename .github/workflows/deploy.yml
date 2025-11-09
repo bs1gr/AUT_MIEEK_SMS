@@ -44,7 +44,7 @@ jobs:
       - name: Parse release notes for digests
         id: parse
         run: |
-          FILE="RELEASE_NOTES/docker-images-${{ inputs.version }}.md"
+          FILE="RELEASE_NOTES/README.md"
           if [ ! -f "$FILE" ]; then echo "File $FILE not found"; exit 1; fi
           # look for dockerhub-style repo@sha256 and fall back to GHCR entries
           backend=$(grep -Eo 'aut_mieek_sms-backend@sha256:[a-f0-9]+' "$FILE" | head -n1)

@@ -30,7 +30,7 @@ Notes
 - These files were removed from the repository root because up-to-date versions
   or canonical copies exist under `docs/`, `docs/archive/`, or `rewrite-preview-local/`.
 - Core files that were kept in-place include `README.md`, `INSTALL.md`, `CHANGELOG.md`,
-  and `RELEASE_NOTES_v1.3.7.md` because they are entry points and still relevant.
+  and `RELEASE_NOTES_v1.3.7.md` (now consolidated). See [CHANGELOG.md](../CHANGELOG.md) for the canonical history.
 - If you need any removed file restored, it can be recovered from the repository
   history (git) or from archived copies in `docs/archive/` or `rewrite-preview-local/`.
 

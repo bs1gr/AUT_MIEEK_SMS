@@ -33,7 +33,7 @@ Feature release adding Greek-language CSV import support for student registratio
 - Removed obsolete temporary files and directories:
   - temp_control_panel.html, tmp_test_migrations/, ci-diagnose-4460549183/
   - SMART_SETUP_OLD_BACKUP.ps1, SMS_OLD_BACKUP.ps1
-  - setup.log, pytest-full-output.txt, release_notes_v1.3.7.txt
+  - setup.log, pytest-full-output.txt, release notes fragments merged into this CHANGELOG
 - Cleaned up cache directories:
   - .mypy_cache/, .pytest_cache/, .ruff_cache/
   - .venv_audit/, .venv_backend_tests/
@@ -377,7 +377,7 @@ Highlights:
 
 Docs:
 
-- Detailed release notes: docs/RELEASE_NOTES_v1.2.md
+- Detailed release notes: see this `CHANGELOG.md` (consolidated)
 - Fresh clone test report: FRESH_CLONE_TEST_REPORT_V1.2.md
 - Authentication guide: docs/AUTHENTICATION.md (if present in docs/, else see README references)
 
@@ -393,7 +393,7 @@ Highlights:
 
 Docs:
 
-- Detailed release notes: docs/RELEASE_NOTES_v1.1.md
+- Detailed release notes: see this `CHANGELOG.md` (consolidated)
 
 ---
 

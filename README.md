@@ -345,7 +345,7 @@ Troubleshooting:
 - 🐍 **Python Entrypoint**: Replaced shell entrypoint with robust Python implementation for better error handling
 - 🐋 **Docker Improvements**: Enhanced environment configuration, SECRET_KEY handling, path validation for Docker mode
 
-See [RELEASE_NOTES_v1.3.8.md](RELEASE_NOTES_v1.3.8.md) for complete details.
+See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ---
 
