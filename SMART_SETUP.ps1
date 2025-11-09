@@ -249,6 +249,7 @@ try {
       -p 8080:8000 `
       -v "${volumeName}:/app/data" `
       -v "${root}/templates:/app/templates:ro" `
+      -v "${root}/backups:/app/backups" `
       --restart unless-stopped `
       $imageName 2>&1 | ForEach-Object { Write-Log $_ }
 

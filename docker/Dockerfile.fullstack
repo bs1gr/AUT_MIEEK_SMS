@@ -6,6 +6,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY frontend/ .
+COPY VERSION /app/VERSION
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
@@ -32,12 +33,14 @@ RUN python -m pip install --upgrade pip && \
 # Copy app code and built frontend
 COPY backend /app/backend
 COPY --from=fe /app/frontend/dist /app/frontend/dist
+COPY VERSION /app/VERSION
 # Include templates (courses/students JSON) inside the image so imports work
 # in deployments where templates are not mounted from the host.
 COPY templates /app/templates
 
-# Create non-root user and ensure data directory exists and is writable
-RUN useradd -m appuser && mkdir -p /app/data && chown -R appuser:appuser /app /app/data
+RUN useradd -m appuser \
+    && mkdir -p /app/data /data \
+    && chown -R appuser:appuser /app /app/data /data
 USER appuser
 
 # Healthcheck against /health endpoint
