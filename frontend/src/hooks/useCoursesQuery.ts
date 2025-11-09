@@ -25,11 +25,6 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
       setLoading(true);
       try {
         const response = await coursesAPI.getAll();
-<<<<<<< HEAD
-        const courses = response.items || [];
-
-=======
-        console.log('[useCourses] coursesAPI.getAll() response:', response);
         // Accept both array and object-with-items
         let courses: Course[] = [];
         if (Array.isArray(response)) {
@@ -39,7 +34,6 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
         } else {
           courses = [];
         }
->>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
         // Apply filters client-side
         let filteredCourses = courses;
         if (filters?.search) {
@@ -56,11 +50,6 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
         if (filters?.semester) {
           filteredCourses = filteredCourses.filter((c: Course) => c.semester === filters.semester);
         }
-<<<<<<< HEAD
-
-=======
-        console.log('[useCourses] setCourses:', filteredCourses);
->>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
         setCourses(filteredCourses);
         setError(null);
         return filteredCourses;

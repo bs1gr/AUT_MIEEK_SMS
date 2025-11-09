@@ -222,7 +222,7 @@ function Start-Containers {
     }
 
     Write-Info "Starting containers with docker compose..."
-
+    Push-Location $scriptDir
     try {
         $output = docker compose up -d 2>&1
 
@@ -243,6 +243,9 @@ function Start-Containers {
         Write-Error2 "Error starting containers: $($_.Exception.Message)"
         return $false
     }
+    finally {
+        Pop-Location
+    }
 }
 
 function Stop-Containers {
@@ -259,7 +262,7 @@ function Stop-Containers {
     }
 
     Write-Info "Stopping containers with docker compose..."
-
+    Push-Location $scriptDir
     try {
         $output = docker compose down 2>&1
 
@@ -276,6 +279,9 @@ function Stop-Containers {
     catch {
         Write-Error2 "Error stopping containers: $($_.Exception.Message)"
         return $false
+    }
+    finally {
+        Pop-Location
     }
 }
 
@@ -294,7 +300,7 @@ function Restart-Containers {
     }
 
     Write-Info "Restarting containers..."
-
+    Push-Location $scriptDir
     try {
         # Try restart first (faster)
         $output = docker compose restart 2>&1
@@ -318,6 +324,9 @@ function Restart-Containers {
         Write-Error2 "Error restarting containers: $($_.Exception.Message)"
         return $false
     }
+    finally {
+        Pop-Location
+    }
 }
 
 function Show-Logs {
@@ -337,6 +346,7 @@ function Show-Logs {
         return
     }
 
+    Push-Location $scriptDir
     try {
         $containerName = "student-management-system-$Container-1"
 
@@ -357,6 +367,9 @@ function Show-Logs {
     }
     catch {
         Write-Error2 "Error showing logs: $($_.Exception.Message)"
+    }
+    finally {
+        Pop-Location
     }
 }
 

@@ -533,7 +533,6 @@
                 <button class="btn" onclick="installFrontendDeps()" data-mode="native">📦 Install Frontend Dependencies</button>
                 <button class="btn" onclick="installBackendDeps()" data-mode="native">🐍 Install Backend Dependencies</button>
                 <button class="btn btn-secondary" onclick="runDiagnostics()">🔍 Run Full Diagnostics</button>
-                <button class="btn btn-danger" onclick="stopAll()">🛑 Stop All Services</button>
             </div>
 
             <!-- Environment Info Card -->
@@ -1036,30 +1035,6 @@
             }
         }
 
-        async function stopAll() {
-            if (!confirm('This will stop all services (backend, frontend, Docker containers). Continue?')) return;
-
-            const btn = event.target;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading"></span> Stopping...';
-
-            try {
-                const response = await fetch(`${API_BASE}/operations/exit-all`, { method: 'POST' });
-                const data = await response.json();
-
-                if (data.success) {
-                    showAlert('Services stopped. You may need to manually close this window.', 'warning');
-                } else {
-                    showAlert('Failed to stop all services', 'error');
-                }
-            } catch (error) {
-                // This might fail because the backend stops itself
-                showAlert('Stop command sent. Services may be shutting down...', 'warning');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '🛑 Stop All Services';
-            }
-        }
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {

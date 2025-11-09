@@ -17,6 +17,7 @@ import json
 from datetime import datetime
 
 from fastapi import APIRouter, Request
+from fastapi import UploadFile, File
 from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
@@ -1202,6 +1203,96 @@ async def docker_build(request: Request):
             request,
             context={"error": str(exc)},
         ) from exc
+
+
+@router.post("/operations/database-upload", response_model=OperationResult)
+async def upload_database(request: Request, file: UploadFile = File(...)):
+    """
+    Upload a new SQLite .db file and save it to backups/database/.
+    Returns the saved filename for use with restore endpoint.
+    """
+    from pathlib import Path
+    import shutil
+    import os
+    # Validate file extension
+    if not file.filename or not file.filename.lower().endswith(".db"):
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Only .db files are allowed",
+            request,
+            context={"filename": file.filename},
+        )
+    # Save to backups/database with unique name
+    backups_dir = Path(__file__).parent.parent.parent / "backups" / "database"
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    # Use timestamp to avoid collisions
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    dest_filename = f"uploaded_{timestamp}_{file.filename}"
+    dest_path = backups_dir / dest_filename
+    with dest_path.open("wb") as out_file:
+        shutil.copyfileobj(file.file, out_file)
+    # Optionally, validate it's a SQLite file (magic header)
+    with dest_path.open("rb") as check_file:
+        header = check_file.read(16)
+    if not header.startswith(b"SQLite format 3"):
+        dest_path.unlink(missing_ok=True)
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Uploaded file is not a valid SQLite database",
+            request,
+            context={"filename": file.filename},
+        )
+    return OperationResult(
+        success=True,
+        message="Database uploaded successfully",
+        details={"filename": dest_filename},
+    )
+    """
+    Upload a new SQLite .db file and save it to backups/database/.
+    Returns the saved filename for use with restore endpoint.
+    """
+    from pathlib import Path
+    import shutil
+    import os
+    # Validate file extension
+    if not file.filename or not file.filename.lower().endswith(".db"):
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Only .db files are allowed",
+            request,
+            context={"filename": file.filename},
+        )
+    # Save to backups/database with unique name
+    backups_dir = Path(__file__).parent.parent.parent / "backups" / "database"
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    # Use timestamp to avoid collisions
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    dest_filename = f"uploaded_{timestamp}_{file.filename}"
+    dest_path = backups_dir / dest_filename
+    with dest_path.open("wb") as out_file:
+        shutil.copyfileobj(file.file, out_file)
+    # Optionally, validate it's a SQLite file (magic header)
+    with dest_path.open("rb") as check_file:
+        header = check_file.read(16)
+        if not header.startswith(b"SQLite format 3"):
+            dest_path.unlink(missing_ok=True)
+            raise http_error(
+                400,
+                ErrorCode.CONTROL_INVALID_FILE_TYPE,
+                "Uploaded file is not a valid SQLite database",
+                request,
+                context={"filename": file.filename},
+            )
+    return OperationResult(
+        success=True,
+        message="Database uploaded successfully",
+        details={"filename": dest_filename},
+    )
 
 
 @router.post("/operations/docker-update-volume", response_model=OperationResult)

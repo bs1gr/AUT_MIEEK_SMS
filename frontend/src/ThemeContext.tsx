@@ -45,27 +45,16 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     console.log('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
 
-<<<<<<< HEAD
-    // Apply theme to document with Edge browser compatibility
-    const root = document.documentElement;
-    const body = document.body;
-
-    // Remove all theme classes first
-    root.classList.remove('dark', 'relaxing');
-    body.classList.remove('dark', 'relaxing');
-
-=======
-    // Apply theme to document with extra null checks
+    // Apply theme to document with robust null checks and Edge compatibility
     const root = typeof document !== 'undefined' ? document.documentElement : null;
     const body = typeof document !== 'undefined' ? document.body : null;
     if (!root || !body) {
       console.warn('[ThemeProvider] document root or body is null, skipping theme application');
       return;
     }
-    // Remove all theme classes first, with guards
+    // Remove all theme classes first, with guards (Edge compatible)
     if (root.classList) root.classList.remove('dark', 'relaxing');
     if (body.classList) body.classList.remove('dark', 'relaxing');
->>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
     if (resolved === 'dark') {
       if (root.classList) root.classList.add('dark');
       if (body.classList) body.classList.add('dark');
@@ -86,10 +75,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       void root.offsetHeight;
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> d26e1a2 (Release v1.5.0: production cleanup, all features verified, ready for deployment)
     // Log actual state after applying
     setTimeout(() => {
       if (!root || !body) return;
@@ -113,7 +98,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           void root.offsetHeight;
         }
       };
-
       // Modern browsers including Edge support addEventListener
       mediaQuery.addEventListener('change', handler);
       return () => mediaQuery.removeEventListener('change', handler);

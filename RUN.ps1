@@ -513,88 +513,92 @@ function Start-Application {
     }
 
     # Check if image exists
-    $imageExists = docker images -q $IMAGE_TAG 2>$null
-    if (-not $imageExists) {
-        Write-Info "First-time setup detected"
-        Write-Info "Building Docker image (this may take 5-10 minutes)..."
-        Write-Host ""
+    Push-Location $SCRIPT_DIR
+    try {
+        $imageExists = docker images -q $IMAGE_TAG 2>$null
+        if (-not $imageExists) {
+            Write-Info "First-time setup detected"
+            Write-Info "Building Docker image (this may take 5-10 minutes)..."
+            Write-Host ""
 
-        docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
-            if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
-                Write-Host $_ -ForegroundColor DarkGray
+            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
+                if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
+                    Write-Host $_ -ForegroundColor DarkGray
+                }
             }
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Build failed"
+                Write-Info "Please check your Docker configuration and try again"
+                exit 1
+            }
+
+            Write-Success "Build completed"
+            Write-Host ""
         }
 
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error-Message "Build failed"
-            Write-Info "Please check your Docker configuration and try again"
-            exit 1
+        # Remove stopped container if exists
+        if ($status -and -not $status.IsRunning) {
+            Write-Info "Removing stopped container..."
+            docker rm $CONTAINER_NAME 2>$null | Out-Null
         }
 
-        Write-Success "Build completed"
-        Write-Host ""
-    }
+        # Start container
+        Write-Info "Starting container..."
 
-    # Remove stopped container if exists
-    if ($status -and -not $status.IsRunning) {
-        Write-Info "Removing stopped container..."
-        docker rm $CONTAINER_NAME 2>$null | Out-Null
-    }
-
-    # Start container
-    Write-Info "Starting container..."
-
-
-    # Load SECRET_KEY from .env (root) or backend/.env
-    $envSecret = $null
-    $envPaths = @(
-        (Join-Path $SCRIPT_DIR ".env"),
-        (Join-Path $SCRIPT_DIR "backend/.env")
-    )
-    foreach ($envPath in $envPaths) {
-        if (Test-Path $envPath) {
-            $allLines = @(Get-Content $envPath)
-            $lines = $allLines | Where-Object { $_ -match '^SECRET_KEY\s*=\s*.+$' }
-            if ($null -eq $lines) { $lines = @() }
-            if ($lines.Count -gt 0) {
-                $splitLine = $lines[0] -split '=',2
-                if ($splitLine.Count -eq 2) {
-                    $envSecret = $splitLine[1].Trim()
-                    break
+        # Load SECRET_KEY from .env (root) or backend/.env
+        $envSecret = $null
+        $envPaths = @(
+            (Join-Path $SCRIPT_DIR ".env"),
+            (Join-Path $SCRIPT_DIR "backend/.env")
+        )
+        foreach ($envPath in $envPaths) {
+            if (Test-Path $envPath) {
+                $allLines = @(Get-Content $envPath)
+                $lines = $allLines | Where-Object { $_ -match '^SECRET_KEY\s*=\s*.+$' }
+                if ($null -eq $lines) { $lines = @() }
+                if ($lines.Count -gt 0) {
+                    $splitLine = $lines[0] -split '=',2
+                    if ($splitLine.Count -eq 2) {
+                        $envSecret = $splitLine[1].Trim()
+                        break
+                    }
                 }
             }
         }
-    }
-    if (-not $envSecret -or $envSecret.Length -lt 32) {
-        $envSecret = "local-dev-secret-key-20251105-change-me"
-        Write-Host "[WARN] Using fallback insecure SECRET_KEY. Please set a strong SECRET_KEY in .env for production." -ForegroundColor Yellow
-    }
+        if (-not $envSecret -or $envSecret.Length -lt 32) {
+            $envSecret = "local-dev-secret-key-20251105-change-me"
+            Write-Host "[WARN] Using fallback insecure SECRET_KEY. Please set a strong SECRET_KEY in .env for production." -ForegroundColor Yellow
+        }
 
-    docker run -d `
-        --name $CONTAINER_NAME `
-        -p ${PORT}:${INTERNAL_PORT} `
-        -e SMS_ENV=production `
-        -e SMS_EXECUTION_MODE=docker `
-        -e SECRET_KEY=$envSecret `
-        -e DATABASE_URL=sqlite:////app/data/student_management.db `
-        -v ${VOLUME_NAME}:/app/data `
-        -v "${SCRIPT_DIR}/templates:/app/templates:ro" `
-        --restart unless-stopped `
-        $IMAGE_TAG 2>$null | Out-Null
+        docker run -d `
+            --name $CONTAINER_NAME `
+            -p ${PORT}:${INTERNAL_PORT} `
+            -e SMS_ENV=production `
+            -e SMS_EXECUTION_MODE=docker `
+            -e SECRET_KEY=$envSecret `
+            -e DATABASE_URL=sqlite:////app/data/student_management.db `
+            -v ${VOLUME_NAME}:/app/data `
+            -v "${SCRIPT_DIR}/templates:/app/templates:ro" `
+            --restart unless-stopped `
+            $IMAGE_TAG 2>$null | Out-Null
 
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error-Message "Failed to start container"
-        Write-Info "Check Docker logs for details"
-        exit 1
-    }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error-Message "Failed to start container"
+            Write-Info "Check Docker logs for details"
+            exit 1
+        }
 
-    # Wait for health check
-    if (Wait-ForHealthy) {
-        Show-AccessInfo
-    } else {
-        Write-Error-Message "Application did not start properly"
-        Write-Info "Check logs with: .\RUN.ps1 -Logs"
-        exit 1
+        # Wait for health check
+        if (Wait-ForHealthy) {
+            Show-AccessInfo
+        } else {
+            Write-Error-Message "Application did not start properly"
+            Write-Info "Check logs with: .\RUN.ps1 -Logs"
+            exit 1
+        }
+    } finally {
+        Pop-Location
     }
 }
 
