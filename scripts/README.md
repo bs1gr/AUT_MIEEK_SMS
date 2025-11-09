@@ -103,10 +103,9 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 **Fullstack Container:**
 
-- `DOCKER_FULLSTACK_UP.ps1` - Start fullstack container (single container mode)
-- `DOCKER_FULLSTACK_DOWN.ps1` - Stop fullstack container
-- `DOCKER_FULLSTACK_REFRESH.ps1` - Rebuild fullstack container
-- `DOCKER_RUN.ps1` - Advanced Docker startup with mode selection
+Use the canonical one-click launcher `..\RUN.ps1` to start a single fullstack Docker container. The `RUN.ps1` script wraps and replaces older `DOCKER_FULLSTACK_*` helpers and provides a stable, documented entry point for production-style execution.
+
+If you need lower-level control during development, use the Docker Compose helpers in `scripts/docker/` or run `docker compose` directly.
 
 **Volume Management:**
 
@@ -181,9 +180,9 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 | Script | Purpose |
 |--------|---------|
 | DOCKER_DOWN.ps1 | Stop Docker Compose services |
-| DOCKER_FULLSTACK_DOWN.ps1 | Stop fullstack container |
-| DOCKER_FULLSTACK_REFRESH.ps1 | Rebuild fullstack container |
-| DOCKER_FULLSTACK_UP.ps1 | Start fullstack container |
+| DOCKER_FULLSTACK_DOWN.ps1 | Stop fullstack container (legacy) |
+| DOCKER_FULLSTACK_REFRESH.ps1 | Rebuild fullstack container (legacy) |
+| DOCKER_FULLSTACK_UP.ps1 | Start fullstack container (legacy) |
 | DOCKER_REFRESH.ps1 | Rebuild Docker Compose |
 | DOCKER_RUN.ps1 | Advanced Docker startup |
 | DOCKER_SMOKE.ps1 | Docker health check |
