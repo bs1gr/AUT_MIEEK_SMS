@@ -8,7 +8,7 @@ if [ -z "$VERSION" ]; then
   echo "Usage: $0 <version> [namespace]"
   exit 2
 fi
-FILE="RELEASE_NOTES/docker-images-${VERSION}.md"
+FILE="RELEASE_NOTES/README.md"  # consolidated pointer to CHANGELOG.md
 if [ ! -f "$FILE" ]; then
   echo "Release notes file not found: $FILE"
   exit 1
