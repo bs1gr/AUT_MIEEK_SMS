@@ -424,7 +424,7 @@ def bulk_create_attendance(
         with transaction(db):
             for idx, attendance_data in enumerate(attendance_list):
                 try:
-                    _student = get_by_id_or_404(db, Student, attendance_data.student_id)       
+                    _student = get_by_id_or_404(db, Student, attendance_data.student_id)
                     _course = get_by_id_or_404(db, Course, attendance_data.course_id)
 
                     existing = (

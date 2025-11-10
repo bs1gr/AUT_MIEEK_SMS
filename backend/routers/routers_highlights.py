@@ -1,4 +1,3 @@
-
 """Highlights Router providing CRUD operations for student highlights."""
 
 from fastapi import APIRouter, Depends, Query, Request, HTTPException

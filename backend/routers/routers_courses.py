@@ -1,6 +1,5 @@
 """Course management API router."""
 
- 
 import logging
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple

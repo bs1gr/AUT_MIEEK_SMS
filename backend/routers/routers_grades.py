@@ -2,6 +2,7 @@
 IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
 """
+
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple, cast

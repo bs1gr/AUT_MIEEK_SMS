@@ -4,7 +4,6 @@ Provides endpoints for student analytics and final grade computations.
 Optimized with eager loading to prevent N+1 query problems.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any
