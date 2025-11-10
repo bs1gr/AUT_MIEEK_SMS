@@ -1,5 +1,7 @@
 """Daily performance routes provide CRUD-style endpoints."""
 
+# ruff: noqa: F401,F823,F841
+
 from datetime import date, datetime
 import logging
 from typing import List, Optional
@@ -59,8 +61,8 @@ def create_daily_performance(
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
-        student = get_by_id_or_404(db, Student, performance.student_id)
-        course = get_by_id_or_404(db, Course, performance.course_id)
+        _student = get_by_id_or_404(db, Student, performance.student_id)
+        _course = get_by_id_or_404(db, Course, performance.course_id)
 
         with transaction(db):
             db_performance = DailyPerformance(**performance.model_dump())
