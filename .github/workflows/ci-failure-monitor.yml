@@ -18,37 +18,42 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const run = context.payload.workflow_run;
-            const repoInfo = context.repo;
-            const title = `CI failure: ${run.name} (${run.head_branch})`;
+            try {
+              const run = context.payload.workflow_run;
+              const repoInfo = context.repo;
+              const title = `CI failure: ${run.name} (${run.head_branch})`;
 
-            // Avoid creating duplicate issues with the same title and label
-            const existing = await github.rest.issues.listForRepo({ owner: repoInfo.owner, repo: repoInfo.repo, state: 'open', labels: ['ci-failure'] });
-            if (existing.data.some(i => i.title === title)) {
-              core.info('Issue already exists; skipping creation.');
-            } else {
-              const jobsResp = await github.rest.actions.listJobsForWorkflowRun({ owner: repoInfo.owner, repo: repoInfo.repo, run_id: run.id });
-              const jobsList = (jobsResp && jobsResp.data && Array.isArray(jobsResp.data.jobs)) ? jobsResp.data.jobs : [];
-              const failedJobs = jobsList
-                .filter(j => j.conclusion !== 'success')
-                .map(j => `- ${j.name} (${j.conclusion || 'unknown'})`);
+              // Avoid creating duplicate issues with the same title and label
+              const existing = await github.rest.issues.listForRepo({ owner: repoInfo.owner, repo: repoInfo.repo, state: 'open', labels: ['ci-failure'] });
+              if (existing.data.some(i => i.title === title)) {
+                core.info('Issue already exists; skipping creation.');
+              } else {
+                const jobsResp = await github.rest.actions.listJobsForWorkflowRun({ owner: repoInfo.owner, repo: repoInfo.repo, run_id: run.id });
+                const jobsList = (jobsResp && jobsResp.data && Array.isArray(jobsResp.data.jobs)) ? jobsResp.data.jobs : [];
+                const failedJobs = jobsList
+                  .filter(j => j.conclusion !== 'success')
+                  .map(j => `- ${j.name} (${j.conclusion || 'unknown'})`);
 
-              const bodyLines = [
-                `A workflow run failed on branch **${run.head_branch}**.`,
-                '',
-                `Workflow: ${run.name}`,
-                `Commit: ${run.head_sha}`,
-                `Run URL: ${run.html_url}`,
-                '',
-                'Failed jobs:',
-                ...failedJobs,
-                '',
-                `Logs: ${run.html_url}/logs`,
-                '',
-                'This issue was created automatically by the CI Failure Monitor workflow.'
-              ];
+                const bodyLines = [
+                  `A workflow run failed on branch **${run.head_branch}**.`,
+                  '',
+                  `Workflow: ${run.name}`,
+                  `Commit: ${run.head_sha}`,
+                  `Run URL: ${run.html_url}`,
+                  '',
+                  'Failed jobs:',
+                  ...failedJobs,
+                  '',
+                  `Logs: ${run.html_url}/logs`,
+                  '',
+                  'This issue was created automatically by the CI Failure Monitor workflow.'
+                ];
 
-              const body = bodyLines.join('\n');
+                const body = bodyLines.join('\n');
 
-              await github.rest.issues.create({ owner: repoInfo.owner, repo: repoInfo.repo, title, body, labels: ['ci-failure'] });
+                await github.rest.issues.create({ owner: repoInfo.owner, repo: repoInfo.repo, title, body, labels: ['ci-failure'] });
+              }
+            } catch (err) {
+              // Log the error but don't fail the workflow - monitoring should be best-effort
+              core.info(`ci-failure-monitor: encountered an error but will not fail the workflow: ${err && err.toString ? err.toString() : String(err)}`);
             }
