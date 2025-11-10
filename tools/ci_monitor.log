@@ -1,0 +1,11 @@
+2025-11-10T19:05:46.5347660+02:00	Starting ci-failure monitor for bs1gr/AUT_MIEEK_SMS (poll every 600 seconds).
+2025-11-10T19:05:48.5732344+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-11-10T19:05:48.5745346+02:00	No ci-failure issues found.
+2025-11-10T19:15:49.6882769+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-11-10T19:15:49.6891044+02:00	No ci-failure issues found.
+2025-11-10T20:05:57.4663962+02:00	Starting ci-failure monitor for bs1gr/AUT_MIEEK_SMS (poll every 600 seconds).
+2025-11-10T20:05:58.1351104+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-11-10T20:05:58.1363644+02:00	No ci-failure issues found.
+2025-11-10T20:11:23.1924824+02:00	Starting ci-failure monitor for bs1gr/AUT_MIEEK_SMS (poll every 600 seconds).
+2025-11-10T20:11:23.9062341+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-11-10T20:11:23.9073786+02:00	No ci-failure issues found.

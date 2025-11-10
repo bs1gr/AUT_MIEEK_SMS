@@ -5,7 +5,7 @@ This script is called by the Docker entrypoint after the server starts.
 
 import logging
 import time
-import requests
+import requests  # type: ignore[import]
 import sys
 
 logger = logging.getLogger(__name__)

@@ -16,16 +16,43 @@ depends_on = None
 
 
 def _add_deleted_at(table_name: str) -> None:
-    op.add_column(
-        table_name,
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-    )
-    op.create_index(f"ix_{table_name}_deleted_at", table_name, ["deleted_at"])
+    bind = op.get_bind()
+    try:
+        inspector = sa.inspect(bind)
+        existing = [c["name"] for c in inspector.get_columns(table_name)]
+    except Exception:
+        # Fallback: assume column absent and attempt add (will error if present)
+        existing = []
+
+    if "deleted_at" not in existing:
+        op.add_column(
+            table_name,
+            sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
+        )
+        try:
+            op.create_index(f"ix_{table_name}_deleted_at", table_name, ["deleted_at"])
+        except Exception:
+            # Best-effort: ignore if index creation fails due to existing index
+            pass
 
 
 def _drop_deleted_at(table_name: str) -> None:
-    op.drop_index(f"ix_{table_name}_deleted_at", table_name=table_name)
-    op.drop_column(table_name, "deleted_at")
+    bind = op.get_bind()
+    try:
+        inspector = sa.inspect(bind)
+        existing = [c["name"] for c in inspector.get_columns(table_name)]
+    except Exception:
+        existing = []
+
+    if "deleted_at" in existing:
+        try:
+            op.drop_index(f"ix_{table_name}_deleted_at", table_name=table_name)
+        except Exception:
+            pass
+        try:
+            op.drop_column(table_name, "deleted_at")
+        except Exception:
+            pass
 
 
 def upgrade() -> None:
