@@ -1,4 +1,3 @@
-# ruff: noqa: F401,F823,F841
 from fastapi import APIRouter, Depends, HTTPException, Request
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont

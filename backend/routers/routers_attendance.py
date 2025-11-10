@@ -4,7 +4,6 @@ Handles attendance tracking and statistics
 """
 
 from datetime import date, timedelta
-# ruff: noqa: F401,F823,F841
 import logging
 from typing import List, Optional, Tuple, cast
 
