@@ -1,7 +1,4 @@
-import pytest
 from types import SimpleNamespace
-
-from backend.tests.conftest import TestingSessionLocal
 
 
 def test_jwt_admin_can_call_control_stop(client, monkeypatch):
