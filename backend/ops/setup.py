@@ -279,7 +279,10 @@ class SetupOperations(Operation):
             return OperationResult.failure_result(f"Invalid URL: {e}")
 
         try:
-            import requests
+            # requests is an optional runtime dependency; mypy may not have stubs
+            # available in all environments, so silence import-time typing errors
+            # here while preserving the runtime import behavior.
+            import requests  # type: ignore[import]
         except ImportError:
             return OperationResult.failure_result("requests package not installed (required for HTTP checks)")
 

@@ -23,7 +23,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import declarative_base
-from typing import Any
+from typing import Any, ClassVar
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import date, datetime, timezone
 import logging
@@ -300,6 +300,28 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
+
+
+class RefreshToken(Base):
+    """Stored refresh tokens for token rotation and revocation."""
+
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    jti = Column(String(64), nullable=False, index=True, unique=True)
+    token_hash = Column(String(128), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    revoked = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    # Relationship back to user (optional)
+    # Annotate as ClassVar[Any] so mypy is satisfied but SQLAlchemy's declarative
+    # mapper will not treat this annotation as a mapped attribute.
+    user: ClassVar[Any] = relationship("User")
+
+    def __repr__(self):
+        return f"<RefreshToken(id={self.id}, user_id={self.user_id}, jti={self.jti}, revoked={self.revoked})>"
 
 
 def init_db(db_url: str = "sqlite:///student_management.db"):
