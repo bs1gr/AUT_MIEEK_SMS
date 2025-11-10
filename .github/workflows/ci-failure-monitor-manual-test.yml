@@ -1,0 +1,29 @@
+name: CI Failure Monitor Manual Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-issue-manual:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Create CI failure issue (manual test, uses PAT)
+        env:
+          TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN:-}" ]; then
+            echo "CI_MONITOR_TOKEN not set; cannot create issue."
+            exit 1
+          fi
+          title="TEST CI failure monitor — manual run"
+          body="This is a test issue created by the CI failure monitor manual test workflow.\n\nRepo: ${REPO}\nTime: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          payload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure","monitor-test"]}')
+          echo "Creating issue using PAT..."
+          resp=$(curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${REPO}/issues")
+          echo "$resp"
