@@ -1,6 +1,5 @@
-"""Course enrollment endpoints with structured error responses."""
 
-# ruff: noqa: F401,F823,F841
+"""Course enrollment endpoints with structured error responses."""
 
 import logging
 from typing import List

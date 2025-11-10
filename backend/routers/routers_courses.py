@@ -1,7 +1,6 @@
 """Course management API router."""
 
-# ruff: noqa: F401,F823,F841
-
+ 
 import logging
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple

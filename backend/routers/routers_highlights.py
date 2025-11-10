@@ -1,6 +1,5 @@
-"""Highlights Router providing CRUD operations for student highlights."""
 
-# ruff: noqa: F401,F823,F841
+"""Highlights Router providing CRUD operations for student highlights."""
 
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from sqlalchemy.orm import Session

@@ -2,8 +2,6 @@
 IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
 """
-# ruff: noqa: F401,F823,F841
-
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple, cast
