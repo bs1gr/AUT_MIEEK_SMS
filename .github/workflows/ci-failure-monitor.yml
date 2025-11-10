@@ -45,4 +45,18 @@ jobs:
           title="CI failure: ${{ github.event.workflow_run.name }} (${{ github.event.workflow_run.head_branch }})"
           body="A workflow run failed on branch **${{ github.event.workflow_run.head_branch }}**.\n\nWorkflow: ${{ github.event.workflow_run.name }}\nCommit: ${{ github.event.workflow_run.head_sha }}\nRun URL: ${{ github.event.workflow_run.html_url }}\n\nFailed jobs will be available in the run logs."
           payload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure"]}')
-          curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues"
+          # POST to create issue and capture the full JSON response and HTTP status
+          resp_file=monitor_issue_response.json
+          meta_file=monitor_issue_response.meta.json
+          http_status=$(curl -s -w "%{http_code}" -o "$resp_file" -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues")
+          echo "{\"http_status\": $http_status}" > "$meta_file"
+          echo "Wrote $resp_file and $meta_file"
+
+      - name: Upload monitor response artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor_issue_response
+          path: |
+            monitor_issue_response.json
+            monitor_issue_response.meta.json
