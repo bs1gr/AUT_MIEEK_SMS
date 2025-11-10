@@ -55,7 +55,7 @@ def create_student(
     try:
         (Student,) = import_names("models", "Student")
     except Exception as e:
-        logger.error(f"Error importing models: {str(e)}", exc_info=True)
+        logger.error(f"Error importing models: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
     # Use database-level locking to prevent race conditions

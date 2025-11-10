@@ -32,7 +32,7 @@ def test_run_migrations_failure(monkeypatch: pytest.MonkeyPatch, capsys):
     def fake_alembic_config(_backend_dir: Path):
         return Path("dummy.ini")
 
-    def fake_upgrade(cfg, target):  # noqa: ARG001 - part of signature contract
+    def fake_upgrade(cfg, target):
         raise RuntimeError("boom")
 
     monkeypatch.setattr(run_migrations, "_alembic_config", fake_alembic_config)
@@ -47,7 +47,7 @@ def test_check_migration_status(monkeypatch: pytest.MonkeyPatch):
     def fake_alembic_config(_backend_dir: Path):
         return Path("dummy.ini")
 
-    def fake_current(cfg, verbose=False):  # noqa: ARG001 - signature compatibility
+    def fake_current(cfg, verbose=False):
         return "abc123"
 
     monkeypatch.setattr(run_migrations, "_alembic_config", fake_alembic_config)
@@ -59,7 +59,7 @@ def test_check_migration_status(monkeypatch: pytest.MonkeyPatch):
 def test_check_migration_status_handles_exception(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(run_migrations, "_alembic_config", lambda _: Path("dummy.ini"))
 
-    def fake_current(cfg, verbose=False):  # noqa: ARG001
+    def fake_current(cfg, verbose=False):
         raise RuntimeError("nope")
 
     monkeypatch.setattr(run_migrations.command, "current", fake_current)

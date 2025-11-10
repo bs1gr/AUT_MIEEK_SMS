@@ -366,7 +366,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         logger.info("Run 'alembic upgrade head' to apply migrations")
         return engine
     except Exception as e:
-        logger.error(f"Failed to initialize database engine: {str(e)}", exc_info=True)
+        logger.error(f"Failed to initialize database engine: {e!s}", exc_info=True)
         raise
 
 

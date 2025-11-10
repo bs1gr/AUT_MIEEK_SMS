@@ -226,7 +226,7 @@ class HealthChecker:
 
             return {
                 "status": HealthCheckStatus.UNHEALTHY,
-                "message": f"Database connection failed: {str(e)}",
+                "message": f"Database connection failed: {e!s}",
                 "details": {"connected": False, "error": str(e)},
             }
 
@@ -270,7 +270,7 @@ class HealthChecker:
             logger.warning(f"Disk space check failed: {e}")
             return {
                 "status": HealthCheckStatus.DEGRADED,
-                "message": f"Could not check disk space: {str(e)}",
+                "message": f"Could not check disk space: {e!s}",
                 "details": {},
             }
 

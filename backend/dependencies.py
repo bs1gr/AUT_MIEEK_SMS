@@ -118,8 +118,8 @@ def db_session_context(SessionLocal) -> Generator[Session, None, None]:
     except Exception as e:
         if db:
             db.rollback()
-        logger.error(f"Database error: {str(e)}", exc_info=True)
-        raise DatabaseError(f"Database operation failed: {str(e)}")
+        logger.error(f"Database error: {e!s}", exc_info=True)
+        raise DatabaseError(f"Database operation failed: {e!s}")
     finally:
         if db:
             db.close()
@@ -143,10 +143,10 @@ def with_db_session(SessionLocal):
                 with db_session_context(SessionLocal) as db:
                     return func(db, *args, **kwargs)
             except StudentManagementException as e:
-                logger.warning(f"Validation error: {str(e)}")
+                logger.warning(f"Validation error: {e!s}")
                 raise HTTPException(status_code=400, detail=str(e))
             except Exception as e:
-                logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+                logger.error(f"Unexpected error: {e!s}", exc_info=True)
                 raise HTTPException(status_code=500, detail="Internal server error")
 
         return wrapper
