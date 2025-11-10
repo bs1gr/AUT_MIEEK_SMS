@@ -98,11 +98,15 @@ async def require_control_admin(request: Request) -> None:
     if env_token:
         if not _const_time_eq(header_token, env_token):
             logger.warning(
-                "Rejected control API call — invalid admin token", extra={"client": getattr(request.client, 'host', None)}
+                "Rejected control API call — invalid admin token",
+                extra={"client": getattr(request.client, "host", None)},
             )
             raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden")
         # authorized
-        logger.info("Control API access granted via ADMIN_SHUTDOWN_TOKEN", extra={"client": getattr(request.client, 'host', None)})
+        logger.info(
+            "Control API access granted via ADMIN_SHUTDOWN_TOKEN",
+            extra={"client": getattr(request.client, "host", None)},
+        )
         return
 
     # No token configured — only allow loopback clients by default
@@ -132,7 +136,10 @@ def create_control_dependency(auth_check: Callable[[Request], bool] | None = Non
         if auth_check is not None:
             try:
                 if auth_check(request):
-                    logger.info("Control API access granted via external auth_check", extra={"client": getattr(request.client, 'host', None)})
+                    logger.info(
+                        "Control API access granted via external auth_check",
+                        extra={"client": getattr(request.client, "host", None)},
+                    )
                     return
             except Exception as e:
                 logger.debug(f"External auth_check raised exception: {e}")

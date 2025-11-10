@@ -46,6 +46,7 @@ import uvicorn
 # Rate limiting
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+
 # Optional import for common rate limit strings; fall back to defaults if missing
 try:
     from backend.rate_limiting import RATE_LIMIT_WRITE
@@ -109,7 +110,9 @@ if importlib.util.find_spec("backend.config") is not None:
                     db = db_get_session()
                     try:
                         user = db.query(models_mod.User).filter(models_mod.User.email == email_val).first()
-                        return bool(user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin")
+                        return bool(
+                            user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin"
+                        )
                     finally:
                         try:
                             db.close()
@@ -152,6 +155,7 @@ else:
     try:
         from backend.control_auth import require_control_admin
     except Exception:
+
         def require_control_admin(request):
             return None
 
@@ -327,6 +331,7 @@ if limiter is None:
 # Provide a noop limiter with a .limit() decorator when rate-limiting is unavailable.
 # This keeps decorator usage safe for static analysis and test environments.
 if limiter is None:
+
     class _NoopLimiter:
         def limit(self, *args, **kwargs):
             def _decorator(func):
@@ -335,7 +340,6 @@ if limiter is None:
             return _decorator
 
     limiter = _NoopLimiter()
-
 
     def _mask_token(tok: str | None) -> str:
         if not tok:
@@ -892,7 +896,12 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
     try:
         client_ip = getattr(request.client, "host", "unknown")
         token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
-        logger.info("Control API called: stop-all, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+        logger.info(
+            "Control API called: stop-all, client=%s, token_present=%s, token=%s",
+            client_ip,
+            bool(token),
+            _mask_token(token),
+        )
     except Exception:
         logger.debug("Failed to log control API audit info")
 
@@ -1110,7 +1119,12 @@ def control_stop(request: Request, _auth=Depends(require_control_admin)):
     try:
         client_ip = getattr(request.client, "host", "unknown")
         token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
-        logger.info("Control API called: stop, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+        logger.info(
+            "Control API called: stop, client=%s, token_present=%s, token=%s",
+            client_ip,
+            bool(token),
+            _mask_token(token),
+        )
     except Exception:
         logger.debug("Failed to log control API audit info")
 
@@ -1236,7 +1250,12 @@ def control_stop_backend(request: Request, _auth=Depends(require_control_admin))
     try:
         client_ip = getattr(request.client, "host", "unknown")
         token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
-        logger.info("Control API called: stop-backend, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+        logger.info(
+            "Control API called: stop-backend, client=%s, token_present=%s, token=%s",
+            client_ip,
+            bool(token),
+            _mask_token(token),
+        )
     except Exception:
         logger.debug("Failed to log control API audit info")
 
@@ -1322,7 +1341,12 @@ def admin_shutdown(request: Request, _auth=Depends(require_control_admin)):
     try:
         client_ip = getattr(request.client, "host", "unknown")
         token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
-        logger.info("Admin shutdown route called (alias) - client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+        logger.info(
+            "Admin shutdown route called (alias) - client=%s, token_present=%s, token=%s",
+            client_ip,
+            bool(token),
+            _mask_token(token),
+        )
     except Exception:
         logger.debug("Failed to log admin shutdown audit info")
     logger.info("Admin shutdown route called (redirecting to control API)")
