@@ -131,10 +131,12 @@ class Attendance(SoftDeleteMixin, Base):
     student = relationship("Student", back_populates="attendances")  # type: ignore[var-annotated]
     course = relationship("Course", back_populates="attendances")  # type: ignore[var-annotated]
 
-    # Composite index for common queries
+    # Composite indexes for common queries
+    # Three-column index for filtering by student, course, and date range
     __table_args__ = (
         Index("idx_attendance_student_date", "student_id", "date"),
         Index("idx_attendance_course_date", "course_id", "date"),
+        Index("idx_attendance_student_course_date", "student_id", "course_id", "date"),
     )
 
     def __repr__(self):
