@@ -86,21 +86,29 @@ def main() -> int:
 
     # Run the programmatic migration runner
     try:
-        from backend.run_migrations import run_migrations
+        # Allow skipping migrations for emergency/manual runs by setting
+        # SMS_SKIP_MIGRATIONS=1 in the environment or .env file. This is a
+        # temporary operational flag to aid recovery when migrations are in a
+        # conflicting state (e.g. multiple heads). Use with caution.
+        skip = os.environ.get("SMS_SKIP_MIGRATIONS")
+        if skip and skip.lower() in ("1", "true", "yes"):
+            logger.warning("SMS_SKIP_MIGRATIONS set; skipping automatic DB migrations")
+        else:
+            from backend.run_migrations import run_migrations
 
-        ok = False
-        try:
-            ok = run_migrations(verbose=True)
-        except TypeError:
-            # Older signatures: run_migrations() without args
-            ok = run_migrations()
+            ok = False
+            try:
+                ok = run_migrations(verbose=True)
+            except TypeError:
+                # Older signatures: run_migrations() without args
+                ok = run_migrations()
 
-        if not ok:
-            logger.error("Migration runner reported failure")
-            dump_migrations_log(logger)
-            return 2
+            if not ok:
+                logger.error("Migration runner reported failure")
+                dump_migrations_log(logger)
+                return 2
 
-        logger.info("Migrations applied successfully")
+            logger.info("Migrations applied successfully")
 
     except Exception as exc:  # pragma: no cover - operational code path
         logger.error(f"Migration runner failed with exception: {exc}")

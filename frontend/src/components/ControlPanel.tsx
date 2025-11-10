@@ -476,49 +476,7 @@ const ControlPanel: React.FC = () => {
               </div>
             )}
 
-            {/* System Control */}
-            <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/20 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Square size={20} className="text-red-400" />
-                System Control
-              </h2>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setOperationStatus({ type: 'info', message: 'Restart is not implemented in the web UI. Please use .\\SMS.ps1 -Restart or restart the container/service manually.' })}
-                  disabled={!status?.backend}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-yellow-50 dark:bg-yellow-900/30 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-yellow-200 dark:border-yellow-700 rounded-lg transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <RefreshCw size={18} />
-                    Restart
-                  </span>
-                  <span className="text-xs text-yellow-400">(Host/Container only)</span>
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!status?.backend) return;
-                    if (!confirm('Exit will completely shut down all backend/frontend services. Are you sure?')) return;
-                    setLoading(true);
-                    try {
-                      await axios.post(`${CONTROL_API}/operations/exit-all`);
-                      setOperationStatus({ type: 'warning', message: 'System shutdown initiated. The app will become unavailable.' });
-                    } catch (e) {
-                      setOperationStatus({ type: 'error', message: 'Failed to initiate shutdown.' });
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  disabled={!status?.backend}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-200 dark:border-red-700 rounded-lg transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <Square size={18} />
-                    Exit (Full Shutdown)
-                  </span>
-                  <span className="text-xs text-red-300">(All services)</span>
-                </button>
-              </div>
-            </div>
+            {/* System Control removed per request: Stop All / Exit button was removed from the UI */}
 
             {/* Native Operations - Hidden in Docker mode */}
             {environment?.environment_mode !== 'docker' && (

@@ -13,7 +13,7 @@ def test_import_from_possible_locations_prefers_backend():
 
 
 def test_import_from_possible_locations_raises_when_missing(monkeypatch: pytest.MonkeyPatch):
-    def fake_find_spec(name):  # noqa: ARG001 - diagnostic helper
+    def fake_find_spec(name):
         return None
 
     monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
