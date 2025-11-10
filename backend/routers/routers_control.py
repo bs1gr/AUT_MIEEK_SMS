@@ -425,9 +425,7 @@ async def run_diagnostics():
             )
     except Exception as e:
         results.append(
-            DiagnosticResult(
-                category="Database", status="error", message=f"Database check failed: {e!s}", details={}
-            )
+            DiagnosticResult(category="Database", status="error", message=f"Database check failed: {e!s}", details={})
         )
 
     # Check frontend dependencies (only in native mode where they matter)
