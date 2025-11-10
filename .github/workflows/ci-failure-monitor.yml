@@ -14,48 +14,26 @@ jobs:
       actions: read
 
     steps:
-      - name: Create CI failure issue
-        # Best-effort monitoring: do not let the issue-creation step fail the job
+      - name: Log CI failure event
+        run: |
+          echo "CI Failure monitor triggered for workflow: ${{ github.event.workflow_run.name }}"
+          echo "Branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Commit: ${{ github.event.workflow_run.head_sha }}"
+
+      - name: Create CI failure issue (using PAT if available)
+        # Best-effort: use a repo secret PAT if present, otherwise skip. Do not fail the job.
         continue-on-error: true
-        uses: actions/github-script@v6
-        with:
-          script: |
-            try {
-              const run = context.payload.workflow_run;
-              const repoInfo = context.repo;
-              const title = `CI failure: ${run.name} (${run.head_branch})`;
+        if: ${{ secrets.CI_MONITOR_TOKEN != '' }}
+        env:
+          TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
+        run: |
+          set -euo pipefail
+          title="CI failure: ${{ github.event.workflow_run.name }} (${{ github.event.workflow_run.head_branch }})"
+          body="A workflow run failed on branch **${{ github.event.workflow_run.head_branch }}**.\n\nWorkflow: ${{ github.event.workflow_run.name }}\nCommit: ${{ github.event.workflow_run.head_sha }}\nRun URL: ${{ github.event.workflow_run.html_url }}\n\nThis issue was created automatically by the CI Failure Monitor workflow."
+          payload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure"]}')
+          curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues"
 
-              // Avoid creating duplicate issues with the same title and label
-              const existing = await github.rest.issues.listForRepo({ owner: repoInfo.owner, repo: repoInfo.repo, state: 'open', labels: ['ci-failure'] });
-              if (existing.data.some(i => i.title === title)) {
-                console.log('Issue already exists; skipping creation.');
-              } else {
-                const jobsResp = await github.rest.actions.listJobsForWorkflowRun({ owner: repoInfo.owner, repo: repoInfo.repo, run_id: run.id });
-                const jobsList = (jobsResp && jobsResp.data && Array.isArray(jobsResp.data.jobs)) ? jobsResp.data.jobs : [];
-                const failedJobs = jobsList
-                  .filter(j => j.conclusion !== 'success')
-                  .map(j => `- ${j.name} (${j.conclusion || 'unknown'})`);
-
-                const bodyLines = [
-                  `A workflow run failed on branch **${run.head_branch}**.`,
-                  '',
-                  `Workflow: ${run.name}`,
-                  `Commit: ${run.head_sha}`,
-                  `Run URL: ${run.html_url}`,
-                  '',
-                  'Failed jobs:',
-                  ...failedJobs,
-                  '',
-                  `Logs: ${run.html_url}/logs`,
-                  '',
-                  'This issue was created automatically by the CI Failure Monitor workflow.'
-                ];
-
-                const body = bodyLines.join('\n');
-
-                await github.rest.issues.create({ owner: repoInfo.owner, repo: repoInfo.repo, title, body, labels: ['ci-failure'] });
-              }
-            } catch (err) {
-              // Log the error but don't fail the workflow - monitoring should be best-effort
-              console.log(`ci-failure-monitor: encountered an error but will not fail the workflow: ${err && err.toString ? err.toString() : String(err)}`);
-            }
+      - name: Skip issue creation (no PAT configured)
+        if: ${{ secrets.CI_MONITOR_TOKEN == '' }}
+        run: |
+          echo "No CI_MONITOR_TOKEN secret found; skipping automatic issue creation."
