@@ -33,16 +33,32 @@ jobs:
           echo "Commit: ${{ github.event.workflow_run.head_sha }}"
 
       - name: Create CI failure issue (using PAT if available)
+        id: create_issue
         continue-on-error: true
         env:
           TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
         run: |
           set -euo pipefail
+          # Ensure we always produce a small diagnostic file so subsequent upload step
+          # can attach it even when token is missing or API calls fail.
+          DIAG=monitor_issue_response.json
+          echo '{}' > "$DIAG"
           if [ -z "${TOKEN:-}" ]; then
-            echo "CI_MONITOR_TOKEN not set; skipping issue creation."
+            echo "CI_MONITOR_TOKEN not set; skipping issue creation." | tee -a "$DIAG"
+            # keep exit 0 so step is considered successful (we use continue-on-error above)
             exit 0
           fi
           title="CI failure: ${{ github.event.workflow_run.name }} (${{ github.event.workflow_run.head_branch }})"
           body="A workflow run failed on branch **${{ github.event.workflow_run.head_branch }}**.\n\nWorkflow: ${{ github.event.workflow_run.name }}\nCommit: ${{ github.event.workflow_run.head_sha }}\nRun URL: ${{ github.event.workflow_run.html_url }}\n\nFailed jobs will be available in the run logs."
           payload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure"]}')
-          curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues"
+          echo "Creating issue using PAT..."
+          # Write full API response to DIAG for post-run inspection
+          resp=$(curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues") || true
+          echo "$resp" > "$DIAG"
+
+      - name: Upload monitor diagnostic artifact (issue response)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-issue-response
+          path: monitor_issue_response.json
