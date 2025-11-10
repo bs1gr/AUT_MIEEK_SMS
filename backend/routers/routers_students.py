@@ -4,8 +4,7 @@ Handles all student-related CRUD operations and endpoints
 Split from main.py for better organization
 """
 
-# ruff: noqa: F401,F823,F841
-
+ 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional

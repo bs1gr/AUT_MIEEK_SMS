@@ -1,6 +1,5 @@
-"""Daily performance routes provide CRUD-style endpoints."""
 
-# ruff: noqa: F401,F823,F841
+"""Daily performance routes provide CRUD-style endpoints."""
 
 from datetime import date, datetime
 import logging
