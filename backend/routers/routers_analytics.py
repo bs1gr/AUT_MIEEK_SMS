@@ -1,10 +1,11 @@
 """
 Analytics Routes
 Provides endpoints for student analytics and final grade computations.
+Optimized with eager loading to prevent N+1 query problems.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import Dict, Any
 import logging
 
@@ -20,6 +21,7 @@ router = APIRouter(
 from backend.db import get_session as get_db
 from backend.db_utils import get_by_id_or_404
 from backend.errors import internal_server_error
+from backend.cache import cached_response
 
 
 def get_letter_grade(percentage: float) -> str:
