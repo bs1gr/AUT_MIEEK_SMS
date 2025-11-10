@@ -20,6 +20,8 @@ jobs:
           set -euo pipefail
           if [ -z "${CI_MONITOR_TOKEN:-}" ]; then
             echo "CI_MONITOR_TOKEN not set — skipping dispatch."
+            # write a small JSON file so the upload-artifact step always has a file to upload
+            printf '{"skipped": true, "reason": "CI_MONITOR_TOKEN not set"}\n' > dispatch_response.json
             exit 0
           fi
           API_URL="https://api.github.com/repos/${OWNER}/${{ github.event.repository.name || github.repository }}" || true
