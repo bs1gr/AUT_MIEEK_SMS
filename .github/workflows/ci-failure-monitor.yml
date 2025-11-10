@@ -51,4 +51,3 @@ jobs:
 
               await github.rest.issues.create({ owner: repoInfo.owner, repo: repoInfo.repo, title, body, labels: ['ci-failure'] });
             }
-

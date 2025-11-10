@@ -108,7 +108,9 @@ def _hash_token(raw: str) -> str:
 def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[timedelta] = None) -> str:
     # Create a JWT refresh token with a jti claim and longer expiry
     jti = uuid.uuid4().hex
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7)))
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7))
+    )
     to_encode = {"sub": str(getattr(user, "email", "")), "jti": jti, "type": "refresh", "exp": expire}
     token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
