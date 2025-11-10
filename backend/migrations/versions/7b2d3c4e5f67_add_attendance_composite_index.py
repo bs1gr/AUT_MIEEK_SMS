@@ -31,9 +31,11 @@ def upgrade() -> None:
     if dialect_name == "sqlite":
         # SQLite supports IF NOT EXISTS for CREATE INDEX
         try:
-            bind.execute(sa.text(
-                "CREATE INDEX IF NOT EXISTS idx_attendance_student_course_date ON attendances (student_id, course_id, date)"
-            ))
+            bind.execute(
+                sa.text(
+                    "CREATE INDEX IF NOT EXISTS idx_attendance_student_course_date ON attendances (student_id, course_id, date)"
+                )
+            )
         except Exception:
             # Best-effort: if the dialect/driver does not accept raw DDL here,
             # fall back to Alembic's op.create_index wrapped in a try/except.

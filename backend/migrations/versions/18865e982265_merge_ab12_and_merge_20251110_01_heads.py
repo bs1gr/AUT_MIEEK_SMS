@@ -5,6 +5,7 @@ Revises: ab12cd34ef56, merge_20251110_01
 Create Date: 2025-11-10 20:59:51.505078
 
 """
+
 from typing import Sequence, Union
 
 # alembic and sqlalchemy imports are intentionally omitted here because
@@ -13,10 +14,10 @@ from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = '18865e982265'
+revision: str = "18865e982265"
 # For Alembic merge revisions the down_revision can be a sequence of parent
 # revision ids; annotate accordingly so static type checkers accept the tuple.
-down_revision: Union[str, Sequence[str], None] = ('ab12cd34ef56', 'merge_20251110_01')
+down_revision: Union[str, Sequence[str], None] = ("ab12cd34ef56", "merge_20251110_01")
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

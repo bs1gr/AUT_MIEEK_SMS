@@ -1,4 +1,3 @@
-
 def test_register_login_me_success(client):
     # Register a new user
     payload = {"email": "alice@example.com", "password": "S3curePass!", "full_name": "Alice"}

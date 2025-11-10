@@ -39,6 +39,7 @@ def test_refresh_rotation_and_logout(client):
 
     # Check DB: the user should have two refresh token records (old rotated + new)
     from backend import models
+
     gen, db = _get_test_db_session()
     try:
         user = db.query(models.User).filter(models.User.email == payload["email"]).one()
@@ -103,6 +104,7 @@ def test_refresh_expiry(client):
         assert r3.status_code == 401
         # DB: the token record should exist and have an expires_at in the past
         from backend import models
+
         gen, db = _get_test_db_session()
         try:
             user = db.query(models.User).filter(models.User.email == payload["email"]).one()
@@ -111,6 +113,7 @@ def test_refresh_expiry(client):
             # The stored expires_at should be in the past (or at least <= now).
             # Normalize naive datetimes to UTC before comparing to avoid tz errors.
             now_utc = datetime.now(timezone.utc)
+
             def _is_past(exp):
                 if exp is None:
                     return False
