@@ -41,7 +41,7 @@ jobs:
 
       - name: Upload dispatch response artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci_monitor_dispatch_response
           path: dispatch_response.json
