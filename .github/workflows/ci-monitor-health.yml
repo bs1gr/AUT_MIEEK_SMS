@@ -10,25 +10,41 @@ jobs:
     name: Dispatch failing test workflow (health check)
     runs-on: ubuntu-latest
     steps:
-      - name: Dispatch failing workflow via PAT
-        uses: actions/github-script@v6
+      - name: Dispatch failing workflow via PAT (curl)
         env:
           CI_MONITOR_TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name || github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CI_MONITOR_TOKEN:-}" ]; then
+            echo "CI_MONITOR_TOKEN not set — skipping dispatch."
+            exit 0
+          fi
+          API_URL="https://api.github.com/repos/${OWNER}/${{ github.event.repository.name || github.repository }}" || true
+          WORKFLOW_ID="ci-failure-monitor-test.yml"
+          PAYLOAD=$(jq -n --arg ref "main" '{ref: $ref}')
+          echo "Dispatching $WORKFLOW_ID on ref main for repo ${OWNER}/${{ github.event.repository.name || github.repository }}"
+          resp_file=dispatch_response.json
+          http_status=$(curl -s -w "%{http_code}" -o "$resp_file" -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${CI_MONITOR_TOKEN}" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/repos/${OWNER}/${{ github.event.repository.name || github.repository }}/actions/workflows/${WORKFLOW_ID}/dispatches")
+          echo "HTTP status: $http_status"
+          if [ "$http_status" -ne 204 ]; then
+            echo "Dispatch failed — response saved to $resp_file"
+          else
+            echo "Dispatch accepted (204)."
+          fi
+
+      - name: Upload dispatch response artifact
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          script: |
-            if (!process.env.CI_MONITOR_TOKEN) {
-              core.info('CI_MONITOR_TOKEN not set — skipping dispatch.');
-              return;
-            }
-            const octokit = github.getOctokit(process.env.CI_MONITOR_TOKEN);
-            core.info('Creating workflow_dispatch for ci-failure-monitor-test.yml');
-            await octokit.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'ci-failure-monitor-test.yml',
-              ref: 'main'
-            });
-            core.info('Dispatch request sent.');
+          name: ci_monitor_dispatch_response
+          path: dispatch_response.json
 
       - name: Note
         run: |
