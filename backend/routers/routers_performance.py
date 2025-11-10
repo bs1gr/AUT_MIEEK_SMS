@@ -1,4 +1,3 @@
-
 """Daily performance routes provide CRUD-style endpoints."""
 
 from datetime import date, datetime

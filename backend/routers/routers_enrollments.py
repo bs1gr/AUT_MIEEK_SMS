@@ -1,4 +1,3 @@
-
 """Course enrollment endpoints with structured error responses."""
 
 import logging
