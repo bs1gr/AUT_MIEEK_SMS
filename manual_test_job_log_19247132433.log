@@ -1,0 +1,51 @@
+create-issue-manual	Set up job	﻿2025-11-10T21:45:50.6923291Z Current runner version: '2.329.0'
+create-issue-manual	Set up job	2025-11-10T21:45:50.6959269Z ##[group]Runner Image Provisioner
+create-issue-manual	Set up job	2025-11-10T21:45:50.6960524Z Hosted Compute Agent
+create-issue-manual	Set up job	2025-11-10T21:45:50.6961638Z Version: 20251016.436
+create-issue-manual	Set up job	2025-11-10T21:45:50.6962570Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+create-issue-manual	Set up job	2025-11-10T21:45:50.6963701Z Build Date: 2025-10-15T20:44:12Z
+create-issue-manual	Set up job	2025-11-10T21:45:50.6964792Z ##[endgroup]
+create-issue-manual	Set up job	2025-11-10T21:45:50.6965885Z ##[group]Operating System
+create-issue-manual	Set up job	2025-11-10T21:45:50.6966815Z Ubuntu
+create-issue-manual	Set up job	2025-11-10T21:45:50.6967664Z 24.04.3
+create-issue-manual	Set up job	2025-11-10T21:45:50.6968515Z LTS
+create-issue-manual	Set up job	2025-11-10T21:45:50.6969332Z ##[endgroup]
+create-issue-manual	Set up job	2025-11-10T21:45:50.6970341Z ##[group]Runner Image
+create-issue-manual	Set up job	2025-11-10T21:45:50.6971344Z Image: ubuntu-24.04
+create-issue-manual	Set up job	2025-11-10T21:45:50.6972261Z Version: 20251102.99.1
+create-issue-manual	Set up job	2025-11-10T21:45:50.6974211Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20251102.99/images/ubuntu/Ubuntu2404-Readme.md
+create-issue-manual	Set up job	2025-11-10T21:45:50.6977028Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20251102.99
+create-issue-manual	Set up job	2025-11-10T21:45:50.6979183Z ##[endgroup]
+create-issue-manual	Set up job	2025-11-10T21:45:50.6980970Z ##[group]GITHUB_TOKEN Permissions
+create-issue-manual	Set up job	2025-11-10T21:45:50.6983690Z Contents: read
+create-issue-manual	Set up job	2025-11-10T21:45:50.6984602Z Issues: write
+create-issue-manual	Set up job	2025-11-10T21:45:50.6985402Z Metadata: read
+create-issue-manual	Set up job	2025-11-10T21:45:50.6986664Z ##[endgroup]
+create-issue-manual	Set up job	2025-11-10T21:45:50.6990051Z Secret source: Actions
+create-issue-manual	Set up job	2025-11-10T21:45:50.6991486Z Prepare workflow directory
+create-issue-manual	Set up job	2025-11-10T21:45:50.7680342Z Prepare all required actions
+create-issue-manual	Set up job	2025-11-10T21:45:50.7821639Z Complete job name: create-issue-manual
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	﻿2025-11-10T21:45:50.8860088Z ##[group]Run set -euo pipefail
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8861236Z [36;1mset -euo pipefail[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8862338Z [36;1mif [ -z "${TOKEN:-}" ]; then[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8863562Z [36;1m  echo "CI_MONITOR_TOKEN not set; cannot create issue."[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8864731Z [36;1m  exit 1[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8865810Z [36;1mfi[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8867092Z [36;1mtitle="TEST CI failure monitor — manual run"[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8869197Z [36;1mbody="This is a test issue created by the CI failure monitor manual test workflow.\n\nRepo: ${REPO}\nTime: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8872058Z [36;1mpayload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure","monitor-test"]}')[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8873815Z [36;1mecho "Creating issue using PAT..."[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8875590Z [36;1mresp=$(curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${REPO}/issues")[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.8877853Z [36;1mecho "$resp"[0m
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.9530096Z shell: /usr/bin/bash -e {0}
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.9531631Z env:
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.9532742Z   TOKEN: ***
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.9533608Z   REPO: bs1gr/AUT_MIEEK_SMS
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:50.9534510Z ##[endgroup]
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.0390852Z Creating issue using PAT...
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.1367626Z {
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.1368688Z   "message": "Bad credentials",
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.1369893Z   "documentation_url": "https://docs.github.com/rest",
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.1370958Z   "status": "401"
+create-issue-manual	Create CI failure issue (manual test, uses PAT)	2025-11-10T21:45:51.1371699Z }
+create-issue-manual	Complete job	﻿2025-11-10T21:45:51.1486538Z Cleaning up orphan processes

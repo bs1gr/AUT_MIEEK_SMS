@@ -1,0 +1,14 @@
+bug
+chore
+ci-failure
+documentation
+duplicate
+enhancement
+good first issue
+help wanted
+housekeeping
+invalid
+needs-review
+question
+type:feat
+wontfix
