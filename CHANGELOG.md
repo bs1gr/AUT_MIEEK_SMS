@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
 ## [Unreleased]
+### Authentication: Refresh tokens (unreleased)
+
+- Added server-persisted refresh token support with rotation, expiry and revocation.
+  - Endpoints: POST /api/v1/auth/refresh, POST /api/v1/auth/logout (server-side revoke).
+  - Login now returns an access token (JWT) and a refresh token (rotating, single-use).
+  - Refresh tokens stored hashed in DB (table: refresh_tokens) with jti and expires_at.
+  - Rotation policy: refresh token exchange issues a new refresh token and revokes the previous one.
+  - Logout revokes the presented refresh token to prevent reuse.
+
+Migration notes:
+
+- A canonical Alembic migration was added to create the `refresh_tokens` table and a merge revision was created to reconcile with existing manual migrations. The original manual migration was archived. The migration runner was hardened to be idempotent for repeated test runs.
+
+Reference: backend/models.py (RefreshToken), backend/routers/routers_auth.py (refresh/logout endpoints), backend/migrations/versions/*
 
 Changes staged here will be included in the next release.
 
