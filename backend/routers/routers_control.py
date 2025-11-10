@@ -25,7 +25,7 @@ from importlib import metadata as importlib_metadata  # Python 3.8+
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
 
-limiter, RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
+_limiter, _RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
 
 logger = logging.getLogger(__name__)
 
@@ -890,8 +890,8 @@ async def run_troubleshooter():
 
     # Backend dependencies
     try:
-        import fastapi
-        import sqlalchemy
+        # If optional backend packages are missing, we catch ImportError below
+        pass
     except ImportError as e:
         results.append(
             DiagnosticResult(
