@@ -145,7 +145,10 @@ def run_migrations(verbose: bool = False) -> bool:
             msg = str(e).lower()
             # Treat benign 'already exists' / duplicate DDL errors as success
             # because the desired schema appears to be present already.
-            if any(substr in msg for substr in ("already exists", "duplicate column", "index already exists", "table already exists")):
+            if any(
+                substr in msg
+                for substr in ("already exists", "duplicate column", "index already exists", "table already exists")
+            ):
                 logger.warning("Alembic upgrade raised benign duplicate-DDL error; treating as success: %s", e)
                 if verbose:
                     print(f"WARNING: Migration raised benign error: {e}")
@@ -161,8 +164,13 @@ def run_migrations(verbose: bool = False) -> bool:
                 command.upgrade(cfg, "heads")
             except Exception as e2:
                 msg2 = str(e2).lower()
-                if any(substr in msg2 for substr in ("already exists", "duplicate column", "index already exists", "table already exists")):
-                    logger.warning("Alembic fallback upgrade raised benign duplicate-DDL error; treating as success: %s", e2)
+                if any(
+                    substr in msg2
+                    for substr in ("already exists", "duplicate column", "index already exists", "table already exists")
+                ):
+                    logger.warning(
+                        "Alembic fallback upgrade raised benign duplicate-DDL error; treating as success: %s", e2
+                    )
                     if verbose:
                         print(f"WARNING: Migration raised benign error on fallback: {e2}")
                     return True
