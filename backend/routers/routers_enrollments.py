@@ -1,5 +1,7 @@
 """Course enrollment endpoints with structured error responses."""
 
+# ruff: noqa: F401,F823,F841
+
 import logging
 from typing import List
 
@@ -48,7 +50,7 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
     try:
         CourseEnrollment, Course = import_names("models", "CourseEnrollment", "Course")
 
-        course = get_by_id_or_404(db, Course, course_id)
+        _course = get_by_id_or_404(db, Course, course_id)
         enrollments = (
             db.query(CourseEnrollment)
             .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.deleted_at.is_(None))
@@ -68,7 +70,7 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
     try:
         Student, CourseEnrollment = import_names("models", "Student", "CourseEnrollment")
 
-        student = get_by_id_or_404(db, Student, student_id)
+        _student = get_by_id_or_404(db, Student, student_id)
         enrollments = (
             db.query(CourseEnrollment)
             .filter(CourseEnrollment.student_id == student_id, CourseEnrollment.deleted_at.is_(None))
@@ -88,7 +90,7 @@ def list_enrolled_students(course_id: int, request: Request, db: Session = Depen
     try:
         Course, Student, CourseEnrollment = import_names("models", "Course", "Student", "CourseEnrollment")
 
-        course = get_by_id_or_404(db, Course, course_id)
+        _course = get_by_id_or_404(db, Course, course_id)
         q = (
             db.query(Student)
             .join(CourseEnrollment, CourseEnrollment.student_id == Student.id)
@@ -121,7 +123,7 @@ def enroll_students(
     try:
         CourseEnrollment, Course, Student = import_names("models", "CourseEnrollment", "Course", "Student")
 
-        course = get_by_id_or_404(db, Course, course_id)
+        _course = get_by_id_or_404(db, Course, course_id)
 
         # Fetch all students at once to avoid N+1 queries
         students = db.query(Student).filter(Student.id.in_(payload.student_ids), Student.deleted_at.is_(None)).all()

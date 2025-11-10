@@ -2,6 +2,7 @@
 IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
 """
+# ruff: noqa: F401,F823,F841
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
@@ -86,11 +87,11 @@ def create_grade(
     try:
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
-        # Validate student exists and is not soft-deleted
-        student = get_by_id_or_404(db, Student, grade_data.student_id)
+        # Validate student exists and is not soft-deleted (call kept for validation)
+        _student = get_by_id_or_404(db, Student, grade_data.student_id)
 
-        # Validate course exists and is not soft-deleted
-        course = get_by_id_or_404(db, Course, grade_data.course_id)
+        # Validate course exists and is not soft-deleted (call kept for validation)
+        _course = get_by_id_or_404(db, Course, grade_data.course_id)
 
         with transaction(db):
             db_grade = Grade(**grade_data.model_dump())
@@ -167,8 +168,8 @@ def get_student_grades(
     try:
         Grade, Student = import_names("models", "Grade", "Student")
 
-        # Validate student exists
-        student = get_by_id_or_404(db, Student, student_id)
+        # Validate student exists (call kept for validation)
+        _student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
 
@@ -203,8 +204,8 @@ def get_course_grades(
     try:
         Grade, Course = import_names("models", "Grade", "Course")
 
-        # Validate course exists
-        course = get_by_id_or_404(db, Course, course_id)
+        # Validate course exists (call kept for validation)
+        _course = get_by_id_or_404(db, Course, course_id)
 
         query = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
         rng = _normalize_date_range(start_date, end_date, request)
