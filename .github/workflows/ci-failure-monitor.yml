@@ -28,9 +28,10 @@ jobs:
               core.info('Issue already exists; skipping creation.');
             } else {
               const jobsResp = await github.rest.actions.listJobsForWorkflowRun({ owner: repoInfo.owner, repo: repoInfo.repo, run_id: run.id });
-              const failedJobs = jobsResp.data.jobs
+              const jobsList = (jobsResp && jobsResp.data && Array.isArray(jobsResp.data.jobs)) ? jobsResp.data.jobs : [];
+              const failedJobs = jobsList
                 .filter(j => j.conclusion !== 'success')
-                .map(j => `- ${j.name} (${j.conclusion})`);
+                .map(j => `- ${j.name} (${j.conclusion || 'unknown'})`);
 
               const bodyLines = [
                 `A workflow run failed on branch **${run.head_branch}**.`,
