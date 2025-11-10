@@ -4,7 +4,7 @@ Provides transaction management, query helpers, and common database operations.
 """
 
 from contextlib import contextmanager
-from typing import Type, TypeVar, Optional, Any, Dict
+from typing import TypeVar, Optional, Any, Dict
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
@@ -56,7 +56,7 @@ def transaction(db: Session, auto_commit: bool = True):
 # ============================================================================
 
 
-def get_active_query(db: Session, model: Type[T]) -> Query:
+def get_active_query(db: Session, model: Any) -> Query:
     """
     Get base query for non-deleted (soft delete) records.
 
@@ -74,8 +74,8 @@ def get_active_query(db: Session, model: Type[T]) -> Query:
 
 
 def get_active(
-    db: Session, model: Type[T], filters: Optional[Dict[str, Any]] = None, order_by: Optional[Any] = None
-) -> list[T]:
+    db: Session, model: Any, filters: Optional[Dict[str, Any]] = None, order_by: Optional[Any] = None
+) -> list[Any]:
     """
     Get all non-deleted records matching filters.
 
@@ -105,7 +105,7 @@ def get_active(
     return query.all()
 
 
-def get_by_id(db: Session, model: Type[T], id: int, include_deleted: bool = False) -> Optional[T]:
+def get_by_id(db: Session, model: Any, id: int, include_deleted: bool = False) -> Optional[Any]:
     """
     Get record by ID.
 
@@ -126,7 +126,7 @@ def get_by_id(db: Session, model: Type[T], id: int, include_deleted: bool = Fals
     return query.first()
 
 
-def get_by_id_or_404(db: Session, model: Type[T], id: int, include_deleted: bool = False) -> T:
+def get_by_id_or_404(db: Session, model: Any, id: int, include_deleted: bool = False) -> Any:
     """
     Get record by ID or raise 404.
 
@@ -156,7 +156,7 @@ def get_by_id_or_404(db: Session, model: Type[T], id: int, include_deleted: bool
 
 def exists(
     db: Session,
-    model: Type[T],
+    model: Any,
     filters: Dict[str, Any],
     exclude_id: Optional[int] = None,
     include_deleted: bool = False,
@@ -256,7 +256,7 @@ def paginate(query: Query, skip: int = 0, limit: int = 100, max_limit: int = 100
 # ============================================================================
 
 
-def soft_delete(db: Session, obj: T) -> T:
+def soft_delete(db: Session, obj: Any) -> Any:
     """
     Soft delete a record by setting deleted_at timestamp.
 
@@ -286,7 +286,7 @@ def soft_delete(db: Session, obj: T) -> T:
     return obj
 
 
-def restore(db: Session, obj: T) -> T:
+def restore(db: Session, obj: Any) -> Any:
     """
     Restore a soft-deleted record.
 
@@ -330,7 +330,7 @@ def validate_date_range(start_date: Optional[Any], end_date: Optional[Any]) -> N
 
 def validate_unique_constraint(
     db: Session,
-    model: Type[T],
+    model: Any,
     field: str,
     value: Any,
     exclude_id: Optional[int] = None,
@@ -367,7 +367,7 @@ def validate_unique_constraint(
 # ============================================================================
 
 
-def bulk_create(db: Session, model: Type[T], data_list: list[Dict[str, Any]], commit: bool = True) -> list[T]:
+def bulk_create(db: Session, model: Any, data_list: list[Dict[str, Any]], commit: bool = True) -> list[Any]:
     """
     Bulk create records efficiently.
 
@@ -397,7 +397,7 @@ def bulk_create(db: Session, model: Type[T], data_list: list[Dict[str, Any]], co
     return instances
 
 
-def bulk_update(db: Session, model: Type[T], updates: list[Dict[str, Any]], commit: bool = True) -> int:
+def bulk_update(db: Session, model: Any, updates: list[Dict[str, Any]], commit: bool = True) -> int:
     """
     Bulk update records efficiently.
 

@@ -1,3 +1,4 @@
+
 """Highlights Router providing CRUD operations for student highlights."""
 
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
@@ -42,7 +43,7 @@ def create_highlight(
         404: Student not found
     """
     try:
-        student = get_by_id_or_404(db, Student, highlight.student_id)
+        _student = get_by_id_or_404(db, Student, highlight.student_id)
 
         with transaction(db):
             db_highlight = Highlight(
@@ -171,7 +172,7 @@ def get_student_highlights(
         404: Student not found
     """
     try:
-        student = get_by_id_or_404(db, Student, student_id)
+        _student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Highlight).filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
         if semester:
