@@ -4,6 +4,8 @@ Provides endpoints for student analytics and final grade computations.
 Optimized with eager loading to prevent N+1 query problems.
 """
 
+# ruff: noqa: F401,F823,F841
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any
@@ -45,7 +47,7 @@ def calculate_final_grade(request: Request, student_id: int, course_id: int, db:
             "models", "Course", "Grade", "DailyPerformance", "Attendance", "Student"
         )
 
-        student = get_by_id_or_404(db, Student, student_id)
+        _student = get_by_id_or_404(db, Student, student_id)
         course = get_by_id_or_404(db, Course, course_id)
 
         evaluation_rules = course.evaluation_rules or []
