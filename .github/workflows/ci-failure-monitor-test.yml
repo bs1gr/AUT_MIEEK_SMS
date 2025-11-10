@@ -1,0 +1,18 @@
+name: CI Failure Monitor Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fail-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log and fail deliberately
+        run: |
+          echo "This is a deliberate failing run to validate the CI failure monitor"
+          echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          # Intentionally fail
+          exit 1
