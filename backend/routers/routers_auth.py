@@ -6,8 +6,11 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
 from passlib.context import CryptContext
+import hashlib
+import uuid
 from sqlalchemy.orm import Session
 from backend.errors import ErrorCode, http_error, internal_server_error
+import logging
 
 # Local imports resilient to run path - use importlib to avoid redefinition warnings
 import importlib
@@ -36,7 +39,12 @@ models = (
 # uses dynamic imports to support different execution entry paths.
 if TYPE_CHECKING:
     from backend import models as models  # type: ignore
-    from backend.schemas import UserCreate, UserLogin, UserResponse, Token  # type: ignore
+    from backend.schemas import (
+        UserCreate,
+        UserLogin,
+        UserResponse,
+        Token,
+    )  # type: ignore
 else:
     schemas_mod = None
     try:
@@ -48,6 +56,10 @@ else:
     UserLogin = getattr(schemas_mod, "UserLogin")
     UserResponse = getattr(schemas_mod, "UserResponse")
     Token = getattr(schemas_mod, "Token")
+    # Advanced auth schemas
+    RefreshRequest = getattr(schemas_mod, "RefreshRequest")
+    RefreshResponse = getattr(schemas_mod, "RefreshResponse")
+    LogoutRequest = getattr(schemas_mod, "LogoutRequest")
 
 try:
     rl_mod = importlib.import_module("backend.rate_limiting")
@@ -88,6 +100,49 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def _hash_token(raw: str) -> str:
+    # Use SHA-256 hex digest for DB-stored token fingerprint
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[timedelta] = None) -> str:
+    # Create a JWT refresh token with a jti claim and longer expiry
+    jti = uuid.uuid4().hex
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7)))
+    to_encode = {"sub": str(getattr(user, "email", "")), "jti": jti, "type": "refresh", "exp": expire}
+    token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    # Persist token fingerprint
+    try:
+        rt = models.RefreshToken(
+            user_id=getattr(user, "id"),
+            jti=jti,
+            token_hash=_hash_token(token),
+            expires_at=expire,
+            revoked=False,
+        )
+        db.add(rt)
+        db.commit()
+    except Exception:
+        db.rollback()
+        # If DB persistence fails, do not leak details - still return token (best-effort)
+    return token
+
+
+def revoke_refresh_token_by_jti(db: Session, jti: str) -> bool:
+    try:
+        tok = db.query(models.RefreshToken).filter(models.RefreshToken.jti == jti).first()
+        if not tok:
+            return False
+        tok.revoked = True
+        db.add(tok)
+        db.commit()
+        return True
+    except Exception:
+        db.rollback()
+        return False
+
+
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
@@ -114,7 +169,7 @@ async def get_current_user(
     except InvalidTokenError:
         raise credentials_exception
 
-    user: Optional[models.User] = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(models.User).filter(models.User.email == email).first()
     if user is None or not bool(getattr(user, "is_active", False)):
         raise credentials_exception
     return user
@@ -191,9 +246,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
 @limiter.limit(RATE_LIMIT_AUTH)
 async def login(request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db)):
     try:
-        user: Optional[models.User] = (
-            db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
-        )
+        user = db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
         if not user or not verify_password(payload.password, hashed_pw):
             raise http_error(
@@ -204,7 +257,12 @@ async def login(request: Request, payload: UserLogin = Body(...), db: Session = 
             )
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
-        return Token(access_token=access_token)
+        # Also issue a refresh token
+        try:
+            refresh_token = create_refresh_token_for_user(db, user)
+            return Token(access_token=access_token, refresh_token=refresh_token)
+        except Exception:
+            return Token(access_token=access_token)
     except HTTPException:
         raise
     except Exception as exc:
@@ -215,3 +273,113 @@ async def login(request: Request, payload: UserLogin = Body(...), db: Session = 
 @limiter.limit(RATE_LIMIT_AUTH)
 async def me(request: Request, current_user: Any = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/auth/refresh")
+@limiter.limit(RATE_LIMIT_AUTH)
+async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Session = Depends(get_db)):
+    try:
+        raw = payload.refresh_token
+        payload_decoded = decode_token(raw)
+        if payload_decoded.get("type") != "refresh":
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Invalid refresh token",
+                request,
+            )
+        jti = payload_decoded.get("jti")
+        email = payload_decoded.get("sub")
+        if not jti or not email:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Invalid refresh token",
+                request,
+            )
+
+        # Verify stored token exists and not revoked/expired
+        stored = db.query(models.RefreshToken).filter(models.RefreshToken.jti == jti).first()
+        if not stored or stored.revoked:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Refresh token expired or revoked",
+                request,
+            )
+        # Normalize stored.expires_at to timezone-aware for comparison
+        stored_expires = stored.expires_at
+        try:
+            if getattr(stored_expires, "tzinfo", None) is None:
+                # assume UTC when naive
+                stored_expires = stored_expires.replace(tzinfo=timezone.utc)
+        except Exception:
+            stored_expires = stored_expires
+        if stored_expires < datetime.now(timezone.utc):
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Refresh token expired or revoked",
+                request,
+            )
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Refresh token expired or revoked",
+                request,
+            )
+
+        # Issue new access token and rotate refresh token (revoke old, insert new)
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if not user:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "User not found",
+                request,
+            )
+
+        # Revoke old token
+        stored.revoked = True
+        db.add(stored)
+        db.commit()
+
+        new_access = create_access_token(subject=str(getattr(user, "email", "")))
+        new_refresh = create_refresh_token_for_user(db, user)
+        return RefreshResponse(access_token=new_access, refresh_token=new_refresh)
+    except HTTPException:
+        raise
+    except InvalidTokenError:
+        raise http_error(
+            status.HTTP_401_UNAUTHORIZED,
+            ErrorCode.UNAUTHORIZED,
+            "Invalid refresh token",
+            request,
+        )
+    except Exception:
+        logging.getLogger(__name__).exception("Refresh failed")
+        raise internal_server_error("Refresh failed", request)
+
+
+@router.post("/auth/logout")
+@limiter.limit(RATE_LIMIT_AUTH)
+async def logout(request: Request, payload: LogoutRequest = Body(...), db: Session = Depends(get_db)):
+    try:
+        raw = payload.refresh_token
+        payload_decoded = decode_token(raw)
+        jti = payload_decoded.get("jti")
+        if not jti:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Invalid token",
+                request,
+            )
+        revoked = revoke_refresh_token_by_jti(db, jti)
+        if not revoked:
+            # respond 200 anyway to avoid leaking token state
+            return {"ok": True}
+        return {"ok": True}
+    except Exception:
+        # On unexpected errors, still return 200 to keep logout idempotent
+        return {"ok": True}
