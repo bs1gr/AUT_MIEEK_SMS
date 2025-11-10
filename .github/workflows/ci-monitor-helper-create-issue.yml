@@ -1,46 +1,12 @@
-name: CI Monitor Helper - create issue (manual)
+name: CI Monitor Helper - deprecated
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_id:
-        description: 'Workflow run ID to reference in the issue (optional)'
-        required: false
+  workflow_dispatch: {}
 
 jobs:
-  create-issue-manual:
+  noop:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-
     steps:
-      - name: Create issue using PAT
-        env:
-          GH_TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.event.inputs.run_id }}
+      - name: Deprecated
         run: |
-          set -euo pipefail
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "CI_MONITOR_TOKEN not set — cannot create issue."
-            exit 1
-          fi
-          if [ -n "${RUN_ID:-}" ]; then
-            run_url="https://github.com/${REPO}/actions/runs/${RUN_ID}"
-            body="A workflow run failed. See run: ${run_url}"
-            title="CI failure (helper): run ${RUN_ID}"
-          else
-            body="A workflow run failed. (no run_id provided to helper)"
-            title="CI failure (helper): manual"
-          fi
-          # Use gh CLI with GH_TOKEN to create issue and capture JSON response
-          export GH_TOKEN
-          gh api repos/${REPO}/issues -f title="$title" -f body="$body" > monitor_issue_response.json
-          echo "Wrote monitor_issue_response.json"
-
-      - name: Upload monitor response artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: monitor_issue_response
-          path: monitor_issue_response.json
+          echo "This workflow is deprecated. The main CI Failure Monitor now uploads issue API responses as artifacts."
