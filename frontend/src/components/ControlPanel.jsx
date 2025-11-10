@@ -210,38 +210,7 @@ const ControlPanel = () => {
     }
   };
 
-  const stopAll = async () => {
-    // Check if running in Docker mode
-    const isDockerMode = environment?.environment_mode === 'docker';
-
-
-    let confirmMessage = t('controlPanel.confirmStopAll');
-    if (isDockerMode) {
-      confirmMessage = t('controlPanel.confirmStopAllDocker');
-    }
-
-    if (!confirm(confirmMessage)) return;
-
-    try {
-      // Prefer new unified exit endpoint (stops Docker if possible, then shuts down everything)
-      await axios.post(`${CONTROL_API}/operations/exit-all`, { });
-      const msg = isDockerMode
-        ? t('controlPanel.backendStoppingDocker')
-        : t('controlPanel.allServicesStopping');
-      setOperationStatus({ type: 'warning', message: msg });
-    } catch (error) {
-      // Fallback to legacy stop-all if new endpoint is not available
-      try {
-        await axios.post(`${LEGACY_CONTROL_API}/stop-all`);
-        const msg = isDockerMode
-          ? t('controlPanel.backendStoppingDocker')
-          : t('controlPanel.allServicesStopping');
-        setOperationStatus({ type: 'warning', message: msg });
-      } catch (_) {
-        // Expected - backend will shut down or endpoint may be unreachable during shutdown
-      }
-    }
-  };
+  // stopAll operation removed from UI per request
 
   // Initial load
   useEffect(() => {
@@ -424,26 +393,7 @@ const ControlPanel = () => {
               </div>
             )}
 
-            {/* System Control */}
-            <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/20 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Square size={20} className="text-red-400" />
-                {t('controlPanel.systemControl')}
-              </h2>
-              <button
-                onClick={stopAll}
-                disabled={!status?.backend}
-                className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed border border-red-200 dark:border-red-700 rounded-lg transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <Square size={18} />
-                  {t('controlPanel.stopAllServices')}
-                </span>
-                <span className="text-xs text-red-300">
-                  {environment?.environment_mode === 'docker' ? '(Backend only - use .\SMS.ps1 -Stop for full shutdown)' : '(All services)'}
-                </span>
-              </button>
-            </div>
+            {/* System Control removed per request: Stop All / Exit button removed from UI */}
 
             {/* Native Operations - Hidden in Docker mode */}
             {environment?.environment_mode !== 'docker' && (

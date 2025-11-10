@@ -62,7 +62,7 @@ def run_migrations(verbose: bool = False) -> bool:
 
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
-                    if (p / ".git").exists() or (p / "backend").exists() and (p / "backend").is_dir():
+                    if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
                         return p
                 # Fallback to two levels up (legacy layout) or cwd
                 fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
@@ -100,8 +100,24 @@ def run_migrations(verbose: bool = False) -> bool:
             # Non-fatal: migration logging is best-effort
             pass
 
-        # Run upgrade head
-        command.upgrade(cfg, "head")
+        # Run upgrade head. Some repositories (eg. after merges) can have
+        # multiple Alembic heads; attempt the normal 'head' upgrade first and
+        # fall back to 'heads' when Alembic reports multiple head revisions.
+        try:
+            command.upgrade(cfg, "head")
+        except Exception as e:
+            # Some Alembic errors (including KeyError during head maintenance)
+            # can occur when multiple heads exist. Try the conservative
+            # fallback: upgrade to 'heads'. If that also fails, re-raise the
+            # original exception to be handled by the caller.
+            logger.warning("Initial Alembic upgrade(head) failed: %s", e)
+            try:
+                logger.info("Attempting Alembic upgrade to 'heads' as a fallback")
+                command.upgrade(cfg, "heads")
+            except Exception:
+                logger.exception("Fallback upgrade to 'heads' also failed")
+                # Re-raise original error to preserve context
+                raise
 
         if verbose:
             print("\nOK: Database migrations applied successfully")

@@ -79,7 +79,7 @@ async def health_check(db: Session = Depends(get_db)):
             "uptime": uptime,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Health check failed: {e!s}")
 
 
 @router.post("/reset-database")
@@ -97,7 +97,7 @@ async def reset_database():
 
         return {"message": "Database reset successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reset database: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to reset database: {e!s}")
 
 
 @router.post("/backup-database")
@@ -138,7 +138,7 @@ async def backup_database():
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to backup database: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to backup database: {e!s}")
 
 
 @router.post("/sample-data")
@@ -219,7 +219,7 @@ async def add_sample_data(db: Session = Depends(get_db)):
         return {"message": "Sample data added successfully", "students": len(students), "courses": len(courses)}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to add sample data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to add sample data: {e!s}")
 
 
 @router.get("/debug-processes")

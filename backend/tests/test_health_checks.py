@@ -148,7 +148,7 @@ def test_disk_space_check_degraded(health_checker):
 
 
 def test_disk_space_check_exception(health_checker, monkeypatch):
-    def boom(_path):  # noqa: ANN001
+    def boom(_path):
         raise OSError("boom")
 
     monkeypatch.setattr("backend.health_checks.shutil.disk_usage", boom)
@@ -268,7 +268,7 @@ def test_detect_environment_cgroup_detection(health_checker, monkeypatch):
 def test_detect_environment_cgroup_failure_defaults_native(health_checker, monkeypatch):
     monkeypatch.setattr("os.path.exists", lambda path: False)
 
-    def boom(*_args, **_kwargs):  # noqa: ANN001
+    def boom(*_args, **_kwargs):
         raise OSError("no cgroup")
 
     monkeypatch.setattr("builtins.open", boom)
@@ -305,7 +305,7 @@ def test_frontend_check_not_running(health_checker):
 
 def test_detect_frontend_port_handles_socket_errors(health_checker, monkeypatch):
     class BoomSocket:
-        def __init__(self, *args, **kwargs):  # noqa: ANN001
+        def __init__(self, *args, **kwargs):
             raise OSError("fail")
 
     monkeypatch.setattr("backend.health_checks.socket.socket", BoomSocket)
@@ -412,7 +412,7 @@ def test_health_check_unhealthy_state(health_checker, mock_db_session):
 
 
 def test_get_database_stats_failure(health_checker, mock_db_session, monkeypatch):
-    def fake_find_spec(name):  # noqa: ANN001
+    def fake_find_spec(name):
         return None
 
     monkeypatch.setattr("backend.health_checks.importlib.util.find_spec", fake_find_spec)
@@ -422,7 +422,7 @@ def test_get_database_stats_failure(health_checker, mock_db_session, monkeypatch
 
 
 def test_get_system_info_failure(health_checker, monkeypatch):
-    def boom_hostname():  # noqa: ANN001
+    def boom_hostname():
         raise OSError("boom")
 
     monkeypatch.setattr("backend.health_checks.socket.gethostname", boom_hostname)
@@ -459,7 +459,7 @@ def test_get_network_ips_socket_fallback(health_checker, monkeypatch):
 def test_get_network_ips_exception(health_checker, monkeypatch):
     monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(net_if_addrs=lambda: {}))
 
-    def boom(*_args, **_kwargs):  # noqa: ANN001
+    def boom(*_args, **_kwargs):
         raise OSError("lookup failed")
 
     monkeypatch.setattr("backend.health_checks.socket.gethostbyname_ex", boom)

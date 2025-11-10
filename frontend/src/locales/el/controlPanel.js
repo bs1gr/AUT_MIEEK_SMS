@@ -3,12 +3,7 @@ export default {
   frontendStartFailed: 'Αποτυχία εκκίνησης frontend',
   frontendStopped: 'Το frontend σταμάτησε επιτυχώς',
   frontendStopFailed: 'Αποτυχία διακοπής frontend',
-  confirmStopAll: 'Να σταματήσουν όλες οι υπηρεσίες; Ο πίνακας ελέγχου θα γίνει μη διαθέσιμος.',
-  confirmStopAllDocker: 'ΣΗΜΑΝΤΙΚΟ: Εκτελείται σε λειτουργία Docker.\n\nΤο κουμπί "Stop All" μπορεί να σταματήσει μόνο το backend container από το Docker.\nΤο frontend/nginx container θα παραμείνει ενεργό.\n\nΓια πλήρη τερματισμό, χρησιμοποιήστε την εντολή στο host:\n  .\\SMS.ps1 -Stop\n  ή: docker compose stop\n\nΣυνέχεια με μερικό τερματισμό (μόνο backend);',
-  backendStoppingDocker: 'Το backend σταματά... Χρησιμοποιήστε εντολή στο host για να σταματήσετε όλα τα containers.',
-  allServicesStopping: 'Όλες οι υπηρεσίες σταματούν...',
-  systemControl: 'Έλεγχος Συστήματος',
-  stopAllServices: 'Διακοπή Όλων των Υπηρεσιών',
+  // 'Stop All' / system shutdown keys removed — this UI widget was deleted
   title: 'Πίνακας Ελέγχου',
   subtitle: 'Διαχείριση και παρακολούθηση συστήματος',
   dashboard: 'Επισκόπηση',

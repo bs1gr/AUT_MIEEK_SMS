@@ -74,7 +74,7 @@ def test_run_migrations_invokes_upgrade(monkeypatch):
 def test_run_migrations_handles_failure(monkeypatch):
     run_migrations = _reload_modules()
 
-    def boom(cfg, revision):  # noqa: ARG001
+    def boom(cfg, revision):
         raise RuntimeError("upgrade failed")
 
     monkeypatch.setattr(run_migrations.command, "upgrade", boom)

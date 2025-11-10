@@ -3,12 +3,7 @@ export default {
   frontendStartFailed: 'Failed to start frontend',
   frontendStopped: 'Frontend stopped successfully',
   frontendStopFailed: 'Failed to stop frontend',
-  confirmStopAll: 'Stop all services? The control panel will become unavailable.',
-  confirmStopAllDocker: 'IMPORTANT: Running in Docker mode.\n\nThe "Stop All" button can only stop the backend container from within Docker.\nThe frontend/nginx container will remain running.\n\nFor a complete shutdown, use the host command:\n  .\\SMS.ps1 -Stop\n  or: docker compose stop\n\nContinue with partial stop (backend only)?',
-  backendStoppingDocker: 'Backend stopping... Use host command to stop all containers.',
-  allServicesStopping: 'All services stopping...',
-  systemControl: 'System Control',
-  stopAllServices: 'Stop All Services',
+  // 'Stop All' / system shutdown keys removed — this UI widget was deleted
   title: 'Control Panel',
   subtitle: 'Manage and monitor your system',
   dashboard: 'Dashboard',

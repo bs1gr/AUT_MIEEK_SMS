@@ -35,6 +35,7 @@ from pathlib import Path
 
 # FastAPI imports
 from fastapi import FastAPI, Depends, Request
+from typing import Callable, Any, cast
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, FileResponse
@@ -45,6 +46,11 @@ import uvicorn
 # Rate limiting
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+# Optional import for common rate limit strings; fall back to defaults if missing
+try:
+    from backend.rate_limiting import RATE_LIMIT_WRITE
+except Exception:
+    RATE_LIMIT_WRITE = "10/minute"
 
 # Database imports
 from sqlalchemy.orm import Session
@@ -66,6 +72,69 @@ if importlib.util.find_spec("backend.config") is not None:
     rim_mod = importlib.import_module("backend.request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
     env_mod = importlib.import_module("backend.environment")
+    # Control API auth helpers
+    try:
+        # Import both the builtin require_control_admin and the factory so we can
+        # optionally integrate application auth (logged-in admin users) with the
+        # control dependency. We avoid hard failures if auth helpers can't be
+        # imported so tests and minimal environments stay functional.
+        from backend.control_auth import require_control_admin as _require_control_admin, create_control_dependency
+
+        # Attempt to build an auth_check that recognizes logged-in admin users
+        # by decoding a Bearer token and verifying the user's role in the DB.
+        def _build_auth_check():
+            try:
+                auth_mod = importlib.import_module("backend.routers.routers_auth")
+                models_mod = importlib.import_module("backend.models")
+            except Exception:
+                return None
+
+            def _auth_check(request: Request) -> bool:
+                # Expect standard 'Authorization: Bearer <token>' header
+                auth_hdr = request.headers.get("authorization") or request.headers.get("Authorization")
+                if not auth_hdr or not auth_hdr.lower().startswith("bearer "):
+                    return False
+                try:
+                    token = auth_hdr.split(None, 1)[1]
+                except Exception:
+                    return False
+
+                try:
+                    # Use the auth module's decode_token helper to validate JWT
+                    payload = getattr(auth_mod, "decode_token")(token)
+                    email_val = payload.get("sub")
+                    if not email_val:
+                        return False
+                    # Query DB for user and check role
+                    db = db_get_session()
+                    try:
+                        user = db.query(models_mod.User).filter(models_mod.User.email == email_val).first()
+                        return bool(user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin")
+                    finally:
+                        try:
+                            db.close()
+                        except Exception:
+                            pass
+                except Exception:
+                    return False
+
+            return _auth_check
+
+        _auth_check_fn = _build_auth_check()
+        if _auth_check_fn is not None:
+            # create_control_dependency returns an async dependency callable
+            # which may be typed differently than the original symbol. Use
+            # a runtime cast to keep static type checkers happy while
+            # preserving the runtime behavior.
+            require_control_admin = cast(Callable[..., Any], create_control_dependency(_auth_check_fn))
+        else:
+            require_control_admin = cast(Callable[..., Any], _require_control_admin)
+    except Exception:
+        # Provide a permissive noop dependency for environments where the helper
+        # cannot be imported (tests or minimal execution). This keeps imports
+        # from failing while still allowing dependency injection to work.
+        def require_control_admin(request):
+            return None
 else:
     # Fallback for direct execution inside backend/ directory
     config_mod = importlib.import_module("config")
@@ -79,6 +148,12 @@ else:
     rim_mod = importlib.import_module("request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
     env_mod = importlib.import_module("environment")
+    # Control API auth helpers (fallback for direct script execution)
+    try:
+        from backend.control_auth import require_control_admin
+    except Exception:
+        def require_control_admin(request):
+            return None
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -240,6 +315,36 @@ else:
     rl_mod = None
 
 limiter = getattr(rl_mod, "limiter") if rl_mod is not None else None
+# If limiting module couldn't be resolved via importlib, try direct import
+if limiter is None:
+    try:
+        from backend.rate_limiting import limiter as _direct_limiter
+
+        limiter = _direct_limiter
+    except Exception:
+        limiter = None
+
+# Provide a noop limiter with a .limit() decorator when rate-limiting is unavailable.
+# This keeps decorator usage safe for static analysis and test environments.
+if limiter is None:
+    class _NoopLimiter:
+        def limit(self, *args, **kwargs):
+            def _decorator(func):
+                return func
+
+            return _decorator
+
+    limiter = _NoopLimiter()
+
+
+    def _mask_token(tok: str | None) -> str:
+        if not tok:
+            return "<none>"
+        try:
+            return tok[:4] + "..." + tok[-4:]
+        except Exception:
+            return "<masked>"
+
 
 # ============================================================================
 # SCHEMAS
@@ -317,7 +422,7 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("⚠ Database migrations failed - application may not function correctly")
     except Exception as e:
-        logger.error(f"Migration runner error: {str(e)}")
+        logger.error(f"Migration runner error: {e!s}")
         logger.warning("Continuing without migration check...")
 
     # Verify schema presence. In some environments migrations may report success
@@ -764,11 +869,12 @@ def control_start():
 
     except Exception as e:
         logger.error(f"Unexpected error starting frontend: {e}", exc_info=True)
-        return JSONResponse({"success": False, "message": f"Unexpected error: {str(e)}"}, status_code=500)
+        return JSONResponse({"success": False, "message": f"Unexpected error: {e!s}"}, status_code=500)
 
 
+@limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/control/api/stop-all")
-def control_stop_all():
+def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
     """
     Comprehensive system shutdown - stops all services gracefully.
 
@@ -782,6 +888,13 @@ def control_stop_all():
     """
     global FRONTEND_PROCESS
     logger.info("=== System Shutdown Initiated ===")
+    # Audit info: log caller IP and whether admin token was provided (masked)
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info("Control API called: stop-all, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+    except Exception:
+        logger.debug("Failed to log control API audit info")
 
     try:
         stopped_services = []
@@ -819,7 +932,7 @@ def control_stop_all():
                 logger.warning("Frontend process object exists but has no PID")
             except Exception as e:
                 logger.error(f"Failed to stop tracked frontend: {e}")
-                errors.append(f"Tracked frontend: {str(e)}")
+                errors.append(f"Tracked frontend: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
         else:
@@ -854,7 +967,7 @@ def control_stop_all():
                         errors.append(f"Timeout killing PID {pid}")
                     except Exception as e:
                         logger.error(f"Error killing PID {pid}: {e}")
-                        errors.append(f"PID {pid}: {str(e)}")
+                        errors.append(f"PID {pid}: {e!s}")
 
         if frontend_stopped:
             stopped_services.append(f"Frontend ({ports_cleared} port(s) cleared)")
@@ -900,7 +1013,7 @@ def control_stop_all():
             errors.append("Node.js termination timeout")
         except Exception as e:
             logger.error(f"Failed to stop Node.js processes: {e}")
-            errors.append(f"Node.js: {str(e)}")
+            errors.append(f"Node.js: {e!s}")
 
         # ═══ PHASE 3: Schedule Backend Shutdown ═══
         logger.info("Phase 3: Scheduling backend shutdown...")
@@ -970,15 +1083,16 @@ def control_stop_all():
         return response_data
 
     except Exception as e:
-        logger.error(f"Critical shutdown error: {str(e)}", exc_info=True)
+        logger.error(f"Critical shutdown error: {e!s}", exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Shutdown error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            {"success": False, "message": f"Shutdown error: {e!s}", "timestamp": datetime.now().isoformat()},
             status_code=500,
         )
 
 
+@limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/control/api/stop")
-def control_stop():
+def control_stop(request: Request, _auth=Depends(require_control_admin)):
     """
     Stop frontend development server only (Vite).
 
@@ -992,6 +1106,13 @@ def control_stop():
     """
     global FRONTEND_PROCESS
     logger.info("Frontend stop requested")
+    # Audit info: log caller IP and token presence
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info("Control API called: stop, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+    except Exception:
+        logger.debug("Failed to log control API audit info")
 
     try:
         stopped_any = False
@@ -1026,7 +1147,7 @@ def control_stop():
                 errors.append("Invalid process object")
             except Exception as e:
                 logger.warning(f"Failed to stop tracked frontend: {e}")
-                errors.append(f"Tracked process: {str(e)}")
+                errors.append(f"Tracked process: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
 
@@ -1062,7 +1183,7 @@ def control_stop():
                         errors.append(f"Timeout: port {port} PID {pid}")
                     except Exception as e:
                         logger.warning(f"Failed to stop PID {pid} on port {port}: {e}")
-                        errors.append(f"Port {port} PID {pid}: {str(e)}")
+                        errors.append(f"Port {port} PID {pid}: {e!s}")
 
         # Build response
         if stopped_any:
@@ -1089,15 +1210,16 @@ def control_stop():
         return response_data
 
     except Exception as e:
-        logger.error(f"Frontend stop error: {str(e)}", exc_info=True)
+        logger.error(f"Frontend stop error: {e!s}", exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Frontend stop error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            {"success": False, "message": f"Frontend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
             status_code=500,
         )
 
 
+@limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/control/api/stop-backend")
-def control_stop_backend():
+def control_stop_backend(request: Request, _auth=Depends(require_control_admin)):
     """
     Stop backend server only (FastAPI/Uvicorn).
 
@@ -1110,6 +1232,13 @@ def control_stop_backend():
         JSONResponse with success status and shutdown timing
     """
     logger.info("Backend stop requested")
+    # Audit info: log caller IP and token presence
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info("Control API called: stop-backend, client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+    except Exception:
+        logger.debug("Failed to log control API audit info")
 
     try:
         current_pid = os.getpid()
@@ -1174,22 +1303,30 @@ def control_stop_backend():
         }
 
     except Exception as e:
-        logger.error(f"Backend stop error: {str(e)}", exc_info=True)
+        logger.error(f"Backend stop error: {e!s}", exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Backend stop error: {str(e)}", "timestamp": datetime.now().isoformat()},
+            {"success": False, "message": f"Backend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
             status_code=500,
         )
 
 
 # Alias for admin shutdown route (for backward compatibility)
+@limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/api/v1/admin/shutdown")
-def admin_shutdown():
+def admin_shutdown(request: Request, _auth=Depends(require_control_admin)):
     """
     Alias for backend shutdown - redirects to control API.
     Maintained for backward compatibility with admin routes.
     """
+    # Audit info: log caller IP and token presence for the alias route
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info("Admin shutdown route called (alias) - client=%s, token_present=%s, token=%s", client_ip, bool(token), _mask_token(token))
+    except Exception:
+        logger.debug("Failed to log admin shutdown audit info")
     logger.info("Admin shutdown route called (redirecting to control API)")
-    return control_stop_all()
+    return control_stop_all(request=request, _auth=_auth)
 
 
 # ============================================================================
