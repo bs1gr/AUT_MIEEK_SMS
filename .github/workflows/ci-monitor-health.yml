@@ -1,0 +1,35 @@
+name: CI Monitor Health
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # weekly on Sundays at 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  dispatch-failing-workflow:
+    name: Dispatch failing test workflow (health check)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch failing workflow via PAT
+        uses: actions/github-script@v6
+        env:
+          CI_MONITOR_TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
+        with:
+          script: |
+            if (!process.env.CI_MONITOR_TOKEN) {
+              core.info('CI_MONITOR_TOKEN not set — skipping dispatch.');
+              return;
+            }
+            const octokit = github.getOctokit(process.env.CI_MONITOR_TOKEN);
+            core.info('Creating workflow_dispatch for ci-failure-monitor-test.yml');
+            await octokit.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'ci-failure-monitor-test.yml',
+              ref: 'main'
+            });
+            core.info('Dispatch request sent.');
+
+      - name: Note
+        run: |
+          echo "This workflow will attempt to dispatch the deliberate failing workflow when a valid CI_MONITOR_TOKEN secret is present."
