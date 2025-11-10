@@ -104,7 +104,7 @@ def create_grade(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating grade: {str(e)}", exc_info=True)
+        logger.error(f"Error creating grade: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -186,7 +186,7 @@ def get_student_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving student grades: {str(e)}", exc_info=True)
+        logger.error(f"Error retrieving student grades: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -218,7 +218,7 @@ def get_course_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving course grades: {str(e)}", exc_info=True)
+        logger.error(f"Error retrieving course grades: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -271,7 +271,7 @@ def update_grade(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating grade: {str(e)}", exc_info=True)
+        logger.error(f"Error updating grade: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -297,7 +297,7 @@ def delete_grade(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting grade: {str(e)}", exc_info=True)
+        logger.error(f"Error deleting grade: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -340,5 +340,5 @@ def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Se
         }
 
     except Exception as e:
-        logger.error(f"Error analyzing grades: {str(e)}", exc_info=True)
+        logger.error(f"Error analyzing grades: {e!s}", exc_info=True)
         raise internal_server_error(request=request)

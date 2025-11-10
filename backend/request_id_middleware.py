@@ -73,7 +73,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Log errors with request ID
             logger.error(
-                f"Request failed: {request.method} {request.url.path} - Error: {str(e)}",
+                f"Request failed: {request.method} {request.url.path} - Error: {e!s}",
                 extra={"request_id": request_id},
                 exc_info=True,
             )

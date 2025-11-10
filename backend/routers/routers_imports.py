@@ -422,11 +422,11 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
                 students.append(student)
 
             except Exception as e:
-                errors.append(f"{filename} row {row_num}: {str(e)}")
+                errors.append(f"{filename} row {row_num}: {e!s}")
                 continue
 
     except Exception as e:
-        errors.append(f"{filename}: CSV parsing failed - {str(e)}")
+        errors.append(f"{filename}: CSV parsing failed - {e!s}")
 
     return students, errors
 
