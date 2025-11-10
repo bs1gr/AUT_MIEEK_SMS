@@ -11,12 +11,11 @@ the schema is not altered; the goal is to provide a canonical merge node
 in the Alembic graph.
 """
 
-
 # revision identifiers, used by Alembic.
-revision = 'merge_20251110_01'
+revision = "merge_20251110_01"
 down_revision = (
-    '6d2e9d1b4f77',
-    '7b2d3c4e5f67',
+    "6d2e9d1b4f77",
+    "7b2d3c4e5f67",
 )
 branch_labels = None
 depends_on = None
