@@ -1,0 +1,54 @@
+name: CI Failure Monitor
+
+on:
+  workflow_run:
+    types: [completed]
+
+jobs:
+  create-issue:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+
+    steps:
+      - name: Create CI failure issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const repoInfo = context.repo;
+            const title = `CI failure: ${run.name} (${run.head_branch})`;
+
+            // Avoid creating duplicate issues with the same title and label
+            const existing = await github.rest.issues.listForRepo({ owner: repoInfo.owner, repo: repoInfo.repo, state: 'open', labels: ['ci-failure'] });
+            if (existing.data.some(i => i.title === title)) {
+              core.info('Issue already exists; skipping creation.');
+            } else {
+              const jobsResp = await github.rest.actions.listJobsForWorkflowRun({ owner: repoInfo.owner, repo: repoInfo.repo, run_id: run.id });
+              const failedJobs = jobsResp.data.jobs
+                .filter(j => j.conclusion !== 'success')
+                .map(j => `- ${j.name} (${j.conclusion})`);
+
+              const bodyLines = [
+                `A workflow run failed on branch **${run.head_branch}**.`,
+                '',
+                `Workflow: ${run.name}`,
+                `Commit: ${run.head_sha}`,
+                `Run URL: ${run.html_url}`,
+                '',
+                'Failed jobs:',
+                ...failedJobs,
+                '',
+                `Logs: ${run.html_url}/logs`,
+                '',
+                'This issue was created automatically by the CI Failure Monitor workflow.'
+              ];
+
+              const body = bodyLines.join('\n');
+
+              await github.rest.issues.create({ owner: repoInfo.owner, repo: repoInfo.repo, title, body, labels: ['ci-failure'] });
+            }
+
