@@ -6,7 +6,6 @@ on:
 
 jobs:
   create-issue:
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -14,6 +13,19 @@ jobs:
       actions: read
 
     steps:
+      - name: Check event is a failed workflow_run
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          if [ "${{ github.event_name }}" != "workflow_run" ]; then
+            echo "Not a workflow_run event; exiting without error."
+            exit 0
+          fi
+          echo "workflow_run.conclusion=${{ github.event.workflow_run.conclusion }}"
+          if [ "${{ github.event.workflow_run.conclusion }}" != "failure" ]; then
+            echo "workflow_run did not fail; exiting without error."
+            exit 0
+          fi
+
       - name: Log CI failure event
         run: |
           echo "CI Failure monitor triggered for workflow: ${{ github.event.workflow_run.name }}"
@@ -21,19 +33,16 @@ jobs:
           echo "Commit: ${{ github.event.workflow_run.head_sha }}"
 
       - name: Create CI failure issue (using PAT if available)
-        # Best-effort: use a repo secret PAT if present, otherwise skip. Do not fail the job.
         continue-on-error: true
-        if: ${{ secrets.CI_MONITOR_TOKEN != '' }}
         env:
           TOKEN: ${{ secrets.CI_MONITOR_TOKEN }}
         run: |
           set -euo pipefail
+          if [ -z "${TOKEN:-}" ]; then
+            echo "CI_MONITOR_TOKEN not set; skipping issue creation."
+            exit 0
+          fi
           title="CI failure: ${{ github.event.workflow_run.name }} (${{ github.event.workflow_run.head_branch }})"
-          body="A workflow run failed on branch **${{ github.event.workflow_run.head_branch }}**.\n\nWorkflow: ${{ github.event.workflow_run.name }}\nCommit: ${{ github.event.workflow_run.head_sha }}\nRun URL: ${{ github.event.workflow_run.html_url }}\n\nThis issue was created automatically by the CI Failure Monitor workflow."
+          body="A workflow run failed on branch **${{ github.event.workflow_run.head_branch }}**.\n\nWorkflow: ${{ github.event.workflow_run.name }}\nCommit: ${{ github.event.workflow_run.head_sha }}\nRun URL: ${{ github.event.workflow_run.html_url }}\n\nFailed jobs will be available in the run logs."
           payload=$(jq -n --arg title "$title" --arg body "$body" '{title:$title, body:$body, labels:["ci-failure"]}')
           curl -s -H "Authorization: token $TOKEN" -X POST -d "$payload" "https://api.github.com/repos/${{ github.repository }}/issues"
-
-      - name: Skip issue creation (no PAT configured)
-        if: ${{ secrets.CI_MONITOR_TOKEN == '' }}
-        run: |
-          echo "No CI_MONITOR_TOKEN secret found; skipping automatic issue creation."
