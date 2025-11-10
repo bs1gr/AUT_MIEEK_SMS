@@ -1,8 +1,10 @@
-name: CI Failure Monitor
+name: CI Failure Monitor (disabled auto-run)
 
+# Temporarily disable automatic runs to stop CI failures while we fix the monitor.
+# Changed to manual dispatch only. To re-enable automatic monitoring, restore the
+# original 'workflow_run' trigger.
 on:
-  workflow_run:
-    types: [completed]
+  workflow_dispatch: {}
 
 jobs:
   create-issue:
