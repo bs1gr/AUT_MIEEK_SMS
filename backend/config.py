@@ -9,7 +9,7 @@ import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 
 
 def _path_within(path: Path, root: Path) -> bool:
@@ -120,8 +120,6 @@ class Settings(BaseSettings):
         if v < 1 or v > 52:
             raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
         return v
-
-    from pydantic import model_validator
 
     @model_validator(mode="after")
     def check_secret_key(self) -> "Settings":

@@ -79,9 +79,9 @@ def create_attendance(
 
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
-        # Validate student and course exist
-        student = get_by_id_or_404(db, Student, attendance_data.student_id)
-        course = get_by_id_or_404(db, Course, attendance_data.course_id)
+        # Validate student and course exist (call kept for validation)
+        _student = get_by_id_or_404(db, Student, attendance_data.student_id)
+        _course = get_by_id_or_404(db, Course, attendance_data.course_id)
 
         with transaction(db):
             # Use database-level locking to prevent duplicate attendance records
@@ -191,8 +191,8 @@ def get_student_attendance(
 
         Attendance, Student = import_names("models", "Attendance", "Student")
 
-        # Validate student exists
-        student = get_by_id_or_404(db, Student, student_id)
+        # Validate student exists (call kept for validation)
+        _student = get_by_id_or_404(db, Student, student_id)
 
         query = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
 
@@ -227,8 +227,8 @@ def get_course_attendance(
 
         Attendance, Course = import_names("models", "Attendance", "Course")
 
-        # Validate course exists
-        course = get_by_id_or_404(db, Course, course_id)
+        # Validate course exists (call kept for validation)
+        _course = get_by_id_or_404(db, Course, course_id)
 
         query = db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
         rng = _normalize_date_range(start_date, end_date)
@@ -258,7 +258,7 @@ def get_attendance_by_date_and_course(
 
         Attendance, Course = import_names("models", "Attendance", "Course")
 
-        course = get_by_id_or_404(db, Course, course_id)
+        _course = get_by_id_or_404(db, Course, course_id)
 
         records = (
             db.query(Attendance)
@@ -424,8 +424,8 @@ def bulk_create_attendance(
         with transaction(db):
             for idx, attendance_data in enumerate(attendance_list):
                 try:
-                    student = get_by_id_or_404(db, Student, attendance_data.student_id)
-                    course = get_by_id_or_404(db, Course, attendance_data.course_id)
+                    _student = get_by_id_or_404(db, Student, attendance_data.student_id)       
+                    _course = get_by_id_or_404(db, Course, attendance_data.course_id)
 
                     existing = (
                         db.query(Attendance)

@@ -1,3 +1,4 @@
+
 """Daily performance routes provide CRUD-style endpoints."""
 
 from datetime import date, datetime
@@ -59,8 +60,8 @@ def create_daily_performance(
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
 
-        student = get_by_id_or_404(db, Student, performance.student_id)
-        course = get_by_id_or_404(db, Course, performance.course_id)
+        _student = get_by_id_or_404(db, Student, performance.student_id)
+        _course = get_by_id_or_404(db, Course, performance.course_id)
 
         with transaction(db):
             db_performance = DailyPerformance(**performance.model_dump())

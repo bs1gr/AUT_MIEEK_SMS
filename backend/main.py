@@ -26,7 +26,7 @@ import io
 import os
 import subprocess
 import socket
-import time
+import time as _time
 import shutil
 import threading
 from datetime import datetime
@@ -411,7 +411,7 @@ async def lifespan(app: FastAPI):
 
     # Record start time for uptime in health endpoint
     try:
-        app.state.start_time = time.time()
+        app.state.start_time = _time.time()
     except Exception:
         pass
 
@@ -484,7 +484,6 @@ async def lifespan(app: FastAPI):
                 # This is more reliable than HTTP requests during startup
                 try:
                     import threading
-                    import time
                     import requests
 
                     def delayed_import():
@@ -498,7 +497,7 @@ async def lifespan(app: FastAPI):
                         for attempt in range(max_retries):
                             try:
                                 # Wait for server to be fully ready
-                                time.sleep(retry_delay * (attempt + 1))
+                                _time.sleep(retry_delay * (attempt + 1))
 
                                 port = getattr(settings, "API_PORT", 8000)
                                 response = requests.post(
@@ -826,7 +825,7 @@ def control_start():
         logger.info("Waiting for frontend server to be ready...")
         max_attempts = 120  # 30 seconds (120 * 0.25s)
         for attempt in range(max_attempts):
-            time.sleep(0.25)
+            _time.sleep(0.25)
 
             # Check if process is still running
             if FRONTEND_PROCESS.poll() is not None:
@@ -1009,7 +1008,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
                     logger.info("✓ All Node.js processes terminated")
 
                     # Brief wait for process cleanup
-                    time.sleep(0.5)
+                    _time.sleep(0.5)
                 else:
                     logger.warning(f"taskkill node.exe returned {kill_result.returncode}")
                     if kill_result.stderr:
@@ -1030,7 +1029,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
         def _delayed_backend_shutdown():
             """Delayed shutdown to allow HTTP response to complete"""
             try:
-                time.sleep(1.0)  # 1 second delay for response transmission
+                _time.sleep(1.0)  # 1 second delay for response transmission
                 logger.info("Executing backend shutdown sequence")
 
                 current_pid = os.getpid()
@@ -1268,7 +1267,7 @@ def control_stop_backend(request: Request, _auth=Depends(require_control_admin))
         def _delayed_exit():
             """Delayed shutdown thread to allow HTTP response transmission"""
             try:
-                time.sleep(0.75)  # 750ms delay allows response to be sent
+                _time.sleep(0.75)  # 750ms delay allows response to be sent
                 logger.info("Executing backend shutdown sequence")
 
                 # Terminate process tree (handles uvicorn --reload mode)
