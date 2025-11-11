@@ -99,6 +99,23 @@ def rbac_client() -> Generator[TestClient, None, None]:
 
 
 def _register_user(client: TestClient, email: str, password: str, role: str = "teacher") -> None:
+    # Tests run against the API, but creating an admin account via the
+    # public /register endpoint is disallowed by design. For tests that
+    # need an admin user, insert directly into the test DB instead of
+    # relying on /auth/register when role=='admin'.
+    if role == "admin":
+        # Use the test DB session override to create an admin user directly
+        from backend import models
+        from backend.db import get_session as db_get_session
+        from backend.routers.routers_auth import get_password_hash
+
+        db_gen = next(client.app.dependency_overrides[db_get_session]())
+        with db_gen as db:
+            u = models.User(email=email.lower(), hashed_password=get_password_hash(password), role="admin", is_active=True)
+            db.add(u)
+            db.commit()
+            return
+
     payload = {"email": email, "password": password, "role": role}
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200, r.text
