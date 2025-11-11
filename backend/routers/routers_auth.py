@@ -45,6 +45,7 @@ if TYPE_CHECKING:
         UserResponse,
         Token,
     )  # type: ignore
+
     # Advanced auth schemas used by refresh/logout endpoints
     from backend.schemas import (
         RefreshRequest,
@@ -236,21 +237,25 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
         # Default to 'teacher' for anonymous registrations. If the request
         # includes a valid admin Authorization: Bearer <token>, allow the
         # caller to set the role (useful for internal admin flows).
-        assigned_role = 'teacher'
+        assigned_role = "teacher"
         try:
-            auth_header = request.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                token = auth_header.split(' ', 1)[1].strip()
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ", 1)[1].strip()
                 payload_decoded = decode_token(token)
-                email_val = payload_decoded.get('sub')
+                email_val = payload_decoded.get("sub")
                 if email_val:
                     admin_user = db.query(models.User).filter(models.User.email == email_val).first()
-                    if admin_user and getattr(admin_user, 'is_active', False) and getattr(admin_user, 'role', None) == 'admin':
+                    if (
+                        admin_user
+                        and getattr(admin_user, "is_active", False)
+                        and getattr(admin_user, "role", None) == "admin"
+                    ):
                         # Admin can set role explicitly
-                        assigned_role = payload.role or 'teacher'
+                        assigned_role = payload.role or "teacher"
         except Exception:
             # Any failure validating admin token -> treat as anonymous
-            assigned_role = 'teacher'
+            assigned_role = "teacher"
 
         user = models.User(
             email=payload.email.lower().strip(),
@@ -272,7 +277,9 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
 
 @router.post("/auth/login", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def login(request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db), response: Response = None):
+async def login(
+    request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db), response: Response = None
+):
     try:
         user = db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
@@ -290,16 +297,16 @@ async def login(request: Request, payload: UserLogin = Body(...), db: Session = 
             refresh_token = create_refresh_token_for_user(db, user)
             resp = Token(access_token=access_token, refresh_token=refresh_token)
             # Set cookie for refresh token (HttpOnly, Secure when configured)
-            secure_flag = getattr(settings, 'COOKIE_SECURE', False)
+            secure_flag = getattr(settings, "COOKIE_SECURE", False)
             # Use SameSite Lax to allow top-level POST refresh while mitigating CSRF for most flows
             if response is not None:
                 response.set_cookie(
-                    key='refresh_token',
+                    key="refresh_token",
                     value=refresh_token,
                     httponly=True,
                     secure=secure_flag,
-                    samesite='lax',
-                    max_age=int(getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7) * 24 * 60 * 60),
+                    samesite="lax",
+                    max_age=int(getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7) * 24 * 60 * 60),
                 )
             return resp
         except Exception:
@@ -320,7 +327,7 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 @limiter.limit(RATE_LIMIT_AUTH)
 async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Session = Depends(get_db)):
     try:
-        raw = payload.refresh_token or request.cookies.get('refresh_token')
+        raw = payload.refresh_token or request.cookies.get("refresh_token")
         if not raw:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -413,7 +420,7 @@ async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Ses
 @limiter.limit(RATE_LIMIT_AUTH)
 async def logout(request: Request, payload: LogoutRequest = Body(...), db: Session = Depends(get_db)):
     try:
-        raw = payload.refresh_token or request.cookies.get('refresh_token')
+        raw = payload.refresh_token or request.cookies.get("refresh_token")
         if not raw:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -433,7 +440,7 @@ async def logout(request: Request, payload: LogoutRequest = Body(...), db: Sessi
         revoked = revoke_refresh_token_by_jti(db, jti)
         # Clear refresh cookie on logout
         response = Response()
-        response.delete_cookie('refresh_token')
+        response.delete_cookie("refresh_token")
         if not revoked:
             return {"ok": True}
         return {"ok": True}
