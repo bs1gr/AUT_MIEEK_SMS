@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Body, Response
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
@@ -295,20 +296,27 @@ async def login(
         # Also issue a refresh token and set it as HttpOnly cookie when possible
         try:
             refresh_token = create_refresh_token_for_user(db, user)
-            resp = Token(access_token=access_token, refresh_token=refresh_token)
             # Set cookie for refresh token (HttpOnly, Secure when configured)
             secure_flag = getattr(settings, "COOKIE_SECURE", False)
             # Use SameSite Lax to allow top-level POST refresh while mitigating CSRF for most flows
             if response is not None:
+                # Compute max_age for cookie; if configured expiry is <= 0 use a session cookie
+                _days = getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7)
+                try:
+                    _days_val = int(_days)
+                except Exception:
+                    _days_val = 7
+                max_age_val = int(_days_val * 24 * 60 * 60) if _days_val > 0 else None
                 response.set_cookie(
                     key="refresh_token",
                     value=refresh_token,
                     httponly=True,
                     secure=secure_flag,
                     samesite="lax",
-                    max_age=int(getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7) * 24 * 60 * 60),
+                    max_age=max_age_val,
                 )
-            return resp
+            # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
+            return Token(access_token=access_token)
         except Exception:
             return Token(access_token=access_token)
     except HTTPException:
@@ -323,11 +331,11 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/auth/refresh")
+@router.post("/auth/refresh", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Session = Depends(get_db)):
+async def refresh(request: Request, payload: RefreshRequest = Body(None), db: Session = Depends(get_db), response: Response = None):
     try:
-        raw = payload.refresh_token or request.cookies.get("refresh_token")
+        raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
         if not raw:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -401,7 +409,25 @@ async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Ses
 
         new_access = create_access_token(subject=str(getattr(user, "email", "")))
         new_refresh = create_refresh_token_for_user(db, user)
-        return RefreshResponse(access_token=new_access, refresh_token=new_refresh)
+        # Rotate cookie to new refresh token and do not include it in JSON body
+        secure_flag = getattr(settings, "COOKIE_SECURE", False)
+        if response is not None:
+            # Compute max_age for cookie; if configured expiry is <= 0 use a session cookie
+            _days = getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7)
+            try:
+                _days_val = int(_days)
+            except Exception:
+                _days_val = 7
+            max_age_val = int(_days_val * 24 * 60 * 60) if _days_val > 0 else None
+            response.set_cookie(
+                key="refresh_token",
+                value=new_refresh,
+                httponly=True,
+                secure=secure_flag,
+                samesite="lax",
+                max_age=max_age_val,
+            )
+        return Token(access_token=new_access)
     except HTTPException:
         raise
     except InvalidTokenError:
@@ -418,9 +444,9 @@ async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Ses
 
 @router.post("/auth/logout")
 @limiter.limit(RATE_LIMIT_AUTH)
-async def logout(request: Request, payload: LogoutRequest = Body(...), db: Session = Depends(get_db)):
+async def logout(request: Request, payload: LogoutRequest = Body(None), db: Session = Depends(get_db)):
     try:
-        raw = payload.refresh_token or request.cookies.get("refresh_token")
+        raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
         if not raw:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -439,11 +465,11 @@ async def logout(request: Request, payload: LogoutRequest = Body(...), db: Sessi
             )
         revoked = revoke_refresh_token_by_jti(db, jti)
         # Clear refresh cookie on logout
-        response = Response()
-        response.delete_cookie("refresh_token")
-        if not revoked:
-            return {"ok": True}
-        return {"ok": True}
+        resp = JSONResponse(content={"ok": True})
+        resp.delete_cookie("refresh_token")
+        return resp
     except Exception:
         # On unexpected errors, still return 200 to keep logout idempotent
-        return {"ok": True}
+        resp = JSONResponse(content={"ok": True})
+        resp.delete_cookie("refresh_token")
+        return resp
