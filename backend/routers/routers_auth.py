@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Body, Response
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
@@ -44,6 +44,12 @@ if TYPE_CHECKING:
         UserLogin,
         UserResponse,
         Token,
+    )  # type: ignore
+    # Advanced auth schemas used by refresh/logout endpoints
+    from backend.schemas import (
+        RefreshRequest,
+        RefreshResponse,
+        LogoutRequest,
     )  # type: ignore
 else:
     schemas_mod = None
@@ -226,10 +232,30 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
                 context={"email": payload.email},
             )
 
+        # Security: Do not allow public registration to assign elevated roles.
+        # Default to 'teacher' for anonymous registrations. If the request
+        # includes a valid admin Authorization: Bearer <token>, allow the
+        # caller to set the role (useful for internal admin flows).
+        assigned_role = 'teacher'
+        try:
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ', 1)[1].strip()
+                payload_decoded = decode_token(token)
+                email_val = payload_decoded.get('sub')
+                if email_val:
+                    admin_user = db.query(models.User).filter(models.User.email == email_val).first()
+                    if admin_user and getattr(admin_user, 'is_active', False) and getattr(admin_user, 'role', None) == 'admin':
+                        # Admin can set role explicitly
+                        assigned_role = payload.role or 'teacher'
+        except Exception:
+            # Any failure validating admin token -> treat as anonymous
+            assigned_role = 'teacher'
+
         user = models.User(
             email=payload.email.lower().strip(),
             full_name=(payload.full_name or "").strip() or None,
-            role=(payload.role or "teacher"),
+            role=assigned_role,
             hashed_password=get_password_hash(payload.password),
             is_active=True,
         )
@@ -246,7 +272,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
 
 @router.post("/auth/login", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def login(request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db)):
+async def login(request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db), response: Response = None):
     try:
         user = db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
@@ -259,10 +285,23 @@ async def login(request: Request, payload: UserLogin = Body(...), db: Session = 
             )
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
-        # Also issue a refresh token
+        # Also issue a refresh token and set it as HttpOnly cookie when possible
         try:
             refresh_token = create_refresh_token_for_user(db, user)
-            return Token(access_token=access_token, refresh_token=refresh_token)
+            resp = Token(access_token=access_token, refresh_token=refresh_token)
+            # Set cookie for refresh token (HttpOnly, Secure when configured)
+            secure_flag = getattr(settings, 'COOKIE_SECURE', False)
+            # Use SameSite Lax to allow top-level POST refresh while mitigating CSRF for most flows
+            if response is not None:
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    httponly=True,
+                    secure=secure_flag,
+                    samesite='lax',
+                    max_age=int(getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7) * 24 * 60 * 60),
+                )
+            return resp
         except Exception:
             return Token(access_token=access_token)
     except HTTPException:
@@ -281,7 +320,14 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 @limiter.limit(RATE_LIMIT_AUTH)
 async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Session = Depends(get_db)):
     try:
-        raw = payload.refresh_token
+        raw = payload.refresh_token or request.cookies.get('refresh_token')
+        if not raw:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Invalid refresh token",
+                request,
+            )
         payload_decoded = decode_token(raw)
         if payload_decoded.get("type") != "refresh":
             raise http_error(
@@ -367,7 +413,14 @@ async def refresh(request: Request, payload: RefreshRequest = Body(...), db: Ses
 @limiter.limit(RATE_LIMIT_AUTH)
 async def logout(request: Request, payload: LogoutRequest = Body(...), db: Session = Depends(get_db)):
     try:
-        raw = payload.refresh_token
+        raw = payload.refresh_token or request.cookies.get('refresh_token')
+        if not raw:
+            raise http_error(
+                status.HTTP_401_UNAUTHORIZED,
+                ErrorCode.UNAUTHORIZED,
+                "Invalid token",
+                request,
+            )
         payload_decoded = decode_token(raw)
         jti = payload_decoded.get("jti")
         if not jti:
@@ -378,8 +431,10 @@ async def logout(request: Request, payload: LogoutRequest = Body(...), db: Sessi
                 request,
             )
         revoked = revoke_refresh_token_by_jti(db, jti)
+        # Clear refresh cookie on logout
+        response = Response()
+        response.delete_cookie('refresh_token')
         if not revoked:
-            # respond 200 anyway to avoid leaking token state
             return {"ok": True}
         return {"ok": True}
     except Exception:

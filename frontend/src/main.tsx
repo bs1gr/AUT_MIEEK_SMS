@@ -4,6 +4,7 @@ import App from './App';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
 import { initializeErrorReporting } from './utils/errorReporting';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Lazy load page components
 import { lazy, Suspense } from 'react';
@@ -27,7 +28,8 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 ReactDOM.createRoot(rootElement).render(
   <BrowserRouter>
-    <App>
+    <AuthProvider>
+      <App>
       <Suspense fallback={<Spinner />}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -43,6 +45,7 @@ ReactDOM.createRoot(rootElement).render(
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
-    </App>
+      </App>
+    </AuthProvider>
   </BrowserRouter>
 );

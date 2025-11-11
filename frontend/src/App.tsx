@@ -7,6 +7,7 @@ import ErrorBoundary from './ErrorBoundary.tsx';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import AuthControls from './components/auth/AuthControls';
 import { Navigation } from './components/layout';
 import { useLanguage } from './LanguageContext';
 import Toast from './components/ui/Toast';
@@ -60,6 +61,8 @@ function AppLayout({ children }: AppLayoutProps) {
         <h1 className="text-3xl font-bold text-gray-800">{t('systemTitle')}</h1>
         <div className="flex items-center space-x-4">
           <LanguageSwitcher />
+          {/* Authentication controls: Login form or Logout button */}
+          <AuthControls />
         </div>
       </div>
 
