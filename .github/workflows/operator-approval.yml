@@ -1,0 +1,49 @@
+name: Require operator approval for operator scripts
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+jobs:
+  require-operator-approval:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    steps:
+      - name: Check PR for operator script changes and labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const core = require('@actions/core');
+            const pr = github.context.payload.pull_request;
+            if (!pr) {
+              core.info('No pull request context; skipping operator approval check.');
+              return;
+            }
+            const prNumber = pr.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: prNumber });
+            const changedOperator = files.some(f => f.filename.startsWith('scripts/operator/'));
+            if (!changedOperator) {
+              core.info('No operator script changes found; skipping operator-approval check.');
+              return;
+            }
+
+            const labels = (pr.labels || []).map(l => l.name);
+            if (labels.includes('operator-approved')) {
+              core.info('Operator-approved label present; allowing PR to proceed.');
+              return;
+            }
+
+            // Post a helpful comment on the PR to explain how to obtain operator approval
+            try {
+              const body = "⚠️ This pull request modifies files under `scripts/operator/` which are operator-only and may contain host-destructive commands.\n\nPlease ask an operator to review these changes and add the **operator-approved** label to this PR when approved.\n\nSee the operator guide for details: docs/OPERATOR_EMERGENCY_GUIDE.md";
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+            } catch (err) {
+              core.warning('Failed to post PR comment about operator approval: ' + err.message);
+            }
+
+            core.setFailed("This PR modifies operator scripts under scripts/operator/. Please add the 'operator-approved' label after an operator has reviewed and approved these changes.");

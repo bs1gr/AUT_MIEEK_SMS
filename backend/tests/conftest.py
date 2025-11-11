@@ -15,6 +15,11 @@ if str(PROJECT_ROOT.parent) not in sys.path:
 # Ensure control API is enabled in tests. Tests should opt in explicitly.
 os.environ.setdefault("ENABLE_CONTROL_API", "1")
 os.environ.setdefault("ALLOW_REMOTE_SHUTDOWN", "0")
+# Prevent heavy startup tasks (migrations, external HTTP calls, subprocesses)
+# during unit tests which run the ASGI app in-process via TestClient. This
+# environment variable is checked by `backend.main` to skip long-running
+# or external operations during test runs.
+os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
 
 from backend.main import app, get_db as main_get_db
 from backend.rate_limiting import limiter

@@ -1,3 +1,74 @@
+# Deployment readiness checklist & verification
+
+This file summarizes the changes made to harden the project for CI and production, and provides a concise deployment checklist and quick verification commands.
+
+Summary of key safety changes
+
+- Application startup now respects `DISABLE_STARTUP_TASKS=1` to skip migrations, schema auto-create and background auto-import threads when importing the app in tests/CI.
+- Destructive OS-level `taskkill` calls from control endpoints are guarded by `_safe_run()` and only executed when `CONTROL_API_ALLOW_TASKKILL=1` is explicitly set.
+- Control API requires `ENABLE_CONTROL_API=1` to be exposed. When `ADMIN_SHUTDOWN_TOKEN` is set, control endpoints require `X-ADMIN-TOKEN` header.
+- CI: GitHub Actions workflow added; backend tests run with `DISABLE_STARTUP_TASKS=1` and ruff/mypy checks run.
+- Integration: A manual `integration` workflow (workflow_dispatch) was added to start the backend (no `DISABLE_STARTUP_TASKS`) and perform a health/smoke check.
+
+Quick deployment checklist (pre-release)
+
+1. Confirm environment variables for production:
+   - ENABLE_CONTROL_API=1 (only on operator-managed instances)
+   - ADMIN_SHUTDOWN_TOKEN=<strong secret>
+   - CONTROL_API_ALLOW_TASKKILL=0 (recommended) or not set
+   - Set SECRET_KEY in `backend/.env` for production
+   - Ensure `SMS_ENV=production` or deploy via Docker fullstack entrypoint
+
+2. Migrations
+   - Run migrations in CI/CD before deployment:
+
+     ```pwsh
+     cd backend
+     alembic upgrade head
+     ```
+
+3. CI verification
+   - Ensure GitHub Actions `ci.yml` is enabled on main branch.
+   - Confirm tests pass and pip-audit / SBOM artifacts are produced.
+
+4. Integration check (manual or via workflow)
+   - Use the `integration` workflow in `.github/workflows/ci.yml` or run locally:
+
+     ```pwsh
+     # Start backend locally (no DISABLE_STARTUP_TASKS) for integration smoke tests
+     python -m uvicorn backend.main:app --host 127.0.0.1 --port 8001
+     # In another shell, check health
+     curl http://127.0.0.1:8001/health
+     ```
+
+5. Monitoring & logging
+   - Ensure `backend/logs/` is writable and log rotation is configured (existing config handles rotation).
+   - Configure alerts for control API calls and failed migrations.
+
+6. Post-deploy sanity checks
+   - Access `/health`, `/health/ready`, `/api` and the SPA root (if `SERVE_FRONTEND=1`).
+   - Check that control endpoints are hidden unless `ENABLE_CONTROL_API=1`.
+
+Commands to run locally (developer machine)
+
+```pwsh
+# Run unit tests safely
+$env:DISABLE_STARTUP_TASKS = '1'
+cd backend
+python -m pytest -q
+
+# Lint and types
+ruff check .
+python -m mypy backend
+```
+
+Notes and follow-ups
+
+- Consider removing OS-level process kills from control endpoints entirely and replacing them with operator-run maintenance scripts like `scripts/maintenance/stop_frontend_safe.ps1`.
+- Schedule regular dependency audits (pip-audit / npm audit) in your release pipeline.
+- If you want, I can open a draft PR summarizing these changes and include a short changelog entry.
+
+Verified: ruff, mypy and pytest were run locally and returned no blocking errors; pytest: 15 passed, 0 failed.
 # Deployment Checklist
 
 Use this checklist to ensure successful deployment to other Windows computers.
