@@ -12,10 +12,10 @@ def test_health_endpoint_integration():
     This test is intentionally skipped by default. It will run when the
     CI 'integration' job sets RUN_INTEGRATION=1 and starts the service.
     """
-    import requests
+    import httpx
 
     base = os.environ.get("INTEGRATION_BASE_URL", "http://127.0.0.1:8000")
-    r = requests.get(f"{base}/health", timeout=10)
+    r = httpx.get(f"{base}/health", timeout=10.0)
     assert r.status_code == 200
     data = r.json()
     assert "status" in data or "database" in data
