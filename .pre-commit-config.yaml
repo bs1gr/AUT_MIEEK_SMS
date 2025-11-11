@@ -1,4 +1,13 @@
 repos:
+  - repo: local
+    hooks:
+      - id: check-imports-requirements
+        name: Verify backend imports vs requirements
+        entry: python tools/check_imports_requirements.py
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+repos:
   # Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4

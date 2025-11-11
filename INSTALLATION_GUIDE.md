@@ -182,6 +182,10 @@ netstat -ano | findstr ":8080"
 #  - Request the control API to stop the frontend: .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
 # If you are an operator and understand the risks, use the emergency script (requires explicit confirmation):
 #  .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
+
+See also the operator emergency guide for policies and safe procedures:
+
+- `docs/OPERATOR_EMERGENCY_GUIDE.md`
 ```
 
 **Solution 2**: Change SMS to use a different port:
