@@ -108,11 +108,17 @@ Get-Location
 **Instead of complex terminal commands:**
 
 ```powershell
-# DON'T: Complex inline command
-Get-Process | Where-Object {$_.ProcessName -match "python|node"} | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; & .\scripts\legacy\RUN.ps1
+# DON'T: Run forceful multi-command one-liners that kill processes without confirmation.
+# These can terminate unrelated processes and make debugging harder.
+# If you need to clean Python/node processes, prefer the wrapper script or a safe interactive flow.
 
-# DO: Break into separate commands
-Get-Process -Name python,node -ErrorAction SilentlyContinue | Stop-Process -Force
+# DO: Use a wrapper script that documents intent and runs in steps (example provided in repo):
+#   .\scripts\maintenance\cleanup-and-run.ps1  # (creates a safe, auditable sequence)
+
+# If you must stop processes interactively, do it in separate, deliberate steps:
+Get-Process -Name python,node -ErrorAction SilentlyContinue
+# Review the output and confirm PIDs before stopping them
+Get-Process -Name python,node -ErrorAction SilentlyContinue | Stop-Process -Confirm
 Start-Sleep -Seconds 2
 & .\scripts\legacy\RUN.ps1
 ```

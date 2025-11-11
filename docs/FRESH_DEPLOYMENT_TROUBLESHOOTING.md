@@ -318,8 +318,12 @@ If ports 8000, 8080, or 5173 are already in use:
 netstat -ano | findstr ":8080"
 # Note the PID (last column)
 
-# Kill that process (replace 1234 with actual PID)
-taskkill /PID 1234 /F
+# Kill that process (replace 1234 with actual PID) — operator guidance follows
+# Prefer using operator tooling rather than running taskkill directly.
+#  - Request frontend stop via control API helper:
+#      .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
+# If you are an operator and understand the risks, run the emergency script interactively:
+#      .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
 # Or use SMS.ps1 diagnostics
 .\SMS.ps1

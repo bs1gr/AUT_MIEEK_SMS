@@ -178,8 +178,10 @@ Or simply press `Ctrl+C` in the terminal where SMS is running (it will stop grac
 # Find what's using port 8080
 netstat -ano | findstr ":8080"
 
-# Note the PID (last column), then:
-taskkill /PID <number> /F
+# Note the PID (last column). Prefer using operator tooling to stop services safely:
+#  - Request the control API to stop the frontend: .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
+# If you are an operator and understand the risks, use the emergency script (requires explicit confirmation):
+#  .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 ```
 
 **Solution 2**: Change SMS to use a different port:
