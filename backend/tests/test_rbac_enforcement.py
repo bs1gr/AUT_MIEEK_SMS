@@ -111,7 +111,9 @@ def _register_user(client: TestClient, email: str, password: str, role: str = "t
 
         db_gen = next(client.app.dependency_overrides[db_get_session]())
         with db_gen as db:
-            u = models.User(email=email.lower(), hashed_password=get_password_hash(password), role="admin", is_active=True)
+            u = models.User(
+                email=email.lower(), hashed_password=get_password_hash(password), role="admin", is_active=True
+            )
             db.add(u)
             db.commit()
             return
