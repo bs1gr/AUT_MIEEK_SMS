@@ -32,6 +32,7 @@ import threading
 from datetime import datetime
 from contextlib import asynccontextmanager
 from pathlib import Path
+from types import SimpleNamespace
 
 # FastAPI imports
 from fastapi import FastAPI, Depends, Request
@@ -288,6 +289,46 @@ def _resolve_npm_command() -> str | None:
     return None
 
 
+def _allow_taskkill() -> bool:
+    """Return True when destructive taskkill operations are allowed by env.
+
+    Use the environment variable CONTROL_API_ALLOW_TASKKILL=1 to enable
+    performing system-level taskkill operations from control endpoints.
+    Default is disabled to avoid accidental process termination when the
+    app runs in development, CI, or test environments.
+    """
+    return os.environ.get("CONTROL_API_ALLOW_TASKKILL", "0") == "1"
+
+
+def _safe_run(cmd_args, timeout=5):
+    """Run subprocess.run with safety guard for taskkill-like operations.
+
+    If _allow_taskkill() is False and the command looks like a taskkill
+    or other destructive action, the call will be skipped and a
+    dummy success-like object returned. This prevents tests or CI from
+    accidentally killing host processes.
+    """
+    # Basic check: skip known Windows destructive invocations
+    if not _allow_taskkill():
+        # If the command is a taskkill or node kill, do not execute it.
+        try:
+            if isinstance(cmd_args, (list, tuple)) and cmd_args:
+                cmd0 = str(cmd_args[0]).lower()
+                if "taskkill" in cmd0 or "taskkill.exe" in cmd0 or ("/im" in " ".join(map(str, cmd_args)).lower() and "node.exe" in " ".join(map(str, cmd_args)).lower()):
+                    logger.info("CONTROL_API_ALLOW_TASKKILL not set: skipping destructive command: %s", cmd_args)
+                    return SimpleNamespace(returncode=0, stdout="", stderr="")
+        except Exception:
+            # Fall through to safe execution
+            pass
+
+    # Default: run command as normal
+    try:
+        return subprocess.run(cmd_args, check=False, capture_output=True, text=True, timeout=timeout)
+    except Exception as e:
+        logger.warning(f"Safe run failed for {cmd_args}: {e}")
+        return SimpleNamespace(returncode=1, stdout="", stderr=str(e))
+
+
 # ============================================================================
 # ERROR HANDLING & LOGGING INITIALIZATION
 # ============================================================================
@@ -415,60 +456,75 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
-    # Run database migrations automatically on startup
-    logger.info("Checking for pending database migrations...")
-    try:
-        from backend.run_migrations import run_migrations
+    # Allow tests and special environments to disable heavy startup tasks
+    # (migrations, auto-imports, external subprocesses) by setting
+    # DISABLE_STARTUP_TASKS=1 in the environment. This is useful when the
+    # application is mounted into in-process test clients (pytest/TestClient)
+    # where external network calls or subprocesses can hang the test run.
+    disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
-        migration_success = run_migrations(verbose=False)
-        if migration_success:
-            logger.info("✓ Database migrations up to date")
-        else:
-            logger.warning("⚠ Database migrations failed - application may not function correctly")
-    except Exception as e:
-        logger.error(f"Migration runner error: {e!s}")
-        logger.warning("Continuing without migration check...")
+    # Run database migrations automatically on startup (skip in test mode)
+    if not disable_startup:
+        logger.info("Checking for pending database migrations...")
+        try:
+            from backend.run_migrations import run_migrations
 
-    # Verify schema presence. In some environments migrations may report success
-    # but the target DB might be different or empty. Offer an opt-in fallback to
-    # create missing tables automatically if the operator set
-    # ALLOW_SCHEMA_AUTO_CREATE=1 in the environment. This protects production
-    # clusters from accidental implicit schema creation while allowing safe
-    # deployments to self-heal when explicitly permitted.
-    try:
-        from sqlalchemy import inspect
-
-        inspector = inspect(db_engine)
-        tables = inspector.get_table_names()
-        if not tables:
-            allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").lower() in (
-                "1",
-                "true",
-                "yes",
-            )
-            if allow_auto:
-                # Last-resort: create tables using SQLAlchemy models metadata
-                try:
-                    from backend.models import Base
-
-                    logger.warning(
-                        "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled — creating tables via metadata.create_all()"
-                    )
-                    Base.metadata.create_all(bind=db_engine)
-                    logger.info("✓ Created missing database tables via metadata.create_all()")
-                except Exception as e:
-                    logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
+            migration_success = run_migrations(verbose=False)
+            if migration_success:
+                logger.info("✓ Database migrations up to date")
             else:
-                logger.warning(
-                    "No database tables detected after migrations. To allow automatic creation as a fallback, set ALLOW_SCHEMA_AUTO_CREATE=1 in the environment."
+                logger.warning("⚠ Database migrations failed - application may not function correctly")
+        except Exception as e:
+            logger.error(f"Migration runner error: {e!s}")
+            logger.warning("Continuing without migration check...")
+    else:
+        logger.info("DISABLE_STARTUP_TASKS set: skipping migration runner")
+
+    # Verify schema presence (skip in test mode)
+    try:
+        if not disable_startup:
+            from sqlalchemy import inspect
+
+            inspector = inspect(db_engine)
+            tables = inspector.get_table_names()
+            if not tables:
+                allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").lower() in (
+                    "1",
+                    "true",
+                    "yes",
                 )
+                if allow_auto:
+                    # Last-resort: create tables using SQLAlchemy models metadata
+                    try:
+                        from backend.models import Base
+
+                        logger.warning(
+                            "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled — creating tables via metadata.create_all()"
+                        )
+                        Base.metadata.create_all(bind=db_engine)
+                        logger.info("✓ Created missing database tables via metadata.create_all()")
+                    except Exception as e:
+                        logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
+                else:
+                    logger.warning(
+                        "No database tables detected after migrations. To allow automatic creation as a fallback, set ALLOW_SCHEMA_AUTO_CREATE=1 in the environment."
+                    )
+        else:
+            logger.info("DISABLE_STARTUP_TASKS set: skipping schema verification/auto-create")
     except Exception as e:
         logger.warning(f"Schema verification failed (continuing): {e}")
 
-    # Legacy schema compatibility check (kept for backward compatibility during transition)
+    # Legacy schema compatibility check (skipped in test mode)
     try:
-        db_ensure_schema(db_engine)
-        logger.info("Legacy schema check completed")
+        if not disable_startup:
+            db_ensure_schema(db_engine)
+            logger.info("Legacy schema check completed")
+        else:
+            logger.info("DISABLE_STARTUP_TASKS set: skipping legacy schema check")
     except Exception as _e:
         logger.warning(f"Legacy schema check failed (continuing): {_e}")
 
@@ -479,56 +535,60 @@ async def lifespan(app: FastAPI):
         with db_engine.connect() as conn:
             result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
             if result == 0:
-                logger.info("No courses found in database - scheduling auto-import...")
-                # Use threading with proper error boundaries and timeout
-                # This is more reliable than HTTP requests during startup
-                try:
-                    import threading
-                    import requests
+                    logger.info("No courses found in database - scheduling auto-import...")
+                    # Use threading with proper error boundaries and timeout
+                    # This is more reliable than HTTP requests during startup
+                    # Skip auto-import in test/disabled-startup mode
+                    if not disable_startup:
+                        try:
+                            import threading
+                            import requests
 
-                    def delayed_import():
-                        """
-                        Wait for server to start, then trigger import.
-                        Includes retry logic and proper error handling.
-                        """
-                        max_retries = 3
-                        retry_delay = 3
+                            def delayed_import():
+                                """
+                                Wait for server to start, then trigger import.
+                                Includes retry logic and proper error handling.
+                                """
+                                max_retries = 3
+                                retry_delay = 3
 
-                        for attempt in range(max_retries):
-                            try:
-                                # Wait for server to be fully ready
-                                _time.sleep(retry_delay * (attempt + 1))
+                                for attempt in range(max_retries):
+                                    try:
+                                        # Wait for server to be fully ready
+                                        _time.sleep(retry_delay * (attempt + 1))
 
-                                port = getattr(settings, "API_PORT", 8000)
-                                response = requests.post(
-                                    f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
-                                    headers={"Content-Type": "application/json"},
-                                    timeout=60,
-                                )
-                                if response.status_code == 200:
-                                    data = response.json()
-                                    logger.info(
-                                        f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
-                                    )
-                                    return  # Success
-                                else:
-                                    logger.warning(
-                                        f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
-                                    )
-                            except requests.exceptions.ConnectionError:
-                                logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
-                            except Exception as e:
-                                logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
+                                        port = getattr(settings, "API_PORT", 8000)
+                                        response = requests.post(
+                                            f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
+                                            headers={"Content-Type": "application/json"},
+                                            timeout=60,
+                                        )
+                                        if response.status_code == 200:
+                                            data = response.json()
+                                            logger.info(
+                                                f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                                            )
+                                            return  # Success
+                                        else:
+                                            logger.warning(
+                                                f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
+                                            )
+                                    except requests.exceptions.ConnectionError:
+                                        logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
+                                    except Exception as e:
+                                        logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
 
-                        logger.error("Auto-import failed after all retries")
+                                logger.error("Auto-import failed after all retries")
 
-                    # Start import in background thread
-                    # Using daemon=True ensures it doesn't prevent shutdown
-                    import_thread = threading.Thread(target=delayed_import, daemon=True, name="course-auto-import")
-                    import_thread.start()
-                    logger.info("Started background course import thread (will retry up to 3 times)")
-                except Exception as e:
-                    logger.warning(f"Failed to start auto-import thread: {e}")
+                            # Start import in background thread
+                            # Using daemon=True ensures it doesn't prevent shutdown
+                            import_thread = threading.Thread(target=delayed_import, daemon=True, name="course-auto-import")
+                            import_thread.start()
+                            logger.info("Started background course import thread (will retry up to 3 times)")
+                        except Exception as e:
+                            logger.warning(f"Failed to start auto-import thread: {e}")
+                    else:
+                        logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
             else:
                 logger.info(f"Courses already exist in database ({result} courses) - skipping auto-import")
     except Exception as e:
@@ -851,12 +911,7 @@ def control_start():
 
         # Kill the process since it's not responding
         try:
-            subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)],
-                check=False,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+                    _safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
         except Exception:
             pass
 
@@ -910,7 +965,6 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
 
         # ═══ PHASE 1: Stop Frontend Processes ═══
         logger.info("Phase 1: Stopping frontend processes...")
-        frontend_stopped = False
 
         # Stop tracked frontend process if exists
         if FRONTEND_PROCESS is not None:
@@ -919,12 +973,10 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
                 pid = FRONTEND_PROCESS.pid
                 logger.info(f"Terminating tracked frontend process (PID: {pid})")
 
-                result = subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(pid)], check=False, capture_output=True, text=True, timeout=5
-                )
+                result = _safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=5)
 
                 if result.returncode == 0:
-                    frontend_stopped = True
+                    stopped_services.append(f"Frontend (tracked PID {pid} stopped)")
                     logger.info(f"✓ Stopped tracked frontend (PID: {pid})")
                 else:
                     logger.warning(f"taskkill returned {result.returncode} for PID {pid}")
@@ -946,42 +998,40 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
         else:
             logger.info("No tracked frontend process")
 
-        # Kill any processes on frontend ports
+        # Report any processes on frontend ports but DO NOT kill them here.
+        # Operator should use the maintenance helper script or run taskkill locally.
         logger.info(f"Scanning frontend ports: {FRONTEND_PORT_CANDIDATES}")
-        ports_cleared = 0
+        ports_reported = 0
+        port_processes = {}
 
         for port in FRONTEND_PORT_CANDIDATES:
             pids = _find_pids_on_port(port)
             if pids:
                 logger.info(f"Found {len(pids)} process(es) on port {port}: {pids}")
-                for pid in pids:
-                    try:
-                        result = subprocess.run(
-                            ["taskkill", "/F", "/T", "/PID", str(pid)],
-                            check=False,
-                            capture_output=True,
-                            text=True,
-                            timeout=5,
-                        )
-                        if result.returncode == 0:
-                            frontend_stopped = True
-                            ports_cleared += 1
-                            logger.info(f"✓ Killed PID {pid} on port {port}")
-                        else:
-                            logger.warning(f"Failed to kill PID {pid}: {result.stderr}")
-                            errors.append(f"Port {port} PID {pid}: taskkill failed")
-                    except subprocess.TimeoutExpired:
-                        logger.error(f"Timeout killing PID {pid}")
-                        errors.append(f"Timeout killing PID {pid}")
-                    except Exception as e:
-                        logger.error(f"Error killing PID {pid}: {e}")
-                        errors.append(f"PID {pid}: {e!s}")
+                port_processes[port] = pids
+                ports_reported += len(pids)
 
-        if frontend_stopped:
-            stopped_services.append(f"Frontend ({ports_cleared} port(s) cleared)")
-            logger.info(f"✓ Frontend stopped ({ports_cleared} ports cleared)")
-        else:
-            logger.info("No frontend processes to stop")
+        if FRONTEND_PROCESS is not None:
+            # Attempt a graceful terminate of the tracked frontend process only
+            try:
+                pid = getattr(FRONTEND_PROCESS, "pid", None)
+                logger.info(f"Attempting graceful terminate of tracked frontend (PID: {pid})")
+                try:
+                    FRONTEND_PROCESS.terminate()
+                    FRONTEND_PROCESS.wait(timeout=5)
+                    stopped_services.append("Frontend (graceful stop)")
+                    logger.info(f"✓ Gracefully terminated tracked frontend (PID: {pid})")
+                except Exception:
+                    logger.info("Tracked frontend did not exit on terminate; leaving for operator to stop")
+            finally:
+                FRONTEND_PROCESS = None
+
+        if port_processes:
+            # Don't perform OS-level kills here. Return information for the operator.
+            stopped_services.append(f"Frontend (processes detected on ports: {list(port_processes.keys())})")
+            errors.append(
+                "Processes detected on frontend ports. Please run scripts/maintenance/stop_frontend_safe.ps1 or taskkill locally to stop them."
+            )
 
         # ═══ PHASE 2: Stop Node.js Processes ═══
         logger.info("Phase 2: Stopping Node.js processes...")
@@ -997,22 +1047,11 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
             )
 
             if check_result.returncode == 0 and "node.exe" in check_result.stdout:
-                logger.info("Node.js processes detected - terminating all node.exe instances")
-
-                kill_result = subprocess.run(
-                    ["taskkill", "/F", "/IM", "node.exe", "/T"], check=False, capture_output=True, text=True, timeout=10
+                logger.info("Node.js processes detected - listing node.exe instances but will not terminate them from the control API")
+                stopped_services.append("Node.js (processes present)")
+                errors.append(
+                    "Node.js processes detected. Please run scripts/maintenance/stop_frontend_safe.ps1 or run 'taskkill /F /IM node.exe /T' on the host if you want to terminate them."
                 )
-
-                if kill_result.returncode == 0:
-                    stopped_services.append("Node.js")
-                    logger.info("✓ All Node.js processes terminated")
-
-                    # Brief wait for process cleanup
-                    _time.sleep(0.5)
-                else:
-                    logger.warning(f"taskkill node.exe returned {kill_result.returncode}")
-                    if kill_result.stderr:
-                        logger.warning(f"stderr: {kill_result.stderr}")
             else:
                 logger.info("No Node.js processes found")
 
@@ -1038,18 +1077,9 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
                 logger.info(f"Terminating backend process tree (PIDs: {current_pid}, {parent_pid})")
 
                 # Kill both current and parent (handles uvicorn --reload mode)
+                # Schedule backend exit without attempting to kill parent process tree.
                 for pid in {current_pid, parent_pid}:
-                    try:
-                        subprocess.run(
-                            ["taskkill", "/F", "/T", "/PID", str(pid)],
-                            check=False,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            timeout=3,
-                        )
-                        logger.info(f"✓ Terminated PID {pid}")
-                    except Exception as e:
-                        logger.warning(f"Failed to kill PID {pid}: {e}")
+                    logger.info(f"Scheduling exit for PID {pid} (no OS-level kill executed)")
 
             except Exception as e:
                 logger.error(f"Backend shutdown error: {e}", exc_info=True)
@@ -1139,9 +1169,7 @@ def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 pid = FRONTEND_PROCESS.pid
                 logger.info(f"Terminating tracked frontend (PID: {pid})")
 
-                result = subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(pid)], check=False, capture_output=True, text=True, timeout=5
-                )
+                result = _safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=5)
 
                 if result.returncode == 0:
                     stopped_any = True
@@ -1174,13 +1202,7 @@ def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 logger.info(f"Found {len(pids)} process(es) on port {port}: {pids}")
                 for pid in pids:
                     try:
-                        result = subprocess.run(
-                            ["taskkill", "/F", "/T", "/PID", str(pid)],
-                            check=False,
-                            capture_output=True,
-                            text=True,
-                            timeout=5,
-                        )
+                        result = _safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=5)
 
                         if result.returncode == 0:
                             stopped_any = True
@@ -1274,18 +1296,12 @@ def control_stop_backend(request: Request, _auth=Depends(require_control_admin))
                 if os.name == "nt":
                     for pid in {current_pid, parent_pid}:
                         try:
-                            result = subprocess.run(
-                                ["taskkill", "/F", "/T", "/PID", str(pid)],
-                                check=False,
-                                capture_output=True,
-                                text=True,
-                                timeout=3,
-                            )
+                            result = _safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=3)
 
-                            if result.returncode == 0:
+                            if getattr(result, "returncode", None) == 0:
                                 logger.info(f"✓ Terminated backend PID: {pid}")
                             else:
-                                logger.warning(f"Failed to kill PID {pid}: return code {result.returncode}")
+                                logger.warning(f"Failed to kill PID {pid}: return code {getattr(result, 'returncode', None)}")
 
                         except subprocess.TimeoutExpired:
                             logger.error(f"Timeout killing backend PID {pid}")

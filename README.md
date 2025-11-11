@@ -103,6 +103,10 @@ For deployment, Docker orchestration, and production maintenance.
   - [⚡ Γρήγορη Εκκίνηση](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md) - Quick start guide
   - [📖 Πλήρης Οδηγός Χρήσης](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) - Complete user manual
 
+## Backend runtime configuration (env)
+
+See `backend/ENV_VARS.md` for recommended environment variables and secure defaults. In CI the test job runs with `DISABLE_STARTUP_TASKS=1` to avoid running migrations and background startup tasks when tests import the application.
+
 ---
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
