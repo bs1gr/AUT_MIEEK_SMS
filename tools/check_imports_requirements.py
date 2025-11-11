@@ -80,6 +80,11 @@ def main() -> int:
     missing = {}
 
     import importlib.util
+    try:
+        # Python 3.10+: packages_distributions maps top-level packages to distributions
+        from importlib.metadata import packages_distributions
+    except Exception:
+        packages_distributions = None
 
     for p in py_files:
         mods = find_imports_in_file(p)
@@ -92,20 +97,34 @@ def main() -> int:
             if ml in stdlib:
                 continue
 
-            # If the module is importable in the current environment, assume it's provided
-            # by the declared requirements or by their transitive dependencies.
+            # 1) If module is importable in environment, accept it (covers transitive deps)
             try:
                 spec = importlib.util.find_spec(m)
             except Exception:
                 spec = None
-
             if spec is not None:
                 continue
 
-            # Some names map to different package names; simple check: if any req equals m
+            # 2) Try mapping package -> distribution name(s)
+            dist_ok = False
+            try:
+                if packages_distributions is not None:
+                    mapping = packages_distributions()
+                    dists = mapping.get(m, []) or mapping.get(ml, [])
+                    for d in dists:
+                        dn = d.lower().replace("_", "-")
+                        if dn in reqs or d.lower() in reqs:
+                            dist_ok = True
+                            break
+            except Exception:
+                dist_ok = False
+
+            if dist_ok:
+                continue
+
+            # 3) Fallback: direct requirements match (simple heuristics)
             matched = any(req == ml or req.startswith(ml + "-") or req.startswith(ml + "_") for req in reqs)
             if not matched and ml not in reqs:
-                # Record file for this module
                 missing.setdefault(ml, set()).add(str(p.relative_to(ROOT)))
 
     if missing:
