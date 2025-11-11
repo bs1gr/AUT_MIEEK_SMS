@@ -22,7 +22,11 @@ jobs:
       - name: Apply branch protection via octokit
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.ADMIN_GH_PAT }}
+          # Use the workflow's GITHUB_TOKEN (granted to this run) so admins can dispatch
+          # without storing an external PAT. The run must be triggered by a user with
+          # sufficient repository permissions and the workflow needs write permissions
+          # to `contents` (declared above).
+          github-token: ${{ github.token }}
           script: |
             const core = require('@actions/core');
             const inputs = core.getInput('contexts') || '';
