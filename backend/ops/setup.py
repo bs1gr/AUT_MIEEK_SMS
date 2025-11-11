@@ -279,32 +279,30 @@ class SetupOperations(Operation):
             return OperationResult.failure_result(f"Invalid URL: {e}")
 
         try:
-            # requests is an optional runtime dependency; mypy may not have stubs
-            # available in all environments, so silence import-time typing errors
-            # here while preserving the runtime import behavior.
-            import requests  # type: ignore[import]
+            # Prefer httpx (already declared in backend requirements). Use httpx for HTTP checks.
+            import httpx
         except ImportError:
-            return OperationResult.failure_result("requests package not installed (required for HTTP checks)")
+            return OperationResult.failure_result("httpx package not installed (required for HTTP checks)")
 
         start_time = time.time()
         last_error = None
 
         while (time.time() - start_time) < timeout:
             try:
-                response = requests.get(url, timeout=OperationTimeouts.HTTP_REQUEST)
+                response = httpx.get(url, timeout=OperationTimeouts.HTTP_REQUEST)
                 if 200 <= response.status_code < 500:
                     elapsed = time.time() - start_time
                     return OperationResult.success_result(
                         f"Endpoint available after {elapsed:.1f}s",
                         data={"url": url, "status_code": response.status_code},
                     )
-            except requests.exceptions.Timeout as e:
+            except httpx.ReadTimeout as e:
                 last_error = f"Connection timeout: {e}"
                 self.log_debug(f"HTTP check timed out, retrying... ({last_error})")
-            except requests.exceptions.ConnectionError as e:
+            except httpx.ConnectError as e:
                 last_error = f"Connection refused: {e}"
                 self.log_debug(f"Connection failed, retrying... ({last_error})")
-            except requests.exceptions.RequestException as e:
+            except httpx.RequestError as e:
                 last_error = f"Request error: {e}"
                 self.log_debug(f"Request failed, retrying... ({last_error})")
 

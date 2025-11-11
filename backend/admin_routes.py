@@ -29,6 +29,14 @@ import importlib
 import importlib.util
 from typing import Iterable, Tuple, Any, Dict
 
+# Control API dependency to protect admin-only endpoints
+try:
+    # Prefer package import when available
+    from backend.control_auth import require_control_admin
+except Exception:
+    # Fallback for tests or alternate import paths
+    from control_auth import require_control_admin  # type: ignore
+
 
 # Robust imports when running as a package or directly
 def _import_from_possible_locations(module_basename: str, names: Iterable[str]) -> Tuple[Any, ...]:
@@ -83,7 +91,7 @@ async def health_check(db: Session = Depends(get_db)):
 
 
 @router.post("/reset-database")
-async def reset_database():
+async def reset_database(_auth=Depends(require_control_admin)):
     """Drop all tables and recreate them (WARNING: Deletes all data!)"""
     try:
         # Close all connections
@@ -101,7 +109,7 @@ async def reset_database():
 
 
 @router.post("/backup-database")
-async def backup_database():
+async def backup_database(_auth=Depends(require_control_admin)):
     """Create a backup of the database (supports SQLite only)."""
     try:
         db_url = settings.DATABASE_URL
@@ -142,7 +150,7 @@ async def backup_database():
 
 
 @router.post("/sample-data")
-async def add_sample_data(db: Session = Depends(get_db)):
+async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_control_admin)):
     """Add sample data for testing"""
     try:
         # Check if data already exists
@@ -223,7 +231,7 @@ async def add_sample_data(db: Session = Depends(get_db)):
 
 
 @router.get("/debug-processes")
-async def debug_processes():
+async def debug_processes(_auth=Depends(require_control_admin)):
     """Debug endpoint to see what processes will be killed"""
     # Explicit typing to satisfy strict type checkers: values are lists or dicts
     processes_info: Dict[str, Any] = {
@@ -298,7 +306,7 @@ async def debug_processes():
 
 
 @router.post("/shutdown")
-async def shutdown_server():
+async def shutdown_server(_auth=Depends(require_control_admin)):
     """
     Intelligent shutdown that detects environment (Docker vs Native) and shuts down appropriately.
 
