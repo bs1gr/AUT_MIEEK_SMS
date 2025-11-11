@@ -53,6 +53,13 @@ jobs:
         run: |
           pip install --upgrade ruff mypy pytest pytest-cov pip-audit types-requests pre-commit
 
+      - name: Verify imports vs requirements
+        # Run the repository checker using the same Python environment that already
+        # has project dependencies installed. This avoids a separate install step
+        # and ensures the checker sees the same environment as the tests.
+        run: |
+          python tools/check_imports_requirements.py
+
       - name: Run pre-commit hooks (non-blocking)
         run: |
           pre-commit run --all-files --show-diff-on-failure || true
