@@ -1009,7 +1009,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
         # Operator guidance: prefer the maintenance helper script to request a frontend
         # stop (`scripts/maintenance/stop_frontend_safe.ps1`). For emergency host-level
         # termination only, operators may run the interactive operator script with
-        # explicit confirmation: `scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm`.
+        # explicit confirmation: `scripts/operator/KILL_FRONTEND_NOW.ps1 -Confirm`.
         logger.info(f"Scanning frontend ports: {FRONTEND_PORT_CANDIDATES}")
         ports_reported = 0
         port_processes = {}
@@ -1040,7 +1040,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
             # Don't perform OS-level kills here. Return information for the operator.
             stopped_services.append(f"Frontend (processes detected on ports: {list(port_processes.keys())})")
             errors.append(
-                "Processes detected on frontend ports. Prefer using scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
+                "Processes detected on frontend ports. Prefer using scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/operator/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
             )
 
         # ═══ PHASE 2: Stop Node.js Processes ═══
@@ -1062,7 +1062,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
                 )
                 stopped_services.append("Node.js (processes present)")
                 errors.append(
-                    "Node.js processes detected. Prefer calling scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
+                    "Node.js processes detected. Prefer calling scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/operator/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
                 )
             else:
                 logger.info("No Node.js processes found")
