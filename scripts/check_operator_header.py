@@ -6,6 +6,7 @@ check the committed files passed on argv for an OPERATOR-ONLY marker within the
 first 8 lines. If any operator-script under scripts/operator/ lacks the marker
 the script exits non-zero with an explanatory message.
 """
+
 import sys
 from pathlib import Path
 
