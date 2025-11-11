@@ -4,7 +4,8 @@
  * TypeScript version with full type safety
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import authService from '@/services/authService';
 import type {
   Student,
   Course,
@@ -40,31 +41,54 @@ const apiClient: AxiosInstance = axios.create({
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  (config) => {
-    // Future: add authentication token
-    // const token = localStorage.getItem('authToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    return config;
-  },
+  (config) => attachAuthHeader(config),
   (error) => {
     return Promise.reject(error);
   }
 );
 
+// Exported helper so this behavior can be unit-tested without relying on axios internals
+export function attachAuthHeader(config: AxiosRequestConfig) {
+  try {
+    const token = authService.getAccessToken();
+    if (token && config && config.headers) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - axios headers typing
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+}
+
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
+    // Try to refresh access token once on 401, then retry original request
+    const originalRequest = (error.config || {}) as AxiosRequestConfig & { _retry?: boolean };
     if (error.response) {
-      console.error('API Error:', error.response.data);
-
-      if (error.response.status === 404) {
-        console.error('Resource not found');
-      } else if (error.response.status === 500) {
-        console.error('Server error');
+      // If unauthorized and we haven't retried yet, attempt refresh
+      if (error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        return authService.refreshAccessToken().then((newToken) => {
+          if (newToken) {
+            if (originalRequest.headers) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            }
+            return axios(originalRequest);
+          }
+          return Promise.reject(error);
+        }).catch(() => Promise.reject(error));
       }
+
+      // Log other response errors
+      console.error('API Error:', error.response.data);
+      if (error.response.status === 404) console.error('Resource not found');
+      if (error.response.status === 500) console.error('Server error');
     } else if (error.request) {
       console.error('Network Error: No response from server');
     } else {
