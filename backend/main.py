@@ -999,7 +999,10 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
             logger.info("No tracked frontend process")
 
         # Report any processes on frontend ports but DO NOT kill them here.
-        # Operator should use the maintenance helper script or run taskkill locally.
+        # Operator guidance: prefer the maintenance helper script to request a frontend
+        # stop (`scripts/maintenance/stop_frontend_safe.ps1`). For emergency host-level
+        # termination only, operators may run the interactive operator script with
+        # explicit confirmation: `scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm`.
         logger.info(f"Scanning frontend ports: {FRONTEND_PORT_CANDIDATES}")
         ports_reported = 0
         port_processes = {}
@@ -1030,7 +1033,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
             # Don't perform OS-level kills here. Return information for the operator.
             stopped_services.append(f"Frontend (processes detected on ports: {list(port_processes.keys())})")
             errors.append(
-                "Processes detected on frontend ports. Please run scripts/maintenance/stop_frontend_safe.ps1 or taskkill locally to stop them."
+                "Processes detected on frontend ports. Prefer using scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
             )
 
         # ═══ PHASE 2: Stop Node.js Processes ═══
@@ -1050,7 +1053,7 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
                 logger.info("Node.js processes detected - listing node.exe instances but will not terminate them from the control API")
                 stopped_services.append("Node.js (processes present)")
                 errors.append(
-                    "Node.js processes detected. Please run scripts/maintenance/stop_frontend_safe.ps1 or run 'taskkill /F /IM node.exe /T' on the host if you want to terminate them."
+                    "Node.js processes detected. Prefer calling scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
                 )
             else:
                 logger.info("No Node.js processes found")
