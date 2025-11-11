@@ -29,7 +29,8 @@ try {
     $resp = Invoke-RestMethod -Uri "$ControlUrl/control/api/stop" -Method Post -Headers $headers -TimeoutSec $TimeoutSeconds
     Write-Host "Response:`n" ($resp | ConvertTo-Json -Depth 4)
 } catch {
-    Write-Host "Failed to call control API: $_"
-    Write-Host "If control API is not enabled, you can stop the frontend manually (Windows example):"
-    Write-Host "  taskkill /F /IM node.exe /T"
+  Write-Host "Failed to call control API: $_"
+  Write-Host "If control API is not enabled, prefer using the operator emergency script instead of running taskkill locally:" -ForegroundColor Yellow
+  Write-Host "  .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm" -ForegroundColor Cyan
+  Write-Host "If you absolutely must run a host-level kill manually, do so only from an operator host and after confirming the PID and impact." -ForegroundColor Red
 }

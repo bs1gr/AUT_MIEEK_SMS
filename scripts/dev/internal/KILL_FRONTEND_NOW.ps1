@@ -1,10 +1,24 @@
 # Emergency frontend killer - use when backend is down
+# WARNING: This script performs host-level process termination using taskkill.
+# It is intended for interactive, operator use only. By default the script will
+# NOT run unless you explicitly pass the -Confirm parameter to acknowledge
+# that you understand the destructive nature of this operation.
+
+param(
+    [switch]$Confirm
+)
+
+if (-not $Confirm) {
+    Write-Host "This script will terminate host processes (taskkill)." -ForegroundColor Red
+    Write-Host "To proceed, re-run with the -Confirm flag: .\KILL_FRONTEND_NOW.ps1 -Confirm" -ForegroundColor Yellow
+    exit 1
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Write-Host ""
-Write-Host "=== Emergency Frontend Shutdown ===" -ForegroundColor Red
+Write-Host "=== Emergency Frontend Shutdown (CONFIRMED) ===" -ForegroundColor Red
 Write-Host ""
 
 $killed = 0
