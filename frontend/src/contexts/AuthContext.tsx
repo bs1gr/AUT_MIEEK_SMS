@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import authService, { storeRefreshToken } from '@/services/authService';
+import authService from '@/services/authService';
 import apiClient from '@/api/api';
 
 type User = {
@@ -46,9 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAccessTokenState(data.access_token);
       authService.setAccessToken(data.access_token);
     }
-    if (data.refresh_token) {
-      storeRefreshToken(data.refresh_token);
-    }
+    // Refresh token is managed via HttpOnly cookie set by the backend; no
+    // client-side persistence is performed for refresh tokens.
     if (data.user) {
       setUser(data.user);
       try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data.user)); } catch {}
@@ -61,8 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       // ignore errors
     }
-    authService.clearAccessToken();
-    storeRefreshToken(null);
+  authService.clearAccessToken();
     setAccessTokenState(null);
     setUser(null);
     try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
