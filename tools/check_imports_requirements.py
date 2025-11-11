@@ -10,9 +10,11 @@ early.
 It ignores standard library modules and local imports (modules starting with
 `backend.`). It has a small whitelist for common tooling modules.
 """
+
 from __future__ import annotations
 
 import ast
+import json
 import sys
 from pathlib import Path
 from typing import Set
@@ -65,9 +67,23 @@ def stdlib_names() -> Set[str]:
         return set(map(str, sys.stdlib_module_names))
     # Fallback: conservative common stdlib names
     return {
-        "os", "sys", "re", "json", "time", "typing", "pathlib", "logging",
-        "subprocess", "threading", "http", "functools", "itertools", "collections",
-        "math", "datetime", "inspect",
+        "os",
+        "sys",
+        "re",
+        "json",
+        "time",
+        "typing",
+        "pathlib",
+        "logging",
+        "subprocess",
+        "threading",
+        "http",
+        "functools",
+        "itertools",
+        "collections",
+        "math",
+        "datetime",
+        "inspect",
     }
 
 
@@ -80,22 +96,30 @@ def main() -> int:
     missing = {}
 
     import importlib.util
+
     try:
         # Python 3.10+: packages_distributions maps top-level packages to distributions
         from importlib.metadata import packages_distributions
     except Exception:
         packages_distributions = None
 
-    # Common exceptions where top-level module name != PyPI distribution name
-    # Add mappings here when packages use different import names than their
-    # distribution names (e.g. jwt -> PyJWT)
-    mapping_exceptions = {
-        "jwt": ["pyjwt"],
-        "yaml": ["pyyaml"],
-        "pil": ["pillow"],
-        "cv2": ["opencv-python"],
-        "Crypto": ["pycryptodome"],
-    }
+    # Load mapping exceptions from tools/import_name_mapping.json if present.
+    mapping_file = Path(__file__).with_name("import_name_mapping.json")
+    mapping_exceptions = {}
+    try:
+        if mapping_file.exists():
+            mapping_exceptions = json.loads(mapping_file.read_text(encoding="utf-8"))
+            # Normalize keys to lower-case strings -> list of distro names
+            mapping_exceptions = {k.lower(): [s.lower() for s in v] for k, v in mapping_exceptions.items()}
+    except Exception:
+        # If loading fails, fall back to a small built-in map
+        mapping_exceptions = {
+            "jwt": ["pyjwt"],
+            "yaml": ["pyyaml"],
+            "pil": ["pillow"],
+            "cv2": ["opencv-python"],
+            "crypto": ["pycryptodome"],
+        }
 
     for p in py_files:
         mods = find_imports_in_file(p)
@@ -103,7 +127,14 @@ def main() -> int:
             ml = m.lower()
             if ml in whitelist:
                 continue
+            # Skip explicit backend package imports (e.g. "backend.models")
             if ml.startswith("backend"):
+                continue
+            # Also skip local backend modules imported without the "backend." prefix
+            # e.g. `import control_auth` where backend/control_auth.py exists.
+            local_mod_path = BACKEND_DIR / (m + ".py")
+            local_pkg_init = BACKEND_DIR / m / "__init__.py"
+            if local_mod_path.exists() or local_pkg_init.exists():
                 continue
             if ml in stdlib:
                 continue

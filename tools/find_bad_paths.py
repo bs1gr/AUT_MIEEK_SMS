@@ -1,5 +1,6 @@
 import os
-root = r'D:\SMS\student-management-system'
+
+root = r"D:\SMS\student-management-system"
 problem = []
 for dirpath, dirnames, filenames in os.walk(root):
     for name in dirnames + filenames:
@@ -7,6 +8,6 @@ for dirpath, dirnames, filenames in os.walk(root):
         try:
             os.path.relpath(p, root)
         except Exception as e:
-            print('BAD', p, '->', repr(e))
+            print("BAD", p, "->", repr(e))
             problem.append((p, repr(e)))
-print('Done, found', len(problem), 'problem paths')
+print("Done, found", len(problem), "problem paths")
