@@ -9,6 +9,7 @@
  */
 
 import axios from 'axios';
+import * as authService from '../services/authService';
 
 // Base API URL - change this based on your environment
 // Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
@@ -29,18 +30,27 @@ const apiClient = axios.create({
 
 // Request interceptor (for adding auth tokens in future)
 apiClient.interceptors.request.use(
-  (config) => {
-    // You can add authentication token here
-    // const token = localStorage.getItem('authToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    return config;
+  (config) => attachAuthHeader(config),
+  (error) => {
+    return Promise.reject(error);
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
+// Exported helper so this behavior can be unit-tested without relying on axios internals
+export function attachAuthHeader(config) {
+  try {
+    const token = authService.getAccessToken && authService.getAccessToken();
+    if (token && config && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+}
 
 // Response interceptor (for error handling)
 apiClient.interceptors.response.use(
