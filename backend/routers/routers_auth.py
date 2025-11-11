@@ -333,7 +333,9 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 
 @router.post("/auth/refresh", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def refresh(request: Request, payload: RefreshRequest = Body(None), db: Session = Depends(get_db), response: Response = None):
+async def refresh(
+    request: Request, payload: RefreshRequest = Body(None), db: Session = Depends(get_db), response: Response = None
+):
     try:
         raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
         if not raw:
