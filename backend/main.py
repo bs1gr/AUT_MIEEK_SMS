@@ -314,7 +314,14 @@ def _safe_run(cmd_args, timeout=5):
         try:
             if isinstance(cmd_args, (list, tuple)) and cmd_args:
                 cmd0 = str(cmd_args[0]).lower()
-                if "taskkill" in cmd0 or "taskkill.exe" in cmd0 or ("/im" in " ".join(map(str, cmd_args)).lower() and "node.exe" in " ".join(map(str, cmd_args)).lower()):
+                if (
+                    "taskkill" in cmd0
+                    or "taskkill.exe" in cmd0
+                    or (
+                        "/im" in " ".join(map(str, cmd_args)).lower()
+                        and "node.exe" in " ".join(map(str, cmd_args)).lower()
+                    )
+                ):
                     logger.info("CONTROL_API_ALLOW_TASKKILL not set: skipping destructive command: %s", cmd_args)
                     return SimpleNamespace(returncode=0, stdout="", stderr="")
         except Exception:
@@ -535,60 +542,60 @@ async def lifespan(app: FastAPI):
         with db_engine.connect() as conn:
             result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
             if result == 0:
-                    logger.info("No courses found in database - scheduling auto-import...")
-                    # Use threading with proper error boundaries and timeout
-                    # This is more reliable than HTTP requests during startup
-                    # Skip auto-import in test/disabled-startup mode
-                    if not disable_startup:
-                        try:
-                            import threading
-                            import httpx
+                logger.info("No courses found in database - scheduling auto-import...")
+                # Use threading with proper error boundaries and timeout
+                # This is more reliable than HTTP requests during startup
+                # Skip auto-import in test/disabled-startup mode
+                if not disable_startup:
+                    try:
+                        import threading
+                        import httpx
 
-                            def delayed_import():
-                                """
-                                Wait for server to start, then trigger import.
-                                Includes retry logic and proper error handling.
-                                """
-                                max_retries = 3
-                                retry_delay = 3
+                        def delayed_import():
+                            """
+                            Wait for server to start, then trigger import.
+                            Includes retry logic and proper error handling.
+                            """
+                            max_retries = 3
+                            retry_delay = 3
 
-                                for attempt in range(max_retries):
-                                        try:
-                                            # Wait for server to be fully ready
-                                            _time.sleep(retry_delay * (attempt + 1))
+                            for attempt in range(max_retries):
+                                try:
+                                    # Wait for server to be fully ready
+                                    _time.sleep(retry_delay * (attempt + 1))
 
-                                            port = getattr(settings, "API_PORT", 8000)
-                                            response = httpx.post(
-                                                f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
-                                                headers={"Content-Type": "application/json"},
-                                                timeout=60.0,
-                                            )
-                                            if response.status_code == 200:
-                                                data = response.json()
-                                                logger.info(
-                                                    f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
-                                                )
-                                                return  # Success
-                                            else:
-                                                logger.warning(
-                                                    f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
-                                                )
-                                        except httpx.RequestError:
-                                            logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
-                                        except Exception as e:
-                                            logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
+                                    port = getattr(settings, "API_PORT", 8000)
+                                    response = httpx.post(
+                                        f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
+                                        headers={"Content-Type": "application/json"},
+                                        timeout=60.0,
+                                    )
+                                    if response.status_code == 200:
+                                        data = response.json()
+                                        logger.info(
+                                            f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                                        )
+                                        return  # Success
+                                    else:
+                                        logger.warning(
+                                            f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
+                                        )
+                                except httpx.RequestError:
+                                    logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
+                                except Exception as e:
+                                    logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
 
-                                logger.error("Auto-import failed after all retries")
+                            logger.error("Auto-import failed after all retries")
 
-                            # Start import in background thread
-                            # Using daemon=True ensures it doesn't prevent shutdown
-                            import_thread = threading.Thread(target=delayed_import, daemon=True, name="course-auto-import")
-                            import_thread.start()
-                            logger.info("Started background course import thread (will retry up to 3 times)")
-                        except Exception as e:
-                            logger.warning(f"Failed to start auto-import thread: {e}")
-                    else:
-                        logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
+                        # Start import in background thread
+                        # Using daemon=True ensures it doesn't prevent shutdown
+                        import_thread = threading.Thread(target=delayed_import, daemon=True, name="course-auto-import")
+                        import_thread.start()
+                        logger.info("Started background course import thread (will retry up to 3 times)")
+                    except Exception as e:
+                        logger.warning(f"Failed to start auto-import thread: {e}")
+                else:
+                    logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
             else:
                 logger.info(f"Courses already exist in database ({result} courses) - skipping auto-import")
     except Exception as e:
@@ -911,7 +918,7 @@ def control_start():
 
         # Kill the process since it's not responding
         try:
-                    _safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
+            _safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
         except Exception:
             pass
 
@@ -1050,7 +1057,9 @@ def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
             )
 
             if check_result.returncode == 0 and "node.exe" in check_result.stdout:
-                logger.info("Node.js processes detected - listing node.exe instances but will not terminate them from the control API")
+                logger.info(
+                    "Node.js processes detected - listing node.exe instances but will not terminate them from the control API"
+                )
                 stopped_services.append("Node.js (processes present)")
                 errors.append(
                     "Node.js processes detected. Prefer calling scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/internal/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
@@ -1304,7 +1313,9 @@ def control_stop_backend(request: Request, _auth=Depends(require_control_admin))
                             if getattr(result, "returncode", None) == 0:
                                 logger.info(f"✓ Terminated backend PID: {pid}")
                             else:
-                                logger.warning(f"Failed to kill PID {pid}: return code {getattr(result, 'returncode', None)}")
+                                logger.warning(
+                                    f"Failed to kill PID {pid}: return code {getattr(result, 'returncode', None)}"
+                                )
 
                         except subprocess.TimeoutExpired:
                             logger.error(f"Timeout killing backend PID {pid}")
