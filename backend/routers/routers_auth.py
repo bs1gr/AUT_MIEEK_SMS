@@ -334,7 +334,10 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 @router.post("/auth/refresh", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def refresh(
-    request: Request, payload: RefreshRequest = Body(None), db: Session = Depends(get_db), response: Response = None
+    request: Request,
+    payload: RefreshRequest = Body(None),
+    db: Session = Depends(get_db),
+    response: Response = None,
 ):
     try:
         raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
@@ -381,12 +384,6 @@ async def refresh(
         except Exception:
             stored_expires = stored_expires
         if stored_expires < datetime.now(timezone.utc):
-            raise http_error(
-                status.HTTP_401_UNAUTHORIZED,
-                ErrorCode.UNAUTHORIZED,
-                "Refresh token expired or revoked",
-                request,
-            )
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
                 ErrorCode.UNAUTHORIZED,
@@ -465,7 +462,9 @@ async def logout(request: Request, payload: LogoutRequest = Body(None), db: Sess
                 "Invalid token",
                 request,
             )
-        revoked = revoke_refresh_token_by_jti(db, jti)
+
+        # Revoke the refresh token server-side; we don't need the return value here
+        revoke_refresh_token_by_jti(db, jti)
         # Clear refresh cookie on logout
         resp = JSONResponse(content={"ok": True})
         resp.delete_cookie("refresh_token")
