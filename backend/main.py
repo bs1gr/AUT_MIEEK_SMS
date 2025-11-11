@@ -542,7 +542,7 @@ async def lifespan(app: FastAPI):
                     if not disable_startup:
                         try:
                             import threading
-                            import requests
+                            import httpx
 
                             def delayed_import():
                                 """
@@ -553,30 +553,30 @@ async def lifespan(app: FastAPI):
                                 retry_delay = 3
 
                                 for attempt in range(max_retries):
-                                    try:
-                                        # Wait for server to be fully ready
-                                        _time.sleep(retry_delay * (attempt + 1))
+                                        try:
+                                            # Wait for server to be fully ready
+                                            _time.sleep(retry_delay * (attempt + 1))
 
-                                        port = getattr(settings, "API_PORT", 8000)
-                                        response = requests.post(
-                                            f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
-                                            headers={"Content-Type": "application/json"},
-                                            timeout=60,
-                                        )
-                                        if response.status_code == 200:
-                                            data = response.json()
-                                            logger.info(
-                                                f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                                            port = getattr(settings, "API_PORT", 8000)
+                                            response = httpx.post(
+                                                f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
+                                                headers={"Content-Type": "application/json"},
+                                                timeout=60.0,
                                             )
-                                            return  # Success
-                                        else:
-                                            logger.warning(
-                                                f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
-                                            )
-                                    except requests.exceptions.ConnectionError:
-                                        logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
-                                    except Exception as e:
-                                        logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
+                                            if response.status_code == 200:
+                                                data = response.json()
+                                                logger.info(
+                                                    f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                                                )
+                                                return  # Success
+                                            else:
+                                                logger.warning(
+                                                    f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
+                                                )
+                                        except httpx.RequestError:
+                                            logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
+                                        except Exception as e:
+                                            logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
 
                                 logger.error("Auto-import failed after all retries")
 
