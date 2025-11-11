@@ -18,3 +18,4 @@ slowapi==0.1.9  # Rate limiting for API endpoints
 passlib[bcrypt]==1.7.4  # Password hashing
 PyJWT==2.9.0            # JWT tokens (replaces python-jose)
 sqlalchemy2-stubs
+docker
