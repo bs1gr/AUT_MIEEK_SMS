@@ -60,7 +60,11 @@ def test_invalid_or_expired_admin_token_is_ignored(client):
     assert data.get("role") == "teacher"
 
     # Token signed with wrong secret
-    bad_token = jwt.encode({"sub": "noone@example.com", "exp": datetime.now(timezone.utc) + timedelta(hours=1)}, "wrongsecret", algorithm=config.settings.ALGORITHM)
+    bad_token = jwt.encode(
+        {"sub": "noone@example.com", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+        "wrongsecret",
+        algorithm=config.settings.ALGORITHM,
+    )
     # Use a valid password so the request reaches role-checking logic
     r2 = client.post(
         "/api/v1/auth/register",
