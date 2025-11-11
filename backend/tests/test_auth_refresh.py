@@ -25,16 +25,19 @@ def test_refresh_rotation_and_logout(client):
 
     r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
     assert r2.status_code == 200
-    td = r2.json()
-    assert "refresh_token" in td and td["refresh_token"]
-    old_refresh = td["refresh_token"]
+    # Test client stores cookies; login should set HttpOnly refresh_token cookie
+    assert "refresh_token" in client.cookies and client.cookies.get("refresh_token")
+    old_refresh = client.cookies.get("refresh_token")
 
     # Use refresh to obtain rotated tokens
-    r3 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
+    # Call refresh without JSON body; server should read cookie and rotate it
+    r3 = client.post("/api/v1/auth/refresh")
     assert r3.status_code == 200
     new = r3.json()
-    assert "access_token" in new and "refresh_token" in new
-    new_refresh = new["refresh_token"]
+    assert "access_token" in new
+    # New refresh token should be set as cookie
+    assert "refresh_token" in client.cookies and client.cookies.get("refresh_token")
+    new_refresh = client.cookies.get("refresh_token")
     assert new_refresh != old_refresh
 
     # Check DB: the user should have two refresh token records (old rotated + new)
@@ -55,13 +58,16 @@ def test_refresh_rotation_and_logout(client):
             pass
 
     # Old refresh should no longer work
+    # Old refresh (previous cookie) should no longer work
     r4 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
     assert r4.status_code == 401
 
     # Logout the new refresh token
-    r5 = client.post("/api/v1/auth/logout", json={"refresh_token": new_refresh})
+    # Logout should clear the refresh cookie
+    r5 = client.post("/api/v1/auth/logout")
     assert r5.status_code == 200
     assert r5.json().get("ok") is True
+    assert client.cookies.get("refresh_token") is None
 
     # Using the logged-out refresh should fail
     r6 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh})
@@ -95,9 +101,9 @@ def test_refresh_expiry(client):
 
         r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
         assert r2.status_code == 200
-        td = r2.json()
-        assert "refresh_token" in td and td["refresh_token"]
-        expired_refresh = td["refresh_token"]
+        # Login should set the refresh_token cookie
+        assert "refresh_token" in client.cookies and client.cookies.get("refresh_token")
+        expired_refresh = client.cookies.get("refresh_token")
 
         # Immediately attempting to refresh should fail due to expiry
         r3 = client.post("/api/v1/auth/refresh", json={"refresh_token": expired_refresh})
