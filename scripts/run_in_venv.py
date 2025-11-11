@@ -9,6 +9,7 @@ This keeps pre-commit hooks and local runs reproducible without requiring
 developers to manually create a venv. The script can optionally install the
 project backend requirements into the venv (useful for CI / first-run).
 """
+
 from __future__ import annotations
 
 import subprocess
