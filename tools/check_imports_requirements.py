@@ -86,6 +86,17 @@ def main() -> int:
     except Exception:
         packages_distributions = None
 
+    # Common exceptions where top-level module name != PyPI distribution name
+    # Add mappings here when packages use different import names than their
+    # distribution names (e.g. jwt -> PyJWT)
+    mapping_exceptions = {
+        "jwt": ["pyjwt"],
+        "yaml": ["pyyaml"],
+        "pil": ["pillow"],
+        "cv2": ["opencv-python"],
+        "Crypto": ["pycryptodome"],
+    }
+
     for p in py_files:
         mods = find_imports_in_file(p)
         for m in sorted(mods):
@@ -116,6 +127,12 @@ def main() -> int:
                         if dn in reqs or d.lower() in reqs:
                             dist_ok = True
                             break
+                    # Check manual exceptions mapping
+                    if not dist_ok and ml in mapping_exceptions:
+                        for ex in mapping_exceptions[ml]:
+                            if ex.lower() in reqs:
+                                dist_ok = True
+                                break
             except Exception:
                 dist_ok = False
 
