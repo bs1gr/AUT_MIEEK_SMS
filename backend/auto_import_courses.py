@@ -5,7 +5,7 @@ This script is called by the Docker entrypoint after the server starts.
 
 import logging
 import time
-import requests  # type: ignore[import]
+import httpx
 import sys
 
 logger = logging.getLogger(__name__)
@@ -16,10 +16,10 @@ def wait_for_server(url: str = "http://localhost:8000/health", timeout: int = 60
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            response = requests.get(url, timeout=5)
+            response = httpx.get(url, timeout=5.0)
             if response.status_code == 200:
                 return True
-        except requests.RequestException:
+        except httpx.RequestError:
             pass
         time.sleep(interval)
     return False
@@ -29,16 +29,16 @@ def check_and_import_courses(api_url: str = "http://localhost:8000/api/v1"):
     """Check if courses exist, and import if database is empty."""
     try:
         # Check if courses exist
-        response = requests.get(f"{api_url}/courses/", timeout=10)
+        response = httpx.get(f"{api_url}/courses/", timeout=10.0)
         if response.status_code == 200:
             courses = response.json()
             if len(courses) == 0:
                 print("No courses found in database - importing from templates...")
                 # Import courses
-                import_response = requests.post(
+                import_response = httpx.post(
                     f"{api_url}/imports/courses?source=template",
                     headers={"Content-Type": "application/json"},
-                    timeout=60,
+                    timeout=60.0,
                 )
                 if import_response.status_code == 200:
                     data = import_response.json()
