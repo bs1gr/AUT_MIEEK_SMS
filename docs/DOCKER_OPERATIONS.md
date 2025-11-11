@@ -223,8 +223,11 @@ docker images | findstr sms
 # Check what's using port 8080
 netstat -ano | findstr ":8080"
 
-# Kill process by PID
-taskkill /PID <PID> /F
+# Kill process by PID — operator guidance
+# Prefer operator tooling; request frontend stop via the control API helper:
+#   .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
+# Operator emergency (interactive, requires confirmation):
+#   .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
 # Or change port in docker-compose.yml:
 # ports:

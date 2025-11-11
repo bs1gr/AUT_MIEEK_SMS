@@ -45,3 +45,18 @@ How to prepare the PR
 1. Create a branch from `main`, e.g. `hardening/ci-safety`.
 2. Commit changes and push the branch.
 3. Open a PR with this description and request review from the backend owners.
+
+Notes for reviewers / operators:
+
+- This change intentionally removes the server-side ability to run `taskkill` directly from the HTTP control API. Host-level destructive operations are now delegated to documented operator scripts (see `scripts/maintenance/stop_frontend_safe.ps1`) and to deployment tooling. If required in a controlled environment set `CONTROL_API_ALLOW_TASKKILL=1` (not recommended for CI).
+
+Local validation commands (PowerShell)
+```pwsh
+# Run unit tests (skip heavy startup tasks)
+$env:DISABLE_STARTUP_TASKS = "1"
+pytest -q
+
+# Run guarded integration smoke test locally (requires a backend or RUN_INTEGRATION):
+$env:RUN_INTEGRATION = "1"
+pytest backend/tests/test_integration_smoke.py -q
+```
