@@ -165,8 +165,10 @@ Use `.\SMS.ps1` for interactive management, status, logs, backup, and troublesho
 REM Check what's using port 8080
 netstat -ano | findstr ":8080"
 
-REM Kill that process (replace 1234 with actual PID)
-taskkill /PID 1234 /F
+REM If a process is using the port, prefer the safer operator flow:
+REM   .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
+REM As an emergency operator action (interactive only), run:
+REM   .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
 REM Or use the interactive menu
 START.bat

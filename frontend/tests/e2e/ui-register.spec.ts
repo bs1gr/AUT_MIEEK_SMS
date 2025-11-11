@@ -4,7 +4,7 @@ test.describe('Registration UI flow (smoke)', () => {
   test('register via UI and ensure backend sets HttpOnly refresh cookie and auto-login', async ({ page }) => {
     const base = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
     const rnd = Math.random().toString(36).slice(2, 8);
-    const email = `e2e-ui-${rnd}@example.test`;
+  const email = `e2e-ui-${rnd}@example.com`;
     const password = 'E2E-Ui-Password-1!';
 
     await page.goto(base);
@@ -14,18 +14,27 @@ test.describe('Registration UI flow (smoke)', () => {
     await page.fill('input[aria-label="password"]', password);
     await page.fill('input[aria-label="full name"]', 'E2E UI User');
 
-    // Wait for the network response that performs registration and capture headers
+    // Wait for the network response that performs login (auto-login happens
+    // after register) and capture headers.
     const [res] = await Promise.all([
-      page.waitForResponse((r) => r.url().includes('/auth/register') && r.request().method() === 'POST'),
+      page.waitForResponse((r) => r.url().includes('/api/v1/auth/login') && r.request().method() === 'POST'),
       page.click('button:has-text("Register")'),
     ]);
+
+    if (!(res.status() >= 200 && res.status() < 300)) {
+      const txt = await res.text().catch(() => '');
+      console.error('UI Register failed status=', res.status(), 'body=', txt);
+    }
 
     expect(res.status()).toBeGreaterThan(199);
     expect(res.status()).toBeLessThan(300);
 
-    const sc = res.headers()['set-cookie'] || '';
-    // Backend should set a refresh_token cookie (HttpOnly cookie appears in headers)
-    expect(sc).toMatch(/refresh_token=/);
+  // Browsers do not expose Set-Cookie headers to JS fetch/XHR responses for security.
+  // Instead, check the browser context cookies for the HttpOnly refresh token.
+  const cookies = await page.context().cookies();
+  const refreshCookie = cookies.find((c) => c.name === 'refresh_token');
+  expect(refreshCookie).toBeDefined();
+  expect(refreshCookie?.httpOnly).toBe(true);
 
     // Ensure the UI shows auto-login success message when server returns access token
     // The app displays 'Registered and logged in.' on successful auto-login.

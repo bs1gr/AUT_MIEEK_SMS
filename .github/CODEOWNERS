@@ -1,0 +1,3 @@
+# Codeowners for operator scripts
+# Change @bs1gr to your operators team or organization team as appropriate.
+/scripts/operator/ @bs1gr

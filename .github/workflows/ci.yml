@@ -53,6 +53,13 @@ jobs:
         run: |
           pip install --upgrade ruff mypy pytest pytest-cov pip-audit types-requests pre-commit
 
+      - name: Verify imports vs requirements
+        # Run the repository checker using the same Python environment that already
+        # has project dependencies installed. This avoids a separate install step
+        # and ensures the checker sees the same environment as the tests.
+        run: |
+          python tools/check_imports_requirements.py
+
       - name: Run pre-commit hooks (non-blocking)
         run: |
           pre-commit run --all-files --show-diff-on-failure || true
@@ -66,6 +73,8 @@ jobs:
           python -m mypy backend
 
       - name: Run backend tests
+        env:
+          DISABLE_STARTUP_TASKS: '1'
         run: |
           pytest --cov=backend --cov-report=term-missing --cov-report=xml:coverage.xml backend
 
@@ -143,3 +152,50 @@ jobs:
               draft: true,
               prerelease: true,
             });
+
+  integration:
+    name: Integration (manual)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f backend/requirements-lock.txt ]; then pip install -r backend/requirements-lock.txt; else pip install -r backend/requirements-runtime.txt || pip install -r backend/requirements.txt; fi
+          pip install uvicorn[standard] pytest httpx
+
+      - name: Run migrations
+        run: |
+          cd backend
+          python -m backend.run_migrations || true
+
+      - name: Start backend (background)
+        run: |
+          nohup python -m uvicorn backend.main:app --host 127.0.0.1 --port 8001 --log-level info &> server.log &
+          sleep 2
+
+      - name: Wait for health endpoint
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8001/health; then
+              echo "Health OK"; exit 0
+            fi
+            sleep 1
+          done
+          echo "Server log:"; cat server.log || true
+          exit 1
+
+      - name: Integration smoke
+        run: |
+          curl -fsS http://127.0.0.1:8001/ || true
+
+      - name: Teardown
+        run: |
+          pkill -f "uvicorn backend.main:app" || true

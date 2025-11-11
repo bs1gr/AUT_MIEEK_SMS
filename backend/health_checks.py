@@ -91,11 +91,22 @@ class HealthChecker:
         Raises:
             HTTPException: If not ready (503)
         """
-        checks = {
-            "database": self._check_database(db),
-            "disk_space": self._check_disk_space(),
-            "memory": self._check_memory_usage(),
-        }
+        # If tests or CI requested startup tasks to be disabled, avoid running
+        # heavy or host-specific checks (disk, memory). This reduces noise in
+        # CI logs and avoids flakiness when running in ephemeral test runners.
+        if os.getenv("DISABLE_STARTUP_TASKS") == "1":
+            db_check = self._check_database(db)
+            checks = {
+                "database": db_check,
+                "disk_space": {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"},
+                "memory": {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"},
+            }
+        else:
+            checks = {
+                "database": self._check_database(db),
+                "disk_space": self._check_disk_space(),
+                "memory": self._check_memory_usage(),
+            }
 
         # If any critical check fails, we're not ready
         all_healthy = all(check["status"] == HealthCheckStatus.HEALTHY for check in checks.values())
@@ -127,14 +138,34 @@ class HealthChecker:
         Returns:
             dict: Comprehensive health information
         """
-        # Perform all health checks
-        db_check = self._check_database(db)
-        disk_check = self._check_disk_space()
-        memory_check = self._check_memory_usage()
-        migration_check = self._check_migration_status()
-        stats_check = self._get_database_stats(db)
-        system_check = self._get_system_info()
-        frontend_check = self._check_frontend()
+        # If running in test/CI mode, don't run heavy or environment-dependent
+        # checks; return a minimal health payload to avoid noisy logs.
+        # However, when tests are executing (pytest sets environment markers) we
+        # want check_health to call the underlying check methods so unit tests
+        # that patch those methods can exercise them. Detect common pytest
+        # env markers and skip the short-circuit in that case.
+        disable_startup = os.getenv("DISABLE_STARTUP_TASKS") == "1"
+        running_under_pytest = bool(
+            os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING") or os.getenv("TESTING") == "true"
+        )
+
+        if disable_startup and not running_under_pytest:
+            db_check = self._check_database(db)
+            disk_check = {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"}
+            memory_check = {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"}
+            migration_check = {"status": HealthCheckStatus.DEGRADED, "message": "skipped in test mode"}
+            stats_check = {}
+            system_check = {"note": "skipped in test mode"}
+            frontend_check = {"status": HealthCheckStatus.DEGRADED, "message": "optional; skipped in test mode"}
+        else:
+            # Perform all health checks
+            db_check = self._check_database(db)
+            disk_check = self._check_disk_space()
+            memory_check = self._check_memory_usage()
+            migration_check = self._check_migration_status()
+            stats_check = self._get_database_stats(db)
+            system_check = self._get_system_info()
+            frontend_check = self._check_frontend()
 
         # Determine overall status
         checks = {

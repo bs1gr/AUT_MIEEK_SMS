@@ -1,4 +1,22 @@
 repos:
+  - repo: local
+    hooks:
+      - id: check-imports-requirements
+        name: Verify backend imports vs requirements
+        # Use the repo-local venv wrapper for consistent environments across
+        # developer machines and CI runners. The wrapper will create `.venv-tools`
+        # if missing and then run the provided command with that venv's python.
+        entry: python scripts/run_in_venv.py -- python tools/check_imports_requirements.py
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+      - id: check-operator-header
+        name: Ensure operator scripts have OPERATOR-ONLY header
+        entry: python scripts/check_operator_header.py
+        language: system
+        files: ^scripts/operator/.*\.(ps1|sh|bat)$
+        pass_filenames: true
+
   # Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
