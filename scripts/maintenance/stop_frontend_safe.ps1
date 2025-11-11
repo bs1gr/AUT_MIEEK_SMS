@@ -31,6 +31,6 @@ try {
 } catch {
   Write-Host "Failed to call control API: $_"
   Write-Host "If control API is not enabled, prefer using the operator emergency script instead of running taskkill locally:" -ForegroundColor Yellow
-  Write-Host "  .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm" -ForegroundColor Cyan
+  Write-Host "  .\scripts\operator\KILL_FRONTEND_NOW.ps1 -Confirm" -ForegroundColor Cyan
   Write-Host "If you absolutely must run a host-level kill manually, do so only from an operator host and after confirming the PID and impact." -ForegroundColor Red
 }

@@ -21,11 +21,11 @@ Safe operator workflow
 
 ```powershell
 # Interactive emergency frontend shutdown (operator-only)
-.\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
+.\scripts\operator\KILL_FRONTEND_NOW.ps1 -Confirm
 ```
 
 Notes:
-- The `.\scripts\internal\KILL_FRONTEND_NOW.ps1` script is intentionally destructive and requires `-Confirm` to proceed.
+- The `scripts/operator/KILL_FRONTEND_NOW.ps1` script is intentionally destructive and requires `-Confirm` to proceed.
 - Prefer running the emergency script locally on the operator host rather than embedding a call to `taskkill` in automation or CI.
 - In containerized/managed deployments, rely on orchestration (docker, systemd, k8s) to handle process lifecycle; avoid host-level `taskkill`.
 

@@ -10,6 +10,12 @@ repos:
         language: system
         files: ^backend/.*\.py$
         pass_filenames: false
+      - id: check-operator-header
+        name: Ensure operator scripts have OPERATOR-ONLY header
+        entry: python scripts/check_operator_header.py
+        language: system
+        files: ^scripts/operator/.*\.(ps1|sh|bat)$
+        pass_filenames: true
 
   # Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
