@@ -17,4 +17,4 @@ $ErrorActionPreference = 'Stop'
 Write-Host "Running developer emergency killer (DEVELOPMENT ONLY)"
 Write-Host "This is a safe dev copy; adjust as needed for local debugging."
 
-``` 
+```
