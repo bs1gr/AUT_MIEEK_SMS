@@ -11,7 +11,8 @@ def test_register_login_me_flow(client):
     assert r.status_code == 200, r.text
     data = r.json()
     assert data["email"] == payload["email"].lower()
-    assert data["role"] == "admin"
+    # Registration without an admin bearer token must not grant admin role
+    assert data["role"] == "teacher"
     assert data["is_active"] is True
 
     # Duplicate register should fail
@@ -29,7 +30,8 @@ def test_register_login_me_flow(client):
     assert r4.status_code == 200, r4.text
     me = r4.json()
     assert me["email"] == payload["email"].lower()
-    assert me["role"] == "admin"
+    # The logged-in user should match the role returned at registration
+    assert me["role"] == "teacher"
 
 
 def test_login_wrong_password(client):
