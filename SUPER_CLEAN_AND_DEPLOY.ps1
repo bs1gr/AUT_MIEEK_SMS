@@ -718,6 +718,36 @@ try {
             Write-Host "○ No running project processes found" -ForegroundColor Gray
         }
     }
+
+    # Stop running project processes before cleanup (robust, verbose, non-fatal)
+    Write-Host "Checking for running project processes..." -ForegroundColor Yellow
+    $projectProcesses = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "*$script:ScriptRoot*" }
+    if ($projectProcesses) {
+        Write-Host "Found $($projectProcesses.Count) running process(es) that may lock files:" -ForegroundColor Yellow
+        $projectProcesses | ForEach-Object {
+            Write-Host ("  PID: {0}  Name: {1}  Path: {2}" -f $_.Id, $_.ProcessName, $_.Path) -ForegroundColor DarkYellow
+        }
+        $failed = @()
+        foreach ($proc in $projectProcesses) {
+            try {
+                Write-Host ("Attempting to stop PID $($proc.Id) ($($proc.ProcessName))...") -ForegroundColor Cyan
+                Stop-Process -Id $proc.Id -Force -ErrorAction Stop
+                Write-Host ("Successfully stopped PID $($proc.Id)") -ForegroundColor Green
+            } catch {
+                Write-Host ("Failed to stop PID $($proc.Id): $_") -ForegroundColor Red
+                $failed += $proc.Id
+            }
+        }
+        if ($failed.Count -gt 0) {
+            Write-Host ("Warning: Could not stop the following PIDs: {0}" -f ($failed -join ", ")) -ForegroundColor Red
+            Write-Host "Continuing cleanup anyway..." -ForegroundColor Yellow
+        } else {
+            Write-Host "All project processes stopped successfully." -ForegroundColor Green
+        }
+        Start-Sleep -Seconds 2
+    } else {
+        Write-Host "No running project processes found." -ForegroundColor Green
+    }
     catch {
         Write-Host "⚠ Error checking for running processes: $($_.Exception.Message)" -ForegroundColor Yellow
     }
