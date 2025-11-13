@@ -203,8 +203,5 @@ const AppearanceThemeSelector = () => {
   );
 };
 
-// Export the widget for internal use
-export { AppearanceThemeSelectorWidget };
-
 // Default export for standalone use
 export default AppearanceThemeSelector;
