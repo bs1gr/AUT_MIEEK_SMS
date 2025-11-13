@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Palette, Check } from 'lucide-react';
+import { useLanguage } from '@/LanguageContext';
 
 export type ThemeVariant = 
   | 'default'
@@ -77,7 +78,7 @@ export const themeStyles = {
   },
 };
 
-export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProps) => {
+export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: ThemeSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const themes = [
@@ -156,3 +157,54 @@ export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProp
     </div>
   );
 };
+
+/**
+ * Standalone Appearance Theme Selector Component
+ * Manages its own theme state with localStorage persistence
+ * For use in Utils/Settings/Appearance section
+ */
+const AppearanceThemeSelector = () => {
+  const { t } = useLanguage();
+  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
+    const saved = localStorage.getItem('sms.appearance.theme');
+    return (saved as ThemeVariant) || 'default';
+  });
+
+  const handleThemeChange = (theme: ThemeVariant) => {
+    setSelectedTheme(theme);
+    localStorage.setItem('sms.appearance.theme', theme);
+  };
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <Palette size={20} className="text-indigo-600" />
+          {t('controlPanel.appearanceThemes') || 'Appearance Themes'}
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends'}
+        </p>
+      </div>
+
+      <div className="mb-4">
+        <AppearanceThemeSelectorWidget currentTheme={selectedTheme} onThemeChange={handleThemeChange} />
+      </div>
+
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-xs text-blue-800">
+          <strong>{t('controlPanel.currentTheme') || 'Current Theme'}:</strong> {selectedTheme.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+        </p>
+        <p className="text-xs text-blue-700 mt-1">
+          {t('controlPanel.themeAppliesTo') || 'This theme applies to Control Panel Operations and other components that support appearance customization.'}
+        </p>
+      </div>
+    </section>
+  );
+};
+
+// Export the widget for internal use
+export { AppearanceThemeSelectorWidget };
+
+// Default export for standalone use
+export default AppearanceThemeSelector;
