@@ -1,10 +1,12 @@
 name: Build and publish Docker images
 
 on:
-  push:
-    tags:
-      - 'v*'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.6.0)'
+        required: true
+        type: string
 
 jobs:
   build-and-publish:
@@ -60,16 +62,17 @@ jobs:
         run: |
           IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms
           IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-fullstack
+          TAG=${{ inputs.tag }}
           # Build single-platform (amd64) image
-          docker build -f docker/Dockerfile.fullstack -t ${IMAGE_GHCR}:${{ github.ref_name }} -t ${IMAGE_GHCR}:latest .
+          docker build -f docker/Dockerfile.fullstack -t ${IMAGE_GHCR}:${TAG} -t ${IMAGE_GHCR}:latest .
           if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${{ github.ref_name }} docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
+            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
             docker tag ${IMAGE_GHCR}:latest docker.io/${IMAGE_DOCKERIO}:latest
-            docker push docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
+            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
             docker push docker.io/${IMAGE_DOCKERIO}:latest
-            docker push ${IMAGE_GHCR}:${{ github.ref_name }}
+            docker push ${IMAGE_GHCR}:${TAG}
             docker push ${IMAGE_GHCR}:latest
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${{ github.ref_name }} 2>/dev/null || true)
+            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
             if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
           else
             echo "digest=" >> $GITHUB_OUTPUT
@@ -80,7 +83,7 @@ jobs:
         if: ${{ steps.determine.outputs.push == 'true' }}
         run: |
           OWNER=${{ github.repository_owner }}
-          TAG=${{ github.ref_name }}
+          TAG=${{ inputs.tag }}
           # Request manifest header to get Docker-Content-Digest
           DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-fullstack/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
@@ -91,12 +94,13 @@ jobs:
         run: |
           IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/backend
           IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-backend
-          docker build -f docker/Dockerfile.backend -t ${IMAGE_GHCR}:${{ github.ref_name }} .
+          TAG=${{ inputs.tag }}
+          docker build -f docker/Dockerfile.backend -t ${IMAGE_GHCR}:${TAG} .
           if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${{ github.ref_name }} docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
-            docker push docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
-            docker push ${IMAGE_GHCR}:${{ github.ref_name }}
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${{ github.ref_name }} 2>/dev/null || true)
+            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
+            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
+            docker push ${IMAGE_GHCR}:${TAG}
+            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
             if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
           else
             echo "digest=" >> $GITHUB_OUTPUT
@@ -107,7 +111,7 @@ jobs:
         if: ${{ steps.determine.outputs.push == 'true' }}
         run: |
           OWNER=${{ github.repository_owner }}
-          TAG=${{ github.ref_name }}
+          TAG=${{ inputs.tag }}
           DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-backend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
         shell: bash
@@ -117,12 +121,13 @@ jobs:
         run: |
           IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/frontend
           IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-frontend
-          docker build -f docker/Dockerfile.frontend -t ${IMAGE_GHCR}:${{ github.ref_name }} .
+          TAG=${{ inputs.tag }}
+          docker build -f docker/Dockerfile.frontend -t ${IMAGE_GHCR}:${TAG} .
           if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${{ github.ref_name }} docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
-            docker push docker.io/${IMAGE_DOCKERIO}:${{ github.ref_name }}
-            docker push ${IMAGE_GHCR}:${{ github.ref_name }}
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${{ github.ref_name }} 2>/dev/null || true)
+            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
+            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
+            docker push ${IMAGE_GHCR}:${TAG}
+            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
             if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
           else
             echo "digest=" >> $GITHUB_OUTPUT
@@ -133,7 +138,7 @@ jobs:
         if: ${{ steps.determine.outputs.push == 'true' }}
         run: |
           OWNER=${{ github.repository_owner }}
-          TAG=${{ github.ref_name }}
+          TAG=${{ inputs.tag }}
           DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-frontend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
         shell: bash

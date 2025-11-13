@@ -1,9 +1,12 @@
 name: Create GitHub Release on tag
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.6.0)'
+        required: true
+        type: string
 
 jobs:
   create-release:
@@ -15,7 +18,7 @@ jobs:
       - name: Prepare release body
         id: prepare
         run: |
-          TAG=${{ github.ref_name }}
+          TAG=${{ inputs.tag }}
           NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
           if [ -f "$NOTES_FILE" ]; then
             echo "body<<EOF" >> $GITHUB_OUTPUT
@@ -30,7 +33,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tag = '${{ github.ref_name }}';
+            const tag = '${{ inputs.tag }}';
             const body = `${{ steps.prepare.outputs.body }}`;
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
