@@ -686,38 +686,7 @@ try {
 
     Write-Host ""
 
-    # Stop running project processes before cleanup
-    Write-Host "Checking for running project processes..." -ForegroundColor Yellow
-    try {
-        $projectProcesses = Get-Process -ErrorAction SilentlyContinue | Where-Object { 
-            $_.Path -like "*$script:ScriptRoot*" 
-        }
-        
-        if ($projectProcesses) {
-            Write-Host "Found $($projectProcesses.Count) running process(es) that may lock files:" -ForegroundColor Yellow
-            $projectProcesses | ForEach-Object {
-                Write-Host "  • PID $($_.Id): $($_.ProcessName) - $($_.Path)" -ForegroundColor Gray
-            }
-            
-            Write-Host "Stopping processes to prevent file lock errors..." -ForegroundColor Yellow
-            $projectProcesses | ForEach-Object {
-                try {
-                    Stop-Process -Id $_.Id -Force -ErrorAction Stop
-                    Write-Host "  ✓ Stopped PID $($_.Id) ($($_.ProcessName))" -ForegroundColor Green
-                }
-                catch {
-                    Write-Host "  ⚠ Could not stop PID $($_.Id): $($_.Exception.Message)" -ForegroundColor Yellow
-                }
-            }
-            
-            # Wait a moment for processes to fully terminate
-            Start-Sleep -Seconds 2
-            Write-Host "✓ Process cleanup completed" -ForegroundColor Green
-        }
-        else {
-            Write-Host "○ No running project processes found" -ForegroundColor Gray
-        }
-    }
+    # ...existing code...
 
     # Stop running project processes before cleanup (robust, verbose, non-fatal)
     Write-Host "Checking for running project processes..." -ForegroundColor Yellow
