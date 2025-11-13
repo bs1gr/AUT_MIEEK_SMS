@@ -16,7 +16,6 @@ import {
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
 import Toast from './ui/Toast';
-import DevToolsPanel, { type ToastState } from '../features/operations/components/DevToolsPanel';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -137,7 +136,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
-  const [toast, setToast] = useState<ToastState | null>(null);
   const [uptime, setUptime] = useState<string>('');
   const [uptimeTimer, setUptimeTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -298,13 +296,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     }
   };
 
-  useEffect(() => {
-    if (!toast) return undefined;
-    if (typeof window === 'undefined') return undefined;
-    const id = window.setTimeout(() => setToast(null), 4000);
-    return () => window.clearTimeout(id);
-  }, [toast]);
-
   // Control operations (use legacy endpoints for start/stop)
   // Removed unused startFrontend and stopFrontend for linter compliance
 
@@ -360,7 +351,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
 
   return (
     <div className={containerClass}>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -603,8 +593,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
               </div>
             </div>
             )}
-
-            <DevToolsPanel variant="standalone" onToast={(next) => setToast(next)} />
           </div>
         )}
 

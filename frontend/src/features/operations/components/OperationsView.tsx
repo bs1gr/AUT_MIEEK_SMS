@@ -6,6 +6,7 @@ import { useLanguage } from '@/LanguageContext';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import ThemeSelector from '@/components/tools/ThemeSelector';
+import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
 import {
   OPERATIONS_TAB_KEYS,
   type LegacyOperationsTabKey,
@@ -111,6 +112,7 @@ const OperationsView = (_props: OperationsViewProps) => {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <ThemeSelector />
+            <AppearanceThemeSelector />
           </div>
         )}
       </section>
