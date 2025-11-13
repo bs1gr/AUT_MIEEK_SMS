@@ -4,6 +4,7 @@ import { RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminOpsAPI, getHealthStatus, importAPI } from '@/api/api';
+import { ThemeSelector, themeStyles, type ThemeVariant } from './ThemeSelector';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -71,6 +72,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   const [result, setResult] = useState<OperationResult>(null);
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>('default');
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
@@ -79,15 +81,13 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     return null;
   }, [user]);
 
-  const cardClass =
-    variant === 'standalone'
-      ? 'rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm'
-      : 'rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm';
+  const theme = themeStyles[selectedTheme];
+  
+  const cardClass = variant === 'standalone' 
+    ? `${theme.container} p-5 sm:p-6`
+    : `${theme.container} p-4 sm:p-5`;
 
-  const subtleCardClass =
-    variant === 'standalone'
-      ? 'rounded-xl border border-slate-200 bg-slate-50/70 p-4 flex flex-col gap-1'
-      : 'rounded-lg border border-slate-200 bg-slate-50/70 p-3 flex flex-col gap-1';
+  const subtleCardClass = `${theme.subtleCard} flex flex-col gap-1`;
 
   const backendOrigin = useMemo(() => {
     const base = (import.meta as any).env?.VITE_API_URL ?? '/api/v1';
@@ -392,6 +392,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                 <span className="text-white/90">{t('utils.backend')} ({backendOrigin})</span>
               </div>
               <div className="ml-auto flex items-center gap-3">
+                <ThemeSelector currentTheme={selectedTheme} onThemeChange={setSelectedTheme} />
                 <button
                   type="button"
                   onClick={runHealthCheck}
@@ -520,26 +521,26 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h4 className="mb-2 text-sm font-semibold text-slate-900 dark:text-gray-100">{t('utils.backupDatabase')}</h4>
-          <p className="mb-4 text-xs text-slate-600 dark:text-gray-400">{t('utils.backupDesc')}</p>
+        <div className={theme.card}>
+          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.backupDatabase')}</h4>
+          <p className={`mb-4 text-xs ${theme.mutedText}`}>{t('utils.backupDesc')}</p>
           <button
             type="button"
             onClick={handleBackup}
             disabled={opLoading === 'backup'}
-            className="rounded bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
           >
             {opLoading === 'backup' ? t('loading') : t('utils.backupDatabase')}
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h4 className="mb-2 text-sm font-semibold text-slate-900 dark:text-gray-100">{t('utils.resetDatabase')}</h4>
-          <p className="mb-3 text-xs text-slate-600 dark:text-gray-400">{t('utils.uploadPreviouslySavedBackup')}</p>
+        <div className={theme.card}>
+          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.resetDatabase')}</h4>
+          <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.uploadPreviouslySavedBackup')}</p>
           <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
-            <label className="flex flex-1 cursor-pointer items-center gap-2 rounded border border-slate-300 dark:border-gray-600 bg-slate-100 dark:bg-gray-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-gray-300 transition hover:bg-slate-200 dark:hover:bg-gray-600">
+            <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
               <span>{t('chooseFile')}</span>
-              <span className="flex-1 truncate text-[11px] text-slate-600 dark:text-gray-400">
+              <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
                 {restoreFile ? restoreFile.name : t('noFileChosen')}
               </span>
               <input
@@ -554,7 +555,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               type="button"
               onClick={handleRestore}
               disabled={!restoreFile || opLoading === 'restore'}
-              className="rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
             >
               {opLoading === 'restore' ? t('loading') : t('utils.restoreDb')}
             </button>
@@ -562,10 +563,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
           <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{t('utils.appMayNeedRefresh')}</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h4 className="mb-2 text-sm font-semibold text-slate-900 dark:text-gray-100">{t('utils.clear')}</h4>
-          <p className="mb-3 text-xs text-slate-600 dark:text-gray-400">{t('utils.deleteDataChooseScope')}</p>
-          <label className="mb-3 flex items-center gap-2 text-sm text-slate-700 dark:text-gray-300">
+        <div className={theme.card}>
+          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.clear')}</h4>
+          <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.deleteDataChooseScope')}</p>
+          <label className={`mb-3 flex items-center gap-2 text-sm ${theme.text}`}>
             <input
               type="checkbox"
               checked={clearConfirm}
@@ -576,7 +577,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
           <select
             value={clearScope}
             onChange={(event) => setClearScope(event.target.value as ClearScope)}
-            className="mb-3 w-full rounded border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-sm text-slate-700 dark:text-gray-300"
+            className={`mb-3 w-full ${theme.input}`}
             aria-label={t('utils.selectClearScope')}
           >
             <option value="all">{t('utils.allCoursesStudentsRecords')}</option>
@@ -586,27 +587,27 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
             type="button"
             onClick={handleClear}
             disabled={!clearConfirm || opLoading === 'clear'}
-            className="rounded bg-rose-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
           >
             {opLoading === 'clear' ? t('loading') : t('utils.clearDb')}
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <h4 className="mb-2 text-sm font-semibold text-slate-900 dark:text-gray-100">{t('utils.uploadJsonToImport')}</h4>
+        <div className={theme.card}>
+          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.uploadJsonToImport')}</h4>
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <select
               value={importType}
               onChange={(event) => setImportType(event.target.value as ImportType)}
-              className="w-full rounded border border-slate-300 px-2 py-1 text-sm text-slate-700 md:w-48"
+              className={`w-full md:w-48 ${theme.input}`}
               aria-label={t('utils.selectImportType')}
             >
               <option value="courses">{t('courses')}</option>
               <option value="students">{t('students')}</option>
             </select>
-            <label className="flex flex-1 cursor-pointer items-center gap-2 rounded border border-slate-300 dark:border-gray-600 bg-slate-100 dark:bg-gray-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-gray-300 transition hover:bg-slate-200 dark:hover:bg-gray-600">
+            <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
               <span>{t('chooseFile')}</span>
-              <span className="flex-1 truncate text-[11px] text-slate-600 dark:text-gray-400">
+              <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
                 {importFile ? `${importFile.name}` : t('noFilesSelected')}
               </span>
               <input
@@ -621,12 +622,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               type="button"
               onClick={handleImport}
               disabled={opLoading === 'upload'}
-              className="rounded bg-purple-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
             >
               {opLoading === 'upload' ? t('loading') : t('utils.importUpload')}
             </button>
           </div>
-          <p className="mt-2 text-xs text-slate-600 dark:text-gray-400">{t('utils.selectJsonFiles')}</p>
+          <p className={`mt-2 text-xs ${theme.mutedText}`}>{t('utils.selectJsonFiles')}</p>
         </div>
       </div>
 
