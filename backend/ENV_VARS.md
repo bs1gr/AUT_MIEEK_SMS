@@ -45,6 +45,18 @@ SERVE_FRONTEND
 - Type: boolean ("1"/"0")
 - Purpose: When set and a built SPA exists under `frontend/dist`, the backend will serve the SPA at `/`.
 
+AUTH_ENABLED
+
+- Type: boolean ("1"/"0")
+- Default: `0`
+- Purpose: Enables JWT authentication and role-based access control. When disabled, endpoints remain open for backward compatibility.
+
+DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD / DEFAULT_ADMIN_FULL_NAME / DEFAULT_ADMIN_FORCE_RESET
+
+- Type: string / string / string / boolean ("1"/"0")
+- Default: unset
+- Purpose: When both email and password are provided, the application ensures an administrator account exists with those credentials on each startup. `DEFAULT_ADMIN_FULL_NAME` (optional) sets the display name. If `DEFAULT_ADMIN_FORCE_RESET` is truthy, the password is reset and all refresh tokens are revoked on startup.
+
 Notes and recommendations
 
 - In CI and unit tests: set `DISABLE_STARTUP_TASKS=1` to avoid external network calls, background threads and migrations running during TestClient imports.

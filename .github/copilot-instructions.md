@@ -7,9 +7,10 @@
 **Most common tasks:**
 
 ```powershell
-.\QUICKSTART.ps1              # Intelligent setup & start (detects first-time, installs deps, starts app)
-.\QUICKSTART.ps1 -Force       # Force reinstall everything
-.\SMS.ps1 -Stop               # Stop everything
+.\RUN.ps1                     # One-click Docker start (builds if needed)
+.\RUN.ps1 -Stop               # Stop fullstack container
+.\SMART_SETUP.ps1 -Force      # Force rebuild images (advanced)
+.\SMS.ps1 -Stop               # Stop everything via management menu
 cd backend && pytest -q        # Run tests
 alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 ```
@@ -56,7 +57,7 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 **Entry points:**
 - Backend: `backend/main.py` (lifespan-managed, includes Control Panel at `/control`)
 - Frontend: `frontend/src/App.jsx` → `StudentManagementApp.jsx`
-- Scripts: `QUICKSTART.ps1` (delegates to `SMS.ps1`)
+- Scripts: `RUN.ps1` (one-click Docker), `SMART_SETUP.ps1` (advanced), `SMS.ps1` (management)
 
 ## Critical Patterns (Learn These First)
 
@@ -125,17 +126,18 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 ### Start/Stop Application (NEW - Intelligent Setup)
 
 ```powershell
-.\QUICKSTART.ps1       # Intelligent: detects first-time, installs deps, chooses mode, starts
-.\QUICKSTART.ps1 -Force # Force reinstall all dependencies
-.\SMS.ps1 -Stop        # Stop everything (kills containers + processes)
-.\SMS.ps1 -Status      # Check what's running
+.\RUN.ps1            # Intelligent Docker-first setup & start
+.\RUN.ps1 -Update    # Update with automatic backup
+.\RUN.ps1 -Stop      # Stop fullstack container
+.\RUN.ps1 -Status    # Check running state
+.\SMS.ps1 -Stop      # Alternate stop via management menu
 
 # Advanced setup options
-.\SMART_SETUP.ps1              # Same as QUICKSTART (auto-mode)
-.\SMART_SETUP.ps1 -PreferDocker # Force Docker mode (fail if unavailable)
-.\SMART_SETUP.ps1 -PreferNative # Force native mode (fail if unavailable)
-.\SMART_SETUP.ps1 -SkipStart    # Setup only, don't start
-.\SMART_SETUP.ps1 -Verbose      # Show detailed logs
+.\SMART_SETUP.ps1            # Build & start (fullstack Docker)
+.\SMART_SETUP.ps1 -Force     # Force rebuild all images
+.\SMART_SETUP.ps1 -SkipStart # Build-only mode
+.\SMART_SETUP.ps1 -DevMode   # Multi-container dev mode (backend + frontend)
+.\SMART_SETUP.ps1 -Verbose   # Detailed logging
 ```
 
 **What SMART_SETUP does:**
@@ -144,17 +146,17 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 3. Auto-installs missing dependencies (backend/frontend)
 4. Initializes empty database with Alembic migrations
 5. Creates .env files from .env.example if missing
-6. Chooses best mode: Docker (preferred) > Native (fallback)
+6. Chooses fullstack Docker by default; DevMode provides split services
 7. Starts application and shows access URLs
 8. Logs everything to `setup.log` for troubleshooting
 
 ### Development Setup
 
 ```powershell
-.\QUICKSTART.ps1       # Start (auto-detects Docker/native, non-interactive)
-.\SMS.ps1              # Interactive menu (status, diagnostics, backups)
-.\SMS.ps1 -Stop        # Stop everything (kills containers + processes)
-.\SMS.ps1 -Status      # Check what's running
+.\RUN.ps1            # Start (Docker-first, falls back to native when needed)
+.\SMS.ps1            # Interactive menu (status, diagnostics, backups)
+.\SMS.ps1 -Stop      # Stop everything (kills containers + processes)
+.\SMS.ps1 -Status    # Check what's running
 ```
 
 ### Development Setup

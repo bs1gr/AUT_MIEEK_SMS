@@ -56,9 +56,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Entry Points                        │
 ├─────────────────────────────────────────────────────────────┤
-│  QUICKSTART.ps1  →  SMS.ps1 -Quick  (non-interactive)       │
+│  RUN.ps1         →  One-click Docker deployment             │
 │  SMS.ps1         →  Interactive menu                        │
-│  .\scripts\RUN.ps1 →  Direct native start (legacy)            │
+│  scripts/dev/run-native.ps1 → Native start (development)    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -127,12 +127,13 @@
 ### 1. **Full Automated Start** (Already Available)
 
 ```powershell
-# One-command start (no prompts, auto-detects mode)
-.\QUICKSTART.ps1
+# One-command start (no prompts, Docker-first)
+.\RUN.ps1
 
-# Force specific mode
-.\SMS.ps1 -Quick      # Auto mode
-docker compose up -d  # Docker only
+# Advanced modes
+.\SMS.ps1 -Quick      # Auto mode (Docker preferred)
+.\SMART_SETUP.ps1 -DevMode  # Multi-container dev
+docker compose up -d        # Manual Docker start
 ```
 
 ### 2. **Full Automated Stop** (Already Available)
@@ -151,10 +152,10 @@ docker compose down     # Stop and remove
 ```powershell
 # Current: Manual two-step
 .\SMS.ps1 -Stop
-.\QUICKSTART.ps1
+.\RUN.ps1
 
 # Proposed: Add restart flag
-.\SMS.ps1 -Restart   # We can add this!
+.\SMS.ps1 -Restart   # Future enhancement
 ```
 
 ### 4. **Scheduled Automation** (Using Windows Task Scheduler)
@@ -164,7 +165,7 @@ docker compose down     # Stop and remove
 ```powershell
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
-  -Argument "-File D:\SMS\student-management-system\QUICKSTART.ps1"
+  -Argument "-File D:\SMS\student-management-system\RUN.ps1"
 Register-ScheduledTask -TaskName "SMS-AutoStart" -Trigger $trigger -Action $action
 ```
 
@@ -194,7 +195,7 @@ jobs:
       - name: Stop current instance
         run: .\SMS.ps1 -Stop
       - name: Start new instance
-        run: .\QUICKSTART.ps1
+        run: .\RUN.ps1
 ```
 
 ---
@@ -371,7 +372,7 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 1. **Use Native mode for development**:
 
 ```powershell
-.\QUICKSTART.ps1  # Will auto-select Native if Docker not available
+.\RUN.ps1  # Defaults to Docker; falls back to native if Docker unavailable
 ```
 
 2. **Run migrations immediately**:
@@ -437,7 +438,7 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 
 ### ✅ Already Automated
 
-- ✅ One-command start: `QUICKSTART.ps1`
+- ✅ One-command start: `RUN.ps1`
 - ✅ One-command stop: `SMS.ps1 -Stop`
 - ✅ Auto mode detection (Docker vs Native)
 - ✅ Manual volume migration (Control Panel)

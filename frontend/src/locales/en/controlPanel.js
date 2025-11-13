@@ -52,6 +52,7 @@ export default {
   canCloseWindow: 'You can now close this window',
   loadingSystem: 'Loading System...',
   systemHealth: 'System Health',
+  signedInAs: 'Signed in as',
   autoRefresh: 'Auto-refresh',
   autoRefreshInterval: 'Auto-refresh interval',
   toggleAutoRefresh: 'Toggle auto-refresh',
@@ -76,6 +77,10 @@ export default {
   stopBackend: 'Stop Backend',
   restartBackend: 'Restart Backend',
   refreshStatus: 'Refresh Status',
+  showSystemHealth: 'Show System Health',
+  hideSystemHealth: 'Hide System Health',
+  showControlPanel: 'Show Control Panel',
+  hideControlPanel: 'Hide Control Panel',
   // Operations
   operationsTitle: 'System Operations',
   operationsSubtitle: 'Execute system maintenance tasks',
@@ -152,4 +157,7 @@ export default {
   virtualEnv: 'Virtual Env',
   npm: 'npm',
   workingDir: 'Working Dir',
+  footerTitle: 'AUT MIEEK Student Management System - Automotive Engineering',
+  footerDeveloper: 'Software Development: Vasileios Samaras',
+  footerCopyright: 'Copyright 2025 - MIT license',
 };

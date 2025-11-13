@@ -235,7 +235,7 @@ This preserves old volumes as backups.
   - Static React application
 
 - **`docker/Dockerfile.fullstack`** - Combined image
-  - Used by QUICKSTART.bat/ps1
+  - Used by RUN.ps1 / SMS.ps1
   - Single container with both frontend and backend
   - Simpler deployment
 

@@ -77,6 +77,7 @@ export interface Highlight {
   description: string;
   date: string;
   is_resolved: boolean;
+  semester?: string;
 }
 
 // API Response types

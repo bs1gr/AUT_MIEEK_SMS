@@ -42,15 +42,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const url = '/auth/login';
     const resp = await apiClient.post(url, { email, password }, { withCredentials: true });
     const data = resp.data || {};
-    if (data.access_token) {
-      setAccessTokenState(data.access_token);
-      authService.setAccessToken(data.access_token);
+
+    if (!data.access_token) {
+      throw new Error((data && (data.detail || data.message)) || 'Login failed');
     }
-    // Refresh token is managed via HttpOnly cookie set by the backend; no
-    // client-side persistence is performed for refresh tokens.
-    if (data.user) {
-      setUser(data.user);
-      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data.user)); } catch {}
+
+    setAccessTokenState(data.access_token);
+    authService.setAccessToken(data.access_token);
+
+    let userPayload = data.user;
+    if (!userPayload) {
+      try {
+        const meResp = await apiClient.get('/auth/me', { withCredentials: true });
+        userPayload = meResp.data;
+      } catch (err) {
+        console.warn('[Auth] Failed to fetch user profile after login:', err);
+        throw err instanceof Error ? err : new Error('Unable to load profile');
+      }
+    }
+
+    if (userPayload) {
+      setUser(userPayload);
+      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
     }
   };
 

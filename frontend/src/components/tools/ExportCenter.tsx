@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI } from '../../api/api';
 import CalendarView from '@/features/calendar/components/CalendarView';
+import type { OperationsLocationState } from '@/features/operations/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -17,7 +18,11 @@ interface Student {
   [key: string]: any;
 }
 
-const ExportCenter = () => {
+interface ExportCenterProps {
+  variant?: 'standalone' | 'embedded';
+}
+
+const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const { t, language } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
@@ -28,13 +33,16 @@ const ExportCenter = () => {
   // Map of refs for each export card
   const exportCardRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const location = useLocation();
+  const locationState = (location.state ?? {}) as OperationsLocationState;
+  const { scrollTo } = locationState;
+  const { hash } = location;
   // Scroll/focus export card if navigated with scrollTo or hash
   useEffect(() => {
-    let scrollToId = location.state && location.state.scrollTo;
-    if (!scrollToId && window.location.hash) {
-      const hash = window.location.hash.replace('#', '');
+    let scrollToId = scrollTo;
+    if (!scrollToId && hash) {
+      const normalizedHash = hash.replace('#', '');
       // Accept both id and id with dashes/underscores
-      scrollToId = hash;
+      scrollToId = normalizedHash;
     }
     if (scrollToId && exportCardRefs.current[scrollToId]) {
       setTimeout(() => {
@@ -45,7 +53,7 @@ const ExportCenter = () => {
         }
       }, 200);
     }
-  }, [location]);
+  }, [hash, scrollTo]);
   const printCalendar = useReactToPrint({
     contentRef: calendarRef,
     onAfterPrint: () => setShowPrintCalendar(false),
@@ -238,8 +246,14 @@ const ExportCenter = () => {
     }
   ];
 
+  const isEmbedded = variant === 'embedded';
+  const wrapperClass = isEmbedded
+    ? 'space-y-8'
+    : 'min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8';
+  const contentClass = isEmbedded ? 'space-y-8' : 'max-w-7xl mx-auto';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+    <div className={wrapperClass}>
       {/* Print Calendar Modal/Section */}
       {showPrintCalendar && (
         <div className="print-calendar-hidden">
@@ -255,7 +269,7 @@ const ExportCenter = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto">
+  <div className={contentClass}>
         <div className="flex items-center space-x-3 mb-8">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl">
             <Download className="text-white" size={28} />
@@ -271,7 +285,9 @@ const ExportCenter = () => {
             <div
               key={option.id}
               className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-              ref={el => (exportCardRefs.current[option.id] = el)}
+              ref={(el) => {
+                exportCardRefs.current[option.id] = el;
+              }}
               tabIndex={0}
             >
               <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>

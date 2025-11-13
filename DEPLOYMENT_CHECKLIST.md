@@ -227,7 +227,7 @@ After successful installation, users should know:
 
 ### Starting the Application
 
-- [ ] Taught user to run `QUICKSTART.bat`
+- [ ] Taught user to run `RUN.ps1`
 - [ ] Or use management interface: `SMS.ps1`
 - [ ] Verified they can access URLs (bookmarked)
 
@@ -268,7 +268,7 @@ Provide user with:
 - [ ] Common commands reference:
 
 ```text
-Start:     .\QUICKSTART.bat
+Start:     .\RUN.ps1
 Stop:      .\scripts\STOP.ps1
 Manage:    .\SMS.ps1
 Status:    .\SMS.ps1 -Status
@@ -328,7 +328,7 @@ Before considering deployment complete:
 .\INSTALLER.bat                              # Full installation
 
 # Daily use
-.\QUICKSTART.bat                             # Start application
+.\RUN.ps1                                    # Start application
 .\scripts\STOP.ps1                           # Stop application
 .\SMS.ps1                                    # Management menu
 

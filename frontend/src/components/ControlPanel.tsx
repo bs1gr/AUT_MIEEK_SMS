@@ -5,7 +5,6 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  Square,
   Terminal,
   Package,
   Container,
@@ -16,6 +15,8 @@ import {
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
+import Toast from './ui/Toast';
+import DevToolsPanel, { type ToastState } from '../features/operations/components/DevToolsPanel';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -120,7 +121,12 @@ const API_BASE = window.location.origin;
 const CONTROL_API = `${API_BASE}/api/v1/control/api`;
 // Removed unused LEGACY_CONTROL_API constant
 
-const ControlPanel: React.FC = () => {
+interface ControlPanelProps {
+  showTitle?: boolean;
+  variant?: 'full' | 'embedded';
+}
+
+const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full' }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>('operations');
   const [status, setStatus] = useState<SystemStatus | null>(null);
@@ -131,6 +137,7 @@ const ControlPanel: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const [uptime, setUptime] = useState<string>('');
   const [uptimeTimer, setUptimeTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -291,6 +298,13 @@ const ControlPanel: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (!toast) return undefined;
+    if (typeof window === 'undefined') return undefined;
+    const id = window.setTimeout(() => setToast(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+
   // Control operations (use legacy endpoints for start/stop)
   // Removed unused startFrontend and stopFrontend for linter compliance
 
@@ -339,17 +353,29 @@ const ControlPanel: React.FC = () => {
     }
   };
 
+  const isEmbedded = variant === 'embedded';
+  const containerClass = isEmbedded
+    ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
+    : 'min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100';
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <div className={containerClass}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
-  <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Settings className="text-indigo-400" size={28} />
-            <div>
-              <h1 className="text-xl font-bold">{t('controlPanel.title')}</h1>
-              <p className="text-sm text-gray-400">{t('controlPanel.subtitle')}</p>
-            </div>
+            {showTitle ? (
+              <>
+                <Settings className="text-indigo-400" size={28} />
+                <div>
+                  <h1 className="text-xl font-bold">{t('controlPanel.title')}</h1>
+                  <p className="text-sm text-gray-400">{t('controlPanel.subtitle')}</p>
+                </div>
+              </>
+            ) : (
+              <Settings className="text-indigo-400" size={24} aria-hidden="true" />
+            )}
           </div>
 
           {/* Uptime display */}
@@ -420,7 +446,7 @@ const ControlPanel: React.FC = () => {
       </div>
 
       {/* Content */}
-      <main className="p-6 max-w-7xl mx-auto">
+      <main className={isEmbedded ? 'p-6' : 'p-6 max-w-7xl mx-auto'}>
         {/* Dashboard tab removed as redundant */}
 
         {/* Operations Tab */}
@@ -577,6 +603,8 @@ const ControlPanel: React.FC = () => {
               </div>
             </div>
             )}
+
+            <DevToolsPanel variant="standalone" onToast={(next) => setToast(next)} />
           </div>
         )}
 

@@ -113,10 +113,10 @@ sms_backup_v1.2.0_20251030_091234.db
 ### Regular Startup (Quick Start)
 
 ```powershell
-.\QUICKSTART.ps1
-# or
+.\RUN.ps1
+# or use the management menu
 .\SMS.ps1
-# Select option 1
+# Select option 1: Start Containers
 ```
 
 **What happens:**
@@ -494,7 +494,7 @@ $env:VERSION = $version
 
 | Task | Command | Creates |
 |------|---------|---------|
-| Start app | `.\QUICKSTART.ps1` | Uses existing images |
+| Start app | `.\RUN.ps1` | Uses existing images |
 | Rebuild all | `.\SMS.ps1` → X | `sms-backend:1.1.0`<br>`sms-frontend:1.1.0`<br>`sms_data_rebuild_v1.1.0_20251029_143022` |
 | Backup DB | `.\SMS.ps1` → B | `sms_backup_v1.1.0_20251029_143022.db` |
 | Update version | Edit `VERSION` file | N/A |
@@ -509,7 +509,7 @@ $env:VERSION = $version
 
 - [README.md](../README.md) - Main project documentation
 - [DOCKER_CLEANUP.md](DOCKER_CLEANUP.md) - Docker cleanup procedures
-- [QUICKSTART.md](QUICKSTART.md) - Quick start guide
+- [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) - One-click deployment guide (`RUN.ps1`)
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
 
 ---
@@ -523,4 +523,4 @@ If you encounter issues with naming conventions or versioning:
 3. Verify VERSION file: `Get-Content VERSION`
 4. Review logs: `.\SMS.ps1` → Option 9
 
-For more help, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) or open an issue on GitHub.
+For more help, see [FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md) or open an issue on GitHub.

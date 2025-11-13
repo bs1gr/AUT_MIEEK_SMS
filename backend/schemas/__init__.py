@@ -18,7 +18,14 @@ from .enrollments import (
     EnrollmentResponse as EnrollmentResponse,
     StudentBrief as StudentBrief,
 )
-from .auth import UserCreate as UserCreate, UserLogin as UserLogin, UserResponse as UserResponse, Token as Token
+from .auth import (
+    UserCreate as UserCreate,
+    UserUpdate as UserUpdate,
+    UserLogin as UserLogin,
+    UserResponse as UserResponse,
+    Token as Token,
+    PasswordResetRequest as PasswordResetRequest,
+)
 from .auth import RefreshRequest as RefreshRequest, RefreshResponse as RefreshResponse, LogoutRequest as LogoutRequest
 from .common import (
     PaginationParams as PaginationParams,
