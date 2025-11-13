@@ -72,7 +72,15 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   const [result, setResult] = useState<OperationResult>(null);
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
-  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>('default');
+  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
+    const saved = localStorage.getItem('sms.operations.theme');
+    return (saved as ThemeVariant) || 'default';
+  });
+
+  // Persist theme selection
+  useEffect(() => {
+    localStorage.setItem('sms.operations.theme', selectedTheme);
+  }, [selectedTheme]);
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
