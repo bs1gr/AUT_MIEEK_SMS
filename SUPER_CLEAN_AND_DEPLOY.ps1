@@ -717,9 +717,6 @@ try {
     } else {
         Write-Host "No running project processes found." -ForegroundColor Green
     }
-    catch {
-        Write-Host "⚠ Error checking for running processes: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
 
     Write-Host ""
 
