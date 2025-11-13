@@ -43,4 +43,33 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
+            return 'react-vendors';
+          }
+          if (id.includes('@tanstack')) {
+            return 'query-vendors';
+          }
+          if (id.includes('i18next') || id.includes('react-i18next')) {
+            return 'i18n-vendors';
+          }
+          if (id.includes('lucide-react')) {
+            return 'icons-vendors';
+          }
+          if (id.includes('zustand')) {
+            return 'state-vendors';
+          }
+          if (id.includes('zod')) {
+            return 'validation-vendors';
+          }
+          return 'vendor';
+        },
+      },
+    },
+  },
 })

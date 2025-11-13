@@ -61,6 +61,18 @@ from sqlalchemy.orm import Session
 import importlib
 import importlib.util
 
+try:
+    from backend.admin_bootstrap import ensure_default_admin_account
+except Exception:
+    try:
+        from admin_bootstrap import ensure_default_admin_account
+    except Exception:
+
+        def ensure_default_admin_account(*args, **kwargs):  # type: ignore[unused-arg]
+            return None
+
+db_session_factory = None
+
 # Detect whether package-style imports are available (importing as 'backend.*')
 if importlib.util.find_spec("backend.config") is not None:
     config_mod = importlib.import_module("backend.config")
@@ -71,6 +83,7 @@ if importlib.util.find_spec("backend.config") is not None:
     db_get_session = db_mod.get_session
     db_engine = getattr(db_mod, "engine")
     db_ensure_schema = getattr(db_mod, "ensure_schema")
+    db_session_factory = getattr(db_mod, "SessionLocal", None)
     rim_mod = importlib.import_module("backend.request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
     env_mod = importlib.import_module("backend.environment")
@@ -91,6 +104,10 @@ if importlib.util.find_spec("backend.config") is not None:
             except Exception:
                 return None
 
+            session_maker = getattr(db_mod, "SessionLocal", None)
+            if session_maker is None:
+                return None
+
             def _auth_check(request: Request) -> bool:
                 # Expect standard 'Authorization: Bearer <token>' header
                 auth_hdr = request.headers.get("authorization") or request.headers.get("Authorization")
@@ -101,26 +118,32 @@ if importlib.util.find_spec("backend.config") is not None:
                 except Exception:
                     return False
 
+                session = None
                 try:
                     # Use the auth module's decode_token helper to validate JWT
                     payload = getattr(auth_mod, "decode_token")(token)
                     email_val = payload.get("sub")
                     if not email_val:
                         return False
-                    # Query DB for user and check role
-                    db = db_get_session()
-                    try:
-                        user = db.query(models_mod.User).filter(models_mod.User.email == email_val).first()
-                        return bool(
-                            user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin"
-                        )
-                    finally:
-                        try:
-                            db.close()
-                        except Exception:
-                            pass
+
+                    # Create an explicit session so we don't rely on FastAPI's dependency system here.
+                    session = session_maker()
+                    user = (
+                        session.query(models_mod.User)
+                        .filter(models_mod.User.email == email_val)
+                        .first()
+                    )
+                    return bool(
+                        user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin"
+                    )
                 except Exception:
                     return False
+                finally:
+                    if session is not None:
+                        try:
+                            session.close()
+                        except Exception:
+                            pass
 
             return _auth_check
 
@@ -149,16 +172,22 @@ else:
     db_get_session = db_mod.get_session
     db_engine = getattr(db_mod, "engine")
     db_ensure_schema = getattr(db_mod, "ensure_schema")
+    db_session_factory = getattr(db_mod, "SessionLocal", None)
     rim_mod = importlib.import_module("request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
     env_mod = importlib.import_module("environment")
     # Control API auth helpers (fallback for direct script execution)
     try:
-        from backend.control_auth import require_control_admin
+        from backend.control_auth import require_control_admin as _fallback_require_control_admin
+
+        require_control_admin = cast(Callable[..., Any], _fallback_require_control_admin)
     except Exception:
 
         def require_control_admin(request):
             return None
+
+if db_session_factory is None:
+    raise RuntimeError("Database session factory unavailable; ensure backend.db exposes SessionLocal")
 
 # ============================================================================
 # UTF-8 ENCODING FIX FOR WINDOWS
@@ -464,15 +493,7 @@ async def lifespan(app: FastAPI):
         pass
 
     # Allow tests and special environments to disable heavy startup tasks
-    # (migrations, auto-imports, external subprocesses) by setting
-    # DISABLE_STARTUP_TASKS=1 in the environment. This is useful when the
-    # application is mounted into in-process test clients (pytest/TestClient)
-    # where external network calls or subprocesses can hang the test run.
-    disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-    )
+    disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in {"1", "true", "yes"}
 
     # Run database migrations automatically on startup (skip in test mode)
     if not disable_startup:
@@ -482,9 +503,9 @@ async def lifespan(app: FastAPI):
 
             migration_success = run_migrations(verbose=False)
             if migration_success:
-                logger.info("✓ Database migrations up to date")
+                logger.info("Database migrations up to date")
             else:
-                logger.warning("⚠ Database migrations failed - application may not function correctly")
+                logger.warning("Database migrations failed - application may not function correctly")
         except Exception as e:
             logger.error(f"Migration runner error: {e!s}")
             logger.warning("Continuing without migration check...")
@@ -499,26 +520,21 @@ async def lifespan(app: FastAPI):
             inspector = inspect(db_engine)
             tables = inspector.get_table_names()
             if not tables:
-                allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").lower() in (
-                    "1",
-                    "true",
-                    "yes",
-                )
+                allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").strip().lower() in {"1", "true", "yes"}
                 if allow_auto:
-                    # Last-resort: create tables using SQLAlchemy models metadata
                     try:
                         from backend.models import Base
 
                         logger.warning(
-                            "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled — creating tables via metadata.create_all()"
+                            "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled - creating tables via metadata.create_all()."
                         )
                         Base.metadata.create_all(bind=db_engine)
-                        logger.info("✓ Created missing database tables via metadata.create_all()")
+                        logger.info("Created missing database tables via metadata.create_all()")
                     except Exception as e:
                         logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
                 else:
                     logger.warning(
-                        "No database tables detected after migrations. To allow automatic creation as a fallback, set ALLOW_SCHEMA_AUTO_CREATE=1 in the environment."
+                        "No database tables detected after migrations. Set ALLOW_SCHEMA_AUTO_CREATE=1 to allow automatic creation as a fallback."
                     )
         else:
             logger.info("DISABLE_STARTUP_TASKS set: skipping schema verification/auto-create")
@@ -532,10 +548,19 @@ async def lifespan(app: FastAPI):
             logger.info("Legacy schema check completed")
         else:
             logger.info("DISABLE_STARTUP_TASKS set: skipping legacy schema check")
-    except Exception as _e:
-        logger.warning(f"Legacy schema check failed (continuing): {_e}")
+    except Exception as legacy_err:
+        logger.warning(f"Legacy schema check failed (continuing): {legacy_err}")
 
-    # Auto-import courses with evaluation rules if database is empty (works in both Docker and native modes)
+    # Ensure default administrator account exists if configured
+    try:
+        if not disable_startup:
+            ensure_default_admin_account(settings=settings, session_factory=db_session_factory, logger=logger)
+        else:
+            logger.info("DISABLE_STARTUP_TASKS set: skipping default admin bootstrap")
+    except Exception as admin_bootstrap_err:
+        logger.warning(f"Default admin bootstrap failed: {admin_bootstrap_err}")
+
+    # Auto-import courses with evaluation rules if database is empty
     try:
         from sqlalchemy import text
 
@@ -543,25 +568,18 @@ async def lifespan(app: FastAPI):
             result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
             if result == 0:
                 logger.info("No courses found in database - scheduling auto-import...")
-                # Use threading with proper error boundaries and timeout
-                # This is more reliable than HTTP requests during startup
-                # Skip auto-import in test/disabled-startup mode
                 if not disable_startup:
                     try:
                         import threading
                         import httpx
 
                         def delayed_import():
-                            """
-                            Wait for server to start, then trigger import.
-                            Includes retry logic and proper error handling.
-                            """
+                            """Wait for server to start, then trigger import with retries."""
                             max_retries = 3
                             retry_delay = 3
 
                             for attempt in range(max_retries):
                                 try:
-                                    # Wait for server to be fully ready
                                     _time.sleep(retry_delay * (attempt + 1))
 
                                     port = getattr(settings, "API_PORT", 8000)
@@ -573,33 +591,45 @@ async def lifespan(app: FastAPI):
                                     if response.status_code == 200:
                                         data = response.json()
                                         logger.info(
-                                            f"✓ Auto-import completed: {data.get('created', 0)} created, {data.get('updated', 0)} updated"
+                                            "Auto-import completed: %s created, %s updated",
+                                            data.get("created", 0),
+                                            data.get("updated", 0),
                                         )
-                                        return  # Success
-                                    else:
-                                        logger.warning(
-                                            f"Auto-import attempt {attempt + 1} returned status {response.status_code}"
-                                        )
+                                        return
+                                    logger.warning(
+                                        "Auto-import attempt %d returned status %s",
+                                        attempt + 1,
+                                        response.status_code,
+                                    )
                                 except httpx.RequestError:
-                                    logger.debug(f"Server not ready on attempt {attempt + 1}, will retry...")
-                                except Exception as e:
-                                    logger.warning(f"Auto-import attempt {attempt + 1} failed: {e}")
+                                    logger.debug(
+                                        "Server not ready on auto-import attempt %d; will retry",
+                                        attempt + 1,
+                                    )
+                                except Exception as import_err:
+                                    logger.warning(
+                                        "Auto-import attempt %d failed: %s",
+                                        attempt + 1,
+                                        import_err,
+                                    )
 
                             logger.error("Auto-import failed after all retries")
 
-                        # Start import in background thread
-                        # Using daemon=True ensures it doesn't prevent shutdown
-                        import_thread = threading.Thread(target=delayed_import, daemon=True, name="course-auto-import")
+                        import_thread = threading.Thread(
+                            target=delayed_import,
+                            daemon=True,
+                            name="course-auto-import",
+                        )
                         import_thread.start()
                         logger.info("Started background course import thread (will retry up to 3 times)")
-                    except Exception as e:
-                        logger.warning(f"Failed to start auto-import thread: {e}")
+                    except Exception as thread_err:
+                        logger.warning(f"Failed to start auto-import thread: {thread_err}")
                 else:
                     logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
             else:
-                logger.info(f"Courses already exist in database ({result} courses) - skipping auto-import")
-    except Exception as e:
-        logger.warning(f"Course auto-import check failed (continuing): {e}")
+                logger.info("Courses already exist in database (%s) - skipping auto-import", result)
+    except Exception as auto_import_err:
+        logger.warning(f"Course auto-import check failed (continuing): {auto_import_err}")
 
     yield
 
@@ -614,15 +644,12 @@ async def lifespan(app: FastAPI):
 
 # Create the application instance with lifespan
 
+
 app = create_app()
 app.router.lifespan_context = lifespan
 app.state.runtime_context = RUNTIME_CONTEXT
 app.state.version = VERSION  # Ensure health endpoint always returns backend version
-
-# Attach rate limiter to app state
 app.state.limiter = limiter
-
-# Register rate limit exceeded handler
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # ============================================================================
@@ -872,17 +899,32 @@ def control_start():
             # Ensure close_fds on POSIX to avoid fd leaks
             close_fds = sys.platform != "win32"
 
-            FRONTEND_PROCESS = subprocess.Popen(
-                start_args,
-                cwd=frontend_dir,
-                shell=False,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                creationflags=creationflags,
-                close_fds=close_fds,
-            )
-            logger.info(f"Vite process started with PID: {FRONTEND_PROCESS.pid}")
+            # Redirect frontend stdout/stderr to a dedicated log file to avoid
+            # blocking the parent process (writing to PIPE without consuming
+            # can deadlock if buffers fill). This also gives operators a stable
+            # place to inspect Vite logs when the Control API starts the process.
+            try:
+                logs_dir = PROJECT_ROOT / "logs"
+                logs_dir.mkdir(parents=True, exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
+                frontend_log_file = open(frontend_log_path, "a", encoding="utf-8")
+
+                FRONTEND_PROCESS = subprocess.Popen(
+                    start_args,
+                    cwd=frontend_dir,
+                    shell=False,
+                    stdout=frontend_log_file,
+                    stderr=frontend_log_file,
+                    text=True,
+                    creationflags=creationflags,
+                    close_fds=close_fds,
+                )
+
+                logger.info(f"Vite process started with PID: {FRONTEND_PROCESS.pid}; logs -> {frontend_log_path}")
+            except Exception as e:
+                logger.exception(f"Failed to start Vite process with log redirection: {e}")
+                return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
         except Exception as e:
             # Log full exception details but return a normalized message to the client
             logger.exception(f"Failed to start Vite process: {e}")

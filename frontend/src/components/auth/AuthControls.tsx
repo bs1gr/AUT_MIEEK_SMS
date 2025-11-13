@@ -1,16 +1,19 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginWidget from './LoginWidget';
-import LogoutButton from './LogoutButton';
 import RegisterWidget from './RegisterWidget';
 
 const AuthControls: React.FC = () => {
   const { user } = useAuth();
-  if (user) return <LogoutButton />;
+
+  if (user) {
+    return null;
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="flex flex-col items-end gap-2">
       <LoginWidget />
-      <RegisterWidget />
+      <RegisterWidget collapsedByDefault variant="dialog" />
     </div>
   );
 };

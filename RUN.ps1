@@ -38,7 +38,8 @@ param(
     [switch]$Status,
     [switch]$Logs,
     [switch]$Backup,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$NoPause
 )
 
 # ============================================================================
@@ -65,6 +66,95 @@ $PORT = 8080
 $INTERNAL_PORT = 8000
 $VOLUME_NAME = "sms_data"
 
+function Get-ParentProcessName {
+    if ($script:ParentProcessName) {
+        return $script:ParentProcessName
+    }
+
+    try {
+        $process = Get-CimInstance Win32_Process -Filter "ProcessId=$PID"
+        if ($null -eq $process) {
+            return ""
+        }
+
+        $parent = Get-CimInstance Win32_Process -Filter "ProcessId=$($process.ParentProcessId)"
+        $script:ParentProcessName = $parent.Name
+        return $script:ParentProcessName
+    }
+    catch {
+        return ""
+    }
+}
+
+function Should-Pause {
+    if ($NoPause) {
+        return $false
+    }
+
+    $parentName = Get-ParentProcessName
+    if ([string]::IsNullOrWhiteSpace($parentName)) {
+        return $false
+    }
+
+    return ($parentName -ieq "explorer.exe")
+}
+
+function Pause-IfNeeded {
+    param(
+        [switch]$OfferStop
+    )
+
+    if (-not (Should-Pause)) {
+        return
+    }
+
+    try {
+        if ($OfferStop) {
+            $status = Get-ContainerStatus
+            if ($status -and $status.IsRunning) {
+                Write-Host ""
+                $response = Read-Host "Press Enter to leave SMS running, or type STOP to shut it down now"
+                if ($response -and $response.Trim() -match '^(stop|s)$') {
+                    Write-Host ""
+                    Write-Info "Stopping SMS container before exit..."
+                    $stopResult = Stop-Application
+                    if ($stopResult -ne 0) {
+                        Write-Error-Message "Automatic stop returned exit code $stopResult"
+                    }
+                    Write-Host ""
+                    [void](Read-Host "Press Enter to close this window")
+                    return
+                }
+
+                return
+            }
+        }
+
+        Write-Host ""
+        [void](Read-Host "Press Enter to close this window")
+    }
+    catch {
+        # If Read-Host fails (for example, input redirected), just ignore.
+    }
+}
+
+function Exit-Script {
+    param(
+        [int]$Code = 0,
+        [switch]$SkipPause,
+        [switch]$OfferStop
+    )
+
+    if (-not $SkipPause) {
+        Pause-IfNeeded -OfferStop:$OfferStop
+    }
+
+    exit $Code
+}
+
+# Determine parent process once so we can decide if we should pause before exiting.
+$script:ParentProcessName = $null
+
 # ============================================================================
 # TRAP HANDLER - Graceful Shutdown
 # ============================================================================
@@ -82,20 +172,29 @@ trap {
     }
 
     Write-Host "`nExiting..." -ForegroundColor DarkGray
-    exit 1
+    Exit-Script -Code 1
 }
 
-# Ctrl+C handler for graceful shutdown
-$null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+# Ctrl+C handler for graceful shutdown without affecting normal exit
+$script:CancelRegistration = Register-EngineEvent -SourceIdentifier ConsoleCancelEvent -Action {
+    if ($null -eq $eventArgs -or (
+        $eventArgs.SpecialKey -ne [ConsoleSpecialKey]::ControlC -and 
+        $eventArgs.SpecialKey -ne [ConsoleSpecialKey]::ControlBreak)) {
+        return
+    }
+
+    $eventArgs.Cancel = $true
     Write-Host "`n`n🛑 Interrupt received. Stopping gracefully..." -ForegroundColor Yellow
 
-    $CONTAINER_NAME = "sms-app"
     $running = docker ps -q -f name=$CONTAINER_NAME 2>$null
     if ($running) {
         Write-Host "Stopping container..." -ForegroundColor Yellow
         docker stop $CONTAINER_NAME 2>$null | Out-Null
         Write-Host "✅ Container stopped cleanly" -ForegroundColor Green
     }
+
+    Unregister-Event -SourceIdentifier ConsoleCancelEvent -ErrorAction SilentlyContinue
+    Exit-Script -Code 0 -SkipPause
 }
 
 # ============================================================================
@@ -215,8 +314,7 @@ function Backup-Database {
         # Calculate checksum
         $hash = (Get-FileHash -Path $backupPath -Algorithm SHA256).Hash.Substring(0, 8)
         $newBackupName = "sms_backup_${timestamp}_${hash}.db"
-        $newBackupPath = Join-Path $BACKUPS_DIR $newBackupName
-        Rename-Item -Path $backupPath -NewName $newBackupName -Force
+    Rename-Item -Path $backupPath -NewName $newBackupName -Force
 
         Write-Success "Backup created: $newBackupName ($('{0:N2}' -f ($backupSize / 1MB)) MB)"
 
@@ -337,7 +435,7 @@ function Show-Status {
     if (-not (Test-DockerAvailable)) {
         Write-Error-Message "Docker is not available"
         Write-Info "Please install Docker Desktop and try again"
-        exit 1
+        return 1
     }
     Write-Success "Docker is available"
 
@@ -346,7 +444,7 @@ function Show-Status {
     if (-not $status) {
         Write-Info "SMS is not running"
         Write-Host "`nTo start: .\RUN.ps1`n" -ForegroundColor Yellow
-        exit 0
+        return 0
     }
 
     # Show status
@@ -378,6 +476,8 @@ function Show-Status {
         Write-Host "`nTo start: .\RUN.ps1`n" -ForegroundColor Yellow
     }
     Write-Host ""
+
+    return 0
 }
 
 function Stop-Application {
@@ -386,7 +486,7 @@ function Stop-Application {
     $status = Get-ContainerStatus
     if (-not $status) {
         Write-Info "SMS is not running"
-        exit 0
+        return 0
     }
 
     if (-not $status.IsRunning) {
@@ -394,7 +494,7 @@ function Stop-Application {
         Write-Info "Removing stopped container..."
         docker rm $CONTAINER_NAME 2>$null | Out-Null
         Write-Success "Cleaned up"
-        exit 0
+        return 0
     }
 
     Write-Info "Stopping container..."
@@ -402,9 +502,10 @@ function Stop-Application {
 
     if ($LASTEXITCODE -eq 0) {
         Write-Success "SMS stopped successfully"
+        return 0
     } else {
         Write-Error-Message "Failed to stop SMS"
-        exit 1
+        return 1
     }
 }
 
@@ -413,12 +514,14 @@ function Show-Logs {
     if (-not $status -or -not $status.IsRunning) {
         Write-Error-Message "SMS is not running"
         Write-Info "Start it with: .\RUN.ps1"
-        exit 1
+        return 1
     }
 
     Write-Header "SMS Application Logs"
     Write-Info "Press Ctrl+C to stop viewing logs`n"
     docker logs -f --tail 100 $CONTAINER_NAME
+
+    return $LASTEXITCODE
 }
 
 function Update-Application {
@@ -437,7 +540,7 @@ function Update-Application {
     if (-not (Backup-Database -Reason "before-update")) {
         Write-Error-Message "Backup failed. Update cancelled."
         Write-Info "Please backup manually before updating"
-        exit 1
+        return 1
     }
 
     # Stop if running
@@ -465,9 +568,12 @@ function Update-Application {
             Write-Host ""
             Write-Info "Restoring previous version..."
             # Start will use the old image
-            Start-Application
+            $restoreCode = Start-Application
+            if ($restoreCode -ne 0) {
+                return $restoreCode
+            }
         }
-        exit 1
+        return 1
     }
 
     Write-Success "Build completed"
@@ -475,11 +581,16 @@ function Update-Application {
     # Start with new image
     Write-Host ""
     Write-Info "Starting updated version..."
-    Start-Application
+    $startResult = Start-Application
+    if ($startResult -ne 0) {
+        return $startResult
+    }
 
     Write-Host ""
     Write-Success "Update completed successfully!"
     Write-Info "Backup saved in: $BACKUPS_DIR"
+
+    return 0
 }
 
 function Start-Application {
@@ -489,7 +600,7 @@ function Start-Application {
     if (-not (Test-DockerAvailable)) {
         Write-Error-Message "Docker is not available"
         Write-Info "Please install Docker Desktop from: https://www.docker.com/products/docker-desktop"
-        exit 1
+        return 1
     }
 
     # Check if already running
@@ -498,16 +609,16 @@ function Start-Application {
         if ($status.IsHealthy) {
             Write-Success "SMS is already running!"
             Show-AccessInfo
-            exit 0
+            return 0
         } else {
             Write-Info "SMS is starting up..."
             if (Wait-ForHealthy) {
                 Show-AccessInfo
-                exit 0
+                return 0
             } else {
                 Write-Error-Message "Failed to start properly"
                 Write-Info "Check logs with: .\RUN.ps1 -Logs"
-                exit 1
+                return 1
             }
         }
     }
@@ -530,7 +641,7 @@ function Start-Application {
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Build failed"
                 Write-Info "Please check your Docker configuration and try again"
-                exit 1
+                return 1
             }
 
             Write-Success "Build completed"
@@ -586,20 +697,23 @@ function Start-Application {
         if ($LASTEXITCODE -ne 0) {
             Write-Error-Message "Failed to start container"
             Write-Info "Check Docker logs for details"
-            exit 1
+            return 1
         }
 
         # Wait for health check
         if (Wait-ForHealthy) {
             Show-AccessInfo
+            return 0
         } else {
             Write-Error-Message "Application did not start properly"
             Write-Info "Check logs with: .\RUN.ps1 -Logs"
-            exit 1
+            return 1
         }
     } finally {
         Pop-Location
     }
+
+    return 0
 }
 
 # ============================================================================
@@ -609,23 +723,23 @@ function Start-Application {
 # Show help
 if ($Help) {
     Show-Help
-    exit 0
+    Exit-Script -Code 0 -SkipPause
 }
 
 # Handle commands
 if ($Status) {
-    Show-Status
-    exit 0
+    $statusCode = Show-Status
+    Exit-Script -Code $statusCode
 }
 
 if ($Stop) {
-    Stop-Application
-    exit 0
+    $stopCode = Stop-Application
+    Exit-Script -Code $stopCode
 }
 
 if ($Logs) {
-    Show-Logs
-    exit 0
+    $logCode = Show-Logs
+    Exit-Script -Code $logCode -SkipPause
 }
 
 if ($Backup) {
@@ -647,17 +761,18 @@ if ($Backup) {
                 Write-Host "  • $($backupFile.Name) (${size} MB)" -ForegroundColor White
             }
         }
+        Exit-Script -Code 0
     } else {
         Write-Error-Message "Backup failed"
-        exit 1
+        Exit-Script -Code 1
     }
-    exit 0
 }
 
 if ($Update) {
-    Update-Application
-    exit 0
+    $updateCode = Update-Application
+    Exit-Script -Code $updateCode -OfferStop
 }
 
 # Default: Start
-Start-Application
+$startCode = Start-Application
+Exit-Script -Code $startCode -OfferStop

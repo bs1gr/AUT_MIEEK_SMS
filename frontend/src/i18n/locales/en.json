@@ -36,7 +36,25 @@
     "login": "Login",
     "register": "Register",
     "home": "Home",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "email": "Email",
+    "password": "Password",
+    "fullNameOptional": "Full name (optional)"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginDescription": "Use your credentials to access the control panel.",
+    "registerTitle": "Create teacher account",
+    "registerDescription": "Provide your details to request teacher access.",
+    "loginError": "Unable to sign in. Check your email and password.",
+    "registerSuccess": "Registration completed and you are now signed in.",
+    "registerPartial": "Registration completed. Please sign in using your new credentials.",
+    "registerError": "Registration failed. Try again later.",
+    "signedInAs": "Signed in as {{name}}",
+    "showRegisterPrompt": "Not registered yet? Click here to create an account.",
+    "hideRegisterPrompt": "Hide registration form",
+    "registerCta": "Need an account to access the system?",
+    "openRegisterPrompt": "Create account"
   },
   "nav": {
     "students": "Students",

@@ -42,9 +42,11 @@ if TYPE_CHECKING:
     from backend import models as models  # type: ignore
     from backend.schemas import (
         UserCreate,
+        UserUpdate,
         UserLogin,
         UserResponse,
         Token,
+        PasswordResetRequest,
     )  # type: ignore
 
     # Advanced auth schemas used by refresh/logout endpoints
@@ -61,9 +63,11 @@ else:
         schemas_mod = importlib.import_module("schemas")
 
     UserCreate = getattr(schemas_mod, "UserCreate")
+    UserUpdate = getattr(schemas_mod, "UserUpdate")
     UserLogin = getattr(schemas_mod, "UserLogin")
     UserResponse = getattr(schemas_mod, "UserResponse")
     Token = getattr(schemas_mod, "Token")
+    PasswordResetRequest = getattr(schemas_mod, "PasswordResetRequest")
     # Advanced auth schemas
     RefreshRequest = getattr(schemas_mod, "RefreshRequest")
     RefreshResponse = getattr(schemas_mod, "RefreshResponse")
@@ -76,6 +80,7 @@ except Exception:
 
 limiter = getattr(rl_mod, "limiter")
 RATE_LIMIT_AUTH = getattr(rl_mod, "RATE_LIMIT_AUTH")
+RATE_LIMIT_WRITE = getattr(rl_mod, "RATE_LIMIT_WRITE")
 
 router = APIRouter()
 
@@ -279,7 +284,10 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
 @router.post("/auth/login", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def login(
-    request: Request, payload: UserLogin = Body(...), db: Session = Depends(get_db), response: Response = None
+    request: Request,
+    response: Response,
+    payload: UserLogin = Body(...),
+    db: Session = Depends(get_db),
 ):
     try:
         user = db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
@@ -335,9 +343,9 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 @limiter.limit(RATE_LIMIT_AUTH)
 async def refresh(
     request: Request,
+    response: Response,
     payload: RefreshRequest = Body(None),
     db: Session = Depends(get_db),
-    response: Response = None,
 ):
     try:
         raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
@@ -474,3 +482,191 @@ async def logout(request: Request, payload: LogoutRequest = Body(None), db: Sess
         resp = JSONResponse(content={"ok": True})
         resp.delete_cookie("refresh_token")
         return resp
+
+
+@router.get("/admin/users", response_model=list[UserResponse])
+@limiter.limit(RATE_LIMIT_WRITE)
+async def admin_list_users(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(require_role("admin")),
+):
+    _ = request  # placeholder to avoid unused warnings until logging is added
+    _ = current_admin
+    users = (
+        db.query(models.User)
+        .order_by(models.User.role.desc(), models.User.email.asc())
+        .all()
+    )
+    return users
+
+
+@router.post("/admin/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMIT_WRITE)
+async def admin_create_user(
+    request: Request,
+    payload: UserCreate = Body(...),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(require_role("admin")),
+):
+    _ = current_admin
+    normalized_email = payload.email.lower().strip()
+    existing = db.query(models.User).filter(models.User.email == normalized_email).first()
+    if existing:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.AUTH_EMAIL_EXISTS,
+            "Email already registered",
+            request,
+            context={"email": normalized_email},
+        )
+
+    user = models.User(
+        email=normalized_email,
+        full_name=(payload.full_name or "").strip() or None,
+        role=payload.role or "teacher",
+        hashed_password=get_password_hash(payload.password),
+        is_active=True,
+    )
+
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Unable to create user", request) from exc
+
+
+@router.patch("/admin/users/{user_id}", response_model=UserResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+async def admin_update_user(
+    request: Request,
+    user_id: int,
+    payload: UserUpdate = Body(...),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(require_role("admin")),
+):
+    _ = current_admin
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+
+    original_role = user.role
+    original_active = bool(user.is_active)
+
+    if payload.full_name is not None:
+        cleaned = payload.full_name.strip()
+        user.full_name = cleaned or None
+    if payload.role is not None:
+        user.role = payload.role
+    if payload.is_active is not None:
+        user.is_active = payload.is_active
+
+    if original_role == "admin" and original_active:
+        still_admin_and_active = user.role == "admin" and bool(user.is_active)
+        if not still_admin_and_active:
+            remaining_admins = (
+                db.query(models.User)
+                .filter(
+                    models.User.role == "admin",
+                    models.User.is_active.is_(True),
+                    models.User.id != user.id,
+                )
+                .count()
+            )
+            if remaining_admins == 0:
+                db.rollback()
+                raise http_error(
+                    status.HTTP_400_BAD_REQUEST,
+                    ErrorCode.AUTH_LAST_ADMIN,
+                    "Cannot remove the last active admin",
+                    request,
+                )
+
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Unable to update user", request) from exc
+
+
+@router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(RATE_LIMIT_WRITE)
+async def admin_delete_user(
+    request: Request,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(require_role("admin")),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+
+    if getattr(current_admin, "id", None) == user_id:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.AUTH_CANNOT_DELETE_SELF,
+            "Administrators cannot delete their own account",
+            request,
+        )
+
+    if user.role == "admin" and bool(user.is_active):
+        remaining_admins = (
+            db.query(models.User)
+            .filter(
+                models.User.role == "admin",
+                models.User.is_active.is_(True),
+                models.User.id != user.id,
+            )
+            .count()
+        )
+        if remaining_admins == 0:
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.AUTH_LAST_ADMIN,
+                "Cannot delete the last active admin",
+                request,
+            )
+
+    try:
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).delete(synchronize_session=False)
+        db.delete(user)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Unable to delete user", request) from exc
+
+
+@router.post("/admin/users/{user_id}/reset-password")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def admin_reset_password(
+    request: Request,
+    user_id: int,
+    payload: PasswordResetRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(require_role("admin")),
+):
+    _ = current_admin
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+
+    try:
+        user.hashed_password = get_password_hash(payload.new_password)
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
+        db.add(user)
+        db.commit()
+        return {"status": "password_reset"}
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Unable to reset password", request) from exc

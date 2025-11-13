@@ -8,6 +8,8 @@
 
 import controlPanelEn from './locales/en/controlPanel';
 import controlPanelEl from './locales/el/controlPanel';
+import authEn from './locales/en/auth';
+import authEl from './locales/el/auth';
 import utilsEn from './locales/en/utils';
 import utilsEl from './locales/el/utils';
 import dashboardEn from './locales/en/dashboard';
@@ -38,6 +40,18 @@ export const translations: Translations = {
   en: {
     // Control Panel
     controlPanel: controlPanelEn,
+    // Authentication
+    auth: authEn,
+    // Modular categories (nested access)
+    common: commonEn,
+    dashboard: dashboardEn,
+    students: studentsEn,
+    courses: coursesEn,
+    attendance: attendanceEn,
+    grades: gradesEn,
+    calendar: calendarEn,
+    export: exportEn,
+    help: helpEn,
     // Common (modular)
     ...commonEn,
     // Dashboard & Student Profile (modular)
@@ -63,6 +77,18 @@ export const translations: Translations = {
   el: {
     // Control Panel
     controlPanel: controlPanelEl,
+    // Ταυτοποίηση
+    auth: authEl,
+    // Κατηγορίες (με πρόσβαση σε μορφή namespace)
+    common: commonEl,
+    dashboard: dashboardEl,
+    students: studentsEl,
+    courses: coursesEl,
+    attendance: attendanceEl,
+    grades: gradesEl,
+    calendar: calendarEl,
+    export: exportEl,
+    help: helpEl,
     // Κοινά (modular)
     ...commonEl,
     // Πίνακας Ελέγχου & Προφίλ Σπουδαστή (modular)

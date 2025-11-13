@@ -21,6 +21,23 @@ class UserCreate(UserBase):
         return v
 
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, max_length=200)
+    role: Optional[str] = Field(default=None, pattern=r"^(admin|teacher|student)$")
+    is_active: Optional[bool] = None
+
+
+class PasswordResetRequest(BaseModel):
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if any(c.isspace() for c in v):
+            raise ValueError("Password must not contain whitespace")
+        return v
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str

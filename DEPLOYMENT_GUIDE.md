@@ -226,28 +226,28 @@ If you prefer manual control or the automated installers don't work.
 - Install and start Docker Desktop
 - Switch to Linux containers (right-click tray icon)
 
-**Step 2**: Build the image
+**Step 2**: Build and start the stack
 
 ```powershell
-.\scripts\SETUP.ps1
+.\RUN.ps1
 ```
 
-**Step 3**: Start the application
+`RUN.ps1` handles image builds, container startup, health checks, and logging for the
+fullstack deployment. It is the canonical entry point for all Docker installs.
+
+**Advanced options** (developers/CI):
 
 ```powershell
-.\scripts\deploy\run-docker-release.ps1
+.\SMART_SETUP.ps1 -Force       # Rebuild images without cache
+.\SMART_SETUP.ps1 -SkipStart   # Build images only
+.\SMART_SETUP.ps1 -DevMode     # Multi-container dev mode (backend + frontend)
 ```
 
-This helper automatically applies the production Compose overlay so container
-resource limits and restart policies stay in effect. To start the stack
-manually, run:
+To start the stack manually via Compose, run:
 
 ```powershell
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
-
-> Legacy shortcut: `.\QUICKSTART.bat` remains available for development scenarios,
-> but production should always use the full-stack helper above.
 
 ### Native Mode
 
@@ -477,7 +477,7 @@ Invoke-Command -ComputerName "RemotePC" -ScriptBlock {
 **Start application**:
 
 ```powershell
-.\QUICKSTART.bat
+.\RUN.ps1
 ```
 
 **Stop application**:
@@ -513,7 +513,7 @@ Invoke-Command -ComputerName "RemotePC" -ScriptBlock {
 1. **Backup data first** (see above)
 2. Stop the application: `.\scripts\STOP.ps1`
 3. Replace files with new version
-4. Restart: `.\QUICKSTART.bat`
+4. Restart: `.\RUN.ps1`
 
 ---
 
@@ -626,7 +626,7 @@ Remove-Item -Path "C:\SMS" -Recurse -Force
 | Install (Docker only) | `.\INSTALLER.ps1 -DockerOnly` |
 | Install (Native only) | `.\INSTALLER.ps1 -NativeOnly` |
 | Create deployment package | `.\CREATE_DEPLOYMENT_PACKAGE.ps1` |
-| Start application | `.\QUICKSTART.bat` |
+| Start application | `.\RUN.ps1` |
 | Stop application | `.\scripts\STOP.ps1` |
 | Manage application | `.\SMS.ps1` |
 | Check status | `.\SMS.ps1 -Status` |

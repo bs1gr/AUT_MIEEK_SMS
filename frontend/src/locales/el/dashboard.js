@@ -46,6 +46,7 @@ export default {
   noCoursesAvailable: 'Δεν υπάρχουν διαθέσιμα μαθήματα',
   creditsAbbr: 'ΠΜ',
   evaluationRulesConfigured: 'Κανόνες αξιολόγησης ρυθμισμένοι',
+  moreLabel: 'περισσότερα',
   thisWeek: 'Αυτή την Εβδομάδα',
   assessments: 'Αξιολογήσεις',
   totalEnrollments: 'Συνολικές Εγγραφές',

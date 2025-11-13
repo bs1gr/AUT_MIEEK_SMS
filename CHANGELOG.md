@@ -5,22 +5,37 @@ All notable changes to this project will be documented in this file.
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
 ## [Unreleased]
-### Authentication: Refresh tokens (unreleased)
 
-- Added server-persisted refresh token support with rotation, expiry and revocation.
+- No unreleased changes.
+
+## [1.6.0] - 2025-11-13
+
+### Authentication & Security
+
+- Added server-persisted refresh token support with rotation, expiry, and revocation.
   - Endpoints: POST /api/v1/auth/refresh, POST /api/v1/auth/logout (server-side revoke).
   - Login now returns an access token (JWT) and a refresh token (rotating, single-use).
-  - Refresh tokens stored hashed in DB (table: refresh_tokens) with jti and expires_at.
-  - Rotation policy: refresh token exchange issues a new refresh token and revokes the previous one.
-  - Logout revokes the presented refresh token to prevent reuse.
+  - Refresh tokens stored hashed in DB (table: `refresh_tokens`) with `jti` and `expires_at` columns.
+  - Rotation policy: refresh token exchanges issue a new token and revoke the previous one.
+  - Logout revokes the presented refresh token and clears the HttpOnly cookie to prevent reuse.
+- Introduced default administrator bootstrap: configure `DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_PASSWORD`, and related env vars to auto-create or update an admin, optionally forcing password resets and revoking stale refresh tokens.
+- Hardened the Alembic migration runner to handle conflicting heads and reruns; regression tests cover failure handling paths.
+
+### Frontend
+
+- Added a dedicated authentication experience with inline login and registration, guarded routes, and an AuthContext that manages HttpOnly refresh cookies.
+- Updated global navigation, translations, and utilities messaging to surface the new authentication flow and operations terminology.
+
+### Tooling & Operations
+
+- Renamed the intelligent startup script to `RUN.ps1`, refreshed documentation, and aligned deployment helpers with the new entry point naming.
+- Expanded operations tooling copy (Operations Monitor, Resources Hub) to match the new backend capabilities.
 
 Migration notes:
 
-- A canonical Alembic migration was added to create the `refresh_tokens` table and a merge revision was created to reconcile with existing manual migrations. The original manual migration was archived. The migration runner was hardened to be idempotent for repeated test runs.
+- A canonical Alembic migration was added to create the `refresh_tokens` table and a merge revision reconciles the previous manual migration. The migration runner is now idempotent for repeated test runs and CI executions.
 
-Reference: backend/models.py (RefreshToken), backend/routers/routers_auth.py (refresh/logout endpoints), backend/migrations/versions/*
-
-Changes staged here will be included in the next release.
+Reference: `backend/models.py` (`RefreshToken`), `backend/routers/routers_auth.py` (refresh/logout endpoints), `backend/admin_bootstrap.py`, `frontend/src/contexts/AuthContext.tsx`, `frontend/src/pages/AuthPage.tsx`, `backend/migrations/versions/*`.
 
 ## [1.3.9] - 2025-11-06
 
@@ -235,9 +250,7 @@ Technical:
 
 Documentation:
 
-- [CODE_REVIEW_AND_IMPROVEMENTS.md](CODE_REVIEW_AND_IMPROVEMENTS.md) - Complete analysis of 15 issues with detailed fixes
-- [IMPROVEMENTS_SUMMARY_v1.3.1.md](IMPROVEMENTS_SUMMARY_v1.3.1.md) - Executive summary and timeline
-- [CRITICAL_FIXES_APPLIED.md](CRITICAL_FIXES_APPLIED.md) - Details of 5 implemented fixes
+- Documentation consolidated in `docs/REMOVED_DOCS_SUMMARY.md`, which lists archived deep-dive reports covering the security review, improvement timeline, and critical fix details referenced in this release.
 
 **BREAKING CHANGE**: Application will not start with default SECRET_KEY="change-me". Users must generate and set a secure SECRET_KEY in backend/.env before starting the application.
 
@@ -284,11 +297,7 @@ Technical:
 
 Documentation:
 
-- [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md) - Complete architecture improvements guide
-- [CLI_TESTING_SESSION_1.md](CLI_TESTING_SESSION_1.md) - Detailed bug reports
-- [CLI_TESTING_FINAL_SUMMARY.md](CLI_TESTING_FINAL_SUMMARY.md) - Testing summary and recommendations
-
-For migration guidance, see [ARCHITECTURE_IMPROVEMENTS_v1.3.1.md](ARCHITECTURE_IMPROVEMENTS_v1.3.1.md#migration-guide).
+- Documentation for this effort has been archived; see `docs/REMOVED_DOCS_SUMMARY.md` for pointers to the detailed architecture and CLI testing reports referenced here.
 
 ## [1.2.3] - 2025-10-31
 
@@ -392,7 +401,7 @@ Highlights:
 Docs:
 
 - Detailed release notes: see this `CHANGELOG.md` (consolidated)
-- Fresh clone test report: FRESH_CLONE_TEST_REPORT_V1.2.md
+- Fresh clone test report and related artifacts archived in `docs/REMOVED_DOCS_SUMMARY.md`
 - Authentication guide: docs/AUTHENTICATION.md (if present in docs/, else see README references)
 
 Migrations:
@@ -413,9 +422,10 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
+[1.6.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0
+[1.3.9]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.9
 [1.3.8]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8
 [1.3.7]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.7
-[1.3.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.5
 [1.3.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.4
 [1.3.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.3
 [1.3.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.2
@@ -425,4 +435,4 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.3.8...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.0...HEAD

@@ -59,6 +59,13 @@ export default {
   back: 'Back',
   next: 'Next',
   previous: 'Previous',
+  // Authentication Basics
+  email: 'Email',
+  password: 'Password',
+  login: 'Login',
+  logout: 'Logout',
+  register: 'Register',
+  fullNameOptional: 'Full name (optional)',
   // Date/Time/Weight
   date: 'Date',
   selectedDate: 'Selected Date',
@@ -78,6 +85,7 @@ export default {
   themeLight: 'Light',
   themeDark: 'Dark',
   themeRelaxing: 'Relaxing',
+  themeFancy: 'Aurora Glow',
   themeSystem: 'System',
   themeSystemInfo: 'System theme:',
   themeSystemDescription: "Automatically matches your operating system's light or dark mode preference.",
@@ -149,4 +157,6 @@ export default {
   messages: {
     pleaseWait: 'Please wait...',
   },
+  // Footer
+  footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
 };

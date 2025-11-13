@@ -52,6 +52,7 @@ export default {
   canCloseWindow: 'Μπορείτε τώρα να κλείσετε αυτό το παράθυρο',
   loadingSystem: 'Φόρτωση Συστήματος...',
   systemHealth: 'Υγεία Συστήματος',
+  signedInAs: 'Συνδεδεμένος/η ως',
   autoRefresh: 'Αυτόματη ανανέωση',
   autoRefreshInterval: 'Διάστημα αυτόματης ανανέωσης',
   toggleAutoRefresh: 'Εναλλαγή αυτόματης ανανέωσης',
@@ -76,6 +77,10 @@ export default {
   stopBackend: 'Διακοπή Backend',
   restartBackend: 'Επανεκκίνηση Backend',
   refreshStatus: 'Ανανέωση Κατάστασης',
+  showSystemHealth: 'Προβολή Υγείας Συστήματος',
+  hideSystemHealth: 'Απόκρυψη Υγείας Συστήματος',
+  showControlPanel: 'Προβολή Πίνακα Ελέγχου',
+  hideControlPanel: 'Απόκρυψη Πίνακα Ελέγχου',
   // Λειτουργίες
   operationsTitle: 'Λειτουργίες Συστήματος',
   operationsSubtitle: 'Εκτέλεση εργασιών συντήρησης',
@@ -152,4 +157,7 @@ export default {
   virtualEnv: 'Εικονικό Περιβάλλον',
   npm: 'npm',
   workingDir: 'Κατάλογος Εργασίας',
+  footerTitle: 'Σύστημα Διαχείρισης Σπουδαστών ΜΙΕΕΚ - AUT Μηχανική Αυτοκινήτου',
+  footerDeveloper: 'Ανάπτυξη Λογισμικού: Βασίλειος Σαμαράς',
+  footerCopyright: '©2025 Όλα τα δικαιώματα διατηρούνται - Άδεια MIT',
 };

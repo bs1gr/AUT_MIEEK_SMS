@@ -119,6 +119,141 @@ html {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.06) !important;
 }
 
+/* Fancy theme styles - vibrant yet highly readable (glassmorphism inspired) */
+.fancy {
+  background: linear-gradient(135deg, #f8f5ff 0%, #fff5f7 45%, #f0f4ff 100%);
+  color: #1f184b;
+}
+
+.fancy body {
+  background: linear-gradient(135deg, #f8f5ff 0%, #fff5f7 45%, #f0f4ff 100%);
+  color: #1f184b;
+}
+
+.fancy #root {
+  background: linear-gradient(135deg, #f8f5ff 0%, #fff5f7 45%, #f0f4ff 100%);
+  color: #1f184b;
+}
+
+/* Fancy theme - translucent surfaces for readability */
+.fancy .bg-white {
+  background: rgba(255, 255, 255, 0.9) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.fancy .bg-gray-50 {
+  background-color: rgba(248, 250, 255, 0.75) !important;
+}
+
+.fancy .bg-gray-100 {
+  background-color: rgba(242, 244, 255, 0.85) !important;
+}
+
+.fancy .text-gray-800 {
+  color: #2b255d !important;
+}
+
+.fancy .text-gray-700 {
+  color: #3a3374 !important;
+}
+
+.fancy .text-gray-600 {
+  color: #4e4988 !important;
+}
+
+.fancy .border-gray-200 {
+  border-color: rgba(206, 212, 255, 0.55) !important;
+}
+
+.fancy .border-gray-300 {
+  border-color: rgba(188, 198, 255, 0.65) !important;
+}
+
+/* Fancy theme - refined shadow styling */
+.fancy .shadow-sm {
+  box-shadow: 0 8px 16px -8px rgba(53, 36, 89, 0.25) !important;
+}
+
+.fancy .shadow,
+.fancy .shadow-md {
+  box-shadow: 0 12px 30px -12px rgba(53, 36, 89, 0.3), 0 4px 16px -10px rgba(53, 36, 89, 0.15) !important;
+}
+
+.fancy .shadow-lg,
+.fancy .shadow-xl {
+  box-shadow: 0 24px 45px -18px rgba(53, 36, 89, 0.35), 0 12px 24px -12px rgba(53, 36, 89, 0.2) !important;
+}
+
+/* Fancy theme - jewel tone accents */
+.fancy .bg-indigo-600,
+.fancy .bg-purple-600 {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6) !important;
+}
+
+.fancy .bg-indigo-50 {
+  background-color: rgba(237, 233, 254, 0.75) !important;
+}
+
+.fancy .text-indigo-600,
+.fancy .text-purple-600 {
+  color: #5b21b6 !important;
+}
+
+.fancy .text-indigo-700 {
+  color: #432188 !important;
+}
+
+.fancy .border-indigo-600 {
+  border-color: rgba(123, 58, 237, 0.85) !important;
+}
+
+.fancy .bg-blue-500 {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+}
+
+.fancy .bg-green-500 {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+}
+
+.fancy .bg-yellow-500 {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+}
+
+.fancy .bg-red-500 {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+}
+
+.fancy .text-blue-600 {
+  color: #1d4ed8 !important;
+}
+
+.fancy .text-green-600 {
+  color: #15803d !important;
+}
+
+.fancy .text-yellow-600 {
+  color: #b45309 !important;
+}
+
+.fancy .text-red-600 {
+  color: #b91c1c !important;
+}
+
+/* Fancy theme scrollbars */
+.fancy ::-webkit-scrollbar-track {
+  background: rgba(238, 242, 255, 0.7);
+}
+
+.fancy ::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.45);
+  border-radius: 6px;
+}
+
+.fancy ::-webkit-scrollbar-thumb:hover {
+  background: rgba(109, 40, 217, 0.55);
+}
+
 /* Relaxing theme - teal/blue accent tones instead of purple */
 .relaxing .bg-indigo-600 {
   background-color: #26a69a !important;

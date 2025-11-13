@@ -1,11 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import ServerControl from './ServerControl';
 
 // Mock useLanguage to avoid i18n dependency
 vi.mock('../../LanguageContext', () => ({
   useLanguage: () => ({ t: (k: string) => k })
+}));
+// Mock auth context to provide a user identity
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({ user: { email: 'tester@example.com' } })
 }));
 // Mock API call
 vi.mock('../../api/api', () => ({
