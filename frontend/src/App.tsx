@@ -7,14 +7,14 @@ import ErrorBoundary from './ErrorBoundary.tsx';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import LanguageSwitcher from './components/LanguageSwitcher';
-import AuthControls from './components/auth/AuthControls';
+import LogoutButton from './components/auth/LogoutButton';
 import { Navigation } from './components/layout';
 import { useLanguage } from './LanguageContext';
 import Toast from './components/ui/Toast';
 import { useState } from 'react';
 
-import { useCourses, useStudents } from './hooks';
 import Footer from './components/Footer';
+import { useAuth } from './contexts/AuthContext';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -35,12 +35,10 @@ interface AppLayoutProps {
 function AppLayout({ children }: AppLayoutProps) {
   const { t } = useLanguage();
   const location = useLocation();
+  const { user } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Fetch initial data for the entire app
-  useCourses();
-  useStudents();
-
+  const isAuthenticated = Boolean(user);
   // Get active view from location
   const getActiveView = () => {
     const path = location.pathname.split('/')[1] || 'dashboard';
@@ -57,34 +55,46 @@ function AppLayout({ children }: AppLayoutProps) {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header with Title and Language Toggle */}
-      <div className="flex items-center justify-between pb-4">
-        <h1 className="text-3xl font-bold text-gray-800">{t('systemTitle')}</h1>
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('systemTitle')}</h1>
+          {!isAuthenticated && (
+            <p className="max-w-xl text-sm text-gray-600 dark:text-gray-300">
+              {t('auth.loginDescription')}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          {/* Authentication controls: Login form or Logout button */}
-          <AuthControls />
         </div>
       </div>
 
       {/* Top Navigation */}
-      <Navigation
-        activeView={getActiveView()}
-        tabs={[
-          { key: 'dashboard', label: t('dashboard'), path: '/dashboard' },
-          { key: 'attendance', label: t('attendance'), path: '/attendance' },
-          { key: 'grading', label: t('grades'), path: '/grading' },
-          { key: 'students', label: t('students'), path: '/students' },
-          { key: 'courses', label: t('courses'), path: '/courses' },
-          { key: 'calendar', label: t('calendar'), path: '/calendar' },
-          { key: 'operations', label: t('utilsTab'), path: '/operations' },
-          { key: 'power', label: t('powerTab') || 'Power', path: '/power' },
-        ]}
-      />
+      {isAuthenticated && (
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <Navigation
+            activeView={getActiveView()}
+            tabs={[
+              { key: 'dashboard', label: t('dashboard'), path: '/dashboard' },
+              { key: 'attendance', label: t('attendance'), path: '/attendance' },
+              { key: 'grading', label: t('grades'), path: '/grading' },
+              { key: 'students', label: t('students'), path: '/students' },
+              { key: 'courses', label: t('courses'), path: '/courses' },
+              { key: 'calendar', label: t('calendar'), path: '/calendar' },
+              { key: 'operations', label: t('utilsTab'), path: '/operations' },
+              { key: 'power', label: t('powerTab') || 'Power', path: '/power' },
+            ]}
+          />
+          <div className="flex items-center gap-3 self-end lg:self-auto">
+            <LogoutButton />
+          </div>
+        </div>
+      )}
 
       {/* Page Content */}
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 w-full">{children}</div>
 
-      <Footer />
+  <Footer />
     </div>
   );
 }

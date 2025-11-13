@@ -11,6 +11,7 @@ The simplest way to run SMS:
 ```
 
 The first time you run this, it will:
+
 - ✅ Build the Docker image (takes 5-10 minutes)
 - ✅ Start the application
 - ✅ Show you the access URL
@@ -27,6 +28,7 @@ The first time you run this, it will:
 ```
 
 **Requirements:**
+
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
 - Docker Desktop must be running
 
@@ -112,19 +114,28 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 What's New in v1.5.0
+## 🆕 What's New in v1.6.0
+
+- 🔐 **Refresh token authentication:** Access tokens now refresh seamlessly via secure, server-stored refresh tokens with rotation, revocation, and logout endpoints.
+- 👩‍💼 **Default admin bootstrap:** Configure `DEFAULT_ADMIN_*` env vars to auto-provision an administrator (with optional password rotation and forced resets) during startup.
+- 💻 **New authentication UI:** Dedicated login/register experience, AuthContext, and guarded routes ensure frontend sessions stay in sync with backend tokens.
+- 🛠️ **Operational polish:** Migration runner hardening, updated operations copy, and documentation tweaks align tooling with the new auth flow.
+
+## 📦 Releases
+
+- Latest: [v1.6.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0) - Refresh token auth, admin bootstrap, and new login UI
+- Previous: [v1.5.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.5.0) - Minimal, robust, and secure entry points
+- All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
+
+---
+
+## 📦 What's New in v1.5.0
 
 - 🟢 **Canonical entry points:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app. All legacy scripts removed or deprecated.
 - 🔒 **Security:** `SECRET_KEY` is now always loaded from `.env` or `backend/.env` for Docker deployments. Fallback to insecure key is logged with a warning; production deployments must set a strong key.
 - 🧹 **Script cleanup:** All obsolete scripts (`QUICKSTART.ps1`, `SETUP.ps1`, etc.) removed. Documentation and references updated.
 - 🛡️ **Robust error handling:** PowerShell scripts now handle null/empty values and pipeline errors gracefully.
 - 📄 **Documentation:** All guides updated to reflect the new minimal entry points and security best practices.
-
-## 📦 Releases
-
-- Latest: [v1.5.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.5.0) - Minimal, robust, and secure entry points
-- Previous: [v1.4.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.4.0) - One-Click Deployment
-- All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
 ---
 
@@ -253,10 +264,10 @@ docker ps  # If you see containers → Docker mode (port 8080)
 
 **Fix:**
 
-Use the batch wrapper if needed:
+Run PowerShell with relaxed policy if needed:
 
 ```powershell
-.\QUICKSTART.bat
+pwsh -ExecutionPolicy Bypass -NoProfile -File .\RUN.ps1
 ```
 
 ### Port Already in Use
@@ -279,15 +290,17 @@ Use the batch wrapper if needed:
 If you prefer manual control:
 
 ```powershell
-# Intelligent setup (same as ONE-CLICK for first-time)
-.\QUICKSTART.ps1
+# Docker-first intelligent setup
+.\SMART_SETUP.ps1
 
-# Force reinstall
-.\QUICKSTART.ps1 -Force
+# Force rebuild containers and dependencies
+.\SMART_SETUP.ps1 -Force
 
-# Choose deployment mode
-.\QUICKSTART.ps1 -PreferDocker   # Force Docker mode
-.\QUICKSTART.ps1 -PreferNative   # Force native mode
+# Development mode with separate backend/frontend containers
+.\SMART_SETUP.ps1 -DevMode
+
+# Prepare images without starting services
+.\SMART_SETUP.ps1 -SkipStart
 ```
 
 ### Developer Scripts
@@ -300,7 +313,7 @@ All complex/developer scripts moved to `scripts/internal/`:
 - `CLEANUP.ps1` - Clean temporary files
 - See `scripts/internal/README.md` for full list
 
-**For normal operations, use `QUICKSTART.ps1` or `SMS.ps1` instead.**
+**For normal operations, use `RUN.ps1` or `SMS.ps1` instead.**
 
 ---
 
@@ -326,7 +339,7 @@ Troubleshooting:
 
 **Three deployment options:**
 
-1. Copy project → Run `QUICKSTART.ps1` (PowerShell) or `QUICKSTART.bat` (Windows)
+1. Copy project → Run `RUN.ps1` (`pwsh -NoProfile -File .\RUN.ps1`)
 2. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
@@ -357,7 +370,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ### For End Users
 
-- ✨ **QUICKSTART.ps1**: Intelligent setup and start (auto-detects mode)
+- ✨ **RUN.ps1** *(formerly QUICKSTART.ps1)*: Intelligent setup and start (auto-detects mode)
 - ✨ **SMS.ps1**: Unified interactive management
 - 🎨 **Control Panel UI**: Modern web interface with real-time monitoring
 - 📊 **Version Display**: See all component versions (Python, Node, Docker, dependencies)

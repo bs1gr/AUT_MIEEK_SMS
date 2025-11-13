@@ -98,7 +98,7 @@ REM That's it! No PowerShell complications.
 
 ---
 
-## Issue 2: PowerShell Script Issues (ONE-CLICK.ps1)
+## Issue 2: PowerShell Script Issues (RUN.ps1)
 
 **🎯 SOLUTION: Use START.bat instead!**
 
@@ -121,14 +121,14 @@ The batch file avoids ALL PowerShell problems:
 
 ```cmd
 REM Option A: Run with bypass (one-time)
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ONE-CLICK.ps1
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\RUN.ps1
 
 REM Option B: Set policy permanently (CurrentUser scope)
-powershell -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
-.\ONE-CLICK.ps1
+pwsh -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
+.\RUN.ps1
 
-REM Option C: Just use the batch file (RECOMMENDED)
-START.bat
+REM Option C: Launch an elevated PowerShell that runs the starter script
+Start-Process pwsh -ArgumentList "-NoProfile -File .\RUN.ps1" -Verb RunAs
 ```
 
 ### 2. Missing Prerequisites
@@ -140,21 +140,21 @@ START.bat
 - Install Python 3.11+: <https://www.python.org/downloads/>
 - Install Node.js 18+: <https://nodejs.org/>
 - Restart PowerShell after installation
-- Run ONE-CLICK.ps1 again
+- Run RUN.ps1 again
 
-### 3. QUICKSTART.ps1 Not Found
+### 3. RUN.ps1 Not Found
 
-**Error:** "QUICKSTART.ps1 not found"
+**Error:** "RUN.ps1 not found"
 
 **Fix:**
 
 ```powershell
 # Make sure you're in the correct directory
 cd D:\AUT_MIEEK_SMS-main  # Or wherever you extracted the files
-dir  # Should show ONE-CLICK.ps1, QUICKSTART.ps1, etc.
+dir  # Should show RUN.ps1, SMS.ps1, SMART_SETUP.ps1, etc.
 
 # Then run
-.\ONE-CLICK.ps1
+.\RUN.ps1
 ```
 
 ### 4. npm Install Failed
@@ -227,8 +227,8 @@ Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
 # 4. Delete Python virtual environment
 Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 
-# 5. Force reinstall
-.\ONE-CLICK.ps1 -ForceInstall
+# 5. Force reinstall/build
+.\SMART_SETUP.ps1 -Force
 ```
 
 ---

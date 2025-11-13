@@ -46,6 +46,7 @@ export default {
   noCoursesAvailable: 'No courses available',
   creditsAbbr: 'CR',
   evaluationRulesConfigured: 'Evaluation rules configured',
+  moreLabel: 'more',
   thisWeek: 'This Week',
   assessments: 'Assessments',
   totalEnrollments: 'Total Enrollments',

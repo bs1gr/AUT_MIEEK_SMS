@@ -30,11 +30,26 @@ The Student Management System includes an optional JWT-based authentication syst
 
 4. **Restart the application**:
 
-   ```bash
-   .\QUICKSTART.ps1
-   ```
+  ```powershell
+  .\RUN.ps1
+  ```
 
 ### Create Initial Admin User
+
+#### Method 0: Configure Environment Bootstrap (hands-off)
+
+Set the following environment variables in `backend/.env` (or your deployment environment) and restart the backend. On every startup the application will ensure an administrator with these credentials exists and remains active.
+
+```bash
+AUTH_ENABLED=True
+DEFAULT_ADMIN_EMAIL=admin@school.edu
+DEFAULT_ADMIN_PASSWORD=ChangeMeNow123!
+DEFAULT_ADMIN_FULL_NAME=Operations Administrator
+# Optional: force the password to be reset on every boot
+# DEFAULT_ADMIN_FORCE_RESET=True
+```
+
+Use this method when you want a deterministic admin account across deployments or when automating infrastructure provisioning.
 
 #### Method 1: Via API (Recommended for first user)
 

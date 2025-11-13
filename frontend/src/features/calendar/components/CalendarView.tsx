@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import type { OperationsLocationState } from '@/features/operations/types';
 
 type DaySchedule = { periods: number; start_time: string; duration: number };
 
@@ -57,9 +58,11 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
   const navigate = useNavigate ? useNavigate() : undefined;
 
   const handleGoToExport = () => {
-    if (navigate) {
-      navigate('/tools/export', { state: { scrollTo: 'print-calendar' } });
+    if (!navigate) {
+      return;
     }
+    const state: OperationsLocationState = { tab: 'exports', scrollTo: 'print-calendar' };
+    navigate('/operations', { state });
   };
 
   return (
@@ -70,10 +73,12 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
           <span>{t('teachingSchedule')}</span>
         </h2>
         <button
+          type="button"
           onClick={handleGoToExport}
-          className="ml-4 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg shadow hover:scale-105 transition-all"
+          className="export-referral-link inline-flex items-center gap-1 text-sm"
         >
-          {t('printCalendar')}
+          <span>{t('printCalendar')}</span>
+          <ArrowRight size={16} aria-hidden="true" />
         </button>
       </div>
 

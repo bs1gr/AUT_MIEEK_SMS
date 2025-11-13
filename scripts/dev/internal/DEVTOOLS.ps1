@@ -913,7 +913,7 @@ function Show-Help {
     Write-Host ""
     Write-Host "Basic Workflow:" -ForegroundColor Yellow
     Write-Host "  1. Run SETUP.bat (first time only)" -ForegroundColor White
-    Write-Host "  2. Run QUICKSTART.bat to start the app" -ForegroundColor White
+    Write-Host "  2. Run RUN.ps1 to start the app" -ForegroundColor White
     Write-Host "  3. Access at http://localhost:8080" -ForegroundColor White
     Write-Host "  4. Run STOP.bat to stop the app" -ForegroundColor White
     Write-Host ""

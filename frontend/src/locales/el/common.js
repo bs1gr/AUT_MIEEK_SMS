@@ -59,6 +59,13 @@ export default {
   back: 'Πίσω',
   next: 'Επόμενο',
   previous: 'Προηγούμενο',
+  // Βασικά Πεδία Ταυτοποίησης
+  email: 'Ηλεκτρονικό ταχυδρομείο',
+  password: 'Κωδικός πρόσβασης',
+  login: 'Σύνδεση',
+  logout: 'Αποσύνδεση',
+  register: 'Εγγραφή',
+  fullNameOptional: 'Ονοματεπώνυμο (προαιρετικό)',
   // Ημερομηνία/Ώρα/Βαρύτητα
   date: 'Ημερομηνία',
   selectedDate: 'Επιλεγμένη Ημερομηνία',
@@ -78,6 +85,7 @@ export default {
   themeLight: 'Φωτεινό',
   themeDark: 'Σκούρο',
   themeRelaxing: 'Χαλαρωτικό',
+  themeFancy: 'Εντυπωσιακό',
   themeSystem: 'Σύστημα',
   themeSystemInfo: 'Θέμα συστήματος:',
   themeSystemDescription: 'Ταιριάζει αυτόματα με την προτίμηση φωτεινής ή σκούρας λειτουργίας του λειτουργικού σας συστήματος.',
@@ -149,4 +157,6 @@ export default {
   messages: {
     pleaseWait: 'Παρακαλώ περιμένετε...',
   },
+  // Υποσέλιδο
+  footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Vasilis Samaras - v{{version}}',
 };

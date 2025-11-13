@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Power, RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { getHealthStatus } from '../../api/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Base URL without /api/v1 for direct server endpoints
 // @ts-ignore
@@ -26,6 +27,7 @@ interface ServerStatus {
 const ServerControl: React.FC = () => {
   // ...existing code...
   const { t } = useLanguage() as any;
+  const { user } = useAuth();
 
   const [status, setStatus] = useState<ServerStatus>({
     backend: 'checking',
@@ -33,8 +35,6 @@ const ServerControl: React.FC = () => {
     lastCheck: new Date()
   });
   const [currentUptime, setCurrentUptime] = useState<number>(0);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const [healthData, setHealthData] = useState<any>(null);
@@ -45,6 +45,22 @@ const ServerControl: React.FC = () => {
   const [startupGraceUntil] = useState<number>(() => Date.now() + 12000); // 12s grace
   const [retryDelay, setRetryDelay] = useState<number>(1000); // start at 1s, backoff to 4s max
   const [didShowOffline, setDidShowOffline] = useState<boolean>(false);
+
+  const identityLabel = useMemo(() => {
+    if (!user) {
+      return null;
+    }
+    if (typeof user.email === 'string' && user.email.includes('@')) {
+      return user.email;
+    }
+    if (typeof user.full_name === 'string') {
+      const trimmed = user.full_name.trim();
+      if (trimmed && /\s/.test(trimmed) && !/password/i.test(trimmed)) {
+        return trimmed;
+      }
+    }
+    return null;
+  }, [user]);
 
   // Splash/loading state (must be after status is declared)
   const isLoading = status.backend === 'checking' || status.frontend === 'checking';
@@ -156,74 +172,6 @@ const ServerControl: React.FC = () => {
     return () => clearInterval(id);
   }, [autoRefresh, intervalMs, showDetails]);
 
-  const handleExit = async () => {
-    if (!showConfirm) {
-      setShowConfirm(true);
-      return;
-    }
-
-    setIsExiting(true);
-
-    try {
-      // Try multiple shutdown endpoints
-      const shutdownEndpoints = [
-        `${API_BASE_URL}/api/v1/admin/shutdown`,
-        `${API_BASE_URL}/control/api/stop-backend`,
-        `${API_BASE_URL}/control/api/stop-all`
-      ];
-
-      // Fire and forget - try all endpoints
-      shutdownEndpoints.forEach(endpoint => {
-        fetch(endpoint, {
-          method: 'POST',
-          signal: AbortSignal.timeout(1000)
-        }).catch(() => {
-          // Ignore errors as server is shutting down
-        });
-      });
-
-      // Show exit message
-      setTimeout(() => {
-        // Capture translations before we destroy the DOM
-        const serverStoppedMsg = t('controlPanel.serverStopped');
-        const canCloseWindowMsg = t('controlPanel.canCloseWindow');
-        const systemTitleMsg = t('systemTitle') || 'Student Management System';
-
-        document.body.innerHTML = `
-          <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-          ">
-            <div style="text-align: center; padding: 40px;">
-              <div style="font-size: 64px; margin-bottom: 20px;">✓</div>
-              <h1 style="font-size: 32px; margin-bottom: 10px;">${serverStoppedMsg}</h1>
-              <p style="font-size: 18px; opacity: 0.9;">${canCloseWindowMsg}</p>
-              <p style="font-size: 14px; opacity: 0.7; margin-top: 20px;">
-                ${systemTitleMsg}
-              </p>
-            </div>
-          </div>
-        `;
-
-        // Try to close window
-        setTimeout(() => {
-          window.close();
-        }, 1500);
-      }, 500);
-
-    } catch (error) {
-      setIsExiting(false);
-      setShowConfirm(false);
-      console.error('Exit error:', error);
-    }
-  };
-
   const handleRestart = async () => {
     setIsRestarting(true);
 
@@ -276,17 +224,6 @@ const ServerControl: React.FC = () => {
     return t('controlPanel.checking') || 'Checking...';
   };
 
-  if (isExiting) {
-    return (
-      <div className="flex items-center space-x-2 px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg">
-        <div className="animate-spin">
-          <RotateCw size={16} />
-        </div>
-        <span className="text-sm font-medium text-yellow-800">{t('exiting')}</span>
-      </div>
-    );
-  }
-
   // Show splash/loading screen while checking status
   if (isLoading) {
     return (
@@ -320,54 +257,8 @@ const ServerControl: React.FC = () => {
     );
   }
 
-  if (showConfirm) {
-    return (
-      <div className="flex items-center space-x-4 px-4 py-3 bg-red-50 border border-red-300 rounded-lg w-full md:w-auto">
-        <AlertCircle size={20} className="text-red-600" />
-        <span className="text-base font-semibold text-red-800">{t('controlPanel.confirmExit')}</span>
-        <button
-          onClick={handleExit}
-          className="px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 transition-colors"
-          aria-label={t('controlPanel.yesExit')}
-        >
-          {t('controlPanel.yesExit')}
-        </button>
-        <button
-          onClick={() => setShowConfirm(false)}
-          className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
-          aria-label={t('controlPanel.cancel')}
-        >
-          {t('controlPanel.cancel')}
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-3">
-      {/* Enhanced Control Buttons */}
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={handleRestart}
-          disabled={isRestarting || status.backend !== 'online'}
-          className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('restartDisabled') : t('controlPanel.restart')}
-        >
-          <RotateCw size={16} className={isRestarting ? 'animate-spin' : ''} />
-          <span>{t('controlPanel.restart')}</span>
-        </button>
-
-        <button
-          onClick={handleExit}
-          disabled={isExiting || status.backend !== 'online'}
-          className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          title={status.backend !== 'online' ? t('exitDisabled') : t('controlPanel.exit')}
-        >
-          <Power size={16} />
-          <span>{t('controlPanel.exit')}</span>
-        </button>
-      </div>
-
       {/* Enhanced Server Status Display */}
       <div
         className="flex items-center space-x-3 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
@@ -417,10 +308,24 @@ const ServerControl: React.FC = () => {
         )}
 
         {/* Overall Status & Info */}
-        <div className="flex flex-col">
-          <span className="text-xs font-medium text-gray-700">
-            {getOverallStatus()}
-          </span>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-700">
+              {getOverallStatus()}
+            </span>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                handleRestart();
+              }}
+              disabled={isRestarting || status.backend !== 'online'}
+              className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              title={status.backend !== 'online' ? t('restartDisabled') : t('controlPanel.restart')}
+            >
+              <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
+              <span>{t('controlPanel.restart')}</span>
+            </button>
+          </div>
           {status.backend === 'online' && currentUptime > 0 && (
             <span className="text-xs text-gray-500">
               {t('uptime')}: {Math.floor(currentUptime / 3600)}h {Math.floor((currentUptime % 3600) / 60)}m {currentUptime % 60}s
@@ -439,12 +344,20 @@ const ServerControl: React.FC = () => {
         <div className="border rounded-xl overflow-hidden">
           <div className="px-4 py-3 text-white bg-slate-700">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center gap-3 justify-between">
                 <div className="font-semibold">{t('controlPanel.systemHealth')}</div>
-                <div className="text-xs opacity-90 space-x-2">
-                  {healthData?.version ? <span>v{healthData.version}</span> : null}
-                  {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
-                  {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  {identityLabel && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-white/90" data-testid="server-control-identity">
+                      <span>{t('controlPanel.signedInAs')}</span>
+                      <span className="font-semibold text-white">{identityLabel}</span>
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2 text-white/90">
+                    {healthData?.version ? <span>v{healthData.version}</span> : null}
+                    {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
+                    {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
+                  </div>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4">
@@ -591,13 +504,13 @@ const ServerControl: React.FC = () => {
             <div className="rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:col-span-3">
               <div className="text-center space-y-1">
                 <div className="text-sm font-semibold text-indigo-900">
-                  Σύστημα Διαχείρισης Σπουδαστών ΜΙΕΕΚ - AUT Μηχανική Αυτοκινήτου
+                  {t('controlPanel.footerTitle')}
                 </div>
                 <div className="text-xs text-indigo-700">
-                  Ανάπτυξη Λογισμικού: Βασίλειος Σαμαράς
+                  {t('controlPanel.footerDeveloper')}
                 </div>
                 <div className="text-xs text-indigo-600">
-                  ©2025 All rights reserved - MIT license
+                  {t('controlPanel.footerCopyright')}
                 </div>
               </div>
             </div>

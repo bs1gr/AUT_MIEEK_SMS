@@ -28,10 +28,18 @@
                 if (currentTheme === 'system') {
                   var root = document.documentElement;
                   root.classList.remove('dark', 'relaxing');
-                  document.body.classList.remove('dark', 'relaxing');
+                  var applyBody = function() {
+                    if (document.body) {
+                      document.body.classList.remove('dark', 'relaxing');
+                      if (e.matches) document.body.classList.add('dark');
+                    }
+                  };
+                  applyBody();
+                  if (!document.body) {
+                    document.addEventListener('DOMContentLoaded', applyBody, { once: true });
+                  }
                   if (e.matches) {
                     root.classList.add('dark');
-                    document.body.classList.add('dark');
                   }
                 }
               });
@@ -45,22 +53,42 @@
 
           console.log('[HTML Init] Stored theme:', stored, '| Resolved theme:', theme, '| System prefers dark:', prefersDark, '| Applying dark:', isDark, '| Applying relaxing:', isRelaxing);
 
-          // Remove all theme classes first
+          // Remove all theme classes first on <html>
           root.classList.remove('dark', 'relaxing');
-          document.body.classList.remove('dark', 'relaxing');
 
+          // Apply classes to body when it's available; avoid touching null body early
+          var applyBodyClasses = function() {
+            try {
+              if (!document.body) return;
+              document.body.classList.remove('dark', 'relaxing');
+              if (isDark) document.body.classList.add('dark');
+              else if (isRelaxing) document.body.classList.add('relaxing');
+            } catch (err) {
+              console.error('Failed to apply body classes:', err);
+            }
+          };
+
+          // Apply classes to root immediately
           if (isDark) {
             root.classList.add('dark');
-            document.body.classList.add('dark');
           } else if (isRelaxing) {
             root.classList.add('relaxing');
-            document.body.classList.add('relaxing');
           }
 
-          // Double-check and log the actual classes applied
-          setTimeout(function() {
-            console.log('[HTML Init] After apply - html classes:', root.className, '| body classes:', document.body.className);
-          }, 0);
+          // Apply body classes now or on DOMContentLoaded
+          applyBodyClasses();
+          if (!document.body) {
+            document.addEventListener('DOMContentLoaded', function() {
+              applyBodyClasses();
+              // Log after DOM is loaded
+              console.log('[HTML Init] After DOMContentLoaded - html classes:', root.className, '| body classes:', document.body && document.body.className);
+            }, { once: true });
+          } else {
+            // Log current classes
+            setTimeout(function() {
+              console.log('[HTML Init] After apply - html classes:', root.className, '| body classes:', document.body.className);
+            }, 0);
+          }
 
           // Force style recalculation for Edge
           if (typeof root.offsetHeight !== 'undefined') {

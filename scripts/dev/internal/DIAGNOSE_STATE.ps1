@@ -349,7 +349,7 @@ switch ($deploymentState) {
     Write-Host "  2. Start with:" -ForegroundColor White
     Write-Host "     .\SMS.ps1 -Quick" -ForegroundColor Gray
     Write-Host "     OR" -ForegroundColor Gray
-    Write-Host "     .\QUICKSTART.ps1" -ForegroundColor Gray
+    Write-Host "     .\RUN.ps1" -ForegroundColor Gray
 
         Write-Action "`nView process details:"
         if ($backendProcess) {
@@ -392,7 +392,7 @@ switch ($deploymentState) {
         Write-Host "  - Node.js 18+ installed" -ForegroundColor White
 
     Write-Action "`nQuick Start (Native):"
-    Write-Host "  .\QUICKSTART.ps1" -ForegroundColor White
+    Write-Host "  .\RUN.ps1" -ForegroundColor White
     Write-Host "  OR" -ForegroundColor Gray
     Write-Host "  .\scripts\SETUP.ps1  # First time setup" -ForegroundColor Gray
     Write-Host "  .\SMS.ps1 -Quick     # Subsequent runs" -ForegroundColor Gray

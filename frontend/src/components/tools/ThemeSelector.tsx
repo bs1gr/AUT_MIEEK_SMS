@@ -1,9 +1,15 @@
 import React from 'react';
 import { useTheme } from '../../ThemeContext';
 import { useLanguage } from '../../LanguageContext';
-import { Sun, Moon, Monitor, Flower2 } from 'lucide-react';
+import { Sun, Moon, Monitor, Flower2, Sparkles } from 'lucide-react';
 
-const ThemeSelector: React.FC = () => {
+type ThemeSelectorVariant = 'standalone' | 'embedded';
+
+interface ThemeSelectorProps {
+  variant?: ThemeSelectorVariant;
+}
+
+const ThemeSelector: React.FC<ThemeSelectorProps> = ({ variant = 'standalone' }) => {
   const { theme, setTheme } = useTheme();
   const { t } = useLanguage() as { t: (key: string) => string };
 
@@ -11,11 +17,17 @@ const ThemeSelector: React.FC = () => {
     { value: 'light', label: t('themeLight'), icon: Sun },
     { value: 'dark', label: t('themeDark'), icon: Moon },
     { value: 'relaxing', label: t('themeRelaxing'), icon: Flower2 },
+    { value: 'fancy', label: t('themeFancy'), icon: Sparkles },
     { value: 'system', label: t('themeSystem'), icon: Monitor }
   ] as const;
 
+  const containerClass =
+    variant === 'standalone'
+      ? 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'
+      : 'space-y-4';
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <section className={containerClass}>
       <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <Sun size={20} className="text-indigo-600" />
         {t('themeAppearance')}
@@ -44,7 +56,7 @@ const ThemeSelector: React.FC = () => {
           <strong>{t('themeSystemInfo')}</strong> {t('themeSystemDescription')}
         </p>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -4,7 +4,13 @@
  * TypeScript version with full type safety
  */
 
-import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  AxiosRequestConfig,
+  AxiosHeaders,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import authService from '@/services/authService';
 import type {
   Student,
@@ -48,13 +54,21 @@ apiClient.interceptors.request.use(
 );
 
 // Exported helper so this behavior can be unit-tested without relying on axios internals
-export function attachAuthHeader(config: AxiosRequestConfig) {
+export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
   try {
     const token = authService.getAccessToken();
-    if (token && config && config.headers) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - axios headers typing
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      if (config.headers instanceof AxiosHeaders) {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      } else if (config.headers) {
+        const headers = AxiosHeaders.from(config.headers);
+        headers.set('Authorization', `Bearer ${token}`);
+        config.headers = headers;
+      } else {
+        const headers = new AxiosHeaders();
+        headers.set('Authorization', `Bearer ${token}`);
+        config.headers = headers;
+      }
     }
   } catch (e) {
     // ignore
@@ -372,13 +386,40 @@ export const importAPI = {
     });
     return response.data;
   },
+
+  uploadFile: async (file: File, type: 'courses' | 'students'): Promise<ImportResponse> => {
+    const formData = new FormData();
+    formData.append('files', file);
+    formData.append('import_type', type);
+    const response = await apiClient.post<ImportResponse>('/imports/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
 };
 
 // ==================== ADMIN OPS API ====================
 
 export const adminOpsAPI = {
-  clearDatabase: async (): Promise<{ message: string }> => {
-    const response = await apiClient.post<{ message: string }>('/adminops/clear-database');
+  createBackup: async (): Promise<{ message: string; backup_path?: string; backup_size?: number }> => {
+    const response = await apiClient.post<{ message: string; backup_path?: string; backup_size?: number }>('/adminops/backup');
+    return response.data;
+  },
+
+  restoreBackup: async (file: File): Promise<{ message: string; restored_from?: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<{ message: string; restored_from?: string }>('/adminops/restore', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  clearDatabase: async (scope: 'all' | 'data_only' = 'all'): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/adminops/clear', {
+      confirm: true,
+      scope,
+    });
     return response.data;
   },
 
@@ -401,18 +442,28 @@ export const checkAPIHealth = async (): Promise<boolean> => {
 };
 
 export interface HealthStatus {
-  status: string;
-  timestamp: string;
-  uptime_seconds: number;
-  environment: string;
-  version: string;
-  checks: Record<string, any>;
-  statistics: {
-    students: number;
-    courses: number;
-    grades: number;
-    enrollments: number;
+  status?: string;
+  timestamp?: string;
+  uptime_seconds?: number;
+  uptime?: number;
+  environment?: string;
+  version?: string;
+  checks?: Record<string, unknown>;
+  docker?: string;
+  database?: string;
+  db?: string;
+  network?: {
+    ips?: string[];
   };
+  statistics?: {
+    students?: number;
+    courses?: number;
+    grades?: number;
+    enrollments?: number;
+  };
+  students_count?: number;
+  courses_count?: number;
+  [key: string]: unknown;
 }
 
 export const getHealthStatus = async (): Promise<HealthStatus> => {

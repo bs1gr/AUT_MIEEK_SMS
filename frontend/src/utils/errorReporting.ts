@@ -3,7 +3,20 @@
  * Sends client-side errors to the backend for centralized logging and monitoring.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+
+function resolveLoggingUrl(path: string): string {
+  try {
+    const base = new URL(API_BASE_URL, window.location.origin);
+    // Strip API path segments like /api/v1 to target the root host for logging endpoints
+    const hostBase = `${base.origin}`;
+    const url = new URL(path, hostBase);
+    return url.toString();
+  } catch (err) {
+    // Fallback to relative path if URL construction fails
+    return path;
+  }
+}
 
 interface ErrorData {
   message: string;
@@ -55,7 +68,7 @@ export async function logErrorToBackend(
     };
 
     // Send to backend (fire and forget - don't block user experience)
-    fetch(`${API_BASE_URL}/api/logs/frontend-error`, {
+  fetch(resolveLoggingUrl('/api/logs/frontend-error'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +114,7 @@ export async function logWarningToBackend(
       type: 'react_warning',
     };
 
-    fetch(`${API_BASE_URL}/api/logs/frontend-warning`, {
+  fetch(resolveLoggingUrl('/api/logs/frontend-warning'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

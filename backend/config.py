@@ -9,7 +9,7 @@ import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, EmailStr
 
 
 def _path_within(path: Path, root: Path) -> bool:
@@ -40,8 +40,20 @@ def _get_app_version() -> str:
 
 
 class Settings(BaseSettings):
+    # Choose an env file intelligently:
+    # - If a local `backend/.env` exists (native/dev), prefer it
+    # - Otherwise fall back to the container path used in Docker deployments
+    try:
+        _candidate_local = (Path(__file__).resolve().parents[1] / ".env")
+        if _candidate_local.exists():
+            _env_file_path = str(_candidate_local)
+        else:
+            _env_file_path = "/app/backend/.env"
+    except Exception:
+        _env_file_path = "/app/backend/.env"
+
     model_config = SettingsConfigDict(
-        env_file="/app/backend/.env",  # Always use the container path
+        env_file=_env_file_path,
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",  # ignore extra keys in .env (e.g., unrelated settings)
@@ -66,7 +78,12 @@ class Settings(BaseSettings):
     SEMESTER_WEEKS: int = 14
 
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
-    CORS_ORIGINS: str = "http://localhost:5173"
+    # Include common local dev origins (localhost and 127.0.0.1 on common dev ports).
+    # Operators can override via CORS_ORIGINS env var when running in different environments.
+    CORS_ORIGINS: str = (
+        "http://localhost:5173, http://127.0.0.1:5173,"
+        " http://localhost:5174, http://127.0.0.1:5174"
+    )
 
     # Security / JWT
     # Names aligned with .env.example
@@ -81,6 +98,12 @@ class Settings(BaseSettings):
     # Toggle authentication/authorization enforcement without code changes.
     # Default disabled to preserve backward compatibility and keep tests passing.
     AUTH_ENABLED: bool = False
+
+    # Default administrator bootstrap (optional)
+    DEFAULT_ADMIN_EMAIL: EmailStr | None = None
+    DEFAULT_ADMIN_PASSWORD: str | None = None
+    DEFAULT_ADMIN_FULL_NAME: str | None = "System Administrator"
+    DEFAULT_ADMIN_FORCE_RESET: bool = False
 
     # Database performance monitoring
     SQLALCHEMY_SLOW_QUERY_ENABLED: bool = True
@@ -210,6 +233,18 @@ class Settings(BaseSettings):
             raise ValueError(f"Invalid database path in DATABASE_URL: {e}")
 
         return v
+
+    @field_validator("DEFAULT_ADMIN_PASSWORD")
+    @classmethod
+    def validate_default_admin_password(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        value = str(v).strip()
+        if not value:
+            return None
+        if len(value) < 8:
+            raise ValueError("DEFAULT_ADMIN_PASSWORD must be at least 8 characters long")
+        return value
 
     @field_validator("SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS")
     @classmethod

@@ -228,7 +228,7 @@ on a Windows computer.
 
 4. **Start the application**:
    ```powershell
-   .\QUICKSTART.bat
+    pwsh -NoProfile -File .\RUN.ps1
    ```
 
 ### Option 3: Native Mode (Python + Node.js)
@@ -262,7 +262,7 @@ on a Windows computer.
 
 After installation:
 
-1. **Start**: `.\QUICKSTART.bat`
+1. **Start**: `pwsh -NoProfile -File .\RUN.ps1`
 2. **Access**: http://localhost:8080
 3. **Stop**: `.\scripts\STOP.ps1`
 
@@ -393,7 +393,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✓ Docker image loaded successfully!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
-    Write-Host "  1. Run: .\QUICKSTART.bat" -ForegroundColor White
+    Write-Host "  1. Run: pwsh -NoProfile -File .\RUN.ps1" -ForegroundColor White
     Write-Host "  2. Access: http://localhost:8080" -ForegroundColor White
 } else {
     Write-Host ""

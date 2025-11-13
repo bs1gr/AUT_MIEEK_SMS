@@ -75,32 +75,27 @@ def run_migrations(verbose: bool = False) -> bool:
 
     Returns True on success, False on failure.
     """
+    print("[run_migrations] ENTER", flush=True)
+    logger.info("[run_migrations] ENTER")
     try:
         backend_dir = Path(__file__).parent
-        # Create Alembic config. `_alembic_config` will instantiate Settings
-        # at call-time to pick up any environment changes (tests may monkeypatch
-        # DATABASE_URL); avoid creating unused local variables here.
         cfg = _alembic_config(backend_dir)
         if verbose:
-            print("=" * 60)
-            print("DATABASE MIGRATION CHECK")
-            print("=" * 60)
-            print(f"Backend directory: {backend_dir}")
+            print("=" * 60, flush=True)
+            print("DATABASE MIGRATION CHECK", flush=True)
+            print("=" * 60, flush=True)
+            print(f"Backend directory: {backend_dir}", flush=True)
             try:
                 url = cfg.get_main_option("sqlalchemy.url")
             except Exception:
                 url = None
-            print(f"Using DATABASE_URL: {url}")
+            print(f"Using DATABASE_URL: {url}", flush=True)
 
-        # Ensure logs directory exists and add a file handler for migration logs.
-        # Resolve repository root robustly (walk upwards for a .git or a project marker).
         try:
-
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
                     if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
                         return p
-                # Fallback to two levels up (legacy layout) or cwd
                 fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
                 return fallback
 
@@ -111,8 +106,6 @@ def run_migrations(verbose: bool = False) -> bool:
             fh.setLevel(logging.INFO)
             fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
             fh.setFormatter(fmt)
-            # Attach handler to the root logger so Alembic and other libraries
-            # that log to the root logger will also write into migrations.log.
             root_logger = logging.getLogger()
             existing = False
             for h in root_logger.handlers:
@@ -125,42 +118,35 @@ def run_migrations(verbose: bool = False) -> bool:
                 except Exception:
                     continue
             if not existing:
-                # Ensure root logger level allows INFO logs to be emitted
                 try:
                     if root_logger.level > logging.INFO:
                         root_logger.setLevel(logging.INFO)
                 except Exception:
                     pass
                 root_logger.addHandler(fh)
-        except Exception:
-            # Non-fatal: migration logging is best-effort
-            pass
+        except Exception as log_ex:
+            print(f"[run_migrations] Logging setup failed: {log_ex}", flush=True)
+            logger.warning(f"[run_migrations] Logging setup failed: {log_ex}")
 
-        # Run upgrade head. Some repositories (eg. after merges) can have
-        # multiple Alembic heads; attempt the normal 'head' upgrade first and
-        # fall back to 'heads' when Alembic reports multiple head revisions.
         try:
             command.upgrade(cfg, "head")
         except Exception as e:
             msg = str(e).lower()
-            # Treat benign 'already exists' / duplicate DDL errors as success
-            # because the desired schema appears to be present already.
             if any(
                 substr in msg
                 for substr in ("already exists", "duplicate column", "index already exists", "table already exists")
             ):
                 logger.warning("Alembic upgrade raised benign duplicate-DDL error; treating as success: %s", e)
                 if verbose:
-                    print(f"WARNING: Migration raised benign error: {e}")
+                    print(f"WARNING: Migration raised benign error: {e}", flush=True)
+                print(f"[run_migrations] benign error: {e}", flush=True)
                 return True
 
-            # Some Alembic errors (including KeyError during head maintenance)
-            # can occur when multiple heads exist. Try the conservative
-            # fallback: upgrade to 'heads'. If that also fails, re-raise the
-            # original exception to be handled by the caller.
             logger.warning("Initial Alembic upgrade(head) failed: %s", e)
+            print(f"[run_migrations] upgrade(head) failed: {e}", flush=True)
             try:
                 logger.info("Attempting Alembic upgrade to 'heads' as a fallback")
+                print("[run_migrations] Attempting upgrade to 'heads'", flush=True)
                 command.upgrade(cfg, "heads")
             except Exception as e2:
                 msg2 = str(e2).lower()
@@ -172,21 +158,28 @@ def run_migrations(verbose: bool = False) -> bool:
                         "Alembic fallback upgrade raised benign duplicate-DDL error; treating as success: %s", e2
                     )
                     if verbose:
-                        print(f"WARNING: Migration raised benign error on fallback: {e2}")
+                        print(f"WARNING: Migration raised benign error on fallback: {e2}", flush=True)
+                    print(f"[run_migrations] benign error on fallback: {e2}", flush=True)
                     return True
                 logger.exception("Fallback upgrade to 'heads' also failed: %s", e2)
-                # Re-raise original error to preserve context
+                print(f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}", flush=True)
                 raise
 
         if verbose:
-            print("\nOK: Database migrations applied successfully")
-            print("=" * 60)
+            print("\nOK: Database migrations applied successfully", flush=True)
+            print("=" * 60, flush=True)
         logger.info("Alembic migrations applied successfully")
+        print("[run_migrations] EXIT OK", flush=True)
         return True
     except Exception as e:
         logger.exception("Failed to apply Alembic migrations: %s", e)
+        print(f"[run_migrations] EXCEPTION: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        sys.stdout.flush()
+        sys.stderr.flush()
         if verbose:
-            print(f"ERROR: Migration error: {e}", file=sys.stderr)
+            print(f"ERROR: Migration error: {e}", file=sys.stderr, flush=True)
         return False
 
 
