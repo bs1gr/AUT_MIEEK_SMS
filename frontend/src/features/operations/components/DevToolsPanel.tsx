@@ -4,7 +4,7 @@ import { RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminOpsAPI, getHealthStatus, importAPI } from '@/api/api';
-import { ThemeSelector, themeStyles, type ThemeVariant } from './ThemeSelector';
+import { AppearanceThemeSelectorWidget, themeStyles, type ThemeVariant } from './AppearanceThemeSelector';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -400,7 +400,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                 <span className="text-white/90">{t('utils.backend')} ({backendOrigin})</span>
               </div>
               <div className="ml-auto flex items-center gap-3">
-                <ThemeSelector currentTheme={selectedTheme} onThemeChange={setSelectedTheme} />
+                <AppearanceThemeSelectorWidget currentTheme={selectedTheme} onThemeChange={setSelectedTheme} />
                 <button
                   type="button"
                   onClick={runHealthCheck}
