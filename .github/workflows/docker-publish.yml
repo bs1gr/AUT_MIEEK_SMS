@@ -156,20 +156,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read release notes file
+      - name: Prepare release notes body
         id: read_notes
         run: |
-          NOTES_FILE="RELEASE_NOTES/README.md"
-          if [ -f "$NOTES_FILE" ]; then
-            # base64 to preserve newlines in output
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            cat "$NOTES_FILE" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            echo "(No RELEASE_NOTES file present)" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
+          TAG="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+          URL="https://github.com/${REPO}/blob/${TAG}/CHANGELOG.md"
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "Release notes are maintained in CHANGELOG.md (${URL})." >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create release (published) with image digests
         id: create_rel
@@ -188,16 +183,4 @@ jobs:
               draft: true,
               prerelease: false,
             });
-            const fs = require('fs');
-            const path = 'RELEASE_NOTES/README.md';
-            if (fs.existsSync(path)) {
-              const content = fs.readFileSync(path);
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: release.data.id,
-                name: require('path').basename(path),
-                data: content,
-                headers: { 'content-type': 'text/markdown' }
-              });
-            }
+            // Release notes are linked directly to CHANGELOG.md; no asset upload required.
