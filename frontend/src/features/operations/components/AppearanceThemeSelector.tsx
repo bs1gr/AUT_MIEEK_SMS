@@ -171,37 +171,95 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
 const AppearanceThemeSelector = () => {
   const { t } = useLanguage();
   const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
-    const saved = localStorage.getItem('sms.appearance.theme');
+    if (typeof window === 'undefined') {
+      return 'default';
+    }
+    const saved =
+      window.localStorage.getItem('sms.appearance.theme') ??
+      window.localStorage.getItem('sms.operations.theme');
     return (saved as ThemeVariant) || 'default';
   });
 
-  const handleThemeChange = (theme: ThemeVariant) => {
-    setSelectedTheme(theme);
-    localStorage.setItem('sms.appearance.theme', theme);
+  const theme = themeStyles[selectedTheme];
+  const previewTitle = t('controlPanel.appearancePreview') || 'Live preview';
+  const previewDesc =
+    t('controlPanel.appearancePreviewDesc') ||
+    'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.';
+  const previewMetricsLabel = t('controlPanel.appearancePreviewMetrics') || 'Sample analytics metrics';
+  const friendlyThemeName = selectedTheme
+    .split('-')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+
+  const sampleMetrics = [
+    { label: t('present') || 'Present', value: '92%' },
+    { label: t('absent') || 'Absent', value: '5%' },
+    { label: t('late') || 'Late', value: '2%' },
+    { label: t('excused') || 'Excused', value: '1%' },
+  ];
+
+  const handleThemeChange = (themeVariant: ThemeVariant) => {
+    setSelectedTheme(themeVariant);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('sms.appearance.theme', themeVariant);
+      window.localStorage.setItem('sms.operations.theme', themeVariant);
+    }
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+    <section className={`${theme.container} p-6 space-y-4`}>
+      <div className="space-y-1">
+        <h3 className={`text-lg font-semibold flex items-center gap-2 ${theme.text}`}>
           <Palette size={20} className="text-indigo-600" />
           {t('controlPanel.appearanceThemes') || 'Appearance Themes'}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
-          {t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.'}
+        <p className={`text-sm ${theme.mutedText}`}>
+          {t('controlPanel.appearanceThemesDesc') ||
+            'Choose from modern UI themes inspired by 2025 design trends.'}
         </p>
       </div>
 
-      <div className="mb-4">
+      <div>
         <AppearanceThemeSelectorWidget currentTheme={selectedTheme} onThemeChange={handleThemeChange} />
       </div>
 
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-xs text-blue-800">
-          <strong>{t('controlPanel.currentTheme') || 'Current Theme'}:</strong> {selectedTheme.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+      <div className={`${theme.card} space-y-4`}>
+        <div>
+          <p className={`text-sm font-semibold ${theme.text}`}>{previewTitle}</p>
+          <p className={`text-xs ${theme.mutedText}`}>{previewDesc}</p>
+        </div>
+        <div>
+          <p className={`text-[11px] uppercase tracking-wide font-semibold ${theme.mutedText}`}>
+            {previewMetricsLabel}
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {sampleMetrics.map((metric) => (
+              <div key={metric.label} className={`${theme.subtleCard} text-center`}>
+                <p className={`text-[11px] font-semibold uppercase ${theme.mutedText}`}>{metric.label}</p>
+                <p className={`text-xl font-bold ${theme.text}`}>{metric.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <div className={`${theme.button} inline-flex items-center gap-2 text-xs`}>
+            <span className="font-semibold">Ops</span>
+            <span>{t('controlPanel.quickActions') || 'Quick Actions'}</span>
+          </div>
+          <div className={`${theme.secondaryButton} inline-flex items-center gap-2 text-xs`}>
+            <span>{t('utils.operationsMonitor') || 'Operations monitor'}</span>
+          </div>
+          <div className={`${theme.input} text-xs`}>{t('students') || 'Students'} • 128</div>
+        </div>
+      </div>
+
+      <div className={`${theme.subtleCard} text-xs space-y-1`}>
+        <p className={theme.text}>
+          <strong>{t('controlPanel.currentTheme') || 'Current Theme'}:</strong> {friendlyThemeName}
         </p>
-        <p className="text-xs text-blue-700 mt-1">
-          {t('controlPanel.themeAppliesTo') || 'This theme applies to Control Panel Operations and other components that support appearance customization.'}
+        <p className={theme.mutedText}>
+          {t('controlPanel.themeAppliesTo') ||
+            'This theme applies to Control Panel Operations and other components that support appearance customization.'}
         </p>
       </div>
     </section>

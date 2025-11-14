@@ -1,10 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/LanguageContext';
-import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, TrendingUp } from 'lucide-react';
+import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, TrendingUp, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
 type Props = { courses: any[]; students: any[] };
+
+const ATTENDANCE_STATES = ['Present', 'Absent', 'Late', 'Excused'] as const;
+type AttendanceState = typeof ATTENDANCE_STATES[number];
+const isTrackedStatus = (status?: string): status is AttendanceState =>
+  Boolean(status && ATTENDANCE_STATES.includes(status as AttendanceState));
 
 const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
@@ -25,18 +31,145 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState<any>(null);
   const [datesWithAttendance, setDatesWithAttendance] = useState<Set<string>>(new Set());
+  const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
+  const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
 
 
 
-  const dayNamesShort = useMemo(() => (t('dayNames') ? t('dayNames').split(',') : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']), [t]);
+  const dayNamesShort = useMemo(
+    () => (t('dayNames') ? t('dayNames').split(',').map((day: string) => day.trim()) : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']),
+    [t]
+  );
+  const weekStartsOnMonday = useMemo(
+    () => inferWeekStartsOnMonday(dayNamesShort, language === 'el'),
+    [dayNamesShort, language]
+  );
+  const selectedDateStr = useMemo(() => formatLocalDate(selectedDate), [selectedDate]);
+  const fullDayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  const getWeekdayIndex = (d: Date) => {
+    const weekday = d.getDay();
+    return weekday === 0 ? 6 : weekday - 1;
+  };
+
+  const matchesScheduleDay = (value: any, dateObj: Date) => {
+    if (value === undefined || value === null) return false;
+    const normalized = String(value).trim().toLowerCase();
+    const weekdayIndex = getWeekdayIndex(dateObj);
+    const dayName = fullDayNames[dateObj.getDay()];
+    return (
+      normalized === dayName.toLowerCase() ||
+      normalized === dayName.slice(0, 3).toLowerCase() ||
+      normalized === String(weekdayIndex)
+    );
+  };
+
+  const getScheduleEntriesForDate = (course: any, dateObj: Date) => {
+    if (!course?.teaching_schedule) return [];
+    const schedule = course.teaching_schedule;
+    const entries: any[] = [];
+    if (Array.isArray(schedule)) {
+      schedule.forEach((entry: any) => {
+        if (entry && matchesScheduleDay(entry.day, dateObj)) {
+          entries.push(entry);
+        }
+      });
+    } else if (typeof schedule === 'object') {
+      const weekday = fullDayNames[dateObj.getDay()];
+      const keysToCheck = [weekday, weekday.toLowerCase(), String(getWeekdayIndex(dateObj))];
+      keysToCheck.forEach((key) => {
+        if ((schedule as Record<string, any>)[key]) {
+          entries.push({ day: weekday, ...(schedule as Record<string, any>)[key] });
+        }
+      });
+    }
+    return entries;
+  };
+
+  const periodCount = useMemo(() => {
+    if (!selectedCourse || !selectedDate) return 1;
+    const course = localCourses.find((c) => c.id === selectedCourse);
+    if (!course) return 1;
+    const entries = getScheduleEntriesForDate(course, selectedDate);
+    if (!entries.length) return 1;
+    const total = entries.reduce((sum: number, entry: any) => {
+      const value = Number(entry?.periods ?? entry?.period_count ?? entry?.count ?? 1);
+      if (Number.isFinite(value) && value > 0) {
+        return sum + value;
+      }
+      return sum + 1;
+    }, 0);
+    return total > 0 ? total : 1;
+  }, [localCourses, selectedCourse, selectedDate]);
+
+  const activePeriods = useMemo(() => Array.from({ length: periodCount }, (_, idx) => idx + 1), [periodCount]);
+  const hasMultiplePeriods = periodCount > 1;
+
+  useEffect(() => {
+    setExpandedStudents(new Set());
+  }, [selectedCourse, selectedDateStr]);
+
+  useEffect(() => {
+    if (!hasMultiplePeriods) {
+      setShowPeriodBreakdown(false);
+    }
+  }, [hasMultiplePeriods]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2500);
   };
 
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
-  const getAttendanceKey = (studentId: number) => `${studentId}-${formatDate(selectedDate)}`;
+  const getAttendanceKey = (studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
+    `${studentId}|${periodNumber}|${dateStr}`;
+
+  const translateStatusLabel = (status: string) => {
+    switch (status) {
+      case 'Present':
+        return t('present') || 'Present';
+      case 'Absent':
+        return t('absent') || 'Absent';
+      case 'Late':
+        return t('late') || 'Late';
+      case 'Excused':
+        return t('excused') || 'Excused';
+      default:
+        return status;
+    }
+  };
+
+  const statusBadgeClasses: Record<string, string> = {
+    Present: 'border-green-200 bg-green-50 text-green-700',
+    Absent: 'border-red-200 bg-red-50 text-red-700',
+    Late: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+    Excused: 'border-blue-200 bg-blue-50 text-blue-700',
+  };
+
+  const ensureDefaultPresence = useCallback(() => {
+    if (!selectedCourse || !selectedDateStr) return;
+    if (!enrolledStudents || enrolledStudents.length === 0) return;
+    if (!activePeriods || activePeriods.length === 0) return;
+
+    setAttendanceRecords((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      enrolledStudents.forEach((student) => {
+        if (!student?.id) return;
+        activePeriods.forEach((period) => {
+          const key = getAttendanceKey(student.id, period);
+          if (!isTrackedStatus(next[key])) {
+            next[key] = 'Present';
+            changed = true;
+          }
+        });
+      });
+      return changed ? next : prev;
+    });
+  }, [selectedCourse, selectedDateStr, enrolledStudents, activePeriods]);
+
+  useEffect(() => {
+    ensureDefaultPresence();
+  }, [ensureDefaultPresence]);
 
   // Daily trackable categories - both EN and translated versions for matching
   const dailyTrackableCategories = [
@@ -62,6 +195,90 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       'Presentation': t('presentation') || 'Presentation',
     };
     return categoryMap[category] || category;
+  };
+
+  const getStudentPeriodStatuses = (studentId: number) => {
+    const statuses: Record<number, string> = {};
+    activePeriods.forEach((period) => {
+      const value = attendanceRecords[getAttendanceKey(studentId, period)];
+      if (value) {
+        statuses[period] = value;
+      }
+    });
+    return statuses;
+  };
+
+  const toggleStudentPeriods = (studentId: number) => {
+    setExpandedStudents((prev) => {
+      const next = new Set(prev);
+      if (next.has(studentId)) {
+        next.delete(studentId);
+      } else {
+        next.add(studentId);
+      }
+      return next;
+    });
+  };
+
+  const isStudentExpanded = (studentId: number) => expandedStudents.has(studentId);
+
+  const getAggregatedStatus = (studentId: number) => {
+    const statuses = Object.values(getStudentPeriodStatuses(studentId));
+    if (!statuses.length) {
+      return { status: undefined, isMixed: false, hasAny: false };
+    }
+    const first = statuses[0];
+    const isUniform = statuses.every((status) => status === first);
+    return {
+      status: isUniform ? first : undefined,
+      isMixed: !isUniform,
+      hasAny: true,
+    };
+  };
+
+  const clearPeriodAttendance = (studentId: number, periodNumber: number) => {
+    applyAttendanceStatus(studentId, 'Present', periodNumber);
+  };
+
+  const clearStudentAttendance = (studentId: number) => {
+    applyAttendanceStatus(studentId, 'Present');
+  };
+
+  const clearPerformanceForStudents = (studentIds: number[]) => {
+    if (!studentIds?.length) return;
+    setDailyPerformance((prev) => {
+      const updated = { ...prev };
+      studentIds.forEach((studentId) => {
+        evaluationCategories.forEach((rule) => {
+          const key = `${studentId}-${rule.category}`;
+          delete updated[key];
+        });
+      });
+      return updated;
+    });
+  };
+
+  const clearPerformanceForStudent = (studentId: number) => {
+    clearPerformanceForStudents([studentId]);
+  };
+
+  const applyAttendanceStatus = (studentId: number, status: string, periodNumber?: number) => {
+    setAttendanceRecords((prev) => {
+      const next = { ...prev };
+      const targetPeriods = periodNumber ? [periodNumber] : activePeriods;
+      targetPeriods.forEach((period) => {
+        next[getAttendanceKey(studentId, period)] = status;
+      });
+
+      if (status === 'Absent') {
+        const allAbsent = activePeriods.every((period) => next[getAttendanceKey(studentId, period)] === 'Absent');
+        if (allAbsent) {
+          clearPerformanceForStudent(studentId);
+        }
+      }
+
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -202,7 +419,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   useEffect(() => {
     const loadPrefill = async () => {
       if (!selectedCourse || !selectedDate) return;
-      const dateStr = formatDate(selectedDate);
+      const dateStr = formatLocalDate(selectedDate);
       try {
         // Prefill Attendance
         const attRes = await fetch(`${API_BASE_URL}/attendance/date/${dateStr}/course/${selectedCourse}`);
@@ -211,10 +428,15 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           const next: Record<string, string> = {};
           if (Array.isArray(attData)) {
             attData.forEach((a: any) => {
-              next[`${a.student_id}-${dateStr}`] = a.status;
+              if (!a?.student_id) return;
+              const periodNumber = Number(a.period_number ?? 1);
+              const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+              const recordDate = formatLocalDate(a.date || dateStr);
+              next[getAttendanceKey(a.student_id, safePeriod, recordDate)] = a.status;
             });
           }
           setAttendanceRecords(next);
+          ensureDefaultPresence();
         } else {
           setAttendanceRecords({});
         }
@@ -239,7 +461,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
     };
     loadPrefill();
-  }, [selectedCourse, selectedDate]);
+  }, [selectedCourse, selectedDate, ensureDefaultPresence]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
@@ -260,8 +482,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
-            // Extract unique dates from attendance records
-            const uniqueDates = new Set(data.map((record: any) => record.date));
+            // Extract unique, timezone-safe dates from attendance records
+            const uniqueDates = new Set<string>();
+            data.forEach((record: any) => {
+              if (!record?.date) return;
+              uniqueDates.add(formatLocalDate(record.date));
+            });
             setDatesWithAttendance(uniqueDates);
           }
         }
@@ -277,18 +503,18 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const previousMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
-  const getDaysInMonth = (date: Date) => {
+  const getDaysInMonth = (date: Date, startOnMonday: boolean) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const days: (Date | null)[] = [];
-    const offset = firstDay.getDay();
+    const offset = startOnMonday ? (firstDay.getDay() + 6) % 7 : firstDay.getDay();
     for (let i = 0; i < offset; i++) days.push(null);
     for (let d = 1; d <= lastDay.getDate(); d++) days.push(new Date(year, month, d));
     return days;
   };
-  const days = getDaysInMonth(currentMonth);
+  const days = useMemo(() => getDaysInMonth(currentMonth, weekStartsOnMonday), [currentMonth, weekStartsOnMonday]);
   const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
 
   const isToday = (date?: Date | null) => date ? date.toDateString() === new Date().toDateString() : false;
@@ -336,27 +562,85 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     return true;
   };
 
-  const setAttendance = (studentId: number, status: string) => {
-    setAttendanceRecords((prev) => ({ ...prev, [getAttendanceKey(studentId)]: status }));
-
-    // Clear daily performance scores when marking student as Absent
-    if (status === 'Absent') {
-      setDailyPerformance((prev) => {
-        const updated = { ...prev };
-        evaluationCategories.forEach((rule) => {
-          const key = `${studentId}-${rule.category}`;
-          delete updated[key];
-        });
-        return updated;
-      });
-    }
+  const setAttendance = (studentId: number, status: string, periodNumber?: number) => {
+    applyAttendanceStatus(studentId, status, periodNumber);
   };
+
   const selectAllAttendance = (status: string) => {
-    const batch: Record<string, string> = {};
-    (enrolledStudents || []).forEach((s) => { batch[getAttendanceKey(s.id)] = status; });
-    setAttendanceRecords((prev) => ({ ...prev, ...batch }));
+    setAttendanceRecords((prev) => {
+      const next = { ...prev };
+      const periods = activePeriods.length ? activePeriods : [1];
+      (enrolledStudents || []).forEach((student) => {
+        periods.forEach((period) => {
+          next[getAttendanceKey(student.id, period)] = status;
+        });
+      });
+      return next;
+    });
+
+    if (status === 'Absent') {
+      clearPerformanceForStudents((enrolledStudents || []).map((s) => s.id));
+    }
+
     showToast((t('allStudentsMarked') || 'All students marked') + `: ${status}`, 'success');
   };
+
+  const resetAllToPresent = () => {
+    if (!enrolledStudents || enrolledStudents.length === 0) return;
+    setAttendanceRecords((prev) => {
+      const next = { ...prev };
+      const periods = activePeriods.length ? activePeriods : [1];
+      enrolledStudents.forEach((student) => {
+        periods.forEach((period) => {
+          next[getAttendanceKey(student.id, period)] = 'Present';
+        });
+      });
+      return next;
+    });
+  };
+
+  const makeEmptyStatusCounts = () => {
+    const counts: Record<string, number> = {};
+    ATTENDANCE_STATES.forEach((status) => {
+      counts[status] = 0;
+    });
+    return counts;
+  };
+
+  const attendanceAnalytics = useMemo(() => {
+    const overall = makeEmptyStatusCounts();
+    const perPeriod: Record<number, Record<string, number>> = {};
+    activePeriods.forEach((period) => {
+      perPeriod[period] = makeEmptyStatusCounts();
+    });
+
+    const studentsList = enrolledStudents || [];
+    if (!studentsList.length) {
+      return { overall, perPeriod, totalSlots: 0, recordedSlots: 0 };
+    }
+
+    let recordedSlots = 0;
+
+    studentsList.forEach((student) => {
+      activePeriods.forEach((period) => {
+        const key = getAttendanceKey(student.id, period);
+        const status = attendanceRecords[key];
+        const safeStatus: AttendanceState = isTrackedStatus(status) ? status : 'Present';
+        overall[safeStatus] += 1;
+        perPeriod[period][safeStatus] += 1;
+        recordedSlots += 1;
+      });
+    });
+
+    const totalSlots = studentsList.length * activePeriods.length;
+
+    return { overall, perPeriod, totalSlots, recordedSlots };
+  }, [attendanceRecords, enrolledStudents, activePeriods, selectedDateStr]);
+
+  const statusOrder = [...ATTENDANCE_STATES];
+  const coveragePercent = attendanceAnalytics.totalSlots
+    ? Math.round((attendanceAnalytics.recordedSlots / attendanceAnalytics.totalSlots) * 100)
+    : 0;
 
   const setPerformanceScore = (studentId: number, category: string, score: number | string) => {
     const key = `${studentId}-${category}`;
@@ -368,12 +652,24 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     if (!selectedCourse) { showToast(t('selectCourse') || 'Select course', 'error'); return; }
     setLoading(true);
     try {
-      const dateStr = formatDate(selectedDate);
+      const dateStr = formatLocalDate(selectedDate);
       const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
-        const [studentId] = key.split('-');
+        const tokens = key.includes('|') ? key.split('|') : key.split('-');
+        const [studentIdStr, periodNumberStr, storedDate] = tokens;
+        const studentId = parseInt(studentIdStr, 10);
+        if (!studentId) return Promise.resolve(null);
+        const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
+        const payloadDate = storedDate || dateStr;
         return fetch(`${API_BASE_URL}/attendance/`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ student_id: parseInt(studentId, 10), course_id: selectedCourse, date: dateStr, status, notes: '' })
+          body: JSON.stringify({
+            student_id: studentId,
+            course_id: selectedCourse,
+            date: payloadDate,
+            status,
+            period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
+            notes: '',
+          })
         });
       });
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
@@ -433,7 +729,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               const teaching = isTeachingDay(day);
               const today = isToday(day);
               const selected = isSelected(day);
-              const hasAttendance = datesWithAttendance.has(formatDate(day));
+              const hasAttendance = datesWithAttendance.has(formatLocalDate(day));
 
               return (
                 <button
@@ -512,14 +808,72 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           <Users size={20} className="text-indigo-600" />
           <h4 className="font-semibold">{t('quickActions') || 'Quick Actions'}</h4>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => selectAllAttendance('Present')} className="px-3 py-2 rounded bg-green-500 text-white flex items-center gap-2"><CheckCircle size={16} /> {t('present') || 'Present'}</button>
-          <button onClick={() => selectAllAttendance('Absent')} className="px-3 py-2 rounded bg-red-500 text-white flex items-center gap-2"><XCircle size={16} /> {t('absent') || 'Absent'}</button>
-          <button onClick={() => selectAllAttendance('Late')} className="px-3 py-2 rounded bg-yellow-500 text-white flex items-center gap-2"><Clock size={16} /> {t('late') || 'Late'}</button>
-          <button onClick={() => selectAllAttendance('Excused')} className="px-3 py-2 rounded bg-blue-500 text-white flex items-center gap-2"><AlertCircle size={16} /> {t('excused') || 'Excused'}</button>
-          <button onClick={() => setAttendanceRecords({})} className="px-3 py-2 rounded bg-gray-200 text-gray-800">{t('clear') || 'Clear'}</button>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+          <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-3 py-2 rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-2"><CheckCircle size={16} /> {t('present') || 'Present'}</button>
+          <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-3 py-2 rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-2"><XCircle size={16} /> {t('absent') || 'Absent'}</button>
+          <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-3 py-2 rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-2"><Clock size={16} /> {t('late') || 'Late'}</button>
+          <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-3 py-2 rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-2"><AlertCircle size={16} /> {t('excused') || 'Excused'}</button>
+          <button onClick={resetAllToPresent} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-200 text-gray-800 flex items-center justify-center sm:justify-start gap-2">{t('clear') || 'Clear'}</button>
         </div>
       </div>
+
+        {/* Analytics Snapshot */}
+        <div className="bg-white rounded-2xl shadow p-6 border border-gray-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-indigo-100 text-indigo-700 rounded-xl p-2"><BarChart3 size={20} /></div>
+              <div>
+                <h4 className="font-semibold text-gray-800">{t('attendanceInsights') || 'Attendance insights'}</h4>
+                <p className="text-xs text-gray-500">{t('overallSummary') || 'Overall summary for this day'}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-semibold text-gray-800">{t('coverageLabel') || 'Coverage'}: {coveragePercent}%</p>
+              <p className="text-xs text-gray-500">{attendanceAnalytics.recordedSlots}/{attendanceAnalytics.totalSlots || 0} {t('recordsTracked') || 'records tracked'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {statusOrder.map((status) => (
+              <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
+                <p className="text-[11px] uppercase tracking-wide font-semibold">{translateStatusLabel(status)}</p>
+                <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
+              </div>
+            ))}
+          </div>
+          {hasMultiplePeriods && (
+            <div className="mt-6 space-y-3">
+              <button
+                type="button"
+                onClick={() => setShowPeriodBreakdown((prev) => !prev)}
+                className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
+              >
+                <span>{showPeriodBreakdown ? (t('hidePeriodBreakdown') || 'Hide per-period breakdown') : (t('showPeriodBreakdown') || 'Show per-period breakdown')}</span>
+                {showPeriodBreakdown ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+              </button>
+              {showPeriodBreakdown && (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('perPeriodBreakdown') || 'Per-period breakdown'}</p>
+                  {activePeriods.map((period) => (
+                    <div key={period} className="border rounded-2xl p-3">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-3">
+                        <span className="font-semibold text-gray-800">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
+                        <span className="text-xs text-gray-500">{t('studentsTracked', { count: enrolledStudents?.length || 0 }) || `${enrolledStudents?.length || 0} students`}</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        {statusOrder.map((status) => (
+                          <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
+                            <p className="text-[11px] text-gray-600">{translateStatusLabel(status)}</p>
+                            <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
       {/* Student List */}
       <div className="bg-white rounded-2xl shadow p-6">
@@ -530,11 +884,55 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
         <div className="space-y-3">
           {(enrolledStudents && enrolledStudents.length > 0 ? enrolledStudents : []).map((s) => {
-            const key = getAttendanceKey(s.id);
-            const status = attendanceRecords[key];
+            const periodStatuses = getStudentPeriodStatuses(s.id);
+            const aggregatedStatus = getAggregatedStatus(s.id);
+            const uniformStatus = aggregatedStatus.status;
+            const isAbsentAllDay = uniformStatus === 'Absent';
+
+            const perPeriodButtons = (period: number, periodStatus?: string) => (
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1 w-full sm:w-auto">
+                <button
+                  onClick={() => setAttendance(s.id, 'Present', period)}
+                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}
+                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('present') || 'Present'}`}
+                >
+                  <CheckCircle size={12} />
+                </button>
+                <button
+                  onClick={() => setAttendance(s.id, 'Absent', period)}
+                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}
+                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('absent') || 'Absent'}`}
+                >
+                  <XCircle size={12} />
+                </button>
+                <button
+                  onClick={() => setAttendance(s.id, 'Late', period)}
+                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}
+                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('late') || 'Late'}`}
+                >
+                  <Clock size={12} />
+                </button>
+                <button
+                  onClick={() => setAttendance(s.id, 'Excused', period)}
+                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}
+                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('excused') || 'Excused'}`}
+                >
+                  <AlertCircle size={12} />
+                </button>
+                {periodStatus && periodStatus !== 'Present' && (
+                  <button
+                    onClick={() => clearPeriodAttendance(s.id, period)}
+                    className="px-2 py-1 rounded text-xs bg-gray-200 text-gray-700"
+                  >
+                    {t('clear') || 'Clear'}
+                  </button>
+                )}
+              </div>
+            );
+
             return (
-              <div key={s.id} className="bg-gray-50 rounded border p-3">
-                <div className="flex items-center justify-between">
+              <div key={s.id} className="bg-gray-50 rounded border p-3 space-y-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full text-white flex items-center justify-center font-bold">{String(s.first_name || '').charAt(0)}{String(s.last_name || '').charAt(0)}</div>
                     <div>
@@ -542,22 +940,69 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                       <div className="text-xs text-gray-500">{s.student_id}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setAttendance(s.id, 'Present')} aria-label={`${t('present') || 'Present'} - ${s.first_name} ${s.last_name}`} title={t('present') || 'Present'} className={`px-3 py-1 rounded text-sm ${status === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}><CheckCircle size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Absent')} aria-label={`${t('absent') || 'Absent'} - ${s.first_name} ${s.last_name}`} title={t('absent') || 'Absent'} className={`px-3 py-1 rounded text-sm ${status === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}><XCircle size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${status === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Excused')} aria-label={`${t('excused') || 'Excused'} - ${s.first_name} ${s.last_name}`} title={t('excused') || 'Excused'} className={`px-3 py-1 rounded text-sm ${status === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}><AlertCircle size={14} /></button>
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                    <button onClick={() => setAttendance(s.id, 'Present')} aria-label={`${t('present') || 'Present'} - ${s.first_name} ${s.last_name}`} title={t('present') || 'Present'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}><CheckCircle size={14} /></button>
+                    <button onClick={() => setAttendance(s.id, 'Absent')} aria-label={`${t('absent') || 'Absent'} - ${s.first_name} ${s.last_name}`} title={t('absent') || 'Absent'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}><XCircle size={14} /></button>
+                    <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
+                    <button onClick={() => setAttendance(s.id, 'Excused')} aria-label={`${t('excused') || 'Excused'} - ${s.first_name} ${s.last_name}`} title={t('excused') || 'Excused'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}><AlertCircle size={14} /></button>
+                    {aggregatedStatus.isMixed && (
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                        {t('mixedStatus') || 'Mixed periods'}
+                      </span>
+                    )}
                     {evaluationCategories.length > 0 && (
                       <button
                         onClick={() => { setSelectedStudentForPerformance(s); setShowPerformanceModal(true); }}
-                        disabled={status === 'Absent'}
-                        className={`ml-2 px-3 py-1 rounded text-sm flex items-center gap-1 ${status === 'Absent' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        disabled={isAbsentAllDay}
+                        className={`ml-2 px-3 py-1 rounded text-sm flex items-center gap-1 ${isAbsentAllDay ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                       >
                         <TrendingUp size={14} /> {t('rate') || 'Rate'}
                       </button>
                     )}
                   </div>
                 </div>
+
+                {hasMultiplePeriods && (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleStudentPeriods(s.id)}
+                      className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Clock size={12} className="text-indigo-500" />
+                        {isStudentExpanded(s.id) ? (t('hidePerPeriod') || 'Hide per-period attendance') : (t('showPerPeriod') || 'Show per-period attendance')}
+                      </span>
+                      {isStudentExpanded(s.id) ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+                    </button>
+                    {isStudentExpanded(s.id) && (
+                      <div className="space-y-2">
+                        <div className="space-y-2">
+                          {activePeriods.map((period) => (
+                            <div key={period} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white border rounded-lg p-2">
+                              <span className="text-xs font-semibold text-gray-700">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
+                              {perPeriodButtons(period, periodStatuses[period])}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-dashed border-gray-200">
+                          <button
+                            onClick={() => setAttendance(s.id, 'Absent')}
+                            className="px-3 py-1 rounded text-xs bg-red-100 text-red-700 flex items-center gap-1"
+                          >
+                            <XCircle size={12} /> {t('markAllPeriodsAbsent') || 'Mark all periods absent'}
+                          </button>
+                          <button
+                            onClick={() => clearStudentAttendance(s.id)}
+                            className="px-3 py-1 rounded text-xs bg-gray-200 text-gray-700"
+                          >
+                            {t('clear') || 'Clear'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -578,8 +1023,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
             <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
 
             {(() => {
-              const studentAttendanceStatus = attendanceRecords[getAttendanceKey(selectedStudentForPerformance.id)];
-              const isAbsent = studentAttendanceStatus === 'Absent';
+              const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;
+              const isAbsent = modalStatus === 'Absent';
 
               return (
                 <>

@@ -116,7 +116,9 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 ## 🆕 What's New in v1.6.1
 
-- 🎨 **Control Panel appearance themes:** Added six modern presets with persistence, plus a visual comparison guide so operators can pick the right look fast.
+- 🎨 **Control Panel appearance themes:** Added six modern presets with persistence, now paired with a live preview that shows buttons, analytics cards, and inputs before the theme is applied.
+- 📈 **Attendance analytics export:** Export Center gained a dedicated card that generates a rich Excel workbook with overview metrics, per-course summaries, per-period coverage, student tallies, and daily breakdowns—complete with localized titles.
+- 🗓️ **Attendance workspace upgrades:** The attendance board and enhanced calendar now honor localized week starts, capture per-period schedules, auto-fill Present by default, and surface coverage snapshots plus quick per-period adjustments.
 - 🧭 **Mode-aware quick reference:** Refined operations monitor copy and docs to reinforce Docker-only release expectations.
 - 🧹 **SUPER_CLEAN hardening:** Automatic process termination guard, clearer verbose diagnostics, and safer exits prevent stuck cleanup runs.
 - 🏗️ **CI/automation cleanup:** Removed redundant workflows and converted manual-only jobs to reduce noise and maintenance overhead.

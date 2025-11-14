@@ -4,11 +4,12 @@
 // UPDATED: Added "Select All" buttons for each attendance status + full localization
 // All hardcoded text replaced with translation keys
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, Star, TrendingUp, UserCheck, DumbbellIcon } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import Spinner from '@/components/ui/Spinner';
 import { studentsAPI, coursesAPI } from '@/api/api';
+import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 
 const API_BASE_URL = '/api/v1';
 
@@ -109,9 +110,7 @@ const EnhancedAttendanceCalendar = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-  };
+  const formatDate = (date: Date | string) => formatLocalDate(date);
 
   const getAttendanceKey = (studentId) => {
     return `${studentId}-${formatDate(selectedDate)}`;
@@ -206,13 +205,13 @@ const EnhancedAttendanceCalendar = () => {
     }
   };
 
-  const getDaysInMonth = (date) => {
+  const getDaysInMonth = (date, startOnMonday) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    const startingDayOfWeek = startOnMonday ? (firstDay.getDay() + 6) % 7 : firstDay.getDay();
 
     const days = [];
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -257,11 +256,13 @@ const EnhancedAttendanceCalendar = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const days = getDaysInMonth(currentMonth);
+  const dayNamesShort = useMemo(() => (t('dayNames') || 'Sun,Mon,Tue,Wed,Thu,Fri,Sat').split(',').map((day) => day.trim()), [t]);
+  const weekStartsOnMonday = useMemo(() => inferWeekStartsOnMonday(dayNamesShort, language === 'el'), [dayNamesShort, language]);
+  const days = useMemo(() => getDaysInMonth(currentMonth, weekStartsOnMonday), [currentMonth, weekStartsOnMonday]);
   const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
 
   // Get localized day names
-  const dayNamesShort = t('dayNames').split(',');
+  // dayNamesShort defined above
 
   // Attendance status options with translations
   const attendanceOptions = [
