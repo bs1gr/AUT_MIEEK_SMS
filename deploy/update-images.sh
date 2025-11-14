@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Helper: read RELEASE_NOTES/docker-images-<version>.md and apply kubectl set image
+# Helper: read CHANGELOG.md (or a custom notes file) and apply kubectl set image
 # Usage: ./deploy/update-images.sh 1.3.5 production
 set -euo pipefail
 VERSION=${1:-}
@@ -8,9 +8,10 @@ if [ -z "$VERSION" ]; then
   echo "Usage: $0 <version> [namespace]"
   exit 2
 fi
-FILE="RELEASE_NOTES/README.md"  # consolidated pointer to CHANGELOG.md
+FILE="${RELEASE_NOTES_FILE:-CHANGELOG.md}"  # release notes consolidated into CHANGELOG.md
 if [ ! -f "$FILE" ]; then
   echo "Release notes file not found: $FILE"
+  echo "Set RELEASE_NOTES_FILE to point at a file containing image digests."
   exit 1
 fi
 # Try to find dockerhub digests first, fall back to ghcr digests
