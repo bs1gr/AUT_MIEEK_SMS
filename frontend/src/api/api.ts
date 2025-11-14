@@ -12,6 +12,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import authService from '@/services/authService';
+import { formatLocalDate } from '@/utils/date';
 import type {
   Student,
   Course,
@@ -482,9 +483,6 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
 
 // ==================== UTILITY FUNCTIONS ====================
 
-export const formatDateForAPI = (date: Date | string): string => {
-  if (typeof date === 'string') return date;
-  return date.toISOString().split('T')[0];
-};
+export const formatDateForAPI = (date: Date | string): string => formatLocalDate(date);
 
 export default apiClient;

@@ -23,6 +23,8 @@ export default {
   exportCourseCatalog: 'Export printable course catalog',
   attendanceRecordsExcel: 'Attendance Records (Excel)',
   exportAllAttendance: 'Export all attendance records',
+  attendanceAnalyticsExcel: 'Attendance Analytics (Excel)',
+  exportAttendanceAnalytics: 'Export per-period coverage and course-level analytics',
   allGradesExcel: 'All Grades (Excel)',
   exportAllGrades: 'Export all student grades',
   enrollmentsExcel: 'Course Enrollments (Excel)',

@@ -21,6 +21,9 @@ export default {
   themeButton: 'Theme',
   currentTheme: 'Current Theme',
   themeAppliesTo: 'This theme applies to Control Panel Operations and other components that support appearance customization.',
+  appearancePreview: 'Live preview',
+  appearancePreviewDesc: 'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.',
+  appearancePreviewMetrics: 'Sample analytics metrics',
   // Dashboard
   systemStatus: 'System Status',
   allSystemsOperational: 'All systems operational',

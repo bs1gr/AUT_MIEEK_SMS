@@ -54,6 +54,10 @@ TRANSLATIONS = {
 }
 
 
+ATTENDANCE_STATUSES = ("Present", "Absent", "Late", "Excused")
+STATUS_LOOKUP = {status.upper(): status for status in ATTENDANCE_STATUSES}
+
+
 def get_lang(request: Request):
     # Try query param, then Accept-Language header
     lang = request.query_params.get("lang")
@@ -89,6 +93,55 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 import logging
+
+HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+
+
+def _init_status_counts():
+    return {status: 0 for status in ATTENDANCE_STATUSES}
+
+
+def _normalize_status(status: str | None) -> str:
+    if not status:
+        return "Present"
+    if not isinstance(status, str):
+        return "Present"
+    normalized = STATUS_LOOKUP.get(status.strip().upper())
+    return normalized or "Present"
+
+
+def _apply_table_header(ws: Worksheet, headers, row: int = 1):
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=row, column=col, value=header)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+
+def _auto_fit_columns(ws: Worksheet):
+    for column_cells in ws.columns:
+        max_length = 0
+        column_letter = get_column_letter(column_cells[0].column)
+        for cell in column_cells:
+            try:
+                cell_length = len(str(cell.value)) if cell.value is not None else 0
+            except Exception:
+                cell_length = 0
+            if cell_length > max_length:
+                max_length = cell_length
+        ws.column_dimensions[column_letter].width = min(max(max_length + 2, 12), 45)
+
+
+def _dominant_status(counts: dict[str, int]) -> str:
+    best_status = ATTENDANCE_STATUSES[0]
+    best_value = -1
+    for status in ATTENDANCE_STATUSES:
+        value = counts.get(status, 0)
+        if value > best_value:
+            best_status = status
+            best_value = value
+    return best_status
+
 
 logger = logging.getLogger(__name__)
 
@@ -332,6 +385,298 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
         )
     except Exception as exc:
         logger.error("Export attendance excel failed: %s", exc, exc_info=True)
+        raise http_error(
+            500,
+            ErrorCode.EXPORT_FAILED,
+            "Export failed",
+            request,
+            context={"error": str(exc)},
+        )
+
+
+@router.get("/attendance/analytics/excel")
+async def export_attendance_analytics_excel(request: Request, db: Session = Depends(get_db)):
+    try:
+        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
+
+        rows = (
+            db.query(
+                Attendance.id,
+                Attendance.date,
+                Attendance.status,
+                Attendance.period_number,
+                Attendance.course_id,
+                Attendance.student_id,
+                Student.student_id.label("student_code"),
+                Student.first_name,
+                Student.last_name,
+                Course.course_code,
+                Course.course_name,
+            )
+            .join(Student, Student.id == Attendance.student_id)
+            .join(Course, Course.id == Attendance.course_id)
+            .filter(Attendance.deleted_at.is_(None))
+            .all()
+        )
+
+        overall_counts = _init_status_counts()
+        course_summary = {}
+        period_summary = {}
+        course_period_summary = {}
+        student_summary = {}
+        daily_summary = {}
+        unique_students = set()
+        unique_courses = set()
+        date_values = set()
+
+        for (
+            _attendance_id,
+            att_date,
+            status,
+            period_number,
+            course_id,
+            student_id,
+            student_code,
+            first_name,
+            last_name,
+            course_code,
+            course_name,
+        ) in rows:
+            safe_status = _normalize_status(status)
+            period = period_number or 1
+            student_label = (f"{first_name or ''} {last_name or ''}").strip() or "N/A"
+            course_label = course_code or "N/A"
+            course_title = course_name or "N/A"
+
+            overall_counts[safe_status] += 1
+            unique_students.add(student_id)
+            unique_courses.add(course_id)
+            if att_date:
+                date_values.add(att_date)
+
+            course_entry = course_summary.setdefault(
+                course_id,
+                {"course_code": course_label, "course_name": course_title, "counts": _init_status_counts(), "total": 0},
+            )
+            course_entry["counts"][safe_status] += 1
+            course_entry["total"] += 1
+
+            period_entry = period_summary.setdefault(
+                period,
+                {"counts": _init_status_counts(), "total": 0},
+            )
+            period_entry["counts"][safe_status] += 1
+            period_entry["total"] += 1
+
+            course_period_entry = course_period_summary.setdefault(
+                (course_id, period),
+                {
+                    "course_code": course_label,
+                    "course_name": course_title,
+                    "period": period,
+                    "counts": _init_status_counts(),
+                    "total": 0,
+                },
+            )
+            course_period_entry["counts"][safe_status] += 1
+            course_period_entry["total"] += 1
+
+            student_entry = student_summary.setdefault(
+                student_id,
+                {
+                    "student_code": student_code or str(student_id),
+                    "student_name": student_label,
+                    "counts": _init_status_counts(),
+                    "total": 0,
+                },
+            )
+            student_entry["counts"][safe_status] += 1
+            student_entry["total"] += 1
+
+            if att_date:
+                daily_entry = daily_summary.setdefault(att_date, {"counts": _init_status_counts(), "total": 0})
+                daily_entry["counts"][safe_status] += 1
+                daily_entry["total"] += 1
+
+        total_records = sum(overall_counts.values())
+        present_share = (overall_counts["Present"] / total_records * 100) if total_records else 0
+        date_range = "N/A"
+        if date_values:
+            sorted_dates = sorted(date_values)
+            date_range = f"{sorted_dates[0].isoformat()} → {sorted_dates[-1].isoformat()}"
+
+        wb = openpyxl.Workbook()
+        overview_ws = cast(Worksheet, wb.active)
+        overview_ws.title = "Overview"
+        overview_ws["A1"] = "Attendance Analytics Export"
+        overview_ws["A1"].font = Font(size=16, bold=True)
+        overview_ws.append(["Metric", "Value"])
+        overview_ws.append(["Total Records", total_records])
+        overview_ws.append(["Unique Students", len(unique_students)])
+        overview_ws.append(["Unique Courses", len(unique_courses)])
+        overview_ws.append(["Date Range", date_range])
+        overview_ws.append(["Present Share", f"{present_share:.1f}%"])
+        overview_ws.append(["Generated On", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        overview_ws.append([])
+        overview_ws.append(["Status", "Count"])
+        for status in ATTENDANCE_STATUSES:
+            overview_ws.append([status, overall_counts[status]])
+        if total_records == 0:
+            overview_ws.append([])
+            overview_ws.append(["Notice", "No attendance records were found in the system."])
+        _auto_fit_columns(overview_ws)
+
+        course_ws = wb.create_sheet("Course Summary")
+        course_headers = [
+            "Course Code",
+            "Course Name",
+            "Total Records",
+            "Present",
+            "Absent",
+            "Late",
+            "Excused",
+            "Attendance Rate (%)",
+        ]
+        _apply_table_header(course_ws, course_headers)
+        for row_idx, data in enumerate(sorted(course_summary.values(), key=lambda item: item["course_code"]), start=2):
+            counts = data["counts"]
+            total = data["total"]
+            rate = (counts["Present"] / total * 100) if total else 0
+            values = [
+                data["course_code"],
+                data["course_name"],
+                total,
+                counts["Present"],
+                counts["Absent"],
+                counts["Late"],
+                counts["Excused"],
+                f"{rate:.1f}%",
+            ]
+            for col, value in enumerate(values, 1):
+                course_ws.cell(row=row_idx, column=col, value=value)
+        _auto_fit_columns(course_ws)
+
+        period_ws = wb.create_sheet("Period Summary")
+        period_headers = [
+            "Period",
+            "Total Records",
+            "Present",
+            "Absent",
+            "Late",
+            "Excused",
+            "Attendance Rate (%)",
+        ]
+        _apply_table_header(period_ws, period_headers)
+        for row_idx, period in enumerate(sorted(period_summary.keys()), start=2):
+            counts = period_summary[period]["counts"]
+            total = period_summary[period]["total"]
+            rate = (counts["Present"] / total * 100) if total else 0
+            values = [
+                period,
+                total,
+                counts["Present"],
+                counts["Absent"],
+                counts["Late"],
+                counts["Excused"],
+                f"{rate:.1f}%",
+            ]
+            for col, value in enumerate(values, 1):
+                period_ws.cell(row=row_idx, column=col, value=value)
+        _auto_fit_columns(period_ws)
+
+        course_period_ws = wb.create_sheet("Course Periods")
+        course_period_headers = [
+            "Course Code",
+            "Course Name",
+            "Period",
+            "Total Records",
+            "Present",
+            "Absent",
+            "Late",
+            "Excused",
+            "Attendance Rate (%)",
+        ]
+        _apply_table_header(course_period_ws, course_period_headers)
+        for row_idx, key in enumerate(
+            sorted(course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])),
+            start=2,
+        ):
+            data = course_period_summary[key]
+            counts = data["counts"]
+            total = data["total"]
+            rate = (counts["Present"] / total * 100) if total else 0
+            values = [
+                data["course_code"],
+                data["course_name"],
+                data["period"],
+                total,
+                counts["Present"],
+                counts["Absent"],
+                counts["Late"],
+                counts["Excused"],
+                f"{rate:.1f}%",
+            ]
+            for col, value in enumerate(values, 1):
+                course_period_ws.cell(row=row_idx, column=col, value=value)
+        _auto_fit_columns(course_period_ws)
+
+        student_ws = wb.create_sheet("Student Summary")
+        student_headers = [
+            "Student ID",
+            "Student Name",
+            "Total Records",
+            "Present",
+            "Absent",
+            "Late",
+            "Excused",
+            "Most Frequent Status",
+        ]
+        _apply_table_header(student_ws, student_headers)
+        for row_idx, data in enumerate(sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2):
+            counts = data["counts"]
+            most_common = _dominant_status(counts)
+            values = [
+                data["student_code"],
+                data["student_name"],
+                data["total"],
+                counts["Present"],
+                counts["Absent"],
+                counts["Late"],
+                counts["Excused"],
+                most_common,
+            ]
+            for col, value in enumerate(values, 1):
+                student_ws.cell(row=row_idx, column=col, value=value)
+        _auto_fit_columns(student_ws)
+
+        daily_ws = wb.create_sheet("Daily Overview")
+        daily_headers = ["Date", "Total Records", "Present", "Absent", "Late", "Excused"]
+        _apply_table_header(daily_ws, daily_headers)
+        for row_idx, day in enumerate(sorted(daily_summary.keys()), start=2):
+            counts = daily_summary[day]["counts"]
+            values = [
+                day.isoformat(),
+                daily_summary[day]["total"],
+                counts["Present"],
+                counts["Absent"],
+                counts["Late"],
+                counts["Excused"],
+            ]
+            for col, value in enumerate(values, 1):
+                daily_ws.cell(row=row_idx, column=col, value=value)
+        _auto_fit_columns(daily_ws)
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as exc:
+        logger.error("Export attendance analytics excel failed: %s", exc, exc_info=True)
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
