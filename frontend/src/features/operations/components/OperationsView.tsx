@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 
@@ -7,6 +7,8 @@ import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import ThemeSelector from '@/components/tools/ThemeSelector';
 import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
+import Toast from '@/components/ui/Toast';
+import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import {
   OPERATIONS_TAB_KEYS,
   type LegacyOperationsTabKey,
@@ -23,7 +25,7 @@ const isValidTab = (value: unknown): value is OperationsTabKey =>
 
 const normalizeTab = (tab?: LegacyOperationsTabKey): OperationsTabKey | null => {
   if (!tab) return null;
-  const mapped = tab === 'devtools' ? 'settings' : tab;
+  const mapped = tab === 'devtools' ? 'maintenance' : tab;
   return isValidTab(mapped) ? mapped : null;
 };
 
@@ -36,6 +38,17 @@ const OperationsView = (_props: OperationsViewProps) => {
     const state = (location.state ?? {}) as OperationsLocationState;
     return normalizeTab(state.tab) ?? DEFAULT_TAB;
   });
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  const handleToast = useCallback((state: ToastState) => {
+    setToast(state);
+  }, []);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timeoutId = window.setTimeout(() => setToast(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
 
   useEffect(() => {
     const state = (location.state ?? {}) as OperationsLocationState;
@@ -51,6 +64,7 @@ const OperationsView = (_props: OperationsViewProps) => {
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
     { key: 'exports', label: t('export') },
+    { key: 'maintenance', label: t('maintenance') },
     { key: 'settings', label: t('settings') },
     { key: 'help', label: t('help') },
   ];
@@ -60,6 +74,7 @@ const OperationsView = (_props: OperationsViewProps) => {
 
   return (
     <div className="space-y-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="rounded-2xl border border-slate-200 bg-gradient-to-r from-indigo-50 via-white to-slate-50 p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -108,6 +123,7 @@ const OperationsView = (_props: OperationsViewProps) => {
         className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm"
       >
         {activeTab === 'exports' && <ExportCenter variant="embedded" />}
+        {activeTab === 'maintenance' && <DevToolsPanel variant="embedded" onToast={handleToast} />}
         {activeTab === 'help' && <HelpDocumentation />}
         {activeTab === 'settings' && (
           <div className="space-y-6">

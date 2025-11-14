@@ -1,5 +1,5 @@
 {
-  "dependencies": {
-    "react-to-print": "^3.2.0"
-  }
+  "name": "sms-monorepo",
+  "private": true,
+  "description": "Meta package file. Frontend dependencies live under frontend/package.json."
 }

@@ -818,11 +818,37 @@ async def restore_database(request: Request, backup_filename: str):
         # Create a safety backup of current database before restoring
         safety_backup = None
         if db_path.exists():
-            safety_backup = db_path.with_suffix(f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
+            safety_backup = db_path.with_suffix(
+                f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                + db_path.suffix
+            )
             shutil.copy2(db_path, safety_backup)
+
+        # Dispose active DB connections before touching the file to avoid SQLite I/O errors
+        try:
+            from backend import db as db_module
+
+            db_module.engine.dispose()
+        except Exception:
+            # Engine disposal is best effort; continue with restore even if it fails
+            pass
+
+        # Remove WAL/SHM sidecar files so the restored database starts cleanly
+        wal_path = db_path.with_suffix(db_path.suffix + "-wal")
+        shm_path = db_path.with_suffix(db_path.suffix + "-shm")
+        wal_path.unlink(missing_ok=True)
+        shm_path.unlink(missing_ok=True)
 
         # Restore backup
         shutil.copy2(backup_path, db_path)
+
+        # Re-initialize runtime schema helpers (best-effort)
+        try:
+            from backend import db as db_module
+
+            db_module.ensure_schema(db_module.engine)
+        except Exception:
+            pass
 
         return OperationResult(
             success=True,

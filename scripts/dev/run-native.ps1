@@ -23,13 +23,13 @@ try {
     $env:SMS_ENV = 'development'
     $env:SMS_EXECUTION_MODE = 'native'
 
-    $smartArgs = @('-PreferNative')
-    if ($Force) { $smartArgs += '-Force' }
-    if ($SkipStart) { $smartArgs += '-SkipStart' }
-    if ($Verbose) { $smartArgs += '-Verbose' }
+    $smartParams = @{ PreferNative = $true }
+    if ($Force) { $smartParams['Force'] = $true }
+    if ($SkipStart) { $smartParams['SkipStart'] = $true }
+    if ($Verbose) { $smartParams['Verbose'] = $true }
 
     Write-Host 'Launching SMART_SETUP.ps1 in native development mode...' -ForegroundColor Cyan
-    & $smartSetup @smartArgs
+    & $smartSetup @smartParams
 } finally {
     if ($null -eq $previousEnv) {
         Remove-Item Env:SMS_ENV -ErrorAction SilentlyContinue

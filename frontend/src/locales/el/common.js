@@ -31,6 +31,7 @@ export default {
   grades: 'Βαθμοί',
   calendar: 'Ημερολόγιο',
   utilsTab: 'Εργαλεία',
+  maintenance: 'Συντήρηση',
   export: 'Εξαγωγή',
   help: 'Βοήθεια',
   powerTab: 'Πίνακας Ελέγχου',
