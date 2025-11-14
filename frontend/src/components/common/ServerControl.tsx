@@ -6,15 +6,28 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Base URL without /api/v1 for direct server endpoints
 // @ts-ignore
-const API_BASE_URL = ((import.meta as any).env?.VITE_API_URL?.trim() || window.location.origin).replace(/\/api\/v1\/?$/, '');
-// Derive backend protocol/port from API_BASE_URL for accurate links
-let BACKEND_PROTOCOL = 'http:';
-let BACKEND_PORT = '8080';
+const RAW_API_BASE = ((import.meta as any).env?.VITE_API_URL?.trim()) ?? '';
+const FALLBACK_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080';
+const sanitizedApiBase = RAW_API_BASE.replace(/\/api\/v1\/?$/, '');
+
+let resolvedBackendUrl: URL;
 try {
-  const u = new URL(API_BASE_URL);
-  BACKEND_PROTOCOL = u.protocol || 'http:';
-  BACKEND_PORT = u.port || '8080';
-} catch {}
+  resolvedBackendUrl = new URL(sanitizedApiBase || '/', FALLBACK_ORIGIN);
+} catch {
+  resolvedBackendUrl = new URL(FALLBACK_ORIGIN);
+}
+
+const resolvedBackendPath = resolvedBackendUrl.pathname?.replace(/\/$/, '') || '';
+const API_BASE_URL = `${resolvedBackendUrl.origin}${resolvedBackendPath}`;
+
+const FALLBACK_PROTOCOL = typeof window !== 'undefined' ? window.location.protocol || 'http:' : 'http:';
+const FALLBACK_PORT = typeof window !== 'undefined' ? window.location.port || '' : '';
+
+const BACKEND_PROTOCOL = resolvedBackendUrl.protocol || FALLBACK_PROTOCOL || 'http:';
+const BACKEND_PORT = resolvedBackendUrl.port || FALLBACK_PORT || (BACKEND_PROTOCOL === 'https:' ? '443' : '80');
+
+const FRONTEND_PROTOCOL = FALLBACK_PROTOCOL || 'http:';
+const FRONTEND_PORT = FALLBACK_PORT || (FRONTEND_PROTOCOL === 'https:' ? '443' : '80');
 
 interface ServerStatus {
   backend: 'online' | 'offline' | 'checking';
@@ -108,8 +121,17 @@ const ServerControl: React.FC = () => {
       let error = '';
       let health: any = null;
 
+      const rawUptime = (data as { uptime_seconds?: unknown; uptime?: unknown })?.uptime_seconds ?? (data as { uptime?: unknown })?.uptime;
+      if (typeof rawUptime === 'number' && Number.isFinite(rawUptime)) {
+        uptime = Math.max(0, rawUptime);
+      } else if (typeof rawUptime === 'string') {
+        const parsed = Number.parseFloat(rawUptime);
+        uptime = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+      } else {
+        uptime = 0;
+      }
+
       backendStatus = 'online';
-      uptime = data.uptime || 0;
       health = data;
 
       // Check frontend status (self-check - if this code is running, frontend is online)
@@ -449,9 +471,9 @@ const ServerControl: React.FC = () => {
 
             {/* Available Endpoints - Only Active IPs */}
             <div className="rounded-lg border p-3 md:col-span-3">
-              <div className="text-sm font-semibold mb-2">{t('controlPanel.environmentInfo')}</div>
+              <div className="text-sm font-semibold mb-2">{t('controlPanel.availableEndpoints')}</div>
               {(() => {
-                const frontendPort = String(window.location.port || '5173');
+                const frontendPort = FRONTEND_PORT;
                 const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
 
                 // Filter for active IPs: localhost, current hostname, and non-169.254 (APIPA) addresses
@@ -480,17 +502,23 @@ const ServerControl: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {ips.map((ip) => {
                       const ipForUrl = ip.includes(':') && !ip.startsWith('[') ? `[${ip}]` : ip; // bracket IPv6
+                      const backendPortSegment = BACKEND_PORT ? `:${BACKEND_PORT}` : '';
+                      const frontendPortSegment = frontendPort ? `:${frontendPort}` : '';
+                      const backendBase = `${BACKEND_PROTOCOL}//${ipForUrl}${backendPortSegment}`;
+                      const frontendBase = `${FRONTEND_PROTOCOL}//${ipForUrl}${frontendPortSegment}`;
+                      const ipDisplay = ip.includes(':') ? `[${ip}]` : ip;
+                      const backendDisplayLine = backendPortSegment ? `${ipDisplay}${backendPortSegment}` : ipDisplay;
                       return (
                         <div key={ip} className="text-xs">
-                          <div className="font-mono text-gray-700 mb-1">{ip}</div>
+                          <div className="font-mono text-gray-700 mb-1">{backendDisplayLine}</div>
                           <div className="flex flex-wrap gap-2">
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/`} target="_blank" rel="noopener noreferrer">{t('utils.backend')}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.backend')} (${BACKEND_PORT})`}</a>
                             <span className="text-gray-400">|</span>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/docs`} target="_blank" rel="noopener noreferrer">{t('utils.apiDocs')}</a>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/redoc`} target="_blank" rel="noopener noreferrer">{t('utils.apiRedoc')}</a>
-                            <a className="text-indigo-600 hover:underline" href={`${BACKEND_PROTOCOL}//${ipForUrl}:${BACKEND_PORT}/health`} target="_blank" rel="noopener noreferrer">{t('utils.healthEndpoint')}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/docs`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiDocs')} (${BACKEND_PORT})`}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/redoc`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiRedoc')} (${BACKEND_PORT})`}</a>
+                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/health`} target="_blank" rel="noopener noreferrer">{`${t('utils.healthEndpoint')} (${BACKEND_PORT})`}</a>
                             <span className="text-gray-400">|</span>
-                            <a className="text-emerald-700 hover:underline" href={`http://${ipForUrl}:${frontendPort}/`} target="_blank" rel="noopener noreferrer">{t('utils.frontend')}</a>
+                            <a className="text-emerald-700 hover:underline" href={`${frontendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.frontend')} (${frontendPort})`}</a>
                           </div>
                         </div>
                       );

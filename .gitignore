@@ -36,12 +36,22 @@ backups/*.db
 backups/
 !backups/.gitkeep
 !data/.gitkeep
+*.db-shm
+*.db-wal
+data/*.db-shm
+data/*.db-wal
 
 # Logs
 logs/
 backend/logs/
 !logs/.gitkeep
 !backend/logs/.gitkeep
+backend_dev_output.log
+backend_dev_error.log
+frontend_dev_output.log
+frontend_dev_error.log
+*dev_output.log
+*dev_error.log
 
 # Node / Frontend
 frontend/node_modules/
