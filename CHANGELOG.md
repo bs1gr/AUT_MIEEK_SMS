@@ -6,6 +6,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+- No unreleased changes.
+
+## [1.6.2] - 2025-11-15
+
 ### Added
 
 - **Attendance analytics export**: new `/api/v1/export/attendance/analytics/excel` endpoint builds a six-sheet workbook with overview metrics, per-course rollups, per-period coverage, course-period intersections, student summaries, and daily breakdowns. Workbook styling now includes auto-fitted columns, semantic headers, and dominant-status calculations for quick scanning.
