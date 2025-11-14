@@ -114,17 +114,18 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 What's New in v1.6.0
+## 🆕 What's New in v1.6.1
 
-- 🔐 **Refresh token authentication:** Access tokens now refresh seamlessly via secure, server-stored refresh tokens with rotation, revocation, and logout endpoints.
-- 👩‍💼 **Default admin bootstrap:** Configure `DEFAULT_ADMIN_*` env vars to auto-provision an administrator (with optional password rotation and forced resets) during startup.
-- 💻 **New authentication UI:** Dedicated login/register experience, AuthContext, and guarded routes ensure frontend sessions stay in sync with backend tokens.
-- 🛠️ **Operational polish:** Migration runner hardening, updated operations copy, and documentation tweaks align tooling with the new auth flow.
+- 🎨 **Control Panel appearance themes:** Added six modern presets with persistence, plus a visual comparison guide so operators can pick the right look fast.
+- 🧭 **Mode-aware quick reference:** Refined operations monitor copy and docs to reinforce Docker-only release expectations.
+- 🧹 **SUPER_CLEAN hardening:** Automatic process termination guard, clearer verbose diagnostics, and safer exits prevent stuck cleanup runs.
+- 🏗️ **CI/automation cleanup:** Removed redundant workflows and converted manual-only jobs to reduce noise and maintenance overhead.
+- 🛠️ **Frontend build unblock:** Fixed the duplicate export in `AppearanceThemeSelector`, keeping Vite builds healthy for themed UI work.
 
 ## 📦 Releases
 
-- Latest: [v1.6.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0) - Refresh token auth, admin bootstrap, and new login UI
-- Previous: [v1.5.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.5.0) - Minimal, robust, and secure entry points
+- Latest: [v1.6.1](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.1) - Control Panel themes, SUPER_CLEAN hardening, and CI cleanup
+- Previous: [v1.6.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0) - Refresh token auth, admin bootstrap, and new login UI
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
 ---
