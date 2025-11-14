@@ -23,6 +23,8 @@ export default {
   exportCourseCatalog: 'Εξαγωγή εκτυπώσιμου καταλόγου μαθημάτων',
   attendanceRecordsExcel: 'Καταγραφές Παρουσίας (Excel)',
   exportAllAttendance: 'Εξαγωγή όλων των καταγραφών παρουσίας',
+  attendanceAnalyticsExcel: 'Αναλύσεις Παρουσίας (Excel)',
+  exportAttendanceAnalytics: 'Εξαγωγή κάλυψης ανά περίοδο και αναλυτικών ανά μάθημα',
   allGradesExcel: 'Όλοι οι Βαθμοί (Excel)',
   exportAllGrades: 'Εξαγωγή όλων των βαθμών σπουδαστών',
   enrollmentsExcel: 'Εγγραφές Μαθημάτων (Excel)',

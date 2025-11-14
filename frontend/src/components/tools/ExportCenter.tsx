@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3 } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI } from '../../api/api';
 import CalendarView from '@/features/calendar/components/CalendarView';
@@ -202,6 +202,16 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       color: 'from-blue-500 to-blue-600',
       endpoint: '/export/attendance/excel',
       filename: 'attendance.xlsx',
+      format: 'Excel'
+    },
+    {
+      id: 'attendance-analytics-excel',
+      title: t('attendanceAnalyticsExcel'),
+      description: t('exportAttendanceAnalytics'),
+      icon: BarChart3,
+      color: 'from-slate-600 to-indigo-700',
+      endpoint: '/export/attendance/analytics/excel',
+      filename: 'attendance_analytics.xlsx',
       format: 'Excel'
     },
     {

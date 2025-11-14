@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useTranslation } from 'react-i18next';
 
 interface LanguageContextType {
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   language: string;
   setLanguage: (lang: string) => void;
 }
@@ -29,9 +29,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   // Create a wrapper for t() that handles nested keys for backward compatibility
-  const t = (key: string): string => {
+  const t = (key: string, options?: Record<string, unknown>): string => {
     // Try i18next first (it handles nested keys automatically)
-    const translation = i18nT(key);
+    const translation = i18nT(key, options);
 
     // If translation is the same as key, it wasn't found
     if (translation === key) {

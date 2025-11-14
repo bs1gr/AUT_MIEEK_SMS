@@ -6,7 +6,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-- No unreleased changes.
+### Added
+
+- **Attendance analytics export**: new `/api/v1/export/attendance/analytics/excel` endpoint builds a six-sheet workbook with overview metrics, per-course rollups, per-period coverage, course-period intersections, student summaries, and daily breakdowns. Workbook styling now includes auto-fitted columns, semantic headers, and dominant-status calculations for quick scanning.
+- **Attendance experience refinements**: the attendance board and enhanced calendar now support per-period scheduling, default-present safeguards, per-student expansion panels, attendance coverage analytics, and timezone-safe date handling shared through `frontend/src/utils/date.ts`.
+- **Operations & export UX**: Export Center surfaces the new analytics workbook card with localized copy (EN/EL), and the Control Panel appearance selector adds a live preview with sample metrics so operators can see how cards/buttons react before applying a theme.
+- **Tests & tooling**: added `backend/tests/test_export_analytics.py` to validate the analytics workbook content end-to-end and updated the shared language context to pass i18next options, keeping formatting tokens available to new translations.
+
+### Security
+
+- Patched GHSA-7f5h-v6xp-fcq8 / CVE-2025-62727 by pinning Starlette to `0.49.1`, eliminating the quadratic-time Range header merging in `FileResponse` used by FastAPI’s static file endpoints.
 
 ## [1.6.0] - 2025-11-13
 

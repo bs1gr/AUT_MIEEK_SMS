@@ -10,6 +10,7 @@
 
 import axios from 'axios';
 import * as authService from '../services/authService';
+import { formatLocalDate } from '@/utils/date';
 
 // Base API URL - change this based on your environment
 // Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
@@ -559,12 +560,7 @@ export const getHealthStatus = async () => {
  * Format date for API
  * @param {Date|string} date - Date to format
  */
-export const formatDateForAPI = (date) => {
-  if (typeof date === 'string') {
-    return date.split('T')[0];
-  }
-  return date.toISOString().split('T')[0];
-};
+export const formatDateForAPI = (date) => formatLocalDate(date);
 
 // ==================== ADMIN OPERATIONS API ====================
 
