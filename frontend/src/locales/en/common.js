@@ -31,6 +31,7 @@ export default {
   grades: 'Grades',
   calendar: 'Calendar',
   utilsTab: 'Utils',
+  maintenance: 'Maintenance',
    export: 'Export',
    help: 'Help',
   powerTab: 'Control Panel',

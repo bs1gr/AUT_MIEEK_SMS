@@ -1,10 +1,11 @@
 <#
 .SYNOPSIS
-  Docker setup and start for Student Management System
+  Environment setup and start for Student Management System
 
 .DESCRIPTION
-  Release 1.4.0 - Fullstack Docker deployment (default) with optional multi-container mode
-  - Checks Docker availability (fails if not installed)
+  Release 1.4.1 - Supports Docker workflows (fullstack container by default, multi-container via -DevMode)
+  and native developer workflow via -PreferNative.
+  - Checks Docker availability (fails if not installed unless native mode requested)
   - Creates .env files from templates
   - Builds Docker images (fullstack by default)
   - Starts containers on port 8080
@@ -19,6 +20,9 @@
 
 .PARAMETER DevMode
   Use multi-container mode (backend + frontend separate) instead of fullstack
+
+.PARAMETER PreferNative
+  Run the native developer stack (FastAPI + Vite) without Docker
 
 .PARAMETER Verbose
   Show detailed output
@@ -38,6 +42,7 @@ param(
   [switch]$Force,
   [switch]$SkipStart,
   [switch]$DevMode,
+  [switch]$PreferNative,
   [switch]$Verbose
 )
 
@@ -80,6 +85,117 @@ function Set-EnvFromTemplate {
   } elseif (Test-Path $envFile) {
     Write-Log "$envFile already exists"
   }
+}
+
+function Test-CommandAvailable {
+  param([string]$Name)
+  try {
+    $null = Get-Command $Name -ErrorAction Stop
+    return $true
+  } catch {
+    return $false
+  }
+}
+
+function Install-NativeBackendDependencies {
+  param([switch]$ForceInstall)
+  $backendDir = Join-Path $root 'backend'
+  if (-not (Test-Path $backendDir)) {
+    throw "Backend directory not found at $backendDir"
+  }
+
+  Push-Location $backendDir
+  try {
+    if ($ForceInstall) {
+      Write-Log 'Force reinstall of backend dependencies requested' 'WARN'
+    }
+
+    Write-Log 'Installing backend dependencies (pip)...'
+    python -m pip install --disable-pip-version-check --upgrade pip 2>&1 | ForEach-Object { Write-Log $_ }
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Failed to upgrade pip for backend dependencies'
+    }
+
+    $installArgs = @('-m','pip','install','--disable-pip-version-check')
+    if ($ForceInstall) { $installArgs += '--force-reinstall' }
+    $installArgs += '-r'
+    $installArgs += 'requirements.txt'
+    python @installArgs 2>&1 | ForEach-Object { Write-Log $_ }
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Failed to install backend requirements'
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
+function Install-NativeFrontendDependencies {
+  param([switch]$ForceInstall)
+  $frontendDir = Join-Path $root 'frontend'
+  if (-not (Test-Path $frontendDir)) {
+    Write-Log "Frontend directory not found at $frontendDir" 'WARN'
+    return
+  }
+
+  Push-Location $frontendDir
+  try {
+    Write-Log 'Installing frontend dependencies (npm)...'
+    if ($ForceInstall -and (Test-Path 'node_modules')) {
+      Write-Log 'Removing existing node_modules for clean install' 'WARN'
+      Remove-Item -LiteralPath 'node_modules' -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    $npmArgs = if (Test-Path 'package-lock.json') { @('ci','--no-audit') } else { @('install','--no-audit') }
+    if ($ForceInstall) { $npmArgs += '--force' }
+    if (-not $Verbose) { $npmArgs += '--silent' }
+    npm @npmArgs 2>&1 | ForEach-Object { Write-Log $_ }
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Failed to install frontend dependencies'
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
+function Invoke-NativeMigrations {
+  $backendDir = Join-Path $root 'backend'
+  if (-not (Test-Path $backendDir)) {
+    throw "Backend directory not found at $backendDir"
+  }
+
+  Push-Location $backendDir
+  try {
+    Write-Log 'Running Alembic migrations...'
+    python -m alembic upgrade head 2>&1 | ForEach-Object { Write-Log $_ }
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Alembic migrations failed to apply'
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
+function Start-NativeBackendProcess {
+  param([switch]$EnableVerboseLogging)
+  $uvicornCommand = 'python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000 --reload-dir backend'
+  if ($EnableVerboseLogging) {
+    $uvicornCommand += ' --log-level debug'
+  }
+  $commandSteps = @(
+    "Set-Location -LiteralPath '$root'",
+    "\$env:PYTHONPATH = '$root'",
+    $uvicornCommand
+  )
+  $command = $commandSteps -join '; '
+  Write-Log 'Starting backend development server (uvicorn)...'
+  return Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
+}
+
+function Start-NativeFrontendProcess {
+  $frontendDir = Join-Path $root 'frontend'
+  $command = "Set-Location -LiteralPath '$frontendDir'; npm run dev"
+  Write-Log 'Starting frontend development server (Vite)...'
+  return Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
 }
 
 # ===== VERSION SYNC =====
@@ -146,9 +262,111 @@ function Wait-ServiceReady {
   return $false
 }
 
+function Invoke-NativeSetup {
+  param(
+    [switch]$ForceInstall,
+    [switch]$SkipStart,
+    [switch]$EnableVerboseLogging
+  )
+
+  try {
+    Write-Log 'PreferNative flag detected - switching to native workflow'
+
+    if (-not (Test-CommandAvailable 'python')) {
+      throw 'Python is required for native mode but was not found in PATH.'
+    }
+
+    $hasNode = Test-CommandAvailable 'node'
+    if ($hasNode) {
+      Write-Log 'Node.js detected; frontend dev server will be started after backend is ready'
+    } else {
+      Write-Log 'Node.js not found; frontend dev server will be skipped' 'WARN'
+    }
+
+    # Ensure environment files exist for both backend and frontend
+    Set-EnvFromTemplate -Dir (Join-Path $root 'backend')
+    Set-EnvFromTemplate -Dir (Join-Path $root 'frontend')
+
+    Install-NativeBackendDependencies -ForceInstall:$ForceInstall
+    if ($hasNode) {
+      Install-NativeFrontendDependencies -ForceInstall:$ForceInstall
+    }
+
+    Invoke-NativeMigrations
+
+    if ($SkipStart) {
+      Write-Log 'SkipStart requested - leaving services stopped after setup.'
+      Write-Host ""
+      Write-Host "✅ Native environment prepared. Services were not started (-SkipStart)." -ForegroundColor Green
+      Write-Host "  Backend:  cd backend ; python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000" -ForegroundColor Cyan
+      if ($hasNode) {
+        Write-Host "  Frontend: cd frontend ; npm run dev" -ForegroundColor Cyan
+      }
+      Write-Host ""
+      return 0
+    }
+
+    [void](Start-NativeBackendProcess -EnableVerboseLogging:$EnableVerboseLogging)
+    Start-Sleep -Seconds 3
+
+    $backendReady = Wait-ServiceReady -Urls @('http://127.0.0.1:8000/health', 'http://localhost:8000/health') -TimeoutSec 90
+    if (-not $backendReady) {
+      Write-Log 'Backend failed to report ready state in native mode' 'ERROR'
+      Write-Host "⚠️  Backend did not signal readiness. Check the backend PowerShell window for details." -ForegroundColor Yellow
+      return 1
+    }
+
+    $frontendStarted = $false
+    if ($hasNode) {
+      try {
+        Start-NativeFrontendProcess | Out-Null
+        $frontendStarted = $true
+      } catch {
+        Write-Log "Failed to start frontend dev server: $($_.Exception.Message)" 'WARN'
+        Write-Host "⚠️  Frontend dev server failed to start automatically. Run 'cd frontend; npm run dev' manually." -ForegroundColor Yellow
+      }
+    }
+
+    Write-Host ""
+    Write-Host "✅ Native stack is up and running!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Access URLs:" -ForegroundColor Cyan
+    Write-Host "  API:      http://localhost:8000" -ForegroundColor Green
+    Write-Host "  Control:  http://localhost:8000/control" -ForegroundColor Green
+    Write-Host "  Health:   http://localhost:8000/health" -ForegroundColor Green
+    if ($frontendStarted) {
+      Write-Host "  Frontend: http://localhost:5173" -ForegroundColor Green
+    } elseif ($hasNode) {
+      Write-Host "  Frontend: http://localhost:5173 (start manually with 'npm run dev')" -ForegroundColor Yellow
+    } else {
+      Write-Host "  Frontend: skipped (Node.js not detected)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+    Write-Host "To stop services, close the backend/frontend PowerShell windows or run .\SMS.ps1 -Stop." -ForegroundColor Yellow
+
+    Write-Log 'Native setup completed successfully'
+    return 0
+  } catch {
+    Write-Log "Native setup failed: $($_.Exception.Message)" 'ERROR'
+    Write-Host "❌ Native setup failed: $($_.Exception.Message)" -ForegroundColor Red
+    return 1
+  }
+}
+
 # ===== MAIN =====
 "==== SMART_SETUP started $(Get-Date) ====" | Out-File -FilePath $logPath -Encoding utf8 -Force
-Write-Log "Student Management System - Docker Setup v1.4.0"
+Write-Log "Student Management System - Setup v1.4.1"
+
+if ($PreferNative -and $DevMode) {
+  Write-Log "PreferNative cannot be used together with DevMode" 'ERROR'
+  Write-Host "❌ PreferNative cannot be combined with -DevMode. Choose one workflow." -ForegroundColor Red
+  exit 1
+}
+
+if ($PreferNative) {
+  $nativeExit = Invoke-NativeSetup -ForceInstall:$Force -SkipStart:$SkipStart -EnableVerboseLogging:$Verbose
+  exit $nativeExit
+}
 
 # Determine deployment mode
 if ($DevMode) {

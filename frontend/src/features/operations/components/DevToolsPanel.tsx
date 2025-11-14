@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminOpsAPI, getHealthStatus, importAPI } from '@/api/api';
+import { studentKeys } from '@/hooks/useStudentsQuery';
+import { courseKeys } from '@/hooks/useCoursesQuery';
+import { useStudentsStore, useCoursesStore } from '@/stores';
 import { AppearanceThemeSelectorWidget, themeStyles, type ThemeVariant } from './AppearanceThemeSelector';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
@@ -45,6 +49,56 @@ export interface DevToolsPanelProps {
   onToast: (toast: ToastState) => void;
 }
 
+const RAW_API_BASE = ((import.meta as any).env?.VITE_API_URL?.trim?.()) ?? '';
+const FALLBACK_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080';
+const sanitizedApiBase = RAW_API_BASE.replace(/\/api\/v1\/?$/, '');
+
+let resolvedBackendUrl: URL;
+try {
+  resolvedBackendUrl = new URL(sanitizedApiBase || '/', FALLBACK_ORIGIN);
+} catch (error) {
+  console.warn('[DevToolsPanel] Falling back to window origin for backend URL resolution', error);
+  resolvedBackendUrl = new URL(FALLBACK_ORIGIN);
+}
+
+const BACKEND_PATH_PREFIX = resolvedBackendUrl.pathname.replace(/\/$/, '') || '';
+const FALLBACK_PROTOCOL = typeof window !== 'undefined' ? window.location.protocol || 'http:' : 'http:';
+const FALLBACK_PORT_RAW = typeof window !== 'undefined' ? window.location.port || '' : '';
+const BACKEND_PROTOCOL = resolvedBackendUrl.protocol || FALLBACK_PROTOCOL || 'http:';
+const FRONTEND_PROTOCOL = FALLBACK_PROTOCOL || 'http:';
+
+const MODE = (((import.meta as any).env?.MODE as string | undefined) ?? import.meta.env.MODE ?? 'production').toLowerCase();
+const DEV_PORT_HINTS = new Set(['5173', '4173', '3000', '3001', '5174', '5175']);
+const DEFAULT_DEV_BACKEND_PORT =
+  (((import.meta as any).env?.VITE_DEV_BACKEND_PORT as string | undefined)?.trim?.()) ||
+  '8000';
+
+const resolvedBackendPortRaw = (resolvedBackendUrl.port ?? '').toString().trim();
+const fallbackPortRaw = (FALLBACK_PORT_RAW ?? '').toString().trim();
+const candidateBackendPort = resolvedBackendPortRaw || fallbackPortRaw || '';
+const shouldForceDevBackendPort = MODE === 'development' && (!candidateBackendPort || DEV_PORT_HINTS.has(candidateBackendPort));
+
+const BACKEND_PORT_RAW = shouldForceDevBackendPort ? DEFAULT_DEV_BACKEND_PORT : candidateBackendPort;
+const normalizeDisplayPort = (port: string) => {
+  if (!port) return '';
+  const trimmed = port.trim();
+  return trimmed === '80' || trimmed === '443' ? '' : trimmed;
+};
+
+const BACKEND_PORT_DISPLAY = normalizeDisplayPort(BACKEND_PORT_RAW);
+const BACKEND_PORT_SEGMENT = BACKEND_PORT_DISPLAY ? `:${BACKEND_PORT_DISPLAY}` : '';
+const BACKEND_PORT_LABEL = BACKEND_PORT_DISPLAY ? ` (${BACKEND_PORT_DISPLAY})` : '';
+
+const FRONTEND_PORT_DISPLAY = normalizeDisplayPort(fallbackPortRaw);
+const FRONTEND_PORT_SEGMENT = FRONTEND_PORT_DISPLAY ? `:${FRONTEND_PORT_DISPLAY}` : '';
+const FRONTEND_PORT_LABEL = FRONTEND_PORT_DISPLAY ? ` (${FRONTEND_PORT_DISPLAY})` : '';
+
+const BACKEND_HOSTNAME = resolvedBackendUrl.hostname || (typeof window !== 'undefined' ? window.location.hostname : 'localhost');
+const BACKEND_HOST = BACKEND_PORT_DISPLAY ? `${BACKEND_HOSTNAME}${BACKEND_PORT_SEGMENT}` : BACKEND_HOSTNAME;
+const BACKEND_DISPLAY_ORIGIN = BACKEND_PATH_PREFIX
+  ? `${BACKEND_PROTOCOL}//${BACKEND_HOST}${BACKEND_PATH_PREFIX}`
+  : `${BACKEND_PROTOCOL}//${BACKEND_HOST}`;
+
 const statusTone = (status?: HealthStatus['status']) => {
   if (status === 'healthy') return 'bg-emerald-600';
   if (status === 'degraded') return 'bg-amber-600';
@@ -57,6 +111,9 @@ const UPTIME_STORAGE_KEY = 'sms.operations.healthUptime';
 const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const setStudents = useStudentsStore((state) => state.setStudents);
+  const setCourses = useCoursesStore((state) => state.setCourses);
 
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
@@ -73,12 +130,17 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
-    const saved = localStorage.getItem('sms.operations.theme');
+    if (typeof window === 'undefined') return 'default';
+    const saved =
+      localStorage.getItem('sms.appearance.theme') ??
+      localStorage.getItem('sms.operations.theme');
     return (saved as ThemeVariant) || 'default';
   });
 
   // Persist theme selection
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('sms.appearance.theme', selectedTheme);
     localStorage.setItem('sms.operations.theme', selectedTheme);
   }, [selectedTheme]);
 
@@ -97,18 +159,30 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const subtleCardClass = `${theme.subtleCard} flex flex-col gap-1`;
 
-  const backendOrigin = useMemo(() => {
-    const base = (import.meta as any).env?.VITE_API_URL ?? '/api/v1';
-    try {
-      const url = new URL(base, window.location.origin);
-      return url.origin;
-    } catch (error) {
-      console.warn('[DevToolsPanel] Failed to derive backend origin from VITE_API_URL', error);
-      return window.location.origin;
-    }
-  }, []);
+  const refreshAcademicData = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: studentKeys.all, exact: false, refetchType: 'all' }),
+      queryClient.invalidateQueries({ queryKey: courseKeys.all, exact: false, refetchType: 'all' }),
+    ]);
 
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: studentKeys.all, type: 'active', exact: false }),
+      queryClient.refetchQueries({ queryKey: courseKeys.all, type: 'active', exact: false }),
+    ]);
+  }, [queryClient]);
+
+  const resetAcademicStores = useCallback(() => {
+    setStudents([]);
+    setCourses([]);
+  }, [setStudents, setCourses]);
+
+  const backendOrigin = BACKEND_DISPLAY_ORIGIN;
   const frontendOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const backendPathPrefix = BACKEND_PATH_PREFIX && BACKEND_PATH_PREFIX !== '/'
+    ? (BACKEND_PATH_PREFIX.startsWith('/') ? BACKEND_PATH_PREFIX : `/${BACKEND_PATH_PREFIX}`)
+    : '';
+  const backendPortLabel = BACKEND_PORT_LABEL;
+  const frontendPortLabel = FRONTEND_PORT_LABEL;
 
   const ipList = useMemo(() => {
     const ips = new Set<string>();
@@ -288,6 +362,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await restoreResponse.json();
       setResult(withTimestamp('restore', { data }));
       onToast({ message: data.message || t('utils.restoreSuccess'), type: 'success' });
+      setRestoreFile(null);
+      await refreshAcademicData();
       void runHealthCheck(); // Refresh health
     } catch (error) {
       console.error('Restore failed', error);
@@ -309,6 +385,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await adminOpsAPI.clearDatabase(clearScope);
       setResult(withTimestamp('clear', { data }));
       onToast({ message: t('utils.clearSuccess'), type: 'success' });
+      resetAcademicStores();
+      await refreshAcademicData();
+      setClearConfirm(false);
       void runHealthCheck(); // Refresh health
     } catch (error) {
       console.error('Clear database failed', error);
@@ -346,6 +425,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       } else {
         onToast({ message: t('utils.importNoChanges'), type: 'info' });
       }
+      setImportFile(null);
+      await refreshAcademicData();
     } catch (error: any) {
       console.error('Import failed', error);
       const detail = error?.response?.data?.detail?.message ?? t('utils.importError');
@@ -400,7 +481,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                 <span className="text-white/90">{t('utils.backend')} ({backendOrigin})</span>
               </div>
               <div className="ml-auto flex items-center gap-3">
-                <AppearanceThemeSelectorWidget currentTheme={selectedTheme} onThemeChange={setSelectedTheme} />
+                {variant === 'standalone' && (
+                  <AppearanceThemeSelectorWidget
+                    currentTheme={selectedTheme}
+                    onThemeChange={setSelectedTheme}
+                  />
+                )}
                 <button
                   type="button"
                   onClick={runHealthCheck}
@@ -469,55 +555,93 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               <div className="mt-2 text-xs text-slate-500 dark:text-gray-400">{t('controlPanel.noIpsAvailable')}</div>
             ) : (
               <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-                {ipList.map((ip) => (
-                  <div key={ip} className="space-y-1">
-                    <div className="font-mono text-xs text-slate-600 dark:text-gray-300">{ip}</div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <a
-                        className="text-indigo-600 dark:text-indigo-400 hover:underline"
-                        href={`http://${ip}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('utils.backend')}
-                      </a>
-                      <span className="text-slate-300 dark:text-gray-600">•</span>
-                      <a
-                        className="text-indigo-600 dark:text-indigo-400 hover:underline"
-                        href={`http://${ip}/docs`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('utils.apiDocs')}
-                      </a>
-                      <a
-                        className="text-indigo-600 dark:text-indigo-400 hover:underline"
-                        href={`http://${ip}/redoc`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('utils.apiRedoc')}
-                      </a>
-                      <a
-                        className="text-indigo-600 dark:text-indigo-400 hover:underline"
-                        href={`http://${ip}/health`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('utils.healthEndpoint')}
-                      </a>
-                      <span className="text-slate-300 dark:text-gray-600">•</span>
-                      <a
-                        className="text-emerald-700 dark:text-emerald-400 hover:underline"
-                        href={`http://${ip}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {t('utils.frontend')}
-                      </a>
+                {ipList.map((ip) => {
+                  const ipDisplay = ip.includes(':') ? `[${ip}]` : ip;
+                  const ipForUrl = ip.includes(':') && !ip.startsWith('[') ? `[${ip}]` : ip;
+                  const backendHostBase = `${BACKEND_PROTOCOL}//${ipForUrl}${BACKEND_PORT_SEGMENT}`;
+                  const frontendHostBase = `${FRONTEND_PROTOCOL}//${ipForUrl}${FRONTEND_PORT_SEGMENT}`;
+                  const buildBackendHref = (suffix = '') => {
+                    const suffixPart = suffix ? (suffix.startsWith('/') ? suffix : `/${suffix}`) : '';
+                    return `${backendHostBase}${backendPathPrefix}${suffixPart}`;
+                  };
+                  const backendDisplayLine = backendPathPrefix
+                    ? `${ipDisplay}${BACKEND_PORT_SEGMENT}${backendPathPrefix}`
+                    : `${ipDisplay}${BACKEND_PORT_SEGMENT}`;
+
+                  return (
+                    <div key={ip} className="space-y-1">
+                      <div className="font-mono text-xs text-slate-600 dark:text-gray-300">{backendDisplayLine}</div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {(
+                          [
+                            {
+                              key: 'backend-root',
+                              href: buildBackendHref(),
+                              label: `${t('utils.backend')}${backendPortLabel}`,
+                              className: 'text-indigo-600 dark:text-indigo-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-docs',
+                              href: buildBackendHref('docs'),
+                              label: `${t('utils.apiDocs')}${backendPortLabel}`,
+                              className: 'text-indigo-600 dark:text-indigo-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-redoc',
+                              href: buildBackendHref('redoc'),
+                              label: `${t('utils.apiRedoc')}${backendPortLabel}`,
+                              className: 'text-indigo-600 dark:text-indigo-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-openapi',
+                              href: buildBackendHref('openapi.json'),
+                              label: `${t('utils.openapiSpec')}${backendPortLabel}`,
+                              className: 'text-indigo-600 dark:text-indigo-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-health',
+                              href: buildBackendHref('health'),
+                              label: `${t('utils.healthEndpoint')}${backendPortLabel}`,
+                              className: 'text-sky-600 dark:text-sky-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-health-ready',
+                              href: buildBackendHref('health/ready'),
+                              label: `${t('utils.healthReadyEndpoint')}${backendPortLabel}`,
+                              className: 'text-sky-600 dark:text-sky-400 hover:underline',
+                            },
+                            {
+                              key: 'backend-health-live',
+                              href: buildBackendHref('health/live'),
+                              label: `${t('utils.healthLiveEndpoint')}${backendPortLabel}`,
+                              className: 'text-sky-600 dark:text-sky-400 hover:underline',
+                            },
+                            {
+                              key: 'frontend-root',
+                              href: `${frontendHostBase}/`,
+                              label: `${t('utils.frontend')}${frontendPortLabel}`,
+                              className: 'text-emerald-700 dark:text-emerald-400 hover:underline',
+                            },
+                          ] as Array<{ key: string; href: string; label: string; className: string }>
+                        ).map((link, index, array) => (
+                          <Fragment key={link.key}>
+                            <a
+                              className={link.className}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {link.label}
+                            </a>
+                            {index < array.length - 1 ? (
+                              <span className="text-slate-300 dark:text-gray-600">•</span>
+                            ) : null}
+                          </Fragment>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

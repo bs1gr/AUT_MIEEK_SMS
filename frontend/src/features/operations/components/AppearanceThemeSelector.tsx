@@ -79,7 +79,12 @@ export const themeStyles = {
 };
 
 export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: ThemeSelectorProps) => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+
+  const themeButtonLabel = t('controlPanel.themeButton') || 'Theme';
+  const appearanceTitle = t('controlPanel.appearanceThemes') || 'Appearance Themes';
+  const appearanceDescription = t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
 
   const themes = [
     { id: 'default' as const, name: 'Default', description: 'Balanced light/dark theme' },
@@ -95,10 +100,10 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={themeStyles[currentTheme].secondaryButton + ' flex items-center gap-2'}
-        aria-label="Select theme"
+        aria-label={themeButtonLabel}
       >
         <Palette className="h-4 w-4" />
-        <span className="hidden sm:inline">Theme</span>
+        <span className="hidden sm:inline">{themeButtonLabel}</span>
       </button>
 
       {isOpen && (
@@ -111,10 +116,10 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
           <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl">
             <div className="p-3 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Appearance Theme
+                {appearanceTitle}
               </h3>
               <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
-                Choose your preferred visual style
+                {appearanceDescription}
               </p>
             </div>
             <div className="max-h-96 overflow-y-auto p-2">
@@ -183,7 +188,7 @@ const AppearanceThemeSelector = () => {
           {t('controlPanel.appearanceThemes') || 'Appearance Themes'}
         </h3>
         <p className="text-sm text-gray-600 mt-1">
-          {t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends'}
+          {t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.'}
         </p>
       </div>
 
