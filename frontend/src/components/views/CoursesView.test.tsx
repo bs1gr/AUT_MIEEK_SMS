@@ -1,5 +1,5 @@
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CourseManagement from './CoursesView';
 import { LanguageProvider } from '../../LanguageContext';
@@ -52,13 +52,13 @@ describe('CourseManagement enrollment', () => {
         <CourseManagement />
       </LanguageProvider>
     );
-    await waitFor(() => expect(screen.getByText(/Math/)).toBeInTheDocument());
+    await screen.findByText(/Math/);
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '1' } });
     fireEvent.click(screen.getByText(/enrollment/i));
     const checkbox = screen.getAllByRole('checkbox')[0];
     fireEvent.click(checkbox);
     fireEvent.click(screen.getByText(/enroll selected/i));
-    await waitFor(() => expect(screen.getByText(/Alice Smith/)).toBeInTheDocument());
+    await screen.findByText(/Alice Smith/);
   });
 
   it('handles rapid course switching without vanishing students', async () => {
@@ -67,11 +67,11 @@ describe('CourseManagement enrollment', () => {
         <CourseManagement />
       </LanguageProvider>
     );
-    await waitFor(() => expect(screen.getByText(/Math/)).toBeInTheDocument());
+    await screen.findByText(/Math/);
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '1' } });
     fireEvent.click(screen.getByText(/enrollment/i));
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '' } });
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '1' } });
-    await waitFor(() => expect(screen.getByText(/Alice Smith/)).toBeInTheDocument());
+    await screen.findByText(/Alice Smith/);
   });
 });
