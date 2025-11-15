@@ -67,7 +67,7 @@ Scripts are organized into clear categories:
 - `RUN.ps1` ⭐ - **ONE-CLICK deployment** (start/stop/update/backup)
 - `SMS.ps1` - Container management (for developers)
 
-> **Note:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app in v1.5.0+. All other scripts are deprecated or removed.
+> **Note:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app in v1.5.0+. All other scripts are deprecated or removed and now live under [`archive/`](archive/README.md) for historical reference.
 
 ### **Developer Workbench** ([scripts/dev/](scripts/dev/))
 
@@ -94,6 +94,18 @@ For deployment, Docker orchestration, and production maintenance.
 
 [Read Deployment Guide →](scripts/deploy/README.md)
 
+### **Release Automation & Compliance** ([scripts/ops/](scripts/ops/))
+
+Purpose-built helpers for archiving legacy releases, retiring unused GHCR images, and keeping compliance records in sync with each tag.
+
+**Key Assets**:
+
+- `scripts/ops/archive-releases.ps1` – Adds the ARCHIVED banner and toggles prerelease for every tag ≤ `ThresholdTag`. Supports `-DryRun`, optional `-ReleasesJsonPath` for offline simulation (see `scripts/ops/samples/releases.sample.json`), and custom `-GhPath` resolution.
+- `scripts/ops/remove-legacy-packages.ps1` – Deletes or privatizes `sms-*` container packages. Supports `-DryRun`, `-Privatize`, offline fixtures via `-PackageDataPath` (example: `scripts/ops/samples/package-versions.sample.json`), and custom CLI resolution with `-GhPath`.
+- [`Archive legacy releases` workflow](.github/workflows/archive-legacy-releases.yml) – GitHub Actions wrapper that runs the archival script directly from the Actions tab for an immutable audit log.
+
+Reference [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) for the full inventory and ownership map.
+
 **📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
 
 ---
@@ -104,6 +116,7 @@ For deployment, Docker orchestration, and production maintenance.
 - 🇬🇷 **Ελληνικά**:
   - [⚡ Γρήγορη Εκκίνηση](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md) - Quick start guide
   - [📖 Πλήρης Οδηγός Χρήσης](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) - Complete user manual
+- 🧾 **Release Asset Inventory**: [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) – authoritative list of scripts, workflows, and runbooks required for deployments.
 
 ## Backend runtime configuration (env)
 
@@ -114,28 +127,30 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 What's New in v1.6.1
+## 🆕 What's New in v1.6.3
 
-- 🎨 **Control Panel appearance themes:** Added six modern presets with persistence, now paired with a live preview that shows buttons, analytics cards, and inputs before the theme is applied.
-- 📈 **Attendance analytics export:** Export Center gained a dedicated card that generates a rich Excel workbook with overview metrics, per-course summaries, per-period coverage, student tallies, and daily breakdowns—complete with localized titles.
-- 🗓️ **Attendance workspace upgrades:** The attendance board and enhanced calendar now honor localized week starts, capture per-period schedules, auto-fill Present by default, and surface coverage snapshots plus quick per-period adjustments.
-- 🧭 **Mode-aware quick reference:** Refined operations monitor copy and docs to reinforce Docker-only release expectations.
-- 🧹 **SUPER_CLEAN hardening:** Automatic process termination guard, clearer verbose diagnostics, and safer exits prevent stuck cleanup runs.
-- 🏗️ **CI/automation cleanup:** Removed redundant workflows and converted manual-only jobs to reduce noise and maintenance overhead.
-- 🛠️ **Frontend build unblock:** Fixed the duplicate export in `AppearanceThemeSelector`, keeping Vite builds healthy for themed UI work.
+- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below v1.6.2 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
+- 📦 **GitHub Packages retirement playbook:** Added guidance in the docs and management scripts for deleting or privatizing the three obsolete packages so downstream deployments don’t accidentally pull stale artifacts.
+- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out v1.6.3 as the active release and explain how the archive flow works for operators.
+- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/v1.6.3.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
+- 🧰 **Operator visibility:** Control Panel + RUN/SMS scripts reference the new archive path in their troubleshooting copy, keeping previously removed helpers discoverable but isolated from day-to-day workflows.
+- 🔒 **Compliance follow-up:** Documented the Starlette 0.49.1 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
+- 📣 **Upgrade messaging:** Added explicit instructions for tagging/publishing the new release and for consumers who need to migrate automation off the deprecated assets.
 
 ## 📦 Releases
 
-- Latest: [v1.6.1](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.1) - Control Panel themes, SUPER_CLEAN hardening, and CI cleanup
-- Previous: [v1.6.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0) - Refresh token auth, admin bootstrap, and new login UI
+- Latest: [v1.6.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3) - Release/asset archive, package retirement guidance, and refreshed docs
+- Previous: [v1.6.2](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.2) - Attendance analytics export, Control Panel UX polish, and Starlette security patch
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
+
+ℹ️ Publish the exact notes shown above via `docs/releases/v1.6.3.md` using `gh release create v1.6.3 --notes-file docs/releases/v1.6.3.md`.
 
 ---
 
 ## 📦 What's New in v1.5.0
 
 - 🟢 **Canonical entry points:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app. All legacy scripts removed or deprecated.
-- 🔒 **Security:** `SECRET_KEY` is now always loaded from `.env` or `backend/.env` for Docker deployments. Fallback to insecure key is logged with a warning; production deployments must set a strong key.
+- 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
 - 🧹 **Script cleanup:** All obsolete scripts (`QUICKSTART.ps1`, `SETUP.ps1`, etc.) removed. Documentation and references updated.
 - 🛡️ **Robust error handling:** PowerShell scripts now handle null/empty values and pipeline errors gracefully.
 - 📄 **Documentation:** All guides updated to reflect the new minimal entry points and security best practices.
@@ -371,16 +386,6 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ## 🎯 What's New in v1.2.0
 
-### For End Users
-
-- ✨ **RUN.ps1** *(formerly QUICKSTART.ps1)*: Intelligent setup and start (auto-detects mode)
-- ✨ **SMS.ps1**: Unified interactive management
-- 🎨 **Control Panel UI**: Modern web interface with real-time monitoring
-- 📊 **Version Display**: See all component versions (Python, Node, Docker, dependencies)
-- 🌍 **Complete Translations**: All features in English and Greek
-- 🧹 **Simplified Root**: Only essential files visible
-- 🐳 **Docker Priority**: Automatically uses Docker when available for simplest deployment
-
 ### Under the Hood
 
 - 🔍 **Intelligent Detection**: Auto-detects system state and required actions
@@ -414,7 +419,7 @@ A comprehensive student management system with course evaluation, attendance tra
 - 📅 **Attendance Tracking** - Monitor student attendance with absence penalties
 - 📈 **Performance Analytics** - Detailed performance reports and trends
 - 📆 **Daily Performance** - Track daily student performance with weighted multipliers
-- 📤 **Data Export** - Export to Excel, PDF, and ICS calendar formats
+- 📤 **Data Export** - Export to Excel, PDF, and ICS calendar formats with bilingual (EN/EL) column headers driven by the `Accept-Language` header
 - 🌐 **Bilingual** - Full support for English and Greek languages
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
 - 🔐 **Authentication & Authorization** - Optional JWT-based auth with role-based access control (admin/teacher/student) - See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md)
@@ -703,7 +708,7 @@ Once the backend is running, access the interactive API documentation:
 - API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
 
 
-**Security Note:** As of v1.5.0, `SECRET_KEY` is always loaded from `.env` or `backend/.env` for Docker deployments. If not set, a warning is logged and a fallback is used. For production, always set a strong, unique `SECRET_KEY`.
+**Security Note:** Set a strong random `SECRET_KEY` in `.env`/environment variables (generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"`). Turn on `SECRET_KEY_STRICT_ENFORCEMENT=1` when you want the backend to refuse placeholder or short secrets (recommended for staging/production); leave it at `0` for local debugging where you control the environment.
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 

@@ -145,32 +145,6 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     Excused: 'border-blue-200 bg-blue-50 text-blue-700',
   };
 
-  const ensureDefaultPresence = useCallback(() => {
-    if (!selectedCourse || !selectedDateStr) return;
-    if (!enrolledStudents || enrolledStudents.length === 0) return;
-    if (!activePeriods || activePeriods.length === 0) return;
-
-    setAttendanceRecords((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      enrolledStudents.forEach((student) => {
-        if (!student?.id) return;
-        activePeriods.forEach((period) => {
-          const key = getAttendanceKey(student.id, period);
-          if (!isTrackedStatus(next[key])) {
-            next[key] = 'Present';
-            changed = true;
-          }
-        });
-      });
-      return changed ? next : prev;
-    });
-  }, [selectedCourse, selectedDateStr, enrolledStudents, activePeriods]);
-
-  useEffect(() => {
-    ensureDefaultPresence();
-  }, [ensureDefaultPresence]);
-
   // Daily trackable categories - both EN and translated versions for matching
   const dailyTrackableCategories = [
     'Class Participation', t('classParticipation'),
@@ -237,11 +211,21 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   };
 
   const clearPeriodAttendance = (studentId: number, periodNumber: number) => {
-    applyAttendanceStatus(studentId, 'Present', periodNumber);
+    setAttendanceRecords((prev) => {
+      const next = { ...prev };
+      delete next[getAttendanceKey(studentId, periodNumber)];
+      return next;
+    });
   };
 
   const clearStudentAttendance = (studentId: number) => {
-    applyAttendanceStatus(studentId, 'Present');
+    setAttendanceRecords((prev) => {
+      const next = { ...prev };
+      activePeriods.forEach((period) => {
+        delete next[getAttendanceKey(studentId, period)];
+      });
+      return next;
+    });
   };
 
   const clearPerformanceForStudents = (studentIds: number[]) => {
@@ -415,53 +399,51 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     loadEnrolled();
   }, [selectedCourse]);
 
-  // Prefill existing attendance and daily performance for selected date/course
-  useEffect(() => {
-    const loadPrefill = async () => {
-      if (!selectedCourse || !selectedDate) return;
-      const dateStr = formatLocalDate(selectedDate);
-      try {
-        // Prefill Attendance
-        const attRes = await fetch(`${API_BASE_URL}/attendance/date/${dateStr}/course/${selectedCourse}`);
-        if (attRes.ok) {
-          const attData = await attRes.json();
-          const next: Record<string, string> = {};
-          if (Array.isArray(attData)) {
-            attData.forEach((a: any) => {
-              if (!a?.student_id) return;
-              const periodNumber = Number(a.period_number ?? 1);
-              const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
-              const recordDate = formatLocalDate(a.date || dateStr);
-              next[getAttendanceKey(a.student_id, safePeriod, recordDate)] = a.status;
-            });
-          }
-          setAttendanceRecords(next);
-          ensureDefaultPresence();
-        } else {
-          setAttendanceRecords({});
+  const refreshAttendancePrefill = useCallback(async () => {
+    if (!selectedCourse || !selectedDateStr) return;
+    const dateStr = selectedDateStr;
+    try {
+      const attRes = await fetch(`${API_BASE_URL}/attendance/date/${dateStr}/course/${selectedCourse}`);
+      if (attRes.ok) {
+        const attData = await attRes.json();
+        const next: Record<string, string> = {};
+        if (Array.isArray(attData)) {
+          attData.forEach((a: any) => {
+            if (!a?.student_id) return;
+            const periodNumber = Number(a.period_number ?? 1);
+            const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+            const recordDate = formatLocalDate(a.date || dateStr);
+            next[getAttendanceKey(a.student_id, safePeriod, recordDate)] = a.status;
+          });
         }
-
-        // Prefill Daily Performance
-        const dpRes = await fetch(`${API_BASE_URL}/daily-performance/date/${dateStr}/course/${selectedCourse}`);
-        if (dpRes.ok) {
-          const dpData = await dpRes.json();
-          const dp: Record<string, number> = {};
-          if (Array.isArray(dpData)) {
-            dpData.forEach((r: any) => {
-              dp[`${r.student_id}-${r.category}`] = r.score;
-            });
-          }
-          setDailyPerformance(dp);
-        } else {
-          setDailyPerformance({});
-        }
-      } catch {
+        setAttendanceRecords(next);
+      } else {
         setAttendanceRecords({});
+      }
+
+      const dpRes = await fetch(`${API_BASE_URL}/daily-performance/date/${dateStr}/course/${selectedCourse}`);
+      if (dpRes.ok) {
+        const dpData = await dpRes.json();
+        const dp: Record<string, number> = {};
+        if (Array.isArray(dpData)) {
+          dpData.forEach((r: any) => {
+            dp[`${r.student_id}-${r.category}`] = r.score;
+          });
+        }
+        setDailyPerformance(dp);
+      } else {
         setDailyPerformance({});
       }
-    };
-    loadPrefill();
-  }, [selectedCourse, selectedDate, ensureDefaultPresence]);
+    } catch {
+      setAttendanceRecords({});
+      setDailyPerformance({});
+    }
+  }, [selectedCourse, selectedDateStr]);
+
+  // Prefill existing attendance and daily performance for selected date/course
+  useEffect(() => {
+    refreshAttendancePrefill();
+  }, [refreshAttendancePrefill]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
@@ -585,14 +567,14 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     showToast((t('allStudentsMarked') || 'All students marked') + `: ${status}`, 'success');
   };
 
-  const resetAllToPresent = () => {
+  const clearAllAttendance = () => {
     if (!enrolledStudents || enrolledStudents.length === 0) return;
     setAttendanceRecords((prev) => {
       const next = { ...prev };
       const periods = activePeriods.length ? activePeriods : [1];
       enrolledStudents.forEach((student) => {
         periods.forEach((period) => {
-          next[getAttendanceKey(student.id, period)] = 'Present';
+          delete next[getAttendanceKey(student.id, period)];
         });
       });
       return next;
@@ -616,25 +598,29 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
     const studentsList = enrolledStudents || [];
     if (!studentsList.length) {
-      return { overall, perPeriod, totalSlots: 0, recordedSlots: 0 };
+      return { overall, perPeriod, totalSlots: 0, recordedSlots: 0, pendingSlots: 0 };
     }
 
     let recordedSlots = 0;
+    let pendingSlots = 0;
 
     studentsList.forEach((student) => {
       activePeriods.forEach((period) => {
         const key = getAttendanceKey(student.id, period);
         const status = attendanceRecords[key];
-        const safeStatus: AttendanceState = isTrackedStatus(status) ? status : 'Present';
-        overall[safeStatus] += 1;
-        perPeriod[period][safeStatus] += 1;
-        recordedSlots += 1;
+        if (isTrackedStatus(status)) {
+          overall[status] += 1;
+          perPeriod[period][status] += 1;
+          recordedSlots += 1;
+        } else {
+          pendingSlots += 1;
+        }
       });
     });
 
     const totalSlots = studentsList.length * activePeriods.length;
 
-    return { overall, perPeriod, totalSlots, recordedSlots };
+    return { overall, perPeriod, totalSlots, recordedSlots, pendingSlots };
   }, [attendanceRecords, enrolledStudents, activePeriods, selectedDateStr]);
 
   const statusOrder = [...ATTENDANCE_STATES];
@@ -680,8 +666,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         });
       });
       await Promise.all([...attendancePromises, ...performancePromises]);
-      setAttendanceRecords({});
-      setDailyPerformance({});
+      await refreshAttendancePrefill();
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
       showToast(t('saveFailed') || 'Save failed', 'error');
@@ -813,7 +798,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-3 py-2 rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-2"><XCircle size={16} /> {t('absent') || 'Absent'}</button>
           <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-3 py-2 rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-2"><Clock size={16} /> {t('late') || 'Late'}</button>
           <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-3 py-2 rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-2"><AlertCircle size={16} /> {t('excused') || 'Excused'}</button>
-          <button onClick={resetAllToPresent} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-200 text-gray-800 flex items-center justify-center sm:justify-start gap-2">{t('clear') || 'Clear'}</button>
+          <button onClick={clearAllAttendance} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-200 text-gray-800 flex items-center justify-center sm:justify-start gap-2">{t('clear') || 'Clear'}</button>
         </div>
       </div>
 
@@ -830,6 +815,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-800">{t('coverageLabel') || 'Coverage'}: {coveragePercent}%</p>
               <p className="text-xs text-gray-500">{attendanceAnalytics.recordedSlots}/{attendanceAnalytics.totalSlots || 0} {t('recordsTracked') || 'records tracked'}</p>
+              {attendanceAnalytics.pendingSlots > 0 && (
+                <p className="text-xs text-amber-600">
+                  {t('pendingRecords', { count: attendanceAnalytics.pendingSlots }) || `${attendanceAnalytics.pendingSlots} pending`}
+                </p>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">

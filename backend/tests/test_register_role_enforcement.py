@@ -12,7 +12,7 @@ def test_public_registration_cannot_set_admin(client):
 
 def test_admin_token_allows_setting_role(client):
     # Step 1: register a user who will be promoted to admin by direct DB update
-    creator = {"email": "creator@example.com", "password": "CreatorPass1"}
+    creator = {"email": "creator@example.com", "password": "CreatorPass1!"}
     r = client.post("/api/v1/auth/register", json=creator)
     assert r.status_code == 200, r.text
 
@@ -35,7 +35,7 @@ def test_admin_token_allows_setting_role(client):
     assert token
 
     # Use admin token to register a new user with role=admin
-    new_user = {"email": "elevated@example.com", "password": "UserPass1", "role": "admin"}
+    new_user = {"email": "elevated@example.com", "password": "UserPass1!", "role": "admin"}
     r3 = client.post("/api/v1/auth/register", json=new_user, headers={"Authorization": f"Bearer {token}"})
     assert r3.status_code == 200, r3.text
     data = r3.json()
@@ -52,7 +52,7 @@ def test_invalid_or_expired_admin_token_is_ignored(client):
     payload = {"sub": "noone@example.com", "exp": datetime.now(timezone.utc) - timedelta(hours=1)}
     expired_token = jwt.encode(payload, config.settings.SECRET_KEY, algorithm=config.settings.ALGORITHM)
 
-    new_user = {"email": "shouldberegistered@example.com", "password": "UserPass1", "role": "admin"}
+    new_user = {"email": "shouldberegistered@example.com", "password": "UserPass1!", "role": "admin"}
     r = client.post("/api/v1/auth/register", json=new_user, headers={"Authorization": f"Bearer {expired_token}"})
     assert r.status_code == 200, r.text
     data = r.json()
@@ -68,7 +68,7 @@ def test_invalid_or_expired_admin_token_is_ignored(client):
     # Use a valid password so the request reaches role-checking logic
     r2 = client.post(
         "/api/v1/auth/register",
-        json={"email": "also@example.com", "password": "UserPass2", "role": "admin"},
+        json={"email": "also@example.com", "password": "UserPass2!", "role": "admin"},
         headers={"Authorization": f"Bearer {bad_token}"},
     )
     assert r2.status_code == 200, r2.text

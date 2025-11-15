@@ -15,8 +15,6 @@ Coverage:
 
 from datetime import date, timedelta
 
-from backend.errors import ErrorCode
-from backend.tests.utils import get_error_message
 
 
 def test_create_attendance_success(client):
@@ -97,8 +95,8 @@ def test_create_attendance_invalid_course(client):
     assert "Course" in detail and "not found" in detail
 
 
-def test_create_duplicate_attendance(client):
-    """Creating duplicate attendance should fail"""
+def test_create_attendance_upserts_existing_record(client):
+    """Posting the same attendance twice updates the original record"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
@@ -123,14 +121,16 @@ def test_create_duplicate_attendance(client):
     # Create first attendance
     response1 = client.post("/api/v1/attendance/", json=attendance_data)
     assert response1.status_code == 201
+    first_payload = response1.json()
 
-    # Try to create duplicate
+    # Re-post same record with a new status and ensure it updates existing row
+    attendance_data["status"] = "Late"
     response2 = client.post("/api/v1/attendance/", json=attendance_data)
-    assert response2.status_code == 400
-    payload = response2.json()
-    detail = payload["detail"]
-    assert detail["error_id"] == ErrorCode.ATTENDANCE_ALREADY_EXISTS.value
-    assert "already exists" in get_error_message(payload)
+    assert response2.status_code in (200, 201)
+    second_payload = response2.json()
+
+    assert second_payload["id"] == first_payload["id"]
+    assert second_payload["status"] == "Late"
 
 
 def test_get_all_attendance(client):

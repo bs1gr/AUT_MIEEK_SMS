@@ -198,26 +198,50 @@ const ServerControl: React.FC = () => {
     setIsRestarting(true);
 
     try {
-      // Try to restart backend via API
-      const restartResponse = await fetch(`${API_BASE_URL}/control/api/start`, {
+      const restartResponse = await fetch(`${API_BASE_URL}/control/api/restart`, {
         method: 'POST',
-        signal: AbortSignal.timeout(5000)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        signal: AbortSignal.timeout(8000),
       });
 
-      if (restartResponse.ok) {
-        // Backend restart initiated, reload frontend
+      if (!restartResponse.ok) {
+        const payload = await restartResponse.json().catch(() => ({}));
+        const message = (payload?.message as string) || restartResponse.statusText || (t('controlPanel.restartFailed') || 'Restart failed');
+        setStatus(prev => ({
+          ...prev,
+          error: message,
+        }));
         setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        // Fallback: just reload the page
-        window.location.reload();
+          checkStatus();
+        }, 3000);
+        return;
       }
+
+      // Restart scheduled — show checking state and poll
+      setStatus(prev => ({
+        ...prev,
+        backend: 'checking',
+        error: undefined,
+      }));
+
+      setTimeout(() => {
+        checkStatus();
+      }, 4000);
     } catch (error) {
-      // Fallback: just reload the page
       console.warn('Restart API failed, using page reload:', error);
-      window.location.reload();
+      setStatus(prev => ({
+        ...prev,
+        backend: 'checking',
+        error: error instanceof Error ? error.message : (t('controlPanel.restartFailed') || 'Restart failed'),
+      }));
+      setTimeout(() => {
+        checkStatus();
+      }, 4000);
     }
+    setTimeout(() => setIsRestarting(false), 500);
   };
 
   const getStatusColor = (service: 'backend' | 'frontend') => {

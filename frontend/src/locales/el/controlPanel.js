@@ -20,7 +20,33 @@ export default {
   appearanceThemesDesc: 'Επιλέξτε σύγχρονα θέματα εμπνευσμένα από τις τάσεις σχεδιασμού του 2025.',
   themeButton: 'Θέμα',
   currentTheme: 'Τρέχον Θέμα',
-  themeAppliesTo: 'Αυτό το θέμα εφαρμόζεται στις λειτουργίες του Πίνακα Ελέγχου και σε άλλα στοιχεία που υποστηρίζουν προσαρμογή εμφάνισης.',
+  themeAppliesTo: 'Το θέμα πλέον εφαρμόζεται σε ολόκληρο το περιβάλλον χρήστη: πίνακες, πλοήγηση, δεδομένα και εργαλεία συντήρησης.',
+  themeOptions: {
+    default: {
+      name: 'Προεπιλογή',
+      description: 'Ισορροπημένο φωτεινό/σκούρο θέμα',
+    },
+    glassmorphism: {
+      name: 'Glassmorphism',
+      description: 'Εφέ παγωμένου γυαλιού με θαμπώματα',
+    },
+    neumorphism: {
+      name: 'Neumorphism',
+      description: 'Απαλό 3D βάθος με σκιές',
+    },
+    gradient: {
+      name: 'Gradient',
+      description: 'Ζωντανές διαβαθμίσεις με γυάλινες πινελιές',
+    },
+    modernDark: {
+      name: 'Σύγχρονο Σκοτεινό',
+      description: 'Θέμα υψηλής αντίθεσης για νυχτερινή χρήση',
+    },
+    lightProfessional: {
+      name: 'Φωτεινό Επαγγελματικό',
+      description: 'Καθαρό και μινιμαλιστικό φωτεινό θέμα',
+    },
+  },
   appearancePreview: 'Ζωντανή προεπισκόπηση',
   appearancePreviewDesc: 'Δείτε πώς οι κάρτες αναλυτικών, τα κουμπιά και τα πεδία προσαρμόζονται στο επιλεγμένο θέμα εμφάνισης.',
   appearancePreviewMetrics: 'Ενδεικτικές μετρικές αναλυτικών',
@@ -56,6 +82,9 @@ export default {
   cancel: 'Ακύρωση',
   exiting: 'Έξοδος...',
   restartDisabled: 'Επανεκκίνηση απενεργοποιημένη (backend ανενεργό)',
+  restartFailed: 'Αποτυχία αυτόματης επανεκκίνησης backend',
+  restartScheduled: 'Η επανεκκίνηση προγραμματίστηκε — γίνεται έλεγχος διαθεσιμότητας',
+  restartUnsupported: 'Η επανεκκίνηση είναι διαθέσιμη μόνο σε native λειτουργία. Χρησιμοποιήστε τα scripts SMS.ps1 -Restart εντός Docker.',
   exitDisabled: 'Έξοδος απενεργοποιημένη (backend ανενεργό)',
   serverStopped: 'Διακομιστής Διακόπηκε',
   canCloseWindow: 'Μπορείτε τώρα να κλείσετε αυτό το παράθυρο',

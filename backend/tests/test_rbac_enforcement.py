@@ -143,12 +143,14 @@ def test_rbac_blocks_anonymous_on_write(rbac_client: TestClient):
 def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     client = rbac_client
 
-    # Register users
-    _register_user(client, "teacher@example.com", "password123", role="teacher")
-    _register_user(client, "admin@example.com", "password123", role="admin")
+    strong_password = "Str0ngPass!123"
 
-    teacher_token = _login(client, "teacher@example.com", "password123")
-    admin_token = _login(client, "admin@example.com", "password123")
+    # Register users
+    _register_user(client, "teacher@example.com", strong_password, role="teacher")
+    _register_user(client, "admin@example.com", strong_password, role="admin")
+
+    teacher_token = _login(client, "teacher@example.com", strong_password)
+    admin_token = _login(client, "admin@example.com", strong_password)
 
     # Teacher can write attendance
     r = client.post(

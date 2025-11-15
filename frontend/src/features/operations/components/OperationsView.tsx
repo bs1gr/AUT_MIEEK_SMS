@@ -5,7 +5,6 @@ import { ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
-import ThemeSelector from '@/components/tools/ThemeSelector';
 import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
 import Toast from '@/components/ui/Toast';
 import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
@@ -127,7 +126,6 @@ const OperationsView = (_props: OperationsViewProps) => {
         {activeTab === 'help' && <HelpDocumentation />}
         {activeTab === 'settings' && (
           <div className="space-y-6">
-            <ThemeSelector />
             <AppearanceThemeSelector />
           </div>
         )}

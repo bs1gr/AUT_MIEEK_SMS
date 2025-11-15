@@ -1,0 +1,25 @@
+{
+  "sms-backend": [
+    {
+      "id": 4101,
+      "metadata": {
+        "container_version": "sha256:backend-legacy"
+      }
+    },
+    {
+      "id": 4102,
+      "metadata": {
+        "container_version": "sha256:backend-legacy2"
+      }
+    }
+  ],
+  "sms-frontend": [],
+  "sms-fullstack": [
+    {
+      "id": 9901,
+      "metadata": {
+        "container_version": "sha256:fullstack-old"
+      }
+    }
+  ]
+}

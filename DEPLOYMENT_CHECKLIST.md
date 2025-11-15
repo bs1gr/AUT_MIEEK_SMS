@@ -1,6 +1,6 @@
 # Deployment readiness checklist & verification
 
-This file summarizes the changes made to harden the project for CI and production, and provides a concise deployment checklist and quick verification commands.
+This file summarizes the changes made to harden the project for CI and production, and provides a concise deployment checklist and quick verification commands. For a living inventory of every script, workflow, and runbook required for release readiness, consult [`docs/DEPLOYMENT_ASSET_TRACKER.md`](docs/DEPLOYMENT_ASSET_TRACKER.md) before starting rollout activities.
 
 Summary of key safety changes
 
@@ -11,6 +11,12 @@ Summary of key safety changes
 - Integration: A manual `integration` workflow (workflow_dispatch) was added to start the backend (no `DISABLE_STARTUP_TASKS`) and perform a health/smoke check.
 
 Quick deployment checklist (pre-release)
+
+0. Archive legacy releases & retire unused packages
+
+    - Run `pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -DryRun -ThresholdTag v1.6.2` to preview the ARCHIVED banner/prerelease toggles (use `-ReleasesJsonPath scripts/ops/samples/releases.sample.json` if you just want an offline simulation), then rerun without `-DryRun` (or trigger the [Archive legacy releases](.github/workflows/archive-legacy-releases.yml) workflow twice: dry run + live) so auditors get an immutable log.
+    - Clean up historical GHCR images with `scripts/ops/remove-legacy-packages.ps1 -DryRun` (offline option: `-PackageDataPath scripts/ops/samples/package-versions.sample.json`), then rerun without the switch (or with `-Privatize`) once the plan looks correct.
+    - Update release attachments to include the latest `archive/` bundle plus a link back to [`docs/DEPLOYMENT_ASSET_TRACKER.md`](docs/DEPLOYMENT_ASSET_TRACKER.md).
 
 1. Confirm environment variables for production:
    - ENABLE_CONTROL_API=1 (only on operator-managed instances)
@@ -69,7 +75,8 @@ Notes and follow-ups
 - If you want, I can open a draft PR summarizing these changes and include a short changelog entry.
 
 Verified: ruff, mypy and pytest were run locally and returned no blocking errors; pytest: 15 passed, 0 failed.
-# Deployment Checklist
+
+## Deployment Checklist
 
 Use this checklist to ensure successful deployment to other Windows computers.
 

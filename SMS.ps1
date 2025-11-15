@@ -1,11 +1,12 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Student Management System - Docker Container Management
+    Student Management System - Environment Management (Docker + Native)
 
 .DESCRIPTION
-    Simple Docker container lifecycle management for SMS v1.3.8+
-    Docker-only release - all operations managed via Docker Compose
+    Simple lifecycle management for SMS deployments.
+    - Stops both Docker containers and native dev servers started via SMART_SETUP
+    - Provides status helpers and log inspection utilities
     For advanced operations, use the Control Panel in the web app
 
 .PARAMETER Quick
@@ -15,7 +16,7 @@
     Show container status and exit
 
 .PARAMETER Stop
-    Stop all containers
+    Stop Docker containers and any recorded native dev servers
 
 .PARAMETER Restart
     Restart all containers
@@ -48,7 +49,6 @@
 
 .NOTES
     Version: 1.3.8+
-    Docker-only release
     For setup: Run .\SMART_SETUP.ps1 first
     For operations: Use Control Panel at http://localhost:8080 (Power tab)
 #>
@@ -147,6 +147,183 @@ function Get-ContainerStatus {
             Message = "Error checking containers: $($_.Exception.Message)"
         }
     }
+}
+
+function Stop-NativeProcessFromFile {
+    param(
+        [string]$PidFile,
+        [string]$Role
+    )
+
+    $result = [pscustomobject]@{
+        ActionTaken = $false
+        Success = $true
+        Pid = $null
+    }
+
+    if (-not (Test-Path $PidFile)) {
+        return $result
+    }
+
+    $result.ActionTaken = $true
+    try {
+        $raw = (Get-Content -LiteralPath $PidFile -Raw).Trim()
+    }
+    catch {
+        Write-Warning2 "Unable to read $Role PID file at ${PidFile}: $($_.Exception.Message)"
+        return $result
+    }
+
+    if (-not $raw) {
+        Write-Warning2 "$Role PID file is empty ($PidFile). Removing it."
+        Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+        return $result
+    }
+
+    $parsedPid = 0
+    if (-not [int]::TryParse($raw, [ref]$parsedPid)) {
+        Write-Warning2 "Invalid PID '$raw' found for $Role. Removing $PidFile."
+        Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+        return $result
+    }
+
+    $pidValue = $parsedPid
+    $result.Pid = $pidValue
+    $proc = Get-Process -Id $pidValue -ErrorAction SilentlyContinue
+    if (-not $proc) {
+        Write-Info "$Role process (PID $pidValue) is no longer running. Cleaning up PID file."
+        Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+        return $result
+    }
+
+    try {
+        Write-Info "Stopping $Role (PID $pidValue)..."
+        try {
+            Stop-Process -Id $pidValue -ErrorAction Stop
+        }
+        catch {
+            Write-Warning2 "$Role did not stop gracefully; forcing termination."
+            Stop-Process -Id $pidValue -Force -ErrorAction Stop
+        }
+        try {
+            Wait-Process -Id $pidValue -Timeout 10 -ErrorAction SilentlyContinue
+        }
+        catch {}
+        Write-Success "$Role stopped successfully"
+        Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+    }
+    catch {
+        Write-Error2 "Failed to stop $Role (PID $pidValue): $($_.Exception.Message)"
+        $result.Success = $false
+    }
+
+    return $result
+}
+
+function Stop-OrphanNativeProcesses {
+    param([int[]]$ExcludePids = @())
+
+    if (-not $IsWindows) {
+        return [pscustomobject]@{ ActionTaken = $false; Success = $true }
+    }
+
+    try {
+        $allProcs = Get-CimInstance Win32_Process -ErrorAction Stop
+    }
+    catch {
+        Write-Warning2 "Unable to inspect host processes for native servers: $($_.Exception.Message)"
+        return [pscustomobject]@{ ActionTaken = $false; Success = $false }
+    }
+
+    $repoPathPattern = [System.Text.RegularExpressions.Regex]::Escape($scriptDir)
+    $targets = @()
+
+    foreach ($proc in $allProcs) {
+        if (-not $proc.CommandLine) { continue }
+        if ($ExcludePids -contains $proc.ProcessId) { continue }
+        if ($proc.CommandLine -notmatch $repoPathPattern) { continue }
+
+        $role = $null
+        if ($proc.CommandLine -match 'uvicorn\s+backend\.main:app') {
+            $role = 'Backend'
+        }
+        elseif ($proc.CommandLine -match 'npm run dev' -or $proc.CommandLine -match 'vite(\.js)?') {
+            $role = 'Frontend'
+        }
+
+        if ($null -ne $role) {
+            $targets += [pscustomobject]@{
+                Role = $role
+                ProcessId = [int]$proc.ProcessId
+            }
+        }
+    }
+
+    if ($targets.Count -eq 0) {
+        return [pscustomobject]@{ ActionTaken = $false; Success = $true }
+    }
+
+    Write-Warning2 "Detected native processes without PID files; attempting to stop them..."
+    $success = $true
+    foreach ($target in $targets) {
+        try {
+            Write-Info "Stopping $($target.Role) (PID $($target.ProcessId))..."
+            try {
+                Stop-Process -Id $target.ProcessId -ErrorAction Stop
+            }
+            catch {
+                Write-Warning2 "$($target.Role) did not stop gracefully; forcing termination."
+                Stop-Process -Id $target.ProcessId -Force -ErrorAction Stop
+            }
+            try {
+                Wait-Process -Id $target.ProcessId -Timeout 10 -ErrorAction SilentlyContinue
+            }
+            catch {}
+            Write-Success "$($target.Role) stopped"
+        }
+        catch {
+            Write-Error2 "Failed to stop $($target.Role) (PID $($target.ProcessId)): $($_.Exception.Message)"
+            $success = $false
+        }
+    }
+
+    return [pscustomobject]@{ ActionTaken = $true; Success = $success }
+}
+
+function Stop-NativeProcesses {
+    $backendPidFile = Join-Path $scriptDir '.backend.pid'
+    $frontendPidFile = Join-Path $scriptDir '.frontend.pid'
+
+    Write-Header "Stopping Native Development Services" 'Yellow'
+
+    $handledPids = @()
+    $actionsTaken = $false
+    $success = $true
+
+    foreach ($entry in @(
+        @{ Role = 'Backend'; File = $backendPidFile },
+        @{ Role = 'Frontend'; File = $frontendPidFile }
+    )) {
+        $result = Stop-NativeProcessFromFile -PidFile $entry.File -Role $entry.Role
+        if ($result.ActionTaken) {
+            $actionsTaken = $true
+            if ($null -ne $result.Pid) { $handledPids += $result.Pid }
+        }
+        if (-not $result.Success) { $success = $false }
+    }
+
+    $orphanResult = Stop-OrphanNativeProcesses -ExcludePids $handledPids
+
+    if ($orphanResult.ActionTaken) {
+        $actionsTaken = $true
+        if (-not $orphanResult.Success) { $success = $false }
+    }
+
+    if (-not $actionsTaken) {
+        Write-Info 'No native host services were detected.'
+    }
+
+    return $success
 }
 
 function Show-Status {
@@ -439,7 +616,7 @@ SUPPORT:
 Clear-Host
 Write-Host ""
 Write-Host "╔════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║         Student Management System - Docker Management              ║" -ForegroundColor Cyan
+Write-Host "║     Student Management System - Environment Management Suite      ║" -ForegroundColor Cyan
 Write-Host "║                      Version $version                                    ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
@@ -456,8 +633,10 @@ if ($ShowStatus) {
 }
 
 if ($Stop) {
-    $success = Stop-Containers
-    exit $(if ($success) { 0 } else { 1 })
+    $nativeSuccess = Stop-NativeProcesses
+    $dockerSuccess = Stop-Containers
+    $overall = $nativeSuccess -and $dockerSuccess
+    exit $(if ($overall) { 0 } else { 1 })
 }
 
 if ($Restart) {
@@ -481,7 +660,7 @@ Show-Status
 Write-Host ""
 Write-Host "Quick Commands:" -ForegroundColor Yellow
 Write-Host "  .\SMS.ps1 -Quick     # Start containers" -ForegroundColor Gray
-Write-Host "  .\SMS.ps1 -Stop      # Stop containers" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Stop      # Stop containers + native dev servers" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Restart   # Restart containers" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Logs      # View logs" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Help      # Full help" -ForegroundColor Gray

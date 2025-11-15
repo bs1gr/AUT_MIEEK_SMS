@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Spinner from '@/components/ui/Spinner';
 import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
@@ -7,6 +8,7 @@ import { useLanguage } from '@/LanguageContext';
 import type { Student, Attendance, Grade, Course } from '@/types';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { percentageToGreekScale, getGreekGradeColor, gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
+import CourseGradeBreakdown from './CourseGradeBreakdown';
 
 const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
@@ -64,6 +66,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   setShowAddModal,
 }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [internalSearch, setInternalSearch] = useState<string>('');
   const resolvedSearch = typeof searchTerm === 'string' ? searchTerm : internalSearch;
   const setResolvedSearch = typeof setSearchTerm === 'function' ? setSearchTerm : setInternalSearch;
@@ -139,7 +142,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           overallGPA: gpa,
           greekGrade: gpaToGreekScale(gpa),
           percentage: gpaToPercentage(gpa),
-          letterGrade: getLetterGrade(gpa),
+          letterGrade: getLetterGrade(gpaToPercentage(gpa)),
           totalCourses: finalGradeSummary.courses?.length || 0,
         };
         courseSummary = finalGradeSummary.courses || [];
@@ -171,36 +174,13 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     try { localStorage.setItem(`student_notes_${id}`, value); } catch {}
   };
 
-  // Helper function to translate category names
-  const translateCategory = (category: string): string => {
-    const categoryMap: Record<string, string> = {
-      'Class Participation': t('classParticipation'),
-      'Continuous Assessment': t('continuousAssessment'),
-      'Midterm Exam': t('midtermExam'),
-      'Midterm': t('midtermExam'),
-      'Final Exam': t('finalExam'),
-      'Final': t('finalExam'),
-      'Homework': t('homework'),
-      'Quiz': t('quiz'),
-      'Project': t('project'),
-      'Lab Work': t('labWork'),
-      'Assignment': t('assignment'),
-      // Greek category names (in case backend returns Greek)
-      'Συμμετοχή στο Μάθημα': t('classParticipation'),
-      'Συνεχής Αξιολόγηση': t('continuousAssessment'),
-      'Ενδιάμεση Εξέταση': t('midtermExam'),
-      'Ενδιάμεση': t('midtermExam'),
-      'Τελική Εξέταση': t('finalExam'),
-      'Τελική': t('finalExam'),
-      'Εργασία': t('homework'),
-      'Κουίζ': t('quiz'),
-      'Πρότζεκτ': t('project'),
-      'Εργαστήριο': t('labWork'),
-      'Ενδ': t('midtermExam'),
-      'ΑΣΚΗΣΗ': t('homework'),
-    };
-    return categoryMap[category] || category;
-  };
+  const handleCourseNavigate = useCallback((studentId: number, courseId: number) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('grading_filter_student', studentId.toString());
+      sessionStorage.setItem('grading_filter_course', courseId.toString());
+    }
+    navigate('/grading');
+  }, [navigate]);
 
   return (
     <div className="space-y-6">
@@ -338,8 +318,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                           <div className="text-2xl font-bold">
                             {(() => {
                               const avgPercentage = statsById[student.id].gradesList!.reduce((sum, g) => sum + ((g.grade / g.max_grade) * 100), 0) / statsById[student.id].gradesList!.length;
-                              const avgGPA = avgPercentage / 25;
-                              return getLetterGrade(avgGPA);
+                              return getLetterGrade(avgPercentage);
                             })()}
                           </div>
                           <div className="text-xs opacity-90">{t('grade')}</div>
@@ -349,115 +328,13 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   )}
 
                   {/* Detailed Grade Breakdown - Per Course */}
-                  <div className="border rounded-lg p-4 bg-white shadow-md">
-                    <div className="font-semibold text-gray-800 mb-3">{t('gradeBreakdown') || 'Grade Breakdown'} - {t('byCourse') || 'By Course'}</div>
-                    {statsById[student.id]?.gradesList && statsById[student.id].gradesList!.length > 0 ? (
-                      <>
-                        {(() => {
-                          // Group grades by course_id
-                          const gradesByCourse = statsById[student.id].gradesList!.reduce((acc: Record<number, Grade[]>, grade: Grade) => {
-                            const courseId = grade.course_id;
-                            if (!acc[courseId]) acc[courseId] = [];
-                            acc[courseId].push(grade);
-                            return acc;
-                          }, {});
-
-                          return (
-                            <div className="space-y-4">
-                              {Object.entries(gradesByCourse).map(([courseIdStr, courseGrades]) => {
-                                const courseId = parseInt(courseIdStr);
-
-                                // Get course info from coursesMap
-                                const courseInfo = coursesMap.get(courseId);
-                                const courseName = courseInfo?.course_name || `${t('course') || 'Course'} #${courseId}`;
-                                const courseCode = courseInfo?.course_code || '';
-
-                                // Calculate course average
-                                const percentages = courseGrades.map(g => (g.grade / g.max_grade) * 100);
-                                const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
-                                const avgGreek = percentageToGreekScale(avgPercentage);
-                                const letterGrade = getLetterGrade(avgGreek);
-
-                                return (
-                                  <div key={courseId} className="border border-gray-200 rounded-lg overflow-hidden">
-                                    {/* Course Header with Link */}
-                                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-4 flex items-center justify-between">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <h4 className="text-base font-bold text-gray-800">{courseName}</h4>
-                                          {courseCode && <span className="text-sm text-gray-500 font-medium">({courseCode})</span>}
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                          <span className="text-xs text-gray-600">
-                                            {courseGrades.length} {courseGrades.length === 1 ? (t('assignment') || 'assignment') : (t('assignments') || 'assignments')}
-                                          </span>
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-lg font-bold text-indigo-700">
-                                              {avgPercentage.toFixed(1)}%
-                                            </span>
-                                            <span className="text-gray-400">•</span>
-                                            <span className={`text-lg font-bold ${getGreekGradeColor(avgGreek)}`}>
-                                              {avgGreek.toFixed(1)}/20
-                                            </span>
-                                            <span className="text-gray-400">•</span>
-                                            <span className={`text-xl font-extrabold ${getGreekGradeColor(avgGreek)}`}>
-                                              {letterGrade}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <button
-                                        onClick={() => {
-                                          window.location.hash = 'grading';
-                                          // Store filter state for grading view to pick up
-                                          sessionStorage.setItem('grading_filter_student', student.id.toString());
-                                          sessionStorage.setItem('grading_filter_course', courseId.toString());
-                                        }}
-                                        className="ml-3 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors"
-                                      >
-                                        {t('viewDetails') || 'View Details'} →
-                                      </button>
-                                    </div>
-
-                                    {/* Course Grades List */}
-                                    <div className="px-4 py-2 space-y-1 bg-white">
-                                      {courseGrades.map((grade: Grade, idx: number) => {
-                                        const percentage = ((grade.grade / grade.max_grade) * 100);
-                                        const greekGrade = percentageToGreekScale(percentage);
-                                        const dateStr = grade.date_submitted || grade.date_assigned || new Date().toISOString();
-                                        return (
-                                          <div key={idx} className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded">
-                                            <div className="flex-1">
-                                              <div className="text-sm font-medium text-gray-700">{grade.assignment_name}</div>
-                                              <div className="text-xs text-gray-500">
-                                                {translateCategory(grade.category || '')} • {new Date(dateStr).toLocaleDateString()}
-                                              </div>
-                                            </div>
-                                            <div className="text-right">
-                                              <div className="text-sm font-semibold text-indigo-600">
-                                                {grade.grade}/{grade.max_grade}
-                                              </div>
-                                              <div className="text-xs text-gray-600">
-                                                {percentage.toFixed(1)}% • <span className={getGreekGradeColor(greekGrade)}>{greekGrade.toFixed(1)}/20</span>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })()}
-                      </>
-                    ) : (
-                      <div className="text-sm text-gray-500 py-4 text-center">
-                        {t('noGradesRecorded') || 'No grades recorded yet'}
-                      </div>
-                    )}
-                  </div>
+                  {statsById[student.id] && (
+                    <CourseGradeBreakdown
+                      gradesList={statsById[student.id].gradesList || []}
+                      coursesMap={coursesMap}
+                      onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    />
+                  )}
 
                   {/* Performance Details & Statistics */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -546,32 +423,36 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                         const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
                         grades.forEach(g => {
                           const percentage = (g.grade / g.max_grade) * 100;
-                          const gpa = percentage / 25;
-                          const letter = getLetterGrade(gpa);
+                          const letter = getLetterGrade(percentage);
                           distribution[letter as keyof typeof distribution]++;
                         });
                         const total = grades.length;
+                        const progressColorClasses: Record<string, string> = {
+                          A: 'grade-progress--a',
+                          B: 'grade-progress--b',
+                          C: 'grade-progress--c',
+                          D: 'grade-progress--d',
+                          F: 'grade-progress--f',
+                        };
 
                         return (
                           <div className="space-y-3">
                             {Object.entries(distribution).map(([grade, count]) => {
                               const percentage = total > 0 ? (count / total * 100) : 0;
-                              const colors: Record<string, string> = {
-                                A: 'bg-green-500',
-                                B: 'bg-blue-500',
-                                C: 'bg-yellow-500',
-                                D: 'bg-orange-500',
-                                F: 'bg-red-500'
-                              };
 
                               return (
-                                <div key={grade}>
+                                  <div key={grade}>
                                   <div className="flex items-center justify-between mb-2">
                                     <span className="font-semibold text-gray-700">{t('grade')} {grade}</span>
                                     <span className="text-gray-600">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
                                   </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div className={`${colors[grade]} h-2 rounded-full transition-all`} style={{ width: `${percentage}%` }}></div>
+                                  <div className="grade-progress-track" role="presentation">
+                                    <progress
+                                      className={`grade-progress ${progressColorClasses[grade] || 'grade-progress--default'}`}
+                                      value={percentage}
+                                      max={100}
+                                      aria-label={t('grade') + ' ' + grade}
+                                    ></progress>
                                   </div>
                                 </div>
                               );

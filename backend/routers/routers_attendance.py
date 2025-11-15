@@ -83,6 +83,8 @@ def create_attendance(
         _student = get_by_id_or_404(db, Student, attendance_data.student_id)
         _course = get_by_id_or_404(db, Course, attendance_data.course_id)
 
+        existing = None
+
         with transaction(db):
             # Use database-level locking to prevent duplicate attendance records
             existing = (
@@ -99,19 +101,20 @@ def create_attendance(
             )
 
             if existing:
-                raise http_error(
-                    status.HTTP_400_BAD_REQUEST,
-                    ErrorCode.ATTENDANCE_ALREADY_EXISTS,
-                    "Attendance record already exists for this student, course, date, and period",
-                    request,
-                )
+                existing.status = attendance_data.status
+                existing.notes = attendance_data.notes
+                existing.period_number = attendance_data.period_number
+                existing.date = attendance_data.date
+                db_attendance = existing
+            else:
+                db_attendance = Attendance(**attendance_data.model_dump())
+                db.add(db_attendance)
 
-            db_attendance = Attendance(**attendance_data.model_dump())
-            db.add(db_attendance)
             db.flush()
             db.refresh(db_attendance)
 
-        logger.info(f"Created attendance record: {db_attendance.id}")
+        action = "Updated" if existing else "Created"
+        logger.info(f"{action} attendance record: {db_attendance.id}")
         return db_attendance
 
     except HTTPException:

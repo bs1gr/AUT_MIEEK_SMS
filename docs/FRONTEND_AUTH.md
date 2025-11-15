@@ -68,11 +68,35 @@ python backend/tools/create_admin.py --email admin@example.com --password 'Stron
 
 Do NOT rely on public `/auth/register` to create admin users. If an account must be promoted, use your internal admin process or the script above. This prevents privilege escalation by untrusted users.
 
+CSRF workflow (state-changing requests)
+
+FastAPI now exposes a double-submit CSRF flow that is **opt-in until you set `CSRF_ENABLED=1`** in the backend environment. Once enabled, every POST/PUT/PATCH/DELETE request must include the signed cookie + matching header token. Frontend steps:
+
+1. Fetch a token before sending any write request:
+   - Call `GET /api/v1/security/csrf`.
+   - The response sets the signed cookie (default `fastapi-csrf-token`) and returns `{ csrf_token, header_name, cookie_name, expires_in }`.
+   - Cache the `csrf_token` in memory only (treat it like a transient secret).
+2. For each state-changing API call, include the header from step 1. Example axios interceptor:
+
+```ts
+api.interceptors.request.use((config) => {
+  if (isMutating(config.method) && csrfTokenStore.current) {
+    config.headers[csrfTokenStore.headerName || "X-CSRF-Token"] = csrfTokenStore.token;
+  }
+  return config;
+});
+```
+
+3. Tokens rotate on login/refresh responses. After a user authenticates (or refreshes), read the new header emitted by the backend and update your in-memory value.
+4. Logout clears both the refresh cookie and the CSRF cookie, so you should drop any cached token client-side.
+
+If you need to temporarily bypass validation (e.g., for webhooks), append the path to `CSRF_EXEMPT_PATHS` or call `mark_request_csrf_exempt` in custom dependencies. Avoid whitelisting broad prefixes.
+
 Notes & security
 
 - The preferred approach uses HttpOnly Secure cookies for refresh tokens. This reduces XSS risk because cookies cannot be read from JavaScript. Ensure your frontend is served over HTTPS when `COOKIE_SECURE` is set to True in backend settings.
 - The access token is intentionally kept in memory to reduce persistent XSS attack surface. It will be lost on full page reload; the app uses refresh endpoint to obtain a new access token when needed.
-- CSRF: Because we use SameSite=Lax for the refresh cookie and the refresh endpoint is POST, the risk is reduced for typical navigation patterns. For higher security, implement CSRF tokens or SameSite=Strict depending on your SSO flow.
+- CSRF protection is now implemented via the `/api/v1/security/csrf` bootstrap endpoint and middleware. When `CSRF_ENABLED=0`, the middleware is skipped for backward compatibility, but you should plan to enable it in staging/production.
 
 Troubleshooting
 
@@ -80,7 +104,8 @@ Troubleshooting
 - If refresh isn't working, check backend logs for validation errors and ensure cookies are being set (browser devtools -> Application -> Cookies).
 
 If you want, I can now:
+
 - Add Playwright E2E tests for login/refresh/logout flows (requires test infra + CI changes), or
 - Implement stricter SameSite + CSRF handling on the backend.
 
-*** End of document ***
+End of document.
