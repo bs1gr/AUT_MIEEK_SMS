@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ServerControl from './ServerControl';
 
 // Mock useLanguage to avoid i18n dependency
@@ -17,10 +17,9 @@ vi.mock('../../api/api', () => ({
 
 describe('ServerControl', () => {
   it('renders restart button', async () => {
-    await act(async () => {
-      render(<ServerControl />);
-    });
+    render(<ServerControl />);
+
     // The restart button label uses the translation key 'controlPanel.restart'
-    expect(screen.getByText('controlPanel.restart')).toBeDefined();
+    expect(await screen.findByText('controlPanel.restart')).toBeDefined();
   });
 });
