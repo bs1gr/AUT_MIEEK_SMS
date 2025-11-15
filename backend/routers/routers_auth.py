@@ -11,7 +11,12 @@ import hashlib
 import uuid
 from sqlalchemy.orm import Session
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.security import issue_csrf_cookie, clear_csrf_cookie
 import logging
+
+
+# Login / lockout helpers
+
 
 # Local imports resilient to run path - use importlib to avoid redefinition warnings
 import importlib
@@ -81,8 +86,173 @@ except Exception:
 limiter = getattr(rl_mod, "limiter")
 RATE_LIMIT_AUTH = getattr(rl_mod, "RATE_LIMIT_AUTH")
 RATE_LIMIT_WRITE = getattr(rl_mod, "RATE_LIMIT_WRITE")
+login_throttle = _resolve_backend_import("security.login_throttle", "login_throttle")
 
 router = APIRouter()
+
+
+def _get_client_identifier(request: Request | None) -> Optional[str]:
+    if request is None:
+        return None
+
+    forwarded = request.headers.get("x-forwarded-for", "").strip()
+    if forwarded:
+        first = forwarded.split(",", 1)[0].strip()
+        if first:
+            return first
+
+    real_ip = request.headers.get("x-real-ip", "").strip()
+    if real_ip:
+        return real_ip
+
+    client = getattr(request, "client", None)
+    if client and getattr(client, "host", None):
+        return str(client.host)
+
+    return None
+
+
+def _normalize_datetime(value: Optional[datetime]) -> Optional[datetime]:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        try:
+            return value.replace(tzinfo=timezone.utc)
+        except Exception:
+            return datetime.fromtimestamp(value.timestamp(), timezone.utc)
+    return value
+
+
+def _build_lockout_exception(request: Request, lockout_until: datetime) -> HTTPException:
+    lockout_ts = _normalize_datetime(lockout_until) or datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    retry_after_seconds = max(1, int((lockout_ts - now).total_seconds())) if lockout_ts > now else 1
+    headers = {"Retry-After": str(retry_after_seconds)}
+    context = {"lockout_until": lockout_ts.isoformat()}
+    return http_error(
+        status.HTTP_429_TOO_MANY_REQUESTS,
+        ErrorCode.AUTH_ACCOUNT_LOCKED,
+        "Too many failed login attempts. Please try again later.",
+        request,
+        context=context,
+        headers=headers,
+    )
+
+
+def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> None:
+    for key in keys:
+        if not key:
+            continue
+        lockout_until = login_throttle.get_lockout_until(key)
+        if lockout_until:
+            raise _build_lockout_exception(request, lockout_until)
+
+
+def _register_throttle_failure(keys: list[Optional[str]]) -> Optional[datetime]:
+    lockouts: list[datetime] = []
+    for key in keys:
+        if not key:
+            continue
+        lockout_until = login_throttle.register_failure(key)
+        if lockout_until:
+            lockouts.append(lockout_until)
+    if lockouts:
+        return min(lockouts)
+    return None
+
+
+def _reset_throttle_entries(keys: list[Optional[str]]) -> None:
+    for key in keys:
+        if key:
+            login_throttle.reset(key)
+
+
+def _enforce_user_lockout(user: Any, request: Request, db: Session) -> None:
+    if not user:
+        return
+    lockout_until = _normalize_datetime(getattr(user, "lockout_until", None))
+    if not lockout_until:
+        return
+
+    now = datetime.now(timezone.utc)
+    if lockout_until > now:
+        raise _build_lockout_exception(request, lockout_until)
+
+    # Lockout expired – clear state for future attempts
+    user.lockout_until = None
+    user.failed_login_attempts = 0
+    try:
+        db.add(user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
+def _register_user_failed_attempt(user: Any, db: Session) -> Optional[datetime]:
+    if not user:
+        return None
+
+    now = datetime.now(timezone.utc)
+    max_attempts = max(1, int(getattr(settings, "AUTH_LOGIN_MAX_ATTEMPTS", 5)))
+    window_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300)))
+    lockout_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_LOCKOUT_SECONDS", 300)))
+    window_delta = timedelta(seconds=window_seconds)
+
+    last_failure = _normalize_datetime(getattr(user, "last_failed_login_at", None))
+    attempts = int(getattr(user, "failed_login_attempts", 0) or 0)
+    if last_failure and now - last_failure > window_delta:
+        attempts = 0
+
+    attempts += 1
+    lockout_until: Optional[datetime] = None
+    if attempts >= max_attempts:
+        lockout_until = now + timedelta(seconds=lockout_seconds)
+        user.lockout_until = lockout_until
+        attempts = 0
+    else:
+        user.lockout_until = getattr(user, "lockout_until", None)
+
+    user.failed_login_attempts = attempts
+    user.last_failed_login_at = now
+
+    try:
+        db.add(user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return lockout_until
+
+
+def _reset_user_login_state(user: Any, db: Session) -> None:
+    if not user:
+        return
+    user.failed_login_attempts = 0
+    user.last_failed_login_at = None
+    user.lockout_until = None
+    try:
+        db.add(user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+@router.get("/security/csrf")
+@limiter.limit(RATE_LIMIT_AUTH)
+async def fetch_csrf_token(request: Request, response: Response):
+    _ = request
+    token = issue_csrf_cookie(response, include_header=True)
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return {
+        "csrf_token": token,
+        "header_name": settings.CSRF_HEADER_NAME,
+        "cookie_name": settings.CSRF_COOKIE_NAME,
+        "expires_in": settings.CSRF_COOKIE_MAX_AGE,
+    }
+
+
 
 # Use PBKDF2-SHA256 to avoid platform-specific bcrypt backend issues.
 # It is widely supported, battle-tested, and avoids the 72-byte bcrypt limit.
@@ -290,15 +460,36 @@ async def login(
     db: Session = Depends(get_db),
 ):
     try:
-        user = db.query(models.User).filter(models.User.email == payload.email.lower().strip()).first()
+        normalized_email = payload.email.lower().strip()
+        client_identifier = _get_client_identifier(request)
+        throttle_keys: list[str | None] = [f"email:{normalized_email}" if normalized_email else None]
+        if client_identifier:
+            throttle_keys.append(f"ip:{client_identifier}")
+
+        _enforce_throttle_guards(throttle_keys, request)
+
+        user = db.query(models.User).filter(models.User.email == normalized_email).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
-        if not user or not verify_password(payload.password, hashed_pw):
+
+        if user:
+            _enforce_user_lockout(user, request, db)
+
+        password_valid = bool(user and verify_password(payload.password, hashed_pw))
+        if not password_valid:
+            user_lockout_until = _register_user_failed_attempt(user, db) if user else None
+            throttle_lockout_until = _register_throttle_failure(throttle_keys)
+            lockout_until = user_lockout_until or throttle_lockout_until
+            if lockout_until:
+                raise _build_lockout_exception(request, lockout_until)
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
                 ErrorCode.AUTH_INVALID_CREDENTIALS,
                 "Invalid email or password",
                 request,
             )
+
+        _reset_user_login_state(user, db)
+        _reset_throttle_entries(throttle_keys)
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
@@ -323,10 +514,12 @@ async def login(
                     samesite="lax",
                     max_age=max_age_val,
                 )
-            # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
-            return Token(access_token=access_token)
         except Exception:
-            return Token(access_token=access_token)
+            pass
+
+        issue_csrf_cookie(response, include_header=True)
+        # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
+        return Token(access_token=access_token)
     except HTTPException:
         raise
     except Exception as exc:
@@ -434,6 +627,7 @@ async def refresh(
                 samesite="lax",
                 max_age=max_age_val,
             )
+            issue_csrf_cookie(response, include_header=True)
         return Token(access_token=new_access)
     except HTTPException:
         raise
@@ -476,11 +670,13 @@ async def logout(request: Request, payload: LogoutRequest = Body(None), db: Sess
         # Clear refresh cookie on logout
         resp = JSONResponse(content={"ok": True})
         resp.delete_cookie("refresh_token")
+        clear_csrf_cookie(resp)
         return resp
     except Exception:
         # On unexpected errors, still return 200 to keep logout idempotent
         resp = JSONResponse(content={"ok": True})
         resp.delete_cookie("refresh_token")
+        clear_csrf_cookie(resp)
         return resp
 
 
@@ -663,6 +859,9 @@ async def admin_reset_password(
 
     try:
         user.hashed_password = get_password_hash(payload.new_password)
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        user.last_failed_login_at = None
         db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
         db.add(user)
         db.commit()

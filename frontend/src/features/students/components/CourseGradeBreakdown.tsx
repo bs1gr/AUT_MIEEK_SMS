@@ -6,6 +6,7 @@ import { useLanguage } from '@/LanguageContext';
 interface CourseGradeBreakdownProps {
   gradesList: Grade[];
   coursesMap: Map<number, Course>;
+  onNavigateToCourse?: (courseId: number) => void;
 }
 
 /**
@@ -15,6 +16,7 @@ interface CourseGradeBreakdownProps {
 const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
   gradesList,
   coursesMap,
+  onNavigateToCourse,
 }) => {
   const { t } = useLanguage();
 
@@ -41,7 +43,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
       const percentages = courseGrades.map(g => (g.grade / g.max_grade) * 100);
       const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
       const avgGreek = percentageToGreekScale(avgPercentage);
-      const letterGrade = getLetterGrade(avgGreek);
+      const letterGrade = getLetterGrade(avgPercentage);
       const gradeColor = getGreekGradeColor(avgGreek);
 
       // Group by category
@@ -111,20 +113,31 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
             <div key={courseId} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Course Header */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center gap-4">
                   <div>
                     <div className="font-semibold text-gray-900">{courseName}</div>
                     {courseCode && <div className="text-xs text-gray-600">{courseCode}</div>}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-700">
-                      {t('average')}: <span className={`font-bold ${gradeColor}`}>
-                        {avgGreek.toFixed(1)}/20
-                      </span>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm text-gray-700">
+                        {t('average')}: <span className={`font-bold ${gradeColor}`}>
+                          {avgGreek.toFixed(1)}/20
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {avgPercentage.toFixed(1)}% ({letterGrade})
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {avgPercentage.toFixed(1)}% ({letterGrade})
-                    </div>
+                    {onNavigateToCourse && (
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors"
+                        onClick={() => onNavigateToCourse(courseId)}
+                      >
+                        {t('viewDetails') || 'View Details'} →
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -171,7 +184,8 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
   // Only re-render if gradesList or coursesMap actually changed
   return (
     prevProps.gradesList === nextProps.gradesList &&
-    prevProps.coursesMap === nextProps.coursesMap
+    prevProps.coursesMap === nextProps.coursesMap &&
+    prevProps.onNavigateToCourse === nextProps.onNavigateToCourse
   );
 });
 

@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3 } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI } from '../../api/api';
-import CalendarView from '@/features/calendar/components/CalendarView';
 import type { OperationsLocationState } from '@/features/operations/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -268,7 +267,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       {showPrintCalendar && (
         <div className="print-calendar-hidden">
           <div ref={calendarRef}>
-            <CalendarView courses={courses} />
+            <PrintableCalendarSheet courses={courses} t={t} language={language} />
           </div>
         </div>
       )}
@@ -513,6 +512,209 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       </div>
     </div>
   );
+};
+
+type PrintableSession = {
+  courseId: number | string;
+  courseName: string;
+  courseCode?: string;
+  start: string;
+  end: string;
+  duration: number;
+  periods: number;
+  location?: string;
+};
+
+interface PrintableCalendarSheetProps {
+  courses?: any[];
+  t: (key: string, options?: Record<string, unknown>) => string;
+  language: string;
+}
+
+const WEEKDAY_CONFIG: Array<{ key: string; labelKey: string }> = [
+  { key: 'Monday', labelKey: 'monday' },
+  { key: 'Tuesday', labelKey: 'tuesday' },
+  { key: 'Wednesday', labelKey: 'wednesday' },
+  { key: 'Thursday', labelKey: 'thursday' },
+  { key: 'Friday', labelKey: 'friday' },
+];
+
+const PrintableCalendarSheet = ({ courses = [], t, language }: PrintableCalendarSheetProps) => {
+  const scheduleByDay = useMemo(() => buildPrintableSchedule(courses), [courses]);
+  const totalSessions = useMemo(
+    () => Object.values(scheduleByDay).reduce((sum, sessions) => sum + sessions.length, 0),
+    [scheduleByDay]
+  );
+  const scheduledCourseCount = useMemo(() => {
+    const ids = new Set<string | number>();
+    Object.values(scheduleByDay).forEach((sessions) => {
+      sessions.forEach((session) => ids.add(session.courseId));
+    });
+    return ids.size;
+  }, [scheduleByDay]);
+  const generatedOn = useMemo(
+    () => new Intl.DateTimeFormat(language || 'en', { dateStyle: 'full', timeStyle: 'short' }).format(new Date()),
+    [language]
+  );
+
+  return (
+    <div className="print-calendar-sheet">
+      <header className="print-calendar-sheet__header">
+        <div>
+          <p className="print-calendar-sheet__title">{t('printCalendarSheetTitle')}</p>
+          <p className="print-calendar-sheet__subtitle">{t('printCalendarSheetSubtitle')}</p>
+        </div>
+        <div className="print-calendar-sheet__meta">
+          <div className="print-calendar-sheet__meta-block">
+            <span className="print-calendar-sheet__meta-label">{t('printCalendarSummary')}</span>
+            <p className="print-calendar-sheet__meta-value">{t('printCalendarCoursesCount', { count: scheduledCourseCount })}</p>
+            <p className="print-calendar-sheet__meta-sub">{t('printCalendarSessionsCount', { count: totalSessions })}</p>
+          </div>
+          <div className="print-calendar-sheet__meta-block">
+            <span className="print-calendar-sheet__meta-label">
+              {t('printCalendarGeneratedOn', { date: generatedOn })}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <section className="print-calendar-sheet__legend">
+        <h3>{t('printCalendarLegend')}</h3>
+        <div className="print-calendar-sheet__legend-items">
+          <span>
+            {t('printCalendarLegendDurationLabel')}: {t('printCalendarLegendDurationHint')}
+          </span>
+          <span>
+            {t('printCalendarLegendPeriodsLabel')}: {t('printCalendarLegendPeriodsHint')}
+          </span>
+          <span>{t('printCalendarLegendNote')}</span>
+        </div>
+      </section>
+
+      <section className="print-calendar-sheet__grid">
+        {WEEKDAY_CONFIG.map((dayConfig) => {
+          const sessions = scheduleByDay[dayConfig.key] || [];
+          return (
+            <div key={dayConfig.key} className="print-calendar-sheet__day">
+              <div className="print-calendar-sheet__day-header">
+                <span>{t(dayConfig.labelKey)}</span>
+                <span>
+                  {sessions.length} {sessions.length === 1 ? t('class') : t('classes')}
+                </span>
+              </div>
+              {sessions.length === 0 ? (
+                <p className="print-calendar-sheet__empty">{t('printCalendarNoClassesDay')}</p>
+              ) : (
+                <ul className="print-calendar-sheet__sessions">
+                  {sessions.map((session, idx) => (
+                    <li key={`${session.courseId}-${dayConfig.key}-${idx}`} className="print-calendar-sheet__session">
+                      <div className="print-calendar-sheet__session-title">
+                        <span>
+                          {session.courseCode ? `${session.courseCode} · ${session.courseName}` : session.courseName}
+                        </span>
+                        <span>
+                          {session.start} – {session.end}
+                        </span>
+                      </div>
+                      <div className="print-calendar-sheet__session-meta">
+                        <span>
+                          {t('printCalendarLegendDurationLabel')}: {session.duration * session.periods} {t('minutes')}
+                        </span>
+                        <span>
+                          {t('printCalendarLegendPeriodsLabel')}: {session.periods}
+                        </span>
+                        {session.location && <span>{session.location}</span>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </section>
+
+      <footer className="print-calendar-sheet__footer">{t('printCalendarFooterNote')}</footer>
+    </div>
+  );
+};
+
+const buildPrintableSchedule = (courses: any[]): Record<string, PrintableSession[]> => {
+  const schedule = WEEKDAY_CONFIG.reduce<Record<string, PrintableSession[]>>((acc, day) => {
+    acc[day.key] = [];
+    return acc;
+  }, {} as Record<string, PrintableSession[]>);
+
+  (Array.isArray(courses) ? courses : []).forEach((course) => {
+    const entries = extractScheduleEntries(course?.teaching_schedule);
+    entries.forEach(({ day, data }) => {
+      if (!schedule[day]) return;
+      const start = normalizeTimeString(data?.start_time);
+      const duration = Number(data?.duration) || 45;
+      const periods = Number(data?.periods) || 1;
+      schedule[day].push({
+        courseId: course?.id ?? `${course?.course_code || course?.course_name}-${day}`,
+        courseName: course?.course_name || course?.name || '',
+        courseCode: course?.course_code || '',
+        start,
+        end: calculateEndTime(start, periods, duration),
+        duration,
+        periods,
+        location: data?.location || course?.location || course?.room || '',
+      });
+    });
+  });
+
+  Object.keys(schedule).forEach((day) => {
+    schedule[day].sort((a, b) => (a.start > b.start ? 1 : -1));
+  });
+
+  return schedule;
+};
+
+const extractScheduleEntries = (schedule: any): Array<{ day: string; data: any }> => {
+  const entries: Array<{ day: string; data: any }> = [];
+  if (!schedule) return entries;
+
+  const pushEntry = (day?: string, data?: any) => {
+    if (!day) return;
+    entries.push({ day, data: data || {} });
+  };
+
+  if (Array.isArray(schedule)) {
+    schedule.forEach((entry) => pushEntry(entry?.day, entry));
+  } else if (schedule && typeof schedule === 'object') {
+    Object.entries(schedule).forEach(([day, cfg]) => pushEntry(day, cfg));
+  }
+
+  return entries;
+};
+
+const normalizeTimeString = (value?: string): string => {
+  if (!value || typeof value !== 'string') {
+    return '08:00';
+  }
+  const [hoursRaw, minutesRaw] = value.split(':');
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw ?? '0');
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return '08:00';
+  }
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const calculateEndTime = (start: string, periods: number, duration: number): string => {
+  const [hoursRaw, minutesRaw] = start.split(':');
+  const startHour = Number(hoursRaw);
+  const startMinute = Number(minutesRaw);
+  if (Number.isNaN(startHour) || Number.isNaN(startMinute)) {
+    return start;
+  }
+  const startMinutes = startHour * 60 + startMinute;
+  const totalMinutes = startMinutes + periods * duration;
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  const endMinutes = totalMinutes % 60;
+  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
 };
 
 export default ExportCenter;

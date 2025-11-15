@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List, Any
+from typing import List, Any, Literal
 import os
 import secrets
 import logging
@@ -87,17 +87,38 @@ class Settings(BaseSettings):
 
     # Security / JWT
     # Names aligned with .env.example
-    # Use a long development placeholder by default so test runs and local
-    # development don't fail on import. Deployments should set a secure
-    # SECRET_KEY via environment variables (see README / .env.example).
+    # The placeholder SECRET_KEY below is intentionally rejected during startup
+    # (outside of CI/pytest where a random key is generated). Always set a
+    # unique, unpredictable key in your environment before running the app.
     SECRET_KEY: str = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
+    SECRET_KEY_STRICT_ENFORCEMENT: bool = False
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    COOKIE_SECURE: bool = False
+
+    # CSRF Protection
+    CSRF_ENABLED: bool = False
+    CSRF_HEADER_NAME: str = "X-CSRF-Token"
+    CSRF_HEADER_TYPE: str | None = None
+    CSRF_COOKIE_NAME: str = "fastapi-csrf-token"
+    CSRF_COOKIE_PATH: str = "/"
+    CSRF_COOKIE_DOMAIN: str | None = None
+    CSRF_COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
+    CSRF_COOKIE_SECURE: bool | None = None
+    CSRF_COOKIE_HTTPONLY: bool = True
+    CSRF_COOKIE_MAX_AGE: int = 3600
+    CSRF_TOKEN_LOCATION: Literal["header", "body"] = "header"
+    CSRF_TOKEN_KEY: str = "csrf-token"
+    CSRF_EXEMPT_PATHS: str = "/api/v1/security/csrf,/docs,/openapi.json,/redoc"
+    CSRF_ENFORCE_IN_TESTS: bool = False
 
     # Feature flags
     # Toggle authentication/authorization enforcement without code changes.
     # Default disabled to preserve backward compatibility and keep tests passing.
     AUTH_ENABLED: bool = False
+    AUTH_LOGIN_MAX_ATTEMPTS: int = 5
+    AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
+    AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
 
     # Default administrator bootstrap (optional)
     DEFAULT_ADMIN_EMAIL: EmailStr | None = None
@@ -115,6 +136,14 @@ class Settings(BaseSettings):
     # HTTP middleware
     ENABLE_GZIP: bool = True
     GZIP_MINIMUM_SIZE: int = 500
+    ENABLE_RESPONSE_CACHE: bool = True
+    RESPONSE_CACHE_TTL_SECONDS: int = 120
+    RESPONSE_CACHE_MAXSIZE: int = 512
+    RESPONSE_CACHE_INCLUDE_HEADERS: str = "accept-language,accept"
+    RESPONSE_CACHE_EXCLUDED_PATHS: str = "/control,/health,/health/live,/health/ready"
+    RESPONSE_CACHE_INCLUDE_PREFIXES: str = "/api/v1/analytics,/api/v1/daily-performance,/api/v1/grades/analysis"
+    RESPONSE_CACHE_REQUIRE_OPT_IN: bool = True
+    RESPONSE_CACHE_OPT_IN_HEADER: str = "x-cache-allow"
 
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
@@ -136,6 +165,23 @@ class Settings(BaseSettings):
                 pass
         return [part.strip() for part in s.split(",") if part.strip()]
 
+    @property
+    def CSRF_EXEMPT_PATHS_LIST(self) -> List[str]:
+        raw = getattr(self, "CSRF_EXEMPT_PATHS", "")
+        if isinstance(raw, list):
+            parts = raw
+        else:
+            parts = [segment.strip() for segment in str(raw or "").split(",")]
+        normalized: List[str] = []
+        for entry in parts:
+            if not entry:
+                continue
+            path = entry if entry.startswith("/") else f"/{entry}"
+            while "//" in path:
+                path = path.replace("//", "/")
+            normalized.append(path.rstrip(" "))
+        return normalized
+
     @field_validator("SEMESTER_WEEKS")
     @classmethod
     def validate_semester_weeks(cls, v: int) -> int:
@@ -144,9 +190,46 @@ class Settings(BaseSettings):
             raise ValueError("SEMESTER_WEEKS must be between 1 and 52")
         return v
 
+    @field_validator("CSRF_COOKIE_SAMESITE")
+    @classmethod
+    def validate_csrf_cookie_samesite(cls, v: str) -> str:
+        value = (v or "lax").strip().lower()
+        if value not in {"lax", "strict", "none"}:
+            raise ValueError("CSRF_COOKIE_SAMESITE must be one of: lax, strict, none")
+        return value
+
+    @field_validator("CSRF_TOKEN_LOCATION")
+    @classmethod
+    def validate_csrf_token_location(cls, v: str) -> str:
+        value = (v or "header").strip().lower()
+        if value not in {"header", "body"}:
+            raise ValueError("CSRF_TOKEN_LOCATION must be either 'header' or 'body'")
+        return value
+
+    @field_validator("AUTH_LOGIN_MAX_ATTEMPTS")
+    @classmethod
+    def validate_auth_login_max_attempts(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("AUTH_LOGIN_MAX_ATTEMPTS must be >= 1")
+        return v
+
+    @field_validator("AUTH_LOGIN_LOCKOUT_SECONDS")
+    @classmethod
+    def validate_auth_login_lockout_seconds(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("AUTH_LOGIN_LOCKOUT_SECONDS must be >= 1")
+        return v
+
+    @field_validator("AUTH_LOGIN_TRACKING_WINDOW_SECONDS")
+    @classmethod
+    def validate_auth_login_tracking_window(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("AUTH_LOGIN_TRACKING_WINDOW_SECONDS must be >= 1")
+        return v
+
     @model_validator(mode="after")
     def check_secret_key(self) -> "Settings":
-        """Allow insecure SECRET_KEY if AUTH_ENABLED is False, else enforce strong key."""
+        """Optionally enforce strong SECRET_KEY depending on auth/flag settings."""
         is_ci = bool(
             os.environ.get("GITHUB_ACTIONS")
             or os.environ.get("CI")
@@ -166,39 +249,47 @@ class Settings(BaseSettings):
             "yes",
         )
 
-        # If AUTH_ENABLED is False, allow any key for development
-        if not self.AUTH_ENABLED:
+        normalized_secret = (self.SECRET_KEY or "").strip()
+        object.__setattr__(self, "SECRET_KEY", normalized_secret)
+
+        enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
+        if not enforcement_active:
             return self
 
-        insecure_names = {"change-me", "changeme", ""}
-        is_insecure_placeholder = self.SECRET_KEY.lower() in insecure_names or self.SECRET_KEY.lower().startswith(
-            "dev-placeholder"
+        lower_secret = normalized_secret.lower()
+
+        insecure_placeholders = {
+            "",
+            "change-me",
+            "changeme",
+            "your-secret-key-change-this-in-production-use-long-random-string",
+        }
+        is_placeholder = (
+            lower_secret in insecure_placeholders
+            or lower_secret.startswith("dev-placeholder")
+            or "your-secret-key" in lower_secret
         )
 
-        if is_insecure_placeholder:
+        def handle_insecure(reason: str) -> "Settings":
             if is_ci or is_pytest or allow_insecure_flag:
-                new_key = secrets.token_urlsafe(32)
+                new_key = secrets.token_urlsafe(48)
                 logging.getLogger(__name__).warning(
-                    "Detected insecure SECRET_KEY in CI/test environment — auto-generating a temporary secret."
+                    "Detected insecure SECRET_KEY (%s) in CI/test environment — auto-generating a temporary secret.",
+                    reason,
                 )
                 object.__setattr__(self, "SECRET_KEY", new_key)
                 return self
             raise ValueError(
-                "SECRET_KEY must be changed from default value 'change-me'. "
-                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                f"SECRET_KEY is invalid: {reason}. "
+                "Set a strong random value via .env (example: python -c \"import secrets; print(secrets.token_urlsafe(48))\")."
             )
 
-        if len(self.SECRET_KEY) < 32:
-            if is_ci or is_pytest or allow_insecure_flag:
-                new_key = secrets.token_urlsafe(32)
-                logging.getLogger(__name__).warning(
-                    "Provided SECRET_KEY is too short in CI/test environment — auto-generating a temporary secret."
-                )
-                object.__setattr__(self, "SECRET_KEY", new_key)
-                return self
-            raise ValueError(
-                f"SECRET_KEY must be at least 32 characters (current length: {len(self.SECRET_KEY)}). "
-                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+        if is_placeholder:
+            return handle_insecure("placeholder value detected")
+
+        if len(normalized_secret) < 32:
+            return handle_insecure(
+                f"must be at least 32 characters (current length: {len(normalized_secret)})"
             )
 
         return self
@@ -265,6 +356,20 @@ class Settings(BaseSettings):
     def validate_gzip_minimum_size(cls, v: int) -> int:
         if v < 128:
             raise ValueError("GZIP_MINIMUM_SIZE must be at least 128 bytes to avoid compressing tiny payloads")
+        return v
+
+    @field_validator("RESPONSE_CACHE_TTL_SECONDS")
+    @classmethod
+    def validate_response_cache_ttl(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("RESPONSE_CACHE_TTL_SECONDS must be >= 1")
+        return v
+
+    @field_validator("RESPONSE_CACHE_MAXSIZE")
+    @classmethod
+    def validate_response_cache_maxsize(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("RESPONSE_CACHE_MAXSIZE must be >= 1")
         return v
 
 

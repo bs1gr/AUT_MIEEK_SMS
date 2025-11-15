@@ -20,7 +20,33 @@ export default {
   appearanceThemesDesc: 'Choose from modern UI themes inspired by 2025 design trends.',
   themeButton: 'Theme',
   currentTheme: 'Current Theme',
-  themeAppliesTo: 'This theme applies to Control Panel Operations and other components that support appearance customization.',
+  themeAppliesTo: 'This theme now styles the entire interface — dashboards, navigation, data tables, and maintenance tooling.',
+  themeOptions: {
+    default: {
+      name: 'Default',
+      description: 'Balanced light/dark theme',
+    },
+    glassmorphism: {
+      name: 'Glassmorphism',
+      description: 'Frosted glass with blur effects',
+    },
+    neumorphism: {
+      name: 'Neumorphism',
+      description: 'Soft 3D depth with shadows',
+    },
+    gradient: {
+      name: 'Gradient',
+      description: 'Vibrant gradients with glass accents',
+    },
+    modernDark: {
+      name: 'Modern Dark',
+      description: 'High-contrast night mode',
+    },
+    lightProfessional: {
+      name: 'Light Professional',
+      description: 'Clean minimal light mode',
+    },
+  },
   appearancePreview: 'Live preview',
   appearancePreviewDesc: 'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.',
   appearancePreviewMetrics: 'Sample analytics metrics',
@@ -56,6 +82,9 @@ export default {
   cancel: 'Cancel',
   exiting: 'Exiting...',
   restartDisabled: 'Restart disabled (backend offline)',
+  restartFailed: 'Unable to restart backend automatically',
+  restartScheduled: 'Restart scheduled — polling for availability',
+  restartUnsupported: 'Restart is only available in native mode. Use host scripts (SMS.ps1 -Restart) inside Docker.',
   exitDisabled: 'Exit disabled (backend offline)',
   serverStopped: 'Server Stopped',
   canCloseWindow: 'You can now close this window',

@@ -23,14 +23,24 @@ def test_semester_weeks_validator_rejects_out_of_range():
         Settings(SEMESTER_WEEKS=0)
 
 
-def test_secret_key_placeholder_generates_random_key(monkeypatch: pytest.MonkeyPatch):
+def test_secret_key_placeholder_generates_random_key_when_enforced(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "config/test")
-    # With AUTH_ENABLED True, insecure key is auto-generated
-    settings = Settings(SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345", AUTH_ENABLED=True)
+    settings = Settings(
+        SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345",
+        AUTH_ENABLED=False,
+        SECRET_KEY_STRICT_ENFORCEMENT=True,
+    )
     assert settings.SECRET_KEY != "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
     assert len(settings.SECRET_KEY) >= 32
-    # With AUTH_ENABLED False, insecure key is allowed as-is
-    settings = Settings(SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345", AUTH_ENABLED=False)
+
+
+def test_secret_key_placeholder_allowed_when_not_enforced(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PYTEST_CURRENT_TEST", "config/test")
+    settings = Settings(
+        SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345",
+        AUTH_ENABLED=False,
+        SECRET_KEY_STRICT_ENFORCEMENT=False,
+    )
     assert settings.SECRET_KEY == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 
@@ -52,21 +62,30 @@ def test_secret_key_placeholder_raises_when_not_in_test_env(monkeypatch: pytest.
         monkeypatch.delenv(flag, raising=False)
     monkeypatch.setattr(sys, "argv", ["python"], raising=False)
 
-    # With AUTH_ENABLED True, should raise
+    # Enforced either via AUTH_ENABLED or explicit flag
     with pytest.raises(ValueError):
-        Settings(SECRET_KEY="change-me", AUTH_ENABLED=True)
-    # With AUTH_ENABLED False, should not raise
-    Settings(SECRET_KEY="change-me", AUTH_ENABLED=False)
+        Settings(SECRET_KEY="change-me", AUTH_ENABLED=True, SECRET_KEY_STRICT_ENFORCEMENT=False)
+    with pytest.raises(ValueError):
+        Settings(SECRET_KEY="change-me", AUTH_ENABLED=False, SECRET_KEY_STRICT_ENFORCEMENT=True)
+
+    # When neither auth nor strict mode is enabled, placeholder is allowed
+    Settings(SECRET_KEY="change-me", AUTH_ENABLED=False, SECRET_KEY_STRICT_ENFORCEMENT=False)
 
 
-def test_secret_key_short_generates_when_allowed(monkeypatch: pytest.MonkeyPatch):
+def test_secret_key_short_generates_when_enforced(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("CI", "1")
     # With AUTH_ENABLED True, short key is auto-generated
-    settings = Settings(SECRET_KEY="short", AUTH_ENABLED=True)
+    settings = Settings(SECRET_KEY="short", AUTH_ENABLED=True, SECRET_KEY_STRICT_ENFORCEMENT=False)
     assert len(settings.SECRET_KEY) >= 32
     assert settings.SECRET_KEY != "short"
-    # With AUTH_ENABLED False, short key is allowed as-is
-    settings = Settings(SECRET_KEY="short", AUTH_ENABLED=False)
+    # With AUTH_DISABLED but strict flag enabled, still auto-generated
+    settings = Settings(SECRET_KEY="short", AUTH_ENABLED=False, SECRET_KEY_STRICT_ENFORCEMENT=True)
+    assert len(settings.SECRET_KEY) >= 32
+    assert settings.SECRET_KEY != "short"
+
+
+def test_secret_key_short_allowed_when_not_enforced():
+    settings = Settings(SECRET_KEY="short", AUTH_ENABLED=False, SECRET_KEY_STRICT_ENFORCEMENT=False)
     assert settings.SECRET_KEY == "short"
 
 

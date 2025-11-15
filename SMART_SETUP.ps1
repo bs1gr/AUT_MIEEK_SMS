@@ -50,6 +50,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $logPath = Join-Path $root 'setup.log'
+$backendPidFile = Join-Path $root '.backend.pid'
+$frontendPidFile = Join-Path $root '.frontend.pid'
 
 # ===== LOGGING =====
 function Write-Log {
@@ -106,12 +108,30 @@ function Install-NativeBackendDependencies {
 
   Push-Location $backendDir
   try {
+    $venvDir = Join-Path $backendDir '.venv'
+    $venvPython = if ($IsWindows) {
+      Join-Path $venvDir 'Scripts\python.exe'
+    } else {
+      Join-Path $venvDir 'bin/python'
+    }
+
+    if (-not (Test-Path $venvPython)) {
+      Write-Log 'Creating backend virtual environment (.venv)...'
+      python -m venv '.venv' 2>&1 | ForEach-Object { Write-Log $_ }
+      if ($LASTEXITCODE -ne 0) {
+        throw 'Failed to create backend virtual environment (.venv)'
+      }
+    }
+
+    $pythonCmd = if (Test-Path $venvPython) { $venvPython } else { 'python' }
+    Write-Log "Using backend Python interpreter: $pythonCmd"
+
     if ($ForceInstall) {
       Write-Log 'Force reinstall of backend dependencies requested' 'WARN'
     }
 
     Write-Log 'Installing backend dependencies (pip)...'
-    python -m pip install --disable-pip-version-check --upgrade pip 2>&1 | ForEach-Object { Write-Log $_ }
+    & $pythonCmd -m pip install --disable-pip-version-check --upgrade pip 2>&1 | ForEach-Object { Write-Log $_ }
     if ($LASTEXITCODE -ne 0) {
       throw 'Failed to upgrade pip for backend dependencies'
     }
@@ -120,7 +140,7 @@ function Install-NativeBackendDependencies {
     if ($ForceInstall) { $installArgs += '--force-reinstall' }
     $installArgs += '-r'
     $installArgs += 'requirements.txt'
-    python @installArgs 2>&1 | ForEach-Object { Write-Log $_ }
+    & $pythonCmd @installArgs 2>&1 | ForEach-Object { Write-Log $_ }
     if ($LASTEXITCODE -ne 0) {
       throw 'Failed to install backend requirements'
     }
@@ -188,14 +208,32 @@ function Start-NativeBackendProcess {
   )
   $command = $commandSteps -join '; '
   Write-Log 'Starting backend development server (uvicorn)...'
-  return Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
+  $proc = Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
+  if ($null -ne $proc) {
+    try {
+      Set-Content -LiteralPath $backendPidFile -Value $proc.Id -Encoding ascii
+      Write-Log "Recorded backend native PID $($proc.Id)"
+    } catch {
+      Write-Log "Failed to record backend PID: $($_.Exception.Message)" 'WARN'
+    }
+  }
+  return $proc
 }
 
 function Start-NativeFrontendProcess {
   $frontendDir = Join-Path $root 'frontend'
   $command = "Set-Location -LiteralPath '$frontendDir'; npm run dev"
   Write-Log 'Starting frontend development server (Vite)...'
-  return Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
+  $proc = Start-Process -FilePath 'pwsh' -ArgumentList '-NoLogo','-NoExit','-Command',$command -PassThru
+  if ($null -ne $proc) {
+    try {
+      Set-Content -LiteralPath $frontendPidFile -Value $proc.Id -Encoding ascii
+      Write-Log "Recorded frontend native PID $($proc.Id)"
+    } catch {
+      Write-Log "Failed to record frontend PID: $($_.Exception.Message)" 'WARN'
+    }
+  }
+  return $proc
 }
 
 # ===== VERSION SYNC =====

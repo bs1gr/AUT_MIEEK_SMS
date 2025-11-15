@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-01-10
-**Version**: 1.5.0
+**Last Updated**: 2025-11-15
+**Version**: 1.6.3
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -10,16 +10,19 @@ This document serves as the single source of truth for all project documentation
 ## 📚 Core Documentation (Current & Active)
 
 ### Getting Started
+
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap (Updated 2025-01-10)
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
 
 ### Installation & Deployment
+
 - **[INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)** - Step-by-step installation for Windows/Mac/Linux
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 
 ### Performance & Optimization
+
 - **[PERFORMANCE_OPTIMIZATIONS_2025-01-10.md](../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements (NEW)
   - Database indexing (+40% query speed)
   - Response caching (+70% faster)
@@ -31,16 +34,29 @@ This document serves as the single source of truth for all project documentation
 ## 📂 Specialized Documentation
 
 ### Development
+
 - **[docs/QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Quick start for developers
 - **[docs/ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
 - **[docs/AUTHENTICATION.md](AUTHENTICATION.md)** - Authentication implementation guide
 - **[docs/LOCALIZATION.md](LOCALIZATION.md)** - Internationalization (i18n) guide
 
 ### Operations
+
 - **[docs/DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)** - Docker commands and troubleshooting
 - **[docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
+- **[docs/DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Inventory of scripts, workflows, and runbooks required for release readiness
+
+
+### Release Automation
+
+- **[docs/releases/v1.6.3.md](releases/v1.6.3.md)** - Canonical release notes plus archive/cleanup checklist
+- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to v1.6.2 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
+- **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
+- **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
+
 
 ### Guides (Greek)
+
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
 
@@ -54,28 +70,35 @@ This document serves as the single source of truth for all project documentation
 |--------|-------|-------------|
 | ✅ Active | 12 | Current, maintained documentation |
 
-### Recent Updates (2025-01-10)
+### Recent Updates (2025-11-15)
+
+1. ✅ **Release finalized**: README, CHANGELOG, and `.env` all aligned to v1.6.3 with explicit guidance for archiving older assets.
+2. 🗂️ **Archive surfaced**: Added instructions for packaging legacy setup/stop wrappers inside GitHub Releases and pointed operators to `archive/README.md`.
+3. 📚 **Docs refreshed**: README, docs/SCRIPTS_GUIDE.md, and docs/releases notes now explain the v1.6.3 cut plus the new GitHub package retirement workflow.
+
+### Previous Updates (2025-01-10)
 
 1. ✅ **Created**: PERFORMANCE_OPTIMIZATIONS_2025-01-10.md
 2. ✅ **Created**: DOCUMENTATION_CLEANUP_2025-01-10.md
 3. ✅ **Updated**: TODO.md (comprehensive refresh)
 4. ✅ **Created**: This documentation index
 5. 🗑️ **Removed**: 9 deprecated/outdated documentation files
-   - DEPLOYMENT_READINESS_ANALYSIS.md
-   - REFACTORING_PLAN.md
-   - RELEASE_READINESS_v1.3.9.md
-   - DEPLOYMENT_DECISION_TREE.md
-   - docs/IMPROVEMENT_ROADMAP.md
-   - docs/V2_MODERNIZATION_ROADMAP.md
-   - docs/DATABASE_REFACTORING_ANALYSIS.md
-   - docs/RELEASE_NOTES_IMPORT_RESOLVER_SWEEP.md
-   - docs/DEPLOYMENT_MODE_DECISION.md
+
+- DEPLOYMENT_READINESS_ANALYSIS.md
+- REFACTORING_PLAN.md
+- RELEASE_READINESS_v1.3.9.md
+- DEPLOYMENT_DECISION_TREE.md
+- docs/IMPROVEMENT_ROADMAP.md
+- docs/V2_MODERNIZATION_ROADMAP.md
+- docs/DATABASE_REFACTORING_ANALYSIS.md
+- docs/RELEASE_NOTES_IMPORT_RESOLVER_SWEEP.md
+- docs/DEPLOYMENT_MODE_DECISION.md
 
 ---
 
 ## 🧭 Navigation Guide
 
-### I want to...
+### I want to
 
 **Install the application**
 → Start with [INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)
@@ -132,18 +155,21 @@ This document serves as the single source of truth for all project documentation
 ## 🔄 Maintenance Schedule
 
 ### Monthly (First week of month)
+
 - [ ] Review TODO.md progress
 - [ ] Update this documentation index
 - [ ] Archive completed analyses
 - [ ] Update CHANGELOG.md for new release
 
 ### Quarterly (Every 3 months)
+
 - [ ] Comprehensive documentation audit
 - [ ] Update outdated screenshots/examples
 - [ ] Review and update ARCHITECTURE.md
 - [ ] Verify all links are working
 
 ### Yearly
+
 - [ ] Major documentation refactoring if needed
 - [ ] Archive old versioned documentation
 - [ ] Update technology stack references

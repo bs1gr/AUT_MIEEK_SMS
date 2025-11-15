@@ -1,6 +1,6 @@
 # Scripts Organization Guide
 
-**Last Updated**: November 2025 | **Version**: 1.5.0
+**Last Updated**: November 2025 | **Version**: 1.6.3
 
 This document describes the complete script organization for the Student Management System, including the purpose, audience, and usage of all operational scripts.
 
@@ -11,6 +11,7 @@ This document describes the complete script organization for the Student Managem
 - [Root-Level Scripts](#root-level-scripts)
 - [Developer Scripts (`scripts/dev/`)](#developer-scripts-scriptsdev)
 - [Deployment Scripts (`scripts/deploy/`)](#deployment-scripts-scriptsdeploy)
+- [Release Compliance Scripts (`scripts/ops/`)](#release-compliance-scripts-scriptsops)
 - [Common Usage Patterns](#common-usage-patterns)
 - [Linux Helpers](#linux-helpers)
 - [Migration Notes](#migration-notes)
@@ -23,7 +24,7 @@ The project's operational scripts have been reorganized into two distinct catego
 1. **Developer Workbench** (`scripts/dev/`) - For active development: build, run, debug, test, clean (use `run-native.ps1` for native mode)
 2. **End-User/DevOps** (`scripts/deploy/`) - For deployment, Docker operations, and production maintenance (use `RUN.ps1` for fullstack Docker)
 
-> **Note:** As of v1.5.0, only `RUN.ps1` (Docker), `scripts/dev/run-native.ps1` (native), and `SMS.ps1` (management) are supported entry points. All other setup/start/stop scripts are deprecated or removed.
+> **Note:** As of v1.5.0, only `RUN.ps1` (Docker), `scripts/dev/run-native.ps1` (native), and `SMS.ps1` (management) are supported entry points. Legacy setup/start/stop wrappers are archived under [`archive/`](../archive/README.md) for historical reference.
 
 This separation ensures:
 
@@ -48,7 +49,6 @@ student-management-system/
 │   │       ├── DEBUG_PORTS.ps1/.bat
 │   │       ├── DIAGNOSE_STATE.ps1
 │   │       ├── DIAGNOSE_FRONTEND.ps1/.bat
-│   │       ├── KILL_FRONTEND_NOW.ps1/.bat
 │   │       ├── CLEANUP_*.ps1
 │   │       ├── DEVTOOLS.ps1/.bat
 │   │       ├── TEST_TERMINAL.ps1
@@ -69,7 +69,19 @@ student-management-system/
 │   │       ├── CREATE_DEPLOYMENT_PACKAGE.ps1/.bat
 │   │       └── INSTALLER.ps1/.bat
 │   │
+│   ├── ops/                       # Release automation + compliance helpers
+│   │   ├── archive-releases.ps1
+│   │   ├── remove-legacy-packages.ps1
+│   │   └── samples/
+│   │       ├── releases.sample.json
+│   │       └── package-versions.sample.json
+│   │
+│   ├── operator/                  # Operator-only helpers (kill frontend, stop monitor, etc.)
 │   └── reorganize_scripts.py      # Reorganization utility
+│
+├── archive/                       # Deprecated wrappers retained for history
+│   ├── README.md
+│   └── scripts/...
 │
 └── docs/
     ├── SCRIPTS_GUIDE.md           # This file
@@ -355,6 +367,50 @@ Packaged installer for distribution.
 scripts\deploy\internal\INSTALLER.ps1
 ```
 
+## Release Compliance Scripts (`scripts/ops/`)
+
+Purpose-built PowerShell helpers that keep GitHub releases, GHCR packages, and compliance records in sync every time you cut a tag. Use these scripts (or their GitHub Actions wrapper) before publishing a new release so legacy assets are clearly marked and stale containers are removed.
+
+### `archive-releases.ps1`
+
+- Location: `scripts/ops/archive-releases.ps1`
+- Arguments: `-Repo`, `-ThresholdTag`, `-DryRun`, `-SkipPrereleaseToggle`, `-ReleasesJsonPath`, `-GhPath`
+- Behavior: Fetches every release ≤ `ThresholdTag`, prepends the ARCHIVED banner that points to `archive/README.md`, and optionally toggles the prerelease flag. Use `-ReleasesJsonPath` (for example `scripts/ops/samples/releases.sample.json`) to simulate the GitHub API response without network access.
+- Usage:
+
+    ```powershell
+    # Live data via gh
+    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -Repo bs1gr/AUT_MIEEK_SMS -ThresholdTag v1.6.2 -DryRun
+
+    # Offline simulation/local CI (no gh calls)
+    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -ThresholdTag v1.6.2 -DryRun `
+        -ReleasesJsonPath scripts/ops/samples/releases.sample.json
+    ```
+
+### `remove-legacy-packages.ps1`
+
+- Location: `scripts/ops/remove-legacy-packages.ps1`
+- Arguments: `-Org`, `-Packages`, `-DryRun`, `-Privatize`, `-PackageDataPath`, `-GhPath`
+- Behavior: Enumerates or deletes GHCR image versions for `sms-backend`, `sms-frontend`, `sms-fullstack`. Use `-Privatize` when you prefer to retain the blobs but hide them from automation. Supply `-PackageDataPath scripts/ops/samples/package-versions.sample.json` for offline dry-runs when `gh` is unavailable.
+- Usage:
+
+    ```powershell
+    # Preview live GHCR data
+    pwsh -NoProfile -File scripts/ops/remove-legacy-packages.ps1 -DryRun
+
+    # Offline dry-run (uses sample payload)
+    pwsh -NoProfile -File scripts/ops/remove-legacy-packages.ps1 -DryRun `
+        -PackageDataPath scripts/ops/samples/package-versions.sample.json
+    ```
+
+### GitHub Actions Wrapper
+
+- Workflow: [`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)
+- Trigger: `workflow_dispatch` (Actions tab) with inputs for `threshold_tag` and `dry_run`.
+- What it does: Checks out `main`, runs the archival script with the provided inputs, and publishes the log so auditors can verify what changed.
+
+📌 **Reference**: [docs/DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md) tracks ownership, run cadence, and prerequisites for every deployment helper.
+
 ## Common Usage Patterns
 
 
@@ -446,6 +502,12 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 # Restart with new version
 .\SMS.ps1 -Quick
 ```
+
+### GitHub Release Maintenance
+
+- `scripts/ops/archive-releases.ps1` — PowerShell helper that marks historical GitHub releases as archived/pre-release and injects the standard warning banner. Supports `-DryRun`, custom repository/owner overrides, offline fixtures via `-ReleasesJsonPath` (see `scripts/ops/samples/releases.sample.json`), and optional body suffixes so you can verify the exact markdown that will be pushed before touching production releases. Run it from the repo root (`pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -DryRun`) to audit the changes, then rerun without `-DryRun` when ready.
+- `.github/workflows/archive-legacy-releases.yml` — Manual GitHub Actions workflow that wraps the helper above so Release Engineering can run the archival pass directly from the Actions tab. Provide a `threshold_tag` (defaults to `v1.6.2`) and keep `dry_run=true` for verification before re-running live.
+- `scripts/ops/remove-legacy-packages.ps1` — Companion script that iterates over GHCR container packages (defaults to `sms-backend`, `sms-frontend`, `sms-fullstack`) and either deletes every version or switches visibility to private. Supports `-DryRun`, `-Privatize`, offline fixtures via `-PackageDataPath` (example: `scripts/ops/samples/package-versions.sample.json`), and custom organization/package overrides.
 
 ## Linux Helpers
 

@@ -38,7 +38,7 @@ def test_login_wrong_password(client):
     # Setup user
     payload = {
         "email": "user@example.com",
-        "password": "GoodPass123",
+        "password": "GoodPass123!",
     }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200
@@ -46,6 +46,25 @@ def test_login_wrong_password(client):
     # Wrong password
     r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": "wrong"})
     assert r2.status_code == 400
+
+
+@pytest.mark.parametrize(
+    ("idx", "password"),
+    [
+        (1, "nocaps123!"),
+        (2, "NOLOWER123!"),
+        (3, "NoDigits!!!!"),
+        (4, "NoSpecial123"),
+        (5, "Space Pass1!"),
+    ],
+)
+def test_register_rejects_weak_passwords(client, idx, password):
+    payload = {
+        "email": f"weak{idx}@example.com",
+        "password": password,
+    }
+    response = client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 422
 
 
 def test_me_requires_token(client):

@@ -261,6 +261,14 @@ All `GET` endpoints remain publicly accessible regardless of `AUTH_ENABLED` sett
 - Recommended: Mix of uppercase, lowercase, numbers, and special characters
 - Hashing: PBKDF2-SHA256 (600,000 iterations)
 
+## Account Lockout & Brute-Force Protection
+
+- Every failed login attempt increments a rolling counter per email + source IP.
+- After **5 consecutive failures within 5 minutes** (defaults configurable via `AUTH_LOGIN_MAX_ATTEMPTS`, `AUTH_LOGIN_TRACKING_WINDOW_SECONDS`, `AUTH_LOGIN_LOCKOUT_SECONDS`) the account and client fingerprint are locked for 5 minutes.
+- During the lock window `/auth/login` responds with **429 Too Many Requests** and includes a `Retry-After` header so clients can back off gracefully.
+- Successful logins (or admin password resets) immediately clear the counters and lift any lockouts.
+- Operators can tune the thresholds in `backend/.env` to match their risk appetite; setting higher values relaxes the guardrails, while lowering them hardens the system for high-security deployments.
+
 ## Security Configuration
 
 ### JWT Settings

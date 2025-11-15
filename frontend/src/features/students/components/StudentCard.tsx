@@ -58,8 +58,9 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   }, [stats?.gradesList]);
 
   const letterGrade = React.useMemo(() => {
-    if (!avgGreekGrade) return null;
-    return getLetterGrade(avgGreekGrade);
+    if (avgGreekGrade === null) return null;
+    const avgPercentage = (avgGreekGrade / 20) * 100;
+    return getLetterGrade(avgPercentage);
   }, [avgGreekGrade]);
 
   return (

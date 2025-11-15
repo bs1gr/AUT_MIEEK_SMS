@@ -377,15 +377,35 @@ try {
         $frontendDir = Join-Path $script:ScriptRoot 'frontend'
         Push-Location $frontendDir
         try {
-            if ($UseCleanInstall -and (Test-Path -LiteralPath 'package-lock.json')) {
-                Write-Host "Installing frontend dependencies (npm ci) in silent mode..." -ForegroundColor Cyan
+            $hasLock = Test-Path -LiteralPath 'package-lock.json'
+            $runCi = $hasLock -or $UseCleanInstall
+
+            if ($runCi -and $hasLock) {
+                Write-Host "Reinstalling frontend dependencies (npm ci) after cleanup..." -ForegroundColor Cyan
                 npm ci --no-audit --silent --progress false
             }
+            elseif ($runCi) {
+                Write-Host "Performing clean install without lockfile (npm install --force)..." -ForegroundColor Cyan
+                npm install --no-audit --silent --progress false --force
+            }
             else {
-                Write-Host "Installing frontend dependencies (npm install) in silent mode..." -ForegroundColor Cyan
+                Write-Host "Installing/refreshing frontend dependencies (npm install)..." -ForegroundColor Cyan
                 npm install --no-audit --silent --progress false
             }
-            $script:setupActions += "Installed frontend dependencies (npm)"
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "npm dependency installation failed (exit code $LASTEXITCODE)."
+            }
+
+            $script:setupActions += "Restored frontend dependencies (npm)"
+
+            Write-Host "Running production build to verify frontend integrity (npm run build)..." -ForegroundColor Cyan
+            npm run build -- --emptyOutDir
+            if ($LASTEXITCODE -ne 0) {
+                throw "npm run build failed (exit code $LASTEXITCODE)."
+            }
+
+            $script:setupActions += "Verified frontend via npm run build"
         }
         finally {
             Pop-Location
