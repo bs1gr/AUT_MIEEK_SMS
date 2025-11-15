@@ -326,10 +326,11 @@ No new dependencies (documentation only)
 
 ## 📞 Support Resources
 
-- **Full Roadmap**: `docs/V2_MODERNIZATION_ROADMAP.md` (1100+ lines)
-- **Deployment Decision**: `docs/DEPLOYMENT_MODE_DECISION.md`
+- **Canonical Roadmap**: `TODO.md` (all modernization milestones live here now)
+- **Documentation Index**: `docs/DOCUMENTATION_INDEX.md`
 - **Architecture**: `docs/ARCHITECTURE.md`
-- **Current Docs**: `README.md`, `DEPLOYMENT_GUIDE.md`
+- **Deployment Guides**: `README.md`, `DEPLOYMENT_GUIDE.md`, `DEPLOYMENT_CHECKLIST.md`
+- **Historical Context**: `DOCUMENTATION_CLEANUP_2025-01-10.md` (explains retired roadmaps)
 
 ---
 
