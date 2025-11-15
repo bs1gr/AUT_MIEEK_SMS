@@ -16,8 +16,9 @@ from typing import Optional, List, Dict, Any
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
@@ -25,7 +26,9 @@ from importlib import metadata as importlib_metadata  # Python 3.8+
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
 
-_limiter, _RATE_LIMIT_HEAVY = import_names("rate_limiting", "limiter", "RATE_LIMIT_HEAVY")
+_limiter, _RATE_LIMIT_HEAVY, _RATE_LIMIT_READ = import_names(
+    "rate_limiting", "limiter", "RATE_LIMIT_HEAVY", "RATE_LIMIT_READ"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -718,6 +721,7 @@ async def get_backend_logs(request: Request, lines: int = 100):
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
 async def backup_database(request: Request):
     """
     Create a backup of the SQLite database
@@ -763,6 +767,7 @@ async def backup_database(request: Request):
 
 
 @router.get("/operations/database-backups", response_model=Dict[str, Any])
+@_limiter.limit(_RATE_LIMIT_READ)
 async def list_database_backups(request: Request):
     """
     List available database backups
@@ -797,7 +802,55 @@ async def list_database_backups(request: Request):
         ) from exc
 
 
+@router.get("/operations/database-backups/{backup_filename}/download")
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def download_database_backup(request: Request, backup_filename: str):
+    """Stream a database backup file for download."""
+
+    try:
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+
+        target_path = (backup_dir / backup_filename).resolve()
+
+        # Prevent directory traversal by ensuring path stays within backup_dir
+        if backup_dir not in target_path.parents and target_path != backup_dir:
+            raise http_error(
+                400,
+                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+                "Invalid backup filename",
+                request,
+                context={"filename": backup_filename},
+            )
+
+        if not target_path.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+                "Backup file not found",
+                request,
+                context={"filename": backup_filename},
+            )
+
+        return FileResponse(
+            target_path,
+            media_type="application/octet-stream",
+            filename=target_path.name,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to download backup",
+            request,
+            context={"error": str(exc), "filename": backup_filename},
+        ) from exc
+
+
 @router.post("/operations/database-restore", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
 async def restore_database(request: Request, backup_filename: str):
     """
     Restore database from a backup

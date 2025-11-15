@@ -29,6 +29,7 @@ import socket
 import time as _time
 import shutil
 import threading
+import shlex
 from datetime import datetime
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -86,6 +87,11 @@ if importlib.util.find_spec("backend.config") is not None:
     db_session_factory = getattr(db_mod, "SessionLocal", None)
     rim_mod = importlib.import_module("backend.request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
+    try:
+        response_cache_mod = importlib.import_module("backend.middleware.response_cache")
+        ResponseCacheMiddleware = getattr(response_cache_mod, "ResponseCacheMiddleware")
+    except Exception:
+        ResponseCacheMiddleware = None
     env_mod = importlib.import_module("backend.environment")
     # Control API auth helpers
     try:
@@ -175,6 +181,11 @@ else:
     db_session_factory = getattr(db_mod, "SessionLocal", None)
     rim_mod = importlib.import_module("request_id_middleware")
     RequestIDMiddleware = getattr(rim_mod, "RequestIDMiddleware")
+    try:
+        response_cache_mod = importlib.import_module("middleware.response_cache")
+        ResponseCacheMiddleware = getattr(response_cache_mod, "ResponseCacheMiddleware")
+    except Exception:
+        ResponseCacheMiddleware = None
     env_mod = importlib.import_module("environment")
     # Control API auth helpers (fallback for direct script execution)
     try:
@@ -185,6 +196,16 @@ else:
 
         def require_control_admin(request):
             return None
+
+try:
+    from backend.security import install_csrf_protection  # type: ignore[assignment]
+except Exception:
+    try:
+        from security import install_csrf_protection  # type: ignore[assignment]
+    except Exception:
+
+        def install_csrf_protection(app):  # type: ignore[dead-code]
+            logging.getLogger(__name__).warning("CSRF security helpers unavailable; skipping installation")
 
 if db_session_factory is None:
     raise RuntimeError("Database session factory unavailable; ensure backend.db exposes SessionLocal")
@@ -363,6 +384,63 @@ def _safe_run(cmd_args, timeout=5):
     except Exception as e:
         logger.warning(f"Safe run failed for {cmd_args}: {e}")
         return SimpleNamespace(returncode=1, stdout="", stderr=str(e))
+
+
+def _infer_restart_command() -> list[str] | None:
+    """Best-effort reconstruction of the launch command for process restart."""
+    env_cmd = os.environ.get("SMS_RESTART_COMMAND", "").strip()
+    if env_cmd:
+        try:
+            parsed = shlex.split(env_cmd)
+            if parsed:
+                return parsed
+        except ValueError as exc:
+            logger.warning("Invalid SMS_RESTART_COMMAND '%s': %s", env_cmd, exc)
+
+    argv = sys.argv[:] if sys.argv else []
+    if not argv:
+        logger.warning("Cannot infer restart command: sys.argv empty")
+        return None
+
+    entry = argv[0] or "uvicorn"
+    args = argv[1:]
+    entry_path = Path(entry)
+    lowered = entry_path.suffix.lower()
+
+    # Direct executable (python.exe / uvicorn.exe / etc)
+    if lowered in {".exe", ".bat", ".cmd"}:
+        resolved = entry
+        if not entry_path.is_absolute():
+            which = shutil.which(entry)
+            if which:
+                resolved = which
+        return [resolved, *args]
+
+    # Python script invocation (python backend/app.py)
+    if lowered in {".py", ".pyw"} or entry_path.exists():
+        run_target = entry_path
+        if not run_target.is_absolute():
+            run_target = (Path.cwd() / run_target).resolve()
+        return [sys.executable, str(run_target), *args]
+
+    # Default to module invocation (python -m <module> ...)
+    module_name = entry
+    return [sys.executable, "-m", module_name, *args]
+
+
+def _spawn_restart_thread(command: list[str], delay_seconds: float = 0.75) -> None:
+    """Spawn a background thread to re-exec the current process after a short delay."""
+
+    def _restart_target():
+        try:
+            logger.info("Restarting backend with command: %s", command)
+            _time.sleep(delay_seconds)
+            os.execv(command[0], command)
+        except Exception as exc:
+            logger.error("Backend restart failed; forcing exit: %s", exc, exc_info=True)
+            os._exit(0)
+
+    threading.Thread(target=_restart_target, daemon=True).start()
 
 
 # ============================================================================
@@ -690,6 +768,69 @@ try:
         logger.debug("GZip middleware disabled via settings")
 except Exception as gzip_err:
     logger.warning(f"Failed to configure GZipMiddleware: {gzip_err}")
+
+# Response caching (served from in-memory TimedLRU cache)
+def _parse_csv_list(value):
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        iterable = value
+    else:
+        iterable = str(value).split(",")
+    return [str(part).strip() for part in iterable if str(part).strip()]
+
+
+try:
+    if getattr(settings, "ENABLE_RESPONSE_CACHE", False):
+        if "ResponseCacheMiddleware" in globals() and ResponseCacheMiddleware is not None:
+            include_headers = _parse_csv_list(getattr(settings, "RESPONSE_CACHE_INCLUDE_HEADERS", None))
+            if not include_headers:
+                include_headers = ["accept-language", "accept"]
+
+            excluded_paths = []
+            for path in _parse_csv_list(getattr(settings, "RESPONSE_CACHE_EXCLUDED_PATHS", None)):
+                normalized = path if path.startswith("/") else f"/{path}"
+                normalized = normalized.rstrip("/") or "/"
+                excluded_paths.append(normalized)
+            if not excluded_paths:
+                excluded_paths = ["/control", "/health", "/health/live", "/health/ready"]
+
+            include_prefixes = []
+            for prefix in _parse_csv_list(getattr(settings, "RESPONSE_CACHE_INCLUDE_PREFIXES", None)):
+                normalized_prefix = prefix if prefix.startswith("/") else f"/{prefix}"
+                normalized_prefix = normalized_prefix.rstrip("/") or "/"
+                include_prefixes.append(normalized_prefix)
+
+            app.add_middleware(
+                ResponseCacheMiddleware,
+                ttl_seconds=getattr(settings, "RESPONSE_CACHE_TTL_SECONDS", 120),
+                maxsize=getattr(settings, "RESPONSE_CACHE_MAXSIZE", 512),
+                include_headers=include_headers,
+                excluded_paths=excluded_paths,
+                include_prefixes=include_prefixes,
+                require_opt_in=getattr(settings, "RESPONSE_CACHE_REQUIRE_OPT_IN", False),
+                opt_in_header=getattr(settings, "RESPONSE_CACHE_OPT_IN_HEADER", "x-cache-allow"),
+            )
+            logger.info(
+                "Response cache enabled (ttl=%ss, maxsize=%s, headers=%s, prefixes=%s, opt_in=%s)",
+                getattr(settings, "RESPONSE_CACHE_TTL_SECONDS", 120),
+                getattr(settings, "RESPONSE_CACHE_MAXSIZE", 512),
+                include_headers,
+                include_prefixes or "<any>",
+                getattr(settings, "RESPONSE_CACHE_REQUIRE_OPT_IN", False),
+            )
+        else:
+            logger.debug("ResponseCacheMiddleware not available; skipping registration")
+    else:
+        logger.debug("Response cache disabled via settings")
+except Exception as cache_err:
+    logger.warning(f"Failed to configure ResponseCacheMiddleware: {cache_err}")
+
+# CSRF protection middleware (configurable)
+try:
+    install_csrf_protection(app)
+except Exception as csrf_err:
+    logger.warning("Failed to install CSRF protection: %s", csrf_err)
 
 # ============================================================================
 # CONTROL PANEL API ENDPOINTS
@@ -1304,6 +1445,52 @@ def control_stop(request: Request, _auth=Depends(require_control_admin)):
             {"success": False, "message": f"Frontend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
             status_code=500,
         )
+
+
+@limiter.limit(RATE_LIMIT_WRITE)
+@app.post("/control/api/restart")
+def control_restart(request: Request, _auth=Depends(require_control_admin)):
+    """Trigger an in-process backend restart (native mode only)."""
+
+    logger.info("Backend restart requested via control API")
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info(
+            "control_restart invoked by %s token_present=%s token=%s",
+            client_ip,
+            bool(token),
+            _mask_token(token),
+        )
+    except Exception:
+        logger.debug("Failed to log audit metadata for restart request")
+
+    if os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker":
+        return JSONResponse(
+            {
+                "success": False,
+                "message": "In-container restart is disabled. Run SMS.ps1 -Restart or SMART_SETUP.ps1 from the host.",
+            },
+            status_code=400,
+        )
+
+    command = _infer_restart_command()
+    if not command:
+        return JSONResponse(
+            {"success": False, "message": "Unable to infer restart command for current process."},
+            status_code=500,
+        )
+
+    _spawn_restart_thread(command)
+
+    return {
+        "success": True,
+        "message": "Backend restart scheduled",
+        "details": {
+            "command": " ".join(command),
+            "timestamp": datetime.now().isoformat(),
+        },
+    }
 
 
 @limiter.limit(RATE_LIMIT_WRITE)

@@ -1,7 +1,29 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from typing import Optional
+from typing import Optional, Callable, List
+
+
+def _validate_password_strength(value: str, field_name: str = "password") -> str:
+    if any(c.isspace() for c in value):
+        raise ValueError(f"{field_name.capitalize()} must not contain whitespace")
+
+    checks: List[tuple[str, Callable[[str], bool]]] = [
+        ("uppercase letter", lambda ch: ch.isupper()),
+        ("lowercase letter", lambda ch: ch.islower()),
+        ("digit", lambda ch: ch.isdigit()),
+        ("special character", lambda ch: not ch.isalnum()),
+    ]
+
+    missing = [name for name, predicate in checks if not any(predicate(ch) for ch in value)]
+    if missing:
+        if len(missing) == 1:
+            detail = missing[0]
+        else:
+            detail = ", ".join(missing[:-1]) + f", and {missing[-1]}"
+        raise ValueError(f"{field_name.capitalize()} must contain at least one {detail}.")
+
+    return value
 
 
 class UserBase(BaseModel):
@@ -16,9 +38,7 @@ class UserCreate(UserBase):
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        if any(c.isspace() for c in v):
-            raise ValueError("Password must not contain whitespace")
-        return v
+        return _validate_password_strength(v, "password")
 
 
 class UserUpdate(BaseModel):
@@ -33,9 +53,7 @@ class PasswordResetRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        if any(c.isspace() for c in v):
-            raise ValueError("Password must not contain whitespace")
-        return v
+        return _validate_password_strength(v, "new password")
 
 
 class UserLogin(BaseModel):

@@ -6,7 +6,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-- No unreleased changes.
+- Control panel backups: fixed the `/control/api/operations/database-backups/{filename}/download` route so it registers at startup (instead of being nested under the restore handler), hardened it against directory traversal, and added regression tests for success, missing files, and traversal attempts (`backend/tests/test_control_endpoints.py`).
+- Release compliance helpers (`scripts/ops/archive-releases.ps1`, `scripts/ops/remove-legacy-packages.ps1`) now accept offline fixture files (`scripts/ops/samples/*.json`) plus explicit `-GhPath` overrides so dry-runs and CI smoke tests can execute without the GitHub CLI.
+- SECRET_KEY enforcement flag: documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` toggle that operators can enable to block placeholder or short secrets. It remains off by default for backward compatibility but will be required in a future hardened release.
+- Authentication hardening: login attempts are now rate-limited per account with automatic lockouts after repeated failures (defaults to 5 attempts within 5 minutes) governed by new `AUTH_LOGIN_MAX_ATTEMPTS`, `AUTH_LOGIN_LOCKOUT_SECONDS`, and `AUTH_LOGIN_TRACKING_WINDOW_SECONDS` settings and fully covered by backend tests.
+
+## [1.6.3] - 2025-11-15
+
+### Added
+
+- **Release archive playbook**: documented the process for tagging legacy releases and bundling removed setup/stop scripts under the `archive/` directory plus a dedicated GitHub Release attachment, ensuring downstream operators can still audit the final binaries.
+- **GitHub package retirement guidance**: added procedures for deleting or privatizing the three obsolete packages so deploy pipelines stop resolving stale artifacts.
+- **docs/releases/v1.6.3**: new release-notes source file that can be published directly on GitHub without manual editing.
+- **Release automation tooling**: shipped `scripts/ops/archive-releases.ps1`, `scripts/ops/remove-legacy-packages.ps1`, the `.github/workflows/archive-legacy-releases.yml` runner, and the `docs/DEPLOYMENT_ASSET_TRACKER.md` inventory so release engineers can archive legacy tags and retire unused GHCR images with an auditable trail.
+
+### Changed
+
+- Updated `README.md`, `docs/DOCUMENTATION_INDEX.md`, and `CHANGELOG.md` to call out v1.6.3 as the latest release and to highlight the archive flow.
+- Refreshed release instructions so tagging/publishing the new version automatically references the archive and compliance notes introduced in v1.6.2.
 
 ## [1.6.2] - 2025-11-15
 
@@ -435,6 +452,8 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
+[1.6.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3
+[1.6.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.2
 [1.6.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0
 [1.3.9]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.9
 [1.3.8]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.3.8
@@ -448,4 +467,4 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.3...HEAD

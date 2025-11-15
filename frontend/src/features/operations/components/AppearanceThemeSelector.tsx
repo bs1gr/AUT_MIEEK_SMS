@@ -1,80 +1,128 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Palette, Check } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { useAppearanceTheme, type AppearanceThemeVariant } from '@/contexts/AppearanceThemeContext';
 
-export type ThemeVariant = 
-  | 'default'
-  | 'glassmorphism'
-  | 'neumorphism'
-  | 'gradient'
-  | 'modern-dark'
-  | 'light-professional';
+type ThemeCopy = {
+  nameKey: string;
+  descriptionKey: string;
+  fallbackName: string;
+  fallbackDescription: string;
+};
 
-interface ThemeSelectorProps {
-  currentTheme: ThemeVariant;
-  onThemeChange: (theme: ThemeVariant) => void;
-}
-
-export const themeStyles = {
+const THEME_COPY: Record<AppearanceThemeVariant, ThemeCopy> = {
   default: {
-    container: 'rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm',
-    card: 'rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4',
-    subtleCard: 'rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3',
-    input: 'rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500',
-    button: 'rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors',
-    secondaryButton: 'rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm transition-colors',
-    text: 'text-gray-900 dark:text-gray-100',
-    mutedText: 'text-gray-600 dark:text-gray-400',
+    nameKey: 'controlPanel.themeOptions.default.name',
+    descriptionKey: 'controlPanel.themeOptions.default.description',
+    fallbackName: 'Default',
+    fallbackDescription: 'Balanced light/dark theme',
   },
   glassmorphism: {
-    container: 'rounded-2xl border border-white/20 bg-white/10 dark:bg-black/10 backdrop-blur-xl shadow-2xl',
-    card: 'rounded-xl border border-white/20 bg-white/20 dark:bg-white/5 backdrop-blur-lg p-4 shadow-lg',
-    subtleCard: 'rounded-xl border border-white/10 bg-white/10 dark:bg-white/5 backdrop-blur-md p-3',
-    input: 'rounded-xl border border-white/30 dark:border-white/20 bg-white/20 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-indigo-400 focus:ring-indigo-400',
-    button: 'rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 px-4 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-all',
-    secondaryButton: 'rounded-xl border border-white/30 bg-white/20 dark:bg-white/10 backdrop-blur-md hover:bg-white/30 dark:hover:bg-white/20 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white shadow-md transition-all',
-    text: 'text-gray-900 dark:text-white',
-    mutedText: 'text-gray-700 dark:text-gray-300',
+    nameKey: 'controlPanel.themeOptions.glassmorphism.name',
+    descriptionKey: 'controlPanel.themeOptions.glassmorphism.description',
+    fallbackName: 'Glassmorphism',
+    fallbackDescription: 'Frosted glass with blur effects',
   },
   neumorphism: {
-    container: 'rounded-3xl bg-gray-100 dark:bg-gray-900 shadow-[8px_8px_16px_#bebebe,-8px_-8px_16px_#ffffff] dark:shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]',
-    card: 'rounded-2xl bg-gray-100 dark:bg-gray-900 p-4 shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff] dark:shadow-[inset_4px_4px_8px_#0a0a0a,inset_-4px_-4px_8px_#1a1a1a]',
-    subtleCard: 'rounded-2xl bg-gray-100 dark:bg-gray-900 p-3 shadow-[2px_2px_4px_#bebebe,-2px_-2px_4px_#ffffff] dark:shadow-[2px_2px_4px_#0a0a0a,-2px_-2px_4px_#1a1a1a]',
-    input: 'rounded-xl bg-gray-100 dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-[inset_2px_2px_4px_#bebebe,inset_-2px_-2px_4px_#ffffff] dark:shadow-[inset_2px_2px_4px_#0a0a0a,inset_-2px_-2px_4px_#1a1a1a] focus:shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff] dark:focus:shadow-[inset_4px_4px_8px_#0a0a0a,inset_-4px_-4px_8px_#1a1a1a]',
-    button: 'rounded-xl bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 shadow-[4px_4px_8px_#bebebe,-4px_-4px_8px_#ffffff] dark:shadow-[4px_4px_8px_#0a0a0a,-4px_-4px_8px_#1a1a1a] hover:shadow-[2px_2px_4px_#bebebe,-2px_-2px_4px_#ffffff] dark:hover:shadow-[2px_2px_4px_#0a0a0a,-2px_-2px_4px_#1a1a1a] active:shadow-[inset_2px_2px_4px_#bebebe,inset_-2px_-2px_4px_#ffffff] dark:active:shadow-[inset_2px_2px_4px_#0a0a0a,inset_-2px_-2px_4px_#1a1a1a] transition-all',
-    secondaryButton: 'rounded-xl bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-[4px_4px_8px_#bebebe,-4px_-4px_8px_#ffffff] dark:shadow-[4px_4px_8px_#0a0a0a,-4px_-4px_8px_#1a1a1a] hover:shadow-[2px_2px_4px_#bebebe,-2px_-2px_4px_#ffffff] dark:hover:shadow-[2px_2px_4px_#0a0a0a,-2px_-2px_4px_#1a1a1a] transition-all',
-    text: 'text-gray-900 dark:text-gray-100',
-    mutedText: 'text-gray-600 dark:text-gray-400',
+    nameKey: 'controlPanel.themeOptions.neumorphism.name',
+    descriptionKey: 'controlPanel.themeOptions.neumorphism.description',
+    fallbackName: 'Neumorphism',
+    fallbackDescription: 'Soft 3D depth with shadows',
   },
   gradient: {
-    container: 'rounded-2xl border border-transparent bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950 shadow-xl',
-    card: 'rounded-xl border border-white/50 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-4 shadow-lg',
-    subtleCard: 'rounded-xl border border-white/30 dark:border-white/5 bg-gradient-to-br from-white/40 to-white/20 dark:from-white/5 dark:to-transparent backdrop-blur-sm p-3',
-    input: 'rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500',
-    button: 'rounded-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/50 dark:shadow-indigo-900/50 transition-all',
-    secondaryButton: 'rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-900 hover:bg-indigo-50 dark:hover:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm transition-colors',
-    text: 'text-gray-900 dark:text-gray-100',
-    mutedText: 'text-gray-600 dark:text-gray-400',
+    nameKey: 'controlPanel.themeOptions.gradient.name',
+    descriptionKey: 'controlPanel.themeOptions.gradient.description',
+    fallbackName: 'Gradient',
+    fallbackDescription: 'Vibrant gradients with glass accents',
   },
   'modern-dark': {
-    container: 'rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl',
-    card: 'rounded-lg border border-gray-700 bg-gradient-to-br from-gray-800 to-gray-900 p-4 shadow-xl',
-    subtleCard: 'rounded-lg border border-gray-700/50 bg-gray-800/50 p-3 backdrop-blur-sm',
-    input: 'rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500',
-    button: 'rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-900/50 transition-all',
-    secondaryButton: 'rounded-lg border border-gray-600 bg-gray-800 hover:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-200 shadow-md transition-colors',
-    text: 'text-gray-100',
-    mutedText: 'text-gray-400',
+    nameKey: 'controlPanel.themeOptions.modernDark.name',
+    descriptionKey: 'controlPanel.themeOptions.modernDark.description',
+    fallbackName: 'Modern Dark',
+    fallbackDescription: 'High-contrast night mode',
   },
   'light-professional': {
-    container: 'rounded-lg border border-gray-200 bg-white shadow-sm',
-    card: 'rounded-lg border border-gray-200 bg-gray-50 p-4',
-    subtleCard: 'rounded-lg bg-gray-100/50 p-3',
-    input: 'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500',
-    button: 'rounded-md bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors',
-    secondaryButton: 'rounded-md border border-gray-300 bg-white hover:bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors',
-    text: 'text-gray-900',
-    mutedText: 'text-gray-600',
+    nameKey: 'controlPanel.themeOptions.lightProfessional.name',
+    descriptionKey: 'controlPanel.themeOptions.lightProfessional.description',
+    fallbackName: 'Light Professional',
+    fallbackDescription: 'Clean minimal light mode',
+  },
+};
+
+interface ThemeSelectorProps {
+  currentTheme: AppearanceThemeVariant;
+  onThemeChange: (theme: AppearanceThemeVariant) => void;
+}
+
+export const themeStyles: Record<AppearanceThemeVariant, {
+  container: string;
+  card: string;
+  subtleCard: string;
+  input: string;
+  button: string;
+  secondaryButton: string;
+  text: string;
+  mutedText: string;
+}> = {
+  default: {
+    container: 'rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-xl shadow-indigo-50/80 text-slate-900',
+    card: 'rounded-xl border border-slate-100 bg-white/95 p-4 shadow-md shadow-indigo-100/70 backdrop-blur-sm',
+    subtleCard: 'rounded-xl border border-slate-100 bg-slate-50/80 p-3 shadow-sm text-slate-800',
+    input: 'rounded-lg border border-slate-300 bg-white/95 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200',
+    button: 'rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200/80 transition-colors',
+    secondaryButton: 'rounded-lg border border-slate-300 bg-white/90 hover:bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm',
+    text: 'text-slate-900',
+    mutedText: 'text-slate-500',
+  },
+  glassmorphism: {
+    container: 'rounded-3xl border border-white/30 bg-white/10 dark:bg-white/5 backdrop-blur-2xl shadow-[0_25px_60px_-30px_rgba(91,33,182,0.45)] text-slate-900 dark:text-white',
+    card: 'rounded-2xl border border-white/40 bg-white/35 dark:bg-white/10 backdrop-blur-xl p-4 shadow-2xl shadow-purple-500/30',
+    subtleCard: 'rounded-2xl border border-white/20 bg-white/25 dark:bg-white/10 backdrop-blur-lg p-3 text-slate-900 dark:text-slate-100',
+    input: 'rounded-2xl border border-white/50 bg-white/70 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-200',
+    button: 'rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-95 px-4 py-2 text-sm font-semibold text-white shadow-xl shadow-purple-500/40 transition-all',
+    secondaryButton: 'rounded-2xl border border-white/40 bg-white/30 hover:bg-white/50 px-4 py-2 text-sm font-medium text-slate-900 shadow-lg backdrop-blur-md',
+    text: 'text-slate-900 dark:text-white',
+    mutedText: 'text-slate-600 dark:text-slate-300',
+  },
+  neumorphism: {
+    container: 'rounded-[32px] bg-[#f5f7fb] text-slate-900 shadow-[20px_20px_60px_#d1d5e0,-20px_-20px_60px_#ffffff]',
+    card: 'rounded-[24px] bg-[#f5f7fb] p-4 shadow-[inset_10px_10px_20px_#d1d5e0,inset_-10px_-10px_20px_#ffffff]',
+    subtleCard: 'rounded-2xl bg-[#f5f7fb] p-3 shadow-[8px_8px_15px_#d1d5e0,-8px_-8px_15px_#ffffff]',
+    input: 'rounded-2xl bg-[#f5f7fb] px-3 py-2 text-sm text-slate-800 shadow-[inset_6px_6px_12px_#d1d5e0,inset_-6px_-6px_12px_#ffffff] focus:shadow-[inset_8px_8px_16px_#d1d5e0,inset_-8px_-8px_16px_#ffffff]',
+    button: 'rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-200',
+    secondaryButton: 'rounded-2xl bg-[#f5f7fb] px-4 py-2 text-sm font-medium text-slate-700 shadow-[8px_8px_16px_#d1d5e0,-8px_-8px_16px_#ffffff]',
+    text: 'text-slate-900',
+    mutedText: 'text-slate-500',
+  },
+  gradient: {
+    container: 'rounded-3xl border border-white/40 bg-gradient-to-br from-indigo-600 via-purple-500 to-pink-500 p-[1px] shadow-2xl shadow-pink-500/30 text-slate-900',
+    card: 'rounded-2xl bg-white/95 p-4 shadow-xl shadow-pink-200/60 text-slate-900',
+    subtleCard: 'rounded-2xl bg-white/85 border border-white/60 p-3 text-slate-800',
+    input: 'rounded-xl border border-transparent bg-white/90 px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-fuchsia-300',
+    button: 'rounded-xl bg-gradient-to-r from-amber-400 via-pink-500 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-pink-400/50',
+    secondaryButton: 'rounded-xl border border-white/80 bg-white/80 hover:bg-white text-sm font-medium text-slate-800 px-4 py-2 shadow-md',
+    text: 'text-slate-900',
+    mutedText: 'text-purple-700',
+  },
+  'modern-dark': {
+    container: 'rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 shadow-[0_35px_60px_-30px_rgba(0,0,0,0.85)] text-slate-100',
+    card: 'rounded-xl border border-slate-800 bg-slate-900/85 p-4 shadow-xl shadow-cyan-500/10',
+    subtleCard: 'rounded-xl border border-slate-800/60 bg-slate-900/60 p-3 backdrop-blur-sm',
+    input: 'rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40',
+    button: 'rounded-lg bg-gradient-to-r from-cyan-400 to-indigo-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-lg shadow-cyan-400/30',
+    secondaryButton: 'rounded-lg border border-slate-700 bg-slate-900/80 hover:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 shadow-md',
+    text: 'text-slate-100',
+    mutedText: 'text-slate-400',
+  },
+  'light-professional': {
+    container: 'rounded-2xl border border-sky-100 bg-white shadow-xl shadow-sky-100/70 text-slate-900',
+    card: 'rounded-xl border border-sky-50 bg-sky-50/70 p-4 text-slate-900',
+    subtleCard: 'rounded-xl border border-slate-100 bg-slate-50/80 p-3',
+    input: 'rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-sky-400 focus:ring-2 focus:ring-sky-200',
+    button: 'rounded-lg bg-sky-500 hover:bg-sky-400 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-200/80',
+    secondaryButton: 'rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm',
+    text: 'text-slate-900',
+    mutedText: 'text-slate-500',
   },
 };
 
@@ -86,14 +134,20 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
   const appearanceTitle = t('controlPanel.appearanceThemes') || 'Appearance Themes';
   const appearanceDescription = t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
 
-  const themes = [
-    { id: 'default' as const, name: 'Default', description: 'Balanced light/dark theme' },
-    { id: 'glassmorphism' as const, name: 'Glassmorphism', description: 'Frosted glass with blur effects' },
-    { id: 'neumorphism' as const, name: 'Neumorphism', description: 'Soft 3D depth with shadows' },
-    { id: 'gradient' as const, name: 'Gradient', description: 'Vibrant gradients with glass accents' },
-    { id: 'modern-dark' as const, name: 'Modern Dark', description: 'Enhanced dark with high contrast' },
-    { id: 'light-professional' as const, name: 'Light Professional', description: 'Clean minimal light mode' },
-  ];
+  const withFallback = (key: string, fallback: string) => {
+    const value = t(key);
+    return value === key ? fallback : value;
+  };
+
+  const themeOptions = useMemo(
+    () =>
+      (Object.entries(THEME_COPY) as Array<[AppearanceThemeVariant, ThemeCopy]>).map(([id, meta]) => ({
+        id,
+        name: withFallback(meta.nameKey, meta.fallbackName),
+        description: withFallback(meta.descriptionKey, meta.fallbackDescription),
+      })),
+    [t]
+  );
 
   return (
     <div className="relative">
@@ -123,7 +177,7 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
               </p>
             </div>
             <div className="max-h-96 overflow-y-auto p-2">
-              {themes.map((theme) => (
+              {themeOptions.map((theme) => (
                 <button
                   key={theme.id}
                   onClick={() => {
@@ -170,15 +224,7 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
  */
 const AppearanceThemeSelector = () => {
   const { t } = useLanguage();
-  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
-    if (typeof window === 'undefined') {
-      return 'default';
-    }
-    const saved =
-      window.localStorage.getItem('sms.appearance.theme') ??
-      window.localStorage.getItem('sms.operations.theme');
-    return (saved as ThemeVariant) || 'default';
-  });
+  const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
 
   const theme = themeStyles[selectedTheme];
   const previewTitle = t('controlPanel.appearancePreview') || 'Live preview';
@@ -186,10 +232,16 @@ const AppearanceThemeSelector = () => {
     t('controlPanel.appearancePreviewDesc') ||
     'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.';
   const previewMetricsLabel = t('controlPanel.appearancePreviewMetrics') || 'Sample analytics metrics';
-  const friendlyThemeName = selectedTheme
-    .split('-')
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ');
+  const translateThemeName = () => {
+    const meta = THEME_COPY[selectedTheme];
+    const value = t(meta.nameKey);
+    if (!value || value === meta.nameKey) {
+      return meta.fallbackName;
+    }
+    return value;
+  };
+
+  const friendlyThemeName = translateThemeName();
 
   const sampleMetrics = [
     { label: t('present') || 'Present', value: '92%' },
@@ -198,12 +250,8 @@ const AppearanceThemeSelector = () => {
     { label: t('excused') || 'Excused', value: '1%' },
   ];
 
-  const handleThemeChange = (themeVariant: ThemeVariant) => {
-    setSelectedTheme(themeVariant);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('sms.appearance.theme', themeVariant);
-      window.localStorage.setItem('sms.operations.theme', themeVariant);
-    }
+  const handleThemeChange = (themeVariant: AppearanceThemeVariant) => {
+    setAppearanceTheme(themeVariant);
   };
 
   return (

@@ -41,6 +41,7 @@ export default {
   unmarked: 'Unmarked',
   coverageLabel: 'Coverage',
   recordsTracked: 'records tracked',
+  pendingRecords: '{{count}} pending records',
   studentsTracked: '{{count}} students tracked',
   teachingDaysFor: 'Teaching Days for',
   onlyTeachingDaysSelectable: 'Only teaching days are selectable',

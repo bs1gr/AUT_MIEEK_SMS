@@ -51,11 +51,59 @@ AUTH_ENABLED
 - Default: `0`
 - Purpose: Enables JWT authentication and role-based access control. When disabled, endpoints remain open for backward compatibility.
 
+AUTH_LOGIN_MAX_ATTEMPTS / AUTH_LOGIN_LOCKOUT_SECONDS / AUTH_LOGIN_TRACKING_WINDOW_SECONDS
+
+- Type: integer / integer / integer (seconds)
+- Defaults: `5` attempts / `300` seconds / `300` seconds
+- Purpose: Controls the built-in login throttle. After `AUTH_LOGIN_MAX_ATTEMPTS` failures inside the tracking window, the account (and originating IP/email combination) is locked for `AUTH_LOGIN_LOCKOUT_SECONDS`. Increase the window to relax sensitivity or raise attempts to tolerate more mistakes.
+
+SECRET_KEY_STRICT_ENFORCEMENT
+
+- Type: boolean ("1"/"0")
+- Default: `0`
+- Purpose: When enabled, the backend refuses to start with placeholder or short `SECRET_KEY` values even if authentication is disabled. Operators should turn this on for hardened deployments; leave it off only when you intentionally accept the risk (e.g., local debugging). CI and pytest automatically receive a random ephemeral secret when placeholders are detected.
+
 DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD / DEFAULT_ADMIN_FULL_NAME / DEFAULT_ADMIN_FORCE_RESET
 
 - Type: string / string / string / boolean ("1"/"0")
 - Default: unset
 - Purpose: When both email and password are provided, the application ensures an administrator account exists with those credentials on each startup. `DEFAULT_ADMIN_FULL_NAME` (optional) sets the display name. If `DEFAULT_ADMIN_FORCE_RESET` is truthy, the password is reset and all refresh tokens are revoked on startup.
+
+CSRF_ENABLED
+
+- Type: boolean ("1"/"0")
+- Default: `0`
+- Purpose: When set to `1`, installs the CSRF middleware that validates tokens on all POST/PUT/PATCH/DELETE requests outside the exempt list. Leave disabled in legacy deployments until the frontend calls `/api/v1/security/csrf` before writes.
+
+CSRF_HEADER_NAME / CSRF_HEADER_TYPE
+
+- Type: string / string (optional)
+- Default: `X-CSRF-Token` / unset
+- Purpose: Controls the request header inspected by the CSRF middleware. If `CSRF_HEADER_TYPE` is set (e.g. `Token`), clients must send `HeaderName: Token <value>`.
+
+CSRF_COOKIE_NAME / CSRF_COOKIE_PATH / CSRF_COOKIE_DOMAIN / CSRF_COOKIE_SAMESITE / CSRF_COOKIE_SECURE / CSRF_COOKIE_HTTPONLY / CSRF_COOKIE_MAX_AGE
+
+- Types: string / string / string / enum(`lax`,`strict`,`none`) / boolean? / boolean / int
+- Defaults: `fastapi-csrf-token` / `/` / unset / `lax` / inherits `COOKIE_SECURE` unless SameSite=None / `True` / `3600`
+- Purpose: Configure how the signed CSRF cookie is emitted. Use SameSite=None + Secure for cross-site embedders; otherwise keep Lax.
+
+CSRF_TOKEN_LOCATION / CSRF_TOKEN_KEY
+
+- Type: enum(`header`,`body`) / string
+- Default: `header` / `csrf-token`
+- Purpose: Determines where the middleware expects the unhashed token. Header mode pairs with SPA usage; body mode supports classic form submissions (token extracted from form field `token_key`).
+
+CSRF_EXEMPT_PATHS
+
+- Type: comma-separated string (wildcards allowed with trailing `*`)
+- Default: `/api/v1/security/csrf,/docs,/openapi.json,/redoc`
+- Purpose: Paths that skip CSRF validation. Always include `/api/v1/security/csrf` so clients can bootstrap tokens. Wildcards apply to prefixes (e.g. `/docs/*`).
+
+CSRF_ENFORCE_IN_TESTS
+
+- Type: boolean ("1"/"0")
+- Default: `0`
+- Purpose: When `1`, enables CSRF checks even inside pytest/TestClient contexts. Useful for regression suites once tests send tokens.
 
 Notes and recommendations
 

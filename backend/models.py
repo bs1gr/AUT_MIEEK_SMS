@@ -231,6 +231,8 @@ class Grade(SoftDeleteMixin, Base):
     __table_args__ = (
         Index("idx_grade_student_course", "student_id", "course_id"),
         Index("idx_grade_student_category", "student_id", "category"),
+        Index("idx_grade_date_assigned", "date_assigned"),
+        Index("idx_grade_date_submitted", "date_submitted"),
     )
 
     @property
@@ -287,6 +289,9 @@ class User(Base):
     full_name = Column(String(200))
     role = Column(String(50), nullable=False, index=True, default="teacher")
     is_active = Column(Boolean, default=True, index=True)
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    last_failed_login_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    lockout_until = Column(DateTime(timezone=True), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = Column(
         DateTime(timezone=True),
@@ -296,7 +301,9 @@ class User(Base):
         index=True,
     )
 
-    __table_args__ = (Index("idx_users_email_role", "email", "role"),)
+    __table_args__ = (
+        Index("idx_users_email_role", "email", "role"),
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"

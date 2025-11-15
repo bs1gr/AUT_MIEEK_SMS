@@ -17,14 +17,21 @@ The Student Management System now supports full internationalization with biling
 ```text
 frontend/src/
 ├── i18n/
-│   ├── config.js                 # i18n initialization and configuration
-│   └── locales/
-│       ├── en.json              # English translations
-│       └── el.json              # Greek translations (Ελληνικά)
+│   └── config.ts                # i18n initialization (i18next + detectors)
+├── translations.ts              # Aggregates namespace modules per language
+├── locales/
+│   ├── en/
+│   │   ├── common.ts
+│   │   ├── attendance.ts
+│   │   └── [...additional namespaces]
+│   └── el/
+│       ├── common.ts
+│       ├── attendance.ts
+│       └── [...]
 ├── components/
-│   └── LanguageSwitcher.jsx     # Language toggle component
-├── main.jsx                      # i18n initialization on app startup
-└── [other components]            # Components using translations
+│   └── LanguageSwitcher.tsx     # Language toggle component
+├── StudentManagementApp.tsx     # Loads config + providers
+└── [other components]           # Components using translations
 ```
 
 ## Configuration Details
@@ -42,31 +49,47 @@ Default fallback language: **English (en)**
 
 Users can toggle between languages using the `LanguageSwitcher` component located in the header. The selection is automatically saved to `localStorage` and persists across sessions.
 
-## Translation Files
+## Translation Modules
 
-### Structure
+### Directory Layout
 
-Translation keys are organized by feature/module:
+- Language namespaces live under `frontend/src/locales/<language>/<namespace>.{js,ts}` (for example `frontend/src/locales/en/attendance.js`).
+- Each module exports a default object containing translation keys for that feature area.
+- `frontend/src/translations.ts` imports those modules and merges them into the `translations` object consumed by `frontend/src/i18n/config.ts`.
 
-```json
-{
-  "common": { /* Shared UI elements */ },
-  "nav": { /* Navigation items */ },
-  "students": { /* Student management */ },
-  "courses": { /* Course management */ },
-  "grades": { /* Grading system */ },
-  "attendance": { /* Attendance tracking */ },
-  "analytics": { /* Analytics dashboard */ },
-  "performance": { /* Performance tracking */ },
-  "exports": { /* Export functionality */ },
-  "imports": { /* Import functionality */ },
-  "settings": { /* Application settings */ },
-  "errors": { /* Error messages */ },
-  "messages": { /* System messages */ },
-  "help": { /* Help & documentation */ },
-  "dateTime": { /* Date/time presets */ }
-}
+### Example Namespace Module
+
+```typescript
+// frontend/src/locales/en/attendance.js
+export default {
+  attendanceTitle: 'Attendance Tracking',
+  markAttendance: 'Mark attendance for students',
+  selectDate: 'Select Date'
+  // ...more keys
+};
 ```
+
+### Aggregator (`translations.ts`)
+
+The aggregator shapes the resources passed to i18next:
+
+```typescript
+import attendanceEn from './locales/en/attendance';
+import attendanceEl from './locales/el/attendance';
+
+export const translations = {
+  en: {
+    attendance: attendanceEn,
+    ...attendanceEn // flattened keys for legacy callers
+  },
+  el: {
+    attendance: attendanceEl,
+    ...attendanceEl
+  }
+};
+```
+
+Add your namespace import and merge entry for both `en` and `el` whenever you introduce a new module. This keeps nested access available (`t('attendance.markAttendance')`) while still supporting legacy flat keys.
 
 ### Key Naming Convention
 
@@ -169,29 +192,45 @@ All components can now use the `useTranslation()` hook. Priority components to u
 
 ## Adding New Translations
 
-### Step 1: Add to Translation Files
+### Step 1: Update Namespace Modules
 
-Add the key to both `en.json` and `el.json`:
+Add or edit the key inside both language modules. Example adding a `myFeature` namespace:
 
-```json
-// en.json
-{
-  "myFeature": {
-    "title": "My Feature",
-    "description": "Feature description"
-  }
-}
+```typescript
+// frontend/src/locales/en/myFeature.js
+export default {
+  title: 'My Feature',
+  description: 'Feature description'
+};
 
-// el.json
-{
-  "myFeature": {
-    "title": "Το Χαρακτηριστικό μου",
-    "description": "Περιγραφή χαρακτηριστικού"
-  }
-}
+// frontend/src/locales/el/myFeature.js
+export default {
+  title: 'Το Χαρακτηριστικό μου',
+  description: 'Περιγραφή χαρακτηριστικού'
+};
 ```
 
-### Step 2: Use in Component
+### Step 2: Register the Namespace
+
+Import the new module in `frontend/src/translations.ts` and spread it into both language objects:
+
+```typescript
+import myFeatureEn from './locales/en/myFeature';
+import myFeatureEl from './locales/el/myFeature';
+
+export const translations = {
+  en: {
+    myFeature: myFeatureEn,
+    ...myFeatureEn
+  },
+  el: {
+    myFeature: myFeatureEl,
+    ...myFeatureEl
+  }
+};
+```
+
+### Step 3: Use in Component
 
 ```jsx
 import { useTranslation } from 'react-i18next';
@@ -239,15 +278,34 @@ window.i18n.changeLanguage('el');
 
 ### Bundle Size
 
-- Translation files are included in the main bundle
+- Translation modules are tree-shaken and included in the main bundle
 - Consider code-splitting for additional languages in the future
-- Current overhead: ~10KB per language (uncompressed JSON)
+- Current overhead: ~10KB per language (uncompressed object literals)
 
 ### Runtime Performance
 
 - i18next caches translations in memory
 - Language switching is instant (no network requests)
 - Translation lookup is O(1) hash map access
+
+## Backend Localization
+
+### Export Files (Excel/PDF)
+
+The export endpoints in `backend/routers/routers_exports.py` now honor the requested locale and emit bilingual spreadsheets/PDFs.
+
+- **Language detection order**: `?lang=` query parameter → `Accept-Language` header → English fallback.
+- **Translation store**: A shared `TRANSLATIONS` dict plus `HEADER_DEFINITIONS` maps column headers, sheet names, status labels, and boilerplate strings for both EN/EL.
+- **Helpers**: `get_header_row`, `translate_status_value`, `not_available`, `yes_no`, and `grade_report_heading` keep the code DRY and ensure every string goes through the translator before being written to a file.
+
+#### Adding or Updating Export Text
+
+1. Add/update the key inside `TRANSLATIONS['en']` and `TRANSLATIONS['el']`.
+2. If the string is part of a header row, add the translation key to the relevant `HEADER_DEFINITIONS` entry (e.g., `"courses"`, `"attendance"`).
+3. Reference the key via `t('your_key', lang)` or `get_header_row()` rather than hardcoding English text.
+4. Verify outputs by calling the export endpoint with `Accept-Language: el` (Greek) and ensuring every sheet, column header, status label, and footer reflects the translation.
+
+> **Tip:** Excel auto-fit helpers and PDF font registration already use DejaVu Sans, so no extra work is needed for Greek glyph support.
 
 ## Future Enhancements
 
@@ -338,6 +396,6 @@ For questions or issues with localization:
 
 ---
 
-**Last Updated**: 2025-01-26
-**Version**: 1.1
+**Last Updated**: 2025-11-15
+**Version**: 1.2 (v1.6.3 alignment)
 **Languages Supported**: English (EN), Greek (EL)

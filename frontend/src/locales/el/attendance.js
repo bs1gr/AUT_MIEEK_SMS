@@ -41,6 +41,7 @@ export default {
   unmarked: 'Χωρίς καταγραφή',
   coverageLabel: 'Κάλυψη',
   recordsTracked: 'καταγεγραμμένες εγγραφές',
+  pendingRecords: '{{count}} εκκρεμείς εγγραφές',
   studentsTracked: 'Παρακολουθούνται {{count}} σπουδαστές',
   teachingDaysFor: 'Ημέρες Διδασκαλίας για',
   onlyTeachingDaysSelectable: 'Μόνο οι ημέρες διδασκαλίας είναι επιλέξιμες',

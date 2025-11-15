@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from datetime import date
+from sqlalchemy import event
+
+from backend.tests.conftest import engine
 
 
 def _create_student(client, i: int = 1):
@@ -220,6 +223,40 @@ def test_student_all_courses_summary_student_not_found(client):
     assert r.status_code == 404
     detail = r.json()["detail"]
     assert "not found" in detail.lower()
+
+
+def test_student_all_courses_summary_limits_queries(client):
+    student = _create_student(client, 7)
+
+    rules = [{"category": "Homework", "weight": 100.0}]
+    courses = [
+        _create_course(client, f"OPT{i}", rules=rules, absence_penalty=0.0, credits=3)
+        for i in range(4)
+    ]
+
+    for idx, course in enumerate(courses):
+        assert _create_grade(client, student["id"], course["id"], f"HW{idx}", "Homework", 80 + idx).status_code == 201
+        assert _create_dp(client, student["id"], course["id"], "Homework", 8, 10).status_code == 200
+        assert _create_att(client, student["id"], course["id"], "Present", period=idx + 1).status_code == 201
+
+    executed_statements = []
+
+    def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        normalized = statement.strip().upper()
+        if normalized.startswith(("PRAGMA", "SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN")):
+            return
+        executed_statements.append(normalized)
+
+    event.listen(engine, "before_cursor_execute", _before_cursor_execute)
+    try:
+        response = client.get(f"/api/v1/analytics/student/{student['id']}/all-courses-summary")
+        assert response.status_code == 200
+    finally:
+        event.remove(engine, "before_cursor_execute", _before_cursor_execute)
+
+    select_queries = [stmt for stmt in executed_statements if stmt.startswith("SELECT")]
+    # Should remain constant regardless of number of courses (no N+1 behavior)
+    assert len(select_queries) <= 12
 
 
 def test_student_summary_success(client):

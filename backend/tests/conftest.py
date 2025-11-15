@@ -20,11 +20,14 @@ os.environ.setdefault("ALLOW_REMOTE_SHUTDOWN", "0")
 # environment variable is checked by `backend.main` to skip long-running
 # or external operations during test runs.
 os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
+os.environ.setdefault("CSRF_ENABLED", "1")
+os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "1")
 
 from backend.main import app, get_db as main_get_db
 from backend.rate_limiting import limiter
 from backend.db import get_session as db_get_session
 from backend import models
+from backend.security.login_throttle import login_throttle
 
 # Create an in-memory SQLite database shared across connections
 engine = create_engine(
@@ -67,6 +70,7 @@ def clean_db():
     # Truncate all tables by dropping and recreating schema
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
+    login_throttle.clear()
     yield
 
 

@@ -8,7 +8,8 @@ import { adminOpsAPI, getHealthStatus, importAPI } from '@/api/api';
 import { studentKeys } from '@/hooks/useStudentsQuery';
 import { courseKeys } from '@/hooks/useCoursesQuery';
 import { useStudentsStore, useCoursesStore } from '@/stores';
-import { AppearanceThemeSelectorWidget, themeStyles, type ThemeVariant } from './AppearanceThemeSelector';
+import { AppearanceThemeSelectorWidget, themeStyles } from './AppearanceThemeSelector';
+import { useAppearanceTheme } from '@/contexts/AppearanceThemeContext';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -129,20 +130,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   const [result, setResult] = useState<OperationResult>(null);
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
-  const [selectedTheme, setSelectedTheme] = useState<ThemeVariant>(() => {
-    if (typeof window === 'undefined') return 'default';
-    const saved =
-      localStorage.getItem('sms.appearance.theme') ??
-      localStorage.getItem('sms.operations.theme');
-    return (saved as ThemeVariant) || 'default';
-  });
-
-  // Persist theme selection
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('sms.appearance.theme', selectedTheme);
-    localStorage.setItem('sms.operations.theme', selectedTheme);
-  }, [selectedTheme]);
+  const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
@@ -484,7 +472,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                 {variant === 'standalone' && (
                   <AppearanceThemeSelectorWidget
                     currentTheme={selectedTheme}
-                    onThemeChange={setSelectedTheme}
+                    onThemeChange={setAppearanceTheme}
                   />
                 )}
                 <button

@@ -8,6 +8,22 @@
   box-sizing: border-box;
 }
 
+:root {
+  --appearance-bg: #f3f4f6;
+  --appearance-surface: #ffffff;
+  --appearance-surface-subtle: #f8fafc;
+  --appearance-text: #0f172a;
+  --appearance-muted-text: #475569;
+  --appearance-border: rgba(15, 23, 42, 0.08);
+  --appearance-accent: #4f46e5;
+  --appearance-accent-fill: #4f46e5;
+  --appearance-accent-strong: #4338ca;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(15, 23, 42, 0.12);
+  --appearance-blur: 0px;
+  --appearance-highlight: rgba(79, 70, 229, 0.08);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -15,24 +31,44 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background: var(--appearance-bg, #f3f4f6);
+  color: var(--appearance-text, #1f2937);
+  transition: background 250ms ease, color 250ms ease;
 }
 
 #root {
   min-height: 100vh;
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background: var(--appearance-bg, #f3f4f6);
+  color: var(--appearance-text, #1f2937);
 }
 
 /* Light mode (default) styles */
 html {
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background-color: var(--appearance-bg, #f3f4f6);
+  color: var(--appearance-text, #1f2937);
+}
+
+.app-shell {
+  background: var(--appearance-surface, #ffffff);
+  color: var(--appearance-text, #1f2937);
+  border-radius: 1.25rem;
+  box-shadow: 0 25px 45px -35px var(--appearance-shadow, rgba(15, 23, 42, 0.12));
+  transition: background 250ms ease, color 250ms ease, box-shadow 250ms ease;
 }
 
 /* Dark mode styles */
 .dark {
+  --appearance-bg: #0f172a;
+  --appearance-surface: #111827;
+  --appearance-surface-subtle: #1f2937;
+  --appearance-text: #f8fafc;
+  --appearance-muted-text: #cbd5f5;
+  --appearance-border: rgba(148, 163, 184, 0.35);
+  --appearance-accent: #a5b4fc;
+  --appearance-accent-fill: #818cf8;
+  --appearance-accent-strong: #c7d2fe;
+  --appearance-accent-contrast: #0f172a;
+  --appearance-shadow: rgba(15, 23, 42, 0.6);
   background-color: #1a202c;
   color: #e2e8f0;
 }
@@ -49,6 +85,17 @@ html {
 
 /* Relaxing mode styles - masculine calming colors (ocean & forest tones) */
 .relaxing {
+  --appearance-bg: linear-gradient(135deg, #e0f2f1 0%, #e8f5e9 50%, #e1f5fe 100%);
+  --appearance-surface: rgba(255, 255, 255, 0.9);
+  --appearance-surface-subtle: rgba(255, 255, 255, 0.75);
+  --appearance-text: #1a3a38;
+  --appearance-muted-text: #275f5a;
+  --appearance-border: rgba(38, 166, 154, 0.3);
+  --appearance-accent: #0f766e;
+  --appearance-accent-fill: linear-gradient(135deg, #0f766e, #0f997d);
+  --appearance-accent-strong: #0f997d;
+  --appearance-accent-contrast: #f0fdfa;
+  --appearance-shadow: rgba(15, 118, 110, 0.18);
   background: linear-gradient(135deg, #e0f2f1 0%, #e8f5e9 50%, #e1f5fe 100%);
   color: #263238;
 }
@@ -121,6 +168,17 @@ html {
 
 /* Fancy theme styles - vibrant yet highly readable (glassmorphism inspired) */
 .fancy {
+  --appearance-bg: linear-gradient(135deg, #f8f5ff 0%, #fff5f7 45%, #f0f4ff 100%);
+  --appearance-surface: rgba(255, 255, 255, 0.92);
+  --appearance-surface-subtle: rgba(250, 245, 255, 0.78);
+  --appearance-text: #1b1440;
+  --appearance-muted-text: #44337a;
+  --appearance-border: rgba(139, 92, 246, 0.35);
+  --appearance-accent: #7c3aed;
+  --appearance-accent-fill: linear-gradient(135deg, #7c3aed, #5b21b6);
+  --appearance-accent-strong: #5b21b6;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(91, 33, 182, 0.2);
   background: linear-gradient(135deg, #f8f5ff 0%, #fff5f7 45%, #f0f4ff 100%);
   color: #1f184b;
 }
@@ -322,6 +380,187 @@ html {
   background: rgba(107, 114, 128, 0.6);
 }
 
+/* Appearance theme overrides (global UI changer) */
+[data-appearance] body,
+[data-appearance] #root,
+[data-appearance] .app-shell {
+  background: var(--appearance-bg);
+  color: var(--appearance-text);
+}
+
+[data-appearance] .app-shell {
+  border: 1px solid var(--appearance-border);
+  box-shadow: 0 40px 65px -35px var(--appearance-shadow);
+}
+
+[data-appearance] .bg-white,
+[data-appearance] .bg-gray-50,
+[data-appearance] .bg-gray-100,
+[data-appearance] .bg-slate-50,
+[data-appearance] .bg-slate-100 {
+  background-color: var(--appearance-surface) !important;
+  color: var(--appearance-text) !important;
+  -webkit-backdrop-filter: blur(var(--appearance-blur));
+  backdrop-filter: blur(var(--appearance-blur));
+}
+
+[data-appearance] .bg-gray-200,
+[data-appearance] .bg-slate-200 {
+  background-color: var(--appearance-surface-subtle) !important;
+}
+
+[data-appearance] .text-gray-900,
+[data-appearance] .text-gray-800,
+[data-appearance] .text-slate-900,
+[data-appearance] .text-slate-800 {
+  color: var(--appearance-text) !important;
+}
+
+[data-appearance] .text-gray-600,
+[data-appearance] .text-gray-500,
+[data-appearance] .text-slate-600,
+[data-appearance] .text-slate-500,
+[data-appearance] .text-gray-400 {
+  color: var(--appearance-muted-text) !important;
+}
+
+[data-appearance] .border-gray-200,
+[data-appearance] .border-gray-300,
+[data-appearance] .border-slate-200,
+[data-appearance] .border-slate-300 {
+  border-color: var(--appearance-border) !important;
+}
+
+[data-appearance] .bg-indigo-600,
+[data-appearance] .bg-indigo-500,
+[data-appearance] .bg-purple-600,
+[data-appearance] .bg-blue-600,
+[data-appearance] .bg-emerald-600 {
+  background: var(--appearance-accent-fill, var(--appearance-accent)) !important;
+  color: var(--appearance-accent-contrast) !important;
+  box-shadow: 0 12px 30px -12px var(--appearance-shadow);
+}
+
+[data-appearance] .text-indigo-600,
+[data-appearance] .text-indigo-500,
+[data-appearance] .text-purple-600,
+[data-appearance] .text-blue-600,
+[data-appearance] .text-emerald-600 {
+  color: var(--appearance-accent) !important;
+}
+
+[data-appearance] .ring-indigo-500,
+[data-appearance] .focus\:ring-indigo-500:focus,
+[data-appearance] .focus-visible\:ring-indigo-500:focus-visible {
+  box-shadow: 0 0 0 3px var(--appearance-highlight);
+}
+
+[data-appearance] .shadow,
+[data-appearance] .shadow-sm,
+[data-appearance] .shadow-md,
+[data-appearance] .shadow-lg,
+[data-appearance] .shadow-xl,
+[data-appearance] .shadow-2xl {
+  box-shadow: 0 25px 55px -30px var(--appearance-shadow) !important;
+}
+
+[data-appearance] .highlight-card,
+[data-appearance] .metric-card {
+  border-color: var(--appearance-border) !important;
+  background: var(--appearance-surface) !important;
+}
+
+[data-appearance] .text-muted,
+[data-appearance] .muted-text,
+[data-appearance] .description {
+  color: var(--appearance-muted-text) !important;
+}
+
+[data-appearance] a,
+[data-appearance] button,
+[data-appearance] .link {
+  transition: color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+}
+
+[data-appearance='glassmorphism'] {
+  --appearance-bg: linear-gradient(135deg, #eef2ff 0%, #fdf2f8 55%, #e0f2fe 100%);
+  --appearance-surface: rgba(255, 255, 255, 0.9);
+  --appearance-surface-subtle: rgba(255, 255, 255, 0.75);
+  --appearance-text: #160f4c;
+  --appearance-muted-text: #4b3f88;
+  --appearance-border: rgba(124, 58, 237, 0.35);
+  --appearance-accent: #5b21b6;
+  --appearance-accent-fill: linear-gradient(120deg, #7c3aed, #5b21b6);
+  --appearance-accent-strong: #6d28d9;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(91, 33, 182, 0.25);
+  --appearance-blur: 18px;
+  --appearance-highlight: rgba(124, 58, 237, 0.18);
+}
+
+[data-appearance='neumorphism'] {
+  --appearance-bg: linear-gradient(135deg, #f6f8fc 0%, #eef1f7 100%);
+  --appearance-surface: #fbfcff;
+  --appearance-surface-subtle: #eef1f7;
+  --appearance-text: #1f2937;
+  --appearance-muted-text: #4b5563;
+  --appearance-border: rgba(148, 163, 184, 0.35);
+  --appearance-accent: #2563eb;
+  --appearance-accent-fill: linear-gradient(135deg, #60a5fa, #2563eb);
+  --appearance-accent-strong: #1d4ed8;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(148, 163, 184, 0.4);
+  --appearance-blur: 6px;
+  --appearance-highlight: rgba(37, 99, 235, 0.15);
+}
+
+[data-appearance='gradient'] {
+  --appearance-bg: linear-gradient(135deg, #eef2ff 0%, #fde68a 45%, #f5d0fe 80%, #fee2e2 100%);
+  --appearance-surface: rgba(255, 255, 255, 0.92);
+  --appearance-surface-subtle: rgba(255, 255, 255, 0.8);
+  --appearance-text: #111827;
+  --appearance-muted-text: #4c1d95;
+  --appearance-border: rgba(249, 115, 22, 0.35);
+  --appearance-accent: #d946ef;
+  --appearance-accent-fill: linear-gradient(120deg, #ec4899, #8b5cf6, #f97316);
+  --appearance-accent-strong: #db2777;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(236, 72, 153, 0.25);
+  --appearance-blur: 12px;
+  --appearance-highlight: rgba(236, 72, 153, 0.2);
+}
+
+[data-appearance='modern-dark'] {
+  --appearance-bg: linear-gradient(135deg, #020617 0%, #0f172a 60%, #1e293b 100%);
+  --appearance-surface: rgba(15, 23, 42, 0.92);
+  --appearance-surface-subtle: rgba(15, 23, 42, 0.8);
+  --appearance-text: #e2e8f0;
+  --appearance-muted-text: #94a3b8;
+  --appearance-border: rgba(59, 130, 246, 0.35);
+  --appearance-accent: #38bdf8;
+  --appearance-accent-fill: linear-gradient(135deg, #38bdf8, #818cf8);
+  --appearance-accent-strong: #38bdf8;
+  --appearance-accent-contrast: #0f172a;
+  --appearance-shadow: rgba(2, 6, 23, 0.8);
+  --appearance-blur: 4px;
+  --appearance-highlight: rgba(56, 189, 248, 0.25);
+}
+
+[data-appearance='light-professional'] {
+  --appearance-bg: linear-gradient(120deg, #f8fafc 0%, #ffffff 70%, #e0f2fe 100%);
+  --appearance-surface: #ffffff;
+  --appearance-surface-subtle: #f1f5f9;
+  --appearance-text: #0f172a;
+  --appearance-muted-text: #475569;
+  --appearance-border: rgba(15, 23, 42, 0.1);
+  --appearance-accent: #0ea5e9;
+  --appearance-accent-fill: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  --appearance-accent-strong: #0284c7;
+  --appearance-accent-contrast: #f0f9ff;
+  --appearance-shadow: rgba(14, 165, 233, 0.2);
+  --appearance-blur: 6px;
+  --appearance-highlight: rgba(14, 165, 233, 0.2);
+}
 /* Custom animations */
 @keyframes slide-in {
   from {
@@ -355,4 +594,240 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Grade distribution progress bars */
+.grade-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.grade-progress {
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  background: transparent;
+}
+
+.grade-progress::-webkit-progress-bar {
+  background-color: transparent;
+}
+
+.grade-progress::-webkit-progress-value,
+.grade-progress::-moz-progress-bar {
+  background-color: var(--grade-progress-color, #4f46e5);
+  border-radius: 9999px;
+  transition: width 220ms ease;
+}
+
+.grade-progress--a {
+  --grade-progress-color: #22c55e;
+}
+
+.grade-progress--b {
+  --grade-progress-color: #3b82f6;
+}
+
+.grade-progress--c {
+  --grade-progress-color: #eab308;
+}
+
+.grade-progress--d {
+  --grade-progress-color: #f97316;
+}
+
+.grade-progress--f {
+  --grade-progress-color: #ef4444;
+}
+
+.grade-progress--default {
+  --grade-progress-color: #6366f1;
+}
+
+/* Printable calendar layout */
+.print-calendar-hidden {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.print-calendar-sheet {
+  background: #ffffff;
+  color: #0f172a;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  max-width: 1080px;
+  padding: 48px;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -25px rgba(15, 23, 42, 0.25);
+  line-height: 1.45;
+}
+
+.print-calendar-sheet__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.print-calendar-sheet__title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.print-calendar-sheet__subtitle {
+  font-size: 15px;
+  color: #475569;
+}
+
+.print-calendar-sheet__meta {
+  display: flex;
+  gap: 16px;
+  text-align: right;
+}
+
+.print-calendar-sheet__meta-block {
+  min-width: 160px;
+}
+
+.print-calendar-sheet__meta-label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.print-calendar-sheet__meta-value {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.print-calendar-sheet__meta-sub {
+  font-size: 14px;
+  color: #475569;
+}
+
+.print-calendar-sheet__legend {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  background: #f8fafc;
+}
+
+.print-calendar-sheet__legend h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #475569;
+  letter-spacing: 0.08em;
+}
+
+.print-calendar-sheet__legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.print-calendar-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.print-calendar-sheet__day {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.print-calendar-sheet__day-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.print-calendar-sheet__empty {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.print-calendar-sheet__sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.print-calendar-sheet__session {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.print-calendar-sheet__session-title {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.print-calendar-sheet__session-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #475569;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.print-calendar-sheet__footer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .print-calendar-sheet {
+    padding: 32px;
+  }
+
+  .print-calendar-sheet__header {
+    flex-direction: column;
+  }
+
+  .print-calendar-sheet__meta {
+    flex-direction: column;
+    text-align: left;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-calendar-sheet {
+    box-shadow: none;
+    padding: 24px;
+  }
 }
