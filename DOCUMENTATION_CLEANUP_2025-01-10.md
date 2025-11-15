@@ -36,11 +36,11 @@ These files are **kept for historical reference** but marked as deprecated in th
    - Status: Replaced by TODO.md and PERFORMANCE_OPTIMIZATIONS
    - Reason: Contains outdated analysis from October
 
-2. **[docs/IMPROVEMENT_ROADMAP.md](docs/IMPROVEMENT_ROADMAP.md)**
+2. **`docs/IMPROVEMENT_ROADMAP.md`** *(retired, no longer in repo)*
    - Status: Most items completed or moved to TODO.md
    - Reason: Superseded by updated TODO.md
 
-3. **[docs/V2_MODERNIZATION_ROADMAP.md](docs/V2_MODERNIZATION_ROADMAP.md)**
+3. **`docs/V2_MODERNIZATION_ROADMAP.md`** *(retired, no longer in repo)*
    - Status: Ambitious plan refined into actionable phases
    - Reason: Consolidated into TODO.md phases
 

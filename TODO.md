@@ -1,6 +1,6 @@
 # Project TODO
 
-**Last updated**: 2025-01-10 (Based on Comprehensive Code Review v1.5.0)
+**Last updated**: 2025-01-18 (Post security/performance sprint)
 **Review Score**: 7.5/10 (Production-Ready with Improvements Needed)
 
 ---
@@ -8,66 +8,78 @@
 ## 🚨 CRITICAL PRIORITY (Security - Week 1-2)
 
 ### Security Hardening
+
 - [ ] **CRITICAL**: Enforce strong SECRET_KEY validation (don't allow default)
   - File: `backend/config.py:76`
   - Effort: 1 hour
   - Impact: Prevents JWT forgery
+  - Status: **Deferred until post-release** (per release owner instructions)
 
-- [ ] **HIGH**: Add password strength validation
+- [x] **HIGH**: Add password strength validation
   - File: `backend/routers/routers_auth.py:160`
   - Requirements: min 8 chars, uppercase, lowercase, digit, special char
   - Effort: 2 hours
+  - Status: **DONE** — `_validate_password_strength` covers create/update/reset
 
-- [ ] **HIGH**: Implement account lockout after failed login attempts
+- [x] **HIGH**: Implement account lockout after failed login attempts
   - File: `backend/routers/routers_auth.py`
   - Add rate limiting + temporary lockout (5 attempts, 5 min lockout)
   - Effort: 4 hours
+  - Status: **DONE** — enforced via `backend/security/login_throttle.py`
 
-- [ ] **HIGH**: Add CSRF protection for state-changing operations
+- [x] **HIGH**: Add CSRF protection for state-changing operations
   - Install: `fastapi-csrf-protect`
   - Apply to POST/PUT/DELETE endpoints
   - Effort: 4 hours
+  - Status: **DONE** — middleware + tests in `backend/security/csrf.py`
 
 ---
 
 ## 🔥 HIGH PRIORITY (Performance - Week 3-4)
 
 ### Performance Optimization
+
 - [ ] Fix N+1 query problems in analytics endpoints
   - Use SQLAlchemy eager loading (`joinedload`)
   - Files: `backend/routers/routers_analytics.py`
   - Effort: 4 hours
   - Impact: 50-100x faster for 100 students
+  - Status: **OPEN** — waiting on analytics router refactor
 
-- [ ] Add missing database indexes
+- [x] Add missing database indexes
   - Add: `idx_grade_date_assigned`, `idx_grade_date_submitted`
   - Add: `idx_attendance_student_course_date` (3-column)
   - File: `backend/models.py`
   - Effort: 2 hours
   - Impact: 30-40% faster queries
+  - Status: **DONE** — applied via Alembic migration `20250115_add_grade_indexes`
 
-- [ ] Implement response caching middleware
+- [x] Implement response caching middleware
   - Add Redis or in-memory LRU cache
   - Cache GET endpoints for 5 minutes
   - Effort: 4 hours
   - Impact: 70-80% faster for cached endpoints
+  - Status: **DONE** — request-aware caching in `backend/middleware/response_cache.py`
 
-- [ ] Add React.memo to heavy components
+- [x] Add React.memo to heavy components
   - File: `frontend/src/features/students/components/StudentsView.tsx`
   - Wrap StudentCard, CourseGradeBreakdown
   - Effort: 3 hours
   - Impact: 60-70% faster rendering with 100+ students
+  - Status: **DONE** — `StudentCard` & `CourseGradeBreakdown` wrapped via `memo`
 
 ---
 
 ## 📊 MEDIUM PRIORITY (Code Quality - Month 1-2)
 
 ### Frontend Improvements
-- [ ] **Enable TypeScript strict mode**
+
+- [x] **Enable TypeScript strict mode**
   - File: `frontend/tsconfig.json`
   - Set `strict: true`, `noUnusedLocals: true`
   - Effort: 6 hours (fix resulting errors)
   - Impact: Catch 20-30 potential bugs
+  - Status: **DONE** — strict mode enabled and warnings resolved
 
 - [ ] **Extract service layer from routers** (Backend Architecture)
   - Create `backend/services/` directory
@@ -75,26 +87,31 @@
   - Files: All `backend/routers/*.py`
   - Effort: 12 hours
   - Impact: Testable, reusable logic
+  - Status: **OPEN** — prerequisite discussions in progress
 
 - [ ] **Refactor complex components**
   - Break `StudentsView.tsx` (605 LOC) into smaller components
   - Extract: `StudentCard`, `CourseGradeBreakdown`, `AttendanceDetails`
   - Target: <200 LOC per component
   - Effort: 8 hours
+  - Status: **OPEN** — memoization landed, structural refactor pending
 
 - [ ] Add route-based code splitting
   - Use React lazy loading for page components
   - Effort: 4 hours
   - Impact: Smaller bundle size
 
-- [ ] Add pre-commit hooks (ruff, prettier)
+- [x] Add pre-commit hooks (ruff, prettier)
   - File: `.pre-commit-config.yaml` (new)
   - Auto-fix on commit
   - Effort: 1 hour
+  - Status: **DONE** — hooks run ruff + prettier on staged files
 
 - [ ] Strip or guard production `console.log` usage during builds
+  - Status: **OPEN** — lint rule drafted, not enforced yet
 
 ### Backend Improvements
+
 - [x] Introduce soft delete support (`deleted_at` semantics) ✅ COMPLETED
 - [x] Enhanced error responses with stable error IDs ✅ COMPLETED
 
@@ -103,6 +120,7 @@
 ## 🧪 TESTING (Month 2)
 
 ### Test Coverage Expansion
+
 - [ ] Add E2E tests with Playwright
   - Test critical user flows (create student, assign grade, etc.)
   - File: `tests/e2e/` (new directory)
@@ -127,6 +145,7 @@
 ## 📚 DOCUMENTATION (Month 2-3)
 
 ### Documentation Updates
+
 - [ ] Consolidate scattered documentation
   - Current: 15+ markdown files
   - Create clear directory structure: `docs/user/`, `docs/deployment/`, `docs/development/`
@@ -151,6 +170,7 @@
 ## 🚀 DEPLOYMENT & DevOps (Month 3)
 
 ### CI/CD & Automation
+
 - [ ] **Setup GitHub Actions CI/CD pipeline**
   - Run tests on PR
   - Build Docker image on tag
@@ -181,6 +201,7 @@
 ## ✅ COMPLETED
 
 ### Backend
+
 - [x] Increase automated test coverage to 80%+ (246 passing tests, 100% success)
 - [x] Add dedicated unit tests for import router validation failure modes
 - [x] Extend health checks to report memory utilization thresholds
@@ -189,25 +210,32 @@
 - [x] Produce Docker production configuration (compose overlay with resource limits)
 - [x] Introduce soft delete support (`deleted_at` semantics) for critical models
 - [x] Enhanced error responses with stable error IDs and documented enums
+- [x] Added targeted grade/attendance indexes via Alembic migration
+- [x] Request-aware response caching middleware for hot GET endpoints
 
 ### Frontend
+
 - [x] Add React Error Boundary component ✅ EXISTS
 - [x] React Query for data fetching ✅ IMPLEMENTED (TanStack Query)
 - [x] Zustand for state management ✅ IMPLEMENTED
 - [ ] Surface API version headers in the UI (low priority)
 - [ ] Evaluate client-side caching for heavy read endpoints (pending backend caching decisions)
+- [x] Memoized `StudentCard` & `CourseGradeBreakdown` components
+- [x] Enabled TypeScript strict mode (tsconfig + fixes)
 
 ### Infrastructure
+
 - [x] API Rate Limiting (slowapi) ✅ IMPLEMENTED
 - [x] Alembic Database Migrations ✅ IMPLEMENTED
 - [x] Request ID Tracking ✅ IMPLEMENTED
 - [x] Comprehensive Health Checks ✅ IMPLEMENTED
+- [x] Pre-commit hooks for ruff + prettier (auto-fix formatting)
 
 ---
 
 ## 🎯 QUICK WINS (High ROI, Low Effort)
 
-Do these first for immediate impact:
+Already shipped during the January sprint:
 
 1. ✅ **Enable TypeScript strict mode** (6h → catch 20-30 bugs)
 2. ✅ **Add missing database indexes** (2h → +40% performance)
@@ -220,21 +248,25 @@ Do these first for immediate impact:
 ## 📈 PROGRESS TRACKING
 
 ### Phase 1: Critical Security Fixes (Weeks 1-2) - 23 hours
-- [ ] 0/4 tasks completed
-- Blockers: None
-- ETA: 2-3 weeks part-time
+
+- [ ] 3/4 tasks completed (password policy, CSRF, lockout ✅ | SECRET_KEY hardening ⏸️)
+- Blockers: Awaiting decision on enforcement window for SECRET_KEY rotation
+- ETA: Deferred until after production freeze lifts
 
 ### Phase 2: Performance Optimizations (Weeks 3-4) - 17 hours
-- [ ] 0/4 tasks completed
-- Blockers: Phase 1 completion
-- ETA: 2-3 weeks part-time
+
+- [ ] 3/4 tasks completed (indexes, caching, React.memo ✅ | N+1 query fix 🚧)
+- Blockers: Analytics router refactor (shared dependency with service layer work)
+- ETA: 1 week once analytics refactor starts
 
 ### Phase 3: Code Quality (Month 2) - 51 hours
-- [ ] 0/5 tasks completed
-- Blockers: Phase 2 completion
-- ETA: 6-7 weeks part-time
+
+- [ ] 2/6 tasks completed (TS strict + pre-commit ✅)
+- Blockers: Waiting on design sign-off for StudentsView split + service layer plan
+- ETA: 6-7 weeks part-time once dependencies unblocked
 
 ### Phase 4: Testing & Docs (Month 3) - 46 hours
+
 - [ ] 0/7 tasks completed
 - Blockers: None (can run in parallel)
 - ETA: 5-6 weeks part-time
@@ -244,17 +276,21 @@ Do these first for immediate impact:
 ## 📝 NOTES
 
 ### Recent Changes (v1.5.0)
+
 - ✅ Comprehensive code review completed (2025-01-10)
 - ✅ TODO list updated with prioritized findings from review
 - ✅ Overall health score: 7.5/10 (Production-Ready with Improvements)
-- ✅ Merged findings from IMPROVEMENT_ROADMAP.md and V2_MODERNIZATION_ROADMAP.md
+- ✅ Legacy IMPROVEMENT_ROADMAP.md and V2_MODERNIZATION_ROADMAP.md retired; highlights folded into this TODO (see DOCUMENTATION_CLEANUP_2025-01-10.md)
 
 ### Deployment Status
+
 - ✅ **Ready for internal/staging** (with SECRET_KEY changed)
 - ⚠️ **Production deployment** recommended after Phase 1 + Phase 2 (4-6 weeks)
 - 🎯 **Enterprise-grade** after all phases (3-4 months)
+- 💤 SECRET_KEY auto-validation intentionally deferred until post-release freeze
 
 ### Next Code Review
+
 - [ ] Schedule next comprehensive review after Phase 3 completion (~3 months from now)
 - [ ] Track technical debt reduction metrics
 - [ ] Update improvement roadmap based on progress
@@ -262,4 +298,4 @@ Do these first for immediate impact:
 ---
 
 **For detailed review findings, see:** Comprehensive Code Review Report (generated 2025-01-10)
-**See also**: `docs/IMPROVEMENT_ROADMAP.md` for older completed milestones
+**See also**: `DOCUMENTATION_CLEANUP_2025-01-10.md` for archived plan context and `docs/V2_QUICK_REFERENCE.md` for an abridged modernization view
