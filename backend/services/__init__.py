@@ -8,6 +8,7 @@ from .grade_service import GradeService
 from .daily_performance_service import DailyPerformanceService
 from .highlight_service import HighlightService
 from .import_service import ImportService
+from .export_service import ExportService
 from .student_service import StudentService
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "DailyPerformanceService",
     "HighlightService",
     "ImportService",
+    "ExportService",
     "StudentCourseSummary",
     "StudentService",
 ]
