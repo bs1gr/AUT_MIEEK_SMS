@@ -3,6 +3,7 @@
 from .analytics_service import AnalyticsService, StudentCourseSummary
 from .attendance_service import AttendanceService
 from .course_service import CourseService
+from .enrollment_service import EnrollmentService
 from .grade_service import GradeService
 from .student_service import StudentService
 
@@ -10,6 +11,7 @@ __all__ = [
     "AnalyticsService",
     "AttendanceService",
     "CourseService",
+        "EnrollmentService",
     "GradeService",
     "StudentCourseSummary",
     "StudentService",
