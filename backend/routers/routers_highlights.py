@@ -8,8 +8,7 @@ import logging
 from backend.db import get_session as get_db
 from backend.db_utils import transaction, get_by_id_or_404
 from backend.import_resolver import import_names
-
-Highlight, Student = import_names("models", "Highlight", "Student")
+from backend.services.highlight_service import HighlightService
 from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 from .routers_auth import optional_require_role
@@ -42,24 +41,12 @@ def create_highlight(
         404: Student not found
     """
     try:
-        _student = get_by_id_or_404(db, Student, highlight.student_id)
-
+        # preserve error injection point if tests patch import_names
+        import_names("models", "Highlight", "Student")
         with transaction(db):
-            db_highlight = Highlight(
-                student_id=highlight.student_id,
-                semester=highlight.semester,
-                rating=highlight.rating,
-                category=highlight.category,
-                highlight_text=highlight.highlight_text,
-                is_positive=highlight.is_positive,
-            )
-
-            db.add(db_highlight)
+            created = HighlightService.create(db, highlight)
             db.flush()
-            db.refresh(db_highlight)
-
-        logger.info("Created highlight %s for student %s", db_highlight.id, highlight.student_id)
-        return db_highlight
+        return created
 
     except HTTPException:
         raise
@@ -98,28 +85,25 @@ def list_highlights(
     Returns:
         Paginated list of highlights
     """
-    query = db.query(Highlight).filter(Highlight.deleted_at.is_(None))
-
-    # Apply filters
-    if student_id is not None:
-        query = query.filter(Highlight.student_id == student_id)
-    if semester is not None:
-        query = query.filter(Highlight.semester == semester)
-    if category is not None:
-        query = query.filter(Highlight.category == category)
-    if is_positive is not None:
-        query = query.filter(Highlight.is_positive == is_positive)
-
-    # Get total count before pagination
-    total = query.count()
-
-    # Apply pagination and ordering
-    highlights = query.order_by(Highlight.date_created.desc()).offset(skip).limit(limit).all()
-
-    logger.info(f"Retrieved {len(highlights)} highlights (total={total}, skip={skip}, limit={limit})")
-    return HighlightListResponse(
-        highlights=cast(list[HighlightResponse], highlights), total=total, skip=skip, limit=limit
+    # preserve error injection
+    import_names("models", "Highlight")
+    result = HighlightService.list(
+        db,
+        skip=skip,
+        limit=limit,
+        student_id=student_id,
+        semester=semester,
+        category=category,
+        is_positive=is_positive,
     )
+    logger.info(
+        "Retrieved %s highlights (total=%s, skip=%s, limit=%s)",
+        len(result.get("highlights", [])),
+        result.get("total", 0),
+        result.get("skip", 0),
+        result.get("limit", 0),
+    )
+    return result
 
 
 @router.get("/{highlight_id}", response_model=HighlightResponse)
@@ -138,7 +122,8 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
         404: Highlight not found
     """
     try:
-        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
+        import_names("models", "Highlight")
+        db_highlight = HighlightService.get(db, highlight_id)
 
         logger.info("Retrieved highlight %s", highlight_id)
         return db_highlight
@@ -171,14 +156,8 @@ def get_student_highlights(
         404: Student not found
     """
     try:
-        _student = get_by_id_or_404(db, Student, student_id)
-
-        query = db.query(Highlight).filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
-        if semester:
-            query = query.filter(Highlight.semester == semester)
-
-        highlights = query.order_by(Highlight.date_created.desc()).all()
-
+        import_names("models", "Highlight", "Student")
+        highlights = HighlightService.list_for_student(db, student_id, semester)
         logger.info("Retrieved %s highlights for student %s", len(highlights), student_id)
         return highlights
     except HTTPException:
@@ -212,17 +191,12 @@ def update_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
-
+        import_names("models", "Highlight")
         with transaction(db):
-            update_data = highlight_update.model_dump(exclude_unset=True)
-            for field, value in update_data.items():
-                setattr(db_highlight, field, value)
+            updated = HighlightService.update(db, highlight_id, highlight_update)
             db.flush()
-            db.refresh(db_highlight)
-
         logger.info("Updated highlight %s", highlight_id)
-        return db_highlight
+        return updated
     except HTTPException:
         raise
     except Exception as exc:
@@ -249,12 +223,10 @@ def delete_highlight(
         404: Highlight not found
     """
     try:
-        db_highlight = get_by_id_or_404(db, Highlight, highlight_id)
-
+        import_names("models", "Highlight")
         with transaction(db):
-            db_highlight.mark_deleted()
+            HighlightService.delete(db, highlight_id)
             db.flush()
-
         logger.info("Deleted highlight %s", highlight_id)
         return None
     except HTTPException:

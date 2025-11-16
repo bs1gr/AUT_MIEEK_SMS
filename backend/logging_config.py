@@ -13,9 +13,14 @@ def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> loggin
 
     try:
         rim_mod = importlib.import_module("backend.request_id_middleware")
+        RequestIDFilter = getattr(rim_mod, "RequestIDFilter")
     except Exception:
-        rim_mod = importlib.import_module("request_id_middleware")
-    RequestIDFilter = getattr(rim_mod, "RequestIDFilter")
+        # Fallback: define a minimal filter locally to keep logging robust even if import path changes
+        class RequestIDFilter(logging.Filter):  # type: ignore[override]
+            def filter(self, record: logging.LogRecord) -> bool:  # pragma: no cover - trivial
+                if not hasattr(record, "request_id"):
+                    record.request_id = "-"
+                return True
 
     # Format with request ID support
     log_format = "%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"
