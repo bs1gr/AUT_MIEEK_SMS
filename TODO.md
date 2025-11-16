@@ -89,17 +89,17 @@
   - Impact: Catch 20-30 potential bugs
   - Status: **DONE** — strict mode enabled and warnings resolved
 
-- [ ] **Extract service layer from routers** (Backend Architecture) 🔄 **44% COMPLETE**
+- [ ] **Extract service layer from routers** (Backend Architecture) 🔄 **56% COMPLETE**
   - ✅ Created `backend/services/` directory with `__init__.py`
   - ✅ CourseService (146 lines) - commit ace2677
   - ✅ GradeService (194 lines) - commit ace2677
   - ✅ AttendanceService (214 lines) - commit ace2677
   - ✅ EnrollmentService (267 lines) - commit c180349
-  - 🔄 4 of 9 routers refactored (courses, grades, attendance, enrollments)
+  - 🔄 5 of 9 routers refactored (courses, grades, attendance, enrollments, daily-performance)
   - 🔲 Remaining: daily-performance, highlights, imports, exports, analytics (5 routers)
-  - Effort: 12 hours total (5 hours completed, 7 hours remaining)
+  - Effort: 12 hours total (6.5 hours completed, 5.5 hours remaining)
   - Impact: Testable, reusable logic with comprehensive docstrings
-  - Next: DailyPerformanceService extraction
+  - Next: HighlightsService extraction
 
 - [x] **Refactor complex components**
   - Break `StudentsView.tsx` (605 LOC) into smaller components
