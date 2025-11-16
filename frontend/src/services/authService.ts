@@ -38,7 +38,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       return resp.data.access_token;
     }
     return null;
-  } catch (err) {
+  } catch {
     // refresh failed
     clearAccessToken();
     return null;

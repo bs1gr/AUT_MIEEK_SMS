@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { XCircle, PieChart, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { FinalGrade } from '@/types';
 
-const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL: string = import.meta.env?.VITE_API_URL || '/api/v1';
 
 interface Props {
   studentId: number;
@@ -12,8 +13,8 @@ interface Props {
 }
 
 const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName, onClose }) => {
-  const { t } = (useLanguage() as any) || { t: (k: string) => k };
-  const [data, setData] = useState<any>(null);
+  const { t } = useLanguage();
+  const [data, setData] = useState<FinalGrade | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,10 +53,10 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
       try {
         const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
         if (!res.ok) throw new Error('Failed to load breakdown');
-        const json = await res.json();
+        const json: FinalGrade = await res.json();
         setData(json);
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load breakdown');
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'Failed to load breakdown');
       } finally {
         setLoading(false);
       }
@@ -139,7 +140,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {Object.entries<any>(data.category_breakdown || {}).map(([cat, detail]) => (
+                    {Object.entries(data.category_breakdown || {}).map(([cat, detail]) => (
                       <tr key={cat} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-medium text-gray-800">{translateCategory(cat)}</td>
                         <td className="px-4 py-3 text-sm text-right text-gray-700">{Number(detail.average || 0).toFixed(2)}%</td>
@@ -151,10 +152,10 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                       <td className="px-4 py-3 text-sm text-gray-800">{t('totalBeforePenalty') || 'Total (before penalty)'}</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-800">-</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-800">
-                        {Object.values<any>(data.category_breakdown || {}).reduce((sum, d) => sum + Number(d.weight || 0), 0)}%
+                        {Object.values(data.category_breakdown || {}).reduce((sum, d) => sum + Number(d.weight || 0), 0)}%
                       </td>
                       <td className="px-4 py-3 text-sm text-right text-indigo-700">
-                        {Object.values<any>(data.category_breakdown || {}).reduce((sum, d) => sum + Number(d.contribution || 0), 0).toFixed(2)}%
+                        {Object.values(data.category_breakdown || {}).reduce((sum, d) => sum + Number(d.contribution || 0), 0).toFixed(2)}%
                       </td>
                     </tr>
                   </tbody>

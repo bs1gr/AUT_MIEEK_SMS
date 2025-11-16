@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 
@@ -49,17 +49,16 @@ const OperationsView = (_props: OperationsViewProps) => {
     return () => window.clearTimeout(timeoutId);
   }, [toast]);
 
-  useEffect(() => {
+  // Derive a forced tab from navigation state without setting state inside an effect
+  const forcedTab: OperationsTabKey | null = useMemo(() => {
     const state = (location.state ?? {}) as OperationsLocationState;
     const desired = normalizeTab(state.tab);
-    if (desired && desired !== activeTab) {
-      setActiveTab(desired);
-      return;
-    }
-    if (state.scrollTo && activeTab !== 'exports') {
-      setActiveTab('exports');
-    }
-  }, [location, activeTab]);
+    if (desired) return desired;
+    if (state.scrollTo) return 'exports';
+    return null;
+  }, [location.state]);
+
+  const effectiveTab = forcedTab ?? activeTab;
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
     { key: 'exports', label: t('export') },
@@ -89,7 +88,7 @@ const OperationsView = (_props: OperationsViewProps) => {
 
       <div role="tablist" aria-label={headerTitle} className="flex flex-wrap gap-2">
         {tabItems.map(({ key, label }) => {
-          const isActive = key === activeTab;
+          const isActive = key === effectiveTab;
           const accessibilityProps = isActive
             ? ({ 'aria-selected': 'true', tabIndex: 0 } as const)
             : ({ 'aria-selected': 'false', tabIndex: -1 } as const);
@@ -117,14 +116,14 @@ const OperationsView = (_props: OperationsViewProps) => {
 
       <section
         role="tabpanel"
-        id={`operations-panel-${activeTab}`}
-        aria-labelledby={`operations-tab-${activeTab}`}
+        id={`operations-panel-${effectiveTab}`}
+        aria-labelledby={`operations-tab-${effectiveTab}`}
         className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm"
       >
-        {activeTab === 'exports' && <ExportCenter variant="embedded" />}
-        {activeTab === 'maintenance' && <DevToolsPanel variant="embedded" onToast={handleToast} />}
-        {activeTab === 'help' && <HelpDocumentation />}
-        {activeTab === 'settings' && (
+        {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
+        {effectiveTab === 'maintenance' && <DevToolsPanel variant="embedded" onToast={handleToast} />}
+        {effectiveTab === 'help' && <HelpDocumentation />}
+        {effectiveTab === 'settings' && (
           <div className="space-y-6">
             <AppearanceThemeSelector />
           </div>

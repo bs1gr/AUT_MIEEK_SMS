@@ -30,7 +30,7 @@ export function getErrorMessage(source: unknown, fallback: string): string {
       if (serialized && serialized !== '{}') {
         return serialized;
       }
-    } catch (err) {
+    } catch {
       // ignore serialization issues and use fallback below
     }
   }
