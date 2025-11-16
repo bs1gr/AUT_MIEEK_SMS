@@ -1,8 +1,47 @@
 # Production overlay for Docker Compose.
 # Adds restart policies, resource limits, and conservative logging caps.
+# To use: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-student_management}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - sms_network
+
   backend:
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Override DATABASE_URL to use PostgreSQL in production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}
     deploy:
       restart_policy:
         condition: on-failure
@@ -21,6 +60,8 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    networks:
+      - sms_network
 
   frontend:
     restart: unless-stopped
@@ -42,3 +83,13 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
+    networks:
+      - sms_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  sms_network:
+    driver: bridge

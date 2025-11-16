@@ -215,12 +215,16 @@
   - Security audits run on every push/PR
   - Effort: 15 minutes (mostly verification)
 
-- [ ] Create production Docker Compose template
-  - Add PostgreSQL service
-  - Add health checks
-  - Add resource limits
-  - File: `docker-compose.prod.yml` (new)
-  - Effort: 2 hours
+- [x] **Create production Docker Compose template** ✅ **DONE**
+  - ✅ Add PostgreSQL service - postgres:16-alpine with health checks
+  - ✅ Add health checks - pg_isready for PostgreSQL, existing for backend/frontend
+  - ✅ Add resource limits - CPU/memory limits for all services
+  - ✅ Add dedicated network (sms_network) for service isolation
+  - ✅ Add PostgreSQL volume (postgres_data) for data persistence
+  - File: `docker-compose.prod.yml` (existing, enhanced)
+  - Additional: Created `.env.production.example` with security checklist
+  - Usage: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`
+  - Effort: 45 minutes
 
 - [ ] Add unit coverage for `.github/scripts/normalize_ruff.py` and related validators
 - [ ] Cache npm dependencies in CI to reduce install time
