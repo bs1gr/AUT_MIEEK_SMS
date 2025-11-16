@@ -14,6 +14,7 @@ import prettier from "eslint-config-prettier";
 const commonRules = {
   "react/react-in-jsx-scope": "off",
   "react/prop-types": "off",
+  "no-console": ["warn", { allow: ["warn", "error"] }],
   "@typescript-eslint/no-unused-vars": [
     "warn",
     {
