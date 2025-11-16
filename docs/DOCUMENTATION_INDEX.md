@@ -1,9 +1,19 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-16
-**Version**: 1.6.3
+**Last Updated**: 2025-01-18
+**Version**: 1.7.0
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
+
+---
+
+## 🗂️ Documentation Structure
+
+Documentation is organized into three main directories:
+
+- **[user/](user/)** - User guides, quick starts, and how-tos → [INDEX](user/INDEX.md)
+- **[development/](development/)** - Technical docs, architecture, APIs → [INDEX](development/INDEX.md)
+- **[deployment/](deployment/)** - Operations, deployment, troubleshooting → [INDEX](deployment/INDEX.md)
 
 ---
 
@@ -14,6 +24,7 @@ This document serves as the single source of truth for all project documentation
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap (Updated 2025-01-18)
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
+- **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
 
 ### Installation & Deployment
 
@@ -23,7 +34,7 @@ This document serves as the single source of truth for all project documentation
 
 ### Performance & Optimization
 
-- **[PERFORMANCE_OPTIMIZATIONS_2025-01-10.md](../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements (NEW)
+- **[PERFORMANCE_OPTIMIZATIONS_2025-01-10.md](../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements
   - Database indexing (+40% query speed)
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
@@ -31,24 +42,38 @@ This document serves as the single source of truth for all project documentation
 
 ---
 
-## 📂 Specialized Documentation
+## 📂 Documentation by Role
 
-### Development
+### 👤 For End Users
 
-- **[docs/QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Quick start for developers
-- **[docs/ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
-- **[docs/AUTHENTICATION.md](AUTHENTICATION.md)** - Authentication implementation guide
-- **[docs/LOCALIZATION.md](LOCALIZATION.md)** - Internationalization (i18n) guide
-- **[docs/development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common request/response and error examples (NEW, draft)
-- **[docs/development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows (NEW, draft)
-- **[docs/development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load & performance testing methodology (NEW, draft)
+**Start here**: [user/INDEX.md](user/INDEX.md)
 
-### Operations
+- **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Get started in 5 minutes
+- **[user/THEME_GUIDE.md](user/THEME_GUIDE.md)** - Customize UI themes
+- **[user/THEMES_SUMMARY.md](user/THEMES_SUMMARY.md)** - Available themes overview
+- **[user/LOCALIZATION.md](user/LOCALIZATION.md)** - Language switching (EN/EL)
 
-- **[docs/DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)** - Docker commands and troubleshooting
-- **[docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
-- **[docs/DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Inventory of scripts, workflows, and runbooks required for release readiness
-- **[docs/deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational deployment & rollback sequence (NEW, draft)
+### 💻 For Developers
+
+**Start here**: [development/INDEX.md](development/INDEX.md)
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
+- **[development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows
+- **[development/AUTHENTICATION.md](development/AUTHENTICATION.md)** - Auth implementation guide
+- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
+- **[development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common API examples
+- **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
+
+### 🚀 For DevOps/Operators
+
+**Start here**: [deployment/INDEX.md](deployment/INDEX.md)
+
+- **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker commands and management
+- **[deployment/DEPLOY.md](deployment/DEPLOY.md)** - Deployment procedures
+- **[deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational runbook
+- **[FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
+- **[REBUILD_TROUBLESHOOTING.md](REBUILD_TROUBLESHOOTING.md)** - Rebuild troubleshooting
+- **[DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Release readiness inventory
 
 
 ### Release Automation
