@@ -6,6 +6,7 @@ from .course_service import CourseService
 from .enrollment_service import EnrollmentService
 from .grade_service import GradeService
 from .daily_performance_service import DailyPerformanceService
+from .highlight_service import HighlightService
 from .student_service import StudentService
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
         "EnrollmentService",
     "GradeService",
     "DailyPerformanceService",
+        "HighlightService",
     "StudentCourseSummary",
     "StudentService",
 ]
