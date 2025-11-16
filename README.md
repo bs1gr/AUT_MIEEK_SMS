@@ -112,6 +112,8 @@ Reference [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) f
 
 ## 📚 Documentation / Τεκμηρίωση
 
+➡️ For a complete, always-current list of all guides, troubleshooting references, and release/process documentation, see the master index: [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md).
+
 - 🇬🇧 **English**: [README.md](README.md) (this file)
 - 🇬🇷 **Ελληνικά**:
   - [⚡ Γρήγορη Εκκίνηση](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md) - Quick start guide
@@ -698,6 +700,7 @@ student-management-system/
 - [docs/DEPENDENCY_UPGRADES.md](docs/DEPENDENCY_UPGRADES.md) - Dependency management
 - [docs/QNAP.md](docs/QNAP.md) - QNAP deployment guide
 - [docs/SERVERLESS.md](docs/SERVERLESS.md) - Serverless deployment options
+- [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) - Master documentation index (single source of truth)
 
 ## API Documentation
 

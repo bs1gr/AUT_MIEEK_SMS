@@ -447,3 +447,27 @@ SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS: int = 300
 6. ⏳ Consider Phase 1 (Security) optimizations next
 
 **Status**: Ready for testing and deployment! 🚀
+
+---
+
+## Performance Regression Policy (Added 2025-11-16)
+
+Baseline metrics should be re-captured at the start of each release cycle. A change is considered a regression if:
+
+| Metric | Condition | Action |
+|--------|-----------|--------|
+| p95 latency (uncached GET /students) | > +15% vs last baseline | Investigate recent commits, profile queries |
+| Analytics query count | > 5 queries/request | Re-check eager loading, composite indexes |
+| Cache hit rate (hot endpoints) | < 60% (target ≥ 75%) | Verify cache keys & invalidation scope |
+| 5xx error rate under load | > 0.5% | Inspect logs, enable debug profiling |
+| Slow-query log entries (> threshold) | Spikes > 3x usual daily | Evaluate new endpoints / heavy joins |
+
+Remediation sequence:
+
+1. Reproduce locally with representative dataset.
+2. Enable SQL echo + timing for suspect endpoints.
+3. Confirm no inadvertent N+1 reintroduction.
+4. Add/adjust index or prefetch strategy.
+5. Re-run load test script (`k6` or Locust) and record new baseline.
+
+Future automation: weekly CI workflow to post summary deltas in PR comments.
