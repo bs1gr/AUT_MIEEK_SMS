@@ -119,8 +119,12 @@
   - Effort: 1 hour
   - Status: **DONE** — hooks run ruff + prettier on staged files
 
-- [ ] Strip or guard production `console.log` usage during builds
-  - Status: **OPEN** — lint rule drafted, not enforced yet
+- [x] **Strip or guard production `console.log` usage during builds**
+  - Status: **DONE** — Terser configured to drop console.log in production
+  - ESLint rule added: warns about console.log, allows console.warn/error
+  - Verified: console.log removed from all built assets
+  - Impact: Cleaner code, reduced bundle size, improved security
+  - Commit: 2c815fa
 
 ### Backend Improvements
 
