@@ -1,5 +1,7 @@
 # Documentation Cleanup Summary
 
+> **Status**: Historical Reference (Deprecated) — This document reflects the January 10, 2025 consolidation effort. Current authoritative navigation lives in `docs/DOCUMENTATION_INDEX.md`. Do not update this file except to adjust the status banner.
+
 **Date**: 2025-01-10
 **Action**: Documentation consolidation and organization
 

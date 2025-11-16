@@ -1,6 +1,6 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2025-11-16
 **Version**: 1.6.3
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
@@ -39,12 +39,16 @@ This document serves as the single source of truth for all project documentation
 - **[docs/ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
 - **[docs/AUTHENTICATION.md](AUTHENTICATION.md)** - Authentication implementation guide
 - **[docs/LOCALIZATION.md](LOCALIZATION.md)** - Internationalization (i18n) guide
+- **[docs/development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common request/response and error examples (NEW, draft)
+- **[docs/development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows (NEW, draft)
+- **[docs/development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load & performance testing methodology (NEW, draft)
 
 ### Operations
 
 - **[docs/DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)** - Docker commands and troubleshooting
 - **[docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
 - **[docs/DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Inventory of scripts, workflows, and runbooks required for release readiness
+- **[docs/deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational deployment & rollback sequence (NEW, draft)
 
 
 ### Release Automation
@@ -69,6 +73,14 @@ This document serves as the single source of truth for all project documentation
 | Status | Count | Description |
 |--------|-------|-------------|
 | ✅ Active | 12 | Current, maintained documentation |
+| 🧪 Draft | 4 | New skeletons pending expansion |
+
+### New Additions (2025-11-16)
+
+1. 🧪 **RUNBOOK.md (draft)** added under `docs/deployment/` for structured deployment & rollback steps.
+2. 🧪 **API_EXAMPLES.md (draft)** added under `docs/development/` centralizing typical request/response patterns.
+3. 🔗 **README.md** now links directly to this index for faster discovery.
+4. 📦 Documentation count table updated to distinguish active vs draft artifacts.
 
 ### Recent Updates (2025-11-15)
 
@@ -189,3 +201,16 @@ Found incorrect, outdated, or missing documentation?
 **This index is maintained by**: Development Team
 **Contact**: See README.md for contact information
 **Last comprehensive audit**: 2025-11-15
+
+---
+
+## Index Update (2025-11-16)
+
+Draft document set expanded to 4 and Status Summary table updated accordingly:
+
+- `docs/deployment/RUNBOOK.md`
+- `docs/development/API_EXAMPLES.md`
+- `docs/development/ARCHITECTURE_DIAGRAMS.md`
+- `docs/development/LOAD_TEST_PLAYBOOK.md`
+
+No further action required; future drafts should increment the draft count.
