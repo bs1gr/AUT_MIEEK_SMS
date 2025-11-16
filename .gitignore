@@ -55,6 +55,7 @@ frontend_dev_error.log
 
 # Node / Frontend
 frontend/node_modules/
+frontend/node_modules.bak_*/
 frontend/dist/
 frontend/build/
 
