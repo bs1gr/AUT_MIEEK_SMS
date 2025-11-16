@@ -1,73 +1,86 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import type { Student, Grade, Course } from '@/types';
+import type { Student, Course } from '@/types';
 import { listItemVariants } from '@/utils/animations';
 import { percentageToGreekScale, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
 import CourseGradeBreakdown from './CourseGradeBreakdown';
-
-interface StudentStats {
-  attendance: {
-    total: number;
-    present: number;
-    absent: number;
-    late: number;
-    excused: number;
-    attendanceRate: string;
-  };
-  grades: {
-    count: number;
-    average: string;
-  };
-  gradesList?: Grade[];
-}
+import AttendanceDetails from './AttendanceDetails';
+import GradeStatistics, { GradeInsights } from './GradeStatistics';
+import GradeDistribution, { GradeDistributionData } from './GradeDistribution';
+import NotesSection from './NotesSection';
+import type { StudentStats } from './studentTypes';
 
 interface StudentCardProps {
   student: Student;
+  stats?: StudentStats;
   isExpanded: boolean;
-  stats: StudentStats | undefined;
-  coursesMap: Map<number, Course>;
+  noteValue: string;
+  onNoteChange: (value: string) => void;
   onToggleExpand: (id: number) => void;
   onEdit: (student: Student) => void;
   onDelete: (id: number) => void;
+  coursesMap: Map<number, Course>;
+  onNavigateToCourse?: (courseId: number) => void;
+  onViewProfile?: (studentId: number) => void;
 }
 
-/**
- * Memoized StudentCard component
- * Re-renders only when props change (student, stats, isExpanded, coursesMap)
- */
 const StudentCard: React.FC<StudentCardProps> = memo(({
   student,
-  isExpanded,
   stats,
-  coursesMap,
+  isExpanded,
+  noteValue,
+  onNoteChange,
   onToggleExpand,
   onEdit,
   onDelete,
+  coursesMap,
+  onNavigateToCourse,
+  onViewProfile,
 }) => {
   const { t } = useLanguage();
 
-  // Memoize expensive average calculations
-  const avgGreekGrade = React.useMemo(() => {
+  const gradeInsights = useMemo<GradeInsights | null>(() => {
     if (!stats?.gradesList || stats.gradesList.length === 0) return null;
-    const avgPercentage = stats.gradesList.reduce(
-      (sum, g) => sum + ((g.grade / g.max_grade) * 100),
-      0
-    ) / stats.gradesList.length;
-    return percentageToGreekScale(avgPercentage);
+    const percentages = stats.gradesList.map((g) => (g.grade / g.max_grade) * 100);
+    const avgPercentage = percentages.reduce((sum, value) => sum + value, 0) / percentages.length;
+    const maxPercentage = Math.max(...percentages);
+    const minPercentage = Math.min(...percentages);
+
+    return {
+      count: stats.gradesList.length,
+      avgPercentage,
+      avgGreek: percentageToGreekScale(avgPercentage),
+      maxPercentage,
+      maxGreek: percentageToGreekScale(maxPercentage),
+      minPercentage,
+      minGreek: percentageToGreekScale(minPercentage),
+      letterGrade: getLetterGrade(avgPercentage),
+    };
   }, [stats?.gradesList]);
 
-  const letterGrade = React.useMemo(() => {
-    if (avgGreekGrade === null) return null;
-    const avgPercentage = (avgGreekGrade / 20) * 100;
-    return getLetterGrade(avgPercentage);
-  }, [avgGreekGrade]);
+  const gradeDistribution = useMemo<GradeDistributionData | null>(() => {
+    if (!stats?.gradesList || stats.gradesList.length === 0) return null;
+    const distribution: GradeDistributionData['distribution'] = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+
+    stats.gradesList.forEach((grade) => {
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      const letter = getLetterGrade(percentage) as keyof GradeDistributionData['distribution'];
+      if (distribution[letter] !== undefined) {
+        distribution[letter] += 1;
+      }
+    });
+
+    return {
+      distribution,
+      total: stats.gradesList.length,
+    };
+  }, [stats?.gradesList]);
+
+  const initials = `${student.first_name?.[0] || ''}${student.last_name?.[0] || ''}` || student.student_id?.toString() || '?';
 
   return (
-    <motion.li
-      className="border p-4 rounded shadow-sm"
-      variants={listItemVariants}
-    >
+    <motion.li className="border p-4 rounded shadow-sm" variants={listItemVariants}>
       <div className="flex justify-between items-center">
         <div>
           <strong>{student.first_name} {student.last_name}</strong><br />
@@ -79,34 +92,35 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           )}
         </div>
         <div className="space-x-2">
+          {onViewProfile && (
+            <button
+              onClick={() => onViewProfile(student.id)}
+              className="text-blue-600 hover:underline"
+            >
+              {t('viewProfile') || t('fullProfile') || 'View Profile'}
+            </button>
+          )}
           <button
             onClick={() => onToggleExpand(student.id)}
             className="text-indigo-600 hover:underline font-medium"
           >
             {isExpanded ? t('close') : t('viewPerformance') || t('view')}
           </button>
-          <button
-            onClick={() => onEdit(student)}
-            className="text-green-600 hover:underline"
-          >
+          <button onClick={() => onEdit(student)} className="text-green-600 hover:underline">
             {t('edit')}
           </button>
-          <button
-            onClick={() => onDelete(student.id)}
-            className="text-red-600 hover:underline"
-          >
+          <button onClick={() => onDelete(student.id)} className="text-red-600 hover:underline">
             {t('delete')}
           </button>
         </div>
       </div>
 
-      {isExpanded && stats && (
+      {isExpanded && (
         <div className="mt-4 space-y-6">
-          {/* Student Info Header */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center text-3xl font-bold border-2 border-white/30">
-                {student.first_name[0]}{student.last_name[0]}
+                {initials}
               </div>
               <div>
                 <h3 className="text-2xl font-bold">{student.first_name} {student.last_name}</h3>
@@ -122,62 +136,72 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
             </div>
           </div>
 
-          {/* Stats Cards Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Average Grade */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md">
-              <div className="text-xs opacity-75 mb-1">{t('averageGrade') || 'Average'}</div>
-              <div className="text-2xl font-bold">{stats.grades.average}%</div>
-              <div className="text-xs opacity-90">{stats.grades.count} {t('assignments')}</div>
-            </div>
-
-            {/* Greek Scale Average */}
-            {avgGreekGrade !== null && (
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md">
-                <div className="text-xs opacity-75 mb-1">{t('greekScale')}</div>
-                <div className="text-2xl font-bold">{avgGreekGrade.toFixed(1)}</div>
-                <div className="text-xs opacity-90">0-20</div>
+          {stats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md">
+                <div className="text-xs opacity-75 mb-1">{t('averageGrade') || 'Average'}</div>
+                <div className="text-2xl font-bold">{stats.grades.average}%</div>
+                <div className="text-xs opacity-90">{stats.grades.count} {t('assignments')}</div>
               </div>
-            )}
 
-            {/* Attendance */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
-              <div className="text-xs opacity-75 mb-1">{t('absences') || 'Absences'}</div>
-              <div className="text-2xl font-bold">{stats.attendance.absent}/{stats.attendance.total}</div>
-              <div className="text-xs opacity-90">{stats.attendance.attendanceRate}%</div>
+              {gradeInsights && (
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md">
+                  <div className="text-xs opacity-75 mb-1">{t('greekScale')}</div>
+                  <div className="text-2xl font-bold">{gradeInsights.avgGreek.toFixed(1)}</div>
+                  <div className="text-xs opacity-90">0-20</div>
+                </div>
+              )}
+
+              {stats.attendance && (
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
+                  <div className="text-xs opacity-75 mb-1">{t('absences') || 'Absences'}</div>
+                  <div className="text-2xl font-bold">{stats.attendance.absent}/{stats.attendance.total}</div>
+                  <div className="text-xs opacity-90">{stats.attendance.attendanceRate}%</div>
+                </div>
+              )}
+
+              {gradeInsights && (
+                <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-4 text-white shadow-md">
+                  <div className="text-xs opacity-75 mb-1">{t('letterGrade')}</div>
+                  <div className="text-2xl font-bold">{gradeInsights.letterGrade}</div>
+                  <div className="text-xs opacity-90">{t('grade')}</div>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Letter Grade */}
-            {letterGrade !== null && (
-              <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-4 text-white shadow-md">
-                <div className="text-xs opacity-75 mb-1">{t('letterGrade')}</div>
-                <div className="text-2xl font-bold">{letterGrade}</div>
-                <div className="text-xs opacity-90">{t('grade')}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Grade Breakdown */}
-          {stats.gradesList && stats.gradesList.length > 0 && (
+          {stats && (
             <CourseGradeBreakdown
-              gradesList={stats.gradesList}
+              gradesList={stats.gradesList || []}
               coursesMap={coursesMap}
+              onNavigateToCourse={onNavigateToCourse}
             />
           )}
+
+          {stats && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AttendanceDetails attendance={stats.attendance} />
+              <GradeStatistics insights={gradeInsights} />
+            </div>
+          )}
+
+          {gradeDistribution && gradeDistribution.total > 0 && (
+            <GradeDistribution data={gradeDistribution} />
+          )}
+
+          <NotesSection value={noteValue} onChange={onNoteChange} />
         </div>
       )}
     </motion.li>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for optimization
-  // Only re-render if these specific props change
-  return (
-    prevProps.student.id === nextProps.student.id &&
-    prevProps.isExpanded === nextProps.isExpanded &&
-    prevProps.stats === nextProps.stats &&
-    prevProps.coursesMap === nextProps.coursesMap
-  );
-});
+}, (prevProps, nextProps) => (
+  prevProps.student.id === nextProps.student.id &&
+  prevProps.isExpanded === nextProps.isExpanded &&
+  prevProps.stats === nextProps.stats &&
+  prevProps.noteValue === nextProps.noteValue &&
+  prevProps.coursesMap === nextProps.coursesMap &&
+  prevProps.onNavigateToCourse === nextProps.onNavigateToCourse
+));
 
 StudentCard.displayName = 'StudentCard';
 

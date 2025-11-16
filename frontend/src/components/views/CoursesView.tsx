@@ -8,11 +8,34 @@ import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';
 import { getLocalizedCategory, getCanonicalCategory } from '../../utils/categoryLabels';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
 // ---- Types ----
 type Rule = { category: string; weight: string | number; description?: string };
 type DaySchedule = { periods: number; start_time: string; duration: number };
+type TeachingScheduleItem = { day: string; periods: number; start_time: string; duration: number };
+type CourseUpdatePayload = {
+  evaluation_rules: Rule[];
+  teaching_schedule: TeachingScheduleItem[];
+  hours_per_week: number;
+};
+type StudentLite = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  student_id: string;
+  study_year?: number;
+};
+type EnrollmentLite = { course_id: number };
+type ScheduleConflict = {
+  student: string;
+  studentYear: number | string;
+  course: string;
+  day: string;
+  time: string;
+  conflictTime: string;
+};
+type PaginatedResponse<T> = { items: T[]; total?: number; skip?: number; limit?: number };
 type CourseType = {
   id: number;
   course_code: string;
@@ -27,19 +50,19 @@ type CourseType = {
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
 const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
-  const { t } = useLanguage() as any;
+  const { t } = useLanguage();
   const [courses, setCourses] = useState<CourseType[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [evaluationRules, setEvaluationRules] = useState<Rule[]>([]);
   const [weeklySchedule, setWeeklySchedule] = useState<Record<string, DaySchedule>>({});
-  const [hoursPerWeek, setHoursPerWeek] = useState<number>(0);
+  const [, setHoursPerWeek] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<ToastType | null>(null);
   const [activeTab, setActiveTab] = useState('evaluation'); // 'evaluation' | 'schedule' | 'enrollment'
-  const [allStudents, setAllStudents] = useState<any[]>([]);
-  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+  const [allStudents, setAllStudents] = useState<StudentLite[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<StudentLite[]>([]);
   const [selectedToEnroll, setSelectedToEnroll] = useState<number[]>([]);
-  const [scheduleConflicts, setScheduleConflicts] = useState<any[]>([]);
+  const [scheduleConflicts, setScheduleConflicts] = useState<ScheduleConflict[]>([]);
   const [showConflictWarning, setShowConflictWarning] = useState<boolean>(false);
 
   // Common grade categories using translations (bilingual labels for datalist)
@@ -91,9 +114,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       const resp = await fetch(`${API_BASE_URL}/students/`);
       const data = await resp.json();
       // Normalize PaginatedResponse to array
-      const studentsArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
+      const studentsArray: StudentLite[] = (data && (data as PaginatedResponse<StudentLite>).items)
+        ? (data as PaginatedResponse<StudentLite>).items
+        : (Array.isArray(data) ? (data as StudentLite[]) : []);
       setAllStudents(studentsArray);
-    } catch (e) {
+    } catch {
       showToast(t('failedToLoadData'), 'error');
     }
   };
@@ -104,7 +129,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
       const data = await resp.json();
       setEnrolledStudents(Array.isArray(data) ? data : []);
-    } catch (e) {
+    } catch {
       setEnrolledStudents([]);
     }
   };
@@ -120,7 +145,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       showToast(t('studentsEnrolled') || 'Students enrolled', 'success');
       setSelectedToEnroll([]);
       loadEnrolledStudents();
-    } catch (e) {
+    } catch {
       showToast(t('failedToSaveData'), 'error');
     }
   };
@@ -132,7 +157,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       if (!resp.ok) throw new Error('fail');
       showToast(t('studentUnenrolled') || 'Student unenrolled', 'success');
       loadEnrolledStudents();
-    } catch (e) {
+    } catch {
       showToast(t('failedToSaveData'), 'error');
     }
   };
@@ -145,7 +170,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       // Normalize to array for UI
       const coursesArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
       setCourses(coursesArray as CourseType[]);
-    } catch (error) {
+    } catch {
       showToast(t('failedToLoadData'), 'error');
     }
   };
@@ -160,7 +185,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       if (course.teaching_schedule) {
         if (Array.isArray(course.teaching_schedule)) {
           // Backend stores as array, convert to Record
-          course.teaching_schedule.forEach((item: any) => {
+          (course.teaching_schedule as TeachingScheduleItem[]).forEach((item) => {
             if (item.day) {
               scheduleRecord[item.day] = {
                 periods: item.periods || 1,
@@ -191,9 +216,10 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     ]);
   };
 
-  const updateRule = (index: number, field: keyof Rule, value: any) => {
-    const newRules = [...evaluationRules] as Rule[];
-    (newRules[index] as any)[field] = value;
+  const updateRule = (index: number, field: keyof Rule, value: string | number) => {
+    const newRules = [...evaluationRules];
+    const updated: Rule = { ...newRules[index], [field]: value } as Rule;
+    newRules[index] = updated;
     setEvaluationRules(newRules);
   };
 
@@ -244,12 +270,12 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     });
   };
 
-  const updateDaySchedule = (dayEn: string, field: keyof DaySchedule, value: any) => {
+  const updateDaySchedule = (dayEn: string, field: keyof DaySchedule, value: string | number) => {
     setWeeklySchedule((prev) => ({
       ...prev,
       [dayEn]: {
         ...prev[dayEn],
-        [field]: field === 'periods' || field === 'duration' ? parseInt(value) : value
+        [field]: field === 'periods' || field === 'duration' ? parseInt(String(value)) : String(value)
       }
     }));
   };
@@ -257,7 +283,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const calculateTotalHours = () => {
     let total = 0;
     Object.values(weeklySchedule as Record<string, DaySchedule>).forEach((day) => {
-      if ((day as any).periods && (day as any).duration) {
+      if (day.periods && day.duration) {
         total += (day.periods || 0) * ((day.duration || 0) / 60);
       }
     });
@@ -265,7 +291,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   };
 
   // Check for schedule conflicts with other courses (year-based)
-  const checkScheduleConflicts = async (): Promise<any[]> => {
+  const checkScheduleConflicts = async (): Promise<ScheduleConflict[]> => {
     if (!selectedCourse || Object.keys(weeklySchedule).length === 0) {
       setScheduleConflicts([]);
       return [];
@@ -278,7 +304,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
 
       // Get enrolled students for this course
       const enrolledResponse = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
-      const enrolled = await enrolledResponse.json();
+      const enrolled: StudentLite[] = await enrolledResponse.json();
 
       if (!Array.isArray(enrolled) || enrolled.length === 0) {
         setScheduleConflicts([]);
@@ -286,7 +312,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       }
 
       // Group students by study year
-      const studentsByYear: Record<number, any[]> = {};
+      const studentsByYear: Record<number, StudentLite[]> = {};
       for (const student of enrolled) {
         const year = student.study_year || 0;
         if (!studentsByYear[year]) {
@@ -296,13 +322,13 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       }
 
       // Get all enrollments for these students
-      const conflicts: any[] = [];
+      const conflicts: ScheduleConflict[] = [];
 
-      for (const [year, studentsInYear] of Object.entries(studentsByYear)) {
+      for (const studentsInYear of Object.values(studentsByYear)) {
         for (const student of studentsInYear) {
           // Get student's other courses via enrollments
           const studentEnrollmentsResponse = await fetch(`${API_BASE_URL}/enrollments/student/${student.id}`);
-          const studentEnrollments = await studentEnrollmentsResponse.json();
+          const studentEnrollments: EnrollmentLite[] = await studentEnrollmentsResponse.json();
 
           if (!Array.isArray(studentEnrollments)) continue;
 
@@ -316,7 +342,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
             // Convert other course schedule to Record format
             let otherSchedule: Record<string, DaySchedule> = {};
             if (Array.isArray(otherCourse.teaching_schedule)) {
-              otherCourse.teaching_schedule.forEach((item: any) => {
+              (otherCourse.teaching_schedule as TeachingScheduleItem[]).forEach((item) => {
                 if (item.day) {
                   otherSchedule[item.day] = {
                     periods: item.periods || 1,
@@ -372,8 +398,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         setShowConflictWarning(true);
       }
       return conflicts;
-    } catch (error) {
-      console.error('Error checking conflicts:', error);
+    } catch (err) {
+      console.error('Error checking conflicts:', err);
       return [];
     }
   };
@@ -396,11 +422,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       const calculatedHours = parseFloat(calculateTotalHours());
 
       // Convert weeklySchedule (Record) to list of day objects expected by backend schema
-      const scheduleList = Object.entries(weeklySchedule || {}).map(([dayEn, cfg]) => ({
+      const scheduleList: TeachingScheduleItem[] = Object.entries(weeklySchedule || {}).map(([dayEn, cfg]) => ({
         day: dayEn,
-        periods: Number((cfg as any).periods) || 0,
-        start_time: (cfg as any).start_time || '08:00',
-        duration: Number((cfg as any).duration) || 0,
+        periods: Number(cfg.periods) || 0,
+        start_time: cfg.start_time || '08:00',
+        duration: Number(cfg.duration) || 0,
       }));
 
       // Validate hours_per_week backend constraint (>= 0.5) when schedule is provided
@@ -417,7 +443,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         category: getCanonicalCategory(String(r.category || ''), t),
       }));
 
-      const payload: any = {
+      const payload: CourseUpdatePayload = {
         evaluation_rules: normalizedRules,
         teaching_schedule: scheduleList,
         hours_per_week: Number.isFinite(calculatedHours) ? calculatedHours : 0,
@@ -431,7 +457,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
 
       showToast(t('courseDataSaved'), 'success');
       loadCourses();
-    } catch (error) {
+    } catch {
       showToast(t('failedToSaveData'), 'error');
     } finally {
       setLoading(false);
@@ -448,8 +474,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       // Convert weeklySchedule to array format expected by calendar utils
       const scheduleArray = Object.entries(weeklySchedule || {}).map(([day, cfg]) => ({
         day,
-        startTime: (cfg as any).start_time || '17:00',
-        endTime: calculateEndTime((cfg as any).start_time || '17:00', (cfg as any).duration || 0),
+        startTime: cfg.start_time || '17:00',
+        endTime: calculateEndTime(cfg.start_time || '17:00', cfg.duration || 0),
         location: '', // Could be added to schedule config later
       }));
 
@@ -473,8 +499,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       downloadICS(icsContent, filename);
 
       showToast(t('scheduleExported'), 'success');
-    } catch (error) {
-      console.error('Export error:', error);
+    } catch (err) {
+      console.error('Export error:', err);
       showToast(t('scheduleExportError'), 'error');
     }
   };
@@ -970,7 +996,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                     <div className="mb-2">
                       <input type="text" placeholder={t('search') || 'Search'} className="w-full px-3 py-2 border rounded" onChange={(e) => {
                         const q = e.target.value.toLowerCase();
-                        const filtered = allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
+                        allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
                         // simple filter display only; keep original in allStudents
                         // For simplicity, not persisting filtered state; just show all with CSS if needed
                       }} />
@@ -1029,7 +1055,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                   setTimeout(async () => {
                     setLoading(true);
                     try {
-                      const payload: any = {
+                      const payload: CourseUpdatePayload = {
                         // When clearing schedule keep evaluation rules but normalize categories
                         evaluation_rules: (evaluationRules || []).map((r) => ({ ...r, category: getCanonicalCategory(String(r.category || ''), t) })),
                         teaching_schedule: [], // Empty schedule
@@ -1046,7 +1072,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                       loadCourses();
                       setScheduleConflicts([]); // Clear conflicts since schedule is empty
                       setShowConflictWarning(false);
-                    } catch (error) {
+                    } catch {
                       showToast(t('failedToSaveData'), 'error');
                     } finally {
                       setLoading(false);

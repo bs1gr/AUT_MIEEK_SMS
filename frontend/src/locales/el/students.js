@@ -34,6 +34,7 @@ export default {
   failedToLoadStudentData: 'Αποτυχία φόρτωσης δεδομένων σπουδαστή',
   performance: 'Επίδοση',
   viewPerformance: 'Προβολή Επίδοσης',
+  viewProfile: 'Προβολή Προφίλ',
   quickView: 'Γρήγορη Προβολή',
   fullProfile: 'Πλήρες Προφίλ',
   // Φόρμα Σπουδαστή

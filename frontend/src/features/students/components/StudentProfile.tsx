@@ -3,19 +3,25 @@ import { ArrowLeft, BookOpen, TrendingUp, Users, Calendar, Star, AlertCircle, Tr
 import { gradesAPI, coursesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
+import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
 
-const API_BASE_URL: string = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1';
 
-const StudentProfile = ({ studentId, onBack }: any) => {
-  const { t } = (useLanguage() as any) || { t: (k: string) => k };
-  const [student, setStudent] = useState<any>(null);
-  const [grades, setGrades] = useState<any[]>([]);
-  const [attendance, setAttendance] = useState<any[]>([]);
-  const [highlights, setHighlights] = useState<any[]>([]);
+interface StudentProfileProps {
+  studentId: number;
+  onBack: () => void;
+}
+
+const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
+  const { t } = useLanguage();
+  const [student, setStudent] = useState<Student | null>(null);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [coursesById, setCoursesById] = useState<Record<number, any>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
+  const [coursesById, setCoursesById] = useState<Record<number, Course>>({});
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
 
@@ -53,11 +59,11 @@ const StudentProfile = ({ studentId, onBack }: any) => {
       try {
         const enrRes = await fetch(`${API_BASE_URL}/enrollments/student/${studentId}`);
         const enr = await enrRes.json();
-        const enrolls: any[] = Array.isArray(enr) ? enr : [];
+        const enrolls: CourseEnrollment[] = Array.isArray(enr) ? enr : [];
         setEnrollments(enrolls);
         // Fetch unique courses
-        const ids = Array.from(new Set(enrolls.map((e: any) => e.course_id)));
-        const dict: Record<number, any> = {};
+        const ids = Array.from(new Set(enrolls.map(e => e.course_id)));
+        const dict: Record<number, Course> = {};
         await Promise.all(ids.map(async (cid) => {
           try {
             const cRes = await fetch(`${API_BASE_URL}/courses/${cid}`);
@@ -95,7 +101,7 @@ const StudentProfile = ({ studentId, onBack }: any) => {
     // Grade stats
     const totalGrades = grades.length;
     const avgGradeNum = totalGrades > 0
-      ? (grades.reduce((sum: number, g: any) => sum + (g.grade / g.max_grade * 100), 0) / totalGrades)
+      ? (grades.reduce((sum: number, g: Grade) => sum + (g.grade / g.max_grade * 100), 0) / totalGrades)
       : 0;
 
     // GPA calculation
@@ -340,7 +346,7 @@ const StudentProfile = ({ studentId, onBack }: any) => {
             <p className="text-gray-500">{t('noEnrollments') || 'No enrollments found.'}</p>
           ) : (
             <div className="space-y-2">
-              {enrollments.map((e: any) => {
+              {enrollments.map(e => {
                 const course = coursesById[e.course_id];
                 return (
                   <div key={e.id} className="flex items-center justify-between p-3 rounded border">
@@ -416,18 +422,18 @@ const StudentProfile = ({ studentId, onBack }: any) => {
           <h3 className="text-xl font-bold text-gray-800 mb-6">{t('attendanceOverview')}</h3>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['Present', 'Absent', 'Late', 'Excused'].map((status: string) => {
+            {(['Present', 'Absent', 'Late', 'Excused'] as const).map(status => {
               const count = attendance.filter(a => a.status === status).length;
               const percentage = attendance.length > 0 ? (count / attendance.length * 100).toFixed(1) : 0;
-              const colors: Record<string, string> = {
+              const colors = {
                 Present: 'from-green-500 to-green-600',
                 Absent: 'from-red-500 to-red-600',
                 Late: 'from-yellow-500 to-yellow-600',
                 Excused: 'from-blue-500 to-blue-600'
-              };
+              } as const;
 
               return (
-                <div key={status} className={`bg-gradient-to-br ${colors[status as any]} rounded-xl shadow p-4 text-white`}>
+                <div key={status} className={`bg-gradient-to-br ${colors[status]} rounded-xl shadow p-4 text-white`}>
                   <p className="text-sm opacity-90">{t(status.toLowerCase())}</p>
                   <p className="text-3xl font-bold mt-2">{count}</p>
                   <p className="text-sm opacity-90 mt-1">{percentage}%</p>

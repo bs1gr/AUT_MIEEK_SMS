@@ -39,7 +39,7 @@ export default function StudentsPage() {
       if (!window.confirm('Are you sure you want to delete this student?')) return;
       await deleteStudent.mutateAsync(id);
       showToast('Student deleted successfully!', 'success');
-    } catch (error) {
+    } catch {
       showToast('Failed to delete student. Please try again.', 'error');
     }
   };
@@ -64,7 +64,7 @@ export default function StudentsPage() {
             try {
               await createStudent.mutateAsync(newStudent);
               showToast('Student added successfully!', 'success');
-            } catch (error) {
+            } catch {
               showToast('Failed to add student. Please check the form and try again.', 'error');
             } finally {
               studentModals.addModal.close();
@@ -81,7 +81,7 @@ export default function StudentsPage() {
             try {
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
               showToast('Student updated successfully!', 'success');
-            } catch (error) {
+            } catch {
               showToast('Failed to update student. Please try again.', 'error');
             } finally {
               studentModals.editModal.close();

@@ -2,10 +2,25 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, TrendingUp, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
+import type { Course, Student } from '@/types';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
-type Props = { courses: any[]; students: any[] };
+type Props = { courses: Course[]; students: Student[] };
+
+// Teaching schedule can arrive either as an array of entries or an object keyed by day.
+type TeachingScheduleEntry = {
+  day: string;
+  periods?: number; // canonical
+  period_count?: number; // alternative naming from older schema
+  count?: number; // fallback naming
+  start_time?: string;
+  duration?: number;
+};
+
+type EvaluationRule = { category: string; weight?: number };
+type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
+type RawDailyPerformanceRecord = { student_id: number; category: string; score: number };
 
 const ATTENDANCE_STATES = ['Present', 'Absent', 'Late', 'Excused'] as const;
 type AttendanceState = typeof ATTENDANCE_STATES[number];
@@ -16,20 +31,20 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
 
 
-  const { t, language } = (useLanguage() as any) || { t: (k: string) => k, language: 'en' };
+  const { t, language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedCourse, setSelectedCourse] = useState<number | ''>('');
-  const [localCourses, setLocalCourses] = useState<any[]>(courses || []);
+  const [localCourses, setLocalCourses] = useState<Course[]>(courses || []);
   const [coursesWithEnrollment, setCoursesWithEnrollment] = useState<Set<number>>(new Set());
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, string>>({});
   const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
-  const [evaluationCategories, setEvaluationCategories] = useState<any[]>([]);
-  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+  const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
-  const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState<any>(null);
+  const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState<Student | null>(null);
   const [datesWithAttendance, setDatesWithAttendance] = useState<Set<string>>(new Set());
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
@@ -52,7 +67,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     return weekday === 0 ? 6 : weekday - 1;
   };
 
-  const matchesScheduleDay = (value: any, dateObj: Date) => {
+  const matchesScheduleDay = (value: unknown, dateObj: Date) => {
     if (value === undefined || value === null) return false;
     const normalized = String(value).trim().toLowerCase();
     const weekdayIndex = getWeekdayIndex(dateObj);
@@ -63,13 +78,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       normalized === String(weekdayIndex)
     );
   };
-
-  const getScheduleEntriesForDate = (course: any, dateObj: Date) => {
+  const getScheduleEntriesForDate = (course: Course, dateObj: Date): TeachingScheduleEntry[] => {
     if (!course?.teaching_schedule) return [];
-    const schedule = course.teaching_schedule;
-    const entries: any[] = [];
+    const schedule = course.teaching_schedule as unknown;
+    const entries: TeachingScheduleEntry[] = [];
     if (Array.isArray(schedule)) {
-      schedule.forEach((entry: any) => {
+      (schedule as TeachingScheduleEntry[]).forEach((entry) => {
         if (entry && matchesScheduleDay(entry.day, dateObj)) {
           entries.push(entry);
         }
@@ -78,8 +92,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const weekday = fullDayNames[dateObj.getDay()];
       const keysToCheck = [weekday, weekday.toLowerCase(), String(getWeekdayIndex(dateObj))];
       keysToCheck.forEach((key) => {
-        if ((schedule as Record<string, any>)[key]) {
-          entries.push({ day: weekday, ...(schedule as Record<string, any>)[key] });
+        const value = (schedule as Record<string, TeachingScheduleEntry | undefined>)[key];
+        if (value) {
+          entries.push({ day: weekday, ...value });
         }
       });
     }
@@ -92,8 +107,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     if (!course) return 1;
     const entries = getScheduleEntriesForDate(course, selectedDate);
     if (!entries.length) return 1;
-    const total = entries.reduce((sum: number, entry: any) => {
-      const value = Number(entry?.periods ?? entry?.period_count ?? entry?.count ?? 1);
+    const total = entries.reduce((sum: number, entry: TeachingScheduleEntry) => {
+      const value = Number(entry.periods ?? entry.period_count ?? entry.count ?? 1);
       if (Number.isFinite(value) && value > 0) {
         return sum + value;
       }
@@ -270,7 +285,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     try {
       const course = localCourses.find((c) => c.id === selectedCourse);
       if (course?.evaluation_rules) {
-        const dailyCats = course.evaluation_rules.filter((rule: any) =>
+        const dailyCats = (course.evaluation_rules as EvaluationRule[]).filter((rule) =>
           dailyTrackableCategories.some((cat) => rule.category?.includes(cat) || rule.category?.toLowerCase?.().includes(cat.toLowerCase()))
         );
         setEvaluationCategories(dailyCats);
@@ -408,7 +423,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         const attData = await attRes.json();
         const next: Record<string, string> = {};
         if (Array.isArray(attData)) {
-          attData.forEach((a: any) => {
+          (attData as RawAttendanceRecord[]).forEach((a) => {
             if (!a?.student_id) return;
             const periodNumber = Number(a.period_number ?? 1);
             const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
@@ -420,13 +435,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       } else {
         setAttendanceRecords({});
       }
-
       const dpRes = await fetch(`${API_BASE_URL}/daily-performance/date/${dateStr}/course/${selectedCourse}`);
       if (dpRes.ok) {
         const dpData = await dpRes.json();
         const dp: Record<string, number> = {};
         if (Array.isArray(dpData)) {
-          dpData.forEach((r: any) => {
+          (dpData as RawDailyPerformanceRecord[]).forEach((r) => {
             dp[`${r.student_id}-${r.category}`] = r.score;
           });
         }

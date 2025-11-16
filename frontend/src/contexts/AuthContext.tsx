@@ -6,7 +6,7 @@ type User = {
   id: number;
   email: string;
   role?: string;
-  [k: string]: any;
+  [k: string]: unknown;
 };
 
 type AuthContextValue = {
@@ -70,10 +70,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await apiClient.post('/auth/logout', {}, { withCredentials: true });
-    } catch (e) {
+    } catch {
       // ignore errors
     }
-  authService.clearAccessToken();
+    authService.clearAccessToken();
     setAccessTokenState(null);
     setUser(null);
     try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}

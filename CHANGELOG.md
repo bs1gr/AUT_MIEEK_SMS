@@ -6,10 +6,70 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+- **Service Layer Architecture**: Introduced dedicated service layer (`backend/services/`) to encapsulate business logic and improve code organization
+  - `AnalyticsService`: Centralized analytics calculations with eager loading to prevent N+1 query problems
+  - `StudentService`: Encapsulated student CRUD operations and bulk operations with proper transaction management
+  - Services handle complex business logic, leaving routers thin and focused on HTTP concerns
+
+- **Comprehensive Analytics Tests**: Added `test_analytics_router.py` with 10 comprehensive test cases covering:
+  - Final grade calculations with evaluation rules, daily performance, and absence penalties
+  - Multi-course student summaries with GPA calculations
+  - Edge cases (missing rules, attendance categories, course not found)
+  - Query optimization validation (N+1 prevention with <= 12 queries regardless of course count)
+
+### Changed
+
+- **Backend Architecture Improvements**:
+  - Refactored `routers_analytics.py` to use `AnalyticsService` for all analytics calculations
+  - Refactored `routers_students.py` to use `StudentService` for all student operations
+  - Improved error handling with structured error responses using `internal_server_error` helper
+  - Enhanced transaction management and database query optimization
+
+- **Frontend Type Safety Improvements**: Systematically eliminated 41 `any` type usages across grading, dashboard, and student management components, reducing TypeScript lint warnings from 312 to 254. Refactored components now use proper domain types (`Student`, `Grade`, `Course`, `Attendance`, `Highlight`, `CourseEnrollment`, etc.) from the central `types/index.ts` module.
+  - `GradingView.tsx`: Introduced `EvaluationRule`, `CourseWithEvaluationRules`, and `CategoryOption` interfaces; removed 11 `any` usages
+  - `GradeBreakdownModal.tsx`: Typed data state as `FinalGrade | null`; removed 6 `any` usages
+  - `EnhancedDashboardView.tsx`: Created `StudentWithGPA` interface; typed all props, state, and callbacks; removed 16 `any` usages
+  - `StudentProfile.tsx`: Added `StudentProfileProps` interface; typed all state and callbacks; removed 8 `any` usages
+  - All modified components validated with successful production builds and zero type safety regressions
+
+- **Frontend Dependency Management**:
+  - Updated React Query from 5.62.0 to 5.62.11 for improved query management and bug fixes
+  - Updated frontend package lock file with latest dependency resolutions
+  - Added `.npmrc` configuration for consistent dependency resolution
+
 - Control panel backups: fixed the `/control/api/operations/database-backups/{filename}/download` route so it registers at startup (instead of being nested under the restore handler), hardened it against directory traversal, and added regression tests for success, missing files, and traversal attempts (`backend/tests/test_control_endpoints.py`).
 - Release compliance helpers (`scripts/ops/archive-releases.ps1`, `scripts/ops/remove-legacy-packages.ps1`) now accept offline fixture files (`scripts/ops/samples/*.json`) plus explicit `-GhPath` overrides so dry-runs and CI smoke tests can execute without the GitHub CLI.
 - SECRET_KEY enforcement flag: documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` toggle that operators can enable to block placeholder or short secrets. It remains off by default for backward compatibility but will be required in a future hardened release.
 - Authentication hardening: login attempts are now rate-limited per account with automatic lockouts after repeated failures (defaults to 5 attempts within 5 minutes) governed by new `AUTH_LOGIN_MAX_ATTEMPTS`, `AUTH_LOGIN_LOCKOUT_SECONDS`, and `AUTH_LOGIN_TRACKING_WINDOW_SECONDS` settings and fully covered by backend tests.
+
+### Technical Details
+
+- **Files Added**:
+  - `backend/services/__init__.py`: Service layer exports
+  - `backend/services/analytics_service.py`: Analytics business logic (373 lines)
+  - `backend/services/student_service.py`: Student business logic (207 lines)
+  - `backend/tests/test_analytics_router.py`: Comprehensive analytics tests (315 lines)
+  - `frontend/.npmrc`: npm configuration
+  - `frontend/eslint.config.js`: ESLint configuration for TypeScript
+  - Frontend student profile components: `AttendanceDetails.tsx`, `GradeDistribution.tsx`, `GradeStatistics.tsx`, `NotesSection.tsx`
+  - `frontend/src/features/students/components/studentTypes.ts`: Shared TypeScript types
+
+- **Files Modified**:
+  - Backend: `main.py`, `routers_analytics.py`, `routers_students.py`, `test_analytics_router.py`
+  - Frontend: Multiple view components for improved type safety
+  - Package manifests: `frontend/package.json`, `frontend/package-lock.json`
+  - Configuration: `student-management-system.code-workspace`
+  - Documentation: `CHANGELOG.md`
+
+### Quality & Maintainability
+
+- **Code Organization**: Service layer pattern improves separation of concerns and testability
+- **Type Safety**: Eliminated `any` types in favor of proper interfaces and type annotations
+- **Query Optimization**: Eager loading strategies prevent N+1 query problems in analytics endpoints
+- **Test Coverage**: Comprehensive test suite for analytics router with edge case coverage
+- **Error Handling**: Consistent structured error responses across all endpoints
 
 ## [1.6.3] - 2025-11-15
 
