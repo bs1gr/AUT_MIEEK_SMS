@@ -32,8 +32,25 @@ foreach ($f in $all) {
   $lastUpdated = $null
   if ($lastUpdatedLine) {
     $dateText = $lastUpdatedLine.Matches[0].Groups[1].Value.Trim()
-    $lastUpdated = Get-Date $dateText -ErrorAction SilentlyContinue
-    if ($lastUpdated) {
+    # Strip trailing annotations like parentheses or pipe-delimited metadata
+    $primaryPart = $dateText -replace '\s*\|.*$','' -replace '\s*\(.*$',''
+    # Accept formats: YYYY-MM-DD, YYYY/MM/DD, Month YYYY, YYYY
+    $parsed = $null
+    if ($primaryPart -match '^[0-9]{4}-[0-9]{2}-[0-9]{2}$') {
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy-MM-dd',$null)
+    } elseif ($primaryPart -match '^[0-9]{4}/[0-9]{2}/[0-9]{2}$') {
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy/MM/dd',$null)
+    } elseif ($primaryPart -match '^[A-Za-z]+\s+[0-9]{4}$') {
+      $parsed = [datetime]::ParseExact($primaryPart,'MMMM yyyy',$null)
+    } elseif ($primaryPart -match '^[0-9]{4}$') {
+      # Use Jan 1 fallback for year-only
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy',$null)
+    } else {
+      # Last attempt: generic parsing
+      try { $parsed = [datetime]::Parse($primaryPart) } catch { $parsed = $null }
+    }
+    if ($parsed) {
+      $lastUpdated = $parsed
       $ageDays = [int]($now - $lastUpdated).TotalDays
     }
   }
