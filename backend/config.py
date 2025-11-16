@@ -229,7 +229,16 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def check_secret_key(self) -> "Settings":
-        """Optionally enforce strong SECRET_KEY depending on auth/flag settings."""
+        """
+        Validate SECRET_KEY strength with warnings or errors based on enforcement level.
+        
+        Behavior:
+        - STRICT_ENFORCEMENT or AUTH_ENABLED: Raises error for weak keys (except CI/test)
+        - WARNING mode (default): Logs warnings but allows weak keys
+        - CI/test environments: Auto-generates temporary secure key
+        """
+        logger = logging.getLogger(__name__)
+        
         is_ci = bool(
             os.environ.get("GITHUB_ACTIONS")
             or os.environ.get("CI")
@@ -251,13 +260,10 @@ class Settings(BaseSettings):
 
         normalized_secret = (self.SECRET_KEY or "").strip()
         object.__setattr__(self, "SECRET_KEY", normalized_secret)
-
-        enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
-        if not enforcement_active:
-            return self
-
+        
         lower_secret = normalized_secret.lower()
 
+        # Define insecure patterns
         insecure_placeholders = {
             "",
             "change-me",
@@ -268,29 +274,63 @@ class Settings(BaseSettings):
             lower_secret in insecure_placeholders
             or lower_secret.startswith("dev-placeholder")
             or "your-secret-key" in lower_secret
+            or "change" in lower_secret
+            or "placeholder" in lower_secret
         )
+        is_too_short = len(normalized_secret) < 32
+        
+        # Detect security issue type
+        security_issue: str | None = None
+        if is_placeholder:
+            security_issue = "placeholder/default value detected"
+        elif is_too_short:
+            security_issue = f"must be at least 32 characters (current: {len(normalized_secret)})"
+        
+        # If no issues, return early
+        if not security_issue:
+            return self
 
-        def handle_insecure(reason: str) -> "Settings":
-            if is_ci or is_pytest or allow_insecure_flag:
+        # Determine enforcement level
+        enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
+        is_production = self.SMS_ENV.lower() in ("production", "prod", "staging")
+        
+        def handle_insecure(reason: str, warn_only: bool = False) -> "Settings":
+            """Handle insecure SECRET_KEY based on environment and enforcement."""
+            if (is_ci or is_pytest or allow_insecure_flag) and not warn_only:
+                # Only auto-generate in CI/test when strict enforcement is active
                 new_key = secrets.token_urlsafe(48)
-                logging.getLogger(__name__).warning(
-                    "Detected insecure SECRET_KEY (%s) in CI/test environment — auto-generating a temporary secret.",
+                logger.warning(
+                    "⚠️  INSECURE SECRET_KEY (%s) detected in CI/test — auto-generating temporary key",
                     reason,
                 )
                 object.__setattr__(self, "SECRET_KEY", new_key)
                 return self
-            raise ValueError(
-                f"SECRET_KEY is invalid: {reason}. "
-                "Set a strong random value via .env (example: python -c \"import secrets; print(secrets.token_urlsafe(48))\")."
+            
+            error_msg = (
+                f"🔐 SECRET_KEY SECURITY ISSUE: {reason}\n"
+                f"   Environment: {self.SMS_ENV} ({self.SMS_EXECUTION_MODE} mode)\n"
+                f"   Generate strong key: python -c \"import secrets; print(secrets.token_urlsafe(48))\"\n"
+                f"   Set in backend/.env: SECRET_KEY=<generated_key>"
             )
-
-        if is_placeholder:
-            return handle_insecure("placeholder value detected")
-
-        if len(normalized_secret) < 32:
-            return handle_insecure(
-                f"must be at least 32 characters (current length: {len(normalized_secret)})"
-            )
+            
+            if warn_only:
+                logger.warning(error_msg)
+                if is_production:
+                    logger.error(
+                        "❌ CRITICAL: Running in production with weak SECRET_KEY! "
+                        "This allows JWT token forgery and session hijacking."
+                    )
+                return self
+            else:
+                raise ValueError(error_msg)
+        
+        # Apply enforcement policy
+        if enforcement_active:
+            # Strict enforcement: error unless CI/test
+            return handle_insecure(security_issue, warn_only=False)
+        else:
+            # Warning mode: log warning but allow
+            return handle_insecure(security_issue, warn_only=True)
 
         return self
 
