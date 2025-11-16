@@ -9,11 +9,16 @@
 
 ### Security Hardening
 
-- [ ] **CRITICAL**: Enforce strong SECRET_KEY validation (don't allow default)
+- [x] **CRITICAL**: Enforce strong SECRET_KEY validation (don't allow default)
   - File: `backend/config.py:76`
   - Effort: 1 hour
   - Impact: Prevents JWT forgery
-  - Status: **Deferred until post-release** (per release owner instructions)
+  - Status: **DONE** — Enhanced with multi-level enforcement (WARNING mode default, STRICT mode optional)
+  - Implementation: Always warns about weak keys, can enable strict enforcement via SECRET_KEY_STRICT_ENFORCEMENT=True
+  - Detection: Placeholder values, short keys (<32 chars), suspicious patterns
+  - Production safety: CRITICAL alerts for production environments with weak keys
+  - Backward compatible: Warnings don't break existing deployments
+  - Commit: 1cb8a93
 
 - [x] **HIGH**: Add password strength validation
   - File: `backend/routers/routers_auth.py:160`
