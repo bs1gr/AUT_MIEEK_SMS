@@ -39,12 +39,15 @@
 
 ### Performance Optimization
 
-- [ ] Fix N+1 query problems in analytics endpoints
+- [x] Fix N+1 query problems in analytics endpoints
   - Use SQLAlchemy eager loading (`joinedload`)
-  - Files: `backend/routers/routers_analytics.py`
+  - Files: `backend/services/analytics_service.py`
   - Effort: 4 hours
   - Impact: 50-100x faster for 100 students
-  - Status: **OPEN** — waiting on analytics router refactor
+  - Status: **DONE** — eager loading added to all 3 methods (calculate_final_grade, get_student_all_courses_summary, get_student_summary)
+  - Implementation: Single query with `joinedload` for grades, daily_performances, attendances relationships
+  - Test coverage: 12/12 passing (test_analytics_router.py, test_services_analytics.py)
+  - Commit: 66e2716
 
 - [x] Add missing database indexes
   - Add: `idx_grade_date_assigned`, `idx_grade_date_submitted`
