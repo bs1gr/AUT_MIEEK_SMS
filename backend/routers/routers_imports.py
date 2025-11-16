@@ -20,7 +20,7 @@ import unicodedata
 
 from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
 from .routers_auth import optional_require_role
-
+from backend.services.import_service import ImportService
 from backend.errors import ErrorCode, http_error
 
 logger = logging.getLogger(__name__)
@@ -52,16 +52,6 @@ router = APIRouter(prefix="/imports", tags=["Imports"], responses={404: {"descri
 
 from backend.db import get_session as get_db
 from backend.import_resolver import import_names
-
-
-def _reactivate_if_soft_deleted(record, *, entity: str, identifier: str) -> bool:
-    """Clear the soft-delete flag when importing archived records."""
-
-    if record is not None and getattr(record, "deleted_at", None) is not None:
-        record.deleted_at = None
-        logger.info("Reactivated archived %s during import: %s", entity, identifier)
-        return True
-    return False
 
 
 # --- File Upload Validation ---
@@ -435,22 +425,7 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
 def diagnose_import_environment(request: Request):
     """Return diagnostics about import directories and files found."""
     try:
-        courses_exists = os.path.isdir(COURSES_DIR)
-        students_exists = os.path.isdir(STUDENTS_DIR)
-        courses_files = []
-        students_files = []
-        if courses_exists:
-            courses_files = [f for f in os.listdir(COURSES_DIR) if f.lower().endswith(".json")]
-        if students_exists:
-            students_files = [f for f in os.listdir(STUDENTS_DIR) if f.lower().endswith(".json")]
-        return {
-            "courses_dir": COURSES_DIR,
-            "students_dir": STUDENTS_DIR,
-            "courses_dir_exists": courses_exists,
-            "students_dir_exists": students_exists,
-            "course_json_files": courses_files,
-            "student_json_files": students_files,
-        }
+        return ImportService.diagnose_environment(COURSES_DIR, STUDENTS_DIR)
     except Exception as exc:
         logger.error("Diagnose failed: %s", exc)
         raise http_error(500, ErrorCode.IMPORT_DIAGNOSE_FAILED, "Diagnose failed", request)
@@ -751,51 +726,15 @@ def import_courses(
                         else:
                             errors.append(f"{name}: teaching_schedule unsupported type {type(ts)}, dropping field")
                             obj.pop("teaching_schedule", None)
-                    db_course = db.query(Course).filter(Course.course_code == code).first()
-                    if db_course:
-                        _reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
-                        # Avoid wiping evaluation_rules with empty list during bulk imports
-                        for field in [
-                            "course_name",
-                            "semester",
-                            "credits",
-                            "description",
-                            "hours_per_week",
-                            "teaching_schedule",
-                        ]:
-                            if field in obj:
-                                setattr(db_course, field, obj[field])
-                        if "evaluation_rules" in obj:
-                            if (
-                                isinstance(obj["evaluation_rules"], list)
-                                and len(obj["evaluation_rules"]) == 0
-                                and getattr(db_course, "evaluation_rules", None)
-                            ):
-                                # Skip clearing; keep existing rules
-                                pass
-                            else:
-                                setattr(db_course, "evaluation_rules", obj["evaluation_rules"])
-                        updated += 1
-                    else:
-                        db_course = Course(
-                            **{
-                                k: v
-                                for k, v in obj.items()
-                                if k
-                                in [
-                                    "course_code",
-                                    "course_name",
-                                    "semester",
-                                    "credits",
-                                    "description",
-                                    "evaluation_rules",
-                                    "hours_per_week",
-                                    "teaching_schedule",
-                                ]
-                            }
-                        )
-                        db.add(db_course)
+                    # Use service to create/update
+                    was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+                    if err:
+                        errors.append(f"{name}: {err}")
+                        continue
+                    if was_created:
                         created += 1
+                    else:
+                        updated += 1
             except Exception as e:
                 logger.error(f"Failed to import course from {name}: {e}")
                 errors.append(f"{name}: {e}")
@@ -1120,49 +1059,15 @@ async def import_from_upload(
                         errors.append(f"item: teaching_schedule unsupported type {type(ts)}, dropping field")
                         obj.pop("teaching_schedule", None)
 
-                db_course = db.query(Course).filter(Course.course_code == code).first()
-                if db_course:
-                    _reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
-                    for field in [
-                        "course_name",
-                        "semester",
-                        "credits",
-                        "description",
-                        "hours_per_week",
-                        "teaching_schedule",
-                    ]:
-                        if field in obj:
-                            setattr(db_course, field, obj[field])
-                    if "evaluation_rules" in obj:
-                        if (
-                            isinstance(obj["evaluation_rules"], list)
-                            and len(obj["evaluation_rules"]) == 0
-                            and getattr(db_course, "evaluation_rules", None)
-                        ):
-                            pass
-                        else:
-                            setattr(db_course, "evaluation_rules", obj["evaluation_rules"])
-                    updated += 1
-                else:
-                    db_course = Course(
-                        **{
-                            k: v
-                            for k, v in obj.items()
-                            if k
-                            in [
-                                "course_code",
-                                "course_name",
-                                "semester",
-                                "credits",
-                                "description",
-                                "evaluation_rules",
-                                "hours_per_week",
-                                "teaching_schedule",
-                            ]
-                        }
-                    )
-                    db.add(db_course)
+                # Use service to create/update
+                was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+                if err:
+                    errors.append(f"item: {err}")
+                    continue
+                if was_created:
                     created += 1
+                else:
+                    updated += 1
             else:  # students
                 if not isinstance(obj, dict):
                     errors.append("item: not an object")
@@ -1195,41 +1100,15 @@ async def import_from_upload(
                     else:
                         obj["is_active"] = b
                 # Whitelist allowed fields (include extended profile fields supported by model)
-                allowed = [
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "student_id",
-                    "enrollment_date",
-                    "is_active",
-                    "father_name",
-                    "mobile_phone",
-                    "phone",
-                    "health_issue",
-                    "note",
-                    "study_year",
-                ]
-                cleaned = {k: v for k, v in obj.items() if k in allowed}
-
-                # Basic required checks for non-nullable columns
-                if not cleaned.get("first_name") or not cleaned.get("last_name"):
-                    errors.append("item: first_name and last_name are required")
+                # Use service to create/update
+                was_created, err = ImportService.create_or_update_student(db, obj)
+                if err:
+                    errors.append(f"item: {err}")
                     continue
-
-                db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
-                if db_student:
-                    _reactivate_if_soft_deleted(
-                        db_student,
-                        entity="student",
-                        identifier=str(sid or email),
-                    )
-                    for field, val in cleaned.items():
-                        setattr(db_student, field, val)
-                    updated += 1
-                else:
-                    db_student = Student(**cleaned)
-                    db.add(db_student)
+                if was_created:
                     created += 1
+                else:
+                    updated += 1
 
         try:
             db.commit()
@@ -1329,41 +1208,15 @@ def import_students(
                         else:
                             obj["is_active"] = b
 
-                    allowed = [
-                        "first_name",
-                        "last_name",
-                        "email",
-                        "student_id",
-                        "enrollment_date",
-                        "is_active",
-                        "father_name",
-                        "mobile_phone",
-                        "phone",
-                        "health_issue",
-                        "note",
-                        "study_year",
-                    ]
-                    cleaned = {k: v for k, v in obj.items() if k in allowed}
-                    if not cleaned.get("first_name") or not cleaned.get("last_name"):
-                        errors.append(f"{name}: first_name and last_name are required")
+                    # Use service to create/update
+                    was_created, err = ImportService.create_or_update_student(db, obj)
+                    if err:
+                        errors.append(f"{name}: {err}")
                         continue
-
-                    db_student = (
-                        db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
-                    )
-                    if db_student:
-                        _reactivate_if_soft_deleted(
-                            db_student,
-                            entity="student",
-                            identifier=str(sid or email),
-                        )
-                        for field, val in cleaned.items():
-                            setattr(db_student, field, val)
-                        updated += 1
-                    else:
-                        db_student = Student(**cleaned)
-                        db.add(db_student)
+                    if was_created:
                         created += 1
+                    else:
+                        updated += 1
             except Exception as e:
                 logger.error(f"Failed to import student from {name}: {e}")
                 errors.append(f"{name}: {e}")
