@@ -89,13 +89,17 @@
   - Impact: Catch 20-30 potential bugs
   - Status: **DONE** — strict mode enabled and warnings resolved
 
-- [ ] **Extract service layer from routers** (Backend Architecture)
-  - Create `backend/services/` directory
-  - Move business logic from routers to services
-  - Files: All `backend/routers/*.py`
-  - Effort: 12 hours
-  - Impact: Testable, reusable logic
-  - Status: **OPEN** — prerequisite discussions in progress
+- [ ] **Extract service layer from routers** (Backend Architecture) 🔄 **44% COMPLETE**
+  - ✅ Created `backend/services/` directory with `__init__.py`
+  - ✅ CourseService (146 lines) - commit ace2677
+  - ✅ GradeService (194 lines) - commit ace2677
+  - ✅ AttendanceService (214 lines) - commit ace2677
+  - ✅ EnrollmentService (267 lines) - commit c180349
+  - 🔄 4 of 9 routers refactored (courses, grades, attendance, enrollments)
+  - 🔲 Remaining: daily-performance, highlights, imports, exports, analytics (5 routers)
+  - Effort: 12 hours total (5 hours completed, 7 hours remaining)
+  - Impact: Testable, reusable logic with comprehensive docstrings
+  - Next: DailyPerformanceService extraction
 
 - [x] **Refactor complex components**
   - Break `StudentsView.tsx` (605 LOC) into smaller components
@@ -147,11 +151,15 @@
   - Test count: 7 core workflows with reusable helpers for data generation, auth, API setup
   - Commit: f345a1b
 
-- [ ] Expand frontend unit tests
-  - Current: ~25% coverage
-  - Target: 70% coverage
-  - Files: `frontend/src/**/__tests__/` (new)
-  - Effort: 20 hours
+- [ ] Expand frontend unit tests 🔄 **PARTIAL** (35% coverage → 70% target)
+  - ✅ gradeUtils tests (27 test cases) - commit 62c8796
+  - ✅ Vitest configured with 44 tests passing
+  - 🔲 Component tests needed (StudentCard, CourseGradeBreakdown, etc.)
+  - 🔲 API client tests (api.js)
+  - 🔲 Hook tests (useAuth, useCourses, etc.)
+  - Files: `frontend/src/**/__tests__/` and `*.test.ts`
+  - Effort: 20 hours total (2 hours completed, 18 hours remaining)
+  - Next: Component unit tests with @testing-library/react
 
 - [ ] Add edge case tests
   - Boundary values, concurrent operations, transaction rollbacks
