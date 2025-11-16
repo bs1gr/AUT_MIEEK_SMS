@@ -74,6 +74,7 @@ This document serves as the single source of truth for all project documentation
 |--------|-------|-------------|
 | ✅ Active | 12 | Current, maintained documentation |
 | 🧪 Draft | 4 | New skeletons pending expansion |
+| 🔍 Audit Workflow | 1 | GitHub Action enforcing freshness & status (doc-audit.yml) |
 
 ### New Additions (2025-11-16)
 
@@ -213,4 +214,4 @@ Draft document set expanded to 4 and Status Summary table updated accordingly:
 - `docs/development/ARCHITECTURE_DIAGRAMS.md`
 - `docs/development/LOAD_TEST_PLAYBOOK.md`
 
-No further action required; future drafts should increment the draft count.
+Added automated documentation audit workflow (`.github/workflows/doc-audit.yml`) to fail PRs introducing stale or missing-status docs. Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
