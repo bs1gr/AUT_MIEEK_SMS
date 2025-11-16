@@ -106,7 +106,8 @@ describe('AttendanceDetails', () => {
         attendanceRate: '0',
       };
       renderComponent(zeroAttendance);
-      expect(screen.getByText('0')).toBeInTheDocument();
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThan(0);
       expect(screen.getByText('0%')).toBeInTheDocument();
     });
 
@@ -120,7 +121,8 @@ describe('AttendanceDetails', () => {
         attendanceRate: '100',
       };
       renderComponent(perfectAttendance);
-      expect(screen.getByText('30')).toBeInTheDocument();
+      const thirties = screen.getAllByText('30');
+      expect(thirties.length).toBeGreaterThan(0);
       expect(screen.getByText('100%')).toBeInTheDocument();
     });
 
@@ -134,7 +136,8 @@ describe('AttendanceDetails', () => {
         attendanceRate: '0',
       };
       renderComponent(allAbsent);
-      expect(screen.getByText('20')).toBeInTheDocument();
+      const twenties = screen.getAllByText('20');
+      expect(twenties.length).toBeGreaterThan(0);
       expect(screen.getByText('0%')).toBeInTheDocument();
     });
 

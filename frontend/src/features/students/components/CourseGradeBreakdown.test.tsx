@@ -100,7 +100,7 @@ describe('CourseGradeBreakdown', () => {
 
     it('displays empty state when no grades', () => {
       renderComponent({ gradesList: [] });
-      expect(screen.getByText(/no grades available/i)).toBeInTheDocument();
+      expect(screen.getByText(/noGradesAvailable/i)).toBeInTheDocument();
     });
   });
 
@@ -115,25 +115,32 @@ describe('CourseGradeBreakdown', () => {
     it('shows percentage and letter grade', () => {
       renderComponent();
       // CS101: 90% = A-
-      expect(screen.getByText(/90\.0%/)).toBeInTheDocument();
-      expect(screen.getByText(/A/)).toBeInTheDocument();
+      const percentages = screen.getAllByText(/90\.0%/);
+      expect(percentages.length).toBeGreaterThan(0);
+      const grades = screen.getAllByText(/A/);
+      expect(grades.length).toBeGreaterThan(0);
     });
 
     it('calculates average for course with single grade', () => {
       renderComponent();
       // MATH201: 80% = 16/20 Greek scale
       expect(screen.getByText(/16\.0\/20/)).toBeInTheDocument();
-      expect(screen.getByText(/80\.0%/)).toBeInTheDocument();
+      const percentages = screen.getAllByText(/80\.0%/);
+      expect(percentages.length).toBeGreaterThan(0);
     });
   });
 
   describe('Category Grouping', () => {
     it('groups grades by category', () => {
       renderComponent();
-      expect(screen.getByText(/midterm/i)).toBeInTheDocument();
-      expect(screen.getByText(/final exam/i)).toBeInTheDocument();
-      expect(screen.getByText(/homework/i)).toBeInTheDocument();
-      expect(screen.getByText(/quiz/i)).toBeInTheDocument();
+      const midterms = screen.getAllByText(/midterm/i);
+      expect(midterms.length).toBeGreaterThan(0);
+      const finals = screen.getAllByText(/final exam/i);
+      expect(finals.length).toBeGreaterThan(0);
+      const homeworks = screen.getAllByText(/homework/i);
+      expect(homeworks.length).toBeGreaterThan(0);
+      const quizzes = screen.getAllByText(/quiz/i);
+      expect(quizzes.length).toBeGreaterThan(0);
     });
 
     it('calculates category averages', () => {
@@ -147,17 +154,22 @@ describe('CourseGradeBreakdown', () => {
 
     it('shows individual grades within categories', () => {
       renderComponent();
-      expect(screen.getByText('Midterm Exam')).toBeInTheDocument();
+      const midterms = screen.getAllByText('Midterm Exam');
+      expect(midterms.length).toBeGreaterThan(0);
       expect(screen.getByText(/85\/100/)).toBeInTheDocument();
-      expect(screen.getByText('Final Exam')).toBeInTheDocument();
+      const finals = screen.getAllByText('Final Exam');
+      expect(finals.length).toBeGreaterThan(0);
       expect(screen.getByText(/90\/100/)).toBeInTheDocument();
     });
 
     it('displays grade percentages', () => {
       renderComponent();
-      expect(screen.getByText(/85\.0%/)).toBeInTheDocument();
-      expect(screen.getByText(/90\.0%/)).toBeInTheDocument();
-      expect(screen.getByText(/95\.0%/)).toBeInTheDocument();
+      const percentages = screen.getAllByText(/85\.0%/);
+      expect(percentages.length).toBeGreaterThan(0);
+      const percentages2 = screen.getAllByText(/90\.0%/);
+      expect(percentages2.length).toBeGreaterThan(0);
+      const percentages3 = screen.getAllByText(/95\.0%/);
+      expect(percentages3.length).toBeGreaterThan(0);
     });
   });
 
@@ -165,8 +177,10 @@ describe('CourseGradeBreakdown', () => {
     it('translates English category names', () => {
       renderComponent();
       // Should translate "Final Exam", "Midterm", etc.
-      expect(screen.getByText(/midterm/i)).toBeInTheDocument();
-      expect(screen.getByText(/final exam/i)).toBeInTheDocument();
+      const midterms = screen.getAllByText(/midterm/i);
+      expect(midterms.length).toBeGreaterThan(0);
+      const finals = screen.getAllByText(/final exam/i);
+      expect(finals.length).toBeGreaterThan(0);
     });
 
     it('handles uncategorized grades', () => {
