@@ -124,11 +124,15 @@
 
 ### Test Coverage Expansion
 
-- [ ] Add E2E tests with Playwright
-  - Test critical user flows (create student, assign grade, etc.)
-  - File: `tests/e2e/` (new directory)
+- [x] Add E2E tests with Playwright
+  - Test critical user flows (create student, assign grade, attendance, analytics)
+  - File: `frontend/tests/e2e/` directory
   - Effort: 16 hours
   - Priority: HIGH
+  - Status: **DONE** — 7 comprehensive test scenarios covering student management, courses, grades, attendance, analytics
+  - Implementation: `student-management.spec.ts`, `helpers.ts`, comprehensive README
+  - Test count: 7 core workflows with reusable helpers for data generation, auth, API setup
+  - Commit: f345a1b
 
 - [ ] Expand frontend unit tests
   - Current: ~25% coverage
