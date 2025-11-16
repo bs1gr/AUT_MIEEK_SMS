@@ -198,12 +198,15 @@
 
 ### CI/CD & Automation
 
-- [ ] **Setup GitHub Actions CI/CD pipeline**
-  - Run tests on PR
-  - Build Docker image on tag
-  - Upload coverage reports
-  - File: `.github/workflows/ci.yml` (new)
-  - Effort: 6 hours
+- [x] **Setup GitHub Actions CI/CD pipeline** ✅ **DONE** (Existing)
+  - ✅ Run tests on PR - `.github/workflows/ci.yml` backend/frontend jobs
+  - ✅ Build Docker image on tag - `.github/workflows/docker-publish.yml` (manual workflow_dispatch)
+  - ✅ Upload coverage reports - `actions/upload-artifact@v4` with `backend-coverage` artifact
+  - ✅ Additional: Security audit (pip-audit), SBOM generation (Syft), pre-commit hooks
+  - ✅ Additional: Wheelhouse caching, integration smoke tests
+  - File: `.github/workflows/ci.yml` (existing, comprehensive)
+  - Status: Discovered existing comprehensive CI/CD implementation with 10 workflows
+  - No changes needed: CI runs on push/PR to main, Docker builds with manual dispatch on tags
 
 - [ ] Add automated dependency scanning
   - Setup `pip-audit` in CI
