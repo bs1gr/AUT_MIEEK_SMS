@@ -76,6 +76,12 @@ This document serves as the single source of truth for all project documentation
 | 🧪 Draft | 4 | New skeletons pending expansion |
 | 🔍 Audit Workflow | 1 | GitHub Action enforcing freshness & status (doc-audit.yml) |
 
+### Archived Historical Docs
+
+| File | Archive Date | Notes |
+|------|--------------|-------|
+| `archive/DOCUMENTATION_CLEANUP_2025-01-10.md` | 2025-11-16 | Original consolidation summary; preserved for context |
+
 ### New Additions (2025-11-16)
 
 1. 🧪 **RUNBOOK.md (draft)** added under `docs/deployment/` for structured deployment & rollback steps.
@@ -214,4 +220,8 @@ Draft document set expanded to 4 and Status Summary table updated accordingly:
 - `docs/development/ARCHITECTURE_DIAGRAMS.md`
 - `docs/development/LOAD_TEST_PLAYBOOK.md`
 
-Added automated documentation audit workflow (`.github/workflows/doc-audit.yml`) to fail PRs introducing stale or missing-status docs. Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
+Added automated documentation audit workflow (`.github/workflows/doc-audit.yml`) to fail PRs introducing stale or missing-status docs.
+
+Archived `DOCUMENTATION_CLEANUP_2025-01-10.md` to `archive/` for historical reference.
+
+Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
