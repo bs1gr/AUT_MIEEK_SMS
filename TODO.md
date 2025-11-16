@@ -89,19 +89,21 @@
   - Impact: Catch 20-30 potential bugs
   - Status: **DONE** — strict mode enabled and warnings resolved
 
-- [ ] **Extract service layer from routers** (Backend Architecture) 🔄 **67% COMPLETE**
+- [x] **Extract service layer from routers** (Backend Architecture) ✅ **100% COMPLETE**
   - ✅ Created `backend/services/` directory with `__init__.py`
   - ✅ CourseService (146 lines) - commit ace2677
   - ✅ GradeService (194 lines) - commit ace2677
   - ✅ AttendanceService (214 lines) - commit ace2677
   - ✅ EnrollmentService (267 lines) - commit c180349
-  - ✅ DailyPerformanceService (new) — router refactored
-  - ✅ HighlightService (new) — router refactored
-  - 🔄 6 of 9 routers refactored (courses, grades, attendance, enrollments, daily-performance, highlights)
-  - 🔲 Remaining: imports, exports, analytics (3 routers)
-  - Effort: 12 hours total (6.5 hours completed, 5.5 hours remaining)
-  - Impact: Testable, reusable logic with comprehensive docstrings
-  - Next: ImportsService extraction
+  - ✅ DailyPerformanceService — router refactored
+  - ✅ HighlightService — router refactored
+  - ✅ ImportService — handles bulk import queries
+  - ✅ ExportService — handles export data queries (formatting remains in router)
+  - ✅ AnalyticsService — already implemented and used by routers_analytics
+  - ✅ 9 of 9 routers refactored (courses, grades, attendance, enrollments, daily-performance, highlights, imports, exports, analytics)
+  - Effort: 12 hours total (completed)
+  - Impact: Testable, reusable logic with comprehensive docstrings; consistent architecture across all routers
+  - Status: **COMPLETE** - All routers now use service layer for business logic
 
 - [x] **Refactor complex components**
   - Break `StudentsView.tsx` (605 LOC) into smaller components
