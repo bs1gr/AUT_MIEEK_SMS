@@ -6,16 +6,33 @@ from sqlalchemy import event
 from backend.tests.conftest import engine
 
 
+def _csrf_headers(client):
+    cache = getattr(client, "_csrf_cache", None)
+    if cache is None:
+        response = client.get("/api/v1/security/csrf")
+        assert response.status_code == 200, response.text
+        cache = response.json()
+        setattr(client, "_csrf_cache", cache)
+    return {cache["header_name"]: cache["csrf_token"]}
+
+
+def _post_with_csrf(client, url: str, payload: dict):
+    return client.post(url, json=payload, headers=_csrf_headers(client))
+
+
 def _create_student(client, i: int = 1):
-    return client.post(
+    response = _post_with_csrf(
+        client,
         "/api/v1/students/",
-        json={
+        {
             "first_name": f"S{i}",
             "last_name": "Test",
             "email": f"s{i}@example.com",
             "student_id": f"SID{i:04d}",
         },
-    ).json()
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
 
 
 def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0, credits: int = 3):
@@ -28,15 +45,18 @@ def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0, 
     }
     if rules is not None:
         payload["evaluation_rules"] = rules
-    return client.post("/api/v1/courses/", json=payload).json()
+    response = _post_with_csrf(client, "/api/v1/courses/", payload)
+    assert response.status_code == 201, response.text
+    return response.json()
 
 
 def _create_grade(
     client, student_id: int, course_id: int, name: str, category: str, grade: float, max_grade: float = 100.0
 ):
-    return client.post(
+    return _post_with_csrf(
+        client,
         "/api/v1/grades/",
-        json={
+        {
             "student_id": student_id,
             "course_id": course_id,
             "assignment_name": name,
@@ -51,9 +71,10 @@ def _create_grade(
 
 
 def _create_dp(client, student_id: int, course_id: int, category: str, score: float, max_score: float = 10.0):
-    return client.post(
+    return _post_with_csrf(
+        client,
         "/api/v1/daily-performance/",
-        json={
+        {
             "student_id": student_id,
             "course_id": course_id,
             "date": date.today().isoformat(),
@@ -65,9 +86,10 @@ def _create_dp(client, student_id: int, course_id: int, category: str, score: fl
 
 
 def _create_att(client, student_id: int, course_id: int, status: str, period: int = 1):
-    return client.post(
+    return _post_with_csrf(
+        client,
         "/api/v1/attendance/",
-        json={
+        {
             "student_id": student_id,
             "course_id": course_id,
             "date": date.today().isoformat(),

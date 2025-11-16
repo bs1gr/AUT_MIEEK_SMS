@@ -34,6 +34,7 @@ export default {
   failedToLoadStudentData: 'Failed to load student data',
   performance: 'Performance',
   viewPerformance: 'View Performance',
+  viewProfile: 'View Profile',
   quickView: 'Quick View',
   fullProfile: 'Full Profile',
   // Student Form Placeholders

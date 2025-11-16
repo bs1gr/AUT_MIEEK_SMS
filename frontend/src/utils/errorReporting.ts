@@ -12,7 +12,7 @@ function resolveLoggingUrl(path: string): string {
     const hostBase = `${base.origin}`;
     const url = new URL(path, hostBase);
     return url.toString();
-  } catch (err) {
+  } catch {
     // Fallback to relative path if URL construction fails
     return path;
   }
@@ -89,9 +89,9 @@ export async function logErrorToBackend(
       console.error('Context:', context);
       console.groupEnd();
     }
-  } catch (err) {
+  } catch {
     // Don't let error reporting cause more errors
-    console.warn('Error reporting failed:', err);
+    console.warn('Error reporting failed');
   }
 }
 
@@ -124,8 +124,8 @@ export async function logWarningToBackend(
     }).catch(err => {
       console.warn('Failed to send warning to backend:', err);
     });
-  } catch (err) {
-    console.warn('Warning reporting failed:', err);
+  } catch {
+    console.warn('Warning reporting failed');
   }
 }
 

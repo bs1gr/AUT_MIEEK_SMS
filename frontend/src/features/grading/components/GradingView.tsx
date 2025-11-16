@@ -2,10 +2,29 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import apiClient, { gradesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
+import { Student, Course, Grade, FinalGrade } from '@/types';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+// Evaluation rules are attached to courses; define a lightweight type here (kept internal
+// to avoid premature global expansion until other views standardize it).
+interface EvaluationRule {
+  id?: number;
+  category: string;
+  weight: number; // percentage weight (0-100)
+  description?: string;
+}
 
-const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, courses })=>{
+type CourseWithEvaluationRules = Course & { evaluation_rules?: EvaluationRule[] };
+
+interface CategoryOption { value: string; label: string }
+
+const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
+
+interface GradingViewProps {
+  students: Student[];
+  courses: CourseWithEvaluationRules[];
+}
+
+const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const { t } = useLanguage();
 
   // Helper function to translate category names
@@ -45,25 +64,28 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
   const [maxGrade, setMaxGrade] = useState<number | ''>('');
   const [weight, setWeight] = useState<number | ''>('');
   const [assignmentName, setAssignmentName] = useState('');
-  const [finalSummary, setFinalSummary] = useState<any>(null);
-  const [grades, setGrades] = useState<any[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<any[]>(students || []);
-  const [filteredCourses, setFilteredCourses] = useState<any[]>(courses || []);
+  const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>(students || []);
+  const [filteredCourses, setFilteredCourses] = useState<CourseWithEvaluationRules[]>(courses || []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadFinal = async ()=>{
-    setFinalSummary(null); setError(null);
-    if(!studentId || !courseId) return;
-    try{
+  const loadFinal = async () => {
+    setFinalSummary(null);
+    setError(null);
+    if (!studentId || !courseId) return;
+    try {
       const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
       if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
+        const txt = await res.text().catch(() => '');
         throw new Error(txt || 'Failed to load final grade');
       }
-      const data = await res.json();
+      const data: FinalGrade = await res.json();
       setFinalSummary(data);
-    }catch(e:any){ setError(e.message || 'Failed to load final grade'); }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load final grade');
+    }
   };
 
   // Keep filters in sync
@@ -79,9 +101,9 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       try {
         const res = await fetch(`${API_BASE_URL}/enrollments/course/${courseId}/students`);
         if (res.ok) {
-          const arr = await res.json();
-          const ids = new Set((arr || []).map((s: any) => s.id));
-          const list = (students || []).filter((s: any) => ids.has(s.id));
+          const arr: Student[] = await res.json();
+          const ids = new Set(arr.map(s => s.id));
+          const list = (students || []).filter(s => ids.has(s.id));
           setFilteredStudents(list);
           if (studentId && !ids.has(studentId as number)) {
             setStudentId('');
@@ -103,17 +125,17 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       if (!studentId) { setFilteredCourses(courses || []); return; }
       // Fallback (robust): check each course's enrolled students and see if student is present
       try {
-        const results = await Promise.all((courses || []).map(async (c: any) => {
+        const results = await Promise.all((courses || []).map(async (c) => {
           try {
             const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
             if (!r.ok) return { id: c.id, has: false };
-            const studs = await r.json();
-            const has = Array.isArray(studs) ? studs.some((s: any) => s.id === studentId) : false;
+            const studs: Student[] = await r.json();
+            const has = studs.some(s => s.id === studentId);
             return { id: c.id, has };
           } catch { return { id: c.id, has: false }; }
         }));
         const allowed = new Set(results.filter(x => x.has).map(x => x.id));
-        const list = (courses || []).filter((c: any) => allowed.has(c.id));
+        const list = (courses || []).filter(c => allowed.has(c.id));
         setFilteredCourses(list);
         if (courseId && !allowed.has(courseId as number)) {
           setCourseId('');
@@ -133,20 +155,20 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       if (!studentId) return;
       try {
         const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res.data) ? res.data : []);
-      } catch (err: any) {
-        // noop; banner will show on submit errors
+        setGrades(Array.isArray(res.data) ? res.data as Grade[] : []);
+      } catch {
+        // noop; errors surfaced during submission
       }
     };
     loadGrades();
   }, [studentId, courseId]);
 
   const selectedCourse = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
-  const evaluationRules = useMemo(() => Array.isArray(selectedCourse?.evaluation_rules) ? selectedCourse!.evaluation_rules : [], [selectedCourse]);
+  const evaluationRules: EvaluationRule[] = useMemo(() => Array.isArray(selectedCourse?.evaluation_rules) ? (selectedCourse!.evaluation_rules as EvaluationRule[]) : [], [selectedCourse]);
 
   // Category options with display names
-  const categoryOptions = useMemo(() => {
-    const base = [
+  const categoryOptions: CategoryOption[] = useMemo(() => {
+    const base: CategoryOption[] = [
       { value: 'Midterm', label: t('midterm') },
       { value: 'Final Exam', label: t('finalExam') },
       { value: 'Assignment', label: t('assignment') },
@@ -154,8 +176,8 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
       { value: 'Project', label: t('project') },
       { value: 'Lab', label: t('lab') }
     ];
-    const rules = (evaluationRules || []).map((r: any) => r?.category).filter(Boolean);
-    const customRules = rules.filter((r: string) => !base.some(b => b.value === r)).map((r: string) => ({ value: r, label: r }));
+    const rules = evaluationRules.map(r => r.category).filter(Boolean);
+    const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
     return [...base, ...customRules];
   }, [evaluationRules, t]);
 
@@ -166,52 +188,53 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
     }
   }, [category]);
 
-  const submitGrade = async (e: React.FormEvent)=>{
+  const submitGrade = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!studentId || !courseId){ setError(t('selectStudentAndCourseError')); return; }
-    if(!assignmentName || String(assignmentName).trim().length === 0){ setError(t('assignmentNameRequired')); return; }
-    if(gradeValue === '' || maxGrade === ''){ setError(t('fillRequiredFields')); return; }
+    if (!studentId || !courseId) { setError(t('selectStudentAndCourseError')); return; }
+    if (!assignmentName || String(assignmentName).trim().length === 0) { setError(t('assignmentNameRequired')); return; }
+    if (gradeValue === '' || maxGrade === '') { setError(t('fillRequiredFields')); return; }
     const gv = Number(gradeValue); const mg = Number(maxGrade || 100);
-    if(!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0){ setError(t('invalidScoreMaxValues')); return; }
-    if(gv < 0 || gv > mg){ setError(t('scoreMustBeBetween0AndMax')); return; }
+    if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
+    if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
     setSubmitting(true); setError(null);
-    try{
-      const payload:any = {
+    try {
+      const payload: Omit<Grade, 'id'> = {
         student_id: Number(studentId),
         course_id: Number(courseId),
-        // Backend expects raw points; if you store percentage, set max_grade=100
+        assignment_name: assignmentName,
+        category,
         grade: gv,
         max_grade: mg,
         weight: Number(category === 'Midterm' || category === 'Final Exam' ? 1 : (weight || 1)),
         date_submitted: new Date().toISOString().split('T')[0],
+        // optional fields not set: date_assigned, notes
       };
-      if (assignmentName) payload.assignment_name = assignmentName;
-      if (category) payload.category = category;
       await gradesAPI.create(payload);
       await loadFinal();
       // refresh grade list
       try {
         const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res2.data) ? res2.data : []);
+        setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
       } catch {}
       setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(''); setWeight('');
-    }catch(e:any){
-      const apiMsg = e?.response?.data?.detail || e?.response?.data || e?.message || 'Error';
+    } catch (e: unknown) {
+      // Attempt to extract common API error formats
+      const apiMsg = (e as any)?.response?.data?.detail || (e as any)?.response?.data || (e as any)?.message || 'Error';
       setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
     }
-    finally{ setSubmitting(false); }
+    finally { setSubmitting(false); }
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select className="border rounded px-3 py-2" value={studentId as any} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>
+        <select className="border rounded px-3 py-2" value={studentId === '' ? '' : String(studentId)} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>
           <option value="">{t('selectStudent')}</option>
-          {filteredStudents.map(s=> (<option key={s.id} value={s.id}>{s.student_id} - {s.first_name} {s.last_name}</option>))}
+          {filteredStudents.map(s => (<option key={s.id} value={s.id}>{s.student_id} - {s.first_name} {s.last_name}</option>))}
         </select>
-        <select className="border rounded px-3 py-2" value={courseId as any} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')} aria-label={t('selectCourse')}>
+        <select className="border rounded px-3 py-2" value={courseId === '' ? '' : String(courseId)} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')} aria-label={t('selectCourse')}>
           <option value="">{t('selectCourse')}</option>
-          {filteredCourses.map(c=> (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
+          {filteredCourses.map(c => (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
         </select>
         <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
       </div>
@@ -273,7 +296,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
         <div className="bg-white border rounded-xl p-4">
           <h3 className="text-lg font-semibold mb-2">{t('evaluationStructure')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {evaluationRules.map((r: any, i: number) => (
+            {evaluationRules.map((r, i: number) => (
               <div key={i} className="border rounded p-3">
                 <div className="font-semibold text-gray-800">{translateCategory(r.category)}</div>
                 <div className="text-sm text-gray-600">{r.weight}%</div>
@@ -305,7 +328,7 @@ const GradingView: React.FC<{ students: any[]; courses: any[] }>=({ students, co
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {grades.map((g: any) => {
+                  {grades.map((g) => {
                     const pct = (Number(g.grade) / Number(g.max_grade || 100)) * 100;
                     const letter = getLetterGrade(pct);
                     const color = pct >= 90 ? 'text-green-600' : pct >= 80 ? 'text-blue-600' : pct >= 70 ? 'text-yellow-600' : pct >= 60 ? 'text-orange-600' : 'text-red-600';

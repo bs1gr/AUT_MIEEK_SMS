@@ -33,7 +33,7 @@ export default function CoursesPage() {
       if (!window.confirm('Are you sure you want to delete this course?')) return;
       await deleteCourse.mutateAsync(courseId);
       showToast('Course deleted successfully!', 'success');
-    } catch (error) {
+    } catch {
       showToast('Failed to delete course. Please try again.', 'error');
     }
   };
@@ -57,7 +57,7 @@ export default function CoursesPage() {
             try {
               await createCourse.mutateAsync(newCourse);
               showToast('Course added successfully!', 'success');
-            } catch (error) {
+            } catch {
               showToast('Failed to add course. Please try again.', 'error');
             } finally {
               courseModals.addModal.close();
@@ -74,7 +74,7 @@ export default function CoursesPage() {
             try {
               await updateCourse.mutateAsync({ id: updatedCourse.id, data: updatedCourse });
               showToast('Course updated successfully!', 'success');
-            } catch (error) {
+            } catch {
               showToast('Failed to update course. Please try again.', 'error');
             } finally {
               courseModals.editModal.close();

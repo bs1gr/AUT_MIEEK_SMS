@@ -19,8 +19,17 @@ import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { CourseCardSkeleton } from '@/components/ui';
 import './EnhancedDashboardView.css';
 import type { OperationsLocationState } from '@/features/operations/types';
+import { Student, Course } from '@/types';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
+
+// Extended student type with analytics data
+interface StudentWithGPA extends Student {
+  overallGPA: number;
+  totalCourses: number;
+  totalCredits: number;
+  failedCourses: number;
+}
 
 type StatCardProps = {
   title: string;
@@ -105,8 +114,8 @@ const MetricCard = ({ title, value, hint, icon: Icon, accent = 'indigo' }: Metri
 };
 
 type EnhancedDashboardProps = {
-  students: any[];
-  courses: any[];
+  students: Student[];
+  courses: Course[];
   stats: {
     totalStudents: number;
     activeStudents: number;
@@ -115,7 +124,7 @@ type EnhancedDashboardProps = {
 };
 
 const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardProps) => {
-  const { t } = useLanguage() as any;
+  const { t } = useLanguage();
   const navigate = useNavigate ? useNavigate() : undefined;
 
   const goToExport = useCallback(
@@ -141,7 +150,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     goToExport('students-excel');
   }, [goToExport]);
 
-  const [topPerformers, setTopPerformers] = useState<any[]>([]);
+  const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
   const analyticsRef = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -152,12 +161,12 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   const coursesCount = courses.length;
 
   const activeStudentsCount = useMemo(
-    () => (students || []).filter((student: any) => student.is_active !== false).length,
+    () => (students || []).filter((student) => student.is_active !== false).length,
     [students]
   );
 
   const topPerformersCourseTotal = useMemo(
-    () => topPerformers.reduce((sum: number, student: any) => sum + (student.totalCourses || 0), 0),
+    () => topPerformers.reduce((sum: number, student) => sum + (student.totalCourses || 0), 0),
     [topPerformers]
   );
 
@@ -166,14 +175,14 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       return 0;
     }
     const avgGpa =
-      topPerformers.reduce((sum: number, student: any) => sum + (student.overallGPA || 0), 0) /
+      topPerformers.reduce((sum: number, student) => sum + (student.overallGPA || 0), 0) /
       topPerformers.length;
     return (avgGpa / 4) * 100;
   }, [topPerformers]);
 
   const yearBuckets = useMemo(() => {
     const buckets: Record<number, number> = {};
-    (students || []).forEach((student: any) => {
+    (students || []).forEach((student) => {
       const numericYear = Number.isFinite(Number(student.study_year))
         ? Number(student.study_year)
         : 0;
@@ -216,7 +225,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
       if (Array.isArray(enrollments) && enrollments.length > 0) {
         const enrollmentCounts = enrollments.reduce(
-          (acc: Record<number, number>, enrollment: any) => {
+          (acc: Record<number, number>, enrollment: { course_id?: number }) => {
             if (enrollment.course_id) {
               acc[enrollment.course_id] = (acc[enrollment.course_id] || 0) + 1;
             }
@@ -269,7 +278,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
           const data = await response.json();
           const failedCourses = (data.courses || []).filter(
-            (course: any) => course.letter_grade === 'F' || (course.gpa && parseFloat(course.gpa) < 1.0)
+            (course: { letter_grade?: string; gpa?: string | number }) => course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
           ).length;
 
           return {
@@ -422,9 +431,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  {topPerformers.map((student: any, index: number) => {
+                  {topPerformers.map((student, index: number) => {
                     const gpa = Number(student.overallGPA || 0);
-                    const formatted: any = formatAllGrades(gpa);
+                    const formatted = formatAllGrades(gpa);
                     const pct = gpaToPercentage(gpa);
                     const letter = getLetterGrade(pct);
                     const failedCount = student.failedCourses || 0;
@@ -501,7 +510,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 {loading ? (
                   Array.from({ length: 3 }).map((_, index) => <CourseCardSkeleton key={index} />)
                 ) : courses && courses.length > 0 ? (
-                  courses.slice(0, 6).map((course: any) => (
+                  courses.slice(0, 6).map((course) => (
                     <motion.div
                       key={course.id}
                       className="rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-indigo-200"
@@ -527,7 +536,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                               <span>{t('evaluationRules') || 'Evaluation rules'}</span>
                             </p>
                             <div className="mt-2 flex flex-wrap gap-2">
-                              {(course.evaluation_rules || []).slice(0, 6).map((rule: any, idx: number) => {
+                              {(course.evaluation_rules || []).slice(0, 6).map((rule: { category?: string; weight?: string | number }, idx: number) => {
                                 const weightValue = parseFloat(String(rule?.weight ?? ''));
                                 const weightLabel = Number.isFinite(weightValue)
                                   ? `${Math.round(weightValue)}%`
@@ -579,7 +588,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               </button>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {(students || []).slice(0, 6).map((student: any) => (
+              {(students || []).slice(0, 6).map((student) => (
                 <div
                   key={student.id}
                   className="rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-indigo-200"
@@ -657,7 +666,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 {
                   label: t('configuredCourses') || 'Configured courses',
                   value: (courses || []).filter(
-                    (course: any) =>
+                    (course) =>
                       Array.isArray(course.evaluation_rules) && course.evaluation_rules.length > 0
                   ).length,
                 },
