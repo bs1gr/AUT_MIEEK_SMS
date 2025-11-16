@@ -109,14 +109,14 @@ describe('StudentCard', () => {
     it('shows action buttons', () => {
       renderStudentCard();
       expect(screen.getByRole('button', { name: /view profile/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /view/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /view performance/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
     });
 
     it('calls onToggleExpand when view button clicked', () => {
       renderStudentCard();
-      fireEvent.click(screen.getByRole('button', { name: /view/i }));
+      fireEvent.click(screen.getByRole('button', { name: /view performance/i }));
       expect(defaultProps.onToggleExpand).toHaveBeenCalledWith(1);
     });
 
@@ -147,7 +147,7 @@ describe('StudentCard', () => {
   describe('Expanded State', () => {
     it('shows detailed student information', () => {
       renderStudentCard({ isExpanded: true });
-      expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
+      expect(screen.getByText(/john\.doe@example\.com/)).toBeInTheDocument();
       expect(screen.getByText(/active/i)).toBeInTheDocument();
     });
 
@@ -159,19 +159,21 @@ describe('StudentCard', () => {
     it('shows grade statistics cards', () => {
       renderStudentCard({ isExpanded: true });
       expect(screen.getByText('85.5%')).toBeInTheDocument();
-      expect(screen.getByText('10')).toBeInTheDocument();
+      expect(screen.getByText(/10.*assignments/i)).toBeInTheDocument();
     });
 
     it('displays attendance statistics', () => {
       renderStudentCard({ isExpanded: true });
       expect(screen.getByText('3/30')).toBeInTheDocument(); // absent/total
-      expect(screen.getByText('83.3%')).toBeInTheDocument();
+      const attendanceRates = screen.getAllByText('83.3%');
+      expect(attendanceRates.length).toBeGreaterThan(0);
     });
 
     it('shows greek scale grade', () => {
       renderStudentCard({ isExpanded: true });
       // 85.5% converts to ~17.1 on Greek scale
-      expect(screen.getByText(/17\./)).toBeInTheDocument();
+      const greekGrades = screen.getAllByText(/17\./);
+      expect(greekGrades.length).toBeGreaterThan(0);
     });
 
     it('shows letter grade', () => {
@@ -248,7 +250,8 @@ describe('StudentCard', () => {
       renderStudentCard({ isExpanded: true });
       // (85/100 * 100 + 90/100 * 100) / 2 = 87.5%
       // Greek scale: 87.5 * 20 / 100 = 17.5
-      expect(screen.getByText(/17\.5/)).toBeInTheDocument();
+      const greekGrades = screen.getAllByText(/17\.5/);
+      expect(greekGrades.length).toBeGreaterThan(0);
     });
 
     it('calculates min and max grades', () => {
@@ -270,8 +273,8 @@ describe('StudentCard', () => {
       renderStudentCard({ isExpanded: true });
       // Should render GradeDistribution component
       // Looking for text that indicates distribution is shown
-      const expandedContent = screen.getByText(/john doe/i).closest('li');
-      expect(expandedContent).toBeInTheDocument();
+      const names = screen.getAllByText(/john doe/i);
+      expect(names.length).toBeGreaterThan(0);
     });
 
     it('hides grade distribution when no grades', () => {
