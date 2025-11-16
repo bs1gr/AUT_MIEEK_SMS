@@ -19,6 +19,7 @@ from backend.db import get_session as get_db
 from backend.db_utils import transaction, get_by_id_or_404, paginate
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.services.enrollment_service import EnrollmentService
 
 
 # ===== Endpoints =====
@@ -30,14 +31,7 @@ def get_all_enrollments(
 ):
     """Get all course enrollments"""
     try:
-        (CourseEnrollment,) = import_names("models", "CourseEnrollment")
-
-        query = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None))
-        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
-        logger.info(
-            f"Retrieved {len(result.items)} enrollments (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
-        )
-        return result.dict()
+        return EnrollmentService.get_all_enrollments(db, pagination)
     except Exception as exc:
         logger.error("Error retrieving all enrollments: %s", exc, exc_info=True)
         raise internal_server_error(request=request)
@@ -46,15 +40,7 @@ def get_all_enrollments(
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
 def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
-        CourseEnrollment, Course = import_names("models", "CourseEnrollment", "Course")
-
-        _course = get_by_id_or_404(db, Course, course_id)
-        enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.deleted_at.is_(None))
-            .all()
-        )
-        return enrollments
+        return EnrollmentService.list_course_enrollments(db, course_id, request)
     except HTTPException:
         raise
     except Exception as exc:
@@ -66,16 +52,7 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
 def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
-        Student, CourseEnrollment = import_names("models", "Student", "CourseEnrollment")
-
-        _student = get_by_id_or_404(db, Student, student_id)
-        enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.student_id == student_id, CourseEnrollment.deleted_at.is_(None))
-            .all()
-        )
-        logger.info(f"Retrieved {len(enrollments)} enrollments for student {student_id}")
-        return enrollments
+        return EnrollmentService.list_student_enrollments(db, student_id, request)
     except HTTPException:
         raise
     except Exception as exc:
@@ -86,19 +63,7 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
 def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
-        Course, Student, CourseEnrollment = import_names("models", "Course", "Student", "CourseEnrollment")
-
-        _course = get_by_id_or_404(db, Course, course_id)
-        q = (
-            db.query(Student)
-            .join(CourseEnrollment, CourseEnrollment.student_id == Student.id)
-            .filter(
-                CourseEnrollment.course_id == course_id,
-                CourseEnrollment.deleted_at.is_(None),
-                Student.deleted_at.is_(None),
-            )
-        )
-        return q.all()
+        return EnrollmentService.list_enrolled_students(db, course_id, request)
     except HTTPException:
         raise
     except Exception as exc:
@@ -119,42 +84,10 @@ def enroll_students(
     Uses database locking to prevent race conditions.
     """
     try:
-        CourseEnrollment, Course, Student = import_names("models", "CourseEnrollment", "Course", "Student")
-
-        _course = get_by_id_or_404(db, Course, course_id)
-
-        # Fetch all students at once to avoid N+1 queries
-        students = db.query(Student).filter(Student.id.in_(payload.student_ids), Student.deleted_at.is_(None)).all()
-        valid_student_ids = {s.id for s in students}
-
-        created = 0
-        reactivated = 0
-
         with transaction(db):
-            for sid in payload.student_ids:
-                if sid not in valid_student_ids:
-                    continue
-                # Use locking to prevent race conditions
-                existing = (
-                    db.query(CourseEnrollment)
-                    .filter(CourseEnrollment.student_id == sid, CourseEnrollment.course_id == course_id)
-                    .with_for_update()
-                    .first()
-                )
-                if existing:
-                    if existing.deleted_at is not None:
-                        existing.deleted_at = None
-                        if payload.enrolled_at:
-                            existing.enrolled_at = payload.enrolled_at
-                        reactivated += 1
-                    continue
-                enrollment = CourseEnrollment(student_id=sid, course_id=course_id, enrolled_at=payload.enrolled_at)
-                db.add(enrollment)
-                created += 1
+            result = EnrollmentService.enroll_students(db, course_id, payload, request)
             db.flush()
-
-        logger.info(f"Enrolled {created} students and reactivated {reactivated} enrollments in course {course_id}")
-        return {"created": created, "reactivated": reactivated}
+        return result
     except HTTPException:
         raise
     except Exception as exc:
@@ -171,30 +104,10 @@ def unenroll_student(
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     try:
-        (CourseEnrollment,) = import_names("models", "CourseEnrollment")
-
-        enrollment = (
-            db.query(CourseEnrollment)
-            .filter(
-                CourseEnrollment.course_id == course_id,
-                CourseEnrollment.student_id == student_id,
-                CourseEnrollment.deleted_at.is_(None),
-            )
-            .first()
-        )
-        if not enrollment:
-            raise http_error(
-                status.HTTP_404_NOT_FOUND,
-                ErrorCode.ENROLLMENT_NOT_FOUND,
-                "Enrollment not found",
-                request,
-                context={"course_id": course_id, "student_id": student_id},
-            )
         with transaction(db):
-            enrollment.mark_deleted()
+            result = EnrollmentService.unenroll_student(db, course_id, student_id, request)
             db.flush()
-
-        return {"message": "Unenrolled"}
+        return result
     except HTTPException:
         raise
     except Exception as exc:
