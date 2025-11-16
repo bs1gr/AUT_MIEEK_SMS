@@ -78,9 +78,32 @@ This document serves as the single source of truth for all project documentation
 
 ### Archived Historical Docs
 
-| File | Archive Date | Notes |
-|------|--------------|-------|
-| `archive/DOCUMENTATION_CLEANUP_2025-01-10.md` | 2025-11-16 | Original consolidation summary; preserved for context |
+The following documents have been moved to `archive/` for historical reference:
+
+**2025-11-16 Archival Wave** (Completed analyses & cleanup artifacts):
+
+| File | Original Date | Category |
+|------|---------------|----------|
+| `APP_LIFECYCLE_EVALUATION.md` | 2025-11-06 | Lifecycle evaluation (completed) |
+| `ARTIFACT_STRATEGY.md` | Planning | Strategy doc (implemented) |
+| `CI_MONITORING_CHANGES_SUMMARY.md` | 2025-11-11 | Change summary |
+| `CLEANUP_COMPLETE.md` | 2025-11-16 | Cleanup report |
+| `CLEANUP_SUMMARY.md` | 2025-11-16 | Technical summary |
+| `CODE_REVIEW_FINDINGS.md` | 2025-10-29 | Code review (v1.0) |
+| `DEPENDENCY_UPGRADES.md` | 2025 (stale) | Upgrade analysis |
+| `DOCUMENTATION_CLEANUP_2025-01-10.md` | 2025-01-10 | Doc consolidation |
+| `FRONTEND_ASSESSMENT.md` | 2025 (stale) | Frontend assessment |
+| `GITHUB_RELEASE_DRAFT_v1.2.0.md` | Historical | Release draft |
+| `HISTORY_PURGE_PLAN.md` | Planning | Purge planning |
+| `MODE_AWARE_UI_QUICK_REFERENCE.md` | Feature ref | UI reference |
+| `NEXT_STEPS.md` | 2025-11-16 | Action items |
+| `PR_DRAFT.md` | Historical | PR description |
+| `REMOVED_DOCS_SUMMARY.md` | 2025-11-04 | Removal summary |
+| `ROUTER_REFACTORING_STATUS.md` | 2025-11-06 | Refactoring status |
+| `SECURITY_AUDIT.md` | 2025 (stale) | Security audit |
+| `TERMINAL_BEST_PRACTICES.md` | 2025-10-29 | Terminal practices |
+| `V1.2.0_IMPROVEMENTS.md` | Historical | Version improvements |
+| `scripts/stage_and_commit.ps1` | 2025-11-16 | Automation script |
 
 ### New Additions (2025-11-16)
 
@@ -222,6 +245,14 @@ Draft document set expanded to 4 and Status Summary table updated accordingly:
 
 Added automated documentation audit workflow (`.github/workflows/doc-audit.yml`) to fail PRs introducing stale or missing-status docs.
 
-Archived `DOCUMENTATION_CLEANUP_2025-01-10.md` to `archive/` for historical reference.
+Archived 20 historical documents and scripts to `archive/` for audit/reference:
+
+- Completed analyses (code review, lifecycle evaluation, router refactoring status)
+- Stale assessments (frontend, security, dependencies from 2025)
+- Cleanup artifacts (Nov 2025 cleanup reports and summaries)
+- Planning documents (artifact strategy, history purge plan)
+- One-time automation scripts (stage_and_commit.ps1)
+
+See `archive/README.md` for complete inventory and retrieval instructions.
 
 Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
