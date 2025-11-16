@@ -208,10 +208,12 @@
   - Status: Discovered existing comprehensive CI/CD implementation with 10 workflows
   - No changes needed: CI runs on push/PR to main, Docker builds with manual dispatch on tags
 
-- [ ] Add automated dependency scanning
-  - Setup `pip-audit` in CI
-  - Setup `npm audit` in CI
-  - Effort: 2 hours
+- [x] **Add automated dependency scanning** ✅ **DONE**
+  - ✅ Setup `pip-audit` in CI - Already existed in ci.yml backend job
+  - ✅ Setup `npm audit` in CI - Added to frontend job (commit 769428b+)
+  - Both generate JSON reports and upload as artifacts
+  - Security audits run on every push/PR
+  - Effort: 15 minutes (mostly verification)
 
 - [ ] Create production Docker Compose template
   - Add PostgreSQL service
