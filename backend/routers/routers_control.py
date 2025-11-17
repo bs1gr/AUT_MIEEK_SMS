@@ -19,6 +19,7 @@ from datetime import datetime
 from fastapi import APIRouter, Request, HTTPException
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from importlib import metadata as importlib_metadata  # Python 3.8+
 
@@ -846,6 +847,138 @@ async def download_database_backup(request: Request, backup_filename: str):
             "Failed to download backup",
             request,
             context={"error": str(exc), "filename": backup_filename},
+        ) from exc
+
+
+@router.get("/operations/database-backups/archive.zip")
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def download_backups_zip(request: Request):
+    """Create a zip archive of all database backups and stream it as a download."""
+    try:
+        import io
+        import zipfile
+
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+
+        if not backup_dir.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backups directory found",
+                request,
+                context={},
+            )
+
+        # Collect .db files
+        files = sorted(backup_dir.glob("*.db"), reverse=True)
+        if not files:
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backup files found",
+                request,
+                context={},
+            )
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for f in files:
+                # Write with base filename only
+                zf.write(f, arcname=f.name)
+        buf.seek(0)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"sms_backups_{timestamp}.zip"
+
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        return StreamingResponse(buf, media_type="application/zip", headers=headers)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to create backups ZIP",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+class ZipSaveRequest(BaseModel):
+    destination: str = Field(description="Destination path (directory or full .zip path)")
+
+
+@router.post("/operations/database-backups/archive/save-to-path", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
+    """Create a backups ZIP and save it to a specific path on the host."""
+    try:
+        import io
+        import zipfile
+
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+        if not backup_dir.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backups directory found",
+                request,
+                context={},
+            )
+
+        files = sorted(backup_dir.glob("*.db"), reverse=True)
+        if not files:
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backup files found",
+                request,
+                context={},
+            )
+
+        # Build zip in-memory
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for f in files:
+                zf.write(f, arcname=f.name)
+        buf.seek(0)
+
+        raw_dest = (payload.destination or "").strip()
+        if not raw_dest:
+            raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
+
+        dest_candidate = Path(raw_dest)
+        if dest_candidate.exists() and dest_candidate.is_dir():
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
+        elif dest_candidate.suffix.lower() == ".zip":
+            dest_path = dest_candidate
+        else:
+            # Treat as directory path
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
+
+        # Ensure parent exists
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest_path, "wb") as out_f:
+            out_f.write(buf.read())
+
+        return OperationResult(
+            success=True,
+            message="Backups ZIP saved successfully",
+            details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to save backups ZIP",
+            request,
+            context={"error": str(exc), "destination": payload.destination},
         ) from exc
 
 
