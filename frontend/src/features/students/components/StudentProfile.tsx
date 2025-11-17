@@ -25,6 +25,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [coursesById, setCoursesById] = useState<Record<number, Course>>({});
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
+  const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
 
   useEffect(() => {
     if (studentId) {
@@ -451,28 +452,54 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
         {/* Attendance Overview */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">{t('attendanceOverview')}</h3>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {(['Present', 'Absent', 'Late', 'Excused'] as const).map(status => {
-              const count = attendance.filter(a => a.status === status).length;
-              const percentage = attendance.length > 0 ? (count / attendance.length * 100).toFixed(1) : 0;
-              const colors = {
-                Present: 'from-green-500 to-green-600',
-                Absent: 'from-red-500 to-red-600',
-                Late: 'from-yellow-500 to-yellow-600',
-                Excused: 'from-blue-500 to-blue-600'
-              } as const;
-
-              return (
-                <div key={status} className={`bg-gradient-to-br ${colors[status]} rounded-xl shadow p-4 text-white`}>
-                  <p className="text-sm opacity-90">{t(status.toLowerCase())}</p>
-                  <p className="text-3xl font-bold mt-2">{count}</p>
-                  <p className="text-sm opacity-90 mt-1">{percentage}%</p>
-                </div>
-              );
-            })}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+            <h3 className="text-xl font-bold text-gray-800">{t('attendanceOverview')}</h3>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600" htmlFor="attendance-course-filter">{t('filterByCourse') || 'Filter by course'}</label>
+              <select
+                id="attendance-course-filter"
+                className="border rounded px-3 py-2 text-sm"
+                value={attendanceCourseFilter ?? ''}
+                onChange={(e) => setAttendanceCourseFilter(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">{t('allCourses') || 'All Courses'}</option>
+                {enrollments.map((enr) => {
+                  const c = coursesById[enr.course_id];
+                  const label = c ? `${c.course_code} — ${c.course_name}` : `Course #${enr.course_id}`;
+                  return (
+                    <option key={enr.id} value={enr.course_id}>{label}</option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
+
+          {(() => {
+            const att = attendanceCourseFilter ? attendance.filter(a => a.course_id === attendanceCourseFilter) : attendance;
+            const total = att.length;
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(['Present', 'Absent', 'Late', 'Excused'] as const).map(status => {
+                  const count = att.filter(a => a.status === status).length;
+                  const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
+                  const colors = {
+                    Present: 'from-green-500 to-green-600',
+                    Absent: 'from-red-500 to-red-600',
+                    Late: 'from-yellow-500 to-yellow-600',
+                    Excused: 'from-blue-500 to-blue-600'
+                  } as const;
+
+                  return (
+                    <div key={status} className={`bg-gradient-to-br ${colors[status]} rounded-xl shadow p-4 text-white`}>
+                      <p className="text-sm opacity-90">{t(status.toLowerCase())}</p>
+                      <p className="text-3xl font-bold mt-2">{count}</p>
+                      <p className="text-sm opacity-90 mt-1">{percentage}%</p>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {showBreakdown && breakdownCourseId && (

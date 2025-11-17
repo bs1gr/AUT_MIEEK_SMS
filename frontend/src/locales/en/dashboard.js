@@ -70,6 +70,8 @@ export default {
   failedToLoadStudentData: 'Failed to load student data. Please try again.',
   studentID: 'Student ID:',
   attendanceOverview: 'Attendance Overview',
+  filterByCourse: 'Filter by course',
+  allCourses: 'All Courses',
   recentHighlights: 'Highlights',
   noHighlights: 'No highlights yet',
   recentGrades: 'Recent Grades',

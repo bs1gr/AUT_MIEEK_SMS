@@ -65,6 +65,8 @@ export default {
   failedToLoadStudentData: 'Αποτυχία φόρτωσης δεδομένων σπουδαστή. Παρακαλώ δοκιμάστε ξανά.',
   studentID: 'Αριθμός Μητρώου:',
   attendanceOverview: 'Επισκόπηση Παρουσιών',
+  filterByCourse: 'Φίλτρο ανά μάθημα',
+  allCourses: 'Όλα τα μαθήματα',
   recentHighlights: 'Επιτεύγματα',
   noHighlights: 'Δεν υπάρχουν ακόμη επιτεύγματα',
   recentGrades: 'Πρόσφατοι Βαθμοί',
