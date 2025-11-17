@@ -47,7 +47,7 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 | Cleanup Summary | `./CLEANUP_SUMMARY.md` | Nov 2025 cleanup completion report | Release Eng. | Documents Phase 1+2 execution and results |
 | Fresh Deployment Troubleshooting | `./docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` | Known issues + fixes | Support Ops | Link from SMS.ps1 diagnostics |
 | Documentation Index | `./docs/DOCUMENTATION_INDEX.md` | Map to every active doc | Docs Team | Version should match current release |
-| Release Notes v1.6.3 | `./docs/releases/v1.6.3.md` | Canonical notes + archive/package checklist | Release Eng. | Source for `gh release create` |
+| Release Notes v1.6.5 | `./docs/releases/v1.6.5.md` | Canonical notes for the Control API realignment + restart UX polish | Release Eng. | Source for `gh release create` |
 | CONTROL_API.md | `./backend/CONTROL_API.md` | Details `/control` panel endpoints | Backend Team | Required for remote administration |
 
 ---

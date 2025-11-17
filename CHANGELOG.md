@@ -8,6 +8,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+- _Nothing yet. Start your entry here._
+
+## [1.6.5] - 2025-11-17
+
+### Added
 
 - **Canonical Control API mounting**: the control router is now attached outside the `/api/v1` prefix so all operations live under `/control/api/*`. Documentation (README + `backend/CONTROL_API.md`), Vitest suites, and pytest cases were updated to reference the new canonical endpoints and to reiterate how to enable the restart button.
 - **Shared Control API base URL**: frontend utilities export `CONTROL_API_BASE`, replacing ad-hoc string concatenation throughout `ServerControl`, `ControlPanel`, `DevToolsPanel`, and API clients. Bulk backup/download/upload flows now consistently hit the same origin, and tests mock the shared constant.
@@ -585,6 +590,9 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.5...HEAD
+[1.6.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5
+[1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
 [1.6.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3
 [1.6.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.2
 [1.6.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.0
@@ -600,5 +608,3 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.4...HEAD

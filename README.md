@@ -131,7 +131,18 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 What's New in v1.6.4
+## 🆕 What's New in v1.6.5
+
+### Latest Updates (November 2025)
+
+- 🚪 **Canonical Control API path:** Operational endpoints now sit under `/control/api/*`, decoupling them from the public REST surface and matching the FastAPI lifespan design.
+- 🔗 **Shared Control API base helper:** Frontend utilities export `CONTROL_API_BASE`, so Control Panel components, backups, and restart workflows all target the same origin with zero string duplication.
+- ♻️ **Restart UX polish:** Buttons render backend hints (Docker vs. native), localized fallbacks, and instructions for configuring shutdown tokens so operators always know why a restart is blocked.
+- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/v1.6.5.md`.
+
+---
+
+## 📦 What's New in v1.6.4
 
 ### Latest Updates (November 2025)
 
@@ -155,11 +166,12 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 ## 📦 Releases
 
-- Latest: [v1.6.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3) - Release/asset archive, package retirement guidance, and refreshed docs
-- Previous: [v1.6.2](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.2) - Attendance analytics export, Control Panel UX polish, and Starlette security patch
+- Latest: [v1.6.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5) – Canonical Control API base path, shared frontend helper, and restart UX improvements
+- Previous: [v1.6.4](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
+- Archive: [v1.6.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3) – Release archive pipeline, GHCR retirement guidance, and automation hooks
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/v1.6.3.md` using `gh release create v1.6.3 --notes-file docs/releases/v1.6.3.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/v1.6.5.md` using `gh release create v1.6.5 --notes-file docs/releases/v1.6.5.md`.
 
 ---
 
@@ -875,6 +887,6 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.6.4 (see [VERSION](VERSION) file)
+Current version: 1.6.5 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [CODEBASE_ANALYSIS_REPORT.md](CODEBASE_ANALYSIS_REPORT.md) for details
