@@ -8,6 +8,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+- **Frontend Test Coverage Expansion**: Added comprehensive test suites for query hooks and data management layers:
+  - `useCoursesQuery.test.ts`: 15 tests covering list fetching, filters (search/active/semester), single course queries, and mutations (create/update/delete) with proper React Query integration
+  - `useStudentsQuery.test.ts` & `.tsx`: 24 tests (dual implementations) for student queries, filters, error handling, and CRUD mutations
+  - All query hook tests mock API modules consistently to avoid runtime instance mismatches between TypeScript and JavaScript API definitions
+  - Tests disable React Query retries for deterministic state transitions and error handling validation
+  - Total frontend test coverage now: 28 test files with 468+ passing tests
+
 - **Service Layer Architecture**: Introduced dedicated service layer (`backend/services/`) to encapsulate business logic and improve code organization
   - `AnalyticsService`: Centralized analytics calculations with eager loading to prevent N+1 query problems
   - `StudentService`: Encapsulated student CRUD operations and bulk operations with proper transaction management
