@@ -26,6 +26,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Total: 145 new utility tests (129 added, 16 already existed)
   - **Full frontend test coverage now: 36 test files with 715+ passing tests**
 
+- **Frontend Context Test Coverage**: Added comprehensive tests for core React Contexts to ensure reliable app-wide state and UX behavior:
+  - `contexts/AuthContext.test.tsx`: Covers login/logout/refresh flows, access token synchronization with `authService`, user restoration from `/auth/me` when login response omits user, localStorage persistence and error resilience, and hook misuse detection (throws outside provider)
+  - `LanguageContext.test.tsx`: Uses real i18next integration (no stubs); verifies language switching between `en`/`el`, persistence via `i18nextLng`, fallback behavior for missing keys in `t()`, and correct hook misuse error messaging
+  - `ThemeContext.test.tsx`: Validates theme initialization from `theme` key, switching among `light`/`dark`/`relaxing`/`fancy`/`system`, DOM class updates with async handling, system preference listeners via `matchMedia`, persistence, and robust handling of storage quirks
+  - Tests align with actual implementation details (storage keys, async effects, exact error messages) to avoid brittle expectations
+  - **Total: 68 new context tests (3 files) — all passing**
+
 - **Zustand Store Test Coverage**: Added comprehensive test suites for all state management stores:
   - `useCoursesStore.test.ts`: 35 tests covering CRUD operations, selection, loading/error states, and complex scenarios
   - `useStudentsStore.test.ts`: 35 tests for student management with selection sync on updates/deletes
