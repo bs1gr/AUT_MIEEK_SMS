@@ -568,6 +568,11 @@
             <h2>💾 Database Management</h2>
             <button class="btn" onclick="backupDatabase()">💾 Create Backup</button>
             <button class="btn btn-secondary" onclick="loadBackups()">📋 View Backups</button>
+            <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <label for="backupPathInput" style="font-size:0.9em; color:#555;">Save to path:</label>
+                <input id="backupPathInput" type="text" placeholder="e.g. C:\\Backups\\ or /home/user/Backups" style="flex:1; min-width:260px; border:1px solid #e5e7eb; border-radius:6px; padding:10px;" />
+                <button class="btn btn-secondary" onclick="saveLatestToPath()" style="width:auto; margin-top:0;">⬇️ Save Latest</button>
+            </div>
             <div id="backupsList" style="margin-top: 15px;"></div>
         </div>
 
@@ -970,19 +975,71 @@
 
                 container.innerHTML = '<h3 style="margin-bottom: 10px;">Available Backups:</h3>' +
                     data.backups.map(backup => `
-                        <div class="diagnostic-item ok" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="diagnostic-item ok" style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
                             <div>
                                 <strong>${backup.filename}</strong>
-                                <span>Created: ${new Date(backup.created).toLocaleString()}</span>
-                                <span>Size: ${(backup.size / 1024).toFixed(2)} KB</span>
+                                <span style="display:block;">Created: ${new Date(backup.created).toLocaleString()}</span>
+                                <span style="display:block;">Size: ${(backup.size / 1024).toFixed(2)} KB</span>
                             </div>
-                            <button class="btn" onclick="restoreBackup('${backup.filename}')" style="margin: 0; padding: 8px 16px; width: auto;">
-                                ♻️ Restore
-                            </button>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button class="btn btn-secondary" onclick="downloadBackup('${backup.filename}')" style="margin: 0; padding: 8px 16px; width: auto;">⬇️ Download</button>
+                                <button class="btn" onclick="saveBackupToPath('${backup.filename}')" style="margin: 0; padding: 8px 16px; width: auto;">💾 Save to Path</button>
+                                <button class="btn" onclick="restoreBackup('${backup.filename}')" style="margin: 0; padding: 8px 16px; width: auto;">♻️ Restore</button>
+                            </div>
                         </div>
                     `).join('');
             } catch (error) {
                 showAlert('Failed to load backups', 'error');
+            }
+        }
+
+        function downloadBackup(filename) {
+            const url = `/api/v1/control/api/operations/database-backups/${encodeURIComponent(filename)}/download`;
+            window.open(url, '_blank');
+        }
+
+        async function saveBackupToPath(filename) {
+            const pathInput = document.getElementById('backupPathInput');
+            const destination = (pathInput && pathInput.value || '').trim();
+            if (!destination) {
+                showAlert('Please enter a destination path first.', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/v1/control/api/operations/database-backups/${encodeURIComponent(filename)}/save-to-path`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ destination })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showAlert(`Saved to: ${data.details.destination}`, 'success');
+                } else {
+                    showAlert(data.message || 'Failed to save backup to path', 'error');
+                }
+            } catch (e) {
+                showAlert('Error saving backup: ' + (e?.message || e), 'error');
+            }
+        }
+
+        async function saveLatestToPath() {
+            const pathInput = document.getElementById('backupPathInput');
+            const destination = (pathInput && pathInput.value || '').trim();
+            if (!destination) {
+                showAlert('Please enter a destination path first.', 'warning');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/v1/control/api/operations/database-backups`);
+                const data = await response.json();
+                if (!data.backups || data.backups.length === 0) {
+                    showAlert('No backups available to save.', 'warning');
+                    return;
+                }
+                const latest = data.backups[0];
+                await saveBackupToPath(latest.filename);
+            } catch (e) {
+                showAlert('Error saving latest backup: ' + (e?.message || e), 'error');
             }
         }
 
