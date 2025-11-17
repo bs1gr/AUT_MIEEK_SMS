@@ -353,7 +353,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const saveBackupToPath = async (filename: string, destination: string) => {
     if (!destination.trim()) {
-      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
       return;
     }
     setOpLoading(`save:${filename}`);
@@ -370,7 +370,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
       onToast({
-        message: `${t('savedTo') || 'Saved to'}: ${data?.details?.destination ?? destination}`,
+        message: `${t('utils.savedTo') || 'Saved to'}: ${data?.details?.destination ?? destination}`,
         type: 'success',
       });
     } catch (e: any) {
@@ -382,7 +382,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const saveLatestToPath = async () => {
     if (!latestBackup) {
-      onToast({ message: t('noBackupsFound') ?? 'No backups found', type: 'error' });
+      onToast({ message: t('utils.noBackupsFound') ?? 'No backups found', type: 'error' });
       return;
     }
     await saveBackupToPath(latestBackup.filename, destPath);
@@ -399,7 +399,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const saveZipToPath = async () => {
     if (!destPath.trim()) {
-      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
       return;
     }
     setOpLoading('save-zip');
@@ -412,7 +412,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       });
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
-      onToast({ message: `${t('savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
+      onToast({ message: `${t('utils.savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
     } catch (e: any) {
       onToast({ message: e?.message || (t('error') as string), type: 'error' });
     } finally {
@@ -422,7 +422,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const downloadSelectedZip = async () => {
     if (selectedBackups.size === 0) {
-      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      onToast({ message: t('utils.noBackupsSelected') ?? 'No backups selected', type: 'error' });
       return;
     }
     try {
@@ -452,11 +452,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const saveSelectedZipToPath = async () => {
     if (selectedBackups.size === 0) {
-      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      onToast({ message: t('utils.noBackupsSelected') ?? 'No backups selected', type: 'error' });
       return;
     }
     if (!destPath.trim()) {
-      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
       return;
     }
     setOpLoading('save-selected-zip');
@@ -469,7 +469,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       });
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
-      onToast({ message: `${t('savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
+      onToast({ message: `${t('utils.savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
     } catch (e: any) {
       onToast({ message: e?.message || (t('error') as string), type: 'error' });
     } finally {
@@ -479,7 +479,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const deleteSelectedBackups = async () => {
     if (selectedBackups.size === 0) {
-      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      onToast({ message: t('utils.noBackupsSelected') ?? 'No backups selected', type: 'error' });
       return;
     }
     setOpLoading('delete-selected');
@@ -493,7 +493,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await res.json();
       if (!res.ok || data?.success !== true) throw new Error(data?.message || 'Failed');
       const count = Number(data?.details?.deleted_count ?? 0);
-      onToast({ message: `${t('deletedBackups') || 'Deleted backups'}: ${count}`, type: 'success' });
+      onToast({ message: `${t('utils.deletedBackups') || 'Deleted backups'}: ${count}`, type: 'success' });
       // Refresh list and clear selection
       await loadBackups();
       setSelectedBackups(new Set());
@@ -611,7 +611,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
       if (created > 0 || updated > 0) {
         onToast({
-          message: `${t('utils.importSuccess')}: ${created} ${t('created')}, ${updated} ${t('updated')}`,
+          message: `${t('utils.importSuccess')}: ${created} ${t('utils.created')}, ${updated} ${t('utils.updated')}`,
           type: errors > 0 ? 'info' : 'success',
         });
       } else if (errors > 0) {
@@ -959,12 +959,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         <div className={`${theme.card} md:col-span-2`}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
           <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
-            <label className={`text-xs ${theme.mutedText}`}>{t('destinationPath') || 'Destination path'}:</label>
+            <label className={`text-xs ${theme.mutedText}`}>{t('utils.destinationPath') || 'Destination path'}:</label>
             <input
               type="text"
               value={destPath}
               onChange={(e) => setDestPath(e.target.value)}
-              placeholder={t('destinationPathPlaceholder') || 'e.g. C:\\Backups\\ or /home/user/Backups'}
+              placeholder={t('utils.destinationPathPlaceholder') || 'e.g. C:\\Backups\\ or /home/user/Backups'}
               className={`w-full flex-1 ${theme.input}`}
             />
             <button
@@ -973,41 +973,41 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               disabled={!latestBackup || opLoading?.startsWith('save:')}
               className={`${theme.secondaryButton} disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              {t('saveLatest') || 'Save Latest'}
+              {t('utils.saveLatest') || 'Save Latest'}
             </button>
             <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
-              {t('downloadAllAsZip') || 'Download All as ZIP'}
+              {t('utils.downloadAllAsZip') || 'Download All as ZIP'}
             </button>
             <button type="button" onClick={saveZipToPath} className={theme.secondaryButton}>
-              {t('saveZipToPath') || 'Save ZIP to Path'}
+              {t('utils.saveZipToPath') || 'Save ZIP to Path'}
             </button>
           </div>
 
           <div className="mb-2 flex items-center gap-2">
             <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
-              {backupsLoading ? (t('loading') as string) : (t('viewBackups') || 'View Backups')}
+              {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
             </button>
             <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
-              {t('downloadSelectedAsZip') || 'Download Selected as ZIP'}
+              {t('utils.downloadSelectedAsZip') || 'Download Selected as ZIP'}
             </button>
             <button type="button" onClick={saveSelectedZipToPath} className={theme.secondaryButton}>
-              {t('saveSelectedZipToPath') || 'Save Selected ZIP to Path'}
+              {t('utils.saveSelectedZipToPath') || 'Save Selected ZIP to Path'}
             </button>
             <button
               type="button"
               onClick={deleteSelectedBackups}
               className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50`}
             >
-              {t('deleteSelected') || 'Delete Selected'}
+              {t('utils.deleteSelected') || 'Delete Selected'}
             </button>
           </div>
 
           {Array.isArray(backups) ? (
             backups.length === 0 ? (
-              <div className={`text-xs ${theme.mutedText}`}>{t('noBackupsFound') || 'No backups found'}</div>
+              <div className={`text-xs ${theme.mutedText}`}>{t('utils.noBackupsFound') || 'No backups found'}</div>
             ) : (
               <div className="space-y-2">
-                <div className={`text-xs ${theme.mutedText}`}>{t('availableBackups') || 'Available Backups'}:</div>
+                <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
                 {backups.map((b) => (
                   <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
                     <div className="flex items-center gap-2">
@@ -1020,13 +1020,13 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                       <div>
                         <div className={`text-sm ${theme.text}`}>{b.filename}</div>
                         <div className={`text-xs ${theme.mutedText}`}>
-                          {t('created')}: {new Date(b.created).toLocaleString()} • {(b.size / 1024).toFixed(2)} KB
+                          {t('utils.created')}: {new Date(b.created).toLocaleString()} • {(b.size / 1024).toFixed(2)} KB
                         </div>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <button type="button" onClick={() => void downloadBackup(b.filename)} className={theme.secondaryButton}>
-                        {t('download') || 'Download'}
+                        {t('utils.download') || 'Download'}
                       </button>
                       <button
                         type="button"
@@ -1034,7 +1034,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                         disabled={opLoading === `save:${b.filename}`}
                         className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
                       >
-                        {t('saveToPath') || 'Save to Path'}
+                        {t('utils.saveToPath') || 'Save to Path'}
                       </button>
                     </div>
                   </div>
@@ -1042,7 +1042,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               </div>
             )
           ) : (
-            <div className={`text-xs ${theme.mutedText}`}>{t('clickViewBackups') || 'Click "View Backups" to load list'}</div>
+            <div className={`text-xs ${theme.mutedText}`}>{t('utils.clickViewBackups') || 'Click "View Backups" to load list'}</div>
           )}
         </div>
       </div>

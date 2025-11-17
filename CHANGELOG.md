@@ -8,11 +8,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
-- **Control API restart diagnostics**: introduced `GET /control/api/restart`, returning structured guidance about `ENABLE_CONTROL_API`, Docker restrictions, and the expected POST contract. The auth guard now sends actionable hints (including current env state) whenever the Control API is disabled so operators immediately know how to enable it.
-- **System Health UI resilience**: the `ServerControl` card now parses backend `detail` payloads, displays the translated hints, and performs a follow-up helper request when a 404 lacks context. New locale strings (`restartEndpointDisabled`, `restartTokenRequired`) keep English and Greek copy in sync.
-- **Course fallback data loader**: `CourseGradeBreakdown` automatically fetches missing course metadata when only grades are cached, restoring course labels/codes without requiring a full page refresh. Tests cover the richer rendering behavior.
-
-### Changed
 
 - **Canonical Control API mounting**: the control router is now attached outside the `/api/v1` prefix so all operations live under `/control/api/*`. Documentation (README + `backend/CONTROL_API.md`), Vitest suites, and pytest cases were updated to reference the new canonical endpoints and to reiterate how to enable the restart button.
 - **Shared Control API base URL**: frontend utilities export `CONTROL_API_BASE`, replacing ad-hoc string concatenation throughout `ServerControl`, `ControlPanel`, `DevToolsPanel`, and API clients. Bulk backup/download/upload flows now consistently hit the same origin, and tests mock the shared constant.
