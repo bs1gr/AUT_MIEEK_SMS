@@ -574,6 +574,8 @@
                 <button class="btn btn-secondary" onclick="saveLatestToPath()" style="width:auto; margin-top:0;">⬇️ Save Latest</button>
                 <button class="btn btn-secondary" onclick="downloadAllZip()" style="width:auto; margin-top:0;">📦 Download All as ZIP</button>
                 <button class="btn btn-secondary" onclick="saveZipToPath()" style="width:auto; margin-top:0;">📦 Save ZIP to Path</button>
+                <button class="btn btn-secondary" onclick="downloadSelectedZip()" style="width:auto; margin-top:0;">📦 Download Selected as ZIP</button>
+                <button class="btn btn-secondary" onclick="saveSelectedZipToPath()" style="width:auto; margin-top:0;">📦 Save Selected ZIP to Path</button>
             </div>
             <div id="backupsList" style="margin-top: 15px;"></div>
         </div>
@@ -978,10 +980,13 @@
                 container.innerHTML = '<h3 style="margin-bottom: 10px;">Available Backups:</h3>' +
                     data.backups.map(backup => `
                         <div class="diagnostic-item ok" style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
-                            <div>
-                                <strong>${backup.filename}</strong>
-                                <span style="display:block;">Created: ${new Date(backup.created).toLocaleString()}</span>
-                                <span style="display:block;">Size: ${(backup.size / 1024).toFixed(2)} KB</span>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <input type="checkbox" onchange="toggleSelectBackup(this, '${backup.filename}')" />
+                                <div>
+                                    <strong>${backup.filename}</strong>
+                                    <span style="display:block;">Created: ${new Date(backup.created).toLocaleString()}</span>
+                                    <span style="display:block;">Size: ${(backup.size / 1024).toFixed(2)} KB</span>
+                                </div>
                             </div>
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <button class="btn btn-secondary" onclick="downloadBackup('${backup.filename}')" style="margin: 0; padding: 8px 16px; width: auto;">⬇️ Download</button>
@@ -1071,6 +1076,74 @@
                 }
             } catch (e) {
                 showAlert('Error saving backups ZIP: ' + (e?.message || e), 'error');
+            }
+        }
+
+        // Selected backups handling
+        const __selectedBackups = new Set();
+        function toggleSelectBackup(cb, filename) {
+            if (cb && cb.checked) {
+                __selectedBackups.add(filename);
+            } else {
+                __selectedBackups.delete(filename);
+            }
+        }
+
+        async function downloadSelectedZip() {
+            if (__selectedBackups.size === 0) {
+                showAlert('No backups selected.', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/v1/control/api/operations/database-backups/archive/selected.zip`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filenames: Array.from(__selectedBackups) })
+                });
+                if (!res.ok) {
+                    const txt = await res.text();
+                    showAlert('Failed to download selected ZIP: ' + txt, 'error');
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+                a.download = `sms_backups_selected_${ts}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+            } catch (e) {
+                showAlert('Error downloading selected ZIP: ' + (e?.message || e), 'error');
+            }
+        }
+
+        async function saveSelectedZipToPath() {
+            if (__selectedBackups.size === 0) {
+                showAlert('No backups selected.', 'warning');
+                return;
+            }
+            const pathInput = document.getElementById('backupPathInput');
+            const destination = (pathInput && pathInput.value || '').trim();
+            if (!destination) {
+                showAlert('Please enter a destination path first.', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/v1/control/api/operations/database-backups/archive/selected/save-to-path`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ destination, filenames: Array.from(__selectedBackups) })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showAlert(`Saved selected ZIP to: ${data.details.destination}`, 'success');
+                } else {
+                    showAlert(data.message || 'Failed to save selected backups ZIP', 'error');
+                }
+            } catch (e) {
+                showAlert('Error saving selected backups ZIP: ' + (e?.message || e), 'error');
             }
         }
 
