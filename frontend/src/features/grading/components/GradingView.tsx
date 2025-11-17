@@ -3,6 +3,7 @@ import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGra
 import apiClient, { gradesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
+import { eventBus, EVENTS } from '@/utils/events';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -210,6 +211,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         // optional fields not set: date_assigned, notes
       };
       await gradesAPI.create(payload);
+      // Emit event to notify other components that grades changed
+      eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
       await loadFinal();
       // refresh grade list
       try {

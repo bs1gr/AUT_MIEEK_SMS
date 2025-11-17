@@ -9,6 +9,7 @@ import { listContainerVariants } from '@/utils/animations';
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
 import StudentCard from './StudentCard';
 import type { StudentStats } from './studentTypes';
+import { eventBus, EVENTS } from '@/utils/events';
 
 const API_BASE_URL: string = (
   (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1'
@@ -81,6 +82,46 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     };
     fetchCourses();
   }, []);
+
+  // Listen for data changes and invalidate affected student's stats
+  useEffect(() => {
+    const invalidateStudentStats = ({ studentId }: { studentId: number }) => {
+      // Invalidate the stats for this student so it will be reloaded on next expand
+      if (statsById[studentId]) {
+        setStatsById((prev) => {
+          const updated = { ...prev };
+          delete updated[studentId];
+          return updated;
+        });
+        // If this student is currently expanded, reload their stats immediately
+        if (expandedId === studentId) {
+          loadStats(studentId);
+        }
+      }
+    };
+
+    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, invalidateStudentStats);
+    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, invalidateStudentStats);
+    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, invalidateStudentStats);
+    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, invalidateStudentStats);
+    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, invalidateStudentStats);
+    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, invalidateStudentStats);
+
+    return () => {
+      unsubscribeGradeAdded();
+      unsubscribeGradeUpdated();
+      unsubscribeGradeDeleted();
+      unsubscribeGradesBulk();
+      unsubscribeAttendanceAdded();
+      unsubscribeAttendanceBulk();
+      unsubscribeAttendanceUpdated();
+      unsubscribeAttendanceDeleted();
+      unsubscribeDailyPerformance();
+    };
+  }, [statsById, expandedId]);
 
   // notesById is derived via useMemo; no effect needed
 

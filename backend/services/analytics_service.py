@@ -299,6 +299,8 @@ class AnalyticsService:
                     "total_items": int(total_item_weight),
                 }
 
+        # Calculate final grade based on COMPLETED work only
+        # Normalize by total weight of categories with actual grades/data
         final_grade = 0.0
         total_weight_used = 0.0
         for rule in evaluation_rules:
@@ -307,6 +309,11 @@ class AnalyticsService:
             if category in category_scores and weight > 0:
                 final_grade += (category_scores[category] * weight) / 100
                 total_weight_used += weight
+
+        # Normalize to 100% scale based on completed work
+        # If only 40% of work is done, scale up to show current performance out of 100%
+        if total_weight_used > 0 and total_weight_used < 100:
+            final_grade = (final_grade / total_weight_used) * 100
 
         penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         unexcused_absences = 0

@@ -4,6 +4,7 @@ import { gradesAPI, coursesAPI, attendanceAPI, highlightsAPI, studentsAPI } from
 import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
+import { eventBus, EVENTS } from '@/utils/events';
 
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -29,6 +30,37 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (studentId) {
       loadStudentData();
     }
+  }, [studentId]);
+
+  // Listen for data changes and reload if it affects this student
+  useEffect(() => {
+    const handleDataChange = ({ studentId: updatedStudentId }: { studentId: number }) => {
+      if (updatedStudentId === studentId) {
+        loadStudentData();
+      }
+    };
+
+    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, handleDataChange);
+    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, handleDataChange);
+    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, handleDataChange);
+    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, handleDataChange);
+    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, handleDataChange);
+    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, handleDataChange);
+    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, handleDataChange);
+    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, handleDataChange);
+    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, handleDataChange);
+
+    return () => {
+      unsubscribeGradeAdded();
+      unsubscribeGradeUpdated();
+      unsubscribeGradeDeleted();
+      unsubscribeGradesBulk();
+      unsubscribeAttendanceAdded();
+      unsubscribeAttendanceBulk();
+      unsubscribeAttendanceUpdated();
+      unsubscribeAttendanceDeleted();
+      unsubscribeDailyPerformance();
+    };
   }, [studentId]);
 
   const loadStudentData = async () => {
