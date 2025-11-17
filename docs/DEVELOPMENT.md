@@ -25,10 +25,28 @@ python -m pip install -r backend/requirements-dev.txt
 
 ## Run tests
 
+### Backend tests
+
 ```pwsh
 cd backend
 python -m pytest -q
 ```
+
+### Frontend tests
+
+```pwsh
+cd frontend
+npm run test          # Watch mode (interactive)
+npm run test -- --run # One-time run (CI mode)
+```
+
+**Test coverage:** 28 test files with 468+ tests covering:
+
+- Modal components (Add/Edit for Students and Courses)
+- Custom hooks (modal state, data queries)
+- Query hooks with React Query integration
+- Form validation and user interactions
+- API client and utility functions
 
 ## Run pre-commit checks (formatters and hooks)
 
