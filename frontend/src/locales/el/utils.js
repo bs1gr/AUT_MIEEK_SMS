@@ -80,5 +80,24 @@ export default {
   shutdownSuccess: '✅ Ο τερματισμός του backend ξεκίνησε. Ο διακομιστής θα σταματήσει σε 2 δευτερόλεπτα.',
   shutdownError: '❌ Αποτυχία τερματισμού του backend',
   shutdownInitiated: '✅ Ο τερματισμός του backend ξεκίνησε (σύνδεση έκλεισε)',
-  error: 'Σφάλμα'
+  error: 'Σφάλμα',
+  // Διαχείριση αντιγράφων ασφαλείας
+  manageBackups: 'Διαχείριση Αντιγράφων Ασφαλείας',
+  destinationPath: 'Διαδρομή προορισμού',
+  destinationPathPlaceholder: 'π.χ. C:\\Backups\\ ή /home/user/Backups',
+  saveLatest: 'Αποθήκευση Τελευταίου',
+  downloadAllAsZip: 'Λήψη όλων ως ZIP',
+  saveZipToPath: 'Αποθήκευση ZIP στη Διαδρομή',
+  viewBackups: 'Προβολή Αντιγράφων',
+  availableBackups: 'Διαθέσιμα Αντίγραφα',
+  noBackupsFound: 'Δεν βρέθηκαν αντίγραφα',
+  clickViewBackups: 'Κάντε κλικ στο "Προβολή Αντιγράφων" για φόρτωση λίστας',
+  downloadSelectedAsZip: 'Λήψη Επιλεγμένων ως ZIP',
+  saveSelectedZipToPath: 'Αποθήκευση ZIP Επιλεγμένων στη Διαδρομή',
+  noBackupsSelected: 'Δεν επιλέχθηκαν αντίγραφα',
+  pleaseEnterDestinationPath: 'Παρακαλώ εισάγετε διαδρομή προορισμού',
+  savedTo: 'Αποθηκεύτηκε σε',
+  savedZipTo: 'Το ZIP αποθηκεύτηκε σε',
+  download: 'Λήψη',
+  saveToPath: 'Αποθήκευση στη Διαδρομή'
 };

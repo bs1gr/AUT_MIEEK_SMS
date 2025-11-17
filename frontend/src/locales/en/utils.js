@@ -80,5 +80,24 @@ export default {
   shutdownSuccess: '✅ Backend shutdown initiated. Server will stop in 2 seconds.',
   shutdownError: '❌ Failed to shutdown backend',
   shutdownInitiated: '✅ Backend shutdown initiated (connection closed)',
-  error: 'Error'
+    error: 'Error',
+    // Backups management
+    manageBackups: 'Manage Backups',
+    destinationPath: 'Destination path',
+    destinationPathPlaceholder: 'e.g. C:\\Backups\\ or /home/user/Backups',
+    saveLatest: 'Save Latest',
+    downloadAllAsZip: 'Download All as ZIP',
+    saveZipToPath: 'Save ZIP to Path',
+    viewBackups: 'View Backups',
+    availableBackups: 'Available Backups',
+    noBackupsFound: 'No backups found',
+    clickViewBackups: 'Click "View Backups" to load list',
+    downloadSelectedAsZip: 'Download Selected as ZIP',
+    saveSelectedZipToPath: 'Save Selected ZIP to Path',
+    noBackupsSelected: 'No backups selected',
+    pleaseEnterDestinationPath: 'Please enter a destination path',
+    savedTo: 'Saved to',
+    savedZipTo: 'Saved ZIP to',
+    download: 'Download',
+    saveToPath: 'Save to Path'
 };

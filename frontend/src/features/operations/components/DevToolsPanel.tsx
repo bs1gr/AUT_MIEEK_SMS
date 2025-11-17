@@ -128,6 +128,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   const [intervalMs, setIntervalMs] = useState(5000);
   const [lastChecked, setLastChecked] = useState<string | null>(null);
   const [result, setResult] = useState<OperationResult>(null);
+  // Backups management state
+  type BackupItem = { filename: string; path: string; size: number; created: string };
+  const [backups, setBackups] = useState<BackupItem[] | null>(null);
+  const [backupsLoading, setBackupsLoading] = useState(false);
+  const [destPath, setDestPath] = useState('');
+  const [selectedBackups, setSelectedBackups] = useState<Set<string>>(new Set());
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
   const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
@@ -304,6 +310,174 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     } finally {
       setOpLoading(null);
     }
+  };
+
+  const baseURL = (import.meta.env.VITE_API_URL as string) || '/api/v1';
+
+  const loadBackups = useCallback(async () => {
+    setBackupsLoading(true);
+    try {
+      const res = await fetch(`${baseURL}/control/api/operations/database-backups`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = (await res.json()) as { backups: BackupItem[] };
+      setBackups(Array.isArray(data?.backups) ? data.backups : []);
+      // Reset selection when reloading list
+      setSelectedBackups(new Set());
+    } catch (error) {
+      console.error('Failed to load backups', error);
+      onToast({ message: t('error'), type: 'error' });
+    } finally {
+      setBackupsLoading(false);
+    }
+  }, [baseURL, onToast, t]);
+
+  const latestBackup = useMemo(() => (Array.isArray(backups) && backups.length > 0 ? backups[0] : null), [backups]);
+
+  const downloadBackup = async (filename: string) => {
+    try {
+      const url = `${baseURL}/control/api/operations/database-backups/${encodeURIComponent(filename)}/download`;
+      window.open(url, '_blank');
+    } catch (e) {
+      onToast({ message: t('error'), type: 'error' });
+    }
+  };
+
+  const saveBackupToPath = async (filename: string, destination: string) => {
+    if (!destination.trim()) {
+      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      return;
+    }
+    setOpLoading(`save:${filename}`);
+    try {
+      const res = await fetch(
+        `${baseURL}/control/api/operations/database-backups/${encodeURIComponent(filename)}/save-to-path`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ destination }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
+      onToast({
+        message: `${t('savedTo') || 'Saved to'}: ${data?.details?.destination ?? destination}`,
+        type: 'success',
+      });
+    } catch (e: any) {
+      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } finally {
+      setOpLoading(null);
+    }
+  };
+
+  const saveLatestToPath = async () => {
+    if (!latestBackup) {
+      onToast({ message: t('noBackupsFound') ?? 'No backups found', type: 'error' });
+      return;
+    }
+    await saveBackupToPath(latestBackup.filename, destPath);
+  };
+
+  const downloadAllZip = () => {
+    try {
+      const url = `${baseURL}/control/api/operations/database-backups/archive.zip`;
+      window.open(url, '_blank');
+    } catch (e) {
+      onToast({ message: t('error'), type: 'error' });
+    }
+  };
+
+  const saveZipToPath = async () => {
+    if (!destPath.trim()) {
+      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      return;
+    }
+    setOpLoading('save-zip');
+    try {
+      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/save-to-path`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ destination: destPath }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
+      onToast({ message: `${t('savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
+    } catch (e: any) {
+      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } finally {
+      setOpLoading(null);
+    }
+  };
+
+  const downloadSelectedZip = async () => {
+    if (selectedBackups.size === 0) {
+      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      return;
+    }
+    try {
+      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/selected.zip`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ filenames: Array.from(selectedBackups) }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+      a.download = `sms_backups_selected_${ts}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.remove();
+      }, 0);
+    } catch (e: any) {
+      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    }
+  };
+
+  const saveSelectedZipToPath = async () => {
+    if (selectedBackups.size === 0) {
+      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      return;
+    }
+    if (!destPath.trim()) {
+      onToast({ message: t('pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
+      return;
+    }
+    setOpLoading('save-selected-zip');
+    try {
+      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/selected/save-to-path`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ destination: destPath, filenames: Array.from(selectedBackups) }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
+      onToast({ message: `${t('savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
+    } catch (e: any) {
+      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } finally {
+      setOpLoading(null);
+    }
+  };
+
+  const toggleSelected = (filename: string, checked: boolean) => {
+    setSelectedBackups((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(filename);
+      else next.delete(filename);
+      return next;
+    });
   };
 
   const handleRestore = async () => {
@@ -748,6 +922,89 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
             </button>
           </div>
           <p className={`mt-2 text-xs ${theme.mutedText}`}>{t('utils.selectJsonFiles')}</p>
+        </div>
+
+        <div className={`${theme.card} md:col-span-2`}>
+          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
+          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
+            <label className={`text-xs ${theme.mutedText}`}>{t('destinationPath') || 'Destination path'}:</label>
+            <input
+              type="text"
+              value={destPath}
+              onChange={(e) => setDestPath(e.target.value)}
+              placeholder={t('destinationPathPlaceholder') || 'e.g. C:\\Backups\\ or /home/user/Backups'}
+              className={`w-full flex-1 ${theme.input}`}
+            />
+            <button
+              type="button"
+              onClick={saveLatestToPath}
+              disabled={!latestBackup || opLoading?.startsWith('save:')}
+              className={`${theme.secondaryButton} disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {t('saveLatest') || 'Save Latest'}
+            </button>
+            <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
+              {t('downloadAllAsZip') || 'Download All as ZIP'}
+            </button>
+            <button type="button" onClick={saveZipToPath} className={theme.secondaryButton}>
+              {t('saveZipToPath') || 'Save ZIP to Path'}
+            </button>
+          </div>
+
+          <div className="mb-2 flex items-center gap-2">
+            <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
+              {backupsLoading ? (t('loading') as string) : (t('viewBackups') || 'View Backups')}
+            </button>
+            <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
+              {t('downloadSelectedAsZip') || 'Download Selected as ZIP'}
+            </button>
+            <button type="button" onClick={saveSelectedZipToPath} className={theme.secondaryButton}>
+              {t('saveSelectedZipToPath') || 'Save Selected ZIP to Path'}
+            </button>
+          </div>
+
+          {Array.isArray(backups) ? (
+            backups.length === 0 ? (
+              <div className={`text-xs ${theme.mutedText}`}>{t('noBackupsFound') || 'No backups found'}</div>
+            ) : (
+              <div className="space-y-2">
+                <div className={`text-xs ${theme.mutedText}`}>{t('availableBackups') || 'Available Backups'}:</div>
+                {backups.map((b) => (
+                  <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedBackups.has(b.filename)}
+                        onChange={(e) => toggleSelected(b.filename, e.target.checked)}
+                        aria-label={b.filename}
+                      />
+                      <div>
+                        <div className={`text-sm ${theme.text}`}>{b.filename}</div>
+                        <div className={`text-xs ${theme.mutedText}`}>
+                          {t('created')}: {new Date(b.created).toLocaleString()} • {(b.size / 1024).toFixed(2)} KB
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={() => void downloadBackup(b.filename)} className={theme.secondaryButton}>
+                        {t('download') || 'Download'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void saveBackupToPath(b.filename, destPath)}
+                        disabled={opLoading === `save:${b.filename}`}
+                        className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        {t('saveToPath') || 'Save to Path'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            <div className={`text-xs ${theme.mutedText}`}>{t('clickViewBackups') || 'Click "View Backups" to load list'}</div>
+          )}
         </div>
       </div>
 
