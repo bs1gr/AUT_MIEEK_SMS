@@ -228,12 +228,10 @@ try:
     # Ensure project root is on sys.path so absolute imports like 'backend.xxx' work
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
-    CONTROL_HTML = PROJECT_ROOT / "html_control_panel.html"
     # Optional SPA directory (built frontend)
     SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
     SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
 except Exception:
-    CONTROL_HTML = None
     SPA_DIST_DIR = None
     SPA_INDEX_FILE = None
 
@@ -848,17 +846,12 @@ except Exception as csrf_err:
     logger.warning("Failed to install CSRF protection: %s", csrf_err)
 
 # ============================================================================
-# CONTROL PANEL API ENDPOINTS
+# CONTROL PANEL API ENDPOINTS (Legacy)
+# Note: The legacy HTML control panel at GET /control has been archived.
+# Use the React Operations page at /operations for all control features.
 # ============================================================================
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
-
-
-@app.get("/control")
-def control_page():
-    if CONTROL_HTML and CONTROL_HTML.exists():
-        return FileResponse(str(CONTROL_HTML))
-    return JSONResponse({"error": "control panel HTML not found"}, status_code=404)
 
 
 @app.get("/control/api/status")

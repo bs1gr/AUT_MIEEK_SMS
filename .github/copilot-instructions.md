@@ -216,10 +216,11 @@ alembic downgrade -1           # Rollback
 
 ## Important Technical Details
 
-### Control Panel Limitation
-- Lives at `/control`, served from `html_control_panel.html`
+### Operations UI (Control Features)
+- React Operations page at `/operations` provides all control features
+- Manage Backups panel: list, download, save to path, ZIP (all/selected), delete selected
+- Control API endpoints: `/control/api/operations/*` (used by Operations UI)
 - **Can't stop Docker container from inside itself** - use `SMS.ps1 -Stop` on host
-- Control API: `/control/api/{status,start,stop,stop-all,stop-backend}`
 
 ### Grade Calculation
 - Weighted components: Each grade has `component_type` + `weight` (% of final)
