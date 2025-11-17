@@ -6,7 +6,51 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+No changes yet.
+
+## [1.6.4] - 2025-11-17
+
 ### Added
+
+- **Frontend Zod Schema Test Coverage**: Added comprehensive test suites for all form validation schemas:
+  - `student.schema.test.ts`: 48 tests covering all student fields (student_id, names, email, phone, address, dates) with regex validation, length limits, and type conversions
+  - `course.schema.test.ts`: 53 tests for course validation (course_code uppercase regex, credits/year transforms, semester, instructor, absence_penalty) with edge cases
+  - `grade.schema.test.ts`: 60 tests for grade validation including student_id/course_id transforms, component_type, grade/max_grade constraints with cross-field refinement, weight percentages, and optional date/notes fields
+  - `attendance.schema.test.ts`: 53 tests for attendance (status enum validation, bulk operations with attendance_records arrays) and update schemas
+  - All schemas test: required field validation, type conversions (string→number), length/range constraints, optional fields, empty string→undefined transforms, and updateSchema partial updates
+  - **Total: 214 new schema validation tests**
+  - **Full frontend test coverage now: 40 test files with 929+ passing tests**
+
+- **Frontend Utility Test Coverage**: Added comprehensive test suites for utility functions:
+  - `date.test.ts`: 42 tests covering `formatLocalDate` with Date/string inputs, timezone handling, and `inferWeekStartsOnMonday` with multilingual support
+  - `categoryLabels.test.ts`: 29 tests for `getLocalizedCategory` and `getCanonicalCategory` with Greek/English localization, normalization, and heuristic matching
+  - `errorMessage.test.ts`: 31 tests for `getErrorMessage` covering null/string/Error/object/array extraction, nested objects, and FastAPI validation structures
+  - `calendarUtils.test.ts`: 27 tests for ICS generation with recurrence rules, special character escaping, and `downloadICS` with DOM mocking
+  - All utility tests include edge cases, input validation, and error handling scenarios
+  - Total: 145 new utility tests (129 added, 16 already existed)
+  - **Full frontend test coverage now: 36 test files with 715+ passing tests**
+
+- **Frontend Context Test Coverage**: Added comprehensive tests for core React Contexts to ensure reliable app-wide state and UX behavior:
+  - `contexts/AuthContext.test.tsx`: Covers login/logout/refresh flows, access token synchronization with `authService`, user restoration from `/auth/me` when login response omits user, localStorage persistence and error resilience, and hook misuse detection (throws outside provider)
+  - `LanguageContext.test.tsx`: Uses real i18next integration (no stubs); verifies language switching between `en`/`el`, persistence via `i18nextLng`, fallback behavior for missing keys in `t()`, and correct hook misuse error messaging
+  - `ThemeContext.test.tsx`: Validates theme initialization from `theme` key, switching among `light`/`dark`/`relaxing`/`fancy`/`system`, DOM class updates with async handling, system preference listeners via `matchMedia`, persistence, and robust handling of storage quirks
+  - Tests align with actual implementation details (storage keys, async effects, exact error messages) to avoid brittle expectations
+  - **Total: 68 new context tests (3 files) — all passing**
+
+- **Zustand Store Test Coverage**: Added comprehensive test suites for all state management stores:
+  - `useCoursesStore.test.ts`: 35 tests covering CRUD operations, selection, loading/error states, and complex scenarios
+  - `useStudentsStore.test.ts`: 35 tests for student management with selection sync on updates/deletes
+  - `useGradesStore.test.ts`: 33 tests including bulk operations and filtering scenarios
+  - `useAttendanceStore.test.ts`: 30 tests covering bulk attendance operations and status transitions
+  - All stores tested for immutability, error clearing, and state consistency
+  - Total: 133 new store tests ensuring robust state management
+
+- **Frontend Test Coverage Expansion**: Added comprehensive test suites for query hooks and data management layers:
+  - `useCoursesQuery.test.ts`: 15 tests covering list fetching, filters (search/active/semester), single course queries, and mutations (create/update/delete) with proper React Query integration
+  - `useStudentsQuery.test.ts` & `.tsx`: 24 tests (dual implementations) for student queries, filters, error handling, and CRUD mutations
+  - All query hook tests mock API modules consistently to avoid runtime instance mismatches between TypeScript and JavaScript API definitions
+  - Tests disable React Query retries for deterministic state transitions and error handling validation
+  - Total frontend test coverage now: 32 test files with 601+ passing tests (133 store tests + 39 query hook tests + existing coverage)
 
 - **Service Layer Architecture**: Introduced dedicated service layer (`backend/services/`) to encapsulate business logic and improve code organization
   - `AnalyticsService`: Centralized analytics calculations with eager loading to prevent N+1 query problems
@@ -527,4 +571,5 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.3...HEAD
+[1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.4...HEAD
