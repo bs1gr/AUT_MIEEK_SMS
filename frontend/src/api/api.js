@@ -186,10 +186,14 @@ export const studentsAPI = {
 export const coursesAPI = {
   /**
    * Get all courses
+   * @param {number} skip - Number of records to skip (default: 0)
+   * @param {number} limit - Maximum records to return (default: 100, max: 1000)
    */
-  getAll: async () => {
+  getAll: async (skip = 0, limit = 100) => {
     try {
-      const response = await apiClient.get('/courses/');
+      const response = await apiClient.get('/courses/', {
+        params: { skip, limit }
+      });
       const data = response.data;
       // Normalize PaginatedResponse to array for UI callers
       if (data && Array.isArray(data.items)) return data.items;
