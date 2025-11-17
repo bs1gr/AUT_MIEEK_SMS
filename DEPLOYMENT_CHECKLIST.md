@@ -76,6 +76,40 @@ Notes and follow-ups
 
 Verified: ruff, mypy and pytest were run locally and returned no blocking errors; pytest: 15 passed, 0 failed.
 
+## Release readiness checklist (developers)
+
+Before tagging a release or shipping a new build, run through this lightweight readiness checklist. It complements the broader deployment steps above and keeps the focus on the core artifacts we publish.
+
+1. **Backend smoke tests** – validate the control endpoints that were recently touched.
+
+  ```powershell
+  cd d:/SMS/student-management-system
+  py -3 -m pytest backend/tests/test_control_endpoints.py backend/tests/test_control_environment.py backend/tests/test_database_upload.py
+  ```
+
+2. **Frontend localization/unit tests** – make sure language plumbing and UI helpers still behave.
+
+  ```powershell
+  cd d:/SMS/student-management-system/frontend
+  npm install
+  npm run -s test -- --run src/LanguageContext.test.tsx
+  ```
+
+3. **Build artifacts** – produce the optimized frontend bundle that ships with the full-stack image.
+
+  ```powershell
+  cd d:/SMS/student-management-system
+  npm --prefix frontend run build
+  ```
+
+4. **Documentation & changelog** – confirm `CHANGELOG.md` has an entry for the release and that any operator guidance (README, CONTROL_API.md, etc.) reflects new behavior.
+
+5. **Versioning & tagging** – update `VERSION` (and any package manifests, if applicable), then push the tag and create the GitHub release referencing the changelog entry.
+
+6. **Optional extended tests** – when time permits, run the full backend suite (`py -3 -m pytest`) and the complete frontend tests (`npm run test`) to catch regressions beyond the touched areas.
+
+Document completion of each step (or why it was skipped) in the release notes so future audits have an evidence trail.
+
 ## Deployment Checklist
 
 Use this checklist to ensure successful deployment to other Windows computers.
