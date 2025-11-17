@@ -272,6 +272,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     void runHealthCheck();
   }, [runHealthCheck]);
 
+  // Load existing backups on mount so users immediately see available backups
+  useEffect(() => {
+    void loadBackups();
+  }, [loadBackups]);
+
   useEffect(() => {
     if (!autoRefresh) return undefined;
     const intervalId = window.setInterval(() => {
@@ -302,6 +307,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await response.json();
       setResult(withTimestamp('backup', { data }));
       onToast({ message: data.message || t('utils.backupSuccess'), type: 'success' });
+      // Refresh backups list so the newly created backup appears immediately
+      try {
+        await loadBackups();
+      } catch {}
       void runHealthCheck(); // Refresh health
     } catch (error) {
       console.error('Backup failed', error);
