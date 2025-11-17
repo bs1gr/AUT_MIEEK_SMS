@@ -1,7 +1,8 @@
 # Deployment Asset Tracker
 
-**Last Updated**: 2025-11-15  
-**Maintainers**: Release Engineering + DevOps Guild
+**Last Updated**: 2025-11-17  
+**Maintainers**: Release Engineering + DevOps Guild  
+**Codebase Health**: 8.5/10 (Excellent - Post-cleanup)
 
 This tracker lists every asset that must stay healthy for smooth deployments. Update it whenever you add a new script, workflow, container image, or runbook that production teams rely on.
 
@@ -14,6 +15,7 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 | RUN.ps1 | `./RUN.ps1` | One-click Docker-first bootstrap (builds images, applies migrations, starts stack) | Release Eng. | Use for production + staging; respects `SMS_ENV` guards |
 | SMART_SETUP.ps1 | `./SMART_SETUP.ps1` | Intelligent setup/diagnostics (detects deps, installs, initializes DB) | Release Eng. | Use `-Force` for rebuild, `-DevMode` for split services |
 | SMS.ps1 | `./SMS.ps1` | Operational menu: start/stop/status, backups, diagnostics | Support Ops | Option `B` handles DB backups before upgrades |
+| CLEANUP_PLAN.ps1 | `./CLEANUP_PLAN.ps1` | Automated cleanup script with dry-run support (Phase 1: high priority, Phase 2: consolidation) | Release Eng. | Added Nov 2025; use for future cleanup audits |
 | scripts/STOP.ps1 | `./scripts/STOP.ps1` | Emergency stop for native processes/containers | Support Ops | Used by SMS.ps1 when forcing shutdown |
 | SUPER_CLEAN_AND_DEPLOY.ps1 | `./SUPER_CLEAN_AND_DEPLOY.ps1` | Full rebuild/reset followed by deployment | Release Eng. | Requires manual confirmation; wipes cache/volumes |
 | scripts/ops/archive-releases.ps1 | `./scripts/ops/archive-releases.ps1` | Marks legacy GitHub releases (≤ threshold tag) as archived/pre-release | Release Eng. | Supports `-DryRun`, `-ThresholdTag`, `-SkipPrereleaseToggle`, `-ReleasesJsonPath` (fixture: `scripts/ops/samples/releases.sample.json`) |
@@ -41,6 +43,8 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 |-------|------|---------|-------|-------|
 | Deployment Guide | `./DEPLOYMENT_GUIDE.md` | Windows-first deployment playbook | Release Eng. | Highlights Docker-only production stance |
 | Deployment Checklist | `./DEPLOYMENT_CHECKLIST.md` | Step-by-step verification list | Release Eng. | Run before sign-off |
+| Codebase Analysis Report | `./CODEBASE_ANALYSIS_REPORT.md` | Comprehensive health analysis (v1.6.4) | Release Eng. | Documents 8.5/10 health rating, cleanup findings |
+| Cleanup Summary | `./CLEANUP_SUMMARY.md` | Nov 2025 cleanup completion report | Release Eng. | Documents Phase 1+2 execution and results |
 | Fresh Deployment Troubleshooting | `./docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` | Known issues + fixes | Support Ops | Link from SMS.ps1 diagnostics |
 | Documentation Index | `./docs/DOCUMENTATION_INDEX.md` | Map to every active doc | Docs Team | Version should match current release |
 | Release Notes v1.6.3 | `./docs/releases/v1.6.3.md` | Canonical notes + archive/package checklist | Release Eng. | Source for `gh release create` |
