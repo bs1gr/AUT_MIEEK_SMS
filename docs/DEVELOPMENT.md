@@ -40,8 +40,12 @@ npm run test          # Watch mode (interactive)
 npm run test -- --run # One-time run (CI mode)
 ```
 
-**Test coverage:** 40 test files with 929+ tests covering:
+**Test coverage (updated 2025-11-17):** 43 test files with 1008 total tests
 
+- **React Contexts (Auth, Language, Theme): 68 tests**
+  - Auth: access_token requirement, /auth/me fallback, authService sync, persistence under `sms_user_v1`
+  - Language: real i18next integration, persistence key `i18nextLng`, switch and fallback behavior
+  - Theme: async DOM class application, system preference via `matchMedia`, persistence under `theme`, edge cases and listener cleanup
 - **Zod schema validation (214 tests)**: Student, course, grade, attendance schemas with field constraints, type conversions, and cross-field refinements
 - **Utility functions (145 tests)**: Date formatting, category localization, error handling, calendar ICS generation
 - **Zustand stores (133 tests)**: CRUD operations, state consistency, immutability
