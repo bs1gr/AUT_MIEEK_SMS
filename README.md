@@ -542,16 +542,36 @@ Menu provides:
 
 ### Control Panel (Optional)
 
-When the app is running, access the control panel at:
+Once the stack is running you have two management surfaces:
 
-<http://localhost:8080/control>
+- **System Health workspace** (`/power`): embeds the live status card (`ServerControl`) plus the React control panel. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
 
-- Start/stop frontend dev server
-- System status monitoring
-- Service management
+- Start/stop frontend dev server (native mode)
+- System status monitoring with uptime, auto-refresh and restart button
+- Service management, dependency installers, Docker helpers
 - Cleanup and maintenance operations
+
+#### Enabling the restart button
+
+1. Edit `backend/.env` (or the environment used by your process manager) and set:
+
+  ```bash
+  ENABLE_CONTROL_API=1
+  ADMIN_SHUTDOWN_TOKEN=<long-random-string>   # optional but recommended for remote calls
+  ALLOW_REMOTE_SHUTDOWN=1                     # optional: only when you must restart from another host
+  ```
+
+2. Restart the backend (`.\RUN.ps1 -Stop` followed by `.\RUN.ps1`).
+3. Open the System Health workspace (`/power`) and click **Restart**.
+
+Notes:
+
+- Inside Docker/full-stack mode the restart endpoint is disabled for safety. Use host scripts such as `SMS.ps1 -Restart` or stop/start the container instead.
+- Without `ADMIN_SHUTDOWN_TOKEN`, only loopback callers (same machine) can trigger the restart. When the token is set the frontend automatically sends it via the `X-ADMIN-TOKEN` header.
+- The helper endpoint `GET /control/api/restart` returns structured diagnostics if you need to troubleshoot the button or API access.
 
 ## Maintenance
 

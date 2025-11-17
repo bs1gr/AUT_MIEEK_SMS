@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminOpsAPI, getHealthStatus, importAPI } from '@/api/api';
+import { adminOpsAPI, getHealthStatus, importAPI, CONTROL_API_BASE } from '@/api/api';
 import { studentKeys } from '@/hooks/useStudentsQuery';
 import { courseKeys } from '@/hooks/useCoursesQuery';
 import { useStudentsStore, useCoursesStore } from '@/stores';
@@ -286,8 +286,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     setOpLoading('backup');
     try {
       // Use Control API endpoint
-      const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${baseURL}/control/api/operations/database-backup`, {
+      const response = await fetch(`${CONTROL_API_BASE}/operations/database-backup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -316,12 +315,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
-  const baseURL = (import.meta.env.VITE_API_URL as string) || '/api/v1';
-
   const loadBackups = useCallback(async () => {
     setBackupsLoading(true);
     try {
-      const res = await fetch(`${baseURL}/control/api/operations/database-backups`, {
+      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -336,7 +333,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     } finally {
       setBackupsLoading(false);
     }
-  }, [baseURL, onToast, t]);
+  }, [onToast, t]);
 
   // Load existing backups on mount so users immediately see available backups
   useEffect(() => {
@@ -347,7 +344,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const downloadBackup = async (filename: string) => {
     try {
-      const url = `${baseURL}/control/api/operations/database-backups/${encodeURIComponent(filename)}/download`;
+      const url = `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/download`;
       window.open(url, '_blank');
     } catch (e) {
       onToast({ message: t('error'), type: 'error' });
@@ -362,7 +359,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     setOpLoading(`save:${filename}`);
     try {
       const res = await fetch(
-        `${baseURL}/control/api/operations/database-backups/${encodeURIComponent(filename)}/save-to-path`,
+        `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/save-to-path`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -393,7 +390,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const downloadAllZip = () => {
     try {
-      const url = `${baseURL}/control/api/operations/database-backups/archive.zip`;
+      const url = `${CONTROL_API_BASE}/operations/database-backups/archive.zip`;
       window.open(url, '_blank');
     } catch (e) {
       onToast({ message: t('error'), type: 'error' });
@@ -407,7 +404,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
     setOpLoading('save-zip');
     try {
-      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/save-to-path`, {
+      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/save-to-path`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -429,7 +426,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       return;
     }
     try {
-      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/selected.zip`, {
+      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/selected.zip`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -464,7 +461,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
     setOpLoading('save-selected-zip');
     try {
-      const res = await fetch(`${baseURL}/control/api/operations/database-backups/archive/selected/save-to-path`, {
+      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/selected/save-to-path`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -487,7 +484,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
     setOpLoading('delete-selected');
     try {
-      const res = await fetch(`${baseURL}/control/api/operations/database-backups/delete-selected`, {
+      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/delete-selected`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -523,11 +520,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
     setOpLoading('restore');
     try {
-      const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
       const formData = new FormData();
       formData.append('file', restoreFile);
       
-      const response = await fetch(`${baseURL}/control/api/operations/database-upload`, {
+      const response = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -545,7 +541,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       }
       
       // Now restore from the uploaded backup
-      const restoreResponse = await fetch(`${baseURL}/control/api/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
+      const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

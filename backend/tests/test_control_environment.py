@@ -11,7 +11,7 @@ client = TestClient(app)
 
 
 def test_environment_basic_shape():
-    resp = client.get("/api/v1/control/api/environment")
+    resp = client.get("/control/api/environment")
     assert resp.status_code == 200
     data: Dict[str, Any] = resp.json()
 
@@ -31,7 +31,7 @@ def test_environment_basic_shape():
 
 
 def test_environment_includes_python_packages():
-    resp = client.get("/api/v1/control/api/environment?include_packages=true")
+    resp = client.get("/control/api/environment?include_packages=true")
     assert resp.status_code == 200
     data: Dict[str, Any] = resp.json()
 

@@ -1505,6 +1505,53 @@ def control_restart(request: Request, _auth=Depends(require_control_admin)):
     }
 
 
+@app.get("/control/api/restart")
+def control_restart_info():
+    """Informational helper for the restart endpoint.
+
+    Many users intuitively visit /control/api/restart with a GET (e.g. via a browser) and
+    encounter a 404 when the Control API is disabled (ENABLE_CONTROL_API not set) or a
+    method mismatch (only POST is implemented). This lightweight handler provides a
+    clear, actionable response instead of a bare 404.
+
+    Behaviour:
+    - If ENABLE_CONTROL_API is not 1: returns guidance to enable it.
+    - If running in Docker mode: explains why in-container restart is disabled.
+    - Otherwise: instructs to use POST /control/api/restart to schedule the restart.
+    """
+    enabled = os.environ.get("ENABLE_CONTROL_API", "0") == "1"
+    execution_mode = os.environ.get("SMS_EXECUTION_MODE", "native")
+
+    if not enabled:
+        return {
+            "success": False,
+            "message": "Control API disabled. Set ENABLE_CONTROL_API=1 (e.g. add to backend/.env) and restart the backend.",
+            "details": {
+                "env": {
+                    "ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")
+                },
+                "hint": "Add ENABLE_CONTROL_API=1 to backend/.env then restart (RUN.ps1 or uvicorn).",
+            },
+        }
+
+    if execution_mode.lower() == "docker":
+        return {
+            "success": False,
+            "message": "In-container restart disabled. Restart the Docker container via SMS.ps1 -Restart or SMART_SETUP.ps1 on the host.",
+            "details": {"execution_mode": execution_mode},
+        }
+
+    return {
+        "success": True,
+        "message": "Use POST /control/api/restart to schedule the backend restart.",
+        "details": {
+            "method": "POST",
+            "path": "/control/api/restart",
+            "example": "curl -X POST http://localhost:8000/control/api/restart",
+        },
+    }
+
+
 @limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/control/api/stop-backend")
 def control_stop_backend(request: Request, _auth=Depends(require_control_admin)):
@@ -1725,7 +1772,17 @@ def register_routers(app: FastAPI) -> None:
     _try_add("backend.routers.routers_imports", "Imports")
     _try_add("backend.routers.routers_highlights", "Highlights")
     _try_add("backend.routers.routers_adminops", "AdminOps")
-    _try_add("backend.routers.routers_control", "Control")
+
+    # Control router is mounted without the global /api/v1 prefix to keep
+    # canonical paths at /control/api/* (unify prefixes and avoid double
+    # nesting /api/v1/control/api). Include separately so other routers still
+    # live under /api/v1.
+    try:
+        control_mod = importlib.import_module("backend.routers.routers_control")
+        app.include_router(getattr(control_mod, "router"), tags=["Control"])  # no extra prefix
+        registered.append("Control")
+    except Exception as e:
+        errors.append(("backend.routers.routers_control", str(e)))
 
     if registered:
         logger.info(f"Registered routers: {', '.join(registered)}")

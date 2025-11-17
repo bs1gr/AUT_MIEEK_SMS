@@ -115,7 +115,7 @@ def test_install_frontend_deps_missing_package_json(monkeypatch):
 
     monkeypatch.setattr(Path, "exists", fake_exists)
 
-    resp = client.post("/api/v1/control/api/operations/install-frontend-deps")
+    resp = client.post("/control/api/operations/install-frontend-deps")
     assert resp.status_code == 404
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_PACKAGE_JSON_MISSING.value
@@ -125,7 +125,7 @@ def test_install_frontend_deps_missing_package_json(monkeypatch):
 def test_install_frontend_deps_npm_missing(monkeypatch):
     monkeypatch.setattr(control, "_check_npm_installed", lambda: (False, None))
 
-    resp = client.post("/api/v1/control/api/operations/install-frontend-deps")
+    resp = client.post("/control/api/operations/install-frontend-deps")
     assert resp.status_code == 400
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_NPM_NOT_FOUND.value
@@ -143,7 +143,7 @@ def test_install_backend_deps_missing_requirements(monkeypatch):
 
     monkeypatch.setattr(Path, "exists", fake_exists)
 
-    resp = client.post("/api/v1/control/api/operations/install-backend-deps")
+    resp = client.post("/control/api/operations/install-backend-deps")
     assert resp.status_code == 404
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_REQUIREMENTS_MISSING.value
@@ -153,7 +153,7 @@ def test_install_backend_deps_missing_requirements(monkeypatch):
 def test_docker_build_when_docker_not_running(monkeypatch):
     monkeypatch.setattr(control, "_check_docker_running", lambda: False)
 
-    resp = client.post("/api/v1/control/api/operations/docker-build")
+    resp = client.post("/control/api/operations/docker-build")
     assert resp.status_code == 400
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
@@ -162,7 +162,7 @@ def test_docker_build_when_docker_not_running(monkeypatch):
 def test_docker_update_volume_when_docker_not_running(monkeypatch):
     monkeypatch.setattr(control, "_check_docker_running", lambda: False)
 
-    resp = client.post("/api/v1/control/api/operations/docker-update-volume")
+    resp = client.post("/control/api/operations/docker-update-volume")
     assert resp.status_code == 400
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
@@ -177,7 +177,7 @@ def test_download_database_backup_success(tmp_path):
     backup_path.write_bytes(b"fake-backup")
 
     try:
-        resp = client.get(f"/api/v1/control/api/operations/database-backups/{filename}/download")
+        resp = client.get(f"/control/api/operations/database-backups/{filename}/download")
         assert resp.status_code == 200
         assert resp.content == b"fake-backup"
         assert resp.headers["content-type"] == "application/octet-stream"
@@ -188,7 +188,7 @@ def test_download_database_backup_success(tmp_path):
 
 def test_download_database_backup_not_found():
     missing = f"missing_backup_{uuid.uuid4().hex}.db"
-    resp = client.get(f"/api/v1/control/api/operations/database-backups/{missing}/download")
+    resp = client.get(f"/control/api/operations/database-backups/{missing}/download")
     assert resp.status_code == 404
     detail = resp.json()["detail"]
     assert detail["error_id"] == ErrorCode.CONTROL_BACKUP_NOT_FOUND.value
@@ -200,7 +200,7 @@ def test_download_database_backup_rejects_traversal():
     scope = {
         "type": "http",
         "method": "GET",
-        "path": "/api/v1/control/api/operations/database-backups/hack/download",
+        "path": "/control/api/operations/database-backups/hack/download",
         "headers": [],
         "query_string": b"",
         "client": ("testclient", 1234),

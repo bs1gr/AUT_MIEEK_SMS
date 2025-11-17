@@ -20,6 +20,28 @@ if (!import.meta.env.VITE_API_URL) {
   console.warn('VITE_API_URL is not defined. Using default relative URL: /api/v1');
 }
 
+// Canonical Control API base (backend mounts control router without /api/v1 prefix)
+// Derive robustly from API_BASE_URL by removing a trailing /api/v1, preserving any custom path prefix
+// Examples:
+//  - 'http://localhost:8000/api/v1'  => 'http://localhost:8000/control/api'
+//  - '/api/v1'                       => '/control/api'
+//  - 'https://host/app/api/v1'       => 'https://host/app/control/api'
+//  - 'https://host'                  => 'https://host/control/api'
+export const CONTROL_API_BASE = (() => {
+  try {
+    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    if (!root || root.startsWith('/')) {
+      const prefix = root.replace(/\/$/, '');
+      // ensure single leading slash
+      const base = `${prefix || ''}/control/api`;
+      return base.replace(/\/\/+/, '/');
+    }
+    return `${root}/control/api`;
+  } catch {
+    return '/control/api';
+  }
+})();
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

@@ -88,8 +88,8 @@ describe('CourseGradeBreakdown', () => {
 
     it('displays all courses with grades', () => {
       renderComponent();
-      expect(screen.getByText('Introduction to Computer Science')).toBeInTheDocument();
-      expect(screen.getByText('Calculus I')).toBeInTheDocument();
+      expect(screen.getByText(/CS101 — Introduction to Computer Science/)).toBeInTheDocument();
+      expect(screen.getByText(/MATH201 — Calculus I/)).toBeInTheDocument();
     });
 
     it('shows course codes', () => {
@@ -349,7 +349,7 @@ describe('CourseGradeBreakdown', () => {
   describe('Memoization', () => {
     it('does not re-render when unrelated props change', () => {
       const { rerender } = renderComponent();
-      const firstRender = screen.getByText('Introduction to Computer Science');
+      const firstRender = screen.getByText(/Introduction to Computer Science/);
 
       // Same gradesList and coursesMap, different function reference
       rerender(
@@ -361,7 +361,7 @@ describe('CourseGradeBreakdown', () => {
         </LanguageProvider>
       );
 
-      const secondRender = screen.getByText('Introduction to Computer Science');
+      const secondRender = screen.getByText(/Introduction to Computer Science/);
       expect(firstRender).toBe(secondRender); // Memoization preserves DOM node
     });
   });
@@ -401,8 +401,8 @@ describe('CourseGradeBreakdown', () => {
       const coursesMap = new Map(manyCourses.map(c => [c.id, c]));
       renderComponent({ gradesList: manyGrades, coursesMap });
 
-      expect(screen.getByText('Course 1')).toBeInTheDocument();
-      expect(screen.getByText('Course 5')).toBeInTheDocument();
+      expect(screen.getByText('COURSE1 — Course 1')).toBeInTheDocument();
+      expect(screen.getByText('COURSE5 — Course 5')).toBeInTheDocument();
     });
   });
 });
