@@ -8,6 +8,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+- **Frontend Zod Schema Test Coverage**: Added comprehensive test suites for all form validation schemas:
+  - `student.schema.test.ts`: 48 tests covering all student fields (student_id, names, email, phone, address, dates) with regex validation, length limits, and type conversions
+  - `course.schema.test.ts`: 53 tests for course validation (course_code uppercase regex, credits/year transforms, semester, instructor, absence_penalty) with edge cases
+  - `grade.schema.test.ts`: 60 tests for grade validation including student_id/course_id transforms, component_type, grade/max_grade constraints with cross-field refinement, weight percentages, and optional date/notes fields
+  - `attendance.schema.test.ts`: 53 tests for attendance (status enum validation, bulk operations with attendance_records arrays) and update schemas
+  - All schemas test: required field validation, type conversions (string→number), length/range constraints, optional fields, empty string→undefined transforms, and updateSchema partial updates
+  - **Total: 214 new schema validation tests**
+  - **Full frontend test coverage now: 40 test files with 929+ passing tests**
+
 - **Frontend Utility Test Coverage**: Added comprehensive test suites for utility functions:
   - `date.test.ts`: 42 tests covering `formatLocalDate` with Date/string inputs, timezone handling, and `inferWeekStartsOnMonday` with multilingual support
   - `categoryLabels.test.ts`: 29 tests for `getLocalizedCategory` and `getCanonicalCategory` with Greek/English localization, normalization, and heuristic matching

@@ -40,8 +40,9 @@ npm run test          # Watch mode (interactive)
 npm run test -- --run # One-time run (CI mode)
 ```
 
-**Test coverage:** 36 test files with 715+ tests covering:
+**Test coverage:** 40 test files with 929+ tests covering:
 
+- **Zod schema validation (214 tests)**: Student, course, grade, attendance schemas with field constraints, type conversions, and cross-field refinements
 - **Utility functions (145 tests)**: Date formatting, category localization, error handling, calendar ICS generation
 - **Zustand stores (133 tests)**: CRUD operations, state consistency, immutability
 - **Query hooks with React Query integration (39 tests)**: Data fetching, mutations, optimistic updates
