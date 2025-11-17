@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-01-18
-**Version**: 1.7.0
+**Last Updated**: 2025-11-17
+**Version**: 1.6.5
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -78,7 +78,8 @@ Documentation is organized into three main directories:
 
 ### Release Automation
 
-- **[docs/releases/v1.6.3.md](releases/v1.6.3.md)** - Canonical release notes plus archive/cleanup checklist
+- **[docs/releases/v1.6.5.md](releases/v1.6.5.md)** - Canonical release notes for the Control API realignment and restart UX polish
+- **[docs/releases/v1.6.3.md](releases/v1.6.3.md)** - Previous release notes covering the archive/cleanup checklist
 - **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to v1.6.2 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
