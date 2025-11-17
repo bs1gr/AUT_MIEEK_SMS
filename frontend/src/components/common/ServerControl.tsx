@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import { getHealthStatus } from '../../api/api';
+import { getHealthStatus, CONTROL_API_BASE } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Base URL without /api/v1 for direct server endpoints
@@ -25,6 +25,8 @@ const FALLBACK_PORT = typeof window !== 'undefined' ? window.location.port || ''
 
 const BACKEND_PROTOCOL = resolvedBackendUrl.protocol || FALLBACK_PROTOCOL || 'http:';
 const BACKEND_PORT = resolvedBackendUrl.port || FALLBACK_PORT || (BACKEND_PROTOCOL === 'https:' ? '443' : '80');
+
+const CONTROL_RESTART_ENDPOINT = `${CONTROL_API_BASE.replace(/\/$/, '')}/restart`;
 
 const FRONTEND_PROTOCOL = FALLBACK_PROTOCOL || 'http:';
 const FRONTEND_PORT = FALLBACK_PORT || (FRONTEND_PROTOCOL === 'https:' ? '443' : '80');
@@ -198,7 +200,7 @@ const ServerControl: React.FC = () => {
     setIsRestarting(true);
 
     try {
-      const restartResponse = await fetch(`${API_BASE_URL}/control/api/restart`, {
+      const restartResponse = await fetch(CONTROL_RESTART_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,8 +210,41 @@ const ServerControl: React.FC = () => {
       });
 
       if (!restartResponse.ok) {
-        const payload = await restartResponse.json().catch(() => ({}));
-        const message = (payload?.message as string) || restartResponse.statusText || (t('controlPanel.restartFailed') || 'Restart failed');
+        const payload = await restartResponse.json().catch(() => ({} as Record<string, unknown>));
+        const detail = (payload?.detail ?? null) as Record<string, unknown> | string | null;
+        const detailMessage = typeof detail === 'string'
+          ? detail
+          : (typeof detail === 'object' && detail !== null ? (detail.message as string | undefined) : undefined);
+        const detailHint = typeof detail === 'object' && detail ? (detail.hint as string | undefined) : undefined;
+
+        let message =
+          (payload?.message as string) ||
+          detailMessage ||
+          restartResponse.statusText ||
+          (t('controlPanel.restartFailed') || 'Restart failed');
+
+        if (restartResponse.status === 404) {
+          message = detailMessage || detailHint || (t('controlPanel.restartEndpointDisabled') || 'Control API is disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart backend.');
+        } else if (restartResponse.status === 403) {
+          message = detailMessage || (t('controlPanel.restartTokenRequired') || 'Restart denied. Provide ADMIN_SHUTDOWN_TOKEN or connect via localhost.');
+        } else if (restartResponse.status === 400) {
+          message = detailMessage || (t('controlPanel.restartUnsupported') || message);
+        }
+
+        if (restartResponse.status === 404 && !detailMessage) {
+          try {
+            const helperResponse = await fetch(CONTROL_RESTART_ENDPOINT, { method: 'GET', credentials: 'include' });
+            if (helperResponse.ok) {
+              const helperPayload = await helperResponse.json().catch(() => ({} as Record<string, unknown>));
+              const helperMessage = (helperPayload?.message as string) || (helperPayload?.details as { hint?: string })?.hint;
+              if (helperMessage) {
+                message = helperMessage;
+              }
+            }
+          } catch (helperError) {
+            console.debug('Restart helper lookup failed', helperError);
+          }
+        }
         setStatus(prev => ({
           ...prev,
           error: message,
@@ -366,7 +401,7 @@ const ServerControl: React.FC = () => {
               }}
               disabled={isRestarting || status.backend !== 'online'}
               className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              title={status.backend !== 'online' ? t('restartDisabled') : t('controlPanel.restart')}
+              title={status.backend !== 'online' ? t('controlPanel.restartDisabled') : t('controlPanel.restart')}
             >
               <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
               <span>{t('controlPanel.restart')}</span>

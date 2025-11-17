@@ -12,7 +12,8 @@ vi.mock('../../contexts/AuthContext', () => ({
 }));
 // Mock API call
 vi.mock('../../api/api', () => ({
-  getHealthStatus: vi.fn(() => Promise.resolve({ status: 'ok' }))
+  getHealthStatus: vi.fn(() => Promise.resolve({ status: 'ok' })),
+  CONTROL_API_BASE: 'http://localhost/control/api'
 }));
 
 describe('ServerControl', () => {

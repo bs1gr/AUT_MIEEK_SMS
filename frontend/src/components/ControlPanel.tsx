@@ -117,7 +117,8 @@ interface OperationStatus {
  */
 
 const API_BASE = window.location.origin;
-const CONTROL_API = `${API_BASE}/api/v1/control/api`;
+// Canonical unified Control API base (backend mounts control router without /api/v1 prefix)
+const CONTROL_API = `${API_BASE}/control/api`;
 // Removed unused LEGACY_CONTROL_API constant
 
 interface ControlPanelProps {

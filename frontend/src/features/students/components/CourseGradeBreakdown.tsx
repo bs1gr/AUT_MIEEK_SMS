@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import type { Grade, Course } from '@/types';
 import { percentageToGreekScale, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
@@ -13,12 +13,71 @@ interface CourseGradeBreakdownProps {
  * Memoized CourseGradeBreakdown component
  * Displays grade breakdown by course with calculations memoized
  */
+const API_BASE_URL: string = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+
 const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
   gradesList,
   coursesMap,
   onNavigateToCourse,
 }) => {
   const { t } = useLanguage();
+  const [fallbackCourses, setFallbackCourses] = useState<Record<number, Course>>({});
+
+  useEffect(() => {
+    const uniqueCourseIds = Array.from(new Set(gradesList.map((grade) => grade.course_id)));
+    const missingCourseIds = uniqueCourseIds.filter((courseId) => !coursesMap.has(courseId) && !fallbackCourses[courseId]);
+
+    if (missingCourseIds.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+    const normalizedBase = API_BASE_URL.replace(/\/$/, '');
+
+    const fetchMissingCourses = async () => {
+      const fetchedEntries = await Promise.all(
+        missingCourseIds.map(async (courseId) => {
+          try {
+            const response = await fetch(`${normalizedBase}/courses/${courseId}`);
+            if (!response.ok) {
+              return null;
+            }
+            const course: Course = await response.json();
+            return { courseId, course };
+          } catch (error) {
+            console.warn('Failed to load course info', courseId, error);
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      setFallbackCourses((prev) => {
+        const next = { ...prev };
+        let changed = false;
+        for (const entry of fetchedEntries) {
+          if (entry && !next[entry.courseId]) {
+            next[entry.courseId] = entry.course;
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    };
+
+    fetchMissingCourses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gradesList, coursesMap, fallbackCourses]);
+
+  const resolveCourseInfo = (courseId: number): Course | undefined => {
+    return coursesMap.get(courseId) || fallbackCourses[courseId];
+  };
 
   // Memoize course grouping and calculations
   const courseBreakdown = useMemo(() => {
@@ -35,9 +94,11 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
     // Calculate statistics for each course
     return Object.entries(gradesByCourse).map(([courseIdStr, courseGrades]) => {
       const courseId = parseInt(courseIdStr);
-      const courseInfo = coursesMap.get(courseId);
-      const courseName = courseInfo?.course_name || `${t('course') || 'Course'} #${courseId}`;
+      const courseInfo = resolveCourseInfo(courseId);
       const courseCode = courseInfo?.course_code || '';
+      const courseName = courseInfo
+        ? [courseInfo.course_code, courseInfo.course_name].filter(Boolean).join(' — ')
+        : `${t('course') || 'Course'} #${courseId}`;
 
       // Calculate course average
       const percentages = courseGrades.map(g => (g.grade / g.max_grade) * 100);
@@ -67,7 +128,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         byCategory,
       };
     });
-  }, [gradesList, coursesMap, t]);
+  }, [gradesList, coursesMap, fallbackCourses, t]);
 
   // Translate category names
   const translateCategory = (category: string): string => {

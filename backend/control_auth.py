@@ -86,7 +86,15 @@ async def require_control_admin(request: Request) -> None:
     # Allow non-test runs only when control API enabled
     if not _control_enabled():
         logger.debug("Control API disabled via ENABLE_CONTROL_API")
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Not found")
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail={
+                "error": "control_api_disabled",
+                "message": "Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set.",
+                "hint": "Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1 and restart the backend service.",
+                "env": {"ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")},
+            },
+        )
 
     env_token = _get_env_token()
     header_token = request.headers.get("x-admin-token")
