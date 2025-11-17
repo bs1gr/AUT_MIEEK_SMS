@@ -34,7 +34,7 @@ No changes yet.
 - **Testing**: All 246 backend + 929 frontend tests passing, application status verified (healthy)
 - **Time Investment**: 75 minutes actual vs 5 hours estimated (94% efficiency improvement)
 
-### Added (Continued from v1.6.4 development)
+### Added (Frontend Test Coverage)
 
 - **Frontend Zod Schema Test Coverage**: Added comprehensive test suites for all form validation schemas:
   - `student.schema.test.ts`: 48 tests covering all student fields (student_id, names, email, phone, address, dates) with regex validation, length limits, and type conversions
@@ -595,4 +595,5 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.3...HEAD
+[1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.4...HEAD
