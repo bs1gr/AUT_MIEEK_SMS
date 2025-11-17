@@ -3,6 +3,7 @@ import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, TrendingUp, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import type { Course, Student } from '@/types';
+import { eventBus, EVENTS } from '@/utils/events';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
@@ -680,6 +681,25 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         });
       });
       await Promise.all([...attendancePromises, ...performancePromises]);
+      
+      // Emit events to notify other components that attendance/performance changed
+      // Extract unique student IDs from the records
+      const affectedStudentIds = new Set<number>();
+      Object.keys(attendanceRecords).forEach(key => {
+        const tokens = key.includes('|') ? key.split('|') : key.split('-');
+        const studentId = parseInt(tokens[0], 10);
+        if (studentId) affectedStudentIds.add(studentId);
+      });
+      Object.keys(dailyPerformance).forEach(key => {
+        const studentId = parseInt(key.split('-')[0], 10);
+        if (studentId) affectedStudentIds.add(studentId);
+      });
+      
+      affectedStudentIds.forEach(studentId => {
+        eventBus.emit(EVENTS.ATTENDANCE_BULK_ADDED, { studentId, courseId: selectedCourse });
+        eventBus.emit(EVENTS.DAILY_PERFORMANCE_ADDED, { studentId, courseId: selectedCourse });
+      });
+      
       await refreshAttendancePrefill();
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
