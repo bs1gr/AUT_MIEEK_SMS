@@ -423,6 +423,57 @@
             font-size: 0.85em;
             margin-top: 4px;
         }
+
+        /* Utility classes to avoid inline styles */
+        .btn-inline {
+            width: auto;
+            margin-top: 0;
+        }
+        .mt-15 { margin-top: 15px; }
+
+        /* Control Panel inline-style replacements */
+        .mode-indicator {
+            display: none;
+            margin: 15px 0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+        }
+        .flex-center-gap10 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .icon-lg { font-size: 1.5em; }
+        .text-blue-700 { color: #0369a1; }
+        .mode-note {
+            margin: 5px 0 0 0;
+            font-size: 0.9em;
+            color: #075985;
+        }
+        .code-pill {
+            background: #f0f9ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .btn.btn-success { background: #10b981; }
+        .btn.btn-success:hover { background: #059669; }
+        .controls-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .label-muted { font-size: 0.9em; color: #555; }
+        .input-path {
+            flex: 1;
+            min-width: 260px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -432,13 +483,13 @@
             <p class="header-subtitle">Real-time system monitoring and management</p>
 
             <!-- Mode Indicator Badge -->
-            <div id="modeIndicator" style="display: none; margin: 15px 0; padding: 12px 20px; border-radius: 8px; background: #e0f2fe; border-left: 4px solid #0284c7;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.5em;">🐳</span>
+            <div id="modeIndicator" class="mode-indicator">
+                <div class="flex-center-gap10">
+                    <span class="icon-lg">🐳</span>
                     <div>
-                        <strong style="color: #0369a1;">Running in Docker Mode</strong>
-                        <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #075985;">
-                            Showing Docker-compatible operations only. For full control, use <code style="background: #f0f9ff; padding: 2px 6px; border-radius: 4px;">SMS.ps1</code> or <code style="background: #f0f9ff; padding: 2px 6px; border-radius: 4px;">SMART_SETUP.ps1</code> on host machine.
+                        <strong class="text-blue-700">Running in Docker Mode</strong>
+                        <p class="mode-note">
+                            Showing Docker-compatible operations only. For full control, use <code class="code-pill">SMS.ps1</code> or <code class="code-pill">SMART_SETUP.ps1</code> on host machine.
                         </p>
                     </div>
                 </div>
@@ -527,7 +578,7 @@
             <!-- Quick Actions Card -->
             <div class="card">
                 <h2>⚡ Quick Actions</h2>
-                <button class="btn" style="background: #10b981;" onclick="window.open('/', '_blank')">🚀 Open Main Application</button>
+                <button class="btn btn-success" onclick="window.open('/', '_blank')">🚀 Open Main Application</button>
                 <button class="btn" onclick="startApplication()" data-mode="native">▶️ Start Application</button>
                 <button class="btn" onclick="restartApplication()" data-mode="native">🔄 Restart Application</button>
                 <button class="btn" onclick="installFrontendDeps()" data-mode="native">📦 Install Frontend Dependencies</button>
@@ -568,16 +619,16 @@
             <h2>💾 Database Management</h2>
             <button class="btn" onclick="backupDatabase()">💾 Create Backup</button>
             <button class="btn btn-secondary" onclick="loadBackups()">📋 View Backups</button>
-            <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <label for="backupPathInput" style="font-size:0.9em; color:#555;">Save to path:</label>
-                <input id="backupPathInput" type="text" placeholder="e.g. C:\\Backups\\ or /home/user/Backups" style="flex:1; min-width:260px; border:1px solid #e5e7eb; border-radius:6px; padding:10px;" />
-                <button class="btn btn-secondary" onclick="saveLatestToPath()" style="width:auto; margin-top:0;">⬇️ Save Latest</button>
-                <button class="btn btn-secondary" onclick="downloadAllZip()" style="width:auto; margin-top:0;">📦 Download All as ZIP</button>
-                <button class="btn btn-secondary" onclick="saveZipToPath()" style="width:auto; margin-top:0;">📦 Save ZIP to Path</button>
-                <button class="btn btn-secondary" onclick="downloadSelectedZip()" style="width:auto; margin-top:0;">📦 Download Selected as ZIP</button>
-                <button class="btn btn-secondary" onclick="saveSelectedZipToPath()" style="width:auto; margin-top:0;">📦 Save Selected ZIP to Path</button>
+            <div class="controls-row">
+                <label for="backupPathInput" class="label-muted">Save to path:</label>
+                <input id="backupPathInput" type="text" placeholder="e.g. C:\\Backups\\ or /home/user/Backups" class="input-path" />
+                <button class="btn btn-secondary btn-inline" onclick="saveLatestToPath()">⬇️ Save Latest</button>
+                <button class="btn btn-secondary btn-inline" onclick="downloadAllZip()">📦 Download All as ZIP</button>
+                <button class="btn btn-secondary btn-inline" onclick="saveZipToPath()">📦 Save ZIP to Path</button>
+                <button class="btn btn-secondary btn-inline" onclick="downloadSelectedZip()">📦 Download Selected as ZIP</button>
+                <button class="btn btn-secondary btn-inline" onclick="saveSelectedZipToPath()">📦 Save Selected ZIP to Path</button>
             </div>
-            <div id="backupsList" style="margin-top: 15px;"></div>
+            <div id="backupsList" class="mt-15"></div>
         </div>
 
         <!-- Troubleshooting Section -->
