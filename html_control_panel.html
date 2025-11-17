@@ -572,6 +572,8 @@
                 <label for="backupPathInput" style="font-size:0.9em; color:#555;">Save to path:</label>
                 <input id="backupPathInput" type="text" placeholder="e.g. C:\\Backups\\ or /home/user/Backups" style="flex:1; min-width:260px; border:1px solid #e5e7eb; border-radius:6px; padding:10px;" />
                 <button class="btn btn-secondary" onclick="saveLatestToPath()" style="width:auto; margin-top:0;">⬇️ Save Latest</button>
+                <button class="btn btn-secondary" onclick="downloadAllZip()" style="width:auto; margin-top:0;">📦 Download All as ZIP</button>
+                <button class="btn btn-secondary" onclick="saveZipToPath()" style="width:auto; margin-top:0;">📦 Save ZIP to Path</button>
             </div>
             <div id="backupsList" style="margin-top: 15px;"></div>
         </div>
@@ -1040,6 +1042,35 @@
                 await saveBackupToPath(latest.filename);
             } catch (e) {
                 showAlert('Error saving latest backup: ' + (e?.message || e), 'error');
+            }
+        }
+
+        function downloadAllZip() {
+            const url = `/api/v1/control/api/operations/database-backups/archive.zip`;
+            window.open(url, '_blank');
+        }
+
+        async function saveZipToPath() {
+            const pathInput = document.getElementById('backupPathInput');
+            const destination = (pathInput && pathInput.value || '').trim();
+            if (!destination) {
+                showAlert('Please enter a destination path first.', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/v1/control/api/operations/database-backups/archive/save-to-path`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ destination })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showAlert(`Saved ZIP to: ${data.details.destination}`, 'success');
+                } else {
+                    showAlert(data.message || 'Failed to save backups ZIP', 'error');
+                }
+            } catch (e) {
+                showAlert('Error saving backups ZIP: ' + (e?.message || e), 'error');
             }
         }
 
