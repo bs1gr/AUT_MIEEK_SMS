@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
-import { initializeErrorReporting } from './utils/errorReporting';
 import { AuthProvider } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/auth/RequireAuth';
 
@@ -22,8 +21,12 @@ const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const OperationsPage = lazy(() => import('./pages/OperationsPage'));
 const PowerPage = lazy(() => import('./pages/PowerPage'));
 
-// Initialize global error handlers
-initializeErrorReporting();
+// Initialize global error handlers without forcing the module into the main chunk
+void import('./utils/errorReporting')
+  .then(({ initializeErrorReporting }) => initializeErrorReporting())
+  .catch((error) => {
+    console.error('[error-reporting] Failed to initialize error reporting', error);
+  });
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
