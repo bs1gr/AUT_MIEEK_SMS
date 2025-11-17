@@ -437,7 +437,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+      const isoTimestamp = new Date().toISOString();
+      const ts = isoTimestamp.replaceAll('-', '').replaceAll(':', '').replace('T', '').slice(0, 15);
       a.download = `sms_backups_selected_${ts}.zip`;
       document.body.appendChild(a);
       a.click();
