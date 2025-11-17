@@ -246,6 +246,82 @@ class AnalyticsService:
         category_scores: Dict[str, float] = {}
         category_details: Dict[str, Any] = {}
 
+        def _normalize_category(name: Optional[str]) -> str:
+            """Normalize category names to improve matching between evaluation rules and recorded items.
+
+            Handles case-insensitive comparisons, common synonyms, and Greek equivalents.
+            """
+            if not name:
+                return ""
+            n = str(name).strip().lower()
+            # Remove common punctuation
+            for ch in [":", ";", ",", ".", "-", "_", "(", ")"]:
+                n = n.replace(ch, " ")
+            n = " ".join(n.split())  # collapse whitespace
+
+            # Synonyms map (both EN and EL)
+            synonyms = {
+                # Exams
+                "midterm exam": "midterm",
+                "midterm": "midterm",
+                "intermediate": "midterm",
+                "ενδιάμεση": "midterm",
+                "ενδιάμεση εξέταση": "midterm",
+                "ενδιάμεση εξεταση": "midterm",
+                "final exam": "final",
+                "final": "final",
+                "τελική": "final",
+                "τελική εξέταση": "final",
+                "τελικη": "final",
+                "τελικη εξεταση": "final",
+                # Coursework
+                "homework": "homework",
+                "assignment": "homework",
+                "assignments": "homework",
+                "εργασία": "homework",
+                "εργασια": "homework",
+                "άσκηση": "homework",
+                "ασκηση": "homework",
+                "project": "project",
+                "πρότζεκτ": "project",
+                "προτζεκτ": "project",
+                "lab": "lab",
+                "lab work": "lab",
+                "εργαστήριο": "lab",
+                "εργαστηριο": "lab",
+                "quiz": "quiz",
+                "κουίζ": "quiz",
+                "κουιζ": "quiz",
+                # Participation / attendance
+                "class participation": "participation",
+                "participation": "participation",
+                "συμμετοχή": "participation",
+                "συμμετοχη": "participation",
+                "attendance": "attendance",
+                "παρουσία": "attendance",
+                "παρουσια": "attendance",
+            }
+
+            # Direct map
+            if n in synonyms:
+                return synonyms[n]
+
+            # Heuristic contains-based mapping
+            contains_map = {
+                "midterm": ["midterm", "ενδιάμεση", "ενδιαμεση"],
+                "final": ["final", "τελική", "τελικη"],
+                "homework": ["homework", "assignment", "εργασ", "άσκη", "ασκη"],
+                "project": ["project", "πρότζεκ", "προτζεκ"],
+                "lab": ["lab", "εργαστηρ"],
+                "quiz": ["quiz", "κουιζ", "κουίζ", "τεστ"],
+                "participation": ["participation", "συμμετο"],
+                "attendance": ["attendance", "παρουσ"],
+            }
+            for key, needles in contains_map.items():
+                if any(needle in n for needle in needles):
+                    return key
+            return n
+
         for rule in evaluation_rules:
             category = rule.get("category")
             weight = float(rule.get("weight", 0))
@@ -258,8 +334,14 @@ class AnalyticsService:
             weighted_sum = 0.0
             total_item_weight = 0.0
 
-            category_lower = category.lower()
-            category_grades = [gr for gr in grades if gr.category == category]
+            category_lower = (category or "").lower()
+            # Match grades to this rule category using normalized names
+            rule_norm = _normalize_category(category)
+            category_grades = [
+                gr
+                for gr in grades
+                if _normalize_category(getattr(gr, "category", None)) == rule_norm
+            ]
 
             if category_lower in self.exam_categories and category_grades:
                 category_grades = sorted(
@@ -275,7 +357,9 @@ class AnalyticsService:
                     total_item_weight += 1.0
 
             if include_daily:
-                for perf in (p for p in daily_performance if p.category == category):
+                for perf in (
+                    p for p in daily_performance if _normalize_category(getattr(p, "category", None)) == rule_norm
+                ):
                     if getattr(perf, "max_score", 0):
                         daily_pct = (perf.score / perf.max_score) * 100
                         weighted_sum += daily_pct * daily_multiplier
