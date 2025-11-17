@@ -8,12 +8,20 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+- **Zustand Store Test Coverage**: Added comprehensive test suites for all state management stores:
+  - `useCoursesStore.test.ts`: 35 tests covering CRUD operations, selection, loading/error states, and complex scenarios
+  - `useStudentsStore.test.ts`: 35 tests for student management with selection sync on updates/deletes
+  - `useGradesStore.test.ts`: 33 tests including bulk operations and filtering scenarios
+  - `useAttendanceStore.test.ts`: 30 tests covering bulk attendance operations and status transitions
+  - All stores tested for immutability, error clearing, and state consistency
+  - Total: 133 new store tests ensuring robust state management
+
 - **Frontend Test Coverage Expansion**: Added comprehensive test suites for query hooks and data management layers:
   - `useCoursesQuery.test.ts`: 15 tests covering list fetching, filters (search/active/semester), single course queries, and mutations (create/update/delete) with proper React Query integration
   - `useStudentsQuery.test.ts` & `.tsx`: 24 tests (dual implementations) for student queries, filters, error handling, and CRUD mutations
   - All query hook tests mock API modules consistently to avoid runtime instance mismatches between TypeScript and JavaScript API definitions
   - Tests disable React Query retries for deterministic state transitions and error handling validation
-  - Total frontend test coverage now: 28 test files with 468+ passing tests
+  - Total frontend test coverage now: 32 test files with 601+ passing tests (133 store tests + 39 query hook tests + existing coverage)
 
 - **Service Layer Architecture**: Introduced dedicated service layer (`backend/services/`) to encapsulate business logic and improve code organization
   - `AnalyticsService`: Centralized analytics calculations with eager loading to prevent N+1 query problems

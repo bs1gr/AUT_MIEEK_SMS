@@ -40,11 +40,12 @@ npm run test          # Watch mode (interactive)
 npm run test -- --run # One-time run (CI mode)
 ```
 
-**Test coverage:** 28 test files with 468+ tests covering:
+**Test coverage:** 32 test files with 601+ tests covering:
 
+- Zustand stores (133 tests): CRUD operations, state consistency, immutability
 - Modal components (Add/Edit for Students and Courses)
 - Custom hooks (modal state, data queries)
-- Query hooks with React Query integration
+- Query hooks with React Query integration (39 tests)
 - Form validation and user interactions
 - API client and utility functions
 
