@@ -16,5 +16,27 @@ describe('apiClient request interceptor', () => {
 
   // Assert that the helper consulted the auth service
   expect(spy).toHaveBeenCalled();
+  expect(config.headers.Authorization).toBe('Bearer TOK123');
+  });
+
+  it('does nothing when no token present', () => {
+    authService.clearAccessToken();
+    const config: any = { headers: {} };
+    (apiModule as any).attachAuthHeader(config);
+    expect(config.headers.Authorization).toBeUndefined();
+  });
+
+  it('is resilient if headers missing or getter throws', () => {
+    const configNoHeaders: any = {};
+    expect(() => (apiModule as any).attachAuthHeader(configNoHeaders)).not.toThrow();
+
+    const spy = vi.spyOn(authService, 'getAccessToken').mockImplementation(() => {
+      throw new Error('boom');
+    });
+    const config: any = { headers: {} };
+    expect(() => (apiModule as any).attachAuthHeader(config)).not.toThrow();
+    // and does not set auth header
+    expect(config.headers.Authorization).toBeUndefined();
+    spy.mockRestore();
   });
 });
