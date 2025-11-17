@@ -849,6 +849,89 @@ async def download_database_backup(request: Request, backup_filename: str):
         ) from exc
 
 
+class BackupCopyRequest(BaseModel):
+    destination: str = Field(description="Destination path (directory or full file path) on the host machine")
+
+
+@router.post("/operations/database-backups/{backup_filename}/save-to-path", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
+    """Copy a database backup to a specified destination path on the host.
+
+    - If destination is a directory, the file will be copied into it retaining its filename.
+    - If destination looks like a file path (has an extension), the file will be copied exactly to that path.
+    """
+    try:
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+        source_path = (backup_dir / backup_filename).resolve()
+
+        # Validate source path
+        if backup_dir not in source_path.parents and source_path != backup_dir:
+            raise http_error(
+                400,
+                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+                "Invalid backup filename",
+                request,
+                context={"filename": backup_filename},
+            )
+        if not source_path.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+                "Backup file not found",
+                request,
+                context={"filename": backup_filename},
+            )
+
+        # Determine destination path
+        raw_dest = payload.destination.strip()
+        if not raw_dest:
+            raise http_error(
+                400,
+                ErrorCode.BAD_REQUEST,
+                "Destination path is required",
+                request,
+                context={},
+            )
+
+        dest_candidate = Path(raw_dest)
+        # If destination is an existing directory or has no suffix, treat as directory
+        if dest_candidate.exists() and dest_candidate.is_dir():
+            dest_path = dest_candidate / source_path.name
+        elif dest_candidate.suffix and len(dest_candidate.suffix) > 0:
+            # Has a file extension; treat as file path
+            dest_path = dest_candidate
+        else:
+            # Non-existing path without extension -> directory
+            dest_path = dest_candidate / source_path.name
+
+        # Create parent directory if needed
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+        shutil.copy2(source_path, dest_path)
+
+        return OperationResult(
+            success=True,
+            message="Backup copied successfully",
+            details={
+                "source": str(source_path),
+                "destination": str(dest_path),
+                "size": os.path.getsize(dest_path),
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to copy backup to destination",
+            request,
+            context={"error": str(exc), "filename": backup_filename, "destination": payload.destination},
+        ) from exc
+
+
 @router.post("/operations/database-restore", response_model=OperationResult)
 @_limiter.limit(_RATE_LIMIT_HEAVY)
 async def restore_database(request: Request, backup_filename: str):
