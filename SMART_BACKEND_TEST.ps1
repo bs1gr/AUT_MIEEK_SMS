@@ -126,8 +126,16 @@ if (-not (Test-Path $venvPython)) {
 }
 
 if (-not $SkipDependencyInstall) {
-    Invoke-LoggedCommand -Description "Upgrading pip/setuptools/wheel" -Command {
-        & $venvPython -m pip install --upgrade pip setuptools wheel
+    Invoke-LoggedCommand -Description "Checking pip/setuptools/wheel versions" -Command {
+        $pipCheck = & $venvPython -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json
+        $needsUpgrade = $pipCheck | Where-Object { $_.name -in @('pip', 'setuptools', 'wheel') }
+        
+        if ($needsUpgrade) {
+            Write-Host "Upgrading: $($needsUpgrade.name -join ', ')" -ForegroundColor Cyan
+            & $venvPython -m pip install --upgrade pip setuptools wheel --quiet
+        } else {
+            Write-Host "pip/setuptools/wheel are already up to date" -ForegroundColor Green
+        }
     }
 
     $requirementsFiles = @()

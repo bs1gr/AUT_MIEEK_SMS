@@ -9,7 +9,15 @@ if (Test-Path $venvActivate) {
     Write-Host "No backend venv found at backend/.venv. Please create one and activate, or run this from the venv." -ForegroundColor Yellow
 }
 
-python -m pip install --upgrade pip
+Write-Host "Checking pip version..." -ForegroundColor Cyan
+$pipCheck = python -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+if ($pipCheck) {
+    Write-Host "Upgrading pip..." -ForegroundColor Cyan
+    python -m pip install --upgrade pip --quiet
+} else {
+    Write-Host "pip is already up to date" -ForegroundColor Green
+}
+
 pip install pre-commit ruff isort
 
 pre-commit install

@@ -9,8 +9,11 @@
 ```powershell
 .\RUN.ps1                     # One-click Docker start (builds if needed)
 .\RUN.ps1 -Stop               # Stop fullstack container
-.\SMART_SETUP.ps1 -Force      # Force rebuild images (advanced)
-.\SMS.ps1 -Stop               # Stop everything via management menu
+.\RUN.ps1 -Update             # Update with automatic backup
+.\SMS.ps1                     # Management menu (status, diagnostics, backups)
+.\scripts\dev\run-native.ps1  # Native development mode
+.\SMART_SETUP.ps1 -Force      # Force rebuild (advanced only)
+.\SUPER_CLEAN_AND_DEPLOY.ps1  # Full cleanup + optional setup
 cd backend && pytest -q        # Run tests
 alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 ```
@@ -57,7 +60,11 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 **Entry points:**
 - Backend: `backend/main.py` (lifespan-managed, includes Control Panel at `/control`)
 - Frontend: `frontend/src/App.jsx` → `StudentManagementApp.jsx`
-- Scripts: `RUN.ps1` (one-click Docker), `SMART_SETUP.ps1` (advanced), `SMS.ps1` (management)
+- Scripts: 
+  - **Production:** `RUN.ps1` (one-click Docker)
+  - **Development:** `scripts\dev\run-native.ps1` (native mode)
+  - **Management:** `SMS.ps1` (interactive menu)
+  - **Advanced:** `SMART_SETUP.ps1`, `SUPER_CLEAN_AND_DEPLOY.ps1`, `SMART_BACKEND_TEST.ps1`
 
 ## Critical Patterns (Learn These First)
 

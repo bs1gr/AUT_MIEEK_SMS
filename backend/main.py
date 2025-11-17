@@ -1458,9 +1458,13 @@ def control_stop(request: Request, _auth=Depends(require_control_admin)):
 @limiter.limit(RATE_LIMIT_WRITE)
 @app.post("/control/api/restart")
 def control_restart(request: Request, _auth=Depends(require_control_admin)):
-    """Trigger an in-process backend restart (native mode only)."""
-
-    logger.info("Backend restart requested via control API")
+    """
+    DEPRECATED: This endpoint is shadowed by the routers_control.py router.
+    The actual endpoint being served is in backend/routers/routers_control.py
+    """
+    # Note: This code is unreachable due to router prefix collision
+    # Kept for reference only - actual implementation is in routers_control.py
+    logger.info("Backend restart requested via control API (DEPRECATED PATH)")
     try:
         client_ip = getattr(request.client, "host", "unknown")
         token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")

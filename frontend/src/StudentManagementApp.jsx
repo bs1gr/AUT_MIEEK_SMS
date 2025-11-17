@@ -68,7 +68,7 @@ const StudentManagementApp = () => {
     try {
       const [studentsData, coursesData] = await Promise.all([
         studentsAPI.getAll(),
-        coursesAPI.getAll(),
+        coursesAPI.getAll(0, 1000),  // Request up to 1000 courses
       ]);
       const arr = Array.isArray(studentsData) ? studentsData : [];
       setStudents(arr);

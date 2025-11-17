@@ -99,8 +99,14 @@ function Install-Backend {
   Push-Location (Join-Path $root 'backend')
   try {
     if ($Force) { Write-Log 'Force reinstall backend deps' 'WARN' }
-    Write-Log 'Installing backend dependencies (pip)...'
-    python -m pip install --disable-pip-version-check -q -U pip
+    Write-Log 'Checking pip version...'
+    $pipCheck = python -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+    if ($pipCheck) {
+      Write-Log "Upgrading pip from $($pipCheck.version) to $($pipCheck.latest_version)..."
+      python -m pip install --disable-pip-version-check -q -U pip
+    } else {
+      Write-Log 'pip is already up to date' 'INFO'
+    }
     python -m pip install --disable-pip-version-check -q -r requirements.txt
   } finally { Pop-Location }
 }

@@ -19,6 +19,8 @@ services:
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
       - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
+      # Enable Control API for operations panel
+      - ENABLE_CONTROL_API=1
     volumes:
       - sms_data:/data
       - ./templates:/app/templates:ro  # Mount templates directory for imports

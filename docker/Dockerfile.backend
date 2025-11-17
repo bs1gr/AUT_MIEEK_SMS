@@ -17,7 +17,8 @@ LABEL org.opencontainers.image.title="Student Management System - Backend" \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SMS_EXECUTION_MODE=docker
+    SMS_EXECUTION_MODE=docker \
+    ENABLE_CONTROL_API=1
 
 # Note: SMS_ENV is NOT set here to allow tests and deployments to control it
 # Production deployments should set SMS_ENV=production via docker-compose or runtime

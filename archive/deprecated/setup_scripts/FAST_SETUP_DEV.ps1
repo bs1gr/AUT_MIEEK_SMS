@@ -32,8 +32,16 @@ if (-not (Test-Path $venvActivate) -or $Force) {
 Write-Host "Activating virtual environment..."
 . "$venvActivate"
 
-Write-Host "Upgrading pip and installing development requirements..."
-python -m pip install --upgrade pip
+Write-Host "Checking pip version..."
+$pipCheck = python -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+if ($pipCheck) {
+    Write-Host "Upgrading pip from $($pipCheck.version) to $($pipCheck.latest_version)..." -ForegroundColor Cyan
+    python -m pip install --upgrade pip --quiet
+} else {
+    Write-Host "pip is already up to date" -ForegroundColor Green
+}
+
+Write-Host "Installing development requirements..."
 if (Test-Path "$PSScriptRoot\..\backend\requirements-dev.txt") {
     pip install -r "$PSScriptRoot\..\backend\requirements-dev.txt"
 } else {
