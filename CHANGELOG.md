@@ -6,6 +6,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+No changes yet.
+
+## [1.6.4] - 2025-11-17
+
 ### Added
 
 - **Frontend Zod Schema Test Coverage**: Added comprehensive test suites for all form validation schemas:
@@ -567,4 +571,5 @@ Unreleased changes will be added above as they land in main.
 [1.2.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.1
 [1.2.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.1.0
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.3...HEAD
+[1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.4...HEAD
