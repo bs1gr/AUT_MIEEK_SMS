@@ -62,7 +62,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   }, []);
   const [category, setCategory] = useState('Midterm');
   const [gradeValue, setGradeValue] = useState<number | ''>('');
-  const [maxGrade, setMaxGrade] = useState<number | ''>('');
+  const [maxGrade, setMaxGrade] = useState<number | ''>(100);
   const [weight, setWeight] = useState<number | ''>('');
   const [assignmentName, setAssignmentName] = useState('');
   const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
@@ -164,6 +164,36 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     loadGrades();
   }, [studentId, courseId]);
 
+  // Normalize category for comparison (EN/EL & common variants)
+  const normalizeCategory = (name?: string): 'midterm' | 'final' | 'other' => {
+    const n = (name || '').toString().trim().toLowerCase();
+    const midtermNeedles = ['midterm', 'midterm exam', 'ενδιάμεση', 'ενδιάμεση εξέταση', 'ενδιαμεση', 'ενδιαμεση εξεταση'];
+    const finalNeedles = ['final', 'final exam', 'τελική', 'τελική εξέταση', 'τελικη', 'τελικη εξεταση'];
+    if (midtermNeedles.some(x => n.includes(x))) return 'midterm';
+    if (finalNeedles.some(x => n.includes(x))) return 'final';
+    return 'other';
+  };
+
+  // Auto-fill assignment name and default max grade when choosing Midterm/Final
+  useEffect(() => {
+    const catNorm = normalizeCategory(category);
+    if (!studentId || !courseId) return;
+    if (catNorm === 'midterm' || catNorm === 'final') {
+      const attempts = grades.filter(g => normalizeCategory(g.category) === catNorm).length;
+      const baseTitle = catNorm === 'midterm' ? 'Midterm Exam' : 'Final Exam';
+      const suffix = attempts >= 1 ? 'B' : 'A';
+      // Only override if empty or if previously auto-generated for the same family
+      const current = (assignmentName || '').trim().toLowerCase();
+      const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
+      if (!assignmentName || isAutoPattern) {
+        setAssignmentName(`${baseTitle} ${suffix}`);
+      }
+      if (maxGrade === '' || Number(maxGrade) <= 0) {
+        setMaxGrade(100);
+      }
+    }
+  }, [category, grades, studentId, courseId]);
+
   const selectedCourse = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
   const evaluationRules: EvaluationRule[] = useMemo(() => Array.isArray(selectedCourse?.evaluation_rules) ? (selectedCourse!.evaluation_rules as EvaluationRule[]) : [], [selectedCourse]);
 
@@ -219,7 +249,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
         setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
       } catch {}
-      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(''); setWeight('');
+      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(100); setWeight('');
     } catch (e: unknown) {
       // Attempt to extract common API error formats
       const apiMsg = (e as any)?.response?.data?.detail || (e as any)?.response?.data || (e as any)?.message || 'Error';
