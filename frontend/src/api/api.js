@@ -426,7 +426,7 @@ export const analyticsAPI = {
     try {
       const [students, courses] = await Promise.all([
         studentsAPI.getAll(),
-        coursesAPI.getAll()
+        coursesAPI.getAll(0, 1000)  // Request up to 1000 courses for complete stats
       ]);
 
       // Calculate overall statistics

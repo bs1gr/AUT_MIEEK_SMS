@@ -24,7 +24,7 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
     queryFn: async () => {
       setLoading(true);
       try {
-        const response = await coursesAPI.getAll();
+        const response = await coursesAPI.getAll(0, 1000);  // Request up to 1000 courses
         // Accept both array and object-with-items
         let courses: Course[] = [];
         if (Array.isArray(response)) {

@@ -1,20 +1,24 @@
 <#
 DEPRECATED: scripts/SETUP.ps1
 
-This script has been superseded by SMART_SETUP.ps1 which handles:
-- First-time installation detection
-- Prerequisite checking (Python/Node.js/Docker)
-- Automatic dependency installation
-- Database initialization
-- Deployment mode selection
-- Build and run orchestration
+⚠️ This script is deprecated and will be removed in a future version.
 
-Please use:
-    .\RUN.ps1                    # One-click install & start (Docker)
-or:
-    .\SMART_SETUP.ps1 -PreferDocker -SkipStart   # Setup only (Docker)
+Use these instead:
+    .\RUN.ps1                           # Production (Docker) - ONE-CLICK RECOMMENDED
+    .\scripts\dev\run-native.ps1        # Development (Native mode with hot reload)
+    .\SMART_SETUP.ps1                   # Advanced setup with options
+    .\SMS.ps1                           # Management operations
 
-This wrapper will forward to SMART_SETUP for compatibility. For development/native workflows prefer `scripts/dev/run-native.ps1`.
+This wrapper forwards to SMART_SETUP.ps1 for backward compatibility only.
+
+DEPRECATED SCRIPTS ARCHIVED (Nov 17, 2025):
+- scripts/FAST_SETUP_DEV.ps1 → Use scripts/dev/run-native.ps1
+- scripts/SETUP_PRECOMMIT.ps1 → Manual: pip install pre-commit && pre-commit install
+- scripts/deploy/SMART_SETUP.ps1 → Use root SMART_SETUP.ps1 or RUN.ps1
+- scripts/internal/INSTALLER.ps1 → Use RUN.ps1
+- scripts/deploy/internal/INSTALLER.ps1 → Use RUN.ps1
+
+See: archive/deprecated/setup_scripts/README.md for migration guide
 #>
 
 param(

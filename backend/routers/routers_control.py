@@ -11,6 +11,8 @@ import socket
 import shutil
 import psutil
 import logging
+import threading
+import shlex
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import json
@@ -239,6 +241,64 @@ def _get_frontend_port() -> Optional[int]:
         if _is_port_open(port):
             return port
     return None
+
+
+def _infer_restart_command() -> Optional[List[str]]:
+    """Best-effort reconstruction of the launch command for process restart."""
+    env_cmd = os.environ.get("SMS_RESTART_COMMAND", "").strip()
+    if env_cmd:
+        try:
+            parsed = shlex.split(env_cmd)
+            if parsed:
+                return parsed
+        except ValueError as exc:
+            logger.warning("Invalid SMS_RESTART_COMMAND '%s': %s", env_cmd, exc)
+
+    argv = sys.argv[:] if sys.argv else []
+    if not argv:
+        logger.warning("Cannot infer restart command: sys.argv empty")
+        return None
+
+    entry = argv[0] or "uvicorn"
+    args = argv[1:]
+    entry_path = Path(entry)
+    lowered = entry_path.suffix.lower()
+
+    # Direct executable (python.exe / uvicorn.exe / etc)
+    if lowered in {".exe", ".bat", ".cmd"}:
+        resolved = entry
+        if not entry_path.is_absolute():
+            which = shutil.which(entry)
+            if which:
+                resolved = which
+        return [resolved, *args]
+
+    # Python script invocation (python backend/app.py)
+    if lowered in {".py", ".pyw"} or entry_path.exists():
+        run_target = entry_path
+        if not run_target.is_absolute():
+            run_target = (Path.cwd() / run_target).resolve()
+        return [sys.executable, str(run_target), *args]
+
+    # Default to module invocation (python -m <module> ...)
+    module_name = entry
+    return [sys.executable, "-m", module_name, *args]
+
+
+def _spawn_restart_thread(command: List[str], delay_seconds: float = 0.75) -> None:
+    """Spawn a background thread to re-exec the current process after a short delay."""
+    import time as _time
+    
+    def _restart_target():
+        try:
+            logger.info("Restarting backend with command: %s", command)
+            _time.sleep(delay_seconds)
+            os.execv(command[0], command)
+        except Exception as exc:
+            logger.error("Backend restart failed; forcing exit: %s", exc, exc_info=True)
+            os._exit(0)
+
+    threading.Thread(target=_restart_target, daemon=True).start()
 
 
 # ============================================================================
@@ -1840,3 +1900,60 @@ async def docker_update_volume(request: Request):
             request,
             context={"error": str(exc)},
         ) from exc
+
+
+@router.post("/restart", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def restart_backend(request: Request):
+    """
+    Trigger an in-process backend restart (native mode only).
+    
+    In Docker mode, returns an error message directing users to restart
+    containers from the host system using SMS.ps1 or SMART_SETUP.ps1.
+    
+    In native mode, schedules a delayed restart of the backend process.
+    """
+    logger.info("Backend restart requested via control API")
+    
+    # Audit logging
+    try:
+        client_ip = getattr(request.client, "host", "unknown")
+        token = request.headers.get("x-admin-token") or request.headers.get("X-ADMIN-TOKEN")
+        logger.info(
+            "restart_backend invoked by %s token_present=%s",
+            client_ip,
+            bool(token),
+        )
+    except Exception:
+        logger.debug("Failed to log audit metadata for restart request")
+    
+    # Check execution mode
+    if os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker":
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            "In-container restart is disabled. Run SMS.ps1 -Restart or SMART_SETUP.ps1 from the host.",
+            request,
+        )
+    
+    # Infer restart command
+    command = _infer_restart_command()
+    if not command:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unable to infer restart command for current process.",
+            request,
+        )
+    
+    # Spawn restart thread
+    _spawn_restart_thread(command)
+    
+    return OperationResult(
+        success=True,
+        message="Backend restart scheduled",
+        details={
+            "command": " ".join(command),
+            "timestamp": datetime.now().isoformat(),
+        },
+    )

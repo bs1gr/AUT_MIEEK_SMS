@@ -315,12 +315,23 @@ try {
     function Upgrade-VenvPip {
         param([string]$PythonExe)
 
-        Write-Host "Upgrading pip (virtual environment)..." -ForegroundColor Cyan
-        & $PythonExe -m pip install --upgrade pip
-        if ($LASTEXITCODE -ne 0) {
-            throw "pip upgrade failed (exit code $LASTEXITCODE)."
+        Write-Host "Checking pip version..." -ForegroundColor Cyan
+        $currentVersion = & $PythonExe -m pip --version 2>&1 | Select-String -Pattern 'pip ([0-9.]+)' | ForEach-Object { $_.Matches.Groups[1].Value }
+        
+        # Check if upgrade is available (quietly)
+        $upgradeCheck = & $PythonExe -m pip list --outdated --format=json 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+        
+        if ($upgradeCheck) {
+            Write-Host "Upgrading pip from $currentVersion to $($upgradeCheck.latest_version)..." -ForegroundColor Cyan
+            & $PythonExe -m pip install --upgrade pip --quiet
+            if ($LASTEXITCODE -ne 0) {
+                throw "pip upgrade failed (exit code $LASTEXITCODE)."
+            }
+            $script:setupActions += "Upgraded pip from $currentVersion to $($upgradeCheck.latest_version)"
+        } else {
+            Write-Host "pip $currentVersion is already up to date" -ForegroundColor Green
+            $script:setupActions += "pip $currentVersion already up to date (skipped upgrade)"
         }
-        $script:setupActions += "Upgraded pip inside backend virtual environment"
     }
 
     function Install-BackendDependencies {

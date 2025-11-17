@@ -130,10 +130,18 @@ function Install-NativeBackendDependencies {
       Write-Log 'Force reinstall of backend dependencies requested' 'WARN'
     }
 
-    Write-Log 'Installing backend dependencies (pip)...'
-    & $pythonCmd -m pip install --disable-pip-version-check --upgrade pip 2>&1 | ForEach-Object { Write-Log $_ }
-    if ($LASTEXITCODE -ne 0) {
-      throw 'Failed to upgrade pip for backend dependencies'
+    Write-Log 'Checking pip version...'
+    $pipCheck = & $pythonCmd -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+    
+    if ($pipCheck) {
+      Write-Log "Upgrading pip from $($pipCheck.version) to $($pipCheck.latest_version)..."
+      & $pythonCmd -m pip install --disable-pip-version-check --upgrade pip --quiet 2>&1 | ForEach-Object { Write-Log $_ }
+      if ($LASTEXITCODE -ne 0) {
+        throw 'Failed to upgrade pip for backend dependencies'
+      }
+    } else {
+      $currentPipVersion = & $pythonCmd -m pip --version 2>&1 | Select-String -Pattern 'pip ([0-9.]+)' | ForEach-Object { $_.Matches.Groups[1].Value }
+      Write-Log "pip $currentPipVersion is already up to date" 'INFO'
     }
 
     $installArgs = @('-m','pip','install','--disable-pip-version-check')

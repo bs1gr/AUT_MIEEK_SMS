@@ -418,7 +418,17 @@ function Initialize-Environment {
     if ($Mode -eq 'Docker') {
         Write-Info "Building Docker image (this may take several minutes)..."
 
-        if (Test-Path ".\scripts\SETUP.ps1") {
+        if (Test-Path ".\SMART_SETUP.ps1") {
+            & ".\SMART_SETUP.ps1" -SkipStart
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Docker setup completed successfully!"
+                return $true
+            } else {
+                Write-Error2 "Docker setup failed!"
+                return $false
+            }
+        } elseif (Test-Path ".\scripts\SETUP.ps1") {
             & ".\scripts\SETUP.ps1"
 
             if ($LASTEXITCODE -eq 0) {
@@ -428,6 +438,14 @@ function Initialize-Environment {
                 Write-Error2 "Docker setup failed!"
                 return $false
             }
+        } elseif (Test-Path ".\RUN.ps1") {
+            & ".\RUN.ps1" -Stop
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Docker stack prepared successfully!"
+                return $true
+            }
+            Write-Error2 "RUN.ps1 reported an error while preparing the stack"
+            return $false
         } else {
             Write-Error2 "Setup script not found!"
             return $false
@@ -438,7 +456,11 @@ function Initialize-Environment {
 
         Push-Location backend
         try {
-            python -m pip install --upgrade pip 2>&1 | Out-Null
+            $pipCheck = python -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
+            if ($pipCheck) {
+                Write-Info "Upgrading pip..."
+                python -m pip install --upgrade pip --quiet 2>&1 | Out-Null
+            }
             pip install -r requirements.txt
 
             if ($LASTEXITCODE -ne 0) {
@@ -683,7 +705,7 @@ function Start-Installation {
         Write-Success "Installation completed successfully!"
         Write-Host ""
         Write-Host "  To start the application, run:" -ForegroundColor Cyan
-        Write-Host "    .\RUN.ps1" -ForegroundColor Green
+    Write-Host "    .\RUN.ps1" -ForegroundColor Green
         Write-Host ""
     }
 

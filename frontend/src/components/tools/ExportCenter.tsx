@@ -67,7 +67,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     try {
       const [studentsData, coursesData] = await Promise.all([
         studentsAPI.getAll(),
-        coursesAPI.getAll()
+        coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
       ]);
       setStudents(Array.isArray(studentsData) ? studentsData : []);
       setCourses(Array.isArray(coursesData) ? coursesData : []);
