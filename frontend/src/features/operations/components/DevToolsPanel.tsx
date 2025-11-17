@@ -272,11 +272,6 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     void runHealthCheck();
   }, [runHealthCheck]);
 
-  // Load existing backups on mount so users immediately see available backups
-  useEffect(() => {
-    void loadBackups();
-  }, [loadBackups]);
-
   useEffect(() => {
     if (!autoRefresh) return undefined;
     const intervalId = window.setInterval(() => {
@@ -342,6 +337,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       setBackupsLoading(false);
     }
   }, [baseURL, onToast, t]);
+
+  // Load existing backups on mount so users immediately see available backups
+  useEffect(() => {
+    void loadBackups();
+  }, [loadBackups]);
 
   const latestBackup = useMemo(() => (Array.isArray(backups) && backups.length > 0 ? backups[0] : null), [backups]);
 
