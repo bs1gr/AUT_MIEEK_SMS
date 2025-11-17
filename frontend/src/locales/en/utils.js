@@ -99,5 +99,7 @@ export default {
     savedTo: 'Saved to',
     savedZipTo: 'Saved ZIP to',
     download: 'Download',
-    saveToPath: 'Save to Path'
+    saveToPath: 'Save to Path',
+    deleteSelected: 'Delete Selected',
+    deletedBackups: 'Deleted backups'
 };

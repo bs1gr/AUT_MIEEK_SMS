@@ -99,5 +99,7 @@ export default {
   savedTo: 'Αποθηκεύτηκε σε',
   savedZipTo: 'Το ZIP αποθηκεύτηκε σε',
   download: 'Λήψη',
-  saveToPath: 'Αποθήκευση στη Διαδρομή'
+  saveToPath: 'Αποθήκευση στη Διαδρομή',
+  deleteSelected: 'Διαγραφή Επιλεγμένων',
+  deletedBackups: 'Διαγράφηκαν αντίγραφα'
 };

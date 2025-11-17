@@ -982,8 +982,222 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
         ) from exc
 
 
+class ZipSelectedRequest(BaseModel):
+    filenames: List[str] = Field(description="List of backup .db filenames to include in the ZIP")
+
+
+@router.post("/operations/database-backups/archive/selected.zip")
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest):
+    """Create a zip archive of selected database backups and stream it."""
+    try:
+        import io
+        import zipfile
+
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+        if not backup_dir.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backups directory found",
+                request,
+                context={},
+            )
+
+        # Validate and collect files
+        selected: List[Path] = []
+        seen = set()
+        for name in payload.filenames or []:
+            if not isinstance(name, str) or not name.endswith('.db'):
+                continue
+            if name in seen:
+                continue
+            seen.add(name)
+            p = (backup_dir / name).resolve()
+            if (backup_dir not in p.parents) or (not p.exists()):
+                continue
+            selected.append(p)
+
+        if not selected:
+            raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No valid backup files selected", request)
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for f in selected:
+                zf.write(f, arcname=f.name)
+        buf.seek(0)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"sms_backups_selected_{timestamp}.zip"
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        return StreamingResponse(buf, media_type="application/zip", headers=headers)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to create selected backups ZIP",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+class ZipSelectedSaveRequest(ZipSelectedRequest):
+    destination: str = Field(description="Destination path (directory or full .zip path)")
+
+
+@router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest):
+    """Create a ZIP from selected backups and save to the specified destination path."""
+    try:
+        import io
+        import zipfile
+
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+        if not backup_dir.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backups directory found",
+                request,
+                context={},
+            )
+
+        # Validate selected files
+        selected: List[Path] = []
+        seen = set()
+        for name in payload.filenames or []:
+            if not isinstance(name, str) or not name.endswith('.db'):
+                continue
+            if name in seen:
+                continue
+            seen.add(name)
+            p = (backup_dir / name).resolve()
+            if (backup_dir not in p.parents) or (not p.exists()):
+                continue
+            selected.append(p)
+        if not selected:
+            raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No valid backup files selected", request)
+
+        # Build ZIP in memory
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for f in selected:
+                zf.write(f, arcname=f.name)
+        buf.seek(0)
+
+        raw_dest = (payload.destination or "").strip()
+        if not raw_dest:
+            raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
+
+        dest_candidate = Path(raw_dest)
+        if dest_candidate.exists() and dest_candidate.is_dir():
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
+        elif dest_candidate.suffix.lower() == ".zip":
+            dest_path = dest_candidate
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
+
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest_path, "wb") as out_f:
+            out_f.write(buf.read())
+
+        return OperationResult(
+            success=True,
+            message="Selected backups ZIP saved successfully",
+            details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to save selected backups ZIP",
+            request,
+            context={"error": str(exc), "destination": getattr(payload, 'destination', None)},
+        ) from exc
+
+
 class BackupCopyRequest(BaseModel):
     destination: str = Field(description="Destination path (directory or full file path) on the host machine")
+
+
+class DeleteSelectedRequest(BaseModel):
+    filenames: List[str] = Field(description="List of backup .db filenames to delete")
+
+
+@router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def delete_selected_backups(request: Request, payload: DeleteSelectedRequest):
+    """Delete selected database backup files from the backups directory.
+
+    Validates filenames against the backups directory and only deletes files that exist
+    and are within the allowed path. Returns counts and lists of deleted and not-found files.
+    """
+    try:
+        project_root = Path(__file__).parent.parent.parent
+        backup_dir = (project_root / "backups" / "database").resolve()
+
+        if not backup_dir.exists():
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_LIST_FAILED,
+                "No backups directory found",
+                request,
+                context={},
+            )
+
+        deleted: List[str] = []
+        not_found: List[str] = []
+        seen = set()
+        for name in payload.filenames or []:
+            if not isinstance(name, str) or not name.endswith('.db'):
+                continue
+            if name in seen:
+                continue
+            seen.add(name)
+            target = (backup_dir / name).resolve()
+            # Ensure within backup_dir and exists
+            if (backup_dir not in target.parents) or (not target.exists()):
+                not_found.append(name)
+                continue
+            try:
+                target.unlink()
+                deleted.append(name)
+            except Exception:
+                # If deletion fails, report as not_found/failed
+                not_found.append(name)
+
+        if not deleted and not_found and len(not_found) == len(seen):
+            # Nothing could be deleted
+            return OperationResult(
+                success=False,
+                message="No valid backup files deleted",
+                details={"deleted_count": 0, "deleted_files": deleted, "not_found": not_found},
+            )
+
+        return OperationResult(
+            success=True,
+            message=f"Deleted {len(deleted)} backup(s)",
+            details={"deleted_count": len(deleted), "deleted_files": deleted, "not_found": not_found},
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_BACKUP_FAILED,
+            "Failed to delete selected backups",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.post("/operations/database-backups/{backup_filename}/save-to-path", response_model=OperationResult)

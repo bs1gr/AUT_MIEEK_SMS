@@ -480,6 +480,33 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
+  const deleteSelectedBackups = async () => {
+    if (selectedBackups.size === 0) {
+      onToast({ message: t('noBackupsSelected') ?? 'No backups selected', type: 'error' });
+      return;
+    }
+    setOpLoading('delete-selected');
+    try {
+      const res = await fetch(`${baseURL}/control/api/operations/database-backups/delete-selected`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ filenames: Array.from(selectedBackups) }),
+      });
+      const data = await res.json();
+      if (!res.ok || data?.success !== true) throw new Error(data?.message || 'Failed');
+      const count = Number(data?.details?.deleted_count ?? 0);
+      onToast({ message: `${t('deletedBackups') || 'Deleted backups'}: ${count}`, type: 'success' });
+      // Refresh list and clear selection
+      await loadBackups();
+      setSelectedBackups(new Set());
+    } catch (e: any) {
+      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } finally {
+      setOpLoading(null);
+    }
+  };
+
   const toggleSelected = (filename: string, checked: boolean) => {
     setSelectedBackups((prev) => {
       const next = new Set(prev);
@@ -969,6 +996,13 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
             </button>
             <button type="button" onClick={saveSelectedZipToPath} className={theme.secondaryButton}>
               {t('saveSelectedZipToPath') || 'Save Selected ZIP to Path'}
+            </button>
+            <button
+              type="button"
+              onClick={deleteSelectedBackups}
+              className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50`}
+            >
+              {t('deleteSelected') || 'Delete Selected'}
             </button>
           </div>
 
