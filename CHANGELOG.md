@@ -8,6 +8,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+- **Frontend Utility Test Coverage**: Added comprehensive test suites for utility functions:
+  - `date.test.ts`: 42 tests covering `formatLocalDate` with Date/string inputs, timezone handling, and `inferWeekStartsOnMonday` with multilingual support
+  - `categoryLabels.test.ts`: 29 tests for `getLocalizedCategory` and `getCanonicalCategory` with Greek/English localization, normalization, and heuristic matching
+  - `errorMessage.test.ts`: 31 tests for `getErrorMessage` covering null/string/Error/object/array extraction, nested objects, and FastAPI validation structures
+  - `calendarUtils.test.ts`: 27 tests for ICS generation with recurrence rules, special character escaping, and `downloadICS` with DOM mocking
+  - All utility tests include edge cases, input validation, and error handling scenarios
+  - Total: 145 new utility tests (129 added, 16 already existed)
+  - **Full frontend test coverage now: 36 test files with 715+ passing tests**
+
 - **Zustand Store Test Coverage**: Added comprehensive test suites for all state management stores:
   - `useCoursesStore.test.ts`: 35 tests covering CRUD operations, selection, loading/error states, and complex scenarios
   - `useStudentsStore.test.ts`: 35 tests for student management with selection sync on updates/deletes
