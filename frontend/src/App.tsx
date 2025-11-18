@@ -109,7 +109,7 @@ function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Page Content */}
-      <div className="flex-1 w-full">{children}</div>
+      <div className="flex-1 w-full relative">{children}</div>
 
       <Footer />
     </div>

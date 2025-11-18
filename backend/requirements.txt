@@ -18,3 +18,5 @@ fastapi-csrf-protect==1.0.7  # CSRF protection for state-changing operations
 passlib[bcrypt]==1.7.4  # Password hashing
 PyJWT==2.9.0            # JWT tokens (replaces python-jose)
 docker
+prometheus-client==0.21.0  # Prometheus metrics
+prometheus-fastapi-instrumentator==7.0.0  # FastAPI Prometheus integration

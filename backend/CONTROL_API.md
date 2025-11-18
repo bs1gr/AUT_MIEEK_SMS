@@ -13,6 +13,107 @@ The control API exposes endpoints for operators to stop the frontend, the backen
 - GET  `/control/api/restart`         — informational helper (see below)
 - POST `/api/v1/admin/shutdown`       — alias for `/control/api/stop-all` (backward compatibility)
 
+### Monitoring Stack (On‑Demand Activation)
+
+Beginning with the lazy monitoring implementation, the monitoring services (Grafana, Prometheus, Loki) are NOT started automatically unless you:
+
+1. Launch the app with `RUN.ps1 -WithMonitoring` (eager start, legacy behaviour retained), OR
+2. Explicitly start them via the Control API / Power page.
+
+New endpoints:
+
+- GET  `/control/api/monitoring/status` — current state of Grafana / Prometheus / Loki (running flags, URLs).
+- POST `/control/api/monitoring/start`  — start the monitoring docker-compose stack (host only; rejected inside container).
+- POST `/control/api/monitoring/stop`   — stop the monitoring stack (host only; no-op if already stopped).
+
+These endpoints allow the Power page (`/power`) to present a "Start Monitoring" button and only render dashboards after the stack is up. Links to Grafana / Prometheus remain hidden until status reports `running=true`.
+
+Security & Constraints:
+
+- The start/stop endpoints refuse execution when called from inside the main application container (they require host context).
+- Rate limited with the heavy operation limiter (`_RATE_LIMIT_HEAVY`).
+- They still depend on Docker being available and `docker-compose.monitoring.yml` being present.
+- Failure responses include context strings for UI messaging / diagnostics.
+
+Example (PowerShell) to start monitoring from an operator script:
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:8080/control/api/monitoring/start -Method POST
+```
+
+Example status payload:
+
+```json
+{
+  "available": true,
+  "running": false,
+  "services": {
+    "grafana": {"running": false, "url": "http://localhost:3000", "port": 3000},
+    "prometheus": {"running": false, "url": "http://localhost:9090", "port": 9090},
+    "loki": {"running": false, "url": "http://localhost:3100", "port": 3100}
+  },
+  "compose_file": "C:/path/to/repo/docker-compose.monitoring.yml"
+}
+```
+
+UI Flow (Power Page):
+
+1. Page loads → calls `/monitoring/status`.
+2. If not running → shows **Start Monitoring** message, hides tabs & links.
+3. User clicks **Start Monitoring** → POST `/monitoring/start`.
+4. After short delay → status re-check; if running → reveal tabs, lazy load first dashboard iframe.
+5. Clicking Grafana / Prometheus links when stopped prompts to start.
+
+Stopping from UI (future enhancement) can call `/monitoring/stop` to reclaim resources.
+
+### Monitoring Endpoint Security Considerations
+
+The monitoring control endpoints introduce lifecycle operations (start/stop) that interact with host Docker resources. They are intentionally constrained:
+
+| Concern | Mitigation |
+|---------|------------|
+| Unauthorized remote start/stop | Endpoints refuse execution when called from inside the container; they require host context + Docker availability. |
+| Excessive toggling / resource churn | Heavy rate limit applied (`_RATE_LIMIT_HEAVY`) to throttle repeated start/stop attempts. |
+| Exposure over public network | Recommended to keep `/control/api/monitoring/*` reachable only from loopback or behind VPN/firewall; do NOT reverse‑proxy publicly without auth. |
+| Lack of authentication | (Current state) Endpoints rely on host access; future enhancement will add optional token (similar to shutdown token) for explicit auth. |
+| Privilege escalation via arbitrary compose file | Compose file path is fixed (`docker-compose.monitoring.yml`) inside repository root; no user‑supplied path accepted. |
+| Information leakage | Status endpoint returns only running flags + URLs (no sensitive configuration). |
+
+Recommended production hardening:
+
+1. Restrict network exposure (firewall or bind service to private interface).
+2. Add reverse proxy authentication (Basic Auth / OAuth) before exposing Power page externally.
+3. Rotate future monitoring control token once implemented; log all lifecycle actions.
+4. Monitor start/stop action frequency via application logs to detect abuse.
+5. Keep Grafana admin password changed from default and limit its external exposure.
+
+Future planned enhancements:
+
+- Optional `MONITORING_CONTROL_TOKEN` header for start/stop endpoints.
+- Structured audit log entries (`action=start_monitoring` / `action=stop_monitoring`).
+- Configurable cooldown between start/stop operations.
+
+### Audit Logging (NEW)
+
+Monitoring lifecycle endpoints now emit structured audit log entries to the application logs. Each event includes actionable metadata for dashboards or alerting.
+
+| Action | When Emitted | Extra Fields |
+|--------|--------------|--------------|
+| `monitoring_start_requested` | Incoming POST /monitoring/start | request_id, client_host |
+| `monitoring_start_success`   | Successful stack start | request_id, services |
+| `monitoring_start_error`     | Unexpected exception during start | request_id, error |
+| `monitoring_stop_requested`  | Incoming POST /monitoring/stop | request_id, client_host |
+| `monitoring_stop_success`    | Successful stack stop | request_id, services |
+| `monitoring_stop_error`      | Unexpected exception during stop | request_id, error |
+
+Use these entries to:
+
+1. Detect abnormal start/stop churn (possible misuse).
+2. Correlate monitoring availability with incident timelines.
+3. Feed SIEM / observability platforms for compliance reporting.
+
+All entries include `request_id` when the middleware has assigned one, enabling correlation with other request-scoped logs.
+
 ## Environment variables (behavior)
 
 - **ENABLE_CONTROL_API**

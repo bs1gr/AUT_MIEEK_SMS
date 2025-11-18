@@ -707,7 +707,31 @@ async def lifespan(app: FastAPI):
     except Exception as auto_import_err:
         logger.warning(f"Course auto-import check failed (continuing): {auto_import_err}")
 
+    # Start Prometheus metrics collector if enabled
+    metrics_task = None
+    try:
+        enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
+        if enable_metrics and not disable_startup:
+            import asyncio
+            from backend.middleware.prometheus_metrics import create_metrics_collector_task
+
+            metrics_collector = create_metrics_collector_task(interval=60)
+            metrics_task = asyncio.create_task(metrics_collector())
+            logger.info("Prometheus metrics collector task started")
+    except Exception as metrics_err:
+        logger.warning(f"Failed to start metrics collector: {metrics_err}")
+
     yield
+
+    # Cancel metrics collector task on shutdown
+    if metrics_task and not metrics_task.done():
+        metrics_task.cancel()
+        try:
+            await metrics_task
+        except asyncio.CancelledError:
+            logger.info("Metrics collector task cancelled")
+        except Exception as e:
+            logger.warning(f"Error while cancelling metrics task: {e}")
 
     # Shutdown
     logger.info("\n" + "=" * 70)
@@ -727,6 +751,27 @@ app.state.runtime_context = RUNTIME_CONTEXT
 app.state.version = VERSION  # Ensure health endpoint always returns backend version
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+# ============================================================================
+# PROMETHEUS METRICS SETUP (Optional - enabled via environment variable)
+# ============================================================================
+
+# Setup Prometheus metrics if enabled
+try:
+    enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
+    if enable_metrics:
+        from backend.middleware.prometheus_metrics import setup_metrics
+
+        setup_metrics(app, version=VERSION)
+        logger.info("Prometheus metrics enabled at /metrics endpoint")
+    else:
+        logger.info("Prometheus metrics disabled (set ENABLE_METRICS=1 to enable)")
+except ImportError as e:
+    logger.warning(f"Prometheus metrics not available (missing dependencies): {e}")
+    logger.info("Install prometheus-client and prometheus-fastapi-instrumentator to enable metrics")
+except Exception as e:
+    logger.warning(f"Failed to setup Prometheus metrics: {e}")
+    logger.info("Application will continue without metrics")
 
 # ============================================================================
 # MIDDLEWARE CONFIGURATION
@@ -1843,6 +1888,57 @@ async def api_info():
     return _api_metadata()
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    """
+    Serve favicon for browser requests.
+    Returns a simple SVG favicon with 'S' for Student Management System.
+    """
+    svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#4F46E5"/>
+  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
+</svg>"""
+    from fastapi.responses import Response
+
+    return Response(content=svg_content, media_type="image/svg+xml")
+
+
+@app.get("/power")
+async def power_dashboard():
+    """
+    Power Page - Embedded Monitoring Dashboard.
+    
+    Provides unified access to:
+    - Application Health Dashboard (Grafana)
+    - Infrastructure Metrics (Grafana)
+    - Application Logs (Loki)
+    - Quick links to Prometheus, Grafana, API Docs
+    
+    Returns:
+        FileResponse: The power.html template with embedded iframes
+    """
+    templates_dir = Path(__file__).parent.parent / "templates"
+    power_html = templates_dir / "power.html"
+    
+    if power_html.exists():
+        return FileResponse(str(power_html))
+    else:
+        # Fallback if template is missing (should not happen in production)
+        return JSONResponse(
+            {
+                "error": "Power dashboard template not found",
+                "message": "Monitoring stack requires Docker mode with templates mounted",
+                "links": {
+                    "grafana": "http://localhost:3000",
+                    "prometheus": "http://localhost:9090",
+                    "docs": "http://localhost:8080/docs"
+                },
+                "setup": "Run: .\\RUN.ps1 -WithMonitoring"
+            },
+            status_code=503
+        )
+
+
 # ============================================================================
 # OPTIONAL: SERVE FRONTEND SPA (production mode without NGINX)
 # Set environment variable SERVE_FRONTEND=1 and build frontend (frontend/dist)
@@ -1861,6 +1957,22 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
     try:
         # Serve all static assets directly (Vite emits /assets/* by default)
         app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
+        
+        # Serve root-level static files (logo, background images, etc.)
+        # Use a separate route for specific files to avoid conflicts
+        @app.get("/logo.png")
+        async def serve_logo():
+            logo_path = SPA_DIST_DIR / "logo.png"
+            if logo_path.exists():
+                return FileResponse(str(logo_path), media_type="image/png")
+            raise HTTPException(status_code=404, detail="Logo not found")
+        
+        @app.get("/login-bg.png")
+        async def serve_login_bg():
+            bg_path = SPA_DIST_DIR / "login-bg.png"
+            if bg_path.exists():
+                return FileResponse(str(bg_path), media_type="image/png")
+            raise HTTPException(status_code=404, detail="Background image not found")
 
         # Paths that should never be intercepted by the SPA fallback
         EXCLUDE_PREFIXES = (
@@ -1870,8 +1982,12 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
             "openapi.json",
             "control",
             "health",
+            "power",
             "favicon.ico",
+            "favicon.svg",
             "assets/",
+            "logo.png",
+            "login-bg.png",
         )
 
         # Fallback via exception handler: if a route is not found (404),
@@ -1893,21 +2009,6 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
         logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.")
     except Exception as e:
         logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
-
-
-@app.get("/favicon.ico")
-async def favicon():
-    """
-    Serve favicon for browser requests.
-    Returns a simple SVG favicon with 'S' for Student Management System.
-    """
-    svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" fill="#4F46E5"/>
-  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
-</svg>"""
-    from fastapi.responses import Response
-
-    return Response(content=svg_content, media_type="image/svg+xml")
 
 
 @app.get("/health")

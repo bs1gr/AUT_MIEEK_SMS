@@ -18,13 +18,16 @@ The first time you run this, it will:
 
 **Daily usage:**
 
+
 ```powershell
-.\RUN.ps1           # Start (or check if already running)
-.\RUN.ps1 -Stop     # Stop cleanly
-.\RUN.ps1 -Update   # Update with automatic backup
-.\RUN.ps1 -Status   # Check if running
-.\RUN.ps1 -Logs     # View application logs
-.\RUN.ps1 -Backup   # Create manual backup
+./RUN.ps1            # Start (or check if already running)
+./RUN.ps1 -Stop      # Stop cleanly
+./RUN.ps1 -Update    # Fast update (cached build + backup)
+./RUN.ps1 -UpdateNoCache  # Clean update (prune cache + --no-cache build + backup)
+./RUN.ps1 -Status    # Check if running
+./RUN.ps1 -Logs      # View application logs
+./RUN.ps1 -Backup    # Create manual backup
+./RUN.ps1 -FastUpdate  # Deprecated alias for -Update
 ```
 
 **Requirements:**
@@ -33,6 +36,34 @@ The first time you run this, it will:
 - Docker Desktop must be running
 
 **Access the application:** Open <http://localhost:8080> in your browser
+
+**Monitoring (On-Demand or Eager)**:
+
+```powershell
+# Eager start (legacy behaviour): starts Grafana, Prometheus, Loki immediately
+.\RUN.ps1 -WithMonitoring
+
+# Custom Grafana port (if 3000 busy)
+.\RUN.ps1 -WithMonitoring -GrafanaPort 3001
+
+# Lazy start: run plain, then activate from /power when needed
+.\RUN.ps1
+```
+
+After a plain start you can open `http://localhost:8080/power` and click **Start Monitoring** to launch the stack only when required. The Power page now hides tabs & links until the stack is running.
+
+Security: Start/stop monitoring endpoints are host‑only and heavy rate‑limited. For production, keep `/control/api/monitoring/*` behind loopback/VPN or an authenticated reverse proxy. Future enhancement: optional `MONITORING_CONTROL_TOKEN` header.
+
+**Monitoring Access (when running):**
+
+- **Embedded Dashboards**: <http://localhost:8080/power> (lazy-loaded iframes)
+- **Grafana**: <http://localhost:3000> (admin/admin) *(change password in production)*
+- **Prometheus**: <http://localhost:9090>
+- **Raw Metrics**: <http://localhost:8080/metrics> (if enabled)
+
+> New Control API endpoints: `/control/api/monitoring/status`, `/control/api/monitoring/start`, `/control/api/monitoring/stop` for programmatic lifecycle control (host only).
+
+> **Note**: If port 3000 is already in use, RUN.ps1 will automatically detect and suggest an alternative port.
 
 ---
 
@@ -206,12 +237,13 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 **Start/Stop/Update:**
 
 ```powershell
-.\RUN.ps1           # Start, stop, update, backup, status (all-in-one)
-.\RUN.ps1 -Stop     # Stop cleanly
-.\RUN.ps1 -Update   # Update with automatic backup
-.\RUN.ps1 -Status   # Check if running
-.\RUN.ps1 -Logs     # View application logs
-.\RUN.ps1 -Backup   # Create manual backup
+./RUN.ps1            # Start, stop, update, backup, status (all-in-one)
+./RUN.ps1 -Stop      # Stop cleanly
+./RUN.ps1 -Update    # Fast update (cached build + backup)
+./RUN.ps1 -UpdateNoCache # Clean update (cache prune + --no-cache build + backup)
+./RUN.ps1 -Status    # Check if running
+./RUN.ps1 -Logs      # View application logs
+./RUN.ps1 -Backup    # Create manual backup
 ```
 
 **For Developers:**
@@ -229,6 +261,8 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 - ✅ Builds Docker images
 - ✅ Starts containers on port 8080
 - ✅ Provides access URLs
+- ✅ Fast update (`-Update`) uses cached layers (quick)
+- ✅ Clean update (`-UpdateNoCache`) prunes build/image cache & uses `--no-cache` rebuild
 
 **Requirements:** Docker Desktop installed and running
 
@@ -245,7 +279,8 @@ The runtime enforces a clear separation between release and development workflow
 - Production and release builds **must** run via the Docker full-stack bundle.
 - Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
 - `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
-- Access the stack at `http://localhost:8080` (frontend + API proxy).
+- Access the stack at <http://localhost:8080> (frontend + API proxy).
+- Lazy monitoring: run plain (`RUN.ps1`) then start monitoring from `/power` only when needed (reduces idle resource usage).
 
 #### 🔧 Local Development (Native)
 

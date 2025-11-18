@@ -1,0 +1,205 @@
+# AlertManager Configuration for Student Management System
+# Handles alert routing, grouping, and notifications
+
+global:
+  # Default SMTP settings for email notifications
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@studentmanagement.local'
+  smtp_auth_username: 'alerts@studentmanagement.local'
+  smtp_auth_password: 'CHANGE_ME'  # Use environment variable in production
+  smtp_require_tls: true
+
+  # Slack webhook URL (optional)
+  slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+
+# Templates for notification messages
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree for alert distribution
+route:
+  # Default receiver for all alerts
+  receiver: 'default-receiver'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'component', 'severity']
+
+  # Wait time before sending first notification for a group
+  group_wait: 30s
+
+  # Wait time before sending notification about new alerts added to group
+  group_interval: 5m
+
+  # Minimum wait time before resending alert
+  repeat_interval: 4h
+
+  # Child routes for specific alert types
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true  # Also send to default receiver
+
+    # API-related alerts
+    - match:
+        component: api
+      receiver: 'api-team'
+      group_by: ['alertname', 'endpoint']
+
+    # Database alerts
+    - match:
+        component: database
+      receiver: 'database-team'
+      group_by: ['alertname', 'error_type']
+
+    # Security alerts - immediate notification
+    - match:
+        component: security
+      receiver: 'security-team'
+      group_wait: 10s
+      repeat_interval: 30m
+
+    # Business alerts - during business hours only
+    - match:
+        component: business
+      receiver: 'business-team'
+      group_wait: 1m
+      # Only send during business hours (Mon-Fri, 8am-6pm)
+      active_time_intervals:
+        - business-hours
+
+    # Info alerts - less urgent
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 5m
+      repeat_interval: 12h
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # If API is down, suppress high error rate alerts
+  - source_match:
+      alertname: 'APIDown'
+    target_match:
+      component: 'api'
+    equal: ['job']
+
+  # If database is down, suppress query alerts
+  - source_match:
+      alertname: 'DatabaseConnectionsFailed'
+    target_match:
+      component: 'database'
+    equal: ['job']
+
+  # If there are critical alerts, suppress warnings
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'component']
+
+# Receivers - define how to send notifications
+receivers:
+  # Default receiver - logs to stdout
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+
+  # Critical alerts - multiple channels
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@studentmanagement.local,oncall@studentmanagement.local'
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: '🚨 Critical Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Action Required:* {{ .CommonAnnotations.action }}
+        send_resolved: true
+        color: 'danger'
+
+  # API team notifications
+  - name: 'api-team'
+    email_configs:
+      - to: 'api-team@studentmanagement.local'
+        headers:
+          Subject: '⚠️ API Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#alerts-api'
+        send_resolved: true
+
+  # Database team notifications
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@studentmanagement.local'
+        headers:
+          Subject: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#alerts-database'
+        send_resolved: true
+
+  # Security team notifications
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@studentmanagement.local'
+        headers:
+          Subject: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+          Priority: 'urgent'
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#alerts-security'
+        send_resolved: true
+        color: 'warning'
+
+  # Business team notifications
+  - name: 'business-team'
+    email_configs:
+      - to: 'business-team@studentmanagement.local'
+        headers:
+          Subject: '📊 Business Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+  # Info alerts - Slack only
+  - name: 'info-alerts'
+    slack_configs:
+      - channel: '#alerts-info'
+        send_resolved: true
+        color: 'good'
+
+# Time intervals for routing
+time_intervals:
+  # Business hours: Monday-Friday, 8 AM - 6 PM
+  - name: business-hours
+    time_intervals:
+      - times:
+          - start_time: '08:00'
+            end_time: '18:00'
+        weekdays: ['monday:friday']
+        location: 'Local'
+
+  # After hours and weekends
+  - name: after-hours
+    time_intervals:
+      - times:
+          - start_time: '18:00'
+            end_time: '08:00'
+        weekdays: ['monday:friday']
+      - weekdays: ['saturday', 'sunday']
+        location: 'Local'

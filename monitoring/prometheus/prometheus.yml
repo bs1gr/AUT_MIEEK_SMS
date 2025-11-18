@@ -1,0 +1,121 @@
+# Prometheus Configuration for Student Management System
+# Version: 1.0.0
+
+global:
+  scrape_interval: 15s      # Scrape metrics every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  scrape_timeout: 10s       # Timeout for scrape requests
+
+  # Attach labels to all metrics
+  external_labels:
+    monitor: 'student-management-system'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load alerting rules
+rule_files:
+  - '/etc/prometheus/alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ============================================================================
+  # PROMETHEUS SELF-MONITORING
+  # ============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'
+
+  # ============================================================================
+  # STUDENT MANAGEMENT SYSTEM - BACKEND API
+  # ============================================================================
+  # IMPORTANT: This configuration is for DOCKER MODE ONLY
+  # 
+  # Docker Mode:
+  #   - Monitoring stack runs in containers
+  #   - Backend runs in sms-app container (port 8000)
+  #   - Prometheus scrapes via host.docker.internal:8000
+  #   - Power page: http://localhost:8080/power
+  #
+  # Native Mode (NOT SUPPORTED for monitoring):
+  #   - Backend runs on localhost:8000 (uvicorn)
+  #   - Frontend runs on localhost:5173 (vite)
+  #   - Monitoring stack would need manual setup
+  #   - For native development, use .\scripts\dev\run-native.ps1
+  #
+  - job_name: 'sms-backend'
+    scrape_interval: 10s  # More frequent for application metrics
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Docker: scrape backend via host gateway
+        labels:
+          service: 'sms-backend'
+          tier: 'application'
+          component: 'api'
+          mode: 'docker'
+
+    # Relabel to customize metric labels
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'sms-backend'
+
+  # ============================================================================
+  # POSTGRESQL DATABASE (if using PostgreSQL)
+  # ============================================================================
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgresql'
+          tier: 'database'
+
+  # ============================================================================
+  # NODE EXPORTER - SYSTEM METRICS
+  # ============================================================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          tier: 'infrastructure'
+
+  # ============================================================================
+  # CADVISOR - CONTAINER METRICS
+  # ============================================================================
+  - job_name: 'cadvisor'
+    scrape_interval: 30s  # Less frequent for container metrics
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          tier: 'infrastructure'
+
+  # ============================================================================
+  # GRAFANA - MONITORING UI
+  # ============================================================================
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          service: 'grafana'
+          tier: 'monitoring'
+
+  # ============================================================================
+  # ALERTMANAGER - ALERT ROUTING
+  # ============================================================================
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels:
+          service: 'alertmanager'
+          tier: 'monitoring'
+
