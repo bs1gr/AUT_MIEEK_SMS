@@ -72,24 +72,33 @@ export default function PowerPage() {
 
   // Start monitoring stack
   const startMonitoringStack = async () => {
-    // Check if we can control monitoring
-    if (monitoringStatus?.in_container || !monitoringStatus?.can_control) {
-      setMonitoringError('Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.');
-      return;
-    }
-    
     try {
       setStartingMonitoring(true);
       setMonitoringError(null);
       
-      const response = await axios.post(`${CONTROL_API}/monitoring/start`);
+      // Use trigger endpoint which works in both container and native modes
+      const endpoint = monitoringStatus?.in_container 
+        ? `${CONTROL_API}/monitoring/trigger`
+        : `${CONTROL_API}/monitoring/start`;
+      
+      const response = await axios.post(endpoint);
       
       if (response.data.success) {
-        // Wait a bit for services to come up, then refresh status
-        setTimeout(() => {
-          fetchMonitoringStatus();
+        // Show different messages based on mode
+        if (monitoringStatus?.in_container) {
+          // In container mode, show instructions
+          const details = response.data.details;
+          const instructions = details?.instructions?.join('\n') || details?.instructions || '';
+          setMonitoringError(null);
+          alert(`✅ ${response.data.message}\n\n${instructions}\n\nAfter running the command, refresh this page to see updated status.`);
           setStartingMonitoring(false);
-        }, 5000);
+        } else {
+          // In native mode, wait for services to come up
+          setTimeout(() => {
+            fetchMonitoringStatus();
+            setStartingMonitoring(false);
+          }, 5000);
+        }
       } else {
         setMonitoringError(response.data.message || 'Failed to start monitoring');
         setStartingMonitoring(false);
@@ -116,15 +125,9 @@ export default function PowerPage() {
   const openServiceUrl = async (serviceName: 'grafana' | 'prometheus', url: string) => {
     // Check if monitoring is running
     if (!monitoringStatus?.services[serviceName]?.running) {
-      // Check if we can start it
-      if (monitoringStatus?.in_container || !monitoringStatus?.can_control) {
-        setMonitoringError('Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.');
-        return;
-      }
-      
       // Show confirmation dialog
       const shouldStart = window.confirm(
-        `${serviceName === 'grafana' ? 'Grafana' : 'Prometheus'} is not running. Would you like to start the monitoring stack now?\n\nThis will start Grafana, Prometheus, and Loki services.`
+        `${serviceName === 'grafana' ? 'Grafana' : 'Prometheus'} is not running. Would you like to start the monitoring stack now?\n\nThis will ${monitoringStatus?.in_container ? 'create a trigger script for you to run on the host.' : 'start Grafana, Prometheus, and Loki services.'}`
       );
       
       if (shouldStart) {
@@ -232,17 +235,17 @@ export default function PowerPage() {
               </div>
             )}
 
-            {/* Container Mode Warning */}
+            {/* Container Mode Info */}
             {monitoringStatus?.in_container && (
               <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 flex items-start gap-3">
                 <span className="text-blue-600 text-xl">🐳</span>
                 <div className="flex-1">
                   <h4 className="font-semibold text-blue-900">Running in Container Mode</h4>
                   <p className="text-sm text-blue-800 mb-2">
-                    Monitoring stack control is disabled when running inside a Docker container.
+                    You can trigger monitoring startup. The system will create a helper script that you run on your host.
                   </p>
                   <p className="text-sm text-blue-800">
-                    <strong>To start monitoring:</strong> Run <code className="bg-blue-100 px-2 py-0.5 rounded font-mono text-xs">RUN.ps1 -WithMonitoring</code> from your host terminal.
+                    Click "Start Monitoring Stack" to generate the trigger script with instructions.
                   </p>
                 </div>
               </div>
@@ -305,7 +308,7 @@ export default function PowerPage() {
                       {startingMonitoring ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Starting...
+                          {monitoringStatus?.in_container ? 'Creating trigger...' : 'Starting...'}
                         </>
                       ) : (
                         <>
@@ -350,16 +353,14 @@ export default function PowerPage() {
                       </p>
                       <button
                         onClick={startMonitoringStack}
-                        disabled={startingMonitoring || monitoringStatus?.in_container}
+                        disabled={startingMonitoring}
                         className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
                       >
                         {startingMonitoring ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Starting Monitoring Stack...
+                            {monitoringStatus?.in_container ? 'Creating Trigger Script...' : 'Starting Monitoring Stack...'}
                           </>
-                        ) : monitoringStatus?.in_container ? (
-                          <>🐳 Use RUN.ps1 -WithMonitoring</>
                         ) : (
                           <>🚀 Start Monitoring Stack</>
                         )}
@@ -394,13 +395,13 @@ export default function PowerPage() {
                     </div>
                     <button
                       onClick={() => openServiceUrl('prometheus', 'http://localhost:9090')}
-                      disabled={startingMonitoring || (monitoringStatus?.in_container && !isPrometheusRunning)}
+                      disabled={startingMonitoring}
                       className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                     >
                       {startingMonitoring ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Starting...
+                          {monitoringStatus?.in_container ? 'Creating trigger...' : 'Starting...'}
                         </>
                       ) : (
                         <>
@@ -442,16 +443,14 @@ export default function PowerPage() {
                       </p>
                       <button
                         onClick={startMonitoringStack}
-                        disabled={startingMonitoring || monitoringStatus?.in_container}
+                        disabled={startingMonitoring}
                         className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                       >
                         {startingMonitoring ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Starting Monitoring Stack...
+                            {monitoringStatus?.in_container ? 'Creating Trigger Script...' : 'Starting Monitoring Stack...'}
                           </>
-                        ) : monitoringStatus?.in_container ? (
-                          <>🐳 Use RUN.ps1 -WithMonitoring</>
                         ) : (
                           <>🚀 Start Monitoring Stack</>
                         )}
