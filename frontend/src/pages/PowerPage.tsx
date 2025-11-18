@@ -86,12 +86,17 @@ export default function PowerPage() {
       if (response.data.success) {
         // Show different messages based on mode
         if (monitoringStatus?.in_container) {
-          // In container mode, show instructions
-          const details = response.data.details;
-          const instructions = details?.instructions?.join('\n') || details?.instructions || '';
+          // In container mode with watcher - auto-start
           setMonitoringError(null);
-          alert(`✅ ${response.data.message}\n\n${instructions}\n\nAfter running the command, refresh this page to see updated status.`);
-          setStartingMonitoring(false);
+          // Show brief success message
+          const message = `✅ Monitoring start triggered!\n\nThe watcher will automatically start the stack in 2-5 seconds.\nRefresh the page to see the updated status.`;
+          alert(message);
+          
+          // Auto-refresh status after delay
+          setTimeout(() => {
+            fetchMonitoringStatus();
+            setStartingMonitoring(false);
+          }, 5000);
         } else {
           // In native mode, wait for services to come up
           setTimeout(() => {
@@ -237,15 +242,15 @@ export default function PowerPage() {
 
             {/* Container Mode Info */}
             {monitoringStatus?.in_container && (
-              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 flex items-start gap-3">
-                <span className="text-blue-600 text-xl">🐳</span>
+              <div className="bg-green-50 border border-green-300 rounded-lg p-4 flex items-start gap-3">
+                <span className="text-green-600 text-xl">✅</span>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-blue-900">Running in Container Mode</h4>
-                  <p className="text-sm text-blue-800 mb-2">
-                    You can trigger monitoring startup. The system will create a helper script that you run on your host.
+                  <h4 className="font-semibold text-green-900">Auto-Start Enabled</h4>
+                  <p className="text-sm text-green-800 mb-2">
+                    Monitoring watcher is active. When you click "Start Monitoring Stack", it will automatically start within 2-5 seconds.
                   </p>
-                  <p className="text-sm text-blue-800">
-                    Click "Start Monitoring Stack" to generate the trigger script with instructions.
+                  <p className="text-sm text-green-800">
+                    <strong>Just click the button below</strong> - no manual commands needed!
                   </p>
                 </div>
               </div>

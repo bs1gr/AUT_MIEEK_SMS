@@ -515,7 +515,7 @@ function Wait-ForHealthy {
 }
 
 function Show-AccessInfo {
-    param([bool]$MonitoringEnabled = $false)
+    param([bool]$MonitoringEnabled = $false, [bool]$WatcherEnabled = $false)
     
     Write-Host ""
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
@@ -541,6 +541,13 @@ function Show-AccessInfo {
             Write-Host "    🎯 Power Page (embedded): " -NoNewline -ForegroundColor Cyan
             Write-Host "http://localhost:${PORT}/power" -ForegroundColor White
         }
+    }
+    
+    if ($WatcherEnabled) {
+        Write-Host ""
+        Write-Host "  🔄 Auto-Start Watcher: " -NoNewline -ForegroundColor Cyan
+        Write-Host "ACTIVE" -ForegroundColor Green
+        Write-Host "     → Click 'Start Monitoring' in Power page for automatic startup" -ForegroundColor DarkGray
     }
     
     Write-Host ""
@@ -904,7 +911,7 @@ function Start-Application {
                 }
             }
             
-            Show-AccessInfo -MonitoringEnabled $monitoringStarted
+            Show-AccessInfo -MonitoringEnabled $monitoringStarted | Out-Null
             return 0
         } else {
             Write-Info "SMS is starting up..."
@@ -921,7 +928,7 @@ function Start-Application {
                     }
                 }
                 
-                Show-AccessInfo -MonitoringEnabled $monitoringStarted
+                Show-AccessInfo -MonitoringEnabled $monitoringStarted | Out-Null
                 return 0
             } else {
                 Write-Error-Message "Failed to start properly"
@@ -990,6 +997,12 @@ function Start-Application {
             Write-Host "[WARN] Using fallback insecure SECRET_KEY. Please set a strong SECRET_KEY in .env for production." -ForegroundColor Yellow
         }
 
+        # Ensure triggers directory exists
+        $triggersDir = Join-Path $SCRIPT_DIR "data\.triggers"
+        if (-not (Test-Path $triggersDir)) {
+            New-Item -ItemType Directory -Path $triggersDir -Force | Out-Null
+        }
+        
         docker run -d `
             --name $CONTAINER_NAME `
             -p ${PORT}:${INTERNAL_PORT} `
@@ -999,6 +1012,7 @@ function Start-Application {
             -e DATABASE_URL=sqlite:////app/data/student_management.db `
             -v ${VOLUME_NAME}:/app/data `
             -v "${SCRIPT_DIR}/templates:/app/templates:ro" `
+            -v "${triggersDir}:/app/data/.triggers" `
             --restart unless-stopped `
             $IMAGE_TAG 2>$null | Out-Null
 
@@ -1010,6 +1024,22 @@ function Start-Application {
 
         # Wait for health check
         if (Wait-ForHealthy) {
+            # Start monitoring watcher (auto-start for UI triggers)
+            $watcherEnabled = $false
+            Write-Host ""
+            Write-Info "Starting monitoring auto-start watcher..."
+            $watcherScript = Join-Path $SCRIPT_DIR "scripts\monitoring-watcher.ps1"
+            if (Test-Path $watcherScript) {
+                try {
+                    & $watcherScript -Start | Out-Null
+                    $watcherEnabled = $true
+                    Write-Success "Watcher started - UI monitoring buttons will work automatically"
+                } catch {
+                    Write-Warning "Failed to start watcher: $_"
+                    $watcherEnabled = $false
+                }
+            }
+            
             # Start monitoring if requested
             $monitoringStarted = $false
             if ($WithMonitoring) {
@@ -1022,7 +1052,7 @@ function Start-Application {
                 }
             }
             
-            Show-AccessInfo -MonitoringEnabled $monitoringStarted
+            Show-AccessInfo -MonitoringEnabled $monitoringStarted -WatcherEnabled $watcherEnabled | Out-Null
             return 0
         } else {
             Write-Error-Message "Application did not start properly"
