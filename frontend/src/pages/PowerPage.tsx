@@ -40,9 +40,20 @@ export default function PowerPage() {
       const response = await axios.get<MonitoringStatus>(`${CONTROL_API}/monitoring/status`);
       setMonitoringStatus(response.data);
       setMonitoringError(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch monitoring status:', error);
-      setMonitoringError('Failed to check monitoring status');
+      let errorMsg = 'Failed to check monitoring status';
+      if (error.response?.data) {
+        const data = error.response.data;
+        errorMsg = data.message || data.detail || errorMsg;
+        // Handle case where detail/message might be an object
+        if (typeof errorMsg === 'object') {
+          errorMsg = JSON.stringify(errorMsg);
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      setMonitoringError(errorMsg);
     }
   };
 
@@ -66,7 +77,17 @@ export default function PowerPage() {
       }
     } catch (error: any) {
       console.error('Failed to start monitoring:', error);
-      const errorMsg = error.response?.data?.detail || error.message || 'Failed to start monitoring stack';
+      let errorMsg = 'Failed to start monitoring stack';
+      if (error.response?.data) {
+        const data = error.response.data;
+        errorMsg = data.message || data.detail || errorMsg;
+        // Handle case where detail/message might be an object
+        if (typeof errorMsg === 'object') {
+          errorMsg = JSON.stringify(errorMsg);
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
       setMonitoringError(errorMsg);
       setStartingMonitoring(false);
     }
