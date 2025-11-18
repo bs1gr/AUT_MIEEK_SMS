@@ -7,7 +7,14 @@
     Uses fullstack Docker container for single-command deployment.
 
 .PARAMETER Update
-    Update to latest version with automatic backup
+    Fast update path (cached build). Creates backup, then performs a standard Docker build using cached layers.
+    Use -UpdateNoCache for a full clean rebuild.
+
+.PARAMETER UpdateNoCache
+    Clean update path. Creates backup, prunes build/image cache, and rebuilds with --no-cache.
+
+.PARAMETER FastUpdate (DEPRECATED)
+    Backward-compatible alias for -Update. Will be removed in a future release.
 
 .PARAMETER Stop
     Stop the application cleanly
@@ -34,12 +41,16 @@
 
 param(
     [switch]$Update,
+    [switch]$UpdateNoCache,
+    [switch]$FastUpdate, # deprecated
     [switch]$Stop,
     [switch]$Status,
     [switch]$Logs,
     [switch]$Backup,
     [switch]$Help,
-    [switch]$NoPause
+    [switch]$NoPause,
+    [switch]$WithMonitoring,
+    [int]$GrafanaPort = 3000
 )
 
 # ============================================================================
@@ -65,6 +76,9 @@ $CONTAINER_NAME = "sms-app"
 $PORT = 8080
 $INTERNAL_PORT = 8000
 $VOLUME_NAME = "sms_data"
+$MONITORING_COMPOSE_FILE = Join-Path $SCRIPT_DIR "docker-compose.monitoring.yml"
+$DEFAULT_GRAFANA_PORT = 3000
+$DEFAULT_PROMETHEUS_PORT = 9090
 
 function Get-ParentProcessName {
     if ($script:ParentProcessName) {
@@ -221,6 +235,126 @@ function Write-Error-Message {
 function Write-Info {
     param([string]$Message)
     Write-Host "ℹ️  $Message" -ForegroundColor Cyan
+}
+
+function Write-Warning {
+    param([string]$Message)
+    Write-Host "⚠️  $Message" -ForegroundColor Yellow
+}
+
+function Test-PortInUse {
+    param([int]$Port)
+    try {
+        $connections = netstat -ano | Select-String ":$Port" | Where-Object { $_ -match 'LISTENING' }
+        return ($null -ne $connections -and $connections.Count -gt 0)
+    }
+    catch {
+        return $false
+    }
+}
+
+function Find-AvailablePort {
+    param(
+        [int]$StartPort = 3000,
+        [int]$MaxAttempts = 10
+    )
+    
+    for ($i = 0; $i -lt $MaxAttempts; $i++) {
+        $testPort = $StartPort + $i
+        if (-not (Test-PortInUse -Port $testPort)) {
+            return $testPort
+        }
+    }
+    return $null
+}
+
+function Get-MonitoringStatus {
+    $prometheus = docker ps -q -f name=sms-prometheus 2>$null
+    $grafana = docker ps -q -f name=sms-grafana 2>$null
+    
+    return @{
+        PrometheusRunning = ($null -ne $prometheus -and $prometheus.Length -gt 0)
+        GrafanaRunning = ($null -ne $grafana -and $grafana.Length -gt 0)
+        IsRunning = (($null -ne $prometheus -and $prometheus.Length -gt 0) -and ($null -ne $grafana -and $grafana.Length -gt 0))
+    }
+}
+
+function Stop-MonitoringStack {
+    Write-Info "Stopping monitoring stack..."
+    
+    Push-Location $SCRIPT_DIR
+    try {
+        docker-compose -f $MONITORING_COMPOSE_FILE down 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Monitoring stack stopped"
+            return $true
+        }
+        return $false
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Start-MonitoringStack {
+    param(
+        [int]$GrafanaPortOverride = $DEFAULT_GRAFANA_PORT
+    )
+    
+    Write-Info "Starting monitoring stack..."
+    
+    # Check for port conflicts
+    $actualGrafanaPort = $GrafanaPortOverride
+    if (Test-PortInUse -Port $actualGrafanaPort) {
+        Write-Warning "Port $actualGrafanaPort is already in use"
+        $availablePort = Find-AvailablePort -StartPort $actualGrafanaPort
+        
+        if ($null -eq $availablePort) {
+            Write-Error-Message "Could not find available port for Grafana (tried $actualGrafanaPort-$($actualGrafanaPort + 9))"
+            Write-Info "Please free up port $actualGrafanaPort or specify a different port with -GrafanaPort"
+            return $false
+        }
+        
+        $actualGrafanaPort = $availablePort
+        Write-Info "Using alternative port for Grafana: $actualGrafanaPort"
+    }
+    
+    # Check if Prometheus port is available
+    if (Test-PortInUse -Port $DEFAULT_PROMETHEUS_PORT) {
+        Write-Warning "Port $DEFAULT_PROMETHEUS_PORT (Prometheus) is already in use"
+        Write-Info "Monitoring may not start correctly if Prometheus cannot bind to its port"
+    }
+    
+    Push-Location $SCRIPT_DIR
+    try {
+        # Set Grafana port via environment variable
+        $env:GRAFANA_PORT = $actualGrafanaPort
+        
+        # Start monitoring stack
+        docker-compose -f $MONITORING_COMPOSE_FILE up -d 2>&1 | Out-Null
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error-Message "Failed to start monitoring stack"
+            return $false
+        }
+        
+        Write-Success "Monitoring stack started"
+        Write-Host ""
+        Write-Host "  📊 Grafana:    " -NoNewline -ForegroundColor Cyan
+        Write-Host "http://localhost:$actualGrafanaPort" -ForegroundColor White -NoNewline
+        Write-Host " (admin/admin)" -ForegroundColor DarkGray
+        Write-Host "  🔍 Prometheus: " -NoNewline -ForegroundColor Cyan
+        Write-Host "http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
+        Write-Host "  🎯 Power Page: " -NoNewline -ForegroundColor Cyan
+        Write-Host "http://localhost:${PORT}/power" -ForegroundColor White -NoNewline
+        Write-Host " (embedded dashboards)" -ForegroundColor DarkGray
+        Write-Host ""
+        
+        return $true
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 function Test-DockerAvailable {
@@ -381,6 +515,8 @@ function Wait-ForHealthy {
 }
 
 function Show-AccessInfo {
+    param([bool]$MonitoringEnabled = $false)
+    
     Write-Host ""
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
     Write-Host "║                 🎉 SMS is now running! 🎉                    ║" -ForegroundColor Green
@@ -392,15 +528,32 @@ function Show-AccessInfo {
     Write-Host "http://localhost:${PORT}/docs" -ForegroundColor White
     Write-Host "  🏥 Health Check:   " -NoNewline -ForegroundColor Cyan
     Write-Host "http://localhost:${PORT}/health" -ForegroundColor White
+    
+    if ($MonitoringEnabled) {
+        $monStatus = Get-MonitoringStatus
+        if ($monStatus.IsRunning) {
+            Write-Host ""
+            Write-Host "  Monitoring Stack:" -ForegroundColor Yellow
+            Write-Host "    📊 Grafana (dashboards):  " -NoNewline -ForegroundColor Cyan
+            Write-Host "http://localhost:$GrafanaPort" -ForegroundColor White
+            Write-Host "    🔍 Prometheus (metrics):  " -NoNewline -ForegroundColor Cyan
+            Write-Host "http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
+            Write-Host "    🎯 Power Page (embedded): " -NoNewline -ForegroundColor Cyan
+            Write-Host "http://localhost:${PORT}/power" -ForegroundColor White
+        }
+    }
+    
     Write-Host ""
     Write-Host "  Useful Commands:" -ForegroundColor Yellow
-    Write-Host "    .\RUN.ps1 -Stop      " -NoNewline -ForegroundColor White
+    Write-Host "    .\RUN.ps1 -Stop           " -NoNewline -ForegroundColor White
     Write-Host "→ Stop the application" -ForegroundColor DarkGray
-    Write-Host "    .\RUN.ps1 -Update    " -NoNewline -ForegroundColor White
+    Write-Host "    .\RUN.ps1 -WithMonitoring " -NoNewline -ForegroundColor White
+    Write-Host "→ Start with monitoring" -ForegroundColor DarkGray
+    Write-Host "    .\RUN.ps1 -Update         " -NoNewline -ForegroundColor White
     Write-Host "→ Update with backup" -ForegroundColor DarkGray
-    Write-Host "    .\RUN.ps1 -Logs      " -NoNewline -ForegroundColor White
+    Write-Host "    .\RUN.ps1 -Logs           " -NoNewline -ForegroundColor White
     Write-Host "→ View logs" -ForegroundColor DarkGray
-    Write-Host "    .\RUN.ps1 -Status    " -NoNewline -ForegroundColor White
+    Write-Host "    .\RUN.ps1 -Status         " -NoNewline -ForegroundColor White
     Write-Host "→ Check status" -ForegroundColor DarkGray
     Write-Host ""
 }
@@ -414,18 +567,26 @@ function Show-Help {
     Write-Host "USAGE:" -ForegroundColor Yellow
     Write-Host "  .\RUN.ps1 [OPTIONS]`n"
     Write-Host "OPTIONS:" -ForegroundColor Yellow
-    Write-Host "  (no options)  Start the application (default)"
-    Write-Host "  -Status       Check if application is running"
-    Write-Host "  -Stop         Stop the application cleanly"
-    Write-Host "  -Update       Update to latest version (with backup)"
-    Write-Host "  -Logs         Show application logs"
-    Write-Host "  -Backup       Create manual database backup"
-    Write-Host "  -Help         Show this help message`n"
+        Write-Host "  (no options)      Start the application (default)"
+        Write-Host "  -WithMonitoring   Start with Grafana, Prometheus & monitoring stack"
+        Write-Host "  -GrafanaPort      Specify custom Grafana port (default: 3000)"
+        Write-Host "  -Status           Check if application is running"
+        Write-Host "  -Stop             Stop the application cleanly"
+        Write-Host "  -Update           Fast update: backup + cached build (default)"
+        Write-Host "  -UpdateNoCache    Clean update: backup + prune cache + no-cache rebuild"
+        Write-Host "  -FastUpdate       (Deprecated) Alias for -Update"
+        Write-Host "  -Logs             Show application logs"
+        Write-Host "  -Backup           Create manual database backup"
+        Write-Host "  -Help             Show this help message`n"
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
-    Write-Host "  .\RUN.ps1           # Start SMS"
-    Write-Host "  .\RUN.ps1 -Status   # Check if running"
-    Write-Host "  .\RUN.ps1 -Update   # Update with backup"
-    Write-Host "  .\RUN.ps1 -Stop     # Stop SMS`n"
+        Write-Host "  .\RUN.ps1                      # Start SMS"
+        Write-Host "  .\RUN.ps1 -WithMonitoring      # Start with monitoring (Grafana + Prometheus)"
+        Write-Host "  .\RUN.ps1 -GrafanaPort 3001    # Use port 3001 if 3000 is busy"
+        Write-Host "  .\RUN.ps1 -Status              # Check if running"
+        Write-Host "  .\RUN.ps1 -Update              # Fast update (cached build)"
+        Write-Host "  .\RUN.ps1 -UpdateNoCache       # Clean update (cache prune + --no-cache)"
+        Write-Host "  .\RUN.ps1 -FastUpdate          # Deprecated alias for -Update"
+        Write-Host "  .\RUN.ps1 -Stop                # Stop SMS`n"
 }
 
 function Show-Status {
@@ -475,6 +636,41 @@ function Show-Status {
     } else {
         Write-Host "`nTo start: .\RUN.ps1`n" -ForegroundColor Yellow
     }
+    
+    # Check monitoring status
+    $monStatus = Get-MonitoringStatus
+    if ($monStatus.IsRunning) {
+        Write-Host ""
+        Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+        Write-Host "║              Monitoring Stack Status                         ║" -ForegroundColor Cyan
+        Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  Prometheus: " -NoNewline -ForegroundColor Cyan
+        if ($monStatus.PrometheusRunning) {
+            Write-Host "Running ✅" -NoNewline -ForegroundColor Green
+            Write-Host " → http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
+        } else {
+            Write-Host "Stopped ❌" -ForegroundColor Red
+        }
+        
+        Write-Host "  Grafana:    " -NoNewline -ForegroundColor Cyan
+        if ($monStatus.GrafanaRunning) {
+            Write-Host "Running ✅" -NoNewline -ForegroundColor Green
+            Write-Host " → http://localhost:$GrafanaPort" -ForegroundColor White
+        } else {
+            Write-Host "Stopped ❌" -ForegroundColor Red
+        }
+        
+        Write-Host "  Power Page: " -NoNewline -ForegroundColor Cyan
+        Write-Host "http://localhost:${PORT}/power" -ForegroundColor White -NoNewline
+        Write-Host " (embedded)" -ForegroundColor DarkGray
+    } else {
+        Write-Host ""
+        Write-Info "Monitoring stack not running"
+        Write-Host "  To enable: .\RUN.ps1 -WithMonitoring" -ForegroundColor Yellow
+        Write-Host "  Note: Monitoring requires Docker mode (not available in native mode)" -ForegroundColor DarkGray
+    }
+    
     Write-Host ""
 
     return 0
@@ -486,27 +682,44 @@ function Stop-Application {
     $status = Get-ContainerStatus
     if (-not $status) {
         Write-Info "SMS is not running"
-        return 0
-    }
-
-    if (-not $status.IsRunning) {
-        Write-Info "SMS is already stopped"
-        Write-Info "Removing stopped container..."
-        docker rm $CONTAINER_NAME 2>$null | Out-Null
-        Write-Success "Cleaned up"
-        return 0
-    }
-
-    Write-Info "Stopping container..."
-    docker stop $CONTAINER_NAME 2>$null | Out-Null
-
-    if ($LASTEXITCODE -eq 0) {
-        Write-Success "SMS stopped successfully"
-        return 0
     } else {
-        Write-Error-Message "Failed to stop SMS"
-        return 1
+        if (-not $status.IsRunning) {
+            Write-Info "SMS is already stopped"
+            Write-Info "Removing stopped container..."
+            docker rm $CONTAINER_NAME 2>$null | Out-Null
+            Write-Success "Cleaned up"
+        } else {
+            Write-Info "Stopping container..."
+            docker stop $CONTAINER_NAME 2>$null | Out-Null
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "SMS stopped successfully"
+            } else {
+                Write-Error-Message "Failed to stop SMS"
+                return 1
+            }
+        }
     }
+    
+    # Check and stop monitoring if running
+    $monStatus = Get-MonitoringStatus
+    if ($monStatus.IsRunning) {
+        Write-Host ""
+        Write-Info "Monitoring stack is running"
+        $response = Read-Host "Stop monitoring stack too? (Y/n)"
+        if ([string]::IsNullOrWhiteSpace($response) -or $response -match '^[Yy]') {
+            if (Stop-MonitoringStack) {
+                return 0
+            } else {
+                Write-Warning "Failed to stop monitoring stack"
+                return 1
+            }
+        } else {
+            Write-Info "Leaving monitoring stack running"
+        }
+    }
+    
+    return 0
 }
 
 function Show-Logs {
@@ -524,8 +737,8 @@ function Show-Logs {
     return $LASTEXITCODE
 }
 
-function Update-Application {
-    Write-Header "Updating SMS Application"
+function CleanUpdate-Application {
+    Write-Header "Clean Updating SMS Application (No Cache)"
 
     # Check if running
     $status = Get-ContainerStatus
@@ -554,11 +767,20 @@ function Update-Application {
 
     # Pull/rebuild image
     Write-Host ""
-    Write-Info "Building latest version..."
+    Write-Info "Preparing clean rebuild (clearing Docker build cache)..."
+    try {
+        Write-Info "Pruning dangling build cache layers..."
+        docker builder prune -f 2>$null | Out-Null
+        Write-Info "Pruning dangling images..."
+        docker image prune -f 2>$null | Out-Null
+    } catch {
+        Write-Warning "Cache prune encountered an issue: $_"
+    }
+    Write-Info "Building latest version (no cache)..."
     Write-Info "This may take a few minutes..."
     Write-Host ""
 
-    docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
+    docker build --pull --no-cache -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Message "Build failed"
@@ -566,8 +788,8 @@ function Update-Application {
 
         if ($wasRunning) {
             Write-Host ""
-            Write-Info "Restoring previous version..."
-            # Start will use the old image
+            Write-Info "Previous image still present; starting prior version..."
+            # Start will use the old image since build failed and tag unchanged
             $restoreCode = Start-Application
             if ($restoreCode -ne 0) {
                 return $restoreCode
@@ -593,6 +815,67 @@ function Update-Application {
     return 0
 }
 
+function FastUpdate-Application {
+    Write-Header "Fast Updating SMS Application (Cached Build)"
+
+    # Check if running
+    $status = Get-ContainerStatus
+    $wasRunning = $status -and $status.IsRunning
+
+    if ($wasRunning) {
+        Write-Info "Application is currently running"
+    }
+
+    # Create backup
+    Write-Host ""
+    if (-not (Backup-Database -Reason "before-fast-update")) {
+        Write-Error-Message "Backup failed. Fast update cancelled."
+        Write-Info "Please backup manually before updating"
+        return 1
+    }
+
+    # Stop if running
+    if ($wasRunning) {
+        Write-Host ""
+        Write-Info "Stopping current version..."
+        docker stop $CONTAINER_NAME 2>$null | Out-Null
+        docker rm $CONTAINER_NAME 2>$null | Out-Null
+        Write-Success "Stopped"
+    }
+
+    Write-Host ""
+    Write-Info "Building latest version (cached layers, --pull)..."
+    Write-Info "This may take a few minutes..."
+    Write-Host ""
+
+    docker build --pull -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error-Message "Build failed"
+        Write-Info "Check your Docker configuration and try again"
+
+        if ($wasRunning) {
+            Write-Host ""
+            Write-Info "Previous image still present; starting prior version (fast update build failed)..."
+            $restoreCode = Start-Application
+            if ($restoreCode -ne 0) { return $restoreCode }
+        }
+        return 1
+    }
+
+    Write-Success "Build completed"
+
+    Write-Host ""
+    Write-Info "Starting updated version..."
+    $startResult = Start-Application
+    if ($startResult -ne 0) { return $startResult }
+
+    Write-Host ""
+    Write-Success "Fast update completed successfully!"
+    Write-Info "Backup saved in: $BACKUPS_DIR"
+    return 0
+}
+
 function Start-Application {
     Write-Header "Starting SMS Application"
 
@@ -608,12 +891,37 @@ function Start-Application {
     if ($status -and $status.IsRunning) {
         if ($status.IsHealthy) {
             Write-Success "SMS is already running!"
-            Show-AccessInfo
+            
+            # Start monitoring if requested, even if app is already running
+            $monitoringStarted = $false
+            if ($WithMonitoring) {
+                Write-Host ""
+                Write-Info "Starting monitoring stack..."
+                if (Start-MonitoringStack -GrafanaPortOverride $GrafanaPort) {
+                    $monitoringStarted = $true
+                } else {
+                    Write-Warning "Failed to start monitoring stack, but main application is running"
+                }
+            }
+            
+            Show-AccessInfo -MonitoringEnabled $monitoringStarted
             return 0
         } else {
             Write-Info "SMS is starting up..."
             if (Wait-ForHealthy) {
-                Show-AccessInfo
+                # Start monitoring if requested
+                $monitoringStarted = $false
+                if ($WithMonitoring) {
+                    Write-Host ""
+                    Write-Info "Starting monitoring stack..."
+                    if (Start-MonitoringStack -GrafanaPortOverride $GrafanaPort) {
+                        $monitoringStarted = $true
+                    } else {
+                        Write-Warning "Failed to start monitoring stack, but main application is running"
+                    }
+                }
+                
+                Show-AccessInfo -MonitoringEnabled $monitoringStarted
                 return 0
             } else {
                 Write-Error-Message "Failed to start properly"
@@ -702,7 +1010,19 @@ function Start-Application {
 
         # Wait for health check
         if (Wait-ForHealthy) {
-            Show-AccessInfo
+            # Start monitoring if requested
+            $monitoringStarted = $false
+            if ($WithMonitoring) {
+                Write-Host ""
+                Write-Info "Starting monitoring stack..."
+                if (Start-MonitoringStack -GrafanaPortOverride $GrafanaPort) {
+                    $monitoringStarted = $true
+                } else {
+                    Write-Warning "Failed to start monitoring stack, but main application is running"
+                }
+            }
+            
+            Show-AccessInfo -MonitoringEnabled $monitoringStarted
             return 0
         } else {
             Write-Error-Message "Application did not start properly"
@@ -768,9 +1088,24 @@ if ($Backup) {
     }
 }
 
+if (($Update -and $UpdateNoCache) -or ($FastUpdate -and $UpdateNoCache)) {
+    Write-Error-Message "Cannot combine -Update / -FastUpdate with -UpdateNoCache. Choose one update mode."
+    Exit-Script -Code 1
+}
+
+if ($FastUpdate -and -not $Update) {
+    Write-Warning "-FastUpdate is deprecated. Use -Update instead. Proceeding with fast update..."
+    $Update = $true
+}
+
+if ($UpdateNoCache) {
+    $cleanCode = CleanUpdate-Application
+    Exit-Script -Code $cleanCode -OfferStop
+}
+
 if ($Update) {
-    $updateCode = Update-Application
-    Exit-Script -Code $updateCode -OfferStop
+    $fastCode = FastUpdate-Application
+    Exit-Script -Code $fastCode -OfferStop
 }
 
 # Default: Start

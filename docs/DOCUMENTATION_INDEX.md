@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-17
-**Version**: 1.6.5
+**Last Updated**: 2025-11-18
+**Version**: 1.7.0
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -22,8 +22,8 @@ Documentation is organized into three main directories:
 ### Getting Started
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
-- **[TODO.md](../TODO.md)** - Current task list and project roadmap (Updated 2025-01-18)
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
+- **[TODO.md](../TODO.md)** - Current task list and project roadmap
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-18)
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
 
 ### Installation & Deployment
@@ -31,6 +31,22 @@ Documentation is organized into three main directories:
 - **[INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)** - Step-by-step installation for Windows/Mac/Linux
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
+
+### Monitoring & Operations (NEW - v1.7.0)
+
+- **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
+  - On-demand vs eager activation modes
+  - Docker-only deployment constraints
+  - Security considerations and hardening
+  - Troubleshooting and performance impact
+- **[../monitoring/README.md](../monitoring/README.md)** - Monitoring quick reference
+  - Configuration for Prometheus, Grafana, Loki
+  - Alert rules and dashboard customization
+- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide
+- **[../backend/CONTROL_API.md](../backend/CONTROL_API.md)** - Control API documentation (Updated)
+  - Monitoring lifecycle endpoints
+  - Audit logging specifications
+  - Security considerations for control operations
 
 ### Performance & Optimization
 

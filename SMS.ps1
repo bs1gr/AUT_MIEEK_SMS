@@ -59,7 +59,10 @@ param(
     [switch]$Stop,
     [switch]$Restart,
     [switch]$Logs,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$WithMonitoring,
+    [switch]$MonitoringOnly,
+    [switch]$StopMonitoring
 )
 
 Set-StrictMode -Version Latest
@@ -441,7 +444,7 @@ function Stop-Containers {
     Write-Info "Stopping containers with docker compose..."
     Push-Location $scriptDir
     try {
-        $output = docker compose down 2>&1
+        docker compose down 2>&1 | Out-Null
 
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Containers stopped successfully"
@@ -449,7 +452,6 @@ function Stop-Containers {
         }
         else {
             Write-Error2 "Failed to stop containers"
-            Write-Host $output
             return $false
         }
     }
@@ -460,6 +462,205 @@ function Stop-Containers {
     finally {
         Pop-Location
     }
+}
+
+function Get-MonitoringStatus {
+    <#
+    .SYNOPSIS
+        Check monitoring stack status
+    #>
+
+    if (-not (Test-DockerRunning)) {
+        return @{
+            Running = $false
+            Containers = @()
+        }
+    }
+
+    try {
+        $containers = docker ps --filter "label=com.sms.component=monitoring" --format "{{.Names}}|{{.Status}}|{{.Ports}}" 2>$null
+
+        if ($LASTEXITCODE -ne 0 -or -not $containers) {
+            return @{
+                Running = $false
+                Containers = @()
+            }
+        }
+
+        $containerList = @()
+        foreach ($line in $containers) {
+            if ($line) {
+                $parts = $line -split '\|'
+                $containerList += @{
+                    Name = $parts[0]
+                    Status = $parts[1]
+                    Ports = if ($parts.Length -gt 2) { $parts[2] } else { "" }
+                    IsRunning = $parts[1] -match "Up"
+                }
+            }
+        }
+
+        return @{
+            Running = $containerList.Count -gt 0 -and ($containerList | Where-Object { $_.IsRunning }).Count -gt 0
+            Containers = $containerList
+        }
+    }
+    catch {
+        return @{
+            Running = $false
+            Containers = @()
+        }
+    }
+}
+
+function Start-MonitoringStack {
+    <#
+    .SYNOPSIS
+        Start monitoring stack (Prometheus, Grafana, Loki, etc.)
+    #>
+
+    Write-Header "Starting Monitoring Stack" "Magenta"
+
+    if (-not (Test-DockerRunning)) {
+        Write-Error2 "Docker Desktop is not running"
+        Write-Info "Please start Docker Desktop first"
+        return $false
+    }
+
+    # Check if docker-compose.monitoring.yml exists
+    $monitoringCompose = Join-Path $scriptDir "docker-compose.monitoring.yml"
+    if (-not (Test-Path $monitoringCompose)) {
+        Write-Error2 "Monitoring configuration not found: docker-compose.monitoring.yml"
+        Write-Info "Please ensure the monitoring stack is properly configured"
+        return $false
+    }
+
+    Write-Info "Starting monitoring services..."
+    Write-Info "  - Prometheus (metrics)"
+    Write-Info "  - Grafana (dashboards)"
+    Write-Info "  - Loki (logs)"
+    Write-Info "  - AlertManager (alerts)"
+    Write-Info "  - Node Exporter (system metrics)"
+    Write-Info "  - cAdvisor (container metrics)"
+
+    Push-Location $scriptDir
+    try {
+        docker compose -f docker-compose.monitoring.yml up -d 2>&1 | Out-Null
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Monitoring stack started successfully"
+            Write-Host ""
+            Write-Host "Access monitoring services:" -ForegroundColor Yellow
+            Write-Host "  Grafana:      " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:3000" -ForegroundColor Cyan -NoNewline
+            Write-Host " (admin/admin)" -ForegroundColor DarkGray
+            Write-Host "  Prometheus:   " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:9090" -ForegroundColor Cyan
+            Write-Host "  AlertManager: " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:9093" -ForegroundColor Cyan
+            Write-Host "  Metrics:      " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:8000/metrics" -ForegroundColor Cyan
+            Write-Host ""
+            return $true
+        }
+        else {
+            Write-Error2 "Failed to start monitoring stack"
+            return $false
+        }
+    }
+    catch {
+        Write-Error2 "Error starting monitoring: $($_.Exception.Message)"
+        return $false
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Stop-MonitoringStack {
+    <#
+    .SYNOPSIS
+        Stop monitoring stack
+    #>
+
+    Write-Header "Stopping Monitoring Stack" "Yellow"
+
+    if (-not (Test-DockerRunning)) {
+        Write-Warning2 "Docker Desktop is not running (monitoring already stopped)"
+        return $true
+    }
+
+    Write-Info "Stopping monitoring services..."
+    Push-Location $scriptDir
+    try {
+        docker compose -f docker-compose.monitoring.yml down 2>&1 | Out-Null
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Monitoring stack stopped successfully"
+            return $true
+        }
+        else {
+            Write-Error2 "Failed to stop monitoring stack"
+            return $false
+        }
+    }
+    catch {
+        Write-Error2 "Error stopping monitoring: $($_.Exception.Message)"
+        return $false
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Show-MonitoringStatus {
+    <#
+    .SYNOPSIS
+        Display monitoring stack status
+    #>
+
+    Write-Header "Monitoring Stack Status" "Magenta"
+
+    $status = Get-MonitoringStatus
+
+    if (-not (Test-DockerRunning)) {
+        Write-Error2 "Docker Desktop is not running"
+        return
+    }
+
+    if ($status.Containers.Count -eq 0) {
+        Write-Warning2 "No monitoring containers found"
+        Write-Info "Run '.\SMS.ps1 -WithMonitoring' to start with monitoring"
+        Write-Info "Or run '.\SMS.ps1 -MonitoringOnly' to start monitoring only"
+    }
+    else {
+        Write-Host "Monitoring Services:" -ForegroundColor Yellow
+        foreach ($container in $status.Containers) {
+            $statusColor = if ($container.IsRunning) { "Green" } else { "Red" }
+            $statusIcon = if ($container.IsRunning) { "✓" } else { "✗" }
+
+            $serviceName = $container.Name -replace '^sms-', ''
+            Write-Host "  $statusIcon " -ForegroundColor $statusColor -NoNewline
+            Write-Host $serviceName -ForegroundColor White
+            Write-Host "     Status: " -ForegroundColor Gray -NoNewline
+            Write-Host "$($container.Status)" -ForegroundColor $statusColor
+        }
+
+        Write-Host ""
+
+        $runningContainers = $status.Containers | Where-Object { $_.IsRunning }
+        if ($runningContainers.Count -gt 0) {
+            Write-Host "Access URLs:" -ForegroundColor Yellow
+            Write-Host "  Grafana:      " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:3000" -ForegroundColor Cyan
+            Write-Host "  Prometheus:   " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:9090" -ForegroundColor Cyan
+            Write-Host "  AlertManager: " -ForegroundColor Gray -NoNewline
+            Write-Host "http://localhost:9093" -ForegroundColor Cyan
+        }
+    }
+
+    Write-Host ""
 }
 
 function Restart-Containers {
@@ -559,28 +760,44 @@ function Show-Help {
     Write-Header "Student Management System v$version - Help" "Cyan"
 
     Write-Host @"
-Docker-only Release - Simple Container Management
+Docker-only Release - Simple Container Management + Monitoring
 
 USAGE:
   .\SMS.ps1 [OPTIONS]
 
 OPTIONS:
   -Quick              Start containers immediately
-  -Status             Show container status
-  -Stop               Stop all containers
+  -WithMonitoring     Start containers with monitoring stack
+  -MonitoringOnly     Start monitoring stack only
+  -Status             Show container and monitoring status
+  -Stop               Stop all containers (app + monitoring)
+  -StopMonitoring     Stop monitoring stack only
   -Restart            Restart all containers
   -Logs               Show backend container logs
   -Help               Show this help message
 
 EXAMPLES:
-  .\SMS.ps1                    # Interactive mode (show status)
-  .\SMS.ps1 -Quick             # Quick start
-  .\SMS.ps1 -Stop              # Stop containers
-  .\SMS.ps1 -Restart           # Restart containers
-  .\SMS.ps1 -Logs              # View logs
+  .\SMS.ps1                        # Interactive mode (show status)
+  .\SMS.ps1 -Quick                 # Quick start (app only)
+  .\SMS.ps1 -WithMonitoring        # Start app + monitoring
+  .\SMS.ps1 -MonitoringOnly        # Start monitoring only
+  .\SMS.ps1 -Stop                  # Stop everything
+  .\SMS.ps1 -StopMonitoring        # Stop monitoring only
+  .\SMS.ps1 -Restart               # Restart containers
+  .\SMS.ps1 -Logs                  # View logs
 
 FIRST TIME SETUP:
-  .\SMART_SETUP.ps1            # Initialize and start the system
+  .\SMART_SETUP.ps1                # Initialize and start the system
+  .\SMART_SETUP.ps1 -WithMonitoring # Initialize with monitoring
+
+MONITORING STACK:
+  When started, provides:
+  • Grafana Dashboard:   http://localhost:3000 (admin/admin)
+  • Prometheus Metrics:  http://localhost:9090
+  • AlertManager:        http://localhost:9093
+  • Application Metrics: http://localhost:8000/metrics
+
+  See MONITORING_QUICKSTART.md for setup guide
 
 ADVANCED OPERATIONS:
   • Database Backup/Restore
@@ -598,8 +815,14 @@ DOCKER COMMANDS (Direct):
   docker compose logs -f       # Follow logs
   docker ps                    # List containers
 
+  # Monitoring
+  docker compose -f docker-compose.monitoring.yml up -d    # Start monitoring
+  docker compose -f docker-compose.monitoring.yml down     # Stop monitoring
+
 SUPPORT:
   • Documentation: ./docs/
+  • Monitoring Guide: ./docs/operations/MONITORING.md
+  • Quick Start: ./MONITORING_QUICKSTART.md
   • Issues: GitHub repository
   • Version: $version
 
@@ -629,12 +852,26 @@ if ($Help) {
 
 if ($ShowStatus) {
     Show-Status
+    Show-MonitoringStatus
     exit 0
+}
+
+if ($StopMonitoring) {
+    $success = Stop-MonitoringStack
+    exit $(if ($success) { 0 } else { 1 })
 }
 
 if ($Stop) {
     $nativeSuccess = Stop-NativeProcesses
     $dockerSuccess = Stop-Containers
+
+    # Also stop monitoring if it's running
+    $monitoringStatus = Get-MonitoringStatus
+    if ($monitoringStatus.Running) {
+        Write-Host ""
+        $null = Stop-MonitoringStack
+    }
+
     $overall = $nativeSuccess -and $dockerSuccess
     exit $(if ($overall) { 0 } else { 1 })
 }
@@ -644,8 +881,24 @@ if ($Restart) {
     exit $(if ($success) { 0 } else { 1 })
 }
 
-if ($Quick) {
+if ($MonitoringOnly) {
+    $success = Start-MonitoringStack
+    if ($success) {
+        Write-Host ""
+        Show-MonitoringStatus
+    }
+    exit $(if ($success) { 0 } else { 1 })
+}
+
+if ($Quick -or $WithMonitoring) {
     $success = Start-Containers
+
+    if ($success -and $WithMonitoring) {
+        Write-Host ""
+        $monSuccess = Start-MonitoringStack
+        $success = $success -and $monSuccess
+    }
+
     exit $(if ($success) { 0 } else { 1 })
 }
 
@@ -657,11 +910,20 @@ if ($Logs) {
 # Interactive mode (default)
 Show-Status
 
+# Also show monitoring status if any monitoring containers exist
+$monitoringStatus = Get-MonitoringStatus
+if ($monitoringStatus.Containers.Count -gt 0) {
+    Show-MonitoringStatus
+}
+
 Write-Host ""
 Write-Host "Quick Commands:" -ForegroundColor Yellow
-Write-Host "  .\SMS.ps1 -Quick     # Start containers" -ForegroundColor Gray
-Write-Host "  .\SMS.ps1 -Stop      # Stop containers + native dev servers" -ForegroundColor Gray
-Write-Host "  .\SMS.ps1 -Restart   # Restart containers" -ForegroundColor Gray
-Write-Host "  .\SMS.ps1 -Logs      # View logs" -ForegroundColor Gray
-Write-Host "  .\SMS.ps1 -Help      # Full help" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Quick            # Start containers" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -WithMonitoring   # Start with monitoring stack" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -MonitoringOnly   # Start monitoring only" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Stop             # Stop everything" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -StopMonitoring   # Stop monitoring only" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Restart          # Restart containers" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Logs             # View logs" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Help             # Full help" -ForegroundColor Gray
 Write-Host ""

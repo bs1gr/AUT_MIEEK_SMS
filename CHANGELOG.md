@@ -8,7 +8,60 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
-- _Nothing yet. Start your entry here._
+- **On-Demand Monitoring Activation**: Monitoring stack can now be started lazily from Power page (`/power`) or via Control API endpoints (`/control/api/monitoring/*`), reducing initial resource footprint
+  - New Power page at `/power` with tabbed interface for embedded Grafana dashboards, Prometheus explorer, and Loki logs
+  - Monitoring control endpoints: `/monitoring/status` (GET), `/monitoring/start` (POST), `/monitoring/stop` (POST)
+  - Lazy-loading iframe strategy: dashboards load only when tab is first selected
+  - Start/stop monitoring button with loading states and health checks
+  - Backward-compatible eager mode: `RUN.ps1 -WithMonitoring` still starts monitoring immediately
+  
+- **Audit Logging for Monitoring Lifecycle**: Structured logging for all monitoring operations
+  - Actions logged: `monitoring_start_requested`, `monitoring_start_success`, `monitoring_start_error`, `monitoring_stop_requested`, `monitoring_stop_success`, `monitoring_stop_error`
+  - Extra metadata: `request_id`, `client_host`, `services` array in all monitoring lifecycle logs
+  - Documented in `backend/CONTROL_API.md` with audit logging table
+
+- **Enhanced RUN.ps1 Update Workflow**:
+  - New `-Update` flag: Fast update with cached Docker build (default)
+  - New `-UpdateNoCache` flag: Clean update with cache pruning and `--no-cache` rebuild
+  - Deprecated `-FastUpdate`: Now an alias for `-Update` with deprecation warning
+  - Mutual exclusivity checks prevent conflicting flags
+  - Automatic backup creation before all updates
+  
+- **SMS.ps1 Management Enhancements**:
+  - Interactive menu system for application management
+  - Status checking with monitoring stack awareness
+  - Unified stop functionality (handles both containers and processes)
+  - Diagnostic tools integration
+  - Backup management interface
+
+- **Monitoring Documentation Suite**:
+  - `docs/MONITORING_ARCHITECTURE.md`: Comprehensive architecture guide with deployment modes, security considerations, and troubleshooting
+  - `monitoring/README.md`: Quick reference for monitoring configuration
+  - Security hardening checklist for production deployments
+  - Performance impact analysis and resource usage metrics
+
+### Changed
+
+- **Control API Documentation**: Extended `backend/CONTROL_API.md` with monitoring endpoints, audit logging details, and security considerations
+- **README.md**: Updated with monitoring features, new RUN.ps1 flags, and lazy activation workflow
+- **Frontend Localization**: Added monitoring control translations (EN/EL) for control panel UI
+- **Power Page Authentication**: Integrated with existing auth system, redirects to login if unauthenticated
+- **Markdown Documentation**: Fixed all lint issues across monitoring documentation (blank lines, fenced code languages, URL formatting)
+
+### Fixed
+
+- **Rate Limiting**: Applied heavy rate limits to monitoring start/stop endpoints (5 requests/minute) to prevent abuse
+- **Container Safety**: Monitoring start/stop blocked when executed from inside Docker container (host-only operations)
+- **Documentation Consistency**: All monitoring-related docs now follow consistent formatting standards
+
+### Security
+
+- **Monitoring Endpoint Protection**:
+  - Host-only execution enforced (cannot start/stop from within container)
+  - Rate limiting prevents rapid toggling attacks
+  - Audit logging tracks all monitoring lifecycle events
+  - Documentation includes security hardening checklist for production
+  - Default credentials warning for Grafana (admin/admin must be changed)
 
 ## [1.6.5] - 2025-11-17
 

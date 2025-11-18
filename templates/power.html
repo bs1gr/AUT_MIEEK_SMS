@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Power - Monitoring Dashboards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .header {
+            background: #2a2a2a;
+            padding: 15px 30px;
+            border-bottom: 2px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4fc3f7;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #3a3a3a;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            background: #4a4a4a;
+            color: #e0e0e0;
+        }
+        
+        .tab.active {
+            background: #4fc3f7;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        .dashboard-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dashboard-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        
+        .dashboard-frame.active {
+            display: block;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4fc3f7;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-banner {
+            background: #2a2a2a;
+            padding: 10px 30px;
+            border-top: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .links a {
+            color: #4fc3f7;
+            text-decoration: none;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-running {
+            background-color: #4caf50;
+        }
+        
+        .status-stopped {
+            background-color: #f44336;
+        }
+        
+        .status-loading {
+            background-color: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .info-message {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .info-message h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+        
+        .info-message button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #4fc3f7;
+            border: none;
+            border-radius: 5px;
+            color: #1a1a1a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .info-message button:hover {
+            background: #6fd6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 SMS Power - Monitoring & Analytics</h1>
+            <div class="tabs">
+                <button class="tab active" data-dashboard="health">Application Health</button>
+                <button class="tab" data-dashboard="infrastructure">Infrastructure</button>
+                <button class="tab" data-dashboard="logs">Application Logs</button>
+                <button class="tab" data-dashboard="prometheus">Prometheus</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-container">
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading dashboard...</p>
+            </div>
+            
+            <iframe 
+                class="dashboard-frame active" 
+                id="health-frame" 
+                data-src=""
+                data-dashboard="sms-app-health/sms-application-health"
+                data-refresh="30s"
+                title="Application Health Dashboard">
+            </iframe>
+            
+            <iframe 
+                class="dashboard-frame" 
+                id="infrastructure-frame" 
+                data-src=""
+                data-dashboard="sms-infrastructure/sms-infrastructure"
+                data-refresh="30s"
+                title="Infrastructure Dashboard">
+            </iframe>
+            
+            <iframe 
+                class="dashboard-frame" 
+                id="logs-frame" 
+                data-src=""
+                data-dashboard="sms-logs/sms-application-logs"
+                data-refresh="10s"
+                title="Application Logs Dashboard">
+            </iframe>
+            
+            <iframe 
+                class="dashboard-frame" 
+                id="prometheus-frame" 
+                data-src=""
+                data-service="prometheus"
+                title="Prometheus Metrics Explorer">
+            </iframe>
+        </div>
+        
+        <div class="info-banner">
+            <span>
+                <span class="status-indicator status-stopped" id="monitoring-status"></span>
+                <span id="status-text">Monitoring Stack: Not Started</span>
+            </span>
+            <div class="links">
+                <a id="link-start-monitoring">Start Monitoring</a>
+                <a id="link-grafana" style="display:none;">Open Grafana</a>
+                <a id="link-prometheus" style="display:none;">Open Prometheus</a>
+                <a id="link-docs" target="_blank" rel="noopener">API Docs</a>
+                <a id="link-app" target="_blank" rel="noopener">Main App</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Detect ports from current environment (default to standard ports)
+        const currentHost = window.location.hostname;
+        const grafanaPort = 3000;  // Standard Grafana port
+        const prometheusPort = 9090;  // Standard Prometheus port
+        const appPort = window.location.port || 8080;
+        
+        // Build URLs based on environment
+        const GRAFANA_URL = `http://${currentHost}:${grafanaPort}`;
+        const PROMETHEUS_URL = `http://${currentHost}:${prometheusPort}`;
+        const APP_URL = `${window.location.protocol}//${currentHost}:${appPort}`;
+        const CONTROL_API = `${APP_URL}/control/api`;
+        
+        // Initialize dashboard frames with dynamic URLs
+        document.querySelectorAll('.dashboard-frame').forEach(frame => {
+            if (frame.dataset.dashboard) {
+                // Grafana dashboard
+                const refresh = frame.dataset.refresh || '30s';
+                frame.dataset.src = `${GRAFANA_URL}/d/${frame.dataset.dashboard}?orgId=1&refresh=${refresh}&kiosk=tv`;
+            } else if (frame.dataset.service === 'prometheus') {
+                // Prometheus metrics explorer
+                frame.dataset.src = `${PROMETHEUS_URL}/graph`;
+            }
+        });
+        
+        // Update quick links
+        document.getElementById('link-grafana').onclick = () => openServiceLink('grafana');
+        document.getElementById('link-prometheus').onclick = () => openServiceLink('prometheus');
+        document.getElementById('link-docs').href = `${APP_URL}/docs`;
+        document.getElementById('link-app').href = APP_URL;
+        
+        // State management
+        let monitoringRunning = false;
+        let checkingStatus = false;
+        
+        // Check monitoring status
+        async function checkMonitoringStatus() {
+            if (checkingStatus) return;
+            checkingStatus = true;
+            
+            try {
+                const response = await fetch(`${CONTROL_API}/monitoring/status`);
+                const data = await response.json();
+                
+                if (data.running) {
+                    monitoringRunning = true;
+                    updateUI('running');
+                } else {
+                    monitoringRunning = false;
+                    updateUI('stopped');
+                }
+            } catch (error) {
+                console.error('Failed to check monitoring status:', error);
+                updateUI('error');
+            } finally {
+                checkingStatus = false;
+            }
+        }
+        
+        // Update UI based on monitoring status
+        function updateUI(status) {
+            const indicator = document.getElementById('monitoring-status');
+            const statusText = document.getElementById('status-text');
+            const startBtn = document.getElementById('link-start-monitoring');
+            const grafanaLink = document.getElementById('link-grafana');
+            const prometheusLink = document.getElementById('link-prometheus');
+            const dashboardContainer = document.querySelector('.dashboard-container');
+            const tabs = document.querySelector('.tabs');
+            
+            if (status === 'running') {
+                indicator.className = 'status-indicator status-running';
+                statusText.textContent = 'Monitoring Stack: Running';
+                startBtn.style.display = 'none';
+                grafanaLink.style.display = 'inline';
+                prometheusLink.style.display = 'inline';
+                tabs.style.display = 'flex';
+                dashboardContainer.style.display = 'block';
+                
+                // Load first dashboard if not loaded
+                const firstFrame = document.querySelector('.dashboard-frame.active');
+                if (firstFrame && !firstFrame.src && firstFrame.dataset.src) {
+                    firstFrame.src = firstFrame.dataset.src;
+                }
+            } else if (status === 'loading') {
+                indicator.className = 'status-indicator status-loading';
+                statusText.textContent = 'Monitoring Stack: Starting...';
+                startBtn.style.display = 'none';
+            } else if (status === 'error') {
+                indicator.className = 'status-indicator status-stopped';
+                statusText.textContent = 'Monitoring Stack: Error';
+                startBtn.style.display = 'inline';
+                grafanaLink.style.display = 'none';
+                prometheusLink.style.display = 'none';
+                tabs.style.display = 'none';
+                showMessage('Error', 'Failed to check monitoring status. Please try again.');
+            } else {
+                // stopped
+                indicator.className = 'status-indicator status-stopped';
+                statusText.textContent = 'Monitoring Stack: Not Started';
+                startBtn.style.display = 'inline';
+                grafanaLink.style.display = 'none';
+                prometheusLink.style.display = 'none';
+                tabs.style.display = 'none';
+                showMessage('Monitoring Not Started', 'Click "Start Monitoring" to launch Grafana, Prometheus, and Loki services.');
+            }
+        }
+        
+        // Show message in dashboard container
+        function showMessage(title, message) {
+            const container = document.querySelector('.dashboard-container');
+            container.innerHTML = `
+                <div class="info-message">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // Start monitoring stack
+        async function startMonitoring() {
+            updateUI('loading');
+            
+            try {
+                const response = await fetch(`${CONTROL_API}/monitoring/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Wait a moment for services to start
+                    setTimeout(() => {
+                        checkMonitoringStatus();
+                    }, 3000);
+                } else {
+                    const error = await response.json();
+                    console.error('Failed to start monitoring:', error);
+                    alert(`Failed to start monitoring: ${error.detail || 'Unknown error'}`);
+                    updateUI('stopped');
+                }
+            } catch (error) {
+                console.error('Error starting monitoring:', error);
+                alert('Error starting monitoring. Check console for details.');
+                updateUI('stopped');
+            }
+        }
+        
+        // Open service link (starts monitoring if needed)
+        async function openServiceLink(service) {
+            if (!monitoringRunning) {
+                if (confirm(`Monitoring is not running. Start it now?`)) {
+                    await startMonitoring();
+                    // Wait for services to start before opening
+                    setTimeout(() => {
+                        if (monitoringRunning) {
+                            window.open(service === 'grafana' ? GRAFANA_URL : PROMETHEUS_URL, '_blank');
+                        }
+                    }, 5000);
+                }
+            } else {
+                window.open(service === 'grafana' ? GRAFANA_URL : PROMETHEUS_URL, '_blank');
+            }
+        }
+        
+        // Initialize dashboard switching
+        const tabs = document.querySelectorAll('.tab');
+        const frames = document.querySelectorAll('.dashboard-frame');
+        const loading = document.getElementById('loading');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (!monitoringRunning) {
+                    alert('Please start monitoring first');
+                    return;
+                }
+                
+                const dashboard = tab.dataset.dashboard;
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active frame
+                frames.forEach(frame => {
+                    frame.classList.remove('active');
+                    if (frame.id === `${dashboard}-frame`) {
+                        frame.classList.add('active');
+                        // Lazy load iframe if not loaded yet
+                        if (!frame.src && frame.dataset.src) {
+                            loading.style.display = 'block';
+                            frame.src = frame.dataset.src;
+                            frame.onload = () => {
+                                loading.style.display = 'none';
+                            };
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Set up start monitoring button
+        document.getElementById('link-start-monitoring').onclick = startMonitoring;
+        
+        // Hide tabs and dashboards initially
+        document.querySelector('.tabs').style.display = 'none';
+        
+        // Check status on load
+        checkMonitoringStatus();
+        
+        // Check status periodically
+        setInterval(checkMonitoringStatus, 30000);
+        
+        console.log('📊 SMS Power Dashboard loaded');
+        console.log('🔒 Monitoring stack hidden by default - click "Start Monitoring" to launch');
+    </script>
+</body>
+</html>

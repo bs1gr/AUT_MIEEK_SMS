@@ -28,6 +28,7 @@ from importlib import metadata as importlib_metadata  # Python 3.8+
 # Rate limiting for new endpoints (honors project guidance)
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
+from backend.config import get_settings
 
 _limiter, _RATE_LIMIT_HEAVY, _RATE_LIMIT_READ = import_names(
     "rate_limiting", "limiter", "RATE_LIMIT_HEAVY", "RATE_LIMIT_READ"
@@ -36,6 +37,30 @@ _limiter, _RATE_LIMIT_HEAVY, _RATE_LIMIT_READ = import_names(
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/control/api", tags=["Control Panel"])
+
+# ============================================================================
+# Constants
+# ============================================================================
+
+# Timeout values (in seconds)
+TIMEOUT_PORT_CHECK = 0.5
+TIMEOUT_COMMAND_SHORT = 5  # For quick commands like --version
+TIMEOUT_COMMAND_MEDIUM = 10  # For medium operations
+TIMEOUT_DOCKER_STOP = 120  # 2 minutes for docker stop
+TIMEOUT_DOCKER_DOWN = 180  # 3 minutes for docker down
+TIMEOUT_NPM_INSTALL = 300  # 5 minutes for npm install
+TIMEOUT_PIP_INSTALL = 300  # 5 minutes for pip install
+TIMEOUT_DOCKER_BUILD = 600  # 10 minutes for docker build
+
+# Port ranges
+BACKEND_PORTS = [8000, 8001, 8002]
+FRONTEND_PORTS = [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+COMMON_DEV_PORTS = [8000, 8080, 5173]
+
+# Monitoring service ports
+GRAFANA_PORT = 3000
+PROMETHEUS_PORT = 9090
+LOKI_PORT = 3100
 
 # ============================================================================
 # Pydantic Models
@@ -106,15 +131,24 @@ class OperationResult(BaseModel):
 # ============================================================================
 # Helper Functions
 def _in_docker_container() -> bool:
-    # Heuristic: check for /.dockerenv or cgroup mentioning 'docker'
+    """
+    Detect if running inside a Docker container.
+
+    Uses platform-specific checks to avoid errors on non-Linux systems.
+    """
+    # Check for .dockerenv file (works on all platforms)
     if os.path.exists("/.dockerenv"):
         return True
-    try:
-        with open("/proc/1/cgroup", "rt") as f:
-            if "docker" in f.read():
-                return True
-    except Exception:
-        pass
+
+    # Check cgroup (Linux only)
+    if sys.platform != "win32":
+        try:
+            with open("/proc/1/cgroup", "rt") as f:
+                if "docker" in f.read():
+                    return True
+        except Exception:
+            pass
+
     return False
 
 
@@ -122,9 +156,18 @@ def _in_docker_container() -> bool:
 
 
 def _is_port_open(port: int, host: str = "127.0.0.1") -> bool:
-    """Check if a port is open"""
+    """
+    Check if a TCP port is open and accepting connections.
+
+    Args:
+        port: Port number to check
+        host: Host address to check (default: 127.0.0.1)
+
+    Returns:
+        True if port is open, False otherwise
+    """
     try:
-        with socket.create_connection((host, port), timeout=0.5):
+        with socket.create_connection((host, port), timeout=TIMEOUT_PORT_CHECK):
             return True
     except OSError:
         return False
@@ -164,14 +207,28 @@ def _run_command(cmd: List[str], timeout: int = 30) -> tuple[bool, str, str]:
 
 
 def _check_docker_running() -> bool:
-    """Check if Docker Desktop is running"""
-    success, _, _ = _run_command(["docker", "info"], timeout=5)
+    """
+    Check if Docker daemon is running and accessible.
+
+    Returns:
+        True if Docker is running, False otherwise
+    """
+    success, _, _ = _run_command(["docker", "info"], timeout=TIMEOUT_COMMAND_SHORT)
     return success
 
 
 def _docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60) -> tuple[bool, str, str]:
-    """Run a docker compose command with robust handling.
-    Returns (ok, stdout, stderr)."""
+    """
+    Run a docker compose command with robust error handling.
+
+    Args:
+        cmd: Docker compose command arguments (e.g., ['up', '-d'])
+        cwd: Working directory for the command
+        timeout: Command timeout in seconds (default: 60)
+
+    Returns:
+        Tuple of (success, stdout, stderr)
+    """
     args = ["docker", "compose"] + cmd
     try:
         result = subprocess.run(
@@ -183,10 +240,23 @@ def _docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 6
             encoding="utf-8",
             errors="replace",
         )
-        return result.returncode == 0, result.stdout, result.stderr
+        success = result.returncode == 0
+
+        # Improved error context for debugging
+        if not success and result.stderr:
+            logger.warning(f"Docker compose {' '.join(cmd)} failed: {result.stderr[:200]}")
+
+        return success, result.stdout, result.stderr
     except subprocess.TimeoutExpired:
-        return False, "", f"docker compose {' '.join(cmd)} timed out after {timeout}s"
+        error_msg = f"docker compose {' '.join(cmd)} timed out after {timeout}s"
+        logger.error(error_msg)
+        return False, "", error_msg
+    except FileNotFoundError:
+        error_msg = "Docker or docker compose not found in PATH"
+        logger.error(error_msg)
+        return False, "", error_msg
     except Exception as e:
+        logger.error(f"Unexpected error running docker compose: {e}")
         return False, "", str(e)
 
 
@@ -213,7 +283,7 @@ def _create_unique_volume(base_name: str) -> str:
 
 def _check_node_installed() -> tuple[bool, Optional[str]]:
     """Check if Node.js is installed and get version"""
-    success, stdout, _ = _run_command(["node", "--version"], timeout=5)
+    success, stdout, _ = _run_command(["node", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
     if success:
         return True, stdout.strip()
     return False, None
@@ -221,7 +291,7 @@ def _check_node_installed() -> tuple[bool, Optional[str]]:
 
 def _check_npm_installed() -> tuple[bool, Optional[str]]:
     """Check if npm is installed and get version"""
-    success, stdout, _ = _run_command(["npm", "--version"], timeout=5)
+    success, stdout, _ = _run_command(["npm", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
     if success:
         return True, stdout.strip()
     return False, None
@@ -229,7 +299,7 @@ def _check_npm_installed() -> tuple[bool, Optional[str]]:
 
 def _check_docker_version() -> Optional[str]:
     """Get Docker version"""
-    success, stdout, _ = _run_command(["docker", "--version"], timeout=5)
+    success, stdout, _ = _run_command(["docker", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
     if success:
         return stdout.strip()
     return None
@@ -564,7 +634,7 @@ async def check_ports():
     Check port usage for common application ports
     Similar to DEBUG_PORTS.ps1
     """
-    ports_to_check = [8000, 8001, 8002, 5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180]
+    ports_to_check = BACKEND_PORTS + FRONTEND_PORTS
     results = []
 
     for port in ports_to_check:
@@ -640,11 +710,11 @@ async def get_environment_info(include_packages: bool = False):
     # Git revision/tag (best effort)
     git_revision: Optional[str] = None
     try:
-        ok, out, _ = _run_command(["git", "describe", "--tags", "--always", "--dirty"], timeout=3)
+        ok, out, _ = _run_command(["git", "describe", "--tags", "--always", "--dirty"], timeout=TIMEOUT_COMMAND_SHORT)
         if ok:
             git_revision = out.strip()
         else:
-            ok2, out2, _ = _run_command(["git", "rev-parse", "--short", "HEAD"], timeout=3)
+            ok2, out2, _ = _run_command(["git", "rev-parse", "--short", "HEAD"], timeout=TIMEOUT_COMMAND_SHORT)
             if ok2:
                 git_revision = out2.strip()
     except Exception:
@@ -710,7 +780,7 @@ async def exit_all(down: bool = False):
     docker_performed = False
     if not _in_docker_container() and _check_docker_running():
         project_root = Path(__file__).parent.parent.parent
-        ok_s, out_s, err_s = _docker_compose(["stop"], cwd=project_root, timeout=120)
+        ok_s, out_s, err_s = _docker_compose(["stop"], cwd=project_root, timeout=TIMEOUT_DOCKER_STOP)
         details.update(
             {
                 "docker_stop_ok": ok_s,
@@ -720,7 +790,7 @@ async def exit_all(down: bool = False):
         )
         docker_performed = True
         if down:
-            ok_d, out_d, err_d = _docker_compose(["down"], cwd=project_root, timeout=180)
+            ok_d, out_d, err_d = _docker_compose(["down"], cwd=project_root, timeout=TIMEOUT_DOCKER_DOWN)
             details.update(
                 {
                     "docker_down_ok": ok_d,
@@ -875,7 +945,7 @@ async def download_database_backup(request: Request, backup_filename: str):
         target_path = (backup_dir / backup_filename).resolve()
 
         # Prevent directory traversal by ensuring path stays within backup_dir
-        if backup_dir not in target_path.parents and target_path != backup_dir:
+        if not target_path.is_relative_to(backup_dir):
             raise http_error(
                 400,
                 ErrorCode.CONTROL_BACKUP_NOT_FOUND,
@@ -1075,7 +1145,7 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
                 continue
             seen.add(name)
             p = (backup_dir / name).resolve()
-            if (backup_dir not in p.parents) or (not p.exists()):
+            if (not p.is_relative_to(backup_dir)) or (not p.exists()):
                 continue
             selected.append(p)
 
@@ -1137,7 +1207,7 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
                 continue
             seen.add(name)
             p = (backup_dir / name).resolve()
-            if (backup_dir not in p.parents) or (not p.exists()):
+            if (not p.is_relative_to(backup_dir)) or (not p.exists()):
                 continue
             selected.append(p)
         if not selected:
@@ -1274,7 +1344,7 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
         source_path = (backup_dir / backup_filename).resolve()
 
         # Validate source path
-        if backup_dir not in source_path.parents and source_path != backup_dir:
+        if not source_path.is_relative_to(backup_dir):
             raise http_error(
                 400,
                 ErrorCode.CONTROL_BACKUP_NOT_FOUND,
@@ -1421,7 +1491,7 @@ async def run_troubleshooter():
     results = []
 
     # Check 1: Port conflicts
-    common_ports = [8000, 8080, 5173]
+    common_ports = COMMON_DEV_PORTS
     for port in common_ports:
         if _is_port_open(port):
             proc_info = _get_process_on_port(port)
@@ -1610,7 +1680,7 @@ async def install_frontend_deps(request: Request):
     try:
         success, stdout, stderr = _run_command(
             ["npm", "install"],
-            timeout=300,  # 5 minutes for npm install
+            timeout=TIMEOUT_NPM_INSTALL,
         )
 
         if success:
@@ -1664,7 +1734,7 @@ async def install_backend_deps(request: Request):
 
     # Check if pip is available (should be, since we're running Python)
     try:
-        success, stdout, stderr = _run_command(["pip", "--version"], timeout=5)
+        success, stdout, stderr = _run_command(["pip", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
         if not success:
             raise http_error(
                 400,
@@ -1687,7 +1757,7 @@ async def install_backend_deps(request: Request):
     try:
         success, stdout, stderr = _run_command(
             ["pip", "install", "-r", str(requirements_file)],
-            timeout=300,  # 5 minutes for pip install
+            timeout=TIMEOUT_PIP_INSTALL,
         )
 
         if success:
@@ -1742,7 +1812,7 @@ async def docker_build(request: Request):
         success, stdout, stderr = _docker_compose(
             ["build", "--no-cache"],
             cwd=project_root,
-            timeout=600,  # 10 minutes for docker build
+            timeout=TIMEOUT_DOCKER_BUILD,
         )
 
         if success:
@@ -1813,50 +1883,6 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
             request,
             context={"filename": file.filename},
         )
-    return OperationResult(
-        success=True,
-        message="Database uploaded successfully",
-        details={"filename": dest_filename},
-    )
-    """
-    Upload a new SQLite .db file and save it to backups/database/.
-    Returns the saved filename for use with restore endpoint.
-    """
-    from pathlib import Path
-    import shutil
-
-    # Validate file extension
-    if not file.filename or not file.filename.lower().endswith(".db"):
-        raise http_error(
-            400,
-            ErrorCode.CONTROL_INVALID_FILE_TYPE,
-            "Only .db files are allowed",
-            request,
-            context={"filename": file.filename},
-        )
-    # Save to backups/database with unique name
-    backups_dir = Path(__file__).parent.parent.parent / "backups" / "database"
-    backups_dir.mkdir(parents=True, exist_ok=True)
-    # Use timestamp to avoid collisions
-    import datetime
-
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    dest_filename = f"uploaded_{timestamp}_{file.filename}"
-    dest_path = backups_dir / dest_filename
-    with dest_path.open("wb") as out_file:
-        shutil.copyfileobj(file.file, out_file)
-    # Optionally, validate it's a SQLite file (magic header)
-    with dest_path.open("rb") as check_file:
-        header = check_file.read(16)
-        if not header.startswith(b"SQLite format 3"):
-            dest_path.unlink(missing_ok=True)
-            raise http_error(
-                400,
-                ErrorCode.CONTROL_INVALID_FILE_TYPE,
-                "Uploaded file is not a valid SQLite database",
-                request,
-                context={"filename": file.filename},
-            )
     return OperationResult(
         success=True,
         message="Database uploaded successfully",
@@ -1957,3 +1983,251 @@ async def restart_backend(request: Request):
             "timestamp": datetime.now().isoformat(),
         },
     )
+
+
+# ========== MONITORING STACK CONTROL ==========
+
+@router.get("/monitoring/status", response_model=Dict[str, Any])
+async def get_monitoring_status(request: Request):
+    """
+    Get status of monitoring stack (Grafana, Prometheus, Loki).
+    Returns whether each service is running and accessible.
+    """
+    logger.info("Monitoring status check requested")
+    
+    # Check if Docker is available
+    if not _check_docker_running():
+        return {
+            "available": False,
+            "message": "Docker is not running",
+            "services": {}
+        }
+    
+    # Check monitoring compose file
+    monitoring_compose = Path("docker-compose.monitoring.yml")
+    if not monitoring_compose.exists():
+        return {
+            "available": False,
+            "message": "Monitoring compose file not found",
+            "services": {}
+        }
+    
+    # Check if monitoring containers are running
+    success, stdout, stderr = _docker_compose(["ps", "--services", "--filter", "status=running"], timeout=TIMEOUT_COMMAND_MEDIUM)
+
+    # Get monitoring URLs from configuration
+    settings = get_settings()
+
+    services_status = {
+        "grafana": {
+            "running": False,
+            "url": settings.GRAFANA_URL,
+            "port": GRAFANA_PORT
+        },
+        "prometheus": {
+            "running": False,
+            "url": settings.PROMETHEUS_URL,
+            "port": PROMETHEUS_PORT
+        },
+        "loki": {
+            "running": False,
+            "url": settings.LOKI_URL,
+            "port": LOKI_PORT
+        }
+    }
+    
+    if success:
+        running_services = stdout.strip().split("\n") if stdout.strip() else []
+        for service in running_services:
+            if service in services_status:
+                services_status[service]["running"] = True
+    
+    any_running = any(s["running"] for s in services_status.values())
+    
+    return {
+        "available": True,
+        "running": any_running,
+        "services": services_status,
+        "compose_file": str(monitoring_compose.absolute())
+    }
+
+
+@router.post("/monitoring/start", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def start_monitoring_stack(request: Request):
+    """
+    Start the monitoring stack (Grafana, Prometheus, Loki).
+    Can only be executed from Docker host, not from within container.
+    """
+    logger.info(
+        "Monitoring stack start requested",
+        extra={
+            "action": "monitoring_start_requested",
+            "request_id": getattr(request.state, "request_id", None),
+            "client_host": request.client.host if request.client else None,
+        },
+    )
+    
+    # Check execution mode
+    if _in_docker_container():
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            "Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.",
+            request,
+        )
+    
+    # Check Docker
+    if not _check_docker_running():
+        raise http_error(
+            503,
+            ErrorCode.CONTROL_DEPENDENCY_ERROR,
+            "Docker is not running",
+            request,
+        )
+    
+    # Check compose file
+    monitoring_compose = Path("docker-compose.monitoring.yml")
+    if not monitoring_compose.exists():
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_FILE_NOT_FOUND,
+            "Monitoring compose file not found",
+            request,
+        )
+    
+    # Start monitoring stack
+    try:
+        success, stdout, stderr = _docker_compose(
+            ["-f", "docker-compose.monitoring.yml", "up", "-d"],
+            timeout=120
+        )
+        
+        if not success:
+            raise http_error(
+                500,
+                ErrorCode.CONTROL_OPERATION_FAILED,
+                f"Failed to start monitoring stack: {stderr}",
+                request,
+            )
+        
+        # Get monitoring URLs from configuration
+        settings = get_settings()
+
+        logger.info(
+            "Monitoring stack started",
+            extra={
+                "action": "monitoring_start_success",
+                "services": ["grafana", "prometheus", "loki"],
+                "request_id": getattr(request.state, "request_id", None),
+            },
+        )
+        return OperationResult(
+            success=True,
+            message="Monitoring stack started successfully",
+            details={
+                "services": ["grafana", "prometheus", "loki"],
+                "grafana_url": settings.GRAFANA_URL,
+                "prometheus_url": settings.PROMETHEUS_URL,
+                "output": stdout
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Monitoring stack start failed unexpectedly",
+            extra={
+                "action": "monitoring_start_error",
+                "error": str(exc),
+                "request_id": getattr(request.state, "request_id", None),
+            },
+        )
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            f"Unexpected error starting monitoring: {str(exc)}",
+            request,
+        ) from exc
+
+
+@router.post("/monitoring/stop", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def stop_monitoring_stack(request: Request):
+    """
+    Stop the monitoring stack (Grafana, Prometheus, Loki).
+    Can only be executed from Docker host, not from within container.
+    """
+    logger.info(
+        "Monitoring stack stop requested",
+        extra={
+            "action": "monitoring_stop_requested",
+            "request_id": getattr(request.state, "request_id", None),
+            "client_host": request.client.host if request.client else None,
+        },
+    )
+    
+    # Check execution mode
+    if _in_docker_container():
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            "Cannot stop monitoring from inside container. Use SMS.ps1 -Stop from host.",
+            request,
+        )
+    
+    # Check Docker
+    if not _check_docker_running():
+        return OperationResult(
+            success=True,
+            message="Docker not running, monitoring stack already stopped",
+            details={}
+        )
+    
+    # Stop monitoring stack
+    try:
+        success, stdout, stderr = _docker_compose(
+            ["-f", "docker-compose.monitoring.yml", "down"],
+            timeout=60
+        )
+        
+        if not success and "no configuration file provided" not in stderr.lower():
+            raise http_error(
+                500,
+                ErrorCode.CONTROL_OPERATION_FAILED,
+                f"Failed to stop monitoring stack: {stderr}",
+                request,
+            )
+        
+        logger.info(
+            "Monitoring stack stopped",
+            extra={
+                "action": "monitoring_stop_success",
+                "services": ["grafana", "prometheus", "loki"],
+                "request_id": getattr(request.state, "request_id", None),
+            },
+        )
+        return OperationResult(
+            success=True,
+            message="Monitoring stack stopped successfully",
+            details={
+                "output": stdout
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Monitoring stack stop failed unexpectedly",
+            extra={
+                "action": "monitoring_stop_error",
+                "error": str(exc),
+                "request_id": getattr(request.state, "request_id", None),
+            },
+        )
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            f"Unexpected error stopping monitoring: {str(exc)}",
+            request,
+        ) from exc

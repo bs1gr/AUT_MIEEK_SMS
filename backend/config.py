@@ -145,6 +145,11 @@ class Settings(BaseSettings):
     RESPONSE_CACHE_REQUIRE_OPT_IN: bool = True
     RESPONSE_CACHE_OPT_IN_HEADER: str = "x-cache-allow"
 
+    # Monitoring services (Grafana, Prometheus, Loki)
+    GRAFANA_URL: str = os.environ.get("GRAFANA_URL", "http://localhost:3000")
+    PROMETHEUS_URL: str = os.environ.get("PROMETHEUS_URL", "http://localhost:9090")
+    LOKI_URL: str = os.environ.get("LOKI_URL", "http://localhost:3100")
+
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
         v: Any = getattr(self, "CORS_ORIGINS", "")

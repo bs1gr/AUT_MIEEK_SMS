@@ -328,7 +328,14 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   return (
     <div className="space-y-6 bg-slate-100 pb-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
+        <div className="flex items-center gap-4">
+          <img 
+            src="/logo.png" 
+            alt="MIEEK Logo" 
+            className="h-10 w-auto object-contain"
+          />
+          <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
+        </div>
         <button
           type="button"
           onClick={handleToggleAnalytics}

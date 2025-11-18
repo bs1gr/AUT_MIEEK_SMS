@@ -38,21 +38,19 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-10">
-      <div className="space-y-6">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold">{t('auth.loginTitle')}</CardTitle>
-            <CardDescription>{t('auth.loginDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LoginWidget variant="inline" onLoginSuccess={handleAuthSuccess} />
-          </CardContent>
-        </Card>
+    <div className="mx-auto w-full max-w-3xl space-y-6 py-10">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold">{t('auth.loginTitle')}</CardTitle>
+          <CardDescription>{t('auth.loginDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LoginWidget variant="inline" onLoginSuccess={handleAuthSuccess} />
+        </CardContent>
+      </Card>
 
-        <div className="rounded-xl border border-gray-200 bg-white/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900/40">
-          <RegisterWidget variant="inline" onRegisterSuccess={handleAuthSuccess} collapsedByDefault />
-        </div>
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <RegisterWidget variant="inline" onRegisterSuccess={handleAuthSuccess} collapsedByDefault />
       </div>
     </div>
   );

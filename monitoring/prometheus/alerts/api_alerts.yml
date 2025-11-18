@@ -1,0 +1,169 @@
+# API Alert Rules for Student Management System
+# These rules define when to trigger alerts based on API metrics
+
+groups:
+  - name: api_alerts
+    interval: 30s
+    rules:
+      # ======================================================================
+      # HIGH SEVERITY ALERTS
+      # ======================================================================
+
+      - alert: APIDown
+        expr: up{job="sms-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "SMS API is down"
+          description: "The Student Management System API has been down for more than 1 minute."
+          impact: "Users cannot access the system"
+          action: "Check backend logs and restart the service"
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(sms_http_requests_total{status=~"5.."}[5m])
+            /
+            rate(sms_http_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected (>5%)"
+          description: "API error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+          impact: "Users experiencing errors"
+          action: "Check application logs for error details"
+
+      - alert: DatabaseConnectionsFailed
+        expr: sms_db_errors_total > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection errors detected"
+          description: "{{ $value }} database errors in the last 5 minutes."
+          impact: "Data operations failing"
+          action: "Check database connectivity and logs"
+
+      # ======================================================================
+      # MEDIUM SEVERITY ALERTS
+      # ======================================================================
+
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(sms_http_request_duration_seconds_bucket[5m])
+          ) > 2.0
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time (p95 > 2s)"
+          description: "95th percentile response time is {{ $value }}s over the last 10 minutes."
+          impact: "Degraded user experience"
+          action: "Check for slow database queries or resource constraints"
+
+      - alert: HighRequestRate
+        expr: rate(sms_http_requests_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "Unusually high request rate"
+          description: "Request rate is {{ $value }} req/s (normal: <100 req/s)."
+          impact: "Possible DDoS or traffic spike"
+          action: "Monitor for abuse, check rate limiting"
+
+      - alert: RateLimitExceeded
+        expr: rate(sms_rate_limit_exceeded_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High rate of rate limit violations"
+          description: "{{ $value }} rate limit violations per second."
+          impact: "Potential abuse or misconfigured clients"
+          action: "Review rate limit logs, consider blocking IPs"
+
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            rate(sms_db_query_duration_seconds_bucket[5m])
+          ) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected (p95 > 1s)"
+          description: "95th percentile query time is {{ $value }}s."
+          impact: "Degraded application performance"
+          action: "Check slow query logs, review indexes"
+
+      - alert: AuthenticationFailureSpike
+        expr: rate(sms_auth_attempts_total{status="failed"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} failed login attempts per second."
+          impact: "Possible brute force attack"
+          action: "Review auth logs, check for suspicious IPs"
+
+      # ======================================================================
+      # LOW SEVERITY ALERTS (Info)
+      # ======================================================================
+
+      - alert: HighMemoryUsage
+        expr: |
+          process_resident_memory_bytes{job="sms-backend"}
+          /
+          (1024 * 1024 * 1024) > 1.0
+        for: 15m
+        labels:
+          severity: info
+          component: api
+        annotations:
+          summary: "High memory usage (>1GB)"
+          description: "Backend process using {{ $value }}GB of memory."
+          impact: "May indicate memory leak"
+          action: "Monitor for increasing trend, consider restart if growing"
+
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            rate(sms_cache_hits_total[10m])
+            /
+            (rate(sms_cache_hits_total[10m]) + rate(sms_cache_misses_total[10m]))
+          ) < 0.5
+        for: 15m
+        labels:
+          severity: info
+          component: performance
+        annotations:
+          summary: "Low cache hit rate (<50%)"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}."
+          impact: "Reduced performance due to cache inefficiency"
+          action: "Review cache configuration and TTL settings"
+
+      - alert: HighNumberOfSlowRequests
+        expr: rate(sms_api_slow_requests_total[5m]) > 1
+        for: 10m
+        labels:
+          severity: info
+          component: performance
+        annotations:
+          summary: "Frequent slow requests (>1s)"
+          description: "{{ $value }} slow requests per second."
+          impact: "Some users experiencing delays"
+          action: "Review slow request endpoints and optimize"

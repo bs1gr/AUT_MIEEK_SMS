@@ -27,11 +27,15 @@
 .PARAMETER Verbose
   Show detailed output
 
+.PARAMETER WithMonitoring
+  Start monitoring stack (Prometheus, Grafana, Loki, AlertManager)
+
 .EXAMPLE
-  .\SMART_SETUP.ps1              # Build and start fullstack (recommended)
-  .\SMART_SETUP.ps1 -Force       # Rebuild fullstack from scratch
-  .\SMART_SETUP.ps1 -DevMode     # Use multi-container for development
-  .\SMART_SETUP.ps1 -SkipStart   # Build only
+  .\SMART_SETUP.ps1                  # Build and start fullstack (recommended)
+  .\SMART_SETUP.ps1 -Force           # Rebuild fullstack from scratch
+  .\SMART_SETUP.ps1 -WithMonitoring  # Start with monitoring stack
+  .\SMART_SETUP.ps1 -DevMode         # Use multi-container for development
+  .\SMART_SETUP.ps1 -SkipStart       # Build only
 
 .NOTES
   For end users: Use .\RUN.ps1 instead (simpler one-click deployment)
@@ -43,7 +47,8 @@ param(
   [switch]$SkipStart,
   [switch]$DevMode,
   [switch]$PreferNative,
-  [switch]$Verbose
+  [switch]$Verbose,
+  [switch]$WithMonitoring
 )
 
 Set-StrictMode -Version Latest
@@ -131,17 +136,21 @@ function Install-NativeBackendDependencies {
     }
 
     Write-Log 'Checking pip version...'
-    $pipCheck = & $pythonCmd -m pip list --outdated --format=json --disable-pip-version-check 2>$null | ConvertFrom-Json | Where-Object { $_.name -eq 'pip' }
-    
-    if ($pipCheck) {
-      Write-Log "Upgrading pip from $($pipCheck.version) to $($pipCheck.latest_version)..."
-      & $pythonCmd -m pip install --disable-pip-version-check --upgrade pip --quiet 2>&1 | ForEach-Object { Write-Log $_ }
+    $currentPipVersion = & $pythonCmd -m pip --version 2>&1 | Select-String -Pattern 'pip ([0-9.]+)' | ForEach-Object { $_.Matches.Groups[1].Value }
+    $targetPipVersion = '25.3'
+
+    if ($currentPipVersion -ne $targetPipVersion) {
+      Write-Log "Upgrading pip from $currentPipVersion to $targetPipVersion..."
+      & $pythonCmd -m pip install --disable-pip-version-check --upgrade "pip==$targetPipVersion" --quiet 2>&1 | ForEach-Object { Write-Log $_ }
       if ($LASTEXITCODE -ne 0) {
-        throw 'Failed to upgrade pip for backend dependencies'
+        Write-Log "Failed to install pip $targetPipVersion, trying latest version..." 'WARN'
+        & $pythonCmd -m pip install --disable-pip-version-check --upgrade pip --quiet 2>&1 | ForEach-Object { Write-Log $_ }
+        if ($LASTEXITCODE -ne 0) {
+          throw 'Failed to upgrade pip for backend dependencies'
+        }
       }
     } else {
-      $currentPipVersion = & $pythonCmd -m pip --version 2>&1 | Select-String -Pattern 'pip ([0-9.]+)' | ForEach-Object { $_.Matches.Groups[1].Value }
-      Write-Log "pip $currentPipVersion is already up to date" 'INFO'
+      Write-Log "pip $currentPipVersion is already at target version" 'INFO'
     }
 
     $installArgs = @('-m','pip','install','--disable-pip-version-check')
@@ -533,7 +542,37 @@ try {
   Pop-Location
 }
 
-# 5. Wait for service and show URLs
+# 5. Start monitoring stack if requested
+if ($WithMonitoring) {
+  Write-Host ""
+  Write-Host "═══════════════════════════════════════" -ForegroundColor Magenta
+  Write-Host " Starting Monitoring Stack" -ForegroundColor Magenta
+  Write-Host "═══════════════════════════════════════" -ForegroundColor Magenta
+  Write-Log "Starting monitoring stack..."
+
+  $monitoringCompose = Join-Path $root "docker-compose.monitoring.yml"
+  if (Test-Path $monitoringCompose) {
+    Push-Location $root
+    try {
+      docker compose -f docker-compose.monitoring.yml up -d 2>&1 | ForEach-Object { Write-Log $_ }
+      if ($LASTEXITCODE -eq 0) {
+        Write-Log "Monitoring stack started successfully"
+        Write-Host "✓ Monitoring services started" -ForegroundColor Green
+      } else {
+        Write-Log "WARNING: Failed to start monitoring stack" "WARN"
+        Write-Host "⚠️  Warning: Monitoring stack failed to start" -ForegroundColor Yellow
+        Write-Host "   Application will work normally without monitoring" -ForegroundColor Gray
+      }
+    } finally {
+      Pop-Location
+    }
+  } else {
+    Write-Log "WARNING: Monitoring configuration not found" "WARN"
+    Write-Host "⚠️  Warning: docker-compose.monitoring.yml not found" -ForegroundColor Yellow
+  }
+}
+
+# 6. Wait for service and show URLs
 $ready = Wait-ServiceReady -Urls @('http://localhost:8080/health', 'http://localhost:8080')
 
 Write-Host ""
@@ -545,11 +584,28 @@ if ($deploymentMode -eq "fullstack") {
 } else {
   Write-Host "Multi-container (backend + frontend)" -ForegroundColor Yellow
 }
+
+if ($WithMonitoring) {
+  Write-Host ""
+  Write-Host "Monitoring: " -NoNewline -ForegroundColor Cyan
+  Write-Host "Enabled" -ForegroundColor Magenta
+}
+
 Write-Host ""
 Write-Host "Access URLs:" -ForegroundColor Cyan
 Write-Host "  Main App:      http://localhost:8080" -ForegroundColor Green
 Write-Host "  API Docs:      http://localhost:8080/docs" -ForegroundColor Green
 Write-Host "  Health Check:  http://localhost:8080/health" -ForegroundColor Green
+
+if ($WithMonitoring) {
+  Write-Host ""
+  Write-Host "Monitoring URLs:" -ForegroundColor Magenta
+  Write-Host "  Grafana:       http://localhost:3000 (admin/admin)" -ForegroundColor Cyan
+  Write-Host "  Prometheus:    http://localhost:9090" -ForegroundColor Cyan
+  Write-Host "  AlertManager:  http://localhost:9093" -ForegroundColor Cyan
+  Write-Host "  Metrics:       http://localhost:8000/metrics" -ForegroundColor Cyan
+}
+
 Write-Host ""
 Write-Host "Management:" -ForegroundColor Cyan
 if ($deploymentMode -eq "fullstack") {
@@ -561,6 +617,12 @@ if ($deploymentMode -eq "fullstack") {
   Write-Host "  Status:        .\SMS.ps1 -Status" -ForegroundColor Green
   Write-Host "  Logs:          .\SMS.ps1 -Logs" -ForegroundColor Green
 }
+
+if ($WithMonitoring) {
+  Write-Host "  Monitoring:    .\SMS.ps1 -MonitoringOnly" -ForegroundColor Magenta
+  Write-Host "  Stop Monitor:  .\SMS.ps1 -StopMonitoring" -ForegroundColor Magenta
+}
+
 Write-Host ""
 
 if (-not $ready) {

@@ -62,10 +62,4 @@ export default {
   exportTipPDF: '<b>PDF files</b> are perfect for printing and sharing professional reports',
   exportTipStudentReports: '<b>Individual reports</b> include grades, attendance, and performance summaries',
   exportTipTimestamp: 'All exports include timestamps in the filename for easy organization',
-  studentsListCSV: 'Students List (CSV)',
-  exportAllStudentsCSV: 'Export all student information to CSV',
-  exportAllDataZIP: 'Export All Data (ZIP)',
-  exportAllDataDescription: 'Download a ZIP archive containing all data in all formats',
-  noStudentsFound: 'No students found. Please check if students are imported and available.',
-  exportTipsHeader: '📊',
 };

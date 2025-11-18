@@ -8,6 +8,7 @@
 
 ```powershell
 .\RUN.ps1                     # One-click Docker start (builds if needed)
+.\RUN.ps1 -WithMonitoring     # Start with monitoring dashboards (integrated at /power)
 .\RUN.ps1 -Stop               # Stop fullstack container
 .\RUN.ps1 -Update             # Update with automatic backup
 .\SMS.ps1                     # Management menu (status, diagnostics, backups)

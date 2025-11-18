@@ -1,0 +1,192 @@
+# Business Metrics Alert Rules for Student Management System
+# Alerts for business-specific metrics and anomalies
+
+groups:
+  - name: business_alerts
+    interval: 60s
+    rules:
+      # ======================================================================
+      # DATA INTEGRITY ALERTS
+      # ======================================================================
+
+      - alert: NoActiveStudents
+        expr: sms_students_total{status="active"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: data
+        annotations:
+          summary: "No active students in system"
+          description: "The system has no active students, which is unusual."
+          impact: "Possible data corruption or sync issue"
+          action: "Check database integrity and recent changes"
+
+      - alert: UnusualStudentDrop
+        expr: |
+          (
+            sms_students_total{status="active"}
+            -
+            sms_students_total{status="active"} offset 1h
+          ) < -50
+        for: 5m
+        labels:
+          severity: warning
+          component: data
+        annotations:
+          summary: "Large drop in active students"
+          description: "{{ $value }} students became inactive in the last hour."
+          impact: "Unusual pattern, possible bulk operation or error"
+          action: "Review recent admin operations and database logs"
+
+      # ======================================================================
+      # ENROLLMENT ALERTS
+      # ======================================================================
+
+      - alert: NoEnrollments
+        expr: sms_enrollments_total == 0
+        for: 10m
+        labels:
+          severity: warning
+          component: data
+        annotations:
+          summary: "No active enrollments"
+          description: "System has no active course enrollments."
+          impact: "May indicate start of new semester or data issue"
+          action: "Verify if expected, otherwise check enrollment data"
+
+      - alert: HighEnrollmentRate
+        expr: rate(sms_enrollments_total[1h]) > 100
+        for: 15m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "High enrollment activity"
+          description: "{{ $value }} enrollments per second over last hour."
+          impact: "High load during registration period"
+          action: "Monitor system performance, ensure adequate resources"
+
+      # ======================================================================
+      # GRADING ALERTS
+      # ======================================================================
+
+      - alert: HighGradeSubmissionRate
+        expr: rate(sms_grades_total[5m]) > 10
+        for: 10m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "High rate of grade submissions"
+          description: "{{ $value }} grades submitted per second."
+          impact: "End of semester grading period or bulk import"
+          action: "Ensure system can handle load"
+
+      - alert: NoGradesSubmittedRecently
+        expr: |
+          rate(sms_grades_total[24h]) == 0
+          and
+          day_of_week() > 0
+          and
+          day_of_week() < 6
+        for: 2h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No grades submitted in 24 hours (weekday)"
+          description: "No grading activity detected during business hours."
+          impact: "May be normal during holidays or breaks"
+          action: "Verify if expected based on academic calendar"
+
+      # ======================================================================
+      # ATTENDANCE ALERTS
+      # ======================================================================
+
+      - alert: HighAbsenteeismRate
+        expr: |
+          (
+            rate(sms_attendance_total{status="absent"}[1h])
+            /
+            rate(sms_attendance_total[1h])
+          ) > 0.3
+        for: 2h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "High absenteeism rate (>30%)"
+          description: "{{ $value | humanizePercentage }} of students absent."
+          impact: "Unusually high absence rate"
+          action: "Check for system-wide issue or event"
+
+      - alert: NoAttendanceRecorded
+        expr: |
+          rate(sms_attendance_total[6h]) == 0
+          and
+          day_of_week() > 0
+          and
+          day_of_week() < 6
+          and
+          hour() > 8
+          and
+          hour() < 16
+        for: 1h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "No attendance recorded during school hours"
+          description: "No attendance activity during expected class time."
+          impact: "Teachers may not be using the system"
+          action: "Check with faculty about attendance tracking"
+
+      # ======================================================================
+      # AUTHENTICATION & SECURITY ALERTS
+      # ======================================================================
+
+      - alert: AccountLockoutSpike
+        expr: rate(sms_auth_attempts_total{status="locked"}[15m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Multiple account lockouts detected"
+          description: "{{ $value }} accounts locked out per second."
+          impact: "Possible credential stuffing attack or user issues"
+          action: "Review security logs, notify affected users"
+
+      - alert: UnusualSessionCount
+        expr: |
+          sms_auth_active_sessions > 500
+          or
+          sms_auth_active_sessions < 10
+        for: 10m
+        labels:
+          severity: info
+          component: security
+        annotations:
+          summary: "Unusual number of active sessions"
+          description: "{{ $value }} active sessions (normal: 10-500)."
+          impact: "May indicate traffic anomaly"
+          action: "Review session logs for unusual patterns"
+
+      # ======================================================================
+      # SYSTEM HEALTH ALERTS
+      # ======================================================================
+
+      - alert: HighErrorRateByEndpoint
+        expr: |
+          sum by (endpoint) (
+            rate(sms_errors_total[5m])
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High error rate on endpoint {{ $labels.endpoint }}"
+          description: "{{ $value }} errors per second on specific endpoint."
+          impact: "Feature degradation"
+          action: "Review logs for endpoint {{ $labels.endpoint }}"
