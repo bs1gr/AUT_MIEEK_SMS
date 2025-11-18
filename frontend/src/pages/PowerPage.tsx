@@ -34,6 +34,17 @@ export default function PowerPage() {
   const [startingMonitoring, setStartingMonitoring] = useState(false);
   const [monitoringError, setMonitoringError] = useState<string | null>(null);
 
+  // Ensure any value we render as text is a string
+  const safeText = (val: unknown, fallback = ''): string => {
+    if (typeof val === 'string') return val;
+    if (val == null) return fallback;
+    try {
+      return JSON.stringify(val);
+    } catch {
+      return String(val);
+    }
+  };
+
   // Fetch monitoring status
   const fetchMonitoringStatus = async () => {
     try {
@@ -225,7 +236,7 @@ export default function PowerPage() {
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900">Monitoring Unavailable</h4>
                   <p className="text-sm text-gray-700">
-                    {monitoringStatus.message || 'Docker or monitoring configuration is not available'}
+                    {safeText(monitoringStatus.message, 'Docker or monitoring configuration is not available')}
                   </p>
                 </div>
               </div>
