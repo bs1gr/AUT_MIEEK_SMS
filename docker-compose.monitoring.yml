@@ -112,7 +112,16 @@ services:
       - GF_SERVER_ROOT_URL=http://localhost:${GRAFANA_PORT:-3000}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
       - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
-      - GF_AUTH_ANONYMOUS_ENABLED=false
+      # Enable anonymous viewer access for embedding (optional)
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      # Allow embedding Grafana in iframes
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      # Relax cookie samesite for cross-origin embedding (localhost:5173/8080 -> 3000)
+      - GF_SECURITY_COOKIE_SAMESITE=none
+      # Optionally allow embedding via CSP frame-ancestors (Grafana 10+)
+      # - GF_SECURITY_CONTENT_SECURITY_POLICY=true
+      # - GF_SECURITY_CONTENT_SECURITY_POLICY_TEMPLATE=frame-ancestors 'self' http://localhost:5173 http://localhost:8080;
       - GF_ANALYTICS_REPORTING_ENABLED=false
       - GF_ANALYTICS_CHECK_FOR_UPDATES=false
     volumes:

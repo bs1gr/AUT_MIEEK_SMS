@@ -321,12 +321,8 @@ def setup_metrics(app: FastAPI, version: str = "unknown") -> None:
         # Instrument the app
         instrumentator.instrument(app)
 
-        # NOTE: instrumentator.expose() conflicts with manual route registration
-        # Metrics endpoint is manually added in main.py after all routers
-        # instrumentator.expose(app, endpoint="/metrics", include_in_schema=False)
-
-        logger.info("Prometheus metrics configured successfully")
-        logger.info("Metrics endpoint will be added manually in main.py")
+        logger.info("Prometheus metrics instrumentation completed")
+        logger.info("Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)")
 
     except Exception as e:
         logger.error(f"Failed to setup Prometheus metrics: {e}")
