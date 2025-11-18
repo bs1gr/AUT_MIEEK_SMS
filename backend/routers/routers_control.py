@@ -1987,6 +1987,27 @@ async def restart_backend(request: Request):
 
 # ========== MONITORING STACK CONTROL ==========
 
+@router.get("/monitoring/environment", response_model=Dict[str, Any])
+async def get_monitoring_environment(request: Request):
+    """
+    Get execution environment information for monitoring control.
+    Returns whether running in container and if monitoring control is available.
+    """
+    in_container = _in_docker_container()
+    docker_running = _check_docker_running()
+    
+    return {
+        "in_container": in_container,
+        "docker_available": docker_running,
+        "can_control_monitoring": not in_container and docker_running,
+        "monitoring_control_message": (
+            "Use RUN.ps1 -WithMonitoring from host" if in_container
+            else "Monitoring can be controlled from this interface" if docker_running
+            else "Docker is not available"
+        )
+    }
+
+
 @router.get("/monitoring/status", response_model=Dict[str, Any])
 async def get_monitoring_status(request: Request):
     """
@@ -1995,10 +2016,14 @@ async def get_monitoring_status(request: Request):
     """
     logger.info("Monitoring status check requested")
     
+    in_container = _in_docker_container()
+    
     # Check if Docker is available
     if not _check_docker_running():
         return {
             "available": False,
+            "in_container": in_container,
+            "can_control": False,
             "message": "Docker is not running",
             "services": {}
         }
@@ -2008,6 +2033,8 @@ async def get_monitoring_status(request: Request):
     if not monitoring_compose.exists():
         return {
             "available": False,
+            "in_container": in_container,
+            "can_control": not in_container,
             "message": "Monitoring compose file not found",
             "services": {}
         }
@@ -2046,6 +2073,8 @@ async def get_monitoring_status(request: Request):
     
     return {
         "available": True,
+        "in_container": in_container,
+        "can_control": not in_container,
         "running": any_running,
         "services": services_status,
         "compose_file": str(monitoring_compose.absolute())
