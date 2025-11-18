@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 import json
 from datetime import datetime
+from urllib.parse import urljoin
 
 from fastapi import APIRouter, Request, HTTPException
 from fastapi import UploadFile, File
@@ -2400,4 +2401,102 @@ async def stop_monitoring_stack(request: Request):
             ErrorCode.INTERNAL_SERVER_ERROR,
             f"Unexpected error stopping monitoring: {str(exc)}",
             request,
+        ) from exc
+
+
+# ========== PROMETHEUS QUERY PROXY ==========
+
+@router.get("/monitoring/prometheus/query")
+@_limiter.limit(_RATE_LIMIT_READ)
+async def prometheus_query(request: Request, query: str, time: Optional[float] = None):
+    """
+    Proxy a Prometheus instant query via the backend to avoid browser CORS issues.
+
+    Params:
+    - query: PromQL query string
+    - time: optional Unix timestamp (float seconds). If not provided, Prometheus uses 'now'.
+    """
+    try:
+        import httpx
+        settings = get_settings()
+        base = settings.PROMETHEUS_URL.rstrip("/") + "/"
+        url = urljoin(base, "api/v1/query")
+
+        params: dict[str, Any] = {"query": query}
+        if time is not None:
+            params["time"] = str(time)
+
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+            return data
+    except httpx.HTTPError as e:
+        raise http_error(
+            502,
+            ErrorCode.CONTROL_DEPENDENCY_ERROR,
+            "Failed to query Prometheus",
+            request,
+            context={"error": str(e)},
+        ) from e
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unexpected error querying Prometheus",
+            request,
+            context={"error": str(exc)},
+        ) from exc
+
+
+@router.get("/monitoring/prometheus/range")
+@_limiter.limit(_RATE_LIMIT_READ)
+async def prometheus_query_range(
+    request: Request,
+    query: str,
+    start: float,
+    end: float,
+    step: str = "30s",
+):
+    """
+    Proxy a Prometheus range query via the backend.
+
+    Params:
+    - query: PromQL query string
+    - start, end: Unix timestamps (float seconds)
+    - step: query resolution step width (e.g., 15s, 1m)
+    """
+    try:
+        import httpx
+        settings = get_settings()
+        base = settings.PROMETHEUS_URL.rstrip("/") + "/"
+        url = urljoin(base, "api/v1/query_range")
+
+        params: dict[str, Any] = {
+            "query": query,
+            "start": str(start),
+            "end": str(end),
+            "step": step,
+        }
+
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+            return data
+    except httpx.HTTPError as e:
+        raise http_error(
+            502,
+            ErrorCode.CONTROL_DEPENDENCY_ERROR,
+            "Failed to query Prometheus (range)",
+            request,
+            context={"error": str(e)},
+        ) from e
+    except Exception as exc:
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unexpected error querying Prometheus (range)",
+            request,
+            context={"error": str(exc)},
         ) from exc

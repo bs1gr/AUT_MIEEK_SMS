@@ -1,0 +1,55 @@
+{
+  "uid": "sms-db-cache",
+  "title": "SMS DB & Cache",
+  "tags": ["sms", "db", "cache"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "DB Query Duration (p95)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "histogram_quantile(0.95, rate(sms_db_query_duration_seconds_bucket[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true}}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "DB Operations Rate",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (operation) (rate(sms_db_query_duration_seconds_count[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Active DB Connections",
+      "gridPos": {"h": 8, "w": 4, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sms_db_connections_active"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green"},{"color": "yellow", "value": 3},{"color": "red", "value": 8}]}}}
+    },
+    {
+      "id": 4,
+      "type": "gauge",
+      "title": "Cache Hit Ratio (%)",
+      "gridPos": {"h": 8, "w": 8, "x": 4, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "100 * sum(rate(sms_cache_hits_total[5m])) / (sum(rate(sms_cache_hits_total[5m])) + sum(rate(sms_cache_misses_total[5m])))"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red"},{"color": "yellow", "value": 80},{"color": "green", "value": 95}]}}}
+    }
+  ]
+}

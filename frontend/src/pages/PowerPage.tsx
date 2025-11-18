@@ -3,6 +3,7 @@ import ServerControl from '@/components/common/ServerControl';
 import ControlPanel from '@/components/ControlPanel';
 import { useLanguage } from '@/LanguageContext';
 import axios from 'axios';
+import PrometheusPanels from '@/components/monitoring/PrometheusPanels';
 
 const API_BASE = window.location.origin;
 const CONTROL_API = `${API_BASE}/control/api`;
@@ -35,6 +36,9 @@ export default function PowerPage() {
   const [monitoringStatus, setMonitoringStatus] = useState<MonitoringStatus | null>(null);
   const [startingMonitoring, setStartingMonitoring] = useState(false);
   const [monitoringError, setMonitoringError] = useState<string | null>(null);
+  const [selectedDashboard, setSelectedDashboard] = useState<
+    'business' | 'apiPerformance' | 'authSecurity' | 'dbCache' | 'attendance' | 'grading'
+  >('business');
 
   // Ensure any value we render as text is a string
   const safeText = (val: unknown, fallback = ''): string => {
@@ -160,6 +164,39 @@ export default function PowerPage() {
 
   const isGrafanaRunning = monitoringStatus?.services?.grafana?.running || false;
   const isPrometheusRunning = monitoringStatus?.services?.prometheus?.running || false;
+  const grafanaBase = (monitoringStatus?.services?.grafana?.url || 'http://localhost:3000').replace(/\/$/, '');
+
+  const dashboards: Record<
+    'business' | 'apiPerformance' | 'authSecurity' | 'dbCache' | 'attendance' | 'grading',
+    { label: string; path: string }
+  > = {
+    business: {
+      label: t('controlPanel.monitoring.dashboards.business'),
+      path: '/d/sms-business-analytics/sms-business-analytics',
+    },
+    apiPerformance: {
+      label: t('controlPanel.monitoring.dashboards.apiPerformance'),
+      path: '/d/sms-api-performance/sms-api-performance',
+    },
+    authSecurity: {
+      label: t('controlPanel.monitoring.dashboards.authSecurity'),
+      path: '/d/sms-auth-security/sms-auth-and-security',
+    },
+    dbCache: {
+      label: t('controlPanel.monitoring.dashboards.dbCache'),
+      path: '/d/sms-db-cache/sms-db-and-cache',
+    },
+    attendance: {
+      label: t('controlPanel.monitoring.dashboards.attendance'),
+      path: '/d/sms-attendance-insights/sms-attendance-insights',
+    },
+    grading: {
+      label: t('controlPanel.monitoring.dashboards.grading'),
+      path: '/d/sms-grading-analytics/sms-grading-analytics',
+    },
+  };
+
+  const selectedDashboardUrl = `${grafanaBase}${dashboards[selectedDashboard].path}?orgId=1&refresh=30s&kiosk`;
 
   return (
     <div className="space-y-6">
@@ -336,15 +373,69 @@ export default function PowerPage() {
                   
                   {/* Embedded Grafana - Only show if running */}
                   {isGrafanaRunning && (
-                    <div className="border rounded-lg overflow-hidden">
-                      <iframe
-                        src="http://localhost:3000/d/sms-business-analytics/sms-business-analytics?orgId=1&refresh=30s&kiosk"
-                        width="100%"
-                        height="800"
-                        frameBorder="0"
-                        title="Grafana Dashboard"
-                        className="w-full"
-                      />
+                    <div className="space-y-3">
+                      {/* Dashboard selector */}
+                      <div className="flex items-center justify-between bg-white border rounded-lg p-3">
+                        <div>
+                          <div className="text-sm font-medium text-gray-700">
+                            {t('controlPanel.monitoring.selectLabel')}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {t('controlPanel.monitoring.descriptionDashboards')}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            aria-label={t('controlPanel.monitoring.selectLabel')}
+                            className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            value={selectedDashboard}
+                            onChange={(e) => setSelectedDashboard(e.target.value as typeof selectedDashboard)}
+                          >
+                            {Object.entries(dashboards).map(([key, d]) => (
+                              <option key={key} value={key}>
+                                {d.label}
+                              </option>
+                            ))}
+                          </select>
+                          <a
+                            href={selectedDashboardUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
+                          >
+                            ↗ {t('controlPanel.monitoring.openCurrent')}
+                          </a>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <iframe
+                          src={selectedDashboardUrl}
+                          width="100%"
+                          height="800"
+                          frameBorder={0}
+                          title="Grafana Dashboard"
+                          className="w-full"
+                        />
+                      </div>
+                      {/* Quick links */}
+                      <div className="bg-white border rounded-lg p-3">
+                        <div className="text-xs font-medium text-gray-600 mb-2">{t('controlPanel.monitoring.quickLinks')}</div>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(dashboards).map(([key, d]) => (
+                            <a
+                              key={key}
+                              href={`${grafanaBase}${d.path}?orgId=1&refresh=30s`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`px-3 py-1.5 rounded-md text-xs border hover:bg-gray-50 ${
+                                key === selectedDashboard ? 'border-indigo-400 text-indigo-700' : 'border-gray-300 text-gray-700'
+                              }`}
+                            >
+                              {d.label}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -423,6 +514,17 @@ export default function PowerPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Curated Prometheus panels when service is running */}
+                  {isPrometheusRunning && (
+                    <div className="bg-white border rounded-lg p-4">
+                      <PrometheusPanels
+                        controlApiBase={CONTROL_API}
+                        isPrometheusRunning={isPrometheusRunning}
+                        t={t}
+                      />
+                    </div>
+                  )}
 
                   {/* Embedded Prometheus - Only show if running */}
                   {isPrometheusRunning && (

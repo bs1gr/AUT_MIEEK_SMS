@@ -1,0 +1,57 @@
+{
+  "uid": "sms-auth-security",
+  "title": "SMS Auth & Security",
+  "tags": ["sms", "auth", "security"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Auth Attempts (success/fail)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(sms_auth_attempts_total{status=\"success\"}[5m]))"},
+        {"refId": "B", "expr": "sum(rate(sms_auth_attempts_total{status=\"failed\"}[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true}}
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Active Sessions",
+      "gridPos": {"h": 8, "w": 4, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sms_auth_active_sessions"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green"},{"color": "yellow", "value": 10},{"color": "red", "value": 50}]}}}
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Auth Errors (401/403)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (status) (rate(http_requests_total{status=\"401\"}[5m]))"},
+        {"refId": "B", "expr": "sum by (status) (rate(http_requests_total{status=\"403\"}[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Login Rate by Method",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (method) (rate(http_requests_total{handler=~\".*login.*\"}[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true}}
+    }
+  ]
+}

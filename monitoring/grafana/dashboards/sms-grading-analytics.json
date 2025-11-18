@@ -1,0 +1,44 @@
+{
+  "uid": "sms-grading-analytics",
+  "title": "SMS Grading Analytics",
+  "tags": ["sms", "grades", "analytics"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Grade Submissions by Course/Type",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "rate(sms_grades_total[5m])", "legendFormat": "{{course}} - {{grade_type}}"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true}}
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Total Grades (last 5m)",
+      "gridPos": {"h": 8, "w": 4, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(sms_grades_total[5m]))"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "reqps", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green"},{"color": "yellow", "value": 1},{"color": "red", "value": 5}]}}}
+    },
+    {
+      "id": 3,
+      "type": "barchart",
+      "title": "Top Courses by Submissions",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "topk(10, sum by (course) (rate(sms_grades_total[5m])))"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    }
+  ]
+}

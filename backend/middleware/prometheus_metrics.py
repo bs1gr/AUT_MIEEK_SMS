@@ -158,7 +158,8 @@ def collect_business_metrics(db: Session) -> None:
         db: Database session
     """
     try:
-        from backend.models import Student, Course, Enrollment, Grade, Attendance
+        # Note: Enrollment model is named CourseEnrollment in this codebase
+        from backend.models import Student, Course, CourseEnrollment, Grade, Attendance
 
         # Student metrics
         active_students = db.query(Student).filter(Student.is_active.is_(True)).count()
@@ -177,7 +178,16 @@ def collect_business_metrics(db: Session) -> None:
             courses_total.labels(semester=semester).set(count)
 
         # Enrollment metrics
-        active_enrollments = db.query(Enrollment).filter(Enrollment.is_active.is_(True)).count()
+        # CourseEnrollment does not have an is_active flag; count distinct active links
+        # If a soft-delete flag exists via SoftDeleteMixin, respect it; otherwise count all rows
+        try:
+            # Prefer filtering out soft-deleted records when attribute exists
+            if hasattr(CourseEnrollment, "deleted_at"):
+                active_enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).count()
+            else:
+                active_enrollments = db.query(CourseEnrollment).count()
+        except Exception:
+            active_enrollments = db.query(CourseEnrollment).count()
         enrollments_total.set(active_enrollments)
 
         logger.debug("Business metrics collected successfully")
