@@ -760,12 +760,14 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 try:
     enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
     if enable_metrics:
-        # Import only what we need for basic metrics
+        from backend.middleware.prometheus_metrics import setup_metrics
         from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-        from starlette.responses import Response as StarletteResponse
+        from starlette.responses import Response as MetricsResponse
 
-        # Don't call setup_metrics yet - will add endpoint manually later
-        logger.info("Prometheus metrics enabled - endpoint will be added manually")
+        # Setup metrics instrumentation (adds middleware and /metrics endpoint)
+        setup_metrics(app, version=VERSION)
+        
+        logger.info("✅ Prometheus metrics enabled at /metrics endpoint")
     else:
         logger.info("Prometheus metrics disabled (set ENABLE_METRICS=1 to enable)")
 except ImportError as e:
@@ -1840,35 +1842,26 @@ def register_routers(app: FastAPI) -> None:
             logger.warning(f" - {mod}: {err}")
 
 
-# ============================================================================
-# METRICS ENDPOINT (must be defined BEFORE register_routers)
-# ============================================================================
-# Add /metrics endpoint if metrics are enabled  
-enable_metrics_flag = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
-logger.info(f"ENABLE_METRICS flag: {enable_metrics_flag}")
+# Register routers
+register_routers(app)
 
-if enable_metrics_flag:
+# Add /metrics endpoint after routers (instrumentator.expose() doesn't work reliably)
+if os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}:
     try:
-        logger.info("Importing prometheus_client...")
         from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-        from starlette.responses import Response as PrometheusResponse
-        logger.info("Imports successful, defining route...")
+        from starlette.responses import Response as MetricsResponse
         
-        @app.get("/metrics")
-        async def metrics_route():
+        @app.get("/metrics", include_in_schema=False)
+        async def metrics_endpoint():
             """Prometheus metrics endpoint"""
-            logger.info("/metrics route handler called!")
-            return PrometheusResponse(
+            return MetricsResponse(
                 content=generate_latest(),
                 media_type=CONTENT_TYPE_LATEST,
             )
         
-        logger.info(f"✅ /metrics route defined successfully. Route count: {len([r for r in app.routes if hasattr(r, 'path')])}")
+        logger.info(f"✅ /metrics endpoint registered (total routes: {len([r for r in app.routes if hasattr(r, 'path')])})")
     except Exception as e:
-        logger.error(f"Failed to register /metrics endpoint: {e}", exc_info=True)
-
-# Register routers
-register_routers(app)
+        logger.warning(f"Failed to register /metrics endpoint: {e}")
 
 # ============================================================================
 # ROOT ENDPOINTS
