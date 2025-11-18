@@ -2074,11 +2074,101 @@ async def get_monitoring_status(request: Request):
     return {
         "available": True,
         "in_container": in_container,
-        "can_control": not in_container,
+        "can_control": True,  # Always true - container can trigger via file
         "running": any_running,
         "services": services_status,
         "compose_file": str(monitoring_compose.absolute())
     }
+
+
+@router.post("/monitoring/trigger", response_model=OperationResult)
+@_limiter.limit(_RATE_LIMIT_HEAVY)
+async def trigger_monitoring_from_container(request: Request):
+    """
+    Trigger monitoring stack start from container.
+    Creates a Docker Compose command in a shared volume that can be executed on host.
+    """
+    logger.info(
+        "Monitoring trigger requested from container",
+        extra={
+            "action": "monitoring_trigger_requested",
+            "request_id": getattr(request.state, "request_id", None),
+        },
+    )
+    
+    if not _in_docker_container():
+        # If not in container, just call the regular start endpoint
+        return await start_monitoring_stack(request)
+    
+    # Create trigger script in shared volume
+    trigger_dir = Path("/data/.triggers")
+    trigger_file = trigger_dir / "start_monitoring.ps1"
+    
+    try:
+        trigger_dir.mkdir(parents=True, exist_ok=True)
+        
+        # PowerShell script to start monitoring
+        script_content = '''# Auto-generated monitoring trigger
+$ErrorActionPreference = "Stop"
+
+Write-Host "Starting monitoring stack from trigger..."
+
+try {
+    # Navigate to project root (assumes trigger is in data/.triggers)
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    Set-Location $projectRoot
+    
+    Write-Host "Project root: $projectRoot"
+    
+    # Start monitoring stack
+    docker compose -f docker-compose.monitoring.yml up -d
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Monitoring stack started successfully"
+        # Clean up trigger file
+        Remove-Item $PSCommandPath -Force
+    } else {
+        Write-Host "❌ Failed to start monitoring stack (exit code: $LASTEXITCODE)"
+        exit 1
+    }
+} catch {
+    Write-Host "❌ Error: $_"
+    exit 1
+}
+'''
+        
+        trigger_file.write_text(script_content, encoding='utf-8')
+        
+        logger.info(
+            "Monitoring trigger script created",
+            extra={
+                "action": "monitoring_trigger_created",
+                "trigger_file": str(trigger_file),
+                "request_id": getattr(request.state, "request_id", None),
+            },
+        )
+        
+        return OperationResult(
+            success=True,
+            message="Monitoring trigger created. Execute the script on your host to start monitoring.",
+            details={
+                "trigger_file": str(trigger_file).replace("/data", "data"),  # Show relative path
+                "instructions": [
+                    "Option 1: Run the trigger script: pwsh data/.triggers/start_monitoring.ps1",
+                    "Option 2: Run directly: docker compose -f docker-compose.monitoring.yml up -d",
+                    "Option 3: Use helper: .\\RUN.ps1 -WithMonitoring"
+                ],
+                "mode": "container_trigger"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to create trigger script: {e}")
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            f"Failed to create monitoring trigger: {str(e)}",
+            request,
+        )
 
 
 @router.post("/monitoring/start", response_model=OperationResult)
@@ -2086,7 +2176,8 @@ async def get_monitoring_status(request: Request):
 async def start_monitoring_stack(request: Request):
     """
     Start the monitoring stack (Grafana, Prometheus, Loki).
-    Can only be executed from Docker host, not from within container.
+    From container: Creates a trigger file for host watcher.
+    From host: Directly starts the stack.
     """
     logger.info(
         "Monitoring stack start requested",
@@ -2099,12 +2190,42 @@ async def start_monitoring_stack(request: Request):
     
     # Check execution mode
     if _in_docker_container():
-        raise http_error(
-            400,
-            ErrorCode.CONTROL_OPERATION_FAILED,
-            "Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.",
-            request,
-        )
+        # From container: Create trigger file for host watcher
+        trigger_file = Path("/data/monitoring_start.trigger")
+        try:
+            trigger_file.parent.mkdir(parents=True, exist_ok=True)
+            trigger_file.write_text(json.dumps({
+                "timestamp": datetime.now().isoformat(),
+                "request_id": getattr(request.state, "request_id", None),
+                "action": "start_monitoring"
+            }))
+            
+            logger.info(
+                "Monitoring start trigger created",
+                extra={
+                    "action": "monitoring_trigger_created",
+                    "trigger_file": str(trigger_file),
+                    "request_id": getattr(request.state, "request_id", None),
+                },
+            )
+            
+            return OperationResult(
+                success=True,
+                message="Monitoring start requested. Run 'RUN.ps1 -WithMonitoring' from host or wait for auto-start if watcher is enabled.",
+                details={
+                    "trigger_file": str(trigger_file),
+                    "mode": "container_trigger",
+                    "instructions": "Execute 'docker compose -f docker-compose.monitoring.yml up -d' on the host to start monitoring."
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to create trigger file: {e}")
+            raise http_error(
+                500,
+                ErrorCode.CONTROL_OPERATION_FAILED,
+                f"Cannot start monitoring from container. Use RUN.ps1 -WithMonitoring from host. Trigger creation failed: {str(e)}",
+                request,
+            )
     
     # Check Docker
     if not _check_docker_running():
