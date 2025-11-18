@@ -7,7 +7,10 @@ param(
     [ValidateSet('Prompt','Native','Docker','None')]
     [string]$SetupMode = 'None',
     [switch]$StartServices,
-    [switch]$ForceInstall
+    [switch]$ForceInstall,
+    [switch]$SmartCache,            # Enable smarter caching heuristics (skip venv/node reinstall if unchanged)
+    [switch]$SkipVenvRebuild,       # Keep existing backend .venv when hashes match (overrides ForceInstall)
+    [switch]$ForceFresh             # Force full clean (ignore SmartCache preservation logic)
 )
 
 $script:cleaned = @()
@@ -26,10 +29,34 @@ $script:ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $script:ScriptRoot
 
 try {
+    $versionFile = Join-Path $script:ScriptRoot 'VERSION'
+    $workspaceVersion = if (Test-Path -LiteralPath $versionFile) { (Get-Content -LiteralPath $versionFile -ErrorAction SilentlyContinue | Select-Object -First 1).Trim() } else { 'unknown' }
     Write-Host "===============================" -ForegroundColor Cyan
     Write-Host "  SUPER CLEAN & DEPLOY SCRIPT" -ForegroundColor Cyan
     Write-Host "===============================" -ForegroundColor Cyan
-    Write-Host "Workspace root: $script:ScriptRoot" -ForegroundColor DarkGray
+    Write-Host "Workspace root : $script:ScriptRoot" -ForegroundColor DarkGray
+    Write-Host "Version        : $workspaceVersion" -ForegroundColor DarkGray
+    Write-Host "SetupMode      : $SetupMode" -ForegroundColor DarkGray
+    if ($SmartCache) { Write-Host "SmartCache     : ENABLED" -ForegroundColor DarkGray } else { Write-Host "SmartCache     : disabled" -ForegroundColor DarkGray }
+    # Docker image/version consistency check (informational)
+    if (Get-Command -Name 'docker' -ErrorAction SilentlyContinue) {
+        try {
+            $imageList = docker images --format '{{.Repository}}:{{.Tag}}' 2>$null | Where-Object { $_ -like 'sms-fullstack:*' }
+            if ($imageList) {
+                $expectedTag = "sms-fullstack:$workspaceVersion"
+                if ($imageList -notcontains $expectedTag) {
+                    Write-Host "⚠ Image tag mismatch: local images ($($imageList -join ', ')) do not contain $expectedTag" -ForegroundColor Yellow
+                    Write-Host "   Run SMART_SETUP.ps1 or docker build to create the expected image/tag." -ForegroundColor Yellow
+                } else {
+                    Write-Host "Image tag present: $expectedTag" -ForegroundColor DarkGray
+                }
+            } else {
+                Write-Host "○ No local sms-fullstack images found (version $workspaceVersion)." -ForegroundColor Gray
+            }
+        } catch {
+            Write-Host "○ Docker image check skipped: $($_.Exception.Message)" -ForegroundColor Gray
+        }
+    }
     Write-Host ""
 
     function Convert-ToRelativePath {
@@ -171,7 +198,7 @@ try {
         Write-Host ""
     }
 
-    function Cleanup-Targets {
+    function Clear-Targets {
         param(
             [array]$Targets,
             [string]$Heading
@@ -203,7 +230,7 @@ try {
         switch ($Mode.ToLowerInvariant()) {
             'native' { return 'Native' }
             'docker' { return 'Docker' }
-            'prompt' { return (Prompt-SetupModeSelection) }
+            'prompt' { return (Get-SetupModeSelection) }
             default { return 'None' }
         }
     }
@@ -246,7 +273,7 @@ try {
         throw "No available port found in range: $($PreferredPorts -join ', ')"
     }
 
-    function Prompt-SetupModeSelection {
+    function Get-SetupModeSelection {
         Write-Host "" 
         Write-Host "Post-clean setup options:" -ForegroundColor Cyan
         Write-Host "  1) Native developer setup (rebuild virtualenv, install deps) [default]" -ForegroundColor Gray
@@ -266,7 +293,7 @@ try {
         }
     }
 
-    function Ensure-EnvFileFromTemplate {
+    function Confirm-EnvFileFromTemplate {
         param([string]$Directory)
 
         $envFile = Join-Path $Directory '.env'
@@ -286,33 +313,44 @@ try {
         return $cmd.Source
     }
 
+    function Get-FileHashNormalized {
+        param([string]$Path)
+        if (-not (Test-Path -LiteralPath $Path)) { return $null }
+        try {
+            $content = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
+            # Normalize line endings & whitespace trimming
+            $normalized = ($content -replace "\r\n", "\n").Trim()
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($normalized)
+            $sha256 = [System.Security.Cryptography.SHA256]::Create()
+            $hashBytes = $sha256.ComputeHash($bytes)
+            return ([BitConverter]::ToString($hashBytes) -replace '-', '').ToLowerInvariant()
+        } catch { return $null }
+    }
+
     function New-BackendVirtualEnv {
-        param([string]$PythonExe)
+        param([string]$PythonExe,[switch]$ReuseExisting)
 
         $venvPath = Join-Path $script:ScriptRoot 'backend/.venv'
-        if (Test-Path -LiteralPath $venvPath) {
-            Remove-Item -LiteralPath $venvPath -Recurse -Force -ErrorAction SilentlyContinue
-        }
 
-        Write-Host "Creating backend virtual environment..." -ForegroundColor Cyan
-        & $PythonExe -m venv $venvPath
-
-    $osIsWindows = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
-    $venvPython = if ($osIsWindows) {
-            Join-Path $venvPath 'Scripts/python.exe'
+        if ($ReuseExisting -and (Test-Path -LiteralPath $venvPath)) {
+            Write-Host "Reusing existing virtual environment (backend/.venv)" -ForegroundColor Cyan
+            $script:setupActions += "Reused backend virtual environment"
         } else {
-            Join-Path $venvPath 'bin/python'
+            if (Test-Path -LiteralPath $venvPath) {
+                Remove-Item -LiteralPath $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            Write-Host "Creating backend virtual environment..." -ForegroundColor Cyan
+            & $PythonExe -m venv $venvPath
         }
 
-        if (-not (Test-Path -LiteralPath $venvPython)) {
-            throw "Virtual environment Python executable not found at $venvPython"
-        }
-
-        $script:setupActions += "Created backend virtual environment (backend/.venv)"
+        $osIsWindows = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
+        $venvPython = if ($osIsWindows) { Join-Path $venvPath 'Scripts/python.exe' } else { Join-Path $venvPath 'bin/python' }
+        if (-not (Test-Path -LiteralPath $venvPython)) { throw "Virtual environment Python executable not found at $venvPython" }
+        if (-not $ReuseExisting) { $script:setupActions += "Created backend virtual environment (backend/.venv)" }
         return $venvPython
     }
 
-    function Upgrade-VenvPip {
+    function Update-VenvPip {
         param([string]$PythonExe)
 
         Write-Host "Checking pip version..." -ForegroundColor Cyan
@@ -335,25 +373,53 @@ try {
     }
 
     function Install-BackendDependencies {
-        param([string]$PythonExe)
+        param([string]$PythonExe,[switch]$SkipIfCached)
 
         $backendDir = Join-Path $script:ScriptRoot 'backend'
         Push-Location $backendDir
         try {
+            $requirementsPath = Join-Path $backendDir 'requirements.txt'
+            $hashStoreDir = Join-Path $script:ScriptRoot '.cache'
+            $hashStoreFile = Join-Path $hashStoreDir 'requirements.hash'
+            if (-not (Test-Path -LiteralPath $hashStoreDir)) { New-Item -ItemType Directory -Path $hashStoreDir -Force | Out-Null }
+            $currentHash = Get-FileHashNormalized $requirementsPath
+            $previousHash = if (Test-Path -LiteralPath $hashStoreFile) { (Get-Content -LiteralPath $hashStoreFile -ErrorAction SilentlyContinue | Select-Object -First 1).Trim() } else { $null }
+
+            $skipInstall = $false
+            if ($SkipIfCached -and $currentHash -and $previousHash -and $currentHash -eq $previousHash) {
+                Write-Host "Backend requirements unchanged (cached). Skipping reinstall." -ForegroundColor Green
+                $script:setupActions += "Skipped backend dependency install (hash unchanged)"
+                $skipInstall = $true
+            }
+
+            if (-not $skipInstall) {
             Write-Host "Installing backend runtime dependencies (requirements.txt) in quiet mode..." -ForegroundColor Cyan
             & $PythonExe -m pip install -r requirements.txt --quiet --disable-pip-version-check
             if ($LASTEXITCODE -ne 0) {
                 throw "pip install for requirements.txt failed (exit code $LASTEXITCODE)."
             }
             $script:setupActions += "Installed backend dependencies (requirements.txt)"
+                if ($currentHash) { Set-Content -LiteralPath $hashStoreFile -Value $currentHash }
+            }
 
             if (Test-Path -LiteralPath 'requirements-dev.txt') {
+                $devHashPath = Join-Path $backendDir 'requirements-dev.txt'
+                $devHashFile = Join-Path $hashStoreDir 'requirements-dev.hash'
+                $currentDevHash = Get-FileHashNormalized $devHashPath
+                $previousDevHash = if (Test-Path -LiteralPath $devHashFile) { (Get-Content -LiteralPath $devHashFile -ErrorAction SilentlyContinue | Select-Object -First 1).Trim() } else { $null }
+                $skipDev = $SkipIfCached -and $currentDevHash -and $previousDevHash -and $currentDevHash -eq $previousDevHash
+                if ($skipDev) {
+                    Write-Host "Dev requirements unchanged (cached). Skipping reinstall." -ForegroundColor Green
+                    $script:setupActions += "Skipped dev dependency install (hash unchanged)"
+                } else {
                 Write-Host "Installing backend development dependencies (requirements-dev.txt) in quiet mode..." -ForegroundColor Cyan
                 & $PythonExe -m pip install -r requirements-dev.txt --quiet --disable-pip-version-check
                 if ($LASTEXITCODE -ne 0) {
                     throw "pip install for requirements-dev.txt failed (exit code $LASTEXITCODE)."
                 }
-                $script:setupActions += "Installed backend dev dependencies (requirements-dev.txt)"
+                    $script:setupActions += "Installed backend dev dependencies (requirements-dev.txt)"
+                    if ($currentDevHash) { Set-Content -LiteralPath $devHashFile -Value $currentDevHash }
+                }
             }
         }
         finally {
@@ -361,7 +427,7 @@ try {
         }
     }
 
-    function Run-BackendMigrations {
+    function Invoke-BackendMigrations {
         param([string]$PythonExe)
 
         $backendDir = Join-Path $script:ScriptRoot 'backend'
@@ -377,7 +443,7 @@ try {
     }
 
     function Install-FrontendDependencies {
-        param([switch]$UseCleanInstall)
+        param([switch]$UseCleanInstall,[switch]$SkipIfCached)
 
         if (-not (Test-CommandExists -Name 'npm')) {
             $script:setupErrors += 'npm command not found; frontend dependencies were not installed.'
@@ -391,7 +457,18 @@ try {
             $hasLock = Test-Path -LiteralPath 'package-lock.json'
             $runCi = $hasLock -or $UseCleanInstall
 
-            if ($runCi -and $hasLock) {
+            $hashStoreDir = Join-Path $script:ScriptRoot '.cache'
+            if (-not (Test-Path -LiteralPath $hashStoreDir)) { New-Item -ItemType Directory -Path $hashStoreDir -Force | Out-Null }
+            $lockHashFile = Join-Path $hashStoreDir 'frontend-lock.hash'
+            $currentLockHash = if (Test-Path -LiteralPath 'package-lock.json') { Get-FileHashNormalized 'package-lock.json' } else { $null }
+            $previousLockHash = if (Test-Path -LiteralPath $lockHashFile) { (Get-Content -LiteralPath $lockHashFile -ErrorAction SilentlyContinue | Select-Object -First 1).Trim() } else { $null }
+            $skipFrontendInstall = $SkipIfCached -and $currentLockHash -and $previousLockHash -and $currentLockHash -eq $previousLockHash
+
+            if ($skipFrontendInstall) {
+                Write-Host "Frontend lock unchanged (cached). Skipping npm install." -ForegroundColor Green
+                $script:setupActions += "Skipped frontend dependency install (lock unchanged)"
+            }
+            elseif ($runCi -and $hasLock) {
                 Write-Host "Reinstalling frontend dependencies (npm ci) after cleanup..." -ForegroundColor Cyan
                 npm ci --no-audit --silent --progress false
             }
@@ -408,15 +485,20 @@ try {
                 throw "npm dependency installation failed (exit code $LASTEXITCODE)."
             }
 
-            $script:setupActions += "Restored frontend dependencies (npm)"
-
-            Write-Host "Running production build to verify frontend integrity (npm run build)..." -ForegroundColor Cyan
-            npm run build -- --emptyOutDir
-            if ($LASTEXITCODE -ne 0) {
-                throw "npm run build failed (exit code $LASTEXITCODE)."
+            if (-not $skipFrontendInstall) {
+                $script:setupActions += "Restored frontend dependencies (npm)"
+                if ($currentLockHash) { Set-Content -LiteralPath $lockHashFile -Value $currentLockHash }
             }
 
-            $script:setupActions += "Verified frontend via npm run build"
+            if (-not $skipFrontendInstall -or $UseCleanInstall) {
+                Write-Host "Running production build to verify frontend integrity (npm run build)..." -ForegroundColor Cyan
+                npm run build -- --emptyOutDir
+                if ($LASTEXITCODE -ne 0) { throw "npm run build failed (exit code $LASTEXITCODE)." }
+                $script:setupActions += "Verified frontend via npm run build"
+            } else {
+                Write-Host "Skipping build (dependencies unchanged)" -ForegroundColor Gray
+                $script:setupActions += "Skipped frontend build (unchanged)"
+            }
         }
         finally {
             Pop-Location
@@ -461,15 +543,15 @@ try {
             throw
         }
 
-        $args = @('-m','uvicorn','backend.main:app','--host','127.0.0.1','--port',$selectedPort)
-        if ($Reload) { $args += '--reload' }
+        $UvicornArgs = @('-m','uvicorn','backend.main:app','--host','127.0.0.1','--port',$selectedPort)
+        if ($Reload) { $UvicornArgs += '--reload' }
 
         $backendLogOut = Join-Path $script:ScriptRoot 'backend_dev_output.log'
         $backendLogErr = Join-Path $script:ScriptRoot 'backend_dev_error.log'
         Remove-Item -LiteralPath $backendLogOut -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $backendLogErr -ErrorAction SilentlyContinue
 
-        $proc = Start-Process -FilePath $PythonExe -ArgumentList $args -WorkingDirectory $script:ScriptRoot -PassThru -WindowStyle Hidden -RedirectStandardOutput $backendLogOut -RedirectStandardError $backendLogErr
+        $proc = Start-Process -FilePath $PythonExe -ArgumentList $UvicornArgs -WorkingDirectory $script:ScriptRoot -PassThru -WindowStyle Hidden -RedirectStandardOutput $backendLogOut -RedirectStandardError $backendLogErr
         Start-Sleep -Seconds 2
         if ($proc.HasExited) {
             $message = "Backend dev server exited immediately (code $($proc.ExitCode)). Check backend_dev_error.log."
@@ -543,7 +625,8 @@ try {
         Write-Host "Using Python: $pythonExe" -ForegroundColor Gray
 
         try {
-            $venvPython = New-BackendVirtualEnv -PythonExe $pythonExe
+            $reuse = $SmartCache -and $SkipVenvRebuild -and (Test-Path -LiteralPath (Join-Path $script:ScriptRoot 'backend/.venv'))
+            $venvPython = New-BackendVirtualEnv -PythonExe $pythonExe -ReuseExisting:$reuse
         }
         catch {
             $script:setupErrors += "Virtual environment creation failed: $($_.Exception.Message)"
@@ -552,7 +635,7 @@ try {
         }
 
         try {
-            Upgrade-VenvPip -PythonExe $venvPython
+            Update-VenvPip -PythonExe $venvPython
         }
         catch {
             $script:setupErrors += "Failed to upgrade pip: $($_.Exception.Message)"
@@ -560,7 +643,7 @@ try {
         }
 
         try {
-            Install-BackendDependencies -PythonExe $venvPython
+            Install-BackendDependencies -PythonExe $venvPython -SkipIfCached:($SmartCache -and -not $ForceInstall)
         }
         catch {
             $script:setupErrors += "Failed to install backend dependencies: $($_.Exception.Message)"
@@ -568,21 +651,21 @@ try {
             return
         }
 
-    Ensure-EnvFileFromTemplate -Directory (Join-Path $script:ScriptRoot 'backend')
+    Confirm-EnvFileFromTemplate -Directory (Join-Path $script:ScriptRoot 'backend')
 
         try {
-            Run-BackendMigrations -PythonExe $venvPython
+            Invoke-BackendMigrations -PythonExe $venvPython
         }
         catch {
             $script:setupErrors += "Database migrations failed: $($_.Exception.Message)"
             Write-Host "⚠ Failed to apply database migrations: $($_.Exception.Message)" -ForegroundColor Yellow
         }
 
-    Ensure-EnvFileFromTemplate -Directory (Join-Path $script:ScriptRoot 'frontend')
+    Confirm-EnvFileFromTemplate -Directory (Join-Path $script:ScriptRoot 'frontend')
 
         $frontendReady = $false
         try {
-            $frontendReady = Install-FrontendDependencies -UseCleanInstall:$ForceInstall
+            $frontendReady = Install-FrontendDependencies -UseCleanInstall:$ForceInstall -SkipIfCached:($SmartCache -and -not $ForceInstall)
         }
         catch {
             $script:setupErrors += "Frontend dependency installation failed: $($_.Exception.Message)"
@@ -904,15 +987,25 @@ try {
     Write-Host ""
 
     # Python environments first, then caches (quiet mode to reduce noise)
-    Remove-DirectoriesByName -Names @(".venv", "venv") -Heading "Removing virtual environments..." -Label "Virtual env"
+    if ($ForceFresh -or -not $SmartCache -or -not $SkipVenvRebuild) {
+        Remove-DirectoriesByName -Names @(".venv", "venv") -Heading "Removing virtual environments..." -Label "Virtual env"
+    } else {
+        Write-Host "Preserving virtual environment (SmartCache active; use -ForceFresh to override)" -ForegroundColor Gray
+    }
 
     Remove-DirectoriesByName -Names @("__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache") -Heading "Removing Python cache directories..." -Label "Cache" -Quiet
 
     # Additional targeted files/directories
-    $targetedCleanup = @(
-        @{ Path = "node_modules"; Description = "root node_modules" },
-        @{ Path = "frontend\node_modules"; Description = "frontend/node_modules" },
-        @{ Path = "backend\node_modules"; Description = "backend/node_modules" },
+    $targetedCleanup = @()
+    $preserveDeps = $SmartCache -and -not $ForceFresh
+    if (-not $preserveDeps) {
+        $targetedCleanup += @{ Path = "node_modules"; Description = "root node_modules" }
+        $targetedCleanup += @{ Path = "frontend\node_modules"; Description = "frontend/node_modules" }
+        $targetedCleanup += @{ Path = "backend\node_modules"; Description = "backend/node_modules" }
+    } else {
+        Write-Host "Preserving dependency directories (SmartCache active; use -ForceFresh to override)" -ForegroundColor Gray
+    }
+    $targetedCleanup += @(
         @{ Path = "logs"; Description = "logs directory" },
         @{ Path = "backend\logs"; Description = "backend/logs directory" },
         @{ Path = "monitor_artifacts"; Description = "monitor_artifacts directory" },
@@ -937,7 +1030,7 @@ try {
         @{ Path = "frontend_audit_after_force.json"; Description = "frontend_audit_after_force.json" },
         @{ Path = "setup.log"; Description = "setup.log" }
     )
-    Cleanup-Targets -Targets $targetedCleanup -Heading "Removing build artifacts, logs, and reports..."
+    Clear-Targets -Targets $targetedCleanup -Heading "Removing build artifacts, logs, and reports..."
 
     # Old backups cleanup (retain two most recent by LastWriteTime)
     Write-Host "Cleaning old backup directories..." -ForegroundColor Cyan

@@ -452,12 +452,15 @@ Set-EnvFromTemplate -Dir (Join-Path $root 'frontend')
 Set-ComposeEnvVersion
 
 # 3. Build Docker images
+$appVersion = (Get-Content (Join-Path $root 'VERSION')).Trim()
+$imageTag = "sms-fullstack:$appVersion"
 Write-Log "Building Docker images ($deploymentMode mode)..."
+Write-Log "Image tag: $imageTag"
 Push-Location $root
 try {
   if ($deploymentMode -eq "fullstack") {
     # Build fullstack image
-    $buildArgs = @('build', '-t', "sms-fullstack:$((Get-Content (Join-Path $root 'VERSION')).Trim())", '-f', 'docker/Dockerfile.fullstack', '.')
+    $buildArgs = @('build', '-t', $imageTag, '-f', 'docker/Dockerfile.fullstack', '.')
     if ($Force) {
       Write-Log "Force rebuild requested (--no-cache)" 'WARN'
       $buildArgs += '--no-cache'
@@ -467,7 +470,14 @@ try {
     if ($buildProcess.ExitCode -ne 0) {
       throw "Docker build failed with exit code $($buildProcess.ExitCode)"
     }
-    Write-Log "Fullstack Docker image built successfully"
+    
+    # Verify image was created with correct tag
+    $imageCheck = docker images -q $imageTag 2>&1
+    if ($imageCheck) {
+      Write-Log "✓ Fullstack Docker image built successfully: $imageTag"
+    } else {
+      Write-Log "WARNING: Image build completed but tag verification failed" 'WARN'
+    }
   } else {
     # Build multi-container images using docker compose
     $buildArgs = @('compose', 'build')

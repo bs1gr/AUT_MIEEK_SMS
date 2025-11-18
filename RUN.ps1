@@ -896,8 +896,17 @@ function Start-Application {
     # Check if already running
     $status = Get-ContainerStatus
     if ($status -and $status.IsRunning) {
-        if ($status.IsHealthy) {
+        # Verify container is using correct image version
+        $containerImage = docker inspect $CONTAINER_NAME --format '{{.Config.Image}}' 2>$null
+        if ($containerImage -and $containerImage -ne $IMAGE_TAG) {
+            Write-Warning "Container is running old image: $containerImage (expected: $IMAGE_TAG)"
+            Write-Info "Restarting with correct version..."
+            docker stop $CONTAINER_NAME 2>$null | Out-Null
+            docker rm $CONTAINER_NAME 2>$null | Out-Null
+            # Fall through to start new container
+        } elseif ($status.IsHealthy) {
             Write-Success "SMS is already running!"
+            Write-Info "Image version: $containerImage"
             
             # Start monitoring if requested, even if app is already running
             $monitoringStarted = $false
@@ -945,6 +954,7 @@ function Start-Application {
         if (-not $imageExists) {
             Write-Info "First-time setup detected"
             Write-Info "Building Docker image (this may take 5-10 minutes)..."
+            Write-Info "Image tag: $IMAGE_TAG"
             Write-Host ""
 
             docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
@@ -959,7 +969,7 @@ function Start-Application {
                 return 1
             }
 
-            Write-Success "Build completed"
+            Write-Success "Build completed: $IMAGE_TAG"
             Write-Host ""
         }
 
