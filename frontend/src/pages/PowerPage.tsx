@@ -338,7 +338,7 @@ export default function PowerPage() {
                   {isGrafanaRunning && (
                     <div className="border rounded-lg overflow-hidden">
                       <iframe
-                        src="http://localhost:3000/d/sms-overview/student-management-system-overview?orgId=1&refresh=30s&kiosk"
+                        src="http://localhost:3000/d/sms-business-analytics/sms-business-analytics?orgId=1&refresh=30s&kiosk"
                         width="100%"
                         height="800"
                         frameBorder="0"
