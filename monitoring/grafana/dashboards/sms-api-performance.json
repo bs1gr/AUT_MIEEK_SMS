@@ -1,0 +1,67 @@
+{
+  "uid": "sms-api-performance",
+  "title": "SMS API Performance",
+  "tags": ["sms", "api", "performance"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "HTTP Request Rate (rps)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (handler, method) (rate(http_requests_total[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true}}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "HTTP Error Rate (4xx/5xx)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (status) (rate(http_requests_total{status=~\"4..\"}[5m]))"},
+        {"refId": "B", "expr": "sum by (status) (rate(http_requests_total{status=~\"5..\"}[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Slow Requests (last 5m)",
+      "gridPos": {"h": 8, "w": 4, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(sms_api_slow_requests_total[5m]))"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "reqps", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green"},{"color": "yellow", "value": 1},{"color": "red", "value": 5}]}}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Response Size (bytes/sec)",
+      "gridPos": {"h": 8, "w": 8, "x": 4, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(sms_api_response_size_bytes[5m]))"}
+      ],
+      "options": {"legend": {"displayMode": "hidden", "showLegend": false}}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Top Endpoints (rps)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "topk(10, sum by (handler) (rate(http_requests_total[5m])))"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "right", "showLegend": true}}
+    }
+  ]
+}

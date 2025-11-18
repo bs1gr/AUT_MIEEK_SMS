@@ -1,0 +1,43 @@
+{
+  "uid": "sms-attendance-insights",
+  "title": "SMS Attendance Insights",
+  "tags": ["sms", "attendance"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "piechart",
+      "title": "Attendance by Status",
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sms_attendance_total", "legendFormat": "{{status}}"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Attendance Rate by Status",
+      "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "rate(sms_attendance_total[5m])", "legendFormat": "{{status}}"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Attendance Rate (%)",
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "(sum(rate(sms_attendance_total{status=\"present\"}[5m])) / sum(rate(sms_attendance_total[5m]))) * 100"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red"},{"color": "yellow", "value": 75},{"color": "green", "value": 90}]}}}
+    }
+  ]
+}
