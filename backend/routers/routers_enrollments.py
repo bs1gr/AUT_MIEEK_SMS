@@ -13,6 +13,7 @@ router = APIRouter(prefix="/enrollments", tags=["Enrollments"], responses={404: 
 from backend.schemas.enrollments import EnrollmentCreate, EnrollmentResponse, StudentBrief
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.routers.routers_auth import optional_require_role
+from backend.rate_limiting import limiter, RATE_LIMIT_WRITE  # Rate limiting for write endpoints
 
 # ===== Dependency =====
 from backend.db import get_session as get_db
@@ -72,6 +73,7 @@ def list_enrolled_students(course_id: int, request: Request, db: Session = Depen
 
 
 @router.post("/course/{course_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 def enroll_students(
     course_id: int,
     payload: EnrollmentCreate,
@@ -96,6 +98,7 @@ def enroll_students(
 
 
 @router.delete("/course/{course_id}/student/{student_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 def unenroll_student(
     course_id: int,
     student_id: int,

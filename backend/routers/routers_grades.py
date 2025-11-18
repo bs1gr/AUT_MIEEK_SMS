@@ -20,6 +20,7 @@ from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.db_utils import transaction, get_by_id_or_404, paginate
+from backend.rate_limiting import limiter, RATE_LIMIT_WRITE  # Add rate limiting for write endpoints
 
 
 class GradeAnalysis(BaseModel):
@@ -66,6 +67,7 @@ def _normalize_date_range(
 
 
 @router.post("/", response_model=GradeResponse, status_code=201)
+@limiter.limit(RATE_LIMIT_WRITE)
 def create_grade(
     request: Request,
     grade_data: GradeCreate,
@@ -240,6 +242,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{grade_id}", response_model=GradeResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 def update_grade(
     request: Request,
     grade_id: int,
@@ -276,6 +279,7 @@ def update_grade(
 
 
 @router.delete("/{grade_id}", status_code=204)
+@limiter.limit(RATE_LIMIT_WRITE)
 def delete_grade(
     request: Request,
     grade_id: int,

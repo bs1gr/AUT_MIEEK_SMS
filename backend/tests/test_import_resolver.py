@@ -5,6 +5,7 @@ import importlib.util
 import pytest
 
 from backend import import_resolver
+import math
 
 
 def test_import_from_possible_locations_prefers_backend():
@@ -30,3 +31,14 @@ def test_import_names_raises_for_missing_attribute(monkeypatch: pytest.MonkeyPat
 
     with pytest.raises(ImportError):
         import_resolver.import_names("models", "MissingThing")
+
+
+def test_import_from_possible_locations_not_found():
+    with pytest.raises(ImportError):
+        import_resolver.import_from_possible_locations("this_module_does_not_exist_abc123")
+
+
+def test_import_names_attribute_missing():
+    # Import stdlib math but fail to find a bogus attribute
+    with pytest.raises(ImportError):
+        import_resolver.import_names("math", "definitely_not_an_attribute_zzz")
