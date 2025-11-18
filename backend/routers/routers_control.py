@@ -2018,14 +2018,34 @@ async def get_monitoring_status(request: Request):
     
     in_container = _in_docker_container()
     
-    # Check if Docker is available
-    if not _check_docker_running():
+    # Check if Docker is available (from container perspective)
+    # Note: In container mode, can_control is always True because we use trigger mechanism
+    docker_available = _check_docker_running()
+    
+    if not docker_available and not in_container:
+        # Native mode without Docker - cannot control
         return {
             "available": False,
             "in_container": in_container,
             "can_control": False,
             "message": "Docker is not running",
             "services": {}
+        }
+    
+    # In container mode, even if Docker check fails (can't see host Docker),
+    # we can still create triggers for the host to execute
+    if not docker_available and in_container:
+        return {
+            "available": True,  # Trigger mechanism available
+            "in_container": in_container,
+            "can_control": True,  # Can create triggers
+            "running": False,
+            "message": "Monitoring not started. Click below to create a start trigger.",
+            "services": {
+                "grafana": {"running": False, "url": "http://localhost:3000", "port": 3000},
+                "prometheus": {"running": False, "url": "http://localhost:9090", "port": 9090},
+                "loki": {"running": False, "url": "http://localhost:3100", "port": 3100}
+            }
         }
     
     # Check monitoring compose file
