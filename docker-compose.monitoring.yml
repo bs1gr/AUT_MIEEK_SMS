@@ -43,7 +43,7 @@
 #   View logs:
 #     docker-compose -f docker-compose.monitoring.yml logs -f
 
-version: '3.8'
+# NOTE: Removed obsolete 'version' key (Compose v2 ignores it). Keeping file lean.
 
 networks:
   monitoring:
@@ -224,7 +224,8 @@ services:
     ports:
       - "9100:9100"
     volumes:
-      - /:/host:ro,rslave
+      # Removed mount propagation option 'rslave' for Windows/Docker Desktop compatibility
+      - /:/host:ro
     networks:
       - monitoring
     pid: host

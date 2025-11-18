@@ -61,26 +61,51 @@ function Start-Watcher {
             try {
                 if (Test-Path $TriggerFile) {
                     Write-JobLog "Trigger detected! Starting monitoring stack..."
+                    # Ensure external app network exists (required by docker-compose.monitoring.yml)
+                    $networkName = 'student-management-system_default'
+                    try {
+                        $existingNetworks = docker network ls --format '{{.Name}}' 2>$null
+                        if (-not ($existingNetworks -and ($existingNetworks -contains $networkName))) {
+                            Write-JobLog "App network '$networkName' missing; creating..." 'WARN'
+                            $netCreateOutput = docker network create $networkName 2>&1 | Out-String
+                            Write-JobLog "Network create output: $netCreateOutput"
+                        } else {
+                            Write-JobLog "App network '$networkName' already present"
+                        }
+                    } catch {
+                        Write-JobLog "Failed to ensure network '$networkName': $_" 'ERROR'
+                    }
                     
                     # Execute the monitoring start
                     Push-Location $ProjectRoot
                     try {
                         $output = docker compose -f docker-compose.monitoring.yml up -d 2>&1 | Out-String
-                        
-                        # Check if main containers are running (exit code can be non-zero due to warnings)
-                        $grafanaRunning = docker ps -q -f name=sms-grafana -f status=running
-                        $prometheusRunning = docker ps -q -f name=sms-prometheus -f status=running
-                        
+                        if ($output -match 'declared as external, but could not be found') {
+                            Write-JobLog "Network issue detected in compose output; will retry after ensuring network." 'WARN'
+                            Start-Sleep -Seconds 3
+                            $output = docker compose -f docker-compose.monitoring.yml up -d 2>&1 | Out-String
+                        }
+
+                        # Poll for container readiness (Grafana & Prometheus) up to 30s
+                        $grafanaRunning = $null
+                        $prometheusRunning = $null
+                        for ($i=0; $i -lt 15; $i++) {
+                            $grafanaRunning = docker ps -q -f name=sms-grafana -f status=running
+                            $prometheusRunning = docker ps -q -f name=sms-prometheus -f status=running
+                            if ($grafanaRunning -and $prometheusRunning) { break }
+                            Start-Sleep -Seconds 2
+                        }
+
                         if ($grafanaRunning -and $prometheusRunning) {
                             Write-JobLog "✅ Monitoring stack started successfully"
+                            if ($output) { Write-JobLog "Compose output (truncated): $($output.Substring(0,[Math]::Min($output.Length,300)))" }
                             Write-JobLog "Grafana: http://localhost:3000"
                             Write-JobLog "Prometheus: http://localhost:9090"
-                            
                             # Remove trigger file
                             Remove-Item $TriggerFile -Force -ErrorAction SilentlyContinue
                             Write-JobLog "Trigger file cleaned up"
                         } else {
-                            Write-JobLog "❌ Failed to start monitoring - containers not running: $output" "ERROR"
+                            Write-JobLog "❌ Failed to confirm monitoring readiness after retry window. Raw compose output: $output" 'ERROR'
                         }
                     } catch {
                         Write-JobLog "❌ Exception starting monitoring: $_" "ERROR"
