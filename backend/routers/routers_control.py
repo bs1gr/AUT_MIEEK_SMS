@@ -2121,7 +2121,7 @@ async def trigger_monitoring_from_container(request: Request):
         return await start_monitoring_stack(request)
     
     # Create trigger script in shared volume
-    trigger_dir = Path("/data/.triggers")
+    trigger_dir = Path("/app/data/.triggers")
     trigger_file = trigger_dir / "start_monitoring.ps1"
     
     try:
