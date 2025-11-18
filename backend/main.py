@@ -760,10 +760,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 try:
     enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
     if enable_metrics:
-        from backend.middleware.prometheus_metrics import setup_metrics
+        # Import only what we need for basic metrics
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from starlette.responses import Response as StarletteResponse
 
-        setup_metrics(app, version=VERSION)
-        logger.info("Prometheus metrics enabled at /metrics endpoint")
+        # Don't call setup_metrics yet - will add endpoint manually later
+        logger.info("Prometheus metrics enabled - endpoint will be added manually")
     else:
         logger.info("Prometheus metrics disabled (set ENABLE_METRICS=1 to enable)")
 except ImportError as e:
@@ -1838,6 +1840,33 @@ def register_routers(app: FastAPI) -> None:
             logger.warning(f" - {mod}: {err}")
 
 
+# ============================================================================
+# METRICS ENDPOINT (must be defined BEFORE register_routers)
+# ============================================================================
+# Add /metrics endpoint if metrics are enabled  
+enable_metrics_flag = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
+logger.info(f"ENABLE_METRICS flag: {enable_metrics_flag}")
+
+if enable_metrics_flag:
+    try:
+        logger.info("Importing prometheus_client...")
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from starlette.responses import Response as PrometheusResponse
+        logger.info("Imports successful, defining route...")
+        
+        @app.get("/metrics")
+        async def metrics_route():
+            """Prometheus metrics endpoint"""
+            logger.info("/metrics route handler called!")
+            return PrometheusResponse(
+                content=generate_latest(),
+                media_type=CONTENT_TYPE_LATEST,
+            )
+        
+        logger.info(f"✅ /metrics route defined successfully. Route count: {len([r for r in app.routes if hasattr(r, 'path')])}")
+    except Exception as e:
+        logger.error(f"Failed to register /metrics endpoint: {e}", exc_info=True)
+
 # Register routers
 register_routers(app)
 
@@ -1983,6 +2012,7 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
             "control",
             "health",
             "power",
+            "metrics",  # Prometheus metrics endpoint
             "favicon.ico",
             "favicon.svg",
             "assets/",
