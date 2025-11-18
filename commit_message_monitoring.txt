@@ -1,0 +1,43 @@
+feat(ui): Add automatic monitoring stack startup from React UI
+
+Implemented intelligent auto-start functionality for Grafana and Prometheus
+monitoring services directly from the Power page UI, eliminating the need
+for manual RUN.ps1 -WithMonitoring command execution.
+
+Features:
+- Smart service detection with real-time status indicators
+- Automatic monitoring stack startup on button click
+- Confirmation prompts before starting services
+- Loading states and progress indicators
+- Error handling with user-friendly messages
+- Conditional iframe embedding (only when services running)
+- 10-second auto-refresh of monitoring status
+- TypeScript type safety for all API interactions
+
+User Experience Improvements:
+- Status badges: "● Running" (green) / "○ Stopped" (gray)
+- Click "Open Grafana/Prometheus" → auto-prompts to start if stopped
+- Beautiful loading animations during 5-8 second startup
+- Graceful fallback messages when services unavailable
+- Info tooltips explaining auto-start behavior
+
+Technical Implementation:
+- Uses /control/api/monitoring/status endpoint for status checks
+- Uses /control/api/monitoring/start endpoint for service startup
+- Polling interval: 10 seconds for status updates
+- Startup delay: 8 seconds before opening service URLs
+- Full TypeScript interfaces for MonitoringStatus and MonitoringService
+
+Benefits:
+- No PowerShell commands needed - everything in UI
+- Seamless integration with existing Control Panel
+- Better visibility of monitoring service status
+- Improved developer and operator experience
+
+Breaking Changes: None
+Dependencies: Uses existing Control API endpoints
+
+Modified:
+- frontend/src/pages/PowerPage.tsx: +150 lines (status detection, auto-start logic, UI enhancements)
+
+Related: v1.7.0 monitoring architecture

@@ -16,6 +16,8 @@ interface MonitoringService {
 interface MonitoringStatus {
   available: boolean;
   running: boolean;
+  in_container?: boolean;
+  can_control?: boolean;
   services: {
     grafana?: MonitoringService;
     prometheus?: MonitoringService;
@@ -70,6 +72,12 @@ export default function PowerPage() {
 
   // Start monitoring stack
   const startMonitoringStack = async () => {
+    // Check if we can control monitoring
+    if (monitoringStatus?.in_container || !monitoringStatus?.can_control) {
+      setMonitoringError('Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.');
+      return;
+    }
+    
     try {
       setStartingMonitoring(true);
       setMonitoringError(null);
@@ -108,6 +116,12 @@ export default function PowerPage() {
   const openServiceUrl = async (serviceName: 'grafana' | 'prometheus', url: string) => {
     // Check if monitoring is running
     if (!monitoringStatus?.services[serviceName]?.running) {
+      // Check if we can start it
+      if (monitoringStatus?.in_container || !monitoringStatus?.can_control) {
+        setMonitoringError('Cannot start monitoring from inside container. Use RUN.ps1 -WithMonitoring from host.');
+        return;
+      }
+      
       // Show confirmation dialog
       const shouldStart = window.confirm(
         `${serviceName === 'grafana' ? 'Grafana' : 'Prometheus'} is not running. Would you like to start the monitoring stack now?\n\nThis will start Grafana, Prometheus, and Loki services.`
@@ -218,6 +232,22 @@ export default function PowerPage() {
               </div>
             )}
 
+            {/* Container Mode Warning */}
+            {monitoringStatus?.in_container && (
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 flex items-start gap-3">
+                <span className="text-blue-600 text-xl">🐳</span>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900">Running in Container Mode</h4>
+                  <p className="text-sm text-blue-800 mb-2">
+                    Monitoring stack control is disabled when running inside a Docker container.
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    <strong>To start monitoring:</strong> Run <code className="bg-blue-100 px-2 py-0.5 rounded font-mono text-xs">RUN.ps1 -WithMonitoring</code> from your host terminal.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {startingMonitoring && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
@@ -320,7 +350,7 @@ export default function PowerPage() {
                       </p>
                       <button
                         onClick={startMonitoringStack}
-                        disabled={startingMonitoring}
+                        disabled={startingMonitoring || monitoringStatus?.in_container}
                         className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
                       >
                         {startingMonitoring ? (
@@ -328,10 +358,10 @@ export default function PowerPage() {
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Starting Monitoring Stack...
                           </>
+                        ) : monitoringStatus?.in_container ? (
+                          <>🐳 Use RUN.ps1 -WithMonitoring</>
                         ) : (
-                          <>
-                            🚀 Start Monitoring Stack
-                          </>
+                          <>🚀 Start Monitoring Stack</>
                         )}
                       </button>
                     </div>
@@ -364,7 +394,7 @@ export default function PowerPage() {
                     </div>
                     <button
                       onClick={() => openServiceUrl('prometheus', 'http://localhost:9090')}
-                      disabled={startingMonitoring}
+                      disabled={startingMonitoring || (monitoringStatus?.in_container && !isPrometheusRunning)}
                       className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                     >
                       {startingMonitoring ? (
@@ -412,7 +442,7 @@ export default function PowerPage() {
                       </p>
                       <button
                         onClick={startMonitoringStack}
-                        disabled={startingMonitoring}
+                        disabled={startingMonitoring || monitoringStatus?.in_container}
                         className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                       >
                         {startingMonitoring ? (
@@ -420,10 +450,10 @@ export default function PowerPage() {
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Starting Monitoring Stack...
                           </>
+                        ) : monitoringStatus?.in_container ? (
+                          <>🐳 Use RUN.ps1 -WithMonitoring</>
                         ) : (
-                          <>
-                            🚀 Start Monitoring Stack
-                          </>
+                          <>🚀 Start Monitoring Stack</>
                         )}
                       </button>
                     </div>
