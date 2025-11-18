@@ -68,6 +68,7 @@ def get_student(request: Request, student_id: int, db: Session = Depends(get_db)
 
 
 @router.put("/{student_id}", response_model=StudentResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 def update_student(
     request: Request,
     student_id: int,
@@ -82,6 +83,7 @@ def update_student(
 
 
 @router.delete("/{student_id}", status_code=204)
+@limiter.limit(RATE_LIMIT_WRITE)
 def delete_student(
     request: Request,
     student_id: int,
@@ -96,6 +98,7 @@ def delete_student(
 
 
 @router.post("/{student_id}/activate")
+@limiter.limit(RATE_LIMIT_WRITE)
 def activate_student(
     request: Request,
     student_id: int,
@@ -109,6 +112,7 @@ def activate_student(
 
 
 @router.post("/{student_id}/deactivate")
+@limiter.limit(RATE_LIMIT_WRITE)
 def deactivate_student(
     request: Request,
     student_id: int,
@@ -125,6 +129,7 @@ def deactivate_student(
 
 
 @router.post("/bulk/create")
+@limiter.limit(RATE_LIMIT_WRITE)
 def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
