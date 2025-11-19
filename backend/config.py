@@ -20,11 +20,18 @@ def _path_within(path: Path, root: Path) -> bool:
         return False
 
 
-# Select default DB path based on execution mode
-if os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker":
+# Select defaults based on execution mode
+_IS_DOCKER_MODE = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
+
+# Database path (container uses /data volume)
+if _IS_DOCKER_MODE:
     _DEFAULT_DB_PATH = "/data/student_management.db"
 else:
     _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
+
+# When running inside Docker Desktop, containers can reach host services via this DNS name
+# Use it to allow the API container to talk to monitoring services (Grafana/Prometheus/Loki)
+_DEFAULT_MONITORING_HOST = "host.docker.internal" if _IS_DOCKER_MODE else "localhost"
 
 
 def _get_app_version() -> str:
@@ -146,9 +153,10 @@ class Settings(BaseSettings):
     RESPONSE_CACHE_OPT_IN_HEADER: str = "x-cache-allow"
 
     # Monitoring services (Grafana, Prometheus, Loki)
-    GRAFANA_URL: str = os.environ.get("GRAFANA_URL", "http://localhost:3000")
-    PROMETHEUS_URL: str = os.environ.get("PROMETHEUS_URL", "http://localhost:9090")
-    LOKI_URL: str = os.environ.get("LOKI_URL", "http://localhost:3100")
+    # Defaults adapt to execution mode so the API inside a container can reach host-published ports.
+    GRAFANA_URL: str = os.environ.get("GRAFANA_URL", f"http://{_DEFAULT_MONITORING_HOST}:3000")
+    PROMETHEUS_URL: str = os.environ.get("PROMETHEUS_URL", f"http://{_DEFAULT_MONITORING_HOST}:9090")
+    LOKI_URL: str = os.environ.get("LOKI_URL", f"http://{_DEFAULT_MONITORING_HOST}:3100")
 
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:

@@ -6,6 +6,31 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.2] - 2025-11-19
+
+### Added
+
+- RUN.ps1: Safe Docker pruning utilities
+  - New `-Prune` flag: prunes stopped containers, dangling/unused images, builder cache, and removes obsolete `sms-fullstack:*` images not used by any container
+  - New `-PruneAll` flag: includes all `-Prune` behavior plus pruning of unused networks
+  - Safety: volumes are NOT pruned (protects persistent `sms_data`); for full wipes including volumes, use `SUPER_CLEAN_AND_DEPLOY.ps1`
+  - Integrated into `-UpdateNoCache` path so clean updates automatically clear caches and obsolete images
+  - Updated help output and inline guidance
+
+### Notes
+
+- No application code changes; this release focuses on operational hygiene and disk-space management during updates.
+
+### Changed
+
+- Monitoring detection and URLs (container-aware):
+  - Backend now uses HTTP probes when running inside the fullstack container to determine Grafana/Prometheus/Loki status
+  - Internal service URLs (for container-to-host access) default to `host.docker.internal` while browser-facing `url_public` use `http://localhost:*`
+  - Frontend Power page switched to use `services.*.url_public` for all browser links/embeds
+  - Raw metrics and API docs links now resolve against the current origin instead of hardcoded localhost
+
+- Power page UX polish: monitoring and control panels start collapsed by default for a cleaner first view
+
 ## [1.8.0] - 2025-11-19
 
 ### Added
@@ -747,7 +772,8 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.6.5...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.8.2...HEAD
+[1.8.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.2
 [1.6.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5
 [1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4
 [1.6.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3
