@@ -62,7 +62,9 @@ param(
     [switch]$Help,
     [switch]$WithMonitoring,
     [switch]$MonitoringOnly,
-    [switch]$StopMonitoring
+    [switch]$StopMonitoring,
+    [switch]$Prune,
+    [switch]$PruneAll
 )
 
 Set-StrictMode -Version Latest
@@ -774,6 +776,8 @@ OPTIONS:
   -StopMonitoring     Stop monitoring stack only
   -Restart            Restart all containers
   -Logs               Show backend container logs
+    -Prune              Prune Docker caches and old images (safe; keeps volumes)
+    -PruneAll           Prune caches/images and unused networks (keeps volumes)
   -Help               Show this help message
 
 EXAMPLES:
@@ -785,6 +789,8 @@ EXAMPLES:
   .\SMS.ps1 -StopMonitoring        # Stop monitoring only
   .\SMS.ps1 -Restart               # Restart containers
   .\SMS.ps1 -Logs                  # View logs
+    .\SMS.ps1 -Prune                 # Safe prune (stopped containers, cache, dangling images)
+    .\SMS.ps1 -PruneAll              # Prune + unused networks (keeps volumes)
 
 FIRST TIME SETUP:
   .\SMART_SETUP.ps1                # Initialize and start the system
@@ -907,6 +913,28 @@ if ($Logs) {
     exit 0
 }
 
+# Prune operations (delegate to RUN.ps1)
+if ($Prune -or $PruneAll) {
+    $runScript = Join-Path $scriptDir 'RUN.ps1'
+    if (-not (Test-Path -LiteralPath $runScript)) {
+        Write-Error2 "RUN.ps1 not found at $runScript"
+        exit 1
+    }
+    try {
+        if ($PruneAll) {
+            & $runScript -PruneAll -NoPause
+            exit $LASTEXITCODE
+        } else {
+            & $runScript -Prune -NoPause
+            exit $LASTEXITCODE
+        }
+    }
+    catch {
+        Write-Error2 "Prune operation failed: $($_.Exception.Message)"
+        exit 1
+    }
+}
+
 # Interactive mode (default)
 Show-Status
 
@@ -925,5 +953,7 @@ Write-Host "  .\SMS.ps1 -Stop             # Stop everything" -ForegroundColor Gr
 Write-Host "  .\SMS.ps1 -StopMonitoring   # Stop monitoring only" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Restart          # Restart containers" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Logs             # View logs" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -Prune            # Prune caches/old images (safe)" -ForegroundColor Gray
+Write-Host "  .\SMS.ps1 -PruneAll         # Prune + unused networks (keeps volumes)" -ForegroundColor Gray
 Write-Host "  .\SMS.ps1 -Help             # Full help" -ForegroundColor Gray
 Write-Host ""
