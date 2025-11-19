@@ -6,6 +6,43 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-11-19
+
+### Changed
+
+- **Major Control Router Refactoring**: Modularized oversized control router into focused submodules
+  - Split `routers_control.py` (>1000 lines) into 7 specialized modules under `backend/routers/control/`
+  - New modular structure: `base.py` (status/diagnostics), `operations.py` (install/build/backup), `monitoring.py` (Grafana/Prometheus control), `logs.py` (log retrieval), `housekeeping.py` (restart/exit), `frontend_dev.py` (dev server control), `common.py` (shared utilities)
+  - Maintained 100% backward compatibility via compatibility shim at `routers_control.py`
+  - All 340 tests passing (324 backend + 15 frontend + 1 skip)
+  - Zero regressions detected in comprehensive verification
+  - Improved maintainability while preserving all functionality
+
+- **Enhanced Code Organization**:
+  - Centralized shared utilities in `common.py` (Docker helpers, npm resolution, process management, port checking)
+  - Consistent project root resolution across all submodules (`parents[3]`)
+  - Backward-compatible test hooks for monkeypatching (`_check_npm_installed`, `_check_docker_running`)
+  - Direct function re-exports for test usage (`download_database_backup`)
+
+- **Comprehensive Test Coverage**: Created `TEST_VERIFICATION_SUMMARY.md` documenting all verification steps
+
+### Technical Details
+
+- **Module Breakdown**:
+  - `base.py` (284 lines): System status, diagnostics, ports, environment, troubleshooting - 5 endpoints
+  - `operations.py` (420 lines): Dependencies installation, Docker build/volume, database backups suite - 10+ endpoints
+  - `monitoring.py` (223 lines): Monitoring stack control, Prometheus/Loki queries - 6 endpoints
+  - `logs.py` (24 lines): Backend structured log access - 1 endpoint
+  - `housekeeping.py` (75 lines): System lifecycle (restart/exit) - 2 endpoints
+  - `frontend_dev.py` (239 lines): Frontend dev server management - 4 endpoints
+  - `common.py` (289 lines): Shared utilities, constants, helper functions
+  - `__init__.py` (14 lines): Router aggregation and export
+
+- **Compatibility Layer**: Minimal shim preserves legacy import paths while delegating to modular implementation
+  - Re-exports combined router, direct functions, and monkeypatchable test hooks
+  - Zero import-time side effects
+  - Enables gradual migration path for consumers
+
 ### Added
 
 - **On-Demand Monitoring Activation**: Monitoring stack can now be started lazily from Power page (`/power`) or via Control API endpoints (`/control/api/monitoring/*`), reducing initial resource footprint
