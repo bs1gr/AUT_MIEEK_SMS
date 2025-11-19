@@ -47,6 +47,8 @@ param(
     [switch]$Status,
     [switch]$Logs,
     [switch]$Backup,
+    [switch]$Prune,
+    [switch]$PruneAll,
     [switch]$Help,
     [switch]$NoPause,
     [switch]$WithMonitoring,
@@ -242,6 +244,27 @@ function Write-Warning {
     Write-Host "⚠️  $Message" -ForegroundColor Yellow
 }
 
+function Test-DockerAvailable {
+    try {
+        $null = docker --version 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            return $false
+        }
+
+        $null = docker ps 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error-Message "Docker is installed but not running"
+            Write-Info "Please start Docker Desktop and try again"
+            return $false
+        }
+
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 function Test-PortInUse {
     param([int]$Port)
     try {
@@ -357,24 +380,74 @@ function Start-MonitoringStack {
     }
 }
 
-function Test-DockerAvailable {
+function Get-ImagesInUse {
     try {
-        $null = docker --version 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            return $false
+        $used = docker ps -a --format '{{.Image}}' 2>$null
+        if (-not $used) { return @() }
+        return ($used -split "`n" | Where-Object { $_ -and $_.Trim() })
+    } catch { return @() }
+}
+
+function Prune-DockerResources {
+    param(
+        [switch]$All
+    )
+
+    Write-Header "Docker Prune"
+
+    if (-not (Test-DockerAvailable)) {
+        Write-Error-Message "Docker is not available"
+        return 1
+    }
+
+    try {
+        # 1) Remove stopped containers (safe)
+        Write-Info "Pruning stopped containers..."
+        docker container prune -f 2>$null | Out-Null
+
+        # 2) Remove dangling and unused images (safe)
+        Write-Info "Pruning dangling images..."
+        docker image prune -f 2>$null | Out-Null
+
+        # 3) Remove build cache (more aggressive)
+        Write-Info "Pruning builder cache (all unused layers)..."
+        docker builder prune -af 2>$null | Out-Null
+
+        # 4) Remove old sms-fullstack images no longer used by any container
+        Write-Info "Detecting obsolete sms-fullstack images..."
+        $currentTag = $IMAGE_TAG
+        $inUse = Get-ImagesInUse
+        $smsImages = docker images --format '{{.Repository}}:{{.Tag}}' 2>$null | Where-Object { $_ -like 'sms-fullstack:*' }
+        $toRemove = @()
+        foreach ($img in $smsImages) {
+            if ($img -ne $currentTag -and ($inUse -notcontains $img)) {
+                $toRemove += $img
+            }
+        }
+        if ($toRemove.Count -gt 0) {
+            Write-Info "Removing obsolete images: $($toRemove -join ', ')"
+            foreach ($img in $toRemove) {
+                try { docker rmi -f $img 2>$null | Out-Null } catch { }
+            }
+        } else {
+            Write-Info "No obsolete sms-fullstack images found"
         }
 
-        $null = docker ps 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error-Message "Docker is installed but not running"
-            Write-Info "Please start Docker Desktop and try again"
-            return $false
+        if ($All) {
+            # 5) Optionally prune unused networks (safe)
+            Write-Info "Pruning unused networks..."
+            docker network prune -f 2>$null | Out-Null
+
+            # IMPORTANT: Do NOT prune volumes here to protect user data (sms_data)
+            Write-Warning "Volume prune skipped (protects persistent data volume 'sms_data'). Use SUPER_CLEAN_AND_DEPLOY.ps1 for full wipe."
         }
 
-        return $true
+        Write-Success "Docker prune completed"
+        return 0
     }
     catch {
-        return $false
+        Write-Error-Message "Docker prune encountered an error: $_"
+        return 1
     }
 }
 
@@ -581,6 +654,8 @@ function Show-Help {
         Write-Host "  -Stop             Stop the application cleanly"
         Write-Host "  -Update           Fast update: backup + cached build (default)"
         Write-Host "  -UpdateNoCache    Clean update: backup + prune cache + no-cache rebuild"
+        Write-Host "  -Prune            Prune Docker caches and old images (safe; keeps volumes)"
+        Write-Host "  -PruneAll         Prune caches/images and unused networks (keeps volumes)"
         Write-Host "  -FastUpdate       (Deprecated) Alias for -Update"
         Write-Host "  -Logs             Show application logs"
         Write-Host "  -Backup           Create manual database backup"
@@ -774,14 +849,10 @@ function CleanUpdate-Application {
 
     # Pull/rebuild image
     Write-Host ""
-    Write-Info "Preparing clean rebuild (clearing Docker build cache)..."
-    try {
-        Write-Info "Pruning dangling build cache layers..."
-        docker builder prune -f 2>$null | Out-Null
-        Write-Info "Pruning dangling images..."
-        docker image prune -f 2>$null | Out-Null
-    } catch {
-        Write-Warning "Cache prune encountered an issue: $_"
+    Write-Info "Preparing clean rebuild (clearing Docker build cache and old images)..."
+    $pruneCode = Prune-DockerResources -All:$false
+    if ($pruneCode -ne 0) {
+        Write-Warning "Prune step returned code $pruneCode (continuing)"
     }
     Write-Info "Building latest version (no cache)..."
     Write-Info "This may take a few minutes..."
@@ -1126,6 +1197,11 @@ if ($Backup) {
         Write-Error-Message "Backup failed"
         Exit-Script -Code 1
     }
+}
+
+if ($Prune -or $PruneAll) {
+    $code = Prune-DockerResources -All:$PruneAll
+    Exit-Script -Code $code -OfferStop
 }
 
 if (($Update -and $UpdateNoCache) -or ($FastUpdate -and $UpdateNoCache)) {

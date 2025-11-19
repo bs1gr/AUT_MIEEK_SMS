@@ -50,21 +50,76 @@ async def get_monitoring_status(request: Request):
     in_container = in_docker_container()
     docker_available = check_docker_running()
 
-    if not docker_available and not in_container:
-        return {"available": False, "in_container": in_container, "can_control": False, "message": "Docker is not running", "services": {}}
+    # Prepare default service URLs from settings (they adapt for container vs native)
+    settings = get_settings()
 
-    if not docker_available and in_container:
+    def with_public_url(url: str, port: int) -> Dict[str, Any]:
+        from urllib.parse import urlparse, urlunparse
+        parsed = urlparse(url)
+        public_netloc = parsed.netloc
+        # For browser use: prefer localhost when service hostname is host.docker.internal
+        if parsed.hostname and parsed.hostname.lower() == "host.docker.internal":
+            public_netloc = f"localhost:{port}"
+        public_url = urlunparse((parsed.scheme, public_netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+        return {"running": False, "url": url, "url_public": public_url, "port": port}
+
+    services_status: Dict[str, Dict[str, Any]] = {
+        "grafana": with_public_url(settings.GRAFANA_URL, 3000),
+        "prometheus": with_public_url(settings.PROMETHEUS_URL, 9090),
+        "loki": with_public_url(settings.LOKI_URL, 3100),
+    }
+
+    # If Docker is not available on host and we're not inside container → monitoring control unavailable
+    if not docker_available and not in_container:
+        return {
+            "available": False,
+            "in_container": in_container,
+            "can_control": False,
+            "message": "Docker is not running",
+            "services": services_status,
+        }
+
+    # If running inside container and Docker CLI is not available, we can still try probing services directly
+    # using URLs that point to host.docker.internal. This allows correct 'running' detection.
+    if in_container and not docker_available:
+        try:
+            import httpx  # local import to keep import surface small
+            async with httpx.AsyncClient(timeout=1.5) as client:
+                # Grafana: prefer /api/health endpoint
+                try:
+                    base = services_status["grafana"]["url"].rstrip("/") + "/"
+                    health = await client.get(urljoin(base, "api/health"))
+                    services_status["grafana"]["running"] = health.status_code == 200
+                except Exception:
+                    services_status["grafana"]["running"] = False
+
+                # Prometheus: root returns 200 when up
+                try:
+                    r = await client.get(services_status["prometheus"]["url"], follow_redirects=True)
+                    services_status["prometheus"]["running"] = r.status_code == 200
+                except Exception:
+                    services_status["prometheus"]["running"] = False
+
+                # Loki: /ready or /metrics
+                try:
+                    base = services_status["loki"]["url"].rstrip("/") + "/"
+                    r = await client.get(urljoin(base, "ready"))
+                    services_status["loki"]["running"] = r.status_code == 200
+                except Exception:
+                    services_status["loki"]["running"] = False
+
+        except Exception:
+            # Ignore probing errors; we'll fall back to 'not running'
+            pass
+
+        any_running = any(s["running"] for s in services_status.values())
         return {
             "available": True,
             "in_container": in_container,
             "can_control": True,
-            "running": False,
-            "message": "Monitoring not started. Click below to create a start trigger.",
-            "services": {
-                "grafana": {"running": False, "url": "http://localhost:3000", "port": 3000},
-                "prometheus": {"running": False, "url": "http://localhost:9090", "port": 9090},
-                "loki": {"running": False, "url": "http://localhost:3100", "port": 3100},
-            },
+            "running": any_running,
+            "message": "Container mode: status detected via HTTP probes.",
+            "services": services_status,
         }
 
     monitoring_compose = Path("docker-compose.monitoring.yml")
@@ -72,20 +127,20 @@ async def get_monitoring_status(request: Request):
         return {"available": False, "in_container": in_container, "can_control": not in_container, "message": "Monitoring compose file not found", "services": {}}
 
     success, stdout, stderr = docker_compose(["ps", "--services", "--filter", "status=running"], timeout=10)
-
-    settings = get_settings()
-    services_status = {
-        "grafana": {"running": False, "url": settings.GRAFANA_URL, "port": 3000},
-        "prometheus": {"running": False, "url": settings.PROMETHEUS_URL, "port": 9090},
-        "loki": {"running": False, "url": settings.LOKI_URL, "port": 3100},
-    }
     if success:
         running_services = stdout.strip().split("\n") if stdout.strip() else []
         for service in running_services:
             if service in services_status:
                 services_status[service]["running"] = True
     any_running = any(s["running"] for s in services_status.values())
-    return {"available": True, "in_container": in_container, "can_control": True, "running": any_running, "services": services_status, "compose_file": str(monitoring_compose.absolute())}
+    return {
+        "available": True,
+        "in_container": in_container,
+        "can_control": True,
+        "running": any_running,
+        "services": services_status,
+        "compose_file": str(monitoring_compose.absolute()),
+    }
 
 
 @router.post("/monitoring/trigger")

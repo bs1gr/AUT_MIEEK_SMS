@@ -29,9 +29,9 @@ interface MonitoringStatus {
 
 export default function PowerPage() {
   const { t } = useLanguage();
-  const [showSystemHealth, setShowSystemHealth] = useState(true);
-  const [showControlPanel, setShowControlPanel] = useState(true);
-  const [showMonitoring, setShowMonitoring] = useState(true);
+  const [showSystemHealth, setShowSystemHealth] = useState(false);
+  const [showControlPanel, setShowControlPanel] = useState(false);
+  const [showMonitoring, setShowMonitoring] = useState(false);
   const [monitoringTab, setMonitoringTab] = useState<'grafana' | 'prometheus' | 'metrics'>('grafana');
   const [monitoringStatus, setMonitoringStatus] = useState<MonitoringStatus | null>(null);
   const [startingMonitoring, setStartingMonitoring] = useState(false);
@@ -164,7 +164,16 @@ export default function PowerPage() {
 
   const isGrafanaRunning = monitoringStatus?.services?.grafana?.running || false;
   const isPrometheusRunning = monitoringStatus?.services?.prometheus?.running || false;
-  const grafanaBase = (monitoringStatus?.services?.grafana?.url || 'http://localhost:3000').replace(/\/$/, '');
+  // Prefer browser-facing public URL if provided by API
+  const grafanaPublicUrl = ((monitoringStatus?.services?.grafana as any)?.url_public
+    || monitoringStatus?.services?.grafana?.url
+    || 'http://localhost:3000');
+  const grafanaBase = grafanaPublicUrl.replace(/\/$/, '');
+  const prometheusPublicUrl = ((monitoringStatus?.services?.prometheus as any)?.url_public
+    || monitoringStatus?.services?.prometheus?.url
+    || 'http://localhost:9090');
+  const prometheusBase = prometheusPublicUrl.replace(/\/$/, '');
+  const apiBase = API_BASE.replace(/\/$/, '');
 
   const dashboards: Record<
     'business' | 'apiPerformance' | 'authSecurity' | 'dbCache' | 'attendance' | 'grading',
@@ -343,7 +352,7 @@ export default function PowerPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => openServiceUrl('grafana', 'http://localhost:3000')}
+                      onClick={() => openServiceUrl('grafana', grafanaPublicUrl)}
                       disabled={startingMonitoring}
                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
                     >
@@ -490,7 +499,7 @@ export default function PowerPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => openServiceUrl('prometheus', 'http://localhost:9090')}
+                      onClick={() => openServiceUrl('prometheus', prometheusPublicUrl)}
                       disabled={startingMonitoring}
                       className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-orange-400 disabled:cursor-not-allowed"
                     >
@@ -530,7 +539,7 @@ export default function PowerPage() {
                   {isPrometheusRunning && (
                     <div className="border rounded-lg overflow-hidden">
                       <iframe
-                        src="http://localhost:9090/graph"
+                        src={`${prometheusBase}/graph`}
                         width="100%"
                         height="800"
                         frameBorder="0"
@@ -575,7 +584,7 @@ export default function PowerPage() {
                       {t('controlPanel.monitoring.metricsDesc')}
                     </p>
                     <a
-                      href="http://localhost:8000/metrics"
+                      href={`${apiBase}/metrics`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -590,7 +599,7 @@ export default function PowerPage() {
                   {/* Metrics Viewer */}
                   <div className="border rounded-lg overflow-hidden bg-gray-50">
                     <iframe
-                      src="http://localhost:8000/metrics"
+                      src={`${apiBase}/metrics`}
                       width="100%"
                       height="600"
                       frameBorder="0"
@@ -621,7 +630,7 @@ export default function PowerPage() {
                         <a href="http://localhost:3100" target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:text-blue-800">
                           → Loki (Port 3100)
                         </a>
-                        <a href="http://localhost:8080/docs" target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:text-blue-800">
+                        <a href={`${apiBase}/docs`} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:text-blue-800">
                           → API Documentation
                         </a>
                       </div>
