@@ -48,9 +48,6 @@ COPY backend /app/backend
 # Copy VERSION file
 COPY VERSION /app/VERSION
 
-# Copy .github/scripts for CI validator tests (if needed)
-COPY .github/scripts /app/.github/scripts
-
 # Create non-root user and setup directories
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app && \

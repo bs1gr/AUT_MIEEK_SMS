@@ -126,10 +126,18 @@ check_qnap_environment() {
 check_docker_version() {
     print_step "Checking Docker version..."
     
-    local docker_version=$(docker --version | grep -oP '\d+\.\d+' | head -1)
+    # Extract version using sed (BusyBox compatible)
+    local docker_version=$(docker --version | sed -n 's/.*version \([0-9]*\.[0-9]*\).*/\1/p')
     local required_version="20.10"
     
-    if [ "$(printf '%s\n' "$required_version" "$docker_version" | sort -V | head -n1)" != "$required_version" ]; then
+    # Simple version comparison (major.minor)
+    local docker_major=$(echo "$docker_version" | cut -d. -f1)
+    local docker_minor=$(echo "$docker_version" | cut -d. -f2)
+    local required_major=$(echo "$required_version" | cut -d. -f1)
+    local required_minor=$(echo "$required_version" | cut -d. -f2)
+    
+    if [ "$docker_major" -lt "$required_major" ] || \
+       ([ "$docker_major" -eq "$required_major" ] && [ "$docker_minor" -lt "$required_minor" ]); then
         print_error "Docker version $docker_version is too old (minimum: $required_version)"
         exit 1
     fi
