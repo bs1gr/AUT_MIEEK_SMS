@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-18
-**Version**: 1.7.0
+**Last Updated**: 2025-11-19
+**Version**: 1.8.0
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -32,7 +32,7 @@ Documentation is organized into three main directories:
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 
-### Monitoring & Operations (NEW - v1.7.0)
+### Monitoring & Operations (v1.7.0)
 
 - **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
   - On-demand vs eager activation modes
@@ -47,6 +47,20 @@ Documentation is organized into three main directories:
   - Monitoring lifecycle endpoints
   - Audit logging specifications
   - Security considerations for control operations
+
+### Code Architecture & Refactoring (NEW - v1.8.0)
+
+- **[CONTROL_ROUTER_REFACTORING.md](CONTROL_ROUTER_REFACTORING.md)** - Control router refactoring guide
+  - Modular architecture design
+  - Migration from monolithic to modular structure
+  - Development guidelines and best practices
+  - Testing strategy and troubleshooting
+  - Module responsibilities and usage examples
+- **[../TEST_VERIFICATION_SUMMARY.md](../TEST_VERIFICATION_SUMMARY.md)** - Comprehensive test results for v1.8.0
+  - Backend test coverage (324/325 tests)
+  - Frontend test results (15/15 tests)
+  - Import path verification
+  - Application startup validation
 
 ### Performance & Optimization
 
@@ -114,7 +128,7 @@ Documentation is organized into three main directories:
 
 | Status | Count | Description |
 |--------|-------|-------------|
-| ✅ Active | 12 | Current, maintained documentation |
+| ✅ Active | 14 | Current, maintained documentation |
 | 🧪 Draft | 4 | New skeletons pending expansion |
 | 🔍 Audit Workflow | 1 | GitHub Action enforcing freshness & status (doc-audit.yml) |
 
@@ -199,6 +213,9 @@ The following documents have been moved to `archive/` for historical reference:
 
 **Understand the architecture**
 → Read [docs/ARCHITECTURE.md](ARCHITECTURE.md)
+
+**Learn about control router refactoring**
+→ Read [docs/CONTROL_ROUTER_REFACTORING.md](CONTROL_ROUTER_REFACTORING.md)
 
 **Troubleshoot Docker issues**
 → Check [docs/DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)
