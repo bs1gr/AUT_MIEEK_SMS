@@ -37,6 +37,14 @@ The first time you run this, it will:
 
 **Access the application:** Open <http://localhost:8080> in your browser
 
+**QNAP NAS Deployment** 🆕:
+
+Deploy to QNAP Container Station with PostgreSQL database:
+
+- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md)
+- Full management scripts and monitoring included
+- Automatic backups and rollback capabilities
+
 **Monitoring (On-Demand or Eager)**:
 
 ```powershell
@@ -274,13 +282,22 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 The runtime enforces a clear separation between release and development workflows.
 
-#### 🐳 Release (Docker Full Stack Only)
+#### 🐳 Release (Docker Full Stack)
 
 - Production and release builds **must** run via the Docker full-stack bundle.
 - Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
 - `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
 - Access the stack at <http://localhost:8080> (frontend + API proxy).
 - Lazy monitoring: run plain (`RUN.ps1`) then start monitoring from `/power` only when needed (reduces idle resource usage).
+
+#### 📦 QNAP NAS Deployment
+
+- Dedicated deployment for QNAP Container Station with PostgreSQL database
+- Automated installation via `scripts/qnap/install-qnap.sh`
+- Management menu with backup/restore/update operations
+- Monitoring stack with Grafana and Prometheus
+- Complete rollback capabilities
+- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) for full documentation
 
 #### 🔧 Local Development (Native)
 
@@ -418,11 +435,12 @@ Troubleshooting:
 
 ## 📦 Deploying to Other Computers
 
-**Three deployment options:**
+**Four deployment options:**
 
-1. Copy project → Run `RUN.ps1` (`pwsh -NoProfile -File .\RUN.ps1`)
-2. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
-3. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
+1. **Windows Docker**: Copy project → Run `RUN.ps1` (`pwsh -NoProfile -File .\RUN.ps1`)
+2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/qnap/QNAP_INSTALLATION_GUIDE.md))
+3. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
+4. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
 **Documentation:**
 
