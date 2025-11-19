@@ -8,7 +8,38 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.8.0] - 2025-11-19
 
+### Added
+
+- **QNAP NAS Deployment Support** 🆕: Complete containerized deployment solution for QNAP Container Station
+  - Full Docker Compose configuration with PostgreSQL 16 database
+  - Automated installation script (`scripts/qnap/install-qnap.sh`) with comprehensive safety checks
+  - Management script with 12 operations (backup, restore, update, monitoring, logs, cleanup)
+  - Database rollback capabilities with backup verification
+  - Safe uninstall script with data preservation options
+  - Nginx reverse proxy with security headers and gzip compression
+  - Optional Grafana/Prometheus monitoring stack integration
+  - Comprehensive documentation suite:
+    - Installation Guide (730 lines) - Prerequisites, automated/manual installation, post-setup
+    - Management Guide (780 lines) - Daily operations, backup/restore, monitoring, updates
+    - Troubleshooting Guide (900 lines) - Installation, container, database, network, performance issues
+  - 40 comprehensive integration tests (100% passing)
+  - Resource limits and health checks for all services
+  - Automated backup rotation (30-day default retention)
+  - Complete isolation from standalone deployment (separate compose file, scripts, environment)
+
+- **Version Bump**: Application version updated from 1.7.0 to 1.8.0 across all components
+
+- **Enhanced Testing Infrastructure**: Added `integration` pytest marker for deployment tests
+  - Enables selective test execution: `pytest -m "not integration"` to skip deployment tests
+  - Integration tests can be run separately: `pytest -m integration`
+
 ### Changed
+
+- **README.md Enhancements**:
+  - Added QNAP deployment section in Quick Start guide
+  - Added dedicated QNAP subsection in Deployment Modes
+  - Updated deployment options to include QNAP NAS alongside Windows/Docker/offline options
+  - Linked to comprehensive QNAP documentation guides
 
 - **Major Control Router Refactoring**: Modularized oversized control router into focused submodules
   - Split `routers_control.py` (>1000 lines) into 7 specialized modules under `backend/routers/control/`
@@ -93,12 +124,48 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Security
 
+- **QNAP Deployment Security**:
+  - SECRET_KEY_STRICT_ENFORCEMENT support for production deployments
+  - Required environment variables with :? syntax prevent missing configuration
+  - Non-root container users (backend uid 1000)
+  - Restart policies configured for service resilience
+  - Nginx security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+  - Internal metrics restricted to private networks only
+  - Health check endpoints for service monitoring
+
 - **Monitoring Endpoint Protection**:
   - Host-only execution enforced (cannot start/stop from within container)
   - Rate limiting prevents rapid toggling attacks
   - Audit logging tracks all monitoring lifecycle events
   - Documentation includes security hardening checklist for production
   - Default credentials warning for Grafana (admin/admin must be changed)
+
+### Technical Details
+
+- **QNAP Deployment Files** (16 new files, 6,066+ lines):
+  - `docker-compose.qnap.yml` (292 lines): Multi-service orchestration with PostgreSQL
+  - `docker/Dockerfile.backend.qnap` (78 lines): QNAP-optimized backend with PostgreSQL client
+  - `docker/Dockerfile.frontend.qnap` (88 lines): Two-stage build with Nginx tuning
+  - `docker/nginx.qnap.conf` (181 lines): Reverse proxy with security headers
+  - `.env.qnap.example` (131 lines): Configuration template with 23 variables
+  - `scripts/qnap/install-qnap.sh` (488 lines): Automated installer with safety checks
+  - `scripts/qnap/manage-qnap.sh` (495 lines): 12-operation management interface
+  - `scripts/qnap/rollback-qnap.sh` (316 lines): Database rollback with verification
+  - `scripts/qnap/uninstall-qnap.sh` (289 lines): Safe removal with data preservation
+  - `scripts/qnap/README.md` (277 lines): Script documentation and usage
+  - `docs/qnap/QNAP_INSTALLATION_GUIDE.md` (730 lines): Complete installation guide
+  - `docs/qnap/QNAP_MANAGEMENT_GUIDE.md` (780 lines): Daily operations guide
+  - `docs/qnap/QNAP_TROUBLESHOOTING_GUIDE.md` (900 lines): Comprehensive troubleshooting
+  - `backend/tests/test_qnap_deployment.py` (558 lines): 40 integration tests
+  - `QNAP_DEPLOYMENT_PLAN.md` (438 lines): Master deployment plan
+  - `data/.triggers/start_monitoring.ps1` (21 lines): Monitoring trigger script
+
+- **Backward Compatibility**:
+  - Zero changes to existing deployment files (docker-compose.yml, docker-compose.prod.yml)
+  - Zero changes to existing management scripts (RUN.ps1, SMS.ps1, SMART_SETUP.ps1)
+  - QNAP deployment completely isolated with separate compose file and scripts
+  - Integration test marker addition is non-breaking (beneficial enhancement)
+  - Version bump from 1.7.0 to 1.8.0 is semantic versioning compliant
 
 ## [1.6.5] - 2025-11-17
 
