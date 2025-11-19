@@ -1,8 +1,8 @@
 # Student Management System
 
-## � Quick Start (v1.4.0+)
+## 📦 Quick Start (v1.8.2)
 
-### **For End Users** - One-Click Deployment ⭐ **NEW!**
+### **For End Users** - One-Click Deployment ⭐
 
 The simplest way to run SMS:
 
@@ -24,6 +24,8 @@ The first time you run this, it will:
 ./RUN.ps1 -Stop      # Stop cleanly
 ./RUN.ps1 -Update    # Fast update (cached build + backup)
 ./RUN.ps1 -UpdateNoCache  # Clean update (prune cache + --no-cache build + backup)
+./RUN.ps1 -Prune     # Prune Docker caches and old images (safe; keeps volumes)
+./RUN.ps1 -PruneAll  # Prune caches/images and unused networks (keeps volumes)
 ./RUN.ps1 -Status    # Check if running
 ./RUN.ps1 -Logs      # View application logs
 ./RUN.ps1 -Backup    # Create manual backup
@@ -97,7 +99,7 @@ If you need to develop features or debug, use the advanced setup:
 
 ---
 
-## �🗂️ Script Organization (v1.4.0+)
+## 🗂️ Script Organization (v1.8.2)
 
 Scripts are organized into clear categories:
 
@@ -238,7 +240,7 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 ---
 
 
-## 🚀 Quick Start (v1.5.0+)
+## 🚀 Quick Start (v1.8.2)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -249,6 +251,8 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 ./RUN.ps1 -Stop      # Stop cleanly
 ./RUN.ps1 -Update    # Fast update (cached build + backup)
 ./RUN.ps1 -UpdateNoCache # Clean update (cache prune + --no-cache build + backup)
+./RUN.ps1 -Prune     # Prune Docker caches and old images (safe; keeps volumes)
+./RUN.ps1 -PruneAll  # Prune caches/images and unused networks (keeps volumes)
 ./RUN.ps1 -Status    # Check if running
 ./RUN.ps1 -Logs      # View application logs
 ./RUN.ps1 -Backup    # Create manual backup
