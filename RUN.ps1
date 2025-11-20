@@ -495,8 +495,9 @@ function Prune-DockerResources {
         Write-Info "Pruning dangling images..."
         docker image prune -f 2>$null | Out-Null
 
-        # 3) Remove build cache (more aggressive)
-        Write-Info "Pruning builder cache (all unused layers)..."
+        # 3) Remove build cache (more aggressive) - force complete cleanup
+        Write-Info "Pruning ALL builder cache..."
+        docker builder prune -af --filter "until=1h" 2>$null | Out-Null
         docker builder prune -af 2>$null | Out-Null
 
         # 4) Remove old sms-fullstack images no longer used by any container
@@ -933,9 +934,22 @@ function CleanUpdate-Application {
         Write-Success "Stopped"
     }
 
+    # Aggressive cleanup: Remove ALL sms-fullstack images
+    Write-Host ""
+    Write-Info "Removing ALL previous sms-fullstack images (clean slate)..."
+    $allSmsImages = docker images sms-fullstack -q 2>$null
+    if ($allSmsImages) {
+        $allSmsImages | ForEach-Object { 
+            try { docker rmi -f $_ 2>$null | Out-Null } catch { }
+        }
+        Write-Success "All previous images removed"
+    } else {
+        Write-Info "No previous images found"
+    }
+
     # Pull/rebuild image
     Write-Host ""
-    Write-Info "Preparing clean rebuild (clearing Docker build cache and old images)..."
+    Write-Info "Preparing clean rebuild (clearing Docker build cache)..."
     $pruneCode = Prune-DockerResources -All:$false
     if ($pruneCode -ne 0) {
         Write-Warning "Prune step returned code $pruneCode (continuing)"
