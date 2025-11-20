@@ -81,6 +81,92 @@ $VOLUME_NAME = "sms_data"
 $MONITORING_COMPOSE_FILE = Join-Path $SCRIPT_DIR "docker-compose.monitoring.yml"
 $DEFAULT_GRAFANA_PORT = 3000
 $DEFAULT_PROMETHEUS_PORT = 9090
+$ENV_FILE_CANDIDATES = @(
+    (Join-Path $SCRIPT_DIR ".env"),
+    (Join-Path $SCRIPT_DIR "backend/.env")
+)
+$script:DotEnvCache = $null
+
+function Get-DotEnvDictionary {
+    if ($script:DotEnvCache) {
+        return $script:DotEnvCache
+    }
+
+    $dictionary = @{}
+    foreach ($envPath in $ENV_FILE_CANDIDATES) {
+        if (-not (Test-Path $envPath)) {
+            continue
+        }
+
+        foreach ($line in Get-Content $envPath) {
+            $trimmed = $line.Trim()
+            if ([string]::IsNullOrWhiteSpace($trimmed)) {
+                continue
+            }
+            if ($trimmed.StartsWith("#")) {
+                continue
+            }
+            $parts = $line -split "=", 2
+            if ($parts.Count -ne 2) {
+                continue
+            }
+            $key = $parts[0].Trim()
+            if (-not $key) {
+                continue
+            }
+            if ($dictionary.ContainsKey($key)) {
+                continue
+            }
+
+            $valueRaw = $parts[1]
+            $value = $valueRaw.Trim()
+            if ($value.StartsWith('"') -and $value.EndsWith('"') -and $value.Length -ge 2) {
+                $value = $value.Substring(1, $value.Length - 2)
+            } elseif ($value.StartsWith("'") -and $value.EndsWith("'") -and $value.Length -ge 2) {
+                $value = $value.Substring(1, $value.Length - 2)
+            } else {
+                $value = ($value -split '\s+#', 2)[0].Trim()
+            }
+
+            if ($value -ne "") {
+                $dictionary[$key] = $value
+            }
+        }
+    }
+
+    $script:DotEnvCache = $dictionary
+    return $dictionary
+}
+
+function Get-DotEnvValue {
+    param(
+        [Parameter(Mandatory = $true)][string]$Key
+    )
+
+    $dict = Get-DotEnvDictionary
+    if ($dict.ContainsKey($Key)) {
+        return $dict[$Key]
+    }
+    return $null
+}
+
+function Get-DotEnvValues {
+    param(
+        [string[]]$Keys
+    )
+
+    $result = @{}
+    if (-not $Keys) {
+        return $result
+    }
+    $dict = Get-DotEnvDictionary
+    foreach ($key in $Keys) {
+        if ($dict.ContainsKey($key)) {
+            $result[$key] = $dict[$key]
+        }
+    }
+    return $result
+}
 
 function Get-ParentProcessName {
     if ($script:ParentProcessName) {
@@ -368,9 +454,9 @@ function Start-MonitoringStack {
         Write-Host " (admin/admin)" -ForegroundColor DarkGray
         Write-Host "  🔍 Prometheus: " -NoNewline -ForegroundColor Cyan
         Write-Host "http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
-        Write-Host "  🎯 Power Page: " -NoNewline -ForegroundColor Cyan
+        Write-Host "  🎯 System Health (/power): " -NoNewline -ForegroundColor Cyan
         Write-Host "http://localhost:${PORT}/power" -ForegroundColor White -NoNewline
-        Write-Host " (embedded dashboards)" -ForegroundColor DarkGray
+        Write-Host " (React System Health + Control Panel)" -ForegroundColor DarkGray
         Write-Host ""
         
         return $true
@@ -611,7 +697,7 @@ function Show-AccessInfo {
             Write-Host "http://localhost:$GrafanaPort" -ForegroundColor White
             Write-Host "    🔍 Prometheus (metrics):  " -NoNewline -ForegroundColor Cyan
             Write-Host "http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
-            Write-Host "    🎯 Power Page (embedded): " -NoNewline -ForegroundColor Cyan
+            Write-Host "    🎯 System Health (/power): " -NoNewline -ForegroundColor Cyan
             Write-Host "http://localhost:${PORT}/power" -ForegroundColor White
         }
     }
@@ -620,7 +706,7 @@ function Show-AccessInfo {
         Write-Host ""
         Write-Host "  🔄 Auto-Start Watcher: " -NoNewline -ForegroundColor Cyan
         Write-Host "ACTIVE" -ForegroundColor Green
-        Write-Host "     → Click 'Start Monitoring' in Power page for automatic startup" -ForegroundColor DarkGray
+        Write-Host "     → Use host commands or POST /control/api/monitoring/trigger to auto-start" -ForegroundColor DarkGray
     }
     
     Write-Host ""
@@ -745,7 +831,7 @@ function Show-Status {
         
         Write-Host "  Power Page: " -NoNewline -ForegroundColor Cyan
         Write-Host "http://localhost:${PORT}/power" -ForegroundColor White -NoNewline
-        Write-Host " (embedded)" -ForegroundColor DarkGray
+        Write-Host " (System Health + Control Panel)" -ForegroundColor DarkGray
     } else {
         Write-Host ""
         Write-Info "Monitoring stack not running"
@@ -1053,29 +1139,40 @@ function Start-Application {
         # Start container
         Write-Info "Starting container..."
 
-        # Load SECRET_KEY from .env (root) or backend/.env
-        $envSecret = $null
-        $envPaths = @(
-            (Join-Path $SCRIPT_DIR ".env"),
-            (Join-Path $SCRIPT_DIR "backend/.env")
-        )
-        foreach ($envPath in $envPaths) {
-            if (Test-Path $envPath) {
-                $allLines = @(Get-Content $envPath)
-                $lines = $allLines | Where-Object { $_ -match '^SECRET_KEY\s*=\s*.+$' }
-                if ($null -eq $lines) { $lines = @() }
-                if ($lines.Count -gt 0) {
-                    $splitLine = $lines[0] -split '=',2
-                    if ($splitLine.Count -eq 2) {
-                        $envSecret = $splitLine[1].Trim()
-                        break
-                    }
-                }
-            }
-        }
+        # Load secrets/config from .env (root) or backend/.env
+        $envSecret = Get-DotEnvValue -Key "SECRET_KEY"
         if (-not $envSecret -or $envSecret.Length -lt 32) {
             $envSecret = "local-dev-secret-key-20251105-change-me"
             Write-Host "[WARN] Using fallback insecure SECRET_KEY. Please set a strong SECRET_KEY in .env for production." -ForegroundColor Yellow
+        }
+
+        $databaseEnvKeys = @(
+            "DATABASE_URL",
+            "DATABASE_ENGINE",
+            "POSTGRES_HOST",
+            "POSTGRES_PORT",
+            "POSTGRES_DB",
+            "POSTGRES_USER",
+            "POSTGRES_PASSWORD",
+            "POSTGRES_SSLMODE",
+            "POSTGRES_OPTIONS"
+        )
+        $databaseEnv = Get-DotEnvValues -Keys $databaseEnvKeys
+        $databaseUrlEnv = $null
+        if ($databaseEnv.ContainsKey("DATABASE_URL")) {
+            $candidate = $databaseEnv["DATABASE_URL"]
+            $databaseEnv.Remove("DATABASE_URL") | Out-Null
+            if (-not [string]::IsNullOrWhiteSpace($candidate)) {
+                $databaseUrlEnv = $candidate
+            }
+        }
+
+        if ($databaseUrlEnv -and ($databaseUrlEnv -like "postgresql*")) {
+            Write-Info "Container will connect to PostgreSQL database"
+        } elseif ($databaseUrlEnv -and ($databaseUrlEnv -like "sqlite*")) {
+            Write-Info "Container will use embedded SQLite volume"
+        } else {
+            Write-Info "Container will auto-select database engine (default: SQLite volume)"
         }
 
         # Ensure triggers directory exists
@@ -1084,18 +1181,33 @@ function Start-Application {
             New-Item -ItemType Directory -Path $triggersDir -Force | Out-Null
         }
         
-        docker run -d `
-            --name $CONTAINER_NAME `
-            -p ${PORT}:${INTERNAL_PORT} `
-            -e SMS_ENV=production `
-            -e SMS_EXECUTION_MODE=docker `
-            -e SECRET_KEY=$envSecret `
-            -e DATABASE_URL=sqlite:////app/data/student_management.db `
-            -v ${VOLUME_NAME}:/app/data `
-            -v "${SCRIPT_DIR}/templates:/app/templates:ro" `
-            -v "${triggersDir}:/app/data/.triggers" `
-            --restart unless-stopped `
-            $IMAGE_TAG 2>$null | Out-Null
+        $runArgs = [System.Collections.ArrayList]@(
+            "run", "-d",
+            "--name", $CONTAINER_NAME,
+            "-p", "${PORT}:${INTERNAL_PORT}",
+            "-e", "SMS_ENV=production",
+            "-e", "SMS_EXECUTION_MODE=docker",
+            "-e", ("SECRET_KEY={0}" -f $envSecret),
+            "-v", "${VOLUME_NAME}:/app/data",
+            "-v", "${SCRIPT_DIR}/templates:/app/templates:ro",
+            "-v", "${triggersDir}:/app/data/.triggers",
+            "--restart", "unless-stopped"
+        )
+
+        if ($databaseUrlEnv) {
+            [void]$runArgs.Add("-e")
+            [void]$runArgs.Add(("DATABASE_URL={0}" -f $databaseUrlEnv))
+        }
+
+        foreach ($entry in $databaseEnv.GetEnumerator()) {
+            [void]$runArgs.Add("-e")
+            [void]$runArgs.Add(("{0}={1}" -f $entry.Key, $entry.Value))
+        }
+
+        # Add image tag as final argument
+        [void]$runArgs.Add($IMAGE_TAG)
+
+        & docker @runArgs 2>$null | Out-Null
 
         if ($LASTEXITCODE -ne 0) {
             Write-Error-Message "Failed to start container"
