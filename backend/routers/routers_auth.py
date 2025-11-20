@@ -52,6 +52,7 @@ if TYPE_CHECKING:
         UserResponse,
         Token,
         PasswordResetRequest,
+        PasswordChangeRequest,
     )  # type: ignore
 
     # Advanced auth schemas used by refresh/logout endpoints
@@ -73,6 +74,7 @@ else:
     UserResponse = getattr(schemas_mod, "UserResponse")
     Token = getattr(schemas_mod, "Token")
     PasswordResetRequest = getattr(schemas_mod, "PasswordResetRequest")
+    PasswordChangeRequest = getattr(schemas_mod, "PasswordChangeRequest", None)
     # Advanced auth schemas
     RefreshRequest = getattr(schemas_mod, "RefreshRequest")
     RefreshResponse = getattr(schemas_mod, "RefreshResponse")
@@ -869,3 +871,60 @@ async def admin_reset_password(
     except Exception as exc:
         db.rollback()
         raise internal_server_error("Unable to reset password", request) from exc
+
+
+@router.post("/auth/change-password")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def change_password(
+    request: Request,
+    payload: PasswordChangeRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
+):
+    """Allow an authenticated user to change their own password.
+
+    Security considerations:
+    - Requires current password to mitigate token theft scenarios.
+    - Resets failed attempt counters and revokes existing refresh tokens.
+    - Issues a fresh access token; client should discard the old one.
+    """
+    try:
+        user = db.query(models.User).filter(models.User.id == getattr(current_user, "id", None)).first()
+        if not user:
+            raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+
+        # Verify current password
+        if not verify_password(payload.current_password, getattr(user, "hashed_password", "")):
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.AUTH_INVALID_CREDENTIALS,
+                "Current password is incorrect",
+                request,
+            )
+
+        # Prevent reusing the same password hash (avoid meaningless change)
+        if verify_password(payload.new_password, getattr(user, "hashed_password", "")):
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.VALIDATION_FAILED,
+                "New password must be different from current password",
+                request,
+            )
+
+        # Update password & reset lockout state
+        user.hashed_password = get_password_hash(payload.new_password)
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        user.last_failed_login_at = None
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
+        db.add(user)
+        db.commit()
+
+        # Issue new access token so client can continue without relogin
+        new_access = create_access_token(subject=str(getattr(user, "email", "")))
+        return {"status": "password_changed", "access_token": new_access, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise internal_server_error("Unable to change password", request) from exc

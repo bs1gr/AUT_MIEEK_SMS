@@ -56,6 +56,31 @@ class PasswordResetRequest(BaseModel):
         return _validate_password_strength(v, "new password")
 
 
+class PasswordChangeRequest(BaseModel):
+    """Authenticated user password change request.
+
+    Requires providing the current password (to prevent unauthorized changes)
+    and the desired new password which must satisfy the same strength rules.
+    """
+
+    current_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return _validate_password_strength(v, "new password")
+
+    @field_validator("current_password")
+    @classmethod
+    def validate_current_password(cls, v: str) -> str:
+        # Do not enforce strength for current password (could be legacy weak one)
+        # But still disallow whitespace for consistency.
+        if any(c.isspace() for c in v):
+            raise ValueError("Current password must not contain whitespace")
+        return v
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str

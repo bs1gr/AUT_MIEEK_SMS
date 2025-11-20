@@ -25,6 +25,7 @@ from .auth import (
     UserResponse as UserResponse,
     Token as Token,
     PasswordResetRequest as PasswordResetRequest,
+    PasswordChangeRequest as PasswordChangeRequest,
 )
 from .auth import RefreshRequest as RefreshRequest, RefreshResponse as RefreshResponse, LogoutRequest as LogoutRequest
 from .common import (
