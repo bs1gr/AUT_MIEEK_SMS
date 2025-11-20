@@ -43,9 +43,6 @@ RESTRUCTURE_PLAN = {
         "docker/DOCKER_REFRESH.ps1": SCRIPTS_DIR / "docker/DOCKER_REFRESH.ps1",
         "docker/DOCKER_SMOKE.ps1": SCRIPTS_DIR / "docker/DOCKER_SMOKE.ps1",
         "docker/DOCKER_UPDATE_VOLUME.ps1": SCRIPTS_DIR / "docker/DOCKER_UPDATE_VOLUME.ps1",
-        "docker/DOCKER_FULLSTACK_UP.ps1": SCRIPTS_DIR / "docker/DOCKER_FULLSTACK_UP.ps1",
-        "docker/DOCKER_FULLSTACK_DOWN.ps1": SCRIPTS_DIR / "docker/DOCKER_FULLSTACK_DOWN.ps1",
-        "docker/DOCKER_FULLSTACK_REFRESH.ps1": SCRIPTS_DIR / "docker/DOCKER_FULLSTACK_REFRESH.ps1",
         "internal/CREATE_PACKAGE.ps1": SCRIPTS_DIR / "internal/CREATE_PACKAGE.ps1",
         "internal/CREATE_PACKAGE.bat": SCRIPTS_DIR / "internal/CREATE_PACKAGE.bat",
         "internal/CREATE_DEPLOYMENT_PACKAGE.ps1": SCRIPTS_DIR / "internal/CREATE_DEPLOYMENT_PACKAGE.ps1",
@@ -230,7 +227,7 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 - `DOCKER_REFRESH.ps1` - Rebuild and restart containers
 - `DOCKER_SMOKE.ps1` - Smoke test Docker deployment
 - `DOCKER_UPDATE_VOLUME.ps1` - Update Docker volumes
-- `DOCKER_FULLSTACK_*.ps1` - Fullstack Docker operations
+ - `RUN.ps1` (root) - Canonical single-container deployment (legacy DOCKER_FULLSTACK_* scripts archived)
 
 ### Database & Volume Management
 - `CHECK_VOLUME_VERSION.ps1` - Check Docker volume schema version

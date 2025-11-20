@@ -2,7 +2,7 @@
 
 ## Overview
 
-The comprehensive cleanup script (`CLEANUP_COMPREHENSIVE.ps1`) includes automated Docker cleanup steps to help maintain a clean Docker environment and identify obsolete Docker-related files.
+The comprehensive cleanup script (`SUPER_CLEAN_AND_DEPLOY.ps1`) includes automated Docker cleanup steps to help maintain a clean Docker environment and identify obsolete Docker-related files.
 
 ## Docker Cleanup Features
 
@@ -331,7 +331,7 @@ docker system prune -a
 cd d:\SMS\student-management-system
 
 # Run comprehensive cleanup
-.\scripts\CLEANUP_COMPREHENSIVE.ps1
+.\SUPER_CLEAN_AND_DEPLOY.ps1
 ```
 
 ### What Gets Cleaned Automatically
@@ -363,7 +363,7 @@ The script provides information and suggestions, but leaves the final decision t
 
 ```powershell
 # Run comprehensive cleanup
-.\scripts\CLEANUP_COMPREHENSIVE.ps1
+.\SUPER_CLEAN_AND_DEPLOY.ps1
 
 # Remove stopped containers
 docker container prune -f
@@ -395,7 +395,7 @@ docker system prune -a
 
 ## Summary
 
-The Docker cleanup integration in `CLEANUP_COMPREHENSIVE.ps1` provides:
+The Docker cleanup integration in `SUPER_CLEAN_AND_DEPLOY.ps1` provides:
 
 1. **Automated removal** of QNAP-specific files (with confirmation)
 2. **Informational reporting** on Docker artifacts

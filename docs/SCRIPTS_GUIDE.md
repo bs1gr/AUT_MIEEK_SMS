@@ -214,15 +214,15 @@ Preserves:
 - node_modules
 - venv
 
-#### `CLEANUP_COMPREHENSIVE.ps1`
+#### `SUPER_CLEAN_AND_DEPLOY.ps1`
 
-Deep cleanup of all artifacts.
+Full workspace cleanup with optional setup.
 
 ```powershell
-scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
+.\SUPER_CLEAN_AND_DEPLOY.ps1
 ```
 
-Removes everything except source code and database.
+Removes everything except source code and database, with option to rebuild.
 
 #### `CLEANUP_OBSOLETE_FILES.ps1`
 

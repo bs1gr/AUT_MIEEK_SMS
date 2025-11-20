@@ -17,6 +17,7 @@ Deprecated entry points formally removed from active workspace in v1.6.2 release
 - `scripts/*/KILL_FRONTEND_NOW.*` – placeholder wrappers now consolidated under `scripts/operator/`.
 - `tools/stop_monitor.ps1` – pointer script replaced by `scripts/operator/stop_monitor.ps1`.
 - `scripts/stage_and_commit.ps1` - One-time automation for cleanup commit (2025-11-16)
+- `scripts/docker/DOCKER_FULLSTACK_*.ps1` + `scripts/deploy/docker/DOCKER_FULLSTACK_*.ps1` – superseded by `RUN.ps1` (fullstack) in v1.8.3
 
 ### Historical Documentation (2025-11-16 Archival)
 

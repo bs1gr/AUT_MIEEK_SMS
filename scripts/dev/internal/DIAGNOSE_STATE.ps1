@@ -302,7 +302,7 @@ switch ($deploymentState) {
 
         Write-Action "`nStop services:"
         Write-Host "  docker compose stop" -ForegroundColor White
-        Write-Host "  .\scripts\STOP.ps1" -ForegroundColor Gray
+        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor Gray
 
         Write-Action "`nStop and remove containers:"
         Write-Host "  docker compose down" -ForegroundColor White
@@ -342,10 +342,10 @@ switch ($deploymentState) {
         Write-Action "Stop services:"
         Write-Host "  Press Ctrl+C in each terminal" -ForegroundColor White
         Write-Host "  OR use:" -ForegroundColor Gray
-        Write-Host "  .\scripts\STOP.ps1" -ForegroundColor White
+        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor White
 
     Write-Action "`nRestart services:"
-    Write-Host "  1. Stop with Ctrl+C or STOP.ps1" -ForegroundColor White
+    Write-Host "  1. Stop with Ctrl+C or SMS.ps1 -Stop" -ForegroundColor White
     Write-Host "  2. Start with:" -ForegroundColor White
     Write-Host "     .\SMS.ps1 -Quick" -ForegroundColor Gray
     Write-Host "     OR" -ForegroundColor Gray
@@ -360,7 +360,7 @@ switch ($deploymentState) {
         }
 
         Write-Action "`nSwitch to Docker mode:"
-        Write-Host "  1. Stop native processes: .\scripts\STOP.ps1" -ForegroundColor White
+        Write-Host "  1. Stop native processes: .\SMS.ps1 -Stop" -ForegroundColor White
         Write-Host "  2. Start Docker: docker compose up -d --build" -ForegroundColor White
         Write-Host "     OR use: .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
     }
@@ -394,8 +394,8 @@ switch ($deploymentState) {
     Write-Action "`nQuick Start (Native):"
     Write-Host "  .\RUN.ps1" -ForegroundColor White
     Write-Host "  OR" -ForegroundColor Gray
-    Write-Host "  .\scripts\SETUP.ps1  # First time setup" -ForegroundColor Gray
-    Write-Host "  .\SMS.ps1 -Quick     # Subsequent runs" -ForegroundColor Gray
+    Write-Host "  .\SMART_SETUP.ps1  # Advanced setup options" -ForegroundColor Gray
+    Write-Host "  .\SMS.ps1 -Quick   # Subsequent runs" -ForegroundColor Gray
 
         if (-not $dockerAvailable) {
             Write-Host "`n"

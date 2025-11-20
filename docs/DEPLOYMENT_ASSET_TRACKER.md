@@ -1,6 +1,6 @@
 # Deployment Asset Tracker
 
-**Last Updated**: 2025-11-17  
+**Last Updated**: 2025-11-19  
 **Maintainers**: Release Engineering + DevOps Guild  
 **Codebase Health**: 8.5/10 (Excellent - Post-cleanup)
 
@@ -16,7 +16,7 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 | SMART_SETUP.ps1 | `./SMART_SETUP.ps1` | Intelligent setup/diagnostics (detects deps, installs, initializes DB) | Release Eng. | Use `-Force` for rebuild, `-DevMode` for split services |
 | SMS.ps1 | `./SMS.ps1` | Operational menu: start/stop/status, backups, diagnostics | Support Ops | Option `B` handles DB backups before upgrades |
 | CLEANUP_PLAN.ps1 | `./CLEANUP_PLAN.ps1` | Automated cleanup script with dry-run support (Phase 1: high priority, Phase 2: consolidation) | Release Eng. | Added Nov 2025; use for future cleanup audits |
-| scripts/STOP.ps1 | `./scripts/STOP.ps1` | Emergency stop for native processes/containers | Support Ops | Used by SMS.ps1 when forcing shutdown |
+| SMS.ps1 -Stop | `./SMS.ps1` | Unified stop for containers/processes | Support Ops | Preferred: `SMS.ps1 -Stop` (replaces legacy STOP.ps1) |
 | SUPER_CLEAN_AND_DEPLOY.ps1 | `./SUPER_CLEAN_AND_DEPLOY.ps1` | Full rebuild/reset followed by deployment | Release Eng. | Requires manual confirmation; wipes cache/volumes |
 | scripts/ops/archive-releases.ps1 | `./scripts/ops/archive-releases.ps1` | Marks legacy GitHub releases (≤ threshold tag) as archived/pre-release | Release Eng. | Supports `-DryRun`, `-ThresholdTag`, `-SkipPrereleaseToggle`, `-ReleasesJsonPath` (fixture: `scripts/ops/samples/releases.sample.json`) |
 | scripts/ops/remove-legacy-packages.ps1 | `./scripts/ops/remove-legacy-packages.ps1` | Deletes or privatizes GHCR packages (`sms-*`) | Release Eng. | Supports `-DryRun`, `-Privatize`, custom org/package list, `-PackageDataPath` (fixture: `scripts/ops/samples/package-versions.sample.json`) |
@@ -43,6 +43,7 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 |-------|------|---------|-------|-------|
 | Deployment Guide | `./DEPLOYMENT_GUIDE.md` | Windows-first deployment playbook | Release Eng. | Highlights Docker-only production stance |
 | Deployment Checklist | `./DEPLOYMENT_CHECKLIST.md` | Step-by-step verification list | Release Eng. | Run before sign-off |
+| PostgreSQL Migration Guide | `./docs/deployment/POSTGRES_MIGRATION_GUIDE.md` | SQLite → PostgreSQL migration workflow | Release Eng. + Backend | Covers prerequisites, dry runs, verification, rollback |
 | Codebase Analysis Report | `./CODEBASE_ANALYSIS_REPORT.md` | Comprehensive health analysis (v1.6.4) | Release Eng. | Documents 8.5/10 health rating, cleanup findings |
 | Cleanup Summary | `./CLEANUP_SUMMARY.md` | Nov 2025 cleanup completion report | Release Eng. | Documents Phase 1+2 execution and results |
 | Fresh Deployment Troubleshooting | `./docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` | Known issues + fixes | Support Ops | Link from SMS.ps1 diagnostics |
@@ -57,6 +58,7 @@ This tracker lists every asset that must stay healthy for smooth deployments. Up
 | Asset | Path | Purpose | Owner | Notes |
 |-------|------|---------|-------|-------|
 | run_migrations.py | `./backend/run_migrations.py` | Auto-runs Alembic migrations during lifespan | Backend Team | Invoked by main app + RUN.ps1 |
+| SQLite→PostgreSQL migration script | `./backend/scripts/migrate_sqlite_to_postgres.py` | Copies SQLite datasets into PostgreSQL prior to enabling the new engine | Backend Team | Run manually; see docs/deployment/POSTGRES_MIGRATION_GUIDE.md for workflow |
 | migrations/ | `./backend/migrations/` | Alembic migrations | Backend Team | Never edit DB schema directly; generate revisions |
 | health_checks.py | `./backend/health_checks.py` | Implements /health, /health/live, /health/ready | Backend Team | Used by k8s + compose health probes |
 | performance_monitor.py | `./backend/performance_monitor.py` | Slow-query + resource monitoring hooks | Backend Team | Enabled via env flags |

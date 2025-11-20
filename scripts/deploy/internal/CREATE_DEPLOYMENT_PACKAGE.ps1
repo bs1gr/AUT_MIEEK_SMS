@@ -158,7 +158,7 @@ function Export-DockerImage {
         $imageExists = docker images -q $ImageName 2>$null
         if (-not $imageExists) {
             Write-Warning2 "Docker image '$ImageName' not found"
-            Write-Info "Please build the image first with: .\scripts\SETUP.ps1"
+            Write-Info "Please build the image first with: .\RUN.ps1"
             return $false
         }
 
@@ -221,10 +221,10 @@ on a Windows computer.
    docker load -i docker-image-sms-fullstack.tar
    ```
 
-3. **Run the setup**:
-   ```powershell
-   .\scripts\SETUP.ps1 -SkipBuild
-   ```
+3. **Start the application**:
+    ```powershell
+    .\RUN.ps1
+    ```
 
 4. **Start the application**:
    ```powershell
@@ -264,7 +264,7 @@ After installation:
 
 1. **Start**: `pwsh -NoProfile -File .\RUN.ps1`
 2. **Access**: http://localhost:8080
-3. **Stop**: `.\scripts\STOP.ps1`
+3. **Stop**: `.\SMS.ps1 -Stop`
 
 ## Accessing the Application
 

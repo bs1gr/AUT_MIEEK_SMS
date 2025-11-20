@@ -1,5 +1,4 @@
 @echo off
-REM Stop Application - Student Management System
-REM Stops the fullstack Docker container
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0STOP.ps1" %*
+echo [REMOVED] scripts\deploy\STOP.bat has been removed.
+echo Use "SMS.ps1 -Stop" instead. For cleanup, run "RUN.ps1 -Prune".
+exit /b 1

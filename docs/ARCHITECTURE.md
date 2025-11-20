@@ -21,7 +21,8 @@
 │                                                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
 │  │   Frontend   │  │   Backend    │  │   Database   │    │
-│  │ React + Vite │  │  FastAPI     │  │   SQLite     │    │
+│  │ React + Vite │  │  FastAPI     │  │ SQLite (default)│ │
+│  │ Port: 5173   │  │  Port: 8000  │  │ PostgreSQL (optional) ││
 │  │ Port: 5173   │  │  Port: 8000  │  │   File-based │    │
 │  └──────────────┘  └──────────────┘  └──────────────┘    │
 │                                                             │
@@ -34,17 +35,25 @@
 
 - **Frontend**: Node.js dev server on port 5173
 - **Backend**: Python/Uvicorn on port 8000
-- **Database**: SQLite file at `data/student_management.db`
+- **Database**: SQLite file at `data/student_management.db` (default) or PostgreSQL when `DATABASE_ENGINE=postgresql`
 - **Pros**: Direct access, easier debugging, faster iterations
-- **Cons**: Requires Node.js + Python on host
+- **Cons**: Requires Node.js + Python on host, PostgreSQL is optional but must be installed separately
 
 #### 2. **Docker Mode** (Containerized)
 
 - **Frontend**: Nginx serving built SPA on port 8080
 - **Backend**: Python/Uvicorn in container (port 8000 internal)
-- **Database**: SQLite in Docker volume `sms_data`
+- **Database**: SQLite volume `sms_data` by default or external PostgreSQL when `DATABASE_ENGINE=postgresql` / `DATABASE_URL` points to a remote cluster
 - **Pros**: Isolated, consistent environment, easier deployment
 - **Cons**: Requires Docker Desktop, slightly slower for dev
+
+### Database Options (v1.8.3+)
+
+- **SQLite** remains the zero-config default for all modes. The launcher (`RUN.ps1`, `SMART_SETUP.ps1`) ensures migrations run against `data/student_management.db` or the `/data` volume inside containers.
+- **PostgreSQL** is now a first-class option. Set either `DATABASE_ENGINE=postgresql` or provide `POSTGRES_*` variables (host, port, user, password, db). When these variables are present, the backend auto-builds a Psycopg connection URL.
+- **DATABASE_URL override**: advanced operators can provide a fully-qualified SQLAlchemy URL (e.g., `postgresql+psycopg://...`) to bypass auto-generation.
+- The backend validates all PostgreSQL parameters (SSL mode, options, IPv6 hosts) and refuses to start if required fields are missing.
+- See `docs/deployment/POSTGRES_MIGRATION_GUIDE.md` for end-to-end migration steps when switching engines.
 
 ---
 
@@ -100,7 +109,7 @@
 ├─────────────────────────────────────────────────────────────┤
 │  SMS.ps1 -Stop           →  PowerShell stop                 │
 │  Control Panel "Stop All" →  Backend API stop               │
-│  .\scripts\STOP.ps1        →  Legacy direct stop              │
+│                             (Legacy direct stop removed)       │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────────┬──────────────────────────────────────┐
@@ -245,6 +254,40 @@ This ensures that first-time installations initialize properly without requiring
 - **Optional migration**: Copies data from old volume to new
 - **Requires restart**: `docker compose down` → `docker compose up -d`
 
+### SQLite ↔ PostgreSQL Support
+
+- **Engine Detection**: The backend inspects `DATABASE_ENGINE`, `DATABASE_URL`, and `POSTGRES_*` variables. If PostgreSQL credentials are present, it automatically builds a secure Psycopg connection string (including IPv6 host normalization, SSL parameters, and optional query options).
+- **Lifespan Integration**: `run_migrations.py` now targets whichever engine is active. No manual edits are required when switching between SQLite and PostgreSQL.
+- **Safety Checks**: Paths for SQLite databases are validated to prevent escapes outside the project directory or `/data` volume. PostgreSQL URLs must start with `postgresql+psycopg://`.
+
+#### Recommended Environment Variables
+
+```ini
+DATABASE_ENGINE=postgresql
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=sms
+POSTGRES_PASSWORD=ChangeMe!
+POSTGRES_DB=sms
+POSTGRES_SSLMODE=prefer
+# Optional advanced parameters
+POSTGRES_OPTIONS=application_name=sms&connect_timeout=10
+```
+
+Set `DATABASE_URL` only when you need full control (custom driver parameters or managed hosting connection strings).
+
+### SQLite → PostgreSQL Migration Workflow
+
+1. **Review the guide**: `docs/deployment/POSTGRES_MIGRATION_GUIDE.md` summarizes prerequisites, dry-run commands, and rollback options.
+2. **Export data**: Run `python backend/scripts/migrate_sqlite_to_postgres.py --sqlite data/student_management.db --postgres postgresql+psycopg://...` to copy existing data into PostgreSQL. The script enforces foreign key ordering and provides summary counts.
+3. **Update environment**:
+
+   - Set `DATABASE_ENGINE=postgresql` (or `DATABASE_URL`).
+   - Provide the `POSTGRES_*` variables in `backend/.env` and Docker secrets if running in containers.
+4. **Run migrations**: `RUN.ps1` / `SMART_SETUP.ps1` automatically run Alembic migrations against the new engine before serving traffic.
+5. **Verify health**: Use `/health` endpoints plus targeted API smoke tests against the PostgreSQL-backed instance.
+6. **Fallback plan**: Keep the SQLite file/volume snapshot until PostgreSQL adoption is confirmed. The migration script can be re-run if additional data is added before cutover.
+
 ### The Problem
 
 **Scenario**: You update the native database schema (via Alembic migration), then want to use Docker mode.
@@ -277,7 +320,7 @@ This reduces accidental starts with incompatible schemas while keeping you in co
 #### Option A: Automatic Version Detection
 
 ```python
-# Add to backend/routers/routers_control.py
+# Add to backend/routers/control/operations.py
 
 def get_db_schema_version(db_path: Path) -> str:
     """Get current Alembic schema version from database."""

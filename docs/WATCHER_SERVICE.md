@@ -8,7 +8,7 @@ The Monitoring Watcher Service is a Windows PowerShell background job that enabl
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  User clicks "Start Monitoring" in Power Page (Container UI) │
+│  Operator triggers monitoring start (CLI/custom UI)          │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ▼
@@ -64,6 +64,7 @@ Initial implementation created trigger files but required manual command executi
 ### 1. Watcher Service (`scripts/monitoring-watcher.ps1`)
 
 **Functionality:**
+
 - Background PowerShell job monitoring `data/.triggers/` directory
 - Polls every 2 seconds for `start_monitoring.ps1` trigger file
 - Executes Docker Compose command when trigger detected
@@ -72,6 +73,7 @@ Initial implementation created trigger files but required manual command executi
 - Logs all operations to `logs/monitoring-watcher.log`
 
 **Commands:**
+
 ```powershell
 .\scripts\monitoring-watcher.ps1 -Start     # Start watcher
 .\scripts\monitoring-watcher.ps1 -Stop      # Stop watcher
@@ -81,11 +83,12 @@ Initial implementation created trigger files but required manual command executi
 **Auto-Start:**
 Watcher is automatically started by `RUN.ps1` when the application launches.
 
-### 2. Backend Trigger Endpoint (`backend/routers/routers_control.py`)
+### 2. Backend Trigger Endpoint (`backend/routers/control/monitoring.py`)
 
 **Endpoint:** `POST /control/api/monitoring/trigger`
 
 **Behavior:**
+
 - Detects if running in container mode
 - Creates PowerShell script at `/app/data/.triggers/start_monitoring.ps1`
 - Script content includes Docker Compose command
@@ -94,22 +97,14 @@ Watcher is automatically started by `RUN.ps1` when the application launches.
 **Critical Path Fix:**
 Originally used `/data/.triggers` which didn't match the bind mount. Fixed to use `/app/data/.triggers` to align with the Docker volume structure.
 
-### 3. Frontend UI (`frontend/src/pages/PowerPage.tsx`)
+### 3. (Legacy) Frontend UI (`frontend/src/pages/PowerPage.tsx` ≤ v1.8.2)
 
-**User Experience:**
-- Green banner: "🔄 Auto-Start Enabled - Monitoring watcher is active"
-- "Start Monitoring Stack" button (no blocking in container mode)
-- Success message: "Monitoring start triggered! The watcher will automatically start the stack in 2-5 seconds."
-- Auto-refresh status after 5 seconds
-
-**Removed:**
-- Manual command instructions
-- Container mode restrictions (buttons now work everywhere)
-- Confusing "run these commands" messages
+Earlier versions surfaced a "Start Monitoring Stack" button that called the trigger endpoint directly. That UI was removed in v1.8.3 when the Power page was simplified to System Health + Control Panel. Operators can still build custom dashboards or use scripts to call the trigger endpoint (see section below for sample curl command).
 
 ### 4. Startup Integration (`RUN.ps1`)
 
 **Changes:**
+
 - Added bind mount: `-v "${triggersDir}:/app/data/.triggers"`
 - Auto-starts watcher after container health check
 - Shows watcher status in success banner
@@ -117,8 +112,8 @@ Originally used `/data/.triggers` which didn't match the bind mount. Fixed to us
 
 ## How It Works
 
-1. **User Action**: Clicks "Start Monitoring Stack" in Power Page UI
-2. **API Call**: Frontend sends POST to `/control/api/monitoring/trigger`
+1. **Trigger**: Operator calls the endpoint directly (CLI/scripts) or via legacy Power Page UI (≤ v1.8.2)
+2. **API Call**: Client sends POST to `/control/api/monitoring/trigger`
 3. **Trigger Creation**: Backend creates PowerShell script in `/app/data/.triggers/`
 4. **File Appears**: Bind mount makes file visible on host at `data/.triggers/`
 5. **Detection**: Watcher (polling every 2s) detects new file
@@ -126,19 +121,21 @@ Originally used `/data/.triggers` which didn't match the bind mount. Fixed to us
 7. **Verification**: Checks if Grafana and Prometheus containers are running
 8. **Cleanup**: Deletes trigger file
 9. **Logging**: Records all steps in `logs/monitoring-watcher.log`
-10. **UI Update**: Frontend auto-refreshes and shows "Monitoring: Running"
+10. **Status Update**: Caller can poll watcher status (legacy Power Page auto-refreshed)
 
-**Total Time**: 2-5 seconds from button click to monitoring running
+**Total Time**: 2-5 seconds from trigger call to monitoring running
 
 ## Configuration
 
 ### Watcher Settings
+
 - **Poll Interval**: 2 seconds (default, configurable with `-PollInterval`)
 - **Trigger Directory**: `data/.triggers/`
 - **Log File**: `logs/monitoring-watcher.log`
 - **PID File**: `data/.triggers/watcher.pid`
 
 ### Container Bind Mounts
+
 ```powershell
 -v sms_data:/app/data                          # Main data volume
 -v "${triggersDir}:/app/data/.triggers"        # Trigger directory (bind mount)
@@ -150,6 +147,7 @@ Originally used `/data/.triggers` which didn't match the bind mount. Fixed to us
 ## Troubleshooting
 
 ### Watcher Not Running
+
 ```powershell
 .\scripts\monitoring-watcher.ps1 -Status
 # If not running:
@@ -157,16 +155,19 @@ Originally used `/data/.triggers` which didn't match the bind mount. Fixed to us
 ```
 
 ### Trigger File Not Created
+
 - **Check**: `Test-Path data\.triggers\start_monitoring.ps1`
 - **Verify**: Container has correct path (`/app/data/.triggers/`)
 - **Inspect**: `docker exec sms-app ls -la /app/data/.triggers/`
 
 ### Monitoring Not Starting
+
 1. **Check watcher logs**: `Get-Content logs\monitoring-watcher.log -Tail 20`
 2. **Verify Docker Compose file**: `Test-Path docker-compose.monitoring.yml`
 3. **Manual test**: `docker compose -f docker-compose.monitoring.yml up -d`
 
 ### Trigger File Not Cleaning Up
+
 - **Indicates**: Watcher either not running or containers didn't start
 - **Solution**: Check if Grafana/Prometheus containers are actually running
 - **Logs**: Review watcher logs for errors
@@ -181,17 +182,21 @@ Originally used `/data/.triggers` which didn't match the bind mount. Fixed to us
 ## Limitations
 
 ### Windows-Specific
+
 This solution is designed for Windows with Docker Desktop. On Linux, you can mount the Docker socket directly for simpler container-to-host communication.
 
 ### Polling-Based
+
 Uses polling instead of file system events (inotify). While less efficient, it's more reliable across different file systems and Docker setups.
 
 ### Manual Watcher Stop
+
 Stopping the monitoring stack from the UI still requires host-side execution. The watcher only handles **starting**, not stopping.
 
 ## Future Enhancements
 
 Potential improvements:
+
 1. **Stop Trigger**: Add watcher support for monitoring stop triggers
 2. **File System Watcher**: Use `FileSystemWatcher` instead of polling
 3. **Status Sync**: Real-time status updates via WebSockets
@@ -201,14 +206,15 @@ Potential improvements:
 ## Related Files
 
 - `scripts/monitoring-watcher.ps1` - Watcher service script
-- `backend/routers/routers_control.py` - Trigger endpoint and control API
-- `frontend/src/pages/PowerPage.tsx` - Monitoring UI
+- `backend/routers/control/monitoring.py` - Trigger endpoint and control API
+- `frontend/src/pages/PowerPage.tsx` - Legacy monitoring UI (removed in v1.8.3)
 - `RUN.ps1` - Application launcher with watcher integration
 - `docker-compose.monitoring.yml` - Monitoring stack definition
 
 ## Testing
 
 **Manual Test:**
+
 ```powershell
 # 1. Stop monitoring and watcher
 docker compose -f docker-compose.monitoring.yml down

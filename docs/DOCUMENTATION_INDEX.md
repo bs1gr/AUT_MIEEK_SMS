@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Last Updated**: 2025-11-19
-**Version**: 1.8.0
+**Version**: 1.8.3
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -23,7 +23,7 @@ Documentation is organized into three main directories:
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-18)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-19)
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
 
 ### Installation & Deployment
@@ -31,8 +31,9 @@ Documentation is organized into three main directories:
 - **[INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)** - Step-by-step installation for Windows/Mac/Linux
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
+- **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 
-### Monitoring & Operations (v1.7.0)
+### Monitoring & Operations (v1.8.3+)
 
 - **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
   - On-demand vs eager activation modes
@@ -161,6 +162,12 @@ The following documents have been moved to `archive/` for historical reference:
 | `V1.2.0_IMPROVEMENTS.md` | Historical | Version improvements |
 | `scripts/stage_and_commit.ps1` | 2025-11-16 | Automation script |
 
+### Obsolete Asset Archive (New)
+
+- **Folder:** `archive/obsolete/`
+- **Purpose:** Preserve removed runtime assets (legacy templates, deprecated scripts) for audit/reference without keeping them in active paths.
+- **Highlights:** `templates/power.html` now lives here after the Power page switched fully to the React SPA in v1.8.3. Any documentation pointing to the old template should reference this archive instead.
+
 ### New Additions (2025-11-16)
 
 1. 🧪 **RUNBOOK.md (draft)** added under `docs/deployment/` for structured deployment & rollback steps.
@@ -224,7 +231,7 @@ The following documents have been moved to `archive/` for historical reference:
 → Follow [docs/AUTHENTICATION.md](AUTHENTICATION.md)
 
 **Add translations**
-→ Read [docs/LOCALIZATION.md](LOCALIZATION.md)
+→ Read [docs/user/LOCALIZATION.md](user/LOCALIZATION.md)
 
 ---
 

@@ -56,7 +56,6 @@ $includeItems = @(
     "frontend\index.html",
     "INSTALL.bat",
     "RUN.bat",
-    "STOP.bat",
     "LAUNCHER.bat",
     "LAUNCHER.ps1",
     "scripts\*.ps1",

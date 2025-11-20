@@ -10,7 +10,7 @@ This directory contains management scripts for the Student Management System.
 scripts/
 ├── README.md                  # This file
 ├── CLEANUP.bat               # Non-destructive cleanup
-├── CLEANUP_COMPREHENSIVE.ps1 # Deep cleanup
+├── ../SUPER_CLEAN_AND_DEPLOY.ps1 # Full cleanup (at root)
 ├── SMOKE_TEST.ps1            # Quick health validation
 ├── internal/                 # Internal utility scripts (advanced)
 └── docker/                   # Docker-specific scripts
@@ -70,15 +70,17 @@ These scripts are used internally by SMS.ps1 or for specialized maintenance task
 
 
 **Diagnostics & Debugging:**
-  - `DEBUG_PORTS.ps1/.bat` - Show processes using ports 8000, 5173, 8080
-  - `DIAGNOSE_FRONTEND.ps1/.bat` - Frontend-specific diagnostics
-  - `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
+
+- `DEBUG_PORTS.ps1/.bat` - Show processes using ports 8000, 5173, 8080
+- `DIAGNOSE_FRONTEND.ps1/.bat` - Frontend-specific diagnostics
+- `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
 
 **Maintenance & Cleanup:**
-  - `CLEANUP.bat` - Non-destructive cleanup
-  - `CLEANUP_COMPREHENSIVE.ps1` - Deep cleanup (temp files, logs, build artifacts)
-  - `CLEANUP_DOCS.ps1` - Clean documentation artifacts
-  - `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
+
+- `CLEANUP.bat` - Non-destructive cleanup
+- `SUPER_CLEAN_AND_DEPLOY.ps1` - Full cleanup (temp files, logs, build artifacts, containers)
+- `CLEANUP_DOCS.ps1` - Clean documentation artifacts
+- `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
 
 **Development Tools:**
 
@@ -103,7 +105,7 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 **Fullstack Container:**
 
-Use the canonical one-click launcher `..\RUN.ps1` to start a single fullstack Docker container. The `RUN.ps1` script wraps and replaces older `DOCKER_FULLSTACK_*` helpers and provides a stable, documented entry point for production-style execution.
+Use the canonical one-click launcher `..\RUN.ps1` to start a single fullstack Docker container. Legacy `DOCKER_FULLSTACK_*` helpers were archived under `archive/scripts/docker/` (and `archive/scripts/deploy/docker/`) for reference only and no longer run in-place.
 
 If you need lower-level control during development, use the Docker Compose helpers in `scripts/docker/` or run `docker compose` directly.
 
@@ -157,14 +159,12 @@ If you need lower-level control during development, use the Docker Compose helpe
 | scripts/dev/run-native.ps1 | scripts/dev/ | Canonical native entry point (dev only) |
 | SMS.ps1 | Root | Unified management interface (recommended) |
 | CLEANUP.bat | scripts/ | Non-destructive cleanup |
-| CLEANUP_COMPREHENSIVE.ps1 | scripts/ | Deep cleanup |
 
 ### Internal Utility Scripts (scripts/internal/)
 
 | Script | Purpose |
-|--------|---------|
+|--------|---------||
 | CLEANUP.ps1/.bat | Clean temporary files |
-| CLEANUP_COMPREHENSIVE.ps1 | Thorough system cleanup |
 | CLEANUP_DOCS.ps1 | Clean documentation artifacts |
 | CLEANUP_OBSOLETE_FILES.ps1 | Remove obsolete files |
 | CREATE_PACKAGE.ps1/.bat | Package for distribution |
@@ -180,14 +180,13 @@ If you need lower-level control during development, use the Docker Compose helpe
 | Script | Purpose |
 |--------|---------|
 | DOCKER_DOWN.ps1 | Stop Docker Compose services |
-| DOCKER_FULLSTACK_DOWN.ps1 | Stop fullstack container (legacy) |
-| DOCKER_FULLSTACK_REFRESH.ps1 | Rebuild fullstack container (legacy) |
-| DOCKER_FULLSTACK_UP.ps1 | Start fullstack container (legacy) |
 | DOCKER_REFRESH.ps1 | Rebuild Docker Compose |
 | DOCKER_RUN.ps1 | Advanced Docker startup |
 | DOCKER_SMOKE.ps1 | Docker health check |
 | DOCKER_UP.ps1 | Start Docker Compose |
 | DOCKER_UPDATE_VOLUME.ps1 | Migrate volume data |
+
+> **Legacy reference:** The removed `DOCKER_FULLSTACK_*` scripts are preserved in `archive/scripts/docker/` (and `archive/scripts/deploy/docker/`) for historical purposes.
 
 <!-- Legacy table removed. All legacy scripts are deprecated/removed in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
 
@@ -195,9 +194,9 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 ## ⚠️ Safety Notes
 
-- **STOP.ps1** - Safe to use anytime, cleanly stops all services
+- **SMS.ps1 -Stop** - Safe to use anytime, cleanly stops all services
 - **KILL_FRONTEND_NOW.ps1** - ⚠️ Emergency only! Kills ALL Node.js processes system-wide
-- **CLEANUP_COMPREHENSIVE.ps1** - Deletes temporary files, use with caution
+- **SUPER_CLEAN_AND_DEPLOY.ps1** (in root) - Full cleanup with optional rebuild
 - **Docker scripts** - Some operations may require admin privileges
 
 ---
@@ -264,15 +263,15 @@ The `.ps1` versions are the canonical implementation.
 
 ```powershell
 .\scripts\DEBUG_PORTS.ps1       # See what's using ports
-.\scripts\STOP.ps1              # Stop conflicts
+.\SMS.ps1 -Stop                 # Stop conflicts
 ```
 
 **Want to reset everything?**
 
 ```powershell
-.\scripts\STOP.ps1              # Stop all services
+.\SMS.ps1 -Stop                 # Stop all services
 .\scripts\CLEANUP.ps1           # Clean temporary files
-.\scripts\SETUP.ps1             # Reinstall dependencies
+.\SMART_SETUP.ps1               # Advanced setup (optional)
 ```
 
 **Need database backup?**
@@ -286,7 +285,7 @@ The `.ps1` versions are the canonical implementation.
 For more detailed documentation, see:
 
 - `../README.md` - Main project documentation
-- `../docs/QUICK_START_GUIDE.md` - Quick start guide
+- `../docs/user/QUICK_START_GUIDE.md` - Quick start guide
 - `../DEPLOYMENT_GUIDE.md` - Complete deployment instructions
 - `../docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` - Fresh deployment troubleshooting
 - `../docs/REBUILD_TROUBLESHOOTING.md` - Rebuild troubleshooting
@@ -299,7 +298,7 @@ For more detailed documentation, see:
 
 ## 🔐 Safety Notes
 
-- **STOP.ps1**: Safe - stops services cleanly
+- **SMS.ps1 -Stop**: Safe - stops services cleanly
 - **CLEANUP.ps1**: Safe - only removes build artifacts
 - **KILL_FRONTEND_NOW.ps1**: ⚠️ **DANGEROUS** - kills ALL Node.js processes
 - **DOCKER_DOWN.ps1**: Safe - stops containers but preserves data

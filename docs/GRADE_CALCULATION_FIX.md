@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Grade Calculation Fix - November 17, 2025
 
 ## Problem Statement
@@ -330,7 +332,7 @@ def test_zero_work_handled():
 
 - Original event system implementation: `docs/EVENT_SYSTEM_IMPLEMENTATION.md`
 - Architecture documentation: `docs/ARCHITECTURE.md`
-- Localization guide: `docs/LOCALIZATION.md`
+- Localization guide: `docs/user/LOCALIZATION.md`
 
 ## Version History
 
