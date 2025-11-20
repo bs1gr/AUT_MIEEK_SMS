@@ -897,7 +897,7 @@ async def endpoint() -> OperationResult:
 For issues or questions:
 
 1. Check [Troubleshooting](#troubleshooting) section
-2. Review [TEST_VERIFICATION_SUMMARY.md](../TEST_VERIFICATION_SUMMARY.md)
+2. Run smoke tests: `cd backend && pytest -q`
 3. Open an issue on GitHub with `control-router` label
 
 ---
