@@ -43,7 +43,7 @@ scrape_configs:
   #   - Monitoring stack runs in containers
   #   - Backend runs in sms-app container (port 8000)
   #   - Prometheus scrapes via host.docker.internal:8000
-  #   - Power page: http://localhost:8080/power
+  #   - Power page (legacy ≤ v1.8.2): http://localhost:8080/power
   #
   # Native Mode (NOT SUPPORTED for monitoring):
   #   - Backend runs on localhost:8000 (uvicorn)

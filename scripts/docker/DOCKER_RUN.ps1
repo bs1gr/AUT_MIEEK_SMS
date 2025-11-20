@@ -41,14 +41,6 @@ if ($Mode -eq 'compose') {
     & $refresh @args
     exit $LASTEXITCODE
 } else {
-    # Fullstack flow (single container)
-    $refresh = Join-Path $PSScriptRoot 'DOCKER_FULLSTACK_REFRESH.ps1'
-    if ($NoCache) {
-        Write-Host "Running: $refresh -NoCache -Run -Port $Port" -ForegroundColor Yellow
-        & $refresh -NoCache -Run -Port $Port
-    } else {
-        Write-Host "Running: $refresh -Run -Port $Port" -ForegroundColor Yellow
-        & $refresh -Run -Port $Port
-    }
-    exit $LASTEXITCODE
+    Write-Host "[REMOVED] Fullstack helper scripts were archived. Use '.\\RUN.ps1' or '.\\RUN.ps1 -Update' instead." -ForegroundColor Yellow
+    exit 1
 }

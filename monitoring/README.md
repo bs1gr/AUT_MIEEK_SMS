@@ -31,22 +31,23 @@ monitoring/
 
 ## Quick Configuration
 
-### On-Demand vs Eager Start (NEW)
+### On-Demand vs Eager Start (v1.8.3+)
 
-The monitoring stack no longer needs to be started up-front. You can:
+The monitoring stack is still available, but the embedded Power page controls were removed in v1.8.3. Operators now have two options:
 
-1. **Eager Start** – `RUN.ps1 -WithMonitoring` (original behaviour; all services launch immediately)
-2. **Lazy Start** – Run `RUN.ps1` without flags, then open `http://localhost:8080/power` and click **Start Monitoring**. Dashboards & links remain hidden until services are healthy.
+1. **Eager Start** – `RUN.ps1 -WithMonitoring` (all services launch immediately, same as before).
+2. **On-Demand Start** – Use a host-side command (`SMS.ps1 -MonitoringOnly` or `docker compose -f docker-compose.monitoring.yml up -d`) or call the Control API directly from the host.
 
 Control API endpoints (host only):
 
 - `GET /control/api/monitoring/status` – stack state
 - `POST /control/api/monitoring/start` – start services
 - `POST /control/api/monitoring/stop` – stop services
+- `POST /control/api/monitoring/trigger` – create a watcher trigger when running inside Docker
 
-Benefits: lower resource use at boot, quicker updates, explicit operator control.
+Benefits: lower resource use at boot, quicker updates, explicit operator control. When running inside the full-stack container, leverage the watcher trigger endpoint instead of direct Docker commands.
 
-Security: Start/stop endpoints are host-only and rate limited. Keep `/control/api/monitoring/*` behind loopback or an authenticated proxy in production. Future planned token: `MONITORING_CONTROL_TOKEN`.
+Security: Start/stop endpoints remain host-only and rate limited. Keep `/control/api/monitoring/*` behind loopback or an authenticated proxy in production. Optional token support is planned via `MONITORING_CONTROL_TOKEN`.
 
 ### 1. Prometheus (Metrics)
 

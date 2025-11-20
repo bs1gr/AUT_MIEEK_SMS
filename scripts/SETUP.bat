@@ -1,5 +1,4 @@
 @echo off
-REM First Time Setup - Student Management System
-REM Builds fullstack Docker image
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0SETUP.ps1" %*
+echo [REMOVED] scripts\SETUP.bat has been removed.
+echo Use "RUN.ps1" (recommended) or "SMART_SETUP.ps1" for advanced setup.
+exit /b 1

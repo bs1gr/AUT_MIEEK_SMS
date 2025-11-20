@@ -23,7 +23,7 @@ Developers actively working on the codebase.
 ### Cleanup Tools
 
 - `CLEANUP.bat` - Clean build artifacts and temp files (non-destructive)
-- `CLEANUP_COMPREHENSIVE.ps1` - Deep cleanup of all artifacts
+- `../../SUPER_CLEAN_AND_DEPLOY.ps1` - Full cleanup of all artifacts
 - `CLEANUP_DOCS.ps1` - Clean documentation artifacts
 - `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
 - `KILL_FRONTEND_NOW.ps1/.bat` - Force-kill frontend processes
@@ -56,7 +56,7 @@ pwsh -NoProfile -File ..\..\SMS.ps1
 .\CLEANUP.bat
 
 # Deep cleanup
-.\CLEANUP_COMPREHENSIVE.ps1
+..\..\SUPER_CLEAN_AND_DEPLOY.ps1
 ```
 
 ### Debugging Port Conflicts

@@ -1,6 +1,6 @@
 # Student Management System
 
-## 📦 Quick Start (v1.8.2)
+## 📦 Quick Start (v1.8.3)
 
 ### **For End Users** - One-Click Deployment ⭐
 
@@ -47,33 +47,12 @@ Deploy to QNAP Container Station with PostgreSQL database:
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
-**Monitoring (On-Demand or Eager)**:
+**Monitoring UI deprecation (v1.8.3):**
 
-```powershell
-# Eager start (legacy behaviour): starts Grafana, Prometheus, Loki immediately
-.\RUN.ps1 -WithMonitoring
-
-# Custom Grafana port (if 3000 busy)
-.\RUN.ps1 -WithMonitoring -GrafanaPort 3001
-
-# Lazy start: run plain, then activate from /power when needed
-.\RUN.ps1
-```
-
-After a plain start you can open `http://localhost:8080/power` and click **Start Monitoring** to launch the stack only when required. The Power page now hides tabs & links until the stack is running.
-
-Security: Start/stop monitoring endpoints are host‑only and heavy rate‑limited. For production, keep `/control/api/monitoring/*` behind loopback/VPN or an authenticated reverse proxy. Future enhancement: optional `MONITORING_CONTROL_TOKEN` header.
-
-**Monitoring Access (when running):**
-
-- **Embedded Dashboards**: <http://localhost:8080/power> (lazy-loaded iframes)
-- **Grafana**: <http://localhost:3000> (admin/admin) *(change password in production)*
-- **Prometheus**: <http://localhost:9090>
-- **Raw Metrics**: <http://localhost:8080/metrics> (if enabled)
-
-> New Control API endpoints: `/control/api/monitoring/status`, `/control/api/monitoring/start`, `/control/api/monitoring/stop` for programmatic lifecycle control (host only).
-
-> **Note**: If port 3000 is already in use, RUN.ps1 will automatically detect and suggest an alternative port.
+- The embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) has been removed from the app.
+- The Power page now focuses on System Health and the Control Panel only.
+- The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external monitoring tools.
+- Any existing monitoring stacks can still be run externally; in-app start/stop UI has been retired.
 
 ---
 
@@ -99,7 +78,7 @@ If you need to develop features or debug, use the advanced setup:
 
 ---
 
-## 🗂️ Script Organization (v1.8.2)
+## 🗂️ Script Organization (v1.8.3)
 
 Scripts are organized into clear categories:
 
@@ -240,7 +219,7 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 ---
 
 
-## 🚀 Quick Start (v1.8.2)
+## 🚀 Quick Start (v1.8.3)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -292,7 +271,6 @@ The runtime enforces a clear separation between release and development workflow
 - Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
 - `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
 - Access the stack at <http://localhost:8080> (frontend + API proxy).
-- Lazy monitoring: run plain (`RUN.ps1`) then start monitoring from `/power` only when needed (reduces idle resource usage).
 
 #### 📦 QNAP NAS Deployment
 
@@ -315,6 +293,28 @@ The runtime enforces a clear separation between release and development workflow
 - Leave `SMS_ENV` unset (or set to `development`) for native workflows.
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
 - `SMART_SETUP.ps1`, `SMS.ps1`, and the new helper scripts respect these guards to prevent configuration drift.
+
+### PostgreSQL Support & Migration (v1.8.3)
+
+- `RUN.ps1`, `SMART_SETUP.ps1`, and all Docker helpers now read `DATABASE_URL`,
+  `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
+  Set `DATABASE_ENGINE=postgresql` and fill in `POSTGRES_HOST`, `POSTGRES_DB`,
+  `POSTGRES_USER`, `POSTGRES_PASSWORD`, etc., or leave `DATABASE_URL` blank to
+  let the backend build the connection string for you.
+- The backend ships with `psycopg[binary]` out of the box, so no extra packages
+  are needed when pointing the stack at PostgreSQL (local, managed, or QNAP).
+- Existing deployments can migrate their SQLite data using the new helper:
+
+  ```powershell
+  cd backend
+  python -m backend.scripts.migrate_sqlite_to_postgres `
+      --sqlite-path ../data/student_management.db `
+      --postgres-url postgresql+psycopg://user:pass@host:5432/student_management
+  ```
+
+  Add `--dry-run` to preview row counts, `--tables` to copy a subset, or
+  consult the [PostgreSQL Migration Guide](docs/deployment/POSTGRES_MIGRATION_GUIDE.md)
+  for the full checklist (backups, validation, and troubleshooting tips).
 
 ### Environment Detection
 
@@ -448,7 +448,7 @@ Troubleshooting:
 
 **Documentation:**
 
-- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)** - Fast reference card
+- **[Quick Start Guide](docs/user/QUICK_START_GUIDE.md)** - Fast reference card
 - **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Detailed instructions with troubleshooting
 - **[Fresh Deployment Troubleshooting](docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and fixes
 
@@ -584,13 +584,6 @@ Use the management script:
 .\SMS.ps1 -Stop             # Clean stop all services
 ```
 
-Or the stop helper (compatibility):
-
-```powershell
-.\scripts\STOP.ps1          # Stop container
-.\scripts\STOP.ps1 -Help    # Show options
-```
-
 ### Developer Tools & Troubleshooting
 
 For advanced operations, diagnostics, and Docker management, use the unified menu:
@@ -613,7 +606,7 @@ Menu provides:
 
 Once the stack is running you have two management surfaces:
 
-- **System Health workspace** (`/power`): embeds the live status card (`ServerControl`) plus the React control panel. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in v1.8.3, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
 - **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
@@ -664,7 +657,7 @@ Automated cleanup script that removes obsolete files across the entire project, 
 **Advanced cleanup (comprehensive):**
 
 ```powershell
-.\scripts\internal\CLEANUP_COMPREHENSIVE.ps1
+.\SUPER_CLEAN_AND_DEPLOY.ps1
 ```
 
 **What it cleans:**
@@ -801,6 +794,7 @@ student-management-system/
 │   └── internal/             # Developer tools & cleanup scripts
 ├── docs/                     # Comprehensive documentation (30+ files)
 ├── archive/                  # Historical/deprecated files
+│   └── obsolete/             # Retired assets kept for reference (e.g., templates/power.html)
 └── tools/                    # Data import/export tools
 ```
 
@@ -809,19 +803,18 @@ student-management-system/
 
 ### Available Documentation
 
-- [CHANGELOG.md](CHANGELOG.md) - **Single source of release history**
-- [docs/DEPLOY.md](docs/DEPLOY.md) - **Deployment guide**
-- [docs/DOCKER_OPERATIONS.md](docs/DOCKER_OPERATIONS.md) - **Docker operations and management**
-- [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) - **Authentication & Authorization guide**
-- [docs/DOCKER_NAMING_CONVENTIONS.md](docs/DOCKER_NAMING_CONVENTIONS.md) - **Docker naming conventions and version management**
-- [docs/DOCKER_CLEANUP.md](docs/DOCKER_CLEANUP.md) - Docker cleanup procedures
-- [docs/LOCALIZATION.md](docs/LOCALIZATION.md) - Internationalization (i18n) guide
-- [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) - Security audit and fixes
-- [docs/FRONTEND_ASSESSMENT.md](docs/FRONTEND_ASSESSMENT.md) - Frontend architecture assessment
-- [docs/DEPENDENCY_UPGRADES.md](docs/DEPENDENCY_UPGRADES.md) - Dependency management
-- [docs/QNAP.md](docs/QNAP.md) - QNAP deployment guide
-- [docs/SERVERLESS.md](docs/SERVERLESS.md) - Serverless deployment options
-- [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) - Master documentation index (single source of truth)
+- [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) – Canonical map of every active guide (start here)
+- [CHANGELOG.md](CHANGELOG.md) – Release history and upgrade notes
+- [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) – Platform-specific installation walkthrough
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) – Production deployment steps
+- [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) – Final verification before going live
+- [docs/deployment/POSTGRES_MIGRATION_GUIDE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE.md) – SQLite → PostgreSQL migration workflow
+- [docs/MONITORING_ARCHITECTURE.md](docs/MONITORING_ARCHITECTURE.md) – Monitoring stack design + troubleshooting
+- [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) – Supported automation scripts and entry points
+- [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
+- [docs/development/AUTHENTICATION.md](docs/development/AUTHENTICATION.md) – Authentication/authorization implementation details
+- [docs/user/QUICK_START_GUIDE.md](docs/user/QUICK_START_GUIDE.md) – Five-minute onboarding for new operators
+- [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) – Dedicated QNAP deployment instructions
 
 ## API Documentation
 

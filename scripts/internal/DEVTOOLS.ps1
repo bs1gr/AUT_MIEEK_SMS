@@ -169,9 +169,9 @@ function Build-FullstackImage {
     Write-Host ""
     $useNoCache = Read-Host "Use no-cache rebuild? (y/N)"
     if ($useNoCache -match '^(y|yes)$') {
-        & ".\scripts\docker\DOCKER_FULLSTACK_UP.ps1" -Rebuild -NoCache
+        & ".\RUN.ps1" -UpdateNoCache
     } else {
-        & ".\scripts\docker\DOCKER_FULLSTACK_UP.ps1" -Rebuild
+        & ".\RUN.ps1" -Update
     }
     Write-Host ""
     Pause-ForUser
@@ -854,7 +854,7 @@ function Start-Native {
     Write-Host ""
     Write-Host "Starting Native Mode (Backend + Frontend)..." -ForegroundColor Green
     Write-Host ""
-    & ".\scripts\RUN.ps1"
+    & ".\RUN.ps1"
     Write-Host ""
     Pause-ForUser
 }
@@ -863,7 +863,7 @@ function Stop-Native {
     Write-Host ""
     Write-Host "Stopping Native Services..." -ForegroundColor Yellow
     Write-Host ""
-    & ".\scripts\STOP.ps1"
+    & ".\SMS.ps1" -Stop
     Write-Host ""
     Pause-ForUser
 }
@@ -912,10 +912,10 @@ function Show-Help {
     Write-Host "Help Documentation:" -ForegroundColor Blue
     Write-Host ""
     Write-Host "Basic Workflow:" -ForegroundColor Yellow
-    Write-Host "  1. Run SETUP.bat (first time only)" -ForegroundColor White
+    Write-Host "  1. Run RUN.ps1 (first time auto-setup) or SMART_SETUP.ps1 for advanced install" -ForegroundColor White
     Write-Host "  2. Run RUN.ps1 to start the app" -ForegroundColor White
     Write-Host "  3. Access at http://localhost:8080" -ForegroundColor White
-    Write-Host "  4. Run STOP.bat to stop the app" -ForegroundColor White
+    Write-Host "  4. Use SMS.ps1 -Stop to stop the app" -ForegroundColor White
     Write-Host ""
     Write-Host "Documentation:" -ForegroundColor Yellow
     Write-Host "  README.md          - Main documentation" -ForegroundColor White
