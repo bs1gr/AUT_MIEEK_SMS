@@ -56,7 +56,31 @@ def _is_loopback(host: str | None) -> bool:
 
 
 def _control_enabled() -> bool:
-    return os.environ.get("ENABLE_CONTROL_API", "0") == "1"
+    env_value = os.environ.get("ENABLE_CONTROL_API")
+    if env_value is not None:
+        return env_value.strip() == "1"
+
+    # Default behavior: when running locally (native/dev) without an explicit
+    # override, keep the control API enabled so restart helpers remain usable.
+    exec_mode = (os.environ.get("SMS_EXECUTION_MODE") or "").strip().lower()
+    sms_env = (os.environ.get("SMS_ENV") or "").strip().lower()
+    environment = (os.environ.get("ENVIRONMENT") or "").strip().lower()
+
+    if exec_mode in {"docker", "container"}:
+        return False
+
+    if sms_env in {"production", "prod"} or environment in {"production", "prod"}:
+        return False
+
+    # All other cases (development, native mode) default to enabled so that
+    # local operators do not need to set ENABLE_CONTROL_API manually.
+    return True
+
+
+def control_api_enabled() -> bool:
+    """Public helper so other modules can inspect the effective flag."""
+
+    return _control_enabled()
 
 
 def _allow_remote() -> bool:

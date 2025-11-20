@@ -6,6 +6,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.3] - 2025-11-19
+
+### Changed
+
+- Removed embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) from the Power page. The Power page now focuses on System Health and the Control Panel.
+- Retired the legacy backend `/power` HTML endpoint so the React SPA owns the `/power` route. When `SERVE_FRONTEND=1`, the SPA fallback serves the route.
+- Documentation updated to reflect Monitoring UI deprecation; quick-start flags and embedded dashboard instructions removed.
+
+### Notes
+
+- The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external monitoring tools. No backend monitoring control endpoints were removed in this patch, but they are no longer surfaced in the UI.
+
 ## [1.8.2] - 2025-11-19
 
 ### Added
@@ -772,7 +784,8 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.8.2...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.8.3...HEAD
+[1.8.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.3
 [1.8.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.2
 [1.6.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5
 [1.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4

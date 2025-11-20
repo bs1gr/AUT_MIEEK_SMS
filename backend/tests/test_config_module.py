@@ -53,3 +53,33 @@ def test_cors_origins_list_parses_json_string():
 def test_cors_origins_list_handles_comma_values():
     settings = build_settings(CORS_ORIGINS="http://a.com, http://b.com , http://c.com")
     assert settings.CORS_ORIGINS_LIST == ["http://a.com", "http://b.com", "http://c.com"]
+
+
+def test_database_url_accepts_postgres_uri():
+    settings = build_settings(DATABASE_URL="postgresql://sms_user:pw@localhost:5432/student_management")
+    assert settings.DATABASE_URL.startswith("postgresql://")
+
+
+def test_database_url_autobuilds_when_engine_is_postgres():
+    settings = build_settings(
+        DATABASE_ENGINE="postgresql",
+        DATABASE_URL="",
+        POSTGRES_USER="sms",
+        POSTGRES_PASSWORD="pw",
+        POSTGRES_DB="smsdb",
+        POSTGRES_HOST="db.internal",
+        POSTGRES_PORT=5433,
+        POSTGRES_SSLMODE="require",
+    )
+    assert settings.DATABASE_URL.startswith("postgresql+psycopg://sms:pw@db.internal:5433/smsdb")
+    assert "sslmode=require" in settings.DATABASE_URL
+
+
+def test_database_url_autobuild_requires_complete_postgres_config():
+    with pytest.raises(ValueError):
+        build_settings(
+            DATABASE_ENGINE="postgresql",
+            DATABASE_URL="",
+            POSTGRES_USER="sms",
+            POSTGRES_PASSWORD="pw",
+        )

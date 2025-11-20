@@ -24,6 +24,14 @@ Quick deployment checklist (pre-release)
    - CONTROL_API_ALLOW_TASKKILL=0 (recommended) or not set
    - Set SECRET_KEY in `backend/.env` for production
    - Ensure `SMS_ENV=production` or deploy via Docker fullstack entrypoint
+   - Choose the database engine: leave `DATABASE_ENGINE=sqlite` for the default
+     file-based store or set `DATABASE_ENGINE=postgresql` to use PostgreSQL.
+   - When targeting PostgreSQL, either leave `DATABASE_URL` blank and fill the
+     `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`,
+     `POSTGRES_PASSWORD`, `POSTGRES_SSLMODE`, and `POSTGRES_OPTIONS` variables
+     or supply an explicit `postgresql+psycopg://` URL.
+   - Confirm `RUN.ps1`, `SMART_SETUP.ps1`, and Compose overrides reference the
+     same `.env` so the new values propagate into the container.
 
 2. Migrations
    - Run migrations in CI/CD before deployment:
@@ -32,6 +40,11 @@ Quick deployment checklist (pre-release)
      cd backend
      alembic upgrade head
      ```
+
+   - Migrating existing SQLite data to PostgreSQL? Run
+     `python -m backend.scripts.migrate_sqlite_to_postgres` with the appropriate
+     `--sqlite-path` and `--postgres-url` values before switching the stack, and
+     follow the detailed workflow in `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`.
 
 3. CI verification
    - Ensure GitHub Actions `ci.yml` is enabled on main branch.
@@ -274,7 +287,7 @@ After successful installation, users should know:
 
 ### Stopping the Application
 
-- [ ] Taught user to run `.\scripts\STOP.ps1`
+- [ ] Taught user to run `.\SMS.ps1 -Stop`
 - [ ] Or use management interface: `SMS.ps1` → Stop
 
 ### Basic Maintenance
@@ -293,9 +306,11 @@ After successful installation, users should know:
 
 Ensure user has access to:
 
-- [ ] **docs/QUICK_START_GUIDE.md** - Quick reference
+- [ ] **docs/user/QUICK_START_GUIDE.md** - Quick reference
 - [ ] **DEPLOYMENT_GUIDE.md** - Complete deployment guide
 - [ ] **README.md** - Application documentation
+- [ ] **docs/deployment/POSTGRES_MIGRATION_GUIDE.md** - End-to-end PostgreSQL
+  migration workflow
 - [ ] **ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md** - Greek user manual (if needed)
 - [ ] In-app help: Utils → Help Documentation
 
@@ -310,7 +325,7 @@ Provide user with:
 
 ```text
 Start:     .\RUN.ps1
-Stop:      .\scripts\STOP.ps1
+Stop:      .\SMS.ps1 -Stop
 Manage:    .\SMS.ps1
 Status:    .\SMS.ps1 -Status
 Diagnose:  .\scripts\internal\DIAGNOSE_STATE.ps1
@@ -370,7 +385,7 @@ Before considering deployment complete:
 
 # Daily use
 .\RUN.ps1                                    # Start application
-.\scripts\STOP.ps1                           # Stop application
+.\SMS.ps1 -Stop                              # Stop application
 .\SMS.ps1                                    # Management menu
 
 # Diagnostics

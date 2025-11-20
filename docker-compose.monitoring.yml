@@ -18,7 +18,7 @@
 #    .\RUN.ps1 -WithMonitoring
 #    - Starts sms-app container (port 8080)
 #    - Starts monitoring stack (Grafana:3000, Prometheus:9090)
-#    - Access Power page: http://localhost:8080/power
+#    - Power page (System Health + Control Panel): http://localhost:8080/power
 #
 # 2. DOCKER MODE (Multi-container):
 #    docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d

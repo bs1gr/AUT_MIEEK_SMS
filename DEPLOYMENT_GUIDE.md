@@ -76,6 +76,56 @@ The application can run in two modes:
 - Additional marker: `SMS_EXECUTION_MODE` is set to `docker` or `native` by the
   helper scripts for clarity when debugging.
 
+### Database configuration (SQLite vs PostgreSQL)
+
+- **Default (SQLite)**: New installations store data in
+  `data/student_management.db`. No extra configuration is required beyond the
+  generated `.env` file.
+- **PostgreSQL (recommended for production)**: Set `DATABASE_ENGINE=postgresql`
+  in `backend/.env` (or the root `.env` consumed by `RUN.ps1`) and fill in the
+  `POSTGRES_*` variables. Leave `DATABASE_URL` blank to have the backend build
+  the connection string automatically using `psycopg`.
+- `RUN.ps1`, `SMART_SETUP.ps1`, and the Docker Compose files automatically pass
+  these variables into the container, so switching engines is as simple as
+  updating your `.env` file before running the installer.
+
+Example PostgreSQL block for `.env`:
+
+```dotenv
+DATABASE_ENGINE=postgresql
+POSTGRES_HOST=db.internal
+POSTGRES_PORT=5432
+POSTGRES_DB=student_management
+POSTGRES_USER=sms_user
+POSTGRES_PASSWORD=super-secret-password
+POSTGRES_SSLMODE=require
+POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
+```
+
+If you prefer to manage the URL manually, set `DATABASE_URL` to a
+`postgresql+psycopg://` string. See [`backend/README.md`](backend/README.md) for
+additional examples and validation rules.
+
+### Migrating existing SQLite data to PostgreSQL
+
+1. Provision a PostgreSQL database (self-hosted, managed service, or the QNAP
+  bundle) and note the credentials.
+2. Update your `.env` file with the `DATABASE_ENGINE=postgresql` and
+  corresponding `POSTGRES_*` values shown above.
+3. Run the migration helper to copy data from SQLite before switching the stack
+  to PostgreSQL:
+
+  ```powershell
+  cd backend
+    python -m backend.scripts.migrate_sqlite_to_postgres `
+      --sqlite-path ../data/student_management.db `
+      --postgres-url postgresql+psycopg://user:pass@host:5432/student_management
+  ```
+
+4. Use `--dry-run` for a count-only preview or `--tables students courses` to
+  migrate a subset. The [PostgreSQL Migration Guide](docs/deployment/POSTGRES_MIGRATION_GUIDE.md)
+  walks through backups, validation, and troubleshooting in detail.
+
 ---
 
 ## Method 1: One-Click Installer (Recommended)
@@ -483,7 +533,7 @@ Invoke-Command -ComputerName "RemotePC" -ScriptBlock {
 **Stop application**:
 
 ```powershell
-.\scripts\STOP.ps1
+.\SMS.ps1 -Stop
 ```
 
 **Manage application**:
@@ -511,7 +561,7 @@ Invoke-Command -ComputerName "RemotePC" -ScriptBlock {
 ### Updating the Application
 
 1. **Backup data first** (see above)
-2. Stop the application: `.\scripts\STOP.ps1`
+2. Stop the application: `.\SMS.ps1 -Stop`
 3. Replace files with new version
 4. Restart: `.\RUN.ps1`
 
@@ -627,7 +677,7 @@ Remove-Item -Path "C:\SMS" -Recurse -Force
 | Install (Native only) | `.\INSTALLER.ps1 -NativeOnly` |
 | Create deployment package | `.\CREATE_DEPLOYMENT_PACKAGE.ps1` |
 | Start application | `.\RUN.ps1` |
-| Stop application | `.\scripts\STOP.ps1` |
+| Stop application | `.\SMS.ps1 -Stop` |
 | Manage application | `.\SMS.ps1` |
 | Check status | `.\SMS.ps1 -Status` |
 | Run diagnostics | `.\scripts\internal\DIAGNOSE_STATE.ps1` |

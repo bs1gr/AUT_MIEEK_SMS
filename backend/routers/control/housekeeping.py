@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from backend.errors import ErrorCode, http_error
+from backend.control_auth import control_api_enabled
 from .common import (
     in_docker_container,
     docker_compose,
@@ -25,6 +26,47 @@ class OperationResult(BaseModel):
     success: bool
     message: str
     details: Optional[Dict[str, Any]] = None
+
+
+class RestartDiagnostics(BaseModel):
+    restart_supported: bool
+    message: str
+    environment: str
+    execution_mode: str
+    control_api_enabled: bool
+    requires_admin_token: bool
+    timestamp: str
+    hints: List[str] = Field(default_factory=list)
+
+
+def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostics:
+    environment = "docker" if in_docker_container() else "native"
+    execution_mode = os.environ.get("SMS_EXECUTION_MODE", "native").strip().lower() or "native"
+    control_api_enabled_flag = control_api_enabled()
+    requires_admin_token = bool(os.environ.get("ADMIN_SHUTDOWN_TOKEN"))
+
+    restart_supported = control_api_enabled_flag and environment != "docker" and execution_mode != "docker"
+    hints: List[str] = []
+
+    if not control_api_enabled_flag:
+        message = "Control API disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart the backend service."
+        hints.append("Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1, then restart the backend.")
+    elif environment == "docker" or execution_mode == "docker":
+        message = "In-container restart is disabled. Run SMS.ps1 -Restart or SMART_SETUP.ps1 from the host."
+        hints.append("Use host-level scripts such as SMS.ps1 -Restart or restart the Docker stack from the host shell.")
+    else:
+        message = "Restart endpoint ready."
+
+    return RestartDiagnostics(
+        restart_supported=restart_supported,
+        message=message,
+        environment=environment,
+        execution_mode=execution_mode,
+        control_api_enabled=control_api_enabled_flag,
+        requires_admin_token=requires_admin_token,
+        timestamp=datetime.now().isoformat(),
+        hints=hints,
+    )
 
 
 @router.post("/operations/exit-all", response_model=OperationResult)
@@ -54,13 +96,17 @@ async def exit_all(down: bool = False):
     return OperationResult(success=True, message="; ".join(msg_parts), details=details)
 
 
+@router.get("/restart", response_model=RestartDiagnostics)
+async def restart_diagnostics(request: Request):
+    return _build_restart_diagnostics(request)
+
+
 @router.post("/restart", response_model=OperationResult)
 async def restart_backend(request: Request):
-    if in_docker_container() or (os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"):
-        # Tests expect a top-level message key in the error response for this specific case
-        return JSONResponse(status_code=400, content={
-            "message": "In-container restart is disabled. Run SMS.ps1 -Restart or SMART_SETUP.ps1 from the host."
-        })
+    diagnostics = _build_restart_diagnostics(request)
+    if not diagnostics.restart_supported:
+        status_code = 404 if not diagnostics.control_api_enabled else 400
+        return JSONResponse(status_code=status_code, content=diagnostics.model_dump())
     # Backward-compat: use legacy helpers in backend.main if present for tests
     try:
         from importlib import import_module

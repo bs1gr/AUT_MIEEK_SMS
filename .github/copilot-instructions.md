@@ -8,7 +8,6 @@
 
 ```powershell
 .\RUN.ps1                     # One-click Docker start (builds if needed)
-.\RUN.ps1 -WithMonitoring     # Start with monitoring dashboards (integrated at /power)
 .\RUN.ps1 -Stop               # Stop fullstack container
 .\RUN.ps1 -Update             # Update with automatic backup
 .\SMS.ps1                     # Management menu (status, diagnostics, backups)
@@ -177,7 +176,7 @@ cd backend && python -m uvicorn backend.main:app --reload --host 127.0.0.1 --por
 cd frontend && npm run dev  # http://localhost:5173
 
 # Docker rebuild
-.\scripts\SETUP.ps1 && docker compose up -d --build
+\.\SMART_SETUP.ps1 -Force   # Force rebuild images and dependencies
 ```
 
 **Environment files:** Copy `.env.example` to `.env` in `backend/` and `frontend/` directories.
@@ -247,6 +246,7 @@ alembic downgrade -1           # Rollback
 - Files: `backend/logs/app.log` (rotating 2MB, 5 backups) + `structured.json`
 - Request ID: Auto-added via `RequestIDMiddleware` to `request.state.request_id`
 - Frontend errors: POST to `/api/logs/frontend-error`
+ - Note: Embedded Monitoring UI (Grafana/Prometheus panels) was removed in v1.8.3. The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external tools.
 
 ### Health Checks
 - `/health` - Detailed status (DB, disk, migrations)
@@ -276,6 +276,6 @@ alembic downgrade -1           # Rollback
 ## Reference Docs
 
 - **Architecture**: `docs/ARCHITECTURE.md` - System design, deployment modes
-- **Localization**: `docs/LOCALIZATION.md` - i18n setup, adding translations
+- **Localization**: `docs/user/LOCALIZATION.md` - i18n setup, adding translations
 - **Docker**: `docs/DOCKER_NAMING_CONVENTIONS.md` - Volume versioning
-- **Deployment**: `DEPLOYMENT_GUIDE.md`, `docs/QUICK_START_GUIDE.md`
+- **Deployment**: `DEPLOYMENT_GUIDE.md`, `docs/user/QUICK_START_GUIDE.md`
