@@ -26,7 +26,9 @@ New endpoints:
 - POST `/control/api/monitoring/start`  — start the monitoring docker-compose stack (host only; rejected inside container).
 - POST `/control/api/monitoring/stop`   — stop the monitoring stack (host only; no-op if already stopped).
 
-These endpoints allow the Power page (`/power`) to present a "Start Monitoring" button and only render dashboards after the stack is up. Links to Grafana / Prometheus remain hidden until status reports `running=true`.
+> v1.8.3 note: The default Power page was simplified to "System Health" + Control actions and no longer exposes monitoring tabs or a **Start Monitoring** button. These endpoints remain available for custom dashboards, automation (watcher service), or operators who still surface the legacy UI.
+
+When you do implement a monitoring launcher, these endpoints allow the experience to stay lazy-loaded: call `/monitoring/status` to decide whether to render dashboards and only reveal Grafana / Prometheus links once `running=true`.
 
 Security & Constraints:
 
@@ -56,15 +58,13 @@ Example status payload:
 }
 ```
 
-UI Flow (Power Page):
+UI Flow (custom dashboards / advanced operators):
 
-1. Page loads → calls `/monitoring/status`.
-2. If not running → shows **Start Monitoring** message, hides tabs & links.
-3. User clicks **Start Monitoring** → POST `/monitoring/start`.
-4. After short delay → status re-check; if running → reveal tabs, lazy load first dashboard iframe.
-5. Clicking Grafana / Prometheus links when stopped prompts to start.
-
-Stopping from UI (future enhancement) can call `/monitoring/stop` to reclaim resources.
+1. Page loads → call `/monitoring/status`.
+2. If not running → keep monitoring tabs hidden, surface guidance or a **Start Monitoring** button.
+3. When the operator triggers **Start Monitoring** → POST `/monitoring/start`.
+4. Poll status; when `running=true` → reveal dashboards and lazy-load iframes/links.
+5. Optionally add a button wired to `/monitoring/stop` to reclaim resources when dashboards are no longer needed (feature is not enabled in the default UI yet).
 
 ### Monitoring Endpoint Security Considerations
 

@@ -102,6 +102,33 @@ def test_control_restart_blocked_in_docker(monkeypatch):
     assert resp.status_code == 400
     data = resp.json()
     assert data["message"].lower().startswith("in-container restart")
+    assert data["restart_supported"] is False
+    assert data["execution_mode"] == "docker"
+
+
+def test_restart_diagnostics_reports_native(monkeypatch):
+    monkeypatch.delenv("ENABLE_CONTROL_API", raising=False)
+    monkeypatch.delenv("SMS_EXECUTION_MODE", raising=False)
+    resp = client.get("/control/api/restart")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["restart_supported"] is True
+    assert data["control_api_enabled"] is True
+
+
+def test_restart_disabled_when_control_api_off(monkeypatch):
+    monkeypatch.setenv("ENABLE_CONTROL_API", "0")
+    diag = client.get("/control/api/restart")
+    assert diag.status_code == 200
+    diag_body = diag.json()
+    assert diag_body["restart_supported"] is False
+    assert diag_body["control_api_enabled"] is False
+
+    resp = client.post("/control/api/restart")
+    assert resp.status_code == 404
+    payload = resp.json()
+    assert payload["control_api_enabled"] is False
+    assert payload["message"].lower().startswith("control api disabled")
 
 
 def test_install_frontend_deps_missing_package_json(monkeypatch):

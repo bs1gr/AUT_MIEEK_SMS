@@ -42,6 +42,8 @@ services:
     environment:
       # Override DATABASE_URL to use PostgreSQL in production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}
+      - DATABASE_ENGINE=postgresql
+      - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-require}
     deploy:
       restart_policy:
         condition: on-failure

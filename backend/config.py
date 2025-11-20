@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List, Any, Literal
+from typing import List, Any, Literal, Mapping
 import os
 import secrets
 import logging
@@ -9,7 +9,8 @@ import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
-from pydantic import field_validator, model_validator, EmailStr
+from pydantic import field_validator, model_validator, EmailStr, ValidationInfo
+from urllib.parse import quote_plus, urlencode
 
 
 def _path_within(path: Path, root: Path) -> bool:
@@ -20,6 +21,58 @@ def _path_within(path: Path, root: Path) -> bool:
         return False
 
 
+def _build_postgres_url_from_data(data: Mapping[str, Any]) -> str:
+    required = {key: data.get(key) for key in ("POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB")}
+    missing = [key for key, value in required.items() if not value]
+    if missing:
+        missing_csv = ", ".join(missing)
+        raise ValueError(
+            f"PostgreSQL configuration incomplete. Provide: {missing_csv} "
+            "(set DATABASE_URL explicitly to bypass auto-build)."
+        )
+
+    host = str(data.get("POSTGRES_HOST") or "localhost").strip()
+    port_value = data.get("POSTGRES_PORT") or 5432
+    try:
+        port = int(port_value)
+    except (TypeError, ValueError):
+        port = 5432
+    db_name = str(required["POSTGRES_DB"])
+    username = str(required["POSTGRES_USER"])
+    password = str(required["POSTGRES_PASSWORD"])
+
+    sslmode = str(data.get("POSTGRES_SSLMODE") or "").strip()
+    options_raw = str(data.get("POSTGRES_OPTIONS") or "").strip()
+
+    if ":" in host and not host.startswith("[") and not host.endswith("]"):
+        host = f"[{host}]"
+
+    query_items: list[tuple[str, str]] = []
+    if sslmode:
+        query_items.append(("sslmode", sslmode))
+
+    if options_raw:
+        trimmed = options_raw.lstrip("?")
+        for chunk in trimmed.split("&"):
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            if "=" in chunk:
+                key, value = chunk.split("=", 1)
+            else:
+                key, value = chunk, ""
+            query_items.append((key.strip(), value.strip()))
+
+    query = urlencode(query_items)
+    if query:
+        query = f"?{query}"
+
+    return (
+        f"postgresql+psycopg://{quote_plus(username)}:{quote_plus(password)}@"
+        f"{host}:{port}/{quote_plus(db_name)}{query}"
+    )
+
+
 # Select defaults based on execution mode
 _IS_DOCKER_MODE = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
 
@@ -28,6 +81,7 @@ if _IS_DOCKER_MODE:
     _DEFAULT_DB_PATH = "/data/student_management.db"
 else:
     _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
+_DEFAULT_SQLITE_URL = f"sqlite:///{_DEFAULT_DB_PATH}"
 
 # When running inside Docker Desktop, containers can reach host services via this DNS name
 # Use it to allow the API container to talk to monitoring services (Grafana/Prometheus/Loki)
@@ -73,7 +127,15 @@ class Settings(BaseSettings):
     SMS_EXECUTION_MODE: str = os.environ.get("SMS_EXECUTION_MODE", "native")
 
     # Database
-    DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_PATH}"
+    DATABASE_ENGINE: Literal["sqlite", "postgresql"] = "sqlite"
+    POSTGRES_HOST: str | None = None
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_DB: str | None = None
+    POSTGRES_SSLMODE: Literal["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = "prefer"
+    POSTGRES_OPTIONS: str | None = None
+    DATABASE_URL: str = ""
 
     # API Pagination
     DEFAULT_PAGE_SIZE: int = 100
@@ -194,6 +256,61 @@ class Settings(BaseSettings):
                 path = path.replace("//", "/")
             normalized.append(path.rstrip(" "))
         return normalized
+
+    @field_validator("POSTGRES_SSLMODE", mode="before")
+    @classmethod
+    def normalize_postgres_sslmode(cls, value: str | None) -> str:
+        if value is None:
+            return "prefer"
+        normalized = str(value).strip().lower()
+        return normalized or "prefer"
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def build_database_url(cls, value: str | None, info: ValidationInfo) -> str:
+        if value and str(value).strip():
+            return str(value).strip()
+
+        data = info.data
+        engine = str(data.get("DATABASE_ENGINE") or "sqlite").lower()
+        pg_fields = [data.get("POSTGRES_USER"), data.get("POSTGRES_PASSWORD"), data.get("POSTGRES_DB")]
+        has_pg_creds = all(pg_fields)
+        if engine == "postgresql" or has_pg_creds:
+            return _build_postgres_url_from_data(data)
+
+        return _DEFAULT_SQLITE_URL
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        """Validate database URL format and path security."""
+        if v.startswith("sqlite:///"):
+            db_path_str = v.replace("sqlite:///", "")
+            try:
+                db_path = Path(db_path_str).resolve()
+
+                # Ensure path is within project directory (prevent path traversal)
+                project_root = Path(__file__).resolve().parents[1]
+                allowed_roots = [project_root]
+                if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
+                    allowed_roots.append(Path("/data"))
+
+                if not any(_path_within(db_path, root) for root in allowed_roots):
+                    allowed_desc = ", ".join(str(root) for root in allowed_roots)
+                    raise ValueError(
+                        "Database path must be within an allowed directory.\n"
+                        f"Database path: {db_path}\n"
+                        f"Allowed roots: {allowed_desc}"
+                    )
+
+            except Exception as e:
+                raise ValueError(f"Invalid database path in DATABASE_URL: {e}")
+            return v
+
+        if v.startswith("postgresql://") or v.startswith("postgresql+psycopg://"):
+            return v
+
+        raise ValueError("DATABASE_URL must start with 'sqlite:///' or 'postgresql://'")
 
     @field_validator("SEMESTER_WEEKS")
     @classmethod
@@ -346,37 +463,6 @@ class Settings(BaseSettings):
             return handle_insecure(security_issue, warn_only=True)
 
         return self
-
-    @field_validator("DATABASE_URL")
-    @classmethod
-    def validate_database_url(cls, v: str) -> str:
-        """Validate database URL format and path security."""
-        if not v.startswith("sqlite:///"):
-            raise ValueError("Only SQLite databases are supported (URL must start with 'sqlite:///')")
-
-        # Extract and validate path
-        db_path_str = v.replace("sqlite:///", "")
-        try:
-            db_path = Path(db_path_str).resolve()
-
-            # Ensure path is within project directory (prevent path traversal)
-            project_root = Path(__file__).resolve().parents[1]
-            allowed_roots = [project_root]
-            if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
-                allowed_roots.append(Path("/data"))
-
-            if not any(_path_within(db_path, root) for root in allowed_roots):
-                allowed_desc = ", ".join(str(root) for root in allowed_roots)
-                raise ValueError(
-                    "Database path must be within an allowed directory.\n"
-                    f"Database path: {db_path}\n"
-                    f"Allowed roots: {allowed_desc}"
-                )
-
-        except Exception as e:
-            raise ValueError(f"Invalid database path in DATABASE_URL: {e}")
-
-        return v
 
     @field_validator("DEFAULT_ADMIN_PASSWORD")
     @classmethod

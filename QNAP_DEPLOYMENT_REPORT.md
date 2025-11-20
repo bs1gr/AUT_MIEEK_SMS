@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD022 MD026 MD031 MD032 MD034 MD036 MD040 -->
+
 # QNAP Deployment Attempt Report
 **Date:** November 19, 2025  
 **Target System:** QNAP TS-431P3  
@@ -529,7 +531,7 @@ PostgreSQL: 5432 (internal)
 
 ### Project Documentation
 - `DEPLOYMENT_GUIDE.md` - Complete deployment instructions
-- `docs/QUICK_START_GUIDE.md` - Quick setup guide
+- `docs/user/QUICK_START_GUIDE.md` - Quick setup guide
 - `docs/ARCHITECTURE.md` - System architecture overview
 - `docker-compose.prod.yml` - Production Docker configuration
 

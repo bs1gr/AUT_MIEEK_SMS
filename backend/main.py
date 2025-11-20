@@ -1,6 +1,6 @@
 """
 Student Management System - Production Ready
-Version: 1.8.2 (See VERSION file)
+Version: 1.8.3 (See VERSION file)
 
 Key Features:
 ✅ Modern FastAPI with lifespan context manager
@@ -424,17 +424,70 @@ def _infer_restart_command() -> list[str] | None:
     return [sys.executable, "-m", module_name, *args]
 
 
+def _command_has_reload_flag(cmd: list[str]) -> bool:
+    try:
+        return any(arg == "--reload" or arg.startswith("--reload=") for arg in cmd)
+    except Exception:
+        return False
+
+
+def _trigger_reload_ping(delay_seconds: float = 0.3) -> None:
+    reload_target = Path(__file__).resolve()
+
+    def _ping():
+        try:
+            logger.info("Triggering uvicorn reload via touch on %s", reload_target)
+            _time.sleep(delay_seconds)
+            os.utime(reload_target, None)
+        except Exception as exc:
+            logger.error("Failed to trigger reload ping: %s", exc, exc_info=True)
+
+    threading.Thread(target=_ping, daemon=True).start()
+
+
+def _resolve_exec_command(cmd: list[str]) -> list[str]:
+    """Ensure the executable path (element 0) is absolute if possible."""
+
+    if not cmd:
+        raise ValueError("Empty restart command")
+
+    exec_path = cmd[0]
+    if os.path.isabs(exec_path) and os.path.exists(exec_path):
+        return cmd
+
+    resolved = shutil.which(exec_path)
+    if resolved:
+        return [resolved, *cmd[1:]]
+    return cmd
+
+
 def _spawn_restart_thread(command: list[str], delay_seconds: float = 0.75) -> None:
-    """Spawn a background thread to re-exec the current process after a short delay."""
+    """Spawn a background thread to re-exec (or relaunch) the current process after a short delay."""
+
+    resolved_command = _resolve_exec_command(command)
+
+    if _command_has_reload_flag(resolved_command):
+        logger.info("Detected uvicorn reload mode; triggering reload ping instead of execv")
+        _trigger_reload_ping(max(0.2, delay_seconds / 2))
+        return
 
     def _restart_target():
         try:
-            logger.info("Restarting backend with command: %s", command)
+            logger.info("Restarting backend with command: %s", resolved_command)
             _time.sleep(delay_seconds)
-            os.execv(command[0], command)
+            os.execv(resolved_command[0], resolved_command)
         except Exception as exc:
-            logger.error("Backend restart failed; forcing exit: %s", exc, exc_info=True)
-            os._exit(0)
+            logger.error("Backend restart via execv failed: %s", exc, exc_info=True)
+            try:
+                proc = subprocess.Popen(resolved_command, close_fds=os.name != "nt")
+                logger.info(
+                    "Spawned fallback backend process (pid=%s). Exiting current process to complete restart.",
+                    getattr(proc, "pid", "<unknown>"),
+                )
+            except Exception as spawn_exc:
+                logger.critical("Fallback backend restart spawn failed: %s", spawn_exc, exc_info=True)
+            finally:
+                os._exit(0)
 
     threading.Thread(target=_restart_target, daemon=True).start()
 
@@ -1130,40 +1183,10 @@ async def favicon():
     return Response(content=svg_content, media_type="image/svg+xml")
 
 
-@app.get("/power")
-async def power_dashboard():
-    """
-    Power Page - Embedded Monitoring Dashboard.
-    
-    Provides unified access to:
-    - Application Health Dashboard (Grafana)
-    - Infrastructure Metrics (Grafana)
-    - Application Logs (Loki)
-    - Quick links to Prometheus, Grafana, API Docs
-    
-    Returns:
-        FileResponse: The power.html template with embedded iframes
-    """
-    templates_dir = Path(__file__).parent.parent / "templates"
-    power_html = templates_dir / "power.html"
-    
-    if power_html.exists():
-        return FileResponse(str(power_html))
-    else:
-        # Fallback if template is missing (should not happen in production)
-        return JSONResponse(
-            {
-                "error": "Power dashboard template not found",
-                "message": "Monitoring stack requires Docker mode with templates mounted",
-                "links": {
-                    "grafana": "http://localhost:3000",
-                    "prometheus": "http://localhost:9090",
-                    "docs": "http://localhost:8080/docs"
-                },
-                "setup": "Run: .\\RUN.ps1 -WithMonitoring"
-            },
-            status_code=503
-        )
+# NOTE: The legacy /power backend route serving an HTML monitoring dashboard
+# has been removed in v1.8.3. The React SPA now owns the /power route (System
+# Health + Control Panel). When SERVE_FRONTEND is enabled, the SPA 404 fallback
+# will correctly serve index.html for /power.
 
 
 # ============================================================================
@@ -1209,7 +1232,6 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
             "openapi.json",
             "control",
             "health",
-            "power",
             "metrics",  # Prometheus metrics endpoint
             "favicon.ico",
             "favicon.svg",
