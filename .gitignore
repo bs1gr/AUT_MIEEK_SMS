@@ -126,3 +126,9 @@ docker-compose.override.yml
 # Windows special device files
 nul
 backend/nul
+
+# Personal/sensitive data files (student records, enrollments, etc.)
+templates/students/*.csv
+*ΕΓΓΡΑΦΕΣ*.csv
+*enrollment*.csv
+*personal*.csv
