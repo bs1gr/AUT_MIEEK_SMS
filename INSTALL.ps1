@@ -266,8 +266,18 @@ DEFAULT_ADMIN_FORCE_RESET=False
     if (-not (Test-Path $BACKEND_ENV)) {
         if (Test-Path $BACKEND_ENV_EXAMPLE) {
             Write-Info "Creating backend .env file from template..."
-            Copy-Item $BACKEND_ENV_EXAMPLE $BACKEND_ENV
-            Write-Success "Backend .env file created"
+
+            # Generate secure SECRET_KEY
+            $secretKey = -join ((48..57) + (65..90) + (97..122) + (45,95) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
+
+            # Read template and replace placeholder SECRET_KEY
+            $envContent = Get-Content $BACKEND_ENV_EXAMPLE -Raw
+            $envContent = $envContent -replace 'SECRET_KEY=your-secret-key-change-this-in-production.*', "SECRET_KEY=$secretKey"
+
+            # Save to backend/.env
+            Set-Content -Path $BACKEND_ENV -Value $envContent
+
+            Write-Success "Backend .env file created with secure SECRET_KEY"
             $configured = $true
         } else {
             Write-Warning-Message "Backend .env.example not found!"
