@@ -132,3 +132,7 @@ templates/students/*.csv
 *ΕΓΓΡΑΦΕΣ*.csv
 *enrollment*.csv
 *personal*.csv
+
+# Temporary export/backup directories
+temp_export_*/
+SMS-Docker-Image-*.tar
