@@ -1,6 +1,6 @@
 # Student Management System
 
-## 📦 Quick Start (v1.8.6.1)
+## 📦 Quick Start (v1.8.6.2)
 
 ### **For End Users** - One-Click Installation ⭐ NEW!
 
