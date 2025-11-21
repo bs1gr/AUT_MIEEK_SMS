@@ -11,6 +11,8 @@
 .\RUN.ps1 -Stop               # Stop fullstack container
 .\RUN.ps1 -Update             # Update with automatic backup
 .\SMS.ps1                     # Management menu (status, diagnostics, backups)
+.\SMS.ps1 -PruneAll           # Docker cache cleanup (safe)
+.\DEEP_DOCKER_CLEANUP.ps1     # Nuclear cleanup - removes ALL Docker cache
 .\scripts\dev\run-native.ps1  # Native development mode
 .\SMART_SETUP.ps1 -Force      # Force rebuild (advanced only)
 .\SUPER_CLEAN_AND_DEPLOY.ps1  # Full cleanup + optional setup

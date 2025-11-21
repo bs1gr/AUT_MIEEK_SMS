@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     Simple lifecycle management for SMS deployments.
-    - Stops both Docker containers and native dev servers started via SMART_SETUP
+    - Stops both Docker containers and native dev servers
     - Provides status helpers and log inspection utilities
     For advanced operations, use the Control Panel in the web app
 
@@ -49,7 +49,7 @@
 
 .NOTES
     Version: 1.3.8+
-    For setup: Run .\SMART_SETUP.ps1 first
+    For setup: Run .\INSTALL.ps1 (first time) or .\RUN.ps1 (daily use)
     For operations: Use Control Panel at http://localhost:8080 (Power tab)
 #>
 

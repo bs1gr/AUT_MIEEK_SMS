@@ -6,6 +6,99 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.6.3] - 2025-11-21
+
+### Added
+
+- **DEEP_DOCKER_CLEANUP.ps1** - Advanced Docker cache cleanup utility
+  - Nuclear cleanup option for removing ALL Docker cache from old installations
+  - Stops all SMS containers safely
+  - Removes ALL stopped containers
+  - Removes ALL unused images (not just dangling)
+  - Removes ALL build cache (complete wipe)
+  - Removes unused networks
+  - Optional `-IncludeVolumes` flag to delete data volumes (WARNING: destroys database!)
+  - `-Force` flag to skip confirmation prompts
+  - Comprehensive disk usage reports (before/after)
+  - Detailed cleanup summary with error reporting
+  - Smart version detection - preserves current sms-fullstack image
+  - Safe by default - preserves data volumes unless explicitly requested
+
+- **DOCKER_CLEANUP_GUIDE.md** - Complete Docker cleanup documentation
+  - Quick reference table for all cleanup options
+  - Detailed explanations of when to use each cleanup level
+  - Step-by-step guide for clean install on new PC
+  - Troubleshooting section for common Docker issues
+  - Docker disk usage explanation
+  - Comparison table of all cleanup scripts
+  - Best practices for Docker maintenance
+  - Preservation guarantees (what's safe)
+  - Quick command reference
+
+- **archive_deprecated_files.ps1** - Automated file archival utility
+  - Archives deprecated files to `archive/deprecated/v1.8.6.1_cleanup/`
+  - Handles non-existent files gracefully
+  - Provides clear feedback during archival process
+
+### Changed
+
+- **Copilot Instructions** (.github/copilot-instructions.md)
+  - Added `SMS.ps1 -PruneAll` to quick start commands
+  - Added `DEEP_DOCKER_CLEANUP.ps1` to common tasks
+  - Updated documentation to reflect new cleanup utilities
+
+- **README.md** - Enhanced Docker cleanup section
+  - Added "Docker Cache Cleanup (Advanced)" section
+  - Included safe cleanup command (`SMS.ps1 -PruneAll`)
+  - Included aggressive cleanup command (`DEEP_DOCKER_CLEANUP.ps1`)
+  - Included nuclear option with clear warnings
+  - Reference to full DOCKER_CLEANUP_GUIDE.md
+
+- **SUPER_CLEAN_AND_DEPLOY.ps1** - Updated Docker setup workflow
+  - Changed from SMART_SETUP.ps1 to RUN.ps1 for Docker deployment
+  - Simplified Docker setup invocation (RUN.ps1 handles everything automatically)
+  - Updated error messages to reference RUN.ps1
+  - Removed obsolete SMART_SETUP.ps1 specific logic
+
+- **SMS.ps1** - Updated documentation references
+  - Changed setup instruction from SMART_SETUP.ps1 to INSTALL.ps1/RUN.ps1
+  - Removed specific SMART_SETUP reference from description
+  - Updated .NOTES section with clearer first-time vs daily use instructions
+
+- **Greek Documentation** (ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md, ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)
+  - Updated references from SMART_SETUP.ps1 to INSTALL.ps1 (first time) and RUN.ps1 (daily use)
+  - Aligned with English documentation standards
+
+### Deprecated
+
+- **SMART_SETUP.ps1** - Archived to `archive/deprecated/v1.8.6.1_cleanup/`
+  - Functionality fully replaced by RUN.ps1 (daily use) and INSTALL.ps1 (first-time setup)
+  - RUN.ps1 provides simpler, more reliable one-click operation
+  - INSTALL.ps1 handles comprehensive first-time installation with validation
+  - Maintaining SMART_SETUP.ps1 created confusion about which script to use
+  - All documentation updated to reference RUN.ps1 and INSTALL.ps1
+
+### Rationale
+
+The deprecation of SMART_SETUP.ps1 addresses user confusion and streamlines the deployment workflow:
+
+1. **Simplified User Experience**:
+   - First-time users: `INSTALL.ps1` (comprehensive setup with validation)
+   - Daily users: `RUN.ps1` (one-click start/stop)
+   - No need to choose between multiple setup scripts
+
+2. **Reduced Maintenance Burden**:
+   - Single source of truth for deployment logic
+   - RUN.ps1 already handles all Docker operations reliably
+   - INSTALL.ps1 handles first-time installation comprehensively
+   - Less code duplication and easier bug fixes
+
+3. **Docker Cleanup Enhancement**:
+   - Users reported issues with old Docker cache from previous installations
+   - DEEP_DOCKER_CLEANUP.ps1 provides nuclear option for complete cache cleanup
+   - DOCKER_CLEANUP_GUIDE.md educates users on safe vs aggressive cleanup
+   - Complements existing SMS.ps1 -PruneAll for regular maintenance
+
 ## [1.8.6.2] - 2025-11-21
 
 ### Fixed

@@ -40,6 +40,16 @@ The installer will:
 ./RUN.ps1 -FastUpdate  # Deprecated alias for -Update
 ```
 
+**Docker Cache Cleanup (Advanced):**
+
+```powershell
+./SMS.ps1 -PruneAll               # Safe cleanup (recommended for monthly maintenance)
+./DEEP_DOCKER_CLEANUP.ps1         # Aggressive cleanup - removes ALL Docker cache (safe, keeps data)
+./DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes -Force  # Nuclear option - DELETES DATABASE!
+```
+
+> **📖 Full Cleanup Guide:** See [DOCKER_CLEANUP_GUIDE.md](DOCKER_CLEANUP_GUIDE.md) for detailed instructions
+
 **Requirements:**
 
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
