@@ -39,35 +39,41 @@ The first time you run this, it will:
 
 **Access the application:** Open <http://localhost:8080> in your browser
 
-### 🔐 Admin Login Setup (First-Time Users)
+### 🔐 Admin Login (First-Time Users)
 
-To access the Control Panel and manage users, you need an admin account:
+**Good News:** Admin account is created automatically on first startup!
 
-> **📖 Full Guide:** See [ADMIN_LOGIN_GUIDE.md](ADMIN_LOGIN_GUIDE.md) for detailed instructions and troubleshooting
+**Default Login Credentials:**
+- **Email:** `admin@example.com`
+- **Password:** `YourSecurePassword123!`
 
-**Quick Setup (Auto-Bootstrap):**
+**After First Login:**
+1. Go to **Control Panel** → **Maintenance** tab
+2. Use the "Change Your Password" section (teal card at top)
+3. Set your own secure password
 
-1. Edit the root `.env` file (create from `.env.example` if needed)
-2. Add these lines:
+> **⚠️ IMPORTANT:** Always change the default password after first login!
 
-   ```dotenv
-   AUTH_ENABLED=True
-   DEFAULT_ADMIN_EMAIL=admin@example.com
-   DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
-   DEFAULT_ADMIN_FULL_NAME=System Administrator
-   ```
-
-3. Restart: `.\RUN.ps1 -Stop` then `.\RUN.ps1`
-4. Login at <http://localhost:8080> with your credentials
-5. **Change password immediately** in Control Panel → Administrator tab
-
-**Alternative (Manual Tool):**
-
-```powershell
-# After starting the app:
-docker exec -it sms-app python /app/backend/tools/create_admin.py --email admin@example.com
-# Enter password when prompted, then login at http://localhost:8080
+**Technical Details:**
+The admin account is automatically bootstrapped when the application starts because the `.env` file has these values configured:
+```dotenv
+AUTH_ENABLED=True
+DEFAULT_ADMIN_EMAIL=admin@example.com
+DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
+DEFAULT_ADMIN_FULL_NAME=System Administrator
 ```
+
+**If Login Fails:**
+If you get "Invalid email or password", the admin user might not have been created. Run:
+```powershell
+# For Docker:
+docker exec sms-app python /app/backend/tools/create_admin.py --email admin@example.com --password "YourSecurePassword123!"
+
+# For Native mode:
+python backend/tools/create_admin.py --email admin@example.com --password "YourSecurePassword123!"
+```
+
+> **📖 Full Guide:** See [docs/user/QUICK_START_GUIDE.md](docs/user/QUICK_START_GUIDE.md) for detailed troubleshooting
 
 **QNAP NAS Deployment** 🆕:
 
