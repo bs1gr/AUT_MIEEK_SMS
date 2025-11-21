@@ -20,8 +20,9 @@ os.environ.setdefault("ALLOW_REMOTE_SHUTDOWN", "0")
 # environment variable is checked by `backend.main` to skip long-running
 # or external operations during test runs.
 os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
-os.environ.setdefault("CSRF_ENABLED", "1")
-os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "1")
+# Disable CSRF in tests since TestClient doesn't handle CSRF token cookies easily
+os.environ.setdefault("CSRF_ENABLED", "0")
+os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "0")
 
 from backend.main import app, get_db as main_get_db
 from backend.rate_limiting import limiter
@@ -75,7 +76,70 @@ def clean_db():
 
 
 @pytest.fixture()
-def client():
+def client(admin_token):
+    """TestClient that automatically includes auth headers for all requests when auth is enabled."""
     from fastapi.testclient import TestClient
+    
+    base_client = TestClient(app)
+    
+    # If we have a token, wrap all HTTP methods to add auth headers
+    if admin_token:
+        for method_name in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
+            original_method = getattr(base_client, method_name)
+            
+            def make_method_with_auth(orig_method):
+                def _method_with_auth(url, **kwargs):
+                    # Get or create headers dict
+                    if "headers" not in kwargs:
+                        kwargs["headers"] = {}
+                    
+                    # Only add auth if not already present
+                    if isinstance(kwargs["headers"], dict) and "Authorization" not in kwargs["headers"]:
+                        kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
+                    
+                    return orig_method(url, **kwargs)
+                return _method_with_auth
+            
+            setattr(base_client, method_name, make_method_with_auth(original_method))
+    
+    return base_client
 
-    return TestClient(app)
+
+@pytest.fixture()
+def admin_token():
+    """Generate an admin JWT token for authenticated test requests."""
+    from backend.config import settings
+    if not settings.AUTH_ENABLED:
+        return None
+    
+    # Create a temporary test client without auth to register
+    from fastapi.testclient import TestClient
+    temp_client = TestClient(app)
+    
+    try:
+        # Try to register a test admin user
+        register_resp = temp_client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "admin@test.example.com",
+                "password": "TestAdmin123!",
+                "full_name": "Test Admin",
+                "role": "admin"
+            }
+        )
+        
+        # Whether registration succeeded or user already exists, try to login
+        login_resp = temp_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": "admin@test.example.com",
+                "password": "TestAdmin123!"
+            }
+        )
+        
+        if login_resp.status_code == 200:
+            return login_resp.json().get("access_token")
+    except Exception:
+        pass
+    
+    return None

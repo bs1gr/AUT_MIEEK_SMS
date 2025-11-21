@@ -220,6 +220,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     }
     try {
       const response = await fetch(`${API_BASE_URL}/enrollments/?limit=500`);
+      if (!response.ok) throw new Error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
       const data = await response.json();
       const enrollments = data.items || [];
 
@@ -276,6 +277,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           );
           clearTimeout(timeoutId);
 
+          if (!response.ok) throw new Error(`Failed to fetch student summary: ${response.status}`);
           const data = await response.json();
           const failedCourses = (data.courses || []).filter(
             (course: { letter_grade?: string; gpa?: string | number }) => course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)

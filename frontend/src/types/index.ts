@@ -80,6 +80,29 @@ export interface Highlight {
   semester?: string;
 }
 
+export type UserRole = 'admin' | 'teacher' | 'student';
+
+export interface UserAccount {
+  id: number;
+  email: string;
+  full_name?: string | null;
+  role: UserRole;
+  is_active: boolean;
+}
+
+export interface CreateUserPayload {
+  email: string;
+  password: string;
+  full_name?: string;
+  role: UserRole;
+}
+
+export interface UpdateUserPayload {
+  full_name?: string | null;
+  role?: UserRole;
+  is_active?: boolean;
+}
+
 // API Response types
 export interface PaginatedResponse<T> {
   items: T[];

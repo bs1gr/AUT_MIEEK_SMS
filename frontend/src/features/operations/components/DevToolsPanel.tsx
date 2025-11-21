@@ -295,7 +295,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       });
       
       if (!response.ok) {
-        throw new Error(`Backup failed: ${response.statusText}`);
+        throw new Error(`Backup failed: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -322,7 +322,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         method: 'GET',
         credentials: 'include',
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(`Failed to load backups: ${res.status} ${res.statusText}`);
       const data = (await res.json()) as { backups: BackupItem[] };
       setBackups(Array.isArray(data?.backups) ? data.backups : []);
       // Reset selection when reloading list
@@ -531,7 +531,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       });
       
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
       
       const uploadResult = await response.json();
@@ -551,7 +551,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       });
       
       if (!restoreResponse.ok) {
-        throw new Error(`Restore failed: ${restoreResponse.statusText}`);
+        throw new Error(`Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`);
       }
       
       const data = await restoreResponse.json();

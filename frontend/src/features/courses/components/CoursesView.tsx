@@ -112,6 +112,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const loadAllStudents = async () => {
     try {
       const resp = await fetch(`${API_BASE_URL}/students/`);
+      if (!resp.ok) throw new Error(`Failed to fetch students: ${resp.status} ${resp.statusText}`);
       const data = await resp.json();
       // Normalize PaginatedResponse to array
       const studentsArray: StudentLite[] = (data && (data as PaginatedResponse<StudentLite>).items)
@@ -127,6 +128,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     if (!selectedCourse) return;
     try {
       const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
+      if (!resp.ok) throw new Error(`Failed to fetch enrolled students: ${resp.status} ${resp.statusText}`);
       const data = await resp.json();
       setEnrolledStudents(Array.isArray(data) ? data : []);
     } catch {
@@ -141,7 +143,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_ids: selectedToEnroll })
       });
-      if (!resp.ok) throw new Error('fail');
+      if (!resp.ok) throw new Error(`Failed to enroll students: ${resp.status} ${resp.statusText}`);
       showToast(t('studentsEnrolled') || 'Students enrolled', 'success');
       setSelectedToEnroll([]);
       loadEnrolledStudents();
@@ -154,7 +156,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     if (!selectedCourse) return;
     try {
       const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/student/${studentId}`, { method: 'DELETE' });
-      if (!resp.ok) throw new Error('fail');
+      if (!resp.ok) throw new Error(`Failed to unenroll student: ${resp.status} ${resp.statusText}`);
       showToast(t('studentUnenrolled') || 'Student unenrolled', 'success');
       loadEnrolledStudents();
     } catch {
@@ -165,6 +167,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const loadCourses = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/courses/`);
+      if (!response.ok) throw new Error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
       const data = await response.json();
       // Backend returns PaginatedResponse { items, total, skip, limit }
       // Normalize to array for UI

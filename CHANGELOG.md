@@ -6,6 +6,76 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.6] - 2025-11-21
+
+### Fixed
+
+- **Rate Limiting** - Increased limits for production continuous data entry
+  - `RATE_LIMIT_WRITE`: 10/min → 200/min (20x increase for batch operations)
+  - `RATE_LIMIT_READ`: 60/min → 300/min (5x increase for smooth browsing)
+  - `RATE_LIMIT_HEAVY`: 5/min → 30/min (6x increase for imports/exports)
+  - Frontend: Implemented chunked request processing (30 requests per chunk, 200ms delay)
+  - Result: Attendance saves for 30+ students now work reliably (~2 seconds)
+
+- **Authentication Token Persistence** - Fixed 401 errors after page refresh
+  - Access tokens now persist in localStorage (key: `sms_access_token`)
+  - Auto-reads token from localStorage on app startup
+  - Token survives page refreshes, navigation, and container restarts
+  - Result: Seamless authentication across sessions
+
+- **Token Validation** - Enhanced startup auth validation
+  - AuthContext now validates token presence on mount
+  - Invalid cached tokens automatically cleared and re-authenticated
+  - Ensures user/token state synchronization
+  - Result: Graceful handling of expired tokens
+
+- **Admin User Management** - Admin user creation and management
+  - Created default admin account via create_admin.py tool
+  - Email: admin@example.com, Password: YourSecurePassword123!
+  - Auto-login functional with default credentials
+  - Result: All protected endpoints accessible
+
+- **Database Input Validation** - Comprehensive error handling across 7 components
+  - Added HTTP response status checks to 20+ fetch operations
+  - Standardized error pattern: `if (!resp.ok) throw new Error()`
+  - Components affected: AttendanceView, CoursesView, CourseEvaluationRules, CourseGradeBreakdown, StudentFinalResults, DevToolsPanel, EnhancedDashboardView
+  - Result: Proper error reporting with status codes, no more silent failures
+
+### Added
+
+- **AdminUsersPanel Component** - New admin user management interface
+  - User CRUD operations with role management
+  - Password reset functionality for any user
+  - Self-service password change with strength validation
+  - Status management (active/inactive users)
+  - Accessible from Control Panel → Maintenance tab
+
+### Changed
+
+- **Control Panel UI Reorganization** - Consolidated maintenance operations
+  - Renamed "Administrator" tab to "Maintenance"
+  - Purple gradient header for visual distinction
+  - Combined AdminUsersPanel + DevToolsPanel in single tab
+  - Updated translations (EN + EL) with backward compatibility
+
+### Verified
+
+- ✅ All systems operational (8-point smoke test passed)
+- ✅ Backend health: healthy (database WAL mode)
+- ✅ Authentication: working (token persistence + validation)
+- ✅ Rate limits: 300 read/200 write/30 heavy per minute
+- ✅ Admin user: created and functional
+- ✅ Frontend build: 2.59 MB (production-ready)
+- ✅ Container: sms-app healthy and running
+- ✅ Database: 2 users, 8 students, 26 courses, 40 attendance records
+
+### Notes
+
+- This release focuses on production readiness for continuous data entry operations
+- Rate limits now balance usability with DDoS protection
+- Authentication system fully functional with persistent sessions
+- Comprehensive session documentation: SESSION_2025-11-21_PRODUCTION_FIXES.md
+
 ## [1.8.5] - 2025-11-20
 
 ### Changed

@@ -39,6 +39,36 @@ The first time you run this, it will:
 
 **Access the application:** Open <http://localhost:8080> in your browser
 
+### 🔐 Admin Login Setup (First-Time Users)
+
+To access the Control Panel and manage users, you need an admin account:
+
+> **📖 Full Guide:** See [ADMIN_LOGIN_GUIDE.md](ADMIN_LOGIN_GUIDE.md) for detailed instructions and troubleshooting
+
+**Quick Setup (Auto-Bootstrap):**
+
+1. Edit the root `.env` file (create from `.env.example` if needed)
+2. Add these lines:
+
+   ```dotenv
+   AUTH_ENABLED=True
+   DEFAULT_ADMIN_EMAIL=admin@example.com
+   DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
+   DEFAULT_ADMIN_FULL_NAME=System Administrator
+   ```
+
+3. Restart: `.\RUN.ps1 -Stop` then `.\RUN.ps1`
+4. Login at <http://localhost:8080> with your credentials
+5. **Change password immediately** in Control Panel → Administrator tab
+
+**Alternative (Manual Tool):**
+
+```powershell
+# After starting the app:
+docker exec -it sms-app python /app/backend/tools/create_admin.py --email admin@example.com
+# Enter password when prompted, then login at http://localhost:8080
+```
+
 **QNAP NAS Deployment** 🆕:
 
 Deploy to QNAP Container Station with PostgreSQL database:

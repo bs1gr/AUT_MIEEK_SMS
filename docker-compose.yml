@@ -27,6 +27,12 @@ services:
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
       - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
+      # Authentication and admin bootstrap
+      - AUTH_ENABLED=${AUTH_ENABLED:-False}
+      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-}
+      - DEFAULT_ADMIN_FULL_NAME=${DEFAULT_ADMIN_FULL_NAME:-}
+      - DEFAULT_ADMIN_FORCE_RESET=${DEFAULT_ADMIN_FORCE_RESET:-False}
       # Enable Control API for operations panel
       - ENABLE_CONTROL_API=1
     volumes:

@@ -1,16 +1,37 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const ACCESS_TOKEN_KEY = 'sms_access_token';
 
+// Initialize from localStorage if available
 let accessToken: string | null = null;
+try {
+  accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+} catch (e) {
+  console.warn('[AuthService] Could not read from localStorage:', e);
+}
 
 export const getAccessToken = () => accessToken;
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
+  try {
+    if (token) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+    }
+  } catch (e) {
+    console.warn('[AuthService] Could not write to localStorage:', e);
+  }
 };
 
 export const clearAccessToken = () => {
   accessToken = null;
+  try {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+  } catch (e) {
+    console.warn('[AuthService] Could not clear from localStorage:', e);
+  }
 };
 
 // Refresh token storage: handled exclusively via HttpOnly cookies by the backend.

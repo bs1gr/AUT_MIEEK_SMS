@@ -4,6 +4,7 @@ import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCi
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import type { Course, Student } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
+import apiClient from '@/api/api';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
@@ -39,7 +40,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [localCourses, setLocalCourses] = useState<Course[]>(courses || []);
   const [coursesWithEnrollment, setCoursesWithEnrollment] = useState<Set<number>>(new Set());
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, string>>({});
+  const [attendanceRecordIds, setAttendanceRecordIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
+  const [dailyPerformanceIds, setDailyPerformanceIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
@@ -308,6 +311,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       if (localCourses && localCourses.length > 0) return;
       try {
         const resp = await fetch(`${API_BASE_URL}/courses/`);
+        if (!resp.ok) throw new Error(`Failed to fetch courses: ${resp.status} ${resp.statusText}`);
         const data = await resp.json();
         setLocalCourses(Array.isArray(data) ? data : []);
       } catch {
@@ -385,7 +389,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       if (!selectedCourse || courseDetailsFetched.has(selectedCourse as number)) return;
       try {
         const resp = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`);
-        if (!resp.ok) return;
+        if (!resp.ok) throw new Error(`Failed to fetch course: ${resp.status} ${resp.statusText}`);
         const detail = await resp.json();
         setLocalCourses((prev) => {
           const idx = prev.findIndex((c) => c.id === selectedCourse);
@@ -406,6 +410,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       if (!selectedCourse) { setEnrolledStudents([]); return; }
       try {
         const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
+        if (!resp.ok) throw new Error(`Failed to fetch enrollments: ${resp.status} ${resp.statusText}`);
         const data = await resp.json();
         setEnrolledStudents(Array.isArray(data) ? data : []);
       } catch {
@@ -419,39 +424,46 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     if (!selectedCourse || !selectedDateStr) return;
     const dateStr = selectedDateStr;
     try {
-      const attRes = await fetch(`${API_BASE_URL}/attendance/date/${dateStr}/course/${selectedCourse}`);
-      if (attRes.ok) {
-        const attData = await attRes.json();
-        const next: Record<string, string> = {};
-        if (Array.isArray(attData)) {
-          (attData as RawAttendanceRecord[]).forEach((a) => {
-            if (!a?.student_id) return;
-            const periodNumber = Number(a.period_number ?? 1);
-            const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
-            const recordDate = formatLocalDate(a.date || dateStr);
-            next[getAttendanceKey(a.student_id, safePeriod, recordDate)] = a.status;
-          });
-        }
-        setAttendanceRecords(next);
-      } else {
-        setAttendanceRecords({});
+      const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
+      const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
+      const next: Record<string, string> = {};
+      const ids: Record<string, number> = {};
+      if (Array.isArray(attData)) {
+        (attData as (RawAttendanceRecord & { id?: number })[]).forEach((a) => {
+          if (!a?.student_id) return;
+          const periodNumber = Number(a.period_number ?? 1);
+          const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+          const recordDate = formatLocalDate(a.date || dateStr);
+          const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
+          next[key] = a.status;
+          if (a.id) {
+            ids[key] = a.id;
+          }
+        });
       }
-      const dpRes = await fetch(`${API_BASE_URL}/daily-performance/date/${dateStr}/course/${selectedCourse}`);
-      if (dpRes.ok) {
-        const dpData = await dpRes.json();
-        const dp: Record<string, number> = {};
-        if (Array.isArray(dpData)) {
-          (dpData as RawDailyPerformanceRecord[]).forEach((r) => {
-            dp[`${r.student_id}-${r.category}`] = r.score;
-          });
-        }
-        setDailyPerformance(dp);
-      } else {
-        setDailyPerformance({});
+      setAttendanceRecords(next);
+      setAttendanceRecordIds(ids);
+      
+      const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
+      const dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
+      const dp: Record<string, number> = {};
+      const dpIds: Record<string, number> = {};
+      if (Array.isArray(dpData)) {
+        (dpData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((r) => {
+          const key = `${r.student_id}-${r.category}`;
+          dp[key] = r.score;
+          if (r.id) {
+            dpIds[key] = r.id;
+          }
+        });
       }
+      setDailyPerformance(dp);
+      setDailyPerformanceIds(dpIds);
     } catch {
       setAttendanceRecords({});
+      setAttendanceRecordIds({});
       setDailyPerformance({});
+      setDailyPerformanceIds({});
     }
   }, [selectedCourse, selectedDateStr]);
 
@@ -475,18 +487,16 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/attendance/course/${selectedCourse}?start_date=${startDate}&end_date=${endDate}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            // Extract unique, timezone-safe dates from attendance records
-            const uniqueDates = new Set<string>();
-            data.forEach((record: any) => {
-              if (!record?.date) return;
-              uniqueDates.add(formatLocalDate(record.date));
-            });
-            setDatesWithAttendance(uniqueDates);
-          }
+        const data = await apiClient.get(`/attendance/course/${selectedCourse}`, { params: { start_date: startDate, end_date: endDate } });
+        const attData = Array.isArray(data) ? data : (data.data ? (Array.isArray(data.data) ? data.data : []) : []);
+        if (Array.isArray(attData)) {
+          // Extract unique, timezone-safe dates from attendance records
+          const uniqueDates = new Set<string>();
+          attData.forEach((record: any) => {
+            if (!record?.date) return;
+            uniqueDates.add(formatLocalDate(record.date));
+          });
+          setDatesWithAttendance(uniqueDates);
         }
       } catch (error) {
         console.error('Failed to fetch attendance dates:', error);
@@ -654,33 +664,75 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     setLoading(true);
     try {
       const dateStr = formatLocalDate(selectedDate);
+      console.log('[Attendance] Saving - attendanceRecords:', attendanceRecords);
+      console.log('[Attendance] Saving - recordIds:', attendanceRecordIds);
+      
       const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
+        const recordId = attendanceRecordIds[key];
         const tokens = key.includes('|') ? key.split('|') : key.split('-');
         const [studentIdStr, periodNumberStr, storedDate] = tokens;
         const studentId = parseInt(studentIdStr, 10);
         if (!studentId) return Promise.resolve(null);
         const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
         const payloadDate = storedDate || dateStr;
-        return fetch(`${API_BASE_URL}/attendance/`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        
+        // If record has an ID from API, use PUT to update; otherwise POST to create
+        if (recordId) {
+          console.log(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
+          return apiClient.put(`/attendance/${recordId}`, { status }).then(res => {
+            console.log(`[Attendance] PUT response: success`);
+            return res;
+          });
+        } else {
+          console.log(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
+          return apiClient.post(`/attendance/`, {
             student_id: studentId,
             course_id: selectedCourse,
             date: payloadDate,
             status,
             period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
             notes: '',
-          })
-        });
+          }).then(res => {
+            console.log(`[Attendance] POST response: success`);
+            return res;
+          });
+        }
       });
+      
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
+        const recordId = dailyPerformanceIds[key];
         const [studentIdStr, category] = key.split('-');
-        return fetch(`${API_BASE_URL}/daily-performance/`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ student_id: parseInt(studentIdStr, 10), course_id: selectedCourse, date: dateStr, category, score, max_score: 10.0, notes: '' })
-        });
+        
+        // If record has an ID from API, use PUT to update; otherwise POST to create
+        if (recordId) {
+          console.log(`[Performance] PUT /daily-performance/${recordId} - score: ${score}`);
+          return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 }).then(res => {
+            console.log(`[Performance] PUT response: success`);
+            return res;
+          });
+        } else {
+          console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}`);
+          return apiClient.post(`/daily-performance/`, { student_id: parseInt(studentIdStr, 10), course_id: selectedCourse, date: dateStr, category, score, max_score: 10.0, notes: '' }).then(res => {
+            console.log(`[Performance] POST response: success`);
+            return res;
+          });
+        }
       });
-      await Promise.all([...attendancePromises, ...performancePromises]);
+      
+      // Process requests in chunks to avoid overwhelming the server
+      // With 200/min limit, we can safely process 30 concurrent requests
+      const allPromises = [...attendancePromises, ...performancePromises];
+      const CHUNK_SIZE = 30; // Process 30 at a time for faster saves
+      
+      for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
+        const chunk = allPromises.slice(i, i + CHUNK_SIZE);
+        await Promise.all(chunk);
+        
+        // Small delay only if there are more chunks to prevent server overload
+        if (i + CHUNK_SIZE < allPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
       
       // Emit events to notify other components that attendance/performance changed
       // Extract unique student IDs from the records
@@ -703,6 +755,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       await refreshAttendancePrefill();
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
+      console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
     } finally { setLoading(false); }
   };

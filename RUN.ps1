@@ -1169,7 +1169,12 @@ function Start-Application {
             "POSTGRES_USER",
             "POSTGRES_PASSWORD",
             "POSTGRES_SSLMODE",
-            "POSTGRES_OPTIONS"
+            "POSTGRES_OPTIONS",
+            "AUTH_ENABLED",
+            "DEFAULT_ADMIN_EMAIL",
+            "DEFAULT_ADMIN_PASSWORD",
+            "DEFAULT_ADMIN_FULL_NAME",
+            "DEFAULT_ADMIN_FORCE_RESET"
         )
         $databaseEnv = Get-DotEnvValues -Keys $databaseEnvKeys
         $databaseUrlEnv = $null
@@ -1202,9 +1207,11 @@ function Start-Application {
             "-e", "SMS_ENV=production",
             "-e", "SMS_EXECUTION_MODE=docker",
             "-e", ("SECRET_KEY={0}" -f $envSecret),
+            "-e", "TZ=Europe/Athens",
             "-v", "${VOLUME_NAME}:/app/data",
             "-v", "${SCRIPT_DIR}/templates:/app/templates:ro",
             "-v", "${triggersDir}:/app/data/.triggers",
+            "-v", "${SCRIPT_DIR}/backups:/app/backups",
             "--restart", "unless-stopped"
         )
 

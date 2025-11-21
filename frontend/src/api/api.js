@@ -637,6 +637,53 @@ export const adminOpsAPI = {
   }
 };
 
+// ==================== ADMIN USERS API ====================
+
+export const adminUsersAPI = {
+  async list() {
+    try {
+      const response = await apiClient.get('/admin/users');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async create(payload) {
+    try {
+      const response = await apiClient.post('/admin/users', payload);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async update(userId, payload) {
+    try {
+      const response = await apiClient.patch(`/admin/users/${userId}`, payload);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async delete(userId) {
+    try {
+      await apiClient.delete(`/admin/users/${userId}`);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async resetPassword(userId, newPassword) {
+    try {
+      await apiClient.post(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 // ==================== IMPORT API ====================
 
 export const importAPI = {

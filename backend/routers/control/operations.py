@@ -427,7 +427,7 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
 async def restore_database(request: Request, backup_filename: str):
     try:
         from backend.config import settings
-        project_root = Path(__file__).parent.parent.parent
+        project_root = Path(__file__).resolve().parents[3]
         backup_dir = project_root / "backups" / "database"
         backup_path = backup_dir / backup_filename
         if not backup_path.exists():
