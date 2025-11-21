@@ -255,7 +255,16 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 ---
 
 
-## 🚀 Quick Start (v1.8.3)
+## 🚀 Quick Start
+
+**New to the project?** Use the automatic setup:
+
+```powershell
+# Download from GitHub releases and extract, then run:
+.\SETUP_AFTER_GITHUB_ZIP.ps1
+```
+
+This automatically installs everything! Or use the classic method: (v1.8.3)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
