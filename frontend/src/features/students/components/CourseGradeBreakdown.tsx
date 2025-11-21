@@ -34,24 +34,23 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
     let cancelled = false;
     const normalizedBase = API_BASE_URL.replace(/\/$/, '');
 
-    const fetchMissingCourses = async () => {
-      const fetchedEntries = await Promise.all(
-        missingCourseIds.map(async (courseId) => {
-          try {
-            const response = await fetch(`${normalizedBase}/courses/${courseId}`);
-            if (!response.ok) {
+      const fetchMissingCourses = async () => {
+        const fetchedEntries = await Promise.all(
+          missingCourseIds.map(async (courseId) => {
+            try {
+              const response = await fetch(`${normalizedBase}/courses/${courseId}`);
+              if (!response.ok) {
+                console.warn(`Failed to fetch course ${courseId}: ${response.status} ${response.statusText}`);
+                return null;
+              }
+              const course: Course = await response.json();
+              return { courseId, course };
+            } catch (error) {
+              console.warn('Failed to load course info', courseId, error);
               return null;
             }
-            const course: Course = await response.json();
-            return { courseId, course };
-          } catch (error) {
-            console.warn('Failed to load course info', courseId, error);
-            return null;
-          }
-        })
-      );
-
-      if (cancelled) {
+          })
+        );      if (cancelled) {
         return;
       }
 

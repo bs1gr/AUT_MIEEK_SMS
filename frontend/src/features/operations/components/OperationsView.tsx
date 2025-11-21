@@ -7,7 +7,7 @@ import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
 import Toast from '@/components/ui/Toast';
-import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
+import { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import {
   OPERATIONS_TAB_KEYS,
   type LegacyOperationsTabKey,
@@ -24,8 +24,7 @@ const isValidTab = (value: unknown): value is OperationsTabKey =>
 
 const normalizeTab = (tab?: LegacyOperationsTabKey): OperationsTabKey | null => {
   if (!tab) return null;
-  const mapped = tab === 'devtools' ? 'maintenance' : tab;
-  return isValidTab(mapped) ? mapped : null;
+  return isValidTab(tab) ? tab : null;
 };
 
 const DEFAULT_TAB: OperationsTabKey = 'exports';
@@ -62,7 +61,6 @@ const OperationsView = (_props: OperationsViewProps) => {
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
     { key: 'exports', label: t('export') },
-    { key: 'maintenance', label: t('maintenance') },
     { key: 'settings', label: t('settings') },
     { key: 'help', label: t('help') },
   ];
@@ -121,7 +119,6 @@ const OperationsView = (_props: OperationsViewProps) => {
         className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm"
       >
         {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
-        {effectiveTab === 'maintenance' && <DevToolsPanel variant="embedded" onToast={handleToast} />}
         {effectiveTab === 'help' && <HelpDocumentation />}
         {effectiveTab === 'settings' && (
           <div className="space-y-6">

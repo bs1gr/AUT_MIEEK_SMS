@@ -71,7 +71,89 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 
 **Open your browser and go to:** `http://localhost:8080`
 
-### When Running Native Mode (Developers Only)
+---
+
+## 🔐 Setting Up Your Admin Account
+
+**You need an admin account to:**
+
+- Access the Control Panel
+- Manage users and permissions
+- Configure system settings
+- View diagnostics and logs
+
+### Method 1: Auto-Bootstrap (Easiest)
+
+1. **Stop the application** (if running):
+
+   ```powershell
+   .\RUN.ps1 -Stop
+   ```
+
+2. **Edit the root `.env` file** (in project root directory):
+
+   ```dotenv
+   VERSION=1.8.5
+   
+   # Add these lines:
+   AUTH_ENABLED=True
+   DEFAULT_ADMIN_EMAIL=admin@example.com
+   DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
+   DEFAULT_ADMIN_FULL_NAME=System Administrator
+   ```
+
+3. **Start the application**:
+
+   ```powershell
+   .\RUN.ps1
+   ```
+
+4. **Login**:
+   - Go to <http://localhost:8080>
+   - Click **Login** button (top-right)
+   - Enter your email and password
+   - Click **Sign In**
+
+5. **⚠️ Change your password immediately**:
+   - Go to **Control Panel** → **Administrator** tab
+   - Find your user in the list
+   - Click **Reset password**
+   - Set a new secure password
+
+### Method 2: Manual Tool (Alternative)
+
+Use this if you prefer to create the admin account after the app is already running:
+
+**For Docker:**
+
+```powershell
+docker exec -it sms-app python /app/backend/tools/create_admin.py --email admin@example.com
+# Enter password when prompted
+```
+
+**For Native Development:**
+
+```powershell
+python backend/tools/create_admin.py --email admin@example.com --password YourPassword123!
+```
+
+### Troubleshooting Login
+
+**"Access Denied" message in Control Panel?**
+
+- Make sure `AUTH_ENABLED=True` in your `.env` file
+- Verify you're logged in with the admin account
+- Check that the admin user was created successfully
+
+**Can't login?**
+
+- Check your email/password are correct
+- Verify the application is running: `.\RUN.ps1 -Status`
+- Check logs: `.\RUN.ps1 -Logs`
+
+---
+
+## First Run
 
 ```text
 ═══════════════════════════════════════════════════════════

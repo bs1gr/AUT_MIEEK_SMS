@@ -27,6 +27,9 @@ import type {
   CourseFormData,
   GradeFormData,
   AttendanceFormData,
+  UserAccount,
+  CreateUserPayload,
+  UpdateUserPayload,
 } from '@/types';
 
 // Base API URL
@@ -57,8 +60,16 @@ apiClient.interceptors.request.use(
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
   try {
+    // Skip auth header for login/refresh endpoints (they don't need it)
+    const url = config.url || '';
+    if (url.includes('/auth/login') || url.includes('/auth/refresh')) {
+      console.log('[API] Skipping auth header for:', url);
+      return config;
+    }
+    
     const token = authService.getAccessToken();
     if (token) {
+      console.log('[API] Attaching auth header for:', url);
       if (config.headers instanceof AxiosHeaders) {
         config.headers.set('Authorization', `Bearer ${token}`);
       } else if (config.headers) {
@@ -70,6 +81,8 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
         headers.set('Authorization', `Bearer ${token}`);
         config.headers = headers;
       }
+    } else {
+      console.log('[API] No token available for:', url);
     }
   } catch (e) {
     // ignore
@@ -427,6 +440,40 @@ export const adminOpsAPI = {
   generateSampleData: async (): Promise<{ message: string }> => {
     const response = await apiClient.post<{ message: string }>('/adminops/generate-sample-data');
     return response.data;
+  },
+};
+
+// ==================== ADMIN USERS API ====================
+
+export const adminUsersAPI = {
+  list: async (): Promise<UserAccount[]> => {
+    const response = await apiClient.get<UserAccount[]>('/admin/users');
+    return response.data;
+  },
+
+  create: async (payload: CreateUserPayload): Promise<UserAccount> => {
+    const response = await apiClient.post<UserAccount>('/admin/users', payload);
+    return response.data;
+  },
+
+  update: async (userId: number, payload: UpdateUserPayload): Promise<UserAccount> => {
+    const response = await apiClient.patch<UserAccount>(`/admin/users/${userId}`, payload);
+    return response.data;
+  },
+
+  delete: async (userId: number): Promise<void> => {
+    await apiClient.delete(`/admin/users/${userId}`);
+  },
+
+  resetPassword: async (userId: number, newPassword: string): Promise<void> => {
+    await apiClient.post(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
+  },
+  changeOwnPassword: async (currentPassword: string, newPassword: string): Promise<{ status: string }> => {
+    const response = await apiClient.post('/auth/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return response.data as { status: string };
   },
 };
 

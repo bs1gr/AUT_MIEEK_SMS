@@ -57,6 +57,7 @@ const EnhancedDashboardView = ({ students, courses, stats }) => {
       const studentPromises = students.slice(0, 10).map(async (student) => {
         try {
           const response = await fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`);
+          if (!response.ok) throw new Error(`Failed to fetch student summary: ${response.status}`);
           const data = await response.json();
           return {
             ...student,

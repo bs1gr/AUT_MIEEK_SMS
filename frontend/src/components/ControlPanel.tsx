@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Settings,
   AlertTriangle,
@@ -11,11 +11,14 @@ import {
   FileText,
   Trash2,
   Cpu,
-  Server
+  Server,
+  Shield
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
 import Toast from './ui/Toast';
+import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
+import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -139,6 +142,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   const [uptime, setUptime] = useState<string>('');
   const [uptimeTimer, setUptimeTimer] = useState<NodeJS.Timeout | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  const handleToast = useCallback((state: ToastState) => {
+    setToast(state);
+  }, []);
+
+  useEffect(() => {
+    if (!toast) {
+      return undefined;
+    }
+    const timeout = window.setTimeout(() => setToast(null), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   // Helper to format uptime from seconds
   function formatUptime(seconds: number): string {
@@ -352,6 +368,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
 
   return (
     <div className={containerClass}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -414,7 +431,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
               { id: 'diagnostics', label: t('controlPanel.diagnostics'), icon: AlertTriangle },
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
               { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
-              { id: 'environment', label: t('controlPanel.environment'), icon: Cpu }
+              { id: 'environment', label: t('controlPanel.environment'), icon: Cpu },
+              { id: 'maintenance', label: t('controlPanel.maintenance'), icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -837,6 +855,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'maintenance' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-700/50 rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-purple-300">
+                <Shield size={20} />
+                {t('controlPanel.maintenanceTitle') || 'Maintenance Suite'}
+              </h2>
+              <p className="text-sm text-purple-200 mb-2">{t('controlPanel.maintenanceSubtitle') || 'System administration, user management, backups, and database maintenance all in one place.'}</p>
+            </div>
+
+            <AdminUsersPanel onToast={handleToast} />
+
+            <DevToolsPanel variant="embedded" onToast={handleToast} />
           </div>
         )}
       </main>

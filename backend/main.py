@@ -1224,6 +1224,13 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
                 return FileResponse(str(bg_path), media_type="image/png")
             raise HTTPException(status_code=404, detail="Background image not found")
 
+        @app.get("/favicon.svg")
+        async def serve_favicon_svg():
+            favicon_path = SPA_DIST_DIR / "favicon.svg"
+            if favicon_path.exists():
+                return FileResponse(str(favicon_path), media_type="image/svg+xml")
+            raise HTTPException(status_code=404, detail="Favicon SVG not found")
+
         # Paths that should never be intercepted by the SPA fallback
         EXCLUDE_PREFIXES = (
             "api/",

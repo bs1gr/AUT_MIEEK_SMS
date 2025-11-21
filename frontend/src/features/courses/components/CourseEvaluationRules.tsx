@@ -49,6 +49,7 @@ const CourseEvaluationRules = () => {
   const loadCourses = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/courses/`);
+      if (!response.ok) throw new Error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
       const data = await response.json();
       setCourses(data);
     } catch (error) {
@@ -137,13 +138,12 @@ const CourseEvaluationRules = () => {
         })
       });
 
-      if (response.ok) {
-        showToast(t('evaluationRulesSaved'), 'success');
-        await loadCourses();
-      } else {
-        const errorData = await response.json().catch(() => ({ detail: 'Failed to save rules' }));
-        showToast(errorData.detail || t('failedToSaveRules'), 'error');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: `Failed to save rules: ${response.status} ${response.statusText}` }));
+        throw new Error(errorData.detail || 'Failed to save rules');
       }
+      showToast(t('evaluationRulesSaved'), 'success');
+      await loadCourses();
     } catch (error) {
       showToast(t('failedToSaveRules'), 'error');
     } finally {
