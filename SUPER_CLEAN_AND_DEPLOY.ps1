@@ -46,7 +46,7 @@ try {
                 $expectedTag = "sms-fullstack:$workspaceVersion"
                 if ($imageList -notcontains $expectedTag) {
                     Write-Host "⚠ Image tag mismatch: local images ($($imageList -join ', ')) do not contain $expectedTag" -ForegroundColor Yellow
-                    Write-Host "   Run SMART_SETUP.ps1 or docker build to create the expected image/tag." -ForegroundColor Yellow
+                    Write-Host "   Run RUN.ps1 or docker build to create the expected image/tag." -ForegroundColor Yellow
                 } else {
                     Write-Host "Image tag present: $expectedTag" -ForegroundColor DarkGray
                 }
@@ -754,29 +754,20 @@ try {
         Write-Host "" 
         Write-Host "=== Docker Setup ===" -ForegroundColor Cyan
 
-        $candidateScripts = @(
-            (Join-Path $script:ScriptRoot 'scripts/deploy/SMART_SETUP.ps1'),
-            (Join-Path $script:ScriptRoot 'SMART_SETUP.ps1')
-        )
-
-        $setupScript = $candidateScripts | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+    $candidateScripts = @(
+        (Join-Path $script:ScriptRoot 'RUN.ps1')
+    )        $setupScript = $candidateScripts | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 
         if (-not $setupScript) {
-            $msg = 'SMART_SETUP.ps1 not found. Unable to run Docker setup.'
+            $msg = 'RUN.ps1 not found. Unable to run Docker setup.'
             Write-Host "✗ $msg" -ForegroundColor Red
             $script:setupErrors += $msg
             return
         }
 
-        Write-Host "Launching $(Convert-ToRelativePath $setupScript) with Docker preference..." -ForegroundColor Gray
+        Write-Host "Launching $(Convert-ToRelativePath $setupScript) to start Docker container..." -ForegroundColor Gray
         $arguments = @()
-        if ($setupScript -like '*scripts/deploy/SMART_SETUP.ps1') {
-            $arguments += '-PreferDocker'
-            if ($ForceInstall) { $arguments += '-Force' }
-        }
-        elseif ($ForceInstall) {
-            $arguments += '-Force'
-        }
+        # RUN.ps1 handles everything automatically - no need for special flags
 
         try {
             & $setupScript @arguments
