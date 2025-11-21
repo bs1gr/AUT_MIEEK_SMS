@@ -232,12 +232,21 @@ function Initialize-EnvironmentFiles {
 
     $configured = $false
 
+    # Generate a single secure SECRET_KEY to use in both files
+    $secretKey = -join ((48..57) + (65..90) + (97..122) + (45,95) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
+
     # Check root .env
     if (-not (Test-Path $ROOT_ENV)) {
         if (Test-Path $ROOT_ENV_EXAMPLE) {
             Write-Info "Creating root .env file from template..."
-            Copy-Item $ROOT_ENV_EXAMPLE $ROOT_ENV
-            Write-Success "Root .env file created"
+
+            # Read template and replace placeholders
+            $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
+            $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
+            $envContent = $envContent -replace 'VERSION=.*', "VERSION=1.8.6.1"
+
+            Set-Content -Path $ROOT_ENV -Value $envContent
+            Write-Success "Root .env file created with secure SECRET_KEY"
             $configured = $true
         } else {
             Write-Warning-Message "Root .env.example not found, creating minimal .env file..."
@@ -245,7 +254,7 @@ function Initialize-EnvironmentFiles {
 VERSION=1.8.6.1
 
 # Security
-SECRET_KEY=$((1..64 | ForEach-Object { [char](Get-Random -Minimum 48 -Maximum 123) }) -join '')
+SECRET_KEY=$secretKey
 
 # Authentication Settings
 AUTH_ENABLED=True
@@ -260,6 +269,23 @@ DEFAULT_ADMIN_FORCE_RESET=False
         }
     } else {
         Write-Info "Root .env file already exists"
+
+        # Update SECRET_KEY if it's still a placeholder, and ensure same key in both files
+        $rootContent = Get-Content $ROOT_ENV -Raw
+        if ($rootContent -match 'SECRET_KEY=(.+)') {
+            $existingKey = $matches[1].Trim()
+            $lowerKey = $existingKey.ToLower()
+            if ($lowerKey.Contains("change") -or $lowerKey.Contains("placeholder") -or $lowerKey.Contains("your-secret-key") -or $existingKey.Length -lt 32) {
+                Write-Warning-Message "Insecure SECRET_KEY detected in root .env, updating..."
+                $rootContent = $rootContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
+                Set-Content -Path $ROOT_ENV -Value $rootContent
+                Write-Success "Root .env SECRET_KEY updated"
+                $configured = $true
+            } else {
+                # Use existing key if it's secure
+                $secretKey = $existingKey
+            }
+        }
     }
 
     # Check backend .env
@@ -267,23 +293,34 @@ DEFAULT_ADMIN_FORCE_RESET=False
         if (Test-Path $BACKEND_ENV_EXAMPLE) {
             Write-Info "Creating backend .env file from template..."
 
-            # Generate secure SECRET_KEY
-            $secretKey = -join ((48..57) + (65..90) + (97..122) + (45,95) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
-
-            # Read template and replace placeholder SECRET_KEY
+            # Read template and replace placeholder SECRET_KEY with the same key from root .env
             $envContent = Get-Content $BACKEND_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=your-secret-key-change-this-in-production.*', "SECRET_KEY=$secretKey"
 
             # Save to backend/.env
             Set-Content -Path $BACKEND_ENV -Value $envContent
 
-            Write-Success "Backend .env file created with secure SECRET_KEY"
+            Write-Success "Backend .env file created with matching SECRET_KEY"
             $configured = $true
         } else {
             Write-Warning-Message "Backend .env.example not found!"
         }
     } else {
         Write-Info "Backend .env file already exists"
+
+        # Update SECRET_KEY if it's still a placeholder, using the same key as root
+        $backendContent = Get-Content $BACKEND_ENV -Raw
+        if ($backendContent -match 'SECRET_KEY=(.+)') {
+            $existingKey = $matches[1].Trim()
+            $lowerKey = $existingKey.ToLower()
+            if ($lowerKey.Contains("change") -or $lowerKey.Contains("placeholder") -or $lowerKey.Contains("your-secret-key") -or $existingKey.Length -lt 32) {
+                Write-Warning-Message "Insecure SECRET_KEY detected in backend/.env, updating..."
+                $backendContent = $backendContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
+                Set-Content -Path $BACKEND_ENV -Value $backendContent
+                Write-Success "Backend .env SECRET_KEY updated"
+                $configured = $true
+            }
+        }
     }
 
     if ($configured) {
