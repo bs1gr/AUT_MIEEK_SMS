@@ -28,9 +28,10 @@
     # Install but skip Docker installation check
 
 .NOTES
-    Version: 1.0.0
+    Version: 1.1.0
     Requires: Windows 10/11, PowerShell 5.1+
     Tested on: Windows 10 Pro, Windows 11 Pro
+    Release: 1.8.6.2
 #>
 
 param(
@@ -243,7 +244,7 @@ function Initialize-EnvironmentFiles {
             # Read template and replace placeholders
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
-            $envContent = $envContent -replace 'VERSION=.*', "VERSION=1.8.6.1"
+            $envContent = $envContent -replace 'VERSION=.*', "VERSION=1.8.6.2"
 
             Set-Content -Path $ROOT_ENV -Value $envContent
             Write-Success "Root .env file created with secure SECRET_KEY"
@@ -251,7 +252,7 @@ function Initialize-EnvironmentFiles {
         } else {
             Write-Warning-Message "Root .env.example not found, creating minimal .env file..."
             $minimalEnv = @"
-VERSION=1.8.6.1
+VERSION=1.8.6.2
 
 # Security
 SECRET_KEY=$secretKey
@@ -424,7 +425,7 @@ function Show-WelcomeBanner {
     Write-Host "║           Student Management System (SMS)                    ║" -ForegroundColor Cyan
     Write-Host "║               Installation Wizard                            ║" -ForegroundColor Cyan
     Write-Host "║                                                              ║" -ForegroundColor Cyan
-    Write-Host "║                   Version 1.8.6.1                            ║" -ForegroundColor Cyan
+    Write-Host "║                   Version 1.8.6.2                            ║" -ForegroundColor Cyan
     Write-Host "║                                                              ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""

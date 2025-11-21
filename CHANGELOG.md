@@ -6,6 +6,33 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.6.2] - 2025-11-21
+
+### Fixed
+
+- **INSTALL.ps1** - Critical SECRET_KEY generation and validation issues
+  - **Root Cause**: Docker containers failed to start due to SECRET_KEY validation errors
+    - Application detected placeholder values even with generated keys
+    - Root .env and backend/.env had inconsistent SECRET_KEY values
+    - Docker Compose reads SECRET_KEY from root .env, not backend/.env
+    - Validation in backend/config.py rejects keys containing "change", "placeholder", or < 32 chars
+  - **Solution**: Unified SECRET_KEY generation and validation
+    - Generate single secure 64-character SECRET_KEY at start of initialization
+    - Use same SECRET_KEY in both root .env and backend/.env files
+    - Auto-detect and replace insecure keys in existing .env files during installation
+    - Update VERSION field in root .env to match current release
+    - Validate against backend/config.py security rules before accepting keys
+  - **Impact**: Fresh installations now work correctly without manual .env file editing
+  - **Testing**: Verified on Windows 10/11 with fresh GitHub downloads
+
+### Changed
+
+- **INSTALL.ps1** - Enhanced environment file initialization (v1.1.0)
+  - Improved Initialize-EnvironmentFiles function with comprehensive validation
+  - Added security checks matching backend/config.py validation rules
+  - Automatic upgrade path for existing installations with insecure keys
+  - Better error messages and user feedback during SECRET_KEY generation
+
 ## [1.8.6.1] - 2025-11-21
 
 ### Added
