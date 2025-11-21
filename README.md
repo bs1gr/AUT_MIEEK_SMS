@@ -1,22 +1,30 @@
 # Student Management System
 
-## 📦 Quick Start (v1.8.3)
+## 📦 Quick Start (v1.8.6.1)
 
-### **For End Users** - One-Click Deployment ⭐
+### **For End Users** - One-Click Installation ⭐ NEW!
 
-The simplest way to run SMS:
+#### Fresh Installation (First Time):
+
+Run the automated installer (Windows only):
 
 ```powershell
-.\RUN.ps1           # That's it! One command to start everything
+.\INSTALL.ps1       # One-click installation wizard (requires Admin privileges)
 ```
 
-The first time you run this, it will:
+The installer will:
 
+- ✅ Check system prerequisites (Docker, PowerShell)
+- ✅ Install Docker Desktop automatically (if needed)
+- ✅ Create environment configuration files
 - ✅ Build the Docker image (takes 5-10 minutes)
-- ✅ Start the application
-- ✅ Show you the access URL
+- ✅ Set up database volumes
+- ✅ Verify installation
+- ✅ Offer to start the application
 
-**Daily usage:**
+**📖 Full Installation Guide:** See [DEPLOY_ON_NEW_PC.md](DEPLOY_ON_NEW_PC.md) for detailed instructions
+
+#### Already Installed? Daily Usage:
 
 
 ```powershell
@@ -37,7 +45,7 @@ The first time you run this, it will:
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
 - Docker Desktop must be running
 
-**Access the application:** Open <http://localhost:8080> in your browser
+**Access the application:** Open <http://localhost:8082> in your browser
 
 ### 🔐 Admin Login (First-Time Users)
 
@@ -97,13 +105,14 @@ Deploy to QNAP Container Station with PostgreSQL database:
 If you need to develop features or debug, use the advanced setup:
 
 ```powershell
-# Fullstack mode (recommended for end users, single container)
-.\SMART_SETUP.ps1
+# Native development mode (recommended for development)
+.\scripts\dev\run-native.ps1
 
-# Multi-container mode (for development, separate backend/frontend)
-.\SMART_SETUP.ps1 -DevMode
+# Docker multi-container mode (alternative)
+docker-compose up -d
+docker-compose down
 
-# Container management
+# Container management with SMS.ps1
 .\SMS.ps1 -Quick      # Start containers
 .\SMS.ps1 -Stop       # Stop containers
 .\SMS.ps1 -Status     # Show status
@@ -285,9 +294,9 @@ This automatically installs everything! Or use the classic method: (v1.8.3)
 **For Developers:**
 
 ```powershell
-.\scripts\deploy\SMART_SETUP.ps1      # Intelligent setup (Docker or native)
 .\scripts\dev\run-native.ps1          # Native dev mode (backend+frontend)
 .\SMS.ps1                             # Interactive management menu
+docker-compose up -d                  # Multi-container mode
 ```
 
 **What happens:**
@@ -295,7 +304,7 @@ This automatically installs everything! Or use the classic method: (v1.8.3)
 - ✅ Checks Docker availability (fails if not installed)
 - ✅ Creates .env files from templates
 - ✅ Builds Docker images
-- ✅ Starts containers on port 8080
+- ✅ Starts containers on port 8082
 - ✅ Provides access URLs
 - ✅ Fast update (`-Update`) uses cached layers (quick)
 - ✅ Clean update (`-UpdateNoCache`) prunes build/image cache & uses `--no-cache` rebuild
@@ -314,8 +323,7 @@ The runtime enforces a clear separation between release and development workflow
 
 - Production and release builds **must** run via the Docker full-stack bundle.
 - Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
-- `SMART_SETUP.ps1` automatically switches to Docker whenever `SMS_ENV=production` or Docker is preferred.
-- Access the stack at <http://localhost:8080> (frontend + API proxy).
+- Access the stack at <http://localhost:8082> (frontend + API proxy).
 
 #### 📦 QNAP NAS Deployment
 
@@ -337,11 +345,11 @@ The runtime enforces a clear separation between release and development workflow
 
 - Leave `SMS_ENV` unset (or set to `development`) for native workflows.
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
-- `SMART_SETUP.ps1`, `SMS.ps1`, and the new helper scripts respect these guards to prevent configuration drift.
+- `RUN.ps1`, `SMS.ps1`, and helper scripts respect these guards to prevent configuration drift.
 
 ### PostgreSQL Support & Migration (v1.8.3)
 
-- `RUN.ps1`, `SMART_SETUP.ps1`, and all Docker helpers now read `DATABASE_URL`,
+- `RUN.ps1` and all Docker helpers now read `DATABASE_URL`,
   `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
   Set `DATABASE_ENGINE=postgresql` and fill in `POSTGRES_HOST`, `POSTGRES_DB`,
   `POSTGRES_USER`, `POSTGRES_PASSWORD`, etc., or leave `DATABASE_URL` blank to

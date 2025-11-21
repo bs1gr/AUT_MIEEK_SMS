@@ -1,6 +1,6 @@
 # Archived Assets
 
-**Last Updated**: 2025-11-16
+**Last Updated**: 2025-11-21
 
 This directory captures deprecated entry points, operator helpers, historical documentation, and completed analyses retained for reference and audit purposes.
 
@@ -8,11 +8,21 @@ This directory captures deprecated entry points, operator helpers, historical do
 
 ## Contents
 
+### v1.8.6.1 Cleanup (2025-11-21)
+
+Deprecated entry points archived with introduction of `INSTALL.ps1` one-click installation system:
+
+- **`SMART_SETUP.ps1`** – Intelligent setup script superseded by `INSTALL.ps1` automated installation wizard
+  - Location: `archive/deprecated/v1.8.6.1_cleanup/SMART_SETUP.ps1`
+  - Reason: Replaced with more comprehensive `INSTALL.ps1` that handles Docker installation, environment setup, and full validation
+  - Migration: Use `.\INSTALL.ps1` for fresh installations, `.\RUN.ps1` for daily operations
+  - References: Removed from all documentation (README.md, DEPLOY_ON_NEW_PC.md)
+
 ### Legacy Scripts (v1.6.2 Archival)
 
 Deprecated entry points formally removed from active workspace in v1.6.2 release (2025-11-15):
 
-- `scripts/SETUP.*` – legacy setup wrapper superseded by `RUN.ps1` and `SMART_SETUP.ps1`.
+- `scripts/SETUP.*` – legacy setup wrapper superseded by `RUN.ps1`.
 - `scripts/STOP.*` (root + `scripts/deploy/`) – legacy stop helpers replaced by `SMS.ps1 -Stop`.
 - `scripts/*/KILL_FRONTEND_NOW.*` – placeholder wrappers now consolidated under `scripts/operator/`.
 - `tools/stop_monitor.ps1` – pointer script replaced by `scripts/operator/stop_monitor.ps1`.

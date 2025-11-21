@@ -6,6 +6,67 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.6.1] - 2025-11-21
+
+### Added
+
+- **INSTALL.ps1** - Automated one-click installation wizard for Windows
+  - Checks system prerequisites (PowerShell version, Docker, Git)
+  - Automatically installs Docker Desktop if missing (with admin privileges)
+  - Creates environment configuration files from templates
+  - Generates secure random SECRET_KEY automatically
+  - Builds Docker images with progress tracking
+  - Creates required directories (data, backups, logs, triggers)
+  - Sets up Docker volumes for data persistence
+  - Comprehensive installation verification
+  - Interactive prompts with helpful guidance
+  - Offers to start application immediately after installation
+  - Full error handling with user-friendly messages
+
+- **.env.example** - Root environment configuration template
+  - Version configuration (VERSION=1.8.6.1)
+  - Security settings with SECRET_KEY documentation
+  - Admin bootstrap configuration (DEFAULT_ADMIN_*)
+  - Database options (SQLite/PostgreSQL) with examples
+  - Comprehensive inline documentation
+  - Production-ready defaults
+
+### Changed
+
+- **DEPLOY_ON_NEW_PC.md** - Complete rewrite with enhanced installation guide
+  - Added Method 1: Automated Installation (Windows one-click)
+  - Added Method 2: Manual Installation (cross-platform)
+  - Comprehensive troubleshooting section with solutions for:
+    - Docker Desktop installation issues
+    - Port conflicts
+    - Build failures
+    - Login/authentication problems
+    - Database migration errors
+  - Advanced options documentation (PostgreSQL, monitoring, dev mode)
+  - Useful commands reference table
+  - Step-by-step instructions with clear examples
+  - Support and documentation links
+
+- **README.md** - Updated Quick Start section
+  - Highlighted new INSTALL.ps1 automated installer
+  - Separated fresh installation from daily usage
+  - Updated version to 1.8.6.1
+  - Added link to DEPLOY_ON_NEW_PC.md for detailed instructions
+
+### Improved
+
+- **Installation Experience** - Reduced setup time from manual configuration to 3 clicks
+  - Download repository → Run INSTALL.ps1 → Start application
+  - Automatic dependency installation
+  - Smart environment file generation
+  - Zero-configuration first run
+
+- **Documentation** - Enhanced deployment documentation
+  - Clear separation between installation and usage
+  - Platform-specific instructions (Windows/Linux/macOS)
+  - Troubleshooting guide covers common scenarios
+  - Advanced configuration options documented
+
 ## [1.8.6] - 2025-11-21
 
 ### Fixed
