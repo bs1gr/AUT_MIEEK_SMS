@@ -538,7 +538,7 @@ Default administrator credentials:
 
 IMPORTANT: Please change the default password immediately after first login.
 
-To manage the application, use the SMS.ps1 script in the installation directory.
+To manage the application, use DOCKER.ps1 (production) or NATIVE.ps1 (development) in the installation directory.
 "@
     $lblMessage.Location = New-Object System.Drawing.Point(20, 70)
     $lblMessage.Size = New-Object System.Drawing.Size(600, 220)
@@ -854,7 +854,7 @@ function Start-Installation {
         $sourcePath = Split-Path -Parent $sourcePath
         
         # Copy essential files
-        $filesToCopy = @("RUN.ps1", "SMS.ps1", "VERSION", "README.md", "LICENSE", "docker-compose.yml")
+        $filesToCopy = @("DOCKER.ps1", "NATIVE.ps1", "VERSION", "README.md", "LICENSE", "docker-compose.yml")
         foreach ($file in $filesToCopy) {
             $source = Join-Path $sourcePath $file
             if (Test-Path $source) {
@@ -992,7 +992,7 @@ LOG_LEVEL=INFO
         # Start new container
         Push-Location $installPath
         try {
-            $runScript = Join-Path $installPath "RUN.ps1"
+            $runScript = Join-Path $installPath "DOCKER.ps1"
             & $runScript
             Add-LogEntry "Container started successfully" "Success"
         } finally {
