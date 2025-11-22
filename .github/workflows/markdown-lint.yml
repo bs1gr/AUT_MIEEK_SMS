@@ -1,0 +1,50 @@
+name: Markdown Lint (Reporting)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run markdown lint (scan only)
+        run: |
+          python tools/lint/markdown_lint.py || echo "Script exited non-zero; continuing (non-blocking)."
+
+      - name: Upload lint report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdown-lint-report
+          path: docs/markdown_lint_report.md
+          if-no-files-found: warn
+
+      - name: Summary
+        run: |
+          echo "Markdown lint completed. See artifact markdown-lint-report for details."
+
+    # Non-blocking: even if the script encounters errors, job should succeed
+    continue-on-error: true
+
+  # Future enhancement placeholder: enforce threshold
+  # threshold-check:
+  #   runs-on: ubuntu-latest
+  #   needs: markdown-lint
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Evaluate lint issue count
+  #       run: |
+  #         issues=$(grep -E '^Total issues:' docs/markdown_lint_report.md | awk '{print $3}')
+  #         echo "Total issues: $issues"
+  #         if [ "$issues" -gt 500 ]; then
+  #           echo "Issue count exceeds threshold (500). Consider remediation."; fi
