@@ -5,7 +5,7 @@
 
 ## 📁 Directory Organization
 
-```
+```text
 docs/
 ├── user/                          # End-user guides
 │   ├── QUICK_START_GUIDE.md       # → Quick start for users

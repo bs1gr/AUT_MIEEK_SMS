@@ -60,7 +60,7 @@ A complete **Windows Installation Wizard ecosystem** for the Student Management 
   - Multi-method build support
 
 **Output:**
-```
+```text
 dist/
 ├── SMS_Installer_1.8.6.3.exe         (~2-3 MB)
 ├── SMS_Uninstaller_1.8.6.3.exe       (~2-3 MB)
@@ -234,7 +234,7 @@ dist/
 
 ### File Structure
 
-```
+```text
 student-management-system/
 ├── tools/
 │   └── installer/

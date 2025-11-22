@@ -408,7 +408,7 @@ Each course can have multiple grade components:
 The system calculates final grades automatically:
 
 **Formula:**
-```
+```text
 Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
 ```
 

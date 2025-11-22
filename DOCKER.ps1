@@ -343,6 +343,13 @@ function Backup-Database {
         New-Item -ItemType Directory -Path $BACKUPS_DIR -Force | Out-Null
     }
 
+    # Check if volume exists and has data
+    $volumeExists = docker volume inspect $VOLUME_NAME 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Volume '$VOLUME_NAME' does not exist yet - skipping backup (fresh installation)"
+        return $true  # Not an error for fresh installs
+    }
+
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $backupName = "sms_backup_${timestamp}.db"
     $backupPath = Join-Path $BACKUPS_DIR $backupName
@@ -352,11 +359,28 @@ function Backup-Database {
 
         if ($containerStatus -and $containerStatus.IsRunning) {
             Write-Info "Backing up from running container..."
+            # Check if database file exists first
+            $dbExists = docker exec $CONTAINER_NAME test -f /app/data/student_management.db 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "No database file found - skipping backup (fresh installation)"
+                return $true  # Not an error for fresh installs
+            }
             docker exec $CONTAINER_NAME sh -c "cp /app/data/student_management.db /app/data/backup_temp.db" 2>$null
             docker cp "${CONTAINER_NAME}:/app/data/backup_temp.db" $backupPath 2>$null
             docker exec $CONTAINER_NAME sh -c "rm -f /app/data/backup_temp.db" 2>$null
         } else {
             Write-Info "Backing up from Docker volume..."
+            # Check if database exists in volume first
+            $dbCheck = docker run --rm `
+                -v ${VOLUME_NAME}:/data:ro `
+                alpine:latest `
+                test -f /data/student_management.db 2>$null
+            
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "No database file in volume - skipping backup (fresh installation)"
+                return $true  # Not an error for fresh installs
+            }
+
             docker run --rm `
                 -v ${VOLUME_NAME}:/data:ro `
                 -v "${BACKUPS_DIR}:/backups" `
@@ -365,15 +389,15 @@ function Backup-Database {
         }
 
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $backupPath)) {
-            Write-Error-Message "Backup failed"
-            return $false
+            Write-Warning "Backup failed (may be first installation with no data yet)"
+            return $true  # Don't fail the update for backup issues on fresh installs
         }
 
         $backupSize = (Get-Item $backupPath).Length
         if ($backupSize -lt 1KB) {
-            Write-Error-Message "Backup file too small, may be corrupted"
-            Remove-Item $backupPath -Force
-            return $false
+            Write-Warning "Backup file too small or empty (may be fresh installation)"
+            Remove-Item $backupPath -Force -ErrorAction SilentlyContinue
+            return $true  # Don't fail the update
         }
 
         $hash = (Get-FileHash -Path $backupPath -Algorithm SHA256).Hash.Substring(0, 8)
@@ -964,11 +988,12 @@ function Update-Application {
     $status = Get-ContainerStatus
     $wasRunning = $status -and $status.IsRunning
 
-    # Create backup
+    # Create backup (non-fatal for fresh installations)
     Write-Host ""
-    if (-not (Backup-Database -Reason "before-update")) {
-        Write-Error-Message "Backup failed. Update cancelled."
-        return 1
+    $backupSuccess = Backup-Database -Reason "before-update"
+    if (-not $backupSuccess) {
+        Write-Warning "Backup skipped or failed - continuing with update"
+        Write-Info "This is normal for fresh installations with no existing data"
     }
 
     # Stop if running

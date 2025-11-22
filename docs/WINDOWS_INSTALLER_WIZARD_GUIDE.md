@@ -85,7 +85,7 @@ The Student Management System now provides **professional Windows installer exec
 ### Accessing the Application
 
 **Web Interface:**
-```
+```text
 http://localhost:8080
 ```
 

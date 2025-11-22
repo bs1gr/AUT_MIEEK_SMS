@@ -57,7 +57,7 @@ When running `SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native`, you have several al
    ```
 
 **Sample output:**
-```
+```text
 # HELP sms_http_requests_total Total number of HTTP requests
 # TYPE sms_http_requests_total counter
 sms_http_requests_total{handler="/api/v1/students",method="GET",status="200"} 42.0

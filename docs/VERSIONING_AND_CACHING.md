@@ -17,7 +17,7 @@ This document explains how SMS handles Docker image versioning, caching, and ens
 ### Version Source of Truth
 
 **Single Source**: `VERSION` file at repository root
-```
+```text
 VERSION file contains: 1.7.0
 ↓
 All scripts read this file
@@ -29,7 +29,7 @@ Volume name: sms_data
 
 ### Version Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  VERSION file (e.g., "1.7.0")                                │
 └────────────────────┬────────────────────────────────────────┘
@@ -225,7 +225,7 @@ curl http://localhost:8081/health  # Testing
 ### Issue: "Container running old image"
 
 **Symptom**:
-```
+```text
 WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-fullstack:1.7.1)
 ```
 
@@ -240,7 +240,7 @@ WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-full
 ### Issue: "Image not found"
 
 **Symptom**:
-```
+```text
 Error response from daemon: No such image: sms-fullstack:1.7.1
 ```
 
@@ -358,7 +358,7 @@ docker rmi 789ghi012jkl
 ## Configuration Files
 
 ### VERSION File
-```
+```text
 1.7.0
 ```
 - Plain text, single line
@@ -367,7 +367,7 @@ docker rmi 789ghi012jkl
 - No trailing newlines/spaces (use `.Trim()` when reading)
 
 ### .env File (Root)
-```
+```text
 VERSION=1.7.0
 ```
 - Auto-synced by SMART_SETUP.ps1

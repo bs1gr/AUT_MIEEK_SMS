@@ -109,7 +109,7 @@ class User(Base):
 ```
 
 ### New Endpoints
-```
+```text
 POST /auth/login       - Get JWT token
 POST /auth/register    - Create user
 GET  /auth/me          - Current user info
