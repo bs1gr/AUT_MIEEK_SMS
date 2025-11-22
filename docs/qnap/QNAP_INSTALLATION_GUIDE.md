@@ -208,7 +208,7 @@ chmod +x scripts/qnap/install-qnap.sh
 
 The script will display access URLs:
 
-```
+```text
 ✅ Installation complete!
 
 Access URLs:

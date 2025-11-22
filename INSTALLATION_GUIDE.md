@@ -250,7 +250,7 @@ To stop it:
 
 After installation, you'll have:
 
-```
+```text
 student-management-system/
 ├── RUN.ps1                    ← Canonical Docker entry point (one-click)
 ├── scripts/dev/run-native.ps1 ← Canonical native entry point (dev only)

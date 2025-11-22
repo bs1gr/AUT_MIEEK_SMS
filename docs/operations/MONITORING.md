@@ -67,7 +67,7 @@ docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 
 ### Metrics Flow
 
-```
+```text
 Application (FastAPI)
     │
     └─> Exposes /metrics endpoint
@@ -87,7 +87,7 @@ Application (FastAPI)
 
 ### Logs Flow
 
-```
+```text
 Application Logs
     │
     ├─> Backend logs (logs/*.log)

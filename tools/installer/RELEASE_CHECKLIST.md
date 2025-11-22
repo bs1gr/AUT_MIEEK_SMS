@@ -72,7 +72,7 @@ cd d:\SMS\student-management-system\tools\installer
 ```
 
 **Expected Output:**
-```
+```text
 ℹ️  Checking for PS2EXE module...
 ✓ PS2EXE module already installed
 ℹ️  Building installer executable with PS2EXE...
@@ -285,7 +285,7 @@ cd tools\installer
 
 Extract `SMS_Distribution_1.8.6.3.zip` and verify:
 
-```
+```text
 SMS_Distribution_1.8.6.3/
 ├── SMS_Installer_1.8.6.3.exe      ✓ ~2-3 MB
 ├── SMS_Uninstaller_1.8.6.3.exe    ✓ ~2-3 MB
@@ -433,7 +433,7 @@ git push origin v1.8.6.3
 ```powershell
 .\INSTALL.ps1       # Automated installation
 .\RUN.ps1           # Start application
-```
+```text
 
 **📖 Guide:** [DEPLOY_ON_NEW_PC.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/DEPLOY_ON_NEW_PC.md)
 
@@ -444,7 +444,7 @@ New aggressive Docker cleanup utility for troubleshooting:
 ```powershell
 .\DEEP_DOCKER_CLEANUP.ps1         # Safe cleanup (keeps data)
 .\DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes  # Nuclear option (removes data)
-```
+```text
 
 **📖 Guide:** [DOCKER_CLEANUP_GUIDE.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/DOCKER_CLEANUP_GUIDE.md)
 
@@ -535,7 +535,7 @@ See [CHANGELOG.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/CHANGELOG.md
 - Email to known users (if applicable)
 
 **Announcement Template:**
-```
+```text
 🎉 Student Management System v1.8.6.3 Released!
 
 NEW: Windows GUI Installer - Professional installation wizard with visual progress tracking!

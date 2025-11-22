@@ -66,7 +66,7 @@ cd student-management-system
 
 ### High-Level Overview
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │                   Client Browser                          │
 │              (React 18 + TanStack Query)                  │
@@ -202,7 +202,7 @@ docker-compose down
 
 ### Backend Structure
 
-```
+```text
 backend/
 ├── routers/              # API endpoints (route handlers)
 │   ├── routers_students.py
@@ -239,7 +239,7 @@ backend/
 
 ### Frontend Structure
 
-```
+```text
 frontend/
 ├── src/
 │   ├── api/              # API client & interceptors
@@ -608,7 +608,7 @@ def downgrade():
 
 ### JWT Token Flow
 
-```
+```text
 1. User Login (POST /auth/login)
    ↓
 2. Server validates credentials
@@ -991,7 +991,7 @@ See: [Performance Optimizations Guide](../../PERFORMANCE_OPTIMIZATIONS_2025-01-1
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```python
 feat(students): add bulk import feature
 fix(auth): correct token refresh logic
 docs(readme): update installation instructions
@@ -1002,7 +1002,7 @@ chore(deps): update dependencies
 ```
 
 **Structure:**
-```
+```html
 <type>(<scope>): <subject>
 
 [optional body]

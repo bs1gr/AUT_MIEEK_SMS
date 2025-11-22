@@ -708,5 +708,87 @@ export const importAPI = {
   }
 };
 
+// ==================== SESSION EXPORT/IMPORT API ====================
+
+export const sessionAPI = {
+  /**
+   * List all available semesters
+   */
+  async listSemesters() {
+    try {
+      const response = await apiClient.get('/sessions/semesters');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Export complete session data for a semester
+   * @param {string} semester - Semester identifier (e.g., "2024-2025 Fall")
+   */
+  async exportSession(semester) {
+    try {
+      const response = await apiClient.post('/sessions/export', null, {
+        params: { semester },
+        responseType: 'blob' // Important for file download
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Import session data from JSON file
+   * @param {File} file - Session export JSON file
+   * @param {string} mergeStrategy - 'update' (default) or 'skip'
+   * @param {boolean} dryRun - If true, only validates without importing
+   */
+  async importSession(file, mergeStrategy = 'update', dryRun = false) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await apiClient.post('/sessions/import', formData, {
+        params: { 
+          merge_strategy: mergeStrategy,
+          dry_run: dryRun 
+        },
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * List available backup files for rollback
+   */
+  async listBackups() {
+    try {
+      const response = await apiClient.get('/sessions/backups');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Rollback database to a previous backup
+   * @param {string} backupFilename - Name of backup file to restore
+   */
+  async rollbackImport(backupFilename) {
+    try {
+      const response = await apiClient.post('/sessions/rollback', null, {
+        params: { backup_filename: backupFilename }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 // Export the axios instance for custom requests
 export default apiClient;

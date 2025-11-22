@@ -198,7 +198,7 @@ storage:
     retention:
       time: 30d    # Change to 7d, 60d, 90d, etc.
       size: 10GB   # Change to 5GB, 20GB, etc.
-```
+```text
 
 **Loki** (logs):
 
@@ -206,7 +206,7 @@ storage:
 # loki/loki-config.yml
 limits_config:
   retention_period: 744h  # Change to 168h (7d), 2160h (90d), etc.
-```
+```text
 
 ### Add Custom Metrics
 
@@ -222,13 +222,13 @@ my_counter = Counter('sms_my_events_total', 'Description', ['label'])
 
 # Use metric
 my_counter.labels(label='value').inc()
-```
+```text
 
 **In Prometheus**:
 
 ```yaml
 # No config needed - automatically scraped from /metrics
-```
+```text
 
 ## Maintenance
 
@@ -243,7 +243,7 @@ docker-compose -f docker-compose.monitoring.yml stop prometheus
 tar -czf prometheus-data-$(date +%Y%m%d).tar.gz \
   /var/lib/docker/volumes/*prometheus-data*
 docker-compose -f docker-compose.monitoring.yml start prometheus
-```
+```text
 
 ### Update Alert Rules
 
@@ -256,7 +256,7 @@ curl -X POST http://localhost:9090/-/reload
 
 # Or restart
 docker-compose -f docker-compose.monitoring.yml restart prometheus
-```
+```text
 
 ### View Logs
 
@@ -268,7 +268,7 @@ docker-compose -f docker-compose.monitoring.yml logs -f
 docker-compose -f docker-compose.monitoring.yml logs -f prometheus
 docker-compose -f docker-compose.monitoring.yml logs -f grafana
 docker-compose -f docker-compose.monitoring.yml logs -f alertmanager
-```
+```text
 
 ### Clean Up Old Data
 
@@ -281,7 +281,7 @@ docker-compose -f docker-compose.monitoring.yml down -v
 
 # Start fresh
 docker-compose -f docker-compose.monitoring.yml up -d
-```
+```text
 
 ## Security Checklist
 
@@ -302,7 +302,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ```bash
 curl http://localhost:9090/api/v1/targets | jq
-```
+```text
 
 **Common issues**:
 
@@ -316,7 +316,7 @@ curl http://localhost:9090/api/v1/targets | jq
 
 ```bash
 curl http://admin:admin@localhost:3000/api/datasources
-```
+```text
 
 **Common issues**:
 

@@ -6,6 +6,53 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+- **Session Export/Import Router** (`backend/routers/routers_sessions.py`)
+  - Endpoints: `GET /sessions/semesters`, `GET /sessions/export` (preferred), legacy `POST /sessions/export`, `POST /sessions/import`, `GET /sessions/backups`, `POST /sessions/rollback`
+  - Full semester packaging: courses, students, enrollments, grades, attendance, daily performance, highlights
+  - Dry-run validation (`dry_run=true`) with structural, referential, and duplicate checks
+  - Automatic pre-import backup (SQLite) with rollback safety snapshot
+  - Merge strategies: `update` (create + update) and `skip` (create only)
+  - Legacy grade field compatibility: exports `component_type` when present, ignores on import when absent
+
+- **Frontend Session Management UI**
+  - Added `sessionAPI` to `frontend/src/api/api.js` (listSemesters, exportSession, importSession, listBackups, rollbackImport)
+  - New `SessionExportImport` component integrated into `ExportCenter.tsx` with validation panel, merge strategy selection, real-time progress states
+  - i18n keys (EN/EL) for all labels, statuses, and messages (29 new keys per locale)
+
+- **Rollback & Backup Listing**
+  - Safe rollback endpoint with pre-rollback safety backup and validation
+  - Backup enumeration returns size, timestamps, and classification (pre-import vs pre-rollback)
+
+- **Documentation**
+  - Expanded README section “Session Export / Import” + link to detailed user guide
+  - New user guide: `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md` (quick start & scenarios)
+  - Feature implementation details: `SESSION_EXPORT_IMPORT_FEATURE.md`
+  - Safety enhancements deep dive: `SESSION_IMPORT_SAFETY_ENHANCEMENTS.md`
+  - Docker authentication defaults clarification: `DOCKER_AUTH_FIX.md`
+  - QNAP deployment master plan (added/updated): `QNAP_DEPLOYMENT_PLAN.md`
+
+### Changed
+
+- **Export Endpoint Method Support**: Added `GET /sessions/export` (idempotent, cache-friendly); retained POST for backward compatibility (marked for deprecation)
+- **Filename Handling**: Sanitized non-ASCII semester names for attachment headers; internal JSON retains original Unicode data
+- **Header Encoding Robustness**: Removed non-ASCII metadata response header that caused `UnicodeEncodeError` on some clients; metadata now only inside JSON body
+- **docker-compose.yml Defaults**: Enabled authentication by default (`AUTH_ENABLED=True`) and set sensible admin bootstrap defaults (`DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_FULL_NAME`) to prevent “Not found” login issues in fresh Docker deployments
+
+### Fixed
+
+- **405 Method Not Allowed** on session export when using GET: resolved by adding GET route decorator
+- **500 AttributeError** for legacy `component_type` on grade export/import: handled via safe `getattr` fallback
+- **500 UnicodeEncodeError** during export with Greek semester names: addressed by ASCII fallback filename + removal of problematic header
+- **Authentication UX Mismatch** in Docker (frontend showing login while backend auth disabled): defaults corrected and documented (see `DOCKER_AUTH_FIX.md`)
+
+### Internal / Developer Notes
+
+- Large implementation & safety docs retained as developer references; user-facing workflows summarized in README + user guide.
+- Future deprecation: `POST /sessions/export` will be removed after downstream tooling migration; announce in next minor release.
+
+
 ## [1.8.6.4] - 2025-11-22
 
 ### Fixed
@@ -154,7 +201,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **Comprehensive testing** on Windows 10/11
 
 **Distribution Package:**
-```
+
+```text
 SMS_Distribution_1.8.6.4.zip (~50-100 MB)
 ├── SMS_Installer_1.8.6.4.exe (~2-3 MB)
 ├── SMS_Uninstaller_1.8.6.4.exe (~2-3 MB)
@@ -370,7 +418,7 @@ The deprecation of SMART_SETUP.ps1 addresses user confusion and streamlines the 
 
 - **Admin User Management** - Admin user creation and management
   - Created default admin account via create_admin.py tool
-  - Email: admin@example.com, Password: YourSecurePassword123!
+  - Email: `admin@example.com`, Password: `YourSecurePassword123!`
   - Auto-login functional with default credentials
   - Result: All protected endpoints accessible
 

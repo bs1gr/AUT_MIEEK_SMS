@@ -84,7 +84,7 @@ git log --all -S "api_key" --source --all
 - ✅ Document which directories contain sensitive data
 
 **Example structure:**
-```
+```text
 templates/
 ├── students/
 │   ├── ΕΓΓΡΑΦΕΣ*.csv        # ← Real data (gitignored)

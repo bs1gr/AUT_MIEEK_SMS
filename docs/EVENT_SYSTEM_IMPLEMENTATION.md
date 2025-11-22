@@ -158,7 +158,7 @@ useEffect(() => {
 
 ## Data Flow Diagram
 
-```
+```text
 [GradingView]
     │
     ├─ gradesAPI.create()

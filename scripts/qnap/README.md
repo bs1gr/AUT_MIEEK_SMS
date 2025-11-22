@@ -150,7 +150,7 @@ This directory contains scripts for deploying and managing the Student Managemen
 
 Scripts create and manage these QNAP directories:
 
-```
+```text
 /share/Container/
 ├── sms-postgres/        # PostgreSQL database
 ├── sms-data/            # Application data

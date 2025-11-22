@@ -219,7 +219,7 @@ function StudentCard({ student }) {
 
 ## File Structure
 
-```
+```text
 frontend/src/
 ├── i18n/                          # JSON-based system (underutilized)
 │   ├── config.ts

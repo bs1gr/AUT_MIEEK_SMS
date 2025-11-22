@@ -38,7 +38,7 @@ cd /share/Container/sms-app
 
 ### Menu Options
 
-```
+```text
 Student Management System - QNAP Management Menu
 =================================================
 1.  Start All Services

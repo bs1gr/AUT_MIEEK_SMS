@@ -18,7 +18,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ## Theme Previews
 
 ### 1️⃣ Default Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -34,7 +34,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ---
 
 ### 2️⃣ Glassmorphism Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -51,7 +51,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ---
 
 ### 3️⃣ Neumorphism Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -70,7 +70,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ---
 
 ### 4️⃣ Gradient Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -89,7 +89,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ---
 
 ### 5️⃣ Modern Dark Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -108,7 +108,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ---
 
 ### 6️⃣ Light Professional Theme
-```
+```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
 ├─────────────────────────────────────┤
@@ -205,7 +205,7 @@ All themes maintain:
 
 ## Files Changed
 
-```
+```text
 frontend/src/features/operations/components/
 ├── ThemeSelector.tsx          (NEW - 200 lines)
 └── DevToolsPanel.tsx          (MODIFIED - theme integration)

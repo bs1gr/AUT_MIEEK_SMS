@@ -616,6 +616,7 @@ A comprehensive student management system with course evaluation, attendance tra
 - 📈 **Performance Analytics** - Detailed performance reports and trends
 - 📆 **Daily Performance** - Track daily student performance with weighted multipliers
 - 📤 **Data Export** - Export to Excel, PDF, and ICS calendar formats with bilingual (EN/EL) column headers driven by the `Accept-Language` header
+- 📦 **Session Export / Import** - Full semester JSON packaging (courses, students, enrollments, grades, attendance, daily performance, highlights) with dry-run validation, automatic pre-import backup, and rollback support
 - 🌐 **Bilingual** - Full support for English and Greek languages
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
 - 🔐 **Authentication & Authorization** - Optional JWT-based auth with role-based access control (admin/teacher/student) - See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md)
@@ -939,6 +940,65 @@ Once the backend is running, access the interactive API documentation:
 **Security Note:** Set a strong random `SECRET_KEY` in `.env`/environment variables (generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"`). Turn on `SECRET_KEY_STRICT_ENFORCEMENT=1` when you want the backend to refuse placeholder or short secrets (recommended for staging/production); leave it at `0` for local debugging where you control the environment.
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
+
+### Session Export / Import (Unified Semester Migration)
+
+Safely migrate or archive an entire semester between environments.
+
+**Endpoints:**
+`GET /api/v1/sessions/semesters` – list semesters
+`GET /api/v1/sessions/export?semester=SEMESTER` – export (preferred)
+`POST /api/v1/sessions/export` – legacy export (will be deprecated)
+`POST /api/v1/sessions/import?dry_run=true` – validate only
+`POST /api/v1/sessions/import` – perform import (`merge_strategy=update|skip`)
+`GET /api/v1/sessions/backups` – list backup files
+`POST /api/v1/sessions/rollback` – restore from backup (creates safety snapshot first)
+
+**Safety Features:** dry-run structural & referential validation, automatic timestamped pre-import backup (SQLite), transactional rollback on critical errors, per-entity summaries, rollback safety snapshot.
+
+**Filename & Unicode:** Non-ASCII semester names are normalized to ASCII (`session_export_semester_<timestamp>.json`) to avoid header encoding issues; Greek metadata preserved inside JSON body.
+
+**Import Merge Strategies:**
+`update` – update existing + create new (default)
+`skip` – ignore existing, create only new
+
+**Legacy Field Compatibility:** Older exports may include `component_type` for grades; import ignores it and export includes it only when present.
+
+**Example Dry-Run:**
+
+```powershell
+$token = '<ACCESS_TOKEN>'
+Invoke-WebRequest -Method POST `
+  -Uri 'http://localhost:8080/api/v1/sessions/import?dry_run=true' `
+  -Headers @{ Authorization = "Bearer $token" } `
+  -Form @{ file = Get-Item './session_export_semester_20251122_201923.json' }
+```
+
+**Response Snippet:**
+
+```json
+{
+  "dry_run": true,
+  "validation_passed": true,
+  "semester": "Α' Εξάμηνο",
+  "counts": { "courses": 7, "students": 8, "enrollments": 24, "grades": 9, "attendance": 116, "daily_performance": 30, "highlights": 12 },
+  "message": "Validation passed. Safe to import."
+}
+```
+
+**Rollback Usage:**
+
+```powershell
+Invoke-WebRequest -Method POST `
+  -Uri 'http://localhost:8080/api/v1/sessions/rollback?backup_filename=pre_import_backup_semester_20251122_201923.db' `
+  -Headers @{ Authorization = "Bearer $token" }
+```
+
+Restart the application after rollback to clear caches.
+
+**Deprecation Notice:** POST export endpoint will be removed in a future release – use GET.
+
+For a full end-to-end walkthrough with scenarios and troubleshooting, see `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md`.
 
 ### Academic settings and date range filtering
 

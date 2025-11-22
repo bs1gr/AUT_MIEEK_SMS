@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3 } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import { studentsAPI, coursesAPI } from '../../api/api';
+import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -20,6 +20,390 @@ interface Student {
 interface ExportCenterProps {
   variant?: 'standalone' | 'embedded';
 }
+
+// Session Export/Import Component
+interface SessionExportImportProps {
+  t: (key: string) => string;
+  showToast: (message: string, type?: string) => void;
+}
+
+const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
+  const { language } = useLanguage();
+  const [semesters, setSemesters] = useState<string[]>([]);
+  const [selectedSemester, setSelectedSemester] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [mergeStrategy, setMergeStrategy] = useState<'update' | 'skip'>('update');
+  const [loadingSemesters, setLoadingSemesters] = useState(false);
+  const [exportingSession, setExportingSession] = useState(false);
+  const [importingSession, setImportingSession] = useState(false);
+  const [validatingImport, setValidatingImport] = useState(false);
+  const [validationResult, setValidationResult] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadSemesters();
+  }, []);
+
+  const loadSemesters = async () => {
+    setLoadingSemesters(true);
+    try {
+      const data = await sessionAPI.listSemesters();
+      setSemesters(data.semesters || []);
+      if (data.semesters && data.semesters.length > 0) {
+        setSelectedSemester(data.semesters[0]);
+      }
+    } catch (error) {
+      console.error('Failed to load semesters:', error);
+      showToast(t('failedToLoadSemesters'), 'error');
+    } finally {
+      setLoadingSemesters(false);
+    }
+  };
+
+  const handleExportSession = async () => {
+    if (!selectedSemester) {
+      showToast(t('selectSemester'), 'error');
+      return;
+    }
+
+    setExportingSession(true);
+    try {
+      const response = await sessionAPI.exportSession(selectedSemester);
+      
+      // Create download link
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `session_export_${selectedSemester.replace(/\s+/g, '_')}.json`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      showToast(t('sessionExportSuccess'), 'success');
+    } catch (error) {
+      console.error('Session export failed:', error);
+      showToast(t('sessionExportFailed'), 'error');
+    } finally {
+      setExportingSession(false);
+    }
+  };
+
+  const handleImportSession = async () => {
+    if (!selectedFile) {
+      showToast(t('selectFile'), 'error');
+      return;
+    }
+
+    setImportingSession(true);
+    try {
+      const result = await sessionAPI.importSession(selectedFile, mergeStrategy);
+      
+      // Show summary
+      const summary = result.summary;
+      const totalCreated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.created || 0), 0);
+      const totalUpdated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.updated || 0), 0);
+      const totalErrors = Object.values(summary).reduce((sum: number, item: any) => sum + (item.errors?.length || 0), 0);
+      
+      if (totalErrors > 0) {
+        showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated}, ${t('errors')}: ${totalErrors})`, 'warning');
+      } else {
+        showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated})`, 'success');
+      }
+      
+      // Reset file input
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Reload semesters in case new ones were added
+      loadSemesters();
+    } catch (error: any) {
+      console.error('Session import failed:', error);
+      const errorMsg = error.response?.data?.detail || t('sessionImportFailed');
+      showToast(errorMsg, 'error');
+    } finally {
+      setImportingSession(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setSelectedFile(files[0]);
+      setValidationResult(null); // Clear previous validation
+    }
+  };
+
+  const handleValidateImport = async () => {
+    if (!selectedFile) {
+      showToast(t('selectFile'), 'error');
+      return;
+    }
+
+    setValidatingImport(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      const response = await sessionAPI.importSession(selectedFile, mergeStrategy, true); // dry_run=true
+      setValidationResult(response);
+      
+      if (response.validation_passed) {
+        showToast('✅ Validation passed! Safe to import.', 'success');
+      }
+    } catch (error: any) {
+      console.error('Validation failed:', error);
+      const errorData = error.response?.data;
+      
+      if (errorData?.context?.validation_errors) {
+        setValidationResult({
+          validation_passed: false,
+          errors: errorData.context.validation_errors,
+          total_errors: errorData.context.total_errors
+        });
+        showToast(`❌ Validation failed: ${errorData.context.total_errors} errors`, 'error');
+      } else {
+        showToast(errorData?.detail || t('sessionImportFailed'), 'error');
+      }
+    } finally {
+      setValidatingImport(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <div className="flex items-center space-x-2 mb-6">
+        <Database size={24} className="text-indigo-600" />
+        <h2 className="text-2xl font-bold text-gray-800">{t('sessionExportImport')}</h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Export Session */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-3 rounded-xl">
+              <Download className="text-white" size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">{t('exportCompleteSession')}</h3>
+              <p className="text-sm text-gray-600">{t('exportSessionDescription')}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('selectSemester')}
+              </label>
+              {loadingSemesters ? (
+                <div className="text-sm text-gray-500">{t('loadingSemesters')}</div>
+              ) : semesters.length === 0 ? (
+                <div className="text-sm text-gray-500">{t('noSemestersFound')}</div>
+              ) : (
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label={t('selectSemester')}
+                >
+                  <option value="">{t('chooseSemester')}</option>
+                  {semesters.map((semester) => (
+                    <option key={semester} value={semester}>
+                      {semester}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <button
+              onClick={handleExportSession}
+              disabled={exportingSession || !selectedSemester || semesters.length === 0}
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+            >
+              {exportingSession ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>{t('exportingSession')}</span>
+                </>
+              ) : (
+                <>
+                  <Download size={20} />
+                  <span>{t('exportSession')}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Import Session */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-gradient-to-br from-green-500 to-green-700 p-3 rounded-xl">
+              <Upload className="text-white" size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">{t('importSession')}</h3>
+              <p className="text-sm text-gray-600">{t('importSessionDescription')}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('selectFile')}
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleFileChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                aria-label={t('selectFile')}
+                title={t('chooseSessionFile')}
+              />
+              {selectedFile && (
+                <p className="text-sm text-gray-600 mt-2">
+                  📄 {selectedFile.name}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('mergeStrategy')}
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mergeStrategy"
+                    value="update"
+                    checked={mergeStrategy === 'update'}
+                    onChange={(e) => setMergeStrategy(e.target.value as 'update' | 'skip')}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm">
+                    <strong>{t('updateExisting')}</strong> - {t('updateExistingDesc')}
+                  </span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mergeStrategy"
+                    value="skip"
+                    checked={mergeStrategy === 'skip'}
+                    onChange={(e) => setMergeStrategy(e.target.value as 'update' | 'skip')}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm">
+                    <strong>{t('skipExisting')}</strong> - {t('skipExistingDesc')}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Validation Result Display */}
+            {validationResult && (
+              <div className={`p-4 rounded-lg ${validationResult.validation_passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                {validationResult.validation_passed ? (
+                  <div>
+                    <div className="flex items-center space-x-2 text-green-800 font-semibold mb-2">
+                      <span>✅</span>
+                      <span>Validation Passed</span>
+                    </div>
+                    <div className="text-sm text-green-700">
+                      <p>Ready to import:</p>
+                      <ul className="list-disc list-inside mt-1">
+                        <li>{validationResult.counts?.courses || 0} courses</li>
+                        <li>{validationResult.counts?.students || 0} students</li>
+                        <li>{validationResult.counts?.grades || 0} grades</li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center space-x-2 text-red-800 font-semibold mb-2">
+                      <span>❌</span>
+                      <span>Validation Failed: {validationResult.total_errors} errors</span>
+                    </div>
+                    <div className="text-sm text-red-700 max-h-40 overflow-y-auto">
+                      <ul className="list-disc list-inside space-y-1">
+                        {validationResult.errors?.slice(0, 10).map((error: string, idx: number) => (
+                          <li key={idx}>{error}</li>
+                        ))}
+                        {validationResult.errors?.length > 10 && (
+                          <li className="font-semibold">...and {validationResult.errors.length - 10} more errors</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleValidateImport}
+                disabled={validatingImport || !selectedFile}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                {validatingImport ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Validating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔍</span>
+                    <span>Validate</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleImportSession}
+                disabled={importingSession || !selectedFile || (validationResult && !validationResult.validation_passed)}
+                className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                {importingSession ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{t('importingSession')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={20} />
+                    <span>{t('importSessionButton')}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Safety Note */}
+            <div className="text-xs text-gray-500 italic">
+              💡 Tip: Click "Validate" first to check for errors before importing. A backup is automatically created before import.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const { t, language } = useLanguage();
@@ -335,6 +719,9 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
             </div>
           ))}
         </div>
+
+        {/* Session Export/Import Section */}
+        <SessionExportImport t={t} showToast={showToast} />
 
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center space-x-2 mb-6">
