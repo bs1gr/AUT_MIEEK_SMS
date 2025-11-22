@@ -1,6 +1,6 @@
 # Project TODO
 
-**Last updated**: 2025-11-22 (Auth fix + Documentation cleanup)
+**Last updated**: 2025-11-22 (Post v1.8.6.4 validation & roadmap init)
 **Review Score**: 9/10 (Excellent - Production Ready)
 **Recent Achievement**: Admin endpoints AUTH_MODE compliance fixed; Windows installer wizard shipped; documentation consolidated.
 
@@ -53,6 +53,21 @@ Backend coverage goal (≥80%) achieved; focus now on frontend depth & resilienc
 | 3 | API examples & diagrams | Medium | Easier onboarding & audits |
 | 4 | CI npm caching | Low | Shorter pipeline times |
 | 5 | Metrics & load tests | High | Capacity planning & SLA validation |
+
+## 📈 Roadmap v1.8.6.5
+
+Focus areas for the next patch release (incremental, fast follow to consolidation):
+
+| Pillar | Item | Rationale | Target Outcome |
+|--------|------|-----------|----------------|
+| Testing | Component + hook coverage (StudentCard, CourseGradeBreakdown, AttendanceDetails, useAuth, useGrades) | Reduce regression risk & increase confidence in UI refactors | ≥30 new frontend tests, >70% component coverage |
+| Deployment | Runbook expansion (rollback, incident response steps, backup restore verification matrix) | Faster operator recovery & clearer SLA definitions | Published `RUNBOOK.md` with RTO/RPO targets |
+| Observability | Prometheus/OpenTelemetry instrumentation for key endpoints + baseline latency report | Capacity planning ahead of expected data growth | Metrics endpoint enriched + initial performance snapshot |
+| Performance | Lightweight load test suite (Locust) scripted into CI optional stage | Detect throughput regressions early | Baseline: 50 concurrent users, <300ms p95 for read ops |
+| CI Efficiency | npm caching + release automation workflow (gh release create on tag push) | Shorter pipelines & consistent release packaging | 20–30% reduction in build time + auto generated draft release |
+| Security | SECRET_KEY strict enforcement rollout doc & optional key rotation script | Harden deployments adopting strict mode | Guide + rotation script under `tools/security/` |
+
+Milestone close criteria: All table outcomes met or documented with deferral justification in CHANGELOG.
 
 ## 📝 Notes
 

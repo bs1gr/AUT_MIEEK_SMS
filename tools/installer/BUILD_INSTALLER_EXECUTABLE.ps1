@@ -231,12 +231,12 @@ Source: "$($PSScriptRoot)\..\..\*"; DestDir: "{app}"; Flags: ignoreversion recur
 Source: "$($PSScriptRoot)\..\..\*"; Excludes: "*.pyc,__pycache__,node_modules,.git,.vscode,*.log,backups\*,data\*,logs\*,temp_*,archive\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\RUN.ps1"""; WorkingDir: "{app}"
-Name: "{autoprograms}\{#MyAppName} Management"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\SMS.ps1"""; WorkingDir: "{app}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\RUN.ps1"""; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\DOCKER.ps1"" -Start"; WorkingDir: "{app}"
+Name: "{autoprograms}\{#MyAppName} Status"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\DOCKER.ps1"" -Status"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\DOCKER.ps1"" -Start"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALL.ps1"""; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall runascurrentuser
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\DOCKER.ps1"" -Install"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall runascurrentuser
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\tools\installer\SMS_UNINSTALLER_WIZARD.ps1"""; RunOnceId: "UninstallSMS"
@@ -363,7 +363,7 @@ If you prefer manual installation or the automated installer fails:
 3. **Run installation script**
    ```powershell
    cd C:\SMS
-   .\INSTALL.ps1
+   .\DOCKER.ps1 -Install
    ```
 
 ## System Requirements
