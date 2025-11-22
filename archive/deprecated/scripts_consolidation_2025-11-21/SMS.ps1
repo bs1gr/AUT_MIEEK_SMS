@@ -352,7 +352,7 @@ function Show-Status {
 
     if ($status.Containers.Count -eq 0) {
         Write-Warning2 "No SMS containers found"
-        Write-Info "Run '.\SMART_SETUP.ps1' to initialize the system"
+        Write-Info "Run '.\INSTALL.ps1' to initialize the system"
         Write-Info "Or run '.\SMS.ps1 -Quick' to start containers"
     }
     else {
@@ -793,8 +793,8 @@ EXAMPLES:
     .\SMS.ps1 -PruneAll              # Prune + unused networks (keeps volumes)
 
 FIRST TIME SETUP:
-  .\SMART_SETUP.ps1                # Initialize and start the system
-  .\SMART_SETUP.ps1 -WithMonitoring # Initialize with monitoring
+  .\INSTALL.ps1                    # Initialize and start the system
+  .\RUN.ps1 -WithMonitoring        # Start with monitoring after install
 
 MONITORING STACK:
   When started, provides:

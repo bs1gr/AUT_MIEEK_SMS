@@ -1,51 +1,88 @@
 # Student Management System
 
-## 📦 Quick Start (v1.8.6.3)
+## 📦 Quick Start (v1.8.6.4)
 
 ### **For End Users** - One-Click Installation ⭐ NEW!
 
-#### Fresh Installation (First Time):
+#### 🎯 Windows Installation Wizard (Easiest Method)
 
-Run the automated installer (Windows only):
+**GUI Installer** - No PowerShell knowledge required!
+
+1. **Download** `SMS_Distribution_1.8.6.3.zip` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
+2. **Extract** to any location (Desktop, Downloads, etc.)
+3. **Right-click** `SMS_Installer_1.8.6.3.exe` → **"Run as Administrator"**
+4. **Follow** the visual wizard (7 easy steps, ~10-15 minutes)
+
+**Features:**
+- ✅ Visual step-by-step wizard with progress tracking
+- ✅ Automatic Docker Desktop download and installation
+- ✅ System requirements validation
+- ✅ Real-time installation logs
+- ✅ GUI Uninstaller with backup options
+- ✅ Deep Docker cleanup for troubleshooting
+- ✅ No PowerShell execution policy issues
+
+**📖 Complete Guide:** [docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md](docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md)
+
+#### Fresh Installation / First-Time Setup (PowerShell Method)
+
+Use the consolidated deployment script:
 
 ```powershell
-.\INSTALL.ps1       # One-click installation wizard (requires Admin privileges)
+# First-time installation (builds image, creates env files, initializes DB)
+.\DOCKER.ps1 -Install
 ```
 
-The installer will:
+Performs automatically:
 
-- ✅ Check system prerequisites (Docker, PowerShell)
-- ✅ Install Docker Desktop automatically (if needed)
-- ✅ Create environment configuration files
-- ✅ Build the Docker image (takes 5-10 minutes)
-- ✅ Set up database volumes
-- ✅ Verify installation
-- ✅ Offer to start the application
+- ✅ System prerequisite checks (Docker Desktop running, PowerShell version)
+- ✅ Secure environment file generation & SECRET_KEY validation
+- ✅ Docker image build (cached on subsequent runs)
+- ✅ Volume/database initialization & migration run
+- ✅ Optional start prompt on success
 
-**📖 Full Installation Guide:** See [DEPLOY_ON_NEW_PC.md](DEPLOY_ON_NEW_PC.md) for detailed instructions
+Troubleshooting & full walkthrough: [DEPLOY_ON_NEW_PC.md](DEPLOY_ON_NEW_PC.md)
 
-#### Already Installed? Daily Usage:
+#### Already Installed? Daily Usage (Consolidated v2.0)
 
+We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 / SUPER_CLEAN_AND_DEPLOY.ps1) to **two primary entry points**:
+
+- **`DOCKER.ps1`** – Production/staging & operator tasks
+- **`NATIVE.ps1`** – Developer hot-reload workflow
+
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](SCRIPTS_CONSOLIDATION_GUIDE.md).
 
 ```powershell
-./RUN.ps1            # Start (or check if already running)
-./RUN.ps1 -Stop      # Stop cleanly
-./RUN.ps1 -Update    # Fast update (cached build + backup)
-./RUN.ps1 -UpdateNoCache  # Clean update (prune cache + --no-cache build + backup)
-./RUN.ps1 -Prune     # Prune Docker caches and old images (safe; keeps volumes)
-./RUN.ps1 -PruneAll  # Prune caches/images and unused networks (keeps volumes)
-./RUN.ps1 -Status    # Check if running
-./RUN.ps1 -Logs      # View application logs
-./RUN.ps1 -Backup    # Create manual backup
-./RUN.ps1 -FastUpdate  # Deprecated alias for -Update
+# Docker Deployment (Production / Staging)
+.\DOCKER.ps1 -Start          # Start (auto-build if image missing)
+.\DOCKER.ps1 -Stop           # Stop container(s) cleanly
+.\DOCKER.ps1 -Update         # Fast update (cached build + pre-backup)
+.\DOCKER.ps1 -UpdateClean    # Clean update (no-cache build + pre-backup)
+.\DOCKER.ps1 -Status         # Show status & health
+.\DOCKER.ps1 -Logs           # Tail backend logs
+.\DOCKER.ps1 -Backup         # Manual backup (timestamped)
+.\DOCKER.ps1 -Help           # Full command reference
+
+# Monitoring (optional stack)
+.\DOCKER.ps1 -WithMonitoring  # Start app + Grafana/Prometheus
+
+# Cleanup & Maintenance
+.\DOCKER.ps1 -Prune          # Safe cleanup (stopped containers, dangling images)
+.\DOCKER.ps1 -PruneAll       # Add unused networks (keeps volumes)
+.\DOCKER.ps1 -DeepClean      # Nuclear cleanup (rebuild required afterwards)
 ```
 
-**Docker Cache Cleanup (Advanced):**
+**Native Development Mode (Developers):**
 
 ```powershell
-./SMS.ps1 -PruneAll               # Safe cleanup (recommended for monthly maintenance)
-./DEEP_DOCKER_CLEANUP.ps1         # Aggressive cleanup - removes ALL Docker cache (safe, keeps data)
-./DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes -Force  # Nuclear option - DELETES DATABASE!
+.\NATIVE.ps1 -Setup          # Create venv + npm install
+.\NATIVE.ps1 -Start          # Start backend (uvicorn --reload) + frontend (Vite HMR)
+.\NATIVE.ps1 -Backend        # Backend only
+.\NATIVE.ps1 -Frontend       # Frontend only
+.\NATIVE.ps1 -Stop           # Stop all native processes
+.\NATIVE.ps1 -Status         # Show active dev processes
+.\NATIVE.ps1 -Clean          # Remove venv/node_modules build artifacts
+.\NATIVE.ps1 -Help           # Command reference
 ```
 
 > **📖 Full Cleanup Guide:** See [DOCKER_CLEANUP_GUIDE.md](DOCKER_CLEANUP_GUIDE.md) for detailed instructions
@@ -55,7 +92,7 @@ The installer will:
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
 - Docker Desktop must be running
 
-**Access the application:** Open <http://localhost:8082> in your browser
+**Access the application (Docker fullstack default port):** <http://localhost:8082>
 
 ### 🔐 Admin Login (First-Time Users)
 
@@ -110,80 +147,54 @@ Deploy to QNAP Container Station with PostgreSQL database:
 
 ---
 
-### **For Developers** - Advanced Setup
+### **For Developers** – Native Development Mode (Hot Reload)
 
-If you need to develop features or debug, use the advanced setup:
+Use native mode for hot-reload development:
 
 ```powershell
-# Native development mode (recommended for development)
-.\scripts\dev\run-native.ps1
+# Native development (NEW v2.0 - Consolidated)
+.\NATIVE.ps1 -Setup     # Install dependencies (first time)
+.\NATIVE.ps1 -Start     # Start backend + frontend with hot-reload
+.\NATIVE.ps1 -Backend   # Start backend only (uvicorn --reload)
+.\NATIVE.ps1 -Frontend  # Start frontend only (Vite HMR)
+.\NATIVE.ps1 -Stop      # Stop all processes
+.\NATIVE.ps1 -Status    # Check what's running
+.\NATIVE.ps1 -Help      # Show all commands
 
-# Docker multi-container mode (alternative)
-docker-compose up -d
-docker-compose down
-
-# Container management with SMS.ps1
-.\SMS.ps1 -Quick      # Start containers
-.\SMS.ps1 -Stop       # Stop containers
-.\SMS.ps1 -Status     # Show status
-.\SMS.ps1 -Logs       # View logs
+# Features:
+# • Backend:  http://localhost:8000 (FastAPI with hot-reload)
+# • Frontend: http://localhost:5173 (Vite with HMR)
+# • API Docs: http://localhost:8000/docs
 ```
 
-**See [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) for detailed installation guide!**
+**Docker Deployment (Testing/Production):**
+
+```powershell
+.\DOCKER.ps1 -Start
+.\DOCKER.ps1 -Stop
+.\DOCKER.ps1 -Help
+```
+
+Full guides: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) · [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 
 ---
 
-## 🗂️ Script Organization (v1.8.3)
+## 🗂️ Script Consolidation (v2.0)
 
-Scripts are organized into clear categories:
+All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`, `SUPER_CLEAN_AND_DEPLOY.ps1`) were archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
 
-### **End-User Entry Points** (Root Directory)
+Authoritative entry points:
 
-- `RUN.ps1` ⭐ - **ONE-CLICK deployment** (start/stop/update/backup)
-- `SMS.ps1` - Container management (for developers)
+- `DOCKER.ps1` – Deployment, monitoring, updates, backups, cleanup
+- `NATIVE.ps1` – Developer hot-reload workflow & maintenance
 
-> **Note:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app in v1.5.0+. All other scripts are deprecated or removed and now live under [`archive/`](archive/README.md) for historical reference.
+Specialized retained helpers:
+- `DEEP_DOCKER_CLEANUP.ps1` (nuclear cache purge)
+- `EXPORT_DOCKER_IMAGE.ps1` (distribution)
+- `scripts/CHECK_VOLUME_VERSION.ps1` (volume migration/versioning)
+- `SMART_BACKEND_TEST.ps1` (targeted backend test runner)
 
-### **Developer Workbench** ([scripts/dev/](scripts/dev/))
-
-For building, running, debugging, testing, and cleaning during development.
-
-**Key Scripts**:
-
-- `run-native.ps1` - Native development mode (backend + frontend)
-- `SMOKE_TEST.ps1` - Quick health check
-- `CLEANUP.bat` - Clean build artifacts
-- `SMART_BACKEND_TEST.ps1` - Backend test runner with logging
-- `.\.scripts\internal\DIAGNOSE_STATE.ps1` - Full diagnostics
-- `.\.scripts\internal\DEBUG_PORTS.ps1` - Port conflict debugging
-- `.\.scripts\internal\DEVTOOLS.ps1` - Advanced developer tools
-
-[Read Developer Guide →](scripts/dev/README.md)
-
-### **DevOps / Deployment** ([scripts/deploy/](scripts/deploy/))
-
-For deployment, Docker orchestration, and production maintenance.
-
-**Key Scripts**:
-
-- `CHECK_VOLUME_VERSION.ps1` - Check Docker volume versions
-- `docker/DOCKER_*.ps1` - Docker operations
-
-[Read Deployment Guide →](scripts/deploy/README.md)
-
-### **Release Automation & Compliance** ([scripts/ops/](scripts/ops/))
-
-Purpose-built helpers for archiving legacy releases, retiring unused GHCR images, and keeping compliance records in sync with each tag.
-
-**Key Assets**:
-
-- `scripts/ops/archive-releases.ps1` – Adds the ARCHIVED banner and toggles prerelease for every tag ≤ `ThresholdTag`. Supports `-DryRun`, optional `-ReleasesJsonPath` for offline simulation (see `scripts/ops/samples/releases.sample.json`), and custom `-GhPath` resolution.
-- `scripts/ops/remove-legacy-packages.ps1` – Deletes or privatizes `sms-*` container packages. Supports `-DryRun`, `-Privatize`, offline fixtures via `-PackageDataPath` (example: `scripts/ops/samples/package-versions.sample.json`), and custom CLI resolution with `-GhPath`.
-- [`Archive legacy releases` workflow](.github/workflows/archive-legacy-releases.yml) – GitHub Actions wrapper that runs the archival script directly from the Actions tab for an immutable audit log.
-
-Reference [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) for the full inventory and ownership map.
-
-**📖 Complete Guide**: See [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) for comprehensive documentation.
+Migration map & FAQ: `SCRIPTS_CONSOLIDATION_GUIDE.md`.
 
 ---
 
@@ -197,7 +208,7 @@ Reference [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) f
   - [📖 Πλήρης Οδηγός Χρήσης](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) - Complete user manual
 - 🧾 **Release Asset Inventory**: [docs/DEPLOYMENT_ASSET_TRACKER.md](docs/DEPLOYMENT_ASSET_TRACKER.md) – authoritative list of scripts, workflows, and runbooks required for deployments.
 
-## Backend runtime configuration (env)
+## Backend Runtime Configuration (env)
 
 See `backend/ENV_VARS.md` for recommended environment variables and secure defaults. In CI the test job runs with `DISABLE_STARTUP_TASKS=1` to avoid running migrations and background startup tasks when tests import the application.
 
@@ -206,7 +217,47 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 What's New in v1.6.5
+## 🆕 Latest Highlights (v1.8.6.4)
+
+### Security & Auth
+
+- Admin endpoints now respect `AUTH_MODE` via `optional_require_role()` (emergency access honored when disabled).
+- Password strength validation, login throttling & lockout, CSRF protection implemented.
+
+### Windows GUI Installer Suite
+
+- Visual 7-step installer & 5-step uninstaller executables (wizard experience, Docker auto-install, real-time logs).
+- Executable builder with PS2EXE/Inno Setup/Advanced Installer support.
+
+### Script Consolidation
+
+- Replaced RUN/INSTALL/SMS/native scripts with `DOCKER.ps1` & `NATIVE.ps1` (single-source management).
+
+### Performance & UX
+
+- Eager loading & caching improvements; memoized heavy React components; bundle code-splitting.
+
+### Documentation
+
+- Consolidated structure (`docs/user`, `docs/deployment`, `docs/development`) & master index updated.
+
+Full release notes: `CHANGELOG.md` (sections 1.8.6.0–1.8.6.4).
+
+---
+
+## Historical Highlights (Selected)
+
+### v1.6.5 – Control API Re-base Path & Restart UX
+
+Canonical `/control/api/*` path, shared `CONTROL_API_BASE`, restart UX improvements.
+
+### v1.6.4 – Repository Cleanup
+
+Systematic cleanup & maintainability upgrades.
+
+### v1.6.3 – Release Archive Pipeline
+
+Legacy release archival & GHCR retirement guidance.
 
 ### Latest Updates (November 2025)
 
@@ -217,7 +268,7 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 ---
 
-## 📦 What's New in v1.6.4
+<!-- Older detailed release sections trimmed for brevity. See CHANGELOG.md for full history. -->
 
 ### Latest Updates (November 2025)
 
@@ -455,17 +506,14 @@ pwsh -ExecutionPolicy Bypass -NoProfile -File .\RUN.ps1
 If you prefer manual control:
 
 ```powershell
-# Docker-first intelligent setup
-.\SMART_SETUP.ps1
+# First-time installation
+.\INSTALL.ps1
 
-# Force rebuild containers and dependencies
-.\SMART_SETUP.ps1 -Force
+# Development mode (separate processes, hot reload)
+.\scripts\dev\run-native.ps1
 
-# Development mode with separate backend/frontend containers
-.\SMART_SETUP.ps1 -DevMode
-
-# Prepare images without starting services
-.\SMART_SETUP.ps1 -SkipStart
+# Force rebuild containers
+.\RUN.ps1 -UpdateNoCache
 ```
 
 ### Developer Scripts

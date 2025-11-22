@@ -754,9 +754,11 @@ try {
         Write-Host "" 
         Write-Host "=== Docker Setup ===" -ForegroundColor Cyan
 
-    $candidateScripts = @(
-        (Join-Path $script:ScriptRoot 'RUN.ps1')
-    )        $setupScript = $candidateScripts | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+        $candidateScripts = @(
+            (Join-Path $script:ScriptRoot 'RUN.ps1')
+        )
+        
+        $setupScript = $candidateScripts | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 
         if (-not $setupScript) {
             $msg = 'RUN.ps1 not found. Unable to run Docker setup.'

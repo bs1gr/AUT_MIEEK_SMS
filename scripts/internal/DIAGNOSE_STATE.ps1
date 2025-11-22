@@ -289,113 +289,105 @@ Write-Host "`n" -NoNewline
 # ============================================
 switch ($deploymentState) {
     "DOCKER_CONTAINERIZED" {
-        Write-Header "HOW TO MANAGE (Docker Mode - Running)"
+        Write-Header "HOW TO MANAGE (Docker Fullstack - Running)"
 
-        Write-Action "View logs:"
-        Write-Host "  docker compose logs -f" -ForegroundColor White
-        Write-Host "  docker compose logs backend -f" -ForegroundColor Gray
-        Write-Host "  docker compose logs frontend -f" -ForegroundColor Gray
+        Write-Action "View logs (fullstack container):"
+        Write-Host "  .\DOCKER.ps1 -Logs" -ForegroundColor White
+        Write-Host "  docker compose logs -f            # Legacy compose (deprecated)" -ForegroundColor Gray
+        Write-Host "  docker compose logs backend -f    # Legacy compose (deprecated)" -ForegroundColor Gray
+        Write-Host "  docker compose logs frontend -f   # Legacy compose (deprecated)" -ForegroundColor Gray
 
-        Write-Action "`nRestart services:"
-        Write-Host "  docker compose restart" -ForegroundColor White
-        Write-Host "  docker compose restart backend" -ForegroundColor Gray
+        Write-Action "`nRestart / rebuild:"
+        Write-Host "  .\DOCKER.ps1 -Update       # Rebuild (cache) + restart" -ForegroundColor White
+        Write-Host "  .\DOCKER.ps1 -UpdateClean  # Rebuild w/o cache" -ForegroundColor White
+        Write-Host "  .\DOCKER.ps1 -Start        # Start if stopped" -ForegroundColor White
+        Write-Host "  docker compose restart          # Legacy compose" -ForegroundColor Gray
 
         Write-Action "`nStop services:"
-        Write-Host "  docker compose stop" -ForegroundColor White
-        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor Gray
+        Write-Host "  .\DOCKER.ps1 -Stop" -ForegroundColor White
+        Write-Host "  docker compose stop             # Legacy compose" -ForegroundColor Gray
 
-        Write-Action "`nStop and remove containers:"
-        Write-Host "  docker compose down" -ForegroundColor White
+        Write-Action "`nRemove all (deep clean):"
+        Write-Host "  .\DOCKER.ps1 -DeepClean" -ForegroundColor White
+        Write-Host "  docker compose down              # Legacy compose" -ForegroundColor Gray
 
-        Write-Action "`nRebuild and restart:"
-        Write-Host "  docker compose down" -ForegroundColor White
-        Write-Host "  docker compose up -d --build" -ForegroundColor White
-        Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
-
-        Write-Action "`nAccess application:"
-        Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
-        Write-Host "  Backend API: http://localhost:8000/docs" -ForegroundColor White
-        Write-Host "  Control Panel: http://localhost:5173/control" -ForegroundColor White
+        Write-Action "`nAccess application (single container):"
+        Write-Host "  Application (SPA + API): http://localhost:8080" -ForegroundColor White
+        Write-Host "  API Docs (Swagger):     http://localhost:8080/docs" -ForegroundColor White
+        Write-Host "  Health Check:           http://localhost:8080/health" -ForegroundColor White
     }
 
     "DOCKER_CONTAINERIZED_STOPPED" {
-        Write-Header "HOW TO MANAGE (Docker Mode - Stopped)"
+        Write-Header "HOW TO MANAGE (Docker Fullstack - Stopped)"
 
-        Write-Action "Start existing containers:"
-        Write-Host "  docker compose start" -ForegroundColor White
-        Write-Host "  OR" -ForegroundColor Gray
-        Write-Host "  docker compose up -d" -ForegroundColor White
-        Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
+        Write-Action "Start container:"
+        Write-Host "  .\DOCKER.ps1 -Start" -ForegroundColor White
+        Write-Host "  docker compose start          # Legacy compose" -ForegroundColor Gray
+        Write-Host "  docker compose up -d          # Legacy compose" -ForegroundColor Gray
 
-        Write-Action "`nRemove and recreate containers:"
-        Write-Host "  docker compose down" -ForegroundColor White
-        Write-Host "  docker compose up -d --build" -ForegroundColor White
-        Write-Host "  .\scripts\docker\DOCKER_REFRESH.ps1" -ForegroundColor Gray
+        Write-Action "`nFull rebuild:"
+        Write-Host "  .\DOCKER.ps1 -UpdateClean" -ForegroundColor White
+        Write-Host "  docker compose down              # Legacy compose" -ForegroundColor Gray
+        Write-Host "  docker compose up -d --build     # Legacy compose" -ForegroundColor Gray
 
-        Write-Action "`nView container status:"
-        Write-Host "  docker compose ps" -ForegroundColor White
+        Write-Action "`nStatus:"
+        Write-Host "  .\DOCKER.ps1 -Status" -ForegroundColor White
+        Write-Host "  docker compose ps                # Legacy compose" -ForegroundColor Gray
     }
 
     "NATIVE_HOST" {
-        Write-Header "HOW TO MANAGE (Native Host Mode - Running)"
+        Write-Header "HOW TO MANAGE (Native Mode - Running)"
 
         Write-Action "Stop services:"
         Write-Host "  Press Ctrl+C in each terminal" -ForegroundColor White
-        Write-Host "  OR use:" -ForegroundColor Gray
-        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor White
+        Write-Host "  OR: .\NATIVE.ps1 -Stop" -ForegroundColor White
 
-    Write-Action "`nRestart services:"
-    Write-Host "  1. Stop with Ctrl+C or SMS.ps1 -Stop" -ForegroundColor White
-    Write-Host "  2. Start with:" -ForegroundColor White
-    Write-Host "     .\SMS.ps1 -Quick" -ForegroundColor Gray
-    Write-Host "     OR" -ForegroundColor Gray
-    Write-Host "     .\RUN.ps1" -ForegroundColor Gray
+        Write-Action "`nRestart services:"
+        Write-Host "  1. Stop (Ctrl+C or .\NATIVE.ps1 -Stop)" -ForegroundColor White
+        Write-Host "  2. Start: .\NATIVE.ps1 -Start" -ForegroundColor White
+        Write-Host "     (First time: .\NATIVE.ps1 -Setup)" -ForegroundColor Gray
 
         Write-Action "`nView process details:"
-        if ($backendProcess) {
-            Write-Host "  Backend PID: $($backendProcess.Id)" -ForegroundColor White
-        }
-        if ($frontendProcess) {
-            Write-Host "  Frontend PID: $($frontendProcess.Id)" -ForegroundColor White
-        }
+        if ($backendProcess) { Write-Host "  Backend PID: $($backendProcess.Id)" -ForegroundColor White }
+        if ($frontendProcess) { Write-Host "  Frontend PID: $($frontendProcess.Id)" -ForegroundColor White }
 
         Write-Action "`nSwitch to Docker mode:"
-        Write-Host "  1. Stop native processes: .\SMS.ps1 -Stop" -ForegroundColor White
-        Write-Host "  2. Start Docker: docker compose up -d --build" -ForegroundColor White
-        Write-Host "     OR use: .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
+        Write-Host "  1. Stop native: .\NATIVE.ps1 -Stop" -ForegroundColor White
+        Write-Host "  2. Start fullstack: .\DOCKER.ps1 -Start" -ForegroundColor White
+        Write-Host "     (Advanced legacy compose: docker compose up -d --build)" -ForegroundColor Gray
     }
 
     "NOT_RUNNING" {
         Write-Header "HOW TO START THE APPLICATION"
 
         if ($dockerAvailable) {
-            Write-Host "RECOMMENDED: Start with Docker (Easier, More Reliable)" -ForegroundColor Cyan
+            Write-Host "RECOMMENDED: Docker Fullstack (Ενιαίος Container)" -ForegroundColor Cyan
             Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
             Write-Action "Quick Start (Docker):"
-            Write-Host "  docker compose up -d --build" -ForegroundColor White
-            Write-Host "  OR use:" -ForegroundColor Gray
-            Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor White
-            Write-Host "  .\scripts\docker\DOCKER_RUN.ps1 -Mode compose" -ForegroundColor Gray
+            Write-Host "  .\DOCKER.ps1 -Install   # Πρώτη φορά (build + init DB)" -ForegroundColor White
+            Write-Host "  .\DOCKER.ps1 -Start     # Εκκίνηση / επανεκκίνηση" -ForegroundColor White
+            Write-Host "  .\DOCKER.ps1 -Update    # Γρήγορο rebuild" -ForegroundColor White
+            Write-Host "  docker compose up -d --build   # Legacy compose (deprecated)" -ForegroundColor Gray
 
             Write-Action "`nAccess after starting:"
-            Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
-            Write-Host "  Backend API: http://localhost:8000/docs" -ForegroundColor White
+            Write-Host "  Application: http://localhost:8080" -ForegroundColor White
+            Write-Host "  API Docs:    http://localhost:8080/docs" -ForegroundColor White
             Write-Host "`n"
         }
 
-        Write-Host "ALTERNATIVE: Start Natively on Host" -ForegroundColor Cyan
+        Write-Host "ALTERNATIVE: Native Development (Χωριστά Backend/Frontend)" -ForegroundColor Cyan
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
         Write-Action "Prerequisites:"
         Write-Host "  - Python 3.11+ installed" -ForegroundColor White
         Write-Host "  - Node.js 18+ installed" -ForegroundColor White
 
-    Write-Action "`nQuick Start (Native):"
-    Write-Host "  .\RUN.ps1" -ForegroundColor White
-    Write-Host "  OR" -ForegroundColor Gray
-    Write-Host "  .\SMART_SETUP.ps1  # Advanced setup options" -ForegroundColor Gray
-    Write-Host "  .\SMS.ps1 -Quick   # Subsequent runs" -ForegroundColor Gray
+        Write-Action "`nQuick Start (Native):"
+        Write-Host "  .\NATIVE.ps1 -Setup   # Πρώτη φορά" -ForegroundColor White
+        Write-Host "  .\NATIVE.ps1 -Start   # Εκκίνηση" -ForegroundColor White
+        Write-Host "  .\NATIVE.ps1 -Stop    # Διακοπή" -ForegroundColor White
+        Write-Host "  .\SMART_SETUP.ps1     # Έξυπνη αυτόματη εγκατάσταση" -ForegroundColor Gray
 
         if (-not $dockerAvailable) {
             Write-Host "`n"
@@ -426,7 +418,7 @@ if ($dockerAvailable) {
 }
 
 Write-Action "`nDevelopment tools:"
-Write-Host "  .\scripts\DEVTOOLS.ps1              # Database backup/restore/sample data" -ForegroundColor White
+Write-Host "  .\scripts\DEVTOOLS.ps1              # Backup / restore / sample data (uses DOCKER.ps1 & NATIVE.ps1)" -ForegroundColor White
 
 # ============================================
 # PORT CONFLICTS

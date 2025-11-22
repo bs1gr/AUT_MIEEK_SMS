@@ -2,55 +2,60 @@
 
 This directory contains management scripts for the Student Management System.
 
-**Canonical entry points (v1.5.0+):** Use `..\RUN.ps1` (Docker, one-click) or `scripts/dev/run-native.ps1` (native dev only). Use `..\SMS.ps1` for Docker management. All other scripts are deprecated or internal.
+**Canonical entry points (v2.0+):** Use `..\DOCKER.ps1` (Docker deployment & operations) or `..\NATIVE.ps1` (native development mode). All former entry points (`RUN.ps1`, `SMS.ps1`, `INSTALL.ps1`, `scripts/dev/run-native.ps1`) are archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
 
 ## 📂 Directory Structure
 
 ```text
 scripts/
 ├── README.md                  # This file
-├── CLEANUP.bat               # Non-destructive cleanup
-├── ../SUPER_CLEAN_AND_DEPLOY.ps1 # Full cleanup (at root)
-├── SMOKE_TEST.ps1            # Quick health validation
+├── CLEANUP.bat                # Non-destructive cleanup
+├── SMOKE_TEST.ps1             # Quick health validation
+├── (Archived) SUPER_CLEAN_AND_DEPLOY.ps1 → replaced by DOCKER.ps1 flags
 ├── internal/                 # Internal utility scripts (advanced)
 └── docker/                   # Docker-specific scripts
 ```
 
-## 🎯 Main Scripts (For End Users)
+## 🎯 Main Scripts (Active)
 
+### Docker Deployment & Operations (Production / Staging)
 
-### Fullstack Docker Start (Recommended)
+- **Location:** `..\DOCKER.ps1`
+- **Purpose:** Consolidated Docker lifecycle (install, start/stop, update, monitoring, backups, logs, cleanup)
+- **Usage Examples:**
+  - Install: `.\DOCKER.ps1 -Install`
+  - Start: `.\DOCKER.ps1 -Start`
+  - Update (fast): `.\DOCKER.ps1 -Update`
+  - Update (clean): `.\DOCKER.ps1 -UpdateClean`
+  - Monitoring: `.\DOCKER.ps1 -WithMonitoring`
+  - Backup: `.\DOCKER.ps1 -Backup`
+  - Cleanup: `.\DOCKER.ps1 -Prune` / `-PruneAll` / `-DeepClean`
+  - Status: `.\DOCKER.ps1 -Status`
 
-- **Location:** `..\RUN.ps1` (in project root)
-- **Purpose:** One-command launcher for fullstack Docker deployment
-- **Usage:** `.\RUN.ps1`
-- **When to use:** Always use this for production, end-user, or test deployments (v1.5.0+)
+### Native Development (Hot Reload)
 
-### Native Development Start
+- **Location:** `..\NATIVE.ps1`
+- **Purpose:** Backend (uvicorn --reload) + frontend (Vite HMR) orchestration
+- **Usage Examples:**
+  - Setup deps: `.\NATIVE.ps1 -Setup`
+  - Start full dev: `.\NATIVE.ps1 -Start`
+  - Backend only: `.\NATIVE.ps1 -Backend`
+  - Frontend only: `.\NATIVE.ps1 -Frontend`
+  - Stop: `.\NATIVE.ps1 -Stop`
+  - Clean artifacts: `.\NATIVE.ps1 -Clean`
+  - Status: `.\NATIVE.ps1 -Status`
 
-- **Location:** `scripts/dev/run-native.ps1`
-- **Purpose:** Start backend and frontend in native development mode (hot reload)
-- **Usage:** `pwsh -NoProfile -File scripts/dev/run-native.ps1`
-- **When to use:** For local development and debugging (only supported native entry point as of v1.5.0)
+### Quick Health Check
 
-### Unified Management Interface ⭐ RECOMMENDED
+- **Script:** `SMOKE_TEST.ps1`
+- **Purpose:** Probe health endpoints & basic availability
+- **Usage:** `.\SMOKE_TEST.ps1`
 
-- **Location:** `..\SMS.ps1` (in project root)
-- **Purpose:** Interactive menu-driven management interface for Docker containers
-- **Usage:** `.\SMS.ps1`
-- **Features:**
-  - Start/Stop/Restart Docker containers
-  - System diagnostics and troubleshooting
-  - Database backup and restore
-  - View logs and environment info
-  - Port conflict detection
-  - Advanced developer tools access
-- **Why use this:** All-in-one interface, supersedes most individual scripts. Use for all Docker management.
+### Non-Destructive Cleanup
 
-### Emergency Stop (deprecated)
-
-- **Script:** `STOP.ps1` / `STOP.bat` (deprecated)
-- **Purpose:** Deprecated. Use `.\SMS.ps1 -Stop` instead. All direct stop scripts are removed in v1.5.0+.
+- **Script:** `CLEANUP.bat`
+- **Purpose:** Remove caches, build artifacts (preserves data volumes & DB)
+- **Usage:** `.\CLEANUP.bat`
 
 ## 🔧 Setup & Installation
 
@@ -58,7 +63,7 @@ scripts/
 
 ### Initial Setup
 
-> **Note:** As of v1.5.0, all setup is handled automatically by `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native). All other setup scripts are deprecated.
+> **Note:** As of v2.0, use `DOCKER.ps1 -Install` for first-time Docker setup and `NATIVE.ps1 -Setup` for developer environments. All prior setup scripts are archived.
 
 ---
 
@@ -66,7 +71,7 @@ scripts/
 
 ### `internal/` - Internal Utility Scripts
 
-These scripts are used internally by SMS.ps1 or for specialized maintenance tasks. Most users won't need to run these directly.
+These scripts were historically orchestrated by the legacy menu script `SMS.ps1` (now archived). They remain available for specialized maintenance or diagnostic tasks; most users won't need to run them directly under the consolidated v2.0 workflow.
 
 
 **Diagnostics & Debugging:**
@@ -94,7 +99,7 @@ These scripts are used internally by SMS.ps1 or for specialized maintenance task
 
 ### `docker/` - Docker-Specific Scripts
 
-Docker deployment and management scripts. Use SMS.ps1 for interactive Docker operations.
+Docker deployment and management helper scripts. Prefer `DOCKER.ps1` for consolidated operations; use these only for lower-level or experimental tasks.
 
 **Compose Operations:**
 
@@ -105,7 +110,7 @@ Docker deployment and management scripts. Use SMS.ps1 for interactive Docker ope
 
 **Fullstack Container:**
 
-Use the canonical one-click launcher `..\RUN.ps1` to start a single fullstack Docker container. Legacy `DOCKER_FULLSTACK_*` helpers were archived under `archive/scripts/docker/` (and `archive/scripts/deploy/docker/`) for reference only and no longer run in-place.
+Use the consolidated launcher `..\DOCKER.ps1 -Start` to run the fullstack container. Legacy fullstack helpers and `RUN.ps1` were archived (see `archive/deprecated/scripts_consolidation_2025-11-21/`).
 
 If you need lower-level control during development, use the Docker Compose helpers in `scripts/docker/` or run `docker compose` directly.
 
@@ -113,7 +118,7 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 - `DOCKER_UPDATE_VOLUME.ps1` - Migrate data between volume configurations
 
-<!-- Note: All legacy/ and setup/stop scripts removed or deprecated in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
+<!-- Legacy scripts removed in v2.0. Use only DOCKER.ps1 and NATIVE.ps1. -->
 
 ---
 
@@ -121,30 +126,25 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 
 **Starting the application?**
-→ Use `RUN.ps1` (Docker, one-click) or `scripts/dev/run-native.ps1` (native dev only)
+→ Docker: `DOCKER.ps1 -Start` | Native: `NATIVE.ps1 -Start`
 
+**Stopping everything?**
+→ Docker: `DOCKER.ps1 -Stop` | Native: `NATIVE.ps1 -Stop`
 
-**Need to stop everything?**
-→ Use `SMS.ps1 -Stop` or SMS.ps1 menu
+**First-time install?**
+→ `DOCKER.ps1 -Install` (Docker) | `NATIVE.ps1 -Setup` (native dev)
 
+**Troubleshooting?**
+→ `SMOKE_TEST.ps1` (quick), `internal/DIAGNOSE_STATE.ps1` (deep)
 
-**First time setup?**
-→ Use `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native)
-
-**Troubleshooting issues?**
-→ Use `SMS.ps1` → Option 6 (Diagnostics)
-
-**Database backup/restore?**
-→ Use `SMS.ps1` → Option 4 (Database Management)
+**Database backup?**
+→ `DOCKER.ps1 -Backup`
 
 **Port conflicts?**
-→ Use `SMS.ps1` → Option 7 (Debug Ports) or `.\scripts\internal\DEBUG_PORTS.ps1`
+→ `internal/DEBUG_PORTS.ps1`
 
-**Docker operations?**
-→ Use `SMS.ps1` → Option 5 (Docker Management) or `docker/` scripts
-
-**Advanced development tasks?**
-→ Use `.\scripts\internal\DEVTOOLS.ps1` or SMS.ps1 menu
+**Advanced dev tools?**
+→ `internal/DEVTOOLS.ps1`
 
 ---
 
@@ -155,9 +155,8 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 | Script | Location | Purpose |
 |--------|----------|---------|
-| RUN.ps1 | Root | Canonical Docker entry point (one-click) |
-| scripts/dev/run-native.ps1 | scripts/dev/ | Canonical native entry point (dev only) |
-| SMS.ps1 | Root | Unified management interface (recommended) |
+| DOCKER.ps1 | Root | Consolidated Docker lifecycle & ops |
+| NATIVE.ps1 | Root | Consolidated native dev lifecycle |
 | CLEANUP.bat | scripts/ | Non-destructive cleanup |
 
 ### Internal Utility Scripts (scripts/internal/)
@@ -181,20 +180,20 @@ If you need lower-level control during development, use the Docker Compose helpe
 |--------|---------|
 | DOCKER_DOWN.ps1 | Stop Docker Compose services |
 | DOCKER_REFRESH.ps1 | Rebuild Docker Compose |
-| DOCKER_RUN.ps1 | Advanced Docker startup |
+| (Archived) DOCKER_RUN.ps1 | Advanced Docker startup (superseded by DOCKER.ps1) |
 | DOCKER_SMOKE.ps1 | Docker health check |
 | DOCKER_UP.ps1 | Start Docker Compose |
 | DOCKER_UPDATE_VOLUME.ps1 | Migrate volume data |
 
 > **Legacy reference:** The removed `DOCKER_FULLSTACK_*` scripts are preserved in `archive/scripts/docker/` (and `archive/scripts/deploy/docker/`) for historical purposes.
 
-<!-- Legacy table removed. All legacy scripts are deprecated/removed in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
+<!-- Legacy table removed. All legacy scripts deprecated/removed. Use only DOCKER.ps1 and NATIVE.ps1 (v2.0+). -->
 
 ---
 
 ## ⚠️ Safety Notes
 
-- **SMS.ps1 -Stop** - Safe to use anytime, cleanly stops all services
+- **DOCKER.ps1 -Stop / NATIVE.ps1 -Stop** - Safe to use anytime, cleanly stop services/containers
 - **KILL_FRONTEND_NOW.ps1** - ⚠️ Emergency only! Kills ALL Node.js processes system-wide
 - **SUPER_CLEAN_AND_DEPLOY.ps1** (in root) - Full cleanup with optional rebuild
 - **Docker scripts** - Some operations may require admin privileges
@@ -207,34 +206,36 @@ If you need lower-level control during development, use the Docker Compose helpe
 ### First Time Setup
 
 ```powershell
-.\RUN.ps1    # One-click Docker setup and start (recommended)
-pwsh -NoProfile -File scripts/dev/run-native.ps1   # Native dev only
+.\DOCKER.ps1 -Install   # First-time Docker setup
+.\DOCKER.ps1 -Start     # Start fullstack container (auto-build if needed)
+.\NATIVE.ps1 -Setup     # Install native dev dependencies
+.\NATIVE.ps1 -Start     # Start backend + frontend (hot reload)
 ```
 
 ### Daily Usage
 
 ```powershell
-# Start
-.\RUN.ps1
+# Docker daily
+.\DOCKER.ps1 -Start
+.\DOCKER.ps1 -Status
+.\DOCKER.ps1 -Update      # or -UpdateClean
 
-# Stop (preferred)
-.\SMS.ps1 -Stop
-
-# Manage
-.\SMS.ps1
+# Native daily
+.\NATIVE.ps1 -Start
+.\NATIVE.ps1 -Status
 ```
 
 ### Troubleshooting
 
 ```powershell
-# Check what's wrong
-.\scripts\DIAGNOSE_STATE.ps1
+# Quick health probe
+.\SMOKE_TEST.ps1
 
-# Detailed port analysis
-.\scripts\DEBUG_PORTS.ps1
+# Deep diagnostics
+.\internal\DIAGNOSE_STATE.ps1
 
-# Full management interface
-.\SMS.ps1    # Select diagnostics options
+# Port analysis
+.\internal\DEBUG_PORTS.ps1
 ```
 
 
@@ -242,7 +243,7 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1   # Native dev only
 
 ```powershell
 # Native dev mode (hot reload)
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+.\NATIVE.ps1 -Start
 ```
 
 ## 📝 Legacy Scripts
@@ -255,50 +256,47 @@ The `.ps1` versions are the canonical implementation.
 **Application won't start?**
 
 ```powershell
-.\scripts\DIAGNOSE_STATE.ps1    # See what's wrong
-.\SMS.ps1                       # Use menu option 6 or 8
+.\SMOKE_TEST.ps1
+.\internal\DIAGNOSE_STATE.ps1
 ```
 
 **Port already in use?**
 
 ```powershell
-.\scripts\DEBUG_PORTS.ps1       # See what's using ports
-.\SMS.ps1 -Stop                 # Stop conflicts
+.\internal\DEBUG_PORTS.ps1
 ```
 
-**Want to reset everything?**
+**Want to clean artifacts?**
 
 ```powershell
-.\SMS.ps1 -Stop                 # Stop all services
-.\scripts\CLEANUP.ps1           # Clean temporary files
-.\SMART_SETUP.ps1               # Advanced setup (optional)
+.\DOCKER.ps1 -Stop      # (if running)
+.\CLEANUP.bat           # Non-destructive cleanup
 ```
 
 **Need database backup?**
 
 ```powershell
-.\SMS.ps1                       # Select option 'B'
+.\DOCKER.ps1 -Backup
 ```
 
 ## 📚 Documentation
 
 For more detailed documentation, see:
 
-- `../README.md` - Main project documentation
-- `../docs/user/QUICK_START_GUIDE.md` - Quick start guide
-- `../DEPLOYMENT_GUIDE.md` - Complete deployment instructions
-- `../docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md` - Fresh deployment troubleshooting
-- `../docs/REBUILD_TROUBLESHOOTING.md` - Rebuild troubleshooting
+-- `../README.md` - Main project documentation (consolidation + latest highlights)
+-- `../docs/user/QUICK_START_GUIDE.md` - Quick start guide
+-- `../DEPLOYMENT_GUIDE.md` - Complete deployment instructions
+-- `../docs/DOCUMENTATION_INDEX.md` - Master index (all guides)
 
 ### 🐧 Linux Helpers
 
-- `../scripts/linux_env_check.sh` — Validate Linux environment (Docker, Python, Node, pwsh, .env files); use `--fix` to auto-create safe items
-- `./dev/run-native.sh` — Start in native development mode (delegates to SMART_SETUP.ps1)
-- `./deploy/run-docker-release.sh` — Start in Docker release mode (delegates to SMART_SETUP.ps1)
+-- `../scripts/linux_env_check.sh` — Validate Linux environment (Docker, Python, Node, pwsh, .env files); use `--fix` to auto-create safe items
+-- `./dev/run-native.sh` — Native development (should mirror NATIVE.ps1 behavior)
+-- `./deploy/run-docker-release.sh` — Docker release (should mirror DOCKER.ps1 behavior)
 
 ## 🔐 Safety Notes
 
-- **SMS.ps1 -Stop**: Safe - stops services cleanly
+- **DOCKER.ps1 -Stop / NATIVE.ps1 -Stop**: Safe - stops services cleanly
 - **CLEANUP.ps1**: Safe - only removes build artifacts
 - **KILL_FRONTEND_NOW.ps1**: ⚠️ **DANGEROUS** - kills ALL Node.js processes
 - **DOCKER_DOWN.ps1**: Safe - stops containers but preserves data
@@ -306,12 +304,12 @@ For more detailed documentation, see:
 
 ## 💡 Tips
 
-1. **Use RUN.ps1** for simplicity - it handles everything automatically
-2. **Use SMS.ps1** for interactive management - menu-driven, can't go wrong
-3. **Use DIAGNOSE_STATE.ps1** when confused - shows current state and next steps
-4. **Backup before resetting** - Use SMS.ps1 → Backup before destructive operations
-5. **Check logs** - SMS.ps1 → Option 9 shows application logs
+1. **Use DOCKER.ps1** for all Docker lifecycle operations (install, start, update, backup, logs, cleanup).
+2. **Use NATIVE.ps1** for hot-reload development (backend + frontend).
+3. **Use SMOKE_TEST.ps1 / internal diagnostics** for quick or deep troubleshooting.
+4. **Backup before cleanup** - `DOCKER.ps1 -Backup` prior to `-DeepClean` or volume changes.
+5. **Check logs** - `DOCKER.ps1 -Logs`.
 
 ---
 
-**Need Help?** Run `.\SMS.ps1` and select option 'H' for help, or see `README.md`
+**Need Help?** Run `.\DOCKER.ps1 -Help` or `.\NATIVE.ps1 -Help`, or see `README.md`.

@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-19
-**Version**: 1.8.3
+**Last Updated**: 2025-11-22
+**Version**: 1.8.6.3
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -9,11 +9,12 @@ This document serves as the single source of truth for all project documentation
 
 ## 🗂️ Documentation Structure
 
-Documentation is organized into three main directories:
+Documentation is organized into four main directories:
 
 - **[user/](user/)** - User guides, quick starts, and how-tos → [INDEX](user/INDEX.md)
 - **[development/](development/)** - Technical docs, architecture, APIs → [INDEX](development/INDEX.md)
 - **[deployment/](deployment/)** - Operations, deployment, troubleshooting → [INDEX](deployment/INDEX.md)
+- **[reference/](reference/)** - Quick reference guides (scripts, security, Docker) → NEW
 
 ---
 
@@ -23,13 +24,16 @@ Documentation is organized into three main directories:
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-19)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-22)
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
+- **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
+- **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
 
 ### Installation & Deployment
 
 - **[INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)** - Step-by-step installation for Windows/Mac/Linux
-- **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
+- **[DEPLOY_ON_NEW_PC.md](../DEPLOY_ON_NEW_PC.md)** - Complete fresh installation guide
+- **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Production deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 
@@ -60,11 +64,18 @@ Documentation is organized into three main directories:
 
 ### Performance & Optimization
 
-- **[PERFORMANCE_OPTIMIZATIONS_2025-01-10.md](../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements
+- **[Archive: Performance Optimizations](../archive/sessions_2025-11/PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements (Archived)
   - Database indexing (+40% query speed)
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
   - React optimization (+60-70% render speed)
+
+### Scripts & Operations
+
+- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md)** - v2.0 Scripts Migration Guide
+  - **DOCKER.ps1** - All Docker deployment & management
+  - **NATIVE.ps1** - Native development mode
+  - Legacy script archive and migration notes
 
 ---
 
@@ -74,32 +85,73 @@ Documentation is organized into three main directories:
 
 **Start here**: [user/INDEX.md](user/INDEX.md)
 
+**Comprehensive Guide**:
+- **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** ⭐ NEW - Complete user manual
+  - Installation & access (all methods)
+  - Student, course, grade management
+  - Attendance tracking
+  - Reports & analytics
+  - Import/export data
+  - System settings
+  - Troubleshooting
+  - FAQs
+
+**Quick References**:
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Get started in 5 minutes
 - **[user/THEME_GUIDE.md](user/THEME_GUIDE.md)** - Customize UI themes
 - **[user/THEMES_SUMMARY.md](user/THEMES_SUMMARY.md)** - Available themes overview
 - **[user/LOCALIZATION.md](user/LOCALIZATION.md)** - Language switching (EN/EL)
 
+**Greek Language**:
+- **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Οδηγός γρήγορης εκκίνησης
+- **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Πλήρες εγχειρίδιο χρήστη
+
 ### 💻 For Developers
 
 **Start here**: [development/INDEX.md](development/INDEX.md)
 
+**Comprehensive Guide**:
+- **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** ⭐ NEW - Complete developer manual
+  - Quick start for developers (5-minute setup)
+  - System architecture overview
+  - Backend development (FastAPI, SQLAlchemy)
+  - Frontend development (React, Vite)
+  - Database & migrations (Alembic)
+  - Authentication & security (JWT)
+  - API development patterns
+  - Testing (pytest, Playwright)
+  - Performance optimization
+  - Contributing guidelines
+
+**Architecture & Design**:
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
 - **[development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows
 - **[development/AUTHENTICATION.md](development/AUTHENTICATION.md)** - Auth implementation guide
-- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
 - **[development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common API examples
+
+**Development Tools**:
+- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
 ### 🚀 For DevOps/Operators
 
 **Start here**: [deployment/INDEX.md](deployment/INDEX.md)
 
+**Deployment**:
+- **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Production deployment guide
+- **[DEPLOY_ON_NEW_PC.md](../DEPLOY_ON_NEW_PC.md)** - Fresh installation (automated + manual)
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker commands and management
 - **[deployment/DEPLOY.md](deployment/DEPLOY.md)** - Deployment procedures
 - **[deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational runbook
+
+**Troubleshooting**:
 - **[FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
 - **[REBUILD_TROUBLESHOOTING.md](REBUILD_TROUBLESHOOTING.md)** - Rebuild troubleshooting
 - **[DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Release readiness inventory
+
+**Reference Guides** (NEW):
+- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
+- **[reference/DOCKER_CLEANUP_GUIDE.md](reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures
 
 
 ### Release Automation
@@ -111,10 +163,54 @@ Documentation is organized into three main directories:
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
 
 
-### Guides (Greek)
+---
 
-- **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
-- **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
+## 🗑️ Archived Documentation (November 2025)
+
+As part of the v1.8.6.3 documentation consolidation effort, 18 temporal session documents have been archived to reduce root directory clutter while preserving historical records.
+
+### Archive Location
+
+**Path:** `archive/sessions_2025-11/`
+
+**Archive Index:** [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md)
+
+### What Was Archived
+
+| Category | Files | Purpose |
+|----------|-------|---------|
+| **Auth Fix Session** | 4 files | Authentication fix documentation (Nov 21-22) |
+| **Production Fixes** | 5 files | Installation & deployment improvements (Nov 21) |
+| **Scripts Consolidation** | 2 files | Script consolidation reports (Nov 21) |
+| **Analysis & Cleanup** | 3 files | Codebase analysis and cleanup (Nov 20) |
+| **QNAP Deployment** | 3 files | QNAP deployment documentation (Nov 19-20) |
+| **Performance** | 1 file | Performance optimizations summary (Jan 10) |
+
+**Total:** 18 files archived (~500 KB, ~15,000 lines)
+
+### Key Archived Documents
+
+- `SESSION_2025-11-22_AUTH_FIX.md` - Comprehensive auth fix documentation
+- `OPERATIONAL_STATUS.md` - System operational status report  
+- `COMMIT_SUMMARY.md` - Commit preparation documentation
+- `PERFORMANCE_OPTIMIZATIONS_2025-01-10.md` - Performance improvements
+- `QNAP_DEPLOYMENT_REPORT.md` - QNAP deployment completion
+- And 13 more session/temporal documents
+
+### Accessing Archived Documents
+
+```powershell
+# View archive contents
+Get-ChildItem "archive/sessions_2025-11" | Select-Object Name
+
+# Read archived document
+Get-Content "archive/sessions_2025-11/SESSION_2025-11-22_AUTH_FIX.md"
+
+# Search archive
+Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MODE"
+```
+
+**See:** [Archive README](../archive/sessions_2025-11/README.md) for complete inventory and restoration procedures
 
 ---
 
@@ -124,79 +220,33 @@ Documentation is organized into three main directories:
 
 | Status | Count | Description |
 |--------|-------|-------------|
-| ✅ Active | 14 | Current, maintained documentation |
+| ✅ Active | 25+ | Current, maintained documentation |
+| ⭐ NEW | 3 | Consolidated comprehensive guides |
+| 📁 Archived | 18 | Historical session documents (Nov 2025) |
 | 🧪 Draft | 4 | New skeletons pending expansion |
-| 🔍 Audit Workflow | 1 | GitHub Action enforcing freshness & status (doc-audit.yml) |
 
-### Archived Historical Docs
+### Recent Updates (2025-11-22)
 
-The following documents have been moved to `archive/` for historical reference:
+**NEW Comprehensive Guides Created:**
+1. ✨ **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** - Complete user manual (all features)
+2. ✨ **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** - Complete developer manual (all workflows)
+3. 📁 **NEW Directory:** `docs/reference/` - Quick reference guides
 
-**2025-11-16 Archival Wave** (Completed analyses & cleanup artifacts):
+**Documentation Reorganization:**
+- Moved `SECURITY_GUIDE.md` → `docs/reference/SECURITY_GUIDE.md`
+- Moved `DOCKER_CLEANUP_GUIDE.md` → `docs/reference/DOCKER_CLEANUP_GUIDE.md`
+- Archived 18 temporal documents → `archive/sessions_2025-11/`
+- Created comprehensive archive index
 
-| File | Original Date | Category |
-|------|---------------|----------|
-| `APP_LIFECYCLE_EVALUATION.md` | 2025-11-06 | Lifecycle evaluation (completed) |
-| `ARTIFACT_STRATEGY.md` | Planning | Strategy doc (implemented) |
-| `CI_MONITORING_CHANGES_SUMMARY.md` | 2025-11-11 | Change summary |
-| `CLEANUP_COMPLETE.md` | 2025-11-16 | Cleanup report |
-| `CLEANUP_SUMMARY.md` | 2025-11-16 | Technical summary |
-| `CODE_REVIEW_FINDINGS.md` | 2025-10-29 | Code review (v1.0) |
-| `DEPENDENCY_UPGRADES.md` | 2025 (stale) | Upgrade analysis |
-| `DOCUMENTATION_CLEANUP_2025-01-10.md` | 2025-01-10 | Doc consolidation |
-| `FRONTEND_ASSESSMENT.md` | 2025 (stale) | Frontend assessment |
-| `GITHUB_RELEASE_DRAFT_v1.2.0.md` | Historical | Release draft |
-| `HISTORY_PURGE_PLAN.md` | Planning | Purge planning |
-| `MODE_AWARE_UI_QUICK_REFERENCE.md` | Feature ref | UI reference |
-| `NEXT_STEPS.md` | 2025-11-16 | Action items |
-| `PR_DRAFT.md` | Historical | PR description |
-| `REMOVED_DOCS_SUMMARY.md` | 2025-11-04 | Removal summary |
-| `ROUTER_REFACTORING_STATUS.md` | 2025-11-06 | Refactoring status |
-| `SECURITY_AUDIT.md` | 2025 (stale) | Security audit |
-| `TERMINAL_BEST_PRACTICES.md` | 2025-10-29 | Terminal practices |
-| `V1.2.0_IMPROVEMENTS.md` | Historical | Version improvements |
-| `scripts/stage_and_commit.ps1` | 2025-11-16 | Automation script |
-
-### Obsolete Asset Archive (New)
-
-- **Folder:** `archive/obsolete/`
-- **Purpose:** Preserve removed runtime assets (legacy templates, deprecated scripts) for audit/reference without keeping them in active paths.
-- **Highlights:** `templates/power.html` now lives here after the Power page switched fully to the React SPA in v1.8.3. Any documentation pointing to the old template should reference this archive instead.
-
-### New Additions (2025-11-16)
-
-1. 🧪 **RUNBOOK.md (draft)** added under `docs/deployment/` for structured deployment & rollback steps.
-2. 🧪 **API_EXAMPLES.md (draft)** added under `docs/development/` centralizing typical request/response patterns.
-3. 🔗 **README.md** now links directly to this index for faster discovery.
-4. 📦 Documentation count table updated to distinguish active vs draft artifacts.
-
-### Recent Updates (2025-11-15)
-
-1. ✅ **Release finalized**: README, CHANGELOG, and `.env` all aligned to v1.6.3 with explicit guidance for archiving older assets.
-2. 🗂️ **Archive surfaced**: Added instructions for packaging legacy setup/stop wrappers inside GitHub Releases and pointed operators to `archive/README.md`.
-3. 📚 **Docs refreshed**: README, docs/SCRIPTS_GUIDE.md, and docs/releases notes now explain the v1.6.3 cut plus the new GitHub package retirement workflow.
-
-### Previous Updates (2025-01-10)
-
-1. ✅ **Created**: PERFORMANCE_OPTIMIZATIONS_2025-01-10.md
-2. ✅ **Created**: DOCUMENTATION_CLEANUP_2025-01-10.md
-3. ✅ **Updated**: TODO.md (comprehensive refresh)
-4. ✅ **Created**: This documentation index
-5. 🗑️ **Removed**: 9 deprecated/outdated documentation files
-
-- DEPLOYMENT_READINESS_ANALYSIS.md
-- REFACTORING_PLAN.md
-- RELEASE_READINESS_v1.3.9.md
-- DEPLOYMENT_DECISION_TREE.md
-- docs/IMPROVEMENT_ROADMAP.md
-- docs/V2_MODERNIZATION_ROADMAP.md
-- docs/DATABASE_REFACTORING_ANALYSIS.md
-- docs/RELEASE_NOTES_IMPORT_RESOLVER_SWEEP.md
-- docs/DEPLOYMENT_MODE_DECISION.md
+**Root Directory Cleanup:**
+- Before: 32+ .md files in root
+- After: 11 essential .md files in root
+- Reduction: 65% fewer root-level documents
+- All historical documents preserved in archive
 
 ---
 
-## 🧭 Navigation Guide
+## 📚 Documentation Guidelines
 
 ### I want to
 
