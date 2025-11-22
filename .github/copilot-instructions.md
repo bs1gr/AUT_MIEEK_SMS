@@ -7,17 +7,30 @@
 **Most common tasks:**
 
 ```powershell
-.\RUN.ps1                     # One-click Docker start (builds if needed)
-.\RUN.ps1 -Stop               # Stop fullstack container
-.\RUN.ps1 -Update             # Update with automatic backup
-.\SMS.ps1                     # Management menu (status, diagnostics, backups)
-.\SMS.ps1 -PruneAll           # Docker cache cleanup (safe)
-.\DEEP_DOCKER_CLEANUP.ps1     # Nuclear cleanup - removes ALL Docker cache
-.\scripts\dev\run-native.ps1  # Native development mode
-.\SMART_SETUP.ps1 -Force      # Force rebuild (advanced only)
-.\SUPER_CLEAN_AND_DEPLOY.ps1  # Full cleanup + optional setup
-cd backend && pytest -q        # Run tests
-alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
+# Docker Deployment (v2.0 Consolidated)
+.\DOCKER.ps1 -Start               # Start Docker deployment (builds if needed)
+.\DOCKER.ps1 -Stop                # Stop Docker container
+.\DOCKER.ps1 -Update              # Fast update with automatic backup
+.\DOCKER.ps1 -Install             # First-time installation
+.\DOCKER.ps1 -Prune               # Safe Docker cleanup
+.\DOCKER.ps1 -WithMonitoring      # Start with Grafana/Prometheus
+.\DOCKER.ps1 -Help                # Show all commands
+
+# Native Development (v2.0 Consolidated)
+.\NATIVE.ps1 -Setup               # Install dependencies (first time)
+.\NATIVE.ps1 -Start               # Start backend + frontend with hot-reload
+.\NATIVE.ps1 -Stop                # Stop all processes
+.\NATIVE.ps1 -Backend             # Backend only (uvicorn --reload)
+.\NATIVE.ps1 -Frontend            # Frontend only (Vite HMR)
+.\NATIVE.ps1 -Help                # Show all commands
+
+# Legacy Scripts (Deprecated - See SCRIPTS_CONSOLIDATION_GUIDE.md)
+# RUN.ps1, INSTALL.ps1, SMS.ps1 → Use DOCKER.ps1 instead
+# scripts\dev\run-native.ps1 → Use NATIVE.ps1 instead
+
+# Database & Testing
+cd backend && pytest -q                                             # Run tests
+alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migration
 ```
 
 **New: SMART_SETUP.ps1 - Intelligent Installation**
@@ -63,10 +76,10 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head  # DB migration
 - Backend: `backend/main.py` (lifespan-managed, includes Control Panel at `/control`)
 - Frontend: `frontend/src/App.jsx` → `StudentManagementApp.jsx`
 - Scripts: 
-  - **Production:** `RUN.ps1` (one-click Docker)
-  - **Development:** `scripts\dev\run-native.ps1` (native mode)
-  - **Management:** `SMS.ps1` (interactive menu)
-  - **Advanced:** `SMART_SETUP.ps1`, `SUPER_CLEAN_AND_DEPLOY.ps1`, `SMART_BACKEND_TEST.ps1`
+  - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
+  - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
+  - **Legacy (Archived):** `RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts\dev\run-native.ps1`
+  - **See:** `SCRIPTS_CONSOLIDATION_GUIDE.md` for migration details
 
 ## Critical Patterns (Learn These First)
 
@@ -94,6 +107,24 @@ async def create_item(item: ItemCreate, request: Request, db: Session = Depends(
     # Access request.state.request_id for logging
     # Raise HTTPException(status_code=400, detail="error") for errors
 ```
+
+**CRITICAL: Admin Endpoint Authentication**
+```python
+# ❌ WRONG - Bypasses AUTH_MODE (never use for admin endpoints)
+@router.get("/admin/users")
+async def list_users(current_admin: Any = Depends(require_role("admin"))):
+    pass
+
+# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)  
+@router.get("/admin/users")
+async def list_users(current_admin: Any = Depends(optional_require_role("admin"))):
+    pass
+```
+
+**AUTH_MODE Behavior:**
+- `disabled`: No authentication required (emergency access)
+- `permissive`: Authentication optional (recommended for production)
+- `strict`: Full authentication required (maximum security)
 
 ### Pydantic Validation Pattern
 
@@ -132,22 +163,30 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 
 ## Common Workflows
 
-### Start/Stop Application (NEW - Intelligent Setup)
+### Start/Stop Application (v2.0 - Consolidated Scripts)
 
 ```powershell
-.\RUN.ps1            # Intelligent Docker-first setup & start
-.\RUN.ps1 -Update    # Update with automatic backup
-.\RUN.ps1 -Stop      # Stop fullstack container
-.\RUN.ps1 -Status    # Check running state
-.\SMS.ps1 -Stop      # Alternate stop via management menu
+# Docker Deployment
+.\DOCKER.ps1 -Install         # First-time installation
+.\DOCKER.ps1 -Start           # Start (default, builds if needed)
+.\DOCKER.ps1 -Update          # Fast update with backup
+.\DOCKER.ps1 -UpdateClean     # Clean update (no-cache + backup)
+.\DOCKER.ps1 -Stop            # Stop cleanly
+.\DOCKER.ps1 -Status          # Check status
+.\DOCKER.ps1 -WithMonitoring  # Start with monitoring stack
+.\DOCKER.ps1 -Prune           # Safe cleanup
+.\DOCKER.ps1 -DeepClean       # Nuclear cleanup
 
-# Advanced setup options
-.\SMART_SETUP.ps1            # Build & start (fullstack Docker)
-.\SMART_SETUP.ps1 -Force     # Force rebuild all images
-.\SMART_SETUP.ps1 -SkipStart # Build-only mode
-.\SMART_SETUP.ps1 -DevMode   # Multi-container dev mode (backend + frontend)
-.\SMART_SETUP.ps1 -Verbose   # Detailed logging
+# Native Development
+.\NATIVE.ps1 -Setup           # Install dependencies
+.\NATIVE.ps1 -Start           # Start backend + frontend
+.\NATIVE.ps1 -Backend         # Backend only (hot-reload)
+.\NATIVE.ps1 -Frontend        # Frontend only (HMR)
+.\NATIVE.ps1 -Stop            # Stop all
+.\NATIVE.ps1 -Status          # Check status
 ```
+
+**Migration Note:** Old scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) are deprecated and archived. See `SCRIPTS_CONSOLIDATION_GUIDE.md`.
 
 **What SMART_SETUP does:**
 1. Detects first-time installation vs existing

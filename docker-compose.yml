@@ -29,6 +29,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
       # Authentication and admin bootstrap
       - AUTH_ENABLED=${AUTH_ENABLED:-False}
+      - AUTH_MODE=${AUTH_MODE:-permissive}
       - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-}
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-}
       - DEFAULT_ADMIN_FULL_NAME=${DEFAULT_ADMIN_FULL_NAME:-}

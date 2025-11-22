@@ -164,17 +164,14 @@ function Show-Menu {
 function Build-FullstackImage {
     if (-not (Ensure-DockerRunning)) { return }
 
-    Write-Host ""
-    Write-Host "Building Fullstack Image..." -ForegroundColor Blue
-    Write-Host ""
+    Write-Host ""; Write-Host "Building / Updating Fullstack Container Image..." -ForegroundColor Blue; Write-Host ""
     $useNoCache = Read-Host "Use no-cache rebuild? (y/N)"
     if ($useNoCache -match '^(y|yes)$') {
-        & ".\RUN.ps1" -UpdateNoCache
+        & ".\DOCKER.ps1" -UpdateClean
     } else {
-        & ".\RUN.ps1" -Update
+        & ".\DOCKER.ps1" -Update
     }
-    Write-Host ""
-    Pause-ForUser
+    Write-Host ""; Pause-ForUser
 }
 
 function View-ContainerLogs {
@@ -851,21 +848,15 @@ function Remove-OldVolumes {
 }
 
 function Start-Native {
-    Write-Host ""
-    Write-Host "Starting Native Mode (Backend + Frontend)..." -ForegroundColor Green
-    Write-Host ""
-    & ".\RUN.ps1"
-    Write-Host ""
-    Pause-ForUser
+    Write-Host ""; Write-Host "Starting Native Mode (Backend + Frontend)..." -ForegroundColor Green; Write-Host ""
+    & ".\NATIVE.ps1" -Start
+    Write-Host ""; Pause-ForUser
 }
 
 function Stop-Native {
-    Write-Host ""
-    Write-Host "Stopping Native Services..." -ForegroundColor Yellow
-    Write-Host ""
-    & ".\SMS.ps1" -Stop
-    Write-Host ""
-    Pause-ForUser
+    Write-Host ""; Write-Host "Stopping Native Services..." -ForegroundColor Yellow; Write-Host ""
+    & ".\NATIVE.ps1" -Stop
+    Write-Host ""; Pause-ForUser
 }
 
 function Stop-NativeForced {
@@ -908,23 +899,23 @@ function Open-Application {
 }
 
 function Show-Help {
-    Write-Host ""
-    Write-Host "Help Documentation:" -ForegroundColor Blue
-    Write-Host ""
-    Write-Host "Basic Workflow:" -ForegroundColor Yellow
-    Write-Host "  1. Run RUN.ps1 (first time auto-setup) or SMART_SETUP.ps1 for advanced install" -ForegroundColor White
-    Write-Host "  2. Run RUN.ps1 to start the app" -ForegroundColor White
-    Write-Host "  3. Access at http://localhost:8080" -ForegroundColor White
-    Write-Host "  4. Use SMS.ps1 -Stop to stop the app" -ForegroundColor White
-    Write-Host ""
-    Write-Host "Documentation:" -ForegroundColor Yellow
-    Write-Host "  README.md          - Main documentation" -ForegroundColor White
-    Write-Host "  DOCKER.md          - Docker guide" -ForegroundColor White
-    Write-Host "  CONTROL_PANEL_GUIDE.md - Control panel usage" -ForegroundColor White
-    Write-Host ""
-    Write-Host "For more help, see the README.md file." -ForegroundColor Gray
-    Write-Host ""
-    Pause-ForUser
+    Write-Host ""; Write-Host "Help Documentation:" -ForegroundColor Blue; Write-Host ""
+    Write-Host "Basic Workflow (Consolidated Scripts):" -ForegroundColor Yellow
+    Write-Host "  1. First time (auto detection): SMART_SETUP.ps1               # Προαιρετικό" -ForegroundColor White
+    Write-Host "  2. Docker mode:   .\DOCKER.ps1 -Install  (πρώτη φορά)" -ForegroundColor White
+    Write-Host "                    .\DOCKER.ps1 -Start    (εκκίνηση)" -ForegroundColor White
+    Write-Host "                    .\DOCKER.ps1 -Update   (rebuild)" -ForegroundColor White
+    Write-Host "                    .\DOCKER.ps1 -Stop     (διακοπή)" -ForegroundColor White
+    Write-Host "  3. Native mode:   .\NATIVE.ps1 -Setup    (πρώτη φορά)" -ForegroundColor White
+    Write-Host "                    .\NATIVE.ps1 -Start    (εκκίνηση)" -ForegroundColor White
+    Write-Host "                    .\NATIVE.ps1 -Stop     (διακοπή)" -ForegroundColor White
+    Write-Host "  4. Access: Docker http://localhost:8080 | Native UI http://localhost:5173" -ForegroundColor White
+    Write-Host ""; Write-Host "Documentation:" -ForegroundColor Yellow
+    Write-Host "  README.md                 - Main documentation" -ForegroundColor White
+    Write-Host "  scripts/README.md         - Scripts reference" -ForegroundColor White
+    Write-Host "  docs/ARCHITECTURE.md      - System architecture" -ForegroundColor White
+    Write-Host ""; Write-Host "For more help, see the README.md file." -ForegroundColor Gray
+    Write-Host ""; Pause-ForUser
 }
 
 # ============================================================================

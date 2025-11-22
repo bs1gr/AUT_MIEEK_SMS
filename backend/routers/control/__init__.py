@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import base, operations, monitoring, logs, housekeeping, frontend_dev
+from . import base, operations, monitoring, logs, housekeeping, frontend_dev, maintenance
 
 router = APIRouter(prefix="/control/api", tags=["Control Panel"])
 
@@ -13,3 +13,4 @@ router.include_router(monitoring.router)
 router.include_router(logs.router)
 router.include_router(housekeeping.router)
 router.include_router(frontend_dev.router)
+router.include_router(maintenance.router)

@@ -6,6 +6,164 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.6.4] - 2025-11-22
+
+### Fixed
+
+- **Admin Endpoints AUTH_MODE Compliance**
+  - Fixed 6 admin endpoints that were bypassing AUTH_MODE setting
+  - Changed from `require_role()` to `optional_require_role()` decorator
+  - Affected endpoints:
+    - GET `/admin/users` - List all users
+    - POST `/admin/users` - Create user
+    - PATCH `/admin/users/{user_id}` - Update user  
+    - DELETE `/admin/users/{user_id}` - Delete user
+    - POST `/admin/users/{user_id}/reset-password` - Reset password
+    - POST `/admin/users/{user_id}/unlock` - Unlock account
+  - Admin panel now respects AUTH_MODE=disabled for emergency access
+  - Resolves "Access Denied" issue despite being logged in as admin
+
+### Added
+
+- **Windows GUI Installation Wizard** (`tools/installer/SMS_INSTALLER_WIZARD.ps1`)
+  - Professional 7-step visual installation wizard using Windows Forms
+  - Automatic system requirements validation (Windows, PowerShell, Admin, Disk, RAM, Docker)
+  - Automatic Docker Desktop download and installation (~500 MB)
+  - Real-time installation progress with color-coded log output
+  - Custom installation path, port, and admin credentials configuration
+  - Docker image building with live progress tracking
+  - Application verification after installation
+  - Comprehensive error handling with rollback support
+  - Browser launch on completion
+  - No PowerShell knowledge required for end users
+
+- **Windows GUI Uninstaller Wizard** (`tools/installer/SMS_UNINSTALLER_WIZARD.ps1`)
+  - Professional 5-step visual uninstallation wizard
+  - Data preservation options (keep database and backups)
+  - Automatic backup creation to Desktop before uninstall
+  - Docker cleanup levels:
+    - Standard Cleanup: Removes SMS containers/images only
+    - Deep Cleanup: Removes ALL Docker cache (integrates with DEEP_DOCKER_CLEANUP.ps1)
+  - Real-time uninstallation progress tracking
+  - Safe removal with comprehensive error handling
+  - Preserves user data by default (recommended for reinstallation)
+
+- **Executable Installer Builder** (`tools/installer/BUILD_INSTALLER_EXECUTABLE.ps1`)
+  - Builds standalone Windows executables from PowerShell GUI scripts
+  - Supports multiple packaging methods:
+    - PS2EXE (default, free) - PowerShell-to-EXE converter
+    - Inno Setup (free) - Professional MSI-style installer
+    - Advanced Installer (commercial) - Enterprise MSI installer
+  - Automatic PS2EXE installation from PowerShell Gallery
+  - Creates distribution packages with documentation
+  - Code signing support (Authenticode)
+  - Generates README.txt for distribution
+  - Creates ZIP archives for easy distribution
+
+- **Batch Launcher Scripts**
+  - `SMS_INSTALLER_WIZARD.bat` - Double-click installer launcher
+  - `SMS_UNINSTALLER_WIZARD.bat` - Double-click uninstaller launcher
+  - Administrator privilege checking
+  - PowerShell execution policy bypass
+  - User-friendly error messages
+
+- **Comprehensive Documentation**
+  - `docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md` (~700 lines)
+    - Complete guide for end users, admins, and developers
+    - Installation scenarios with step-by-step instructions
+    - Uninstallation scenarios (keep data, full removal, troubleshooting)
+    - Docker cleanup options explained
+    - Deployment strategies (executable, network, SCCM/Intune)
+    - Troubleshooting section with common issues
+    - Developer customization guide
+  - `tools/installer/RELEASE_CHECKLIST.md` (~800 lines)
+    - Pre-release verification steps
+    - Build process for all packaging methods
+    - Testing matrix (OS combinations + Docker status)
+    - GitHub release creation process
+    - Code signing guide (commercial + self-signed)
+    - Post-release monitoring checklist
+  - `tools/installer/IMPLEMENTATION_SUMMARY.md`
+    - Complete technical overview
+    - Architecture documentation
+    - Code metrics and statistics
+    - Testing coverage
+    - Deployment options
+    - Known issues and future enhancements
+
+### Changed
+
+- **README.md** - Enhanced Quick Start section
+  - Added Windows GUI Installer as primary installation method
+  - Highlighted GUI installer features (no PowerShell knowledge required)
+  - Added link to Windows Installer Wizard Guide
+  - Reorganized installation options (GUI first, PowerShell second)
+
+- **Installation Workflow**
+  - GUI installer now recommended method for non-technical users
+  - PowerShell scripts still available for automation/customization
+  - MSI installer option for enterprise deployment
+
+### Rationale
+
+**Why Create GUI Installers?**
+
+1. **Lower Technical Barrier:**
+   - Many end users unfamiliar with PowerShell
+   - GUI wizard provides visual guidance
+   - No command-line knowledge required
+   - Professional installation experience
+
+2. **No PowerShell Execution Policy Issues:**
+   - Executables bypass script execution restrictions
+   - No need to set ExecutionPolicy
+   - Works on locked-down corporate systems
+   - Removes common installation blocker
+
+3. **Professional Distribution:**
+   - Standalone EXE files are easier to distribute
+   - Can be code-signed for trust
+   - No Windows SmartScreen issues with signed executables
+   - Familiar installation experience for users
+
+4. **Enterprise Deployment:**
+   - MSI installer option for SCCM/Intune
+   - Group Policy deployment support
+   - Silent installation capability (Inno Setup)
+   - Appears in Add/Remove Programs
+
+5. **Better User Experience:**
+   - Real-time progress feedback
+   - Clear error messages
+   - Guided configuration
+   - Automatic prerequisite handling
+   - Safe uninstallation with backup options
+
+6. **Advanced Troubleshooting:**
+   - Deep Docker cleanup integrated into uninstaller
+   - Helps users recover from Docker cache issues
+   - Smart backup preservation
+   - Multiple cleanup levels for different scenarios
+
+**Technical Approach:**
+
+- **Windows Forms** chosen for GUI (built-in, no dependencies)
+- **PS2EXE** for packaging (free, lightweight, easy to use)
+- **Inno Setup** for professional MSI option (free, widely used)
+- **Modular architecture** for easy customization
+- **Comprehensive testing** on Windows 10/11
+
+**Distribution Package:**
+```
+SMS_Distribution_1.8.6.4.zip (~50-100 MB)
+├── SMS_Installer_1.8.6.4.exe (~2-3 MB)
+├── SMS_Uninstaller_1.8.6.4.exe (~2-3 MB)
+├── README.txt (distribution instructions)
+├── LICENSE (MIT)
+├── CHANGELOG.md
+└── Documentation files
+```
+
 ## [1.8.6.3] - 2025-11-21
 
 ### Added
@@ -1073,7 +1231,12 @@ Docs:
 
 Unreleased changes will be added above as they land in main.
 
-[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.8.3...HEAD
+[Unreleased]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.8.6.4...HEAD
+[1.8.6.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.6.4
+[1.8.6.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.6.3
+[1.8.6.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.6.2
+[1.8.6.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.6.1
+[1.8.6]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.6
 [1.8.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.3
 [1.8.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.8.2
 [1.6.5]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5

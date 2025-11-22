@@ -185,6 +185,10 @@ class Settings(BaseSettings):
     # Toggle authentication/authorization enforcement without code changes.
     # Default disabled to preserve backward compatibility and keep tests passing.
     AUTH_ENABLED: bool = False
+    AUTH_MODE: Literal["disabled", "permissive", "strict"] = "disabled"
+    # disabled: No auth checks (legacy mode, same as AUTH_ENABLED=False)
+    # permissive: Auth required but authenticated users can access all endpoints regardless of role
+    # strict: Full role-based access control enforcement
     AUTH_LOGIN_MAX_ATTEMPTS: int = 5
     AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
@@ -462,6 +466,11 @@ class Settings(BaseSettings):
             # Warning mode: log warning but allow
             return handle_insecure(security_issue, warn_only=True)
 
+        return self
+
+    @model_validator(mode="after")
+    def normalize_auth_for_pytest(self) -> "Settings":
+        # Removed pytest override to avoid interfering with router imports.
         return self
 
     @field_validator("DEFAULT_ADMIN_PASSWORD")

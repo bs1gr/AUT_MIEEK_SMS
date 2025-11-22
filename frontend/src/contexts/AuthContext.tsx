@@ -51,12 +51,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setAutoLoginAttempted(true);
     
-    // If user exists in state but no valid token, clear and attempt auto-login
+    // If user exists but no token, preserve user and attempt silent token acquisition.
+    // This allows localStorage restoration tests and offline scenarios to retain user context.
     if (user && !accessToken) {
-      console.log('[Auth] User exists but no token, clearing user and attempting auto-login');
-      setUser(null);
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
-      // Fall through to auto-login attempt
+      console.log('[Auth] User exists without token; preserving user and attempting silent token acquisition');
+      // Fall through to auto-login attempt to obtain a fresh token; do NOT clear user.
     } else if (user && accessToken) {
       // User and token exist - finish init
       console.log('[Auth] User and token exist in state, setting isInitializing to false');
