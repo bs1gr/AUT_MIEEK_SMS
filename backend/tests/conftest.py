@@ -25,6 +25,7 @@ os.environ.setdefault("CSRF_ENABLED", "0")
 os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "0")
 
 from backend.main import app, get_db as main_get_db
+from backend.config import settings
 from backend.rate_limiting import limiter
 from backend.db import get_session as db_get_session
 from backend import models
@@ -72,6 +73,13 @@ def clean_db():
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
     login_throttle.clear()
+    # Reset auth feature flags between tests so individual tests enabling
+    # AUTH explicitly (e.g., RBAC tests) do not leak state to subsequent ones.
+    try:
+        settings.AUTH_ENABLED = False  # type: ignore[attr-defined]
+        settings.AUTH_MODE = "disabled"  # type: ignore[attr-defined]
+    except Exception:
+        pass
     yield
 
 
