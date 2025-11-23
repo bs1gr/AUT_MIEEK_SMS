@@ -19,11 +19,11 @@ The Student Management System now provides **professional Windows installer exec
 ### Quick Installation (2 Steps!)
 
 1. **Download the installer package**
-   - Get `SMS_Distribution_1.8.6.3.zip` from GitHub Releases
+   - Get `SMS_Distribution_1.8.7.zip` from GitHub Releases
    - Extract to any location (e.g., Desktop, Downloads)
 
 2. **Run the installer**
-   - Right-click `SMS_Installer_1.8.6.3.exe`
+   - Right-click `SMS_Installer_1.8.7.exe`
    - Select **"Run as Administrator"**
    - Follow the visual wizard (7 easy steps)
 
