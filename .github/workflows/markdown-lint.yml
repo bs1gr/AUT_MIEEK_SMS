@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Nightly at 02:00 UTC
 
 jobs:
   markdown-lint:
@@ -22,6 +24,17 @@ jobs:
         run: |
           python tools/lint/markdown_lint.py || echo "Script exited non-zero; continuing (non-blocking)."
 
+      - name: Extract issue count
+        id: count
+        shell: bash
+        run: |
+          if [ -f docs/markdown_lint_report.md ]; then
+            ISSUES=$(grep -E '^Total issues:' docs/markdown_lint_report.md | awk '{print $3}')
+          else
+            ISSUES="n/a"
+          fi
+          echo "issues=$ISSUES" >> $GITHUB_OUTPUT
+
       - name: Upload lint report artifact
         uses: actions/upload-artifact@v4
         with:
@@ -29,9 +42,17 @@ jobs:
           path: docs/markdown_lint_report.md
           if-no-files-found: warn
 
-      - name: Summary
-        run: |
-          echo "Markdown lint completed. See artifact markdown-lint-report for details."
+      - name: Comment on PR with summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = core.getInput('issues', { required: false }) || '${{ steps.count.outputs.issues }}';
+            const body = `📝 Markdown lint report\n\nTotal issues: ${issues}\n\nDownload the detailed report from the workflow artifacts (markdown-lint-report).`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+          result-encoding: string
 
     # Non-blocking: even if the script encounters errors, job should succeed
     continue-on-error: true

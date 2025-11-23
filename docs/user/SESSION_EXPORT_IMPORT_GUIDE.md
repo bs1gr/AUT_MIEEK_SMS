@@ -3,10 +3,12 @@
 ## What is Session Export/Import?
 
 The Session Export/Import feature allows you to:
+
 - **Export** all data for a specific semester (courses, students, grades, attendance, etc.) into a single JSON file
 - **Import** that data into another system or restore it later, with intelligent merging
 
 This is perfect for:
+
 - Transferring data between computers
 - Creating semester backups
 - Sharing data with colleagues
@@ -19,12 +21,15 @@ This is perfect for:
 1. Navigate to **Operations** → **Export Center**
 2. Find the **Session Export/Import** section (at the top of the bulk exports)
 3. In the left panel (**Export Complete Session**):
+
    - Select the semester you want to export from the dropdown
    - Click **Export Session**
+
 4. Your browser will download a JSON file named like: `session_export_2024-2025_Fall_20250119_103000.json`
 5. Save this file somewhere safe (e.g., USB drive, cloud storage, backup folder)
 
 **What's included in the export:**
+
 - All courses for that semester
 - All students enrolled in those courses
 - Course enrollments
@@ -38,13 +43,16 @@ This is perfect for:
 1. Navigate to **Operations** → **Export Center**
 2. Find the **Session Export/Import** section
 3. In the right panel (**Import Session**):
+
    - Click **Choose file** and select your session JSON file
    - Choose a **Merge Strategy**:
      - **Update Existing** (recommended): Updates existing records and creates new ones
      - **Skip Existing**: Only creates new records, doesn't modify existing data
    - Click **Import Session**
+
 4. Wait for the import to complete (may take a few seconds for large sessions)
 5. Check the success message for a summary:
+
    - Created: X records
    - Updated: Y records
    - Errors: Z (if any)
@@ -52,6 +60,7 @@ This is perfect for:
 ### Merge Strategies Explained
 
 #### Update Existing (Default)
+
 - **When to use**: You want to merge data from another PC or update outdated records
 - **What it does**:
   - If a student/course already exists (same student_id or course_code), it updates their information
@@ -59,6 +68,7 @@ This is perfect for:
 - **Example**: You filled grades on your laptop, then import to your desktop → grades get updated
 
 #### Skip Existing
+
 - **When to use**: You only want to add NEW students/courses without touching existing data
 - **What it does**:
   - If a student/course already exists, it skips them (leaves unchanged)
@@ -108,6 +118,7 @@ This is perfect for:
 ## Tips & Best Practices
 
 ### ✅ Do's
+
 - **Export regularly**: Create backups before making big changes
 - **Name your files**: Rename exports to something meaningful (e.g., `Fall2024_FinalGrades.json`)
 - **Test imports**: On important data, try importing to a test system first
@@ -115,6 +126,7 @@ This is perfect for:
 - **Use Update mode**: Unless you specifically need to preserve existing data unchanged
 
 ### ❌ Don'ts
+
 - **Don't edit JSON manually**: The file format is complex; use the UI to make changes instead
 - **Don't import untrusted files**: Only import files you exported yourself or from trusted sources
 - **Don't mix semesters**: Each export is for ONE semester; don't combine multiple semesters manually
@@ -123,23 +135,28 @@ This is perfect for:
 ## Troubleshooting
 
 ### Problem: "No semesters found in the system"
+
 - **Cause**: You haven't created any courses with a semester field set
 - **Fix**: Create courses and assign them a semester (e.g., "2024-2025 Fall")
 
 ### Problem: "Failed to load semesters"
+
 - **Cause**: Backend server is not running or unreachable
 - **Fix**: Check that the application is running, refresh the page
 
 ### Problem: Import says "X errors"
+
 - **Cause**: Some records couldn't be imported (e.g., missing required fields)
 - **Fix**: Check the error details in the backend logs (`backend/logs/app.log`)
 - **Note**: Other records still imported successfully
 
 ### Problem: Duplicate students after import
+
 - **Cause**: Student IDs don't match between systems (e.g., `S001` vs `s001`)
 - **Fix**: Standardize student IDs before exporting, or manually merge duplicates
 
 ### Problem: Import taking too long
+
 - **Cause**: Large session with thousands of records
 - **Fix**: Be patient; imports can take 30-60 seconds for 1000+ students
 - **Note**: Don't refresh the page during import
@@ -147,9 +164,11 @@ This is perfect for:
 ## Technical Details (Advanced Users)
 
 ### File Format
+
 - **Type**: JSON (plain text, UTF-8 encoded)
 - **Size**: Varies (typically 100KB - 5MB depending on data volume)
 - **Structure**:
+
   ```json
   {
     "metadata": { ... },
@@ -164,6 +183,7 @@ This is perfect for:
   ```
 
 ### What Doesn't Get Exported
+
 - User accounts (admin/teacher logins)
 - System settings
 - Database configuration
@@ -171,6 +191,7 @@ This is perfect for:
 - Other semesters' data
 
 ### Import Order
+
 Data is imported in this order to maintain referential integrity:
 1. Courses (must exist before enrollments)
 2. Students (must exist before enrollments)
@@ -179,6 +200,7 @@ Data is imported in this order to maintain referential integrity:
 5. Highlights (reference students)
 
 ### Matching Logic
+
 - **Courses**: Matched by `course_code` (e.g., "CS101")
 - **Students**: Matched by `student_id` (e.g., "202401001")
 - **Enrollments**: Matched by student_id + course_code combination

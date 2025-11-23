@@ -18,6 +18,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ## Theme Previews
 
 ### 1️⃣ Default Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -29,11 +30,13 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ └─────────────────────────────────┘ │
 └─────────────────────────────────────┘
 ```
+
 **Colors:** Gray scale with Indigo accents
 
 ---
 
 ### 2️⃣ Glassmorphism Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -45,12 +48,14 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
 ```
+
 **Effect:** `backdrop-blur-xl` + transparency  
 **Inspiration:** macOS Big Sur, iOS interfaces
 
 ---
 
 ### 3️⃣ Neumorphism Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -64,12 +69,14 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ╰─────────────────────────────────╯ │
 └─────────────────────────────────────┘
 ```
+
 **Effect:** Dual-direction shadows  
 **Inspiration:** Dribbble Soft UI designs
 
 ---
 
 ### 4️⃣ Gradient Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -83,12 +90,14 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
 ```
+
 **Gradients:** Indigo → Purple → Pink  
 **Inspiration:** Linear app, Stripe
 
 ---
 
 ### 5️⃣ Modern Dark Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -102,12 +111,14 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
 ```
+
 **Colors:** Gray-900 with shadow glow  
 **Inspiration:** GitHub Dark, VS Code
 
 ---
 
 ### 6️⃣ Light Professional Theme
+
 ```text
 ┌─────────────────────────────────────┐
 │ ▭ Operations Monitor     [Theme ▼] │
@@ -119,6 +130,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ └─────────────────────────────────┘ │
 └─────────────────────────────────────┘
 ```
+
 **Style:** Flat design, sharp borders  
 **Inspiration:** Material Design, Bootstrap
 
@@ -157,6 +169,7 @@ The Control Panel Operations tab now features **6 professional appearance themes
 ### Technical Implementation
 
 **ThemeSelector Component:**
+
 ```tsx
 export const themeStyles = {
   glassmorphism: {
@@ -169,12 +182,14 @@ export const themeStyles = {
 ```
 
 **Dynamic Styling:**
+
 ```tsx
 const theme = themeStyles[selectedTheme];
 <button className={theme.button}>Click Me</button>
 ```
 
 **Persistence:**
+
 ```tsx
 useEffect(() => {
   localStorage.setItem('sms.operations.theme', selectedTheme);
@@ -197,6 +212,7 @@ useEffect(() => {
 ## Accessibility
 
 All themes maintain:
+
 - ✅ WCAG 2.1 AA contrast ratios (4.5:1 text, 3:1 UI)
 - ✅ Keyboard navigation
 - ✅ Screen reader compatibility
@@ -225,6 +241,7 @@ docs/
 ## Future Enhancements
 
 Potential additions:
+
 - [ ] Theme preview panel
 - [ ] Custom theme builder
 - [ ] Animation toggle
@@ -241,6 +258,7 @@ Potential additions:
 3. Explore all 6 themes!
 
 **Recommended themes by use case:**
+
 - 💼 Corporate: Light Professional
 - 🌙 Night work: Modern Dark
 - 🎨 Creative: Glassmorphism or Gradient

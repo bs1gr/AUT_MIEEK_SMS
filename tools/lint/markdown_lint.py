@@ -68,67 +68,100 @@ class Issue:
     message: str
 
 
-def scan_file(path: Path) -> dict:
+def scan_file(path: Path, apply_fixes: bool = False) -> dict:
     issues: List[Issue] = []
     with path.open('r', encoding='utf-8') as f:
         lines = f.readlines()
 
-    fixed_lines = list(lines)
+    new_lines: List[str] = []
     in_fence = False
-    fence_start = 0
     fence_lang: Optional[str] = None
+    fence_start_new_index: Optional[int] = None
     buffer: List[str] = []
+    in_list_block = False
+    prev_was_heading = False
 
+    total_lines = len(lines)
     for i, line in enumerate(lines):
+        next_line = lines[i+1] if i+1 < total_lines else None
         m = FENCE_PATTERN.match(line)
         if m:
-            fence_marker = m.group(0)
             lang = m.group(1).strip()
             if not in_fence:
                 # starting fence
+                if new_lines and new_lines[-1].strip():
+                    issues.append(Issue(path, i+1, 'MD031', 'Missing blank line before fenced code block'))
+                    if apply_fixes:
+                        new_lines.append('\n')
                 in_fence = True
-                fence_start = i
                 fence_lang = lang if lang else None
                 buffer = []
-                # MD031: blank line before fence (unless at top or previous blank)
-                if i > 0 and lines[i-1].strip() and '--fix-placeholder--' not in lines[i-1]:
-                    issues.append(Issue(path, i+1, 'MD031', 'Missing blank line before fenced code block'))
+                fence_start_new_index = len(new_lines)
+                new_lines.append(line)
+                prev_was_heading = False
             else:
                 # closing fence
-                # MD031: blank line after fence
-                if i+1 < len(lines) and lines[i+1].strip():
+                new_lines.append(line)
+                if next_line is not None and next_line.strip():
                     issues.append(Issue(path, i+1, 'MD031', 'Missing blank line after fenced code block'))
-                if fence_lang is None:
-                    # unlabeled fence -> language detection
+                    if apply_fixes:
+                        new_lines.append('\n')
+                if fence_lang is None and fence_start_new_index is not None:
                     detected = detect_language(buffer)
-                    issues.append(Issue(path, fence_start+1, 'FENCE_LANG', f'Unlabeled code fence; suggest `{detected}`'))
-                    fixed_lines[fence_start] = f'```{detected}\n'
+                    issues.append(Issue(path, i+1, 'FENCE_LANG', f'Unlabeled code fence; suggest `{detected}`'))
+                    new_lines[fence_start_new_index] = f'```{detected}\n'
                 in_fence = False
                 fence_lang = None
                 buffer = []
+                fence_start_new_index = None
             continue
         if in_fence:
             buffer.append(line)
-        # Heading blank line checks (MD022)
+            new_lines.append(line)
+            continue
+
+        # Heading checks and fixes (MD022)
         if HEADING_PATTERN.match(line):
-            # above
-            if i > 0 and lines[i-1].strip():
+            if new_lines and new_lines[-1].strip():
                 issues.append(Issue(path, i+1, 'MD022', 'Missing blank line before heading'))
-            # below
-            if i+1 < len(lines) and lines[i+1].strip() == '':
-                pass
-            elif i+1 < len(lines) and lines[i+1].strip():
+                if apply_fixes:
+                    new_lines.append('\n')
+            new_lines.append(line)
+            if next_line is not None and next_line.strip():
                 issues.append(Issue(path, i+1, 'MD022', 'Missing blank line after heading'))
-        # List blank line MD032
+                if apply_fixes:
+                    new_lines.append('\n')
+            prev_was_heading = True
+            in_list_block = False
+            continue
+
+        # List blank line MD032 (before and after contiguous list blocks)
         if LIST_PATTERN.match(line):
-            if i > 0 and lines[i-1].strip() and not HEADING_PATTERN.match(lines[i-1]):
-                issues.append(Issue(path, i+1, 'MD032', 'Missing blank line before list'))
-            if i+1 < len(lines) and lines[i+1].strip() and not LIST_PATTERN.match(lines[i+1]):
+            if not in_list_block:
+                # entering a list block
+                if new_lines and new_lines[-1].strip() and not prev_was_heading:
+                    issues.append(Issue(path, i+1, 'MD032', 'Missing blank line before list'))
+                    if apply_fixes:
+                        new_lines.append('\n')
+                in_list_block = True
+            new_lines.append(line)
+            # Determine if list block ends after this line
+            if next_line is not None and next_line.strip() and not LIST_PATTERN.match(next_line):
                 issues.append(Issue(path, i+1, 'MD032', 'Missing blank line after list'))
+                if apply_fixes:
+                    new_lines.append('\n')
+                in_list_block = False
+            prev_was_heading = False
+            continue
+
+        # regular line
+        new_lines.append(line)
+        prev_was_heading = False
+        in_list_block = False
 
     return {
         'issues': issues,
-        'fixed_lines': fixed_lines,
+        'fixed_lines': new_lines,
     }
 
 
@@ -177,15 +210,18 @@ def main():
 
     results = []
     for path in paths:
-        data = scan_file(path)
+        data = scan_file(path, apply_fixes=args.fix)
         results.append({'path': path, **data})
-        if args.fix and data['fixed_lines'] != path.read_text(encoding='utf-8').splitlines(True):
-            path.write_text(''.join(data['fixed_lines']), encoding='utf-8')
+        if args.fix:
+            original = path.read_text(encoding='utf-8')
+            updated = ''.join(data['fixed_lines'])
+            if updated != original:
+                path.write_text(updated, encoding='utf-8')
 
     write_report(results)
     print(f'Report written to {REPORT_PATH}')
     if args.fix:
-        print('Auto-fix applied where possible (language tags + blank lines)')
+        print('Auto-fix applied where possible (language tags + blank lines for headings/lists/fences)')
 
 if __name__ == '__main__':
     main()
