@@ -56,6 +56,7 @@
     For production deployment, use: .\DOCKER.ps1
 #>
 
+[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
 param(
     [switch]$Start,
     [switch]$Stop,
@@ -65,6 +66,8 @@ param(
     [switch]$Setup,
     [switch]$Clean,
     [switch]$DeepClean,
+    [switch]$DryRun,
+    [switch]$Force,
     [switch]$Help
 )
 
@@ -240,6 +243,8 @@ COMMANDS:
   -Setup          Install/update dependencies
   -Clean          Clean development artifacts (node_modules, .venv, caches)
   -DeepClean      Remove ALL artifacts (requires confirmation)
+        -DryRun/WhatIf  When used with -DeepClean, list items that would be removed without deleting
+    -Force          Skip confirmation prompts and proceed with deletions
   -Help           Show this help message
 
 EXAMPLES:
@@ -250,6 +255,8 @@ EXAMPLES:
   .\NATIVE.ps1 -Stop         # Stop all processes
   .\NATIVE.ps1 -Clean        # Clean caches and artifacts
   .\NATIVE.ps1 -DeepClean    # Nuclear cleanup (removes node_modules, .venv, etc.)
+        .\NATIVE.ps1 -DeepClean -DryRun  # Show what would be deleted without removing anything
+        .\NATIVE.ps1 -DeepClean -Force   # Run deep clean without interactive prompt
 
 REQUIREMENTS:
   • Python $MIN_PYTHON_VERSION or higher
@@ -514,10 +521,21 @@ function Start-Frontend {
     Push-Location $FRONTEND_DIR
     try {
         # Start process in new window
-        $processInfo = Start-Process -FilePath "npm" `
-            -ArgumentList "run", "dev" `
-            -WindowStyle Normal `
-            -PassThru
+        # Use a PowerShell process to run the npm dev script so the process stays alive
+        # (Start-Process npm may spawn child processes and exit immediately).
+        $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+        if ($pwsh) {
+            $processInfo = Start-Process -FilePath "pwsh" `
+                -ArgumentList "-NoExit", "-Command", "npm run dev" `
+                -WindowStyle Normal `
+                -PassThru
+        } else {
+            # Fall back to starting npm directly
+            $processInfo = Start-Process -FilePath "npm" `
+                -ArgumentList "run", "dev" `
+                -WindowStyle Normal `
+                -PassThru
+        }
 
         # Save PID
         Set-Content -Path $FRONTEND_PID_FILE -Value $processInfo.Id
@@ -715,7 +733,7 @@ if ($Frontend) {
 }
 
 # Default: Start both
-if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Frontend -and -not $Setup -and -not $Clean)) {
+if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Frontend -and -not $Setup -and -not $Clean -and -not $DeepClean)) {
     # Check if dependencies are installed
     $venvPath = Join-Path $BACKEND_DIR ".venv"
     $nodeModules = Join-Path $FRONTEND_DIR "node_modules"
@@ -791,10 +809,59 @@ if ($DeepClean) {
     Write-Warning "Your data/ and backups/ directories will be PRESERVED"
     Write-Host ""
     
-    $confirmation = Read-Host "Type 'YES' to confirm deep clean"
-    if ($confirmation -ne 'YES') {
-        Write-Info "Deep clean cancelled"
+    # If this is a dry-run, list matching items and exit without deleting
+    # Support both our -DryRun switch and PowerShell's built-in -WhatIf common parameter
+    if ($DryRun -or $PSBoundParameters.ContainsKey('WhatIf')) {
+        Write-Info "Dry run: listing items that would be removed (no deletions will be performed)"
+
+        # Build a local list of patterns to preview (keeps dry-run independent of later variables)
+        $previewItems = @(
+            ".venv", ".venv_*", ".venv_backend_tests", ".venv_audit",
+            "frontend/node_modules", "node_modules", "frontend/dist", "dist",
+            "build", ".next", "rewrite-preview-local",
+            ".mypy_cache", ".ruff_cache", ".pytest_cache",
+            "backend/__pycache__", "backend/.pytest_cache",
+            "tmp_test_migrations", "backend/tmp_test_migrations",
+            "*.log", "backend/*.log", "frontend/*.log",
+            "backend_dev_*.log", "frontend_dev_*.log",
+            ".backend.pid", ".frontend.pid", "temp_export_*"
+        )
+
+        foreach ($pattern in $previewItems) {
+            $fullPattern = Join-Path $SCRIPT_DIR $pattern
+            if ($pattern -like "*`*") {
+                $parent = Split-Path $fullPattern -Parent
+                $leaf = Split-Path $fullPattern -Leaf
+                if (Test-Path $parent) {
+                    Get-ChildItem -Path $parent -Filter $leaf -ErrorAction SilentlyContinue | ForEach-Object {
+                        if ($_ -is [System.IO.FileSystemInfo]) { Write-Host $_.FullName } else { Write-Host ([string]$_) }
+                    }
+                }
+            }
+            else {
+                if (Test-Path $fullPattern) {
+                    Get-ChildItem -Path $fullPattern -ErrorAction SilentlyContinue | ForEach-Object {
+                        if ($_ -is [System.IO.FileSystemInfo]) { Write-Host $_.FullName } else { Write-Host ([string]$_) }
+                    }
+                }
+            }
+        }
+
+        # Show nested __pycache__ directories
+        Get-ChildItem -Path $BACKEND_DIR -Recurse -Filter "__pycache__" -Directory -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.FullName }
+
+        Write-Info "Dry run complete. No files were deleted."
         exit 0
+    }
+
+    # Use PowerShell's ShouldProcess/Confirm semantics unless forced
+    if (-not $Force) {
+        if (-not $PSCmdlet.ShouldProcess("Development artifacts", "Remove all listed patterns")) {
+            Write-Info "Deep clean cancelled"
+            exit 0
+        }
+    } else {
+        Write-Info "Force flag provided: skipping interactive confirmation."
     }
     
     # Stop processes first
@@ -826,13 +893,28 @@ if ($DeepClean) {
             
             if (Test-Path $parent) {
                 Get-ChildItem -Path $parent -Filter $leaf -ErrorAction SilentlyContinue | ForEach-Object {
+                    $item = $_
                     try {
-                        Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction Stop
-                        Write-Success "Removed: $($_.Name)"
-                        $removedCount++
+                        # Determine path to remove and a user-friendly display name
+                        if ($item -is [System.IO.FileSystemInfo]) {
+                            $itemPath = $item.FullName
+                            $displayName = $item.Name
+                        } else {
+                            # Fallback: item might be a string path
+                            $itemPath = [string]$item
+                            $displayName = Split-Path -Path $itemPath -Leaf
+                        }
+
+                        if (Test-Path $itemPath) {
+                            Remove-Item -Path $itemPath -Recurse -Force -ErrorAction Stop
+                            Write-Success "Removed: $displayName"
+                            $removedCount++
+                        } else {
+                            Write-Warning "Path not found (skipped): $displayName"
+                        }
                     }
                     catch {
-                        Write-Warning "Failed to remove: $($_.Name)"
+                        Write-Warning "Failed to remove: $displayName"
                     }
                 }
             }
