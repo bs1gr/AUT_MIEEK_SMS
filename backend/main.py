@@ -1,6 +1,6 @@
 """
 Student Management System - Production Ready
-Version: 1.8.7 (See VERSION file)
+Version: 1.8.8 (See VERSION file)
 
 Key Features:
 ✅ Modern FastAPI with lifespan context manager
@@ -627,7 +627,10 @@ async def lifespan(app: FastAPI):
         logger.info("Checking for pending database migrations...")
         try:
             from backend.run_migrations import run_migrations
-
+            import sys
+            sys.stdout.flush()
+            sys.stderr.flush()
+            
             migration_success = run_migrations(verbose=False)
             if migration_success:
                 logger.info("Database migrations up to date")
@@ -636,6 +639,10 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"Migration runner error: {e!s}")
             logger.warning("Continuing without migration check...")
+        finally:
+            import sys
+            sys.stdout.flush()
+            sys.stderr.flush()
     else:
         logger.info("DISABLE_STARTUP_TASKS set: skipping migration runner")
 
@@ -690,12 +697,41 @@ async def lifespan(app: FastAPI):
     # Auto-import courses with evaluation rules if database is empty
     try:
         from sqlalchemy import text
-
-        with db_engine.connect() as conn:
-            result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
-            if result == 0:
-                logger.info("No courses found in database - scheduling auto-import...")
-                if not disable_startup:
+        import threading
+        
+        course_count_result = [None]  # Use list to allow mutation in thread
+        query_error = [None]
+        query_complete = threading.Event()
+        
+        def _query_thread():
+            try:
+                logger.info("Checking course count...")
+                with db_engine.connect() as conn:
+                    conn.execute(text("SELECT 1")).scalar()  # Test connection first
+                    result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
+                    course_count_result[0] = result
+            except Exception as e:
+                query_error[0] = e
+            finally:
+                query_complete.set()
+        
+        # Run database query in a separate thread with 5-second timeout
+        db_thread = threading.Thread(target=_query_thread, daemon=True)
+        db_thread.start()
+        query_complete.wait(timeout=5.0)
+        
+        if not query_complete.is_set():
+            logger.warning("Course count query timed out (5s) - skipping auto-import check")
+            result = None
+        elif query_error[0]:
+            logger.warning(f"Course count query failed: {query_error[0]} - skipping auto-import check")
+            result = None
+        else:
+            result = course_count_result[0]
+        
+        if result == 0:
+            logger.info("No courses found in database - scheduling auto-import...")
+            if not disable_startup:
                     try:
                         import threading
                         import httpx
@@ -751,10 +787,10 @@ async def lifespan(app: FastAPI):
                         logger.info("Started background course import thread (will retry up to 3 times)")
                     except Exception as thread_err:
                         logger.warning(f"Failed to start auto-import thread: {thread_err}")
-                else:
-                    logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
             else:
-                logger.info("Courses already exist in database (%s) - skipping auto-import", result)
+                logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
+        else:
+            logger.info("Courses already exist in database (%s) - skipping auto-import", result)
     except Exception as auto_import_err:
         logger.warning(f"Course auto-import check failed (continuing): {auto_import_err}")
 

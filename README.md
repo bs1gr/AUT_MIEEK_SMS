@@ -118,6 +118,16 @@ AUTH_ENABLED=True
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
+
+Note about automated admin password rotation:
+
+- DEFAULT_ADMIN_AUTO_RESET (default: false) — when enabled, if the configured
+  DEFAULT_ADMIN_PASSWORD differs from the password stored in the database for
+  the default admin account, the application will update the DB password on
+  startup and revoke any existing refresh tokens for that user. This is
+  intended to make automated credential rotation (e.g., via CI/CD or secret
+  managers) safe and predictable. The flag is intentionally off by default to
+  avoid surprising changes in production.
 ```
 
 **If Login Fails:**
@@ -1107,7 +1117,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.8.7 (see [VERSION](VERSION) file)
+Current version: 1.8.8 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
 

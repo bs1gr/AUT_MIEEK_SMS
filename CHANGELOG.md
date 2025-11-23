@@ -6,15 +6,77 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.8] - 2025-11-23
+
 ### Added
+
+- **GitHub Actions Admin Password Rotation Guide** - Comprehensive documentation for automating admin credential rotation
+  - New dedicated guide: `docs/deployment/GITHUB_ACTIONS_ADMIN_PASSWORD_ROTATION.md`
+  - Complete workflow examples for secure password rotation using GitHub Secrets
+  - Best practices for secret management and automated credential updates
+  - Integration patterns for CI/CD pipelines with `DEFAULT_ADMIN_AUTO_RESET` feature
+
+### Documentation
+
+- **Admin Bootstrap Enhancement Documentation**
+  - Documented `DEFAULT_ADMIN_AUTO_RESET` feature for safe automated password rotation
+  - Added workflow examples for CI/CD and secret-manager driven credential updates
+  - Included security best practices and troubleshooting guidance
+  - Referenced in README.md under admin login section
+
+### Changed
+
+- Enhanced README.md with clearer documentation about admin password rotation capabilities
+- Improved inline documentation in `backend/admin_bootstrap.py` for `DEFAULT_ADMIN_AUTO_RESET`
+
+## [1.8.7] - 2025-11-23
+
+### Documentation
+
+- **Version Alignment**
+  - Updated README.md version from 1.6.5 to 1.8.6.4, then to 1.8.7
+  - Updated VERSION file to 1.8.7
+  - Removed version-specific headers from documentation to make them evergreen
+  - Updated QNAP documentation to current version and date (November 23, 2025)
+
+- **Link Fixes**
+  - Fixed broken link to `CODEBASE_ANALYSIS_REPORT.md` → corrected to `archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md`
+  - Fixed broken link to `CLEANUP_SUMMARY.md` → corrected to `archive/CLEANUP_SUMMARY.md`
+  - Ensured all documentation reflects consolidated script structure (DOCKER.ps1, NATIVE.ps1)
+
+- **Template Cleanup**
+  - Removed duplicate sections from Pull Request template (.github/PULL_REQUEST_TEMPLATE.md)
+  - Eliminated redundant "Summary", "Changes", "Operator checklist", "Testing", and "Notes" sections
+
+- **QNAP Documentation**
+  - Updated QNAP_INSTALLATION_GUIDE.md to v1.8.7
+  - Updated QNAP_MANAGEMENT_GUIDE.md - removed version-specific subtitle
+  - Updated QNAP_TROUBLESHOOTING_GUIDE.md - removed version-specific subtitle
+  - Updated markdown lint report with current issues
+
+### Verification
+
+- Confirmed obsolete files are properly archived in `archive/obsolete/`
+- Verified deprecated script references are documented in archive READMEs
+- Ensured all active documentation references consolidated scripts (DOCKER.ps1, NATIVE.ps1)
+- Validated system operational status
+
+### Added (Developer Tooling)
 
 - Developer tooling: `NATIVE.ps1` safety + CI checks
   - Added a non-destructive CI helper script `scripts/ci/native-safety.ps1` which runs `NATIVE.ps1 -DeepClean -WhatIf` and performs lightweight status checks on Windows runners.
   - Updated GitHub Actions workflow `.github/workflows/native-deepclean-safety.yml` to execute the CI helper script for PRs that touch `NATIVE.ps1`.
   - This improves confidence that dry-run listings remain functional and prevents accidental destructive changes on PRs.
 
+- Admin bootstrap improvement: `DEFAULT_ADMIN_AUTO_RESET` (default: false)
+  - New feature to support safe automated rotation of the default admin password.
+  - When enabled, if `DEFAULT_ADMIN_PASSWORD` differs from the database value at startup,
+    the app will update the stored password and revoke any existing refresh tokens for the
+    configured default admin (`DEFAULT_ADMIN_EMAIL`). Useful for CI/CD or secret-manager
+    driven rotations. See docs and README for recommended workflow.
 
-## [1.8.7] - 2025-11-23
+
+## [1.8.6.4] - 2025-11-22
 
 ### Documentation
 
