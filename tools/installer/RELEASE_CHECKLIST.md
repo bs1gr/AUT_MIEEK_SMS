@@ -7,7 +7,7 @@
 - [ ] **Version Bump**
   ```powershell
   # Update VERSION file
-  Set-Content .\VERSION "1.8.6.3"
+  Set-Content .\VERSION "1.8.7"
   
   # Update in scripts
   # - tools\installer\SMS_INSTALLER_WIZARD.ps1 (line ~30)
