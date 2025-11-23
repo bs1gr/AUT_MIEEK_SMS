@@ -1,0 +1,20 @@
+name: Native DeepClean Safety
+
+on:
+  pull_request:
+    paths:
+      - 'NATIVE.ps1'
+      - '.github/workflows/**'
+
+jobs:
+  dry-run-check:
+    name: Dry-run listing should succeed
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run DeepClean dry-run (WhatIf)
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -Command "Set-Location ${{ github.workspace }}; .\NATIVE.ps1 -DeepClean -WhatIf"
