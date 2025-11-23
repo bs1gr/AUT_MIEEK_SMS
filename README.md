@@ -2,7 +2,7 @@
 
 ![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
 
-## 📦 Quick Start (v1.8.6.4)
+## 📦 Quick Start
 
 ### **For End Users** - One-Click Installation ⭐ NEW!
 
@@ -219,7 +219,7 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
 
-## 🆕 Latest Highlights (v1.8.6.4)
+## 🆕 Latest Highlights
 
 ### Security & Auth
 
@@ -785,7 +785,7 @@ Automated cleanup script that removes obsolete files across the entire project, 
 7. **Build Cache** - Vite and frontend build artifacts
 8. **Docker Resources** - Reports dangling images, build cache, unused volumes
 
-**Recent cleanup (Nov 2025):** See `CLEANUP_SUMMARY.md` for details on latest cleanup wave
+**Recent cleanup (Nov 2025):** See [archive/CLEANUP_SUMMARY.md](archive/CLEANUP_SUMMARY.md) for details on latest cleanup wave
 
 **Docker Cleanup Commands (run manually when needed):**
 
@@ -1110,6 +1110,6 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.6.5 (see [VERSION](VERSION) file)
+Current version: 1.8.6.4 (see [VERSION](VERSION) file)
 
-**Codebase Health**: 8.5/10 (Excellent) - See [CODEBASE_ANALYSIS_REPORT.md](CODEBASE_ANALYSIS_REPORT.md) for details
+**Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details

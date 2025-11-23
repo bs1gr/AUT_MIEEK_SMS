@@ -1,6 +1,6 @@
 # QNAP Management Guide
 
-## Student Management System v1.8.0
+## Student Management System
 
 Complete guide for managing and maintaining the Student Management System on QNAP NAS.
 
@@ -63,17 +63,20 @@ Student Management System - QNAP Management Menu
 ### Starting Services
 
 **Using Management Script**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 1. Start All Services
 ```
 
 **Using Docker Compose**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml up -d
 ```
 
 **Start Specific Service**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml up -d backend
 ```
@@ -81,17 +84,20 @@ docker compose -f docker-compose.qnap.yml up -d backend
 ### Stopping Services
 
 **Using Management Script**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 2. Stop All Services
 ```
 
 **Using Docker Compose**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml down
 ```
 
 **Stop Without Removing Containers**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml stop
 ```
@@ -99,17 +105,20 @@ docker compose -f docker-compose.qnap.yml stop
 ### Restarting Services
 
 **Restart All**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 3. Restart All Services
 ```
 
 **Restart Specific Service**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml restart backend
 ```
 
 **Restart After Configuration Change**:
+
 ```bash
 # Edit configuration
 nano .env.qnap
@@ -121,23 +130,27 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ### Checking Service Status
 
 **Interactive Status**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 4. View Service Status
 ```
 
 **Quick Status Check**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml ps
 ```
 
 **Detailed Container Info**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml ps --format json
 docker inspect sms-backend
 ```
 
 **Health Status**:
+
 ```bash
 curl http://localhost:8080/health
 ```
@@ -149,17 +162,20 @@ curl http://localhost:8080/health
 ### Manual Database Backup
 
 **Using Management Script** (Recommended):
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 5. Backup Database
 ```
 
 This creates timestamped backup in `/share/Container/sms-backups/`:
+
 - Format: `sms_backup_YYYYMMDD_HHMMSS.sql`
 - Automatically compresses with gzip
 - Keeps last 30 backups by default
 
 **Using Docker Exec**:
+
 ```bash
 # Create backup directory if not exists
 mkdir -p /share/Container/sms-backups
@@ -183,6 +199,7 @@ docker cp sms-postgres:/tmp/backup.dump \
 1. Open QNAP UI → Control Panel → System → Task Scheduler
 2. Create → User-defined Script
 3. Configure:
+
    - **General**:
      - Task Name: "SMS Daily Backup"
      - User: admin
@@ -190,6 +207,7 @@ docker cp sms-postgres:/tmp/backup.dump \
      - Frequency: Daily
      - Time: 02:00 AM
    - **Task Settings**:
+
      ```bash
      #!/bin/bash
      cd /share/Container/sms-app
@@ -197,6 +215,7 @@ docker cp sms-postgres:/tmp/backup.dump \
      ```
 
 **Backup Retention Policy**:
+
 ```bash
 # Edit manage-qnap.sh to adjust retention
 # Default: Keep last 30 backups
@@ -208,6 +227,7 @@ RETENTION_DAYS=30  # Change as needed
 ### Restoring from Backup
 
 **Using Management Script**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 6. Restore Database
@@ -215,6 +235,7 @@ RETENTION_DAYS=30  # Change as needed
 ```
 
 **Manual Restore**:
+
 ```bash
 # List available backups
 ls -lh /share/Container/sms-backups/
@@ -234,6 +255,7 @@ docker exec -i sms-postgres pg_restore \
 ```
 
 **Restore with Rollback Script**:
+
 ```bash
 ./scripts/qnap/rollback-qnap.sh
 # Interactive menu to select and restore backup
@@ -261,12 +283,14 @@ docker exec sms-postgres dropdb -U sms_user test_restore
 ### Viewing Logs
 
 **All Services**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 7. View Logs (All Services)
 ```
 
 **Specific Service**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 8. View Logs (Specific Service)
@@ -274,6 +298,7 @@ docker exec sms-postgres dropdb -U sms_user test_restore
 ```
 
 **Real-time Logs**:
+
 ```bash
 # All services
 docker compose -f docker-compose.qnap.yml logs -f
@@ -286,6 +311,7 @@ docker compose -f docker-compose.qnap.yml logs --tail=100
 ```
 
 **Application Logs**:
+
 ```bash
 # Backend logs (stored in volume)
 docker exec sms-backend ls -lh /app/logs/
@@ -300,11 +326,13 @@ tail -f /share/Container/sms-logs/app.log
 ### Log Rotation
 
 Logs are automatically rotated using the Python logging configuration:
+
 - **Max Size**: 2MB per file
 - **Backup Count**: 5 files
 - **Total Space**: ~10MB per service
 
 **Manual Log Cleanup**:
+
 ```bash
 # Clear old logs (keeps last 7 days)
 find /share/Container/sms-logs/ -name "*.log.*" -mtime +7 -delete
@@ -313,12 +341,14 @@ find /share/Container/sms-logs/ -name "*.log.*" -mtime +7 -delete
 ### Monitoring with Grafana (Optional)
 
 **Enable Monitoring**:
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 10. Enable Monitoring
 ```
 
 **Access Grafana**:
+
 - URL: `http://YOUR_QNAP_IP:3000`
 - Default credentials: `admin` / `admin`
 - **Change password immediately after first login**
@@ -330,6 +360,7 @@ find /share/Container/sms-logs/ -name "*.log.*" -mtime +7 -delete
 4. **Container Health**: Resource usage per container
 
 **Disable Monitoring** (saves ~300MB RAM):
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 11. Disable Monitoring
@@ -338,6 +369,7 @@ find /share/Container/sms-logs/ -name "*.log.*" -mtime +7 -delete
 ### Health Checks
 
 **HTTP Health Endpoint**:
+
 ```bash
 # Detailed health check
 curl http://localhost:8080/health
@@ -350,6 +382,7 @@ curl http://localhost:8080/health/live
 ```
 
 **Container Health Status**:
+
 ```bash
 # Check health status of all containers
 docker compose -f docker-compose.qnap.yml ps
@@ -365,6 +398,7 @@ watch -n 5 'docker compose -f docker-compose.qnap.yml ps'
 ### Application Updates
 
 **Using Management Script** (Recommended):
+
 ```bash
 ./scripts/qnap/manage-qnap.sh
 # Select: 9. Update Application
@@ -406,6 +440,7 @@ docker compose -f docker-compose.qnap.yml logs -f
 Migrations run automatically on backend startup via `entrypoint.py`.
 
 **Verify Migration Status**:
+
 ```bash
 # Check migration logs
 docker compose -f docker-compose.qnap.yml logs backend | grep -i migration
@@ -418,6 +453,7 @@ docker exec sms-backend alembic history
 ```
 
 **Manual Migration** (if needed):
+
 ```bash
 # Run pending migrations
 docker exec sms-backend alembic upgrade head
@@ -429,6 +465,7 @@ docker exec sms-backend alembic downgrade -1
 ### Rollback After Failed Update
 
 **Using Rollback Script**:
+
 ```bash
 ./scripts/qnap/rollback-qnap.sh
 # Select pre-update backup
@@ -436,6 +473,7 @@ docker exec sms-backend alembic downgrade -1
 ```
 
 **Manual Rollback**:
+
 ```bash
 # 1. Stop services
 docker compose -f docker-compose.qnap.yml down
@@ -457,6 +495,7 @@ curl http://localhost:8080/health
 ### Resource Limits
 
 **Check Current Usage**:
+
 ```bash
 # Real-time resource monitoring
 docker stats
@@ -468,6 +507,7 @@ docker stats --no-stream
 **Adjust Resource Limits**:
 
 Edit `docker-compose.qnap.yml`:
+
 ```yaml
 services:
   backend:
@@ -481,6 +521,7 @@ services:
 ```
 
 **Apply Changes**:
+
 ```bash
 docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ```
@@ -488,6 +529,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ### Database Optimization
 
 **Analyze Database Performance**:
+
 ```bash
 # Connect to PostgreSQL
 docker exec -it sms-postgres psql -U sms_user -d student_management
@@ -512,6 +554,7 @@ LIMIT 10;
 ```
 
 **Database Maintenance**:
+
 ```bash
 # Vacuum and analyze (run weekly)
 docker exec sms-postgres vacuumdb -U sms_user -d student_management --analyze --verbose
@@ -523,12 +566,14 @@ docker exec sms-postgres reindexdb -U sms_user -d student_management
 ### Nginx Optimization
 
 Already optimized in `docker/nginx.qnap.conf`:
+
 - Gzip compression enabled
 - Worker processes tuned for NAS (2 workers)
 - Connection limits appropriate for home/small office
 - Static file caching configured
 
 **Monitor Nginx Performance**:
+
 ```bash
 # Check Nginx logs
 docker compose -f docker-compose.qnap.yml logs frontend | grep nginx
@@ -545,6 +590,7 @@ docker exec sms-frontend tail -f /var/log/nginx/error.log
 Response caching is enabled by default in the backend.
 
 **Clear Cache**:
+
 ```bash
 # Restart backend to clear cache
 docker compose -f docker-compose.qnap.yml restart backend
@@ -618,6 +664,7 @@ tar -czf "/share/Container/sms-backups/monthly_$(date +%Y%m).tar.gz" \
 ### Disk Space Management
 
 **Monitor Disk Usage**:
+
 ```bash
 # Check overall space
 df -h /share/Container/
@@ -630,6 +677,7 @@ find /share/Container/sms-* -type f -size +100M -exec ls -lh {} \;
 ```
 
 **Clean Up Space**:
+
 ```bash
 # Remove old Docker images
 docker image prune -a
@@ -652,6 +700,7 @@ docker builder prune -a
 ### Changing Configuration
 
 **Update Environment Variables**:
+
 ```bash
 # Edit .env.qnap
 nano .env.qnap
@@ -666,6 +715,7 @@ docker compose -f docker-compose.qnap.yml exec backend env | grep YOUR_VARIABLE
 ### Changing Port
 
 **Change Frontend Port**:
+
 ```bash
 # 1. Edit .env.qnap
 nano .env.qnap
@@ -687,6 +737,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate frontend
 4. Assign roles and permissions
 
 **Via Database** (Advanced):
+
 ```bash
 # Connect to database
 docker exec -it sms-postgres psql -U sms_user -d student_management
@@ -699,6 +750,7 @@ VALUES ('user@example.com', 'newuser', 'HASHED_PASSWORD', true);
 ### Accessing Database
 
 **Using psql**:
+
 ```bash
 # Interactive session
 docker exec -it sms-postgres psql -U sms_user -d student_management
@@ -708,6 +760,7 @@ docker exec sms-postgres psql -U sms_user -d student_management -c "SELECT COUNT
 ```
 
 **Using Database Client**:
+
 - Host: YOUR_QNAP_IP
 - Port: 5432 (if exposed in docker-compose)
 - Database: student_management
@@ -717,6 +770,7 @@ docker exec sms-postgres psql -U sms_user -d student_management -c "SELECT COUNT
 ### Exporting Data
 
 **CSV Export via API**:
+
 ```bash
 # Export students
 curl -H "Authorization: Bearer YOUR_TOKEN" \
@@ -730,6 +784,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 ```
 
 **Database Export**:
+
 ```bash
 # Full database export
 docker exec sms-postgres pg_dump \

@@ -1,6 +1,6 @@
 # QNAP Troubleshooting Guide
 
-## Student Management System v1.8.0
+## Student Management System
 
 Comprehensive troubleshooting guide for resolving common issues on QNAP deployments.
 
@@ -24,11 +24,13 @@ Comprehensive troubleshooting guide for resolving common issues on QNAP deployme
 ### Issue: Port 8080 Already in Use
 
 **Symptoms**:
+
 - Installation script reports port conflict
 - Cannot bind to address error
 - `docker compose up` fails with port binding error
 
 **Diagnosis**:
+
 ```bash
 # Check what's using port 8080
 netstat -tuln | grep 8080
@@ -36,6 +38,7 @@ lsof -i :8080  # If lsof is available
 ```
 
 **Solution 1**: Change SMS Port
+
 ```bash
 # Edit .env.qnap
 nano .env.qnap
@@ -48,6 +51,7 @@ SMS_PORT=8081  # Or any available port
 ```
 
 **Solution 2**: Stop Conflicting Service
+
 ```bash
 # Identify service using port
 netstat -tulnp | grep 8080
@@ -62,11 +66,13 @@ docker stop CONTAINER_NAME
 ### Issue: Insufficient Disk Space
 
 **Symptoms**:
+
 - "No space left on device" error
 - Build fails during image creation
 - Cannot create volume
 
 **Diagnosis**:
+
 ```bash
 # Check available space
 df -h /share/Container/
@@ -76,6 +82,7 @@ docker system df
 ```
 
 **Solution**:
+
 ```bash
 # Clean up Docker resources
 docker system prune -a --volumes
@@ -96,11 +103,13 @@ df -h /share/Container/
 ### Issue: Invalid Secret Key or Password
 
 **Symptoms**:
+
 - Installation completes but login fails
 - "Invalid credentials" error
 - Backend fails to start with authentication error
 
 **Diagnosis**:
+
 ```bash
 # Check .env.qnap for placeholder values
 cat .env.qnap | grep CHANGE_ME
@@ -110,6 +119,7 @@ docker compose -f docker-compose.qnap.yml logs backend | grep -i secret
 ```
 
 **Solution**:
+
 ```bash
 # Generate proper secrets
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
@@ -127,11 +137,13 @@ docker compose -f docker-compose.qnap.yml up -d
 ### Issue: Docker Compose Version Too Old
 
 **Symptoms**:
+
 - "version not supported" error
 - Syntax errors in docker-compose.qnap.yml
 - Missing features (profiles, etc.)
 
 **Diagnosis**:
+
 ```bash
 # Check Docker Compose version
 docker compose version
@@ -140,6 +152,7 @@ docker compose version
 ```
 
 **Solution**:
+
 ```bash
 # Update Container Station via QNAP App Center
 # Or manually install Docker Compose v2
@@ -155,11 +168,13 @@ docker compose version
 ### Issue: Containers Not Starting
 
 **Symptoms**:
+
 - Services remain in "Restarting" state
 - Immediate exit after start
 - Health check never passes
 
 **Diagnosis**:
+
 ```bash
 # Check container status
 docker compose -f docker-compose.qnap.yml ps
@@ -174,6 +189,7 @@ docker compose -f docker-compose.qnap.yml logs backend
 **Common Causes and Solutions**:
 
 **1. Database Connection Failure**:
+
 ```bash
 # Check if postgres is healthy
 docker compose -f docker-compose.qnap.yml ps postgres
@@ -190,6 +206,7 @@ docker compose -f docker-compose.qnap.yml restart backend
 ```
 
 **2. Missing Environment Variables**:
+
 ```bash
 # Verify all required vars are set
 docker compose -f docker-compose.qnap.yml config
@@ -200,6 +217,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ```
 
 **3. Permission Issues**:
+
 ```bash
 # Check directory permissions
 ls -la /share/Container/sms-*
@@ -217,11 +235,13 @@ docker compose -f docker-compose.qnap.yml up -d
 ### Issue: Container Keeps Restarting
 
 **Symptoms**:
+
 - Container starts then exits repeatedly
 - Restart count keeps increasing
 - Application inaccessible
 
 **Diagnosis**:
+
 ```bash
 # Check restart count
 docker compose -f docker-compose.qnap.yml ps
@@ -234,6 +254,7 @@ docker inspect sms-backend | grep -i exitcode
 ```
 
 **Solution**:
+
 ```bash
 # View crash logs in detail
 docker logs sms-backend --tail=100
@@ -254,11 +275,13 @@ docker compose -f docker-compose.qnap.yml up -d
 ### Issue: Container "Unhealthy" Status
 
 **Symptoms**:
+
 - Status shows "(unhealthy)" in ps output
 - Application intermittently accessible
 - Slow response times
 
 **Diagnosis**:
+
 ```bash
 # Check health status details
 docker inspect sms-backend | grep -A 20 Health
@@ -271,6 +294,7 @@ docker exec sms-backend curl http://localhost:8000/health
 ```
 
 **Solution**:
+
 ```bash
 # Restart unhealthy container
 docker compose -f docker-compose.qnap.yml restart backend
@@ -290,11 +314,13 @@ docker compose -f docker-compose.qnap.yml logs backend | tail -100
 ### Issue: Cannot Connect to Database
 
 **Symptoms**:
+
 - Backend logs show connection refused
 - "FATAL: database does not exist" error
 - "password authentication failed" error
 
 **Diagnosis**:
+
 ```bash
 # Check if postgres is running
 docker compose -f docker-compose.qnap.yml ps postgres
@@ -307,6 +333,7 @@ docker compose -f docker-compose.qnap.yml exec backend env | grep DATABASE_URL
 ```
 
 **Solution 1**: Database Not Created
+
 ```bash
 # Create database manually
 docker exec -it sms-postgres psql -U sms_user -d postgres
@@ -320,6 +347,7 @@ docker compose -f docker-compose.qnap.yml restart backend
 ```
 
 **Solution 2**: Wrong Credentials
+
 ```bash
 # Verify credentials in .env.qnap match
 cat .env.qnap | grep POSTGRES
@@ -332,6 +360,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ```
 
 **Solution 3**: Connection Timeout
+
 ```bash
 # Check if postgres is healthy
 docker compose -f docker-compose.qnap.yml ps postgres
@@ -349,11 +378,13 @@ docker compose -f docker-compose.qnap.yml up -d backend frontend
 ### Issue: Database Corruption
 
 **Symptoms**:
+
 - Application errors on data access
 - Inconsistent data returned
 - pg_dump fails with errors
 
 **Diagnosis**:
+
 ```bash
 # Check for corruption
 docker exec sms-postgres psql -U sms_user -d student_management -c "SELECT 1;"
@@ -363,6 +394,7 @@ docker exec sms-postgres vacuumdb -U sms_user -d student_management --analyze
 ```
 
 **Solution**:
+
 ```bash
 # Stop services
 docker compose -f docker-compose.qnap.yml down
@@ -386,11 +418,13 @@ docker volume rm sms_postgres_data
 ### Issue: Slow Database Queries
 
 **Symptoms**:
+
 - Application response times slow
 - Database CPU usage high
 - Timeout errors in logs
 
 **Diagnosis**:
+
 ```bash
 # Connect to database
 docker exec -it sms-postgres psql -U sms_user -d student_management
@@ -411,6 +445,7 @@ ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 ```
 
 **Solution**:
+
 ```bash
 # Run vacuum analyze
 docker exec sms-postgres vacuumdb -U sms_user -d student_management --analyze --verbose
@@ -429,11 +464,13 @@ docker exec sms-postgres reindexdb -U sms_user -d student_management
 ### Issue: Cannot Access Application from Browser
 
 **Symptoms**:
+
 - Browser shows "Connection refused" or timeout
 - Can ping QNAP but not access application
 - Works from QNAP itself but not from network
 
 **Diagnosis**:
+
 ```bash
 # Test from QNAP
 curl http://localhost:8080/health
@@ -446,6 +483,7 @@ docker compose -f docker-compose.qnap.yml ps frontend
 ```
 
 **Solution 1**: Firewall Blocking
+
 ```bash
 # Check QNAP firewall status
 # UI: Control Panel → Security → Firewall
@@ -458,6 +496,7 @@ curl http://QNAP_IP:8080/health
 ```
 
 **Solution 2**: Port Not Exposed
+
 ```bash
 # Verify port mapping in docker-compose.qnap.yml
 cat docker-compose.qnap.yml | grep -A 5 "frontend:" | grep ports
@@ -469,6 +508,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate frontend
 ```
 
 **Solution 3**: Wrong IP Address
+
 ```bash
 # Verify QNAP IP address
 ip addr show | grep "inet "
@@ -483,11 +523,13 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ### Issue: CORS Errors in Browser
 
 **Symptoms**:
+
 - Browser console shows CORS errors
 - API calls fail from frontend
 - "No 'Access-Control-Allow-Origin' header" error
 
 **Diagnosis**:
+
 ```bash
 # Check nginx configuration
 docker exec sms-frontend cat /etc/nginx/conf.d/default.conf | grep -A 5 cors
@@ -497,6 +539,7 @@ docker compose -f docker-compose.qnap.yml logs backend | grep -i cors
 ```
 
 **Solution**:
+
 ```bash
 # CORS is configured in nginx.qnap.conf
 # If issues persist, check if accessing via correct URL
@@ -517,11 +560,13 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate frontend
 ### Issue: API Endpoints Return 502 Bad Gateway
 
 **Symptoms**:
+
 - Frontend loads but API calls fail
 - 502 error for /api/* requests
 - Nginx error logs show "upstream" errors
 
 **Diagnosis**:
+
 ```bash
 # Check if backend is running
 docker compose -f docker-compose.qnap.yml ps backend
@@ -534,6 +579,7 @@ docker compose -f docker-compose.qnap.yml logs frontend | grep error
 ```
 
 **Solution**:
+
 ```bash
 # Restart backend
 docker compose -f docker-compose.qnap.yml restart backend
@@ -560,11 +606,13 @@ docker compose -f docker-compose.qnap.yml up -d
 ### Issue: High Memory Usage
 
 **Symptoms**:
+
 - QNAP becomes sluggish
 - Container Station shows high memory usage
 - Out of memory errors in logs
 
 **Diagnosis**:
+
 ```bash
 # Check overall memory
 free -h
@@ -577,6 +625,7 @@ swapon -s
 ```
 
 **Solution 1**: Reduce Resource Limits
+
 ```bash
 # Edit docker-compose.qnap.yml
 nano docker-compose.qnap.yml
@@ -591,6 +640,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ```
 
 **Solution 2**: Disable Monitoring
+
 ```bash
 # Stop monitoring services
 ./scripts/qnap/manage-qnap.sh
@@ -600,6 +650,7 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate
 ```
 
 **Solution 3**: Restart Services
+
 ```bash
 # Sometimes memory leaks occur
 # Periodic restart helps
@@ -611,11 +662,13 @@ docker compose -f docker-compose.qnap.yml restart
 ### Issue: Slow Response Times
 
 **Symptoms**:
+
 - Pages load slowly
 - API calls take several seconds
 - Timeouts occur
 
 **Diagnosis**:
+
 ```bash
 # Check response time
 time curl http://localhost:8080/health
@@ -629,6 +682,7 @@ iostat -x 1 5
 ```
 
 **Solution 1**: Database Maintenance
+
 ```bash
 # Run vacuum analyze
 docker exec sms-postgres vacuumdb -U sms_user -d student_management --analyze
@@ -638,12 +692,14 @@ docker exec sms-postgres reindexdb -U sms_user -d student_management
 ```
 
 **Solution 2**: Clear Application Cache
+
 ```bash
 # Restart backend to clear cache
 docker compose -f docker-compose.qnap.yml restart backend
 ```
 
 **Solution 3**: Check Disk Performance
+
 ```bash
 # Check if disk is healthy
 # UI: Control Panel → Storage & Snapshots → Storage → Disk Health
@@ -656,11 +712,13 @@ docker compose -f docker-compose.qnap.yml restart backend
 ### Issue: High CPU Usage
 
 **Symptoms**:
+
 - QNAP fans spin up constantly
 - System becomes unresponsive
 - High CPU in Container Station
 
 **Diagnosis**:
+
 ```bash
 # Check which container uses CPU
 docker stats
@@ -670,6 +728,7 @@ top -bn1 | head -20
 ```
 
 **Solution**:
+
 ```bash
 # Reduce worker count in backend
 # Edit docker-compose.qnap.yml or Dockerfile.backend.qnap
@@ -693,11 +752,13 @@ docker compose -f docker-compose.qnap.yml up -d --force-recreate backend
 ### Issue: Update Fails
 
 **Symptoms**:
+
 - Update script reports errors
 - Services won't start after update
 - Version mismatch errors
 
 **Diagnosis**:
+
 ```bash
 # Check what failed
 docker compose -f docker-compose.qnap.yml logs
@@ -707,6 +768,7 @@ ls -lt /share/Container/sms-backups/ | head -5
 ```
 
 **Solution**:
+
 ```bash
 # Rollback to previous version
 ./scripts/qnap/rollback-qnap.sh
@@ -726,11 +788,13 @@ docker compose -f docker-compose.qnap.yml logs
 ### Issue: Migration Fails
 
 **Symptoms**:
+
 - "Alembic migration failed" in backend logs
 - Database schema mismatch errors
 - Application won't start after update
 
 **Diagnosis**:
+
 ```bash
 # Check migration status
 docker exec sms-backend alembic current
@@ -743,6 +807,7 @@ docker exec sms-backend alembic history
 ```
 
 **Solution**:
+
 ```bash
 # If migration stuck, try manual migration
 docker exec sms-backend alembic upgrade head
@@ -763,11 +828,13 @@ docker exec sms-backend alembic upgrade head
 ### Issue: Backup Fails
 
 **Symptoms**:
+
 - Backup script reports errors
 - No backup file created
 - Partial backup files
 
 **Diagnosis**:
+
 ```bash
 # Check disk space
 df -h /share/Container/sms-backups/
@@ -780,6 +847,7 @@ docker exec sms-postgres pg_dump -U sms_user -d student_management > test_backup
 ```
 
 **Solution**:
+
 ```bash
 # Free up space
 rm /share/Container/sms-backups/old_backup_*.sql.gz
@@ -794,11 +862,13 @@ docker compose -f docker-compose.qnap.yml restart postgres
 ### Issue: Restore Fails
 
 **Symptoms**:
+
 - Restore script reports errors
 - Database remains in old state
 - Corruption after restore
 
 **Diagnosis**:
+
 ```bash
 # Check backup file integrity
 gunzip -t /share/Container/sms-backups/backup_file.sql.gz
@@ -808,6 +878,7 @@ head -50 /share/Container/sms-backups/backup_file.sql
 ```
 
 **Solution**:
+
 ```bash
 # Stop services
 docker compose -f docker-compose.qnap.yml down
@@ -832,11 +903,13 @@ docker compose -f docker-compose.qnap.yml up -d
 ### Issue: QNAP Running Out of Resources
 
 **Symptoms**:
+
 - Overall system slowdown
 - Multiple services affected
 - QNAP UI becomes unresponsive
 
 **Solution**:
+
 ```bash
 # Check what's using resources
 top -bn1

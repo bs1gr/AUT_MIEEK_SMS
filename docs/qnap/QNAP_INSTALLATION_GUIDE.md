@@ -1,5 +1,6 @@
 # QNAP Installation Guide
-## Student Management System v1.8.0
+
+## Student Management System
 
 Complete guide for deploying the Student Management System on QNAP NAS using Container Station.
 
@@ -46,6 +47,7 @@ The following ports must be available:
 | 9090 | Prometheus (optional) | No |
 
 **Internal ports** (not exposed):
+
 - 5432: PostgreSQL (container-internal only)
 - 8000: Backend API (accessed via Nginx reverse proxy)
 
@@ -87,6 +89,7 @@ df -h /share/Container/
 ### Method 1: Automated Installation Script (Recommended)
 
 The automated installation script handles:
+
 - Pre-flight environment checks
 - Directory structure creation
 - Secret generation
@@ -387,6 +390,7 @@ curl http://localhost:8080/
 2. Click "Register" or "Create Account"
 3. **First registered user automatically becomes admin**
 4. Fill in admin details:
+
    - Email: admin@yourdomain.com
    - Username: admin
    - Password: (use strong password)
@@ -396,6 +400,7 @@ curl http://localhost:8080/
 1. Log in with admin account
 2. Navigate to Settings/Configuration
 3. Configure:
+
    - School/Institution name
    - Academic year settings
    - Grading scale preferences
@@ -412,6 +417,7 @@ curl http://localhost:8080/
 ```
 
 **Recommended backup schedule**:
+
 - Daily: Automated backups at 2:00 AM
 - Weekly: Full backup retention
 - Monthly: Archive backups
@@ -445,18 +451,21 @@ docker compose -f docker-compose.qnap.yml --profile monitoring up -d
 Create scheduled tasks in QNAP:
 
 **Daily Tasks** (2:00 AM):
+
 ```bash
 cd /share/Container/sms-app
 ./scripts/qnap/manage-qnap.sh backup
 ```
 
 **Weekly Tasks** (Sunday 3:00 AM):
+
 ```bash
 cd /share/Container/sms-app
 docker system prune -f
 ```
 
 **Monthly Tasks** (1st day, 4:00 AM):
+
 ```bash
 cd /share/Container/sms-app
 ./scripts/qnap/manage-qnap.sh update
@@ -543,6 +552,7 @@ docker stats --no-stream
 **Problem**: Port 8080 is already occupied
 
 **Solution**:
+
 ```bash
 # Find process using port 8080
 netstat -tuln | grep 8080
@@ -560,6 +570,7 @@ nano .env.qnap
 **Problem**: Not enough disk space
 
 **Solution**:
+
 ```bash
 # Check available space
 df -h /share/Container/
@@ -576,6 +587,7 @@ docker system prune -a
 **Problem**: Services fail to start or remain unhealthy
 
 **Solution**:
+
 ```bash
 # Check logs for errors
 docker compose -f docker-compose.qnap.yml logs
@@ -598,6 +610,7 @@ docker compose -f docker-compose.qnap.yml up -d
 **Problem**: Browser cannot reach http://QNAP_IP:8080
 
 **Solution**:
+
 ```bash
 # 1. Verify containers are running
 docker compose -f docker-compose.qnap.yml ps
@@ -618,6 +631,7 @@ docker network inspect sms-network
 **Problem**: Backend cannot connect to PostgreSQL
 
 **Solution**:
+
 ```bash
 # 1. Check PostgreSQL is healthy
 docker compose -f docker-compose.qnap.yml ps postgres
@@ -637,6 +651,7 @@ docker compose -f docker-compose.qnap.yml restart backend
 **Problem**: QNAP runs out of memory
 
 **Solution**:
+
 ```bash
 # Check current memory usage
 free -h
@@ -653,6 +668,7 @@ docker compose -f docker-compose.qnap.yml --profile monitoring down
 **Problem**: Docker image build fails
 
 **Solution**:
+
 ```bash
 # Check build logs
 docker compose -f docker-compose.qnap.yml build --no-cache backend
@@ -725,6 +741,6 @@ After successful installation:
 
 ---
 
-**Version**: 1.8.0  
-**Last Updated**: November 19, 2025  
+**Version**: 1.8.6.4
+**Last Updated**: November 23, 2025
 **Platform**: QNAP NAS with Container Station
