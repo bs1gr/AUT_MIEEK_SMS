@@ -1110,6 +1110,6 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.8.6.4 (see [VERSION](VERSION) file)
+Current version: 1.8.7 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
