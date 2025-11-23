@@ -191,25 +191,25 @@ function Stop-ProcessFromPidFile {
     }
 
     try {
-        $pid = [int](Get-Content $PidFile -Raw).Trim()
-        $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        $ProcessId = [int](Get-Content $PidFile -Raw).Trim()
+        $process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
 
         if (-not $process) {
-            Write-Info "$($Name): Process not found (PID $pid), cleaning up"
+            Write-Info "$($Name): Process not found (PID $ProcessId), cleaning up"
             Remove-Item $PidFile -Force
             return $true
         }
 
-        Write-Info "$($Name): Stopping process (PID $pid)..."
+        Write-Info "$($Name): Stopping process (PID $ProcessId)..."
         try {
-            Stop-Process -Id $pid -ErrorAction Stop
+            Stop-Process -Id $ProcessId -ErrorAction Stop
         } catch {
             Write-Warning "$($Name): Forcing termination..."
-            Stop-Process -Id $pid -Force -ErrorAction Stop
+            Stop-Process -Id $ProcessId -Force -ErrorAction Stop
         }
 
         try {
-            Wait-Process -Id $pid -Timeout 10 -ErrorAction SilentlyContinue
+            Wait-Process -Id $ProcessId -Timeout 10 -ErrorAction SilentlyContinue
         } catch {}
 
         Remove-Item $PidFile -Force -ErrorAction SilentlyContinue
