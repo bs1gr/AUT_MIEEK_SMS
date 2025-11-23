@@ -1110,3 +1110,17 @@ See [LICENSE](LICENSE) file for details.
 Current version: 1.8.7 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
+
+## Developer note: `NATIVE.ps1` - auto-install & resiliency
+
+We added extra safety and convenience features to `NATIVE.ps1` to make first-time setup and recoveries easier on Windows:
+
+- Automatic install on start: if `frontend/node_modules` is missing when you run `.\NATIVE.ps1 -Start` or `.\NATIVE.ps1 -Frontend`, the script will attempt a non-interactive install (prefers `npm ci` when `package-lock.json` is present).
+- Robust retry and cleanup: installs use a helper that retries after removing known problematic native binaries (for example `@esbuild` on Windows) and will remove `node_modules` and retry a clean install if an initial `npm ci` fails due to locked files.
+- Peer-dependency guard: the script validates essential dev packages that Vite expects (for example `@babel/core`) and attempts to install them if missing to avoid runtime plugin errors.
+- Non-destructive setup: `.\NATIVE.ps1 -Setup` is safe to run in CI or developer environments; it creates/updates the Python virtualenv and installs frontend dependencies reproducibly.
+
+If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
+
+These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
+
