@@ -7,6 +7,7 @@ The full monitoring stack (Prometheus, Grafana, Loki, AlertManager) **requires D
 ### Why?
 
 The monitoring services are containerized applications:
+
 - **Prometheus** - Metrics database
 - **Grafana** - Visualization platform
 - **Loki** - Log aggregation
@@ -25,6 +26,7 @@ When running `SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native`, you have several al
 ### Option 1: Metrics Endpoint Only (Lightweight) ✅
 
 **What you get:**
+
 - ✅ Application metrics at http://localhost:8000/metrics
 - ✅ Prometheus-compatible format
 - ✅ No additional infrastructure needed
@@ -57,6 +59,7 @@ When running `SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native`, you have several al
    ```
 
 **Sample output:**
+
 ```text
 # HELP sms_http_requests_total Total number of HTTP requests
 # TYPE sms_http_requests_total counter
@@ -72,6 +75,7 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
 ```
 
 **Use cases:**
+
 - Quick debugging
 - Performance profiling
 - CI/CD health checks
@@ -82,6 +86,7 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
 ### Option 2: Hybrid Mode (Recommended) ✅
 
 **What you get:**
+
 - ✅ Native backend + frontend (fast development)
 - ✅ Full monitoring stack in Docker
 - ✅ Best of both worlds
@@ -99,17 +104,20 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
    ```
 
 3. **Access everything:**
+
    - Backend: http://localhost:8000 (native)
    - Frontend: http://localhost:5173 (native)
    - Grafana: http://localhost:3000 (Docker)
    - Prometheus: http://localhost:9090 (Docker)
 
 **Benefits:**
+
 - Fast backend/frontend reloads
 - Full monitoring capabilities
 - Prometheus scrapes native backend metrics
 
 **Network configuration:**
+
 ```yaml
 # docker-compose.monitoring.yml already configured for this
 prometheus:
@@ -145,9 +153,13 @@ scrape_configs:
      scrape_interval: 15s
 
    scrape_configs:
+
      - job_name: 'sms-backend'
+
        static_configs:
+
          - targets: ['localhost:8000']
+
    ```
 
 3. **Run Prometheus:**
@@ -176,14 +188,17 @@ scrape_configs:
    http://localhost:3000 (admin/admin)
 
 4. **Add Prometheus datasource:**
+
    - URL: http://localhost:9090
    - Save & Test
 
 **Pros:**
+
 - ✅ No Docker required
 - ✅ Native performance
 
 **Cons:**
+
 - ❌ Manual installation
 - ❌ No Loki (logs)
 - ❌ No AlertManager
@@ -194,6 +209,7 @@ scrape_configs:
 ### Option 4: Development Logging (Simplest)
 
 **What you get:**
+
 - ✅ Detailed console logs
 - ✅ Request/response logging
 - ✅ Error tracking
@@ -219,6 +235,7 @@ scrape_configs:
    ```
 
 **Benefits:**
+
 - Immediate feedback
 - No setup required
 - Good for local development
@@ -242,6 +259,7 @@ scrape_configs:
 ## Recommended Workflows
 
 ### For Daily Development
+
 ```powershell
 # Option 1: Native only (fastest)
 .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
@@ -251,6 +269,7 @@ curl http://localhost:8000/metrics
 ```
 
 ### For Feature Development
+
 ```powershell
 # Option 2: Hybrid mode
 .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
@@ -263,6 +282,7 @@ Start-Process http://localhost:3000
 ```
 
 ### For Production-Like Testing
+
 ```powershell
 # Full Docker stack
 .\SMS.ps1 -WithMonitoring
@@ -302,6 +322,7 @@ if __name__ == '__main__':
 ```
 
 Usage:
+
 ```powershell
 python scripts/dev/check-metrics.py
 ```
@@ -330,6 +351,7 @@ while ($true) {
 ```
 
 Usage:
+
 ```powershell
 .\scripts\dev\watch-metrics.ps1
 ```
@@ -341,34 +363,40 @@ Usage:
 ### Complete Setup (Hybrid Mode)
 
 **Step 1: Clean and setup native mode**
+
 ```powershell
 .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native
 ```
 
 **Step 2: Enable metrics**
+
 ```powershell
 # In backend/.env
 ENABLE_METRICS=1
 ```
 
 **Step 3: Start backend**
+
 ```powershell
 cd backend
 .\.venv\Scripts\python -m uvicorn backend.main:app --reload --host 0.0.0.0
 ```
 
 **Step 4: Start frontend** (separate terminal)
+
 ```powershell
 cd frontend
 npm run dev
 ```
 
 **Step 5: Start monitoring** (requires Docker)
+
 ```powershell
 docker-compose -f docker-compose.monitoring.yml up -d
 ```
 
 **Step 6: Verify**
+
 - Backend: http://localhost:8000
 - Frontend: http://localhost:5173
 - Metrics: http://localhost:8000/metrics
@@ -389,6 +417,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 **Problem:** Prometheus in Docker can't reach `localhost:8000`
 
 **Solution 1 (Windows/Mac):**
+
 ```yaml
 # In docker-compose.monitoring.yml
 # Already configured!
@@ -400,6 +429,7 @@ targets: ['host.docker.internal:8000']
 ```
 
 **Solution 2 (Linux):**
+
 ```yaml
 # Use host network mode
 network_mode: "host"
@@ -407,6 +437,7 @@ network_mode: "host"
 
 **Solution 3 (Manual):**
 Find host IP and use that:
+
 ```powershell
 # Get host IP
 ipconfig | Select-String "IPv4"
@@ -418,21 +449,25 @@ targets: ['192.168.1.100:8000']  # Your IP
 ### Metrics not showing in Grafana
 
 **Check 1: Backend is running**
+
 ```powershell
 curl http://localhost:8000/health
 ```
 
 **Check 2: Metrics endpoint works**
+
 ```powershell
 curl http://localhost:8000/metrics
 ```
 
 **Check 3: Prometheus is scraping**
+
 - Open http://localhost:9090/targets
 - Check `sms-backend` status
 - Should show "UP"
 
 **Check 4: ENABLE_METRICS is set**
+
 ```powershell
 # In backend, check environment
 python -c "import os; print(os.getenv('ENABLE_METRICS', 'not set'))"
@@ -443,6 +478,7 @@ python -c "import os; print(os.getenv('ENABLE_METRICS', 'not set'))"
 **Problem:** Docker monitoring stack uses too much RAM
 
 **Solution:** Stop monitoring when not needed
+
 ```powershell
 docker-compose -f docker-compose.monitoring.yml down
 ```
@@ -456,21 +492,25 @@ docker-compose -f docker-compose.monitoring.yml down
 ### Potential Native Monitoring Tools
 
 **Option 1: Prometheus Windows Exporter**
+
 - Native system metrics
 - Lightweight
 - No Docker required
 
 **Option 2: Netdata**
+
 - Real-time monitoring
 - Beautiful UI
 - Native installation available
 
 **Option 3: Custom Dashboard**
+
 - Simple React dashboard
 - Polls /metrics endpoint
 - Displays in browser
 
 **Option 4: VS Code Extension**
+
 - Monitor metrics in editor
 - Real-time alerts
 - Integrated debugging
@@ -491,6 +531,7 @@ docker-compose -f docker-compose.monitoring.yml down
 ### Best Practice
 
 **For development:**
+
 ```powershell
 # Native backend + frontend (fast reloads)
 .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
@@ -500,6 +541,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 ```
 
 **For production-like:**
+
 ```powershell
 # Everything in Docker
 .\SMS.ps1 -WithMonitoring

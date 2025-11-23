@@ -362,6 +362,7 @@ if (response.status === 401) {
 4. **Update frontend** to include authentication UI
 
 5. **Enable in production:**
+
    - Set `AUTH_ENABLED=True`
    - Use strong `SECRET_KEY`
    - Configure HTTPS/TLS

@@ -69,9 +69,11 @@ export default function () {
 2. Warm cache with representative GET requests.
 3. Run staged test (e.g., k6 script above).
 4. Capture:
+
    - k6 summary
    - Backend logs (slow-query entries)
    - CPU/RAM (Task Manager / docker stats)
+
 5. Repeat without warming cache to compare cold vs hot paths.
 
 ---

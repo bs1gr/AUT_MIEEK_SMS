@@ -101,6 +101,7 @@ cd student-management-system
 | **Native** | Backend + Frontend separate processes | Development, hot reload | 8000 + 5173 |
 
 **Key Features:**
+
 - **Dual Deployment**: Docker for production, Native for development
 - **Hot Reload**: Uvicorn (backend) + Vite HMR (frontend)
 - **Auto-Migrations**: Alembic runs on startup via FastAPI lifespan
@@ -177,6 +178,7 @@ docker-compose down
 ### IDE Configuration
 
 **VS Code Extensions (Recommended):**
+
 - Python (ms-python.python)
 - Pylance (ms-python.vscode-pylance)
 - ESLint (dbaeumer.vscode-eslint)
@@ -185,6 +187,7 @@ docker-compose down
 - Thunder Client (REST API testing)
 
 **VS Code Settings (.vscode/settings.json):**
+
 ```json
 {
   "python.linting.enabled": true,
@@ -281,6 +284,7 @@ frontend/
 ### Creating a New Endpoint
 
 **1. Define Pydantic Schema (`backend/schemas/example.py`):**
+
 ```python
 from pydantic import BaseModel, Field
 
@@ -298,11 +302,13 @@ class ExampleResponse(BaseModel):
 ```
 
 **2. Export Schema (`backend/schemas/__init__.py`):**
+
 ```python
 from .example import ExampleCreate, ExampleResponse
 ```
 
 **3. Create Router (`backend/routers/routers_example.py`):**
+
 ```python
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -342,6 +348,7 @@ async def get_example(
 ```
 
 **4. Register Router (`backend/main.py`):**
+
 ```python
 from backend.routers import routers_example
 
@@ -353,6 +360,7 @@ def register_routers(app: FastAPI):
 ### Critical Backend Patterns
 
 #### ❌ Wrong: Direct require_role for Admin Endpoints
+
 ```python
 # BYPASSES AUTH_MODE - Never use for admin endpoints
 @router.get("/admin/users")
@@ -363,6 +371,7 @@ async def list_users(
 ```
 
 #### ✅ Correct: optional_require_role for Admin Endpoints
+
 ```python
 # RESPECTS AUTH_MODE - Always use for admin endpoints
 @router.get("/admin/users")
@@ -373,6 +382,7 @@ async def list_users(
 ```
 
 **AUTH_MODE Behavior:**
+
 - `disabled`: No authentication (emergency access)
 - `permissive`: Authentication optional (recommended)
 - `strict`: Full authentication required
@@ -382,6 +392,7 @@ See: [AUTHENTICATION.md](AUTHENTICATION.md) for complete auth guide
 ### Database Models
 
 **Example Model (`backend/models.py`):**
+
 ```python
 from sqlalchemy import Column, Integer, String, ForeignKey, Index
 from sqlalchemy.orm import relationship
@@ -406,6 +417,7 @@ class Example(Base):
 ```
 
 **Critical Rules:**
+
 - Always use `ondelete="CASCADE"` for foreign keys
 - Index frequently queried fields
 - Use `back_populates` for bidirectional relationships
@@ -418,6 +430,7 @@ class Example(Base):
 ### Creating a New Feature Component
 
 **1. Create Component (`frontend/src/features/example/ExampleList.jsx`):**
+
 ```jsx
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -451,6 +464,7 @@ export const ExampleList = () => {
 ```
 
 **2. Add Translations (`frontend/src/translations.js`):**
+
 ```javascript
 export const translations = {
   en: {
@@ -471,22 +485,26 @@ export const translations = {
 **3. Critical Frontend Patterns:**
 
 #### ❌ Wrong: Hardcoded Strings
+
 ```jsx
 <button>Save</button>  // Never hardcode UI text!
 ```
 
 #### ✅ Correct: Use i18n
+
 ```jsx
 const { t } = useTranslation();
 <button>{t('common.save')}</button>
 ```
 
 #### ❌ Wrong: Direct Axios Calls
+
 ```jsx
 axios.get('http://localhost:8000/api/v1/students')  // Hardcoded URL
 ```
 
 #### ✅ Correct: Use API Client
+
 ```jsx
 import { apiClient } from '../api/api';
 apiClient.get('/students')  // Configured client
@@ -594,6 +612,7 @@ def downgrade():
 **Problem:** Native and Docker use different DB versions
 
 **Solution:**
+
 ```powershell
 # Check version mismatch
 .\scripts\CHECK_VOLUME_VERSION.ps1
@@ -678,6 +697,7 @@ app.include_router(courses_router, prefix="/api/v1")
 ```
 
 **Future versions:**
+
 - `/api/v2/` - Breaking changes
 - `/api/v1/` - Maintained for backward compatibility
 
@@ -749,6 +769,7 @@ async def list_students(
 **Access ReDoc:** http://localhost:8000/redoc
 
 **Document Endpoint:**
+
 ```python
 @router.post(
     "/students",
@@ -894,11 +915,13 @@ test('create example item', async ({ page }) => {
 ### Recent Optimizations (v1.8.6+)
 
 **Database Indexing (+40% query speed):**
+
 - Indexed `students.email`, `courses.course_code`
 - Indexed `grades.student_id`, `grades.course_id`
 - Indexed `attendance.date`, `attendance.course_id`
 
 **Response Caching (+70% faster):**
+
 ```python
 from backend.caching import cache_response
 
@@ -909,6 +932,7 @@ async def list_students(...):
 ```
 
 **N+1 Query Fixes (100x reduction):**
+
 ```python
 # ❌ Wrong: N+1 queries
 students = db.query(Student).all()
@@ -922,6 +946,7 @@ students = db.query(Student).options(
 ```
 
 **React Optimization (+60-70% render speed):**
+
 ```jsx
 // ❌ Wrong: Inline object creation causes re-renders
 <Component config={{ key: 'value' }} />
@@ -939,6 +964,7 @@ export const ExpensiveComponent = React.memo(({ data }) => {
 ### Performance Monitoring
 
 **Backend:**
+
 ```python
 import time
 import logging
@@ -954,6 +980,7 @@ async def slow_operation():
 ```
 
 **Frontend:**
+
 ```javascript
 // Use React DevTools Profiler
 // Monitor bundle size with Vite build analysis
@@ -1002,6 +1029,7 @@ chore(deps): update dependencies
 ```
 
 **Structure:**
+
 ```html
 <type>(<scope>): <subject>
 
@@ -1011,6 +1039,7 @@ chore(deps): update dependencies
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation
@@ -1022,6 +1051,7 @@ chore(deps): update dependencies
 ### Code Style
 
 **Python (Backend):**
+
 - Follow PEP 8
 - Use type hints
 - Use Ruff for linting/formatting
@@ -1029,12 +1059,14 @@ chore(deps): update dependencies
 - Docstrings: Google style
 
 **JavaScript/React (Frontend):**
+
 - Follow Airbnb style guide
 - Use ESLint + Prettier
 - Functional components with hooks
 - PropTypes or TypeScript for type checking
 
 **Pre-commit Hooks:**
+
 ```bash
 # Install pre-commit hooks
 pip install pre-commit
@@ -1069,6 +1101,7 @@ pre-commit run --all-files
 ### Useful Commands
 
 **Backend:**
+
 ```bash
 # Format code
 ruff format .
@@ -1087,6 +1120,7 @@ alembic revision --autogenerate -m "description"
 ```
 
 **Frontend:**
+
 ```bash
 # Format code
 npm run format
@@ -1105,6 +1139,7 @@ npm run preview
 ```
 
 **Docker:**
+
 ```bash
 # Rebuild specific service
 docker-compose up -d --build backend
@@ -1123,6 +1158,7 @@ docker-compose up -d --build
 ### Resources
 
 **Documentation:**
+
 - [FastAPI Docs](https://fastapi.tiangolo.com/)
 - [React Docs](https://react.dev/)
 - [SQLAlchemy Docs](https://docs.sqlalchemy.org/)
@@ -1130,12 +1166,14 @@ docker-compose up -d --build
 - [Alembic Docs](https://alembic.sqlalchemy.org/)
 
 **Internal Guides:**
+
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - System design
 - [AUTHENTICATION.md](AUTHENTICATION.md) - Auth implementation
 - [API_EXAMPLES.md](API_EXAMPLES.md) - API patterns
 - [DEVELOPER_FAST_START.md](DEVELOPER_FAST_START.md) - Quick setup
 
 **Project Management:**
+
 - [TODO.md](../../TODO.md) - Current tasks
 - [CHANGELOG.md](../../CHANGELOG.md) - Version history
 - [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues) - Bug tracking
