@@ -29,6 +29,7 @@
 ### What is the Student Management System?
 
 The Student Management System (SMS) is a comprehensive web-based application designed to help educational institutions manage:
+
 - Student records and enrollment
 - Course information and scheduling
 - Grade tracking and calculations
@@ -48,11 +49,13 @@ The Student Management System (SMS) is a comprehensive web-based application des
 ### System Requirements
 
 **To Use the Application:**
+
 - Modern web browser (Chrome, Firefox, Edge, Safari)
 - Internet connection (for initial setup)
 - Screen resolution: 1280x720 or higher recommended
 
 **To Install/Host:**
+
 - See [Installation & Access](#installation--access) section
 
 ---
@@ -64,6 +67,7 @@ The Student Management System (SMS) is a comprehensive web-based application des
 1. **Open your web browser**
 2. **Navigate to:** `http://localhost:8082` (Docker mode) or `http://localhost:5173` (Native mode)
 3. **Default Admin Credentials:**
+
    - **Email:** `admin@example.com`
    - **Password:** `YourSecurePassword123!`
 
@@ -92,6 +96,7 @@ The system automatically detects your browser language (English or Greek). To ch
 ### Option 1: Quick Start (Windows)
 
 **Automated Installation:**
+
 ```powershell
 # Download from GitHub Releases
 # Extract SMS_Distribution_1.8.6.3.zip
@@ -100,6 +105,7 @@ The system automatically detects your browser language (English or Greek). To ch
 ```
 
 **GUI Installer Features:**
+
 - ✅ Visual step-by-step wizard
 - ✅ Automatic Docker Desktop installation
 - ✅ System requirements validation
@@ -111,10 +117,12 @@ See: [Windows Installer Wizard Guide](../WINDOWS_INSTALLER_WIZARD_GUIDE.md)
 ### Option 2: Docker Deployment (All Platforms)
 
 **Prerequisites:**
+
 - Docker Desktop installed and running
 - PowerShell 5.1+ (Windows) or bash (Linux/Mac)
 
 **Installation:**
+
 ```powershell
 # Windows
 .\DOCKER.ps1 -Install
@@ -128,11 +136,13 @@ docker-compose up -d
 ### Option 3: Native Development Mode
 
 **Prerequisites:**
+
 - Python 3.11+
 - Node.js 18+
 - npm or yarn
 
 **Installation:**
+
 ```powershell
 # Windows
 .\NATIVE.ps1 -Setup
@@ -146,24 +156,28 @@ npm run dev
 ```
 
 **Access:** 
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 
 ### Daily Operations
 
 **Start Application:**
+
 ```powershell
 .\DOCKER.ps1 -Start    # Docker mode
 .\NATIVE.ps1 -Start    # Native mode
 ```
 
 **Stop Application:**
+
 ```powershell
 .\DOCKER.ps1 -Stop     # Docker mode
 .\NATIVE.ps1 -Stop     # Native mode
 ```
 
 **Check Status:**
+
 ```powershell
 .\DOCKER.ps1 -Status   # Docker mode
 .\NATIVE.ps1 -Status   # Native mode
@@ -190,6 +204,7 @@ The main navigation bar provides access to all major features:
 ### Dashboard Overview
 
 The dashboard displays:
+
 - **Total Statistics**: Student count, course count, average grades
 - **Recent Activity**: Latest grade entries, attendance records
 - **Quick Actions**: Shortcut buttons for common tasks
@@ -198,6 +213,7 @@ The dashboard displays:
 ### Theme Customization
 
 **Available Themes:**
+
 - **Light Mode**: Default bright theme
 - **Dark Mode**: Easy on the eyes
 - **High Contrast**: Accessibility mode
@@ -219,6 +235,7 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 
 1. Click **Students** in navigation menu
 2. Student list displays with:
+
    - Student ID
    - Full Name
    - Email
@@ -229,6 +246,7 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 
 1. Click **Students** → **Add Student** button
 2. Fill in required fields:
+
    - **First Name** (required)
    - **Last Name** (required)
    - **Email** (required, must be unique)
@@ -236,9 +254,11 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
    - **Date of Birth** (optional)
    - **Phone** (optional)
    - **Address** (optional)
+
 3. Click **Save Student**
 
 **Validation Rules:**
+
 - Email must be valid format (name@domain.com)
 - Student ID must be unique if provided
 - All fields are sanitized for security
@@ -266,10 +286,12 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 ### Searching and Filtering
 
 **Search Bar:**
+
 - Type any part of: name, email, or student ID
 - Results filter in real-time
 
 **Filter Options:**
+
 - **Status**: Active, Inactive, Graduated
 - **Enrollment Date**: Date range picker
 - **Course**: Filter by enrolled course
@@ -298,6 +320,7 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 
 1. Click **Courses** in navigation menu
 2. Course list displays with:
+
    - Course Code
    - Course Name
    - Instructor
@@ -308,6 +331,7 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 
 1. Click **Courses** → **Add Course** button
 2. Fill in course details:
+
    - **Course Code** (required, unique)
    - **Course Name** (required)
    - **Description** (optional)
@@ -315,6 +339,7 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
    - **Instructor** (optional)
    - **Semester** (optional)
    - **Year** (optional)
+
 3. Click **Save Course**
 
 ### Grading Configuration
@@ -324,18 +349,22 @@ Each course can have custom grading rules:
 **Component-Based Grading:**
 1. Edit course → **Grading Rules** section
 2. Add grade components:
+
    - **Midterm Exam**: 30% weight
    - **Final Exam**: 40% weight
    - **Assignments**: 20% weight
    - **Participation**: 10% weight
+
 3. Total weights must equal 100%
 
 **Absence Penalty:**
+
 - Set penalty points deducted from final grade
 - Example: `-0.5` points per absence
 - Applied automatically during grade calculation
 
 **Grade Scale:**
+
 - Default: 0-20 (Greek system)
 - Configurable: Can set to 0-100 (percentage)
 - Pass threshold: Default 10/20 (50%)
@@ -358,10 +387,12 @@ Each course can have custom grading rules:
 
 1. Edit course → **Schedule** section
 2. Add time slots:
+
    - Day of week
    - Start time
    - End time
    - Room/Location
+
 3. Save schedule
 
 ---
@@ -408,11 +439,13 @@ Each course can have multiple grade components:
 The system calculates final grades automatically:
 
 **Formula:**
+
 ```text
 Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
 ```
 
 **Example:**
+
 - Midterm: 15/20 × 30% = 4.5
 - Final: 18/20 × 40% = 7.2
 - Assignments: 16/20 × 20% = 3.2
@@ -438,6 +471,7 @@ Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
 ### Grade Statistics
 
 For each course, view:
+
 - **Average Grade**: Mean of all student final grades
 - **Median Grade**: Middle value
 - **Standard Deviation**: Grade distribution
@@ -455,14 +489,17 @@ For each course, view:
 2. Select **Course** and **Date**
 3. Student list appears with attendance toggles
 4. Mark each student as:
+
    - ✅ **Present**
    - ❌ **Absent**
    - 🏥 **Excused Absence**
    - 🕐 **Late**
+
 5. Add notes if needed (optional)
 6. Click **Save Attendance**
 
 **Bulk Attendance:**
+
 - Click **Mark All Present** to pre-fill
 - Uncheck absences individually
 - Saves time for large classes
@@ -474,6 +511,7 @@ For each course, view:
 2. Click **Attendance** tab
 3. View calendar with attendance markers
 4. See statistics:
+
    - Total days present
    - Total days absent
    - Attendance percentage
@@ -491,18 +529,23 @@ For each course, view:
 **Generate Report:**
 1. Click **Attendance** → **Reports**
 2. Select filters:
+
    - Course
    - Date range
    - Student (optional)
+
 3. View report with:
+
    - Attendance summary
    - Students at risk (< 80% attendance)
    - Daily attendance trends
+
 4. Export as PDF or Excel
 
 ### Attendance Alerts
 
 The system automatically flags:
+
 - 🚨 **Low Attendance**: < 70% (red alert)
 - ⚠️ **At Risk**: 70-80% (yellow warning)
 - ✅ **Good Standing**: > 80% (green)
@@ -516,6 +559,7 @@ Administrators receive email notifications for students with low attendance.
 ### Dashboard Reports
 
 **Quick Statistics:**
+
 - Total students enrolled
 - Total active courses
 - Average attendance rate
@@ -523,6 +567,7 @@ Administrators receive email notifications for students with low attendance.
 - Students at risk
 
 **Visual Charts:**
+
 - Enrollment trends over time
 - Grade distribution by course
 - Attendance rate comparison
@@ -534,9 +579,11 @@ Administrators receive email notifications for students with low attendance.
 1. Click **Reports** → **Student Reports**
 2. Select student
 3. Choose report type:
+
    - **Transcript**: All courses and grades
    - **Attendance Summary**: Attendance across all courses
    - **Performance Trend**: Grade progression over time
+
 4. Select date range
 5. Click **Generate Report**
 6. Export as PDF
@@ -544,9 +591,11 @@ Administrators receive email notifications for students with low attendance.
 **Cohort Analysis:**
 1. Select group of students (by enrollment year, course, etc.)
 2. Compare:
+
    - Average grades
    - Attendance rates
    - Pass/fail rates
+
 3. Visualize with charts
 
 ### Course Reports
@@ -555,6 +604,7 @@ Administrators receive email notifications for students with low attendance.
 1. Click **Reports** → **Course Reports**
 2. Select course
 3. View:
+
    - Grade distribution histogram
    - Pass/fail statistics
    - Component performance breakdown
@@ -571,10 +621,12 @@ Administrators receive email notifications for students with low attendance.
 **Report Builder:**
 1. Click **Reports** → **Custom Report**
 2. Select data sources:
+
    - Students
    - Courses
    - Grades
    - Attendance
+
 3. Choose fields to include
 4. Apply filters
 5. Select grouping and sorting
@@ -584,6 +636,7 @@ Administrators receive email notifications for students with low attendance.
 ### Export Formats
 
 Available export formats:
+
 - **Excel (.xlsx)**: Best for data analysis
 - **PDF**: Best for printing and sharing
 - **CSV**: Best for importing to other systems
@@ -598,6 +651,7 @@ Available export formats:
 **Excel Import:**
 1. Download template: **Students** → **Import** → **Download Template**
 2. Fill in required columns:
+
    - `student_id` (optional, auto-generated if blank)
    - `first_name` (required)
    - `last_name` (required)
@@ -605,17 +659,20 @@ Available export formats:
    - `date_of_birth` (optional, format: YYYY-MM-DD)
    - `phone` (optional)
    - `address` (optional)
+
 3. Upload file: Click **Choose File** → **Upload**
 4. Review preview with validation results
 5. Click **Confirm Import**
 
 **Validation Rules:**
+
 - Duplicate emails are rejected
 - Invalid email formats are rejected
 - Missing required fields are rejected
 - Rows with errors are shown in red
 
 **JSON Import:**
+
 ```json
 [
   {
@@ -631,6 +688,7 @@ Available export formats:
 ### Importing Courses
 
 **Excel Template Columns:**
+
 - `course_code` (required, unique)
 - `course_name` (required)
 - `description` (optional)
@@ -641,6 +699,7 @@ Available export formats:
 
 **Grading Configuration Import:**
 Include these columns for automatic grading setup:
+
 - `midterm_weight` (numeric, 0-100)
 - `final_weight` (numeric, 0-100)
 - `assignment_weight` (numeric, 0-100)
@@ -650,6 +709,7 @@ Include these columns for automatic grading setup:
 ### Importing Grades
 
 **Excel Template Columns:**
+
 - `student_id` (required, must exist)
 - `course_code` (required, must exist)
 - `component_type` (required: midterm, final, assignment, etc.)
@@ -660,6 +720,7 @@ Include these columns for automatic grading setup:
 - `notes` (optional)
 
 **Bulk Grade Update:**
+
 - Import can update existing grades by matching student_id + course_code + component_type
 - Use `update_mode: overwrite` or `update_mode: skip_existing`
 
@@ -668,24 +729,31 @@ Include these columns for automatic grading setup:
 **Student Export:**
 1. Click **Students** → **Export**
 2. Select fields:
+
    - ☑️ Basic Info (name, email, student ID)
    - ☑️ Contact Info (phone, address)
    - ☑️ Enrollment Data (courses, status)
    - ☑️ Performance Data (GPA, attendance)
+
 3. Choose format: Excel, CSV, JSON, PDF
 4. Click **Export**
 
 **Grade Export:**
 1. Click **Grades** → **Export**
 2. Filters:
+
    - Course (all or specific)
    - Date range
    - Student group
+
 3. Include:
+
    - Individual component grades
    - Calculated final grades
    - Grade statistics
+
 4. Export to Excel with multiple sheets:
+
    - **Summary**: Final grades by student
    - **Components**: Detailed breakdown
    - **Statistics**: Course statistics
@@ -694,9 +762,11 @@ Include these columns for automatic grading setup:
 1. Click **Attendance** → **Export**
 2. Select course and date range
 3. Format options:
+
    - **Grid**: Students × Dates matrix
    - **List**: One row per attendance record
    - **Summary**: Attendance statistics only
+
 4. Export to Excel or PDF
 
 ### Backup & Restore
@@ -709,6 +779,7 @@ Include these columns for automatic grading setup:
 5. Filename: `backup_YYYYMMDD_HHMMSS.db`
 
 **Automatic Backups:**
+
 - System creates automatic backups daily
 - Keeps last 10 backups by default
 - Oldest backups auto-deleted
@@ -734,6 +805,7 @@ Include these columns for automatic grading setup:
 **Location:** Control Panel → Maintenance
 
 **Admin Functions:**
+
 - User management
 - System configuration
 - Database operations
@@ -746,18 +818,22 @@ Include these columns for automatic grading setup:
 1. Control Panel → Maintenance → **User Management**
 2. Click **Add User**
 3. Fill in:
+
    - Email (unique)
    - Password (strong password required)
    - Full Name
    - Role (admin, teacher, viewer)
+
 4. Click **Create User**
 
 **User Roles:**
+
 - **Admin**: Full system access, can manage users
 - **Teacher**: Can manage courses, grades, attendance
 - **Viewer**: Read-only access to reports
 
 **Edit User:**
+
 - Change email, name, or role
 - Reset password
 - Activate/deactivate account
@@ -766,6 +842,7 @@ Include these columns for automatic grading setup:
 ### Authentication Settings
 
 **AUTH_MODE Configuration:**
+
 - **Disabled**: No authentication required (emergency access only)
 - **Permissive**: Authentication optional (recommended for production)
 - **Strict**: Full authentication required (maximum security)
@@ -782,15 +859,18 @@ Include these columns for automatic grading setup:
 **Edit Configuration:**
 1. Control Panel → Maintenance → **System Settings**
 2. Available settings:
+
    - **Semester Weeks**: Default semester length (12-16 weeks)
    - **Pass Threshold**: Minimum grade to pass (default: 10/20)
    - **Grade Scale**: 0-20 or 0-100
    - **Attendance Threshold**: Minimum attendance % (default: 80%)
    - **Email Notifications**: Enable/disable
+
 3. Click **Save Settings**
 
 **Environment Variables:**
 Advanced users can edit `.env` file directly:
+
 ```env
 # Authentication
 AUTH_ENABLED=true
@@ -812,11 +892,13 @@ CACHE_TTL=300
 ### Performance Settings
 
 **Enable Caching:**
+
 - Improves response times by 70%
 - Cache TTL: 5 minutes (300 seconds)
 - Automatically clears on data updates
 
 **Database Optimization:**
+
 - WAL mode enabled by default (40% faster)
 - Auto-vacuum scheduled daily
 - Indexes on frequently queried fields
@@ -826,6 +908,7 @@ CACHE_TTL=300
 **System Health:**
 1. Control Panel → Operations → **Health Check**
 2. View:
+
    - ✅ Database connection status
    - ✅ Disk space available
    - ✅ Response times
@@ -835,9 +918,11 @@ CACHE_TTL=300
 **View Logs:**
 1. Control Panel → Operations → **View Logs**
 2. Filter by:
+
    - Date/time range
    - Log level (ERROR, WARNING, INFO)
    - Component (backend, frontend, database)
+
 3. Search for specific errors
 4. Download logs for troubleshooting
 
@@ -862,6 +947,7 @@ CACHE_TTL=300
    ```
 3. Check if Docker Desktop is running (Docker mode)
 4. Verify correct URL:
+
    - Docker: http://localhost:8082
    - Native: http://localhost:5173
 
@@ -871,8 +957,10 @@ CACHE_TTL=300
 
 **Solution:**
 1. Verify credentials:
+
    - Email: `admin@example.com`
    - Password: `YourSecurePassword123!`
+
 2. Check if AUTH_MODE is causing issues:
    ```powershell
    # Temporary: Set AUTH_MODE=disabled for emergency access
@@ -907,9 +995,11 @@ CACHE_TTL=300
 1. Download fresh template from application
 2. Check required fields are filled
 3. Verify data formats:
+
    - Dates: YYYY-MM-DD
    - Emails: name@domain.com
    - Numbers: No text characters
+
 4. Check for duplicate IDs or emails
 5. Import in smaller batches (< 1000 rows)
 
@@ -919,11 +1009,15 @@ CACHE_TTL=300
 
 **Solution:**
 1. Check course grading configuration:
+
    - Component weights must total 100%
    - All components must have grades
+
 2. Verify grade data:
+
    - `max_grade` must be > 0
    - `grade` must be ≤ `max_grade`
+
 3. Check absence penalty is set correctly
 4. Recalculate grades: Grades → **Recalculate All**
 
@@ -948,12 +1042,14 @@ CACHE_TTL=300
 ### Getting Help
 
 **Documentation:**
+
 - [Quick Start Guide](QUICK_START_GUIDE.md)
 - [Installation Guide](../../INSTALLATION_GUIDE.md)
 - [Deployment Guide](../deployment/DEPLOYMENT_GUIDE_COMPLETE.md)
 - [Developer Guide](../development/DEVELOPER_GUIDE_COMPLETE.md)
 
 **Support:**
+
 - GitHub Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 - Check logs: `.\DOCKER.ps1 -Logs`
 - Health check: http://localhost:8082/health
@@ -963,6 +1059,7 @@ CACHE_TTL=300
 2. Review application logs
 3. Try restarting the application
 4. Include in your report:
+
    - Version number (type `VERSION` or check http://localhost:8082/health)
    - Operating system
    - Deployment mode (Docker/Native)
@@ -977,6 +1074,7 @@ CACHE_TTL=300
 
 **Q: Can I use a different database than SQLite?**  
 A: Yes! The system supports PostgreSQL. Edit `backend/.env`:
+
 ```env
 DATABASE_ENGINE=postgresql
 DATABASE_URL=postgresql://user:password@localhost:5432/sms_db
@@ -998,6 +1096,7 @@ A: Tested with 10,000+ students. Performance depends on hardware. Use PostgreSQL
 
 **Q: How secure is the system?**  
 A: Very secure! Features include:
+
 - JWT token authentication
 - CSRF protection
 - Rate limiting
@@ -1032,6 +1131,7 @@ A: View grade history (shows who entered/modified grades and when). Export audit
 
 **Q: Why is the application slow?**  
 A: Common causes:
+
 - Caching disabled (enable in .env)
 - Large database (> 1GB, consider PostgreSQL)
 - Many concurrent users (upgrade hardware)
@@ -1061,6 +1161,7 @@ A: No! Works completely offline after installation. Internet only needed for ini
 ### Grade Scales
 
 **Greek Scale (0-20):**
+
 - 18-20: Excellent (A)
 - 16-17: Very Good (B)
 - 14-15: Good (C)
@@ -1068,6 +1169,7 @@ A: No! Works completely offline after installation. Internet only needed for ini
 - 0-9: Fail (F)
 
 **Percentage Scale (0-100):**
+
 - 90-100: A
 - 80-89: B
 - 70-79: C
@@ -1077,6 +1179,7 @@ A: No! Works completely offline after installation. Internet only needed for ini
 ### Date/Time Formats
 
 All dates use ISO 8601 format:
+
 - **Date**: YYYY-MM-DD (e.g., 2025-11-22)
 - **Time**: HH:MM:SS (e.g., 14:30:00)
 - **DateTime**: YYYY-MM-DD HH:MM:SS

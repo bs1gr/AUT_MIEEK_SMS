@@ -7,7 +7,9 @@ The Control Panel Operations now features **6 professional appearance themes** i
 ## Available Themes
 
 ### 1. Default Theme
+
 **Best for:** General use, accessibility
+
 - Balanced light/dark mode support
 - Clean gray color palette
 - Standard rounded corners (`rounded-lg`)
@@ -15,6 +17,7 @@ The Control Panel Operations now features **6 professional appearance themes** i
 - High readability and WCAG compliance
 
 **Colors:**
+
 - Container: White/Gray-800
 - Cards: Gray-50/Gray-800
 - Buttons: Indigo-600
@@ -23,7 +26,9 @@ The Control Panel Operations now features **6 professional appearance themes** i
 ---
 
 ### 2. Glassmorphism Theme
+
 **Best for:** Modern, premium feel
+
 - Frosted glass effect with `backdrop-blur`
 - Semi-transparent backgrounds
 - Vibrant gradient buttons (indigo → purple)
@@ -31,6 +36,7 @@ The Control Panel Operations now features **6 professional appearance themes** i
 - Layered depth with translucent elements
 
 **Visual Style:**
+
 - Heavy use of `bg-white/10` transparency
 - `backdrop-blur-xl` for glass effect
 - Border: `border-white/20`
@@ -42,7 +48,9 @@ The Control Panel Operations now features **6 professional appearance themes** i
 ---
 
 ### 3. Neumorphism Theme
+
 **Best for:** Tactile, 3D interfaces
+
 - Soft shadows create embossed/debossed look
 - Monochromatic color scheme
 - Inner shadows for pressed buttons
@@ -50,6 +58,7 @@ The Control Panel Operations now features **6 professional appearance themes** i
 - Subtle depth without borders
 
 **Shadow System:**
+
 ```css
 /* Raised elements */
 shadow-[8px_8px_16px_#bebebe,-8px_-8px_16px_#ffffff]
@@ -66,7 +75,9 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 ---
 
 ### 4. Gradient Theme
+
 **Best for:** Colorful, energetic interfaces
+
 - Multi-color gradients (indigo → purple → pink)
 - Glass-like cards on gradient backgrounds
 - Vibrant button shadows
@@ -74,6 +85,7 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 - High visual interest
 
 **Gradient System:**
+
 - Container: `from-indigo-50 via-purple-50 to-pink-50`
 - Dark: `from-gray-900 via-indigo-950 to-purple-950`
 - Buttons: `from-indigo-600 via-purple-600 to-pink-600`
@@ -84,7 +96,9 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 ---
 
 ### 5. Modern Dark Theme
+
 **Best for:** Low-light environments, focus
+
 - Deep dark backgrounds (gray-900)
 - High contrast text
 - Enhanced shadows with glow effects
@@ -92,6 +106,7 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 - Optimized for extended use
 
 **Color Palette:**
+
 - Background: Gray-900 → Gray-800 gradient
 - Cards: Gray-800 → Gray-900 gradient
 - Borders: Gray-700/Gray-600
@@ -102,7 +117,9 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 ---
 
 ### 6. Light Professional Theme
+
 **Best for:** Corporate, formal settings
+
 - Crisp white backgrounds
 - Sharp borders (gray-200)
 - Minimal rounded corners (`rounded-md`)
@@ -110,6 +127,7 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 - Highest contrast for readability
 
 **Design Philosophy:**
+
 - Simplicity over decoration
 - Clear visual hierarchy
 - Standard UI patterns
@@ -139,6 +157,7 @@ export type ThemeVariant =
 ### Theme Styles Object
 
 Each theme provides consistent styling for:
+
 - `container` - Main panel container
 - `card` - Individual operation cards
 - `subtleCard` - Nested/secondary cards
@@ -171,6 +190,7 @@ const theme = themeStyles[selectedTheme];
 ### Accessibility Notes
 
 All themes maintain:
+
 - ✅ WCAG 2.1 AA contrast ratios
 - ✅ Keyboard navigation support
 - ✅ Screen reader compatibility
@@ -221,6 +241,7 @@ export const themeStyles = {
 ## Future Enhancements
 
 Potential additions:
+
 - [ ] Theme persistence in localStorage
 - [ ] Custom theme builder
 - [ ] Theme preview panel

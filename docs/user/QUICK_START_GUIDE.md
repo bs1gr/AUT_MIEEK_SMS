@@ -109,12 +109,14 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
    ```
 
 4. **Login**:
+
    - Go to <http://localhost:8080>
    - Click **Login** button (top-right)
    - Enter your email and password
    - Click **Sign In**
 
 5. **⚠️ Change your password immediately**:
+
    - Go to **Control Panel** → **Administrator** tab
    - Find your user in the list
    - Click **Reset password**

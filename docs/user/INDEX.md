@@ -40,21 +40,25 @@ Documentation for end-users of the Student Management System.
 ## 🎯 Common Tasks
 
 ### Student Management
+
 1. Creating students → [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md#creating-students)
 2. Editing student info
 3. Managing enrollment
 
 ### Course Management
+
 1. Creating courses
 2. Setting evaluation rules
 3. Managing course schedules
 
 ### Grading
+
 1. Recording grades
 2. Grade calculations
 3. Exporting reports
 
 ### Attendance
+
 1. Marking attendance
 2. Viewing attendance reports
 3. Absence tracking
