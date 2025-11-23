@@ -1,0 +1,21 @@
+name: Native Setup Smoke Test
+
+on:
+  pull_request:
+    paths:
+      - 'NATIVE.ps1'
+      - '.github/workflows/**'
+
+jobs:
+  setup-smoke:
+    name: Run .\NATIVE.ps1 -Setup (Windows smoke)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run native setup (smoke)
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -Command "Set-Location ${{ github.workspace }}; .\NATIVE.ps1 -Setup"
