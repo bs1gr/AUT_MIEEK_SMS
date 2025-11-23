@@ -186,7 +186,7 @@ function Stop-ProcessFromPidFile {
     )
 
     if (-not (Test-Path $PidFile)) {
-        Write-Info "$Name: Not running (no PID file)"
+        Write-Info "$($Name): Not running (no PID file)"
         return $true
     }
 
@@ -195,16 +195,16 @@ function Stop-ProcessFromPidFile {
         $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
 
         if (-not $process) {
-            Write-Info "$Name: Process not found (PID $pid), cleaning up"
+            Write-Info "$($Name): Process not found (PID $pid), cleaning up"
             Remove-Item $PidFile -Force
             return $true
         }
 
-        Write-Info "$Name: Stopping process (PID $pid)..."
+        Write-Info "$($Name): Stopping process (PID $pid)..."
         try {
             Stop-Process -Id $pid -ErrorAction Stop
         } catch {
-            Write-Warning "$Name: Forcing termination..."
+            Write-Warning "$($Name): Forcing termination..."
             Stop-Process -Id $pid -Force -ErrorAction Stop
         }
 
@@ -216,7 +216,7 @@ function Stop-ProcessFromPidFile {
         Write-Success "$Name stopped"
         return $true
     } catch {
-        Write-Error-Message "$Name: Failed to stop - $_"
+        Write-Error-Message "$($Name): Failed to stop - $_"
         return $false
     }
 }
