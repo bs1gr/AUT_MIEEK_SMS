@@ -6,6 +6,40 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.8.7] - 2025-11-23
+
+### Documentation
+
+- **Version Alignment**
+  - Updated README.md version from 1.6.5 to 1.8.6.4, then to 1.8.7
+  - Updated VERSION file to 1.8.7
+  - Removed version-specific headers from documentation to make them evergreen
+  - Updated QNAP documentation to current version and date (November 23, 2025)
+
+- **Link Fixes**
+  - Fixed broken link to `CODEBASE_ANALYSIS_REPORT.md` → corrected to `archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md`
+  - Fixed broken link to `CLEANUP_SUMMARY.md` → corrected to `archive/CLEANUP_SUMMARY.md`
+  - Ensured all documentation reflects consolidated script structure (DOCKER.ps1, NATIVE.ps1)
+
+- **Template Cleanup**
+  - Removed duplicate sections from Pull Request template (.github/PULL_REQUEST_TEMPLATE.md)
+  - Eliminated redundant "Summary", "Changes", "Operator checklist", "Testing", and "Notes" sections
+
+- **QNAP Documentation**
+  - Updated QNAP_INSTALLATION_GUIDE.md to v1.8.7
+  - Updated QNAP_MANAGEMENT_GUIDE.md - removed version-specific subtitle
+  - Updated QNAP_TROUBLESHOOTING_GUIDE.md - removed version-specific subtitle
+  - Updated markdown lint report with current issues
+
+### Verification
+
+- Confirmed obsolete files are properly archived in `archive/obsolete/`
+- Verified deprecated script references are documented in archive READMEs
+- Ensured all active documentation references consolidated scripts (DOCKER.ps1, NATIVE.ps1)
+- Validated system operational status
+
+## [Unreleased - Session Export/Import Feature]
+
 ### Added
 
 - **Session Export/Import Router** (`backend/routers/routers_sessions.py`)
