@@ -57,15 +57,32 @@ jobs:
     # Non-blocking: even if the script encounters errors, job should succeed
     continue-on-error: true
 
-  # Future enhancement placeholder: enforce threshold
-  # threshold-check:
-  #   runs-on: ubuntu-latest
-  #   needs: markdown-lint
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Evaluate lint issue count
-  #       run: |
-  #         issues=$(grep -E '^Total issues:' docs/markdown_lint_report.md | awk '{print $3}')
-  #         echo "Total issues: $issues"
-  #         if [ "$issues" -gt 500 ]; then
-  #           echo "Issue count exceeds threshold (500). Consider remediation."; fi
+  threshold-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: markdown-lint
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: markdown-lint-report
+          path: ./lint-artifacts
+      - name: Evaluate lint issue count
+        shell: bash
+        run: |
+          if [ -f lint-artifacts/markdown_lint_report.md ]; then
+            issues=$(grep -E '^Total issues:' lint-artifacts/markdown_lint_report.md | awk '{print $3}')
+          else
+            echo "Report missing; defaulting issues to 0";
+            issues=0
+          fi
+          echo "Detected issues: $issues"
+          threshold=6000
+          if [ "$issues" -gt "$threshold" ]; then
+            echo "Issue count ($issues) exceeds threshold ($threshold). Failing job.";
+            exit 1
+          else
+            echo "Issue count ($issues) within threshold ($threshold).";
+          fi
