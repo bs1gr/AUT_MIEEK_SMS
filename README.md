@@ -896,9 +896,6 @@ student-management-system/
 │   ├── routers/              # API route handlers
 │   ├── schemas/              # Pydantic schemas
 │   ├── services/             # Business logic layer (9 services)
-│   └── tests/                # 246 passing tests
-├── frontend/                 # React frontend
-│   └── src/                  # React components & logic (929+ tests)
 ├── scripts/
 │   ├── dev/
 │   │   ├── run-native.ps1    # Canonical native entry point (dev only)

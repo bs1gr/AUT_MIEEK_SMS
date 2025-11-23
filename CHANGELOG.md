@@ -6,6 +6,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+- Developer tooling: `NATIVE.ps1` safety + CI checks
+  - Added a non-destructive CI helper script `scripts/ci/native-safety.ps1` which runs `NATIVE.ps1 -DeepClean -WhatIf` and performs lightweight status checks on Windows runners.
+  - Updated GitHub Actions workflow `.github/workflows/native-deepclean-safety.yml` to execute the CI helper script for PRs that touch `NATIVE.ps1`.
+  - This improves confidence that dry-run listings remain functional and prevents accidental destructive changes on PRs.
+
+
 ## [1.8.7] - 2025-11-23
 
 ### Documentation
