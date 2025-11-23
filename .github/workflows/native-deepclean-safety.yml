@@ -18,3 +18,9 @@ jobs:
         shell: pwsh
         run: |
           pwsh -NoProfile -Command "Set-Location ${{ github.workspace }}; .\NATIVE.ps1 -DeepClean -WhatIf"
+      - name: Run native safety script (CI helper)
+        shell: pwsh
+        run: |
+          Set-Location ${{ github.workspace }}
+          # Execute the CI helper script which runs a set of non-destructive checks
+          .\scripts\ci\native-safety.ps1
