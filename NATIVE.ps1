@@ -166,6 +166,54 @@ function Test-PortInUse {
     }
 }
 
+function Try-Install-NodeDeps {
+    param([string]$ProjectDir)
+
+    Push-Location $ProjectDir
+    try {
+        $packageLock = Join-Path $ProjectDir 'package-lock.json'
+        if (Test-Path $packageLock) {
+            Write-Info "package-lock.json detected → using 'npm ci' for reproducible installs"
+            npm ci --no-audit --silent
+        } else {
+            npm install --silent
+        }
+
+        if ($LASTEXITCODE -eq 0) {
+            return 0
+        }
+
+        # If npm failed, attempt a cleanup of known problematic native binaries and retry once
+        Write-Warning "Initial npm install failed. Attempting cleanup of node_modules and retrying..."
+        $esbuildPath = Join-Path $ProjectDir 'node_modules\@esbuild'
+        if (Test-Path $esbuildPath) {
+            try {
+                Remove-Item -Path $esbuildPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Info "Removed: @esbuild native binaries for retry"
+            } catch {
+                Write-Warning "Could not remove @esbuild folder: $_"
+            }
+        }
+
+        # Try full removal of node_modules as a last resort
+        $nodeModules = Join-Path $ProjectDir 'node_modules'
+        if (Test-Path $nodeModules) {
+            try {
+                Remove-Item -Path $nodeModules -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Info "Removed: node_modules for clean retry"
+            } catch {
+                Write-Warning "Failed to remove node_modules during retry: $_"
+            }
+        }
+
+        # Retry install using npm install (safer fallback) 
+        npm install --silent
+        return $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
+}
+
 function Get-ProcessFromPidFile {
     param([string]$PidFile)
 
@@ -389,10 +437,11 @@ function Setup-Environment {
     Push-Location $FRONTEND_DIR
     try {
         Write-Info "Installing Node.js dependencies..."
-        npm install --silent
 
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error-Message "Failed to install Node.js dependencies"
+        # Install node deps with retry logic (handles locked native binaries like esbuild)
+        $installCode = Try-Install-NodeDeps -ProjectDir $FRONTEND_DIR
+        if ($installCode -ne 0) {
+            Write-Error-Message "Failed to install Node.js dependencies (exit code: $installCode)"
             return 1
         }
 
@@ -511,9 +560,39 @@ function Start-Frontend {
     # Check node_modules
     $nodeModules = Join-Path $FRONTEND_DIR "node_modules"
     if (-not (Test-Path $nodeModules)) {
-        Write-Error-Message "node_modules not found"
-        Write-Info "Run: .\NATIVE.ps1 -Setup"
-        return 1
+        Write-Warning "node_modules not found — attempting to install frontend dependencies before starting"
+
+        # Attempt to install automatically (non-interactive). Prefer npm ci when lockfile exists.
+        Push-Location $FRONTEND_DIR
+        try {
+            $packageLock = Join-Path $FRONTEND_DIR 'package-lock.json'
+            $installCode = Try-Install-NodeDeps -ProjectDir $FRONTEND_DIR
+            if ($installCode -ne 0) {
+                Write-Error-Message "Automatic npm install failed. Run: .\NATIVE.ps1 -Setup"
+                return 1
+            }
+
+            Write-Success "Frontend dependencies installed"
+        } finally {
+            Pop-Location
+        }
+    }
+
+    # Validate essential packages that Vite plugins expect (catch missing peer deps)
+    $babelCorePath = Join-Path $FRONTEND_DIR 'node_modules\@babel\core'
+    if (-not (Test-Path $babelCorePath)) {
+        Write-Warning "@babel/core not found in node_modules — attempting to install @babel/core as devDependency"
+        Push-Location $FRONTEND_DIR
+        try {
+            npm install --no-audit --save-dev @babel/core --silent
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Failed to install @babel/core. Please run: npm install in $FRONTEND_DIR"
+                return 1
+            }
+            Write-Success "@babel/core installed"
+        } finally {
+            Pop-Location
+        }
     }
 
     Write-Info "Starting Vite dev server with HMR..."
