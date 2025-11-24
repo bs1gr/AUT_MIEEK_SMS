@@ -10,9 +10,9 @@
 
 **GUI Installer** - No PowerShell knowledge required!
 
-1. **Download** `SMS_Distribution_1.8.8.zip` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
+1. **Download** `SMS_Distribution_1.9.0.zip` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 2. **Extract** to any location (Desktop, Downloads, etc.)
-3. **Right-click** `SMS_Installer_1.8.8.exe` → **"Run as Administrator"**
+3. **Right-click** `SMS_Installer_1.9.0.exe` → **"Run as Administrator"**
 4. **Follow** the visual wizard (7 easy steps, ~10-15 minutes)
 
 **Features:**
