@@ -232,6 +232,8 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 }}
                 onMouseOver={e => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
                 onMouseOut={e => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+                onFocus={e => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
+                onBlur={e => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
               >
                 {t('common.reset') || 'Try Again'}
               </button>
@@ -252,6 +254,8 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 }}
                 onMouseOver={e => (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb'}
                 onMouseOut={e => (e.target as HTMLButtonElement).style.backgroundColor = 'white'}
+                onFocus={e => (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb'}
+                onBlur={e => (e.target as HTMLButtonElement).style.backgroundColor = 'white'}
               >
                 {t('common.home') || 'Go Home'}
               </button>

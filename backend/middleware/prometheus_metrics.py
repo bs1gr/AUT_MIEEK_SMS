@@ -11,21 +11,17 @@ This module provides comprehensive metrics collection for monitoring:
 
 import logging
 import time
-from typing import Callable, Optional
+from typing import Callable
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from prometheus_client import (
     Counter,
     Gauge,
     Histogram,
     Info,
-    generate_latest,
-    CONTENT_TYPE_LATEST,
-    CollectorRegistry,
 )
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from sqlalchemy.orm import Session
-from starlette.responses import Response as StarletteResponse
 
 logger = logging.getLogger(__name__)
 

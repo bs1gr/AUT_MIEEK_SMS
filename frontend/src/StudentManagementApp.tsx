@@ -7,7 +7,6 @@ import ServerControl from './components/common/ServerControl';
 import ControlPanel from './components/ControlPanel';
 import { Navigation, ViewRouter, type NavigationView } from './components/layout';
 import { useLanguage } from './LanguageContext';
-import { useTranslation } from 'react-i18next';
 
 // Import React Query hooks and stores
 import { useStudents, useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks';
@@ -24,10 +23,9 @@ interface ToastState {
 
 const StudentManagementApp = () => {
   const { t } = useLanguage();
-  const { t: ti18n } = useTranslation(); // i18n translation function
 
   // Use React Query hooks for data fetching
-  const { isLoading: studentsLoading, refetch: refetchStudents } = useStudents();
+  const { isLoading: studentsLoading } = useStudents();
   const { isLoading: coursesLoading, refetch: refetchCourses } = useCourses();
 
   // Get data from Zustand stores
@@ -112,14 +110,14 @@ const StudentManagementApp = () => {
         activeView={activeView}
         onViewChange={setActiveView}
         tabs={[
-          { key: 'dashboard', label: t('dashboard') },
-          { key: 'attendance', label: t('attendance') },
-          { key: 'grading', label: t('grades') },
-          { key: 'students', label: t('students') },
-          { key: 'courses', label: t('courses') },
-          { key: 'calendar', label: t('calendar') },
-          { key: 'operations', label: t('utilsTab') },
-          { key: 'power', label: t('powerTab') || 'Power' },
+          { key: 'dashboard', label: t('dashboard'), path: '/' },
+          { key: 'attendance', label: t('attendance'), path: '/attendance' },
+          { key: 'grading', label: t('grades'), path: '/grading' },
+          { key: 'students', label: t('students'), path: '/students' },
+          { key: 'courses', label: t('courses'), path: '/courses' },
+          { key: 'calendar', label: t('calendar'), path: '/calendar' },
+          { key: 'operations', label: t('utilsTab'), path: '/operations' },
+          { key: 'power', label: t('powerTab') || 'Power', path: '/power' },
         ]}
       />
 
@@ -147,7 +145,7 @@ const StudentManagementApp = () => {
               if (!window.confirm('Are you sure you want to delete this student?')) return;
               await deleteStudent.mutateAsync(id);
               showToast('Student deleted successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to delete student. Please try again.', 'error');
             }
           }}
@@ -162,7 +160,7 @@ const StudentManagementApp = () => {
               if (!window.confirm('Are you sure you want to delete this course?')) return;
               await deleteCourse.mutateAsync(courseId);
               showToast('Course deleted successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to delete course. Please try again.', 'error');
             }
           }}
@@ -186,7 +184,7 @@ const StudentManagementApp = () => {
             try {
               await createStudent.mutateAsync(newStudent);
               showToast('Student added successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to add student. Please check the form and try again.', 'error');
             } finally {
               studentModals.addModal.close();
@@ -203,7 +201,7 @@ const StudentManagementApp = () => {
             try {
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
               showToast('Student updated successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to update student. Please try again.', 'error');
             } finally {
               studentModals.editModal.close();
@@ -219,7 +217,7 @@ const StudentManagementApp = () => {
             try {
               await createCourse.mutateAsync(newCourse);
               showToast('Course added successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to add course. Please try again.', 'error');
             } finally {
               courseModals.addModal.close();
@@ -236,7 +234,7 @@ const StudentManagementApp = () => {
             try {
               await updateCourse.mutateAsync({ id: updatedCourse.id, data: updatedCourse });
               showToast('Course updated successfully!', 'success');
-            } catch (error) {
+            } catch (_error) {
               showToast('Failed to update course. Please try again.', 'error');
             } finally {
               courseModals.editModal.close();
