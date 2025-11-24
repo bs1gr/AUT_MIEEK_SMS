@@ -36,7 +36,7 @@ export default {
   help: 'Βοήθεια',
   powerTab: 'Πίνακας Ελέγχου',
   power: 'Πίνακας Ελέγχου',
-  // Καταστάσεις & Μηνύματα
+  // Κοινές Καταστάσεις & Μηνύματα
   loading: 'Φόρτωση...',
   saving: 'Αποθήκευση...',
   downloading: 'Λήψη...',
@@ -45,6 +45,11 @@ export default {
   failedToSaveData: 'Αποτυχία αποθήκευσης δεδομένων',
   fillRequiredFields: 'Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία',
   pleaseSelect: 'Παρακαλώ επιλέξτε σπουδαστή και μάθημα',
+  // Κατάσταση Σύνδεσης Backend
+  backendUnavailable: 'Ο διακομιστής δεν είναι διαθέσιμος',
+  backendReconnecting: 'Προσπάθεια επανασύνδεσης...',
+  backendConnected: 'Η σύνδεση αποκαταστάθηκε',
+  backendCheckFailed: 'Αδυναμία σύνδεσης με το backend API',
   // Κοινές Ενέργειες
   save: 'Αποθήκευση',
   cancel: 'Ακύρωση',

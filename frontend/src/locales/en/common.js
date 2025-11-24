@@ -45,6 +45,11 @@ export default {
   failedToSaveData: 'Failed to save data',
   fillRequiredFields: 'Please fill all required fields',
   pleaseSelect: 'Please select student and course',
+  // Backend Connectivity Status
+  backendUnavailable: 'Backend server unavailable',
+  backendReconnecting: 'Attempting to reconnect...',
+  backendConnected: 'Connection restored',
+  backendCheckFailed: 'Unable to reach backend API',
   // Common Actions
   save: 'Save',
   cancel: 'Cancel',

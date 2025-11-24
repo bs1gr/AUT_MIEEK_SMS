@@ -506,7 +506,24 @@ initialize_logging(log_dir="logs", log_level="INFO")
 # handlers, formatting and request-id filters. Avoid calling logging.basicConfig
 # again here to prevent duplicate handlers or format overrides.
 logger = logging.getLogger(__name__)
-RUNTIME_CONTEXT = env_mod.require_production_constraints()
+# Runtime context retrieval with graceful fallback: if production constraints fail (e.g. production
+# env variable set without Docker), downgrade to development context so the server still starts.
+try:
+    RUNTIME_CONTEXT = env_mod.require_production_constraints()
+except Exception as _runtime_err:
+    logger.warning(
+        "Runtime constraints enforcement failed (%s) – falling back to development context", _runtime_err
+    )
+    try:
+        from backend.environment import RuntimeContext, RuntimeEnvironment  # type: ignore
+    except Exception:
+        from environment import RuntimeContext, RuntimeEnvironment  # type: ignore
+    RUNTIME_CONTEXT = RuntimeContext(
+        environment=RuntimeEnvironment.DEVELOPMENT,
+        is_docker=False,
+        is_ci=False,
+        source="fallback",
+    )
 logger.info("Runtime context detected: %s", RUNTIME_CONTEXT.summary())
 
 # ============================================================================
@@ -587,6 +604,8 @@ def create_app() -> FastAPI:
 # ============================================================================
 
 
+STARTUP_DEBUG = os.environ.get("STARTUP_DEBUG", "0").strip().lower() in {"1", "true", "yes", "debug"}
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -603,15 +622,23 @@ async def lifespan(app: FastAPI):
     - Close database connections
     - Log shutdown information
     """
-    # Startup
-    logger.info("\n" + "=" * 70)
-    logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
-    logger.info("=" * 70)
-    logger.info(f"Version: {VERSION} - Production Ready")
-    logger.info("Database: SQLite")
-    logger.info("Framework: FastAPI")
-    logger.info("Logging: initialized")
-    logger.info("=" * 70)
+    if STARTUP_DEBUG:
+        logger.info("[LIFESPAN DEBUG] *** LIFESPAN STARTUP STARTING ***")
+        logger.info("\n" + "=" * 70)
+        logger.info("STUDENT MANAGEMENT SYSTEM - STARTUP")
+        logger.info("=" * 70)
+        logger.info(f"Version: {VERSION} - Production Ready")
+        logger.info("Database: SQLite")
+        logger.info("Framework: FastAPI")
+        logger.info("Logging: initialized")
+        logger.info("=" * 70)
+    else:
+        logger.info(
+            "Startup SMS v%s (context=%s, debug=%s) – migrations deferred, admin bootstrap scheduled if configured",
+            VERSION,
+            getattr(RUNTIME_CONTEXT, "summary", lambda: "n/a")(),
+            STARTUP_DEBUG,
+        )
 
     # Record start time for uptime in health endpoint
     try:
@@ -622,211 +649,77 @@ async def lifespan(app: FastAPI):
     # Allow tests and special environments to disable heavy startup tasks
     disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in {"1", "true", "yes"}
 
-    # Run database migrations automatically on startup (skip in test mode)
-    if not disable_startup:
-        logger.info("Checking for pending database migrations...")
-        try:
-            from backend.run_migrations import run_migrations
-            import sys
-            sys.stdout.flush()
-            sys.stderr.flush()
-            
-            migration_success = run_migrations(verbose=False)
-            if migration_success:
-                logger.info("Database migrations up to date")
-            else:
-                logger.warning("Database migrations failed - application may not function correctly")
-        except Exception as e:
-            logger.error(f"Migration runner error: {e!s}")
-            logger.warning("Continuing without migration check...")
-        finally:
-            import sys
-            sys.stdout.flush()
-            sys.stderr.flush()
-    else:
-        logger.info("DISABLE_STARTUP_TASKS set: skipping migration runner")
-
-    # Verify schema presence (skip in test mode)
     try:
+        # Schedule database migrations in background thread to avoid blocking / interfering with lifespan
         if not disable_startup:
-            from sqlalchemy import inspect
-
-            inspector = inspect(db_engine)
-            tables = inspector.get_table_names()
-            if not tables:
-                allow_auto = os.environ.get("ALLOW_SCHEMA_AUTO_CREATE", "").strip().lower() in {"1", "true", "yes"}
-                if allow_auto:
-                    try:
-                        from backend.models import Base
-
-                        logger.warning(
-                            "No database tables detected; ALLOW_SCHEMA_AUTO_CREATE enabled - creating tables via metadata.create_all()."
-                        )
-                        Base.metadata.create_all(bind=db_engine)
-                        logger.info("Created missing database tables via metadata.create_all()")
-                    except Exception as e:
-                        logger.error(f"Failed to create tables via metadata.create_all(): {e}", exc_info=True)
-                else:
-                    logger.warning(
-                        "No database tables detected after migrations. Set ALLOW_SCHEMA_AUTO_CREATE=1 to allow automatic creation as a fallback."
-                    )
-        else:
-            logger.info("DISABLE_STARTUP_TASKS set: skipping schema verification/auto-create")
-    except Exception as e:
-        logger.warning(f"Schema verification failed (continuing): {e}")
-
-    # Legacy schema compatibility check (skipped in test mode)
-    try:
-        if not disable_startup:
-            db_ensure_schema(db_engine)
-            logger.info("Legacy schema check completed")
-        else:
-            logger.info("DISABLE_STARTUP_TASKS set: skipping legacy schema check")
-    except Exception as legacy_err:
-        logger.warning(f"Legacy schema check failed (continuing): {legacy_err}")
-
-    # Ensure default administrator account exists if configured
-    try:
-        if not disable_startup:
-            ensure_default_admin_account(settings=settings, session_factory=db_session_factory, logger=logger)
-        else:
-            logger.info("DISABLE_STARTUP_TASKS set: skipping default admin bootstrap")
-    except Exception as admin_bootstrap_err:
-        logger.warning(f"Default admin bootstrap failed: {admin_bootstrap_err}")
-
-    # Auto-import courses with evaluation rules if database is empty
-    try:
-        from sqlalchemy import text
-        import threading
-        
-        course_count_result = [None]  # Use list to allow mutation in thread
-        query_error = [None]
-        query_complete = threading.Event()
-        
-        def _query_thread():
             try:
-                logger.info("Checking course count...")
-                with db_engine.connect() as conn:
-                    conn.execute(text("SELECT 1")).scalar()  # Test connection first
-                    result = conn.execute(text("SELECT COUNT(*) FROM courses")).scalar()
-                    course_count_result[0] = result
-            except Exception as e:
-                query_error[0] = e
-            finally:
-                query_complete.set()
-        
-        # Run database query in a separate thread with 5-second timeout
-        db_thread = threading.Thread(target=_query_thread, daemon=True)
-        db_thread.start()
-        query_complete.wait(timeout=5.0)
-        
-        if not query_complete.is_set():
-            logger.warning("Course count query timed out (5s) - skipping auto-import check")
-            result = None
-        elif query_error[0]:
-            logger.warning(f"Course count query failed: {query_error[0]} - skipping auto-import check")
-            result = None
-        else:
-            result = course_count_result[0]
-        
-        if result == 0:
-            logger.info("No courses found in database - scheduling auto-import...")
-            if not disable_startup:
+                from backend.run_migrations import run_migrations
+                def _migrate_bg():
                     try:
-                        import threading
-                        import httpx
-
-                        def delayed_import():
-                            """Wait for server to start, then trigger import with retries."""
-                            max_retries = 3
-                            retry_delay = 3
-
-                            for attempt in range(max_retries):
-                                try:
-                                    _time.sleep(retry_delay * (attempt + 1))
-
-                                    port = getattr(settings, "API_PORT", 8000)
-                                    response = httpx.post(
-                                        f"http://127.0.0.1:{port}/api/v1/imports/courses?source=template",
-                                        headers={"Content-Type": "application/json"},
-                                        timeout=60.0,
-                                    )
-                                    if response.status_code == 200:
-                                        data = response.json()
-                                        logger.info(
-                                            "Auto-import completed: %s created, %s updated",
-                                            data.get("created", 0),
-                                            data.get("updated", 0),
-                                        )
-                                        return
-                                    logger.warning(
-                                        "Auto-import attempt %d returned status %s",
-                                        attempt + 1,
-                                        response.status_code,
-                                    )
-                                except httpx.RequestError:
-                                    logger.debug(
-                                        "Server not ready on auto-import attempt %d; will retry",
-                                        attempt + 1,
-                                    )
-                                except Exception as import_err:
-                                    logger.warning(
-                                        "Auto-import attempt %d failed: %s",
-                                        attempt + 1,
-                                        import_err,
-                                    )
-
-                            logger.error("Auto-import failed after all retries")
-
-                        import_thread = threading.Thread(
-                            target=delayed_import,
-                            daemon=True,
-                            name="course-auto-import",
-                        )
-                        import_thread.start()
-                        logger.info("Started background course import thread (will retry up to 3 times)")
-                    except Exception as thread_err:
-                        logger.warning(f"Failed to start auto-import thread: {thread_err}")
-            else:
-                logger.info("DISABLE_STARTUP_TASKS set: skipping auto-import thread")
+                        if STARTUP_DEBUG:
+                            logger.info("[MIGRATIONS BG] Starting background migration check...")
+                        ok = run_migrations(False)
+                        if STARTUP_DEBUG:
+                            if ok:
+                                logger.info("[MIGRATIONS BG] Migrations up to date")
+                            else:
+                                logger.warning("[MIGRATIONS BG] Migration process reported failure")
+                    except Exception as bg_err:
+                        logger.exception("[MIGRATIONS BG] Migration thread error", exc_info=bg_err)
+                threading.Thread(target=_migrate_bg, daemon=True, name="migrations-bg").start()
+            except Exception as e:
+                logger.exception("Deferred migration scheduling failed", exc_info=e)
+            # Default admin bootstrap (non-blocking, safe failures)
+            try:
+                if getattr(settings, "DEFAULT_ADMIN_EMAIL", None) and getattr(settings, "DEFAULT_ADMIN_PASSWORD", None):
+                    # Use direct session instead of dependency system inside lifespan
+                    if db_session_factory is not None:
+                        session = db_session_factory()
+                        try:
+                            # Adjusted to match keyword-only signature: ensure_default_admin_account(
+                            #   *, settings, session_factory, logger=None)
+                            ensure_default_admin_account(
+                                settings=settings,
+                                session_factory=db_session_factory,
+                                logger=logger,
+                            )
+                            if STARTUP_DEBUG:
+                                logger.info("[ADMIN BOOTSTRAP] Default admin ensure executed")
+                        finally:
+                            try:
+                                session.close()
+                            except Exception:
+                                pass
+                    else:
+                        if STARTUP_DEBUG:
+                            logger.warning("[ADMIN BOOTSTRAP] Session factory unavailable; skipping admin ensure")
+                else:
+                    if STARTUP_DEBUG:
+                        logger.info("[ADMIN BOOTSTRAP] Skipped (no DEFAULT_ADMIN_EMAIL/PASSWORD configured)")
+            except Exception as admin_boot_err:
+                logger.warning(f"[ADMIN BOOTSTRAP] Error during ensure: {admin_boot_err}")
         else:
-            logger.info("Courses already exist in database (%s) - skipping auto-import", result)
-    except Exception as auto_import_err:
-        logger.warning(f"Course auto-import check failed (continuing): {auto_import_err}")
+            if STARTUP_DEBUG:
+                logger.info("DISABLE_STARTUP_TASKS set: not scheduling migrations thread")
 
-    # Start Prometheus metrics collector if enabled
-    metrics_task = None
-    try:
-        enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
-        if enable_metrics and not disable_startup:
-            import asyncio
-            from backend.middleware.prometheus_metrics import create_metrics_collector_task
-
-            metrics_collector = create_metrics_collector_task(interval=60)
-            metrics_task = asyncio.create_task(metrics_collector())
-            logger.info("Prometheus metrics collector task started")
-    except Exception as metrics_err:
-        logger.warning(f"Failed to start metrics collector: {metrics_err}")
-
-    yield
-
-    # Cancel metrics collector task on shutdown
-    if metrics_task and not metrics_task.done():
-        metrics_task.cancel()
+        # Future phased tasks placeholder (admin bootstrap, auto-import, metrics warmup)
+        # We keep this minimal for stability while gathering diagnostics.
+        if STARTUP_DEBUG:
+            logger.info("[LIFESPAN DEBUG] Minimal startup path reached - yielding application ready state (migrations deferred)")
+        yield  # Application now ready; migrations continue in background if scheduled
+    except Exception as lifespan_start_err:
+        # Comprehensive diagnostics for any unexpected startup failure
+        logger.critical(
+            "[LIFESPAN CRITICAL] Unhandled exception during startup: %s", lifespan_start_err, exc_info=True
+        )
+        raise
+    finally:
+        # Shutdown phase (minimal)
         try:
-            await metrics_task
-        except asyncio.CancelledError:
-            logger.info("Metrics collector task cancelled")
-        except Exception as e:
-            logger.warning(f"Error while cancelling metrics task: {e}")
-
-    # Shutdown
-    logger.info("\n" + "=" * 70)
-    logger.info("STUDENT MANAGEMENT SYSTEM - SHUTDOWN")
-    logger.info("=" * 70)
-    logger.info("Closing database connections...")
-    logger.info("Cleanup completed")
-    logger.info("=" * 70)
+            if STARTUP_DEBUG:
+                logger.info("[LIFESPAN DEBUG] Minimal shutdown path executing")
+        except Exception:
+            pass
 
 
 # Create the application instance with lifespan

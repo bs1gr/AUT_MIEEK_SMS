@@ -435,8 +435,8 @@ const ServerControl: React.FC = () => {
             </span>
           )}
           {status.error && (
-            <span className="text-xs text-red-500 truncate max-w-32" title={status.error}>
-              {t('error') || 'Error'}: {status.error.substring(0, 20)}...
+            <span className="text-xs text-red-500 truncate max-w-32" title={typeof status.error === 'string' ? status.error : JSON.stringify(status.error)}>
+              {t('error') || 'Error'}: {typeof status.error === 'string' ? status.error.substring(0, 20) : String(status.error).substring(0, 20)}...
             </span>
           )}
         </div>

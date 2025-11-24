@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   RefreshCw,
   UserPlus,
@@ -37,7 +38,8 @@ const initialCreateForm: CreateUserPayload = {
 
 const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
   const { t } = useLanguage();
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -157,14 +159,54 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     }
     setChangingOwnPassword(true);
     try {
-      await adminUsersAPI.changeOwnPassword(currentPassword, newPassword);
+      const response = await adminUsersAPI.changeOwnPassword(currentPassword, newPassword);
+      
+      // If backend returned a new access token, the axios interceptor will handle it
+      // because we set it in the attachAuthHeader function which is called on every request
+      if (response && 'access_token' in response && response.access_token) {
+        console.log('[Password Change] New access token received from backend');
+      }
+      
+      // Refresh user profile to update password_change_required flag
+      try {
+        const updatedUser = await adminUsersAPI.getCurrentUser();
+        if (updatedUser) {
+          console.log('[Password Change] User profile refreshed, password_change_required:', updatedUser.password_change_required);
+          // Update the user in AuthContext
+          updateUser(updatedUser as any);
+        }
+      } catch (err) {
+        console.warn('[Password Change] Failed to refresh user profile:', err);
+      }
+      
       onToast({ message: t('controlPanel.changeOwnPasswordSuccess'), type: 'success' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err) {
+      // Explicitly navigate to Power panel with a success indicator so the user sees confirmation
+      try {
+        navigate('/power?showControl=1&passwordChanged=1');
+      } catch (err) {
+        // If navigation fails for any reason, ignore - the toast is already shown
+        console.warn('Navigation after password change failed', err);
+      }
+    } catch (err: unknown) {
       console.error('Failed to change own password', err);
-      onToast({ message: t('controlPanel.changeOwnPasswordFailed'), type: 'error' });
+      let errorMessage = t('controlPanel.changeOwnPasswordFailed');
+      
+      // Extract detailed error message
+      if (err && typeof err === 'object') {
+        const axiosError = err as any;
+        if (axiosError.response?.data?.detail) {
+          errorMessage = axiosError.response.data.detail;
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message;
+        }
+      }
+      
+      onToast({ message: errorMessage, type: 'error' });
     } finally {
       setChangingOwnPassword(false);
     }
@@ -332,8 +374,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <div className="md:col-span-3 flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              disabled={changingOwnPassword}
-              className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
+              disabled={changingOwnPassword || !currentPassword || !newPassword || passwordStrength < 4 || newPassword !== confirmPassword}
+              className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={14} /> {t('controlPanel.changeOwnPasswordButton')}
             </button>
@@ -344,9 +386,15 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             >
               <XCircle size={14} /> {t('controlPanel.cancel')}
             </button>
-            <p className="text-[11px] text-teal-700 dark:text-teal-300">
-              {t('controlPanel.changeOwnPasswordHint')}
-            </p>
+          </div>
+          
+          {/* Validation feedback */}
+          <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
+            {!currentPassword && <p>• {t('controlPanel.currentPassword')} is required</p>}
+            {!newPassword && <p>• {t('controlPanel.newPassword')} is required</p>}
+            {newPassword && passwordStrength < 4 && <p>• {t('controlPanel.changeOwnPasswordHint')}</p>}
+            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>• {t('controlPanel.changeOwnPasswordMismatch')}</p>}
+            <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('controlPanel.changeOwnPasswordHint')}</p>
           </div>
         </form>
       </section>

@@ -1,7 +1,7 @@
 # Complete User Guide - Student Management System
 
-**Version:** 1.8.7
-**Last Updated:** November 23, 2025  
+**Version:** 1.8.8
+**Last Updated:** November 24, 2025  
 **Status:** ✅ Active
 
 ---
@@ -876,9 +876,49 @@ Advanced users can edit `.env` file directly:
 AUTH_ENABLED=true
 AUTH_MODE=permissive
 
-# Admin Bootstrap
+## Admin Bootstrap
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
+
+Note about automated admin password rotation:
+
+- DEFAULT_ADMIN_AUTO_RESET (default: false): enables safe automatic rotation of the default
+   administrator password at application startup. When set to true and a
+   DIFFERENT DEFAULT_ADMIN_PASSWORD is present in the environment, the
+   application will update the stored admin password to match the configured
+   value and revoke any existing refresh tokens for that user. This is useful
+   for CI/CD or secret-manager-driven credential rotation, but remains disabled
+   by default to avoid unexpected resets in production.
+
+   Recommended safe rotation workflow (CI/CD / secret manager)
+
+   1. Store the new admin password in your secret manager (e.g. Vault, AWS Secrets Manager)
+      and make it available to your deployment pipeline as `DEFAULT_ADMIN_PASSWORD`.
+   2. Update the environment with the new password and enable auto-reset for the deployment
+      by setting `DEFAULT_ADMIN_AUTO_RESET=true` (only for the moment of the rotation).
+      Example (Docker Compose):
+
+   ```powershell
+   # Update `.env` in the deployment or set the container env via your orchestration tool
+   Set-Content -Path ./backend/.env -Value (Get-Content ./backend/.env) -Force
+   # Then restart the backend so the bootstrap runs at startup
+   docker compose restart sms-backend
+   ```
+
+   3. After verification (login works with the new password), remove the auto-reset flag
+      or revert it to `false` to avoid future automatic password changes:
+
+   ```powershell
+   # Reset flag in your orchestration or .env and restart
+   docker compose exec sms-backend pwsh -c "(Get-Content /app/backend/.env) -replace 'DEFAULT_ADMIN_AUTO_RESET=true','DEFAULT_ADMIN_AUTO_RESET=false' | Set-Content /app/backend/.env"
+   docker compose restart sms-backend
+   ```
+
+   Notes:
+   - Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
+   - The flag defaults to false to avoid unexpected changes in production.
+   - When password rotation is in your CI/CD, prefer to perform a single atomic rollout
+     so the new credential takes effect across all app instances consistently.
 
 # Database
 DATABASE_ENGINE=sqlite

@@ -137,3 +137,154 @@ def test_bootstrap_updates_existing_user_without_force_reset(clean_db):
         assert user.hashed_password == original_hash
     finally:
         session.close()
+
+
+def test_bootstrap_creates_user_and_allows_login(clean_db):
+    # Ensure bootstrap creates user and that login endpoint accepts the configured password
+    from backend.config import settings
+    from fastapi.testclient import TestClient
+
+    # Configure bootstrap credentials
+    settings.DEFAULT_ADMIN_EMAIL = "bootstrap-login@example.com"
+    settings.DEFAULT_ADMIN_PASSWORD = "Bootstrap1!"
+    settings.DEFAULT_ADMIN_FORCE_RESET = True
+
+    # Run bootstrap
+    ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
+
+    # Try to login using the created credentials
+    client = TestClient(__import__('backend.main').main.app)
+    resp = client.post("/api/v1/auth/login", json={"email": "bootstrap-login@example.com", "password": "Bootstrap1!"})
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert "access_token" in data
+
+
+def test_bootstrap_auto_resets_when_enabled(clean_db):
+    # Existing admin with different password should be auto-reset when enabled
+    session = TestingSessionLocal()
+    try:
+        user = User(
+            email="auto-reset@example.com",
+            hashed_password=_pwd_context.hash("OldSecret!"),
+            full_name="Legacy Admin",
+            role="teacher",
+            is_active=False,
+        )
+        session.add(user)
+        session.commit()
+
+        token = RefreshToken(
+            user_id=user.id,
+            jti="auto",
+            token_hash="hash",
+            revoked=False,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        session.add(token)
+        session.commit()
+    finally:
+        session.close()
+
+    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-reset@example.com", DEFAULT_ADMIN_PASSWORD="NewAuto987!", DEFAULT_ADMIN_AUTO_RESET=True)
+    ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
+
+    session = TestingSessionLocal()
+    try:
+        user = session.query(User).filter(User.email == "auto-reset@example.com").one()
+        assert user.role == "admin"
+        assert user.is_active is True
+        assert user.full_name == "System Administrator"
+        assert _pwd_context.verify("NewAuto987!", user.hashed_password)
+
+        token = session.query(RefreshToken).filter(RefreshToken.user_id == user.id).one()
+        assert token.revoked is True
+    finally:
+        session.close()
+
+
+def test_bootstrap_auto_does_not_reset_if_password_matches(clean_db):
+    # When the stored password already matches the configured one, AUTO_RESET should not revoke tokens
+    session = TestingSessionLocal()
+    try:
+        original_hash = _pwd_context.hash("MatchMe123!")
+        user = User(
+            email="auto-match@example.com",
+            hashed_password=original_hash,
+            full_name="Admin Match",
+            role="admin",
+            is_active=False,
+        )
+        session.add(user)
+        session.commit()
+
+        token = RefreshToken(
+            user_id=user.id,
+            jti="match",
+            token_hash="hash",
+            revoked=False,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        session.add(token)
+        session.commit()
+    finally:
+        session.close()
+
+    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-match@example.com", DEFAULT_ADMIN_PASSWORD="MatchMe123!", DEFAULT_ADMIN_AUTO_RESET=True)
+    ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
+
+    session = TestingSessionLocal()
+    try:
+        user = session.query(User).filter(User.email == "auto-match@example.com").one()
+        assert user.role == "admin"
+        assert user.is_active is True
+        assert user.full_name == "System Administrator"
+        # If password matches, the hash should remain equal to the earlier value
+        assert user.hashed_password == original_hash
+
+        token = session.query(RefreshToken).filter(RefreshToken.user_id == user.id).one()
+        assert token.revoked is False
+    finally:
+        session.close()
+
+
+def test_bootstrap_auto_resets_on_verification_error(clean_db):
+    # If stored hash is invalid/corrupted and verify() raises, AUTO_RESET should still reset
+    session = TestingSessionLocal()
+    try:
+        # Put an intentionally invalid hash string so CryptContext.verify will throw
+        user = User(
+            email="auto-error@example.com",
+            hashed_password="not-a-valid-passlib-hash",
+            full_name="Corrupt Hash",
+            role="teacher",
+            is_active=False,
+        )
+        session.add(user)
+        session.commit()
+
+        token = RefreshToken(
+            user_id=user.id,
+            jti="error",
+            token_hash="hash",
+            revoked=False,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        session.add(token)
+        session.commit()
+    finally:
+        session.close()
+
+    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-error@example.com", DEFAULT_ADMIN_PASSWORD="Recover123!", DEFAULT_ADMIN_AUTO_RESET=True)
+    ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
+
+    session = TestingSessionLocal()
+    try:
+        user = session.query(User).filter(User.email == "auto-error@example.com").one()
+        # Password should be reset to the configured value
+        assert _pwd_context.verify("Recover123!", user.hashed_password)
+
+        token = session.query(RefreshToken).filter(RefreshToken.user_id == user.id).one()
+        assert token.revoked is True
+    finally:
+        session.close()

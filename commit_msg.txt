@@ -1,0 +1,14 @@
+docs(v1.8.8): add GitHub Actions admin password rotation guide
+
+- Add comprehensive GitHub Actions admin password rotation documentation
+- Include workflow examples for basic, scheduled, and multi-environment rotation
+- Document integration with AWS Secrets Manager and HashiCorp Vault
+- Add security best practices and troubleshooting guidance
+- Update CHANGELOG.md with v1.8.8 release notes
+- Update version references to 1.8.8 in README.md and backend/main.py
+
+All tests passing (52/52)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

@@ -44,7 +44,7 @@ $ErrorActionPreference = 'Stop'
 
 $Script:Config = @{
     AppName             = "Student Management System"
-    Version             = "1.8.7"
+    Version             = "1.8.8"
     MinDockerVersion    = [version]"20.10.0"
     MinPowerShellVersion = [version]"5.1"
     RequiredDiskSpaceGB = 10

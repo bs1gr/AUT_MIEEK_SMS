@@ -266,4 +266,19 @@ export default {
   changeOwnPasswordWeak: 'Password is too weak – include length, digits, case and symbols',
   changeOwnPasswordSuccess: 'Password changed successfully',
   changeOwnPasswordFailed: 'Could not change password',
+  // Password change prompt modal
+  changePasswordRequired: 'Change Your Password',
+  changePasswordRequiredMessage: 'For security reasons, you must change your password before proceeding. Please set a new secure password.',
+  changePasswordSecurityWarning: 'Your account is using default credentials which pose a security risk.',
+  passwordRequirements: 'Password must include:',
+  passwordLength: '8+ characters',
+  passwordUppercase: 'Uppercase letter (A-Z)',
+  passwordLowercase: 'Lowercase letter (a-z)',
+  passwordNumber: 'Number (0-9)',
+  passwordSpecial: 'Special character (!@#$%^&*)',
+  changePasswordNow: 'Change Password Now',
+  changePasswordMandatory: 'You cannot continue until your password has been changed.',
+  password: 'Password',
+  userName: 'User Name',
 };
+

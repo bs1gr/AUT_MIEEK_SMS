@@ -289,6 +289,7 @@ class User(Base):
     full_name = Column(String(200))
     role = Column(String(50), nullable=False, index=True, default="teacher")
     is_active = Column(Boolean, default=True, index=True)
+    password_change_required = Column(Boolean, default=False, nullable=False, index=True)
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     last_failed_login_at = Column(DateTime(timezone=True), nullable=True, index=True)
     lockout_until = Column(DateTime(timezone=True), nullable=True, index=True)

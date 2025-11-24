@@ -93,7 +93,7 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 2. **Edit the root `.env` file** (in project root directory):
 
    ```dotenv
-   VERSION=1.8.5
+   VERSION=1.8.8
    
    # Add these lines:
    AUTH_ENABLED=True
