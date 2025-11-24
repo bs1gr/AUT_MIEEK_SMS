@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.db_utils import get_by_id_or_404

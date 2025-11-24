@@ -2,9 +2,7 @@
 
 import logging
 from typing import Optional
-from pathlib import Path
 import os
-import json
 
 from sqlalchemy.orm import Session
 

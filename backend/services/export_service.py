@@ -1,11 +1,8 @@
 """Export data retrieval service - queries for data export endpoints."""
 
 import logging
-from typing import Optional
-from datetime import date
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from backend.import_resolver import import_names
 

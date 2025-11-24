@@ -11,12 +11,7 @@ Tests the QNAP-specific deployment configuration including:
 """
 
 import pytest
-import os
-import tempfile
-import subprocess
-import socket
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 import yaml
 
 
@@ -140,8 +135,6 @@ class TestDockerComposeConfiguration:
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
         
-        volumes = config.get("volumes", {})
-        
         # Check that volumes are defined (if using named volumes)
         # or bind mounts are properly configured
         services = config["services"]
@@ -182,7 +175,7 @@ class TestEnvironmentConfiguration:
             content = f.read()
         
         # Check that sensitive vars are not using actual values
-        lines = [l.strip() for l in content.split('\n') if '=' in l and not l.startswith('#')]
+        lines = [line.strip() for line in content.split('\n') if '=' in line and not line.startswith('#')]
         
         for line in lines:
             if any(sensitive in line for sensitive in ['PASSWORD', 'SECRET_KEY', 'TOKEN']):

@@ -14,7 +14,6 @@ Exit code 0 if all write endpoints are rate limited, otherwise 1.
 from __future__ import annotations
 
 import ast
-import sys
 from pathlib import Path
 from typing import List, Tuple
 

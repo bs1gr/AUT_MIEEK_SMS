@@ -6,7 +6,6 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from fastapi import Request
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction

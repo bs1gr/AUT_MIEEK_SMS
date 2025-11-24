@@ -16,7 +16,6 @@ from .common import (
     check_docker_running,
     create_unique_volume,
     check_npm_installed,
-    check_docker_version,
     run_command,
 )
 
@@ -240,7 +239,8 @@ async def download_database_backup(request: Request, backup_filename: str):
 
 @router.get("/operations/database-backups/archive.zip")
 async def download_backups_zip(request: Request):
-    import io, zipfile
+    import io
+    import zipfile
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -261,7 +261,8 @@ async def download_backups_zip(request: Request):
 
 @router.post("/operations/database-backups/archive/save-to-path", response_model=OperationResult)
 async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
-    import io, zipfile
+    import io
+    import zipfile
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -294,7 +295,8 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
 
 @router.post("/operations/database-backups/archive/selected.zip")
 async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest):
-    import io, zipfile
+    import io
+    import zipfile
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -326,7 +328,8 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
 
 @router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
 async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest):
-    import io, zipfile
+    import io
+    import zipfile
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():

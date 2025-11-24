@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -17,9 +17,8 @@ from backend.rate_limiting import limiter, RATE_LIMIT_WRITE  # Rate limiting for
 
 # ===== Dependency =====
 from backend.db import get_session as get_db
-from backend.db_utils import transaction, get_by_id_or_404, paginate
-from backend.import_resolver import import_names
-from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.db_utils import transaction
+from backend.errors import internal_server_error
 from backend.services.enrollment_service import EnrollmentService
 
 
