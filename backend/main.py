@@ -34,7 +34,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 # FastAPI imports
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from typing import Callable, Any, cast
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -98,6 +98,7 @@ if importlib.util.find_spec("backend.config") is not None:
         # control dependency. We avoid hard failures if auth helpers can't be
         # imported so tests and minimal environments stay functional.
         from backend.control_auth import require_control_admin as _require_control_admin, create_control_dependency
+        from backend.routers.control.frontend_dev import control_stop_all
 
         # Attempt to build an auth_check that recognizes logged-in admin users
         # by decoding a Bearer token and verifying the user's role in the DB.
