@@ -7,7 +7,6 @@ from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
 from fastapi import APIRouter, HTTPException, Request
-import httpx
 from httpx import HTTPError
 
 from backend.errors import ErrorCode, http_error
