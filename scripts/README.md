@@ -51,6 +51,22 @@ scripts/
 - **Purpose:** Probe health endpoints & basic availability
 - **Usage:** `.\SMOKE_TEST.ps1`
 
+### Version Verification & Management
+
+- **Script:** `VERIFY_VERSION.ps1`
+- **Purpose:** Automated version consistency checking and updating across all project files
+- **Documentation:** `docs/VERSION_AUTOMATION_GUIDE.md`
+- **CI/CD Integration:** Runs in `version-verification` job of CI/CD pipeline (`ci-cd-pipeline.yml`)
+- **Usage Examples:**
+  - Check only: `.\VERIFY_VERSION.ps1`
+  - Update all: `.\VERIFY_VERSION.ps1 -Update`
+  - Generate report: `.\VERIFY_VERSION.ps1 -Report`
+  - Specific version: `.\VERIFY_VERSION.ps1 -Version "1.9.0" -Update`
+- **Exit Codes:**
+  - `0`: Success (all consistent) ✅
+  - `1`: Critical failure (blocks CI/CD) ❌
+  - `2`: Inconsistencies found (blocks CI/CD) ⚠️
+
 ### Non-Destructive Cleanup
 
 - **Script:** `CLEANUP.bat`

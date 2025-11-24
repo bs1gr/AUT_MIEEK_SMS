@@ -168,7 +168,9 @@ def run_migrations(verbose: bool = False) -> bool:
         if verbose:
             print("\nOK: Database migrations applied successfully", flush=True)
             print("=" * 60, flush=True)
+        print("[run_migrations] DEBUG: About to log Alembic migrations applied successfully", flush=True)
         logger.info("Alembic migrations applied successfully")
+        print("[run_migrations] DEBUG: Logged Alembic migrations applied successfully", flush=True)
         print("[run_migrations] EXIT OK", flush=True)
         return True
     except Exception as e:

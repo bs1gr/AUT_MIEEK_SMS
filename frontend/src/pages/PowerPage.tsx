@@ -1,16 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ServerControl from '@/components/common/ServerControl';
 import ControlPanel from '@/components/ControlPanel';
 import { useLanguage } from '@/LanguageContext';
 // Monitoring features (Grafana/Prometheus/Raw Metrics) have been removed as per v1.8.3 decision.
 
+import { useLocation } from 'react-router-dom';
+
 export default function PowerPage() {
   const { t } = useLanguage();
+  const location = useLocation();
   const [showSystemHealth, setShowSystemHealth] = useState(false);
-  const [showControlPanel, setShowControlPanel] = useState(false);
+  // Auto-open control panel when URL contains ?showControl=1
+  const [showControlPanel, setShowControlPanel] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('showControl') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [showPasswordChangedBanner, setShowPasswordChangedBanner] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('passwordChanged') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    // If route changes and query param exists, respect it
+    try {
+      const params = new URLSearchParams(location.search);
+      if (params.get('showControl') === '1') setShowControlPanel(true);
+      if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
+    } catch {
+      // ignore
+    }
+  }, [location.search]);
 
   return (
     <div className="space-y-6">
+      {showPasswordChangedBanner && (
+        <div className="rounded-md bg-emerald-50 border border-emerald-100 p-4">
+          <p className="text-sm font-medium text-emerald-800">{t('controlPanel.passwordChangedConfirmation') || 'Password changed successfully'}</p>
+        </div>
+      )}
       <div className="bg-white border rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-2xl font-bold text-gray-800">{t('controlPanel.systemHealth')}</h2>

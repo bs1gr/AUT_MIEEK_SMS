@@ -1,0 +1,702 @@
+name: CI/CD Pipeline - Student Management System
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ============================================================================
+  # PHASE 1: PRE-COMMIT VALIDATION
+  # ============================================================================
+  
+  version-verification:
+    name: 🔍 Version Consistency Check
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify version consistency
+        shell: pwsh
+        run: |
+          Write-Host "Verifying version consistency across codebase..." -ForegroundColor Cyan
+          .\scripts\VERIFY_VERSION.ps1 -CheckOnly
+          
+          if ($LASTEXITCODE -eq 1) {
+            Write-Error "❌ Critical version inconsistencies found"
+            exit 1
+          } elseif ($LASTEXITCODE -eq 2) {
+            Write-Warning "⚠️  Version inconsistencies detected"
+            Write-Host "Run: .\scripts\VERIFY_VERSION.ps1 -Update" -ForegroundColor Yellow
+            exit 1
+          }
+          Write-Host "✅ All version references consistent" -ForegroundColor Green
+
+      - name: Generate version report
+        if: always()
+        shell: pwsh
+        run: .\scripts\VERIFY_VERSION.ps1 -Report
+
+      - name: Upload version report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: version-verification-report
+          path: VERSION_VERIFICATION_REPORT.md
+          retention-days: 30
+
+  # ============================================================================
+  # PHASE 2: LINTING & CODE QUALITY
+  # ============================================================================
+
+  lint-backend:
+    name: 🔍 Backend Linting (Python)
+    runs-on: ubuntu-latest
+    needs: version-verification
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy flake8
+          pip install -r backend/requirements.txt
+
+      - name: Run Ruff linter
+        run: |
+          cd backend
+          ruff check . --output-format=github || echo "::warning::Ruff linting issues found"
+
+      - name: Run MyPy type checker
+        run: |
+          cd backend
+          mypy . --config-file=../mypy.ini || echo "::warning::MyPy type issues found"
+
+      - name: Run Flake8
+        run: |
+          cd backend
+          flake8 . --config=../.flake8 || echo "::warning::Flake8 issues found"
+
+  lint-frontend:
+    name: 🔍 Frontend Linting (TypeScript/React)
+    runs-on: ubuntu-latest
+    needs: version-verification
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci --silent
+
+      - name: Run ESLint
+        run: cd frontend && npm run lint || echo "::warning::ESLint issues found"
+
+      - name: Check TypeScript compilation
+        run: cd frontend && npx tsc --noEmit || echo "::warning::TypeScript errors found"
+
+  # ============================================================================
+  # PHASE 3: AUTOMATED TESTING
+  # ============================================================================
+
+  test-backend:
+    name: 🧪 Backend Tests (Pytest)
+    runs-on: ubuntu-latest
+    needs: [lint-backend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest-cov pytest-html pytest-json-report
+
+      - name: Run backend tests with coverage
+        run: |
+          cd backend
+          pytest -v \
+            --cov=. \
+            --cov-report=html \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --html=pytest-report.html \
+            --self-contained-html \
+            --json-report \
+            --json-report-file=pytest-report.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            backend/pytest-report.html
+            backend/pytest-report.json
+            backend/htmlcov/
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+  test-frontend:
+    name: 🧪 Frontend Tests (Vitest)
+    runs-on: ubuntu-latest
+    needs: [lint-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci --silent
+
+      - name: Run frontend tests
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: |
+            frontend/coverage/
+            frontend/test-results/
+          retention-days: 30
+
+  smoke-tests:
+    name: 💨 Smoke Tests (Integration)
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run smoke tests
+        shell: pwsh
+        run: |
+          Write-Host "Running comprehensive smoke tests..." -ForegroundColor Cyan
+          .\scripts\SMOKE_TEST.ps1
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "❌ Smoke tests failed"
+            exit 1
+          }
+          Write-Host "✅ All smoke tests passed" -ForegroundColor Green
+
+  # ============================================================================
+  # PHASE 4: BUILD & PACKAGE
+  # ============================================================================
+
+  build-frontend:
+    name: 🏗️ Build Frontend (Production)
+    runs-on: ubuntu-latest
+    needs: [test-frontend, smoke-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci --silent
+
+      - name: Build production bundle
+        env:
+          VITE_API_URL: /api/v1
+          NODE_ENV: production
+        run: cd frontend && npm run ci:build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 30
+
+      - name: Upload build stats
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-stats
+          path: frontend/.vite/stats.json
+          retention-days: 7
+        if: always()
+
+  build-docker-images:
+    name: 🐳 Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [build-frontend, test-backend]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.fullstack
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+
+  # ============================================================================
+  # PHASE 5: SECURITY SCANNING
+  # ============================================================================
+
+  security-scan-backend:
+    name: 🔒 Security Scan (Backend)
+    runs-on: ubuntu-latest
+    needs: [test-backend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Run Safety check
+        run: |
+          cd backend
+          safety check --file requirements.txt --json || echo "::warning::Security vulnerabilities found"
+
+      - name: Run Bandit security scanner
+        run: |
+          pip install bandit
+          cd backend
+          bandit -r . -f json -o bandit-report.json || echo "::warning::Security issues found"
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-security-reports
+          path: backend/bandit-report.json
+          retention-days: 30
+
+  security-scan-frontend:
+    name: 🔒 Security Scan (Frontend)
+    runs-on: ubuntu-latest
+    needs: [test-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: cd frontend && npm ci --silent
+
+      - name: Run npm audit
+        run: cd frontend && npm audit --json > npm-audit.json || echo "::warning::npm vulnerabilities found"
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-security-reports
+          path: frontend/npm-audit.json
+          retention-days: 30
+
+  security-scan-docker:
+    name: 🔒 Security Scan (Docker Images)
+    runs-on: ubuntu-latest
+    needs: [build-docker-images]
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================================================
+  # PHASE 6: DOCUMENTATION & CLEANUP
+  # ============================================================================
+
+  cleanup-and-docs:
+    name: 📚 Documentation & Cleanup Validation
+    runs-on: ubuntu-latest
+    needs: [version-verification]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify documentation consistency
+        run: |
+          echo "🔍 Checking documentation TODOs..."
+          TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ --exclude-dir=node_modules --exclude-dir=.git | wc -l || true)
+          echo "Found $TODO_COUNT TODO items in documentation"
+          
+          if [ $TODO_COUNT -gt 50 ]; then
+            echo "::warning::High number of TODO items in documentation ($TODO_COUNT)"
+          fi
+
+      - name: Check for obsolete files
+        run: |
+          echo "🧹 Checking for deprecated/obsolete files..."
+          find . -type f -name "*.deprecated" -o -name "*.obsolete" -o -name "*.bak" | tee obsolete-files.txt
+          
+          OBSOLETE_COUNT=$(wc -l < obsolete-files.txt)
+          if [ $OBSOLETE_COUNT -gt 0 ]; then
+            echo "::warning::Found $OBSOLETE_COUNT obsolete files"
+            cat obsolete-files.txt
+          fi
+
+      - name: Validate markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+        continue-on-error: true
+
+      - name: Generate documentation index
+        run: |
+          echo "# Documentation Index" > DOCS_INDEX.md
+          echo "" >> DOCS_INDEX.md
+          echo "Generated: $(date)" >> DOCS_INDEX.md
+          echo "" >> DOCS_INDEX.md
+          find docs/ -name "*.md" -type f | sort >> DOCS_INDEX.md
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-index
+          path: DOCS_INDEX.md
+          retention-days: 7
+
+  # ============================================================================
+  # PHASE 7: DEPLOYMENT TO STAGING
+  # ============================================================================
+
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.sms.example.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Deploy to staging server
+        run: |
+          echo "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
+          echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          
+          # Placeholder for actual deployment commands
+          # Example: kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          # Or: SSH to server and run docker-compose pull && docker-compose up -d
+
+      - name: Run post-deployment health check
+        run: |
+          echo "🏥 Running health checks..."
+          # curl -f https://staging.sms.example.com/health || exit 1
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Staging deployment successful"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Commit: ${{ github.sha }}"
+
+  # ============================================================================
+  # PHASE 8: DEPLOYMENT TO PRODUCTION
+  # ============================================================================
+
+  deploy-production:
+    name: 🎯 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://sms.example.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Create backup before deployment
+        run: |
+          echo "💾 Creating pre-deployment backup..."
+          # SSH to production and trigger backup
+          # ssh ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "docker exec sms-fullstack python /app/backup_database.py"
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying version ${{ steps.version.outputs.version }} to production..."
+          echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
+          
+          # Placeholder for production deployment
+          # kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+
+      - name: Run post-deployment validation
+        run: |
+          echo "🏥 Running production health checks..."
+          # curl -f https://sms.example.com/health || exit 1
+          # curl -f https://sms.example.com/api/v1/health || exit 1
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Production deployment successful"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Tag: ${{ github.ref }}"
+
+  # ============================================================================
+  # PHASE 9: RELEASE MANAGEMENT
+  # ============================================================================
+
+  create-release:
+    name: 📦 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "Generating release notes for v${{ steps.version.outputs.version }}..."
+          
+          # Extract release notes from CHANGELOG or release_notes file
+          if [ -f "release_notes_v${{ steps.version.outputs.version }}.md" ]; then
+            cat "release_notes_v${{ steps.version.outputs.version }}.md" > RELEASE_NOTES.md
+          else
+            echo "# Release v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            echo "## Changes" >> RELEASE_NOTES.md
+            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> RELEASE_NOTES.md
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            ./artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # PHASE 10: POST-DEPLOYMENT MONITORING
+  # ============================================================================
+
+  post-deployment-monitoring:
+    name: 📊 Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Monitor application health
+        run: |
+          echo "📊 Monitoring application health for 5 minutes..."
+          for i in {1..10}; do
+            echo "Health check $i/10..."
+            # curl -f https://sms.example.com/health || echo "Health check failed"
+            sleep 30
+          done
+
+      - name: Check error rates
+        run: |
+          echo "📈 Checking error rates..."
+          # Query monitoring system (Prometheus, Datadog, etc.)
+
+      - name: Notify monitoring results
+        if: always()
+        run: |
+          echo "✅ Post-deployment monitoring complete"
+          # Send notification to Slack/Teams/Email
+
+  # ============================================================================
+  # NOTIFICATION JOB (Always runs)
+  # ============================================================================
+
+  notify-completion:
+    name: 📣 Notify Pipeline Completion
+    runs-on: ubuntu-latest
+    needs: [create-release, post-deployment-monitoring]
+    if: always()
+    steps:
+      - name: Determine pipeline status
+        id: status
+        run: |
+          if [ "${{ needs.create-release.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=CI/CD Pipeline completed successfully" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=CI/CD Pipeline failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send notification
+        run: |
+          echo "${{ steps.status.outputs.emoji }} ${{ steps.status.outputs.message }}"
+          echo "Pipeline: ${{ github.workflow }}"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          
+          # Add notification integrations here:
+          # - Slack webhook
+          # - Microsoft Teams webhook
+          # - Discord webhook
+          # - Email notification

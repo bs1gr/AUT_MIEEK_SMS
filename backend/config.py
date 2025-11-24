@@ -198,6 +198,11 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_PASSWORD: str | None = None
     DEFAULT_ADMIN_FULL_NAME: str | None = "System Administrator"
     DEFAULT_ADMIN_FORCE_RESET: bool = False
+    # If enabled, when DEFAULT_ADMIN_PASSWORD is configured and differs from
+    # the password in the database for the default admin account, the
+    # application will auto-reset the admin's password (and revoke refresh
+    # tokens) on startup. This makes rotating credentials easier for devops.
+    DEFAULT_ADMIN_AUTO_RESET: bool = False
 
     # Database performance monitoring
     SQLALCHEMY_SLOW_QUERY_ENABLED: bool = True

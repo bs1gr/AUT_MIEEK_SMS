@@ -59,6 +59,8 @@ apiClient.interceptors.request.use(
 
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+  if (!config) return config;
+  
   try {
     // Skip auth header for login/refresh endpoints (they don't need it)
     const url = config.url || '';
@@ -113,8 +115,13 @@ apiClient.interceptors.response.use(
         }).catch(() => Promise.reject(error));
       }
 
-      // Log other response errors
-      console.error('API Error:', error.response.data);
+      // Log other response errors with safe property access
+      try {
+        const errorData = error.response?.data || {};
+        console.error('API Error:', errorData);
+      } catch {
+        console.error('API Error: Failed to extract error data');
+      }
       if (error.response.status === 404) console.error('Resource not found');
       if (error.response.status === 500) console.error('Server error');
     } else if (error.request) {
@@ -468,12 +475,18 @@ export const adminUsersAPI = {
   resetPassword: async (userId: number, newPassword: string): Promise<void> => {
     await apiClient.post(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
   },
-  changeOwnPassword: async (currentPassword: string, newPassword: string): Promise<{ status: string }> => {
+
+  changeOwnPassword: async (currentPassword: string, newPassword: string): Promise<{ status: string; access_token?: string; token_type?: string }> => {
     const response = await apiClient.post('/auth/change-password', {
       current_password: currentPassword,
       new_password: newPassword,
     });
-    return response.data as { status: string };
+    return response.data as { status: string; access_token?: string; token_type?: string };
+  },
+
+  getCurrentUser: async (): Promise<UserAccount> => {
+    const response = await apiClient.get<UserAccount>('/auth/me');
+    return response.data;
   },
 };
 
@@ -482,7 +495,7 @@ export const adminUsersAPI = {
 export const checkAPIHealth = async (): Promise<boolean> => {
   try {
     const response = await apiClient.get('/health');
-    return response.status === 200;
+    return response?.status === 200;
   } catch (error) {
     console.error('API health check failed:', error);
     return false;
@@ -522,10 +535,15 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
     ? API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/health'
     : '/health'; // Use relative URL for Vite proxy
 
-  const response = await axios.get<HealthStatus>(healthUrl, {
-    timeout: 5000,
-  });
-  return response.data;
+  try {
+    const response = await axios.get<HealthStatus>(healthUrl, {
+      timeout: 10000,
+    });
+    return response?.data || { status: 'unknown' };
+  } catch (err) {
+    console.error('Failed to fetch health status:', err);
+    return { status: 'unhealthy' };
+  }
 };
 
 // ==================== UTILITY FUNCTIONS ====================

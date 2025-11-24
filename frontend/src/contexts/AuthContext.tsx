@@ -16,6 +16,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<boolean>;
+  updateUser: (updatedUser: User) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -70,12 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const attemptAutoLogin = async () => {
       try {
         console.log('[Auth] Starting auto-login attempt');
-        // Timeout after 5 seconds - give it time to complete
+        // Timeout after 10 seconds - give it time to complete (increased from 5s for slow first startup)
         const controller = new AbortController();
         timeoutId = window.setTimeout(() => {
-          console.log('[Auth] Auto-login timeout triggered (5s)');
+          console.log('[Auth] Auto-login timeout triggered (10s)');
           controller.abort();
-        }, 5000);
+        }, 10000);
         
         console.log('[Auth] Posting to /auth/login');
         const resp = await apiClient.post('/auth/login', {
@@ -99,13 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Get user data - either from response or fetch separately
           let userPayload = data.user;
           if (!userPayload) {
-            console.log('[Auth] No user in login response, fetching from /auth/me');
+            console.log('[Auth] No user in login response, fetching from /auth/me (with retry)');
             try {
-              const meResp = await apiClient.get('/auth/me', { withCredentials: true });
-              userPayload = meResp.data;
+              const meResp = await fetchMeWithRetry();
+              userPayload = meResp;
               console.log('[Auth] User data fetched:', userPayload?.email);
             } catch (err) {
-              console.warn('[Auth] Failed to fetch user profile:', err instanceof Error ? err.message : err);
+              console.warn('[Auth] Failed to fetch user profile (after retries):', err instanceof Error ? err.message : err);
               // Continue anyway - we have the token
             }
           }
@@ -121,9 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err) {
         // Auto-login failed - auth disabled, timeout, or wrong credentials
         // This is expected behavior, just continue as guest
+        // Log details for debugging but don't error out
         if (!mounted) return;
         const errMsg = err instanceof Error ? err.message : String(err);
-        console.debug('[Auth] Auto-login unavailable, continuing as guest:', errMsg);
+        const isTimeout = errMsg.includes('AbortError') || errMsg.includes('timeout');
+        const isNetworkError = errMsg.includes('Network') || errMsg.includes('fetch');
+        
+        if (isTimeout) {
+          console.debug('[Auth] Auto-login timeout - backend may be slow to start', errMsg);
+        } else if (isNetworkError) {
+          console.debug('[Auth] Auto-login network error - backend may not be ready yet', errMsg);
+        } else {
+          console.debug('[Auth] Auto-login unavailable (auth may be disabled or credentials incorrect), continuing as guest:', errMsg);
+        }
       } finally {
         if (mounted) {
           console.log('[Auth] Setting isInitializing to false');
@@ -161,10 +172,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let userPayload = data.user;
     if (!userPayload) {
       try {
-        const meResp = await apiClient.get('/auth/me', { withCredentials: true });
-        userPayload = meResp.data;
+        userPayload = await fetchMeWithRetry();
       } catch (err) {
-        console.warn('[Auth] Failed to fetch user profile after login:', err);
+        console.warn('[Auth] Failed to fetch user profile after login (after retries):', err);
         throw err instanceof Error ? err : new Error('Unable to load profile');
       }
     }
@@ -173,6 +183,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userPayload);
       try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
     }
+  };
+
+  // Helper: fetch /auth/me with retry logic to tolerate backend cold-start or brief bootstrap races
+  const fetchMeWithRetry = async (attempts = 5, initialDelayMs = 800): Promise<any> => {
+    let lastErr: unknown = null;
+    for (let i = 0; i < attempts; i += 1) {
+      try {
+        const resp = await apiClient.get('/auth/me', { withCredentials: true });
+        if (resp && resp.data) return resp.data;
+        // If no data, treat as transient and retry
+        lastErr = new Error('Empty /auth/me response');
+      } catch (err) {
+        lastErr = err;
+      }
+      // exponential backoff
+      const delay = initialDelayMs * Math.pow(1.6, i);
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise<void>((res) => setTimeout(res, Math.round(delay)));
+    }
+    throw lastErr ?? new Error('Failed to fetch /auth/me');
   };
 
   const logout = async () => {
@@ -197,6 +227,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    try {
+      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(updatedUser));
+    } catch {}
+  };
+
   const value: AuthContextValue = {
     user,
     accessToken,
@@ -204,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     refresh,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

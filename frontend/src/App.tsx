@@ -5,7 +5,7 @@ import { LanguageProvider } from './LanguageContext';
 import { ThemeProvider } from './ThemeContext';
 import { AppearanceThemeProvider } from './contexts/AppearanceThemeContext';
 import ErrorBoundary from './ErrorBoundary.tsx';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LogoutButton from './components/auth/LogoutButton';
 import { Navigation, type NavigationTab, type NavigationView } from './components/layout';
@@ -14,6 +14,8 @@ import Toast from './components/ui/Toast';
 
 import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
+import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptModal';
+import BackendStatusBanner from './components/common/BackendStatusBanner';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -51,8 +53,25 @@ interface AppLayoutProps {
 function AppLayout({ children }: AppLayoutProps) {
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  
+  // Show password change prompt if user has password_change_required=true
+  useEffect(() => {
+    if (user && typeof user === 'object' && 'password_change_required' in user && user.password_change_required) {
+      setShowPasswordPrompt(true);
+    }
+  }, [user]);
+  
+  const handleOpenPasswordForm = () => {
+    // Navigate to the power/control panel page and open the embedded control panel
+    // Add a query flag so PowerPage can auto-expand the control panel UI
+    navigate('/power?showControl=1');
+    setShowPasswordPrompt(false);
+  };
+  
   const navigationTabs = useMemo<NavigationTab[]>(
     () =>
       NAV_TAB_CONFIG.map(({ labelKey, ...tab }) => ({
@@ -95,7 +114,16 @@ function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
+      {/* Backend Status Banner - appears at top when backend is unavailable */}
+      <BackendStatusBanner />
+      
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Password Change Prompt Modal */}
+      <ChangePasswordPromptModal 
+        isOpen={showPasswordPrompt}
+        onOpenPasswordForm={handleOpenPasswordForm}
+      />
 
       {/* Header with Title and Language Toggle */}
       <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">

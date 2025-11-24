@@ -266,4 +266,19 @@ export default {
   changeOwnPasswordWeak: 'Ο κωδικός είναι αδύναμος – προσθέστε μήκος, αριθμούς, πεζά/κεφαλαία και σύμβολα',
   changeOwnPasswordSuccess: 'Ο κωδικός άλλαξε επιτυχώς',
   changeOwnPasswordFailed: 'Δεν ήταν δυνατή η αλλαγή του κωδικού',
+  // Password change prompt modal
+  changePasswordRequired: 'Αλλαγή Κωδικού Πρόσβασης',
+  changePasswordRequiredMessage: 'Για λόγους ασφάλειας, πρέπει να αλλάξετε τον κωδικό πρόσβασης πριν να συνεχίσετε. Παρακαλώ ορίστε ένα νέο ασφαλές κωδικό.',
+  changePasswordSecurityWarning: 'Το λογαριασμό σας χρησιμοποιεί προεπιλεγμένα διαπιστευτήρια που αποτελούν κίνδυνο ασφάλειας.',
+  passwordRequirements: 'Ο κωδικός πρέπει να περιλαμβάνει:',
+  passwordLength: '8+ χαρακτήρες',
+  passwordUppercase: 'Κεφαλαίο γράμμα (A-Z)',
+  passwordLowercase: 'Πεζό γράμμα (a-z)',
+  passwordNumber: 'Αριθμό (0-9)',
+  passwordSpecial: 'Ειδικό χαρακτήρα (!@#$%^&*)',
+  changePasswordNow: 'Αλλάξτε τον Κωδικό Τώρα',
+  changePasswordMandatory: 'Δεν μπορείτε να συνεχίσετε έως ότου ο κωδικό σας έχει αλλάξει.',
+  password: 'Κωδικός',
+  userName: 'Όνομα Χρήστη',
 };
+

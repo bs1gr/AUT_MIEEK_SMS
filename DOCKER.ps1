@@ -821,27 +821,33 @@ function Start-Application {
     # Initialize env files
     Initialize-EnvironmentFiles | Out-Null
 
-    # Ensure directories exist
-    $triggersDir = Join-Path $SCRIPT_DIR "data\.triggers"
-    if (-not (Test-Path $triggersDir)) {
-        New-Item -ItemType Directory -Path $triggersDir -Force | Out-Null
-    }
-
     # Start container
     Write-Info "Starting container..."
 
-    docker run -d `
-        --name $CONTAINER_NAME `
-        -p "${PORT}:${INTERNAL_PORT}" `
-        -e "SMS_ENV=production" `
-        -e "SMS_EXECUTION_MODE=docker" `
-        -e "TZ=Europe/Athens" `
-        -v "${VOLUME_NAME}:/app/data" `
-        -v "${SCRIPT_DIR}/templates:/app/templates:ro" `
-        -v "${triggersDir}:/app/data/.triggers" `
-        -v "${SCRIPT_DIR}/backups:/app/backups" `
-        --restart unless-stopped `
-        $IMAGE_TAG 2>$null | Out-Null
+    # Build docker run command with env-file if available
+    $dockerCmd = @(
+        "run", "-d",
+        "--name", $CONTAINER_NAME,
+        "-p", "${PORT}:${INTERNAL_PORT}"
+    )
+    
+    if (Test-Path $ROOT_ENV) {
+        $dockerCmd += "--env-file"
+        $dockerCmd += $ROOT_ENV
+    }
+    
+    $dockerCmd += @(
+        "-e", "SMS_ENV=production",
+        "-e", "SMS_EXECUTION_MODE=docker",
+        "-e", "TZ=Europe/Athens",
+        "-v", "${VOLUME_NAME}:/data",
+        "-v", "${SCRIPT_DIR}/templates:/app/templates:ro",
+        "-v", "${SCRIPT_DIR}/backups:/app/backups",
+        "--restart", "unless-stopped",
+        $IMAGE_TAG
+    )
+
+    & docker $dockerCmd 2>$null | Out-Null
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Message "Failed to start container"

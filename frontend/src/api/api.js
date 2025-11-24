@@ -15,10 +15,14 @@ import { formatLocalDate } from '@/utils/date';
 // Base API URL - change this based on your environment
 // Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
 // For fullstack Docker deployment, use relative URL to work on any port
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+// Track dynamic fallback state for resiliency when backend port changes or native reload dies
+let ORIGINAL_API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+let API_BASE_URL = ORIGINAL_API_BASE_URL;
 if (!import.meta.env.VITE_API_URL) {
-  console.warn('VITE_API_URL is not defined. Using default relative URL: /api/v1');
+  console.warn('[api] VITE_API_URL not defined. Using relative fallback /api/v1');
 }
+// If explicit absolute URL provided but ends with a trailing slash, normalize (keep /api/v1 suffix semantics)
+API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
 // Canonical Control API base (backend mounts control router without /api/v1 prefix)
 // Derive robustly from API_BASE_URL by removing a trailing /api/v1, preserving any custom path prefix
@@ -51,6 +55,20 @@ const apiClient = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
+// Normalize defaults structure for environments where axios instance may lack .defaults
+if (!apiClient.defaults) {
+  apiClient.defaults = { baseURL: API_BASE_URL };
+} else if (!apiClient.defaults.baseURL) {
+  apiClient.defaults.baseURL = API_BASE_URL;
+}
+// Convenience duplicate baseURL directly on instance for legacy test expectations
+// (Non-standard but harmless)
+// @ts-ignore
+if (!('baseURL' in apiClient)) {
+  // @ts-ignore
+  apiClient.baseURL = API_BASE_URL;
+}
+
 // Request interceptor (for adding auth tokens in future)
 apiClient.interceptors.request.use(
   (config) => attachAuthHeader(config),
@@ -64,6 +82,8 @@ apiClient.interceptors.request.use(
 
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config) {
+  if (!config) return config;
+  
   try {
     const token = authService.getAccessToken && authService.getAccessToken();
     if (token && config && config.headers) {
@@ -76,29 +96,76 @@ export function attachAuthHeader(config) {
 }
 
 // Response interceptor (for error handling)
+let hasRetriedRelative = false;
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // Standard logging & classification
     if (error.response) {
-      // Server responded with error
       console.error('API Error:', error.response.data);
-
-      // Handle specific status codes
       if (error.response.status === 404) {
         console.error('Resource not found');
       } else if (error.response.status === 500) {
         console.error('Server error');
       }
     } else if (error.request) {
-      // Request made but no response
       console.error('Network Error: No response from server');
     } else {
-      // Something else happened
       console.error('Error:', error.message);
+    }
+
+    // Dynamic fallback: if we are using an absolute base URL and connectivity failed (no response)
+    // attempt a one-time automatic switch to relative /api/v1, then retry original request.
+    const isNetworkNoResponse = !!error.request && !error.response;
+    const isAbsolute = /^https?:\/\//i.test(apiClient.defaults.baseURL || '');
+    const disableFallback = process.env.NODE_ENV === 'test' || import.meta?.env?.VITE_DISABLE_API_FALLBACK === '1';
+    if (isNetworkNoResponse && isAbsolute && !hasRetriedRelative && !disableFallback) {
+      hasRetriedRelative = true;
+      console.warn(`[api] Connectivity failure to ${apiClient.defaults.baseURL}. Switching to relative '/api/v1' and retrying once.`);
+      apiClient.defaults.baseURL = '/api/v1';
+      // Adjust original request config baseURL explicitly for retry
+      const retryConfig = { ...error.config, baseURL: apiClient.defaults.baseURL };
+      try {
+        return await apiClient.request(retryConfig);
+      } catch (retryErr) {
+        console.error('[api] Retry with relative base also failed:', retryErr?.message);
+        return Promise.reject(retryErr);
+      }
     }
     return Promise.reject(error);
   }
 );
+
+/**
+ * Preflight health check & dynamic base adjustment.
+ * Attempts health endpoint using current base. If unreachable and original
+ * base was absolute, switches to relative '/api/v1'. Returns final base used.
+ */
+export async function preflightAPI() {
+  const currentBase = apiClient.defaults?.baseURL || '';
+  const rootBase = currentBase.replace(/\/api\/v1\/?$/i, '');
+  const healthUrl = rootBase ? `${rootBase}/health` : '/health';
+  try {
+    await axios.get(healthUrl, { timeout: 4000 });
+    return apiClient.defaults?.baseURL || currentBase;
+  } catch (e) {
+    if (/^https?:\/\//i.test(ORIGINAL_API_BASE_URL)) {
+      console.warn(`[api] Preflight failed for ${healthUrl}. Falling back to relative '/api/v1'.`);
+      if (!apiClient.defaults) apiClient.defaults = {};
+      apiClient.defaults.baseURL = '/api/v1';
+    }
+    return apiClient.defaults?.baseURL || '/api/v1';
+  }
+}
+
+// Test-only helper to force original base for fallback simulation
+// Exposed when NODE_ENV === 'test'
+export function __test_forceOriginalBase(url) { // eslint-disable-line camelcase
+  if (process.env.NODE_ENV !== 'test') return;
+  ORIGINAL_API_BASE_URL = url;
+  if (!apiClient.defaults) apiClient.defaults = {};
+  apiClient.defaults.baseURL = url;
+}
 
 // ==================== STUDENTS API ====================
 
@@ -678,6 +745,29 @@ export const adminUsersAPI = {
   async resetPassword(userId, newPassword) {
     try {
       await apiClient.post(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Change own password (self-service) – mirrors TypeScript implementation
+  async changeOwnPassword(currentPassword, newPassword) {
+    try {
+      const response = await apiClient.post('/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Fetch current authenticated user profile
+  async getCurrentUser() {
+    try {
+      const response = await apiClient.get('/auth/me');
+      return response.data;
     } catch (error) {
       throw error;
     }

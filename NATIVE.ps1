@@ -68,7 +68,8 @@ param(
     [switch]$DeepClean,
     [switch]$DryRun,
     [switch]$Force,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$NoReload  # Optional: start backend without --reload (stability workaround)
 )
 
 # ============================================================================
@@ -497,7 +498,11 @@ function Start-Backend {
         return 1
     }
 
-    Write-Info "Starting uvicorn with hot-reload..."
+    if ($NoReload) {
+        Write-Info "Starting uvicorn WITHOUT hot-reload (NoReload switch enabled)..."
+    } else {
+        Write-Info "Starting uvicorn with hot-reload..."
+    }
 
     Push-Location $BACKEND_DIR
     try {
@@ -505,10 +510,13 @@ function Start-Backend {
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
         $uvicornScript = Join-Path $venvPath "Scripts\uvicorn.exe"
 
-        $processInfo = Start-Process -FilePath $uvicornScript `
-            -ArgumentList "backend.main:app", "--reload", "--host", "127.0.0.1", "--port", $BACKEND_PORT `
-            -WindowStyle Normal `
-            -PassThru
+        $module = 'backend.main:app'
+        if ($PWD -eq $BACKEND_DIR) { $module = 'main:app' }
+        $args = @($module, "--host", "127.0.0.1", "--port", $BACKEND_PORT)
+        if (-not $NoReload) {
+            $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $BACKEND_PORT)
+        }
+        $processInfo = Start-Process -FilePath $uvicornScript -ArgumentList $args -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
 
         # Save PID
         Set-Content -Path $BACKEND_PID_FILE -Value $processInfo.Id
@@ -525,7 +533,11 @@ function Start-Backend {
         Write-Success "Backend started (PID $($processInfo.Id))"
         Write-Info "API: http://localhost:$BACKEND_PORT"
         Write-Info "Docs: http://localhost:$BACKEND_PORT/docs"
-        Write-Info "Hot-reload enabled"
+        if ($NoReload) {
+            Write-Info "Hot-reload disabled (stable mode). Use CTRL+C in window to stop or .\NATIVE.ps1 -Stop"
+        } else {
+            Write-Info "Hot-reload enabled"
+        }
 
         return 0
     }

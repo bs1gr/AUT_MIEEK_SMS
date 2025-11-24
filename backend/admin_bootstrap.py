@@ -57,6 +57,7 @@ def ensure_default_admin_account(
     full_name_raw = getattr(settings, "DEFAULT_ADMIN_FULL_NAME", None)
     full_name = str(full_name_raw).strip() if full_name_raw is not None else ""
     force_reset = _parse_bool(getattr(settings, "DEFAULT_ADMIN_FORCE_RESET", False))
+    auto_reset = _parse_bool(getattr(settings, "DEFAULT_ADMIN_AUTO_RESET", False))
 
     try:
         models_mod = importlib.import_module("backend.models")
@@ -71,8 +72,23 @@ def ensure_default_admin_account(
         user = session.query(models_mod.User).filter(models_mod.User.email == email).first()
 
         hashed_password: str | None = None
+        # Compute whether we should set/reset the password.
+        # - If no user exists -> create with provided password
+        # - If FORCE_RESET -> always reset
+        # - If AUTO_RESET -> reset when the configured password doesn't match the DB
         if user is None or force_reset:
             hashed_password = _hash_password(password)
+        elif auto_reset:
+            # If the stored hash doesn't match the desired password, prepare a reset
+            try:
+                # Use same hashing context to verify
+                if not _pwd_context.verify(password, getattr(user, "hashed_password", "")):
+                    hashed_password = _hash_password(password)
+            except Exception:
+                # If verification raises (e.g., corrupted/unsupported hash), be slightly
+                # less conservative: perform the reset so administrators can recover
+                # from an invalid stored hash by setting the configured password.
+                hashed_password = _hash_password(password)
 
         if user is None:
             user = models_mod.User(
@@ -81,10 +97,11 @@ def ensure_default_admin_account(
                 role="admin",
                 hashed_password=hashed_password or _hash_password(password),
                 is_active=True,
+                password_change_required=True,
             )
             session.add(user)
             session.commit()
-            log.info("Bootstrap: created default admin user %s", email)
+            log.info("Bootstrap: created default admin user %s (password_change_required=True)", email)
             return
 
         changed_fields: list[str] = []
@@ -101,8 +118,9 @@ def ensure_default_admin_account(
             user.full_name = full_name
             changed_fields.append("full_name")
 
-        if force_reset and hashed_password is not None:
+        if (force_reset or (auto_reset and hashed_password is not None)) and hashed_password is not None:
             user.hashed_password = hashed_password
+            user.password_change_required = True
             changed_fields.append("password")
             if RefreshToken is not None and getattr(user, "id", None) is not None:
                 session.query(RefreshToken).filter(RefreshToken.user_id == user.id).update(

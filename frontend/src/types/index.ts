@@ -88,6 +88,7 @@ export interface UserAccount {
   full_name?: string | null;
   role: UserRole;
   is_active: boolean;
+  password_change_required?: boolean;
 }
 
 export interface CreateUserPayload {

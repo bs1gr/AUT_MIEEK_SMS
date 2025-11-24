@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Last Updated**: 2025-11-22
-**Version**: 1.8.6.3
+**Version**: 1.8.8
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 

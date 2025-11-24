@@ -1,6 +1,6 @@
 # Project TODO
 
-**Last updated**: 2025-11-22 (Post v1.8.6.4 validation & roadmap init)
+**Last updated**: 2025-11-24 (Post v1.8.8 forced password change feature)
 **Review Score**: 9/10 (Excellent - Production Ready)
 **Recent Achievement**: Admin endpoints AUTH_MODE compliance fixed; Windows installer wizard shipped; documentation consolidated.
 
@@ -54,7 +54,7 @@ Backend coverage goal (≥80%) achieved; focus now on frontend depth & resilienc
 | 4 | CI npm caching | Low | Shorter pipeline times |
 | 5 | Metrics & load tests | High | Capacity planning & SLA validation |
 
-## 📈 Roadmap v1.8.6.5
+## 📈 Roadmap v1.8.9
 
 Focus areas for the next patch release (incremental, fast follow to consolidation):
 
