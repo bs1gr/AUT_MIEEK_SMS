@@ -1,9 +1,11 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-22
+**Last Updated**: 2025-11-24
 **Version**: 1.9.0
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
+
+> **Recent Changes (v1.9.0)**: Documentation has been reorganized into a cleaner structure with better categorization. All files are now in their proper directories.
 
 ---
 
