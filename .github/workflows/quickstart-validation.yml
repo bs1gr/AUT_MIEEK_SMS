@@ -20,19 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Version verification (Windows for PowerShell scripts)
-      - name: Version consistency check
-        shell: pwsh
-        run: |
-          Write-Host "Checking version consistency..." -ForegroundColor Cyan
-          if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
-            .\scripts\VERIFY_VERSION.ps1 -CheckOnly
-            if ($LASTEXITCODE -ne 0) {
-              Write-Warning "Version inconsistencies found"
-              exit 0  # Don't block on pre-commit
-            }
-          }
-
       # Backend quick checks
       - name: Setup Python
         uses: actions/setup-python@v5
