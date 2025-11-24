@@ -155,7 +155,7 @@ def collect_business_metrics(db: Session) -> None:
     """
     try:
         # Note: Enrollment model is named CourseEnrollment in this codebase
-        from backend.models import Student, Course, CourseEnrollment, Grade, Attendance
+        from backend.models import Student, Course, CourseEnrollment
 
         # Student metrics
         active_students = db.query(Student).filter(Student.is_active.is_(True)).count()

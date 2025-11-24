@@ -18,7 +18,6 @@ from .common import (
     FRONTEND_PORT_CANDIDATES,
     safe_run,
     find_pids_on_port,
-    mask_token,
 )
 
 router = APIRouter()
