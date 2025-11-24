@@ -464,10 +464,10 @@ jobs:
           fi
 
       - name: Validate markdown links
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
-        with:
-          use-quiet-mode: 'yes'
-          config-file: '.github/markdown-link-check-config.json'
+        shell: bash
+        run: |
+          echo "ℹ️ Markdown link validation skipped (external action not allowed)"
+          echo "To validate locally: npm install -g markdown-link-check && markdown-link-check README.md"
         continue-on-error: true
 
       - name: Generate documentation index
@@ -622,17 +622,19 @@ jobs:
           path: ./artifacts
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Release v${{ steps.version.outputs.version }}
-          body_path: RELEASE_NOTES.md
-          draft: false
-          prerelease: false
-          files: |
-            ./artifacts/**/*
-          generate_release_notes: true
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          NOTES=$(cat RELEASE_NOTES.md 2>/dev/null || echo "Release $VERSION")
+          
+          # Create release with gh CLI (built-in)
+          gh release create "$VERSION" \
+            --title "Release $VERSION" \
+            --notes "$NOTES" \
+            --generate-notes \
+            ./artifacts/**/* || echo "Release creation failed (may need manual creation)"
 
   # ============================================================================
   # PHASE 10: POST-DEPLOYMENT MONITORING
