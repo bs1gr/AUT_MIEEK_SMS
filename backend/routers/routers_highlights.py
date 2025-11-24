@@ -2,11 +2,11 @@
 
 from fastapi import APIRouter, Depends, Query, Request, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional, cast
+from typing import Optional
 import logging
 
 from backend.db import get_session as get_db
-from backend.db_utils import transaction, get_by_id_or_404
+from backend.db_utils import transaction
 from backend.import_resolver import import_names
 from backend.services.highlight_service import HighlightService
 from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse

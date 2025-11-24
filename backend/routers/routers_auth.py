@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Body, Response
-from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError

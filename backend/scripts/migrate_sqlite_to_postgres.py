@@ -28,7 +28,7 @@ from typing import Iterable, Sequence
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine, func, text
-from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.engine import Connection
 from sqlalchemy.schema import Table
 
 from backend import models

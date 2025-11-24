@@ -5,7 +5,6 @@ import importlib.util
 import pytest
 
 from backend import import_resolver
-import math
 
 
 def test_import_from_possible_locations_prefers_backend():

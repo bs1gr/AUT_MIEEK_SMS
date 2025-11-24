@@ -126,7 +126,7 @@ def admin_token():
     
     try:
         # Try to register a test admin user
-        register_resp = temp_client.post(
+        temp_client.post(
             "/api/v1/auth/register",
             json={
                 "email": "admin@test.example.com",

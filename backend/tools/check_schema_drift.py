@@ -21,12 +21,9 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 from typing import Any, List
 
-from alembic.config import Config
 from alembic.migration import MigrationContext
-from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine
 
 

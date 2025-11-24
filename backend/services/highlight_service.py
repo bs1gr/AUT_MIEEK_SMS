@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404
 from backend.import_resolver import import_names
-from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
+from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse
 
 logger = logging.getLogger(__name__)
 

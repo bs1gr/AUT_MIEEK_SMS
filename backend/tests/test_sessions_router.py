@@ -1,5 +1,4 @@
 import json
-from io import BytesIO
 
 from fastapi.testclient import TestClient
 from backend.main import app

@@ -162,8 +162,8 @@ def test_multiple_partial_categories():
     print("=" * 60)
     print(f"Final Grade: {final_grade:.2f}%")
     print(f"Total Weight Used: {total_weight_used}%")
-    print(f"Completed: Homework (95%) + Midterm (80%)")
-    print(f"Pending: Project + Final")
+    print("Completed: Homework (95%) + Midterm (80%)")
+    print("Pending: Project + Final")
     print()
     
     # Manual calculation: (95*20 + 80*30) / 100 = 43 / 50 * 100 = 86

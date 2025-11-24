@@ -3,8 +3,6 @@
 Tests authentication settings management via /control/api/maintenance/*.
 """
 
-import pytest
-from fastapi.testclient import TestClient
 
 
 def test_get_auth_settings(client):

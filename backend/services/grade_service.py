@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from fastapi import Request
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
-from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.errors import ErrorCode, internal_server_error
 from backend.import_resolver import import_names
 from backend.schemas.grades import GradeCreate, GradeUpdate
 

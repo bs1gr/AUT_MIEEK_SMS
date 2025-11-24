@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from io import BytesIO
 from datetime import datetime
 import json
-import zipfile
 import logging
 from typing import List, Dict, Any, Optional
 
@@ -1026,7 +1025,7 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
             
             if not student or not course:
                 results["summary"]["attendance"]["errors"].append(
-                    f"Missing student or course for attendance record"
+                    "Missing student or course for attendance record"
                 )
                 continue
             
@@ -1083,7 +1082,7 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
             
             if not student or not course:
                 results["summary"]["daily_performance"]["errors"].append(
-                    f"Missing student or course for performance record"
+                    "Missing student or course for performance record"
                 )
                 continue
             
@@ -1137,7 +1136,7 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
             
             if not student:
                 results["summary"]["highlights"]["errors"].append(
-                    f"Missing student for highlight"
+                    "Missing student for highlight"
                 )
                 continue
             
