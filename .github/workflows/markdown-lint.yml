@@ -58,7 +58,6 @@ jobs:
     continue-on-error: true
 
   threshold-check:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: markdown-lint
     steps:
