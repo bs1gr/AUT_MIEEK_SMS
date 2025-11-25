@@ -17,7 +17,7 @@ import yaml
 
 # Test configuration paths
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DOCKER_COMPOSE_PATH = PROJECT_ROOT / "docker-compose.qnap.yml"
+DOCKER_COMPOSE_PATH = PROJECT_ROOT / "docker" / "docker-compose.qnap.yml"
 ENV_EXAMPLE_PATH = PROJECT_ROOT / ".env.qnap.example"
 INSTALL_SCRIPT_PATH = PROJECT_ROOT / "scripts" / "qnap" / "install-qnap.sh"
 
@@ -471,8 +471,9 @@ class TestDocumentation:
 
     def test_deployment_plan_exists(self):
         """Verify QNAP deployment plan exists."""
-        plan_path = PROJECT_ROOT / "QNAP_DEPLOYMENT_PLAN.md"
-        assert plan_path.exists()
+        # Deployment plan moved to archive
+        plan_path = PROJECT_ROOT / "archive" / "sessions_2025-11" / "QNAP_DEPLOYMENT_PLAN.md"
+        assert plan_path.exists(), f"Deployment plan not found at {plan_path}"
 
     def test_scripts_readme_exists(self):
         """Verify scripts README exists."""

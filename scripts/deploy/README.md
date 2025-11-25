@@ -12,10 +12,10 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ### Primary Entry Points (v1.5.0+)
 
-- `RUN.ps1` (root) - Canonical one-click fullstack Docker deployment (recommended for all users)
-- `SMS.ps1` (root) - Management interface for Docker containers
+- `DOCKER.ps1` (root) - Canonical one-click Docker deployment (recommended for all users)
+- `NATIVE.ps1` (root) - Native development mode
 
-> **Note:** As of v1.5.0, only `RUN.ps1` is supported for Docker deployment. All other setup/start scripts are deprecated or removed.
+> **Note:** As of v2.0, use `..\..\DOCKER.ps1` for Docker deployment. Legacy scripts were archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
 
 
 
@@ -45,7 +45,7 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ```powershell
 # Start (one-click, v1.5.0+)
-pwsh -NoProfile -File ..\..\RUN.ps1
+pwsh -NoProfile -File ..\..\DOCKER.ps1 -Start
 
 # Manage containers
 pwsh -NoProfile -File ..\..\SMS.ps1
@@ -78,7 +78,7 @@ docker compose up -d --build
 .\CHECK_VOLUME_VERSION.ps1
 
 # Stop all services
-pwsh -NoProfile -File ..\..\SMS.ps1 -Stop
+pwsh -NoProfile -File ..\..\DOCKER.ps1 -Stop
 ```
 
 ### Creating Distribution Packages
@@ -102,7 +102,7 @@ The system uses versioned Docker volumes to prevent data loss:
 
 ## Notes
 
-- `RUN.ps1` is the only supported entry point for Docker deployments as of v1.5.0
+- `DOCKER.ps1` is the recommended entry point for Docker deployments as of v2.0
 - All other setup/start scripts (SMART_SETUP.ps1, run-docker-release.ps1, etc.) are deprecated or removed
 - Docker mode is recommended for production deployments
 - Native mode requires Python 3.11+ and Node.js 18+ (see scripts/dev/)

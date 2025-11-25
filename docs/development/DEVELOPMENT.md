@@ -64,7 +64,7 @@ pre-commit run --all-files
 ## Run mypy
 
 ```pwsh
-python -m mypy backend --config-file mypy.ini --show-error-codes
+python -m mypy backend --config-file config/mypy.ini --show-error-codes
 ```
 
 ## Notes

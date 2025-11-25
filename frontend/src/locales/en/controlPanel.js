@@ -86,7 +86,7 @@ export default {
   restartDisabled: 'Restart disabled (backend offline)',
   restartFailed: 'Unable to restart backend automatically',
   restartScheduled: 'Restart scheduled — polling for availability',
-  restartUnsupported: 'Restart is only available in native mode. Use host scripts (SMS.ps1 -Restart) inside Docker.',
+  restartUnsupported: 'Restart is only available in native mode. Use host scripts (DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart) inside Docker.',
   restartEndpointDisabled: 'Restart endpoint disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart the backend service.',
   restartTokenRequired: 'Restart denied. Configure ADMIN_SHUTDOWN_TOKEN (or access from localhost) in backend/.env to allow this action.',
   exitDisabled: 'Exit disabled (backend offline)',

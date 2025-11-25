@@ -39,6 +39,7 @@ export default {
   // Common States & Messages
   loading: 'Loading...',
   saving: 'Saving...',
+  success: 'Success',
   autosavePending: 'Changes pending...',
   downloading: 'Downloading...',
   dataLoadedSuccessfully: 'Data loaded successfully',

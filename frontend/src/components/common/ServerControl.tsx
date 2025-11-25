@@ -208,7 +208,7 @@ const ServerControl: React.FC = () => {
     if (healthData?.environment === 'docker') {
       setStatus(prev => ({
         ...prev,
-        error: t('controlPanel.restartUnsupported') || 'Restart is only available in native mode. Use host scripts (SMS.ps1 -Restart) inside Docker.',
+        error: t('controlPanel.restartUnsupported') || 'Restart is only available in native mode. Use host scripts (DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart) inside Docker.',
       }));
       return;
     }

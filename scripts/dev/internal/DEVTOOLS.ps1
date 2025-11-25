@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 # ============================================================================
 #   Student Management System - Developer Tools & Troubleshooting
 #   Docker diagnostics, advanced operations, and development utilities

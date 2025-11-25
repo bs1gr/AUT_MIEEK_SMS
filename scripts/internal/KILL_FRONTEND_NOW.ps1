@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 <#
   DEPRECATED: This file has been moved to `scripts/operator/KILL_FRONTEND_NOW.ps1`.
   The canonical operator-only script now lives under `scripts/operator/`.

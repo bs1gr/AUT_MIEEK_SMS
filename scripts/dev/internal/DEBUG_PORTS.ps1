@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 # Debug script to show what's running on ports
 
 Set-StrictMode -Version Latest

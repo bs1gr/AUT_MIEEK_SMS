@@ -206,22 +206,133 @@ Full guides: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) · [DEPLOYMENT_GUIDE
 
 ---
 
-## 🗂️ Script Consolidation (v2.0)
+## 🗂️ Project Consolidation (v2.0)
 
-All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`, `SUPER_CLEAN_AND_DEPLOY.ps1`) were archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
+### Scripts Consolidation ✅
 
-Authoritative entry points:
+All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`, `SUPER_CLEAN_AND_DEPLOY.ps1`) consolidated into **two primary entry points**:
 
-- `DOCKER.ps1` – Deployment, monitoring, updates, backups, cleanup
-- `NATIVE.ps1` – Developer hot-reload workflow & maintenance
+| Entry Point | Purpose | Key Features |
+|------------|---------|--------------|
+| **DOCKER.ps1** | Production/Staging deployment | Install, Start/Stop, Update, Monitoring, Backups, Cleanup, Logs |
+| **NATIVE.ps1** | Developer hot-reload | Setup deps, Backend/Frontend, Start/Stop, Status, Clean |
 
-Specialized retained helpers:
-- `DEEP_DOCKER_CLEANUP.ps1` (nuclear cache purge)
-- `EXPORT_DOCKER_IMAGE.ps1` (distribution)
-- `scripts/CHECK_VOLUME_VERSION.ps1` (volume migration/versioning)
-- `SMART_BACKEND_TEST.ps1` (targeted backend test runner)
+**Benefits:**
 
-Migration map & FAQ: `SCRIPTS_CONSOLIDATION_GUIDE.md`.
+- ✅ 54% code reduction (4,181 → 1,900 lines)
+- ✅ 67% fewer entry points (6 → 2 scripts)
+- ✅ Unified command patterns
+- ✅ 100% feature parity maintained
+- ✅ Better error handling and diagnostics
+
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide.
+
+**Archived:** Legacy scripts preserved in `archive/deprecated/scripts_consolidation_2025-11-21/`
+
+### Documentation Consolidation ✅
+
+Systematic documentation organization following role-based structure:
+
+```text
+docs/
+├── user/          # End-user guides
+├── development/   # Developer documentation (including GIT_WORKFLOW.md)
+├── deployment/    # DevOps & operations
+├── operations/    # Administrative tasks
+├── reference/     # Quick references
+└── DOCUMENTATION_INDEX.md  # Master navigation index
+```
+
+**Root Directory:** Reduced from 15+ markdown files to 5 essential documents
+
+- README.md (main entry point)
+- CHANGELOG.md (version history)
+- TODO.md (active tracking)
+- SCRIPTS_CONSOLIDATION_GUIDE.md (migration guide)
+- DESKTOP_SHORTCUT_QUICK_START.md (user feature)
+
+**Archived:** Session documents moved to `archive/sessions_2025-11/`
+
+**Master Index:** [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)
+
+---
+
+## 📂 Project Structure
+
+### Root Directory Organization
+
+The repository follows best practices for clean project organization:
+
+```text
+student-management-system/
+├── 📄 README.md                 # Main documentation
+├── 📄 CHANGELOG.md              # Version history
+├── 📄 TODO.md                   # Active task tracking
+├── 📄 LICENSE                   # MIT License
+├── 📄 VERSION                   # Current version (1.9.0)
+│
+├── 🐳 DOCKER.ps1                # Production deployment script
+├── 💻 NATIVE.ps1                # Development mode script
+├── 🔧 COMMIT_PREP.ps1           # Git commit automation
+├── 🔧 PRE_COMMIT_CHECK.ps1      # Pre-commit validation
+│
+├── 📚 docs/                     # Documentation (role-based)
+│   ├── user/                    # End-user guides
+│   ├── development/             # Developer documentation
+│   ├── deployment/              # DevOps & operations
+│   ├── operations/              # Administrative tasks
+│   ├── reference/               # Quick references
+│   └── DOCUMENTATION_INDEX.md   # Master index
+│
+├── 🐳 docker/                   # Docker configuration
+│   ├── docker-compose.yml       # Main compose file
+│   ├── docker-compose.prod.yml  # Production configuration
+│   ├── docker-compose.qnap.yml  # QNAP NAS configuration
+│   └── docker-compose.monitoring.yml  # Monitoring stack
+│
+├── ⚙️  config/                  # Configuration files
+│   ├── mypy.ini                 # Type checking config
+│   ├── pytest.ini               # Testing config
+│   └── ruff.toml                # Linting config
+│
+├── 🔧 scripts/                  # Utility scripts
+│   ├── internal/                # Internal utilities
+│   ├── dev/                     # Development tools
+│   ├── deploy/                  # Deployment scripts
+│   └── ops/                     # Operations automation
+│
+├── 🗄️  archive/                # Historical documents
+│   ├── sessions_2025-11/        # November session docs
+│   └── deprecated/              # Deprecated scripts
+│
+├── 🔙 backend/                  # FastAPI application
+│   ├── main.py                  # Application entry point
+│   ├── models.py                # SQLAlchemy models
+│   ├── routers/                 # API endpoints
+│   ├── schemas/                 # Pydantic schemas
+│   └── tests/                   # Backend tests
+│
+├── 🎨 frontend/                 # React application
+│   ├── src/                     # Source code
+│   ├── public/                  # Static assets
+│   └── package.json             # NPM dependencies
+│
+├── 📊 monitoring/               # Monitoring configuration
+│   ├── grafana/                 # Grafana dashboards
+│   └── prometheus/              # Prometheus config
+│
+└── 🛠️  tools/                   # Specialized tools
+    ├── installer/               # Windows installer wizard
+    └── backup_tools.ps1         # Backup utilities
+```
+
+**Key Principles:**
+
+- ✅ **Minimal Root** - Only 3 essential .md files + main scripts
+- ✅ **Organized Configs** - All config files in `config/` directory
+- ✅ **Clear Separation** - Docker, scripts, docs in dedicated directories
+- ✅ **Archived History** - Session documents in `archive/`
+- ✅ **Documentation Hub** - All docs indexed in `docs/DOCUMENTATION_INDEX.md`
 
 ---
 
@@ -330,7 +441,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ## 📦 What's New in v1.5.0
 
-- 🟢 **Canonical entry points:** Only `RUN.ps1` (Docker) and `scripts/dev/run-native.ps1` (native) are supported for starting the app. All legacy scripts removed or deprecated.
+- 🟢 **Canonical entry points:** Consolidated to `DOCKER.ps1` (Docker deployment) and `NATIVE.ps1` (native development). All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) were archived in v2.0.
 - 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
 - 🧹 **Script cleanup:** All obsolete scripts (`QUICKSTART.ps1`, `SETUP.ps1`, etc.) removed. Documentation and references updated.
 - 🛡️ **Robust error handling:** PowerShell scripts now handle null/empty values and pipeline errors gracefully.
@@ -340,7 +451,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ## 📦 What's New in v1.4.0
 
-- 🚀 **One-click deployment** with `RUN.ps1`
+- 🚀 **One-click deployment** with `DOCKER.ps1` (formerly `RUN.ps1`)
 - 💾 **Automatic backups** before updates
 - 🛑 **Graceful shutdown** with Ctrl+C
 - 🏥 **Health check polling** with timeout
@@ -368,23 +479,23 @@ This automatically installs everything! Or use the classic method: (v1.8.3)
 **Start/Stop/Update:**
 
 ```powershell
-./RUN.ps1            # Start, stop, update, backup, status (all-in-one)
-./RUN.ps1 -Stop      # Stop cleanly
-./RUN.ps1 -Update    # Fast update (cached build + backup)
-./RUN.ps1 -UpdateNoCache # Clean update (cache prune + --no-cache build + backup)
-./RUN.ps1 -Prune     # Prune Docker caches and old images (safe; keeps volumes)
-./RUN.ps1 -PruneAll  # Prune caches/images and unused networks (keeps volumes)
-./RUN.ps1 -Status    # Check if running
-./RUN.ps1 -Logs      # View application logs
-./RUN.ps1 -Backup    # Create manual backup
+.\DOCKER.ps1 -Start          # Start (default, auto-builds if needed)
+.\DOCKER.ps1 -Stop           # Stop cleanly
+.\DOCKER.ps1 -Update         # Fast update (cached build + backup)
+.\DOCKER.ps1 -UpdateClean    # Clean update (no-cache build + backup)
+.\DOCKER.ps1 -Prune          # Safe cleanup (dangling images, stopped containers)
+.\DOCKER.ps1 -Status         # Check status & health
+.\DOCKER.ps1 -Logs           # View backend logs
+.\DOCKER.ps1 -Backup         # Create manual backup
+.\DOCKER.ps1 -Help           # Full command reference
 ```
 
 **For Developers:**
 
 ```powershell
-.\scripts\dev\run-native.ps1          # Native dev mode (backend+frontend)
-.\SMS.ps1                             # Interactive management menu
-docker-compose up -d                  # Multi-container mode
+.\NATIVE.ps1 -Start                 # Native dev mode (backend+frontend)
+.\DOCKER.ps1 -Start                # Docker deployment (recommended)
+docker-compose up -d                # Multi-container mode (advanced)
 ```
 
 **What happens:**
@@ -410,7 +521,7 @@ The runtime enforces a clear separation between release and development workflow
 #### 🐳 Release (Docker Full Stack)
 
 - Production and release builds **must** run via the Docker full-stack bundle.
-- Launch with `RUN.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
+- Launch with `DOCKER.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
 - Access the stack at <http://localhost:8082> (frontend + API proxy).
 
 #### 📦 QNAP NAS Deployment
@@ -433,7 +544,7 @@ The runtime enforces a clear separation between release and development workflow
 
 - Leave `SMS_ENV` unset (or set to `development`) for native workflows.
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
-- `RUN.ps1`, `SMS.ps1`, and helper scripts respect these guards to prevent configuration drift.
+- `DOCKER.ps1` and helper scripts respect these guards to prevent configuration drift.
 
 ### PostgreSQL Support & Migration (v1.8.3)
 
@@ -510,7 +621,7 @@ docker ps  # If you see containers → Docker mode (port 8080)
 Run PowerShell with relaxed policy if needed:
 
 ```powershell
-pwsh -ExecutionPolicy Bypass -NoProfile -File .\RUN.ps1
+pwsh -ExecutionPolicy Bypass -NoProfile -File .\DOCKER.ps1 -Start
 ```
 
 ### Port Already in Use
@@ -534,13 +645,13 @@ If you prefer manual control:
 
 ```powershell
 # First-time installation
-.\INSTALL.ps1
+.\DOCKER.ps1 -Install  # First-time installation (creates env, pulls image, etc.)
 
 # Development mode (separate processes, hot reload)
 .\scripts\dev\run-native.ps1
 
 # Force rebuild containers
-.\RUN.ps1 -UpdateNoCache
+.\DOCKER.ps1 -UpdateClean  # Clean rebuild with --no-cache
 ```
 
 ### Developer Scripts
@@ -553,7 +664,7 @@ All complex/developer scripts moved to `scripts/internal/`:
 - `CLEANUP.ps1` - Clean temporary files
 - See `scripts/internal/README.md` for full list
 
-**For normal operations, use `RUN.ps1` or `SMS.ps1` instead.**
+**For normal operations, use `DOCKER.ps1` or `NATIVE.ps1` instead.**
 
 ---
 
@@ -596,12 +707,23 @@ Troubleshooting:
 
 ### Testing & Quality Improvements Release
 
-- ✅ **Enhanced Test Coverage**: Expanded student router tests, imports validation, comprehensive error handling tests
-- 🔒 **Structured Error Handling**: Refactored error handling across all routers with consistent patterns
+- ✅ **Enhanced Test Coverage**: Expanded student router tests, imports validation, comprehensive error handling tests, translation integrity testing (7 validation suites), exception handler regression tests (7 RFC 7807 compliance tests)
+- 🔒 **RFC 7807 Error Handling**: Global Problem Details standard implementation with JSON-serializable responses, header preservation, and Pydantic error sanitization
+- 🛡️ **Security Headers Middleware**: Global security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+- ⚡ **Session Management Optimization**: SQLAlchemy `expire_on_commit=False` for improved post-commit attribute access
 - 🎯 **Backend Coverage Reporting**: Configured comprehensive coverage reporting for backend tests
-- 🔧 **CI/CD Enhancements**: Ruff normalization, validation improvements, wheelhouse caching, GitHub Checks API integration
+- 🔧 **CI/CD Enhancements**: Ruff normalization, validation improvements, wheelhouse caching, GitHub Checks API integration, frontend quality gates (ESLint i18n, translation tests, API tests)
+- ✅ **Pre-commit Hooks**: Automated validation with backend tests, ESLint i18n checks, and translation integrity tests
+- 🌐 **Translation Quality**: Resolved 10 missing translation keys, established regression prevention with automated tests
 - 🐍 **Python Entrypoint**: Replaced shell entrypoint with robust Python implementation for better error handling
 - 🐋 **Docker Improvements**: Enhanced environment configuration, SECRET_KEY handling, path validation for Docker mode
+
+**Quality Metrics:**
+
+- Backend: 245+ tests passing
+- Frontend: 1007 tests passing (11 skipped)
+- Translation integrity: 7 validation suites
+- Exception handlers: 7 RFC 7807 compliance tests
 
 See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
@@ -650,31 +772,42 @@ A comprehensive student management system with course evaluation, attendance tra
 
 ## Detailed Usage
 
-### Using SMS.ps1 (Recommended)
+### Using DOCKER.ps1 (Production/Staging)
 
-The **SMS.ps1** script provides an interactive menu for all operations:
+The **DOCKER.ps1** script provides comprehensive Docker deployment management:
 
 ```powershell
-.\SMS.ps1
+.\DOCKER.ps1 -Start
 ```
 
 **Features:**
 
-- Start/Stop/Restart application (auto-detects Docker vs Native)
-- System diagnostics and troubleshooting
-- Database backup and restore
-- View logs and port usage
-- Docker management
-- Developer tools access
+- Start/Stop/Restart application
+- Automatic backups before updates
+- Health monitoring and diagnostics
+- Database operations
+- View logs and status
+- Docker cleanup operations
 
 **Command-line options:**
 
 ```powershell
-.\SMS.ps1           # Interactive menu
-.\SMS.ps1 -Quick    # Quick start
-.\SMS.ps1 -Status   # Show system status
-.\SMS.ps1 -Stop     # Stop all services
-.\SMS.ps1 -Help     # Show help
+.\DOCKER.ps1 -Start      # Start application
+.\DOCKER.ps1 -Stop       # Stop all services
+.\DOCKER.ps1 -Status     # Show system status
+.\DOCKER.ps1 -Update     # Update with backup
+.\DOCKER.ps1 -Help       # Show all commands
+```
+
+### Using NATIVE.ps1 (Development)
+
+For development with hot-reload:
+
+```powershell
+.\NATIVE.ps1 -Start      # Start backend + frontend
+.\NATIVE.ps1 -Backend    # Backend only
+.\NATIVE.ps1 -Frontend   # Frontend only
+.\NATIVE.ps1 -Stop       # Stop all
 ```
 
 
@@ -765,7 +898,7 @@ Features:
   ALLOW_REMOTE_SHUTDOWN=1                     # optional: only when you must restart from another host
   ```
 
-2. Restart the backend (`.\RUN.ps1 -Stop` followed by `.\RUN.ps1`).
+2. Restart the backend (`.\DOCKER.ps1 -Stop` followed by `.\DOCKER.ps1 -Start`).
 3. Open the System Health workspace (`/power`) and click **Restart**.
 
 Notes:
@@ -1116,6 +1249,48 @@ The frontend uses:
 - **JavaScript (JSX)** - Application code
 - **Tailwind CSS** - Styling
 - **Vite** - Build tool
+
+### Workspace Maintenance Tools 🆕
+
+**Automated workspace consistency verification and consolidation tools:**
+
+```powershell
+# Verify workspace consistency (file locations, references, version sync)
+.\scripts\VERIFY_WORKSPACE.ps1
+
+# Consolidate .bat wrapper files (reduces 13 files)
+.\scripts\CONSOLIDATE_BAT_WRAPPERS.ps1 -Execute
+
+# Update frontend script references to v2.0 consolidated scripts
+.\scripts\UPDATE_FRONTEND_REFS.ps1 -Execute -RunTests
+```
+
+**What these tools do:**
+
+- **VERIFY_WORKSPACE.ps1** - Automated checks for:
+  - File locations (config/, docker/, .github/ organization)
+  - Documentation references (script names, paths)
+  - Root directory cleanliness targets
+  - Version consistency (VERSION ↔ CHANGELOG)
+  - Provides reorganization suggestions
+
+- **CONSOLIDATE_BAT_WRAPPERS.ps1** - Removes redundant .bat wrappers:
+  - Archives 13 .bat files to `archive/deprecated_bat_wrappers/`
+  - Adds `#!/usr/bin/env pwsh` shebang to .ps1 files
+  - Updates documentation references
+  - Reduces maintenance burden (8% fewer scripts)
+
+- **UPDATE_FRONTEND_REFS.ps1** - Aligns UI with v2.0 scripts:
+  - Updates translation files (help.js, controlPanel.js)
+  - Updates React components (HelpDocumentation.tsx, ControlPanel.tsx)
+  - Replaces deprecated script references (CLEANUP_OBSOLETE_FILES.ps1 → DOCKER.ps1 -DeepClean)
+  - Optionally runs frontend tests for validation
+
+**Change tracking:**
+
+All workspace changes are tracked in `.github/WORKSPACE_STATE.md` for transparency and maintenance history.
+
+📖 **Complete guide:** [.github/MAINTENANCE_QUICK_REFERENCE.md](.github/MAINTENANCE_QUICK_REFERENCE.md)
 
 ## Support
 
