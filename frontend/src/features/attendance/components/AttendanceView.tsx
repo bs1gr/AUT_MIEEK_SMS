@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/LanguageContext';
-import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, TrendingUp, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import type { Course, Student } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
+import { useAutosave } from '@/hooks/useAutosave';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
@@ -659,7 +660,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     setDailyPerformance((prev) => ({ ...prev, [key]: val }));
   };
 
-  const saveAll = async () => {
+  const performSave = useCallback(async () => {
     if (!selectedCourse) { showToast(t('selectCourse') || 'Select course', 'error'); return; }
     setLoading(true);
     try {
@@ -757,8 +758,21 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     } catch (e) {
       console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
+      throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  };
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t]);
+
+  // Autosave when attendance or performance changes
+  const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;
+  const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
+    performSave,
+    [attendanceRecords, dailyPerformance],
+    {
+      delay: 2000, // Save 2 seconds after last change
+      enabled: hasChanges && selectedCourse !== '',
+      skipInitial: true,
+    }
+  );
 
   return (
     <div className="space-y-6">
@@ -775,6 +789,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
             <p className="text-gray-600">{t('trackAttendanceDaily') || 'Track attendance and rate daily performance'}</p>
           </div>
         </div>
+        {/* Autosave Indicator */}
+        {(isAutosaving || autosavePending) && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+            <CloudUpload size={16} className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} />
+            <span>{isAutosaving ? (t('saving') || 'Saving...') : (t('autosavePending') || 'Changes pending...')}</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -956,7 +977,6 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       <div className="bg-white rounded-2xl shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</h3>
-          <button onClick={saveAll} disabled={loading || (!Object.keys(attendanceRecords).length && !Object.keys(dailyPerformance).length)} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"><Save size={16} /> {loading ? (t('saving') || 'Saving...') : (t('saveAll') || 'Save All')}</button>
         </div>
 
         <div className="space-y-3">

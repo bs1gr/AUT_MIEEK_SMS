@@ -101,5 +101,7 @@ export default {
   download: 'Λήψη',
   saveToPath: 'Αποθήκευση στη Διαδρομή',
   deleteSelected: 'Διαγραφή Επιλεγμένων',
-  deletedBackups: 'Διαγράφηκαν αντίγραφα'
+  deletedBackups: 'Διαγράφηκαν αντίγραφα',
+  browse: 'Αναζήτηση',
+  savedSuccessfully: 'Το αρχείο αποθηκεύτηκε επιτυχώς'
 };

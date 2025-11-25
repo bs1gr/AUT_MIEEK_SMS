@@ -1,5 +1,7 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 import { useLanguage } from '@/LanguageContext';
+import { useAutosave } from '@/hooks';
+import { CloudUpload } from 'lucide-react';
 
 interface NotesSectionProps {
   value: string;
@@ -9,13 +11,38 @@ interface NotesSectionProps {
 const NotesSection: React.FC<NotesSectionProps> = ({ value, onChange }) => {
   const { t } = useLanguage();
 
+  // Wrap onChange in useCallback to ensure stable reference for autosave
+  const performSave = useCallback(async () => {
+    // The actual save is already handled by onChange which updates localStorage
+    // This just ensures we don't trigger unnecessary re-renders
+    return Promise.resolve();
+  }, []);
+
+  // Track autosave state for visual feedback
+  const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
+    performSave,
+    [value],
+    { delay: 2000, enabled: true, skipInitial: true }
+  );
+
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onChange(event.target.value);
   };
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-gray-800 mb-2">{t('notes')}</div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-semibold text-gray-800">{t('notes')}</div>
+        {(isAutosaving || autosavePending) && (
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <CloudUpload 
+              className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} 
+              size={14} 
+            />
+            <span>{isAutosaving ? t('saving') : t('autosavePending')}</span>
+          </div>
+        )}
+      </div>
       <textarea
         value={value}
         onChange={handleChange}

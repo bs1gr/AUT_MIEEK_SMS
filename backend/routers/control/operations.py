@@ -225,7 +225,7 @@ async def list_database_backups(request: Request):
     return {"backups": backups, "total": len(backups)}
 
 
-@router.get("/operations/database-backups/{backup_filename}/download")
+@router.get("/operations/database-backups/{backup_filename:path}/download")
 async def download_database_backup(request: Request, backup_filename: str):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
@@ -400,7 +400,7 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
     return OperationResult(success=True, message=f"Deleted {len(deleted)} backup(s)", details={"deleted_count": len(deleted), "deleted_files": deleted, "not_found": not_found})
 
 
-@router.post("/operations/database-backups/{backup_filename}/save-to-path", response_model=OperationResult)
+@router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
 async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
     project_root = Path(__file__).parent.parent.parent
     backup_dir = (project_root / "backups" / "database").resolve()

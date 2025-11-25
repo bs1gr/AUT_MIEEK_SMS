@@ -660,7 +660,7 @@ async def import_session(
 async def rollback_import(
     request: Request,
     backup_filename: str,
-    current_user=Depends(optional_require_role("admin"))
+    current_user=Depends(optional_require_role("admin", "teacher"))
 ):
     """
     Rollback/restore database from a backup file created before session import.

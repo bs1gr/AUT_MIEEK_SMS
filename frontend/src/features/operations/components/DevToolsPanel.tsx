@@ -352,6 +352,44 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   };
 
   const saveBackupToPath = async (filename: string, destination: string) => {
+    // If File System Access API is available, use it for direct file save
+    if ('showSaveFilePicker' in window) {
+      try {
+        setOpLoading(`save:${filename}`);
+        // Download the backup file
+        const res = await fetch(
+          `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/download`,
+          { credentials: 'include' }
+        );
+        if (!res.ok) throw new Error('Failed to download backup');
+        const blob = await res.blob();
+        
+        // Show save dialog
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [{
+            description: 'Database Files',
+            accept: { 'application/octet-stream': ['.db'] }
+          }]
+        });
+        
+        // Write the file
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        
+        onToast({ message: t('utils.savedSuccessfully') || 'File saved successfully', type: 'success' });
+      } catch (e: any) {
+        if (e?.name !== 'AbortError') {
+          onToast({ message: e?.message || (t('error') as string), type: 'error' });
+        }
+      } finally {
+        setOpLoading(null);
+      }
+      return;
+    }
+    
+    // Fallback to server-side save (Docker mode)
     if (!destination.trim()) {
       onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
       return;
@@ -584,10 +622,24 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       await refreshAcademicData();
       setClearConfirm(false);
       void runHealthCheck(); // Refresh health
-    } catch (error) {
-      console.error('Clear database failed', error);
+    } catch (error: any) {
+      console.error('Clear database failed:', error);
+      // Extract error message properly
+      let errorMessage = t('utils.clearError');
+      if (error?.response?.data) {
+        const data = error.response.data;
+        if (typeof data.detail === 'string') {
+          errorMessage = data.detail;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (data.detail?.message) {
+          errorMessage = data.detail.message;
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
       setResult(withTimestamp('clear', { error: true }));
-      onToast({ message: t('utils.clearError'), type: 'error' });
+      onToast({ message: String(errorMessage), type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -959,45 +1011,21 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
         <div className={`${theme.card} md:col-span-2`}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
-          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
-            <label className={`text-xs ${theme.mutedText}`}>{t('utils.destinationPath') || 'Destination path'}:</label>
-            <input
-              type="text"
-              value={destPath}
-              onChange={(e) => setDestPath(e.target.value)}
-              placeholder={t('utils.destinationPathPlaceholder') || 'e.g. C:\\Backups\\ or /home/user/Backups'}
-              className={`w-full flex-1 ${theme.input}`}
-            />
-            <button
-              type="button"
-              onClick={saveLatestToPath}
-              disabled={!latestBackup || opLoading?.startsWith('save:')}
-              className={`${theme.secondaryButton} disabled:cursor-not-allowed disabled:opacity-60`}
-            >
-              {t('utils.saveLatest') || 'Save Latest'}
+          
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
+              {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
             </button>
             <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
               {t('utils.downloadAllAsZip') || 'Download All as ZIP'}
             </button>
-            <button type="button" onClick={saveZipToPath} className={theme.secondaryButton}>
-              {t('utils.saveZipToPath') || 'Save ZIP to Path'}
-            </button>
-          </div>
-
-          <div className="mb-2 flex items-center gap-2">
-            <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
-              {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
-            </button>
             <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
               {t('utils.downloadSelectedAsZip') || 'Download Selected as ZIP'}
-            </button>
-            <button type="button" onClick={saveSelectedZipToPath} className={theme.secondaryButton}>
-              {t('utils.saveSelectedZipToPath') || 'Save Selected ZIP to Path'}
             </button>
             <button
               type="button"
               onClick={deleteSelectedBackups}
-              className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50`}
+              className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-700 dark:hover:bg-rose-900/20`}
             >
               {t('utils.deleteSelected') || 'Delete Selected'}
             </button>
@@ -1028,14 +1056,6 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                     <div className="flex flex-wrap items-center gap-2">
                       <button type="button" onClick={() => void downloadBackup(b.filename)} className={theme.secondaryButton}>
                         {t('utils.download') || 'Download'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void saveBackupToPath(b.filename, destPath)}
-                        disabled={opLoading === `save:${b.filename}`}
-                        className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-                      >
-                        {t('utils.saveToPath') || 'Save to Path'}
                       </button>
                     </div>
                   </div>

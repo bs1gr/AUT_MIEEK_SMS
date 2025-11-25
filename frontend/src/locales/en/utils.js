@@ -101,5 +101,7 @@ export default {
     download: 'Download',
     saveToPath: 'Save to Path',
     deleteSelected: 'Delete Selected',
-    deletedBackups: 'Deleted backups'
+    deletedBackups: 'Deleted backups',
+    browse: 'Browse',
+    savedSuccessfully: 'File saved successfully'
 };

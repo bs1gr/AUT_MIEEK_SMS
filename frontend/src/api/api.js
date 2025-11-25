@@ -505,6 +505,98 @@ export const highlightsAPI = {
   }
 };
 
+// ==================== ENROLLMENTS API ====================
+
+export const enrollmentsAPI = {
+  /**
+   * Get all enrollments with pagination
+   * @param {number} skip - Number of records to skip
+   * @param {number} limit - Maximum number of records to return
+   */
+  getAll: async (skip = 0, limit = 100) => {
+    try {
+      const response = await apiClient.get('/enrollments/', {
+        params: { skip, limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get enrollments for a specific course
+   * @param {number} courseId - Course ID
+   */
+  getByCourse: async (courseId) => {
+    try {
+      const response = await apiClient.get(`/enrollments/course/${courseId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get enrollments for a specific student
+   * @param {number} studentId - Student ID
+   */
+  getByStudent: async (studentId) => {
+    try {
+      const response = await apiClient.get(`/enrollments/student/${studentId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get list of students enrolled in a course
+   * @param {number} courseId - Course ID
+   */
+  getEnrolledStudents: async (courseId) => {
+    try {
+      const response = await apiClient.get(`/enrollments/course/${courseId}/students`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Enroll students in a course
+   * @param {number} courseId - Course ID
+   * @param {Array<number>} studentIds - Array of student IDs to enroll
+   * @param {string} enrolledAt - Optional enrollment date (ISO format)
+   */
+  enrollStudents: async (courseId, studentIds, enrolledAt = null) => {
+    try {
+      const payload = { student_ids: studentIds };
+      if (enrolledAt) {
+        payload.enrolled_at = enrolledAt;
+      }
+      const response = await apiClient.post(`/enrollments/course/${courseId}`, payload);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Unenroll a student from a course
+   * @param {number} courseId - Course ID
+   * @param {number} studentId - Student ID
+   */
+  unenrollStudent: async (courseId, studentId) => {
+    try {
+      const response = await apiClient.delete(`/enrollments/course/${courseId}/student/${studentId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 // ==================== ANALYTICS API ====================
 
 export const analyticsAPI = {
