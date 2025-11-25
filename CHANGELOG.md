@@ -6,9 +6,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+<!-- Next release changes go here -->
+
+## [1.9.2] - 2025-11-25
+
 ### Added
 
-#### Quality & Infrastructure Enhancements (pending release)
+#### Quality & Infrastructure Enhancements
 
 - **Global RFC 7807 Error Handling**: Added uniform problem details responses across the API (HTTPException, validation errors, generic exceptions) with helper utilities and comprehensive regression test suite (`backend/tests/test_exception_handlers.py`).
 - **Security Headers Middleware**: Injects `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, and a restrictive `Permissions-Policy` on every response for baseline hardening.
@@ -25,8 +29,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **Workspace Cleanup & Archival**: Deprecated .bat wrappers moved to `archive/deprecated_bat_wrappers/` with generated inventory README, preserving historical trace while removing duplication.
 - **Monitoring & Observability Expansion**: Compose overlay introduces Prometheus, Grafana, Loki, Promtail, AlertManager, Node Exporter & cAdvisor with sane defaults, health checks, resource limits, and bind mounts for host visibility.
 - **Regression Test Coverage**: Added focused backend tests for error handling and frontend tests for i18n; increases safety margin for future refactors without enlarging existing test runtime materially.
+- **Universal Windows Desktop Toggle** - VBScript-based one-click start/stop shortcut
+  - New script: `DOCKER_TOGGLE.vbs` (357 lines) - standalone toggle with auto-start Docker Desktop
+  - `CREATE_DESKTOP_SHORTCUT.ps1` for automated shortcut generation with custom icon
+  - `DESKTOP_SHORTCUT_QUICK_START.md` documentation
+  - Auto-open browser to http://localhost:8082 on successful start
+  - Comprehensive logging to `logs/docker_toggle_vbs.log`
+  - Integrated into `DOCKER.ps1 -Install` workflow
 
-#### (Existing additions retained below for autosave & automation features)
+### Documentation
+
+- Added comprehensive `COMMIT_PREP_USAGE.md` guide for pre-commit workflow automation
+- Updated copilot-instructions.md with new config/docker directory paths
+- Updated DOCUMENTATION_INDEX.md to v1.9.2 with infrastructure changes
+- Fixed docker-compose paths in MONITORING.md and PRODUCTION_DOCKER_GUIDE.md
+- Updated README.md with v2.0 consolidated scripts
+- Updated Greek docs (ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ, ΟΔΗΓΟΣ_ΧΡΗΣΗΣ) with current scripts
+- Added comprehensive GIT_WORKFLOW.md commit standards guide
+
+## [1.9.1] - 2025-11-24
+
+### Added
 
 - **Universal Autosave Pattern Extended** - Implemented intelligent autosave across additional components
   - New custom React hook: `useAutosave` with debouncing, state tracking, and error handling
@@ -61,9 +84,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - `docs/user/SMS_USER_GUIDE_EN.md` - Complete English user guide
   - `docs/user/SMS_USER_GUIDE_EL.md` - Complete Greek user guide (fully translated)
   - `docs/user/README_PDF_CONVERSION.md` - Instructions for Markdown to PDF conversion
-  - Guides cover: Getting Started, Student/Course/Grade/Attendance Management,
-    Autosave Features, Session Export/Import, Analytics, Administration,
-    Troubleshooting, Appendices with keyboard shortcuts and scale conversions
 
 ### Changed
 
@@ -94,51 +114,29 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Documentation
 
+- Reorganized documentation structure
 - Updated `docs/development/AUTOSAVE_PATTERN.md` with new implementations
-- Added implementation summary: `docs/development/AUTOSAVE_SUMMARY.md`
-- Added authentication review: `docs/development/AUTOSAVE_AUTH_REVIEW.md`
-- Added session summary: `docs/development/AUTOSAVE_EXTENSION_SESSION.md`
 - Added automation guide: `docs/development/PRE_COMMIT_AUTOMATION.md`
-- Updated `GIT_COMMIT_INSTRUCTIONS.md` with automation workflow
-- Includes usage examples, best practices, testing guidance, and migration steps
+
+### Fixed
+
+- Fixed CI linting errors and package-lock corruption
+- Added v1.9.0 release notes
 
 ### Security
 
 - **Authentication Review** - Comprehensive security audit for autosave endpoints
   - Verified teacher authentication for all autosave endpoints
-  - Confirmed `optional_require_role("admin", "teacher")` usage across codebase
-  - Documented authentication patterns in `AUTOSAVE_AUTH_REVIEW.md`
   - All autosave features accessible to Teacher role without restrictions
 
 ### Maintenance
 
 - **Repository Cleanup** - Removed obsolete files and artifacts
-  - Removed 4 obsolete test files from root directory: `test_bootstrap_direct.py`,
-    `test_course_query.py`, `test_metrics.py`, `test_migrations_async.py`
-  - Removed GitHub Actions run artifacts: `runs.json`, `runs_workflow_run.json`
-  - Removed obsolete Docker image tar: `SMS-Docker-Image-v1.8.6.1.tar`
-  - Updated `TODO.md` with autosave achievements (Nov 25 2025)
+  - Removed 4 obsolete test files from root directory
+  - Removed GitHub Actions run artifacts
+  - Removed obsolete Docker image tar
 
-### Translations
-
-- Added autosave-related keys to EN/EL locale files:
-  - Added `autosavePending` to `common.js` for use across all components
-  - Added 21 new help keys to `help.js` (EN/EL) for bilingual help system
-  - Already exists in `attendance.js`: "Changes pending..." / "Αλλαγές σε εκκρεμότητα..."
-  - `saving` available globally: "Saving..." / "Αποθήκευση..."
-
-### Impact Summary
-
-- 85% reduction in API calls through intelligent debouncing
-- Eliminated manual save buttons for cleaner UX across 4 components
-- Automatic data persistence prevents user data loss
-- All autosave features accessible to Teacher role
-- Zero TypeScript/ESLint compilation errors in production code
-- Comprehensive bilingual help system (28 new Q&A entries)
-- Professional user guides ready for PDF conversion and distribution
-- Streamlined pre-commit workflow with automated verification
-
-## [1.8.8] - 2025-11-23
+## [1.9.0] - 2025-11-23
 
 ### Added
 
