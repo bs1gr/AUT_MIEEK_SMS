@@ -252,18 +252,34 @@ foreach ($check in $versionChecks) {
 }
 
 # Update frontend package-lock.json if package.json was updated
+# NOTE: We only update the root-level version fields, NOT dependency versions
+# The lock file has two fields we need:
+#   1. "version": "X.Y.Z" at root level (project version)
+#   2. "packages" → "" → "version" (also project version)
+# All other "version" fields are dependency versions and must NOT be changed
 if ($Update) {
     $packageLockPath = Join-Path $PROJECT_ROOT "frontend/package-lock.json"
     if (Test-Path $packageLockPath) {
         try {
             $lockContent = Get-Content $packageLockPath -Raw
-            # Update the two version fields in package-lock.json
-            $lockContent = $lockContent -replace '"version":\s*"\d+\.\d+\.\d+"', "`"version`": `"$Version`""
-            Set-Content -Path $packageLockPath -Value $lockContent -NoNewline
-            Write-Success "Frontend package-lock.json: Updated to $Version"
+            $lockJson = $lockContent | ConvertFrom-Json -Depth 100
+            
+            # Update only the root-level version
+            $lockJson.version = $Version
+            
+            # Update the packages."" version (represents the project itself)
+            if ($lockJson.packages -and $lockJson.packages.PSObject.Properties['']) {
+                $lockJson.packages.''.version = $Version
+            }
+            
+            # Convert back to JSON with proper formatting
+            $updatedContent = $lockJson | ConvertTo-Json -Depth 100
+            Set-Content -Path $packageLockPath -Value $updatedContent -Encoding UTF8
+            Write-Success "Frontend package-lock.json: Updated project version to $Version (dependencies unchanged)"
             $results.Updated++
         } catch {
             Write-Warning "Could not update package-lock.json: $($_.Exception.Message)"
+            Write-Info "Run 'cd frontend && npm install' to regenerate the lock file"
         }
     }
 }
