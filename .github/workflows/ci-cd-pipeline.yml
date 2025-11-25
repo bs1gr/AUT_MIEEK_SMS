@@ -88,23 +88,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy flake8
+          pip install ruff mypy
           pip install -r backend/requirements.txt
 
       - name: Run Ruff linter
         run: |
           cd backend
-          ruff check . --output-format=github || echo "::warning::Ruff linting issues found"
+          ruff check . --config=../config/ruff.toml --output-format=github || echo "::warning::Ruff linting issues found"
 
       - name: Run MyPy type checker
         run: |
           cd backend
-          mypy . --config-file=../mypy.ini || echo "::warning::MyPy type issues found"
-
-      - name: Run Flake8
-        run: |
-          cd backend
-          flake8 . --config=../.flake8 || echo "::warning::Flake8 issues found"
+          mypy . --config-file=../config/mypy.ini || echo "::warning::MyPy type issues found"
 
   lint-frontend:
     name: 🔍 Frontend Linting (TypeScript/React)
