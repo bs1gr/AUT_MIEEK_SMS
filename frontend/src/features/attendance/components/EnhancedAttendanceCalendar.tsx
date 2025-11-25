@@ -4,12 +4,13 @@
 // UPDATED: Added "Select All" buttons for each attendance status + full localization
 // All hardcoded text replaced with translation keys
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Save, Star, TrendingUp, UserCheck, DumbbellIcon } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Star, TrendingUp, UserCheck, DumbbellIcon, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import Spinner from '@/components/ui/Spinner';
 import { studentsAPI, coursesAPI } from '@/api/api';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
+import { useAutosave } from '@/hooks/useAutosave';
 
 const API_BASE_URL = '/api/v1';
 
@@ -150,7 +151,7 @@ const EnhancedAttendanceCalendar = () => {
     }));
   };
 
-  const saveAttendanceAndPerformance = async () => {
+  const performSave = useCallback(async () => {
     if (!selectedCourse) {
       showToast(t('Please select a course'), 'error');
       return;
@@ -200,10 +201,23 @@ const EnhancedAttendanceCalendar = () => {
     } catch (error) {
       console.error('Save error:', error);
       showToast(t('Failed to save data'), 'error');
+      throw error; // Re-throw for autosave error handling
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t]);
+
+  // Autosave when attendance or performance changes
+  const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;
+  const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
+    performSave,
+    [attendanceRecords, dailyPerformance],
+    {
+      delay: 2000, // Save 2 seconds after last change
+      enabled: hasChanges && selectedCourse !== null,
+      skipInitial: true,
+    }
+  );
 
   const getDaysInMonth = (date, startOnMonday) => {
     const year = date.getFullYear();
@@ -344,6 +358,13 @@ const EnhancedAttendanceCalendar = () => {
             <p className="text-gray-600">{t('trackAttendanceDaily')}</p>
           </div>
         </div>
+        {/* Autosave Indicator */}
+        {(isAutosaving || autosavePending) && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+            <CloudUpload size={16} className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} />
+            <span>{isAutosaving ? (t('saving') || 'Saving...') : (t('autosavePending') || 'Changes pending...')}</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -508,14 +529,6 @@ const EnhancedAttendanceCalendar = () => {
               {t('markAttendanceFor')} - {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </h3>
           </div>
-          <button
-            onClick={saveAttendanceAndPerformance}
-            disabled={loading || (Object.keys(attendanceRecords).length === 0 && Object.keys(dailyPerformance).length === 0)}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2 font-medium"
-          >
-            <Save size={20} />
-            <span>{loading ? t('saving') : t('saveAll')}</span>
-          </button>
         </div>
 
         <div className="space-y-4">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HelpCircle, Book, MessageCircle, Video, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { HelpCircle, Book, MessageCircle, Video, ChevronDown, ChevronRight, Search, Download, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 
 const HelpDocumentation = () => {
@@ -70,6 +70,78 @@ const HelpDocumentation = () => {
         {
           question: t('helpCanIChangeRules'),
           answer: t('helpChangeRulesAnswer')
+        }
+      ]
+    },
+    {
+      id: 'autosave',
+      title: t('helpAutosaveFeatures'),
+      icon: HelpCircle,
+      color: 'text-emerald-600',
+      items: [
+        {
+          question: t('helpWhatIsAutosave'),
+          answer: t('helpAutosaveAnswer')
+        },
+        {
+          question: t('helpWhereIsAutosave'),
+          answer: t('helpWhereAutosaveAnswer')
+        },
+        {
+          question: t('helpHowDoIKnowSaving'),
+          answer: t('helpKnowSavingAnswer')
+        },
+        {
+          question: t('helpCanIDisableAutosave'),
+          answer: t('helpDisableAutosaveAnswer')
+        },
+        {
+          question: t('helpWhatIfAutosaveFails'),
+          answer: t('helpAutosaveFailAnswer')
+        },
+        {
+          question: t('helpDoesAutosaveWorkOffline'),
+          answer: t('helpAutosaveOfflineAnswer')
+        },
+        {
+          question: t('helpIsAutosaveSecure'),
+          answer: t('helpAutosaveSecureAnswer')
+        }
+      ]
+    },
+    {
+      id: 'improvements',
+      title: t('helpRecentImprovements'),
+      icon: MessageCircle,
+      color: 'text-amber-600',
+      items: [
+        {
+          question: t('helpWhatsNewInLatest'),
+          answer: t('helpWhatsNewAnswer')
+        },
+        {
+          question: t('helpSessionExportImport'),
+          answer: t('helpSessionExportImportAnswer')
+        },
+        {
+          question: t('helpHowToExportSemester'),
+          answer: t('helpExportSemesterAnswer')
+        },
+        {
+          question: t('helpHowToImportSemester'),
+          answer: t('helpImportSemesterAnswer')
+        },
+        {
+          question: t('helpWhatIsRateLimitIncrease'),
+          answer: t('helpRateLimitIncreaseAnswer')
+        },
+        {
+          question: t('helpPersistentLogin'),
+          answer: t('helpPersistentLoginAnswer')
+        },
+        {
+          question: t('helpWindowsInstaller'),
+          answer: t('helpWindowsInstallerAnswer')
         }
       ]
     },
@@ -374,20 +446,62 @@ const HelpDocumentation = () => {
         <h3 className="text-lg font-bold text-gray-800 mb-4">{t('stillNeedHelp')}</h3>
         <p className="text-gray-600 mb-4">{t('additionalResources')}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          {/* User Guide - PDF Downloads */}
+          <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
             <Book className="text-indigo-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('userGuide')}</h4>
-            <p className="text-sm text-gray-600">{t('comprehensivePDF')}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('comprehensivePDF')}</p>
+            <div className="space-y-2">
+              <a
+                href="/docs/SMS_User_Guide_EN.pdf"
+                download="SMS_User_Guide_EN.pdf"
+                className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                <Download size={14} className="mr-1" />
+                {t('downloadEnglishPDF')}
+              </a>
+              <a
+                href="/docs/SMS_User_Guide_EL.pdf"
+                download="SMS_User_Guide_EL.pdf"
+                className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                <Download size={14} className="mr-1" />
+                {t('downloadGreekPDF')}
+              </a>
+            </div>
           </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          {/* Video Tutorials - Coming Soon */}
+          <div className="bg-white rounded-lg p-4 shadow-sm opacity-75">
             <Video className="text-purple-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('videoTutorials')}</h4>
-            <p className="text-sm text-gray-600">{t('stepByStep')}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('stepByStep')}</p>
+            <p className="text-xs text-gray-500 italic">{t('comingSoon')}</p>
           </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          {/* Contact Support - GitHub Links */}
+          <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
             <MessageCircle className="text-green-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('contactSupport')}</h4>
-            <p className="text-sm text-gray-600">{t('personalizedAssistance')}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('personalizedAssistance')}</p>
+            <div className="space-y-2">
+              <a
+                href="https://github.com/bs1gr/AUT_MIEEK_SMS/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-sm text-green-600 hover:text-green-800 font-medium"
+              >
+                <ExternalLink size={14} className="mr-1" />
+                {t('reportIssue')}
+              </a>
+              <a
+                href="https://github.com/bs1gr/AUT_MIEEK_SMS/discussions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-sm text-green-600 hover:text-green-800 font-medium"
+              >
+                <ExternalLink size={14} className="mr-1" />
+                {t('discussionForum')}
+              </a>
+            </div>
           </div>
         </div>
       </div>

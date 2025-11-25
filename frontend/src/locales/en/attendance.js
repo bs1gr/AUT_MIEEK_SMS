@@ -83,4 +83,6 @@ export default {
   attendanceRecorded: 'Attendance recorded',
   noAttendanceYet: 'No attendance yet',
   selectedDate: 'Selected date',
+  autosavePending: 'Changes pending...',
+  saving: 'Saving...',
 };

@@ -2,10 +2,11 @@
 // Location: frontend/src/components/CourseEvaluationRules.tsx
 // Fixed: Dropdown now shows bilingual categories (EN / EL) instead of separate options
 
-import React, { useState, useEffect } from 'react';
-import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Settings, Plus, Trash2, AlertCircle, BookOpen, Calculator, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
+import { useAutosave } from '@/hooks';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
 
@@ -120,42 +121,45 @@ const CourseEvaluationRules = () => {
     return true;
   };
 
-  const saveRules = async () => {
-    if (!validateRules()) return;
-
-    setLoading(true);
-    try {
-      const normalized = (evaluationRules || []).map((r: any) => ({
-        ...r,
-        category: getCanonicalCategory(String(r.category || ''), t as any),
-      }));
-      const response = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          evaluation_rules: normalized,
-          absence_penalty: absencePenalty
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: `Failed to save rules: ${response.status} ${response.statusText}` }));
-        throw new Error(errorData.detail || 'Failed to save rules');
-      }
-      showToast(t('evaluationRulesSaved'), 'success');
-      await loadCourses();
-    } catch (error) {
-      showToast(t('failedToSaveRules'), 'error');
-    } finally {
-      setLoading(false);
+  const performSave = useCallback(async () => {
+    if (!validateRules()) {
+      throw new Error('Validation failed');
     }
-  };
+
+    const normalized = (evaluationRules || []).map((r: any) => ({
+      ...r,
+      category: getCanonicalCategory(String(r.category || ''), t as any),
+    }));
+    const response = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        evaluation_rules: normalized,
+        absence_penalty: absencePenalty
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: `Failed to save rules: ${response.status} ${response.statusText}` }));
+      throw new Error(errorData.detail || 'Failed to save rules');
+    }
+    showToast(t('evaluationRulesSaved'), 'success');
+    await loadCourses();
+  }, [evaluationRules, absencePenalty, selectedCourse, t]);
 
   const totalWeight = evaluationRules.reduce((sum: number, rule: any) => {
     return sum + (parseFloat(rule.weight) || 0);
   }, 0);
 
   const isValidTotal = Math.abs(totalWeight - 100) < 0.01;
+
+  // Autosave evaluation rules and absence penalty changes
+  const hasChanges = evaluationRules.length > 0 && selectedCourse !== null;
+  const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
+    performSave,
+    [evaluationRules, absencePenalty],
+    { delay: 2000, enabled: hasChanges && isValidTotal, skipInitial: true }
+  );
 
   return (
     <div className="space-y-6">
@@ -178,6 +182,12 @@ const CourseEvaluationRules = () => {
             <p className="text-gray-600">{t('defineGradingCriteria')}</p>
           </div>
         </div>
+        {selectedCourse && (isAutosaving || autosavePending) && (
+          <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
+            <CloudUpload className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} size={20} />
+            <span className="text-sm">{isAutosaving ? t('saving') : t('autosavePending')}</span>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -388,15 +398,6 @@ const CourseEvaluationRules = () => {
                 </div>
               </div>
             )}
-
-            <button
-              onClick={saveRules}
-              disabled={loading || evaluationRules.length === 0}
-              className="mt-6 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2 font-semibold"
-            >
-              <Save size={20} />
-              <span>{loading ? t('saving') : t('saveRules')}</span>
-            </button>
           </div>
         </>
       )}

@@ -1,6 +1,8 @@
 # Fullstack image: Build frontend, run backend, and serve SPA from FastAPI
 
 # 1) Build frontend - Using Node 22 LTS (more secure than 20)
+# Note: Docker uses content-based caching - changes to frontend/ source files
+# will automatically invalidate the cache and trigger rebuild
 FROM node:22-alpine AS fe
 WORKDIR /app/frontend
 COPY frontend/package*.json ./

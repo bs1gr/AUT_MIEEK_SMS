@@ -39,6 +39,7 @@ export default {
   // Κοινές Καταστάσεις & Μηνύματα
   loading: 'Φόρτωση...',
   saving: 'Αποθήκευση...',
+  autosavePending: 'Αλλαγές σε εκκρεμότητα...',
   downloading: 'Λήψη...',
   dataLoadedSuccessfully: 'Τα δεδομένα φορτώθηκαν επιτυχώς',
   failedToLoadData: 'Αποτυχία φόρτωσης δεδομένων',

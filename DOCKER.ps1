@@ -105,7 +105,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
-$BACKUPS_DIR = Join-Path $SCRIPT_DIR "backups"
+$BACKUPS_DIR = Join-Path $SCRIPT_DIR "backups\database"
 $MAX_BACKUPS = 10
 $MIN_DOCKER_VERSION = [version]"20.10.0"
 $MIN_POWERSHELL_VERSION = [version]"5.1"
@@ -360,14 +360,14 @@ function Backup-Database {
         if ($containerStatus -and $containerStatus.IsRunning) {
             Write-Info "Backing up from running container..."
             # Check if database file exists first
-            $dbExists = docker exec $CONTAINER_NAME test -f /app/data/student_management.db 2>$null
+            $dbExists = docker exec $CONTAINER_NAME test -f /data/student_management.db 2>$null
             if ($LASTEXITCODE -ne 0) {
                 Write-Warning "No database file found - skipping backup (fresh installation)"
                 return $true  # Not an error for fresh installs
             }
-            docker exec $CONTAINER_NAME sh -c "cp /app/data/student_management.db /app/data/backup_temp.db" 2>$null
-            docker cp "${CONTAINER_NAME}:/app/data/backup_temp.db" $backupPath 2>$null
-            docker exec $CONTAINER_NAME sh -c "rm -f /app/data/backup_temp.db" 2>$null
+            docker exec $CONTAINER_NAME sh -c "cp /data/student_management.db /data/backup_temp.db" 2>$null
+            docker cp "${CONTAINER_NAME}:/data/backup_temp.db" $backupPath 2>$null
+            docker exec $CONTAINER_NAME sh -c "rm -f /data/backup_temp.db" 2>$null
         } else {
             Write-Info "Backing up from Docker volume..."
             # Check if database exists in volume first
@@ -1018,7 +1018,8 @@ function Update-Application {
         $buildArgs = @("build", "--pull", "--no-cache", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
     } else {
         Write-Info "Fast rebuild (cached)..."
-        $buildArgs = @("build", "--pull", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
+        # Remove --pull to allow proper content-based cache detection
+        $buildArgs = @("build", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
     }
 
     Push-Location $SCRIPT_DIR

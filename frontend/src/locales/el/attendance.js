@@ -83,4 +83,6 @@ export default {
   attendanceRecorded: 'Καταγράφηκε παρουσία',
   noAttendanceYet: 'Δεν έχει καταγραφεί παρουσία',
   selectedDate: 'Επιλεγμένη ημερομηνία',
+  autosavePending: 'Αλλαγές σε εκκρεμότητα...',
+  saving: 'Αποθήκευση...',
 };

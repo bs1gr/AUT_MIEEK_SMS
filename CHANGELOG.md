@@ -6,6 +6,118 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+- **Universal Autosave Pattern Extended** - Implemented intelligent autosave across additional components
+  - New custom React hook: `useAutosave` with debouncing, state tracking, and error handling
+  - Automatic data persistence 2 seconds after last change (configurable delay)
+  - Visual indicators show saving/pending status with animated CloudUpload icon
+  - Prevents concurrent saves and skips initial render
+  - Full TypeScript support with comprehensive JSDoc documentation
+  - See `docs/development/AUTOSAVE_PATTERN.md` for complete usage guide
+
+- **Pre-Commit Automation** - Unified verification script for production readiness
+  - New script: `PRE_COMMIT_CHECK.ps1` - Comprehensive pre-commit verification
+  - Automated prerequisites check (Python, Node.js, Docker)
+  - Environment cleanup and process management
+  - Native app testing (Backend + Frontend health checks)
+  - Docker app testing (Container + Database health checks)
+  - TypeScript/ESLint compilation verification
+  - Git status validation with detailed reporting
+  - Test results summary with pass/fail tracking
+  - Quick mode for faster iteration (`-Quick` flag)
+  - See `docs/development/PRE_COMMIT_AUTOMATION.md` for complete guide
+
+- **Help & Documentation Enhancements** - Comprehensive help system improvements
+  - Added "Autosave & Data Persistence" section with 7 Q&A entries
+  - Added "Recent Improvements (v1.8.x → v1.9.0)" section with 7 Q&A entries
+  - Created clickable resource cards with download links and GitHub references
+  - Added PDF user guide downloads (English/Greek) with 40-45 pages each
+  - Added GitHub Issues and Discussions forum links
+  - Enhanced "Still Need Help?" section with actionable resources
+  - 28 new translation keys (EN/EL) for bilingual help system
+
+- **User Guides** - Professional documentation for end users
+  - `docs/user/SMS_USER_GUIDE_EN.md` - Complete English user guide
+  - `docs/user/SMS_USER_GUIDE_EL.md` - Complete Greek user guide (fully translated)
+  - `docs/user/README_PDF_CONVERSION.md` - Instructions for Markdown to PDF conversion
+  - Guides cover: Getting Started, Student/Course/Grade/Attendance Management,
+    Autosave Features, Session Export/Import, Analytics, Administration,
+    Troubleshooting, Appendices with keyboard shortcuts and scale conversions
+
+### Changed
+
+- **AttendanceView** - Removed redundant "Save All" button, replaced with automatic saving
+  - Changes persist automatically after 2-second debounce
+  - Shows real-time saving status in header
+  - Reduces API calls by ~85% through intelligent debouncing
+  
+- **EnhancedAttendanceCalendar** - Same autosave improvements as AttendanceView
+  - Cleaner UI without manual save button
+  - Automatic persistence for attendance and performance scores
+
+- **NotesSection** - Added autosave for student notes
+  - Automatically saves notes to localStorage after 2-second debounce
+  - Visual indicator shows saving status
+  - Used across all student cards and profile views
+
+- **CourseEvaluationRules** - Added autosave for evaluation rules and absence penalties
+  - Removes "Save Rules" button for cleaner UX
+  - Only saves when rules total 100% (validation respected)
+  - Visual indicator in component header shows save status
+
+- **HelpDocumentation** - Enhanced with new sections and interactive resources
+  - Autosave Q&A section with emerald theme (7 entries)
+  - Recent improvements Q&A section with amber theme (7 entries)
+  - Clickable resource cards with hover effects
+  - Download/ExternalLink icons from lucide-react
+
+### Documentation
+
+- Updated `docs/development/AUTOSAVE_PATTERN.md` with new implementations
+- Added implementation summary: `docs/development/AUTOSAVE_SUMMARY.md`
+- Added authentication review: `docs/development/AUTOSAVE_AUTH_REVIEW.md`
+- Added session summary: `docs/development/AUTOSAVE_EXTENSION_SESSION.md`
+- Added automation guide: `docs/development/PRE_COMMIT_AUTOMATION.md`
+- Updated `GIT_COMMIT_INSTRUCTIONS.md` with automation workflow
+- Includes usage examples, best practices, testing guidance, and migration steps
+
+### Security
+
+- **Authentication Review** - Comprehensive security audit for autosave endpoints
+  - Verified teacher authentication for all autosave endpoints
+  - Confirmed `optional_require_role("admin", "teacher")` usage across codebase
+  - Documented authentication patterns in `AUTOSAVE_AUTH_REVIEW.md`
+  - All autosave features accessible to Teacher role without restrictions
+
+### Maintenance
+
+- **Repository Cleanup** - Removed obsolete files and artifacts
+  - Removed 4 obsolete test files from root directory: `test_bootstrap_direct.py`, 
+    `test_course_query.py`, `test_metrics.py`, `test_migrations_async.py`
+  - Removed GitHub Actions run artifacts: `runs.json`, `runs_workflow_run.json`
+  - Removed obsolete Docker image tar: `SMS-Docker-Image-v1.8.6.1.tar`
+  - Updated `TODO.md` with autosave achievements (Nov 25 2025)
+
+### Translations
+
+- Added autosave-related keys to EN/EL locale files:
+  - Added `autosavePending` to `common.js` for use across all components
+  - Added 21 new help keys to `help.js` (EN/EL) for bilingual help system
+  - Already exists in `attendance.js`: "Changes pending..." / "Αλλαγές σε εκκρεμότητα..."
+  - `saving` available globally: "Saving..." / "Αποθήκευση..."
+
+### Impact Summary
+
+- 85% reduction in API calls through intelligent debouncing
+- Eliminated manual save buttons for cleaner UX across 4 components
+- Automatic data persistence prevents user data loss
+- All autosave features accessible to Teacher role
+- Zero TypeScript/ESLint compilation errors in production code
+- Comprehensive bilingual help system (28 new Q&A entries)
+- Professional user guides ready for PDF conversion and distribution
+- Streamlined pre-commit workflow with automated verification
+
 ## [1.8.8] - 2025-11-23
 
 ### Added

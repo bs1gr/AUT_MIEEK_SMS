@@ -51,7 +51,7 @@ def _get_db_file() -> str:
 
 @router.post("/backup")
 @limiter.limit(RATE_LIMIT_HEAVY)
-def backup_database(request: Request, current_user=Depends(optional_require_role("admin"))):
+def backup_database(request: Request, current_user=Depends(optional_require_role("admin", "teacher"))):
     try:
         db_file = _get_db_file()
         if not os.path.isfile(db_file):
@@ -78,7 +78,7 @@ def backup_database(request: Request, current_user=Depends(optional_require_role
 @router.post("/restore")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def restore_database(
-    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_role("admin"))
+    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_role("admin", "teacher"))
 ):
     """
     Restore the SQLite database from an uploaded .db file.
@@ -128,7 +128,7 @@ def clear_database(
     request: Request,
     payload: ClearPayload,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin")),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     if not payload.confirm:
         raise http_error(

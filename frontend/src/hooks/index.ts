@@ -6,3 +6,6 @@ export * from './useCoursesQuery';
 export * from './useModal';
 export * from './useStudentModals';
 export * from './useCourseModals';
+
+// Export utility hooks
+export * from './useAutosave';
