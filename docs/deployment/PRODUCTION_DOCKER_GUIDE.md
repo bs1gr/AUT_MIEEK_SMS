@@ -10,7 +10,7 @@ cp .env.production.example .env
 # Edit .env and set POSTGRES_PASSWORD and SECRET_KEY
 
 # 2. Start production stack
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
 
 # 3. Check health
 docker compose ps
@@ -282,7 +282,7 @@ jobs:
           ssh user@prod-server "
             cd /app/student-management-system &&
             git pull origin main &&
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
           "
 ```
 

@@ -33,13 +33,13 @@ cd backend && pytest -q                                             # Run tests
 alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migration
 ```
 
-**New: SMART_SETUP.ps1 - Intelligent Installation**
-- ✅ Detects first-time vs existing installation automatically
-- ✅ Checks Python, Node.js, Docker availability
-- ✅ Installs missing dependencies automatically
-- ✅ Chooses optimal mode (Docker vs Native)
-- ✅ Initializes database correctly
-- ✅ Handles all edge cases (empty DB, missing deps, etc.)
+**Configuration Files (Moved to dedicated directories):**
+- `config/mypy.ini` - Type checking configuration
+- `config/pytest.ini` - Test runner configuration  
+- `config/ruff.toml` - Linting configuration
+- `docker/docker-compose.yml` - Main Docker compose file
+- `docker/docker-compose.prod.yml` - Production overlay
+- `docker/docker-compose.monitoring.yml` - Monitoring stack
 
 **Critical rules:**
 1. ❌ Never edit DB schema directly → Always use Alembic
@@ -188,25 +188,6 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 
 **Migration Note:** Old scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) are deprecated and archived. See `SCRIPTS_CONSOLIDATION_GUIDE.md`.
 
-**What SMART_SETUP does:**
-1. Detects first-time installation vs existing
-2. Checks Python 3.11+, Node.js 18+, Docker availability
-3. Auto-installs missing dependencies (backend/frontend)
-4. Initializes empty database with Alembic migrations
-5. Creates .env files from .env.example if missing
-6. Chooses fullstack Docker by default; DevMode provides split services
-7. Starts application and shows access URLs
-8. Logs everything to `setup.log` for troubleshooting
-
-### Development Setup
-
-```powershell
-.\RUN.ps1            # Start (Docker-first, falls back to native when needed)
-.\SMS.ps1            # Interactive menu (status, diagnostics, backups)
-.\SMS.ps1 -Stop      # Stop everything (kills containers + processes)
-.\SMS.ps1 -Status    # Check what's running
-```
-
 ### Development Setup
 
 ```powershell
@@ -216,8 +197,8 @@ cd backend && python -m uvicorn backend.main:app --reload --host 127.0.0.1 --por
 # Frontend (HMR)
 cd frontend && npm run dev  # http://localhost:5173
 
-# Docker rebuild
-\.\SMART_SETUP.ps1 -Force   # Force rebuild images and dependencies
+# Force rebuild Docker images
+.\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
 ```
 
 **Environment files:** Copy `.env.example` to `.env` in `backend/` and `frontend/` directories.
@@ -268,7 +249,7 @@ alembic downgrade -1           # Rollback
 - React Operations page at `/operations` provides all control features
 - Manage Backups panel: list, download, save to path, ZIP (all/selected), delete selected
 - Control API endpoints: `/control/api/operations/*` (used by Operations UI)
-- **Can't stop Docker container from inside itself** - use `SMS.ps1 -Stop` on host
+- **Can't stop Docker container from inside itself** - use `DOCKER.ps1 -Stop` on host
 
 ### Grade Calculation
 - Weighted components: Each grade has `component_type` + `weight` (% of final)
@@ -307,7 +288,7 @@ alembic downgrade -1           # Rollback
 
 | Problem | Solution |
 |---------|----------|
-| Port conflicts | `SMS.ps1` → Option 7 or `netstat -ano \| findstr ":8000"` |
+| Port conflicts | `DOCKER.ps1 -Status` or `netstat -ano \| findstr ":8000"` |
 | Docker issues | `docker ps`, `docker logs sms-fullstack` |
 | Schema mismatch | `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate` |
 | Frontend build fails | Check `VITE_API_URL=/api/v1` in env |

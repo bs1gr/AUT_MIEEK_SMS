@@ -21,7 +21,7 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ### Docker Operations (Advanced)
 
-- `DOCKER_UP.ps1`, `DOCKER_DOWN.ps1`, etc. - Advanced/legacy scripts (use SMS.ps1 for most operations; direct use is discouraged)
+- `DOCKER_UP.ps1`, `DOCKER_DOWN.ps1`, etc. - Advanced/legacy scripts (use `DOCKER.ps1` for most operations; direct use is discouraged)
 
 ### Database & Volume Management
 
@@ -44,16 +44,16 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 #### Fullstack Docker (Recommended)
 
 ```powershell
-# Start (one-click, v1.5.0+)
+# Start (one-click, v2.0+)
 pwsh -NoProfile -File ..\..\DOCKER.ps1 -Start
 
-# Manage containers
-pwsh -NoProfile -File ..\..\SMS.ps1
+# Stop containers
+pwsh -NoProfile -File ..\..\DOCKER.ps1 -Stop
 ```
 
 ### Linux Helpers (Bash)
 
-On Linux, you can use the helper scripts for a consistent setup that delegates to SMART_SETUP.ps1 via PowerShell (pwsh):
+On Linux, you can use the helper scripts for a consistent setup:
 
 ```bash
 # Validate environment (Docker, Python, Node, pwsh, env files)
@@ -64,10 +64,10 @@ On Linux, you can use the helper scripts for a consistent setup that delegates t
 ./scripts/deploy/run-docker-release.sh
 ```
 
-If pwsh isn’t installed, you can fall back to plain Docker:
+If pwsh isn't installed, you can fall back to plain Docker:
 
 ```bash
-docker compose up -d --build
+docker compose -f docker/docker-compose.yml up -d --build
 ```
 
 
