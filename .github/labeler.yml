@@ -1,0 +1,72 @@
+# Label configuration for actions/labeler
+# See: https://github.com/actions/labeler
+
+# Backend changes
+backend:
+  - changed-files:
+      - any-glob-to-any-file: 'backend/**/*'
+
+# Frontend changes
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: 'frontend/**/*'
+
+# Documentation changes
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**/*'
+          - '**/*.md'
+          - 'README.md'
+
+# CI/CD changes
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+          - 'docker/**/*'
+          - 'Dockerfile*'
+
+# Configuration changes
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'config/**/*'
+          - '*.json'
+          - '*.toml'
+          - '*.ini'
+          - '*.yml'
+          - '*.yaml'
+
+# Database/migrations
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'backend/alembic/**/*'
+          - 'backend/models.py'
+          - 'backend/db*.py'
+
+# Tests
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'backend/tests/**/*'
+          - 'frontend/**/*.test.*'
+          - 'frontend/**/*.spec.*'
+
+# Scripts
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'scripts/**/*'
+          - '*.ps1'
+          - '*.sh'
+
+# Security-related changes
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/auth*.py'
+          - '**/security*.py'
+          - 'backend/control_auth.py'
+          - 'backend/admin_*.py'
