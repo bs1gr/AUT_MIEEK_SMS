@@ -54,6 +54,21 @@ We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 
 
 See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](SCRIPTS_CONSOLIDATION_GUIDE.md).
 
+##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
+
+Create a desktop shortcut to toggle SMS with a single click:
+
+```powershell
+# Run once to create desktop shortcut
+.\CREATE_DESKTOP_SHORTCUT.ps1
+```
+
+Then double-click "SMS Toggle" on your Desktop:
+- **Click once** → Start SMS ✅
+- **Click again** → Stop SMS 🛑
+
+**📖 Quick Guide:** [DESKTOP_SHORTCUT_QUICK_START.md](DESKTOP_SHORTCUT_QUICK_START.md)
+
 ```powershell
 # Docker Deployment (Production / Staging)
 .\DOCKER.ps1 -Start          # Start (auto-build if image missing)
