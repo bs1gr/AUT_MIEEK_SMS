@@ -163,10 +163,10 @@ try {
 # ============================================
 Write-Host "`n[5/6] Checking environment and configuration..." -ForegroundColor Yellow
 
-if (Test-Path "docker-compose.yml") {
-    Write-Success "docker-compose.yml found"
+if (Test-Path "docker/docker-compose.yml") {
+    Write-Success "docker/docker-compose.yml found"
 } else {
-    Write-Error2 "docker-compose.yml NOT found"
+    Write-Error2 "docker/docker-compose.yml NOT found"
 }
 
 if (Test-Path "docker-compose.override.yml") {

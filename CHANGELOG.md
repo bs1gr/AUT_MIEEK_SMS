@@ -8,6 +8,26 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Added
 
+#### Quality & Infrastructure Enhancements (pending release)
+
+- **Global RFC 7807 Error Handling**: Added uniform problem details responses across the API (HTTPException, validation errors, generic exceptions) with helper utilities and comprehensive regression test suite (`backend/tests/test_exception_handlers.py`).
+- **Security Headers Middleware**: Injects `X-Frame-Options=DENY`, `X-Content-Type-Options=nosniff`, `Referrer-Policy=strict-origin-when-cross-origin`, and a restrictive `Permissions-Policy` on every response for baseline hardening.
+- **Translation Integrity Test Suite**: New Vitest suite (`frontend/src/i18n/__tests__/translations.test.ts`) validating key parity, structure consistency, missing values, and placeholder detection across EN/EL locales (prevents silent i18n regressions).
+- **Static Analysis & Test Config Baseline**: Introduced config files under `config/` directory:
+  - `mypy.ini` (permissive initial typing baseline; selective ignores for legacy modules)
+  - `pytest.ini` (centralized testpath + standardized flags for quieter output)
+  - `ruff.toml` (syntax/pyflakes correctness rules; ignores for controlled exceptions)
+- **Extended Docker Deployment Assets**: Added production (`docker-compose.prod.yml`), monitoring (`docker/docker-compose.monitoring.yml`), and QNAP optimized (`docker/docker-compose.qnap.yml`) compose overlays plus updated base multi‑container (`docker/docker-compose.yml`) for clearer separation of concerns.
+- **Operations & Maintenance Scripts**:
+  - `scripts/UPDATE_FRONTEND_REFS.ps1` – automated ref updating for legacy script names inside frontend translations/components.
+  - `scripts/CONSOLIDATE_BAT_WRAPPERS.ps1` – archives obsolete .bat wrappers, adds pwsh shebangs, updates documentation references.
+  - `scripts/VERIFY_WORKSPACE.ps1` – workspace structural audit (file location, doc reference integrity, version consistency) with actionable suggestions.
+- **Workspace Cleanup & Archival**: Deprecated .bat wrappers moved to `archive/deprecated_bat_wrappers/` with generated inventory README, preserving historical trace while removing duplication.
+- **Monitoring & Observability Expansion**: Compose overlay introduces Prometheus, Grafana, Loki, Promtail, AlertManager, Node Exporter & cAdvisor with sane defaults, health checks, resource limits, and bind mounts for host visibility.
+- **Regression Test Coverage**: Added focused backend tests for error handling and frontend tests for i18n; increases safety margin for future refactors without enlarging existing test runtime materially.
+
+#### (Existing additions retained below for autosave & automation features)
+
 - **Universal Autosave Pattern Extended** - Implemented intelligent autosave across additional components
   - New custom React hook: `useAutosave` with debouncing, state tracking, and error handling
   - Automatic data persistence 2 seconds after last change (configurable delay)
@@ -93,7 +113,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Maintenance
 
 - **Repository Cleanup** - Removed obsolete files and artifacts
-  - Removed 4 obsolete test files from root directory: `test_bootstrap_direct.py`, 
+  - Removed 4 obsolete test files from root directory: `test_bootstrap_direct.py`,
     `test_course_query.py`, `test_metrics.py`, `test_migrations_async.py`
   - Removed GitHub Actions run artifacts: `runs.json`, `runs_workflow_run.json`
   - Removed obsolete Docker image tar: `SMS-Docker-Image-v1.8.6.1.tar`

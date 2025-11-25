@@ -44,10 +44,10 @@ Developers actively working on the codebase.
 pwsh -NoProfile -File run-native.ps1
 
 # Manage Docker containers (if needed)
-pwsh -NoProfile -File ..\..\SMS.ps1
+pwsh -NoProfile -File ..\..\NATIVE.ps1 -Start
 ```
 
-> **Note:** As of v1.5.0, only `run-native.ps1` is supported for native development. All other entry points and legacy scripts are deprecated or removed. Use `RUN.ps1` from the project root for Docker/fullstack mode.
+> **Note:** As of v2.0, use `..\..\NATIVE.ps1` for native development. Legacy `run-native.ps1` was archived. For Docker/production mode, use `..\..\DOCKER.ps1`.
 
 ### Cleanup After Development
 

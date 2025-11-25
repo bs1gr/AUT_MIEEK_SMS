@@ -35,8 +35,8 @@ monitoring/
 
 The monitoring stack is still available, but the embedded Power page controls were removed in v1.8.3. Operators now have two options:
 
-1. **Eager Start** – `RUN.ps1 -WithMonitoring` (all services launch immediately, same as before).
-2. **On-Demand Start** – Use a host-side command (`SMS.ps1 -MonitoringOnly` or `docker compose -f docker-compose.monitoring.yml up -d`) or call the Control API directly from the host.
+1. **Eager Start** – `DOCKER.ps1 -WithMonitoring` (all services launch immediately).
+2. **On-Demand Start** – Use a host-side command (`docker compose -f docker-compose.monitoring.yml up -d`) or call the Control API directly from the host.
 
 Control API endpoints (host only):
 

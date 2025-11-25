@@ -78,6 +78,10 @@ Documentation is organized into four main directories:
   - **DOCKER.ps1** - All Docker deployment & management
   - **NATIVE.ps1** - Native development mode
   - Legacy script archive and migration notes
+- **[docs/development/GIT_WORKFLOW.md](development/GIT_WORKFLOW.md)** - Git workflow and commit standards
+  - Commit message conventions
+  - Pre-commit automation (COMMIT_PREP.ps1)
+  - Branch strategy and release workflow
 
 ---
 
@@ -88,6 +92,7 @@ Documentation is organized into four main directories:
 **Start here**: [user/INDEX.md](user/INDEX.md)
 
 **Comprehensive Guide**:
+
 - **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** ⭐ NEW - Complete user manual
   - Installation & access (all methods)
   - Student, course, grade management
@@ -99,12 +104,14 @@ Documentation is organized into four main directories:
   - FAQs
 
 **Quick References**:
+
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Get started in 5 minutes
 - **[user/THEME_GUIDE.md](user/THEME_GUIDE.md)** - Customize UI themes
 - **[user/THEMES_SUMMARY.md](user/THEMES_SUMMARY.md)** - Available themes overview
 - **[user/LOCALIZATION.md](user/LOCALIZATION.md)** - Language switching (EN/EL)
 
 **Greek Language**:
+
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Οδηγός γρήγορης εκκίνησης
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Πλήρες εγχειρίδιο χρήστη
 
@@ -113,6 +120,7 @@ Documentation is organized into four main directories:
 **Start here**: [development/INDEX.md](development/INDEX.md)
 
 **Comprehensive Guide**:
+
 - **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** ⭐ NEW - Complete developer manual
   - Quick start for developers (5-minute setup)
   - System architecture overview
@@ -126,12 +134,14 @@ Documentation is organized into four main directories:
   - Contributing guidelines
 
 **Architecture & Design**:
+
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
 - **[development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows
 - **[development/AUTHENTICATION.md](development/AUTHENTICATION.md)** - Auth implementation guide
 - **[development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common API examples
 
 **Development Tools**:
+
 - **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
@@ -140,6 +150,7 @@ Documentation is organized into four main directories:
 **Start here**: [deployment/INDEX.md](deployment/INDEX.md)
 
 **Deployment**:
+
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Production deployment guide
 - **[DEPLOY_ON_NEW_PC.md](../DEPLOY_ON_NEW_PC.md)** - Fresh installation (automated + manual)
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker commands and management
@@ -147,11 +158,13 @@ Documentation is organized into four main directories:
 - **[deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational runbook
 
 **Troubleshooting**:
+
 - **[FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Common deployment issues
 - **[REBUILD_TROUBLESHOOTING.md](REBUILD_TROUBLESHOOTING.md)** - Rebuild troubleshooting
 - **[DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Release readiness inventory
 
 **Reference Guides** (NEW):
+
 - **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
 - **[reference/DOCKER_CLEANUP_GUIDE.md](reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures
 
@@ -230,17 +243,20 @@ Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MO
 ### Recent Updates (2025-11-22)
 
 **NEW Comprehensive Guides Created:**
+
 1. ✨ **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** - Complete user manual (all features)
 2. ✨ **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** - Complete developer manual (all workflows)
 3. 📁 **NEW Directory:** `docs/reference/` - Quick reference guides
 
 **Documentation Reorganization:**
+
 - Moved `SECURITY_GUIDE.md` → `docs/reference/SECURITY_GUIDE.md`
 - Moved `DOCKER_CLEANUP_GUIDE.md` → `docs/reference/DOCKER_CLEANUP_GUIDE.md`
 - Archived 18 temporal documents → `archive/sessions_2025-11/`
 - Created comprehensive archive index
 
 **Root Directory Cleanup:**
+
 - Before: 32+ .md files in root
 - After: 11 essential .md files in root
 - Reduction: 65% fewer root-level documents

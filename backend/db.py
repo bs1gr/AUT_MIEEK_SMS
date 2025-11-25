@@ -20,7 +20,7 @@ except Exception:
     # Fallback in case init_db changes signature
     engine = create_engine(settings.DATABASE_URL, echo=False)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
 
 
 def get_session(_: object | None = None) -> Generator[Session, None, None]:

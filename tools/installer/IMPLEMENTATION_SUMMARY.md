@@ -1,5 +1,7 @@
 # Windows Installation Wizard - Implementation Summary
 
+> **⚠️ DEPRECATION NOTICE (v2.0):** The GUI installer wizards were superseded by consolidated scripts `DOCKER.ps1` and `NATIVE.ps1`. This documentation is preserved for reference. For current installation instructions, see the main [README.md](../../README.md).
+
 ## 📦 What Was Created
 
 A complete **Windows Installation Wizard ecosystem** for the Student Management System, featuring:

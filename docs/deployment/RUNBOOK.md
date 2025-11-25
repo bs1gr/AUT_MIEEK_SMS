@@ -27,7 +27,7 @@ This runbook provides a concise, operational sequence for deploying, verifying, 
 3. Run:
 
 ```powershell
-./RUN.ps1 -Update
+./DOCKER.ps1 -Update
 ```
 
 4. Wait for success message and access URL.
@@ -59,14 +59,14 @@ Scenario: New release causes runtime errors or critical regression.
 1. Stop stack:
 
 ```powershell
-./RUN.ps1 -Stop
+./DOCKER.ps1 -Stop
 ```
 
 2. Checkout previous stable tag (e.g. `git checkout v1.6.2`).
 3. Re-run deployment:
 
 ```powershell
-./RUN.ps1
+./DOCKER.ps1 -Start
 ```
 
 4. If DB schema changed incompatibly and migration rollback required:
@@ -92,7 +92,7 @@ Scenario: New release causes runtime errors or critical regression.
 | Source | Method | Notes |
 |--------|--------|-------|
 | Health | `/health`, `/health/ready`, `/health/live` | Ready vs liveness separation |
-| Logs | `RUN.ps1 -Logs` or `docker logs sms-fullstack` | Rotating backend logs at `backend/logs/` |
+| Logs | `DOCKER.ps1 -Logs` or `docker logs sms-app` | Rotating backend logs at `backend/logs/` |
 | Performance | Slow-query log | Enabled via performance monitor module |
 
 ---

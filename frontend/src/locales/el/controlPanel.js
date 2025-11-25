@@ -86,7 +86,7 @@ export default {
   restartDisabled: 'Επανεκκίνηση απενεργοποιημένη (backend ανενεργό)',
   restartFailed: 'Αποτυχία αυτόματης επανεκκίνησης backend',
   restartScheduled: 'Η επανεκκίνηση προγραμματίστηκε — γίνεται έλεγχος διαθεσιμότητας',
-  restartUnsupported: 'Η επανεκκίνηση είναι διαθέσιμη μόνο σε native λειτουργία. Χρησιμοποιήστε τα scripts SMS.ps1 -Restart εντός Docker.',
+  restartUnsupported: 'Η επανεκκίνηση είναι διαθέσιμη μόνο σε native λειτουργία. Χρησιμοποιήστε τα scripts DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart εντός Docker.',
   restartEndpointDisabled: 'Το endpoint επανεκκίνησης είναι απενεργοποιημένο. Θέστε ENABLE_CONTROL_API=1 στο backend/.env και επανεκκινήστε το backend.',
   restartTokenRequired: 'Η επανεκκίνηση απορρίφθηκε. Ρυθμίστε ADMIN_SHUTDOWN_TOKEN ή εκτελέστε από localhost στο backend/.env.',
   exitDisabled: 'Έξοδος απενεργοποιημένη (backend ανενεργό)',

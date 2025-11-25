@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 # Frontend Diagnostic Script
 # Helps troubleshoot frontend startup issues
 

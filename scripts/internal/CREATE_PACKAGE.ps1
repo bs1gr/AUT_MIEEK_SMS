@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 # Student Management System - Create Deployment Package
 # This script creates a clean ZIP file ready for deployment
 

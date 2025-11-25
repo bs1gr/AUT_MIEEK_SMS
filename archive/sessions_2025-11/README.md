@@ -2,12 +2,49 @@
 
 This archive contains temporal session documents, status reports, and analysis documents from November 2025 development sessions. These files served their purpose during active development but are preserved here for historical reference and audit purposes.
 
-**Archive Date:** November 22, 2025  
+**Archive Date:** November 22-25, 2025  
 **Archive Reason:** Documentation consolidation to reduce root directory clutter
 
 ---
 
 ## 📁 Contents
+
+### Documentation Consolidation (Nov 25, 2025)
+
+| File | Purpose | Date | Status |
+|------|---------|------|--------|
+| `COMPREHENSIVE_CLEANUP_2025-11-25.md` | System verification and doc updates | 2025-11-25 | ✅ Completed |
+| `GIT_COMMIT_2025-11-25.md` | Git commit preparation | 2025-11-25 | ✅ Completed |
+| `PRE_COMMIT_AUTOMATION_SUMMARY.md` | Pre-commit automation guide | 2025-11-25 | ✅ Completed |
+| `DESKTOP_TOGGLE_IMPLEMENTATION_SUMMARY.md` | Desktop shortcut feature | 2025-11-25 | ✅ Completed |
+| `TRY_DESKTOP_SHORTCUT.md` | Desktop shortcut testing notes | 2025-11-25 | ✅ Completed |
+| `AUTOSAVE_COMPLETE_SUMMARY.md` | Autosave feature summary | 2025-11-25 | ✅ Completed |
+| `DOCUMENTATION_CONSOLIDATION_PLAN.md` | Documentation organization plan | 2025-11-25 | ✅ Completed |
+| `CONSOLIDATION_SUMMARY_2025-11-25.md` | Complete consolidation summary | 2025-11-25 | ✅ Completed |
+
+**Summary:**  
+Comprehensive documentation and scripts consolidation consolidating all references to v2.0 scripts (DOCKER.ps1/NATIVE.ps1)
+
+**Key Achievements:**
+
+- Created `SCRIPTS_CONSOLIDATION_GUIDE.md` (comprehensive migration guide)
+- Updated all documentation to reference consolidated v2.0 scripts
+- Updated `scripts/README.md` with v2.0 structure
+- Fixed 2 test failures (RBAC enforcement, QNAP deployment)
+- Moved 8 session/planning documents to archive
+- Created consolidated `docs/development/GIT_WORKFLOW.md`
+- Removed deprecated git workflow docs from root (GIT_COMMIT_INSTRUCTIONS.md)
+- Reorganized root directory following best practices
+- Moved config files to `config/` directory (mypy.ini, pytest.ini, ruff.toml)
+- Moved docker-compose files to `docker/` directory
+- Moved commit templates to `.github/` directory
+
+**Impact:**  
+✅ All backend tests passing (150+ tests)  
+✅ Documentation consistency achieved  
+✅ Scripts completely consolidated (100+ → 2 main entry points)  
+✅ Root directory decluttered (15+ → 3 essential .md files)  
+✅ Better organized structure (config/, docker/ subdirectories)
 
 ### Authentication Fix Session (Nov 21-22, 2025)
 

@@ -733,6 +733,88 @@ app.state.version = VERSION  # Ensure health endpoint always returns backend ver
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
+# --------------------------------------------------------------------------
+# Global RFC 7807-style error handling
+# --------------------------------------------------------------------------
+from fastapi.exceptions import RequestValidationError  # type: ignore
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+
+
+def _problem_details(status_code: int, title: str, detail: object | None, request: Request, type_uri: str | None = None, errors: list | None = None) -> dict:
+    return {
+        "type": type_uri or "about:blank",
+        "title": title,
+        "status": status_code,
+        # Preserve detail as provided (string, dict, list) for backward compatibility
+        "detail": detail,
+        "instance": str(getattr(request, "url", "")),
+        "errors": errors,
+    }
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    # Preserve headers (e.g., WWW-Authenticate) where provided
+    det = exc.detail
+    try:
+        # Attempt to coerce non-JSON-serializable details to string
+        import json
+        json.dumps(det)
+    except Exception:
+        det = str(det)
+
+    body = _problem_details(
+        status_code=exc.status_code,
+        title="HTTP Exception",
+        detail=det,
+        request=request,
+        type_uri=f"https://httpstatuses.com/{exc.status_code}",
+    )
+    return JSONResponse(status_code=exc.status_code, content=body, headers=getattr(exc, "headers", None) or {})
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    raw_errs = exc.errors() if hasattr(exc, "errors") else None
+
+    # Sanitize errors to ensure JSON-serializable payload (convert exceptions to strings)
+    def _sanitize_error(e: dict) -> dict:
+        e = dict(e)
+        ctx = e.get("ctx")
+        if isinstance(ctx, dict):
+            err_obj = ctx.get("error")
+            if isinstance(err_obj, BaseException):
+                ctx = dict(ctx)
+                ctx["error"] = str(err_obj)
+                e["ctx"] = ctx
+        return e
+
+    errs = [_sanitize_error(e) for e in (raw_errs or [])]
+
+    body = _problem_details(
+        status_code=422,
+        title="Validation Error",
+        detail=errs,
+        request=request,
+        type_uri="https://example.net/problems/validation-error",
+        errors=errs,
+    )
+    return JSONResponse(status_code=422, content=body)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Log full stack trace once; response stays generic to avoid leaking internals
+    logger.exception("Unhandled application error", exc_info=exc)
+    body = _problem_details(
+        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        title="Internal Server Error",
+        detail="An unexpected error occurred.",
+        request=request,
+        type_uri="https://example.net/problems/internal-server-error",
+    )
+    return JSONResponse(status_code=HTTP_500_INTERNAL_SERVER_ERROR, content=body)
+
 # ============================================================================
 # PROMETHEUS METRICS SETUP (Optional - enabled via environment variable)
 # ============================================================================
@@ -787,6 +869,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security headers middleware (simple, safe defaults)
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    try:
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Lock down powerful features by default; adjust as needed per feature additions
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        )
+    except Exception:
+        # Never let header injection break a response
+        pass
+    return response
 
 # Response compression
 try:

@@ -1,104 +1,254 @@
 # Scripts Directory
 
+**Last Updated:** November 25, 2025  
+**Version:** 2.0
+
 This directory contains management scripts for the Student Management System.
 
-**Canonical entry points (v2.0+):** Use `..\DOCKER.ps1` (Docker deployment & operations) or `..\NATIVE.ps1` (native development mode). All former entry points (`RUN.ps1`, `SMS.ps1`, `INSTALL.ps1`, `scripts/dev/run-native.ps1`) are archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
+## 🚀 Quick Start - v2.0
+
+**Use these main entry points:**
+
+- **Production/Docker:** `.\DOCKER.ps1` (from repository root)
+- **Development/Native:** `.\NATIVE.ps1` (from repository root)
+
+**See:** [SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md) for complete migration guide.
 
 ## 📂 Directory Structure
 
 ```text
 scripts/
-├── README.md                  # This file
-├── CLEANUP.bat                # Non-destructive cleanup
-├── SMOKE_TEST.ps1             # Quick health validation
-├── (Archived) SUPER_CLEAN_AND_DEPLOY.ps1 → replaced by DOCKER.ps1 flags
-├── internal/                 # Internal utility scripts (advanced)
-└── docker/                   # Docker-specific scripts
+├── README.md                      # This file
+├── VERIFY_VERSION.ps1             # ✅ Version management automation
+├── SMOKE_TEST.ps1                 # ✅ Quick health check
+├── CHECK_VOLUME_VERSION.ps1       # ✅ DB schema version check
+├── SETUP.ps1                      # ⚠️  DEPRECATED - Use DOCKER.ps1 -Install
+├── STOP.ps1                       # ⚠️  DEPRECATED - Use DOCKER.ps1 -Stop
+├── internal/                      # 🔧 Internal utilities (advanced)
+├── docker/                        # 🐳 Docker helpers (mostly deprecated)
+├── dev/                           # 💻 Development tools
+├── deploy/                        # 🚀 Deployment scripts
+├── ops/                           # 🛠️  Operations (releases, packages)
+├── maintenance/                   # 🔧 Maintenance tasks
+├── operator/                      # 👤 Operator-only (destructive)
+├── docs/                          # 📚 Documentation automation
+└── ci/                            # 🤖 CI/CD scripts
 ```
 
-## 🎯 Main Scripts (Active)
+## 🎯 Main Scripts (v2.0)
 
-### Docker Deployment & Operations (Production / Staging)
+## 🎯 Main Scripts (v2.0)
 
-- **Location:** `..\DOCKER.ps1`
-- **Purpose:** Consolidated Docker lifecycle (install, start/stop, update, monitoring, backups, logs, cleanup)
-- **Usage Examples:**
-  - Install: `.\DOCKER.ps1 -Install`
-  - Start: `.\DOCKER.ps1 -Start`
-  - Update (fast): `.\DOCKER.ps1 -Update`
-  - Update (clean): `.\DOCKER.ps1 -UpdateClean`
-  - Monitoring: `.\DOCKER.ps1 -WithMonitoring`
-  - Backup: `.\DOCKER.ps1 -Backup`
-  - Cleanup: `.\DOCKER.ps1 -Prune` / `-PruneAll` / `-DeepClean`
-  - Status: `.\DOCKER.ps1 -Status`
+### 🐳 DOCKER.ps1 - Docker Deployment & Operations
 
-### Native Development (Hot Reload)
+**Location:** `..\DOCKER.ps1` (repository root)
 
-- **Location:** `..\NATIVE.ps1`
-- **Purpose:** Backend (uvicorn --reload) + frontend (Vite HMR) orchestration
-- **Usage Examples:**
-  - Setup deps: `.\NATIVE.ps1 -Setup`
-  - Start full dev: `.\NATIVE.ps1 -Start`
-  - Backend only: `.\NATIVE.ps1 -Backend`
-  - Frontend only: `.\NATIVE.ps1 -Frontend`
-  - Stop: `.\NATIVE.ps1 -Stop`
-  - Clean artifacts: `.\NATIVE.ps1 -Clean`
-  - Status: `.\NATIVE.ps1 -Status`
+**Purpose:** Complete Docker lifecycle management
 
-### Quick Health Check
+**Common Commands:**
 
-- **Script:** `SMOKE_TEST.ps1`
-- **Purpose:** Probe health endpoints & basic availability
-- **Usage:** `.\SMOKE_TEST.ps1`
+```powershell
+.\DOCKER.ps1 -Install         # First-time installation
+.\DOCKER.ps1 -Start           # Start application (default)
+.\DOCKER.ps1 -Stop            # Stop application
+.\DOCKER.ps1 -Restart         # Restart application
+.\DOCKER.ps1 -Update          # Fast update (cached build + backup)
+.\DOCKER.ps1 -UpdateClean     # Clean update (no-cache + backup)
+.\DOCKER.ps1 -Status          # Check application status
+.\DOCKER.ps1 -Logs            # Show logs (follow mode)
+.\DOCKER.ps1 -Backup          # Manual database backup
+.\DOCKER.ps1 -WithMonitoring  # Start with Grafana/Prometheus
+.\DOCKER.ps1 -StopMonitoring  # Stop monitoring stack only
+.\DOCKER.ps1 -Prune           # Prune Docker caches (safe)
+.\DOCKER.ps1 -PruneAll        # Aggressive prune (dangling images)
+.\DOCKER.ps1 -DeepClean       # Nuclear cleanup (volumes too)
+.\DOCKER.ps1 -Shell           # Enter container shell
+.\DOCKER.ps1 -Help            # Show all options
+```
 
-### Version Verification & Management
+### 💻 NATIVE.ps1 - Native Development Mode
 
-- **Script:** `VERIFY_VERSION.ps1`
-- **Purpose:** Automated version consistency checking and updating across all project files
-- **Documentation:** `docs/VERSION_AUTOMATION_GUIDE.md`
-- **CI/CD Integration:** Runs in `version-verification` job of CI/CD pipeline (`ci-cd-pipeline.yml`)
-- **Usage Examples:**
-  - Check only: `.\VERIFY_VERSION.ps1`
-  - Update all: `.\VERIFY_VERSION.ps1 -Update`
-  - Generate report: `.\VERIFY_VERSION.ps1 -Report`
-  - Specific version: `.\VERIFY_VERSION.ps1 -Version "1.9.0" -Update`
-- **Exit Codes:**
-  - `0`: Success (all consistent) ✅
-  - `1`: Critical failure (blocks CI/CD) ❌
-  - `2`: Inconsistencies found (blocks CI/CD) ⚠️
+**Location:** `..\NATIVE.ps1` (repository root)
 
-### Non-Destructive Cleanup
+**Purpose:** Backend (FastAPI) + Frontend (Vite) with hot-reload
 
-- **Script:** `CLEANUP.bat`
-- **Purpose:** Remove caches, build artifacts (preserves data volumes & DB)
-- **Usage:** `.\CLEANUP.bat`
+**Common Commands:**
 
-## 🔧 Setup & Installation
+```powershell
+.\NATIVE.ps1 -Setup           # Install/update dependencies
+.\NATIVE.ps1 -Start           # Start both backend + frontend
+.\NATIVE.ps1 -Backend         # Backend only (uvicorn --reload)
+.\NATIVE.ps1 -Frontend        # Frontend only (Vite HMR)
+.\NATIVE.ps1 -Stop            # Stop all processes
+.\NATIVE.ps1 -Status          # Show running processes
+.\NATIVE.ps1 -Clean           # Clean artifacts (node_modules, .venv, caches)
+.\NATIVE.ps1 -Help            # Show all options
+```
 
+### 🔍 SMOKE_TEST.ps1 - Quick Health Check
 
+**Location:** `.\scripts\SMOKE_TEST.ps1`
 
-### Initial Setup
+**Purpose:** Probe health endpoints & basic availability
 
-> **Note:** As of v2.0, use `DOCKER.ps1 -Install` for first-time Docker setup and `NATIVE.ps1 -Setup` for developer environments. All prior setup scripts are archived.
+```powershell
+.\scripts\SMOKE_TEST.ps1      # Run health checks
+```
+
+### 📋 VERIFY_VERSION.ps1 - Version Management
+
+**Location:** `.\scripts\VERIFY_VERSION.ps1`
+
+**Purpose:** Automated version consistency checking and updating
+
+```powershell
+.\scripts\VERIFY_VERSION.ps1              # Check only
+.\scripts\VERIFY_VERSION.ps1 -Update      # Update all files
+.\scripts\VERIFY_VERSION.ps1 -Report      # Generate report
+```
+
+**Documentation:** `docs/VERSION_AUTOMATION_GUIDE.md`
+
+### 🗄️ CHECK_VOLUME_VERSION.ps1 - Database Schema Check
+
+**Location:** `.\scripts\CHECK_VOLUME_VERSION.ps1`
+
+**Purpose:** Check DB schema version consistency between Docker volume and codebase
+
+```powershell
+.\scripts\CHECK_VOLUME_VERSION.ps1              # Check version
+.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate # Auto-migrate if mismatch
+```
 
 ---
 
-## 📁 Subdirectories
+## 🗂️ Subdirectories
 
-### `internal/` - Internal Utility Scripts
+## 🗂️ Subdirectories
 
-These scripts were historically orchestrated by the legacy menu script `SMS.ps1` (now archived). They remain available for specialized maintenance or diagnostic tasks; most users won't need to run them directly under the consolidated v2.0 workflow.
+### `internal/` - Internal Utilities (Advanced Users)
 
+Specialized maintenance and diagnostic tools. Most users won't need these directly under v2.0.
 
-**Diagnostics & Debugging:**
+**Active Scripts:**
 
-- `DEBUG_PORTS.ps1/.bat` - Show processes using ports 8000, 5173, 8080
-- `DIAGNOSE_FRONTEND.ps1/.bat` - Frontend-specific diagnostics
+- `DEBUG_PORTS.ps1` - Show processes using ports 8000, 5173, 8080
+- `DIAGNOSE_FRONTEND.ps1` - Frontend-specific diagnostics
 - `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
+- `DEVTOOLS.ps1` - Development tooling utilities
+- `CLEANUP_*.ps1` - Various cleanup scripts
 
-**Maintenance & Cleanup:**
+**Deprecated Scripts:**
 
-- `CLEANUP.bat` - Non-destructive cleanup
+- `KILL_FRONTEND_NOW.ps1` - ⚠️ Moved to `operator/` → Use `NATIVE.ps1 -Stop`
+
+### `docker/` - Docker Helpers (Mostly Deprecated)
+
+Low-level Docker scripts, mostly replaced by `DOCKER.ps1`.
+
+**Status:** Most scripts deprecated and show migration messages. Use `DOCKER.ps1` instead.
+
+### `dev/` - Development Tools
+
+Development-specific utilities and helpers.
+
+**Active:**
+
+- `upgrade-pip.ps1` - Upgrade pip in Python environments
+- `SMOKE_TEST.ps1` - Development smoke tests
+- `internal/` - Dev-specific utilities (similar to main internal/)
+
+### `deploy/` - Deployment Scripts
+
+Deployment automation and packaging tools.
+
+**Active:**
+
+- `set-docker-metadata.ps1` - Set Docker image metadata
+- `run-docker-release.ps1` - Run release Docker image
+- `CHECK_VOLUME_VERSION.ps1` - Version checking for deployment
+- `internal/CREATE_DEPLOYMENT_PACKAGE.ps1` - Package creation
+
+**Deprecated:**
+
+- `STOP.ps1` - ⚠️ Use `DOCKER.ps1 -Stop`
+
+### `ops/` - Operations Scripts
+
+GitHub releases, package management, and operational automation.
+
+**Active:**
+
+- `archive-releases.ps1` - Archive legacy GitHub releases
+- `remove-legacy-packages.ps1` - GHCR cleanup helper
+
+**Documentation:** See script headers for detailed usage
+
+### `maintenance/` - Maintenance Tasks
+
+System maintenance utilities.
+
+**Active:**
+
+- `stop_frontend_safe.ps1` - Safe frontend shutdown
+
+### `operator/` - Operator-Only Scripts (Destructive)
+
+Scripts requiring explicit operator intervention. **Use with caution.**
+
+**Active:**
+
+- `stop_monitor.ps1` - Stop monitoring services
+- `KILL_FRONTEND_NOW.ps1` - Emergency frontend killer (requires `-Confirm`)
+
+### `docs/` - Documentation Automation
+
+Documentation validation and auditing.
+
+**Active:**
+
+- `audit-docs.ps1` - Document status auditing
+
+### `ci/` - CI/CD Scripts
+
+Continuous integration and deployment automation.
+
+**Active:**
+
+- `native-safety.ps1` - Safety checks for native builds
+
+---
+
+## ⚠️ Deprecated Scripts
+
+The following scripts in this directory are **deprecated** and redirect to v2.0 commands:
+
+### Root-level Deprecated Scripts
+
+| Script | Replacement | Status |
+|--------|-------------|--------|
+| `SETUP.ps1` | `DOCKER.ps1 -Install` or `NATIVE.ps1 -Setup` | Shows deprecation message |
+| `STOP.ps1` | `DOCKER.ps1 -Stop` or `NATIVE.ps1 -Stop` | Shows deprecation message |
+
+### Docker Subdirectory Deprecated Scripts
+
+Most scripts in `scripts/docker/` show deprecation messages pointing to `DOCKER.ps1`.
+
+**Example:**
+
+```powershell
+# Old (deprecated)
+.\scripts\docker\DOCKER_FULLSTACK_UP.ps1
+
+# New (v2.0)
+.\DOCKER.ps1 -Start
+```
+
+---
+
+## 🔄 Migration Guide
+
+**See:** [SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md) for complete migration instructions.
 - `SUPER_CLEAN_AND_DEPLOY.ps1` - Full cleanup (temp files, logs, build artifacts, containers)
 - `CLEANUP_DOCS.ps1` - Clean documentation artifacts
 - `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
@@ -196,136 +346,27 @@ If you need lower-level control during development, use the Docker Compose helpe
 |--------|---------|
 | DOCKER_DOWN.ps1 | Stop Docker Compose services |
 | DOCKER_REFRESH.ps1 | Rebuild Docker Compose |
-| (Archived) DOCKER_RUN.ps1 | Advanced Docker startup (superseded by DOCKER.ps1) |
 | DOCKER_SMOKE.ps1 | Docker health check |
 | DOCKER_UP.ps1 | Start Docker Compose |
 | DOCKER_UPDATE_VOLUME.ps1 | Migrate volume data |
 
-> **Legacy reference:** The removed `DOCKER_FULLSTACK_*` scripts are preserved in `archive/scripts/docker/` (and `archive/scripts/deploy/docker/`) for historical purposes.
-
-<!-- Legacy table removed. All legacy scripts deprecated/removed. Use only DOCKER.ps1 and NATIVE.ps1 (v2.0+). -->
+> **Note:** Most Docker scripts deprecated. Use `DOCKER.ps1` for primary operations. See `archive/deprecated/scripts_consolidation_2025-11-21/` for archived scripts.
 
 ---
 
-## ⚠️ Safety Notes
+## 📖 Additional Resources
 
-- **DOCKER.ps1 -Stop / NATIVE.ps1 -Stop** - Safe to use anytime, cleanly stop services/containers
-- **KILL_FRONTEND_NOW.ps1** - ⚠️ Emergency only! Kills ALL Node.js processes system-wide
-- **SUPER_CLEAN_AND_DEPLOY.ps1** (in root) - Full cleanup with optional rebuild
-- **Docker scripts** - Some operations may require admin privileges
-
----
-
-## 🚀 Recommended Workflow
-
-
-### First Time Setup
-
-```powershell
-.\DOCKER.ps1 -Install   # First-time Docker setup
-.\DOCKER.ps1 -Start     # Start fullstack container (auto-build if needed)
-.\NATIVE.ps1 -Setup     # Install native dev dependencies
-.\NATIVE.ps1 -Start     # Start backend + frontend (hot reload)
-```
-
-### Daily Usage
-
-```powershell
-# Docker daily
-.\DOCKER.ps1 -Start
-.\DOCKER.ps1 -Status
-.\DOCKER.ps1 -Update      # or -UpdateClean
-
-# Native daily
-.\NATIVE.ps1 -Start
-.\NATIVE.ps1 -Status
-```
-
-### Troubleshooting
-
-```powershell
-# Quick health probe
-.\SMOKE_TEST.ps1
-
-# Deep diagnostics
-.\internal\DIAGNOSE_STATE.ps1
-
-# Port analysis
-.\internal\DEBUG_PORTS.ps1
-```
-
-
-### Development
-
-```powershell
-# Native dev mode (hot reload)
-.\NATIVE.ps1 -Start
-```
-
-## 📝 Legacy Scripts
-
-Some scripts have `.bat` equivalents - these simply call the `.ps1` versions.
-The `.ps1` versions are the canonical implementation.
-
-## 🆘 Quick Help
-
-**Application won't start?**
-
-```powershell
-.\SMOKE_TEST.ps1
-.\internal\DIAGNOSE_STATE.ps1
-```
-
-**Port already in use?**
-
-```powershell
-.\internal\DEBUG_PORTS.ps1
-```
-
-**Want to clean artifacts?**
-
-```powershell
-.\DOCKER.ps1 -Stop      # (if running)
-.\CLEANUP.bat           # Non-destructive cleanup
-```
-
-**Need database backup?**
-
-```powershell
-.\DOCKER.ps1 -Backup
-```
-
-## 📚 Documentation
-
-For more detailed documentation, see:
-
--- `../README.md` - Main project documentation (consolidation + latest highlights)
--- `../docs/user/QUICK_START_GUIDE.md` - Quick start guide
--- `../DEPLOYMENT_GUIDE.md` - Complete deployment instructions
--- `../docs/DOCUMENTATION_INDEX.md` - Master index (all guides)
-
-### 🐧 Linux Helpers
-
--- `../scripts/linux_env_check.sh` — Validate Linux environment (Docker, Python, Node, pwsh, .env files); use `--fix` to auto-create safe items
--- `./dev/run-native.sh` — Native development (should mirror NATIVE.ps1 behavior)
--- `./deploy/run-docker-release.sh` — Docker release (should mirror DOCKER.ps1 behavior)
-
-## 🔐 Safety Notes
-
-- **DOCKER.ps1 -Stop / NATIVE.ps1 -Stop**: Safe - stops services cleanly
-- **CLEANUP.ps1**: Safe - only removes build artifacts
-- **KILL_FRONTEND_NOW.ps1**: ⚠️ **DANGEROUS** - kills ALL Node.js processes
-- **DOCKER_DOWN.ps1**: Safe - stops containers but preserves data
-- **DEVTOOLS.ps1 → Reset Database**: ⚠️ **DESTRUCTIVE** - deletes all data
-
-## 💡 Tips
-
-1. **Use DOCKER.ps1** for all Docker lifecycle operations (install, start, update, backup, logs, cleanup).
-2. **Use NATIVE.ps1** for hot-reload development (backend + frontend).
-3. **Use SMOKE_TEST.ps1 / internal diagnostics** for quick or deep troubleshooting.
-4. **Backup before cleanup** - `DOCKER.ps1 -Backup` prior to `-DeepClean` or volume changes.
-5. **Check logs** - `DOCKER.ps1 -Logs`.
+- **Main Repository README:** `../README.md`
+- **Scripts Consolidation Guide:** `../SCRIPTS_CONSOLIDATION_GUIDE.md`
+- **Documentation Index:** `../docs/DOCUMENTATION_INDEX.md`
+- **Quick Start Guide:** `../docs/user/QUICK_START_GUIDE.md`
+- **Developer Guide:** `../docs/development/DEVELOPER_GUIDE_COMPLETE.md`
+- **Deployment Guide:** `../DEPLOYMENT_GUIDE.md`
 
 ---
+
+**Last Updated:** November 25, 2025  
+**Version:** 2.0  
+**Maintained By:** Development Team
 
 **Need Help?** Run `.\DOCKER.ps1 -Help` or `.\NATIVE.ps1 -Help`, or see `README.md`.
