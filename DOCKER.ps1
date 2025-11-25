@@ -650,6 +650,59 @@ For native development mode, use: .\NATIVE.ps1
 "@
 }
 
+function Create-DesktopShortcut {
+    <#
+    .SYNOPSIS
+        Create Windows desktop shortcut for SMS Toggle
+    #>
+    Write-Host ""
+    Write-Info "Setting up desktop shortcut..."
+    
+    $desktopPath = [Environment]::GetFolderPath("Desktop")
+    $toggleScript = Join-Path $SCRIPT_DIR "DOCKER_TOGGLE.vbs"
+    $iconPath = Join-Path $SCRIPT_DIR "SMS_Toggle.ico"
+    $shortcutPath = Join-Path $desktopPath "SMS Toggle.lnk"
+    
+    # Check if toggle script exists
+    if (-not (Test-Path $toggleScript)) {
+        Write-Warning "DOCKER_TOGGLE.vbs not found - skipping shortcut creation"
+        return $false
+    }
+    
+    try {
+        $WshShell = New-Object -ComObject WScript.Shell
+        
+        # Remove old shortcut if exists
+        if (Test-Path $shortcutPath) {
+            Remove-Item $shortcutPath -Force | Out-Null
+        }
+        
+        # Create new shortcut
+        $shortcut = $WshShell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = "wscript.exe"
+        $shortcut.Arguments = "`"$toggleScript`""
+        $shortcut.WorkingDirectory = $SCRIPT_DIR
+        $shortcut.Description = "Toggle SMS Docker Application (Start/Stop)"
+        
+        # Use custom icon if available
+        if (Test-Path $iconPath) {
+            $shortcut.IconLocation = $iconPath
+        } else {
+            $shortcut.IconLocation = "shell32.dll,21"
+        }
+        
+        $shortcut.Save()
+        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($WshShell) | Out-Null
+        
+        Write-Success "Desktop shortcut created: SMS Toggle"
+        return $true
+    }
+    catch {
+        Write-Warning "Failed to create desktop shortcut: $_"
+        return $false
+    }
+}
+
 function Start-Installation {
     Write-Header "SMS Docker Installation"
 
@@ -751,11 +804,17 @@ function Start-Installation {
     Write-Host ""
     Write-Header "Installation Complete!"
     Write-Host ""
+    
+    # Create desktop shortcut
+    Create-DesktopShortcut | Out-Null
+    
     Write-Info "Next steps:"
     Write-Host "  1. Start application:  .\DOCKER.ps1 -Start" -ForegroundColor White
     Write-Host "  2. Access web app:     http://localhost:$PORT" -ForegroundColor White
     Write-Host "  3. Login:              admin@example.com / YourSecurePassword123!" -ForegroundColor White
     Write-Host "  4. Change password:    Control Panel → Maintenance" -ForegroundColor White
+    Write-Host ""
+    Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
     Write-Host ""
 
     $startNow = Read-Host "Start application now? (Y/n)"
