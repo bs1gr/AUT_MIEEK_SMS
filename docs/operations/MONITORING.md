@@ -18,10 +18,10 @@ The Student Management System includes a comprehensive monitoring and alerting s
 
 ```bash
 # Start monitoring stack only
-docker-compose -f docker-compose.monitoring.yml up -d
+docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Start with main application
-docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.yml up -d
 ```
 
 ### Accessing Services

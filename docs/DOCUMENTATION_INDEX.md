@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-24
-**Version**: 1.9.0
+**Last Updated**: 2025-11-25
+**Version**: 1.9.1
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -82,6 +82,15 @@ Documentation is organized into four main directories:
   - Commit message conventions
   - Pre-commit automation (COMMIT_PREP.ps1)
   - Branch strategy and release workflow
+- **Static Analysis Configuration** (NEW - moved to `config/` directory)
+  - `config/mypy.ini` - Type checking baseline
+  - `config/pytest.ini` - Test runner configuration
+  - `config/ruff.toml` - Linting rules
+- **Docker Compose Files** (NEW - moved to `docker/` directory)
+  - `docker/docker-compose.yml` - Main compose file
+  - `docker/docker-compose.prod.yml` - Production overlay
+  - `docker/docker-compose.monitoring.yml` - Monitoring stack
+  - `docker/docker-compose.qnap.yml` - QNAP optimized
 
 ---
 
@@ -240,20 +249,23 @@ Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MO
 | 📁 Archived | 18 | Historical session documents (Nov 2025) |
 | 🧪 Draft | 4 | New skeletons pending expansion |
 
-### Recent Updates (2025-11-22)
+### Recent Updates (2025-11-25)
 
-**NEW Comprehensive Guides Created:**
+**Infrastructure & Quality Enhancements:**
+
+1. ✨ **RFC 7807 Error Handling** - Global problem-details responses with regression tests
+2. ✨ **Security Headers Middleware** - X-Frame-Options, X-Content-Type-Options, etc.
+3. ✨ **Translation Integrity Tests** - Vitest suite ensuring EN/EL parity
+4. 📁 **Config Directory** - Moved mypy.ini, pytest.ini, ruff.toml to `config/`
+5. 📁 **Docker Directory** - Moved compose files to `docker/`
+6. 📁 **Archived .bat Wrappers** - Moved to `archive/deprecated_bat_wrappers/`
+7. ✨ **Maintenance Scripts** - VERIFY_WORKSPACE.ps1, CONSOLIDATE_BAT_WRAPPERS.ps1, UPDATE_FRONTEND_REFS.ps1
+
+**Previous Updates (2025-11-22):**
 
 1. ✨ **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** - Complete user manual (all features)
 2. ✨ **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** - Complete developer manual (all workflows)
-3. 📁 **NEW Directory:** `docs/reference/` - Quick reference guides
-
-**Documentation Reorganization:**
-
-- Moved `SECURITY_GUIDE.md` → `docs/reference/SECURITY_GUIDE.md`
-- Moved `DOCKER_CLEANUP_GUIDE.md` → `docs/reference/DOCKER_CLEANUP_GUIDE.md`
-- Archived 18 temporal documents → `archive/sessions_2025-11/`
-- Created comprehensive archive index
+3. 📁 **Directory:** `docs/reference/` - Quick reference guides
 
 **Root Directory Cleanup:**
 

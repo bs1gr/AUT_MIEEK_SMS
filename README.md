@@ -578,20 +578,15 @@ The runtime enforces a clear separation between release and development workflow
 ### Common Commands
 
 ```powershell
-# Start (auto-detects best mode)
-.\RUN.ps1
+# Docker deployment (production)
+.\DOCKER.ps1 -Start       # Start Docker container
+.\DOCKER.ps1 -Stop        # Stop Docker container
+.\DOCKER.ps1 -Update      # Fast update with backup
+.\DOCKER.ps1 -Prune       # Safe Docker cleanup
 
-# Stop everything
-.\RUN.ps1 -Stop
-
-# Non-destructive cleanup (keeps data and Docker volumes)
-.\CLEANUP.bat
-
-# Full uninstall (removes venv/node_modules & images, keeps data/volumes)
-.\UNINSTALL.bat
-
-# Interactive menu (status, diagnostics, restart)
-.\SMS.ps1  # then choose from menu
+# Native development (hot reload)
+.\NATIVE.ps1 -Start       # Start backend + frontend
+.\NATIVE.ps1 -Stop        # Stop all processes
 ```
 
 ---
@@ -629,8 +624,8 @@ pwsh -ExecutionPolicy Bypass -NoProfile -File .\DOCKER.ps1 -Start
 **Fix:**
 
 ```powershell
-.\SMS.ps1
-# Select option 7: Debug Port Conflicts
+.\DOCKER.ps1 -Status        # Check what's running
+netstat -ano | findstr :8080  # Find process using port
 ```
 
 **See:** [Fresh Deployment Troubleshooting Guide](docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md) for detailed solutions.
@@ -645,10 +640,10 @@ If you prefer manual control:
 
 ```powershell
 # First-time installation
-.\DOCKER.ps1 -Install  # First-time installation (creates env, pulls image, etc.)
+.\DOCKER.ps1 -Install  # Creates env, pulls image, etc.
 
 # Development mode (separate processes, hot reload)
-.\scripts\dev\run-native.ps1
+.\NATIVE.ps1 -Start    # Backend + frontend with hot reload
 
 # Force rebuild containers
 .\DOCKER.ps1 -UpdateClean  # Clean rebuild with --no-cache
@@ -690,7 +685,7 @@ Troubleshooting:
 
 **Four deployment options:**
 
-1. **Windows Docker**: Copy project → Run `RUN.ps1` (`pwsh -NoProfile -File .\RUN.ps1`)
+1. **Windows Docker**: Copy project → Run `DOCKER.ps1 -Start` (`pwsh -NoProfile -File .\DOCKER.ps1 -Start`)
 2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/qnap/QNAP_INSTALLATION_GUIDE.md))
 3. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 4. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
@@ -816,13 +811,8 @@ For development with hot-reload:
 Start with one command:
 
 ```powershell
-.\RUN.ps1
-```
-
-Or use the management interface:
-
-```powershell
-.\SMS.ps1
+.\DOCKER.ps1 -Start   # Docker deployment (production)
+.\NATIVE.ps1 -Start   # Native mode (development, hot reload)
 ```
 
 The application will be available at <http://localhost:8080>
