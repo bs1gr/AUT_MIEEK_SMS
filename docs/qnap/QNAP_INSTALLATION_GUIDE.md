@@ -741,6 +741,6 @@ After successful installation:
 
 ---
 
-**Version**: 1.9.2
+**Version**: 1.9.3
 **Last Updated**: November 23, 2025
 **Platform**: QNAP NAS with Container Station

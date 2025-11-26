@@ -1,6 +1,6 @@
 """
 Student Management System - Production Ready
-Version: 1.9.2 (See VERSION file)
+Version: 1.9.3 (See VERSION file)
 
 Key Features:
 ✅ Modern FastAPI with lifespan context manager
