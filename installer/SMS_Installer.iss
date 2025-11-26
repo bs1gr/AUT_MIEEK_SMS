@@ -16,6 +16,11 @@
 #define MyAppVersion Trim(FileRead(VersionFile))
 #expr FileClose(VersionFile)
 
+; Uninstaller naming - easy to customize for future updates
+#define UninstallerBaseName "Uninstall_SMS"
+#define UninstallerExe UninstallerBaseName + "_" + MyAppVersion + ".exe"
+#define UninstallerDat UninstallerBaseName + "_" + MyAppVersion + ".dat"
+
 [Setup]
 ; Unique application ID - DO NOT CHANGE
 AppId={{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}
@@ -41,6 +46,8 @@ PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64
 MinVersion=10.0
 UninstallDisplayIcon={app}\SMS_Toggle.ico
+UninstallFilesDir={app}
+UninstallDisplayName={#MyAppName} {#MyAppVersion}
 ShowLanguageDialog=yes
 DisableWelcomePage=no
 ; Version info for Windows (shows in Properties and UAC dialogs)
@@ -89,14 +96,15 @@ english.BuildingContainer=Building SMS Docker container...
 english.FirstRunNote=First run will build the container (takes 5-10 minutes)
 english.ExistingInstallDetected=Existing Installation Detected
 english.ExistingVersionFound=Version %1 is already installed at:%n%2%n%nWhat would you like to do?
-english.UpgradeOption=Upgrade (keep data and settings)
-english.CleanInstallOption=Clean Install (remove everything and start fresh)
+english.SameVersionFound=Version %1 is already installed at:%n%2%n%nWhat would you like to do?
+english.UpgradeOption=Update/Overwrite (keep data and settings)
+english.CleanInstallOption=Fresh Install (remove previous installation first)
 english.CancelOption=Cancel installation
 english.UpgradingFrom=Upgrading from version %1 to %2
 english.BackupCreated=Backup created at: %1
 english.KeepUserData=Keep user data (database, backups, settings)
 english.RemoveOldVersion=Remove previous version before installing
-english.UpgradePrompt=Click YES to upgrade, NO for clean install, or CANCEL to abort.
+english.UpgradePrompt=Click YES to update/overwrite, NO for fresh install, or CANCEL to abort.
 english.KeepDataPrompt=Do you want to keep your data (database, backups, settings)?%n%nClick YES to keep data for future reinstall.%nClick NO to remove everything.
 english.ViewReadme=View README documentation
 english.DockerStatusTitle=Docker Desktop Status
@@ -117,23 +125,22 @@ greek.BuildingContainer=Δημιουργία SMS Docker container...
 greek.FirstRunNote=Η πρώτη εκτέλεση θα δημιουργήσει το container (5-10 λεπτά)
 greek.ExistingInstallDetected=Εντοπίστηκε υπάρχουσα εγκατάσταση
 greek.ExistingVersionFound=Η έκδοση %1 είναι ήδη εγκατεστημένη στη διαδρομή:%n%2%n%nΤι θέλετε να κάνετε;
-greek.UpgradeOption=Αναβάθμιση (διατήρηση δεδομένων)
-greek.CleanInstallOption=Καθαρή εγκατάσταση (διαγραφή όλων)
+greek.SameVersionFound=Η έκδοση %1 είναι ήδη εγκατεστημένη στη διαδρομή:%n%2%n%nΤι θέλετε να κάνετε;
+greek.UpgradeOption=Ενημέρωση/Αντικατάσταση (διατήρηση δεδομένων)
+greek.CleanInstallOption=Νέα εγκατάσταση (αφαίρεση προηγούμενης πρώτα)
 greek.CancelOption=Ακύρωση
 greek.UpgradingFrom=Αναβάθμιση από έκδοση %1 σε %2
 greek.BackupCreated=Δημιουργήθηκε αντίγραφο ασφαλείας: %1
 greek.KeepUserData=Διατήρηση δεδομένων χρήστη
 greek.RemoveOldVersion=Αφαίρεση προηγούμενης έκδοσης
-greek.UpgradePrompt=Πατήστε ΝΑΙ για αναβάθμιση, ΟΧΙ για καθαρή εγκατάσταση, ή ΑΚΥΡΟ.
+greek.UpgradePrompt=Πατήστε ΝΑΙ για ενημέρωση, ΟΧΙ για νέα εγκατάσταση, ή ΑΚΥΡΟ.
 greek.KeepDataPrompt=Θέλετε να διατηρήσετε τα δεδομένα σας;%n%nΠατήστε ΝΑΙ για διατήρηση.%nΠατήστε ΟΧΙ για διαγραφή όλων.
 greek.ViewReadme=Προβολή τεκμηρίωσης README
 greek.DockerStatusTitle=Κατάσταση Docker Desktop
 greek.DockerRefreshButton=Ανανέωση
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateShortcut}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
-Name: "buildcontainer"; Description: "{cm:BuildContainer}"; GroupDescription: "{cm:Prerequisites}"; Check: IsDockerInstalled
+Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce; Check: IsUpgradeInstall
 Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{cm:Prerequisites}"; Check: not IsDockerInstalled
 
 [Files]
@@ -175,6 +182,22 @@ Name: "{app}\data"; Permissions: users-modify
 Name: "{app}\logs"; Permissions: users-modify
 Name: "{app}\backups"; Permissions: users-modify
 
+[UninstallDelete]
+; Clean up runtime-generated files and directories
+; These are created during Docker builds or application runtime
+Type: filesandordirs; Name: "{app}\backend\__pycache__"
+Type: filesandordirs; Name: "{app}\backend\.pytest_cache"
+Type: filesandordirs; Name: "{app}\backend\logs"
+Type: filesandordirs; Name: "{app}\backend\.venv"
+Type: filesandordirs; Name: "{app}\frontend\node_modules"
+Type: filesandordirs; Name: "{app}\frontend\dist"
+Type: files; Name: "{app}\backend\.env"
+Type: files; Name: "{app}\frontend\.env"
+Type: files; Name: "{app}\.env"
+Type: files; Name: "{app}\config\lang.txt"
+; Note: data/, backups/, logs/ folders are handled by InitializeUninstall
+; to give user choice whether to keep or delete them
+
 [Icons]
 ; Start Menu
 Name: "{group}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\SMS_Toggle.ico"; Comment: "Start/Stop SMS Docker container"
@@ -182,15 +205,11 @@ Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut
-Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\SMS_Toggle.ico"; Comment: "Start/Stop SMS Docker container"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\SMS_Toggle.ico"; Comment: "Start/Stop SMS Docker container"
 
 [Run]
 ; Open Docker download page if requested
 Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker
-
-; Build Docker container (if task selected and Docker is installed)
-; Uses wrapper script for PowerShell version compatibility (tries pwsh first, falls back to PS5)
-Filename: "{app}\run_docker_install.cmd"; WorkingDir: "{app}"; StatusMsg: "{cm:BuildingContainer}"; Flags: postinstall waituntilterminated runascurrentuser; Tasks: buildcontainer; Check: IsDockerRunning
 
 ; Option to launch app after install (only if Docker is running)
 Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerRunning
@@ -207,6 +226,12 @@ var
   PreviousVersion: String;
   PreviousInstallPath: String;
   IsUpgrade: Boolean;
+
+// Function to check if this is an upgrade (for Tasks Check)
+function IsUpgradeInstall: Boolean;
+begin
+  Result := IsUpgrade;
+end;
 
 function IsDockerInstalled: Boolean;
 var
@@ -245,18 +270,40 @@ end;
 function UninstallPreviousVersion: Boolean;
 var
   UninstallStr: String;
+  UninstallPath: String;
   ResultCode: Integer;
 begin
   Result := True;
   UninstallStr := GetUninstallString;
   if UninstallStr <> '' then
   begin
-    // Add /VERYSILENT to run uninstaller without any UI
-    UninstallStr := RemoveQuotes(UninstallStr);
-    if Exec(UninstallStr, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      Result := (ResultCode = 0)
+    // Remove quotes from the uninstall string
+    UninstallPath := RemoveQuotes(UninstallStr);
+    Log('Attempting to run uninstaller: ' + UninstallPath);
+    
+    if FileExists(UninstallPath) then
+    begin
+      // Run uninstaller silently - use SW_SHOWNORMAL so we can see it working
+      if Exec(UninstallPath, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
+      begin
+        Log('Uninstaller returned code: ' + IntToStr(ResultCode));
+        Result := (ResultCode = 0);
+      end
+      else
+      begin
+        Log('Failed to execute uninstaller');
+        Result := False;
+      end;
+    end
     else
+    begin
+      Log('Uninstaller not found at: ' + UninstallPath);
       Result := False;
+    end;
+  end
+  else
+  begin
+    Log('No uninstall string found in registry');
   end;
 end;
 
@@ -286,10 +333,19 @@ begin
     Result := Path;
 end;
 
+function AppExistsOnDisk(Path: String): Boolean;
+begin
+  // Check if key app files exist at the path
+  Result := (Path <> '') and (FileExists(Path + '\DOCKER_TOGGLE.vbs') or FileExists(Path + '\DOCKER.ps1'));
+end;
+
 function InitializeSetup: Boolean;
 var
   Choice: Integer;
   Msg: String;
+  ExistingPath: String;
+  AppExists: Boolean;
+  IsSameVersion: Boolean;
 begin
   Result := True;
   IsUpgrade := False;
@@ -297,38 +353,64 @@ begin
   PreviousVersion := GetPreviousVersion;
   PreviousInstallPath := GetPreviousInstallPath;
   
-  if PreviousVersion <> '' then
+  // Check if app exists either via registry or on disk at default location
+  if PreviousInstallPath = '' then
+    ExistingPath := ExpandConstant('{autopf}\SMS')
+  else
+    ExistingPath := PreviousInstallPath;
+  
+  // Determine if app exists
+  AppExists := (PreviousVersion <> '') or AppExistsOnDisk(ExistingPath);
+  
+  if not AppExists then
   begin
-    IsUpgrade := True;
+    // No existing installation - proceed with fresh install
+    IsUpgrade := False;
+    Result := True;
+    Exit;
+  end;
+  
+  // App exists - determine version info
+  if PreviousVersion = '' then
+    PreviousVersion := 'Unknown';
+  if PreviousInstallPath = '' then
+    PreviousInstallPath := ExistingPath;
+  
+  // Check if same version
+  IsSameVersion := (PreviousVersion = '{#MyAppVersion}');
+  
+  // Build message
+  if IsSameVersion then
+    Msg := CustomMessage('SameVersionFound')
+  else
     Msg := CustomMessage('ExistingVersionFound');
-    StringChangeEx(Msg, '%1', PreviousVersion, True);
-    StringChangeEx(Msg, '%2', PreviousInstallPath, True);
-    
-    // Show upgrade options dialog
-    Choice := MsgBox(Msg + #13#10#13#10 + 
-      '1. ' + CustomMessage('UpgradeOption') + #13#10 +
-      '2. ' + CustomMessage('CleanInstallOption') + #13#10#13#10 +
-      CustomMessage('UpgradePrompt'),
-      mbConfirmation, MB_YESNOCANCEL);
-    
-    case Choice of
-      IDYES: 
-        begin
-          // Upgrade - keep data
-          IsUpgrade := True;
-          Result := True;
-        end;
-      IDNO:
-        begin
-          // Clean install - will remove old version
-          IsUpgrade := False;
-          Result := True;
-        end;
-      IDCANCEL:
-        begin
-          Result := False;
-        end;
-    end;
+  StringChangeEx(Msg, '%1', PreviousVersion, True);
+  StringChangeEx(Msg, '%2', PreviousInstallPath, True);
+  
+  // Show upgrade/overwrite options dialog
+  Choice := MsgBox(Msg + #13#10#13#10 + 
+    CustomMessage('UpgradeOption') + #13#10 +
+    CustomMessage('CleanInstallOption') + #13#10#13#10 +
+    CustomMessage('UpgradePrompt'),
+    mbConfirmation, MB_YESNOCANCEL);
+  
+  case Choice of
+    IDYES: 
+      begin
+        // Update/Overwrite - keep data, install over existing
+        IsUpgrade := True;
+        Result := True;
+      end;
+    IDNO:
+      begin
+        // Fresh install - remove previous installation first
+        IsUpgrade := False;
+        Result := True;
+      end;
+    IDCANCEL:
+      begin
+        Result := False;
+      end;
   end;
 end;
 
@@ -401,6 +483,14 @@ begin
     UpdateDockerStatus(nil);
 end;
 
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := False;
+  // Skip Docker page if Docker is already installed
+  if PageID = DockerPage.ID then
+    Result := IsDockerInstalled;
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ErrorCode: Integer;
@@ -423,24 +513,76 @@ end;
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
+  UninstallStr: String;
+  UninstallPath: String;
+  UpgradeStr: String;
 begin
   Result := '';
   NeedsRestart := False;
   
-  // If previous version exists, uninstall it first
-  if GetUninstallString <> '' then
+  if IsUpgrade then UpgradeStr := 'True' else UpgradeStr := 'False';
+  Log('PrepareToInstall: IsUpgrade = ' + UpgradeStr);
+  Log('PrepareToInstall: PreviousInstallPath = ' + PreviousInstallPath);
+  
+  // Stop Docker container first (always, for both upgrade and fresh install)
+  if ContainerExists then
   begin
-    // Stop Docker container first
-    if ContainerExists then
-    begin
-      Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    end;
+    Log('Stopping Docker container...');
+    Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+  
+  // For Fresh Install (not upgrade), remove previous installation
+  if not IsUpgrade then
+  begin
+    Log('Fresh install requested - checking for previous installation to remove');
+    UninstallStr := GetUninstallString;
     
-    // Run the uninstaller silently
-    if not UninstallPreviousVersion then
+    if UninstallStr <> '' then
     begin
-      Result := 'Failed to uninstall previous version. Please uninstall manually and try again.';
+      UninstallPath := RemoveQuotes(UninstallStr);
+      Log('Found uninstall string: ' + UninstallPath);
+      
+      if FileExists(UninstallPath) then
+      begin
+        Log('Running uninstaller for fresh install...');
+        // Run the uninstaller
+        if not UninstallPreviousVersion then
+        begin
+          Log('Warning: Uninstaller did not complete successfully');
+        end
+        else
+        begin
+          Log('Uninstaller completed successfully');
+        end;
+        
+        // Wait a moment for file system to settle
+        Sleep(1000);
+      end
+      else
+      begin
+        Log('Uninstaller file not found: ' + UninstallPath);
+      end;
+    end
+    else if (PreviousInstallPath <> '') and DirExists(PreviousInstallPath) then
+    begin
+      // No uninstaller but files exist - try to clean up manually
+      Log('No uninstaller found, cleaning up manually at: ' + PreviousInstallPath);
+      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\backend"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\frontend"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\docker"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\scripts"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.ps1"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.vbs"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.md"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end
+    else
+    begin
+      Log('No previous installation found to remove');
     end;
+  end
+  else
+  begin
+    Log('Upgrade mode - keeping existing installation');
   end;
 end;
 
@@ -486,6 +628,26 @@ begin
   
   if CurStep = ssPostInstall then
   begin
+    // Clean up old shortcuts from previous versions
+    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
+    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
+    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+    Log('Cleaned up old SMS Toggle shortcuts');
+    
+    // Rename uninstaller to include version and update registry
+    // Uses constants defined at top: UninstallerExe, UninstallerDat
+    if FileExists(ExpandConstant('{app}\unins000.exe')) then
+    begin
+      RenameFile(ExpandConstant('{app}\unins000.exe'), ExpandConstant('{app}\{#UninstallerExe}'));
+      RenameFile(ExpandConstant('{app}\unins000.dat'), ExpandConstant('{app}\{#UninstallerDat}'));
+      // Update registry to point to renamed uninstaller
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        'UninstallString', '"' + ExpandConstant('{app}\{#UninstallerExe}') + '"');
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        'QuietUninstallString', '"' + ExpandConstant('{app}\{#UninstallerExe}') + '" /SILENT');
+      Log('Renamed uninstaller to {#UninstallerExe}');
+    end;
+    
     // Save language preference for VBS script
     ForceDirectories(ExpandConstant('{app}\config'));
     if ActiveLanguage = 'greek' then
@@ -541,16 +703,52 @@ end;
 function InitializeUninstall: Boolean;
 var
   ResultCode: Integer;
+  DeleteUserData: Integer;
 begin
   Result := True;
+  
   // Stop container before uninstall
   Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  
+  // Ask user if they want to delete user data
+  DeleteUserData := MsgBox(
+    'Do you want to delete all user data?' + #13#10 + #13#10 +
+    'This includes:' + #13#10 +
+    '  • Database (data folder)' + #13#10 +
+    '  • Backups (backups folder)' + #13#10 +
+    '  • Logs (logs folder)' + #13#10 +
+    '  • Configuration files (.env)' + #13#10 + #13#10 +
+    'Click YES to delete everything.' + #13#10 +
+    'Click NO to keep your data for reinstallation.',
+    mbConfirmation, MB_YESNO);
+    
+  if DeleteUserData = IDYES then
+  begin
+    Log('User chose to delete all user data');
+    DelTree(ExpandConstant('{app}\data'), True, True, True);
+    DelTree(ExpandConstant('{app}\backups'), True, True, True);
+    DelTree(ExpandConstant('{app}\logs'), True, True, True);
+    DelTree(ExpandConstant('{app}\config'), True, True, True);
+    DeleteFile(ExpandConstant('{app}\.env'));
+    DeleteFile(ExpandConstant('{app}\backend\.env'));
+    DeleteFile(ExpandConstant('{app}\frontend\.env'));
+  end
+  else
+    Log('User chose to keep user data');
 end;
 
-[UninstallDelete]
-; Only delete non-user directories
-Type: filesandordirs; Name: "{app}\backend\__pycache__"
-Type: filesandordirs; Name: "{app}\frontend\node_modules"
-Type: filesandordirs; Name: "{app}\frontend\dist"
-; Note: data, logs, backups are kept for reinstall unless manually deleted
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    // Clean up empty directories left behind
+    RemoveDir(ExpandConstant('{app}\backend'));
+    RemoveDir(ExpandConstant('{app}\frontend'));
+    RemoveDir(ExpandConstant('{app}\docker'));
+    RemoveDir(ExpandConstant('{app}\scripts'));
+    RemoveDir(ExpandConstant('{app}\config'));
+    RemoveDir(ExpandConstant('{app}\templates'));
+    RemoveDir(ExpandConstant('{app}'));
+  end;
+end;
