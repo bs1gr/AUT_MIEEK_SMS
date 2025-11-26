@@ -10,9 +10,9 @@
 
 **GUI Installer** - No PowerShell knowledge required!
 
-1. **Download** `SMS_Distribution_1.9.2.zip` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
+1. **Download** the latest release zip from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 2. **Extract** to any location (Desktop, Downloads, etc.)
-3. **Right-click** `SMS_Installer_1.9.2.exe` → **"Run as Administrator"**
+3. **Run** `DOCKER.ps1 -Install` in PowerShell (as Administrator)
 4. **Follow** the visual wizard (7 easy steps, ~10-15 minutes)
 
 **Features:**
@@ -269,7 +269,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 TODO.md                   # Active task tracking
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.9.0)
+├── 📄 VERSION                   # Current version (1.9.2)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -1297,7 +1297,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.8.8 (see [VERSION](VERSION) file)
+Current version: 1.9.2 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
 
