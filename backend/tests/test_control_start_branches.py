@@ -1,7 +1,9 @@
 import os
 from types import SimpleNamespace
+
 import pytest
 from fastapi.testclient import TestClient
+
 import backend.main as main
 from backend import environment
 

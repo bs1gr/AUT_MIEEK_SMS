@@ -4,9 +4,10 @@ This script is called by the Docker entrypoint after the server starts.
 """
 
 import logging
-import time
-import httpx
 import sys
+import time
+
+import httpx
 
 logger = logging.getLogger(__name__)
 

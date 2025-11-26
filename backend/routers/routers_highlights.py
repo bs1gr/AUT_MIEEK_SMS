@@ -1,18 +1,25 @@
 """Highlights Router providing CRUD operations for student highlights."""
 
-from fastapi import APIRouter, Depends, Query, Request, HTTPException
-from sqlalchemy.orm import Session
-from typing import Optional
 import logging
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.db_utils import transaction
-from backend.import_resolver import import_names
-from backend.services.highlight_service import HighlightService
-from backend.schemas.highlights import HighlightCreate, HighlightUpdate, HighlightResponse, HighlightListResponse
-from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
-from .routers_auth import optional_require_role
 from backend.errors import internal_server_error
+from backend.import_resolver import import_names
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.schemas.highlights import (
+    HighlightCreate,
+    HighlightListResponse,
+    HighlightResponse,
+    HighlightUpdate,
+)
+from backend.services.highlight_service import HighlightService
+
+from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 

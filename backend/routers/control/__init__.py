@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import base, operations, monitoring, logs, housekeeping, frontend_dev, maintenance
+from . import (
+    base,
+    frontend_dev,
+    housekeeping,
+    logs,
+    maintenance,
+    monitoring,
+    operations,
+)
 
 router = APIRouter(prefix="/control/api", tags=["Control Panel"])
 

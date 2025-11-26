@@ -9,14 +9,15 @@ from urllib.parse import urljoin
 from fastapi import APIRouter, HTTPException, Request
 from httpx import HTTPError
 
-from backend.errors import ErrorCode, http_error
 from backend.config import get_settings
+from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
+
 from .common import (
-    in_docker_container,
     check_docker_running,
     docker_compose,
+    in_docker_container,
 )
-from backend.import_resolver import import_names
 
 (limiter, RATE_LIMIT_HEAVY, RATE_LIMIT_READ) = import_names(
     "rate_limiting", "limiter", "RATE_LIMIT_HEAVY", "RATE_LIMIT_READ"

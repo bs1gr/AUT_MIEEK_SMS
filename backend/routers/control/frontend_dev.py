@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
-import sys
-import subprocess
 import logging
+import os
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -12,12 +12,12 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from .common import (
-    resolve_npm_command,
-    is_port_open,
-    FRONTEND_PORT_PREFERRED,
     FRONTEND_PORT_CANDIDATES,
-    safe_run,
+    FRONTEND_PORT_PREFERRED,
     find_pids_on_port,
+    is_port_open,
+    resolve_npm_command,
+    safe_run,
 )
 
 router = APIRouter()

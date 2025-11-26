@@ -17,7 +17,6 @@ import ast
 from pathlib import Path
 from typing import List, Tuple
 
-
 ROUTERS_DIR = Path(__file__).resolve().parent.parent / "routers"
 WRITE_METHODS = {"post", "put", "delete", "patch"}
 

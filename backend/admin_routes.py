@@ -12,22 +12,21 @@ Notes:
 - Fixes imports so module works when imported as backend.admin_routes
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import FileResponse, JSONResponse
+import importlib
+import importlib.util
 import os
-import shutil
 import pathlib
+import shutil
 import signal
-import psutil
 import threading
 import time
 from datetime import datetime
+from typing import Any, Dict, Iterable, Tuple
 
+import psutil
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
-
-import importlib
-import importlib.util
-from typing import Iterable, Tuple, Any, Dict
 
 # Control API dependency to protect admin-only endpoints
 try:

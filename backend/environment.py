@@ -10,12 +10,12 @@ run strictly inside Docker while keeping local development ergonomic.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional, Tuple
-import sys
 
 _CONTAINER_ENV_FLAGS = (
     "SMS_DOCKERIZED",

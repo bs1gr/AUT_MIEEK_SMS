@@ -1,12 +1,13 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 import os
 
 # Ensure backend imports work regardless of current working dir
 import sys
 from pathlib import Path
+
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT.parent) not in sys.path:
@@ -24,11 +25,12 @@ os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
 os.environ.setdefault("CSRF_ENABLED", "0")
 os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "0")
 
-from backend.main import app, get_db as main_get_db
-from backend.config import settings
-from backend.rate_limiting import limiter
-from backend.db import get_session as db_get_session
 from backend import models
+from backend.config import settings
+from backend.db import get_session as db_get_session
+from backend.main import app
+from backend.main import get_db as main_get_db
+from backend.rate_limiting import limiter
 from backend.security.login_throttle import login_throttle
 
 # Create an in-memory SQLite database shared across connections
@@ -87,29 +89,29 @@ def clean_db():
 def client(admin_token):
     """TestClient that automatically includes auth headers for all requests when auth is enabled."""
     from fastapi.testclient import TestClient
-    
+
     base_client = TestClient(app)
-    
+
     # If we have a token, wrap all HTTP methods to add auth headers
     if admin_token:
         for method_name in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
             original_method = getattr(base_client, method_name)
-            
+
             def make_method_with_auth(orig_method):
                 def _method_with_auth(url, **kwargs):
                     # Get or create headers dict
                     if "headers" not in kwargs:
                         kwargs["headers"] = {}
-                    
+
                     # Only add auth if not already present
                     if isinstance(kwargs["headers"], dict) and "Authorization" not in kwargs["headers"]:
                         kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
-                    
+
                     return orig_method(url, **kwargs)
                 return _method_with_auth
-            
+
             setattr(base_client, method_name, make_method_with_auth(original_method))
-    
+
     return base_client
 
 
@@ -119,11 +121,11 @@ def admin_token():
     from backend.config import settings
     if not settings.AUTH_ENABLED:
         return None
-    
+
     # Create a temporary test client without auth to register
     from fastapi.testclient import TestClient
     temp_client = TestClient(app)
-    
+
     try:
         # Try to register a test admin user
         temp_client.post(
@@ -135,7 +137,7 @@ def admin_token():
                 "role": "admin"
             }
         )
-        
+
         # Whether registration succeeded or user already exists, try to login
         login_resp = temp_client.post(
             "/api/v1/auth/login",
@@ -144,10 +146,10 @@ def admin_token():
                 "password": "TestAdmin123!"
             }
         )
-        
+
         if login_resp.status_code == 200:
             return login_resp.json().get("access_token")
     except Exception:
         pass
-    
+
     return None

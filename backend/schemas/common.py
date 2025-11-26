@@ -2,8 +2,9 @@
 Common schemas used across multiple endpoints.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Generic, TypeVar, List
+from typing import Generic, List, Optional, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 

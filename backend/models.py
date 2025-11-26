@@ -7,27 +7,27 @@ Features:
 - Index creation for frequently queried fields
 """
 
+import logging
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any, ClassVar
+
 from sqlalchemy import (
-    create_engine,
+    JSON,
+    Boolean,
     Column,
-    Integer,
-    String,
-    Float,
     Date,
     DateTime,
+    Float,
     ForeignKey,
-    Text,
-    Boolean,
-    JSON,
     Index,
+    Integer,
+    String,
+    Text,
+    create_engine,
     text,
 )
-from sqlalchemy.orm import declarative_base
-from typing import Any, ClassVar
-from sqlalchemy.orm import relationship, sessionmaker
-from datetime import date, datetime, timezone
-import logging
-from pathlib import Path
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 logger = logging.getLogger(__name__)
 Base: Any = declarative_base()

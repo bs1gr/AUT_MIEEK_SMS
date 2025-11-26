@@ -18,34 +18,35 @@ RECOMMENDED STARTUP:
   (If port 8000 is busy, use --port 8001, 8002, etc.)
 """
 
-import logging
-import sys
 import io
+import logging
 import os
-import subprocess
-import socket
-import time as _time
-import shutil
-import threading
 import shlex
-from datetime import datetime
+import shutil
+import socket
+import subprocess
+import sys
+import threading
+import time as _time
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, Callable, cast
+
+import uvicorn
 
 # FastAPI imports
-from fastapi import FastAPI, Depends, Request, HTTPException
-from typing import Callable, Any, cast
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
-import uvicorn
 
 # Rate limiting
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Optional import for common rate limit strings; fall back to defaults if missing
 try:
@@ -54,11 +55,11 @@ except Exception:
     RATE_LIMIT_WRITE = "10/minute"
 
 # Database imports
-from sqlalchemy.orm import Session
-
 # Local imports: prefer package imports, fall back to module imports when executed from backend/
 import importlib
 import importlib.util
+
+from sqlalchemy.orm import Session
 
 try:
     from backend.admin_bootstrap import ensure_default_admin_account
@@ -97,7 +98,8 @@ if importlib.util.find_spec("backend.config") is not None:
         # optionally integrate application auth (logged-in admin users) with the
         # control dependency. We avoid hard failures if auth helpers can't be
         # imported so tests and minimal environments stay functional.
-        from backend.control_auth import require_control_admin as _require_control_admin, create_control_dependency
+        from backend.control_auth import create_control_dependency
+        from backend.control_auth import require_control_admin as _require_control_admin
         from backend.routers.control.frontend_dev import control_stop_all
 
         # Attempt to build an auth_check that recognizes logged-in admin users
@@ -188,7 +190,9 @@ else:
     env_mod = importlib.import_module("environment")
     # Control API auth helpers (fallback for direct script execution)
     try:
-        from backend.control_auth import require_control_admin as _fallback_require_control_admin
+        from backend.control_auth import (
+            require_control_admin as _fallback_require_control_admin,
+        )
 
         require_control_admin = cast(Callable[..., Any], _fallback_require_control_admin)
     except Exception:
@@ -516,7 +520,10 @@ except Exception as _runtime_err:
         "Runtime constraints enforcement failed (%s) – falling back to development context", _runtime_err
     )
     try:
-        from backend.environment import RuntimeContext, RuntimeEnvironment  # type: ignore
+        from backend.environment import (  # type: ignore
+            RuntimeContext,
+            RuntimeEnvironment,
+        )
     except Exception:
         from environment import RuntimeContext, RuntimeEnvironment  # type: ignore
     RUNTIME_CONTEXT = RuntimeContext(
@@ -823,13 +830,14 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 try:
     enable_metrics = os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
     if enable_metrics:
-        from backend.middleware.prometheus_metrics import setup_metrics
-        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
         from starlette.responses import Response as MetricsResponse
+
+        from backend.middleware.prometheus_metrics import setup_metrics
 
         # Setup metrics instrumentation (adds middleware and /metrics endpoint)
         setup_metrics(app, version=VERSION)
-        
+
         logger.info("✅ Prometheus metrics enabled at /metrics endpoint")
     else:
         logger.info("Prometheus metrics disabled (set ENABLE_METRICS=1 to enable)")
@@ -1136,9 +1144,9 @@ register_routers(app)
 # Add /metrics endpoint after routers (instrumentator.expose() doesn't work reliably)
 if os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}:
     try:
-        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
         from starlette.responses import Response as MetricsResponse
-        
+
         @app.get("/metrics", include_in_schema=False)
         async def metrics_endpoint():
             """Prometheus metrics endpoint"""
@@ -1146,7 +1154,7 @@ if os.environ.get("ENABLE_METRICS", "1").strip().lower() in {"1", "true", "yes"}
                 content=generate_latest(),
                 media_type=CONTENT_TYPE_LATEST,
             )
-        
+
         logger.info(f"✅ /metrics endpoint registered (total routes: {len([r for r in app.routes if hasattr(r, 'path')])})")
     except Exception as e:
         logger.warning(f"Failed to register /metrics endpoint: {e}")
@@ -1237,7 +1245,7 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
     try:
         # Serve all static assets directly (Vite emits /assets/* by default)
         app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
-        
+
         # Serve root-level static files (logo, background images, etc.)
         # Use a separate route for specific files to avoid conflicts
         @app.get("/logo.png")
@@ -1246,7 +1254,7 @@ if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists(
             if logo_path.exists():
                 return FileResponse(str(logo_path), media_type="image/png")
             raise HTTPException(status_code=404, detail="Logo not found")
-        
+
         @app.get("/login-bg.png")
         async def serve_login_bg():
             bg_path = SPA_DIST_DIR / "login-bg.png"

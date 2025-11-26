@@ -8,14 +8,20 @@ This module provides:
 - Database migration execution
 """
 
-from .base import Operation, OperationResult, get_project_root, get_python_executable, OperationTimeouts
-from .diagnostics import DependencyChecker
+import shutil
+import subprocess
+import time
 from pathlib import Path
 from typing import Optional
-import subprocess
-import shutil
-import time
 
+from .base import (
+    Operation,
+    OperationResult,
+    OperationTimeouts,
+    get_project_root,
+    get_python_executable,
+)
+from .diagnostics import DependencyChecker
 
 # ============================================================================
 #  SETUP OPERATIONS

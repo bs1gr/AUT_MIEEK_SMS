@@ -5,8 +5,8 @@ from typing import Dict
 
 import pytest
 
-from backend.routers import routers_grades
 from backend.config import settings
+from backend.routers import routers_grades
 
 
 def make_grade_payload(i: int = 1, **overrides) -> Dict:

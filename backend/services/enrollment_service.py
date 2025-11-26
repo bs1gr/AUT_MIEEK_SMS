@@ -1,16 +1,20 @@
 """Enrollment business logic service."""
 
 import logging
-from typing import List, Dict
 from datetime import date
+from typing import Dict, List
 
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate
 from backend.errors import ErrorCode, http_error
-from backend.schemas.enrollments import EnrollmentCreate, EnrollmentResponse, StudentBrief
-from backend.schemas.common import PaginationParams
 from backend.import_resolver import import_names
+from backend.schemas.common import PaginationParams
+from backend.schemas.enrollments import (
+    EnrollmentCreate,
+    EnrollmentResponse,
+    StudentBrief,
+)
 
 logger = logging.getLogger(__name__)
 

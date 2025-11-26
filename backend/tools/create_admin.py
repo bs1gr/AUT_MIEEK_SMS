@@ -8,8 +8,8 @@ It will prompt for a password if not provided via --password. The script uses th
 project's models and database session to create a user with role='admin'.
 """
 
-import getpass
 import argparse
+import getpass
 import os
 import sys
 

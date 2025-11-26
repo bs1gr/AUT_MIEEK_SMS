@@ -25,11 +25,12 @@ imported during tests without pulling authentication subsystems.
 from __future__ import annotations
 
 import hmac
-import os
-from fastapi import Request, HTTPException
-from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
-from typing import Callable
 import logging
+import os
+from typing import Callable
+
+from fastapi import HTTPException, Request
+from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 
 # No implicit test-mode bypass here. Tests should opt in by setting
 # ENABLE_CONTROL_API during test runs (see backend/tests/conftest.py).

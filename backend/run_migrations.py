@@ -9,16 +9,16 @@ from `backend.config.settings` so migrations target the expected database.
 
 from __future__ import annotations
 
-from pathlib import Path
+import logging
 import os
 import sys
-import logging
+from pathlib import Path
+from typing import Any
 
 from alembic import command
 from alembic.config import Config
 
 from backend.config import Settings
-from typing import Any
 
 logger = logging.getLogger(__name__)
 try:

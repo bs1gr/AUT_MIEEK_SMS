@@ -1,17 +1,18 @@
+import hashlib
+import logging
+import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Body, Response
-from fastapi.security import OAuth2PasswordBearer
 import jwt
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from passlib.context import CryptContext
-import hashlib
-import uuid
 from sqlalchemy.orm import Session
+
 from backend.errors import ErrorCode, http_error, internal_server_error
-from backend.security import issue_csrf_cookie, clear_csrf_cookie
-import logging
+from backend.security import clear_csrf_cookie, issue_csrf_cookie
 
 logger = logging.getLogger(__name__)
 
@@ -46,22 +47,20 @@ models = (
 # uses dynamic imports to support different execution entry paths.
 if TYPE_CHECKING:
     from backend import models as models  # type: ignore
-    from backend.schemas import (
-        UserCreate,
-        UserUpdate,
-        UserLogin,
-        UserResponse,
-        Token,
-        PasswordResetRequest,
-        PasswordChangeRequest,
-    )  # type: ignore
 
     # Advanced auth schemas used by refresh/logout endpoints
     from backend.schemas import (
+        LogoutRequest,
+        PasswordChangeRequest,
+        PasswordResetRequest,
         RefreshRequest,
         RefreshResponse,
-        LogoutRequest,
-    )  # type: ignore
+        Token,
+        UserCreate,
+        UserLogin,
+        UserResponse,
+        UserUpdate,
+    )  # type: ignore  # type: ignore
 else:
     schemas_mod = None
     try:
@@ -356,14 +355,14 @@ async def get_current_user(
             auth_header = str(request.headers.get("Authorization", "")).strip()
         except (KeyError, AttributeError):
             auth_header = ""
-        
+
         # Check if we're on an auth-specific endpoint (like /me)
         try:
             path = str(getattr(request.url, "path", ""))
         except:
             path = ""
         is_auth_endpoint = "/auth/" in path
-        
+
         # When auth is disabled, no auth header provided, and not an auth endpoint, return dummy user
         if not getattr(settings, "AUTH_ENABLED", False) and not auth_header and not is_auth_endpoint:
             from types import SimpleNamespace
@@ -374,7 +373,7 @@ async def get_current_user(
                 is_active=True,
                 full_name="Test User"
             )
-        
+
         if not auth_header.startswith("Bearer "):
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,

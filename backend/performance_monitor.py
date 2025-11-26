@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Iterable, Mapping, Optional
 import json
 import logging
 import threading
 import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Iterable, Mapping, Optional
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
-
 
 logger = logging.getLogger(__name__)
 

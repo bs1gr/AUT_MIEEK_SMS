@@ -8,12 +8,12 @@ This module provides:
 - Image management and cleanup
 """
 
-from .base import Operation, OperationResult, VolumeInfo, get_project_root
-from pathlib import Path
-from typing import Optional, List, Dict, Any
-import subprocess
 import os
+import subprocess
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+from .base import Operation, OperationResult, VolumeInfo, get_project_root
 
 # Optional docker package import
 docker: Any

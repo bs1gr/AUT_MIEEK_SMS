@@ -1,7 +1,7 @@
 """Daily performance routes provide CRUD-style endpoints."""
 
-from datetime import date
 import logging
+from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -12,10 +12,10 @@ from backend.db import get_session as get_db
 from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
-from backend.services.daily_performance_service import DailyPerformanceService
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
-from .routers_auth import optional_require_role
+from backend.services.daily_performance_service import DailyPerformanceService
 
+from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 

@@ -10,10 +10,10 @@ Tests the QNAP-specific deployment configuration including:
 - Backup/restore functionality
 """
 
-import pytest
 from pathlib import Path
-import yaml
 
+import pytest
+import yaml
 
 # Test configuration paths
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -40,10 +40,10 @@ class TestDockerComposeConfiguration:
         """Verify all required services are defined."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         services = config.get("services", {})
         required_services = ["postgres", "backend", "frontend"]
-        
+
         for service in required_services:
             assert service in services, f"Missing required service: {service}"
 
@@ -51,24 +51,24 @@ class TestDockerComposeConfiguration:
         """Verify PostgreSQL service is properly configured."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         postgres = config["services"]["postgres"]
-        
+
         # Check image
         assert "postgres" in postgres.get("image", "").lower()
         assert "alpine" in postgres.get("image", "").lower()
-        
+
         # Check volumes
         assert "volumes" in postgres
         volumes = postgres["volumes"]
         assert any("postgresql/data" in str(v) for v in volumes)
-        
+
         # Check environment variables
         env = postgres.get("environment", {})
         assert "POSTGRES_USER" in env
         assert "POSTGRES_PASSWORD" in env
         assert "POSTGRES_DB" in env
-        
+
         # Check health check
         assert "healthcheck" in postgres
 
@@ -76,23 +76,23 @@ class TestDockerComposeConfiguration:
         """Verify backend service is properly configured."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         backend = config["services"]["backend"]
-        
+
         # Check build context
         assert "build" in backend
         assert backend["build"]["dockerfile"] == "docker/Dockerfile.backend.qnap"
-        
+
         # Check depends_on
         assert "depends_on" in backend
         assert "postgres" in backend["depends_on"]
-        
+
         # Check environment
         env = backend.get("environment", [])
         env_str = str(env)
         assert "DATABASE_URL" in env_str
         assert "SECRET_KEY" in env_str
-        
+
         # Check volumes for logs and data
         volumes = backend.get("volumes", [])
         assert any("logs" in str(v) for v in volumes)
@@ -101,18 +101,18 @@ class TestDockerComposeConfiguration:
         """Verify frontend service is properly configured."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         frontend = config["services"]["frontend"]
-        
+
         # Check build context
         assert "build" in frontend
         assert frontend["build"]["dockerfile"] == "docker/Dockerfile.frontend.qnap"
-        
+
         # Check port mapping
         assert "ports" in frontend
         ports = frontend["ports"]
         assert any("8080" in str(p) or "${SMS_PORT}" in str(p) for p in ports)
-        
+
         # Check depends_on
         assert "depends_on" in frontend
         assert "backend" in frontend["depends_on"]
@@ -121,9 +121,9 @@ class TestDockerComposeConfiguration:
         """Verify monitoring services are in optional profiles."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         services = config.get("services", {})
-        
+
         # Prometheus and Grafana should have profiles
         if "prometheus" in services:
             assert "profiles" in services["prometheus"]
@@ -134,12 +134,12 @@ class TestDockerComposeConfiguration:
         """Verify volume definitions for data persistence."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         # Check that volumes are defined (if using named volumes)
         # or bind mounts are properly configured
         services = config["services"]
         postgres_volumes = services["postgres"].get("volumes", [])
-        
+
         # At least one volume should be defined for postgres data
         assert len(postgres_volumes) > 0
 
@@ -155,7 +155,7 @@ class TestEnvironmentConfiguration:
         """Verify all required environment variables are in template."""
         with open(ENV_EXAMPLE_PATH) as f:
             content = f.read()
-        
+
         required_vars = [
             "POSTGRES_USER",
             "POSTGRES_PASSWORD",
@@ -165,7 +165,7 @@ class TestEnvironmentConfiguration:
             "SMS_PORT",
             "QNAP_DATA_PATH",
         ]
-        
+
         for var in required_vars:
             assert var in content, f"Missing required variable: {var}"
 
@@ -173,10 +173,10 @@ class TestEnvironmentConfiguration:
         """Verify security-sensitive variables have placeholders."""
         with open(ENV_EXAMPLE_PATH) as f:
             content = f.read()
-        
+
         # Check that sensitive vars are not using actual values
         lines = [line.strip() for line in content.split('\n') if '=' in line and not line.startswith('#')]
-        
+
         for line in lines:
             if any(sensitive in line for sensitive in ['PASSWORD', 'SECRET_KEY', 'TOKEN']):
                 key, value = line.split('=', 1)
@@ -195,7 +195,7 @@ class TestQNAPDirectoryStructure:
         """Verify QNAP-specific paths are configured."""
         with open(ENV_EXAMPLE_PATH) as f:
             content = f.read()
-        
+
         # Check for QNAP standard paths
         qnap_patterns = [
             "/share/Container/",
@@ -203,7 +203,7 @@ class TestQNAPDirectoryStructure:
             "QNAP_LOG_PATH",
             "QNAP_BACKUP_PATH",
         ]
-        
+
         for pattern in qnap_patterns:
             assert pattern in content, f"Missing QNAP path pattern: {pattern}"
 
@@ -211,10 +211,10 @@ class TestQNAPDirectoryStructure:
         """Verify directory structure is documented in scripts README."""
         readme_path = PROJECT_ROOT / "scripts" / "qnap" / "README.md"
         assert readme_path.exists()
-        
+
         with open(readme_path, encoding='utf-8') as f:
             content = f.read()
-        
+
         # Should document directory structure
         assert "directory" in content.lower() or "structure" in content.lower()
 
@@ -225,7 +225,7 @@ class TestInstallationScript:
     def test_install_script_exists(self):
         """Verify install script exists and is executable."""
         assert INSTALL_SCRIPT_PATH.exists()
-        
+
         # Check shebang
         with open(INSTALL_SCRIPT_PATH, encoding='utf-8') as f:
             first_line = f.readline()
@@ -235,7 +235,7 @@ class TestInstallationScript:
         """Verify installation script has required functions."""
         with open(INSTALL_SCRIPT_PATH, encoding='utf-8') as f:
             content = f.read()
-        
+
         required_functions = [
             "print_header",
             "check_qnap_environment",
@@ -246,7 +246,7 @@ class TestInstallationScript:
             "build_images",
             "deploy_services",
         ]
-        
+
         for func in required_functions:
             assert f"{func}()" in content or f"function {func}" in content, \
                 f"Missing required function: {func}"
@@ -255,17 +255,17 @@ class TestInstallationScript:
         """Verify installation script supports dry-run mode."""
         with open(INSTALL_SCRIPT_PATH, encoding='utf-8') as f:
             content = f.read()
-        
+
         assert "--dry-run" in content or "DRY_RUN" in content
 
     def test_install_script_checks_prerequisites(self):
         """Verify installation script checks prerequisites."""
         with open(INSTALL_SCRIPT_PATH, encoding='utf-8') as f:
             content = f.read()
-        
+
         # Should check for Docker
         assert "docker" in content.lower()
-        
+
         # Should check for docker-compose
         assert "compose" in content.lower()
 
@@ -277,7 +277,7 @@ class TestPortConfiguration:
         """Verify ports are configurable via environment variables."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         # Frontend should have configurable ports
         frontend = config["services"]["frontend"]
         ports = str(frontend.get("ports", []))
@@ -288,7 +288,7 @@ class TestPortConfiguration:
         """Verify default ports are documented."""
         with open(ENV_EXAMPLE_PATH) as f:
             content = f.read()
-        
+
         # Should document port 8080 as default
         assert "8080" in content
 
@@ -296,13 +296,13 @@ class TestPortConfiguration:
         """Verify internal services don't expose ports unnecessarily."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         # Backend should not expose ports (accessed via frontend proxy)
         backend = config["services"]["backend"]
         # If ports are defined, they should be for internal use only
         if "ports" in backend:
             pytest.skip("Backend exposes ports - verify this is intentional")
-        
+
         # PostgreSQL should not expose ports externally
         postgres = config["services"]["postgres"]
         if "ports" in postgres:
@@ -316,10 +316,10 @@ class TestHealthChecks:
         """Verify PostgreSQL has health check configured."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         postgres = config["services"]["postgres"]
         assert "healthcheck" in postgres
-        
+
         healthcheck = postgres["healthcheck"]
         assert "test" in healthcheck
         assert "interval" in healthcheck
@@ -328,9 +328,9 @@ class TestHealthChecks:
         """Verify backend has health check configured."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         backend = config["services"]["backend"]
-        
+
         # Should have healthcheck defined
         if "healthcheck" in backend:
             healthcheck = backend["healthcheck"]
@@ -342,10 +342,10 @@ class TestHealthChecks:
         """Verify services wait for dependencies to be healthy."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         backend = config["services"]["backend"]
         depends_on = backend.get("depends_on", {})
-        
+
         # If using long form, should specify condition: service_healthy
         if isinstance(depends_on, dict) and "postgres" in depends_on:
             postgres_dep = depends_on["postgres"]
@@ -360,14 +360,14 @@ class TestSecurityConfiguration:
         """Verify SECRET_KEY_STRICT_ENFORCEMENT is enabled."""
         with open(DOCKER_COMPOSE_PATH) as f:
             content = f.read()
-        
+
         assert "SECRET_KEY_STRICT_ENFORCEMENT" in content
 
     def test_required_variables_syntax(self):
         """Verify required variables use :? syntax."""
         with open(DOCKER_COMPOSE_PATH) as f:
             content = f.read()
-        
+
         # Should use :? syntax for required variables
         assert ":?" in content or ":??" in content
 
@@ -375,12 +375,12 @@ class TestSecurityConfiguration:
         """Verify services have appropriate restart policies."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         for service_name, service in config["services"].items():
             # Skip optional monitoring services
             if "profiles" in service:
                 continue
-            
+
             # Core services should have restart policy
             assert "restart" in service, f"Service {service_name} missing restart policy"
             assert service["restart"] in ["unless-stopped", "always", "on-failure"]
@@ -388,11 +388,11 @@ class TestSecurityConfiguration:
     def test_non_root_user_in_dockerfiles(self):
         """Verify Dockerfiles use non-root users."""
         backend_dockerfile = PROJECT_ROOT / "docker" / "Dockerfile.backend.qnap"
-        
+
         if backend_dockerfile.exists():
             with open(backend_dockerfile) as f:
                 content = f.read()
-            
+
             # Should create and use non-root user
             assert "USER" in content or "user" in content.lower()
             # Should not be root (UID 0)
@@ -406,24 +406,24 @@ class TestBackupConfiguration:
         """Verify backup functionality exists in management script."""
         manage_script = PROJECT_ROOT / "scripts" / "qnap" / "manage-qnap.sh"
         assert manage_script.exists()
-        
+
         with open(manage_script, encoding='utf-8') as f:
             content = f.read()
-        
+
         assert "backup" in content.lower()
 
     def test_backup_directory_configured(self):
         """Verify backup directory is configured in environment."""
         with open(ENV_EXAMPLE_PATH) as f:
             content = f.read()
-        
+
         assert "BACKUP" in content or "backup" in content
 
     def test_rollback_script_exists(self):
         """Verify rollback script exists."""
         rollback_script = PROJECT_ROOT / "scripts" / "qnap" / "rollback-qnap.sh"
         assert rollback_script.exists()
-        
+
         with open(rollback_script, encoding='utf-8') as f:
             first_line = f.readline()
         assert first_line.startswith("#!/bin/bash")
@@ -436,12 +436,12 @@ class TestResourceLimits:
         """Verify services have appropriate memory limits."""
         with open(DOCKER_COMPOSE_PATH) as f:
             config = yaml.safe_load(f)
-        
+
         for service_name, service in config["services"].items():
             # Skip optional services
             if "profiles" in service:
                 continue
-            
+
             # Check for resource limits or recommendations
             deploy = service.get("deploy", {})
             if "resources" in deploy:
@@ -455,11 +455,11 @@ class TestResourceLimits:
     def test_worker_count_optimized(self):
         """Verify worker count is optimized for NAS."""
         backend_dockerfile = PROJECT_ROOT / "docker" / "Dockerfile.backend.qnap"
-        
+
         if backend_dockerfile.exists():
             with open(backend_dockerfile) as f:
                 content = f.read()
-            
+
             # Should configure limited workers for NAS
             if "WORKERS" in content or "workers" in content:
                 # Should use 2 workers (recommended for NAS)
@@ -483,22 +483,22 @@ class TestDocumentation:
     def test_scripts_documented(self):
         """Verify all scripts are documented in README."""
         readme_path = PROJECT_ROOT / "scripts" / "qnap" / "README.md"
-        
+
         with open(readme_path, encoding='utf-8') as f:
             content = f.read()
-        
+
         scripts = ["install-qnap.sh", "manage-qnap.sh", "uninstall-qnap.sh", "rollback-qnap.sh"]
-        
+
         for script in scripts:
             assert script in content, f"Script {script} not documented in README"
 
     def test_troubleshooting_section_exists(self):
         """Verify troubleshooting documentation exists."""
         readme_path = PROJECT_ROOT / "scripts" / "qnap" / "README.md"
-        
+
         with open(readme_path, encoding='utf-8') as f:
             content = f.read()
-        
+
         assert "troubleshoot" in content.lower() or "debug" in content.lower()
 
 
@@ -513,10 +513,10 @@ class TestNginxConfiguration:
     def test_nginx_reverse_proxy_configured(self):
         """Verify Nginx is configured as reverse proxy to backend."""
         nginx_config = PROJECT_ROOT / "docker" / "nginx.qnap.conf"
-        
+
         with open(nginx_config) as f:
             content = f.read()
-        
+
         # Should proxy /api requests to backend
         assert "proxy_pass" in content
         assert "/api" in content or "backend" in content
@@ -524,27 +524,27 @@ class TestNginxConfiguration:
     def test_nginx_security_headers(self):
         """Verify Nginx has security headers configured."""
         nginx_config = PROJECT_ROOT / "docker" / "nginx.qnap.conf"
-        
+
         with open(nginx_config) as f:
             content = f.read()
-        
+
         # Should have security headers
         security_headers = [
             "X-Frame-Options",
             "X-Content-Type-Options",
             "X-XSS-Protection",
         ]
-        
+
         for header in security_headers:
             assert header in content, f"Missing security header: {header}"
 
     def test_nginx_compression_enabled(self):
         """Verify Nginx has compression enabled."""
         nginx_config = PROJECT_ROOT / "docker" / "nginx.qnap.conf"
-        
+
         with open(nginx_config) as f:
             content = f.read()
-        
+
         assert "gzip" in content.lower()
 
 

@@ -10,12 +10,12 @@ Includes:
 import logging
 import logging.handlers
 from contextlib import contextmanager
-from typing import Generator, Optional
 from functools import wraps
+from typing import Generator, Optional
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, ValidationError
+from sqlalchemy.orm import Session
 
 # ========== LOGGING SETUP ==========
 

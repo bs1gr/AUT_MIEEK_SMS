@@ -9,24 +9,20 @@ Ensures that:
 """
 from __future__ import annotations
 
-import pytest
-from fastapi import HTTPException
-from pydantic import ValidationError
-
 
 def test_http_exception_handler_returns_rfc7807(client):
     """HTTPException should return RFC 7807 problem details."""
     # Use a route that raises HTTPException (404 from grades endpoint)
     response = client.get("/api/v1/grades/99999")
     assert response.status_code == 404
-    
+
     body = response.json()
     # RFC 7807 required fields
     assert "status" in body
     assert "title" in body
     assert "detail" in body
     assert "instance" in body
-    
+
     assert body["status"] == 404
     assert isinstance(body["title"], str)
     assert isinstance(body["detail"], str)
@@ -50,21 +46,21 @@ def test_validation_error_handler_returns_rfc7807_with_errors(client):
         json={"first_name": "Test"}  # Missing required fields
     )
     assert response.status_code == 422
-    
+
     body = response.json()
     # RFC 7807 required fields
     assert "status" in body
     assert "title" in body
     assert "detail" in body
     assert "instance" in body
-    
+
     assert body["status"] == 422
     assert body["title"] == "Validation Error"
-    
+
     # detail should be a list of error dicts (for backward compatibility)
     assert isinstance(body["detail"], list)
     assert len(body["detail"]) > 0
-    
+
     # Verify each error is JSON-serializable
     for error in body["detail"]:
         assert isinstance(error, dict)
@@ -114,12 +110,12 @@ def test_validation_error_grade_weight_exceeds_limit(client):
         },
     )
     assert response.status_code == 422
-    
+
     body = response.json()
     assert body["status"] == 422
     assert body["title"] == "Validation Error"
     assert isinstance(body["detail"], list)
-    
+
     # Verify error mentions 'weight'
     error_str = str(body["detail"]).lower()
     assert "weight" in error_str
@@ -136,12 +132,12 @@ def test_generic_exception_handler_returns_500_rfc7807(client):
     # The health endpoint handles errors gracefully and returns degraded status
     # but doesn't raise unhandled exceptions. We verify the error structure
     # exists and would be used if needed.
-    
+
     # Verify that standard error responses follow RFC 7807
     # (Already tested in other tests - this is a documentation test)
     response = client.get("/health")
     assert response.status_code == 200
-    
+
     # The global exception handler is registered and would handle 500s
     # with RFC 7807 format if they occurred. Our other tests verify
     # this for 404, 422, etc.
@@ -151,17 +147,17 @@ def test_security_headers_present(client):
     """Verify security headers middleware is active on all responses."""
     response = client.get("/health")
     assert response.status_code == 200
-    
+
     # Check security headers
     assert "X-Frame-Options" in response.headers
     assert response.headers["X-Frame-Options"] == "DENY"
-    
+
     assert "X-Content-Type-Options" in response.headers
     assert response.headers["X-Content-Type-Options"] == "nosniff"
-    
+
     assert "Referrer-Policy" in response.headers
     assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
-    
+
     assert "Permissions-Policy" in response.headers
     # Verify it's restrictive
     assert "interest-cohort=()" in response.headers["Permissions-Policy"]
@@ -178,7 +174,7 @@ def test_error_response_is_json_serializable(client):
         # 404 - Grade not found
         ("/api/v1/grades/99999", 404),
     ]
-    
+
     for case in test_cases:
         if len(case) == 2:
             url, expected_status = case
@@ -186,18 +182,18 @@ def test_error_response_is_json_serializable(client):
         else:
             url, expected_status, payload = case
             response = client.post(url, json=payload)
-        
+
         assert response.status_code == expected_status
-        
+
         # Verify response is valid JSON
         body = response.json()
         assert isinstance(body, dict)
-        
+
         # Verify RFC 7807 shape
         assert "status" in body
         assert "title" in body
         assert "detail" in body
-        
+
         # Ensure no non-serializable objects in response
         import json
         json_str = json.dumps(body)

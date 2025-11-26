@@ -155,7 +155,7 @@ def collect_business_metrics(db: Session) -> None:
     """
     try:
         # Note: Enrollment model is named CourseEnrollment in this codebase
-        from backend.models import Student, Course, CourseEnrollment
+        from backend.models import Course, CourseEnrollment, Student
 
         # Student metrics
         active_students = db.query(Student).filter(Student.is_active.is_(True)).count()
@@ -435,6 +435,7 @@ def create_metrics_collector_task(interval: int = 60):
         Async task function that collects metrics periodically
     """
     import asyncio
+
     from backend.db import SessionLocal
 
     async def collect_metrics_task():

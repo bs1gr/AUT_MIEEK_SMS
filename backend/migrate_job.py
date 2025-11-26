@@ -2,11 +2,12 @@
 This avoids starting the FastAPI app or importing modules that trigger server startup.
 """
 
+import logging
 import os
 import sys
-import logging
-from alembic.config import Config
+
 from alembic import command
+from alembic.config import Config
 
 
 def main() -> int:

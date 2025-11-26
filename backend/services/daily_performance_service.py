@@ -7,8 +7,8 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404
-from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
 
 logger = logging.getLogger(__name__)
 

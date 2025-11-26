@@ -7,8 +7,8 @@ If a legitimate exception is required, decorate that endpoint with a comment
 `# rate limit exemption` so future automation can detect intentional skips.
 """
 
-from pathlib import Path
 import ast
+from pathlib import Path
 
 WRITE_METHODS = {"post", "put", "delete", "patch"}
 ROUTERS_DIR = Path(__file__).resolve().parent.parent / "routers"

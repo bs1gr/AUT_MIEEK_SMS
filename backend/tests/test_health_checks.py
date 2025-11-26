@@ -8,9 +8,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+from sqlalchemy.orm import Session
 
 from backend.health_checks import HealthChecker, HealthCheckStatus
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture

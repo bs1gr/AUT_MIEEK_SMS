@@ -9,7 +9,12 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
-from backend.errors import ErrorCode, build_error_detail, http_error, internal_server_error
+from backend.errors import (
+    ErrorCode,
+    build_error_detail,
+    http_error,
+    internal_server_error,
+)
 from backend.import_resolver import import_names
 from backend.schemas.courses import CourseCreate, CourseUpdate
 

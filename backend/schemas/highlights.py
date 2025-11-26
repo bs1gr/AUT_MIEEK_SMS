@@ -2,9 +2,10 @@
 Pydantic schemas for highlights endpoints (student highlights/ratings by semester).
 """
 
-from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HighlightBase(BaseModel):

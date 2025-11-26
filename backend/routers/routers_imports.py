@@ -5,23 +5,25 @@ Bulk-import courses and students from JSON files in templates directories.
 - Students dir: D:\SMS\student-management-system\templates\students\
 """
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
-from sqlalchemy.orm import Session
-from typing import List
-from pathlib import Path
-import os
-import json
 import csv
 import io
+import json
 import logging
-from datetime import datetime
+import os
 import re
 import unicodedata
+from datetime import datetime
+from pathlib import Path
+from typing import List
 
-from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
-from .routers_auth import optional_require_role
-from backend.services.import_service import ImportService
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from sqlalchemy.orm import Session
+
 from backend.errors import ErrorCode, http_error
+from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
+from backend.services.import_service import ImportService
+
+from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 

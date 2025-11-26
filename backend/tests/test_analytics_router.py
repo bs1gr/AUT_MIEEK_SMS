@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+
 from sqlalchemy import event
 
 from backend.tests.conftest import engine

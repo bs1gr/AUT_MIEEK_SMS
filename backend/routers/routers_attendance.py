@@ -3,8 +3,8 @@ IMPROVED: Attendance Management Routes
 Handles attendance tracking and statistics
 """
 
-from datetime import date, timedelta
 import logging
+from datetime import date, timedelta
 from typing import List, Optional, Tuple, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -15,16 +15,20 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"description": "Not found"}})
 
 
-from backend.schemas.attendance import AttendanceCreate, AttendanceResponse, AttendanceUpdate
-from backend.schemas.common import PaginatedResponse, PaginationParams
-from backend.db_utils import transaction, get_by_id_or_404, paginate
-
+from backend.config import settings
 
 # ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
-from backend.config import settings
-from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
+from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.schemas.attendance import (
+    AttendanceCreate,
+    AttendanceResponse,
+    AttendanceUpdate,
+)
+from backend.schemas.common import PaginatedResponse, PaginationParams
+
 from .routers_auth import optional_require_role
 
 

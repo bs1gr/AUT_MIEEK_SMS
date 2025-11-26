@@ -93,7 +93,7 @@ class AnalyticsService:
             .filter(self.Student.id == student_id)
             .first()
         )
-        
+
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
 
@@ -186,7 +186,7 @@ class AnalyticsService:
             .filter(self.Student.id == student_id)
             .first()
         )
-        
+
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
 
