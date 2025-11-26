@@ -1,6 +1,6 @@
 ﻿; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.9.2 - Bilingual (English / Greek)
+; Version: 1.9.3 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ; ============================================================================
 

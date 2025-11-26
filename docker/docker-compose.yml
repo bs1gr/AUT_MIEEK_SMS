@@ -23,7 +23,7 @@ services:
       - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-prefer}
       - POSTGRES_OPTIONS=${POSTGRES_OPTIONS:-}
       # Allow frontend served from compose to call backend
-      - CORS_ORIGINS=http://localhost:8082
+      - CORS_ORIGINS=http://localhost:8080
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
       - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
@@ -72,7 +72,7 @@ services:
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
     ports:
-      - "8082:80"
+      - \"8080:80\"
 
 volumes:
   sms_data:

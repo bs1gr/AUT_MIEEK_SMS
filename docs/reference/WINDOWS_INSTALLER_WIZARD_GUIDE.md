@@ -514,7 +514,7 @@ $Script:Colors = @{
 2. Try deep Docker cleanup:
    ```powershell
    cd d:\SMS\student-management-system
-   .\DEEP_DOCKER_CLEANUP.ps1
+   .\DOCKER.ps1 -DeepClean
    ```
 3. Run installer again
 
@@ -575,7 +575,7 @@ Restart-Service -Name "com.docker.service"
 Restart-Service -Name "com.docker.service"
 
 # Then run deep cleanup
-.\DEEP_DOCKER_CLEANUP.ps1
+.\DOCKER.ps1 -DeepClean
 
 # If still fails, restart computer
 ```
@@ -618,10 +618,9 @@ Restart-Service -Name "com.docker.service"
 - Greek User Manual: `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md`
 
 **Scripts:**
-- Daily use: `RUN.ps1`
-- Management: `SMS.ps1`
-- Manual install: `INSTALL.ps1`
-- Deep cleanup: `DEEP_DOCKER_CLEANUP.ps1`
+- Docker deployment: `DOCKER.ps1`
+- Native development: `NATIVE.ps1`
+- Deep cleanup: `DOCKER.ps1 -DeepClean`
 
 **Support:**
 - GitHub Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues

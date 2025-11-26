@@ -431,20 +431,20 @@ git push origin v1.8.6.3
 #### Option 2: PowerShell Script
 
 ```powershell
-.\INSTALL.ps1       # Automated installation
-.\RUN.ps1           # Start application
-```text
+.\DOCKER.ps1 -Install  # First-time automated installation
+.\DOCKER.ps1 -Start    # Start application
+```
 
 **📖 Guide:** [DEPLOY_ON_NEW_PC.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/DEPLOY_ON_NEW_PC.md)
 
 ### Deep Docker Cleanup
 
-New aggressive Docker cleanup utility for troubleshooting:
+Use the consolidated Docker script for cleanup operations:
 
 ```powershell
-.\DEEP_DOCKER_CLEANUP.ps1         # Safe cleanup (keeps data)
-.\DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes  # Nuclear option (removes data)
-```text
+.\DOCKER.ps1 -Prune      # Safe cleanup (keeps data)
+.\DOCKER.ps1 -DeepClean  # Nuclear option (removes data)
+```
 
 **📖 Guide:** [DOCKER_CLEANUP_GUIDE.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/DOCKER_CLEANUP_GUIDE.md)
 

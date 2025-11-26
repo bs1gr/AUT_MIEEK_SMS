@@ -275,7 +275,7 @@ After migration, verify everything works:
 # Test Docker mode
 .\DOCKER.ps1 -Status
 .\DOCKER.ps1 -Start
-# Access: http://localhost:8082
+# Access: <http://localhost:8080>
 
 # Test Native mode (stop Docker first)
 .\DOCKER.ps1 -Stop

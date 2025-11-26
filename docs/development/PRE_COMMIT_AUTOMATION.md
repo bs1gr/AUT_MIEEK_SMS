@@ -177,12 +177,12 @@ Checking Docker... ✅ Docker available ✅
 
 **Tests:**
 1. **Start Docker container** via `DOCKER.ps1 -Start`
-   - Container builds/starts on port 8082
+   - Container builds/starts on port 8080
    - Uses fullstack image with Frontend + Backend
 
 2. **Container health check**
-   - Wait for port 8082 to listen (60s timeout)
-   - HTTP GET to `http://localhost:8082/health`
+   - Wait for port 8080 to listen (60s timeout)
+   - HTTP GET to `http://localhost:8080/health`
    - Verify JSON response with `status: "healthy"`
 
 3. **Database connection check**
@@ -190,7 +190,7 @@ Checking Docker... ✅ Docker available ✅
    - Verify `database: "connected"`
 
 4. **Frontend accessibility**
-   - HTTP GET to `http://localhost:8082`
+   - HTTP GET to `http://localhost:8080`
    - Verify HTTP 200 response
 
 **Skip with:** `-SkipDocker` or `-Quick` flags
@@ -408,7 +408,7 @@ chmod +x .git/hooks/pre-commit
 **Solution:**
 - Check node_modules: `frontend\node_modules`
 - Run setup: `.\NATIVE.ps1 -Setup`
-- Check for port conflicts on 5173 (Native) or 8082 (Docker)
+- Check for port conflicts on 5173 (Native) or 8080 (Docker)
 
 #### 5. "TypeScript errors in production code"
 
@@ -452,7 +452,7 @@ Docker image caching significantly speeds up subsequent runs:
 PRE_COMMIT_CHECK.ps1
 ├── Configuration
 │   ├── $SCRIPT_DIR, $NATIVE_SCRIPT, $DOCKER_SCRIPT
-│   ├── Port definitions (8000, 5173, 8082)
+│   ├── Port definitions (8000, 5173, 8080)
 │   └── Test results tracking ($script:TestResults)
 │
 ├── Utility Functions

@@ -12,7 +12,7 @@ This directory contains management scripts for the Student Management System.
 - **Production/Docker:** `.\DOCKER.ps1` (from repository root)
 - **Development/Native:** `.\NATIVE.ps1` (from repository root)
 
-**See:** [SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md) for complete migration guide.
+> **Note:** Legacy scripts were consolidated into DOCKER.ps1 and NATIVE.ps1 in v2.0. See archive/pre-v1.9.1/ for historical reference.
 
 ## 📂 Directory Structure
 
@@ -22,8 +22,7 @@ scripts/
 ├── VERIFY_VERSION.ps1             # ✅ Version management automation
 ├── SMOKE_TEST.ps1                 # ✅ Quick health check
 ├── CHECK_VOLUME_VERSION.ps1       # ✅ DB schema version check
-├── SETUP.ps1                      # ⚠️  DEPRECATED - Use DOCKER.ps1 -Install
-├── STOP.ps1                       # ⚠️  DEPRECATED - Use DOCKER.ps1 -Stop
+├── VERIFY_WORKSPACE.ps1           # ✅ Workspace integrity check
 ├── internal/                      # 🔧 Internal utilities (advanced)
 ├── docker/                        # 🐳 Docker helpers (mostly deprecated)
 ├── dev/                           # 💻 Development tools
@@ -248,10 +247,20 @@ Most scripts in `scripts/docker/` show deprecation messages pointing to `DOCKER.
 
 ## 🔄 Migration Guide
 
-**See:** [SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md) for complete migration instructions.
-- `SUPER_CLEAN_AND_DEPLOY.ps1` - Full cleanup (temp files, logs, build artifacts, containers)
-- `CLEANUP_DOCS.ps1` - Clean documentation artifacts
-- `CLEANUP_OBSOLETE_FILES.ps1` - Remove obsolete files
+**See:** [SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete migration instructions (archived).
+
+### Consolidated Commands
+
+All legacy cleanup, deployment, and management scripts have been consolidated:
+
+| Old Script | New Command |
+|-----------|-------------|
+| `SUPER_CLEAN_AND_DEPLOY.ps1` | `.\DOCKER.ps1 -DeepClean` |
+| `DEEP_DOCKER_CLEANUP.ps1` | `.\DOCKER.ps1 -DeepClean` |
+| `RUN.ps1` | `.\DOCKER.ps1 -Start` |
+| `INSTALL.ps1` | `.\DOCKER.ps1 -Install` |
+| `SMS.ps1` | `.\DOCKER.ps1 -Help` |
+| `run-native.ps1` | `.\NATIVE.ps1 -Start` |
 
 **Development Tools:**
 
@@ -357,7 +366,7 @@ If you need lower-level control during development, use the Docker Compose helpe
 ## 📖 Additional Resources
 
 - **Main Repository README:** `../README.md`
-- **Scripts Consolidation Guide:** `../SCRIPTS_CONSOLIDATION_GUIDE.md`
+- **Scripts Consolidation Guide:** `../archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md` (archived)
 - **Documentation Index:** `../docs/DOCUMENTATION_INDEX.md`
 - **Quick Start Guide:** `../docs/user/QUICK_START_GUIDE.md`
 - **Developer Guide:** `../docs/development/DEVELOPER_GUIDE_COMPLETE.md`

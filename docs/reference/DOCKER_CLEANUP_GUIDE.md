@@ -2,50 +2,58 @@
 
 Complete guide for removing Docker cache from old container installations.
 
-## Quick Reference
+## Quick Reference (v2.0)
 
 | Command | What it does | Data Safety |
 |---------|-------------|-------------|
-| `.\SMS.ps1 -Prune` | Safe cleanup - removes caches, dangling images | ✅ Safe (keeps volumes) |
-| `.\SMS.ps1 -PruneAll` | Safe cleanup + unused networks | ✅ Safe (keeps volumes) |
-| `.\DEEP_DOCKER_CLEANUP.ps1` | Nuclear option - removes ALL cache | ✅ Safe (keeps volumes by default) |
-| `.\DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes` | Complete wipe including database | ⚠️ **DESTROYS DATA** |
+| `.\DOCKER.ps1 -Prune` | Safe cleanup - removes caches, dangling images | ✅ Safe (keeps volumes) |
+| `.\DOCKER.ps1 -PruneAll` | Safe cleanup + unused networks + unused images | ✅ Safe (keeps volumes) |
+| `.\DOCKER.ps1 -DeepClean` | Nuclear option - removes ALL cache and volumes | ⚠️ **DESTROYS DATA** (creates backup first) |
 
 ## When to Use Each Option
 
 ### Regular Cleanup (Recommended)
+
 ```powershell
-.\SMS.ps1 -PruneAll
+.\DOCKER.ps1 -Prune
 ```
+
 **Use when:**
+
 - Running low on disk space
 - After multiple rebuilds
 - Monthly maintenance
 
 **Removes:**
+
 - Stopped containers
 - Dangling images
 - Build cache (filtered)
 - Unused networks
 
 **Preserves:**
+
 - Current images in use
 - Data volumes (database)
 - Active containers
 
 ---
 
-### Deep Cleanup (Aggressive)
+### Aggressive Cleanup
+
 ```powershell
-.\DEEP_DOCKER_CLEANUP.ps1 -Force
+.\DOCKER.ps1 -PruneAll
 ```
+
 **Use when:**
+
 - Experiencing Docker issues
 - Cache corruption suspected
 - Preparing for fresh install
 - Disk space critically low
 
 **Removes:**
+
 - ALL stopped containers
 - ALL unused images (not just dangling)
 - ALL build cache (complete wipe)
@@ -53,27 +61,34 @@ Complete guide for removing Docker cache from old container installations.
 - Old SMS images (except current version)
 
 **Preserves:**
+
 - Data volumes (database intact)
 - Currently running containers
 
 ---
 
 ### Nuclear Option (DANGER!)
+
 ```powershell
-.\DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes -Force
+.\DOCKER.ps1 -DeepClean
 ```
+
 **⚠️ WARNING: This deletes your database!**
 
 **Use ONLY when:**
+
 - Deploying to completely new PC
 - Starting fresh after major corruption
 - Instructed by support/documentation
 
 **Removes:**
-- Everything from Deep Cleanup above
+
+- Everything from Aggressive Cleanup above
 - **ALL volumes including database**
 
-**You will need to run** `.\SMART_SETUP.ps1` **after this!**
+**Note:** Automatic backup is created before deletion.
+
+**You will need to run** `.\DOCKER.ps1 -Install` **after this!**
 
 ---
 
@@ -82,28 +97,33 @@ Complete guide for removing Docker cache from old container installations.
 If you're installing on a fresh PC and have old Docker cache:
 
 1. **Check current usage:**
+
    ```powershell
    docker system df
    ```
 
 2. **Stop all SMS containers:**
+
    ```powershell
-   .\SMS.ps1 -Stop
+   .\DOCKER.ps1 -Stop
    ```
 
-3. **Run deep cleanup:**
+3. **Run aggressive cleanup:**
+
    ```powershell
-   .\DEEP_DOCKER_CLEANUP.ps1 -Force
+   .\DOCKER.ps1 -PruneAll
    ```
 
 4. **Verify cleanup:**
+
    ```powershell
    docker system df
    ```
 
 5. **Fresh install:**
+
    ```powershell
-   .\SMART_SETUP.ps1
+   .\DOCKER.ps1 -Install
    ```
 
 ---
@@ -111,27 +131,35 @@ If you're installing on a fresh PC and have old Docker cache:
 ## Troubleshooting
 
 ### "Error response from daemon: conflict"
+
 Some containers are still running. Stop them first:
+
 ```powershell
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 docker ps -a  # Verify all stopped
 ```
 
 ### "Cannot remove volume in use"
+
 Volume is mounted by a running container:
+
 ```powershell
 docker ps    # Check running containers
 docker stop $(docker ps -aq)  # Stop all
 ```
 
 ### Build cache won't clear
+
 Force builder prune:
+
 ```powershell
 docker builder prune -a -f --all
 ```
 
 ### Disk space not freed after cleanup
+
 Check for large image layers:
+
 ```powershell
 docker images -a
 docker system prune -a --volumes  # Nuclear option
@@ -146,6 +174,7 @@ docker system df
 ```
 
 Output explained:
+
 - **Images**: Built Docker images (your app)
 - **Containers**: Running/stopped container instances
 - **Local Volumes**: Persistent data (database)
@@ -155,22 +184,21 @@ Output explained:
 
 ---
 
-## Comparison with Other Scripts
+## Comparison of Cleanup Options
 
-| Script | Purpose | Docker Cleanup | Data Safety |
+| Command | Purpose | Docker Cleanup | Data Safety |
 |--------|---------|----------------|-------------|
-| `RUN.ps1 -Prune` | Quick cleanup | Basic | ✅ Safe |
-| `SMS.ps1 -PruneAll` | Standard cleanup | Moderate | ✅ Safe |
-| `DEEP_DOCKER_CLEANUP.ps1` | Aggressive cleanup | Complete | ✅ Safe (default) |
-| `SUPER_CLEAN_AND_DEPLOY.ps1` | Full workspace reset | Basic | ⚠️ Optional volume wipe |
+| `DOCKER.ps1 -Prune` | Quick cleanup | Basic | ✅ Safe |
+| `DOCKER.ps1 -PruneAll` | Aggressive cleanup | Complete | ✅ Safe |
+| `DOCKER.ps1 -DeepClean` | Full workspace reset | Complete + Volumes | ⚠️ Backup created |
 
 ---
 
 ## Best Practices
 
-1. **Regular maintenance:** Run `.\SMS.ps1 -PruneAll` monthly
-2. **After updates:** Run `.\DEEP_DOCKER_CLEANUP.ps1` after major version changes
-3. **Before fresh install:** Use `-IncludeVolumes` only if you want to delete data
+1. **Regular maintenance:** Run `.\DOCKER.ps1 -Prune` monthly
+2. **After updates:** Run `.\DOCKER.ps1 -PruneAll` after major version changes
+3. **Before fresh install:** Use `-DeepClean` only if you want to delete data
 4. **Check first:** Always run `docker system df` before cleanup
 5. **Backup data:** Use Control Panel → Backups before aggressive cleanup
 
@@ -178,14 +206,14 @@ Output explained:
 
 ## What Gets Preserved
 
-Even with `DEEP_DOCKER_CLEANUP.ps1`, these are **SAFE**:
+With `DOCKER.ps1 -Prune` and `-PruneAll`, these are **SAFE**:
 
 ✅ Your source code files
 ✅ Python virtual environments (.venv)
 ✅ Node modules (node_modules)
 ✅ Git repository (.git)
 ✅ Configuration files (.env)
-✅ Database volume (unless -IncludeVolumes used)
+✅ Database volume
 ✅ Backup files (backups/)
 
 Only Docker-specific cache and images are removed.
@@ -202,16 +230,16 @@ docker ps -a
 docker volume ls
 
 # Safe cleanup (preserves data)
-.\SMS.ps1 -PruneAll
+.\DOCKER.ps1 -Prune
 
 # Aggressive cleanup (preserves data)
-.\DEEP_DOCKER_CLEANUP.ps1 -Force
+.\DOCKER.ps1 -PruneAll
 
-# Nuclear option (DELETES DATA)
-.\DEEP_DOCKER_CLEANUP.ps1 -IncludeVolumes -Force
+# Nuclear option (creates backup first)
+.\DOCKER.ps1 -DeepClean
 
 # After cleanup, fresh start
-.\SMART_SETUP.ps1
+.\DOCKER.ps1 -Install
 ```
 
 ---

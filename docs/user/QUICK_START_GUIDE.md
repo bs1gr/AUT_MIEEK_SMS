@@ -1,6 +1,5 @@
 
-# 🚀 Quick Start Guide (v1.5.0)
-
+# 🚀 Quick Start Guide (v1.9+)
 
 ## The Easy Way (Recommended)
 
@@ -15,19 +14,18 @@
 - Run:
 
 ```powershell
-.\RUN.ps1
+.\DOCKER.ps1 -Start
 ```
 
 ### For Native Development (Developers Only)
 
 ```powershell
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+.\NATIVE.ps1 -Start
 ```
 
 ---
 
-
-## What RUN.ps1 Does Automatically
+## What DOCKER.ps1 Does Automatically
 
 ### First Time
 
@@ -51,7 +49,6 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 ---
 
 ## What You'll See
-
 
 ### When Running Docker Mode
 
@@ -87,14 +84,14 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 1. **Stop the application** (if running):
 
    ```powershell
-   .\RUN.ps1 -Stop
+   .\DOCKER.ps1 -Stop
    ```
 
 2. **Edit the root `.env` file** (in project root directory):
 
    ```dotenv
-   VERSION=1.8.8
-   
+   VERSION=1.9.3
+
    # Add these lines:
    AUTH_ENABLED=True
    DEFAULT_ADMIN_EMAIL=admin@example.com
@@ -105,7 +102,7 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 3. **Start the application**:
 
    ```powershell
-   .\RUN.ps1
+   .\DOCKER.ps1 -Start
    ```
 
 4. **Login**:
@@ -150,12 +147,12 @@ python backend/tools/create_admin.py --email admin@example.com --password YourPa
 **Can't login?**
 
 - Check your email/password are correct
-- Verify the application is running: `.\RUN.ps1 -Status`
-- Check logs: `.\RUN.ps1 -Logs`
+- Verify the application is running: `.\DOCKER.ps1 -Status`
+- Check logs: `.\DOCKER.ps1 -Logs`
 
 ---
 
-## First Run
+## First Run (Native Mode)
 
 ```text
 ═══════════════════════════════════════════════════════════
@@ -176,18 +173,27 @@ python backend/tools/create_admin.py --email admin@example.com --password YourPa
 
 ---
 
+## Management Commands
 
-## Management Menu
+Use `DOCKER.ps1` for Docker deployment or `NATIVE.ps1` for native development:
 
-Use `.\SMS.ps1` for interactive management, status, logs, backup, and troubleshooting.
+```powershell
+# Docker commands
+.\DOCKER.ps1 -Start           # Start application
+.\DOCKER.ps1 -Stop            # Stop application
+.\DOCKER.ps1 -Status          # Check status
+.\DOCKER.ps1 -Logs            # View logs
+.\DOCKER.ps1 -Update          # Update with backup
+.\DOCKER.ps1 -Help            # Show all commands
+
+# Native development commands
+.\NATIVE.ps1 -Start           # Start backend + frontend
+.\NATIVE.ps1 -Stop            # Stop all processes
+.\NATIVE.ps1 -Status          # Check status
+.\NATIVE.ps1 -Help            # Show all commands
+```
 
 ---
-
-
-<!-- All batch and legacy PowerShell launchers are deprecated/removed in v1.5.0. Use RUN.ps1 or scripts/dev/run-native.ps1 only. -->
-
----
-
 
 ## Prerequisites
 
@@ -196,12 +202,11 @@ Use `.\SMS.ps1` for interactive management, status, logs, backup, and troublesho
 - **PowerShell 7+** (pwsh, for native dev mode)
 - **Python 3.11+** and **Node.js 18+** (for native dev mode only)
 
-> **Note:** RUN.ps1 will detect Docker and guide you. Native mode is for developers only.
+> **Note:** DOCKER.ps1 will detect Docker and guide you. Native mode is for developers only.
 
 ---
 
 ## Common Scenarios
-
 
 ### Scenario 1: End User (Recommended)
 
@@ -209,7 +214,7 @@ Use `.\SMS.ps1` for interactive management, status, logs, backup, and troublesho
 1. Install Docker Desktop
 2. Extract project to a folder
 3. Open PowerShell in the folder
-4. Run .\RUN.ps1
+4. Run .\DOCKER.ps1 -Start
 5. Open browser to http://localhost:8080
 ```
 
@@ -218,9 +223,10 @@ Use `.\SMS.ps1` for interactive management, status, logs, backup, and troublesho
 ```text
 1. Install Python 3.11+ and Node.js 18+
 2. Open PowerShell 7+ in the folder
-3. Run pwsh -NoProfile -File scripts/dev/run-native.ps1
-4. Open browser to http://localhost:5173
-5. Hot reload enabled for development
+3. Run .\NATIVE.ps1 -Setup  (first time only)
+4. Run .\NATIVE.ps1 -Start
+5. Open browser to http://localhost:5173
+6. Hot reload enabled for development
 ```
 
 ---
@@ -232,31 +238,25 @@ Use `.\SMS.ps1` for interactive management, status, logs, backup, and troublesho
 **Solution:** Install Python 3.11+ from [python.org](https://www.python.org/downloads/)
 
 - ✅ Check "Add Python to PATH" during installation
-- Restart START.bat after installing
+- Restart PowerShell after installing
 
 ### Problem: "Node.js not found"
 
 **Solution:** Install Node.js 18+ from [nodejs.org](https://nodejs.org/)
 
 - Choose the LTS (Long Term Support) version
-- Restart START.bat after installing
+- Restart PowerShell after installing
 
 ### Problem: Port 8080 already in use
 
 **Solution:** Something else is using the port
 
-```cmd
-REM Check what's using port 8080
+```powershell
+# Check what's using port 8080
 netstat -ano | findstr ":8080"
 
-REM If a process is using the port, prefer the safer operator flow:
-REM   .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
-REM As an emergency operator action (interactive only), run:
-REM   .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
-
-REM Or use the interactive menu
-START.bat
-REM Select option 2 to stop, then option 1 to start
+# Stop SMS if running
+.\DOCKER.ps1 -Stop
 ```
 
 ### Problem: "Failed to resolve import i18next"
@@ -265,40 +265,41 @@ REM Select option 2 to stop, then option 1 to start
 
 - If Docker is running → Use `http://localhost:8080`
 - If Native is running → Use `http://localhost:5173`
-- Run START.bat again to see which URL to use
+- Run `.\DOCKER.ps1 -Status` or `.\NATIVE.ps1 -Status` to check
 
 ### Problem: Want to start fresh
 
-**Solution:** Use the Force Reinstall option
+**Solution:** Use the clean install option
 
-```cmd
-START.bat
-REM Select option 5: Force Reinstall
-REM Confirm with 'yes'
-REM Wait for fresh installation
+```powershell
+# For Docker - full rebuild
+.\DOCKER.ps1 -UpdateClean
+
+# For total reset (removes all data!)
+.\DOCKER.ps1 -DeepClean
+.\DOCKER.ps1 -Install
 ```
 
 ---
 
 ## Quick Reference
 
-
 ### To Start
 
 ```powershell
-.\RUN.ps1
+.\DOCKER.ps1 -Start
 ```
 
 ### To Stop
 
 ```powershell
-.\RUN.ps1 -Stop
+.\DOCKER.ps1 -Stop
 ```
 
 ### To Check Status
 
 ```powershell
-.\RUN.ps1 -Status
+.\DOCKER.ps1 -Status
 ```
 
 ### To Open in Browser
@@ -307,17 +308,11 @@ Open <http://localhost:8080> (Docker) or <http://localhost:5173> (native dev)
 
 ---
 
-
-<!-- All advanced scripting and legacy PowerShell scripts are deprecated/removed in v1.5.0. Use only RUN.ps1 or scripts/dev/run-native.ps1. -->
-
----
-
-
 ## What Happens Behind the Scenes
 
 ### Detection Phase
 
-1. RUN.ps1 checks if Docker is installed and running
+1. DOCKER.ps1 checks if Docker is installed and running
 2. Checks if system is already installed
 3. Checks if services are already running
 
@@ -334,33 +329,30 @@ Open <http://localhost:8080> (Docker) or <http://localhost:5173> (native dev)
 
 ---
 
-
 ## Getting Help
 
 If you're stuck:
 
-1. **Check the URLs shown by RUN.ps1** - Use the correct one for your mode
+1. **Check the URLs shown by the scripts** - Use the correct one for your mode
 2. **Read the error messages** - They usually tell you what's wrong
 3. **Check the documentation** - `README.md` and `docs/` folder
-4. **Run diagnostics** - Use `.\SMS.ps1` for troubleshooting
+4. **Run status check** - Use `.\DOCKER.ps1 -Status` for diagnostics
 
 For detailed troubleshooting, see: `docs/FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
 
 ---
 
-
 ## Summary
 
 ✅ **Download project**
-✅ **Run .\RUN.ps1**
+✅ **Run .\DOCKER.ps1 -Start**
 ✅ **Wait for setup (first time)**
 ✅ **Open the URL shown**
 ✅ **Done!**
 
-No legacy scripts. No execution policy issues. Just works. 🚀
+No legacy scripts. Just works. 🚀
 
 ---
-
 
 ## 🐧 Note for Linux Users
 
@@ -376,13 +368,13 @@ For Linux environments:
 - Start in Docker (recommended):
 
 ```bash
-./RUN.ps1
+pwsh ./DOCKER.ps1 -Start
 ```
 
 - Start in native development (hot reload, devs only):
 
 ```bash
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+pwsh ./NATIVE.ps1 -Start
 ```
 
 If PowerShell 7+ (pwsh) is not available, you can fall back to:

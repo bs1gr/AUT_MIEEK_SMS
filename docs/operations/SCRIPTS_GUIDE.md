@@ -1,6 +1,6 @@
 # Scripts Organization Guide
 
-**Last Updated**: November 2025 | **Version**: 1.6.3
+**Last Updated**: January 2025 | **Version**: 1.9.3
 
 This document describes the complete script organization for the Student Management System, including the purpose, audience, and usage of all operational scripts.
 
@@ -18,15 +18,14 @@ This document describes the complete script organization for the Student Managem
 
 ## Overview
 
-The project's operational scripts have been reorganized into two distinct categories:
+The project's operational scripts have been consolidated into two primary entry points:
 
+1. **Docker Deployment** (`DOCKER.ps1`) - For Docker-based deployment, management, and production operations
+2. **Native Development** (`NATIVE.ps1`) - For local development with hot reload
 
-1. **Developer Workbench** (`scripts/dev/`) - For active development: build, run, debug, test, clean (use `run-native.ps1` for native mode)
-2. **End-User/DevOps** (`scripts/deploy/`) - For deployment, Docker operations, and production maintenance (use `RUN.ps1` for fullstack Docker)
+> **Note:** As of v1.9.0, all legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`) have been consolidated into `DOCKER.ps1` and `NATIVE.ps1`. See `archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md` for migration details.
 
-> **Note:** As of v1.5.0, only `RUN.ps1` (Docker), `scripts/dev/run-native.ps1` (native), and `SMS.ps1` (management) are supported entry points. Legacy setup/start/stop wrappers are archived under [`archive/`](../archive/README.md) for historical reference.
-
-This separation ensures:
+This consolidation ensures:
 
 - Clear responsibility boundaries
 - Easier onboarding for different user types
@@ -37,8 +36,8 @@ This separation ensures:
 
 ```text
 student-management-system/
-├── RUN.ps1                        # Canonical Docker entry point (one-click)
-├── SMS.ps1                        # Main management interface (END-USER)
+├── DOCKER.ps1                     # Canonical Docker entry point (v2.0)
+├── NATIVE.ps1                     # Canonical native dev entry point (v2.0)
 ├── scripts/
 │   ├── dev/                       # DEVELOPER scripts
 │   │   ├── README.md              # Developer documentation
@@ -90,45 +89,39 @@ student-management-system/
 
 ## Root-Level Scripts
 
-
 ### For End-Users
 
+#### `DOCKER.ps1` (root)
 
-#### `RUN.ps1` (root)
-
-Canonical one-click fullstack Docker deployment (recommended for all users)
-
-```powershell
-pwsh -NoProfile -File RUN.ps1
-```
-
-
-#### `SMS.ps1` (root)
-
-Management interface for Docker containers
+Canonical Docker deployment and management script (v2.0)
 
 ```powershell
-pwsh -NoProfile -File SMS.ps1
+.\DOCKER.ps1 -Start        # Start application
+.\DOCKER.ps1 -Stop         # Stop application
+.\DOCKER.ps1 -Status       # Check status
+.\DOCKER.ps1 -Update       # Update with backup
+.\DOCKER.ps1 -Logs         # View logs
+.\DOCKER.ps1 -Help         # Show all commands
 ```
 
+#### `NATIVE.ps1` (root)
 
-<!-- INSTALL.bat and all legacy setup scripts are deprecated/removed in v1.5.0. Use RUN.ps1 for all new deployments. -->
+Native development mode with hot reload (v2.0)
+
+```powershell
+.\NATIVE.ps1 -Setup        # Install dependencies (first time)
+.\NATIVE.ps1 -Start        # Start backend + frontend
+.\NATIVE.ps1 -Stop         # Stop all processes
+.\NATIVE.ps1 -Help         # Show all commands
+```
 
 ## Developer Scripts (`scripts/dev/`)
 
 Scripts for active development work. See [scripts/dev/README.md](../scripts/dev/README.md) for detailed documentation.
 
-
 ### Core Development Tools
 
-
-#### `run-native.ps1` (scripts/dev/)
-
-Start backend and frontend in native development mode (hot reload)
-
-```powershell
-pwsh -NoProfile -File scripts/dev/run-native.ps1
-```
+Use `.\NATIVE.ps1 -Start` for native development mode with hot reload.
 
 #### `debug_import_control.py`
 
@@ -214,15 +207,17 @@ Preserves:
 - node_modules
 - venv
 
-#### `SUPER_CLEAN_AND_DEPLOY.ps1`
+#### Deep Cleanup (DOCKER.ps1 -DeepClean)
 
-Full workspace cleanup with optional setup.
+Full workspace cleanup with Docker artifacts removal.
 
 ```powershell
-.\SUPER_CLEAN_AND_DEPLOY.ps1
+.\DOCKER.ps1 -DeepClean
 ```
 
-Removes everything except source code and database, with option to rebuild.
+Removes everything including Docker caches, with automatic backup creation.
+
+> **Note:** Legacy `SUPER_CLEAN_AND_DEPLOY.ps1` was archived in v2.0. Use `DOCKER.ps1 -DeepClean` instead.
 
 #### `CLEANUP_OBSOLETE_FILES.ps1`
 
@@ -264,12 +259,16 @@ scripts\dev\internal\VERIFY_LOCALIZATION.ps1
 
 Scripts for deployment and production operations. See [scripts/deploy/README.md](../scripts/deploy/README.md) for detailed documentation.
 
+### Primary Entry Points (v1.9.0+)
 
-### Primary Entry Points (v1.5.0+)
+As of v1.9.0, use the consolidated root-level scripts:
 
-<!-- All setup/start/stop scripts (SMART_SETUP.ps1, STOP.ps1, UNINSTALL.bat, etc.) are deprecated/removed in v1.5.0. Use only RUN.ps1, scripts/dev/run-native.ps1, and SMS.ps1. -->
+- `.\DOCKER.ps1` - All Docker operations
+- `.\NATIVE.ps1` - All native development operations
 
 ### Docker Operations (`scripts/deploy/docker/`)
+
+> **Note:** These lower-level scripts are available for specialized use cases. For most operations, prefer `.\DOCKER.ps1`.
 
 #### `DOCKER_UP.ps1`
 
@@ -413,14 +412,13 @@ Purpose-built PowerShell helpers that keep GitHub releases, GHCR packages, and c
 
 ## Common Usage Patterns
 
-
 ### For Developers
 
 #### Starting Development
 
 ```powershell
-# Native development mode
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+# Native development mode (v2.0)
+.\NATIVE.ps1 -Start
 ```
 
 #### Running Tests
@@ -457,50 +455,39 @@ scripts\dev\CLEANUP.bat
 scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
 ```
 
-
 ### For End-Users/DevOps
-
 
 #### Fullstack Docker (Recommended)
 
 ```powershell
-# Start (one-click, v1.5.0+)
-pwsh -NoProfile -File RUN.ps1
+# Start (v2.0)
+.\DOCKER.ps1 -Start
 ```
-
-
-<!-- All Docker deployment should use RUN.ps1 as of v1.5.0. All other setup scripts are deprecated/removed. -->
-
 
 #### Maintenance
 
 ```powershell
 # Backup database
-.\SMS.ps1
-# Select option 'B' (Backup Database)
+.\DOCKER.ps1 -Backup
 
 # Check volume version
 scripts\deploy\CHECK_VOLUME_VERSION.ps1
 
 # Stop services
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 ```
-
 
 #### Updating/Upgrading
 
 ```powershell
-# Stop services
-.\SMS.ps1 -Stop
+# Update with automatic backup
+.\DOCKER.ps1 -Update
 
-# Pull new code
+# Or manually:
+.\DOCKER.ps1 -Stop
 git pull
-
-# Check for volume schema changes
 scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
-
-# Restart with new version
-.\SMS.ps1 -Quick
+.\DOCKER.ps1 -Start
 ```
 
 ### GitHub Release Maintenance
@@ -514,8 +501,8 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 For Linux environments, a few helper scripts improve onboarding and consistency:
 
 - `scripts/linux_env_check.sh` — Validate Linux prerequisites (Docker engine access, Python>=3.11, Node>=18, PowerShell 7+), verify `.env` files and writable directories. Use `--fix` to auto-create safe items (folders and `.env` from `.env.example`).
-- `scripts/dev/run-native.sh` — Start native development mode (delegates to `SMART_SETUP.ps1` via pwsh). Sets `SMS_ENV=development`.
-- `scripts/deploy/run-docker-release.sh` — Start Docker release mode (delegates to `SMART_SETUP.ps1` via pwsh). Sets `SMS_ENV=production`.
+- Native development: Use `pwsh ./NATIVE.ps1 -Start` or run backend/frontend manually.
+- Docker deployment: Use `pwsh ./DOCKER.ps1 -Start` or `docker compose up -d --build`.
 
 See also: Linux Quick Start in the main [README](../README.md#-linux-quick-start).
 
@@ -523,29 +510,37 @@ See also: Linux Quick Start in the main [README](../README.md#-linux-quick-start
 
 ### From Previous Versions
 
-If you're upgrading from a version before the script reorganization:
+If you're upgrading from a version before the script consolidation (v1.9.0):
 
+**Old scripts → New commands (v2.0)**:
 
+| Old Script | New Command |
+|-----------|-------------|
+| `RUN.ps1` | `.\DOCKER.ps1 -Start` |
+| `RUN.ps1 -Stop` | `.\DOCKER.ps1 -Stop` |
+| `RUN.ps1 -Update` | `.\DOCKER.ps1 -Update` |
+| `INSTALL.ps1` | `.\DOCKER.ps1 -Install` |
+| `SMS.ps1` | `.\DOCKER.ps1 -Help` |
+| `scripts/dev/run-native.ps1` | `.\NATIVE.ps1 -Start` |
 
-**Old locations → New locations**:
+**Other location changes**:
 
 - `CLEANUP.bat` (root) → `.\scripts\dev\CLEANUP.bat`
-- `QUICKSTART.ps1`, `SETUP.ps1`, `SMART_SETUP.ps1`, `STOP.ps1`, `UNINSTALL.bat` → **Removed** (use `RUN.ps1` or `SMS.ps1`)
 - `.\scripts\SMOKE_TEST.ps1` → `.\scripts\dev\SMOKE_TEST.ps1`
 - `scripts/internal/*` → Split between `scripts/dev/internal/` and `scripts/deploy/internal/`
 - `scripts/docker/*` → `scripts/deploy/docker/`
 
-**Recommended workflow (v1.5.0+)**:
+**Recommended workflow (v1.9.0+)**:
 
-1. Use `RUN.ps1` (Docker) or `scripts/dev/run-native.ps1` (native dev) as your entry point
-2. Use `SMS.ps1` for all management/maintenance
+1. Use `DOCKER.ps1` (Docker) or `NATIVE.ps1` (native dev) as your entry point
+2. Use `-Help` flag to see all available commands
 3. Developers: Bookmark `scripts/dev/` scripts
 4. DevOps: Bookmark `scripts/deploy/` scripts
 
 
 ### Breaking Changes
 
-All legacy setup/start/stop scripts are removed in v1.5.0. Use only the canonical entry points.
+All legacy scripts are consolidated in v1.9.0. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
 
 ### Benefits of New Organization
 
@@ -557,14 +552,16 @@ All legacy setup/start/stop scripts are removed in v1.5.0. Use only the canonica
 
 ## Getting Help
 
-- **Root scripts**: `.\SMS.ps1 -Help` or `INSTALL.bat` and follow prompts
+- **Root scripts**: `.\DOCKER.ps1 -Help` or `.\NATIVE.ps1 -Help`
 - **Developer scripts**: Read [scripts/dev/README.md](../scripts/dev/README.md)
 - **Deployment scripts**: Read [scripts/deploy/README.md](../scripts/deploy/README.md)
 - **Main documentation**: [README.md](../README.md)
-- **Troubleshooting**: `.\SMS.ps1` → Option '8' (Full Diagnostics)
+- **Troubleshooting**: `.\DOCKER.ps1 -Status` for Docker status
 
 ## Version History
 
+- **v1.9.0** (January 2025): Scripts consolidated to DOCKER.ps1 and NATIVE.ps1
+- **v1.5.0** (November 2025): Legacy scripts archived
 - **v1.2.3+** (October 2025): Scripts reorganized into dev/ and deploy/
 - **v1.2.0** (September 2025): Introduced SMART_SETUP.ps1 and SMS.ps1
 - **v1.1.0** (August 2025): Added Docker volume versioning
@@ -587,4 +584,4 @@ When adding new scripts:
 
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
-- Check troubleshooting: `.\SMS.ps1` → Option '8'
+- Check status: `.\DOCKER.ps1 -Status`

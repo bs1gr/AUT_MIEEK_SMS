@@ -1,53 +1,44 @@
 # Archived Assets
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-26
 
-This directory captures deprecated entry points, operator helpers, historical documentation, and completed analyses retained for reference and audit purposes.
+This directory contains deprecated content from versions prior to v1.9.1.
 
 ---
 
 ## Contents
 
-### v1.8.6.1 Cleanup (2025-11-21)
+### `pre-v1.9.1/` - All Legacy Content (Archived 2025-11-26)
 
-Deprecated entry points archived with introduction of `INSTALL.ps1` one-click installation system:
+All pre-v1.9.1 artifacts have been consolidated into the `pre-v1.9.1/` subdirectory:
 
-- **`SMART_SETUP.ps1`** – Intelligent setup script superseded by `INSTALL.ps1` automated installation wizard
-  - Location: `archive/deprecated/v1.8.6.1_cleanup/SMART_SETUP.ps1`
-  - Reason: Replaced with more comprehensive `INSTALL.ps1` that handles Docker installation, environment setup, and full validation
-  - Migration: Use `.\INSTALL.ps1` for fresh installations, `.\RUN.ps1` for daily operations
-  - References: Removed from all documentation (README.md, DEPLOY_ON_NEW_PC.md)
+- **Release Notes**: v1.6.x, v1.8.x release documentation
+- **Session Logs**: Development session documentation from November 2025
+- **Deprecated Scripts**: Legacy scripts replaced by DOCKER.ps1/NATIVE.ps1
+- **Consolidation Guides**: Migration documentation for script consolidation
+- **Installer Docs**: Old installer documentation referencing deprecated scripts
 
-### Legacy Scripts (v1.6.2 Archival)
+See `pre-v1.9.1/README.md` for complete inventory.
 
-Deprecated entry points formally removed from active workspace in v1.6.2 release (2025-11-15):
+---
 
-- `scripts/SETUP.*` – legacy setup wrapper superseded by `RUN.ps1`.
-- `scripts/STOP.*` (root + `scripts/deploy/`) – legacy stop helpers replaced by `SMS.ps1 -Stop`.
-- `scripts/*/KILL_FRONTEND_NOW.*` – placeholder wrappers now consolidated under `scripts/operator/`.
-- `tools/stop_monitor.ps1` – pointer script replaced by `scripts/operator/stop_monitor.ps1`.
-- `scripts/stage_and_commit.ps1` - One-time automation for cleanup commit (2025-11-16)
-- `scripts/docker/DOCKER_FULLSTACK_*.ps1` + `scripts/deploy/docker/DOCKER_FULLSTACK_*.ps1` – superseded by `RUN.ps1` (fullstack) in v1.8.3
+## Current Architecture (v1.9.1+)
 
-### Historical Documentation (2025-11-16 Archival)
+The current codebase uses a simplified, consolidated structure:
 
-Completed analyses and status reports from October-November 2025:
+| Component | Purpose |
+|-----------|---------|
+| `DOCKER.ps1` | All Docker deployment operations |
+| `NATIVE.ps1` | All native development operations |
+| Port `8080` | Standard Docker port (not 8082) |
 
-| File | Original Date | Purpose |
-|------|---------------|---------|
-| `APP_LIFECYCLE_EVALUATION.md` | 2025-11-06 | Lifecycle evaluation & recommendations |
-| `ARTIFACT_STRATEGY.md` | Planning | Artifact management strategy |
-| `CI_MONITORING_CHANGES_SUMMARY.md` | 2025-11-11 | CI monitoring change summary |
-| `CLEANUP_COMPLETE.md` | 2025-11-16 | Cleanup completion report |
-| `CLEANUP_SUMMARY.md` | 2025-11-16 | Technical cleanup summary |
-| `CODE_REVIEW_FINDINGS.md` | 2025-10-29 | Comprehensive code review (v1.0) |
-| `DEPENDENCY_UPGRADES.md` | 2025 | Dependency upgrade analysis (stale) |
-| `DOCUMENTATION_CLEANUP_2025-01-10.md` | 2025-01-10 | Original doc consolidation summary |
-| `FRONTEND_ASSESSMENT.md` | 2025 | Frontend assessment (stale) |
-| `GITHUB_RELEASE_DRAFT_v1.2.0.md` | Historical | Release draft for v1.2.0 |
-| `HISTORY_PURGE_PLAN.md` | Planning | History purge planning |
-| `MODE_AWARE_UI_QUICK_REFERENCE.md` | Feature ref | Control panel mode-aware UI reference |
-| `NEXT_STEPS.md` | 2025-11-16 | Post-cleanup action items |
+---
+
+## Policy
+
+- Files in this archive are for **historical reference only**
+- Do not reference archived content for current development
+- New deprecations should be placed in version-specific subdirectories
 | `PR_DRAFT.md` | Historical | PR description (startup hardening) |
 | `REMOVED_DOCS_SUMMARY.md` | 2025-11-04 | Summary of removed docs |
 | `ROUTER_REFACTORING_STATUS.md` | 2025-11-06 | Router refactoring (COMPLETE) |

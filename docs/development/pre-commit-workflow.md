@@ -92,8 +92,8 @@ All 6 phases completed successfully:
 
 ### Verified Current
 - `TODO.md` - Up-to-date roadmap (no stale items)
-- `SCRIPTS_CONSOLIDATION_GUIDE.md` - Deprecation notices accurate
-- `.github/copilot-instructions.md` - v1.8.8 patterns documented
+- `archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md` - Deprecation notices (archived)
+- `.github/copilot-instructions.md` - v1.9.3 patterns documented
 
 ---
 

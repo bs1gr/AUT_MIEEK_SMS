@@ -29,7 +29,7 @@ Legacy scripts (RUN.ps1, INSTALL.ps1, SMS.ps1, run-native.ps1, SUPER_CLEAN_AND_D
 
 ## Post‑Release Checklist
 
-- Verify healthy start: `DOCKER.ps1 -Start` (port 8082) + `/health` endpoint OK.
+- Verify healthy start: `DOCKER.ps1 -Start` (port 8080) + `/health` endpoint OK.
 - Run backend & critical frontend API tests (already passing in release validation).
 - Validate installer build & (optional) signing.
 - Communicate consolidation changes to operators (link guide).

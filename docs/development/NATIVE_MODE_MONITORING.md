@@ -21,7 +21,7 @@ These are distributed as Docker images and don't have simple native installation
 
 ## Native Mode Options
 
-When running `SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native`, you have several alternatives:
+When running native development with `NATIVE.ps1`, you have several alternatives:
 
 ### Option 1: Metrics Endpoint Only (Lightweight) ✅
 
@@ -34,22 +34,20 @@ When running `SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native`, you have several al
 **How to use:**
 
 1. **Start backend in native mode:**
+
    ```powershell
-   .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native
+   .\NATIVE.ps1 -Backend
    ```
 
 2. **Ensure metrics are enabled:**
+
    ```powershell
    # In backend/.env or environment variable
    $env:ENABLE_METRICS="1"
    ```
 
-3. **Start backend:**
-   ```powershell
-   backend\.venv\Scripts\python -m uvicorn backend.main:app --reload
-   ```
+3. **Access metrics:**
 
-4. **Access metrics:**
    ```powershell
    # View in browser
    Start-Process http://localhost:8000/metrics
@@ -94,13 +92,15 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
 **How to use:**
 
 1. **Start native services:**
+
    ```powershell
-   .\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
+   .\NATIVE.ps1 -Start
    ```
 
 2. **Start monitoring stack separately:**
+
    ```powershell
-   docker-compose -f docker-compose.monitoring.yml up -d
+   docker-compose -f docker/docker-compose.monitoring.yml up -d
    ```
 
 3. **Access everything:**
@@ -262,7 +262,7 @@ scrape_configs:
 
 ```powershell
 # Option 1: Native only (fastest)
-.\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
+.\NATIVE.ps1 -Start
 
 # Check metrics manually when needed
 curl http://localhost:8000/metrics
@@ -272,10 +272,10 @@ curl http://localhost:8000/metrics
 
 ```powershell
 # Option 2: Hybrid mode
-.\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
+.\NATIVE.ps1 -Start
 
 # Start monitoring
-docker-compose -f docker-compose.monitoring.yml up -d
+docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Open Grafana
 Start-Process http://localhost:3000
@@ -362,10 +362,10 @@ Usage:
 
 ### Complete Setup (Hybrid Mode)
 
-**Step 1: Clean and setup native mode**
+**Step 1: Setup native dependencies**
 
 ```powershell
-.\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native
+.\NATIVE.ps1 -Setup
 ```
 
 **Step 2: Enable metrics**
@@ -534,17 +534,17 @@ docker-compose -f docker-compose.monitoring.yml down
 
 ```powershell
 # Native backend + frontend (fast reloads)
-.\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native -StartServices
+.\NATIVE.ps1 -Start
 
 # Add monitoring when needed (Docker)
-docker-compose -f docker-compose.monitoring.yml up -d
+docker-compose -f docker/docker-compose.monitoring.yml up -d
 ```
 
 **For production-like:**
 
 ```powershell
 # Everything in Docker
-.\SMS.ps1 -WithMonitoring
+.\DOCKER.ps1 -WithMonitoring
 ```
 
 ---
@@ -553,7 +553,10 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ```powershell
 # Native mode setup
-.\SUPER_CLEAN_AND_DEPLOY.ps1 -SetupMode Native
+.\NATIVE.ps1 -Setup
+
+# Start native mode
+.\NATIVE.ps1 -Start
 
 # Enable metrics
 $env:ENABLE_METRICS="1"
@@ -562,7 +565,7 @@ $env:ENABLE_METRICS="1"
 curl http://localhost:8000/metrics
 
 # Add monitoring (Docker)
-docker-compose -f docker-compose.monitoring.yml up -d
+docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Access Grafana
 Start-Process http://localhost:3000

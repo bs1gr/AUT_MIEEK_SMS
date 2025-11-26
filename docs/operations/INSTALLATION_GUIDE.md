@@ -1,7 +1,7 @@
 # Student Management System - Installation Guide
 
-**Version**: 1.5.0
-**Last Updated**: November 7, 2025
+**Version**: 1.9.3
+**Last Updated**: January 2025
 
 ---
 
@@ -72,20 +72,23 @@ cd AUT_MIEEK_SMS
    - Select "Windows PowerShell" or "Terminal"
 
 2. **Navigate to SMS directory**
+
    ```powershell
    cd C:\SMS\student-management-system
    ```
+
    (Replace with your actual path)
 
-
 3. **Start SMS (Docker, recommended)**
+
    ```powershell
-   .\RUN.ps1
+   .\DOCKER.ps1 -Start
    ```
 
    **For native development (devs only):**
+
    ```powershell
-   pwsh -NoProfile -File scripts/dev/run-native.ps1
+   .\NATIVE.ps1 -Start
    ```
 
 4. **Wait for first-time setup**
@@ -112,21 +115,23 @@ The application is now running. Here's what you can do:
 | <http://localhost:8080/docs> | API documentation |
 | <http://localhost:8080/health> | Health status |
 
-
 ### Daily Usage
 
 ```powershell
-.\RUN.ps1           # Start SMS (or check if already running)
-.\RUN.ps1 -Stop     # Stop SMS
-.\RUN.ps1 -Status   # Check if running
-.\RUN.ps1 -Logs     # View application logs
-.\RUN.ps1 -Update   # Update to latest version (with automatic backup)
-.\RUN.ps1 -Backup   # Create manual database backup
+.\DOCKER.ps1 -Start    # Start SMS (or check if already running)
+.\DOCKER.ps1 -Stop     # Stop SMS
+.\DOCKER.ps1 -Status   # Check if running
+.\DOCKER.ps1 -Logs     # View application logs
+.\DOCKER.ps1 -Update   # Update to latest version (with automatic backup)
+.\DOCKER.ps1 -Backup   # Create manual database backup
 ```
 
 **For native development:**
+
 ```powershell
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+.\NATIVE.ps1 -Start    # Start backend + frontend with hot reload
+.\NATIVE.ps1 -Stop     # Stop all processes
+.\NATIVE.ps1 -Status   # Check status
 ```
 
 ---
@@ -136,10 +141,11 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 To update to the latest version:
 
 ```powershell
-.\RUN.ps1 -Update
+.\DOCKER.ps1 -Update
 ```
 
 This will:
+
 1. ✅ Create automatic backup of your database
 2. ✅ Download latest changes
 3. ✅ Rebuild Docker image
@@ -154,7 +160,7 @@ Your data is safe in the `backups/` directory.
 To stop the application:
 
 ```powershell
-.\RUN.ps1 -Stop
+.\DOCKER.ps1 -Stop
 ```
 
 Or simply press `Ctrl+C` in the terminal where SMS is running (it will stop gracefully).
@@ -166,73 +172,74 @@ Or simply press `Ctrl+C` in the terminal where SMS is running (it will stop grac
 ### Problem: "Docker is not available"
 
 **Solution**:
+
 1. Check if Docker Desktop is running (look for whale icon in system tray)
 2. If not running, start Docker Desktop
 3. Wait 1-2 minutes for Docker to fully start
-4. Try `.\RUN.ps1` again
+4. Try `.\DOCKER.ps1 -Start` again
 
 ### Problem: "Port 8080 is already in use"
 
 **Solution 1**: Find and stop the conflicting application:
+
 ```powershell
 # Find what's using port 8080
 netstat -ano | findstr ":8080"
 
-# Note the PID (last column). Prefer using operator tooling to stop services safely:
-#  - Request the control API to stop the frontend: .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
-# If you are an operator and understand the risks, use the emergency script (requires explicit confirmation):
-#  .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
-
-See also the operator emergency guide for policies and safe procedures:
-
-- `docs/OPERATOR_EMERGENCY_GUIDE.md`
+# Stop SMS if it's running
+.\DOCKER.ps1 -Stop
 ```
 
-**Solution 2**: Change SMS to use a different port:
-```powershell
-# Edit RUN.ps1, change line 33:
-$PORT = 8081  # (or any other free port)
-```
+**Solution 2**: Change SMS to use a different port by editing the docker-compose configuration.
 
 ### Problem: "Build failed" or "Failed to start container"
 
 **Solution**:
+
 1. Check if you have enough disk space (need 10 GB free)
 2. Restart Docker Desktop:
    - Right-click Docker whale icon
    - Select "Restart"
    - Wait 2 minutes
-   - Try `.\RUN.ps1` again
+   - Try `.\DOCKER.ps1 -Start` again
 
 3. If still failing, clean Docker:
+
    ```powershell
-   docker system prune -a
+   .\DOCKER.ps1 -DeepClean
    # Warning: This removes all unused Docker data!
    ```
 
 ### Problem: Application starts but web page doesn't load
 
 **Solution**:
+
 1. Wait 30 seconds (application may still be starting)
 2. Check application status:
+
    ```powershell
-   .\RUN.ps1 -Status
+   .\DOCKER.ps1 -Status
    ```
+
 3. View logs for errors:
+
    ```powershell
-   .\RUN.ps1 -Logs
+   .\DOCKER.ps1 -Logs
    ```
+
 4. If you see errors, take a screenshot and report the issue
 
 ### Problem: "Backup failed"
 
 **Solution**:
+
 1. Check if `backups/` directory exists
 2. Make sure you have write permissions
 3. Check disk space
 4. Try manual backup:
+
    ```powershell
-   .\RUN.ps1 -Backup
+   .\DOCKER.ps1 -Backup
    ```
 
 ### Problem: Forgot to stop before shutdown
@@ -240,8 +247,9 @@ $PORT = 8081  # (or any other free port)
 **Solution**:
 Don't worry! Docker will auto-restart the container on next boot.
 To stop it:
+
 ```powershell
-.\RUN.ps1 -Stop
+.\DOCKER.ps1 -Stop
 ```
 
 ---
@@ -252,9 +260,8 @@ After installation, you'll have:
 
 ```text
 student-management-system/
-├── RUN.ps1                    ← Canonical Docker entry point (one-click)
-├── scripts/dev/run-native.ps1 ← Canonical native entry point (dev only)
-├── SMS.ps1                    ← Docker management (optional)
+├── DOCKER.ps1                 ← Docker deployment script (v2.0)
+├── NATIVE.ps1                 ← Native development script (v2.0)
 ├── VERSION                    ← Current version number
 ├── docker/                    ← Docker configuration
 ├── backend/                   ← Application code
@@ -269,11 +276,11 @@ student-management-system/
 
 ## 💾 Backup and Data
 
-
 ### Automatic Backups
 
 Backups are created automatically:
-- Before every update (`.\RUN.ps1 -Update`)
+
+- Before every update (`.\DOCKER.ps1 -Update`)
 - Stored in `backups/` directory
 - Named with timestamp and checksum (e.g., `sms_backup_20251106_143022_a1b2c3d4.db`)
 - Last 10 backups are kept (older ones auto-deleted)
@@ -283,20 +290,21 @@ Backups are created automatically:
 Create a backup anytime:
 
 ```powershell
-.\RUN.ps1 -Backup
+.\DOCKER.ps1 -Backup
 ```
-
 
 ### Restore from Backup
 
 1. Stop SMS:
+
    ```powershell
-   .\RUN.ps1 -Stop
+   .\DOCKER.ps1 -Stop
    ```
 
 2. Find your backup file in `backups/` directory
 
 3. Replace the database:
+
    ```powershell
    # Copy backup into Docker volume
    docker run --rm -v sms_data:/data -v ${PWD}/backups:/backups alpine `
@@ -304,8 +312,9 @@ Create a backup anytime:
    ```
 
 4. Start SMS:
+
    ```powershell
-   .\RUN.ps1
+   .\DOCKER.ps1 -Start
    ```
 
 ---
@@ -394,10 +403,13 @@ Same as Windows, but use Terminal instead of PowerShell:
 
 ```bash
 # Start SMS (Docker)
-./RUN.ps1
+pwsh ./DOCKER.ps1 -Start
+
+# Or use docker compose directly
+docker compose up -d --build
 ```
 
-> **Note:** Only RUN.ps1 (Docker) and scripts/dev/run-native.ps1 (native, dev only) are supported as entry points in v1.5.0+. All other scripts are deprecated or removed.
+> **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in v1.9.0+. All legacy scripts were consolidated.
 
 ---
 
@@ -415,7 +427,7 @@ Same as Windows, but use Terminal instead of PowerShell:
 If you need to report an issue, include logs:
 
 ```powershell
-.\RUN.ps1 -Logs > logs.txt
+.\DOCKER.ps1 -Logs > logs.txt
 ```
 
 This saves logs to `logs.txt` which you can share.
@@ -460,7 +472,7 @@ After installation:
 
 - [ ] Docker Desktop installed and running
 - [ ] SMS downloaded and extracted
-- [ ] Ran `.\RUN.ps1` successfully
+- [ ] Ran `.\DOCKER.ps1 -Start` successfully
 - [ ] Can access <http://localhost:8080>
 - [ ] Imported sample data (optional)
 - [ ] Created first student/course (optional)
@@ -470,6 +482,6 @@ After installation:
 
 ---
 
-**Version**: 1.5.0
-**Last Updated**: November 7, 2025
+**Version**: 1.9.3
+**Last Updated**: January 2025
 **License**: MIT

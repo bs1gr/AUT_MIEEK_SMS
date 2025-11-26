@@ -302,7 +302,7 @@ switch ($deploymentState) {
 
         Write-Action "`nStop services:"
         Write-Host "  docker compose stop" -ForegroundColor White
-        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor Gray
+        Write-Host "  .\DOCKER.ps1 -Stop" -ForegroundColor Gray
 
         Write-Action "`nStop and remove containers:"
         Write-Host "  docker compose down" -ForegroundColor White
@@ -342,14 +342,12 @@ switch ($deploymentState) {
         Write-Action "Stop services:"
         Write-Host "  Press Ctrl+C in each terminal" -ForegroundColor White
         Write-Host "  OR use:" -ForegroundColor Gray
-        Write-Host "  .\SMS.ps1 -Stop" -ForegroundColor White
+        Write-Host "  .\NATIVE.ps1 -Stop" -ForegroundColor White
 
     Write-Action "`nRestart services:"
-    Write-Host "  1. Stop with Ctrl+C or SMS.ps1 -Stop" -ForegroundColor White
+    Write-Host "  1. Stop with Ctrl+C or NATIVE.ps1 -Stop" -ForegroundColor White
     Write-Host "  2. Start with:" -ForegroundColor White
-    Write-Host "     .\SMS.ps1 -Quick" -ForegroundColor Gray
-    Write-Host "     OR" -ForegroundColor Gray
-    Write-Host "     .\RUN.ps1" -ForegroundColor Gray
+    Write-Host "     .\NATIVE.ps1 -Start" -ForegroundColor Gray
 
         Write-Action "`nView process details:"
         if ($backendProcess) {
@@ -360,9 +358,8 @@ switch ($deploymentState) {
         }
 
         Write-Action "`nSwitch to Docker mode:"
-        Write-Host "  1. Stop native processes: .\SMS.ps1 -Stop" -ForegroundColor White
-        Write-Host "  2. Start Docker: docker compose up -d --build" -ForegroundColor White
-        Write-Host "     OR use: .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor Gray
+        Write-Host "  1. Stop native processes: .\NATIVE.ps1 -Stop" -ForegroundColor White
+        Write-Host "  2. Start Docker: .\DOCKER.ps1 -Start" -ForegroundColor White
     }
 
     "NOT_RUNNING" {
@@ -376,7 +373,7 @@ switch ($deploymentState) {
             Write-Host "  docker compose up -d --build" -ForegroundColor White
             Write-Host "  OR use:" -ForegroundColor Gray
             Write-Host "  .\scripts\docker\DOCKER_UP.ps1" -ForegroundColor White
-            Write-Host "  .\scripts\docker\DOCKER_RUN.ps1 -Mode compose" -ForegroundColor Gray
+            Write-Host "  .\DOCKER.ps1 -Start" -ForegroundColor Gray
 
             Write-Action "`nAccess after starting:"
             Write-Host "  Frontend: http://localhost:5173" -ForegroundColor White
@@ -392,10 +389,8 @@ switch ($deploymentState) {
         Write-Host "  - Node.js 18+ installed" -ForegroundColor White
 
     Write-Action "`nQuick Start (Native):"
-    Write-Host "  .\RUN.ps1" -ForegroundColor White
-    Write-Host "  OR" -ForegroundColor Gray
-    Write-Host "  .\SMART_SETUP.ps1  # Advanced setup options" -ForegroundColor Gray
-    Write-Host "  .\SMS.ps1 -Quick   # Subsequent runs" -ForegroundColor Gray
+    Write-Host "  .\NATIVE.ps1 -Setup   # First time setup" -ForegroundColor White
+    Write-Host "  .\NATIVE.ps1 -Start   # Start backend + frontend" -ForegroundColor White
 
         if (-not $dockerAvailable) {
             Write-Host "`n"

@@ -89,8 +89,8 @@ PDFs should be placed in:
 - `frontend/public/docs/SMS_User_Guide_EL.pdf`
 
 This makes them accessible at:
-- `http://localhost:8082/docs/SMS_User_Guide_EN.pdf`
-- `http://localhost:8082/docs/SMS_User_Guide_EL.pdf`
+- `<http://localhost:8080/docs/SMS_User_Guide_EN.pdf>`
+- `<http://localhost:8080/docs/SMS_User_Guide_EL.pdf>`
 
 ## Styling Options
 
