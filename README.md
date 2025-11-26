@@ -6,23 +6,32 @@
 
 ### **For End Users** - One-Click Installation ⭐ NEW!
 
-#### 🎯 Windows Installation Wizard (Easiest Method)
+#### 🎯 Windows Installer (Easiest Method)
 
 **GUI Installer** - No PowerShell knowledge required!
 
-1. **Download** the latest release zip from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
-2. **Extract** to any location (Desktop, Downloads, etc.)
-3. **Run** `DOCKER.ps1 -Install` in PowerShell (as Administrator)
-4. **Follow** the visual wizard (7 easy steps, ~10-15 minutes)
+1. **Download** `SMS_Installer_X.X.X.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+2. **Right-click** → **"Run as Administrator"**
+3. **Follow** the installation wizard
+4. **Install Docker Desktop** if prompted (the installer will check)
+5. **Launch** from the desktop shortcut
 
 **Features:**
-- ✅ Visual step-by-step wizard with progress tracking
-- ✅ Automatic Docker Desktop download and installation
-- ✅ System requirements validation
-- ✅ Real-time installation logs
-- ✅ GUI Uninstaller with backup options
-- ✅ Deep Docker cleanup for troubleshooting
+
+- ✅ Professional Windows installer wizard
+- ✅ Automatic Docker Desktop detection
+- ✅ Desktop and Start Menu shortcuts
+- ✅ Uninstaller included
 - ✅ No PowerShell execution policy issues
+
+> **Note:** Docker Desktop is required. The installer will guide you if it's not installed.
+
+#### Alternative: ZIP Distribution
+
+1. **Download** `SMS_Distribution_X.X.X.zip` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+2. **Extract** to any location (Desktop, Documents, etc.)
+3. **Run** `DOCKER.ps1 -Install` in PowerShell (as Administrator)
+4. **Follow** the prompts (~5-10 minutes first run)
 
 **📖 Complete Guide:** [docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md](docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md)
 
