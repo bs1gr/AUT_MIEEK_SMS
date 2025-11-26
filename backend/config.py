@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from functools import lru_cache
-from typing import List, Any, Literal, Mapping
+import logging
 import os
 import secrets
-import logging
 import sys
-
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
 from pathlib import Path
-from pydantic import field_validator, model_validator, EmailStr, ValidationInfo
+from typing import Any, List, Literal, Mapping
 from urllib.parse import quote_plus, urlencode
+
+from pydantic import EmailStr, ValidationInfo, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def _path_within(path: Path, root: Path) -> bool:
@@ -377,7 +377,7 @@ class Settings(BaseSettings):
         - CI/test environments: Auto-generates temporary secure key
         """
         logger = logging.getLogger(__name__)
-        
+
         is_ci = bool(
             os.environ.get("GITHUB_ACTIONS")
             or os.environ.get("CI")
@@ -399,7 +399,7 @@ class Settings(BaseSettings):
 
         normalized_secret = (self.SECRET_KEY or "").strip()
         object.__setattr__(self, "SECRET_KEY", normalized_secret)
-        
+
         lower_secret = normalized_secret.lower()
 
         # Define insecure patterns
@@ -417,14 +417,14 @@ class Settings(BaseSettings):
             or "placeholder" in lower_secret
         )
         is_too_short = len(normalized_secret) < 32
-        
+
         # Detect security issue type
         security_issue: str | None = None
         if is_placeholder:
             security_issue = "placeholder/default value detected"
         elif is_too_short:
             security_issue = f"must be at least 32 characters (current: {len(normalized_secret)})"
-        
+
         # If no issues, return early
         if not security_issue:
             return self
@@ -432,7 +432,7 @@ class Settings(BaseSettings):
         # Determine enforcement level
         enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
         is_production = self.SMS_ENV.lower() in ("production", "prod", "staging")
-        
+
         def handle_insecure(reason: str, warn_only: bool = False) -> "Settings":
             """Handle insecure SECRET_KEY based on environment and enforcement."""
             if (is_ci or is_pytest or allow_insecure_flag) and not warn_only:
@@ -444,14 +444,14 @@ class Settings(BaseSettings):
                 )
                 object.__setattr__(self, "SECRET_KEY", new_key)
                 return self
-            
+
             error_msg = (
                 f"🔐 SECRET_KEY SECURITY ISSUE: {reason}\n"
                 f"   Environment: {self.SMS_ENV} ({self.SMS_EXECUTION_MODE} mode)\n"
                 f"   Generate strong key: python -c \"import secrets; print(secrets.token_urlsafe(48))\"\n"
                 f"   Set in backend/.env: SECRET_KEY=<generated_key>"
             )
-            
+
             if warn_only:
                 logger.warning(error_msg)
                 if is_production:
@@ -462,7 +462,7 @@ class Settings(BaseSettings):
                 return self
             else:
                 raise ValueError(error_msg)
-        
+
         # Apply enforcement policy
         if enforcement_active:
             # Strict enforcement: error unless CI/test

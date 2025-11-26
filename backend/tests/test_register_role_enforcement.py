@@ -44,8 +44,10 @@ def test_admin_token_allows_setting_role(client):
 
 def test_invalid_or_expired_admin_token_is_ignored(client):
     # Create a token that is expired (exp in past) or signed with wrong secret
-    import jwt
     from datetime import datetime, timedelta, timezone
+
+    import jwt
+
     from backend import config
 
     # Expired token

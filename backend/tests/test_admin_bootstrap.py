@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from backend.admin_bootstrap import ensure_default_admin_account
-from backend.models import User, RefreshToken
+from backend.models import RefreshToken, User
 from backend.tests.conftest import TestingSessionLocal
 
 _pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -141,8 +141,9 @@ def test_bootstrap_updates_existing_user_without_force_reset(clean_db):
 
 def test_bootstrap_creates_user_and_allows_login(clean_db):
     # Ensure bootstrap creates user and that login endpoint accepts the configured password
-    from backend.config import settings
     from fastapi.testclient import TestClient
+
+    from backend.config import settings
 
     # Configure bootstrap credentials
     settings.DEFAULT_ADMIN_EMAIL = "bootstrap-login@example.com"

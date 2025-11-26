@@ -3,15 +3,16 @@ Admin Operations Router
 Provides backup, clear, and seed (insert) operations for the database.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
-from sqlalchemy.orm import Session
-from typing import Optional
-from pydantic import BaseModel
+import logging
 import os
 import shutil
 from datetime import datetime
-import logging
 from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +26,13 @@ BACKUPS_DIR = str((_PROJECT_ROOT / "backups").resolve())
 COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
 STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
 
-from backend.db import get_session as get_db
 from backend.db import engine as db_engine
-from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
-from .routers_auth import optional_require_role
-from backend.import_resolver import import_names
+from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
+from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
+
+from .routers_auth import optional_require_role
 
 
 class ClearPayload(BaseModel):

@@ -1,5 +1,6 @@
-from backend import auto_import_courses as aic
 import httpx
+
+from backend import auto_import_courses as aic
 
 
 class DummyResponse:

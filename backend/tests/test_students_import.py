@@ -1,6 +1,7 @@
 """Test student import functionality to ensure all fields are preserved."""
 
 import json
+
 from fastapi.testclient import TestClient
 
 

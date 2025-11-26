@@ -8,7 +8,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
-from backend.errors import ErrorCode, build_error_detail, http_error, internal_server_error
+from backend.errors import (
+    ErrorCode,
+    build_error_detail,
+    http_error,
+    internal_server_error,
+)
 from backend.schemas.students import StudentCreate, StudentUpdate
 
 logger = logging.getLogger(__name__)
@@ -167,7 +172,9 @@ class StudentService:
         the canonical backend.import_resolver implementation.
         """
         try:  # Local import to pick up runtime monkeypatches
-            from backend.routers import routers_students as _routers_students  # type: ignore
+            from backend.routers import (
+                routers_students as _routers_students,  # type: ignore
+            )
 
             return getattr(_routers_students, "import_names")
         except Exception:

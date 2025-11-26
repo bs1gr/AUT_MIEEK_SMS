@@ -4,8 +4,8 @@ import importlib
 import logging
 from typing import Any, Callable
 
-from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
 _pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 

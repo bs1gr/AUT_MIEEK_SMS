@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator, field_validator, ConfigDict
-from typing import Optional
 from datetime import date
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class GradeCreate(BaseModel):

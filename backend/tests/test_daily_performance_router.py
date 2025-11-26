@@ -4,6 +4,7 @@ from datetime import date
 from typing import Any, Dict, cast
 
 import pytest
+
 from backend.tests.utils import get_error_message
 
 

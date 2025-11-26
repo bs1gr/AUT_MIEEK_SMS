@@ -1,21 +1,22 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.errors import ErrorCode, http_error
 from backend.config import get_settings
+from backend.errors import ErrorCode, http_error
+
 from .common import (
-    docker_compose,
     check_docker_running,
-    create_unique_volume,
     check_npm_installed,
+    create_unique_volume,
+    docker_compose,
     run_command,
 )
 
@@ -167,35 +168,35 @@ async def create_database_backup(request: Request):
     try:
         settings = get_settings()
         db_url = settings.DATABASE_URL
-        
+
         # Only support sqlite URLs for file backup
         if not db_url.startswith("sqlite"):
             raise http_error(400, ErrorCode.BAD_REQUEST, "Backup supported only for SQLite database", request)
-        
+
         # Extract filesystem path (sqlite:///path or sqlite:////abs/path)
         path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
         db_path = Path(path_part.lstrip("/") if os.name == "nt" else path_part)
-        
+
         if not db_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Database file not found", request, context={"db_path": str(db_path)})
-        
+
         # Create backups directory if it doesn't exist
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = project_root / "backups" / "database"
         backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create backup filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"student_management.backup_{timestamp}.db"
         backup_path = backup_dir / backup_filename
-        
+
         # Copy database file
         import shutil
         shutil.copy2(db_path, backup_path)
-        
+
         # Get file size for response
         file_size = backup_path.stat().st_size
-        
+
         return OperationResult(
             success=True,
             message="Database backup created successfully",

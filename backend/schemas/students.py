@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict, model_validator
-from typing import Optional
-from datetime import date
 import re
+from datetime import date
+from typing import Optional
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class StudentCreate(BaseModel):

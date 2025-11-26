@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import importlib
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from backend import logging_config
-import importlib
 
 
 def test_initialize_logging_fallback_import(tmp_path, monkeypatch):

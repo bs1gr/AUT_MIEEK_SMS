@@ -3,8 +3,8 @@ Request ID Middleware
 Generates unique IDs for each request to enable request tracing through logs.
 """
 
-import uuid
 import logging
+import uuid
 from contextvars import ContextVar
 from typing import Callable
 

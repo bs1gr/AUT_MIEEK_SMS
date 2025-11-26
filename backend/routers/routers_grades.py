@@ -3,24 +3,28 @@ IMPROVED: Grade Management Routes
 Handles grade CRUD and grade calculation operations
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from sqlalchemy.orm import Session
-from typing import List, Optional, Tuple, cast
-from datetime import date, timedelta
-from pydantic import BaseModel
 import logging
+from datetime import date, timedelta
+from typing import List, Optional, Tuple, cast
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"description": "Not found"}})
 
 
-from backend.schemas.grades import GradeCreate, GradeUpdate, GradeResponse
-from backend.schemas.common import PaginatedResponse, PaginationParams
-from backend.import_resolver import import_names
+from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
-from backend.db_utils import transaction, get_by_id_or_404, paginate
-from backend.rate_limiting import limiter, RATE_LIMIT_WRITE  # Add rate limiting for write endpoints
+from backend.import_resolver import import_names
+from backend.rate_limiting import (  # Add rate limiting for write endpoints
+    RATE_LIMIT_WRITE,
+    limiter,
+)
+from backend.schemas.common import PaginatedResponse, PaginationParams
+from backend.schemas.grades import GradeCreate, GradeResponse, GradeUpdate
 
 
 class GradeAnalysis(BaseModel):
@@ -36,8 +40,8 @@ class GradeAnalysis(BaseModel):
 
 
 # ========== DEPENDENCY INJECTION ==========
-from backend.db import get_session as get_db
 from backend.config import settings
+from backend.db import get_session as get_db
 from backend.routers.routers_auth import optional_require_role
 
 

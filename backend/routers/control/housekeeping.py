@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-from datetime import datetime
 import os
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.errors import ErrorCode, http_error
 from backend.control_auth import control_api_enabled
+from backend.errors import ErrorCode, http_error
+
 from .common import (
-    in_docker_container,
-    docker_compose,
     check_docker_running,
+    docker_compose,
+    in_docker_container,
     infer_restart_command,
     spawn_restart_thread,
 )

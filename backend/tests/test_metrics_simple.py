@@ -6,6 +6,7 @@ Note:
     in environments where the package isn't installed.
 """
 from fastapi import FastAPI
+
 try:  # Optional dependency for local manual testing only
         from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
 except Exception:  # pragma: no cover - keep imports optional for CI

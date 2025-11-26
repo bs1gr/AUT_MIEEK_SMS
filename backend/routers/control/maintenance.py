@@ -7,9 +7,9 @@ authentication and authorization policies.
 from __future__ import annotations
 
 import os
-from pathlib import Path
-from typing import Dict, Any, Optional, Literal
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Literal, Optional
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
@@ -50,7 +50,7 @@ def _get_policy_description(enabled: bool, mode: str) -> str:
     """Generate human-readable policy description."""
     if not enabled:
         return "🔓 No authentication required (all endpoints public)"
-    
+
     if mode == "disabled":
         return "🔓 No authentication required (all endpoints public)"
     elif mode == "permissive":
@@ -68,22 +68,22 @@ async def get_auth_settings(request: Request):
     Returns the effective configuration including AUTH_ENABLED and AUTH_MODE.
     """
     from backend.config import settings
-    
+
     # Determine source
     source = "defaults"
     backend_env = Path(__file__).resolve().parents[3] / "backend" / ".env"
     root_env = Path(__file__).resolve().parents[3] / ".env"
-    
+
     if backend_env.exists():
         source = "backend/.env"
     elif root_env.exists():
         source = ".env"
     elif any(k.startswith("AUTH_") for k in os.environ):
         source = "environment variables"
-    
+
     auth_enabled = getattr(settings, "AUTH_ENABLED", False)
     auth_mode = getattr(settings, "AUTH_MODE", "disabled")
-    
+
     return AuthSettingsResponse(
         auth_enabled=auth_enabled,
         auth_mode=auth_mode,
@@ -112,9 +112,9 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
         project_root = Path(__file__).resolve().parents[3]
         backend_env = project_root / "backend" / ".env"
         root_env = project_root / ".env"
-        
+
         env_file = backend_env if backend_env.exists() else root_env
-        
+
         if not env_file.exists():
             # Create from .env.example if available
             example_file = env_file.parent / ".env.example"
@@ -126,53 +126,53 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                     message="No .env file found and no .env.example to copy from",
                     details={"expected_path": str(env_file)}
                 )
-        
+
         # Read current .env
         lines = env_file.read_text(encoding="utf-8").splitlines()
         updated_lines = []
         updated_keys = set()
-        
+
         # Update existing keys
         for line in lines:
             stripped = line.strip()
-            
+
             # Update AUTH_ENABLED
             if payload.auth_enabled is not None and stripped.startswith("AUTH_ENABLED="):
                 updated_lines.append(f"AUTH_ENABLED={str(payload.auth_enabled).lower()}")
                 updated_keys.add("AUTH_ENABLED")
-            
+
             # Update AUTH_MODE
             elif payload.auth_mode is not None and stripped.startswith("AUTH_MODE="):
                 updated_lines.append(f"AUTH_MODE={payload.auth_mode}")
                 updated_keys.add("AUTH_MODE")
-            
+
             # Update AUTH_LOGIN_MAX_ATTEMPTS
             elif payload.auth_login_max_attempts is not None and stripped.startswith("AUTH_LOGIN_MAX_ATTEMPTS="):
                 updated_lines.append(f"AUTH_LOGIN_MAX_ATTEMPTS={payload.auth_login_max_attempts}")
                 updated_keys.add("AUTH_LOGIN_MAX_ATTEMPTS")
-            
+
             # Update AUTH_LOGIN_LOCKOUT_SECONDS
             elif payload.auth_login_lockout_seconds is not None and stripped.startswith("AUTH_LOGIN_LOCKOUT_SECONDS="):
                 updated_lines.append(f"AUTH_LOGIN_LOCKOUT_SECONDS={payload.auth_login_lockout_seconds}")
                 updated_keys.add("AUTH_LOGIN_LOCKOUT_SECONDS")
-            
+
             else:
                 updated_lines.append(line)
-        
+
         # Append missing keys at the end (after AUTH section if present)
         new_keys = []
         if payload.auth_enabled is not None and "AUTH_ENABLED" not in updated_keys:
             new_keys.append(f"AUTH_ENABLED={str(payload.auth_enabled).lower()}")
-        
+
         if payload.auth_mode is not None and "AUTH_MODE" not in updated_keys:
             new_keys.append(f"AUTH_MODE={payload.auth_mode}")
-        
+
         if payload.auth_login_max_attempts is not None and "AUTH_LOGIN_MAX_ATTEMPTS" not in updated_keys:
             new_keys.append(f"AUTH_LOGIN_MAX_ATTEMPTS={payload.auth_login_max_attempts}")
-        
+
         if payload.auth_login_lockout_seconds is not None and "AUTH_LOGIN_LOCKOUT_SECONDS" not in updated_keys:
             new_keys.append(f"AUTH_LOGIN_LOCKOUT_SECONDS={payload.auth_login_lockout_seconds}")
-        
+
         # Find AUTH section and insert new keys there
         if new_keys:
             auth_section_idx = -1
@@ -180,7 +180,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                 if "AUTHENTICATION" in line and line.strip().startswith("#"):
                     auth_section_idx = i
                     break
-            
+
             if auth_section_idx >= 0:
                 # Find end of auth section (next section or EOF)
                 insert_idx = auth_section_idx + 1
@@ -190,7 +190,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                         break
                 else:
                     insert_idx = len(updated_lines)
-                
+
                 # Insert new keys
                 for key in reversed(new_keys):
                     updated_lines.insert(insert_idx, key)
@@ -201,16 +201,16 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                 else:
                     updated_lines.append("")
                     updated_lines.extend(new_keys)
-        
+
         # Write updated .env
         env_file.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
-        
+
         # Get new effective policy
         from backend.config import get_settings
         settings = get_settings()
         effective_auth_enabled = payload.auth_enabled if payload.auth_enabled is not None else getattr(settings, "AUTH_ENABLED", False)
         effective_auth_mode = payload.auth_mode if payload.auth_mode is not None else getattr(settings, "AUTH_MODE", "disabled")
-        
+
         updated_values = {}
         if payload.auth_enabled is not None:
             updated_values["AUTH_ENABLED"] = payload.auth_enabled
@@ -220,7 +220,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
             updated_values["AUTH_LOGIN_MAX_ATTEMPTS"] = payload.auth_login_max_attempts
         if payload.auth_login_lockout_seconds is not None:
             updated_values["AUTH_LOGIN_LOCKOUT_SECONDS"] = payload.auth_login_lockout_seconds
-        
+
         return OperationResult(
             success=True,
             message=f"Authentication settings updated in {env_file.name}. Restart required to take effect.",
@@ -231,7 +231,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                 "requires_restart": True
             }
         )
-    
+
     except Exception as e:
         return OperationResult(
             success=False,

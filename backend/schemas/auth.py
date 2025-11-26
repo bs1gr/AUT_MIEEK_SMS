@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from typing import Optional, Callable, List
+from typing import Callable, List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 def _validate_password_strength(value: str, field_name: str = "password") -> str:

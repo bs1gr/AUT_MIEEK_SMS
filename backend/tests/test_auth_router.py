@@ -80,10 +80,10 @@ def test_verify_password_invalid_hash():
 
 def test_get_current_user_invalid_token():
     from fastapi import HTTPException
+    from starlette.requests import Request
 
     from backend.routers.routers_auth import get_current_user
     from backend.tests.conftest import TestingSessionLocal
-    from starlette.requests import Request
 
     session = TestingSessionLocal()
     try:
@@ -96,6 +96,7 @@ def test_get_current_user_invalid_token():
 
 def test_get_current_user_inactive_user():
     from fastapi import HTTPException
+    from starlette.requests import Request
 
     from backend.models import User
     from backend.routers.routers_auth import (
@@ -104,7 +105,6 @@ def test_get_current_user_inactive_user():
         get_password_hash,
     )
     from backend.tests.conftest import TestingSessionLocal
-    from starlette.requests import Request
 
     session = TestingSessionLocal()
     try:
@@ -128,9 +128,9 @@ def test_get_current_user_inactive_user():
 
 def test_require_role_denies_mismatch():
     from fastapi import HTTPException
+    from starlette.requests import Request
 
     from backend.routers.routers_auth import require_role
-    from starlette.requests import Request
 
     dependency = require_role("admin")
     with pytest.raises(HTTPException) as exc:
@@ -150,9 +150,10 @@ def test_optional_require_role_returns_dummy_when_disabled(monkeypatch):
 
 
 def test_optional_require_role_enforces_when_enabled(monkeypatch):
+    from starlette.requests import Request
+
     from backend.routers import routers_auth
     from backend.routers.routers_auth import optional_require_role
-    from starlette.requests import Request
 
     monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", True)
     dependency = optional_require_role("admin")

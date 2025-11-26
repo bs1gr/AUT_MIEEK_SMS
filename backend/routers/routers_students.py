@@ -4,12 +4,13 @@ Handles all student-related CRUD operations and endpoints
 Split from main.py for better organization
 """
 
+import logging
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import logging
 
-from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -18,16 +19,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}})
 
 
-from backend.schemas.students import StudentCreate, StudentUpdate, StudentResponse
-from backend.schemas.common import PaginatedResponse
-from backend.routers.routers_auth import optional_require_role
-from backend.services import StudentService
-from backend.import_resolver import import_names  # noqa: F401 - re-export for tests that monkeypatch
-
-
 # ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
-
+from backend.import_resolver import (
+    import_names,  # noqa: F401 - re-export for tests that monkeypatch
+)
+from backend.routers.routers_auth import optional_require_role
+from backend.schemas.common import PaginatedResponse
+from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
+from backend.services import StudentService
 
 # ========== ENDPOINTS ==========
 

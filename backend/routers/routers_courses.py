@@ -8,14 +8,13 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
-from backend.db_utils import transaction, get_by_id_or_404, paginate
-from backend.import_resolver import import_names
+from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.routers.routers_auth import optional_require_role
+from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
-from backend.schemas.common import PaginationParams, PaginatedResponse
-
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})

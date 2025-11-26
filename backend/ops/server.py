@@ -8,15 +8,21 @@ This module provides:
 - Log file management
 """
 
-from .base import Operation, OperationResult, get_project_root, get_python_executable, OperationTimeouts
-from .diagnostics import SystemStatusChecker
-from pathlib import Path
-from typing import Optional, List, Any
 import signal
-import time
-import sys
 import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any, List, Optional
 
+from .base import (
+    Operation,
+    OperationResult,
+    OperationTimeouts,
+    get_project_root,
+    get_python_executable,
+)
+from .diagnostics import SystemStatusChecker
 
 # Windows-specific imports (psutil optional)
 psutil: Any = None

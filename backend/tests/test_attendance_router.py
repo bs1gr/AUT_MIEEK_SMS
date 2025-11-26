@@ -16,7 +16,6 @@ Coverage:
 from datetime import date, timedelta
 
 
-
 def test_create_attendance_success(client):
     """Create attendance record successfully"""
     # Create test student

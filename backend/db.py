@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from sqlalchemy import create_engine, text, inspect
-from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 
-# Import settings and models dynamically to avoid import-time redefinition warnings
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.orm import Session, sessionmaker
 
+# Import settings and models dynamically to avoid import-time redefinition warnings
 from backend.import_resolver import import_from_possible_locations
 
 # Prefer package-qualified imports, fall back to bare module when running as a script

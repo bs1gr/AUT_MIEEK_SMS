@@ -1,11 +1,11 @@
 """Tests for the imports router helpers."""
 
 import asyncio
+from io import BytesIO
 from typing import Any, cast
 
 import pytest
-from fastapi import UploadFile, HTTPException
-from io import BytesIO
+from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 from starlette.requests import Request
 

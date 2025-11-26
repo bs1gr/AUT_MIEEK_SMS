@@ -8,8 +8,8 @@ def _get_test_db_session():
     so the caller can close it when done. This mirrors how the test app creates
     DB sessions in `conftest.py` by overriding the `backend.db.get_session` dependency.
     """
-    from backend.main import app
     from backend.db import get_session as db_get_session
+    from backend.main import app
 
     override = app.dependency_overrides.get(db_get_session)
     gen = override() if override is not None else db_get_session()

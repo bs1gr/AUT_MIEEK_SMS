@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import date
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class DailyPerformanceCreate(BaseModel):

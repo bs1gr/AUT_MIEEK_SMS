@@ -3,19 +3,20 @@ Session Export/Import Router
 Provides endpoints to export/import complete semester/session data packages.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
-from io import BytesIO
-from datetime import datetime
 import json
 import logging
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from io import BytesIO
+from typing import Any, Dict, List, Optional
 
-from backend.rate_limiting import limiter, RATE_LIMIT_HEAVY
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
+
 from backend.db import get_session as get_db
-from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
+from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.routers.routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
@@ -31,16 +32,16 @@ router = APIRouter(
 def validate_course_data(course_data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
     """Validate course data before import."""
     required_fields = ['course_code', 'course_name']
-    
+
     for field in required_fields:
         if not course_data.get(field):
             return False, f"Missing required field: {field}"
-    
+
     # Validate course_code format (no special chars except dash/underscore)
     code = course_data['course_code']
     if not code or not isinstance(code, str) or len(code.strip()) == 0:
         return False, "Invalid course_code: must be non-empty string"
-    
+
     # Validate credits if present
     if 'credits' in course_data and course_data['credits'] is not None:
         try:
@@ -49,7 +50,7 @@ def validate_course_data(course_data: Dict[str, Any]) -> tuple[bool, Optional[st
                 return False, f"Invalid credits: {credits} (must be 0-100)"
         except (ValueError, TypeError):
             return False, f"Invalid credits format: {course_data['credits']}"
-    
+
     # Validate hours_per_week if present
     if 'hours_per_week' in course_data and course_data['hours_per_week'] is not None:
         try:
@@ -58,34 +59,34 @@ def validate_course_data(course_data: Dict[str, Any]) -> tuple[bool, Optional[st
                 return False, f"Invalid hours_per_week: {hours} (must be 0-168)"
         except (ValueError, TypeError):
             return False, f"Invalid hours_per_week format: {course_data['hours_per_week']}"
-    
+
     return True, None
 
 
 def validate_student_data(student_data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
     """Validate student data before import."""
     required_fields = ['student_id', 'first_name', 'last_name', 'email']
-    
+
     for field in required_fields:
         if not student_data.get(field):
             return False, f"Missing required field: {field}"
-    
+
     # Validate student_id format
     sid = student_data['student_id']
     if not sid or not isinstance(sid, str) or len(sid.strip()) == 0:
         return False, "Invalid student_id: must be non-empty string"
-    
+
     # Validate email format (basic check)
     email = student_data['email']
     if not email or '@' not in email or '.' not in email.split('@')[-1]:
         return False, f"Invalid email format: {email}"
-    
+
     # Validate names
     if len(student_data['first_name'].strip()) == 0:
         return False, "first_name cannot be empty"
     if len(student_data['last_name'].strip()) == 0:
         return False, "last_name cannot be empty"
-    
+
     # Validate study_year if present
     if 'study_year' in student_data and student_data['study_year'] is not None:
         try:
@@ -94,23 +95,23 @@ def validate_student_data(student_data: Dict[str, Any]) -> tuple[bool, Optional[
                 return False, f"Invalid study_year: {year} (must be 1-10)"
         except (ValueError, TypeError):
             return False, f"Invalid study_year format: {student_data['study_year']}"
-    
+
     return True, None
 
 
 def validate_import_data(import_data: Dict[str, Any]) -> tuple[bool, List[str]]:
     """Pre-validate entire import package before touching database."""
     errors = []
-    
+
     # Check metadata
     if 'metadata' not in import_data:
         errors.append("Missing metadata section")
         return False, errors
-    
+
     metadata = import_data['metadata']
     if not metadata.get('semester'):
         errors.append("Missing semester in metadata")
-    
+
     # Validate all courses
     courses = import_data.get('courses', [])
     course_codes = set()
@@ -123,7 +124,7 @@ def validate_import_data(import_data: Dict[str, Any]) -> tuple[bool, List[str]]:
             if code in course_codes:
                 errors.append(f"Duplicate course_code in import: {code}")
             course_codes.add(code)
-    
+
     # Validate all students
     students = import_data.get('students', [])
     student_ids = set()
@@ -141,20 +142,20 @@ def validate_import_data(import_data: Dict[str, Any]) -> tuple[bool, List[str]]:
                 errors.append(f"Duplicate email in import: {email}")
             student_ids.add(sid)
             student_emails.add(email)
-    
+
     # Validate referential integrity
     for idx, enrollment in enumerate(import_data.get('enrollments', [])):
         if enrollment.get('course_code_ref') not in course_codes:
             errors.append(f"Enrollment #{idx + 1}: references non-existent course {enrollment.get('course_code_ref')}")
         if enrollment.get('student_id_ref') not in student_ids:
             errors.append(f"Enrollment #{idx + 1}: references non-existent student {enrollment.get('student_id_ref')}")
-    
+
     for idx, grade in enumerate(import_data.get('grades', [])):
         if grade.get('course_code_ref') not in course_codes:
             errors.append(f"Grade #{idx + 1}: references non-existent course {grade.get('course_code_ref')}")
         if grade.get('student_id_ref') not in student_ids:
             errors.append(f"Grade #{idx + 1}: references non-existent student {grade.get('student_id_ref')}")
-    
+
     is_valid = len(errors) == 0
     return is_valid, errors
 
@@ -167,15 +168,15 @@ async def list_semesters(request: Request, db: Session = Depends(get_db)):
     """
     try:
         Course, = import_names("models", "Course")
-        
+
         semesters = db.query(Course.semester).filter(
             Course.deleted_at.is_(None),
             Course.semester.isnot(None)
         ).distinct().all()
-        
+
         # Extract and sort semesters
         semester_list = sorted([s[0] for s in semesters if s[0]])
-        
+
         return {"semesters": semester_list, "count": len(semester_list)}
     except Exception as exc:
         logger.error("Failed to list semesters: %s", exc, exc_info=True)
@@ -213,16 +214,16 @@ async def export_session(
     """
     try:
         Course, Student, CourseEnrollment, Grade, Attendance, DailyPerformance, Highlight = import_names(
-            "models", "Course", "Student", "CourseEnrollment", "Grade", 
+            "models", "Course", "Student", "CourseEnrollment", "Grade",
             "Attendance", "DailyPerformance", "Highlight"
         )
-        
+
         # Get all courses for this semester
         courses = db.query(Course).filter(
             Course.semester == semester,
             Course.deleted_at.is_(None)
         ).all()
-        
+
         if not courses:
             raise http_error(
                 404,
@@ -231,47 +232,47 @@ async def export_session(
                 request,
                 context={"semester": semester}
             )
-        
+
         course_ids = [c.id for c in courses]
-        
+
         # Get enrollments for these courses
         enrollments = db.query(CourseEnrollment).filter(
             CourseEnrollment.course_id.in_(course_ids),
             CourseEnrollment.deleted_at.is_(None)
         ).all()
-        
+
         student_ids = list(set([e.student_id for e in enrollments]))
-        
+
         # Get all related data
         students = db.query(Student).filter(
             Student.id.in_(student_ids),
             Student.deleted_at.is_(None)
         ).all() if student_ids else []
-        
+
         grades = db.query(Grade).filter(
             Grade.course_id.in_(course_ids),
             Grade.student_id.in_(student_ids),
             Grade.deleted_at.is_(None)
         ).all() if student_ids else []
-        
+
         attendance = db.query(Attendance).filter(
             Attendance.course_id.in_(course_ids),
             Attendance.student_id.in_(student_ids),
             Attendance.deleted_at.is_(None)
         ).all() if student_ids else []
-        
+
         daily_performance = db.query(DailyPerformance).filter(
             DailyPerformance.course_id.in_(course_ids),
             DailyPerformance.student_id.in_(student_ids),
             DailyPerformance.deleted_at.is_(None)
         ).all() if student_ids else []
-        
+
         highlights = db.query(Highlight).filter(
             Highlight.student_id.in_(student_ids),
             Highlight.semester == semester,
             Highlight.deleted_at.is_(None)
         ).all() if student_ids else []
-        
+
         # Build export package
         export_data = {
             "metadata": {
@@ -297,12 +298,12 @@ async def export_session(
             "daily_performance": [_serialize_performance(dp) for dp in daily_performance],
             "highlights": [_serialize_highlight(h) for h in highlights]
         }
-        
+
         # Create JSON file
         json_str = json.dumps(export_data, indent=2, ensure_ascii=False, default=str)
         buffer = BytesIO(json_str.encode('utf-8'))
         buffer.seek(0)
-        
+
         # Sanitize semester name for filename (ASCII-only to satisfy header encoding)
         safe_semester = semester.replace(' ', '_').replace('/', '-')
         if any(ord(c) > 127 for c in safe_semester):
@@ -317,7 +318,7 @@ async def export_session(
                 "Content-Disposition": f"attachment; filename={filename}"
             }
         )
-        
+
     except HTTPException:
         raise
     except Exception as exc:
@@ -369,7 +370,7 @@ async def import_session(
                 request,
                 context={"filename": file.filename}
             )
-        
+
         # Read and parse JSON
         content = await file.read()
         try:
@@ -382,16 +383,16 @@ async def import_session(
                 request,
                 context={"error": str(exc)}
             )
-        
+
         # PRE-VALIDATION: Check entire import package before touching database
         logger.info(f"Validating import package for semester: {import_data.get('metadata', {}).get('semester')}")
         is_valid, validation_errors = validate_import_data(import_data)
-        
+
         if not is_valid:
             error_summary = "\n".join(validation_errors[:10])  # Show first 10 errors
             if len(validation_errors) > 10:
                 error_summary += f"\n... and {len(validation_errors) - 10} more errors"
-            
+
             raise http_error(
                 400,
                 ErrorCode.IMPORT_INVALID_REQUEST,
@@ -403,7 +404,7 @@ async def import_session(
                     "error_summary": error_summary
                 }
             )
-        
+
         semester = import_data["metadata"].get("semester")
         if not semester:
             raise http_error(
@@ -412,7 +413,7 @@ async def import_session(
                 "Invalid session export format: missing semester in metadata",
                 request
             )
-        
+
         # DRY RUN: Return validation success without importing
         if dry_run:
             return {
@@ -430,35 +431,36 @@ async def import_session(
                 },
                 "message": "Validation passed. Safe to import."
             }
-        
+
         # CREATE DATABASE BACKUP BEFORE IMPORT
         backup_path = None
         try:
             from pathlib import Path
+
             from backend.config import settings
             backup_dir = Path("backups")
             backup_dir.mkdir(exist_ok=True)
-            
+
             # Extract database path from DATABASE_URL (sqlite:///path/to/db.db)
             db_url = settings.DATABASE_URL
             if db_url.startswith("sqlite:///"):
                 db_file = db_url.replace("sqlite:///", "")
                 db_path = Path(db_file)
-                
+
                 if db_path.exists():
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     backup_filename = f"pre_import_backup_{semester.replace(' ', '_')}_{timestamp}.db"
                     backup_path = backup_dir / backup_filename
-                    
+
                     import shutil
                     shutil.copy2(db_path, backup_path)
                     logger.info(f"Database backed up to: {backup_path}")
         except Exception as backup_error:
             logger.warning(f"Failed to create backup (continuing anyway): {backup_error}")
-        
+
         # Import data
         from backend.services.import_service import ImportService
-        
+
         results = {
             "semester": semester,
             "imported_at": datetime.now().isoformat(),
@@ -477,10 +479,10 @@ async def import_session(
                 "highlights": {"created": 0, "updated": 0, "skipped": 0, "errors": []}
             }
         }
-        
+
         # Track critical errors (will trigger rollback)
         critical_errors = []
-        
+
         # Import courses first (dependencies)
         logger.info(f"Importing {len(import_data.get('courses', []))} courses...")
         for idx, course_data in enumerate(import_data.get("courses", [])):
@@ -492,20 +494,20 @@ async def import_session(
                     results["summary"]["courses"]["errors"].append(error_msg)
                     critical_errors.append(error_msg)
                     continue
-                
+
                 course_code = course_data.get("course_code")
-                
+
                 # Check if course exists
                 Course, = import_names("models", "Course")
                 existing = db.query(Course).filter(
                     Course.course_code == course_code,
                     Course.deleted_at.is_(None)
                 ).first()
-                
+
                 if existing and merge_strategy == "skip":
                     results["summary"]["courses"]["skipped"] += 1
                     continue
-                
+
                 was_created, err = ImportService.create_or_update_course(
                     db, course_data
                 )
@@ -525,7 +527,7 @@ async def import_session(
                 results["summary"]["courses"]["errors"].append(error_msg)
                 critical_errors.append(error_msg)
                 logger.error(error_msg, exc_info=True)
-        
+
         # Import students
         logger.info(f"Importing {len(import_data.get('students', []))} students...")
         for idx, student_data in enumerate(import_data.get("students", [])):
@@ -537,20 +539,20 @@ async def import_session(
                     results["summary"]["students"]["errors"].append(error_msg)
                     critical_errors.append(error_msg)
                     continue
-                
+
                 student_id = student_data.get("student_id")
-                
+
                 # Check if student exists
                 Student, = import_names("models", "Student")
                 existing = db.query(Student).filter(
                     Student.student_id == student_id,
                     Student.deleted_at.is_(None)
                 ).first()
-                
+
                 if existing and merge_strategy == "skip":
                     results["summary"]["students"]["skipped"] += 1
                     continue
-                
+
                 was_created, err = ImportService.create_or_update_student(
                     db, student_data
                 )
@@ -570,7 +572,7 @@ async def import_session(
                 results["summary"]["students"]["errors"].append(error_msg)
                 critical_errors.append(error_msg)
                 logger.error(error_msg, exc_info=True)
-        
+
         # IMPORTANT: Flush session so newly added Course and Student rows obtain primary keys.
         # Without this flush, subsequent queries for Students/Courses inside the relational
         # import helpers (_import_enrollments, _import_grades, etc.) run SELECT statements
@@ -588,7 +590,7 @@ async def import_session(
         _import_attendance(db, import_data.get("attendance", []), merge_strategy, results)
         _import_daily_performance(db, import_data.get("daily_performance", []), merge_strategy, results)
         _import_highlights(db, import_data.get("highlights", []), merge_strategy, results)
-        
+
         # Check for critical errors before commit
         if critical_errors:
             db.rollback()
@@ -606,23 +608,23 @@ async def import_session(
                     "backup_path": str(backup_path) if backup_path else None
                 }
             )
-        
+
         # Commit all changes
         try:
             db.commit()
             total_created = sum(results["summary"][key]["created"] for key in results["summary"])
             total_updated = sum(results["summary"][key]["updated"] for key in results["summary"])
             total_errors = sum(len(results["summary"][key]["errors"]) for key in results["summary"])
-            
+
             logger.info(
                 f"Session import COMPLETED for semester '{semester}': "
                 f"Created={total_created}, Updated={total_updated}, Errors={total_errors}"
             )
-            
+
             # Add success flag
             results["success"] = True
             results["rollback_available"] = backup_path is not None
-            
+
         except Exception as exc:
             db.rollback()
             logger.error(f"Database commit failed, changes rolled back: {exc}", exc_info=True)
@@ -638,9 +640,9 @@ async def import_session(
                     "backup_path": str(backup_path) if backup_path else None
                 }
             )
-        
+
         return results
-        
+
     except HTTPException:
         raise
     except Exception as exc:
@@ -675,10 +677,11 @@ async def rollback_import(
     - Status of rollback operation
     """
     try:
-        from pathlib import Path
-        from backend.config import settings
         import shutil
-        
+        from pathlib import Path
+
+        from backend.config import settings
+
         # Validate backup filename (security check)
         if not backup_filename.endswith('.db') or '/' in backup_filename or '\\' in backup_filename:
             raise http_error(
@@ -688,10 +691,10 @@ async def rollback_import(
                 request,
                 context={"filename": backup_filename}
             )
-        
+
         backup_dir = Path("backups")
         backup_path = backup_dir / backup_filename
-        
+
         if not backup_path.exists():
             available_backups = [f.name for f in backup_dir.glob("*.db")] if backup_dir.exists() else []
             raise http_error(
@@ -704,7 +707,7 @@ async def rollback_import(
                     "available_backups": available_backups[:10]
                 }
             )
-        
+
         # Extract current database path
         db_url = settings.DATABASE_URL
         if not db_url.startswith("sqlite:///"):
@@ -714,10 +717,10 @@ async def rollback_import(
                 "Rollback only supported for SQLite databases",
                 request
             )
-        
+
         db_file = db_url.replace("sqlite:///", "")
         db_path = Path(db_file)
-        
+
         # Create backup of current state before rollback (safety)
         pre_rollback_backup = None
         if db_path.exists():
@@ -725,15 +728,15 @@ async def rollback_import(
             pre_rollback_backup = backup_dir / f"pre_rollback_backup_{timestamp}.db"
             shutil.copy2(db_path, pre_rollback_backup)
             logger.info(f"Created pre-rollback backup: {pre_rollback_backup}")
-        
+
         # Perform rollback: Replace current DB with backup
         shutil.copy2(backup_path, db_path)
-        
+
         logger.warning(
             f"DATABASE ROLLBACK performed by {getattr(current_user, 'email', 'system')}: "
             f"Restored from {backup_filename}"
         )
-        
+
         return {
             "success": True,
             "message": f"Database successfully rolled back to: {backup_filename}",
@@ -743,7 +746,7 @@ async def rollback_import(
             "performed_by": getattr(current_user, "email", "system"),
             "warning": "Database has been restored to previous state. Please restart the application to clear caches."
         }
-        
+
     except HTTPException:
         raise
     except Exception as exc:
@@ -766,11 +769,11 @@ async def list_backups(request: Request):
     """
     try:
         from pathlib import Path
-        
+
         backup_dir = Path("backups")
         if not backup_dir.exists():
             return {"backups": [], "count": 0}
-        
+
         backups = []
         for backup_file in sorted(backup_dir.glob("*.db"), key=lambda p: p.stat().st_mtime, reverse=True):
             stat = backup_file.stat()
@@ -782,13 +785,13 @@ async def list_backups(request: Request):
                 "is_pre_import": "pre_import_backup" in backup_file.name,
                 "is_pre_rollback": "pre_rollback_backup" in backup_file.name
             })
-        
+
         return {
             "backups": backups,
             "count": len(backups),
             "backup_directory": str(backup_dir.absolute())
         }
-        
+
     except Exception as exc:
         logger.error(f"Failed to list backups: {exc}", exc_info=True)
         raise http_error(
@@ -894,7 +897,7 @@ def _serialize_highlight(highlight) -> Dict[str, Any]:
 def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: str, results: Dict):
     """Import course enrollments"""
     CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
-    
+
     for enroll_data in enrollments:
         try:
             # Find student and course by reference IDs
@@ -902,25 +905,25 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
                 Student.student_id == enroll_data.get("student_id_ref"),
                 Student.deleted_at.is_(None)
             ).first()
-            
+
             course = db.query(Course).filter(
                 Course.course_code == enroll_data.get("course_code_ref"),
                 Course.deleted_at.is_(None)
             ).first()
-            
+
             if not student or not course:
                 results["summary"]["enrollments"]["errors"].append(
                     f"Missing student or course for enrollment: {enroll_data}"
                 )
                 continue
-            
+
             # Check if enrollment exists
             existing = db.query(CourseEnrollment).filter(
                 CourseEnrollment.student_id == student.id,
                 CourseEnrollment.course_id == course.id,
                 CourseEnrollment.deleted_at.is_(None)
             ).first()
-            
+
             if existing:
                 if merge_strategy == "update":
                     # Update enrolled_at if provided
@@ -939,7 +942,7 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
                 )
                 db.add(enrollment)
                 results["summary"]["enrollments"]["created"] += 1
-                
+
         except Exception as e:
             results["summary"]["enrollments"]["errors"].append(str(e))
 
@@ -947,25 +950,25 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
 def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):
     """Import grades"""
     Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
-    
+
     for grade_data in grades:
         try:
             student = db.query(Student).filter(
                 Student.student_id == grade_data.get("student_id_ref"),
                 Student.deleted_at.is_(None)
             ).first()
-            
+
             course = db.query(Course).filter(
                 Course.course_code == grade_data.get("course_code_ref"),
                 Course.deleted_at.is_(None)
             ).first()
-            
+
             if not student or not course:
                 results["summary"]["grades"]["errors"].append(
                     f"Missing student or course for grade: {grade_data.get('assignment_name', 'unknown')}"
                 )
                 continue
-            
+
             # Check if grade exists (by student, course, and assignment name)
             existing = db.query(Grade).filter(
                 Grade.student_id == student.id,
@@ -973,7 +976,7 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                 Grade.assignment_name == grade_data.get("assignment_name"),
                 Grade.deleted_at.is_(None)
             ).first()
-            
+
             if existing:
                 if merge_strategy == "update":
                     existing.category = grade_data.get("category")
@@ -1002,7 +1005,7 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                 )
                 db.add(grade)
                 results["summary"]["grades"]["created"] += 1
-                
+
         except Exception as e:
             results["summary"]["grades"]["errors"].append(str(e))
 
@@ -1010,27 +1013,27 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
 def _import_attendance(db: Session, attendance_records: List[Dict], merge_strategy: str, results: Dict):
     """Import attendance records"""
     Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
-    
+
     for att_data in attendance_records:
         try:
             student = db.query(Student).filter(
                 Student.student_id == att_data.get("student_id_ref"),
                 Student.deleted_at.is_(None)
             ).first()
-            
+
             course = db.query(Course).filter(
                 Course.course_code == att_data.get("course_code_ref"),
                 Course.deleted_at.is_(None)
             ).first()
-            
+
             if not student or not course:
                 results["summary"]["attendance"]["errors"].append(
                     "Missing student or course for attendance record"
                 )
                 continue
-            
+
             att_date = datetime.fromisoformat(att_data["date"]).date() if att_data.get("date") else None
-            
+
             # Check if attendance exists (by student, course, date, and period)
             existing = db.query(Attendance).filter(
                 Attendance.student_id == student.id,
@@ -1039,7 +1042,7 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                 Attendance.period_number == att_data.get("period_number"),
                 Attendance.deleted_at.is_(None)
             ).first()
-            
+
             if existing:
                 if merge_strategy == "update":
                     existing.status = att_data.get("status")
@@ -1059,7 +1062,7 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                 )
                 db.add(attendance)
                 results["summary"]["attendance"]["created"] += 1
-                
+
         except Exception as e:
             results["summary"]["attendance"]["errors"].append(str(e))
 
@@ -1067,27 +1070,27 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
 def _import_daily_performance(db: Session, performance_records: List[Dict], merge_strategy: str, results: Dict):
     """Import daily performance records"""
     DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
-    
+
     for perf_data in performance_records:
         try:
             student = db.query(Student).filter(
                 Student.student_id == perf_data.get("student_id_ref"),
                 Student.deleted_at.is_(None)
             ).first()
-            
+
             course = db.query(Course).filter(
                 Course.course_code == perf_data.get("course_code_ref"),
                 Course.deleted_at.is_(None)
             ).first()
-            
+
             if not student or not course:
                 results["summary"]["daily_performance"]["errors"].append(
                     "Missing student or course for performance record"
                 )
                 continue
-            
+
             perf_date = datetime.fromisoformat(perf_data["date"]).date() if perf_data.get("date") else None
-            
+
             # Check if performance record exists
             existing = db.query(DailyPerformance).filter(
                 DailyPerformance.student_id == student.id,
@@ -1096,7 +1099,7 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
                 DailyPerformance.category == perf_data.get("category"),
                 DailyPerformance.deleted_at.is_(None)
             ).first()
-            
+
             if existing:
                 if merge_strategy == "update":
                     existing.score = perf_data.get("score")
@@ -1118,7 +1121,7 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
                 )
                 db.add(performance)
                 results["summary"]["daily_performance"]["created"] += 1
-                
+
         except Exception as e:
             results["summary"]["daily_performance"]["errors"].append(str(e))
 
@@ -1126,20 +1129,20 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
 def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str, results: Dict):
     """Import student highlights"""
     Highlight, Student = import_names("models", "Highlight", "Student")
-    
+
     for highlight_data in highlights:
         try:
             student = db.query(Student).filter(
                 Student.student_id == highlight_data.get("student_id_ref"),
                 Student.deleted_at.is_(None)
             ).first()
-            
+
             if not student:
                 results["summary"]["highlights"]["errors"].append(
                     "Missing student for highlight"
                 )
                 continue
-            
+
             # Check if highlight exists (by student, semester, category, and text)
             existing = db.query(Highlight).filter(
                 Highlight.student_id == student.id,
@@ -1148,7 +1151,7 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
                 Highlight.highlight_text == highlight_data.get("highlight_text"),
                 Highlight.deleted_at.is_(None)
             ).first()
-            
+
             if existing:
                 if merge_strategy == "update":
                     existing.rating = highlight_data.get("rating")
@@ -1169,6 +1172,6 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
                 )
                 db.add(highlight)
                 results["summary"]["highlights"]["created"] += 1
-                
+
         except Exception as e:
             results["summary"]["highlights"]["errors"].append(str(e))

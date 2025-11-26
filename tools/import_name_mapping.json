@@ -11,5 +11,7 @@
   "psycopg2": ["psycopg2-binary"],
   "lxml": ["lxml"],
   "cchardet": ["cchardet"],
-  "PIL": ["pillow"]
+  "PIL": ["pillow"],
+  "prometheus_client": ["prometheus-client"],
+  "prometheus_fastapi_instrumentator": ["prometheus-fastapi-instrumentator"]
 }

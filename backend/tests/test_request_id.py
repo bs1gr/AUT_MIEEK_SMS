@@ -2,9 +2,11 @@
 Quick test script to verify request ID tracking functionality.
 """
 
-from fastapi.testclient import TestClient
-from backend.main import app
 import sys
+
+from fastapi.testclient import TestClient
+
+from backend.main import app
 
 client = TestClient(app)
 

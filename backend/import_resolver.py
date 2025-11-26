@@ -9,10 +9,10 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Tuple
 import importlib
 import importlib.util
 import logging
+from typing import Any, Tuple
 
 logger = logging.getLogger(__name__)
 

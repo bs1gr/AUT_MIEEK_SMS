@@ -3,10 +3,10 @@ Smoke tests for JWT (PyJWT) functionality.
 Guards against regressions in the python-jose → PyJWT migration.
 """
 
-import jwt
-import pytest
 from datetime import datetime, timedelta, timezone
 
+import jwt
+import pytest
 
 # Secret key for testing (matches backend config pattern)
 SECRET_KEY = "test-secret-key-for-jwt-smoke-tests"

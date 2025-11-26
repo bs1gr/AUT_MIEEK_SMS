@@ -1,6 +1,6 @@
 import os
-import pytest
 
+import pytest
 
 RUN_INTEGRATION = os.environ.get("RUN_INTEGRATION", "0") in ("1", "true", "yes")
 

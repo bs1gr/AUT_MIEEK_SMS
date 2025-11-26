@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
 import json
 import logging
+from types import SimpleNamespace
 
 from sqlalchemy import create_engine, text
 

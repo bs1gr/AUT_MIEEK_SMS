@@ -1,7 +1,8 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os
 
 # Simple i18n dict for EN/EL (expand as needed)
 TRANSLATIONS = {
@@ -401,21 +402,22 @@ Export Routes
 Provides endpoints to export data to Excel/PDF.
 """
 
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
-from io import BytesIO
+import logging
 from datetime import datetime
+from io import BytesIO
 from typing import cast
+
 import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill
+from fastapi.responses import StreamingResponse
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-import logging
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from sqlalchemy.orm import Session
 
 HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
 
@@ -476,8 +478,8 @@ router = APIRouter(
 
 
 from backend.db import get_session as get_db
-from backend.import_resolver import import_names
 from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
 
 
 @router.get("/students/excel")

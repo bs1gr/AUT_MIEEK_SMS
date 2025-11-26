@@ -10,15 +10,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/enrollments", tags=["Enrollments"], responses={404: {"description": "Not found"}})
 
-from backend.schemas.enrollments import EnrollmentCreate, EnrollmentResponse, StudentBrief
-from backend.schemas.common import PaginatedResponse, PaginationParams
-from backend.routers.routers_auth import optional_require_role
-from backend.rate_limiting import limiter, RATE_LIMIT_WRITE  # Rate limiting for write endpoints
-
 # ===== Dependency =====
 from backend.db import get_session as get_db
 from backend.db_utils import transaction
 from backend.errors import internal_server_error
+from backend.rate_limiting import (  # Rate limiting for write endpoints
+    RATE_LIMIT_WRITE,
+    limiter,
+)
+from backend.routers.routers_auth import optional_require_role
+from backend.schemas.common import PaginatedResponse, PaginationParams
+from backend.schemas.enrollments import (
+    EnrollmentCreate,
+    EnrollmentResponse,
+    StudentBrief,
+)
 from backend.services.enrollment_service import EnrollmentService
 
 
