@@ -103,20 +103,8 @@ $versionChecks = @(
         Description = "Frontend package.json"
         Critical = $true
     },
-    @{
-        File = "README.md"
-        Pattern = 'SMS_Distribution_\d+\.\d+\.\d+\.zip'
-        Replace = "SMS_Distribution_$Version.zip"
-        Description = "README installer download"
-        Critical = $true
-    },
-    @{
-        File = "README.md"
-        Pattern = 'SMS_Installer_\d+\.\d+\.\d+\.exe'
-        Replace = "SMS_Installer_$Version.exe"
-        Description = "README installer executable"
-        Critical = $true
-    },
+    # NOTE: README now uses generic X.X.X patterns for installer references
+    # to avoid version mismatches. The actual versioned files are in GitHub Releases.
     @{
         File = "docs/user/USER_GUIDE_COMPLETE.md"
         Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
