@@ -74,7 +74,7 @@ Documentation is organized into four main directories:
 
 ### Scripts & Operations
 
-- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md)** - v2.0 Scripts Migration Guide
+- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
   - **DOCKER.ps1** - All Docker deployment & management
   - **NATIVE.ps1** - Native development mode
   - Legacy script archive and migration notes

@@ -2,7 +2,60 @@
 
 ## Overview
 
-The comprehensive cleanup script (`SUPER_CLEAN_AND_DEPLOY.ps1`) includes automated Docker cleanup steps to help maintain a clean Docker environment and identify obsolete Docker-related files.
+The `DOCKER.ps1` script provides integrated Docker cleanup operations to maintain a clean environment and manage disk space.
+
+## Quick Reference (v2.0)
+
+```powershell
+# Safe cleanup (recommended for regular use)
+.\DOCKER.ps1 -Prune
+
+# Aggressive cleanup (includes unused images)  
+.\DOCKER.ps1 -PruneAll
+
+# Nuclear cleanup (includes volumes - DATA LOSS WARNING)
+.\DOCKER.ps1 -DeepClean
+```
+
+## Cleanup Levels
+
+### Level 1: Safe Prune (`-Prune`)
+
+```powershell
+.\DOCKER.ps1 -Prune
+```
+
+**What it removes:**
+- Stopped containers
+- Dangling images (untagged)
+- Build cache
+- Unused networks
+
+**Safe to run:** Yes, regularly
+
+### Level 2: Aggressive Prune (`-PruneAll`)
+
+```powershell
+.\DOCKER.ps1 -PruneAll
+```
+
+**What it removes:**
+- Everything in `-Prune`
+- All unused images (not just dangling)
+
+**Safe to run:** Yes, but will require re-pulling images
+
+### Level 3: Deep Clean (`-DeepClean`)
+
+```powershell
+.\DOCKER.ps1 -DeepClean
+```
+
+**What it removes:**
+- Everything in `-PruneAll`
+- **Unused volumes including data**
+
+**⚠️ WARNING:** This will delete your database if the container is stopped. Creates automatic backup first.
 
 ## Docker Cleanup Features
 
@@ -322,7 +375,7 @@ docker system prune -a
    docker volume rm student-management-system_sms_data_v20251026
    ```
 
-## Integration with Cleanup Script
+## Integration with DOCKER.ps1
 
 ### Running the Cleanup
 
@@ -330,77 +383,68 @@ docker system prune -a
 # Navigate to project root
 cd d:\SMS\student-management-system
 
-# Run comprehensive cleanup
-.\SUPER_CLEAN_AND_DEPLOY.ps1
+# Safe cleanup
+.\DOCKER.ps1 -Prune
+
+# Or aggressive cleanup
+.\DOCKER.ps1 -PruneAll
 ```
 
 ### What Gets Cleaned Automatically
 
-- ✅ QNAP docker-compose file (with confirmation)
-- ✅ Obsolete Python/Node caches
-- ✅ Old backup directories
+- ✅ Stopped containers
+- ✅ Dangling images
+- ✅ Build cache
+- ✅ Unused networks
 
-### What Requires Manual Action
+### What Requires Caution
 
-- ⚠️ Docker build cache (suggested command provided)
-- ⚠️ Dangling images (suggested command provided)
-- ⚠️ Stopped containers (suggested command provided)
-- ⚠️ Old volumes (list provided, must remove manually)
+- ⚠️ Unused images (`-PruneAll` removes these)
+- ⚠️ Data volumes (`-DeepClean` removes these - backup created first)
 
-### Why Manual?
+### Safety Features
 
-Docker cleanup commands can affect:
-
-- Other Docker projects on your system
-- Running containers
-- Data volumes with important information
-
-The script provides information and suggestions, but leaves the final decision to you.
+- Automatic backup before `-DeepClean`
+- Confirmation prompts for destructive operations
+- Status reporting after cleanup
 
 ## Regular Maintenance Schedule
 
 ### Weekly
 
 ```powershell
-# Run comprehensive cleanup
-.\SUPER_CLEAN_AND_DEPLOY.ps1
-
-# Remove stopped containers
-docker container prune -f
+# Safe cleanup
+.\DOCKER.ps1 -Prune
 ```
 
 ### Monthly
 
 ```powershell
-# Remove dangling images
-docker image prune -f
+# Aggressive cleanup
+.\DOCKER.ps1 -PruneAll
 
-# Remove build cache
-docker builder prune -f
+# Check disk usage
+docker system df
 ```
 
 ### Quarterly
 
 ```powershell
-# Check disk usage
-docker system df
-
-# Clean old volumes (after verification)
+# Check old volumes
 docker volume ls | Select-String -Pattern 'sms|student'
-# Manually remove old volumes
 
-# Optional: Full system cleanup
-docker system prune -a
+# Manually remove old volumes if needed
+docker volume rm <old-volume-name>
 ```
 
 ## Summary
 
-The Docker cleanup integration in `SUPER_CLEAN_AND_DEPLOY.ps1` provides:
+The Docker cleanup integration in `DOCKER.ps1` provides:
 
-1. **Automated removal** of QNAP-specific files (with confirmation)
-2. **Informational reporting** on Docker artifacts
-3. **Helpful commands** for manual cleanup
-4. **Safety warnings** for destructive operations
-5. **Integration** with existing cleanup workflows
+1. **Three cleanup levels** (Prune, PruneAll, DeepClean)
+2. **Automatic backups** before destructive operations
+3. **Safe defaults** that don't affect data
+4. **Clear warnings** for destructive operations
+5. **Status reporting** after cleanup
 
-This approach balances automation with safety, ensuring you maintain a clean Docker environment without risking data loss or affecting other projects.
+This approach balances automation with safety, ensuring you maintain a clean Docker environment without risking data loss.

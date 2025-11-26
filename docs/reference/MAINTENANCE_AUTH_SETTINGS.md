@@ -181,27 +181,34 @@ Full RBAC with role enforcement.
 ## Important Notes
 
 ### ⚠️ Restart Required
+
 Changes to authentication settings require an application restart:
 
 **Docker:**
+
 ```powershell
-.\RUN.ps1 -Stop
-.\RUN.ps1
+.\DOCKER.ps1 -Stop
+.\DOCKER.ps1 -Start
 ```
 
 **Native:**
-- Stop backend (`Ctrl+C`)
-- Stop frontend (`Ctrl+C`)
-- Restart: `.\scripts\dev\run-native.ps1`
+
+```powershell
+.\NATIVE.ps1 -Stop
+.\NATIVE.ps1 -Start
+```
 
 ### Configuration Precedence
+
 1. Environment variables (highest priority)
 2. `.env` file in backend/ directory
 3. `.env` file in root directory
 4. Default values (lowest priority)
 
 ### File Location
+
 Settings are written to:
+
 - `backend/.env` (if it exists)
 - `.env` (root, if backend/.env doesn't exist)
 

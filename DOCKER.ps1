@@ -121,7 +121,7 @@ if (Test-Path $VERSION_FILE) {
 $IMAGE_NAME = "sms-fullstack"
 $IMAGE_TAG = "${IMAGE_NAME}:${VERSION}"
 $CONTAINER_NAME = "sms-app"
-$PORT = 8082
+$PORT = 8080
 $INTERNAL_PORT = 8000
 $VOLUME_NAME = "sms_data"
 $MONITORING_COMPOSE_FILE = Join-Path $SCRIPT_DIR "docker\docker-compose.monitoring.yml"

@@ -41,7 +41,7 @@ $ErrorActionPreference = 'Stop'
 
 $Script:Config = @{
     AppName          = "Student Management System"
-    Version          = "1.9.2"
+    Version          = "1.9.3"
     DockerImageName  = "sms-fullstack"
     DataVolumeName   = "sms_data"
     ContainerName    = "sms-fullstack"
@@ -486,11 +486,11 @@ function Start-Uninstallation {
         if ($Script:UninstallState.DeepDockerClean) {
             Add-LogEntry "Performing DEEP Docker cleanup..."
             
-            # Run DEEP_DOCKER_CLEANUP.ps1 if available
-            $deepCleanupScript = Join-Path $Script:UninstallState.InstallPath "DEEP_DOCKER_CLEANUP.ps1"
-            if (Test-Path $deepCleanupScript) {
+            # Run DOCKER.ps1 -DeepClean if available (v2.0 consolidated script)
+            $dockerScript = Join-Path $Script:UninstallState.InstallPath "DOCKER.ps1"
+            if (Test-Path $dockerScript) {
                 Add-LogEntry "Running deep cleanup script..."
-                & $deepCleanupScript -PreserveData:$Script:UninstallState.KeepData
+                & $dockerScript -DeepClean
                 Add-LogEntry "Deep cleanup completed" "Success"
             } else {
                 # Manual deep cleanup

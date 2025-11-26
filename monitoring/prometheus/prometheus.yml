@@ -49,7 +49,7 @@ scrape_configs:
   #   - Backend runs on localhost:8000 (uvicorn)
   #   - Frontend runs on localhost:5173 (vite)
   #   - Monitoring stack would need manual setup
-  #   - For native development, use .\scripts\dev\run-native.ps1
+  #   - For native development, use .\NATIVE.ps1 -Start
   #
   - job_name: 'sms-backend'
     scrape_interval: 10s  # More frequent for application metrics

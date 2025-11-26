@@ -181,7 +181,7 @@ try {
 '''
         trigger_file.write_text(script_content, encoding="utf-8")
         logger.info("Monitoring trigger script created", extra={"action": "monitoring_trigger_created", "trigger_file": str(trigger_file), "request_id": getattr(request.state, "request_id", None)})
-        return {"success": True, "message": "Monitoring trigger created. Execute the script on your host to start monitoring.", "details": {"trigger_file": str(trigger_file).replace("/data", "data"), "instructions": ["Option 1: Run the trigger script: pwsh data/.triggers/start_monitoring.ps1", "Option 2: Run directly: docker compose -f docker-compose.monitoring.yml up -d", "Option 3: Use helper: .\\RUN.ps1 -WithMonitoring"], "mode": "container_trigger"}}
+        return {"success": True, "message": "Monitoring trigger created. Execute the script on your host to start monitoring.", "details": {"trigger_file": str(trigger_file).replace("/data", "data"), "instructions": ["Option 1: Run the trigger script: pwsh data/.triggers/start_monitoring.ps1", "Option 2: Run directly: docker compose -f docker-compose.monitoring.yml up -d", "Option 3: Use helper: .\\DOCKER.ps1 -WithMonitoring"], "mode": "container_trigger"}}
     except Exception as e:
         logger.error(f"Failed to create trigger script: {e}")
         raise http_error(500, ErrorCode.CONTROL_OPERATION_FAILED, f"Failed to create monitoring trigger: {str(e)}", request)

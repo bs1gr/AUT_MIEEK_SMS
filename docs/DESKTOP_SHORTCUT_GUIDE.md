@@ -58,7 +58,7 @@ When you click the shortcut, you'll see:
 
 ✅ SMS started successfully
 
-  📱 Access at: http://localhost:8082
+  📱 Access at: <http://localhost:8080>
 
 ℹ️  Click the shortcut again to stop
 

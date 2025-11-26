@@ -41,6 +41,6 @@ if ($Mode -eq 'compose') {
     & $refresh @args
     exit $LASTEXITCODE
 } else {
-    Write-Host "[REMOVED] Fullstack helper scripts were archived. Use '.\\RUN.ps1' or '.\\RUN.ps1 -Update' instead." -ForegroundColor Yellow
+    Write-Host "[REMOVED] Fullstack helper scripts were archived. Use '.\\DOCKER.ps1 -Start' or '.\\DOCKER.ps1 -Update' instead." -ForegroundColor Yellow
     exit 1
 }

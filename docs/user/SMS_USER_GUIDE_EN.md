@@ -49,7 +49,7 @@ The Student Management System (SMS) is a comprehensive bilingual (English/Greek)
 
 ### First Login
 
-1. Navigate to the application URL (default: `http://localhost:8082`)
+1. Navigate to the application URL (default: `http://localhost:8080`)
 2. Click **Login** button in the top-right corner
 3. Enter default credentials:
    - **Email:** `admin@example.com`

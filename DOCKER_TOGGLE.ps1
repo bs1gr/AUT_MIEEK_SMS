@@ -175,7 +175,7 @@ else {
         Write-Success "SMS started successfully"
         Write-Log "SMS started successfully (exit code: 0)"
         Write-Host ""
-        Write-Host "  📱 Access at: http://localhost:8082" -ForegroundColor Cyan
+        Write-Host "  📱 Access at: http://localhost:8080" -ForegroundColor Cyan
         Write-Host ""
         Write-Info "Click the shortcut again to stop"
     } else {

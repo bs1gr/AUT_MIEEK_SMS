@@ -29,7 +29,7 @@ Open PowerShell in your SMS project directory and run:
 1. **Double-click** "SMS Toggle" on Desktop
 2. Wait ~10 seconds for startup
 3. Window shows: "SMS started successfully"
-4. Access at: **http://localhost:8082**
+4. Access at: **http://localhost:8080**
 
 ### Stopping SMS
 
@@ -64,7 +64,7 @@ You Click → DOCKER_TOGGLE.ps1 → Checks Status → Runs Opposite Action
 |---------|----------|
 | "Docker is not available" | Start Docker Desktop first |
 | Shortcut not working | Re-run `CREATE_DESKTOP_SHORTCUT.ps1` |
-| Port conflict | Stop other apps using port 8082 |
+| Port conflict | Stop other apps using port 8080 |
 
 ---
 

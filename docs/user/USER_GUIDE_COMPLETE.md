@@ -65,7 +65,7 @@ The Student Management System (SMS) is a comprehensive web-based application des
 ### First-Time Access
 
 1. **Open your web browser**
-2. **Navigate to:** `http://localhost:8082` (Docker mode) or `http://localhost:5173` (Native mode)
+2. **Navigate to:** `http://localhost:8080` (Docker mode) or `http://localhost:5173` (Native mode)
 3. **Default Admin Credentials:**
 
    - **Email:** `admin@example.com`
@@ -131,7 +131,7 @@ See: [Windows Installer Wizard Guide](../WINDOWS_INSTALLER_WIZARD_GUIDE.md)
 docker-compose up -d
 ```
 
-**Access:** http://localhost:8082
+**Access:** http://localhost:8080
 
 ### Option 3: Native Development Mode
 
@@ -988,7 +988,7 @@ CACHE_TTL=300
 3. Check if Docker Desktop is running (Docker mode)
 4. Verify correct URL:
 
-   - Docker: http://localhost:8082
+   - Docker: http://localhost:8080
    - Native: http://localhost:5173
 
 #### Login Failed
@@ -1092,7 +1092,7 @@ CACHE_TTL=300
 
 - GitHub Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 - Check logs: `.\DOCKER.ps1 -Logs`
-- Health check: http://localhost:8082/health
+- Health check: http://localhost:8080/health
 
 **Before Reporting Issues:**
 1. Check this troubleshooting section
@@ -1100,7 +1100,7 @@ CACHE_TTL=300
 3. Try restarting the application
 4. Include in your report:
 
-   - Version number (type `VERSION` or check http://localhost:8082/health)
+   - Version number (type `VERSION` or check http://localhost:8080/health)
    - Operating system
    - Deployment mode (Docker/Native)
    - Exact error message

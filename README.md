@@ -61,7 +61,7 @@ We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 
-See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](SCRIPTS_CONSOLIDATION_GUIDE.md).
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
 
 ##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
 
@@ -118,7 +118,7 @@ Then double-click "SMS Toggle" on your Desktop:
 - Windows 10/11 with [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
 - Docker Desktop must be running
 
-**Access the application (Docker fullstack default port):** <http://localhost:8082>
+**Access the application (Docker fullstack default port):** <http://localhost:8080>
 
 ### 🔐 Admin Login (First-Time Users)
 
@@ -234,9 +234,9 @@ All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native
 - ✅ 100% feature parity maintained
 - ✅ Better error handling and diagnostics
 
-**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide.
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
 
-**Archived:** Legacy scripts preserved in `archive/deprecated/scripts_consolidation_2025-11-21/`
+**Archived:** Legacy scripts preserved in `archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/`
 
 ### Documentation Consolidation ✅
 
@@ -252,12 +252,11 @@ docs/
 └── DOCUMENTATION_INDEX.md  # Master navigation index
 ```
 
-**Root Directory:** Reduced from 15+ markdown files to 5 essential documents
+**Root Directory:** Reduced from 15+ markdown files to 4 essential documents
 
 - README.md (main entry point)
 - CHANGELOG.md (version history)
 - TODO.md (active tracking)
-- SCRIPTS_CONSOLIDATION_GUIDE.md (migration guide)
 - DESKTOP_SHORTCUT_QUICK_START.md (user feature)
 
 **Archived:** Session documents moved to `archive/sessions_2025-11/`
@@ -512,7 +511,7 @@ docker-compose up -d                # Multi-container mode (advanced)
 - ✅ Checks Docker availability (fails if not installed)
 - ✅ Creates .env files from templates
 - ✅ Builds Docker images
-- ✅ Starts containers on port 8082
+- ✅ Starts containers on port 8080
 - ✅ Provides access URLs
 - ✅ Fast update (`-Update`) uses cached layers (quick)
 - ✅ Clean update (`-UpdateNoCache`) prunes build/image cache & uses `--no-cache` rebuild
@@ -531,7 +530,7 @@ The runtime enforces a clear separation between release and development workflow
 
 - Production and release builds **must** run via the Docker full-stack bundle.
 - Launch with `DOCKER.ps1` (Windows/PowerShell) or `scripts/deploy/run-docker-release.sh` (macOS/Linux).
-- Access the stack at <http://localhost:8082> (frontend + API proxy).
+- Access the stack at <http://localhost:8080> (frontend + API proxy).
 
 #### 📦 QNAP NAS Deployment
 
@@ -545,7 +544,7 @@ The runtime enforces a clear separation between release and development workflow
 #### 🔧 Local Development (Native)
 
 - Native execution is reserved for local development and fast iteration.
-- Use `scripts/dev/run-native.ps1` (PowerShell) or `scripts/dev/run-native.sh` (bash) to start backend (FastAPI) + frontend (Vite).
+- Use `NATIVE.ps1` (PowerShell) to start backend (FastAPI) + frontend (Vite) with hot reload.
 - Helper scripts set `SMS_ENV=development` automatically; if `SMS_ENV` is `production`, the backend refuses to start natively.
 - Access the backend at `http://localhost:8000` and the frontend at `http://localhost:5173`.
 
@@ -1016,10 +1015,11 @@ docker compose down
 For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 
 ```powershell
-pwsh -NoProfile -File scripts/dev/run-native.ps1
+.
+\NATIVE.ps1 -Start
 ```
 
-> **Note:** This is the only supported native entry point as of v1.5.0. All manual setup instructions are deprecated.
+> **Note:** Use the consolidated `NATIVE.ps1`. Legacy helpers under `scripts/dev/` were archived and are no longer supported.
 
 ## Project Structure
 
@@ -1162,7 +1162,7 @@ Check for port conflicts:
 ```powershell
 .\DOCKER.ps1 -Status
 # Or check manually:
-netstat -ano | findstr ":8080 :8082"
+netstat -ano | findstr ":8080"
 ```
 
 ### Docker Issues
@@ -1198,6 +1198,7 @@ Use DOCKER.ps1 for database management:
 .\DOCKER.ps1 -Backup     # Backup to ./backups
 .\DOCKER.ps1 -Restore    # Restore from ./backups
 ```
+
 - Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
 - Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
 

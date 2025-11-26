@@ -159,7 +159,7 @@ function Export-DockerImage {
         $imageExists = docker images -q $ImageName 2>$null
         if (-not $imageExists) {
             Write-Warning2 "Docker image '$ImageName' not found"
-            Write-Info "Please build the image first with: .\RUN.ps1"
+            Write-Info "Please build the image first with: .\DOCKER.ps1 -Start"
             return $false
         }
 
@@ -224,13 +224,8 @@ on a Windows computer.
 
 3. **Start the application**:
     ```powershell
-    .\RUN.ps1
+    .\DOCKER.ps1 -Start
     ```
-
-4. **Start the application**:
-   ```powershell
-    pwsh -NoProfile -File .\RUN.ps1
-   ```
 
 ### Option 3: Native Mode (Python + Node.js)
 
@@ -241,7 +236,8 @@ on a Windows computer.
 
 2. **Run the installer**:
    ```powershell
-   .\INSTALLER.ps1 -NativeOnly
+   .\NATIVE.ps1 -Setup
+   .\NATIVE.ps1 -Start
    ```
 
 ## System Requirements
@@ -263,22 +259,28 @@ on a Windows computer.
 
 After installation:
 
-1. **Start**: `pwsh -NoProfile -File .\RUN.ps1`
+1. **Start**: `.\DOCKER.ps1 -Start`
 2. **Access**: http://localhost:8080
-3. **Stop**: `.\SMS.ps1 -Stop`
+3. **Stop**: `.\DOCKER.ps1 -Stop`
 
 ## Accessing the Application
 
 - **Frontend**: http://localhost:8080
-- **API Documentation**: http://localhost:8000/docs
+- **API Documentation**: http://localhost:8080/docs
 - **Control Panel**: http://localhost:8080/control
 
 ## Management
 
-Use the management interface for all operations:
+Use the consolidated management scripts:
 
+**Docker mode:**
 ```powershell
-.\SMS.ps1
+.\DOCKER.ps1 -Help
+```
+
+**Native mode:**
+```powershell
+.\NATIVE.ps1 -Help
 ```
 
 Features:
@@ -303,7 +305,7 @@ If you encounter issues:
 
 3. **Check port availability**:
    - Required ports: 8080, 8000, 5173
-   - Use `.\SMS.ps1` → Diagnostics
+   - Use `.\DOCKER.ps1 -Status` for diagnostics
 
 4. **View logs**:
    - Docker: `docker logs sms-fullstack`
@@ -394,7 +396,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✓ Docker image loaded successfully!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
-    Write-Host "  1. Run: pwsh -NoProfile -File .\RUN.ps1" -ForegroundColor White
+    Write-Host "  1. Run: .\DOCKER.ps1 -Start" -ForegroundColor White
     Write-Host "  2. Access: http://localhost:8080" -ForegroundColor White
 } else {
     Write-Host ""

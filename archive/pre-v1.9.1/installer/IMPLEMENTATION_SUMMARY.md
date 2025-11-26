@@ -347,11 +347,11 @@ student-management-system/
 
 ### Option 4: PowerShell Scripts (Developers)
 
-**Files:** `INSTALL.ps1`, `RUN.ps1`, `SMS.ps1`
+**Files:** `DOCKER.ps1`, `NATIVE.ps1`
 
 **User Experience:**
 1. Clone repository or download source
-2. Run `.\INSTALL.ps1`
+2. Run `.\DOCKER.ps1 -Install`
 3. More flexible for customization
 
 ---
@@ -429,7 +429,7 @@ git push origin v1.8.6.3
 
 1. **No Silent Installation in GUI Version**
    - GUI wizard always interactive
-   - Use `INSTALL.ps1` directly for automation
+   - Use `DOCKER.ps1 -Install` directly for automation
    - MSI installer (Inno Setup) supports `/SILENT` flag
 
 2. **Docker Desktop Restart Required**
@@ -456,8 +456,8 @@ git push origin v1.8.6.3
 
 **Silent Installation:**
 ```powershell
-# Use PowerShell script instead of GUI
-.\INSTALL.ps1 -SkipDockerInstall  # If Docker already installed
+# Use consolidated script instead of GUI
+.\DOCKER.ps1 -Install  # Full automated installation
 ```
 
 **Docker Restart:**

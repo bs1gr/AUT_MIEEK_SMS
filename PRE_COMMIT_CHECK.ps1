@@ -69,7 +69,7 @@ $BACKEND_DIR = Join-Path $SCRIPT_DIR "backend"
 $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $BACKEND_PORT = 8000
 $FRONTEND_PORT = 5173
-$DOCKER_PORT = 8082
+$DOCKER_PORT = 8080
 $TEST_TIMEOUT = 60
 
 # Test results tracking

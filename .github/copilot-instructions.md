@@ -24,7 +24,7 @@
 .\NATIVE.ps1 -Frontend            # Frontend only (Vite HMR)
 .\NATIVE.ps1 -Help                # Show all commands
 
-# Legacy Scripts (Deprecated - See SCRIPTS_CONSOLIDATION_GUIDE.md)
+# Legacy Scripts (Deprecated - archived in archive/pre-v1.9.1/)
 # RUN.ps1, INSTALL.ps1, SMS.ps1 → Use DOCKER.ps1 instead
 # scripts\dev\run-native.ps1 → Use NATIVE.ps1 instead
 
@@ -78,8 +78,7 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 - Scripts: 
   - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
   - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
-  - **Legacy (Archived):** `RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts\dev\run-native.ps1`
-  - **See:** `SCRIPTS_CONSOLIDATION_GUIDE.md` for migration details
+  - **Legacy (Archived):** See `archive/pre-v1.9.1/` for deprecated scripts
 
 ## Critical Patterns (Learn These First)
 
@@ -186,7 +185,7 @@ Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
 .\NATIVE.ps1 -Status          # Check status
 ```
 
-**Migration Note:** Old scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) are deprecated and archived. See `SCRIPTS_CONSOLIDATION_GUIDE.md`.
+**Migration Note:** Old scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) are deprecated and archived in `archive/pre-v1.9.1/`.
 
 ### Development Setup
 

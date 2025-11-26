@@ -97,7 +97,7 @@ cd student-management-system
 
 | Mode | Description | Use Case | Ports |
 |------|-------------|----------|-------|
-| **Docker** | Single container (FastAPI serves built React SPA) | Production, consistent environment | 8082 |
+| **Docker** | Single container (FastAPI serves built React SPA) | Production, consistent environment | 8080 |
 | **Native** | Backend + Frontend separate processes | Development, hot reload | 8000 + 5173 |
 
 **Key Features:**

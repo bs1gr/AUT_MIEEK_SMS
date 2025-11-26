@@ -471,8 +471,8 @@ class TestDocumentation:
 
     def test_deployment_plan_exists(self):
         """Verify QNAP deployment plan exists."""
-        # Deployment plan moved to archive
-        plan_path = PROJECT_ROOT / "archive" / "sessions_2025-11" / "QNAP_DEPLOYMENT_PLAN.md"
+        # Deployment plan moved to archive in v1.9.3
+        plan_path = PROJECT_ROOT / "archive" / "pre-v1.9.1" / "sessions_2025-11" / "QNAP_DEPLOYMENT_PLAN.md"
         assert plan_path.exists(), f"Deployment plan not found at {plan_path}"
 
     def test_scripts_readme_exists(self):
