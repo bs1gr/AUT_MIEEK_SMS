@@ -95,6 +95,7 @@ param(
     [switch]$DeepClean,
     [switch]$Help,
     [switch]$NoPause,
+    [switch]$Silent,  # Unattended mode: skip prompts (for installer integration)
     [int]$GrafanaPort = 3000
 )
 
@@ -816,6 +817,12 @@ function Start-Installation {
     Write-Host ""
     Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
     Write-Host ""
+
+    # In silent mode, don't prompt and don't auto-start
+    if ($Silent) {
+        Write-Info "Silent mode: Installation complete. Run .\DOCKER.ps1 -Start to launch."
+        return 0
+    }
 
     $startNow = Read-Host "Start application now? (Y/n)"
     if ([string]::IsNullOrWhiteSpace($startNow) -or $startNow -match '^[Yy]') {

@@ -847,31 +847,29 @@ What it does:
 
 ### Stopping the Application
 
-Simple stop:
-
-Use the management script:
-
 ```powershell
-.\SMS.ps1 -Stop             # Clean stop all services
+.\DOCKER.ps1 -Stop          # Clean stop Docker container
 ```
 
-### Developer Tools & Troubleshooting
+Or use the desktop shortcut (double-click to toggle start/stop).
 
-For advanced operations, diagnostics, and Docker management, use the unified menu:
+### Developer Tools
+
+For development with hot-reload:
 
 ```powershell
-.\SMS.ps1
-# Or advanced tools (optional)
-.\scripts\internal\DEVTOOLS.ps1
+.\NATIVE.ps1 -Start         # Backend + Frontend with hot-reload
+.\NATIVE.ps1 -Backend       # Backend only
+.\NATIVE.ps1 -Frontend      # Frontend only
 ```
 
-Menu provides:
+For Docker operations:
 
-- Docker operations (build, logs, shell access)
-- Diagnostics (port conflicts, API tests, database info)
-- Docker Compose (legacy multi-container setup)
-- Native development mode (Python + Node.js)
-- Cleanup and maintenance tools
+```powershell
+.\DOCKER.ps1 -Status        # Check container status
+.\DOCKER.ps1 -Logs          # View container logs
+.\DOCKER.ps1 -Update        # Update with backup
+```
 
 ### Control Panel (Optional)
 
@@ -902,33 +900,17 @@ Features:
 
 Notes:
 
-- Inside Docker/full-stack mode the restart endpoint is disabled for safety. Use host scripts such as `SMS.ps1 -Restart` or stop/start the container instead.
+- Inside Docker/full-stack mode the restart endpoint is disabled for safety. Use `.\DOCKER.ps1 -Restart` or stop/start the container instead.
 - Without `ADMIN_SHUTDOWN_TOKEN`, only loopback callers (same machine) can trigger the restart. When the token is set the frontend automatically sends it via the `X-ADMIN-TOKEN` header.
 - The helper endpoint `GET /control/api/restart` returns structured diagnostics if you need to troubleshoot the button or API access.
 
 ## Maintenance
 
-### Comprehensive Project Cleanup
-
-Automated cleanup script that removes obsolete files across the entire project, including Docker-related artifacts.
-
-**Recommended approach (safe, automated):**
+### Docker Cleanup
 
 ```powershell
-# Preview changes first
-.\CLEANUP_PLAN.ps1 -PhaseOne -DryRun
-
-# Execute high-priority cleanup
-.\CLEANUP_PLAN.ps1 -PhaseOne
-
-# Execute consolidation tasks
-.\CLEANUP_PLAN.ps1 -PhaseTwo
-```
-
-**Advanced cleanup (comprehensive):**
-
-```powershell
-.\SUPER_CLEAN_AND_DEPLOY.ps1
+.\DOCKER.ps1 -Prune         # Safe cleanup of unused Docker resources
+.\DOCKER.ps1 -DeepClean     # Nuclear cleanup (removes all SMS Docker resources)
 ```
 
 **What it cleans:**
@@ -1041,28 +1023,29 @@ pwsh -NoProfile -File scripts/dev/run-native.ps1
 
 ## Project Structure
 
-
 ```text
 student-management-system/
-├── RUN.ps1                   # Canonical Docker entry point (one-click)
-├── SMS.ps1                   # Operations management interface
-├── CLEANUP_PLAN.ps1          # Automated cleanup script (with dry-run)
+├── DOCKER.ps1                # Docker deployment (install, start, stop, update)
+├── NATIVE.ps1                # Native development (hot-reload backend + frontend)
+├── DOCKER_TOGGLE.vbs         # Desktop shortcut toggle script
+├── CREATE_DESKTOP_SHORTCUT.ps1  # Creates desktop shortcut
+├── BUILD_DISTRIBUTION.ps1    # Build installer and ZIP distribution
 ├── backend/                  # FastAPI backend
 │   ├── main.py               # Application entry point
 │   ├── models.py             # Database models
 │   ├── routers/              # API route handlers
 │   ├── schemas/              # Pydantic schemas
 │   ├── services/             # Business logic layer (9 services)
-├── scripts/
-│   ├── dev/
-│   │   ├── run-native.ps1    # Canonical native entry point (dev only)
-│   │   └── SMART_BACKEND_TEST.ps1  # Test runner with logging
-│   ├── deploy/               # Deployment tools
-│   ├── ops/                  # Release management & compliance
-│   └── internal/             # Developer tools & cleanup scripts
+├── frontend/                 # React + Vite frontend
+├── installer/                # Inno Setup installer files
+│   ├── SMS_Installer.iss     # Installer script
+│   ├── Greek.isl             # Greek translations
+│   ├── SIGN_INSTALLER.ps1    # Code signing script
+│   └── AUT_MIEEK_CodeSign.cer # Public certificate
+├── docker/                   # Docker configuration files
+├── scripts/                  # Utility scripts
 ├── docs/                     # Comprehensive documentation (30+ files)
 ├── archive/                  # Historical/deprecated files
-│   └── obsolete/             # Retired assets kept for reference (e.g., templates/power.html)
 └── tools/                    # Data import/export tools
 ```
 
@@ -1177,8 +1160,9 @@ To change the default semester length, set `SEMESTER_WEEKS` in `backend/.env` (s
 Check for port conflicts:
 
 ```powershell
-.\SMS.ps1
-# Then select: Debug Port Conflicts
+.\DOCKER.ps1 -Status
+# Or check manually:
+netstat -ano | findstr ":8080 :8082"
 ```
 
 ### Docker Issues
@@ -1186,8 +1170,8 @@ Check for port conflicts:
 Check Docker status:
 
 ```powershell
-.\SMS.ps1
-# Then select: Docker Status/Logs
+.\DOCKER.ps1 -Status
+.\DOCKER.ps1 -Logs
 ```
 
 ### Database Issues
@@ -1195,28 +1179,25 @@ Check Docker status:
 If you encounter database issues, check the logs:
 
 ```powershell
-.\SMS.ps1
-# Then select: View Logs
+.\DOCKER.ps1 -Logs
 ```
 
-To reset the database:
+To reset the database (warning: data loss):
 
 ```powershell
-.\SMS.ps1
-# Then select: Database → Reset (Delete Volume)
+.\DOCKER.ps1 -Stop
+docker volume rm sms_data
+.\DOCKER.ps1 -Start
 ```
 
-#### Backup, Restore, and Migrate
+#### Backup and Restore
 
-Use the unified menu for one-click database management:
+Use DOCKER.ps1 for database management:
 
-- Backup: SMS.ps1 → Backup Database (to `./backups`)
-- Restore: SMS.ps1 → Restore Database (from `./backups`)
-- Migrate: SMS.ps1 → Migrate Compose → Fullstack Volume
-
-Notes:
-
-- Backup saves a timestamped copy of `/data/student_management.db` from the `sms_data` volume to the local `./backups` folder.
+```powershell
+.\DOCKER.ps1 -Backup     # Backup to ./backups
+.\DOCKER.ps1 -Restore    # Restore from ./backups
+```
 - Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
 - Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
 
@@ -1226,7 +1207,7 @@ Notes:
 If the frontend isn't loading, try rebuilding:
 
 ```powershell
-.\RUN.ps1 -Update
+.\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
 ```
 
 ## Development

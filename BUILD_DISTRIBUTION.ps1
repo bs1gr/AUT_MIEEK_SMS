@@ -317,6 +317,20 @@ if (-not $ZipOnly) {
                 $installerSize = [math]::Round((Get-Item $installerPath).Length / 1MB, 2)
                 Write-Host ""
                 Write-Host "  ✓ Created: $InstallerName ($installerSize MB)" -ForegroundColor Green
+                
+                # Sign the installer if certificate exists
+                $certPath = "$ProjectRoot\installer\AUT_MIEEK_CodeSign.pfx"
+                if (Test-Path $certPath) {
+                    Write-Step "Signing installer..."
+                    & "$ProjectRoot\installer\SIGN_INSTALLER.ps1" -InstallerPath $installerPath
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Host "  ✓ Installer signed successfully" -ForegroundColor Green
+                    } else {
+                        Write-Warning "Installer signing failed - continuing without signature"
+                    }
+                } else {
+                    Write-Warning "Code signing certificate not found - installer will be unsigned"
+                }
             }
         } else {
             Write-Error "Installer compilation failed (exit code: $($process.ExitCode))"
