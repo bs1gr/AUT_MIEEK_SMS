@@ -136,3 +136,7 @@ templates/students/*.csv
 # Temporary export/backup directories
 temp_export_*/
 SMS-Docker-Image-*.tar
+
+# Code signing private key
+*.pfx
+AUT_MIEEK_CodeSign.pfx
