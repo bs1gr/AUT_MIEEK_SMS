@@ -40,7 +40,7 @@ All cached elements have been resolved. The installer is fully updated with the 
 ### Certificate Location Details
 - **City/Locality:** Limassol ✅ (Corrected from Thessaloniki)
 - **Country:** Cyprus (CY) ✅ (Corrected from Greece)
-- **Organization:** AUT MIEEK - Post-secondary Vocational Education and Training Institutes
+- **Organization:** ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
 - **Website:** https://www.mieek.ac.cy/index.php/el/
 
 ---
