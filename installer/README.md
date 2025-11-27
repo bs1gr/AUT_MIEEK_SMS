@@ -2,6 +2,13 @@
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
+## Organization
+
+**MIEEK (Mediterranean Institute of Environmental Economics and Knowledge)**
+- Official Website: https://www.mieek.ac.cy/index.php/el/
+- Location: Limassol, Cyprus
+- GitHub Repository: https://github.com/bs1gr/AUT_MIEEK_SMS
+
 ## Files
 
 | File | Description |
@@ -12,6 +19,7 @@ This directory contains the Inno Setup installer configuration and code signing 
 | `AUT_MIEEK_CodeSign.pfx` | Private key (⚠️ KEEP SECURE - not in git) |
 | `SIGN_INSTALLER.ps1` | Script to sign installer executables |
 | `INSTALL_CERTIFICATE.ps1` | Script to trust the certificate (run as Admin) |
+| `CREATE_CERTIFICATE.ps1` | Generate new code signing certificate |
 | `run_docker_install.cmd` | Helper for Docker installation |
 | `placeholder.txt` | Placeholder for data directory |
 
@@ -52,9 +60,9 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 
 ### Certificate Details
 
-- **Subject:** CN=AUT MIEEK, O=AUT MIEEK, L=Thessaloniki, C=GR
+- **Subject:** CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY
 - **Valid Until:** November 2028
-- **Thumbprint:** `5A4D5FF1EEE6B1A0A2F864D425B5096F83CE5D63`
+- **Thumbprint:** (Updated after regeneration)
 
 ### Security Notes
 
