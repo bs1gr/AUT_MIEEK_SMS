@@ -98,6 +98,9 @@ pytest-full-output.txt
 # IDE/editor
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # Virtualenvs
 .venv/
