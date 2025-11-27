@@ -2,11 +2,15 @@
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
-## Organization
+## Application Purpose
+
+This installer is for a **Student Management System** built for teachers at:
 
 **ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης**
 - Official Website: https://www.mieek.ac.cy/index.php/el/
 - Location: Limassol, Cyprus
+
+**Developer:** Independent teacher at ΜΙΕΕΚ
 - GitHub Repository: https://github.com/bs1gr/AUT_MIEEK_SMS
 
 ## Files
