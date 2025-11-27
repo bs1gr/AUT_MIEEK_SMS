@@ -38,7 +38,7 @@ AllowNoIcons=yes
 ; License and info files are language-specific (set in [Languages])
 OutputDir=..\dist
 OutputBaseFilename=SMS_Installer_{#MyAppVersion}
-SetupIconFile=..\SMS_Toggle.ico
+SetupIconFile=..\favicon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -162,7 +162,7 @@ Source: "..\CREATE_DESKTOP_SHORTCUT.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Icon file
-Source: "..\SMS_Toggle.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
@@ -201,12 +201,12 @@ Type: files; Name: "{app}\config\lang.txt"
 
 [Icons]
 ; Start Menu
-Name: "{group}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\SMS_Toggle.ico"; Comment: "Start/Stop SMS Docker container"
-Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\SMS_Toggle.ico"
+Name: "{group}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"
+Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut
-Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\SMS_Toggle.ico"; Comment: "Start/Stop SMS Docker container"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"
 
 [Run]
 ; Open Docker download page if requested
@@ -635,22 +635,10 @@ begin
     CommonShortcut := ExpandConstant('{commondesktop}\{#MyAppName}.lnk');
     UserShortcut := ExpandConstant('{userdesktop}\{#MyAppName}.lnk');
 
-    // Clean up old shortcuts from previous versions (various naming patterns)
-    // Be aggressive for the legacy "SMS Toggle" name, including numbered copies
-    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle*.lnk'));
-    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle*.lnk'));
-    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle*.lnk'));
-
-    // Also remove any duplicate/redundant shortcuts with the full app name,
-    // BUT NEVER delete the one we just created at {autodesktop}
-    if LowerCase(CommonShortcut) <> LowerCase(NewShortcut) then
-      DeleteFile(CommonShortcut);
-    if LowerCase(UserShortcut) <> LowerCase(NewShortcut) then
-      DeleteFile(UserShortcut);
     // Clean up any manually created folder shortcuts (case-insensitive match via exact known name)
     DeleteFile(ExpandConstant('{autodesktop}\student-management-system - Shortcut.lnk'));
     DeleteFile(ExpandConstant('{userdesktop}\student-management-system - Shortcut.lnk'));
-    Log('Cleaned up old/duplicate shortcuts');
+    Log('Cleaned up manual folder shortcuts');
     
     // Rename uninstaller to include version and update registry
     // Uses constants defined at top: UninstallerExe, UninstallerDat
