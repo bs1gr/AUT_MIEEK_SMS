@@ -1,7 +1,7 @@
 # Pre-v1.9.1 Archive
 
 **Archived:** 2025-11-26
-**Last Updated:** 2025-11-26
+**Last Updated:** 2025-11-27
 **Reason:** Legacy content superseded by v1.9.x consolidated architecture
 
 This directory contains all deprecated artifacts from versions prior to v1.9.1.
@@ -27,6 +27,7 @@ This directory contains all deprecated artifacts from versions prior to v1.9.1.
 
 - `deprecated/` - Scripts replaced by DOCKER.ps1/NATIVE.ps1 consolidation
 - `deprecated_bat_wrappers/` - Legacy .bat files replaced by PowerShell
+- `deprecated_v1.9.3_cleanup/` - Additional artifacts archived during v1.9.3 audit
 - `scripts/` - One-time migration scripts (reorganize, consolidate)
 - `deprecated_stubs/` - Stub scripts that displayed deprecation messages
 - `scripts_docker_duplicate/` - Duplicate of scripts/deploy/docker

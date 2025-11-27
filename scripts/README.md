@@ -1,6 +1,6 @@
 # Scripts Directory
 
-**Last Updated:** November 25, 2025  
+**Last Updated:** November 27, 2025  
 **Version:** 2.0
 
 This directory contains management scripts for the Student Management System.
@@ -23,10 +23,9 @@ scripts/
 ├── SMOKE_TEST.ps1                 # ✅ Quick health check
 ├── CHECK_VOLUME_VERSION.ps1       # ✅ DB schema version check
 ├── VERIFY_WORKSPACE.ps1           # ✅ Workspace integrity check
-├── internal/                      # 🔧 Internal utilities (advanced)
-├── docker/                        # 🐳 Docker helpers (mostly deprecated)
 ├── dev/                           # 💻 Development tools
 ├── deploy/                        # 🚀 Deployment scripts
+│   └── docker/                    # 🐳 Docker helpers
 ├── ops/                           # 🛠️  Operations (releases, packages)
 ├── maintenance/                   # 🔧 Maintenance tasks
 ├── operator/                      # 👤 Operator-only (destructive)
@@ -231,7 +230,7 @@ The following scripts in this directory are **deprecated** and redirect to v2.0 
 
 ### Docker Subdirectory Deprecated Scripts
 
-Most scripts in `scripts/docker/` show deprecation messages pointing to `DOCKER.ps1`.
+Legacy `scripts/docker/` folder was removed. Docker helpers now live in `scripts/deploy/docker/`.
 
 **Example:**
 
@@ -264,15 +263,15 @@ All legacy cleanup, deployment, and management scripts have been consolidated:
 
 **Development Tools:**
 
-- `DEVTOOLS.ps1/.bat` - Advanced developer operations menu
-- `CREATE_PACKAGE.ps1/.bat` - Package application for distribution
-- `VERIFY_LOCALIZATION.ps1` - Verify translation completeness
+- `dev/internal/DEVTOOLS.ps1` - Advanced developer operations menu
+- `deploy/internal/CREATE_PACKAGE.ps1` - Package application for distribution
+- `dev/internal/VERIFY_LOCALIZATION.ps1` - Verify translation completeness
 
 **Emergency:**
 
-- `KILL_FRONTEND_NOW.ps1/.bat` - Force kill frontend process
+- `operator/KILL_FRONTEND_NOW.ps1` - Force kill frontend process (requires `-Confirm`)
 
-### `docker/` - Docker-Specific Scripts
+### `deploy/docker/` - Docker-Specific Scripts
 
 Docker deployment and management helper scripts. Prefer `DOCKER.ps1` for consolidated operations; use these only for lower-level or experimental tasks.
 
@@ -285,9 +284,9 @@ Docker deployment and management helper scripts. Prefer `DOCKER.ps1` for consoli
 
 **Fullstack Container:**
 
-Use the consolidated launcher `..\DOCKER.ps1 -Start` to run the fullstack container. Legacy fullstack helpers and `RUN.ps1` were archived (see `archive/deprecated/scripts_consolidation_2025-11-21/`).
+Use the consolidated launcher `..\DOCKER.ps1 -Start` to run the fullstack container. Legacy fullstack helpers were archived to `archive/pre-v1.9.1/`.
 
-If you need lower-level control during development, use the Docker Compose helpers in `scripts/docker/` or run `docker compose` directly.
+If you need lower-level control during development, use the Docker Compose helpers in `scripts/deploy/docker/` or run `docker compose` directly.
 
 **Volume Management:**
 
