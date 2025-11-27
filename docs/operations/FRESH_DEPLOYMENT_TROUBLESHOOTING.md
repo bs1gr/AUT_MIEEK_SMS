@@ -33,42 +33,20 @@ REM If you see containers, use port 8080
 
 The error means frontend dependencies weren't installed. Fix it:
 
-```cmd
-REM Stop everything first
-SMS.ps1 -Stop
+```powershell
+# Stop everything first
+.\DOCKER.ps1 -Stop
 
-REM Install frontend dependencies
+# Install frontend dependencies (if using native mode)
 cd frontend
 npm install
-
-REM Go back to root
 cd ..
 
-REM Start again - USE THE BATCH FILE (recommended)
-START.bat
-```
+# Start again in Docker mode (recommended)
+.\DOCKER.ps1 -Start
 
----
-
-## 🎯 Best Practice: Use START.bat
-
-**Avoid PowerShell issues entirely!**
-
-### Why START.bat is Better
-
-✅ **No execution policy blocks** - Works immediately
-✅ **No PowerShell version conflicts** - Works on Win 7/8/10/11
-✅ **No security warnings** - Native Windows batch format
-✅ **Just double-click and run** - Zero configuration
-
-### Usage
-
-```cmd
-REM Simple - just double-click START.bat in Windows Explorer
-REM Or from command prompt:
-START.bat
-
-REM That's it! No PowerShell complications.
+# Or start in native mode for development
+.\NATIVE.ps1 -Start
 ```
 
 ---
@@ -98,18 +76,14 @@ REM That's it! No PowerShell complications.
 
 ---
 
-## Issue 2: PowerShell Script Issues (RUN.ps1)
+## Issue 2: PowerShell Script Issues
 
-**🎯 SOLUTION: Use START.bat instead!**
+**Current Scripts (v1.9.3+):**
 
-The batch file avoids ALL PowerShell problems:
+- `DOCKER.ps1` - Docker deployment operations
+- `NATIVE.ps1` - Native development mode
 
-- No execution policy blocks
-- No version conflicts (PowerShell 5 vs 7)
-- No security warnings
-- Works on Windows 7, 8, 10, 11
-
-### But if you insist on using PowerShell
+**Common Issues:**
 
 **Common Causes:**
 
@@ -119,16 +93,16 @@ The batch file avoids ALL PowerShell problems:
 
 **Fix:**
 
-```cmd
-REM Option A: Run with bypass (one-time)
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\RUN.ps1
+```powershell
+# Option A: Run with bypass (one-time)
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\DOCKER.ps1 -Start
 
-REM Option B: Set policy permanently (CurrentUser scope)
+# Option B: Set policy permanently (CurrentUser scope)
 pwsh -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
-.\RUN.ps1
+.\DOCKER.ps1 -Start
 
-REM Option C: Launch an elevated PowerShell that runs the starter script
-Start-Process pwsh -ArgumentList "-NoProfile -File .\RUN.ps1" -Verb RunAs
+# Option C: Use VBS toggle (no PowerShell issues)
+# Double-click DOCKER_TOGGLE.vbs in Windows Explorer
 ```
 
 ### 2. Missing Prerequisites
@@ -137,24 +111,25 @@ Start-Process pwsh -ArgumentList "-NoProfile -File .\RUN.ps1" -Verb RunAs
 
 **Fix:**
 
-- Install Python 3.11+: <https://www.python.org/downloads/>
-- Install Node.js 18+: <https://nodejs.org/>
+- Install Python 3.12+: <https://www.python.org/downloads/>
+- Install Node.js 20+: <https://nodejs.org/>
+- Install Docker Desktop: <https://www.docker.com/products/docker-desktop>
 - Restart PowerShell after installation
-- Run RUN.ps1 again
+- Run `.\DOCKER.ps1 -Install` for first-time setup
 
-### 3. RUN.ps1 Not Found
+### 3. Script Not Found
 
-**Error:** "RUN.ps1 not found"
+**Error:** "DOCKER.ps1 not found"
 
 **Fix:**
 
 ```powershell
 # Make sure you're in the correct directory
-cd D:\AUT_MIEEK_SMS-main  # Or wherever you extracted the files
-dir  # Should show RUN.ps1, SMS.ps1, SMART_SETUP.ps1, etc.
+cd D:\SMS\student-management-system  # Or wherever you extracted the files
+dir  # Should show DOCKER.ps1, NATIVE.ps1, COMMIT_READY.ps1, etc.
 
 # Then run
-.\RUN.ps1
+.\DOCKER.ps1 -Start
 ```
 
 ### 4. npm Install Failed
@@ -189,8 +164,11 @@ npm install -g npm@latest
 ### Quick Status Check
 
 ```powershell
-# Using SMS.ps1
-.\SMS.ps1 -Status
+# Using DOCKER.ps1
+.\DOCKER.ps1 -Status
+
+# Or using NATIVE.ps1
+.\NATIVE.ps1 -Status
 
 # Or check directly
 docker ps  # Shows Docker containers
@@ -215,20 +193,24 @@ If everything is broken and you want to start completely fresh:
 
 ```powershell
 # 1. Stop everything
-.\SMS.ps1 -Stop
-docker-compose down  # If using Docker
+.\DOCKER.ps1 -Stop  # Or .\NATIVE.ps1 -Stop
 
-# 2. Delete data directory (⚠️ loses database)
+# 2. Clean Docker (if using Docker mode)
+.\DOCKER.ps1 -DeepClean  # Removes containers, images, volumes
+
+# 3. Delete data directory (⚠️ loses database)
 Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue
 
-# 3. Delete node_modules
+# 4. Delete node_modules (if using native mode)
 Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
 
-# 4. Delete Python virtual environment
+# 5. Delete Python virtual environment (if using native mode)
 Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 
-# 5. Force reinstall/build
-.\SMART_SETUP.ps1 -Force
+# 6. Fresh installation
+.\DOCKER.ps1 -Install  # For Docker mode
+# Or
+.\NATIVE.ps1 -Setup    # For native mode
 ```
 
 ---
@@ -238,7 +220,9 @@ Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 ### 1. Check Services are Running
 
 ```powershell
-.\SMS.ps1 -Status
+.\DOCKER.ps1 -Status  # For Docker mode
+# Or
+.\NATIVE.ps1 -Status  # For native mode
 ```
 
 Should show:
@@ -285,21 +269,28 @@ If you're still stuck:
 1. **Check Logs:**
 
    ```powershell
-   .\SMS.ps1
-   # Select option 9: View Application Logs
+   # Docker logs
+   docker logs sms-fullstack
+   
+   # Or check backend log files
+   Get-Content backend\logs\app.log -Tail 50
    ```
 
 2. **Run Diagnostics:**
 
    ```powershell
-   .\SMS.ps1
-   # Select option 8: Run Full Diagnostics
+   # Via scripts
+   .\scripts\DIAGNOSE_STATE.ps1
+   
+   # Or via Control Panel
+   # Navigate to http://localhost:8080/control and click "Run Diagnostics"
    ```
 
-3. **Check setup.log:**
+3. **Check Docker status:**
 
    ```powershell
-   Get-Content setup.log -Tail 50
+   .\DOCKER.ps1 -Status
+   docker ps -a
    ```
 
 4. **Common Log Locations:**
@@ -325,9 +316,8 @@ netstat -ano | findstr ":8080"
 # If you are an operator and understand the risks, run the emergency script interactively:
 #      .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
-# Or use SMS.ps1 diagnostics
-.\SMS.ps1
-# Select option 7: Debug Port Conflicts
+# Or use diagnostic script
+.\scripts\DIAGNOSE_STATE.ps1
 ```
 
 ---
