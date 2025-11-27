@@ -11,9 +11,15 @@ This document consolidates all git workflow procedures, commit standards, and au
 
 ```powershell
 # Run comprehensive pre-commit checks and generate commit message
-.\COMMIT_PREP.ps1
+.\COMMIT_READY.ps1
 
-# Review generated message
+# Or use specific mode
+.\COMMIT_READY.ps1 -Mode quick      # Fast validation (2-3 min)
+.\COMMIT_READY.ps1 -Mode standard   # Standard workflow (5-8 min) - DEFAULT
+.\COMMIT_READY.ps1 -Mode full       # Comprehensive (15-20 min)
+.\COMMIT_READY.ps1 -Mode cleanup    # Cleanup only (1-2 min)
+
+# Review generated message (if using -GenerateCommit)
 Get-Content .\commit_msg.txt
 
 # Commit with generated message
@@ -25,8 +31,8 @@ git push origin main
 ### 2. Manual Workflow
 
 ```powershell
-# Run smoke tests
-.\PRE_COMMIT_CHECK.ps1
+# Run smoke tests (quick mode)
+.\COMMIT_READY.ps1 -Mode quick
 
 # Stage changes
 git add <files>

@@ -1,19 +1,23 @@
 # Pre-Commit Automation Guide
 
-**Version:** 1.0.0  
-**Created:** 2025-11-25  
-**Purpose:** Unified pre-commit verification automation for SMS v1.9.0
+**Version:** 2.0.0  
+**Updated:** 2025-11-27  
+**Purpose:** Unified pre-commit verification automation for SMS v1.9.3+
+
+> **Migration Notice (v1.9.3)**: Multiple commit preparation scripts (`COMMIT_PREP.ps1`, `PRE_COMMIT_CHECK.ps1`, `PRE_COMMIT_HOOK.ps1`, `SMOKE_TEST_AND_COMMIT_PREP.ps1`) have been consolidated into a single unified script `COMMIT_READY.ps1`. See `archive/deprecated_commit_scripts_2025-11-27/README.md` for migration details.
 
 ---
 
 ## Overview
 
-`PRE_COMMIT_CHECK.ps1` is a comprehensive automation script that consolidates all testing and verification steps required before committing code changes. It ensures production readiness by testing both Native and Docker deployment modes.
+`COMMIT_READY.ps1` is a comprehensive automation script that consolidates all testing, verification, and cleanup steps required before committing code changes. It ensures production readiness with flexible execution modes.
 
 **Key Benefits:**
-- ✅ **Automated**: No manual testing required
-- ✅ **Comprehensive**: Tests all deployment modes
-- ✅ **Fast**: Quick mode for Native-only testing
+
+- ✅ **Unified**: Single script replaces 4 deprecated scripts
+- ✅ **Mode-Based**: Quick (2-3 min), Standard (5-8 min), Full (15-20 min), Cleanup (1-2 min)
+- ✅ **Auto-Fix**: Automatically fixes formatting and import issues
+- ✅ **Comprehensive**: Tests all deployment modes + cleanup
 - ✅ **Detailed**: Comprehensive pass/fail reporting
 - ✅ **Reliable**: Catches issues before commit
 
@@ -24,227 +28,155 @@
 ### Basic Usage
 
 ```powershell
-# Full verification (Native + Docker)
-.\PRE_COMMIT_CHECK.ps1
+# Standard workflow (recommended for most commits)
+.\COMMIT_READY.ps1
 
-# Fast verification (Native only)
-.\PRE_COMMIT_CHECK.ps1 -Quick
+# Quick validation (use as git pre-commit hook)
+.\COMMIT_READY.ps1 -Mode quick
 
-# Docker only
-.\PRE_COMMIT_CHECK.ps1 -SkipNative
+# Full verification (Native + Docker health checks)
+.\COMMIT_READY.ps1 -Mode full
 
-# Native only (explicit)
-.\PRE_COMMIT_CHECK.ps1 -SkipDocker
+# Cleanup workspace only
+.\COMMIT_READY.ps1 -Mode cleanup
+
+# With auto-fix for formatting issues
+.\COMMIT_READY.ps1 -AutoFix
 ```
 
-### Expected Output
+### Execution Modes
 
-```
-╔══════════════════════════════════════════════════════════════╗
-║           PRE-COMMIT VERIFICATION - SMS v1.9.0               ║
-╚══════════════════════════════════════════════════════════════╝
-
-ℹ️  Starting comprehensive pre-commit checks...
-
-╔══════════════════════════════════════════════════════════════╗
-║  Phase 1: Prerequisites Check                                ║
-╚══════════════════════════════════════════════════════════════╝
-
-Checking Python... ✅ Python 3.11.5 ✅
-Checking Node.js... ✅ Node.js v20.10.0 ✅
-Checking Docker... ✅ Docker available ✅
-
-╔══════════════════════════════════════════════════════════════╗
-║  Phase 2: Environment Cleanup                                ║
-╚══════════════════════════════════════════════════════════════╝
-
-ℹ️  Stopping Native processes...
-✅ Native processes stopped
-ℹ️  Cleaning up lingering processes...
-✅ Process cleanup complete
-ℹ️  Stopping Docker container...
-✅ Docker container stopped
-
-[... continues with Native testing, Docker testing, Compilation, Git status ...]
-
-╔══════════════════════════════════════════════════════════════╗
-║  Test Results Summary                                        ║
-╚══════════════════════════════════════════════════════════════╝
-
-📊 Prerequisites (3/3 passed)
-  ✅ Python - Python 3.11.5
-  ✅ Node.js - v20.10.0
-  ✅ Docker - Docker version 24.0.7
-
-📊 NativeBackend (1/1 passed)
-  ✅ Health Check - Status: healthy
-
-📊 NativeFrontend (1/1 passed)
-  ✅ Accessibility - HTTP 200
-
-📊 DockerContainer (2/2 passed)
-  ✅ Health Check - Status: healthy
-  ✅ Frontend - HTTP 200
-
-📊 DockerDatabase (1/1 passed)
-  ✅ Connection - Status: connected
-
-📊 Compilation (2/2 passed)
-  ✅ TypeScript - 0 production errors
-  ✅ ESLint - Clean or warnings only
-
-📊 GitStatus (1/1 passed)
-  ✅ Changes Detected - 42 files
-
-═══════════════════════════════════════════════════════════════
-
-🎉 ALL TESTS PASSED - READY TO COMMIT! 🎉
-
-ℹ️  Next steps:
-  1. Review changes:  git status
-  2. Stage changes:   git add -u
-  3. Commit:          git commit -F commit_msg.txt
-  4. Push:            git push origin main
-
-ℹ️  Total duration: 45.2s
-```
+| Mode | Duration | Use Case | Operations |
+|------|----------|----------|------------|
+| `quick` | 2-3 min | Git pre-commit hook | Linting + fast tests + translation check |
+| `standard` | 5-8 min | Standard workflow (default) | Full linting + all tests + cleanup |
+| `full` | 15-20 min | Pre-release validation | Everything + Native/Docker health checks |
+| `cleanup` | 1-2 min | Maintenance | Only cleanup operations |
 
 ---
 
 ## Test Phases
 
-### Phase 1: Prerequisites Check
+### Phase 1: Code Quality & Linting
 
-**Purpose:** Verify required tools are installed and available.
+**Backend (Ruff):**
 
-**Tests:**
-- ✅ Python 3.11+ availability
-- ✅ Node.js 18+ availability
-- ✅ Docker availability (if Docker testing enabled)
-- ✅ PowerShell version (5.1+)
+- Linting with `ruff check --config ../config/ruff.toml`
+- Optional auto-fix with `-AutoFix` flag
+- Configured rules: syntax errors, undefined names, unused imports
 
-**Failure Handling:**
-- Missing Python/Node.js → Installation instructions displayed
-- Docker not running → Skip Docker tests (continues with Native)
+**Frontend (ESLint):**
 
----
+- Linting with `npm run lint`
+- Optional auto-fix with `-AutoFix` flag
+- Rules: syntax, i18next, React best practices
 
-### Phase 2: Environment Cleanup
+**TypeScript Type Checking:**
 
-**Purpose:** Ensure clean testing environment.
+- Run `npx tsc --noEmit` in frontend directory
+- Fails on any production code type errors
 
-**Actions:**
-- ✅ Stop all running Native processes (Backend + Frontend)
-- ✅ Force kill lingering Node.js/uvicorn processes
-- ✅ Stop Docker containers
-- ✅ Wait 2 seconds for cleanup to complete
+**Translation Integrity:**
 
-**Skip with:** `-NoCleanup` flag
+- Validates EN/EL translation key parity
+- Checks for missing translations
+- Detects placeholder mismatches
+- Test file: `frontend/src/i18n/__tests__/translations.test.ts`
 
----
-
-### Phase 3: Native App Testing
-
-**Purpose:** Verify Native deployment mode (development).
-
-**Tests:**
-1. **Start Native app** via `NATIVE.ps1 -Start`
-   - Backend (FastAPI with uvicorn) on port 8000
-   - Frontend (Vite dev server) on port 5173
-
-2. **Backend health check**
-   - Wait for port 8000 to listen (30s timeout)
-   - HTTP GET to `http://localhost:8000/health`
-   - Verify JSON response with `status: "healthy"`
-
-3. **Frontend accessibility**
-   - Wait for port 5173 to listen (30s timeout)
-   - HTTP GET to `http://localhost:5173`
-   - Verify HTTP 200 response
-
-4. **Cleanup**
-   - Stop Native processes via `NATIVE.ps1 -Stop`
-
-**Skip with:** `-SkipNative` flag
-
-**Typical Duration:** ~15-20 seconds
+**Skip with:** `-SkipLint` flag
 
 ---
 
-### Phase 4: Docker App Testing
+### Phase 2: Test Suite Execution
 
-**Purpose:** Verify Docker deployment mode (production).
+**Backend Tests (pytest):**
 
-**Tests:**
-1. **Start Docker container** via `DOCKER.ps1 -Start`
-   - Container builds/starts on port 8080
-   - Uses fullstack image with Frontend + Backend
+- Quick mode: Fast tests only (`-m "not slow"`)
+- Standard/Full mode: All tests (unit + integration)
+- Test discovery: `backend/tests/`
+- Exit on failure
 
-2. **Container health check**
-   - Wait for port 8080 to listen (60s timeout)
-   - HTTP GET to `http://localhost:8080/health`
-   - Verify JSON response with `status: "healthy"`
+**Frontend Tests (Vitest):**
 
-3. **Database connection check**
-   - Parse health endpoint response
-   - Verify `database: "connected"`
+- Quick mode: Basic test run
+- Standard/Full mode: Complete test suite
+- Coverage: components, contexts, stores, utilities, API
+- Exit on failure
 
-4. **Frontend accessibility**
-   - HTTP GET to `http://localhost:8080`
-   - Verify HTTP 200 response
-
-**Skip with:** `-SkipDocker` or `-Quick` flags
-
-**Typical Duration:** ~30-45 seconds (first run with build), ~10-15 seconds (cached)
+**Skip with:** `-SkipTests` flag
 
 ---
 
-### Phase 5: Compilation Verification
+### Phase 3: Deployment Health Checks
 
-**Purpose:** Ensure code compiles without errors.
+**Only in Full Mode (`-Mode full`)**
 
-**Tests:**
-1. **TypeScript compilation**
-   - Run `npx tsc --noEmit` in frontend directory
-   - Filter errors to exclude test files (`*.test.ts`, `test.*`)
-   - **Pass:** 0 production code errors
-   - **Fail:** Any error in production code
+**Native Mode:**
 
-2. **ESLint validation (informational)**
-   - Run `npm run lint` in frontend directory
-   - Check for blocking errors (exclude warnings)
-   - **Pass:** Warnings only or clean
-   - **Note:** Non-blocking, informational only
+- Start via `NATIVE.ps1 -Start`
+- Backend health check on port 8000
+- Frontend accessibility on port 5173
+- Clean stop after verification
 
-**Typical Duration:** ~5-10 seconds
+**Docker Mode:**
+
+- Start via `DOCKER.ps1 -Start`
+- Container health check on port 8080
+- Database connectivity verification
+- Frontend accessibility check
+- Clean stop after verification
 
 ---
 
-### Phase 6: Git Status Validation
+### Phase 4: Automated Cleanup
 
-**Purpose:** Verify repository state before commit.
+**Python Cache:**
 
-**Tests:**
-1. **Git availability check**
-   - Verify `git status` command works
+- `__pycache__` directories
+- `*.pyc`, `*.pyo` files
+- `.pytest_cache` directories
 
-2. **Changes detection**
-   - Count modified files (M)
-   - Count added files (A)
-   - Count deleted files (D)
-   - Count untracked files (??)
-   - **Pass:** At least 1 file changed
-   - **Fail:** 0 changes (nothing to commit)
+**Node.js Cache:**
 
-**Output Example:**
-```
-  • Modified:   25 files
-  • Added:      3 files
-  • Deleted:    7 files
-  • Untracked:  10 files
-```
+- `node_modules/.cache`
 
-**Typical Duration:** ~1-2 seconds
+**Build Artifacts:**
+
+- `frontend/dist`
+- `frontend/build`
+
+**Temporary Files:**
+
+- `*.tmp`, `*.temp`, `*.bak`, `*.backup`, `*.old`
+
+**Skip with:** `-SkipCleanup` flag
+
+---
+
+### Phase 5: Documentation & Git Status
+
+**Documentation Check:**
+
+- Verifies key documentation files exist
+- Lists files: README.md, CHANGELOG.md, TODO.md, DOCUMENTATION_INDEX.md
+
+**Git Status:**
+
+- Shows modified, added, deleted, untracked files
+- Summary of changes
+- Displayed for user review
+
+---
+
+### Phase 6: Commit Message Generation
+
+**Optional** (with `-GenerateCommit` flag)
+
+- Generates comprehensive commit message
+- Includes test results summary
+- Lists all changes
+- Provides next steps guidance
+- Saved to `commit_msg.txt`
 
 ---
 
@@ -252,66 +184,66 @@ Checking Docker... ✅ Docker available ✅
 
 ### Flags
 
-| Flag | Description | Use Case |
-|------|-------------|----------|
-| `-Quick` | Skip Docker testing | Fast pre-commit check (Native only) |
-| `-SkipNative` | Skip Native testing | Docker-only verification |
-| `-SkipDocker` | Skip Docker testing | Native-only verification |
-| `-NoCleanup` | Skip environment cleanup | Re-run tests without stopping processes |
-| `-Help` | Show help message | Learn about available options |
+| Flag | Description | Example |
+|------|-------------|---------|
+| `-Mode` | Execution mode (quick/standard/full/cleanup) | `.\COMMIT_READY.ps1 -Mode quick` |
+| `-SkipTests` | Skip all test execution | `.\COMMIT_READY.ps1 -SkipTests` |
+| `-SkipCleanup` | Skip cleanup operations | `.\COMMIT_READY.ps1 -SkipCleanup` |
+| `-SkipLint` | Skip linting checks | `.\COMMIT_READY.ps1 -SkipLint` |
+| `-GenerateCommit` | Generate commit message | `.\COMMIT_READY.ps1 -GenerateCommit` |
+| `-AutoFix` | Auto-fix formatting issues | `.\COMMIT_READY.ps1 -AutoFix` |
 
-### Examples
+### Usage Examples
 
 ```powershell
-# Full verification (recommended before commit)
-.\PRE_COMMIT_CHECK.ps1
+# Standard pre-commit workflow
+.\COMMIT_READY.ps1
 
-# Fast check during active development
-.\PRE_COMMIT_CHECK.ps1 -Quick
+# Quick git pre-commit hook
+.\COMMIT_READY.ps1 -Mode quick
 
-# Test Docker deployment only
-.\PRE_COMMIT_CHECK.ps1 -SkipNative
+# Full validation before release
+.\COMMIT_READY.ps1 -Mode full
 
-# Re-run without stopping processes
-.\PRE_COMMIT_CHECK.ps1 -NoCleanup
+# Fix formatting automatically
+.\COMMIT_READY.ps1 -AutoFix
 
-# Show help
-.\PRE_COMMIT_CHECK.ps1 -Help
+# Generate commit message
+.\COMMIT_READY.ps1 -GenerateCommit
+
+# Skip tests (not recommended)
+.\COMMIT_READY.ps1 -SkipTests
+
+# Cleanup only
+.\COMMIT_READY.ps1 -Mode cleanup
 ```
 
 ---
 
-## Test Results Format
+## Git Pre-Commit Hook Integration
 
-### Result Tracking
+### Manual Hook Setup
 
-Each test generates a result object:
-```powershell
-@{
-    Test = "Backend Health Check"
-    Passed = $true
-    Message = "Status: healthy"
-    Timestamp = "14:23:45"
-}
+Create `.git/hooks/pre-commit`:
+
+```bash
+#!/bin/sh
+pwsh -File "$(git rev-parse --show-toplevel)/COMMIT_READY.ps1" -Mode quick
+exit $?
 ```
 
-Results are organized by category:
-- `Prerequisites`
-- `Cleanup`
-- `NativeBackend`
-- `NativeFrontend`
-- `DockerContainer`
-- `DockerDatabase`
-- `Compilation`
-- `GitStatus`
+Make executable:
 
-### Summary Report
+```bash
+chmod +x .git/hooks/pre-commit
+```
 
-Generated at the end of execution:
-- **Per-category statistics**: X/Y tests passed
-- **Individual test results**: ✅/❌ with details
-- **Overall status**: Ready to commit or fix issues
-- **Next steps**: Git commands to execute
+### Git Config Method
+
+```powershell
+git config core.hooksPath .githooks
+# Then create .githooks/pre-commit with the script above
+```
 
 ---
 
@@ -319,12 +251,13 @@ Generated at the end of execution:
 
 | Code | Meaning | Action |
 |------|---------|--------|
-| `0` | All tests passed | Proceed with commit |
-| `1` | One or more tests failed | Fix issues and re-run |
+| `0` | All checks passed | Proceed with commit |
+| `1` | One or more checks failed | Fix issues and re-run |
 
-**Usage in CI/CD:**
+**Usage in Scripts:**
+
 ```powershell
-.\PRE_COMMIT_CHECK.ps1
+.\COMMIT_READY.ps1
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Pre-commit checks failed"
     exit 1
@@ -333,195 +266,115 @@ if ($LASTEXITCODE -ne 0) {
 
 ---
 
-## Integration with Git Workflow
-
-### Recommended Workflow
-
-```powershell
-# 1. Make your changes
-# ... edit files ...
-
-# 2. Run pre-commit verification
-.\PRE_COMMIT_CHECK.ps1
-
-# 3. If all tests pass, proceed with commit
-git status
-git add -u
-git add docs/ frontend/src/hooks/useAutosave.ts  # Add new files
-git commit -F commit_msg.txt
-git push origin main
-```
-
-### Git Pre-Commit Hook (Optional)
-
-Create `.git/hooks/pre-commit`:
-```powershell
-#!/usr/bin/env pwsh
-.\PRE_COMMIT_CHECK.ps1 -Quick
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Pre-commit checks failed. Fix issues and try again." -ForegroundColor Red
-    exit 1
-}
-exit 0
-```
-
-Make executable:
-```powershell
-chmod +x .git/hooks/pre-commit
-```
-
----
-
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. "Docker not available"
+**"Python not found"**
 
-**Symptom:** Docker prerequisite check fails
-**Solution:**
+- Install Python 3.11+
+- Verify with `python --version`
+- Run `.\NATIVE.ps1 -Setup` to create virtual environment
+
+**"Node.js not found"**
+
+- Install Node.js 18+
+- Verify with `node --version`
+- Run `cd frontend && npm install`
+
+**"Docker not available"**
+
 - Start Docker Desktop
-- Or run with `-SkipDocker` flag
+- Or use `-Mode quick` to skip Docker tests
+- Verify with `docker ps`
 
-#### 2. "Port already in use"
+**"Backend tests failed"**
 
-**Symptom:** Native/Docker tests fail due to port conflicts
-**Solution:**
-- Run cleanup phase: `.\PRE_COMMIT_CHECK.ps1` (includes cleanup)
-- Or manually stop processes:
-  ```powershell
-  .\NATIVE.ps1 -Stop
-  .\DOCKER.ps1 -Stop
-  ```
+- Check `backend/logs/app.log` for errors
+- Ensure virtual environment is activated
+- Run `cd backend && pytest -v` for detailed output
 
-#### 3. "Backend failed to start"
+**"Frontend tests failed"**
 
-**Symptom:** Native Backend health check fails
-**Solution:**
-- Check Python virtual environment: `backend\.venv`
-- Run setup: `.\NATIVE.ps1 -Setup`
-- Check logs: `backend\logs\app.log`
+- Check `node_modules` exists
+- Run `cd frontend && npm run test` for detailed output
+- Clear cache with `rm -rf node_modules/.cache`
 
-#### 4. "Frontend not accessible"
+**"TypeScript compilation errors"**
 
-**Symptom:** Frontend tests fail
-**Solution:**
-- Check node_modules: `frontend\node_modules`
-- Run setup: `.\NATIVE.ps1 -Setup`
-- Check for port conflicts on 5173 (Native) or 8080 (Docker)
+- Review error output
+- Fix type errors in production code
+- Test files are excluded from checks
 
-#### 5. "TypeScript errors in production code"
+**"Translation integrity issues"**
 
-**Symptom:** Compilation phase fails
-**Solution:**
-- Review errors in output
-- Fix TypeScript issues in production code
-- Re-run verification
+- Check console output for missing keys
+- Update both EN and EL translations
+- Verify structure matches in `frontend/src/locales/`
 
 ---
 
-## Performance Optimization
+## Migration from Deprecated Scripts
 
-### Quick Mode
+### Old → New Command Mapping
 
-For faster iteration during development:
 ```powershell
-.\PRE_COMMIT_CHECK.ps1 -Quick
+# PRE_COMMIT_HOOK.ps1 → Quick mode
+.\COMMIT_READY.ps1 -Mode quick
+
+# COMMIT_PREP.ps1 → Standard mode (default)
+.\COMMIT_READY.ps1
+
+# PRE_COMMIT_CHECK.ps1 → Full mode
+.\COMMIT_READY.ps1 -Mode full
+
+# SMOKE_TEST_AND_COMMIT_PREP.ps1 → With commit generation
+.\COMMIT_READY.ps1 -GenerateCommit
+
+# PRE_COMMIT_CHECK.ps1 -Quick → Quick mode
+.\COMMIT_READY.ps1 -Mode quick
 ```
 
-**Skips:**
-- Docker container build/start
-- Docker health checks
-- Docker frontend tests
-
-**Typical duration:** 15-20 seconds vs. 45-60 seconds (full)
-
-### Caching
-
-Docker image caching significantly speeds up subsequent runs:
-- **First run:** ~45-60 seconds (build + test)
-- **Cached run:** ~10-15 seconds (test only)
+See `archive/deprecated_commit_scripts_2025-11-27/README.md` for detailed migration guide.
 
 ---
 
-## Script Architecture
+## Performance Tips
 
-### Function Organization
+**Fastest Workflow:**
 
-```
-PRE_COMMIT_CHECK.ps1
-├── Configuration
-│   ├── $SCRIPT_DIR, $NATIVE_SCRIPT, $DOCKER_SCRIPT
-│   ├── Port definitions (8000, 5173, 8080)
-│   └── Test results tracking ($script:TestResults)
-│
-├── Utility Functions
-│   ├── Write-Header, Write-Success, Write-Failure, Write-Info, Write-Warning
-│   ├── Add-TestResult (category, test, passed, message)
-│   ├── Test-CommandAvailable (check if command exists)
-│   ├── Test-PortInUse (check if port is listening)
-│   ├── Wait-ForPort (wait for port to open)
-│   └── Test-HttpEndpoint (wait for HTTP 200)
-│
-├── Test Phases
-│   ├── Test-Prerequisites (Python, Node.js, Docker)
-│   ├── Invoke-Cleanup (stop processes, clean temp files)
-│   ├── Test-NativeDeployment (Backend + Frontend)
-│   ├── Test-DockerDeployment (Container + Database)
-│   ├── Test-Compilation (TypeScript, ESLint)
-│   └── Test-GitStatus (modified, added, deleted files)
-│
-├── Reporting
-│   └── Show-Summary (per-category statistics, next steps)
-│
-└── Main Execution
-    ├── Parse command-line arguments
-    ├── Run test phases in sequence
-    ├── Show summary report
-    └── Exit with appropriate code (0 or 1)
+```powershell
+.\COMMIT_READY.ps1 -Mode quick
 ```
 
-### Error Handling
+**Skip Specific Checks:**
 
-- **Non-fatal errors:** Logged as warnings, tests continue
-- **Fatal errors:** Test fails, `$script:TestResults.Overall = $false`
-- **Cleanup errors:** Ignored (may not be running)
-- **Missing tools:** Docker tests skipped if Docker unavailable
+```powershell
+# Skip linting (if already done)
+.\COMMIT_READY.ps1 -SkipLint
 
----
+# Skip tests (during rapid iteration)
+.\COMMIT_READY.ps1 -SkipTests
 
-## Future Enhancements
+# Skip cleanup (if workspace is already clean)
+.\COMMIT_READY.ps1 -SkipCleanup
+```
 
-### Planned Features
+**Docker Image Caching:**
 
-1. **Parallel Testing**
-   - Run Native and Docker tests in parallel
-   - Reduce total execution time by 40-50%
-
-2. **Test Caching**
-   - Cache test results based on file changes
-   - Skip unchanged components
-
-3. **Configurable Tests**
-   - YAML configuration file for test selection
-   - Custom timeout values per test
-
-4. **HTML Report Generation**
-   - Generate HTML test report
-   - Include screenshots on failure
-
-5. **Integration with GitHub Actions**
-   - Automatic PR checks
-   - Status badges
+- First run: ~15-20 min (with build)
+- Cached run: ~5-8 min (no build needed)
+- Use `DOCKER.ps1 -UpdateClean` if caching issues occur
 
 ---
 
 ## Related Documentation
 
-- **Git Workflow:** `GIT_COMMIT_INSTRUCTIONS.md`
+- **Git Workflow:** `docs/development/GIT_WORKFLOW.md`
+- **Migration Guide:** `archive/deprecated_commit_scripts_2025-11-27/README.md`
+- **Consolidation Summary:** `archive/deprecated_commit_scripts_2025-11-27/CONSOLIDATION_SUMMARY_2025-11-27.md`
 - **Native Development:** `NATIVE.ps1 --Help`
 - **Docker Deployment:** `DOCKER.ps1 --Help`
-- **Autosave Pattern:** `docs/development/AUTOSAVE_PATTERN.md`
 - **Architecture:** `docs/ARCHITECTURE.md`
 
 ---
@@ -530,13 +383,15 @@ PRE_COMMIT_CHECK.ps1
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2025-11-25 | Initial release |
-|       |            | - 6 test phases |
-|       |            | - Native + Docker testing |
-|       |            | - Comprehensive reporting |
+| 2.0.0 | 2025-11-27 | Rewrote for COMMIT_READY.ps1 consolidation |
+|       |            | - Updated all commands and examples |
+|       |            | - Added migration guide references |
+|       |            | - Documented new modes and auto-fix |
+| 1.0.0 | 2025-11-25 | Initial release (deprecated) |
+|       |            | - Documented PRE_COMMIT_CHECK.ps1 |
 
 ---
 
-**Generated:** 2025-11-25  
-**Version:** 1.0.0  
-**Purpose:** Pre-commit automation documentation for SMS v1.9.0
+**Last Updated:** 2025-11-27  
+**Version:** 2.0.0  
+**Script:** COMMIT_READY.ps1

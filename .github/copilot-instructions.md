@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start for AI Agents
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes.
+**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.3** (see VERSION file).
 
 **Most common tasks:**
 
@@ -24,12 +24,18 @@
 .\NATIVE.ps1 -Frontend            # Frontend only (Vite HMR)
 .\NATIVE.ps1 -Help                # Show all commands
 
+# Quality & Pre-commit (v1.9.3+)
+.\COMMIT_READY.ps1 -Quick         # Quick validation (2-3 min): format, lint, smoke test
+.\COMMIT_READY.ps1 -Standard      # Standard checks (5-8 min): + backend tests
+.\COMMIT_READY.ps1 -Full          # Full validation (15-20 min): + all frontend tests
+.\COMMIT_READY.ps1 -Cleanup       # Just cleanup (1-2 min): format + organize imports
+
 # Legacy Scripts (Deprecated - archived in archive/pre-v1.9.1/)
 # RUN.ps1, INSTALL.ps1, SMS.ps1 → Use DOCKER.ps1 instead
 # scripts\dev\run-native.ps1 → Use NATIVE.ps1 instead
 
 # Database & Testing
-cd backend && pytest -q                                             # Run tests
+cd backend && pytest -q                                             # Run tests (rate limiter auto-disabled)
 alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migration
 ```
 
@@ -42,18 +48,20 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 - `docker/docker-compose.monitoring.yml` - Monitoring stack
 
 **Critical rules:**
-1. ❌ Never edit DB schema directly → Always use Alembic
-2. ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.js`
-3. ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan
+1. ❌ Never edit DB schema directly → Always use Alembic migrations
+2. ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts`
+3. ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/main.py`)
 4. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
-5. ✅ Always add translations for both EN and EL
+5. ✅ Always add translations for both EN and EL (TypeScript modular structure)
+6. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
 
 **File locations you'll need:**
-- Models: `backend/models.py`
-- Routers: `backend/routers/routers_*.py`
-- Schemas: `backend/schemas/*.py` (exported via `__init__.py`)
-- Frontend API: `frontend/src/api/api.js`
-- Translations: `frontend/src/translations.js`
+- Models: `backend/models.py` (with indexes on email, student_id, course_code, date, semester)
+- Routers: `backend/routers/routers_*.py` (use `optional_require_role` for admin endpoints)
+- Schemas: `backend/schemas/*.py` (exported via `__init__.py` for clean imports)
+- Frontend API: `frontend/src/api/api.js` (axios client with auth interceptor)
+- Translations: `frontend/src/translations.ts` + `frontend/src/locales/{en,el}/*.ts` (modular)
+- Tests: `backend/tests/` (StaticPool in-memory DB) + `frontend/src/**/__tests__/*.test.{ts,tsx}` (Vitest)
 
 ## Architecture Overview
 
@@ -64,21 +72,28 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 | **Docker** | Single container (FastAPI serves built React SPA) | 8080 | Production, consistent env |
 | **Native** | Backend + Frontend separate processes | 8000 (API) + 5173 (Vite) | Development, hot reload |
 
-**Stack:** FastAPI 0.120+ • SQLAlchemy 2.0 • SQLite • Alembic • React 18 (JSX) • Vite 5 • Tailwind 3 • i18next • PowerShell 7+
+**Stack:** FastAPI 0.120+ • SQLAlchemy 2.0 • SQLite/PostgreSQL • Alembic • React 18 (TypeScript/TSX) • Vite 5 • Tailwind 3 • i18next • PowerShell 7+
 
 **Database:**
 - Native: `data/student_management.db`
 - Docker: Volume `sms_data:/data/student_management.db`
-- Models: Student, Course, Attendance, Grade, DailyPerformance, Highlight, CourseEnrollment
+- Models: Student, Course, Attendance, Grade, DailyPerformance, Highlight, CourseEnrollment (all with soft-delete via `SoftDeleteMixin`)
 - Auto-migrations on startup via `run_migrations.py` in FastAPI lifespan
+- **Indexing strategy**: Indexed fields include `email`, `student_id`, `course_code`, `date`, `semester`, `is_active`, `enrollment_date` for query performance
 
 **Entry points:**
-- Backend: `backend/main.py` (lifespan-managed, includes Control Panel at `/control`)
-- Frontend: `frontend/src/App.jsx` → `StudentManagementApp.jsx`
+- Backend: `backend/main.py` (lifespan-managed with `@asynccontextmanager`, includes Control Panel at `/control`)
+- Frontend: `frontend/src/App.tsx` → Main layout with navigation, auth, and error boundaries
 - Scripts: 
   - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
   - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
+  - **Quality Gate:** `COMMIT_READY.ps1` (v1.9.3+)
   - **Legacy (Archived):** See `archive/pre-v1.9.1/` for deprecated scripts
+
+**Environment Detection** (`backend/environment.py`):
+- Production mode requires Docker (enforced via `RuntimeContext.assert_valid()`)
+- Test mode: Auto-detected via pytest env vars or `DISABLE_STARTUP_TASKS=1`
+- Development mode: Default for native execution (no SMS_ENV set)
 
 ## Critical Patterns (Learn These First)
 
@@ -141,7 +156,7 @@ class GradeCreate(BaseModel):
 
 ### Frontend i18n Pattern (MANDATORY)
 
-```jsx
+```tsx
 import { useTranslation } from 'react-i18next';
 
 function MyComponent() {
@@ -150,7 +165,12 @@ function MyComponent() {
 }
 ```
 
-Add keys to `frontend/src/translations.js` under both `en` and `el` objects.
+**Translation Structure (Modular TypeScript):**
+- Main: `frontend/src/translations.ts` (imports all locale modules)
+- English: `frontend/src/locales/en/*.ts` (common, auth, students, courses, etc.)
+- Greek: `frontend/src/locales/el/*.ts` (parallel structure)
+- Nested access: `t('students.addStudent')` or flat: `t('addStudent')`
+- **Always add both EN and EL** - translation integrity tests will catch missing keys
 
 ### Date Range Queries (Auto-fill Logic)
 
@@ -205,12 +225,18 @@ cd frontend && npm run dev  # http://localhost:5173
 ### Testing
 
 ```bash
-cd backend && pytest -q              # All tests
+cd backend && pytest -q              # All tests (rate limiter auto-disabled)
 pytest tests/test_students_router.py -v  # Specific file
 pytest --cov=backend --cov-report=html   # With coverage
 ```
 
 Tests use in-memory SQLite with `StaticPool` (see `backend/tests/conftest.py`).
+
+**Test Configuration:**
+- `DISABLE_STARTUP_TASKS=1`: Auto-set in conftest to skip migrations/heavy startup
+- `CSRF_ENABLED=0`: CSRF disabled in tests (TestClient doesn't handle cookies easily)
+- Rate limiting: Auto-disabled via `limiter.enabled = False`
+- Clean DB: `clean_db` fixture resets schema before each test function
 
 ### Database Migrations
 
@@ -257,10 +283,13 @@ alembic downgrade -1           # Rollback
 - Date filtering: Use `use_submitted=true` for `date_submitted` vs `date_assigned`
 
 ### Frontend Architecture
-- Hierarchy: `App.jsx` → `StudentManagementApp.jsx` → features
-- Providers: `LanguageProvider`, `ThemeProvider`, `ErrorBoundary`
-- i18n: Greek fallback, localStorage → navigator detection
-- API: Single axios client in `api/api.js`, uses `VITE_API_URL` env
+- Hierarchy: `App.tsx` → Main layout with navigation, auth, error boundaries
+- Providers: `LanguageProvider`, `ThemeProvider`, `AppearanceThemeProvider`, `AuthContext`, `ErrorBoundary`
+- i18n: Greek fallback, localStorage → navigator detection, modular TypeScript structure
+- API: Single axios client in `api/api.js`, uses `VITE_API_URL` env (defaults to `/api/v1`)
+- Control API: Canonical base at `/control/api` (exported as `CONTROL_API_BASE` from `api.js`)
+- State: React Query for server state, local state for UI (no Redux/Zustand)
+- Routing: React Router v6 with protected routes and auth guards
 
 ### Logging & Monitoring
 - Format: `%(asctime)s - %(name)s - [%(request_id)s] - %(message)s`
@@ -296,7 +325,9 @@ alembic downgrade -1           # Rollback
 
 ## Reference Docs
 
-- **Architecture**: `docs/ARCHITECTURE.md` - System design, deployment modes
+- **Architecture**: `docs/development/ARCHITECTURE.md` - System design, deployment modes
 - **Localization**: `docs/user/LOCALIZATION.md` - i18n setup, adding translations
 - **Docker**: `docs/DOCKER_NAMING_CONVENTIONS.md` - Volume versioning
 - **Deployment**: `DEPLOYMENT_GUIDE.md`, `docs/user/QUICK_START_GUIDE.md`
+- **Git Workflow**: `docs/development/GIT_WORKFLOW.md` - Commit standards, branching strategy
+- **Master Index**: `docs/DOCUMENTATION_INDEX.md` - Complete documentation navigation

@@ -281,8 +281,7 @@ student-management-system/
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
-├── 🔧 COMMIT_PREP.ps1           # Git commit automation
-├── 🔧 PRE_COMMIT_CHECK.ps1      # Pre-commit validation
+├── ✅ COMMIT_READY.ps1           # Unified pre-commit validation & cleanup
 │
 ├── 📚 docs/                     # Documentation (role-based)
 │   ├── user/                    # End-user guides
