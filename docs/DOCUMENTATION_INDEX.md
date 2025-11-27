@@ -80,7 +80,7 @@ Documentation is organized into four main directories:
   - Legacy script archive and migration notes
 - **[docs/development/GIT_WORKFLOW.md](development/GIT_WORKFLOW.md)** - Git workflow and commit standards
   - Commit message conventions
-  - Pre-commit automation (COMMIT_PREP.ps1)
+  - Pre-commit automation (COMMIT_READY.ps1)
   - Branch strategy and release workflow
 - **Static Analysis Configuration** (NEW - moved to `config/` directory)
   - `config/mypy.ini` - Type checking baseline
