@@ -1,7 +1,7 @@
 # Docker Operations Guide
 
-**Version:** 1.3.8+
-**Mode:** Docker-Only Release
+**Version:** 1.9.3+
+**Mode:** Docker Deployment
 
 This guide explains the operational architecture for the Student Management System Docker deployment and how to perform common tasks.
 
@@ -13,7 +13,7 @@ The system follows a **clean separation of concerns** between host operations an
 
 ### **Host Layer** (PowerShell Scripts)
 - **Purpose:** Container lifecycle management and infrastructure control
-- **Tools:** `SMS.ps1`, `SMART_SETUP.ps1`, Docker Compose
+- **Tools:** `DOCKER.ps1`, Docker Compose
 - **Operations:**
   - Start/stop/restart containers
   - Build Docker images
@@ -48,8 +48,8 @@ The system follows a **clean separation of concerns** between host operations an
 ### First-Time Setup
 
 ```powershell
-# Run the intelligent setup script
-.\SMART_SETUP.ps1
+# Run the installation command
+.\DOCKER.ps1 -Install
 
 # What it does:
 # ✅ Checks Docker availability (fails if not installed)
@@ -62,9 +62,9 @@ The system follows a **clean separation of concerns** between host operations an
 ```
 
 **Options:**
-- `.\SMART_SETUP.ps1 -Force` - Force rebuild with `--no-cache`
-- `.\SMART_SETUP.ps1 -SkipStart` - Build images but don't start containers
-- `.\SMART_SETUP.ps1 -Verbose` - Show detailed build output
+- `.\DOCKER.ps1 -UpdateClean` - Force rebuild with `--no-cache`
+- `.\DOCKER.ps1 -Status` - Check container status
+- `.\DOCKER.ps1 -Help` - Show all available commands
 
 ---
 
@@ -72,28 +72,28 @@ The system follows a **clean separation of concerns** between host operations an
 
 ```powershell
 # Start containers (detached mode)
-.\SMS.ps1 -Quick
+.\DOCKER.ps1 -Start
 
 # View status (container health, ports, URLs)
-.\SMS.ps1 -Status
+.\DOCKER.ps1 -Status
 
 # Stop all containers
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 
 # Restart all containers
-.\SMS.ps1 -Restart
+.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
 
 # View backend logs (follow mode)
-.\SMS.ps1 -Logs
+.\DOCKER.ps1 -Logs
 
 # Show help and available commands
-.\SMS.ps1 -Help
+.\DOCKER.ps1 -Help
 ```
 
 **Interactive Mode:**
 ```powershell
-# Run without parameters for status display
-.\SMS.ps1
+# Run without parameters for help display
+.\DOCKER.ps1
 ```
 
 ---
@@ -121,13 +121,13 @@ docker compose up -d --build
 
 ```powershell
 # 1. Stop containers
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 
 # 2. Rebuild images
 docker compose build
 
 # 3. Start containers
-.\SMS.ps1 -Quick
+.\DOCKER.ps1 -Start
 ```
 
 ---
@@ -165,16 +165,13 @@ docker compose exec backend python -c "from backend.db import backup_database; b
 
 ```powershell
 # Follow backend logs (live updates)
-.\SMS.ps1 -Logs
+.\DOCKER.ps1 -Logs
 
 # View specific number of lines
-docker logs student-management-system-backend-1 --tail 100
+docker logs sms-fullstack --tail 100
 
-# Follow frontend logs
-docker logs student-management-system-frontend-1 -f
-
-# View all logs from both containers
-docker compose logs -f
+# View all logs
+docker compose -f docker/docker-compose.yml logs -f
 ```
 
 #### Health Checks
@@ -277,10 +274,10 @@ These operations require **host-level access** and must be run from PowerShell:
 |-----------|-------------------|-------------|
 | Install Dependencies | Built into Docker images | `docker compose build` |
 | Build Docker Images | Container can't build itself | `docker compose build` |
-| Stop Containers | Can't stop from inside | `.\SMS.ps1 -Stop` |
+| Stop Containers | Can't stop from inside | `.\DOCKER.ps1 -Stop` |
 | Update Volumes | Requires host Docker access | `docker volume` commands |
-| System Cleanup | Host filesystem operation | `docker system prune` |
-| Restart System | Container lifecycle control | `.\SMS.ps1 -Restart` |
+| System Cleanup | Host filesystem operation | `.\DOCKER.ps1 -Prune` |
+| Restart System | Container lifecycle control | `.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start` |
 
 **Why this separation?**
 - **Security:** Containers shouldn't have Docker socket access
@@ -317,18 +314,18 @@ These operations require **host-level access** and must be run from PowerShell:
 
 ```powershell
 # 1. Start system
-.\SMS.ps1 -Quick
+.\DOCKER.ps1 -Start
 
 # 2. Make code changes in your editor
 
 # 3. Rebuild affected service
-docker compose build backend  # or frontend
+docker compose -f docker/docker-compose.yml build
 
 # 4. Restart containers
-.\SMS.ps1 -Restart
+.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
 
 # 5. Check logs for errors
-.\SMS.ps1 -Logs
+.\DOCKER.ps1 -Logs
 
 # 6. Test changes at http://localhost:8080
 ```
@@ -340,19 +337,16 @@ docker compose build backend  # or frontend
 git pull origin main
 
 # 2. Stop current containers
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 
 # 3. Rebuild images (no cache for production)
-docker compose build --no-cache
+.\DOCKER.ps1 -UpdateClean
 
-# 4. Start containers
-.\SMS.ps1 -Quick
-
-# 5. Verify health
-.\SMS.ps1 -Status
+# 4. Verify health
+.\DOCKER.ps1 -Status
 # Or visit http://localhost:8080/health
 
-# 6. Check Control Panel diagnostics
+# 5. Check Control Panel diagnostics
 # http://localhost:8080 → Power Tab → Diagnostics
 ```
 
@@ -363,7 +357,7 @@ docker compose build --no-cache
 # http://localhost:8080 → Power Tab → Operations → Create Database Backup
 
 # 2. Stop containers
-.\SMS.ps1 -Stop
+.\DOCKER.ps1 -Stop
 
 # 3. Backup entire data volume (optional)
 docker run --rm -v sms_data:/data -v ${PWD}/backups:/backup alpine tar czf /backup/sms_data_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
@@ -372,25 +366,25 @@ docker run --rm -v sms_data:/data -v ${PWD}/backups:/backup alpine tar czf /back
 git pull origin main
 
 # 5. Rebuild and start
-.\SMART_SETUP.ps1
+.\DOCKER.ps1 -Update
 ```
 
 ---
 
 ## 📚 Additional Resources
 
-- **Quick Start Guide:** [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)
-- **Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
-- **Deployment:** [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)
-- **SMS.ps1 Reference:** Run `.\SMS.ps1 -Help`
+- **Quick Start Guide:** [QUICK_START_GUIDE.md](../user/QUICK_START_GUIDE.md)
+- **Architecture:** [ARCHITECTURE.md](../development/ARCHITECTURE.md)
+- **Deployment:** [DEPLOYMENT_GUIDE.md](../../DEPLOYMENT_GUIDE.md)
+- **DOCKER.ps1 Reference:** Run `.\DOCKER.ps1 -Help`
 
 ---
 
 ## 💡 Tips
 
-1. **Always use `SMS.ps1`** for container management instead of raw `docker compose` commands - it provides better output and error handling
+1. **Always use `DOCKER.ps1`** for container management instead of raw `docker compose` commands - it provides better output and error handling
 
-2. **Check status frequently** with `.\SMS.ps1 -Status` to ensure containers are healthy
+2. **Check status frequently** with `.\DOCKER.ps1 -Status` to ensure containers are healthy
 
 3. **Use the Control Panel** for application operations (diagnostics, database, logs) - it's designed for Docker mode
 
@@ -398,12 +392,12 @@ git pull origin main
 
 5. **Keep Docker Desktop running** - all operations require Docker to be available
 
-6. **Version sync matters** - `SMART_SETUP.ps1` automatically syncs VERSION file to docker-compose .env
+6. **Version sync matters** - `DOCKER.ps1 -Install` automatically syncs VERSION file to docker-compose .env
 
 7. **Health checks are your friend** - FastAPI includes comprehensive health endpoints that Docker uses for container health
 
 ---
 
-**Last Updated:** November 6, 2025
-**Version:** 1.3.8
+**Last Updated:** December 2025
+**Version:** 1.9.3
 **Architecture:** Docker-First, Host/Container Separation

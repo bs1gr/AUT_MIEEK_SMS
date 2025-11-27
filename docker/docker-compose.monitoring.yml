@@ -26,7 +26,7 @@
 #    - Starts monitoring stack
 #
 # 3. NATIVE MODE:
-#    .\scripts\dev\run-native.ps1
+#    .\NATIVE.ps1 -Start
 #    - Monitoring stack NOT INTEGRATED
 #    - Backend: localhost:8000 (no monitoring)
 #    - Frontend: localhost:5173

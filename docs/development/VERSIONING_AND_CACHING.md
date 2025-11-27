@@ -1,5 +1,7 @@
 # Docker Versioning and Caching Strategy
 
+> **Note (v1.9.0+)**: The scripts `RUN.ps1` and `SMART_SETUP.ps1` referenced in this document have been consolidated into `DOCKER.ps1`. Use `DOCKER.ps1 -Start`, `DOCKER.ps1 -Update`, and `DOCKER.ps1 -UpdateClean` instead. The version verification logic described here is now built into `DOCKER.ps1`.
+
 ## Overview
 
 This document explains how SMS handles Docker image versioning, caching, and ensures that the correct image version is always running.

@@ -13,7 +13,8 @@ Key Features:
 ✅ Docker and native deployment modes
 
 RECOMMENDED STARTUP:
-- Windows: Use RUN.ps1 (one-click deployment with port conflict handling)
+- Docker: Use DOCKER.ps1 -Start (one-click deployment with port conflict handling)
+- Native: Use NATIVE.ps1 -Start (development mode with hot reload)
 - Direct: uvicorn backend.main:app --host 127.0.0.1 --port 8000
   (If port 8000 is busy, use --port 8001, 8002, etc.)
 """

@@ -2,12 +2,12 @@
 
 > Deprecation notice (v1.8.3)
 >
-> As of v1.8.3 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via scripts (RUN.ps1, SMS.ps1) in Docker mode, but the React “Power” page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
+> As of v1.8.3 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
 
 ## Current Monitoring State (v1.8.3+)
 
 - The React Power page now focuses on System Health + Control Panel toggles; there is no in-app button to start Grafana/Prometheus/Loki.
-- Operators start the monitoring stack through host commands (`RUN.ps1 -WithMonitoring`, `SMS.ps1 -MonitoringOnly`, `docker compose -f docker-compose.monitoring.yml up -d`) or via the host-only Control API (`/control/api/monitoring/start`).
+- Operators start the monitoring stack through host commands (`DOCKER.ps1 -WithMonitoring`, `docker compose -f docker/docker-compose.monitoring.yml up -d`) or via the host-only Control API (`/control/api/monitoring/start`).
 - When running inside Docker, the `POST /control/api/monitoring/trigger` endpoint plus the watcher service still provide automatic host startup for custom dashboards or scripts.
 - The `/metrics` endpoint remains available (when `ENABLE_METRICS=1`) for external collectors even if Grafana/Prometheus are managed elsewhere.
 
@@ -154,7 +154,7 @@ Sample status payload when stopped:
 **For Developers:**
 
 ```powershell
-.\scripts\dev\run-native.ps1
+.\NATIVE.ps1 -Start
 ```
 
 **Architecture:**

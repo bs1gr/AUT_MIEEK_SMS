@@ -53,8 +53,8 @@ def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostic
         message = "Control API disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart the backend service."
         hints.append("Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1, then restart the backend.")
     elif environment == "docker" or execution_mode == "docker":
-        message = "In-container restart is disabled. Run SMS.ps1 -Restart or SMART_SETUP.ps1 from the host."
-        hints.append("Use host-level scripts such as SMS.ps1 -Restart or restart the Docker stack from the host shell.")
+        message = "In-container restart is disabled. Run DOCKER.ps1 -Stop then DOCKER.ps1 -Start from the host."
+        hints.append("Use host-level scripts such as DOCKER.ps1 -Stop; DOCKER.ps1 -Start or restart the Docker stack from the host shell.")
     else:
         message = "Restart endpoint ready."
 

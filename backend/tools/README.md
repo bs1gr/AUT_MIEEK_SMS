@@ -56,7 +56,7 @@ HAS_ALEMBIC_VERSION: True
 
 **Integration**:
 
-- Called automatically by `SMART_SETUP.ps1` after migrations in native mode
+- Called automatically by `DOCKER.ps1 -Install` after migrations
 - Can be run manually for diagnostics
 
 ---

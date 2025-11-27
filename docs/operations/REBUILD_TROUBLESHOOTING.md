@@ -65,7 +65,7 @@ sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: cours
 
 ## Rebuild Process Flow
 
-When you select rebuild option (X) in `SMS.ps1`:
+When you select rebuild option in `DOCKER.ps1`:
 
 1. **Analysis Phase**
    - Detects current volume from docker-compose.override.yml or compose config

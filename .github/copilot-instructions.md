@@ -279,7 +279,7 @@ alembic downgrade -1           # Rollback
 ❌ **Never edit DB schema directly** → Use Alembic migrations
 ❌ **Never hardcode UI strings** → Use `t('i18n.key')`
 ❌ **Never use `@app.on_event()`** → Use `@asynccontextmanager` lifespan
-❌ **Never stop Docker from Control Panel** → Use `SMS.ps1 -Stop` on host
+❌ **Never stop Docker from Control Panel** → Use `DOCKER.ps1 -Stop` on host
 ❌ **Never forget date validation** → Check `start_date <= end_date`
 ❌ **Never commit `.env` files** → Use `.env.example` templates
 

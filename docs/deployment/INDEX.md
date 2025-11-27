@@ -108,13 +108,16 @@ tail -f backend/logs/app.log
 # Pull latest changes
 git pull origin main
 
-# Rebuild and restart
-.\SMART_SETUP.ps1 -Force
+# Fast update with backup
+.\DOCKER.ps1 -Update
+
+# Or clean rebuild (no cache)
+.\DOCKER.ps1 -UpdateClean
 
 # Or manual Docker rebuild
-docker compose down
-docker compose build
-docker compose up -d
+docker compose -f docker/docker-compose.yml down
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ### Database Migrations
@@ -229,30 +232,36 @@ Access the web-based control panel:
 
 ```bash
 # Docker (recommended)
-.\RUN.ps1
+.\DOCKER.ps1 -Start
 
 # Native development
-.\RUN.ps1 -Native
+.\NATIVE.ps1 -Start
 ```
 
 ### Stop Services
 
 ```bash
-# Unified stop command
-.\SMS.ps1 -Stop
+# Docker stop
+.\DOCKER.ps1 -Stop
 
-# Docker specific
-docker compose down
+# Native stop
+.\NATIVE.ps1 -Stop
+
+# Docker compose directly
+docker compose -f docker/docker-compose.yml down
 ```
 
 ### Check Status
 
 ```bash
-# Management menu
-.\SMS.ps1 -Status
+# Docker status
+.\DOCKER.ps1 -Status
 
-# Docker
-docker compose ps
+# Native status
+.\NATIVE.ps1 -Status
+
+# Docker compose
+docker compose -f docker/docker-compose.yml ps
 
 # Health check
 curl http://localhost:8080/health
