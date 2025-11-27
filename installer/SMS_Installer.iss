@@ -592,6 +592,7 @@ var
   EnvContent: String;
   BackupPath: String;
   ResultCode: Integer;
+  NewShortcut, CommonShortcut, UserShortcut: String;
 begin
   if CurStep = ssInstall then
   begin
@@ -629,17 +630,24 @@ begin
   
   if CurStep = ssPostInstall then
   begin
+    // Determine paths for the newly created correct shortcut and potential duplicates
+    NewShortcut := ExpandConstant('{autodesktop}\{#MyAppName}.lnk');
+    CommonShortcut := ExpandConstant('{commondesktop}\{#MyAppName}.lnk');
+    UserShortcut := ExpandConstant('{userdesktop}\{#MyAppName}.lnk');
+
     // Clean up old shortcuts from previous versions (various naming patterns)
-    // Old naming: "SMS Toggle"
-    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
-    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
-    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
-    // Also remove any duplicate/redundant shortcuts with full name
-    // The installer creates one at {autodesktop}\{#MyAppName} which is correct
-    // But we clean up any extras or manual shortcuts users might have created
-    DeleteFile(ExpandConstant('{userdesktop}\Student Management System.lnk'));
-    DeleteFile(ExpandConstant('{commondesktop}\Student Management System.lnk'));
-    // Clean up any manually created folder shortcuts
+    // Be aggressive for the legacy "SMS Toggle" name, including numbered copies
+    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle*.lnk'));
+    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle*.lnk'));
+    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle*.lnk'));
+
+    // Also remove any duplicate/redundant shortcuts with the full app name,
+    // BUT NEVER delete the one we just created at {autodesktop}
+    if LowerCase(CommonShortcut) <> LowerCase(NewShortcut) then
+      DeleteFile(CommonShortcut);
+    if LowerCase(UserShortcut) <> LowerCase(NewShortcut) then
+      DeleteFile(UserShortcut);
+    // Clean up any manually created folder shortcuts (case-insensitive match via exact known name)
     DeleteFile(ExpandConstant('{autodesktop}\student-management-system - Shortcut.lnk'));
     DeleteFile(ExpandConstant('{userdesktop}\student-management-system - Shortcut.lnk'));
     Log('Cleaned up old/duplicate shortcuts');

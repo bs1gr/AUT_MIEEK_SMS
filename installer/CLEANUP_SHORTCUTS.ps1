@@ -18,17 +18,35 @@ Write-Host "`n╔═════════════════════
 Write-Host "║  SMS Shortcut Cleanup Utility                                        ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
+$desktopPath = [Environment]::GetFolderPath('Desktop')
+$commonDesktopPath = [Environment]::GetFolderPath('CommonDesktop')
+
+# Determine the correct shortcut (prefer CommonDesktop if present, else current user's Desktop)
+$preferredShortcut = $null
+$commonMain = Join-Path $commonDesktopPath 'Student Management System.lnk'
+$userMain = Join-Path $desktopPath 'Student Management System.lnk'
+if (Test-Path $commonMain) { $preferredShortcut = $commonMain }
+elseif (Test-Path $userMain) { $preferredShortcut = $userMain }
+
 $ShortcutsToRemove = @(
-    # Old "SMS Toggle" shortcuts
-    "$([Environment]::GetFolderPath('Desktop'))\SMS Toggle.lnk",
-    "$([Environment]::GetFolderPath('CommonDesktop'))\SMS Toggle.lnk",
-    
+    # Old "SMS Toggle" shortcuts (remove any numbered copies as well)
+    (Join-Path $desktopPath 'SMS Toggle*.lnk'),
+    (Join-Path $commonDesktopPath 'SMS Toggle*.lnk'),
+
     # Manual folder shortcuts
-    "$([Environment]::GetFolderPath('Desktop'))\student-management-system - Shortcut.lnk",
-    
-    # Duplicate shortcuts in wrong locations
-    "$([Environment]::GetFolderPath('CommonDesktop'))\Student Management System.lnk"
+    (Join-Path $desktopPath 'student-management-system - Shortcut.lnk')
 )
+
+# If a main shortcut exists in a non-preferred location, mark it for removal
+if ($preferredShortcut) {
+    if ($preferredShortcut -ieq $commonMain) {
+        # Keep common main; remove user duplicate if present
+        if (Test-Path $userMain) { $ShortcutsToRemove += $userMain }
+    } elseif ($preferredShortcut -ieq $userMain) {
+        # Keep user main; remove common duplicate if present
+        if (Test-Path $commonMain) { $ShortcutsToRemove += $commonMain }
+    }
+}
 
 $Removed = 0
 $NotFound = 0
