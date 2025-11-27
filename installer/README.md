@@ -4,7 +4,7 @@ This directory contains the Inno Setup installer configuration and code signing 
 
 ## Organization
 
-**MIEEK (Mediterranean Institute of Environmental Economics and Knowledge)**
+**ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης**
 - Official Website: https://www.mieek.ac.cy/index.php/el/
 - Location: Limassol, Cyprus
 - GitHub Repository: https://github.com/bs1gr/AUT_MIEEK_SMS

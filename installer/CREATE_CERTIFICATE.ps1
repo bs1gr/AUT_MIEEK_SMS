@@ -6,8 +6,7 @@
 
 .DESCRIPTION
     Generates a self-signed code signing certificate for:
-    MIEEK - Post-secondary Vocational Education and Training Institutes
-    ΜΙΕΕΚ - Μεσογειακό Ινστιτούτο Περιβαλλοντικής Οικονομίας και Γνώσης
+    ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
     Website: https://www.mieek.ac.cy/index.php/el/
     
     Certificate Details / Λεπτομέρειες Πιστοποιητικού:
@@ -54,7 +53,7 @@ if (-not $Language) {
 $Messages = @{
     en = @{
         Title = "AUT MIEEK Code Signing Certificate Generator"
-        OrgName = "MIEEK - Post-secondary Vocational Education and Training Institutes"
+        OrgName = "ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης"
         Details = "Certificate Details:"
         Subject = "Subject:"
         ValidFor = "Valid For:"
@@ -85,7 +84,7 @@ $Messages = @{
     }
     el = @{
         Title = "Δημιουργία Πιστοποιητικού Υπογραφής Κώδικα AUT MIEEK"
-        OrgName = "ΜΙΕΕΚ - Μεσογειακό Ινστιτούτο Περιβαλλοντικής Οικονομίας και Γνώσης"
+        OrgName = "ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης"
         Details = "Λεπτομέρειες Πιστοποιητικού:"
         Subject = "Θέμα:"
         ValidFor = "Ισχύει για:"
