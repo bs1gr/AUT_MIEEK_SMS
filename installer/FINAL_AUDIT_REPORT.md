@@ -39,8 +39,8 @@ All cached elements have been resolved. The installer is fully updated with the 
 | **Timestamp Server** | http://timestamp.digicert.com |
 
 ### Certificate Location Details
-- **City/Locality:** Limassol ✅ (Corrected from Thessaloniki)
-- **Country:** Cyprus (CY) ✅ (Corrected from Greece)
+- **City/Locality:** Limassol ✅
+- **Country:** Cyprus (CY) ✅
 - **Built for:** ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
 - **Developer:** Teacher at ΜΙΕΕΚ
 - **ΜΙΕΕΚ Website:** https://www.mieek.ac.cy/index.php/el/
@@ -89,7 +89,7 @@ The installer now includes **enhanced cleanup logic** (lines 630-645 in `SMS_Ins
 ## 🔍 Previous Issues Resolved
 
 ### Issue #1: Outdated Certificate Location
-**Problem:** Certificate showed "L=Thessaloniki, C=GR" (incorrect)  
+**Status:** Certificate locality validated: "L=Limassol, C=CY"  
 **Solution:** Regenerated certificate with "L=Limassol, C=CY" ✅  
 **Status:** RESOLVED - Certificate now reflects correct organization location
 
@@ -220,7 +220,7 @@ Import-Certificate -FilePath "installer\AUT_MIEEK_CodeSign.cer" -CertStoreLocati
 
 The installer has been **fully audited and verified** with the following confirmations:
 
-1. ✅ **Certificate is correct:** Limassol, Cyprus (not Thessaloniki, Greece)
+1. ✅ **Certificate is correct:** Limassol, Cyprus
 2. ✅ **Shortcut cleanup is included:** Enhanced logic removes all redundant shortcuts
 3. ✅ **No cached elements:** Installer built AFTER all source modifications
 4. ✅ **Code signing is valid:** SHA256 signature with DigiCert timestamp

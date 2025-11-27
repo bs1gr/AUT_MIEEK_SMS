@@ -1,7 +1,7 @@
 # SMS Installer Audit Report v1.9.3
 **Date:** November 27, 2025  
 **Installer:** `SMS_Installer_1.9.3.exe` (5.53 MB, Signed)  
-**Digital Signature:** ✅ Valid (CN=AUT MIEEK, O=AUT MIEEK, L=Thessaloniki, C=GR)
+**Digital Signature:** ✅ Valid (CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY)
 
 ---
 
