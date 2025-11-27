@@ -7,7 +7,8 @@
 #define MyAppName "Student Management System"
 #define MyAppShortName "SMS"
 #define MyAppPublisher "AUT MIEEK"
-#define MyAppURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
+#define MyAppURL "https://www.mieek.ac.cy/index.php/el/"
+#define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
 #define MyAppExeName "DOCKER_TOGGLE.vbs"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
@@ -29,8 +30,8 @@ AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}/issues
-AppUpdatesURL={#MyAppURL}/releases
+AppSupportURL={#MyAppGitHubURL}/issues
+AppUpdatesURL={#MyAppGitHubURL}/releases
 DefaultDirName={autopf}\{#MyAppShortName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
@@ -628,11 +629,20 @@ begin
   
   if CurStep = ssPostInstall then
   begin
-    // Clean up old shortcuts from previous versions
+    // Clean up old shortcuts from previous versions (various naming patterns)
+    // Old naming: "SMS Toggle"
     DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
     DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
     DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
-    Log('Cleaned up old SMS Toggle shortcuts');
+    // Also remove any duplicate/redundant shortcuts with full name
+    // The installer creates one at {autodesktop}\{#MyAppName} which is correct
+    // But we clean up any extras or manual shortcuts users might have created
+    DeleteFile(ExpandConstant('{userdesktop}\Student Management System.lnk'));
+    DeleteFile(ExpandConstant('{commondesktop}\Student Management System.lnk'));
+    // Clean up any manually created folder shortcuts
+    DeleteFile(ExpandConstant('{autodesktop}\student-management-system - Shortcut.lnk'));
+    DeleteFile(ExpandConstant('{userdesktop}\student-management-system - Shortcut.lnk'));
+    Log('Cleaned up old/duplicate shortcuts');
     
     // Rename uninstaller to include version and update registry
     // Uses constants defined at top: UninstallerExe, UninstallerDat

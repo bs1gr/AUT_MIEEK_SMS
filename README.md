@@ -2,6 +2,9 @@
 
 ![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
 
+**Organization:** [MIEEK - Mediterranean Institute of Environmental Economics and Knowledge](https://www.mieek.ac.cy/index.php/el/)  
+**Location:** Limassol, Cyprus
+
 ## 📦 Quick Start
 
 ### **For End Users** - One-Click Installation ⭐ NEW!
