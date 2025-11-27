@@ -96,7 +96,7 @@ http://localhost:8080
 ⚠️ **CRITICAL:** Change the default password immediately!
 
 **Management:**
-- Run `SMS.ps1` from installation directory for management menu
+- Run `DOCKER.ps1` from installation directory for Docker management
 - Or use Start Menu shortcut: "Student Management System - Management"
 
 ---
@@ -106,7 +106,7 @@ http://localhost:8080
 ### Safe Uninstall with Backup
 
 1. **Launch Uninstaller**
-   - Right-click `SMS_Uninstaller_1.8.6.3.exe`
+   - Right-click `SMS_Uninstaller_X.X.X.exe`
    - Select **"Run as Administrator"**
 
 2. **Choose Data Options (Step 2)**
@@ -216,9 +216,9 @@ http://localhost:8080
    .\BUILD_SIMPLE.ps1
    ```
 
-2. Distribute `SMS_Distribution_Package_v1.8.6.3.zip` to users
+2. Distribute `SMS_Distribution_Package_vX.X.X.zip` to users
 
-3. Users extract and run `SMS_Installer_1.8.6.3.exe` as Administrator
+3. Users extract and run `SMS_Installer_X.X.X.exe` as Administrator
 
 **Advantages:**
 - No PowerShell execution policy issues
@@ -365,9 +365,9 @@ cd d:\SMS\student-management-system\tools\installer
 **Step 4: Distribute**
 ```powershell
 # Output files in .\dist\
-# - SMS_Installer_1.8.6.3.exe (installer executable)
-# - SMS_Uninstaller_1.8.6.3.exe (uninstaller executable)
-# - SMS_Distribution_Package_v1.8.6.3.zip (complete package with docs)
+# - SMS_Installer_X.X.X.exe (installer executable)
+# - SMS_Uninstaller_X.X.X.exe (uninstaller executable)
+# - SMS_Distribution_Package_vX.X.X.zip (complete package with docs)
 ```
 
 ### Packaging Methods Comparison

@@ -35,7 +35,7 @@ async def get_monitoring_environment(request: Request):
         "docker_available": docker_running,
         "can_control_monitoring": not in_container and docker_running,
         "monitoring_control_message": (
-            "Use RUN.ps1 -WithMonitoring from host" if in_container else "Monitoring can be controlled from this interface" if docker_running else "Docker is not available"
+            "Use DOCKER.ps1 -WithMonitoring from host" if in_container else "Monitoring can be controlled from this interface" if docker_running else "Docker is not available"
         ),
     }
 
@@ -200,10 +200,10 @@ async def start_monitoring_stack(request: Request):
             trigger_file.parent.mkdir(parents=True, exist_ok=True)
             trigger_file.write_text(json.dumps({"timestamp": datetime.now().isoformat(), "request_id": getattr(request.state, "request_id", None), "action": "start_monitoring"}))
             logger.info("Monitoring start trigger created", extra={"action": "monitoring_trigger_created", "trigger_file": str(trigger_file), "request_id": getattr(request.state, "request_id", None)})
-            return {"success": True, "message": "Monitoring start requested. Run 'RUN.ps1 -WithMonitoring' from host or wait for auto-start if watcher is enabled.", "details": {"trigger_file": str(trigger_file), "mode": "container_trigger", "instructions": "Execute 'docker compose -f docker-compose.monitoring.yml up -d' on the host to start monitoring."}}
+            return {"success": True, "message": "Monitoring start requested. Run 'DOCKER.ps1 -WithMonitoring' from host or wait for auto-start if watcher is enabled.", "details": {"trigger_file": str(trigger_file), "mode": "container_trigger", "instructions": "Execute 'docker compose -f docker/docker-compose.monitoring.yml up -d' on the host to start monitoring."}}
         except Exception as e:
             logger.error(f"Failed to create trigger file: {e}")
-            raise http_error(500, ErrorCode.CONTROL_OPERATION_FAILED, f"Cannot start monitoring from container. Use RUN.ps1 -WithMonitoring from host. Trigger creation failed: {str(e)}", request)
+            raise http_error(500, ErrorCode.CONTROL_OPERATION_FAILED, f"Cannot start monitoring from container. Use DOCKER.ps1 -WithMonitoring from host. Trigger creation failed: {str(e)}", request)
 
     if not check_docker_running():
         raise http_error(503, ErrorCode.CONTROL_DEPENDENCY_ERROR, "Docker is not running", request)
@@ -234,7 +234,7 @@ async def stop_monitoring_stack(request: Request):
     logger = logging.getLogger(__name__)
     logger.info("Monitoring stack stop requested", extra={"action": "monitoring_stop_requested", "request_id": getattr(request.state, "request_id", None), "client_host": request.client.host if request.client else None})
     if in_docker_container():
-        raise http_error(400, ErrorCode.CONTROL_OPERATION_FAILED, "Cannot stop monitoring from inside container. Use SMS.ps1 -Stop from host.", request)
+        raise http_error(400, ErrorCode.CONTROL_OPERATION_FAILED, "Cannot stop monitoring from inside container. Use DOCKER.ps1 -Stop from host.", request)
     if not check_docker_running():
         return {"success": True, "message": "Docker not running, monitoring stack already stopped", "details": {}}
     try:

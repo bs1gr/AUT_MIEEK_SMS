@@ -17,7 +17,7 @@ The control API exposes endpoints for operators to stop the frontend, the backen
 
 Beginning with the lazy monitoring implementation, the monitoring services (Grafana, Prometheus, Loki) are NOT started automatically unless you:
 
-1. Launch the app with `RUN.ps1 -WithMonitoring` (eager start, legacy behaviour retained), OR
+1. Launch the app with `DOCKER.ps1 -WithMonitoring` (eager start, legacy behaviour retained), OR
 2. Explicitly start them via the Control API / Power page.
 
 New endpoints:
@@ -158,7 +158,7 @@ All entries include `request_id` when the middleware has assigned one, enabling 
 
 ## Restart endpoint (`/control/api/restart`)
 
-- **Purpose**: schedule a graceful backend restart when the FastAPI server runs directly on the host (native mode). The endpoint is intentionally disabled inside Docker containers because a process cannot safely restart its own container—use `SMS.ps1 -Restart` or `RUN.ps1 -Stop/-Start` on the host instead.
+- **Purpose**: schedule a graceful backend restart when the FastAPI server runs directly on the host (native mode). The endpoint is intentionally disabled inside Docker containers because a process cannot safely restart its own container—use `DOCKER.ps1 -Stop` then `DOCKER.ps1 -Start` on the host instead.
 - **Prerequisites**: `ENABLE_CONTROL_API=1`. Without this flag the endpoint responds with 404/diagnostic guidance (also exposed via the GET helper).
 - **Security**: Same rules as other control endpoints. When `ADMIN_SHUTDOWN_TOKEN` is set you must include `X-ADMIN-TOKEN`. Without a token only loopback callers are accepted, and only if `ALLOW_REMOTE_SHUTDOWN` remains unset.
 - **Helper endpoint**: `GET /control/api/restart` returns a structured JSON payload that explains why the endpoint may be unavailable (e.g., missing env vars, running inside Docker, wrong HTTP method). Link users to this endpoint when troubleshooting.
@@ -174,7 +174,7 @@ All entries include `request_id` when the middleware has assigned one, enabling 
    ALLOW_REMOTE_SHUTDOWN=1                     # optional: only if you must call from non-loopback hosts
    ```
 
-2. Restart the backend (e.g., `.\RUN.ps1 -Stop` then `.\RUN.ps1`) so the new variables are loaded.
+2. Restart the backend (e.g., `.\DOCKER.ps1 -Stop` then `.\DOCKER.ps1 -Start`) so the new variables are loaded.
 3. Open the System Health view: `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/fullstack mode.
 4. Click **Restart**. If you configured `ADMIN_SHUTDOWN_TOKEN`, calls from remote browsers need to supply the token via the `X-ADMIN-TOKEN` header (handled automatically when accessing from the same host where the backend runs).
 

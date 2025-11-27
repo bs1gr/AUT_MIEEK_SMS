@@ -1,5 +1,7 @@
 # pip Version Management
 
+> **Note (v1.9.0+)**: The script `SMART_SETUP.ps1` referenced in this document has been consolidated into `NATIVE.ps1`. Use `NATIVE.ps1 -Setup` for native development setup.
+
 ## Current Target Version: 25.3
 
 The Student Management System uses **pip 25.3** in the backend virtual environment for compatibility and stability.
@@ -8,10 +10,10 @@ The Student Management System uses **pip 25.3** in the backend virtual environme
 
 ### During Setup
 
-When you run `SMART_SETUP.ps1` with `-PreferNative`, pip is automatically upgraded to version 25.3:
+When you run `NATIVE.ps1 -Setup`, pip is automatically upgraded to version 25.3:
 
 ```powershell
-.\SMART_SETUP.ps1 -PreferNative
+.\\NATIVE.ps1 -Setup
 ```
 
 The script will:

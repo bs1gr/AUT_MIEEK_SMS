@@ -6,9 +6,9 @@ This folder contains the FastAPI backend for the Student Management System.
 
 When running inside Docker you can either mount a host directory/volume at
 `/data` for SQLite **or** point the application to PostgreSQL using the new
-`POSTGRES_*` environment variables. `RUN.ps1`, `SMART_SETUP.ps1`, and
-`docker-compose.yml` now respect the same `.env` keys, so switching databases is
-as simple as editing your environment file.
+`POSTGRES_*` environment variables. `DOCKER.ps1` and `docker-compose.yml` now
+respect the same `.env` keys, so switching databases is as simple as editing
+your environment file.
 
 SQLite example (default):
 

@@ -31,7 +31,9 @@ The Student Management System includes an optional JWT-based authentication syst
 4. **Restart the application**:
 
   ```powershell
-  .\RUN.ps1
+  .\DOCKER.ps1 -Start  # Docker mode
+  # or
+  .\NATIVE.ps1 -Start  # Native development
   ```
 
 ### Create Initial Admin User

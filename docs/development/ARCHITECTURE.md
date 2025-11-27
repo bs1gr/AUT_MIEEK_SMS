@@ -49,7 +49,7 @@
 
 ### Database Options (v1.8.3+)
 
-- **SQLite** remains the zero-config default for all modes. The launcher (`RUN.ps1`, `SMART_SETUP.ps1`) ensures migrations run against `data/student_management.db` or the `/data` volume inside containers.
+- **SQLite** remains the zero-config default for all modes. The launcher (`DOCKER.ps1`) ensures migrations run against `data/student_management.db` or the `/data` volume inside containers.
 - **PostgreSQL** is now a first-class option. Set either `DATABASE_ENGINE=postgresql` or provide `POSTGRES_*` variables (host, port, user, password, db). When these variables are present, the backend auto-builds a Psycopg connection URL.
 - **DATABASE_URL override**: advanced operators can provide a fully-qualified SQLAlchemy URL (e.g., `postgresql+psycopg://...`) to bypass auto-generation.
 - The backend validates all PostgreSQL parameters (SSL mode, options, IPv6 hosts) and refuses to start if required fields are missing.
@@ -65,9 +65,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Entry Points                        │
 ├─────────────────────────────────────────────────────────────┤
-│  RUN.ps1         →  One-click Docker deployment             │
-│  SMS.ps1         →  Interactive menu                        │
-│  scripts/dev/run-native.ps1 → Native start (development)    │
+│  DOCKER.ps1     →  Docker deployment (production)           │
+│  NATIVE.ps1     →  Native development mode                  │
+│  DOCKER_TOGGLE  →  Desktop shortcut (VBS wrapper)           │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -107,9 +107,9 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    Stop Entry Points                        │
 ├─────────────────────────────────────────────────────────────┤
-│  SMS.ps1 -Stop           →  PowerShell stop                 │
-│  Control Panel "Stop All" →  Backend API stop               │
-│                             (Legacy direct stop removed)       │
+│  DOCKER.ps1 -Stop      →  Stop Docker container             │
+│  NATIVE.ps1 -Stop      →  Stop native processes             │
+│  Control Panel "Stop"  →  Backend API stop                  │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────────┬──────────────────────────────────────┐
@@ -127,7 +127,7 @@
 
 - ✅ **CAN**: Stop the backend container (from within)
 - ❌ **CANNOT**: Stop frontend/nginx container (isolation)
-- ✅ **SOLUTION**: Use `SMS.ps1 -Stop` on host for full shutdown
+- ✅ **SOLUTION**: Use `DOCKER.ps1 -Stop` on host for full shutdown
 
 ---
 
@@ -136,20 +136,25 @@
 ### 1. **Full Automated Start** (Already Available)
 
 ```powershell
-# One-command start (no prompts, Docker-first)
-.\RUN.ps1
+# Docker deployment (production)
+.\DOCKER.ps1 -Start
+
+# Native development mode
+.\NATIVE.ps1 -Start
 
 # Advanced modes
-.\SMS.ps1 -Quick      # Auto mode (Docker preferred)
-.\SMART_SETUP.ps1 -DevMode  # Multi-container dev
-docker compose up -d        # Manual Docker start
+.\DOCKER.ps1 -WithMonitoring  # With Grafana/Prometheus
+docker compose up -d          # Manual Docker start
 ```
 
 ### 2. **Full Automated Stop** (Already Available)
 
 ```powershell
-# One-command stop (detects mode and stops everything)
-.\SMS.ps1 -Stop
+# Docker stop
+.\DOCKER.ps1 -Stop
+
+# Native stop
+.\NATIVE.ps1 -Stop
 
 # Docker-specific
 docker compose stop     # Stop containers
@@ -159,12 +164,12 @@ docker compose down     # Stop and remove
 ### 3. **Restart Automation**
 
 ```powershell
-# Current: Manual two-step
-.\SMS.ps1 -Stop
-.\RUN.ps1
+# Two-step restart
+.\DOCKER.ps1 -Stop
+.\DOCKER.ps1 -Start
 
-# Proposed: Add restart flag
-.\SMS.ps1 -Restart   # Future enhancement
+# Or use Update which handles restart
+.\DOCKER.ps1 -Update
 ```
 
 ### 4. **Scheduled Automation** (Using Windows Task Scheduler)
@@ -174,7 +179,7 @@ docker compose down     # Stop and remove
 ```powershell
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
-  -Argument "-File D:\SMS\student-management-system\RUN.ps1"
+  -Argument "-File D:\SMS\student-management-system\DOCKER.ps1 -Start"
 Register-ScheduledTask -TaskName "SMS-AutoStart" -Trigger $trigger -Action $action
 ```
 
@@ -200,11 +205,11 @@ jobs:
   deploy:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Stop current instance
-        run: .\SMS.ps1 -Stop
+        run: .\DOCKER.ps1 -Stop
       - name: Start new instance
-        run: .\RUN.ps1
+        run: .\DOCKER.ps1 -Start
 ```
 
 ---
@@ -284,7 +289,7 @@ Set `DATABASE_URL` only when you need full control (custom driver parameters or 
 
    - Set `DATABASE_ENGINE=postgresql` (or `DATABASE_URL`).
    - Provide the `POSTGRES_*` variables in `backend/.env` and Docker secrets if running in containers.
-4. **Run migrations**: `RUN.ps1` / `SMART_SETUP.ps1` automatically run Alembic migrations against the new engine before serving traffic.
+4. **Run migrations**: `DOCKER.ps1` automatically runs Alembic migrations against the new engine before serving traffic.
 5. **Verify health**: Use `/health` endpoints plus targeted API smoke tests against the PostgreSQL-backed instance.
 6. **Fallback plan**: Keep the SQLite file/volume snapshot until PostgreSQL adoption is confirmed. The migration script can be re-run if additional data is added before cutover.
 
@@ -308,7 +313,7 @@ Set `DATABASE_URL` only when you need full control (custom driver parameters or 
 
 ### Implemented Automation (Pre-start Version Check)
 
-As of this update, the host launcher (`SMS.ps1`) performs a pre-start schema version check when starting in Docker mode:
+As of this update, the host launcher (`DOCKER.ps1`) performs a pre-start schema version check when starting in Docker mode:
 
 - Non-interactive (Quick Start): If a mismatch is detected between the native DB schema and the Docker volume schema, a warning is shown with guidance to run `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate` or use the Control Panel Docker operation.
 - Interactive (Menu/CLI): If a mismatch is detected, you will be prompted to auto-migrate the Docker volume before containers start.
@@ -351,7 +356,7 @@ async def auto_migrate_docker_volume():
 #### Option B: Pre-Start Hook
 
 ```powershell
-# Add to SMS.ps1 Start-Application
+# Add to DOCKER.ps1 Start-Application
 
 function Invoke-PreStartCheck {
     param([string]$Mode)
@@ -399,12 +404,12 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
    - Track Docker volume version in override file
 
 2. **Automatic detection on start**:
-   - SMS.ps1 checks for version mismatches before Docker start
+   - DOCKER.ps1 checks for version mismatches before Docker start
    - Non-interactive: warns and continues; Interactive: offers one-click migration
 
 3. **Keep manual control**:
    - Control Panel operation remains for explicit migrations
-   - SMS.ps1 menu option for volume management
+   - DOCKER.ps1 commands for volume management
 
 ---
 
@@ -415,7 +420,7 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 1. **Use Native mode for development**:
 
 ```powershell
-.\RUN.ps1  # Defaults to Docker; falls back to native if Docker unavailable
+.\NATIVE.ps1 -Start  # Hot-reload enabled
 ```
 
 2. **Run migrations immediately**:
@@ -429,8 +434,8 @@ alembic upgrade head
 3. **Test in Docker before deployment**:
 
 ```powershell
-.\SMS.ps1 -Stop
-docker compose up -d --build
+.\DOCKER.ps1 -Stop
+.\DOCKER.ps1 -Start
 ```
 
 ### Production Deployment
@@ -461,8 +466,8 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 
 **"Already running" after exit**:
 
-- Use `.\SMS.ps1 -Stop` instead of Control Panel in Docker mode
-- Or: `docker compose down` to fully remove containers
+- Use `.\DOCKER.ps1 -Stop` instead of Control Panel in Docker mode
+- Or: `docker compose -f docker/docker-compose.yml down` to fully remove containers
 
 **Schema mismatch errors**:
 
@@ -472,7 +477,7 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 
 **Port conflicts**:
 
-- Run: `.\SMS.ps1` → Option 7 (Debug Port Conflicts)
+- Run: `.\DOCKER.ps1 -Status` to check running containers
 - Kill processes: `Stop-Process -Id <PID> -Force`
 
 ---
@@ -481,8 +486,8 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 
 ### ✅ Already Automated
 
-- ✅ One-command start: `RUN.ps1`
-- ✅ One-command stop: `SMS.ps1 -Stop`
+- ✅ One-command start: `DOCKER.ps1 -Start` / `NATIVE.ps1 -Start`
+- ✅ One-command stop: `DOCKER.ps1 -Stop` / `NATIVE.ps1 -Stop`
 - ✅ Auto mode detection (Docker vs Native)
 - ✅ Manual volume migration (Control Panel)
 - ✅ Pre-start schema version check (warns/prompt to auto-migrate)
@@ -492,7 +497,6 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 - 🔄 Extend auto-migration options and rollback support
 - 🔄 Pre-start volume migration hooks
 - 🔄 Scheduled restart/backup tasks
-- 🔄 Restart command (`SMS.ps1 -Restart`)
 
 ### 📋 Recommendations
 

@@ -16,7 +16,7 @@ should switch to PostgreSQL before onboarding real data.
 
 ## Prerequisites
 
-1. **Backup your SQLite database** (e.g. `./RUN.ps1 -Backup`).
+1. **Backup your SQLite database** (use Control Panel or backup scripts).
 2. **Provision a PostgreSQL instance** and note the host, port, database, user,
    and password.
 3. **Install the latest backend dependencies** (includes `psycopg[binary]`).
@@ -38,7 +38,7 @@ POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
 # Leave DATABASE_URL blank to let the app build it automatically
 ```
 
-> **Tip:** `RUN.ps1`, `docker-compose.yml`, and the helper scripts now read the
+> **Tip:** `DOCKER.ps1`, `docker-compose.yml`, and the helper scripts now read the
 > same variables, so the container picks up the PostgreSQL connection without
 > additional flags.
 
@@ -85,13 +85,13 @@ CASCADE` to guarantee clean imports.
 
 1. Remove any hard-coded `DATABASE_URL` values so the new builder can take over
    (or set it explicitly to the PostgreSQL URI).
-2. Restart the application using `./RUN.ps1` (single container) or your
+2. Restart the application using `.\DOCKER.ps1 -Start` or your
    preferred compose workflow.
 3. Verify the Control Panel and API endpoints against the new database.
 
 ## Verification Checklist
 
-- [ ] `./RUN.ps1 -Logs` shows `DATABASE_URL` beginning with `postgresql`.
+- [ ] `.\DOCKER.ps1 -Logs` shows `DATABASE_URL` beginning with `postgresql`.
 - [ ] Control Panel → `Database Health` reports PostgreSQL as the engine.
 - [ ] Recent students/courses appear correctly after migration.
 - [ ] Backups now use `pg_dump` (see deployment guide) instead of `.db` copies.

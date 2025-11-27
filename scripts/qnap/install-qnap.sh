@@ -1,6 +1,6 @@
 #!/bin/bash
 # QNAP Container Station Installation Script
-# Student Management System v1.8.0
+# Student Management System
 #
 # This script automates the deployment of SMS on QNAP NAS
 # with comprehensive safety checks and validation

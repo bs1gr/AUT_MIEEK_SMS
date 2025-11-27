@@ -284,8 +284,8 @@ Start-Process http://localhost:3000
 ### For Production-Like Testing
 
 ```powershell
-# Full Docker stack
-.\SMS.ps1 -WithMonitoring
+# Full Docker stack with monitoring
+.\DOCKER.ps1 -WithMonitoring
 ```
 
 ---

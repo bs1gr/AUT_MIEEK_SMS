@@ -46,7 +46,7 @@
 .NOTES
     Version: 1.0.0
     Created: 2025-11-25
-    Purpose: Automated pre-commit verification for v1.9.0 release
+    Purpose: Automated pre-commit verification
 #>
 
 param(
@@ -722,7 +722,7 @@ if ($Quick) {
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║           PRE-COMMIT VERIFICATION - SMS v1.9.0               ║" -ForegroundColor Magenta
+Write-Host "║             PRE-COMMIT VERIFICATION - SMS                     ║" -ForegroundColor Magenta
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
 Write-Host ""
 Write-Info "Starting comprehensive pre-commit checks..."

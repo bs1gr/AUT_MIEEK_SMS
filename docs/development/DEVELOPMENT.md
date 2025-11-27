@@ -14,7 +14,7 @@ python -m pip install --upgrade pip
 python -m pip install -r backend/requirements.txt
 ```
 
-> Tip: Run `scripts\dev\run-native.ps1` (PowerShell) or `scripts/dev/run-native.sh` (bash) to start the backend and frontend in the supported native development mode. The helper scripts set `SMS_ENV=development` automatically.
+> Tip: Run `NATIVE.ps1 -Start` (PowerShell) to start the backend and frontend in the supported native development mode. The helper script sets `SMS_ENV=development` automatically.
 
 ## Install development dependencies (type checking, linters)
 
