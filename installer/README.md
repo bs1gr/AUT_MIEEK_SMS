@@ -78,7 +78,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 
 - Bilingual: English and Greek
 - Detects existing installations and offers upgrade
-- Creates desktop shortcut for Docker toggle
+- Creates desktop shortcut: Student Management System
 - Automatic Docker container build on first run
 - Preserves user data during upgrades/uninstall
 
