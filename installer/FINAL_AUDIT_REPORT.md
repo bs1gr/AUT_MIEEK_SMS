@@ -2,7 +2,8 @@
 
 **Date:** November 27, 2025  
 **Time:** 15:51 (Build + Sign completed)  
-**Organization:** AUT MIEEK - Limassol, Cyprus
+**Built for:** ΜΙΕΕΚ - Limassol, Cyprus  
+**Developer:** Teacher at ΜΙΕΕΚ
 
 ---
 
@@ -40,8 +41,9 @@ All cached elements have been resolved. The installer is fully updated with the 
 ### Certificate Location Details
 - **City/Locality:** Limassol ✅ (Corrected from Thessaloniki)
 - **Country:** Cyprus (CY) ✅ (Corrected from Greece)
-- **Organization:** ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
-- **Website:** https://www.mieek.ac.cy/index.php/el/
+- **Built for:** ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
+- **Developer:** Teacher at ΜΙΕΕΚ
+- **ΜΙΕΕΚ Website:** https://www.mieek.ac.cy/index.php/el/
 
 ---
 

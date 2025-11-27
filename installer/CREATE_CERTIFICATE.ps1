@@ -5,9 +5,11 @@
     Δημιουργεί νέο πιστοποιητικό υπογραφής κώδικα για το AUT MIEEK με σωστές πληροφορίες τοποθεσίας.
 
 .DESCRIPTION
-    Generates a self-signed code signing certificate for:
+    Generates a self-signed code signing certificate for an application built for:
     ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
     Website: https://www.mieek.ac.cy/index.php/el/
+    
+    This certificate is for a Student Management System developed by a teacher at ΜΙΕΕΚ.
     
     Certificate Details / Λεπτομέρειες Πιστοποιητικού:
     - Common Name (CN): AUT MIEEK
