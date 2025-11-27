@@ -35,6 +35,77 @@ function Write-Warning2 { param($Text) Write-Host "⚠ $Text" -ForegroundColor Y
 function Write-Error2 { param($Text) Write-Host "✗ $Text" -ForegroundColor Red }
 function Write-Info { param($Text) Write-Host "ℹ $Text" -ForegroundColor Blue }
 
+function Get-SmsSchemaVersion {
+    param([string]$DbPath)
+    if (-not (Test-Path $DbPath)) {
+        return $null
+    }
+    try {
+        $pythonCode = @"
+import sqlite3
+import sys
+try:
+    conn = sqlite3.connect(sys.argv[1])
+    cursor = conn.cursor()
+    cursor.execute('SELECT version FROM sms_schema_version ORDER BY applied_at DESC LIMIT 1')
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        print(result[0])
+    else:
+        print('no_sms_version')
+except Exception as e:
+    print(f"error: {e}", file=sys.stderr)
+    sys.exit(1)
+"@
+        $tempFile = [System.IO.Path]::GetTempFileName() + ".py"
+        $pythonCode | Set-Content -Path $tempFile -Encoding UTF8
+        $result = python $tempFile $DbPath 2>&1
+        Remove-Item $tempFile -ErrorAction SilentlyContinue
+        if ($LASTEXITCODE -eq 0) {
+            return $result.Trim()
+        }
+        return $null
+    } catch {
+        return $null
+    }
+}
+
+function Get-SmsSchemaVersion {
+    param([string]$DbPath)
+    if (-not (Test-Path $DbPath)) {
+        return $null
+    }
+    try {
+        $pythonCode = @"
+import sqlite3
+import sys
+try:
+    conn = sqlite3.connect(sys.argv[1])
+    cursor = conn.cursor()
+    cursor.execute('SELECT version FROM sms_schema_version ORDER BY applied_at DESC LIMIT 1')
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        print(result[0])
+    else:
+        print('no_sms_version')
+except Exception as e:
+    print(f"error: {e}", file=sys.stderr)
+    sys.exit(1)
+"@
+        $tempFile = [System.IO.Path]::GetTempFileName() + ".py"
+        $pythonCode | Set-Content -Path $tempFile -Encoding UTF8
+        $result = python $tempFile $DbPath 2>&1
+        Remove-Item $tempFile -ErrorAction SilentlyContinue
+        if ($LASTEXITCODE -eq 0) {
+            return $result.Trim()
+        }
+        return $null
+    } catch {
+        return $null
+    }
+}
 function Get-AlembicVersion {
     param([string]$DbPath)
 
@@ -128,13 +199,20 @@ try {
 Write-Info "Checking native database..."
 $nativeDb = Join-Path $projectRoot "data\student_management.db"
 if (Test-Path $nativeDb) {
-    $nativeVersion = Get-AlembicVersion -DbPath $nativeDb
-    if ($nativeVersion) {
-        Write-Success "Native DB schema version: $nativeVersion"
-    } else {
-        Write-Warning2 "Native DB has no version info (not migrated yet?)"
-        $nativeVersion = "unknown"
-    }
+        $nativeVersion = Get-AlembicVersion -DbPath $nativeDb
+        $smsSchemaVersion = Get-SmsSchemaVersion -DbPath $nativeDb
+        if ($nativeVersion) {
+            Write-Success "Native DB Alembic version: $nativeVersion"
+        } else {
+            Write-Warning2 "Native DB has no Alembic version info (not migrated yet?)"
+            $nativeVersion = "unknown"
+        }
+        if ($smsSchemaVersion) {
+            Write-Success "Native DB SMS schema version: $smsSchemaVersion"
+        } else {
+            Write-Warning2 "Native DB has no SMS schema version info (not seeded yet?)"
+            $smsSchemaVersion = "unknown"
+        }
 } else {
     Write-Info "Native database not found (will be created on first run)"
     $nativeVersion = $null
