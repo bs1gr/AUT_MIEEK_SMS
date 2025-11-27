@@ -143,11 +143,6 @@ The installer now includes **enhanced cleanup logic** (lines 630-645 in `SMS_Ins
 4. Verify new shortcut "Student Management System" is created ✅
 5. Verify no duplicate shortcuts exist ✅
 
-### Test Scenario 3: Manual Shortcut Cleanup
-1. Create manual shortcut named "student-management-system - Shortcut.lnk"
-2. Run `SMS_Installer_1.9.3.exe`
-3. Verify manual shortcut is removed ✅
-
 ---
 
 ## 🛡️ Security Notes
@@ -207,7 +202,6 @@ Import-Certificate -FilePath "installer\AUT_MIEEK_CodeSign.cer" -CertStoreLocati
 - `INSTALLER_AUDIT_REPORT.md` - Initial audit findings (November 27, 2025 @ 15:45)
 - `installer\README.md` - Organization information and installer details
 - `installer\CREATE_CERTIFICATE.ps1` - Bilingual certificate creation script
-- `installer\CLEANUP_SHORTCUTS.ps1` - Manual shortcut cleanup utility
 
 ### Installation Guides
 - `DESKTOP_SHORTCUT_QUICK_START.md` - Quick start guide for desktop shortcut
