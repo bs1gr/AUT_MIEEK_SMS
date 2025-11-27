@@ -3,6 +3,8 @@
 > Deprecation notice (v1.8.3)
 >
 > As of v1.8.3 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
+>
+> **Note (v1.9.3+):** Legacy scripts (RUN.ps1, SMS.ps1) have been deprecated. Use `DOCKER.ps1` for all Docker operations and `NATIVE.ps1` for native development.
 
 ## Current Monitoring State (v1.8.3+)
 
@@ -21,7 +23,7 @@ Historically, the Student Management System included an embedded monitoring expe
 
 ## On-Demand Activation (Legacy)
 
-Previously the monitoring stack was started eagerly when using `RUN.ps1 -WithMonitoring`. During the v1.8.x refactor we introduced **on-demand** activation via the Power page (`/power`) and the Control API. As of v1.8.3 the Power page controls were retired, so operators now use the host-only Control API endpoints (listed below) or the PowerShell scripts (`RUN.ps1`, `SMS.ps1`). The table remains for historical reference and to document the still-supported API contract:
+Previously the monitoring stack was started eagerly when using legacy scripts with monitoring flags. During the v1.8.x refactor we introduced **on-demand** activation via the Power page (`/power`) and the Control API. As of v1.8.3 the Power page controls were retired, so operators now use the host-only Control API endpoints (listed below) or the PowerShell script `DOCKER.ps1 -WithMonitoring`. The table remains for historical reference and to document the still-supported API contract:
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -39,9 +41,11 @@ Previously the monitoring stack was started eagerly when using `RUN.ps1 -WithMon
 
 ### Current Monitoring Modes
 
-- **With Monitoring**: `RUN.ps1 -WithMonitoring` starts the application plus monitoring stack immediately.
-- **Default**: `RUN.ps1` starts only the application. Use `SMS.ps1 -MonitoringOnly` to start monitoring separately.
+- **With Monitoring**: `DOCKER.ps1 -WithMonitoring` starts the application plus monitoring stack immediately.
+- **Default**: `DOCKER.ps1 -Start` starts only the application.
 - **API Control**: Direct calls to `/control/api/monitoring/start` for programmatic control.
+
+**Note:** Separate monitoring-only mode has been deprecated. Use the `-WithMonitoring` flag or Control API.
 
 ### Benefits
 
@@ -106,7 +110,7 @@ Sample status payload when stopped:
 **For End Users:**
 
 ```powershell
-.\RUN.ps1 -WithMonitoring
+.\DOCKER.ps1 -WithMonitoring
 ```
 
 **Architecture:**
@@ -138,7 +142,11 @@ Sample status payload when stopped:
 **For Developers:**
 
 ```powershell
-.\SMART_SETUP.ps1 -DevMode -WithMonitoring
+# Native mode (no monitoring - monitoring is Docker-only)
+.\NATIVE.ps1 -Start
+
+# Docker mode with monitoring
+.\DOCKER.ps1 -WithMonitoring
 ```
 
 **Architecture:**
@@ -303,9 +311,10 @@ This allowed the legacy power page to work even if:
 To use custom Grafana port:
 
 ```powershell
-.\RUN.ps1 -WithMonitoring -GrafanaPort 3001
+.\DOCKER.ps1 -WithMonitoring -GrafanaPort 3001
 ```
 
+**Note:** Custom port configuration is a future enhancement. Currently uses default ports.
 Currently supported for Grafana only. Prometheus uses fixed port 9090.
 
 ## Metrics Exposed
@@ -471,7 +480,7 @@ curl http://localhost:8000/metrics
 
 **Options:**
 
-1. Use Docker mode: `.\RUN.ps1 -WithMonitoring`
+1. Use Docker mode: `.\DOCKER.ps1 -WithMonitoring`
 2. Manually start monitoring stack (advanced, see section above)
 3. Use external monitoring tools (Datadog, New Relic, etc.)
 
