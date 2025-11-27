@@ -270,43 +270,43 @@ if ($LASTEXITCODE -ne 0) {
 
 ### Common Issues
 
-**"Python not found"**
+#### Python not found
 
 - Install Python 3.11+
 - Verify with `python --version`
 - Run `.\NATIVE.ps1 -Setup` to create virtual environment
 
-**"Node.js not found"**
+#### Node.js not found
 
 - Install Node.js 18+
 - Verify with `node --version`
 - Run `cd frontend && npm install`
 
-**"Docker not available"**
+#### Docker not available
 
 - Start Docker Desktop
 - Or use `-Mode quick` to skip Docker tests
 - Verify with `docker ps`
 
-**"Backend tests failed"**
+#### Backend tests failed
 
 - Check `backend/logs/app.log` for errors
 - Ensure virtual environment is activated
 - Run `cd backend && pytest -v` for detailed output
 
-**"Frontend tests failed"**
+#### Frontend tests failed
 
 - Check `node_modules` exists
 - Run `cd frontend && npm run test` for detailed output
 - Clear cache with `rm -rf node_modules/.cache`
 
-**"TypeScript compilation errors"**
+#### TypeScript compilation errors
 
 - Review error output
 - Fix type errors in production code
 - Test files are excluded from checks
 
-**"Translation integrity issues"**
+#### Translation integrity issues
 
 - Check console output for missing keys
 - Update both EN and EL translations
