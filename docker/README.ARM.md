@@ -1,14 +1,29 @@
 # ARM Build Files for QNAP NAS
 
+> **⚠️ CRITICAL WARNING - TS-431P3 INCOMPATIBILITY**
+>
+> **QNAP TS-431P3 is NOT COMPATIBLE with containerized deployments** due to its ARM Cortex-A15 processor using 32KB memory pages (standard is 4KB). All Docker images fail with "ELF load command address/offset not page-aligned" errors.
+>
+> **Status:** DEPLOYMENT UNFEASIBLE on TS-431P3
+>
+> See [docs/deployment/qnap/TS-431P3-DEPLOYMENT-ATTEMPT-SUMMARY.md](../docs/deployment/qnap/TS-431P3-DEPLOYMENT-ATTEMPT-SUMMARY.md) for complete failure analysis.
+>
+> **Recommendations:**
+>
+> - Deploy on x86_64 QNAP (TS-453D, TS-x53 series)
+> - Deploy on cloud VPS (DigitalOcean, AWS)
+> - Use TS-431P3 for file storage only
+
 **Version:** 1.9.3
 **Architecture:** ARM32v7
 **Target Devices:** QNAP TS-431P3, TS-x31P series, and other ARM-based QNAP NAS
+**Deployment Status:** ❌ Non-functional on TS-431P3 due to 32KB page size
 
 ---
 
 ## Overview
 
-This directory contains **separate ARM-specific build files** that allow deployment on ARM-based QNAP NAS devices without modifying the main v1.9.3 release builds.
+This directory contains **separate ARM-specific build files** that were created for deployment on ARM-based QNAP NAS devices. However, testing revealed fundamental incompatibility with the TS-431P3's 32KB memory page architecture.
 
 ### Why Separate Files?
 

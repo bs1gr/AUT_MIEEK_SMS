@@ -7,6 +7,7 @@
 tmp_*.ps1
 tmp_*.sh
 watch_run.ps1
+commit_msg.txt
 
 # Temporary CI / local artifact folders (created by automation runs)
 tmp_artifacts/
