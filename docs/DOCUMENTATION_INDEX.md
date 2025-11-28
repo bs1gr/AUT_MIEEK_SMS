@@ -1,6 +1,6 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-11-28
 **Version**: 1.9.3
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
@@ -152,6 +152,11 @@ Documentation is organized into four main directories:
 **Development Tools**:
 
 - **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
+- **[development/DEVELOPMENT_SETUP_GUIDE.md](development/DEVELOPMENT_SETUP_GUIDE.md)** ⭐ NEW - Comprehensive setup & testing guide
+  - Prerequisites & dependencies
+  - Testing setup (pytest + Python 3.13 compatibility)
+  - Pre-commit validation
+  - Troubleshooting common issues
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
 ### 🚀 For DevOps/Operators
@@ -172,6 +177,14 @@ Documentation is organized into four main directories:
 - **[REBUILD_TROUBLESHOOTING.md](REBUILD_TROUBLESHOOTING.md)** - Rebuild troubleshooting
 - **[DEPLOYMENT_ASSET_TRACKER.md](DEPLOYMENT_ASSET_TRACKER.md)** - Release readiness inventory
 
+**Operations & Maintenance**:
+
+- **[operations/CLEANUP_SCRIPTS_GUIDE.md](operations/CLEANUP_SCRIPTS_GUIDE.md)** ⭐ NEW - Comprehensive cleanup operations guide
+  - All cleanup scripts inventory
+  - Feature comparison matrix
+  - Usage decision tree
+  - Space savings potential
+
 **Reference Guides** (NEW):
 
 - **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
@@ -191,12 +204,24 @@ Documentation is organized into four main directories:
 
 ## 🗑️ Archived Documentation (November 2025)
 
-As part of the v1.8.6.3 documentation consolidation effort, 18 temporal session documents have been archived to reduce root directory clutter while preserving historical records.
+Documentation consolidation is an ongoing effort. Session-specific documents are archived to reduce root directory clutter while preserving historical records.
 
-### Archive Location
+### Recent Session Archives
+
+#### Session 2025-11-28 - Documentation Consolidation
+
+**Path:** `archive/sessions/2025-11-28/`
+**Index:** [archive/sessions/2025-11-28/INDEX.md](../archive/sessions/2025-11-28/INDEX.md)
+
+**Key Documents:**
+
+- `REPOSITORY_AUDIT_SUMMARY.md` - Full repository audit (425 lines)
+- `MASTER_CONSOLIDATION_PLAN.md` - Consolidation execution plan
+- Session consolidated 4 testing guides into 1 comprehensive guide
+
+#### Earlier Sessions (Pre-v1.9.1)
 
 **Path:** `archive/sessions_2025-11/`
-
 **Archive Index:** [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md)
 
 ### What Was Archived
