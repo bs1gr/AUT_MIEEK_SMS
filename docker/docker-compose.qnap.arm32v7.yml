@@ -1,0 +1,226 @@
+# QNAP ARM32v7 Container Station Deployment
+# Student Management System v1.9.3
+# FOR ARM-BASED QNAP ONLY (TS-431P3, TS-x31P series)
+#
+# This compose file uses ARM-specific Dockerfiles
+# DO NOT USE for x86_64 QNAP models - Use docker-compose.qnap.yml instead
+#
+# Documentation: docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md
+#
+# Quick Start:
+#   1. Copy .env.qnap.example to .env.qnap and configure
+#   2. Build ARM images first (see documentation)
+#   3. Run: docker compose -f docker-compose.qnap.arm32v7.yml --env-file .env.qnap up -d
+#   4. Access: http://YOUR_QNAP_IP:8080
+#
+# Management:
+#   Start:   docker compose -f docker-compose.qnap.arm32v7.yml up -d
+#   Stop:    docker compose -f docker-compose.qnap.arm32v7.yml down
+#   Logs:    docker compose -f docker-compose.qnap.arm32v7.yml logs -f
+#   Status:  docker compose -f docker-compose.qnap.arm32v7.yml ps
+
+services:
+  # PostgreSQL Database (Recommended for production)
+  postgres:
+    image: postgres:16-alpine
+    container_name: sms-postgres-qnap-arm
+    platform: linux/arm/v7
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env.qnap}
+      POSTGRES_DB: ${POSTGRES_DB:-student_management}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      # Using bind mount to QNAP shared folder for easy backup/management
+      - type: bind
+        source: ${QNAP_DATA_PATH:-/share/Container/sms-postgres}
+        target: /var/lib/postgresql/data
+    networks:
+      - sms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.sms.service=database"
+      - "com.sms.deployment=qnap-arm"
+      - "com.sms.architecture=arm32v7"
+      - "com.sms.version=${VERSION:-1.9.3}"
+
+  # Backend Service (FastAPI)
+  backend:
+    # Use locally built ARM image
+    image: sms-backend-arm32v7:${VERSION:-latest}
+    container_name: sms-backend-qnap-arm
+    platform: linux/arm/v7
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend.arm32v7
+      args:
+        - VERSION=${VERSION:-1.9.3}
+        - BUILD_DATE=${BUILD_DATE:-unknown}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}
+
+      # Security
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env.qnap}
+      - SECRET_KEY_STRICT_ENFORCEMENT=1
+
+      # Environment
+      - SMS_ENV=production
+      - SMS_EXECUTION_MODE=docker
+      - QNAP_DEPLOYMENT=1
+      - QNAP_ARM_BUILD=1
+
+      # CORS - Update with your QNAP IP
+      - CORS_ORIGINS=http://${QNAP_IP:-localhost}:${SMS_PORT:-8080},http://localhost:${SMS_PORT:-8080}
+
+      # Control API
+      - ENABLE_CONTROL_API=${ENABLE_CONTROL_API:-1}
+      - ADMIN_SHUTDOWN_TOKEN=${ADMIN_SHUTDOWN_TOKEN:-}
+
+      # Performance Tuning (QNAP ARM-optimized)
+      - WORKERS=${WORKERS:-2}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SEMESTER_WEEKS=${SEMESTER_WEEKS:-14}
+
+      # Monitoring
+      - ENABLE_METRICS=${ENABLE_METRICS:-0}
+    volumes:
+      # Application data
+      - type: bind
+        source: ${QNAP_DATA_PATH:-/share/Container/sms-data}
+        target: /data
+
+      # Backups directory (accessible from QNAP)
+      - type: bind
+        source: ${QNAP_BACKUP_PATH:-/share/Container/sms-backups}
+        target: /app/backups
+
+      # Logs directory
+      - type: bind
+        source: ${QNAP_LOG_PATH:-/share/Container/sms-logs}
+        target: /app/backend/logs
+
+      # Templates for imports (read-only)
+      - type: bind
+        source: ../templates
+        target: /app/templates
+        read_only: true
+    networks:
+      - sms-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    labels:
+      - "com.sms.service=backend"
+      - "com.sms.deployment=qnap-arm"
+      - "com.sms.architecture=arm32v7"
+      - "com.sms.version=${VERSION:-1.9.3}"
+
+  # Frontend Service (React + Nginx)
+  frontend:
+    # Use locally built ARM image
+    image: sms-frontend-arm32v7:${VERSION:-latest}
+    container_name: sms-frontend-qnap-arm
+    platform: linux/arm/v7
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend.arm32v7
+      args:
+        - VITE_API_URL=/api/v1
+        - VERSION=${VERSION:-1.9.3}
+        - BUILD_DATE=${BUILD_DATE:-unknown}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      # External port - configurable to avoid conflicts
+      - "${SMS_PORT:-8080}:80"
+    environment:
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=8000
+      - SMS_ENV=production
+    networks:
+      - sms-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    labels:
+      - "com.sms.service=frontend"
+      - "com.sms.deployment=qnap-arm"
+      - "com.sms.architecture=arm32v7"
+      - "com.sms.version=${VERSION:-1.9.3}"
+
+networks:
+  sms-network:
+    driver: bridge
+    labels:
+      - "com.sms.deployment=qnap-arm"
+      - "com.sms.architecture=arm32v7"
+
+# Note: Using bind mounts instead of named volumes for:
+# - Easier backup from QNAP File Station
+# - Better integration with QNAP snapshot features
+# - Direct access for maintenance
+# - Compatibility with QNAP backup solutions
+#
+# ARM-specific notes:
+# - Images must be built on ARM or cross-compiled
+# - Build times are significantly longer on ARM32v7
+# - Some Python packages may require compilation
+# - PostgreSQL Alpine works on ARM, fallback to postgres:16 if issues

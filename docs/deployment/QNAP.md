@@ -2,6 +2,8 @@
 
 This guide helps you run the Student Management System on a QNAP Turbo NAS using Container Station.
 
+> **NEW:** For production deployments with virtual hosting and custom domains, see the comprehensive [QNAP Virtual Host Deployment Plan](QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md). This guide covers the advanced setup using QNAP Web Server with virtual hosts for professional URLs like `https://sms.yourdomain.com`.
+
 ## What you get
 
 - Frontend (React + NGINX) on port 8080

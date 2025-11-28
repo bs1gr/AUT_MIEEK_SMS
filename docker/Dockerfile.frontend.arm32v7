@@ -1,0 +1,94 @@
+# ARM32v7-Specific Frontend Dockerfile for QNAP TS-431P3
+# Student Management System - Frontend Service
+# DO NOT USE for x86_64 builds - Use Dockerfile.frontend.qnap instead
+#
+# This file is specifically for ARM-based QNAP NAS devices (TS-431P3, TS-x31P series)
+# Version: 1.9.3 compatible
+# Multi-stage build optimized for QNAP NAS
+
+# ============================================================================
+# Stage 1: Build Stage
+# ============================================================================
+FROM node:22-alpine AS build
+
+ARG VERSION=1.9.3
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VITE_API_URL=/api/v1
+
+WORKDIR /app/frontend
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+# Using npm ci for faster, more reliable installs
+RUN if [ -f package-lock.json ]; then \
+      npm ci --only=production; \
+    else \
+      npm install --production; \
+    fi
+
+# Copy frontend source
+COPY frontend/ .
+
+# Copy VERSION file for version sync
+COPY VERSION ../VERSION
+
+# Set API URL for build
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Build the application
+RUN npm run build
+
+# ============================================================================
+# Stage 2: Production Stage
+# ============================================================================
+FROM nginx:alpine
+
+# Build arguments for labels
+ARG VERSION=1.9.3
+ARG BUILD_DATE
+ARG VCS_REF
+
+# OCI image labels
+LABEL org.opencontainers.image.title="SMS Frontend (ARM32v7)" \
+      org.opencontainers.image.description="React+Vite frontend for ARM32v7 QNAP NAS" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="https://github.com/bs1gr/AUT_MIEEK_SMS" \
+      org.opencontainers.image.arch="arm32v7" \
+      com.sms.deployment="qnap-arm" \
+      com.sms.architecture="arm32v7" \
+      maintainer="Student Management System"
+
+# Copy built assets from build stage
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
+
+# Copy QNAP-optimized Nginx configuration
+COPY docker/nginx.qnap.conf /etc/nginx/conf.d/default.conf
+
+# QNAP-specific Nginx tuning
+# Reduce worker processes for NAS resource efficiency
+RUN sed -i 's/worker_processes  auto;/worker_processes  2;/' /etc/nginx/nginx.conf && \
+    # Optimize worker connections
+    sed -i 's/worker_connections  1024;/worker_connections  512;/' /etc/nginx/nginx.conf
+
+# Create nginx user directories
+RUN mkdir -p /var/cache/nginx/client_temp \
+             /var/cache/nginx/proxy_temp \
+             /var/cache/nginx/fastcgi_temp \
+             /var/cache/nginx/uwsgi_temp \
+             /var/cache/nginx/scgi_temp && \
+    chown -R nginx:nginx /var/cache/nginx
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --spider -q http://localhost/ || exit 1
+
+# Expose HTTP port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
