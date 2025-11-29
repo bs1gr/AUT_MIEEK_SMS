@@ -3,18 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import type { OperationsLocationState } from '@/features/operations/types';
+import type { Course as CourseType } from '@/types';
 
 type DaySchedule = { periods: number; start_time: string; duration: number };
 
-type Course = {
-  id: number;
-  course_code: string;
-  course_name: string;
-  teaching_schedule?: Record<string, DaySchedule>;
-};
-
 type Props = {
-  courses: Course[];
+  courses: CourseType[];
 };
 
 const CalendarView: React.FC<Props> = ({ courses }) => {

@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 vi.mock('@/services/authService');
 vi.mock('@/api/api');
 
-const mockAuthService = authService as {
+const mockAuthService = authService as unknown as {
   getAccessToken: ReturnType<typeof vi.fn>;
   clearAccessToken: ReturnType<typeof vi.fn>;
   refreshAccessToken: ReturnType<typeof vi.fn>;

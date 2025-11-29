@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/LanguageContext';
@@ -15,11 +15,7 @@ import {
   FormMessage,
   Input,
   Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  // Select UI components not used in this simplified modal
   Textarea,
 } from '@/components/ui';
 import { modalVariants, backdropVariants } from '@/utils/animations';
@@ -40,7 +36,10 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
   const [customSemester, setCustomSemester] = useState<string>('');
 
   const form = useForm<SchemaCourseFormData>({
-    resolver: zodResolver(courseSchema),
+    // zodResolver's type inference can be too strict in some cases; cast to the
+    // resolver type matching our schema-derived form values so react-hook-form
+    // generics align properly.
+    resolver: zodResolver(courseSchema) as unknown as Resolver<SchemaCourseFormData>,
     defaultValues: {
       course_code: '',
       course_name: '',

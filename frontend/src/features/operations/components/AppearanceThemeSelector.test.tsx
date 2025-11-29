@@ -306,7 +306,6 @@ describe('AppearanceThemeSelectorWidget', () => {
     });
 
     it('handles all theme variants', async () => {
-      const user = userEvent.setup();
       const themes: Array<'default' | 'glassmorphism' | 'neumorphism' | 'gradient' | 'modern-dark' | 'light-professional'> = 
         ['default', 'glassmorphism', 'neumorphism', 'gradient', 'modern-dark', 'light-professional'];
       

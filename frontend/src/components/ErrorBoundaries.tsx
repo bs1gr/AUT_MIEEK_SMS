@@ -54,7 +54,7 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
 
     // Log to backend
     import('../utils/errorReporting').then(({ logErrorToBackend }) => {
-      logErrorToBackend(error, { componentStack: errorInfo.componentStack }, {
+      logErrorToBackend(error, { componentStack: errorInfo.componentStack ?? undefined }, {
         section: this.props.section,
         boundaryType: 'section',
       });
@@ -172,7 +172,7 @@ class AsyncErrorBoundaryCore extends Component<AsyncErrorBoundaryCoreProps, Asyn
     console.error('AsyncErrorBoundary caught error:', error, errorInfo);
 
     import('../utils/errorReporting').then(({ logErrorToBackend }) => {
-      logErrorToBackend(error, { componentStack: errorInfo.componentStack }, {
+      logErrorToBackend(error, { componentStack: errorInfo.componentStack ?? undefined }, {
         operationType: this.props.operation,
         boundaryType: 'async',
       });

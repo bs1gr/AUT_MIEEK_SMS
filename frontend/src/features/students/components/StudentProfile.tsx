@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, BookOpen, TrendingUp, Users, Calendar, Star, AlertCircle, Trash2, ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Download, Mail, Award } from 'lucide-react';
-import { gradesAPI, coursesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award } from 'lucide-react';
+import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
@@ -310,13 +310,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               {Object.entries(distribution).map(([grade, count]) => {
                 const total = grades.length;
                 const percentage = total > 0 ? (count / total * 100) : 0;
-                const colors: Record<string, string> = {
-                  A: 'bg-green-500',
-                  B: 'bg-blue-500',
-                  C: 'bg-yellow-500',
-                  D: 'bg-orange-500',
-                  F: 'bg-red-500'
-                };
+                // colour map intentionally omitted when rendering lightweight bars
 
                 return (
                   <div key={grade}>
@@ -357,7 +351,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                           <Star
                             key={i}
                             size={16}
-                            className={i < highlight.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}
+                            className={i < (highlight.rating ?? 0) ? 'text-yellow-500 fill-current' : 'text-gray-300'}
                           />
                         ))}
                       </div>

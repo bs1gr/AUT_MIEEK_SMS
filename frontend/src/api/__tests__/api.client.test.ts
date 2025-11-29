@@ -33,7 +33,7 @@ vi.mock('axios', () => {
 });
 
 import axios from 'axios';
-import apiClient, {
+import {
   studentsAPI,
   coursesAPI,
   checkAPIHealth,

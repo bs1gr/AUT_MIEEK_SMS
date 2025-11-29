@@ -38,21 +38,6 @@ class DailyPerformanceCreate(BaseModel):
 
 
 class DailyPerformanceResponse(BaseModel):
-    @router.get("/{id}", response_model=DailyPerformanceResponse)
-    def get_daily_performance_by_id(
-        id: int = Path(..., description="DailyPerformance record ID"),
-        request: Request = None,
-        db: Session = Depends(get_db),
-    ):
-        try:
-            import_names("models", "DailyPerformance")
-            record = get_by_id_or_404(db, import_names("models", "DailyPerformance")[0], id)
-            return record
-        except HTTPException:
-            raise
-        except Exception as exc:
-            logger.error(f"Error fetching daily performance by id {id}: {exc}", exc_info=True)
-            raise internal_server_error(request=request) from exc
     id: int
     student_id: int
     course_id: int
@@ -63,6 +48,23 @@ class DailyPerformanceResponse(BaseModel):
     notes: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+@router.get("/{id}", response_model=DailyPerformanceResponse)
+def get_daily_performance_by_id(
+    id: int = Path(..., description="DailyPerformance record ID"),
+    request: Request = None,
+    db: Session = Depends(get_db),
+):
+    try:
+        import_names("models", "DailyPerformance")
+        record = get_by_id_or_404(db, import_names("models", "DailyPerformance")[0], id)
+        return record
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(f"Error fetching daily performance by id {id}: {exc}", exc_info=True)
+        raise internal_server_error(request=request) from exc
 
 
 @router.post("/", response_model=DailyPerformanceResponse)

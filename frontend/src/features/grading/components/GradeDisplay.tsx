@@ -8,14 +8,12 @@
  * - Greek Scale (0-20)
  */
 
-import React from 'react';
-import { Award } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { Award } from 'lucide-react';
 import {
   gpaToPercentage,
   gpaToGreekScale,
   getGreekGradeColor,
-  getGreekGradeBgColor,
   getGreekGradeDescription,
   formatAllGrades
 } from '@/utils/gradeUtils';
@@ -23,14 +21,23 @@ import {
 /**
  * Display grade in all three formats
  */
+type GradeDisplayProps = {
+  gpa: number;
+  showGPA?: boolean;
+  showPercentage?: boolean;
+  showGreekScale?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  variant?: 'default' | 'card' | 'inline' | 'minimal';
+};
+
 const GradeDisplay = ({
   gpa,
   showGPA = true,
   showPercentage = true,
   showGreekScale = true,
-  size = 'medium', // small, medium, large
-  variant = 'default' // default, card, inline, minimal
-}) => {
+  size = 'medium',
+  variant = 'default'
+}: GradeDisplayProps) => {
   const { t, language } = useLanguage();
 
   if (!gpa || gpa === 0) {
@@ -42,7 +49,8 @@ const GradeDisplay = ({
   }
 
   const grades = formatAllGrades(gpa);
-  const description = getGreekGradeDescription(parseFloat(grades.greekGrade), language);
+  // language comes from useLanguage and can be string; cast to expected union type
+  const description = getGreekGradeDescription(parseFloat(grades.greekGrade), (language as 'en' | 'el') || 'el');
 
   // Size configurations
   const sizeClasses = {
@@ -200,7 +208,7 @@ const GradeDisplay = ({
  * Grade Comparison Component
  * Shows multiple grades side by side
  */
-export const GradeComparison = ({ grades, labels }) => {
+export const GradeComparison = ({ grades, labels }: { grades: number[]; labels?: string[] }) => {
   const { t } = useLanguage();
 
   return (
@@ -220,8 +228,7 @@ export const GradeComparison = ({ grades, labels }) => {
 /**
  * Grade Progress Bar
  */
-export const GradeProgressBar = ({ gpa, showLabel = true }) => {
-  const { t } = useLanguage();
+export const GradeProgressBar = ({ gpa, showLabel = true }: { gpa: number; showLabel?: boolean }) => {
   const percentage = gpaToPercentage(gpa);
   const greekGrade = gpaToGreekScale(gpa);
   const color = getGreekGradeColor(greekGrade);
@@ -234,7 +241,7 @@ export const GradeProgressBar = ({ gpa, showLabel = true }) => {
     'text-red-600': 'bg-red-600',
   };
 
-  const bgColor = bgColorMap[color] || 'bg-gray-600';
+  const bgColor = (bgColorMap as Record<string, string>)[color] || 'bg-gray-600';
 
   return (
     <div className="space-y-2">

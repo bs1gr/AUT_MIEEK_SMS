@@ -2,7 +2,7 @@
 import { AttendanceView } from '@/features/attendance';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 import { useCourses, useStudents } from '@/hooks';
-import React from 'react';
+// React is not required in scope under the automatic JSX runtime
 
 export default function AttendancePage() {
   const students = useStudentsStore((state) => state.students);

@@ -13,9 +13,10 @@ export interface NavigationProps {
   activeView: NavigationView;
   tabs: NavigationTab[];
   className?: string;
+  onViewChange?: (view: NavigationView) => void;
 }
 
-export default function Navigation({ activeView, tabs, className }: NavigationProps) {
+export default function Navigation({ activeView, tabs, className, onViewChange }: NavigationProps) {
   const location = useLocation();
 
   return (
@@ -27,6 +28,7 @@ export default function Navigation({ activeView, tabs, className }: NavigationPr
           <Link
             key={tab.key}
             to={tab.path}
+            onClick={() => onViewChange && onViewChange(tab.key)}
             className={cn(
               'px-4 py-2 rounded-lg border transition-colors',
               isActive

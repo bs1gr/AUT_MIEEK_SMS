@@ -186,7 +186,7 @@ test.describe('Grade Assignment Flow', () => {
         student_id: student.studentId,
       },
     });
-    const createdStudent = await studentResp.json();
+    await studentResp.json();
     
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
@@ -201,7 +201,7 @@ test.describe('Grade Assignment Flow', () => {
         ],
       },
     });
-    const createdCourse = await courseResp.json();
+    await courseResp.json();
 
     // Navigate to grades page
     await page.goto('/grades');

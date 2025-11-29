@@ -16,6 +16,7 @@ import { formatLocalDate } from '@/utils/date';
 import type {
   Student,
   Course,
+  CourseEnrollment,
   Grade,
   Attendance,
   Highlight,
@@ -133,6 +134,34 @@ apiClient.interceptors.response.use(
   }
 );
 
+// --- Preflight & dynamic base fallback ----------------------------------------------------
+let ORIGINAL_API_BASE_URL: string | undefined = API_BASE_URL;
+// previously used for fallback retries; not needed in TypeScript client right now
+
+export async function preflightAPI(): Promise<string> {
+  const currentBase = apiClient.defaults?.baseURL || API_BASE_URL;
+  const rootBase = (currentBase || '').replace(/\/api\/v1\/?$/i, '');
+  const healthUrl = rootBase ? `${rootBase}/health` : '/health';
+  try {
+    await axios.get(healthUrl, { timeout: 4000 });
+    return apiClient.defaults?.baseURL || currentBase;
+  } catch (e) {
+    if (/^https?:\/\//i.test(ORIGINAL_API_BASE_URL || '')) {
+      if (!apiClient.defaults) apiClient.defaults = {} as any;
+      apiClient.defaults.baseURL = '/api/v1';
+    }
+    return apiClient.defaults?.baseURL || '/api/v1';
+  }
+}
+
+// Test helper to force original base in tests (only active under NODE_ENV === 'test')
+export function __test_forceOriginalBase(url: string) {
+  if (process.env.NODE_ENV !== 'test') return;
+  ORIGINAL_API_BASE_URL = url;
+  if (!apiClient.defaults) apiClient.defaults = {} as any;
+  apiClient.defaults.baseURL = url;
+}
+
 // ==================== STUDENTS API ====================
 
 export const studentsAPI = {
@@ -170,6 +199,21 @@ export const studentsAPI = {
     return response.data;
   },
 };
+
+// Canonical Control API base (backend mounts control router without /api/v1 prefix)
+export const CONTROL_API_BASE = (() => {
+  try {
+    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    if (!root || root.startsWith('/')) {
+      const prefix = root.replace(/\/$/, '');
+      const base = `${prefix || ''}/control/api`;
+      return base.replace(/\/\/+/g, '/');
+    }
+    return `${root}/control/api`;
+  } catch {
+    return '/control/api';
+  }
+})();
 
 // ==================== COURSES API ====================
 
@@ -304,6 +348,19 @@ export const gradesAPI = {
     const response = await apiClient.get<Grade[]>(`/grades/course/${courseId}`);
     return response.data;
   },
+
+  // Calculate weighted average for a student in a specific course
+  calculateAverage: async (studentId: number, courseId: number): Promise<number> => {
+    const grades = await gradesAPI.getByStudent(studentId);
+    const courseGrades = grades.filter(g => g.course_id === courseId);
+    if (courseGrades.length === 0) return 0;
+    const totalWeight = courseGrades.reduce((sum, g) => sum + (g.weight || 0), 0);
+    const weightedSum = courseGrades.reduce((sum, g) => {
+      const percentage = (g.grade / g.max_grade) * 100;
+      return sum + (percentage * (g.weight || 0));
+    }, 0);
+    return totalWeight > 0 ? weightedSum / totalWeight : 0;
+  },
 };
 
 // ==================== HIGHLIGHTS API ====================
@@ -368,6 +425,80 @@ export const analyticsAPI = {
     const response = await apiClient.get(`/analytics/student/${studentId}/summary`);
     return response.data;
   },
+
+  // Convenience helpers used by frontend analytics tests
+  getDashboardStats: async () => {
+    const [students, courses] = await Promise.all([
+      studentsAPI.getAll(),
+      coursesAPI.getAll(0, 1000)
+    ]);
+
+    // Normalise students/courses which may be paginated responses or arrays
+    const studentsList: Student[] = Array.isArray(students) ? students : (students?.items || []);
+
+    const totalStudents = studentsList.length;
+    const activeStudents = studentsList.filter((s: any) => s.is_active).length;
+    const totalCourses = Array.isArray(courses) ? courses.length : (courses?.items?.length ?? 0);
+    return {
+      totalStudents,
+      activeStudents,
+      totalCourses,
+      inactiveStudents: totalStudents - activeStudents
+    };
+  },
+
+  getAttendanceStats: async (studentId: number | null = null) => {
+    let attendanceRecords: any[] = [];
+    if (studentId) {
+      attendanceRecords = await attendanceAPI.getByStudent(studentId);
+    } else {
+      const studentsAll = await studentsAPI.getAll();
+      const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
+      const promises = (studentsNormalized || []).map((s: any) => attendanceAPI.getByStudent(s.id));
+      const results = await Promise.all(promises);
+      attendanceRecords = results.flat();
+    }
+    const total = attendanceRecords.length;
+    const present = attendanceRecords.filter(a => a.status === 'Present').length;
+    const absent = attendanceRecords.filter(a => a.status === 'Absent').length;
+    const late = attendanceRecords.filter(a => a.status === 'Late').length;
+    const excused = attendanceRecords.filter(a => a.status === 'Excused').length;
+    return {
+      total,
+      present,
+      absent,
+      late,
+      excused,
+      attendanceRate: total > 0 ? ((present + excused) / total * 100).toFixed(2) : 0
+    };
+  },
+
+  getGradeStats: async (studentId: number | null = null, courseId: number | null = null) => {
+    let grades: any[] = [];
+    if (studentId) {
+      grades = await gradesAPI.getByStudent(studentId);
+      if (courseId) grades = grades.filter(g => g.course_id === courseId);
+    } else if (courseId) {
+      grades = await gradesAPI.getByCourse(courseId);
+    } else {
+      const studentsAll = await studentsAPI.getAll();
+      const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
+      const promises = (studentsNormalized || []).map((s: any) => gradesAPI.getByStudent(s.id));
+      const results = await Promise.all(promises);
+      grades = results.flat();
+    }
+    if (!grades || grades.length === 0) return { count: 0, average: 0, highest: 0, lowest: 0 };
+    const percentages = grades.map(g => (g.grade / g.max_grade) * 100);
+    const average = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+    const highest = Math.max(...percentages);
+    const lowest = Math.min(...percentages);
+    return {
+      count: grades.length,
+      average: average.toFixed(2),
+      highest: highest.toFixed(2),
+      lowest: lowest.toFixed(2)
+    };
+  }
 };
 
 // ==================== ENROLLMENTS API ====================
@@ -380,10 +511,30 @@ export const enrollmentsAPI = {
     );
     return response.data;
   },
+  // Mirror the runtime JS API surface - provide several convenience helpers used across the UI
+  getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<CourseEnrollment>> => {
+    const response = await apiClient.get<PaginatedResponse<CourseEnrollment>>('/enrollments/', { params: { skip, limit } });
+    return response.data;
+  },
 
-  getStudentsInCourse: async (courseId: number): Promise<Student[]> => {
+  getByCourse: async (courseId: number): Promise<CourseEnrollment[]> => {
+    const response = await apiClient.get<CourseEnrollment[]>(`/enrollments/course/${courseId}`);
+    return response.data;
+  },
+
+  getByStudent: async (studentId: number): Promise<CourseEnrollment[]> => {
+    const response = await apiClient.get<CourseEnrollment[]>(`/enrollments/student/${studentId}`);
+    return response.data;
+  },
+
+  getEnrolledStudents: async (courseId: number): Promise<Student[]> => {
     const response = await apiClient.get<Student[]>(`/enrollments/course/${courseId}/students`);
     return response.data;
+  },
+
+  // Unenroll a student from a course
+  unenrollStudent: async (courseId: number, studentId: number): Promise<void> => {
+    await apiClient.delete(`/enrollments/course/${courseId}/student/${studentId}`);
   },
 };
 
@@ -415,6 +566,43 @@ export const importAPI = {
     const response = await apiClient.post<ImportResponse>('/imports/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+    return response.data;
+  },
+};
+
+// ==================== SESSION EXPORT/IMPORT API ====================
+
+export const sessionAPI = {
+  listSemesters: async (): Promise<string[]> => {
+    const response = await apiClient.get<string[]>('/sessions/semesters');
+    return response.data;
+  },
+
+  exportSession: async (semester: string): Promise<Blob> => {
+    const response = await apiClient.post('/sessions/export', null, {
+      params: { semester },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  importSession: async (file: File, mergeStrategy: 'update' | 'skip' = 'update', dryRun = false): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post('/sessions/import', formData, {
+      params: { merge_strategy: mergeStrategy, dry_run: dryRun },
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  listBackups: async (): Promise<any[]> => {
+    const response = await apiClient.get('/sessions/backups');
+    return response.data;
+  },
+
+  rollbackImport: async (backupFilename: string): Promise<any> => {
+    const response = await apiClient.post('/sessions/rollback', null, { params: { backup_filename: backupFilename } });
     return response.data;
   },
 };
@@ -492,13 +680,12 @@ export const adminUsersAPI = {
 
 // ==================== HEALTH CHECK ====================
 
-export const checkAPIHealth = async (): Promise<boolean> => {
+export const checkAPIHealth = async (): Promise<{ status: 'ok' | 'error'; data?: any; error?: string }> => {
   try {
-    const response = await apiClient.get('/health');
-    return response?.status === 200;
-  } catch (error) {
-    console.error('API health check failed:', error);
-    return false;
+    const response = await apiClient.get('/');
+    return { status: 'ok', data: response.data };
+  } catch (error: any) {
+    return { status: 'error', error: error?.message || String(error) };
   }
 };
 
