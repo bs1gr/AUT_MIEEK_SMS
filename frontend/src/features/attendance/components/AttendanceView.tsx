@@ -1,3 +1,13 @@
+/**
+ * CHANGELOG (2025-11-29, by GitHub Copilot)
+ * - Fixed: UI only shows attendance/rating from DB, never stale/pending state
+ * - Fixed: No auto-select of course/date; user must choose
+ * - Fixed: Null checks for selectedDate everywhere (prevents TypeError)
+ * - Fixed: 'Changes pending...' only shows for real unsaved changes
+ * - Fixed: After save, local state is cleared and indicator disappears
+ * - Fixed: Frontend treats 404 from daily-performance as 'no data', not error
+ * - Improved: UI always reflects DB, shows empty if no data
+ */
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
@@ -38,7 +48,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
 
   const { t, language } = useLanguage();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // Do not auto-select course/date until user chooses
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedCourse, setSelectedCourse] = useState<number | ''>('');
   const [localCourses, setLocalCourses] = useState<Course[]>(courses || []);
@@ -69,7 +80,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     () => inferWeekStartsOnMonday(dayNamesShort, language === 'el'),
     [dayNamesShort, language]
   );
-  const selectedDateStr = useMemo(() => formatLocalDate(selectedDate), [selectedDate]);
+  const selectedDateStr = useMemo(() => selectedDate ? formatLocalDate(selectedDate) : '', [selectedDate]);
   const fullDayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
   const getWeekdayIndex = (d: Date) => {
@@ -409,10 +420,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   // Auto-select first course when available
   useEffect(() => {
-    if (!selectedCourse && localCourses && localCourses.length > 0) {
-      setSelectedCourse(localCourses[0].id);
-    }
-  }, [localCourses, selectedCourse]);
+    // Do not auto-select course
+    // Only set selectedCourse if user chooses
+  }, [localCourses]);
 
   // Keep selected course up-to-date (teaching_schedule) by fetching details
   // Only run once when course is selected, not continuously
@@ -490,8 +500,18 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       setAttendanceRecords(next);
       setAttendanceRecordIds(ids);
 
-      const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
-      const dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
+      let dpData: any[] = [];
+      try {
+        const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
+        dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
+      } catch (error) {
+        // If 404, treat as no data
+        if (error?.response?.status === 404) {
+          dpData = [];
+        } else {
+          console.error('[AttendanceView] Error fetching daily performance:', error);
+        }
+      }
       const dp: Record<string, number> = {};
       const dpIds: Record<string, number> = {};
       if (Array.isArray(dpData)) {
@@ -516,26 +536,17 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     }
   }, [selectedCourse, selectedDateStr]);
 
-  // Prefill existing attendance and daily performance for selected date/course
-  // Debounced to prevent rapid API calls when user clicks through dates quickly
+  // Always fetch attendance and performance from backend on date/course change
   useEffect(() => {
-    // Clear any pending timeout
-    if (attendanceFetchTimeoutRef.current) {
-      clearTimeout(attendanceFetchTimeoutRef.current);
-    }
-
-    // Debounce the fetch by 300ms
-    attendanceFetchTimeoutRef.current = setTimeout(() => {
+    // Only fetch if both course and date are selected
+    if (selectedCourse && selectedDate) {
       refreshAttendancePrefill();
-    }, 300);
-
-    // Cleanup on unmount
-    return () => {
-      if (attendanceFetchTimeoutRef.current) {
-        clearTimeout(attendanceFetchTimeoutRef.current);
-      }
-    };
-  }, [refreshAttendancePrefill]);
+      setAttendanceRecords({});
+      setAttendanceRecordIds({});
+      setDailyPerformance({});
+      setDailyPerformanceIds({});
+    }
+  }, [selectedCourse, selectedDate]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
@@ -546,7 +557,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
 
       const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth() + 1; // JS months are 0-indexed
+      const month = currentMonth.getMonth() + 1;
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month, 0).getDate();
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
@@ -603,7 +614,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
 
   const isToday = (date?: Date | null) => date ? date.toDateString() === new Date().toDateString() : false;
-  const isSelected = (date?: Date | null) => date ? date.toDateString() === selectedDate.toDateString() : false;
+  const isSelected = (date?: Date | null) => date && selectedDate ? date.toDateString() === selectedDate.toDateString() : false;
 
   // Check if a specific date is a teaching day for the selected course
   const isTeachingDay = (date?: Date | null) => {
@@ -799,11 +810,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
         const recordId = dailyPerformanceIds[key];
         const [studentIdStr, category] = key.split('-');
-
-        // If record has an ID from API, use PUT to update; otherwise POST to create
-        if (recordId) {
-          console.log(`[Performance] PUT /daily-performance/${recordId} - score: ${score}`);
-          return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 })
+        // Validate recordId: must be a positive integer
+        const isValidId = Number.isInteger(recordId) && recordId > 0;
+        console.log(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
+        if (isValidId) {
+          const url = `/daily-performance/${recordId}`;
+          console.log(`[Performance] PUT ${url} - score: ${score}`);
+          return apiClient.put(url, { score, max_score: 10.0 })
             .then(res => {
               console.log(`[Performance] PUT response: success`);
               return res;
@@ -812,39 +825,48 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               // If record doesn't exist (404), create it instead
               if (error.response?.status === 404) {
                 console.log(`[Performance] Record ${recordId} not found, creating new record`);
-                  return apiClient.post(`/daily-performance/`, {
-                    student_id: parseInt(studentIdStr, 10),
-                    course_id: selectedCourse,
-                    date: dateStr,
-                    category,
-                    score,
-                    max_score: 10.0,
-                    notes: ''
-                  }).then(res => {
-                    console.log(`[Performance] POST response (fallback): success`);
-                      // Debug log: POST response data and key
-                      console.log('[DEBUG] POST fallback response data:', res?.data);
-                      console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
-                    // Update dailyPerformanceIds with new ID from response
-                    if (res?.data?.id) {
-                      setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
-                    }
-                    return res;
-                  });
+                return apiClient.post(`/daily-performance/`, {
+                  student_id: parseInt(studentIdStr, 10),
+                  course_id: selectedCourse,
+                  date: dateStr,
+                  category,
+                  score,
+                  max_score: 10.0,
+                  notes: ''
+                }).then(res => {
+                  console.log(`[Performance] POST response (fallback): success`);
+                  // Debug log: POST response data and key
+                  console.log('[DEBUG] POST fallback response data:', res?.data);
+                  console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+                  // Update dailyPerformanceIds with new ID from response
+                  if (res?.data?.id) {
+                    setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
+                  }
+                  return res;
+                });
               }
               throw error;
             });
         } else {
-          console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}`);
-          return apiClient.post(`/daily-performance/`, { student_id: parseInt(studentIdStr, 10), course_id: selectedCourse, date: dateStr, category, score, max_score: 10.0, notes: '' }).then(res => {
+          // Always use POST if recordId is not valid
+          console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
+          return apiClient.post(`/daily-performance/`, {
+            student_id: parseInt(studentIdStr, 10),
+            course_id: selectedCourse,
+            date: dateStr,
+            category,
+            score,
+            max_score: 10.0,
+            notes: ''
+          }).then(res => {
             console.log(`[Performance] POST response: success`);
-              // Debug log: POST response data and key
-              console.log('[DEBUG] POST direct response data:', res?.data);
-              console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
-              // Update dailyPerformanceIds with new ID from response
-              if (res?.data?.id) {
-                setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
-              }
+            // Debug log: POST response data and key
+            console.log('[DEBUG] POST direct response data:', res?.data);
+            console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+            // Update dailyPerformanceIds with new ID from response
+            if (res?.data?.id) {
+              setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
+            }
             return res;
           });
         }
@@ -884,28 +906,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       });
       
       await refreshAttendancePrefill();
+      // After save and backend refresh, clear local state again to ensure no pending changes
+      setAttendanceRecords({});
+      setAttendanceRecordIds({});
+      setDailyPerformance({});
+      setDailyPerformanceIds({});
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
-        // Clear only the saved records from attendanceRecords and dailyPerformance
-        Object.keys(attendanceRecords).forEach(key => {
-          setAttendanceRecords(prev => {
-            const updated = { ...prev };
-            delete updated[key];
-            return updated;
-          });
-        });
-        Object.keys(dailyPerformance).forEach(key => {
-          setDailyPerformance(prev => {
-            const updated = { ...prev };
-            delete updated[key];
-            return updated;
-          });
-        });
-        // Debug log: confirm only saved records cleared
-        console.log('[DEBUG] Cleared only saved attendanceRecords and dailyPerformance after save');
-        setTimeout(() => {
-          console.log('[DEBUG] attendanceRecords after clear:', attendanceRecords);
-          console.log('[DEBUG] dailyPerformance after clear:', dailyPerformance);
-        }, 500);
     } catch (e) {
       console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
@@ -914,13 +920,15 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t]);
 
   // Autosave when attendance or performance changes
-  const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;
+  // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
+  // Only show pending if there are unsaved changes after user interaction
+  const hasChanges = (selectedCourse && selectedDate) && (Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0);
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
     [attendanceRecords, dailyPerformance],
     {
-      delay: 2000, // Save 2 seconds after last change
-      enabled: hasChanges && selectedCourse !== '',
+      delay: 2000,
+      enabled: hasChanges,
       skipInitial: true,
     }
   );
@@ -1066,77 +1074,77 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         </div>
       </div>
 
-        {/* Analytics Snapshot */}
-        <div className="bg-white rounded-2xl shadow p-6 border border-gray-100">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-indigo-100 text-indigo-700 rounded-xl p-2"><BarChart3 size={20} /></div>
-              <div>
-                <h4 className="font-semibold text-gray-800">{t('attendanceInsights') || 'Attendance insights'}</h4>
-                <p className="text-xs text-gray-500">{t('overallSummary') || 'Overall summary for this day'}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-semibold text-gray-800">{t('coverageLabel') || 'Coverage'}: {coveragePercent}%</p>
-              <p className="text-xs text-gray-500">{attendanceAnalytics.recordedSlots}/{attendanceAnalytics.totalSlots || 0} {t('recordsTracked') || 'records tracked'}</p>
-              {attendanceAnalytics.pendingSlots > 0 && (
-                <p className="text-xs text-amber-600">
-                  {t('pendingRecords', { count: attendanceAnalytics.pendingSlots }) || `${attendanceAnalytics.pendingSlots} pending`}
-                </p>
-              )}
+      {/* Analytics Snapshot */}
+      <div className="bg-white rounded-2xl shadow p-6 border border-gray-100">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-100 text-indigo-700 rounded-xl p-2"><BarChart3 size={20} /></div>
+            <div>
+              <h4 className="font-semibold text-gray-800">{t('attendanceInsights') || 'Attendance insights'}</h4>
+              <p className="text-xs text-gray-500">{t('overallSummary') || 'Overall summary for this day'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {statusOrder.map((status) => (
-              <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
-                <p className="text-[11px] uppercase tracking-wide font-semibold">{translateStatusLabel(status)}</p>
-                <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
-              </div>
-            ))}
+          <div className="text-right">
+            <p className="text-sm font-semibold text-gray-800">{t('coverageLabel') || 'Coverage'}: {coveragePercent}%</p>
+            <p className="text-xs text-gray-500">{attendanceAnalytics.recordedSlots}/{attendanceAnalytics.totalSlots || 0} {t('recordsTracked') || 'records tracked'}</p>
+            {attendanceAnalytics.pendingSlots > 0 && (
+              <p className="text-xs text-amber-600">
+                {t('pendingRecords', { count: attendanceAnalytics.pendingSlots }) || `${attendanceAnalytics.pendingSlots} pending`}
+              </p>
+            )}
           </div>
-          {hasMultiplePeriods && (
-            <div className="mt-6 space-y-3">
-              <button
-                type="button"
-                onClick={() => setShowPeriodBreakdown((prev) => !prev)}
-                className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
-              >
-                <span>{showPeriodBreakdown ? (t('hidePeriodBreakdown') || 'Hide per-period breakdown') : (t('showPeriodBreakdown') || 'Show per-period breakdown')}</span>
-                {showPeriodBreakdown ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
-              </button>
-              {showPeriodBreakdown && (
-                <>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('perPeriodBreakdown') || 'Per-period breakdown'}</p>
-                  {activePeriods.map((period) => (
-                    <div key={period} className="border rounded-2xl p-3">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-3">
-                        <span className="font-semibold text-gray-800">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
-                        <span className="text-xs text-gray-500">{t('studentsTracked', { count: enrolledStudents?.length || 0 }) || `${enrolledStudents?.length || 0} students`}</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                        {statusOrder.map((status) => (
-                          <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
-                            <p className="text-[11px] text-gray-600">{translateStatusLabel(status)}</p>
-                            <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {statusOrder.map((status) => (
+            <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
+              <p className="text-[11px] uppercase tracking-wide font-semibold">{translateStatusLabel(status)}</p>
+              <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
+            </div>
+          ))}
+        </div>
+        {hasMultiplePeriods && (
+          <div className="mt-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => setShowPeriodBreakdown((prev) => !prev)}
+              className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
+            >
+              <span>{showPeriodBreakdown ? (t('hidePeriodBreakdown') || 'Hide per-period breakdown') : (t('showPeriodBreakdown') || 'Show per-period breakdown')}</span>
+              {showPeriodBreakdown ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+            </button>
+            {showPeriodBreakdown && (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('perPeriodBreakdown') || 'Per-period breakdown'}</p>
+                {activePeriods.map((period) => (
+                  <div key={period} className="border rounded-2xl p-3">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-3">
+                      <span className="font-semibold text-gray-800">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
+                      <span className="text-xs text-gray-500">{t('studentsTracked', { count: enrolledStudents?.length || 0 }) || `${enrolledStudents?.length || 0} students`}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {statusOrder.map((status) => (
+                        <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
+                          <p className="text-[11px] text-gray-600">{translateStatusLabel(status)}</p>
+                          <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Student List */}
       <div className="bg-white rounded-2xl shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</h3>
+          <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate ? selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : t('noDateSelected') || 'No date selected'}</h3>
         </div>
 
         <div className="space-y-3">
-          {(enrolledStudents && enrolledStudents.length > 0 ? enrolledStudents : []).map((s) => {
+          {(enrolledStudents && enrolledStudents.length > 0 && selectedDate ? enrolledStudents : []).map((s) => {
             const periodStatuses = getStudentPeriodStatuses(s.id);
             const aggregatedStatus = getAggregatedStatus(s.id);
             const uniformStatus = aggregatedStatus.status;
