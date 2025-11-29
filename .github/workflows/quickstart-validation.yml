@@ -56,7 +56,9 @@ jobs:
         continue-on-error: true
 
       - name: Quick frontend tests
-        run: cd frontend && npm run test -- --run --reporter=basic
+        # 'basic' reporter is not available in our vitest version and causes startup errors
+        # Use 'dot' for a compact reporter that is supported, or omit the flag to use default
+        run: cd frontend && npm run test -- --run --reporter=dot
         timeout-minutes: 3
 
       - name: Summary
