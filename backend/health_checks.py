@@ -566,7 +566,7 @@ class HealthChecker:
                 sock.close()
                 if result == 0:
                     return port
-            except:
+            except Exception:
                 continue
 
         return None

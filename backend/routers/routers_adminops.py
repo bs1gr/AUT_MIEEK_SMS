@@ -14,6 +14,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from backend.db import engine as db_engine
+from backend.db import get_session as get_db
+from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
+from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
+from .routers_auth import optional_require_role
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}})
@@ -26,13 +33,6 @@ BACKUPS_DIR = str((_PROJECT_ROOT / "backups").resolve())
 COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
 STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
 
-from backend.db import engine as db_engine
-from backend.db import get_session as get_db
-from backend.errors import ErrorCode, http_error
-from backend.import_resolver import import_names
-from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
-
-from .routers_auth import optional_require_role
 
 
 class ClearPayload(BaseModel):
