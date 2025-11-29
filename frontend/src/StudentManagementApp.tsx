@@ -145,7 +145,7 @@ const StudentManagementApp = () => {
               if (!window.confirm('Are you sure you want to delete this student?')) return;
               await deleteStudent.mutateAsync(id);
               showToast('Student deleted successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to delete student. Please try again.', 'error');
             }
           }}
@@ -160,7 +160,7 @@ const StudentManagementApp = () => {
               if (!window.confirm('Are you sure you want to delete this course?')) return;
               await deleteCourse.mutateAsync(courseId);
               showToast('Course deleted successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to delete course. Please try again.', 'error');
             }
           }}
@@ -184,7 +184,7 @@ const StudentManagementApp = () => {
             try {
               await createStudent.mutateAsync(newStudent);
               showToast('Student added successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to add student. Please check the form and try again.', 'error');
             } finally {
               studentModals.addModal.close();
@@ -201,7 +201,7 @@ const StudentManagementApp = () => {
             try {
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
               showToast('Student updated successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to update student. Please try again.', 'error');
             } finally {
               studentModals.editModal.close();
@@ -217,7 +217,7 @@ const StudentManagementApp = () => {
             try {
               await createCourse.mutateAsync(newCourse);
               showToast('Course added successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to add course. Please try again.', 'error');
             } finally {
               courseModals.addModal.close();
@@ -234,7 +234,7 @@ const StudentManagementApp = () => {
             try {
               await updateCourse.mutateAsync({ id: updatedCourse.id, data: updatedCourse });
               showToast('Course updated successfully!', 'success');
-            } catch (_error) {
+            } catch {
               showToast('Failed to update course. Please try again.', 'error');
             } finally {
               courseModals.editModal.close();

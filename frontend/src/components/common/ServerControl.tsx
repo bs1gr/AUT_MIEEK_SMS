@@ -257,7 +257,7 @@ const ServerControl: React.FC = () => {
               }
             }
           } catch (helperError) {
-            console.debug('Restart helper lookup failed', helperError);
+            console.warn('Restart helper lookup failed', helperError);
           }
         }
         setStatus(prev => ({

@@ -176,6 +176,6 @@ export function initializeErrorReporting(): void {
   setupGlobalErrorHandlers();
 
   if (import.meta.env.DEV) {
-    console.log('✓ Error reporting initialized');
+    console.warn('✓ Error reporting initialized');
   }
 }

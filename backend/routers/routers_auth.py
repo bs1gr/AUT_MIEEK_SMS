@@ -359,7 +359,7 @@ async def get_current_user(
         # Check if we're on an auth-specific endpoint (like /me)
         try:
             path = str(getattr(request.url, "path", ""))
-        except:
+        except Exception:
             path = ""
         is_auth_endpoint = "/auth/" in path
 
