@@ -20,7 +20,7 @@ import { useAutosave } from '@/hooks/useAutosave';
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
 // Version marker to verify code reload
-console.log('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
+console.warn('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
 
 type Props = { courses: Course[]; students?: Student[] };
 
@@ -353,7 +353,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
       // Prevent duplicate concurrent requests
       if (activeRequestsRef.current.has(requestKey)) {
-        console.log('[AttendanceView] Skipping duplicate enrollments request');
+        console.warn('[AttendanceView] Skipping duplicate enrollments request');
         return;
       }
 
@@ -374,7 +374,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                 return { id: c.id, count: 0 };
               }
               const arr = await r.json();
-              console.log(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+                  console.warn(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
               // Accept both array and object-with-items
               if (Array.isArray(arr)) {
                 return { id: c.id, count: arr.length };
@@ -398,7 +398,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
-        console.log('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
+        console.warn('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
         setCoursesWithEnrollment(ids);
       } catch (err) {
         console.error('[AttendanceView] Error in fetchEnrollments:', err);
@@ -474,7 +474,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Prevent duplicate concurrent requests
     if (activeRequestsRef.current.has(requestKey)) {
-      console.log('[AttendanceView] Skipping duplicate request:', requestKey);
+      console.warn('[AttendanceView] Skipping duplicate request:', requestKey);
       return;
     }
 
@@ -568,7 +568,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
       // Prevent duplicate concurrent requests
       if (activeRequestsRef.current.has(requestKey)) {
-        console.log('[AttendanceView] Skipping duplicate dates request:', requestKey);
+        console.warn('[AttendanceView] Skipping duplicate dates request:', requestKey);
         return;
       }
 
@@ -754,8 +754,8 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     setLoading(true);
     try {
       const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
-      console.log('[Attendance] Saving - attendanceRecords:', attendanceRecords);
-      console.log('[Attendance] Saving - recordIds:', attendanceRecordIds);
+      console.warn('[Attendance] Saving - attendanceRecords:', attendanceRecords);
+      console.warn('[Attendance] Saving - recordIds:', attendanceRecordIds);
       
       const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
         const recordId = attendanceRecordIds[key];
@@ -768,16 +768,16 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
         // If record has an ID from API, use PUT to update; otherwise POST to create
         if (recordId) {
-          console.log(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
+          console.warn(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
           return apiClient.put(`/attendance/${recordId}`, { status })
             .then(res => {
-              console.log(`[Attendance] PUT response: success`);
+              console.warn(`[Attendance] PUT response: success`);
               return res;
             })
             .catch(error => {
               // If record doesn't exist (404), create it instead
               if (error.response?.status === 404) {
-                console.log(`[Attendance] Record ${recordId} not found, creating new record`);
+                console.warn(`[Attendance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/attendance/`, {
                   student_id: studentId,
                   course_id: selectedCourse,
@@ -786,14 +786,14 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                   period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
                   notes: '',
                 }).then(res => {
-                  console.log(`[Attendance] POST response (fallback): success`);
+                  console.warn(`[Attendance] POST response (fallback): success`);
                   return res;
                 });
               }
               throw error;
             });
         } else {
-          console.log(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
+          console.warn(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
           return apiClient.post(`/attendance/`, {
             student_id: studentId,
             course_id: selectedCourse,
@@ -802,7 +802,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
             notes: '',
           }).then(res => {
-            console.log(`[Attendance] POST response: success`);
+            console.warn(`[Attendance] POST response: success`);
             return res;
           });
         }
@@ -813,19 +813,19 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         const [studentIdStr, category] = key.split('-');
         // Validate recordId: must be a positive integer
         const isValidId = Number.isInteger(recordId) && recordId > 0;
-        console.log(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
+        console.warn(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
         if (isValidId) {
           const url = `/daily-performance/${recordId}`;
-          console.log(`[Performance] PUT ${url} - score: ${score}`);
+          console.warn(`[Performance] PUT ${url} - score: ${score}`);
           return apiClient.put(url, { score, max_score: 10.0 })
             .then(res => {
-              console.log(`[Performance] PUT response: success`);
+              console.warn(`[Performance] PUT response: success`);
               return res;
             })
             .catch(error => {
               // If record doesn't exist (404), create it instead
               if (error.response?.status === 404) {
-                console.log(`[Performance] Record ${recordId} not found, creating new record`);
+                console.warn(`[Performance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/daily-performance/`, {
                   student_id: parseInt(studentIdStr, 10),
                   course_id: selectedCourse,
@@ -835,10 +835,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                   max_score: 10.0,
                   notes: ''
                 }).then(res => {
-                  console.log(`[Performance] POST response (fallback): success`);
+                  console.warn(`[Performance] POST response (fallback): success`);
                   // Debug log: POST response data and key
-                  console.log('[DEBUG] POST fallback response data:', res?.data);
-                  console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+                  console.warn('[DEBUG] POST fallback response data:', res?.data);
+                  console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
                   // Update dailyPerformanceIds with new ID from response
                   if (res?.data?.id) {
                     setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -850,7 +850,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             });
         } else {
           // Always use POST if recordId is not valid
-          console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
+          console.warn(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
           return apiClient.post(`/daily-performance/`, {
             student_id: parseInt(studentIdStr, 10),
             course_id: selectedCourse,
@@ -860,10 +860,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             max_score: 10.0,
             notes: ''
           }).then(res => {
-            console.log(`[Performance] POST response: success`);
+            console.warn(`[Performance] POST response: success`);
             // Debug log: POST response data and key
-            console.log('[DEBUG] POST direct response data:', res?.data);
-            console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+            console.warn('[DEBUG] POST direct response data:', res?.data);
+            console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
             // Update dailyPerformanceIds with new ID from response
             if (res?.data?.id) {
               setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -936,7 +936,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Debug log: track autosave dependencies
     useEffect(() => {
-      console.log('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
+      console.warn('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
     }, [attendanceRecords, dailyPerformance]);
 
   return (

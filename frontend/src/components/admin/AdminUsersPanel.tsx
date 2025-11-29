@@ -164,14 +164,14 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       // If backend returned a new access token, the axios interceptor will handle it
       // because we set it in the attachAuthHeader function which is called on every request
       if (response && 'access_token' in response && response.access_token) {
-        console.log('[Password Change] New access token received from backend');
+        console.warn('[Password Change] New access token received from backend');
       }
       
       // Refresh user profile to update password_change_required flag
       try {
         const updatedUser = await adminUsersAPI.getCurrentUser();
         if (updatedUser) {
-          console.log('[Password Change] User profile refreshed, password_change_required:', updatedUser.password_change_required);
+          console.warn('[Password Change] User profile refreshed, password_change_required:', updatedUser.password_change_required);
           // Update the user in AuthContext
           updateUser(updatedUser as any);
         }

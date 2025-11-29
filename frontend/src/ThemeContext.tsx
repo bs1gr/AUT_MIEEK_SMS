@@ -21,7 +21,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       stored === 'system'
         ? stored
         : 'light';
-    console.log('[ThemeProvider] Initializing with theme:', initialTheme, 'from localStorage:', stored);
+    console.warn('[ThemeProvider] Initializing with theme:', initialTheme, 'from localStorage:', stored);
     return initialTheme;
   });
 
@@ -51,7 +51,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const resolved = resolveTheme();
     setEffectiveTheme(resolved);
 
-    console.log('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
+    console.warn('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
 
     // Apply theme to document with robust null checks and Edge compatibility
     const root = typeof document !== 'undefined' ? document.documentElement : null;
@@ -90,7 +90,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Log actual state after applying
     setTimeout(() => {
       if (!root || !body) return;
-      console.log(
+      console.warn(
         '[ThemeProvider] After apply - html classes:',
         root.className,
         '| body classes:',
@@ -109,7 +109,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (e: MediaQueryListEvent | MediaQueryList) => {
         const newResolved = ('matches' in e ? e.matches : mediaQuery.matches) ? 'dark' : 'light';
-        console.log('[ThemeProvider] System theme changed to:', newResolved);
+        console.warn('[ThemeProvider] System theme changed to:', newResolved);
         setEffectiveTheme(newResolved);
         root.classList.remove('dark', 'relaxing', 'fancy');
         body.classList.remove('dark', 'relaxing', 'fancy');
@@ -131,7 +131,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       setThemeState(newTheme);
       localStorage.setItem('theme', newTheme);
-      console.log('[ThemeProvider] Theme set to:', newTheme);
+      console.warn('[ThemeProvider] Theme set to:', newTheme);
     } catch (error) {
       console.error('[ThemeProvider] Failed to save theme:', error);
     }
