@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 
@@ -38,9 +38,7 @@ const OperationsView = (_props: OperationsViewProps) => {
   });
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  const handleToast = useCallback((state: ToastState) => {
-    setToast(state);
-  }, []);
+  // handleToast previously forwarded to children; not needed here
 
   useEffect(() => {
     if (!toast) return undefined;

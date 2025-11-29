@@ -10,7 +10,7 @@ import { eventBus, EVENTS } from '@/utils/events';
 interface EvaluationRule {
   id?: number;
   category: string;
-  weight: number; // percentage weight (0-100)
+  weight?: number; // percentage weight (0-100) - optional while editing
   description?: string;
 }
 
@@ -372,7 +372,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                           {g.notes && (<div className="text-xs text-gray-500">{g.notes}</div>)}
                         </td>
                         {evaluationRules.length > 0 && (
-                          <td className="px-4 py-2"><span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">{translateCategory(g.category) || '—'}</span></td>
+                          <td className="px-4 py-2"><span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">{translateCategory(g.category ?? '') || '—'}</span></td>
                         )}
                         <td className="px-4 py-2 text-center">{g.grade} / {g.max_grade || 100}</td>
                         <td className="px-4 py-2 text-center"><span className={`font-semibold ${color}`}>{pct.toFixed(1)}%</span></td>

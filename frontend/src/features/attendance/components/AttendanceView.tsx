@@ -8,7 +8,7 @@
  * - Fixed: Frontend treats 404 from daily-performance as 'no data', not error
  * - Improved: UI always reflects DB, shows empty if no data
  */
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
@@ -22,7 +22,7 @@ const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.V
 // Version marker to verify code reload
 console.log('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
 
-type Props = { courses: Course[]; students: Student[] };
+type Props = { courses: Course[]; students?: Student[] };
 
 // Teaching schedule can arrive either as an array of entries or an object keyed by day.
 type TeachingScheduleEntry = {
@@ -43,7 +43,7 @@ type AttendanceState = typeof ATTENDANCE_STATES[number];
 const isTrackedStatus = (status?: string): status is AttendanceState =>
   Boolean(status && ATTENDANCE_STATES.includes(status as AttendanceState));
 
-const AttendanceView: React.FC<Props> = ({ courses, students }) => {
+const AttendanceView: React.FC<Props> = ({ courses }) => {
 
 
 
@@ -60,7 +60,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [dailyPerformanceIds, setDailyPerformanceIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState<Student | null>(null);
@@ -70,7 +70,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
-  const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout>();
+  // debounce timer (currently unused in this refactor)
+  // const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const dayNamesShort = useMemo(
     () => (t('dayNames') ? t('dayNames').split(',').map((day: string) => day.trim()) : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']),
@@ -115,7 +116,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       keysToCheck.forEach((key) => {
         const value = (schedule as Record<string, TeachingScheduleEntry | undefined>)[key];
         if (value) {
-          entries.push({ day: weekday, ...value });
+          entries.push({ ...value, day: weekday });
         }
       });
     }
@@ -340,7 +341,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)
-  const coursesLength = localCourses?.length || 0;
+  // const coursesLength = localCourses?.length || 0;
   const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
 
   useEffect(() => {
@@ -506,7 +507,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
       } catch (error) {
         // If 404, treat as no data
-        if (error?.response?.status === 404) {
+        if ((error as any)?.response?.status === 404) {
           dpData = [];
         } else {
           console.error('[AttendanceView] Error fetching daily performance:', error);
@@ -752,7 +753,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     if (!selectedCourse) { showToast(t('selectCourse') || 'Select course', 'error'); return; }
     setLoading(true);
     try {
-      const dateStr = formatLocalDate(selectedDate);
+      const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
       console.log('[Attendance] Saving - attendanceRecords:', attendanceRecords);
       console.log('[Attendance] Saving - recordIds:', attendanceRecordIds);
       
@@ -922,7 +923,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
   // Only show pending if there are unsaved changes after user interaction
-  const hasChanges = (selectedCourse && selectedDate) && (Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0);
+  const hasChanges = Boolean(selectedCourse && selectedDate && (Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0));
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
     [attendanceRecords, dailyPerformance],
@@ -1281,7 +1282,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               <h4 className="text-xl font-bold">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
               <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
             </div>
-            <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''}</p>
 
             {(() => {
               const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;

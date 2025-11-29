@@ -24,6 +24,15 @@ export interface Course {
   description?: string;
   credits: number;
   hours_per_week?: number;
+  // Optional canonical year and instructor fields used in some views and tests
+  year?: number;
+  instructor?: string;
+  // Optional structured teaching schedule - backend may provide either an array of schedule
+  // entries or a record keyed by day name. Keep permissive union to match both shapes used
+  // across the UI_helpers and calendar utilities.
+  teaching_schedule?: Array<{ day: string; start_time: string; end_time?: string; periods?: number; duration?: number; location?: string; }> | Record<string, { periods?: number; start_time?: string; duration?: number }>;
+  // Optional evaluation rules attached to the course used by grading and analytics views
+  evaluation_rules?: Array<{ id?: number; category: string; weight?: number; description?: string }>;
   academic_year?: string;
   absence_penalty?: number;
   is_active: boolean;
@@ -74,7 +83,14 @@ export interface Highlight {
   student_id: number;
   highlight_type: 'achievement' | 'concern' | 'note';
   title: string;
+  // Legacy description field retained for compatibility with some views
   description: string;
+  // Newer richer fields used by UI: whether the highlight is positive/negative, an optional
+  // rating (1-5), a textual highlight_text that complements description and a category label.
+  is_positive?: boolean;
+  rating?: number;
+  category?: string;
+  highlight_text?: string;
   date: string;
   is_resolved: boolean;
   semester?: string;
@@ -176,6 +192,8 @@ export interface FinalGrade {
   absence_penalty: number;
   unexcused_absences: number;
   absence_deduction: number;
+  // Optional human-readable Greek description present in some analytics responses
+  greek_description?: string;
 }
 
 // Utility types

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import apiClient, { preflightAPI, __test_forceOriginalBase } from '../api.js';
+import apiClient, { preflightAPI, __test_forceOriginalBase } from '../api';
 
 // We simulate an unreachable absolute backend base; preflight should switch to relative '/api/v1'
 // Implementation detail: __test_forceOriginalBase is only active under NODE_ENV === 'test'

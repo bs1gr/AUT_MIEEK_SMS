@@ -22,7 +22,7 @@ describe('ThemeContext', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     };
-    window.matchMedia = vi.fn(() => matchMediaMock as MediaQueryList);
+    window.matchMedia = vi.fn(() => matchMediaMock as unknown as MediaQueryList);
   });
 
   afterEach(() => {

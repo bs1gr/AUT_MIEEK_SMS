@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useLanguage } from '@/LanguageContext';
 
-const FormField = ({ label, value, onChange, type = 'text', ...props }) => (
+type FormFieldProps = {
+  label: string;
+  value: string | number;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  [key: string]: any;
+};
+
+const FormField = ({ label, value, onChange, type = 'text', ...props }: FormFieldProps) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <input
@@ -19,7 +27,7 @@ const FormField = ({ label, value, onChange, type = 'text', ...props }) => (
 
 const EnhancedGradeEntryForm = () => {
   const { t } = useLanguage();
-  const [loading, setLoading] = useState(false);
+  const loading = false;
   const [newGrade, setNewGrade] = useState({
     assignment_name: '',
     grade: '',

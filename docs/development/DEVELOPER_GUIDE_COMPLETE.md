@@ -320,7 +320,7 @@ from backend.models import Example
 router = APIRouter(prefix="/examples", tags=["examples"])
 
 @router.post("/", response_model=ExampleResponse)
-@limiter.limit(RATE_LIMIT_WRITE)  # 10/min for writes
+@limiter.limit(RATE_LIMIT_WRITE)  # configured via backend.rate_limiting.RATE_LIMIT_WRITE
 async def create_example(
     example: ExampleCreate,
     request: Request,
@@ -334,7 +334,7 @@ async def create_example(
     return db_example
 
 @router.get("/{example_id}", response_model=ExampleResponse)
-@limiter.limit("60/minute")  # 60/min for reads
+@limiter.limit(RATE_LIMIT_READ)  # configured via backend.rate_limiting.RATE_LIMIT_READ
 async def get_example(
     example_id: int,
     request: Request,
@@ -706,21 +706,21 @@ app.include_router(courses_router, prefix="/api/v1")
 ```python
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE, RATE_LIMIT_READ
 
-# Write operations: 10/minute
+# Write operations: configured via backend.rate_limiting.RATE_LIMIT_WRITE (defaults shown for high-throughput environments)
 @router.post("/items")
 @limiter.limit(RATE_LIMIT_WRITE)
 async def create_item(request: Request, ...):
     pass
 
-# Read operations: 60/minute
+# Read operations: configured via backend.rate_limiting.RATE_LIMIT_READ
 @router.get("/items")
 @limiter.limit(RATE_LIMIT_READ)
 async def list_items(request: Request, ...):
     pass
 
-# Heavy operations: 5/minute
+# Heavy operations: configured via backend.rate_limiting.RATE_LIMIT_HEAVY
 @router.post("/bulk-import")
-@limiter.limit("5/minute")
+@limiter.limit(RATE_LIMIT_HEAVY)
 async def bulk_import(request: Request, ...):
     pass
 ```

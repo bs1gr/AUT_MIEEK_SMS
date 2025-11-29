@@ -2,14 +2,14 @@
 // Location: frontend/src/components/views/CoursesView.tsx
 // Enhanced with teaching schedule management and hours per week
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
 import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI } from '@/api/api';
 
-const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+// API_BASE_URL not required; API is accessed via centralized api client
 
 // ---- Types ----
 type Rule = { category: string; weight: string | number; description?: string };
@@ -37,27 +37,17 @@ type ScheduleConflict = {
   conflictTime: string;
 };
 type PaginatedResponse<T> = { items: T[]; total?: number; skip?: number; limit?: number };
-type CourseType = {
-  id: number;
-  course_code: string;
-  course_name: string;
-  semester?: string;
-  credits?: number;
-  description?: string;
-  evaluation_rules?: Rule[];
-  teaching_schedule?: Record<string, DaySchedule>;
-  hours_per_week?: number;
-};
+import type { Course as CourseType } from '@/types';
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
-const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
+const CourseManagement = ({ courses: externalCourses, loading: externalLoading = false, onAddCourse, onEdit, onDelete }: { courses?: CourseType[]; loading?: boolean; onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
   const { t } = useLanguage();
-  const [courses, setCourses] = useState<CourseType[]>([]);
+  const [courses, setCourses] = useState<CourseType[]>(externalCourses || []);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [evaluationRules, setEvaluationRules] = useState<Rule[]>([]);
   const [weeklySchedule, setWeeklySchedule] = useState<Record<string, DaySchedule>>({});
   const [, setHoursPerWeek] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<ToastType | null>(null);
   const [activeTab, setActiveTab] = useState('evaluation'); // 'evaluation' | 'schedule' | 'enrollment'
   const [allStudents, setAllStudents] = useState<StudentLite[]>([]);
@@ -89,9 +79,14 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   ];
 
   useEffect(() => {
-    loadCourses();
+    // If consumer passed in courses via props, respect them; otherwise load from API
+    if (!externalCourses) {
+      loadCourses();
+    } else {
+      setCourses(externalCourses);
+    }
     loadAllStudents();
-  }, []);
+  }, [externalCourses]);
 
   useEffect(() => {
     if (selectedCourse) {
@@ -408,7 +403,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       }
     }
 
-    setLoading(true);
+    setIsLoading(true);
     try {
       const calculatedHours = parseFloat(calculateTotalHours());
 
@@ -423,7 +418,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       // Validate hours_per_week backend constraint (>= 0.5) when schedule is provided
       if ((scheduleList?.length || 0) > 0 && (!Number.isFinite(calculatedHours) || calculatedHours < 0.5)) {
         showToast(t('hoursPerWeekTooLow') || 'Hours per week must be at least 0.5 when a schedule is set', 'error');
-        setLoading(false);
+        setIsLoading(false);
         return;
       }
 
@@ -447,7 +442,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     } catch {
       showToast(t('failedToSaveData'), 'error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -1040,7 +1035,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                   setWeeklySchedule({});
                   // Wait for state to update, then save
                   setTimeout(async () => {
-                    setLoading(true);
+                    setIsLoading(true);
                     try {
                       const payload: CourseUpdatePayload = {
                         // When clearing schedule keep evaluation rules but normalize categories
@@ -1058,7 +1053,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                     } catch {
                       showToast(t('failedToSaveData'), 'error');
                     } finally {
-                      setLoading(false);
+                      setIsLoading(false);
                     }
                   }, 100);
                 }
@@ -1069,11 +1064,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
             </button>
             <button
               onClick={saveCourseData}
-              disabled={loading || (activeTab === 'evaluation' && !isValidTotal) || (activeTab === 'schedule' && !hoursOk)}
+              disabled={(externalLoading || isLoading) || (activeTab === 'evaluation' && !isValidTotal) || (activeTab === 'schedule' && !hoursOk)}
               className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2"
             >
               <Save size={20} />
-              <span>{loading ? t('saving') : t('saveChanges')}</span>
+              <span>{(externalLoading || isLoading) ? t('saving') : t('saveChanges')}</span>
             </button>
           </div>
         </>

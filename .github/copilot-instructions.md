@@ -116,7 +116,7 @@ alembic upgrade head
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 
 @router.post("/items/", response_model=ItemResponse)
-@limiter.limit(RATE_LIMIT_WRITE)  # 10/min for writes, 60/min reads, 5/min heavy
+@limiter.limit(RATE_LIMIT_WRITE)  # configured via backend.rate_limiting (env-configurable defaults)
 async def create_item(item: ItemCreate, request: Request, db: Session = Depends(get_db)):
     # Access request.state.request_id for logging
     # Raise HTTPException(status_code=400, detail="error") for errors

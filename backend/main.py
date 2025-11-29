@@ -53,7 +53,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 try:
     from backend.rate_limiting import RATE_LIMIT_WRITE
 except Exception:
-    RATE_LIMIT_WRITE = "10/minute"
+    # fallback default (used only if importing backend.rate_limiting fails)
+    RATE_LIMIT_WRITE = "600/minute"
 
 # Database imports
 # Local imports: prefer package imports, fall back to module imports when executed from backend/
@@ -219,9 +220,30 @@ if db_session_factory is None:
 # ============================================================================
 
 if sys.platform == "win32":
-    # Force UTF-8 encoding for console output on Windows
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+    # Force UTF-8 encoding for console output on Windows when running
+    # in a normal process. Skip this adjustment under pytest (or other
+    # test harnesses) to avoid interfering with test runners' IO
+    # capture wrappers which can lead to 'I/O operation on closed file'
+    # errors during test runs.
+    if os.environ.get("PYTEST_CURRENT_TEST") is None:
+        try:
+            # Prefer the portable reconfigure() call where available which
+            # adjusts the encoding of the existing stream without replacing
+            # it. Fall back to wrapping the buffer if reconfigure isn't
+            # supported in the runtime environment.
+            try:
+                sys.stdout.reconfigure(encoding="utf-8")
+            except Exception:
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
+            try:
+                sys.stderr.reconfigure(encoding="utf-8")
+            except Exception:
+                sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+        except Exception:
+            # If anything goes wrong, don't raise here — tests and CI should
+            # continue to work even when console wrapping fails.
+            pass
 
 # ============================================================================
 # CONTROL PANEL & SPA CONFIGURATION (project root paths)

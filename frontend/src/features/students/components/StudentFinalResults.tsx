@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Users, BookOpen, Calendar, Star, TrendingUp, CheckCircle, Award, Target, ArrowRight, XCircle
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, BookOpen, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-import {
-  gpaToPercentage,
-  gpaToGreekScale,
-  getGreekGradeColor,
-  getGreekGradeBgColor,
-  getGreekGradeDescription,
-  formatAllGrades
-} from '@/utils/gradeUtils';
+// gradeUtils helpers are not required in this lightweight dashboard view
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
-const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  icon: React.ComponentType<any>;
+  color: 'indigo' | 'purple' | 'green' | 'yellow';
+  subtitle?: string;
+};
+
+const StatCard = ({ title, value, icon: Icon, color, subtitle }: StatCardProps) => {
   const colorClasses = {
     indigo: 'from-indigo-500 to-indigo-600',
     purple: 'from-purple-500 to-purple-600',
@@ -38,9 +37,16 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
   );
 };
 
-const EnhancedDashboardView = ({ students, courses, stats }) => {
+
+type EnhancedDashboardViewProps = {
+  students: Array<Record<string, any>>;
+  courses?: Array<Record<string, any>>;
+  stats: Record<string, number>;
+};
+
+const EnhancedDashboardView = ({ students, stats }: Omit<EnhancedDashboardViewProps, 'courses'>) => {
   const { t } = useLanguage();
-  const [topPerformers, setTopPerformers] = useState([]);
+  // topPerformers are not displayed in this compact dashboard view
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,10 +77,10 @@ const EnhancedDashboardView = ({ students, courses, stats }) => {
       });
 
       const studentsWithGPA = await Promise.all(studentPromises);
-      const sorted = studentsWithGPA
+      // compute top performers for analytics only (not displayed in this compact view)
+      void studentsWithGPA
         .filter((s) => s.overallGPA > 0)
         .sort((a, b) => b.overallGPA - a.overallGPA);
-      setTopPerformers(sorted.slice(0, 5));
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {

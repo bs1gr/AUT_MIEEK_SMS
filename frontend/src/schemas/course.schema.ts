@@ -23,15 +23,13 @@ export const courseSchema = z.object({
     .max(1000, 'Description must be less than 1000 characters')
     .optional(),
 
-  credits: z
-    .number()
-    .int('Credits must be a whole number')
-    .min(0, 'Credits must be non-negative')
-    .max(20, 'Credits must be 20 or less')
-    .or(z.string().transform(val => {
+  credits: z.preprocess((val) => {
+    if (typeof val === 'string') {
       const num = parseInt(val, 10);
       return isNaN(num) ? 0 : num;
-    })),
+    }
+    return val;
+  }, z.number().int('Credits must be a whole number').min(0, 'Credits must be non-negative').max(20, 'Credits must be 20 or less')),
 
   semester: z
     .string()
@@ -39,31 +37,27 @@ export const courseSchema = z.object({
     .max(50, 'Semester must be less than 50 characters')
     .trim(),
 
-  year: z
-    .number()
-    .int('Year must be a whole number')
-    .min(2000, 'Year must be 2000 or later')
-    .max(2100, 'Year must be 2100 or earlier')
-    .or(z.string().transform(val => {
+  year: z.preprocess((val) => {
+    if (typeof val === 'string') {
       const num = parseInt(val, 10);
       return isNaN(num) ? new Date().getFullYear() : num;
-    })),
+    }
+    return val;
+  }, z.number().int('Year must be a whole number').min(2000, 'Year must be 2000 or later').max(2100, 'Year must be 2100 or earlier')),
 
   instructor: z
     .string()
     .max(200, 'Instructor name must be less than 200 characters')
     .optional(),
 
-  absence_penalty: z
-    .number()
-    .min(0, 'Absence penalty must be non-negative')
-    .max(20, 'Absence penalty must be 20 or less')
-    .optional()
-    .or(z.string().transform(val => {
+  absence_penalty: z.preprocess((val) => {
+    if (typeof val === 'string') {
       if (val === '') return undefined;
       const num = parseFloat(val);
       return isNaN(num) ? undefined : num;
-    })),
+    }
+    return val;
+  }, z.number().min(0, 'Absence penalty must be non-negative').max(20, 'Absence penalty must be 20 or less').optional()),
 });
 
 /**

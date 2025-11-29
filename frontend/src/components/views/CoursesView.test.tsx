@@ -1,43 +1,31 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, beforeEach, afterEach, vi } from 'vitest';
 import CourseManagement from './CoursesView';
 import { LanguageProvider } from '../../LanguageContext';
 
 // Mock fetch globally
 beforeEach(() => {
-  global.fetch = vi.fn((url, options) => {
+  global.fetch = vi.fn((url, _options) => {
     // Simulate API endpoints
     if (url.includes('/enrollments/course/1/students')) {
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([{ id: 1, first_name: 'Alice', last_name: 'Smith', student_id: 'S001' }]),
-      });
+      return Promise.resolve(new Response(JSON.stringify([{ id: 1, first_name: 'Alice', last_name: 'Smith', student_id: 'S001' }]), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     }
     if (url.includes('/enrollments/course/1')) {
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ created: 1, reactivated: 0 }),
-      });
+      return Promise.resolve(new Response(JSON.stringify({ created: 1, reactivated: 0 }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     }
     if (url.includes('/students/')) {
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ items: [
-          { id: 1, first_name: 'Alice', last_name: 'Smith', student_id: 'S001' },
-          { id: 2, first_name: 'Bob', last_name: 'Jones', student_id: 'S002' },
-        ] }),
-      });
+      return Promise.resolve(new Response(JSON.stringify({ items: [
+        { id: 1, first_name: 'Alice', last_name: 'Smith', student_id: 'S001' },
+        { id: 2, first_name: 'Bob', last_name: 'Jones', student_id: 'S002' },
+      ] }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     }
     if (url.includes('/courses/')) {
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ items: [
-          { id: 1, course_code: 'C101', course_name: 'Math', evaluation_rules: [], teaching_schedule: [] },
-        ] }),
-      });
+      return Promise.resolve(new Response(JSON.stringify({ items: [
+        { id: 1, course_code: 'C101', course_name: 'Math', evaluation_rules: [], teaching_schedule: [] },
+      ] }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     }
-    return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+    return Promise.resolve(new Response(JSON.stringify({}), { status: 404, headers: { 'Content-Type': 'application/json' } }));
   });
 });
 
