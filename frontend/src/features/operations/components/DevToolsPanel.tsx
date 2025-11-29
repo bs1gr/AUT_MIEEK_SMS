@@ -132,7 +132,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   type BackupItem = { filename: string; path: string; size: number; created: string };
   const [backups, setBackups] = useState<BackupItem[] | null>(null);
   const [backupsLoading, setBackupsLoading] = useState(false);
-  const [destPath, setDestPath] = useState('');
+  // destination path field not currently used in this build
   const [selectedBackups, setSelectedBackups] = useState<Set<string>>(new Set());
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
@@ -140,16 +140,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
-    if (user.email) return user.email;
-    if (user.full_name) return user.full_name;
+    if (user.email) return String(user.email);
+    if (user.full_name) return String(user.full_name);
     return null;
   }, [user]);
 
   const theme = themeStyles[selectedTheme];
   
-  const cardClass = variant === 'standalone' 
-    ? `${theme.container} p-5 sm:p-6`
-    : `${theme.container} p-4 sm:p-5`;
+  // cardClass removed - layout uses more granular classes and subtleCardClass below
 
   const subtleCardClass = `${theme.subtleCard} flex flex-col gap-1`;
 
@@ -340,7 +338,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     void loadBackups();
   }, [loadBackups]);
 
-  const latestBackup = useMemo(() => (Array.isArray(backups) && backups.length > 0 ? backups[0] : null), [backups]);
+  // latestBackup helper removed (not used after refactor)
 
   const downloadBackup = async (filename: string) => {
     try {
@@ -351,80 +349,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
-  const saveBackupToPath = async (filename: string, destination: string) => {
-    // If File System Access API is available, use it for direct file save
-    if ('showSaveFilePicker' in window) {
-      try {
-        setOpLoading(`save:${filename}`);
-        // Download the backup file
-        const res = await fetch(
-          `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/download`,
-          { credentials: 'include' }
-        );
-        if (!res.ok) throw new Error('Failed to download backup');
-        const blob = await res.blob();
-        
-        // Show save dialog
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: filename,
-          types: [{
-            description: 'Database Files',
-            accept: { 'application/octet-stream': ['.db'] }
-          }]
-        });
-        
-        // Write the file
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        
-        onToast({ message: t('utils.savedSuccessfully') || 'File saved successfully', type: 'success' });
-      } catch (e: any) {
-        if (e?.name !== 'AbortError') {
-          onToast({ message: e?.message || (t('error') as string), type: 'error' });
-        }
-      } finally {
-        setOpLoading(null);
-      }
-      return;
-    }
-    
-    // Fallback to server-side save (Docker mode)
-    if (!destination.trim()) {
-      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
-      return;
-    }
-    setOpLoading(`save:${filename}`);
-    try {
-      const res = await fetch(
-        `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/save-to-path`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ destination }),
-        },
-      );
-      const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
-      onToast({
-        message: `${t('utils.savedTo') || 'Saved to'}: ${data?.details?.destination ?? destination}`,
-        type: 'success',
-      });
-    } catch (e: any) {
-      onToast({ message: e?.message || (t('error') as string), type: 'error' });
-    } finally {
-      setOpLoading(null);
-    }
-  };
+  // saveBackupToPath removed - file-system save implementation deferred
 
-  const saveLatestToPath = async () => {
-    if (!latestBackup) {
-      onToast({ message: t('utils.noBackupsFound') ?? 'No backups found', type: 'error' });
-      return;
-    }
-    await saveBackupToPath(latestBackup.filename, destPath);
-  };
+  // saveLatestToPath handled via UI action when implemented
 
   const downloadAllZip = () => {
     try {
@@ -435,28 +362,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
-  const saveZipToPath = async () => {
-    if (!destPath.trim()) {
-      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
-      return;
-    }
-    setOpLoading('save-zip');
-    try {
-      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/save-to-path`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ destination: destPath }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
-      onToast({ message: `${t('utils.savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
-    } catch (e: any) {
-      onToast({ message: e?.message || (t('error') as string), type: 'error' });
-    } finally {
-      setOpLoading(null);
-    }
-  };
+  // saveZipToPath intentionally omitted until UI wiring is added
 
   const downloadSelectedZip = async () => {
     if (selectedBackups.size === 0) {
@@ -489,32 +395,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
-  const saveSelectedZipToPath = async () => {
-    if (selectedBackups.size === 0) {
-      onToast({ message: t('utils.noBackupsSelected') ?? 'No backups selected', type: 'error' });
-      return;
-    }
-    if (!destPath.trim()) {
-      onToast({ message: t('utils.pleaseEnterDestinationPath') ?? 'Please enter a destination path', type: 'error' });
-      return;
-    }
-    setOpLoading('save-selected-zip');
-    try {
-      const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/selected/save-to-path`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ destination: destPath, filenames: Array.from(selectedBackups) }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed');
-      onToast({ message: `${t('utils.savedZipTo') || 'Saved ZIP to'}: ${data?.details?.destination ?? destPath}`, type: 'success' });
-    } catch (e: any) {
-      onToast({ message: e?.message || (t('error') as string), type: 'error' });
-    } finally {
-      setOpLoading(null);
-    }
-  };
+  // saveSelectedZipToPath reserved for future wiring
 
   const deleteSelectedBackups = async () => {
     if (selectedBackups.size === 0) {

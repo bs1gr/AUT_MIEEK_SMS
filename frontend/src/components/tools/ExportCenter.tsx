@@ -28,7 +28,7 @@ interface SessionExportImportProps {
 }
 
 const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
-  const { language } = useLanguage();
+  // const { language } = useLanguage();
   const [semesters, setSemesters] = useState<string[]>([]);
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -47,11 +47,12 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
   const loadSemesters = async () => {
     setLoadingSemesters(true);
     try {
-      const data = await sessionAPI.listSemesters();
-      setSemesters(data.semesters || []);
-      if (data.semesters && data.semesters.length > 0) {
-        setSelectedSemester(data.semesters[0]);
-      }
+      const data: any = await sessionAPI.listSemesters();
+      // API may return either an array of strings (simple list) or an object
+      // shaped like { semesters: string[] } depending on runtime. Normalise.
+      const list = Array.isArray(data) ? data : (data?.semesters || (data as any)?.list || []);
+      setSemesters(list);
+      if (list && list.length > 0) setSelectedSemester(list[0]);
     } catch (error) {
       console.error('Failed to load semesters:', error);
       showToast(t('failedToLoadSemesters'), 'error');
@@ -68,23 +69,15 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
 
     setExportingSession(true);
     try {
-      const response = await sessionAPI.exportSession(selectedSemester);
-      
-      // Create download link
-      const blob = response.data;
+      // The sessionAPI returns the raw Blob for exports
+      const blob = await sessionAPI.exportSession(selectedSemester);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       
-      // Extract filename from Content-Disposition header or use default
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = `session_export_${selectedSemester.replace(/\s+/g, '_')}.json`;
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
+      // No headers are available when the API client returns a raw Blob, so
+      // fall back to a sensible default filename.
+      const filename = `session_export_${selectedSemester.replace(/\s+/g, '_')}.json`;
       
       link.download = filename;
       document.body.appendChild(link);
@@ -112,12 +105,12 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       const result = await sessionAPI.importSession(selectedFile, mergeStrategy);
       
       // Show summary
-      const summary = result.summary;
+      const summary: any = result.summary;
       const totalCreated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.created || 0), 0);
       const totalUpdated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.updated || 0), 0);
       const totalErrors = Object.values(summary).reduce((sum: number, item: any) => sum + (item.errors?.length || 0), 0);
-      
-      if (totalErrors > 0) {
+
+      if (typeof totalErrors === 'number' && totalErrors > 0) {
         showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated}, ${t('errors')}: ${totalErrors})`, 'warning');
       } else {
         showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated})`, 'success');

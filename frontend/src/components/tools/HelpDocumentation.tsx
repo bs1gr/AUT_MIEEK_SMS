@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { HelpCircle, Book, MessageCircle, Video, ChevronDown, ChevronRight, Search, Download, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/LanguageContext';
 import type { Course } from '@/types';
 import { courseSchema } from '@/schemas';
-import type { CourseFormData } from '@/schemas';
+import type { CourseFormData as SchemaCourseFormData } from '@/schemas';
 import {
   Form,
   FormControl,
@@ -35,8 +35,8 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
   const [semesterYear, setSemesterYear] = useState<string>(new Date().getFullYear().toString());
   const [customSemester, setCustomSemester] = useState<string>('');
 
-  const form = useForm<CourseFormData>({
-    resolver: zodResolver(courseSchema),
+  const form = useForm<SchemaCourseFormData>({
+    resolver: zodResolver(courseSchema) as unknown as Resolver<SchemaCourseFormData>,
     defaultValues: {
       course_code: course.course_code || '',
       course_name: course.course_name || '',
@@ -126,7 +126,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
     form.setValue('semester', newSemester);
   };
 
-  const onSubmit = (data: CourseFormData): void => {
+  const onSubmit = (data: SchemaCourseFormData): void => {
     // Map schema data back to Course type
     const updatedCourse: Course = {
       ...course,

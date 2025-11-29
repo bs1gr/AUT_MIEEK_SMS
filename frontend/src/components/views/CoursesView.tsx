@@ -2,7 +2,7 @@
 // Location: frontend/src/components/views/CoursesView.tsx
 // Enhanced with teaching schedule management and hours per week
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';

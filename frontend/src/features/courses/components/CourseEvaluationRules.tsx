@@ -2,7 +2,7 @@
 // Location: frontend/src/components/CourseEvaluationRules.tsx
 // Fixed: Dropdown now shows bilingual categories (EN / EL) instead of separate options
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, Trash2, AlertCircle, BookOpen, Calculator, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
@@ -16,7 +16,7 @@ const CourseEvaluationRules = () => {
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [evaluationRules, setEvaluationRules] = useState<any[]>([]);
   const [absencePenalty, setAbsencePenalty] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
+  // Loading state reserved for future async interactions
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
 
   // Common grade categories using translations

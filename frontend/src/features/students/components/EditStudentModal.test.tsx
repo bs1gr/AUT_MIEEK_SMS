@@ -390,7 +390,6 @@ describe('EditStudentModal', () => {
     });
 
     it('disables submit button during submission', async () => {
-      const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
       );

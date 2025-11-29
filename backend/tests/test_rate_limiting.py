@@ -12,6 +12,7 @@ from backend.rate_limiting import (
     RATE_LIMIT_HEAVY,
     RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
+    RATE_LIMIT_AUTH,
     limiter,
 )
 
@@ -48,10 +49,27 @@ def client(app_with_rate_limiting):
 
 
 def test_rate_limit_constants():
-    """Test that rate limit constants are properly defined."""
-    assert RATE_LIMIT_READ == "60/minute"
-    assert RATE_LIMIT_WRITE == "10/minute"
-    assert RATE_LIMIT_HEAVY == "5/minute"
+    """Test that rate limit constants are defined in a '<n>/minute' format
+    and meet minimum thresholds suitable for high-throughput deployments.
+
+    We require write limits to be high enough to support 500+ inputs/minute
+    in high-throughput deployments and ensure that read >= write > heavy.
+    Tests should not rely on exact numbers so deployments can tune values
+    using environment variables.
+    """
+    # Basic format checks
+    for v in (RATE_LIMIT_READ, RATE_LIMIT_WRITE, RATE_LIMIT_HEAVY, RATE_LIMIT_AUTH):
+        assert isinstance(v, str) and "/minute" in v
+
+    # Numeric checks
+    heavy_val = int(RATE_LIMIT_HEAVY.split("/")[0])
+    write_val = int(RATE_LIMIT_WRITE.split("/")[0])
+    read_val = int(RATE_LIMIT_READ.split("/")[0])
+
+    # Minimum expectations for this project (high-throughput friendly)
+    assert write_val >= 500, "Write rate limit should allow 500+ requests/minute for high-throughput"  # noqa: E501
+    assert read_val >= write_val
+    assert heavy_val < write_val
 
 
 def test_read_endpoint_under_limit(client):
