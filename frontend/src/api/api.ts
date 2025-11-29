@@ -87,7 +87,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
     } else {
       console.warn('[API] No token available for:', url);
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return config;
@@ -147,7 +147,8 @@ export async function preflightAPI(): Promise<string> {
     return apiClient.defaults?.baseURL || currentBase;
   } catch (e) {
     if (/^https?:\/\//i.test(ORIGINAL_API_BASE_URL || '')) {
-      if (!apiClient.defaults) apiClient.defaults = {} as any;
+      // Ensure defaults is correctly typed for axios
+      if (!apiClient.defaults) apiClient.defaults = ({ baseURL: '/api/v1' } as AxiosRequestConfig);
       apiClient.defaults.baseURL = '/api/v1';
     }
     return apiClient.defaults?.baseURL || '/api/v1';
@@ -158,7 +159,7 @@ export async function preflightAPI(): Promise<string> {
 export function __test_forceOriginalBase(url: string) {
   if (process.env.NODE_ENV !== 'test') return;
   ORIGINAL_API_BASE_URL = url;
-  if (!apiClient.defaults) apiClient.defaults = {} as any;
+  if (!apiClient.defaults) apiClient.defaults = ({ baseURL: url } as AxiosRequestConfig);
   apiClient.defaults.baseURL = url;
 }
 
@@ -414,15 +415,15 @@ export const analyticsAPI = {
     return response.data;
   },
 
-  getAllCoursesSummary: async (studentId: number): Promise<any> => {
-    const response = await apiClient.get(
+  getAllCoursesSummary: async (studentId: number): Promise<unknown> => {
+    const response = await apiClient.get<unknown>(
       `/analytics/student/${studentId}/all-courses-summary`
     );
     return response.data;
   },
 
-  getStudentSummary: async (studentId: number): Promise<any> => {
-    const response = await apiClient.get(`/analytics/student/${studentId}/summary`);
+  getStudentSummary: async (studentId: number): Promise<unknown> => {
+    const response = await apiClient.get<unknown>(`/analytics/student/${studentId}/summary`);
     return response.data;
   },
 
@@ -437,7 +438,7 @@ export const analyticsAPI = {
     const studentsList: Student[] = Array.isArray(students) ? students : (students?.items || []);
 
     const totalStudents = studentsList.length;
-    const activeStudents = studentsList.filter((s: any) => s.is_active).length;
+    const activeStudents = studentsList.filter((s: Student) => Boolean(s.is_active)).length;
     const totalCourses = Array.isArray(courses) ? courses.length : (courses?.items?.length ?? 0);
     return {
       totalStudents,
@@ -448,13 +449,13 @@ export const analyticsAPI = {
   },
 
   getAttendanceStats: async (studentId: number | null = null) => {
-    let attendanceRecords: any[] = [];
+    let attendanceRecords: Attendance[] = [];
     if (studentId) {
       attendanceRecords = await attendanceAPI.getByStudent(studentId);
     } else {
       const studentsAll = await studentsAPI.getAll();
       const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
-      const promises = (studentsNormalized || []).map((s: any) => attendanceAPI.getByStudent(s.id));
+      const promises = (studentsNormalized || []).map((s: Student) => attendanceAPI.getByStudent(s.id));
       const results = await Promise.all(promises);
       attendanceRecords = results.flat();
     }
@@ -474,7 +475,7 @@ export const analyticsAPI = {
   },
 
   getGradeStats: async (studentId: number | null = null, courseId: number | null = null) => {
-    let grades: any[] = [];
+    let grades: Grade[] = [];
     if (studentId) {
       grades = await gradesAPI.getByStudent(studentId);
       if (courseId) grades = grades.filter(g => g.course_id === courseId);
@@ -483,7 +484,7 @@ export const analyticsAPI = {
     } else {
       const studentsAll = await studentsAPI.getAll();
       const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
-      const promises = (studentsNormalized || []).map((s: any) => gradesAPI.getByStudent(s.id));
+      const promises = (studentsNormalized || []).map((s: Student) => gradesAPI.getByStudent(s.id));
       const results = await Promise.all(promises);
       grades = results.flat();
     }
@@ -586,7 +587,7 @@ export const sessionAPI = {
     return response.data;
   },
 
-  importSession: async (file: File, mergeStrategy: 'update' | 'skip' = 'update', dryRun = false): Promise<any> => {
+  importSession: async (file: File, mergeStrategy: 'update' | 'skip' = 'update', dryRun = false): Promise<ImportResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     const response = await apiClient.post('/sessions/import', formData, {
@@ -596,12 +597,12 @@ export const sessionAPI = {
     return response.data;
   },
 
-  listBackups: async (): Promise<any[]> => {
+  listBackups: async (): Promise<unknown[]> => {
     const response = await apiClient.get('/sessions/backups');
     return response.data;
   },
 
-  rollbackImport: async (backupFilename: string): Promise<any> => {
+  rollbackImport: async (backupFilename: string): Promise<unknown> => {
     const response = await apiClient.post('/sessions/rollback', null, { params: { backup_filename: backupFilename } });
     return response.data;
   },
@@ -680,12 +681,13 @@ export const adminUsersAPI = {
 
 // ==================== HEALTH CHECK ====================
 
-export const checkAPIHealth = async (): Promise<{ status: 'ok' | 'error'; data?: any; error?: string }> => {
+export const checkAPIHealth = async (): Promise<{ status: 'ok' | 'error'; data?: unknown; error?: string }> => {
   try {
     const response = await apiClient.get('/');
     return { status: 'ok', data: response.data };
-  } catch (error: any) {
-    return { status: 'error', error: error?.message || String(error) };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { status: 'error', error: message };
   }
 };
 
