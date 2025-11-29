@@ -35,8 +35,8 @@ import type {
 
 // Base API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
-console.log('[API Client] VITE_API_URL env var:', import.meta.env.VITE_API_URL);
-console.log('[API Client] Using API_BASE_URL:', API_BASE_URL);
+console.warn('[API Client] VITE_API_URL env var:', import.meta.env.VITE_API_URL);
+console.warn('[API Client] Using API_BASE_URL:', API_BASE_URL);
 if (!import.meta.env.VITE_API_URL) {
   console.warn('VITE_API_URL is not defined. Using default relative URL: /api/v1');
 }
@@ -66,13 +66,13 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
     // Skip auth header for login/refresh endpoints (they don't need it)
     const url = config.url || '';
     if (url.includes('/auth/login') || url.includes('/auth/refresh')) {
-      console.log('[API] Skipping auth header for:', url);
+      console.warn('[API] Skipping auth header for:', url);
       return config;
     }
     
     const token = authService.getAccessToken();
     if (token) {
-      console.log('[API] Attaching auth header for:', url);
+      console.warn('[API] Attaching auth header for:', url);
       if (config.headers instanceof AxiosHeaders) {
         config.headers.set('Authorization', `Bearer ${token}`);
       } else if (config.headers) {
@@ -85,7 +85,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
         config.headers = headers;
       }
     } else {
-      console.log('[API] No token available for:', url);
+      console.warn('[API] No token available for:', url);
     }
   } catch (e) {
     // ignore

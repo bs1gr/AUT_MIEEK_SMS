@@ -21,7 +21,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.environment import get_runtime_context
+from backend.environment import get_runtime_context  # noqa: E402
 
 # Set execution mode to docker, but allow SMS_ENV to be controlled externally
 # This allows tests to run properly while production deployments can set SMS_ENV=production

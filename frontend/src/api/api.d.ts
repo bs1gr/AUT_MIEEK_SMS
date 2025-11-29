@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Minimal TypeScript declaration for the legacy JS API client
 // This file provides wide 'any' typings to unblock TypeScript checks during
 // the pre-commit/validation process. More accurate types should be added
