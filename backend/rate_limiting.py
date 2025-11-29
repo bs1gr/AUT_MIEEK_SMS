@@ -18,7 +18,7 @@ _testing = bool(os.environ.get("PYTEST_CURRENT_TEST"))
 limiter = Limiter(key_func=get_remote_address, enabled=(not _testing), storage_uri="memory://")
 
 # Constants aligned with test expectations (ensuring increasing permissiveness: heavy < write < read)
-RATE_LIMIT_READ = "60/minute"   # Read operations
-RATE_LIMIT_WRITE = "10/minute"  # Write operations
-RATE_LIMIT_HEAVY = "5/minute"   # Heavy operations (imports, exports)
-RATE_LIMIT_AUTH = "20/minute"   # Authentication attempts (kept strict for security)
+RATE_LIMIT_READ = "300/minute"   # Read operations - increased for attendance calendar
+RATE_LIMIT_WRITE = "200/minute"  # Write operations - increased for bulk attendance saves
+RATE_LIMIT_HEAVY = "30/minute"   # Heavy operations (imports, exports) - increased for batch operations
+RATE_LIMIT_AUTH = "20/minute"    # Authentication attempts (kept strict for security)

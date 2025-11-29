@@ -4,7 +4,7 @@ import logging
 from datetime import date
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Path
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from backend.errors import internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.services.daily_performance_service import DailyPerformanceService
+from backend.db_utils import get_by_id_or_404
 
 from .routers_auth import optional_require_role
 
@@ -37,6 +38,21 @@ class DailyPerformanceCreate(BaseModel):
 
 
 class DailyPerformanceResponse(BaseModel):
+    @router.get("/{id}", response_model=DailyPerformanceResponse)
+    def get_daily_performance_by_id(
+        id: int = Path(..., description="DailyPerformance record ID"),
+        request: Request = None,
+        db: Session = Depends(get_db),
+    ):
+        try:
+            import_names("models", "DailyPerformance")
+            record = get_by_id_or_404(db, import_names("models", "DailyPerformance")[0], id)
+            return record
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.error(f"Error fetching daily performance by id {id}: {exc}", exc_info=True)
+            raise internal_server_error(request=request) from exc
     id: int
     student_id: int
     course_id: int

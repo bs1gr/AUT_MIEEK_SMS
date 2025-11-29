@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
@@ -8,6 +8,9 @@ import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+
+// Version marker to verify code reload
+console.log('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
 
 type Props = { courses: Course[]; students: Student[] };
 
@@ -54,7 +57,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
 
-
+  // Request deduplication - prevent concurrent duplicate requests
+  const activeRequestsRef = useRef<Set<string>>(new Set());
+  const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const dayNamesShort = useMemo(
     () => (t('dayNames') ? t('dayNames').split(',').map((day: string) => day.trim()) : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']),
@@ -330,29 +335,55 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (!localCourses || localCourses.length === 0) { setCoursesWithEnrollment(new Set()); return; }
+
+      // Request deduplication key
+      const requestKey = `enrollments-${courseIds}`;
+
+      // Prevent duplicate concurrent requests
+      if (activeRequestsRef.current.has(requestKey)) {
+        console.log('[AttendanceView] Skipping duplicate enrollments request');
+        return;
+      }
+
+      activeRequestsRef.current.add(requestKey);
+
       try {
-        const results = await Promise.all(localCourses.map(async (c) => {
-          try {
-            const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
-            if (!r.ok) {
-              console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
+        // Process courses in smaller batches to avoid overwhelming the server
+        const BATCH_SIZE = 3; // Fetch 3 courses at a time instead of all at once
+        const results: Array<{ id: number; count: number }> = [];
+
+        for (let i = 0; i < localCourses.length; i += BATCH_SIZE) {
+          const batch = localCourses.slice(i, i + BATCH_SIZE);
+          const batchResults = await Promise.all(batch.map(async (c) => {
+            try {
+              const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
+              if (!r.ok) {
+                console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
+                return { id: c.id, count: 0 };
+              }
+              const arr = await r.json();
+              console.log(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+              // Accept both array and object-with-items
+              if (Array.isArray(arr)) {
+                return { id: c.id, count: arr.length };
+              } else if (arr && Array.isArray(arr.items)) {
+                return { id: c.id, count: arr.items.length };
+              } else {
+                return { id: c.id, count: 0 };
+              }
+            } catch (err) {
+              console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, err);
               return { id: c.id, count: 0 };
             }
-            const arr = await r.json();
-            console.log(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
-            // Accept both array and object-with-items
-            if (Array.isArray(arr)) {
-              return { id: c.id, count: arr.length };
-            } else if (arr && Array.isArray(arr.items)) {
-              return { id: c.id, count: arr.items.length };
-            } else {
-              return { id: c.id, count: 0 };
-            }
-          } catch (err) {
-            console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, err);
-            return { id: c.id, count: 0 };
+          }));
+          results.push(...batchResults);
+
+          // Small delay between batches to avoid rate limiting
+          if (i + BATCH_SIZE < localCourses.length) {
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
-        }));
+        }
+
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
         console.log('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
@@ -360,6 +391,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       } catch (err) {
         console.error('[AttendanceView] Error in fetchEnrollments:', err);
         setCoursesWithEnrollment(new Set());
+      } finally {
+        activeRequestsRef.current.delete(requestKey);
       }
     };
     fetchEnrollments();
@@ -424,6 +457,18 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const refreshAttendancePrefill = useCallback(async () => {
     if (!selectedCourse || !selectedDateStr) return;
     const dateStr = selectedDateStr;
+
+    // Request deduplication key
+    const requestKey = `attendance-${selectedCourse}-${dateStr}`;
+
+    // Prevent duplicate concurrent requests
+    if (activeRequestsRef.current.has(requestKey)) {
+      console.log('[AttendanceView] Skipping duplicate request:', requestKey);
+      return;
+    }
+
+    activeRequestsRef.current.add(requestKey);
+
     try {
       const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
       const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
@@ -444,7 +489,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
       setAttendanceRecords(next);
       setAttendanceRecordIds(ids);
-      
+
       const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
       const dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
       const dp: Record<string, number> = {};
@@ -460,17 +505,36 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
       setDailyPerformance(dp);
       setDailyPerformanceIds(dpIds);
-    } catch {
+    } catch (error) {
+      console.error('[AttendanceView] Error fetching attendance:', error);
       setAttendanceRecords({});
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+    } finally {
+      activeRequestsRef.current.delete(requestKey);
     }
   }, [selectedCourse, selectedDateStr]);
 
   // Prefill existing attendance and daily performance for selected date/course
+  // Debounced to prevent rapid API calls when user clicks through dates quickly
   useEffect(() => {
-    refreshAttendancePrefill();
+    // Clear any pending timeout
+    if (attendanceFetchTimeoutRef.current) {
+      clearTimeout(attendanceFetchTimeoutRef.current);
+    }
+
+    // Debounce the fetch by 300ms
+    attendanceFetchTimeoutRef.current = setTimeout(() => {
+      refreshAttendancePrefill();
+    }, 300);
+
+    // Cleanup on unmount
+    return () => {
+      if (attendanceFetchTimeoutRef.current) {
+        clearTimeout(attendanceFetchTimeoutRef.current);
+      }
+    };
   }, [refreshAttendancePrefill]);
 
   // Fetch dates with attendance records for the current month
@@ -487,6 +551,17 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const lastDay = new Date(year, month, 0).getDate();
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+      // Request deduplication key
+      const requestKey = `dates-${selectedCourse}-${year}-${month}`;
+
+      // Prevent duplicate concurrent requests
+      if (activeRequestsRef.current.has(requestKey)) {
+        console.log('[AttendanceView] Skipping duplicate dates request:', requestKey);
+        return;
+      }
+
+      activeRequestsRef.current.add(requestKey);
+
       try {
         const data = await apiClient.get(`/attendance/course/${selectedCourse}`, { params: { start_date: startDate, end_date: endDate } });
         const attData = Array.isArray(data) ? data : (data.data ? (Array.isArray(data.data) ? data.data : []) : []);
@@ -502,6 +577,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       } catch (error) {
         console.error('Failed to fetch attendance dates:', error);
         setDatesWithAttendance(new Set());
+      } finally {
+        activeRequestsRef.current.delete(requestKey);
       }
     };
 
@@ -676,14 +753,33 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         if (!studentId) return Promise.resolve(null);
         const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
         const payloadDate = storedDate || dateStr;
-        
+
         // If record has an ID from API, use PUT to update; otherwise POST to create
         if (recordId) {
           console.log(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
-          return apiClient.put(`/attendance/${recordId}`, { status }).then(res => {
-            console.log(`[Attendance] PUT response: success`);
-            return res;
-          });
+          return apiClient.put(`/attendance/${recordId}`, { status })
+            .then(res => {
+              console.log(`[Attendance] PUT response: success`);
+              return res;
+            })
+            .catch(error => {
+              // If record doesn't exist (404), create it instead
+              if (error.response?.status === 404) {
+                console.log(`[Attendance] Record ${recordId} not found, creating new record`);
+                return apiClient.post(`/attendance/`, {
+                  student_id: studentId,
+                  course_id: selectedCourse,
+                  date: payloadDate,
+                  status,
+                  period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
+                  notes: '',
+                }).then(res => {
+                  console.log(`[Attendance] POST response (fallback): success`);
+                  return res;
+                });
+              }
+              throw error;
+            });
         } else {
           console.log(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
           return apiClient.post(`/attendance/`, {
@@ -703,18 +799,52 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
         const recordId = dailyPerformanceIds[key];
         const [studentIdStr, category] = key.split('-');
-        
+
         // If record has an ID from API, use PUT to update; otherwise POST to create
         if (recordId) {
           console.log(`[Performance] PUT /daily-performance/${recordId} - score: ${score}`);
-          return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 }).then(res => {
-            console.log(`[Performance] PUT response: success`);
-            return res;
-          });
+          return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 })
+            .then(res => {
+              console.log(`[Performance] PUT response: success`);
+              return res;
+            })
+            .catch(error => {
+              // If record doesn't exist (404), create it instead
+              if (error.response?.status === 404) {
+                console.log(`[Performance] Record ${recordId} not found, creating new record`);
+                  return apiClient.post(`/daily-performance/`, {
+                    student_id: parseInt(studentIdStr, 10),
+                    course_id: selectedCourse,
+                    date: dateStr,
+                    category,
+                    score,
+                    max_score: 10.0,
+                    notes: ''
+                  }).then(res => {
+                    console.log(`[Performance] POST response (fallback): success`);
+                      // Debug log: POST response data and key
+                      console.log('[DEBUG] POST fallback response data:', res?.data);
+                      console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+                    // Update dailyPerformanceIds with new ID from response
+                    if (res?.data?.id) {
+                      setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
+                    }
+                    return res;
+                  });
+              }
+              throw error;
+            });
         } else {
           console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}`);
           return apiClient.post(`/daily-performance/`, { student_id: parseInt(studentIdStr, 10), course_id: selectedCourse, date: dateStr, category, score, max_score: 10.0, notes: '' }).then(res => {
             console.log(`[Performance] POST response: success`);
+              // Debug log: POST response data and key
+              console.log('[DEBUG] POST direct response data:', res?.data);
+              console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+              // Update dailyPerformanceIds with new ID from response
+              if (res?.data?.id) {
+                setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
+              }
             return res;
           });
         }
@@ -755,6 +885,27 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       
       await refreshAttendancePrefill();
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
+        // Clear only the saved records from attendanceRecords and dailyPerformance
+        Object.keys(attendanceRecords).forEach(key => {
+          setAttendanceRecords(prev => {
+            const updated = { ...prev };
+            delete updated[key];
+            return updated;
+          });
+        });
+        Object.keys(dailyPerformance).forEach(key => {
+          setDailyPerformance(prev => {
+            const updated = { ...prev };
+            delete updated[key];
+            return updated;
+          });
+        });
+        // Debug log: confirm only saved records cleared
+        console.log('[DEBUG] Cleared only saved attendanceRecords and dailyPerformance after save');
+        setTimeout(() => {
+          console.log('[DEBUG] attendanceRecords after clear:', attendanceRecords);
+          console.log('[DEBUG] dailyPerformance after clear:', dailyPerformance);
+        }, 500);
     } catch (e) {
       console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
@@ -773,6 +924,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       skipInitial: true,
     }
   );
+
+    // Debug log: track autosave dependencies
+    useEffect(() => {
+      console.log('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
+    }, [attendanceRecords, dailyPerformance]);
 
   return (
     <div className="space-y-6">
