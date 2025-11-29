@@ -44,9 +44,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Auto-login on mount with default credentials if AUTH is enabled
   useEffect(() => {
-    console.log('[Auth] useEffect mount - autoLoginAttempted:', autoLoginAttempted, 'user:', user);
+    console.warn('[Auth] useEffect mount - autoLoginAttempted:', autoLoginAttempted, 'user:', user);
     if (autoLoginAttempted) {
-      console.log('[Auth] Already attempted, returning');
+      console.warn('[Auth] Already attempted, returning');
       return;
     }
     
@@ -55,56 +55,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // If user exists but no token, preserve user and attempt silent token acquisition.
     // This allows localStorage restoration tests and offline scenarios to retain user context.
     if (user && !accessToken) {
-      console.log('[Auth] User exists without token; preserving user and attempting silent token acquisition');
+      console.warn('[Auth] User exists without token; preserving user and attempting silent token acquisition');
       // Fall through to auto-login attempt to obtain a fresh token; do NOT clear user.
     } else if (user && accessToken) {
       // User and token exist - finish init
-      console.log('[Auth] User and token exist in state, setting isInitializing to false');
+      console.warn('[Auth] User and token exist in state, setting isInitializing to false');
       setIsInitializing(false);
       return;
     }
     
-    console.log('[Auth] Attempting auto-login');
+    console.warn('[Auth] Attempting auto-login');
     let timeoutId: number | undefined;
     let mounted = true;
     
     const attemptAutoLogin = async () => {
       try {
-        console.log('[Auth] Starting auto-login attempt');
+        console.warn('[Auth] Starting auto-login attempt');
         // Timeout after 10 seconds - give it time to complete (increased from 5s for slow first startup)
         const controller = new AbortController();
         timeoutId = window.setTimeout(() => {
-          console.log('[Auth] Auto-login timeout triggered (10s)');
+          console.warn('[Auth] Auto-login timeout triggered (10s)');
           controller.abort();
         }, 10000);
         
-        console.log('[Auth] Posting to /auth/login');
+        console.warn('[Auth] Posting to /auth/login');
         const resp = await apiClient.post('/auth/login', {
           email: 'admin@example.com',
           password: 'YourSecurePassword123!'
         }, { withCredentials: true, signal: controller.signal });
         
         if (!mounted) {
-          console.log('[Auth] Component unmounted, discarding response');
+          console.warn('[Auth] Component unmounted, discarding response');
           return;
         }
         
-        console.log('[Auth] Login response received:', resp.status);
+        console.warn('[Auth] Login response received:', resp.status);
         const data = resp.data || {};
         
         if (data.access_token) {
-          console.log('[Auth] Token received, setting state');
+          console.warn('[Auth] Token received, setting state');
           setAccessTokenState(data.access_token);
           authService.setAccessToken(data.access_token);
           
           // Get user data - either from response or fetch separately
           let userPayload = data.user;
           if (!userPayload) {
-            console.log('[Auth] No user in login response, fetching from /auth/me (with retry)');
+            console.warn('[Auth] No user in login response, fetching from /auth/me (with retry)');
             try {
               const meResp = await fetchMeWithRetry();
               userPayload = meResp;
-              console.log('[Auth] User data fetched:', userPayload?.email);
+              console.warn('[Auth] User data fetched:', userPayload?.email);
             } catch (err) {
               console.warn('[Auth] Failed to fetch user profile (after retries):', err instanceof Error ? err.message : err);
               // Continue anyway - we have the token
@@ -112,12 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           if (userPayload) {
-            console.log('[Auth] Setting user state:', userPayload.email);
+            console.warn('[Auth] Setting user state:', userPayload.email);
             setUser(userPayload);
             try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
           }
         } else {
-          console.log('[Auth] No access_token in response');
+          console.warn('[Auth] No access_token in response');
         }
       } catch (err) {
         // Auto-login failed - auth disabled, timeout, or wrong credentials
@@ -129,15 +129,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isNetworkError = errMsg.includes('Network') || errMsg.includes('fetch');
         
         if (isTimeout) {
-          console.debug('[Auth] Auto-login timeout - backend may be slow to start', errMsg);
+          console.warn('[Auth] Auto-login timeout - backend may be slow to start', errMsg);
         } else if (isNetworkError) {
-          console.debug('[Auth] Auto-login network error - backend may not be ready yet', errMsg);
+          console.warn('[Auth] Auto-login network error - backend may not be ready yet', errMsg);
         } else {
-          console.debug('[Auth] Auto-login unavailable (auth may be disabled or credentials incorrect), continuing as guest:', errMsg);
+          console.warn('[Auth] Auto-login unavailable (auth may be disabled or credentials incorrect), continuing as guest:', errMsg);
         }
       } finally {
         if (mounted) {
-          console.log('[Auth] Setting isInitializing to false');
+          console.warn('[Auth] Setting isInitializing to false');
           setIsInitializing(false);
         }
         if (timeoutId !== undefined) {
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     attemptAutoLogin();
     
     return () => {
-      console.log('[Auth] Cleanup - mounted = false');
+      console.warn('[Auth] Cleanup - mounted = false');
       mounted = false;
       if (timeoutId !== undefined) {
         window.clearTimeout(timeoutId);
