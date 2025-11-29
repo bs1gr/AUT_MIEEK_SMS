@@ -260,7 +260,7 @@ describe('bulkAttendanceSchema', () => {
     it('accepts many records for bulk operation', () => {
       const manyRecords = Array.from({ length: 50 }, (_, i) => ({
         student_id: i + 1,
-        status: (i % 2 === 0 ? 'present' : 'absent') as const,
+        status: (i % 2 === 0 ? 'present' : 'absent') as 'present' | 'absent',
       }));
       expect(bulkAttendanceSchema.parse({ ...validBulkBase, attendance_records: manyRecords })).toMatchObject({ attendance_records: manyRecords });
     });

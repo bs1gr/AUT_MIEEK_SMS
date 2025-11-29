@@ -4,10 +4,11 @@
 // UPDATED: Added "Select All" buttons for each attendance status + full localization
 // All hardcoded text replaced with translation keys
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Star, TrendingUp, UserCheck, DumbbellIcon, CloudUpload } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Star, TrendingUp, UserCheck, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import Spinner from '@/components/ui/Spinner';
+import { Student, Course } from '@/types';
 import { studentsAPI, coursesAPI } from '@/api/api';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -18,30 +19,18 @@ const EnhancedAttendanceCalendar = () => {
   const { t, language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [students, setStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [attendanceRecords, setAttendanceRecords] = useState({});
-  const [dailyPerformance, setDailyPerformance] = useState({});
-  const [evaluationCategories, setEvaluationCategories] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, string>>({});
+  const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
+  const [evaluationCategories, setEvaluationCategories] = useState<Array<{ id?: number; category: string; weight?: number; description?: string }>>([]);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
-  const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState(null);
+  const [selectedStudentForPerformance, setSelectedStudentForPerformance] = useState<Student | null>(null);
 
-  // FIXED: Common grade categories in both languages - matches CourseEvaluationRules.tsx and CourseManagement.tsx
-  const commonCategories = [
-    { en: 'Class Participation', el: 'Συμμετοχή στο Μάθημα' },
-    { en: 'Homework/Assignments', el: 'Εκπόνηση Εργασιών' },
-    { en: 'Continuous Assessment', el: 'Συνεχής Αξιολόγηση' },
-    { en: 'Quizzes', el: 'Κουίζ' },
-    { en: 'Midterm Exam', el: 'Ενδιάμεση Εξέταση' },
-    { en: 'Final Exam', el: 'Τελική Εξέταση' },
-    { en: 'Lab Work', el: 'Εργαστηριακή Εργασία' },
-    { en: 'Project', el: 'Πρότζεκτ' },
-    { en: 'Presentation', el: 'Παρουσίαση' },
-    { en: 'Attendance', el: 'Παρουσία' }
-  ];
+  // FIXED: Common grade categories are defined centrally in CourseEvaluationRules and re-used there.
 
   useEffect(() => {
     loadData();
@@ -59,10 +48,15 @@ const EnhancedAttendanceCalendar = () => {
         studentsAPI.getAll(),
         coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
       ]);
-      setStudents(studentsData);
-      setCourses(coursesData);
-      if (coursesData.length > 0) {
-        setSelectedCourse(coursesData[0].id);
+
+      // Normalise paginated responses to arrays for this view
+      const studentList = Array.isArray(studentsData) ? studentsData : (studentsData?.items || []);
+      const courseList = Array.isArray(coursesData) ? coursesData : (coursesData?.items || []);
+
+      setStudents(studentList);
+      setCourses(courseList);
+      if (courseList.length > 0) {
+        setSelectedCourse(courseList[0].id);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -106,18 +100,18 @@ const EnhancedAttendanceCalendar = () => {
     }
   };
 
-  const showToast = (message, type = 'info') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
   const formatDate = (date: Date | string) => formatLocalDate(date);
 
-  const getAttendanceKey = (studentId) => {
+  const getAttendanceKey = (studentId: number) => {
     return `${studentId}-${formatDate(selectedDate)}`;
   };
 
-  const setAttendance = (studentId, status) => {
+  const setAttendance = (studentId: number, status: string) => {
     setAttendanceRecords(prev => ({
       ...prev,
       [getAttendanceKey(studentId)]: status
@@ -125,8 +119,8 @@ const EnhancedAttendanceCalendar = () => {
   };
 
     // NEW: Select all students with a specific status
-  const selectAllAttendance = (status) => {
-    const newRecords = {};
+  const selectAllAttendance = (status: string) => {
+    const newRecords: Record<string, string> = {};
     students.forEach(student => {
       const key = getAttendanceKey(student.id);
       newRecords[key] = status;
@@ -138,16 +132,16 @@ const EnhancedAttendanceCalendar = () => {
     showToast(t('allStudentsMarked') || `All students marked as ${status}`, 'success');
   };
 
-  const openPerformanceModal = (student) => {
+  const openPerformanceModal = (student: Student) => {
     setSelectedStudentForPerformance(student);
     setShowPerformanceModal(true);
   };
 
-  const setPerformanceScore = (studentId, category, score) => {
+  const setPerformanceScore = (studentId: number, category: string, score: string | number) => {
     const key = `${studentId}-${category}`;
     setDailyPerformance(prev => ({
       ...prev,
-      [key]: parseFloat(score)
+      [key]: Number(score)
     }));
   };
 
@@ -219,7 +213,7 @@ const EnhancedAttendanceCalendar = () => {
     }
   );
 
-  const getDaysInMonth = (date, startOnMonday) => {
+  const getDaysInMonth = (date: Date, startOnMonday: boolean): Array<Date | null> => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -237,18 +231,18 @@ const EnhancedAttendanceCalendar = () => {
     return days;
   };
 
-  const isToday = (date) => {
+  const isToday = (date?: Date | null) => {
     if (!date) return false;
     const today = new Date();
     return date.toDateString() === today.toDateString();
   };
 
-  const isSelected = (date) => {
+  const isSelected = (date?: Date | null) => {
     if (!date) return false;
     return date.toDateString() === selectedDate.toDateString();
   };
 
-  const isTeachingDay = (date) => {
+  const isTeachingDay = (date?: Date | null) => {
     if (!date || !selectedCourse) return true;
 
     const course = courses.find(c => c.id === selectedCourse);
@@ -259,7 +253,7 @@ const EnhancedAttendanceCalendar = () => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayName = dayNames[date.getDay()];
 
-    return course.teaching_schedule.some(period => period.day === dayName);
+    return Array.isArray(course.teaching_schedule) ? (course.teaching_schedule as Array<any>).some(period => period.day === dayName) : Object.keys(course.teaching_schedule || {}).some(k => k === dayName);
   };
 
   const previousMonth = () => {
@@ -270,7 +264,7 @@ const EnhancedAttendanceCalendar = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const dayNamesShort = useMemo(() => (t('dayNames') || 'Sun,Mon,Tue,Wed,Thu,Fri,Sat').split(',').map((day) => day.trim()), [t]);
+  const dayNamesShort = useMemo(() => (String(t('dayNames') || 'Sun,Mon,Tue,Wed,Thu,Fri,Sat')).split(',').map((day) => String(day).trim()), [t]);
   const weekStartsOnMonday = useMemo(() => inferWeekStartsOnMonday(dayNamesShort, language === 'el'), [dayNamesShort, language]);
   const days = useMemo(() => getDaysInMonth(currentMonth, weekStartsOnMonday), [currentMonth, weekStartsOnMonday]);
   const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
@@ -282,6 +276,7 @@ const EnhancedAttendanceCalendar = () => {
   const attendanceOptions = [
     {
       status: t('present'),
+      label: String(t('present')),
       icon: CheckCircle,
       color: 'green',
       bgColor: 'bg-green-50',
@@ -292,6 +287,7 @@ const EnhancedAttendanceCalendar = () => {
     },
     {
       status: t('absent'),
+      label: String(t('absent')),
       icon: XCircle,
       color: 'red',
       bgColor: 'bg-red-50',
@@ -302,6 +298,7 @@ const EnhancedAttendanceCalendar = () => {
     },
     {
       status: t('late'),
+      label: String(t('late')),
       icon: Clock,
       color: 'yellow',
       bgColor: 'bg-yellow-50',
@@ -312,6 +309,7 @@ const EnhancedAttendanceCalendar = () => {
     },
     {
       status: t('excused'),
+      label: String(t('excused')),
       icon: AlertCircle,
       color: 'blue',
       bgColor: 'bg-blue-50',
@@ -322,6 +320,7 @@ const EnhancedAttendanceCalendar = () => {
     },
     {
       status: t('clear'),
+      label: String(t('clear')),
       icon: XCircle,
       color: 'blue',
       bgColor: 'bg-white-50',
@@ -424,18 +423,28 @@ const EnhancedAttendanceCalendar = () => {
 
           {selectedCourse && (() => {
             const course = courses.find(c => c.id === selectedCourse);
-            if (course && course.teaching_schedule && course.teaching_schedule.length > 0) {
+            if (course && course.teaching_schedule) {
+              const hasArray = Array.isArray(course.teaching_schedule) && course.teaching_schedule.length > 0;
+              const hasRecord = !Array.isArray(course.teaching_schedule) && Object.keys(course.teaching_schedule as Record<string, unknown>).length > 0;
+              if (!hasArray && !hasRecord) return null;
               return (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-xs font-semibold text-blue-800 mb-1">
                     📅 {t('teachingDaysFor')} {course.course_code}:
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {[...new Set(course.teaching_schedule.map(s => s.day))].map(day => (
-                      <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
-                        {day}
-                      </span>
-                    ))}
+                    {Array.isArray(course.teaching_schedule)
+                      ? [...new Set((course.teaching_schedule as Array<any>).map(s => s.day))].map((day: string) => (
+                          <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                            {day}
+                          </span>
+                        ))
+                      : Object.keys(course.teaching_schedule as Record<string, any>).map((day: string) => (
+                          <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                            {day}
+                          </span>
+                        ))}
+                    
                   </div>
                   <p className="text-xs text-gray-600 mt-1">
                     {t('onlyTeachingDaysSelectable')}

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { NavigationView } from './Navigation';
 import type { Student, Course } from '@/types';
@@ -40,7 +40,7 @@ export interface ViewRouterProps {
   onDeleteCourse: (courseId: number) => Promise<void>;
 
   // Power view specific (render props pattern)
-  renderPowerView?: () => JSX.Element;
+  renderPowerView?: () => ReactElement | null;
 }
 
 export default function ViewRouter({

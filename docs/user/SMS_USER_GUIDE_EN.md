@@ -299,7 +299,7 @@ If autosave fails (network issues, validation errors):
 
 - Uses the same authentication as manual saves
 - Teachers can only edit courses/attendance assigned to them
-- Rate limiting: 10 saves per minute (with 2-second debounce = safe)
+ - Rate limiting: environment-configurable via backend RATE_LIMIT_* settings (client uses 2-second debounce and chunked writes to avoid bursts)
 
 ---
 

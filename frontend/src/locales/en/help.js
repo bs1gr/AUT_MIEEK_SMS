@@ -112,7 +112,7 @@ export default {
   helpDoesAutosaveWorkOffline: 'Does autosave work offline?',
   helpAutosaveOfflineAnswer: 'Student Notes use browser localStorage and work offline. Other features (attendance, grades, evaluation rules) require an internet connection because they save to the database. If you\'re offline, you\'ll see error notifications when the system cannot save.',
   helpIsAutosaveSecure: 'Is autosave secure and authenticated?',
-  helpAutosaveSecureAnswer: 'Yes. All autosave operations use the same authentication and authorization as manual saves. Teachers can only edit courses and attendance they\'re assigned to. The system includes rate limiting (10 saves per minute) to prevent abuse while allowing normal editing workflows.',
+  helpAutosaveSecureAnswer: 'Yes. All autosave operations use the same authentication and authorization as manual saves. Teachers can only edit courses and attendance they\'re assigned to. Rate limits are configured in the backend (RATE_LIMIT_* variables) and tuned for high-throughput deployments — the client also uses a 2s debounce and chunked writes to avoid bursts.',
   helpRecentImprovements: 'Recent Improvements (v1.8.x → v1.9.0)',
   helpWhatsNewInLatest: 'What\'s new in the latest version?',
   helpWhatsNewAnswer: 'Major improvements include: (1) Universal autosave pattern - no more save buttons, changes save automatically, (2) Session export/import - transfer entire semesters between systems, (3) Enhanced rate limits - 200 writes/min for batch operations, (4) Persistent authentication - stay logged in across page refreshes, (5) Windows GUI installer - professional installation wizard for non-technical users.',

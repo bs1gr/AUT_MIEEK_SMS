@@ -51,7 +51,7 @@ User types → onChange → localStorage.setItem() → Autosave triggered → No
 **Authentication Status:**
 - ✅ **Teachers have access** - Both endpoints use `optional_require_role("admin", "teacher")`
 - ✅ **Autosave works for teachers** - No permission barriers
-- ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (10/min) prevents abuse
+- ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (environment configurable; defaults are higher for high-throughput deployments) prevents abuse
 
 **Code Reference:**
 ```python
@@ -107,7 +107,7 @@ optional_require_role("admin", "teacher") → ✅ Teacher passes → Rules saved
 **Authentication Status:**
 - ✅ **Teachers have access** - All endpoints use `optional_require_role("admin", "teacher")`
 - ✅ **Autosave works for teachers** - No permission barriers
-- ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (10/min)
+- ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (environment configurable; defaults are higher for high-throughput deployments)
 
 **Code Reference:**
 ```python
@@ -198,10 +198,10 @@ All autosave endpoints have appropriate rate limiting:
 
 | Endpoint | Rate Limit | Impact on Autosave |
 |----------|------------|-------------------|
-| PUT /courses/{id} | 10/min | ✅ 2s debounce = max 30/min theoretical, but user can't change that fast |
-| POST /attendance/ | 10/min | ✅ Batched in chunks of 30, with delays between chunks |
-| PUT /attendance/{id} | 10/min | ✅ Same as above |
-| POST /daily-performance/ | 10/min | ✅ Same as above |
+| PUT /courses/{id} | RATE_LIMIT_WRITE (env-configurable) | ✅ 2s debounce = max 30/min theoretical, but client-side debounce reduces bursts |
+| POST /attendance/ | RATE_LIMIT_WRITE (env-configurable) | ✅ Batched in chunks of 30, with delays between chunks |
+| PUT /attendance/{id} | RATE_LIMIT_WRITE (env-configurable) | ✅ Same as above |
+| POST /daily-performance/ | RATE_LIMIT_WRITE (env-configurable) | ✅ Same as above |
 
 **Note:** AttendanceView uses **chunked processing** (30 requests at a time) with delays between chunks to respect rate limits. This is more sophisticated than simple throttling.
 

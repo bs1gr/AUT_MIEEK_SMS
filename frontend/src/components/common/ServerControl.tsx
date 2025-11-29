@@ -17,8 +17,7 @@ try {
   resolvedBackendUrl = new URL(FALLBACK_ORIGIN);
 }
 
-const resolvedBackendPath = resolvedBackendUrl.pathname?.replace(/\/$/, '') || '';
-const API_BASE_URL = `${resolvedBackendUrl.origin}${resolvedBackendPath}`;
+// resolved backend origin available as resolvedBackendUrl if needed
 
 const FALLBACK_PROTOCOL = typeof window !== 'undefined' ? window.location.protocol || 'http:' : 'http:';
 const FALLBACK_PORT = typeof window !== 'undefined' ? window.location.port || '' : '';
