@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import type { Course } from '@/types';
+
 import {
   generateCourseScheduleICS,
   generateAllCoursesScheduleICS,
@@ -129,7 +131,7 @@ describe('calendarUtils', () => {
         semester: 'Spring 2024',
       };
 
-      expect(() => generateCourseScheduleICS(courseWithoutSchedule as any)).toThrow(
+      expect(() => generateCourseScheduleICS(courseWithoutSchedule)).toThrow(
         'No teaching schedule available'
       );
     });
@@ -248,7 +250,7 @@ describe('calendarUtils', () => {
     ];
 
     it('generates ICS for multiple courses', () => {
-      const result = generateAllCoursesScheduleICS(courses as any);
+      const result = generateAllCoursesScheduleICS(courses);
 
       expect(result).toContain('BEGIN:VCALENDAR');
       expect(result).toContain('CS101');
@@ -257,7 +259,7 @@ describe('calendarUtils', () => {
     });
 
     it('includes all courses with schedules', () => {
-      const result = generateAllCoursesScheduleICS(courses as any);
+      const result = generateAllCoursesScheduleICS(courses);
       const eventCount = (result.match(/BEGIN:VEVENT/g) || []).length;
 
       expect(eventCount).toBe(2); // Only CS101 and MATH201
@@ -272,7 +274,7 @@ describe('calendarUtils', () => {
         },
       ];
 
-      expect(() => generateAllCoursesScheduleICS(coursesWithoutSchedules as any)).toThrow(
+      expect(() => generateAllCoursesScheduleICS(coursesWithoutSchedules)).toThrow(
         'No teaching schedules available'
       );
     });
@@ -287,13 +289,13 @@ describe('calendarUtils', () => {
       const startDate = new Date(2024, 8, 1);
       const endDate = new Date(2024, 11, 20);
 
-      const result = generateAllCoursesScheduleICS(courses as any, startDate, endDate);
+      const result = generateAllCoursesScheduleICS(courses as Course[], startDate, endDate);
 
       expect(result).toContain('20241220');
     });
 
     it('sets calendar name for all courses', () => {
-      const result = generateAllCoursesScheduleICS(courses as any);
+      const result = generateAllCoursesScheduleICS(courses as Course[]);
 
       expect(result).toContain('X-WR-CALNAME:All Courses Teaching Schedule');
     });
@@ -316,16 +318,16 @@ describe('calendarUtils', () => {
           appendChild: mockAppendChild,
           removeChild: mockRemoveChild,
         },
-      } as any;
+      } as unknown as Document;
 
       global.URL = {
         createObjectURL: mockCreateObjectURL,
         revokeObjectURL: mockRevokeObjectURL,
-      } as any;
+      } as unknown as typeof URL;
 
       global.Blob = class MockBlob {
-        constructor(public content: any[], public options: any) {}
-      } as any;
+        constructor(public content: unknown[], public options: Record<string, unknown> | undefined) {}
+      } as unknown as typeof Blob;
     });
 
     afterEach(() => {

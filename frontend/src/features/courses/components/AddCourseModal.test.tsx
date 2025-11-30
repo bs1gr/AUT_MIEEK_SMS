@@ -4,12 +4,20 @@ import userEvent from '@testing-library/user-event';
 import AddCourseModal from './AddCourseModal';
 import { LanguageProvider } from '@/LanguageContext';
 
-// Mock framer-motion
+// Mock framer-motion with proper types to avoid using `any`
+/*
+ * Tests use a tiny framer-motion mock that provides keyboard + click handling
+ * for accessibility testing. This helper is used only in tests — disable the
+ * jsx-a11y/no-static-element-interactions rule here to avoid lint noise.
+ */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, onClick, ...props }: any) => <div onClick={onClick} {...props}>{children}</div>,
+      div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent); }} tabIndex={-1} {...props}>{children}</div>
+      ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) => {

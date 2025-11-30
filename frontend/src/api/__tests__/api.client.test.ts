@@ -72,6 +72,8 @@ describe('API client - interceptors and utilities', () => {
   it('response interceptor logs and rejects 404/500 and network errors', async () => {
     const { __handlers } = axios as unknown as { __handlers: Handlers };
     expect(__handlers.resRejected).toBeTypeOf('function');
+    // Spy console.error so we can assert it's called by the interceptor
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // 404
     const err404 = { response: { status: 404, data: { detail: 'not found' } } };

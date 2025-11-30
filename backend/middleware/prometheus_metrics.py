@@ -165,7 +165,9 @@ def collect_business_metrics(db: Session) -> None:
 
         # Course metrics
         courses = db.query(Course.semester, Course).all()
-        semester_counts = {}
+        from typing import Dict
+
+        semester_counts: Dict[str, int] = {}
         for course in courses:
             semester = course.semester or "unknown"
             semester_counts[semester] = semester_counts.get(semester, 0) + 1

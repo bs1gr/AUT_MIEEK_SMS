@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Settings,
   AlertTriangle,
@@ -141,7 +141,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   const [uptime, setUptime] = useState<string>('');
-  const [uptimeTimer, setUptimeTimer] = useState<NodeJS.Timeout | null>(null);
+  const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const handleToast = useCallback((state: ToastState) => {
@@ -156,8 +156,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  // Helper to format uptime from seconds
-  function formatUptime(seconds: number): string {
+// Helper to format uptime from seconds
+function formatUptime(seconds: number): string {
     const d = Math.floor(seconds / (3600 * 24));
     const h = Math.floor((seconds % (3600 * 24)) / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -171,7 +171,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   }
 
   // Update uptime based on process_start_time
-  const updateUptime = (startIso: string | undefined) => {
+  const updateUptime = useCallback((startIso: string | undefined) => {
     if (!startIso) {
       setUptime('');
       return;
@@ -180,30 +180,30 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     const now = Date.now();
     const diff = Math.floor((now - start) / 1000);
     setUptime(formatUptime(diff));
-  };
+  }, []);
 
   // Fetch status
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const response = await axios.get(`${CONTROL_API}/status`);
       setStatus(response.data);
       if (response.data.process_start_time) {
         updateUptime(response.data.process_start_time);
         // Clear previous timer
-        if (uptimeTimer) clearInterval(uptimeTimer);
+        if (uptimeTimerRef.current) clearInterval(uptimeTimerRef.current);
         // Start new timer
         const timer = setInterval(() => {
           updateUptime(response.data.process_start_time);
         }, 1000);
-        setUptimeTimer(timer);
+        uptimeTimerRef.current = timer;
       }
     } catch (error) {
       console.error('Failed to fetch status:', error);
     }
-  };
+  }, [updateUptime]);
 
   // Fetch diagnostics
-  const fetchDiagnostics = async () => {
+  const fetchDiagnostics = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${CONTROL_API}/diagnostics`);
@@ -220,10 +220,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch ports
-  const fetchPorts = async () => {
+  const fetchPorts = useCallback(async () => {
     try {
       const response = await axios.get(`${CONTROL_API}/ports`);
       // Ensure response.data is an array before setting
@@ -237,10 +237,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
       console.error('Failed to fetch ports:', error);
       setPorts([]);
     }
-  };
+  }, []);
 
   // Fetch environment
-  const fetchEnvironment = async (includePackages = false): Promise<void> => {
+  const fetchEnvironment = useCallback(async (includePackages = false): Promise<void> => {
     try {
       const url = includePackages ? `${CONTROL_API}/environment?include_packages=true` : `${CONTROL_API}/environment`;
       const response = await axios.get(url);
@@ -248,20 +248,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     } catch (error) {
       console.error('Failed to fetch environment:', error);
     }
-  };
+  }, []);
 
   // Fetch logs
-  const fetchLogs = async (): Promise<void> => {
+  const fetchLogs = useCallback(async (): Promise<void> => {
     try {
       const response = await axios.get(`${CONTROL_API}/logs/backend?lines=50`);
       setLogs(response.data.logs || []);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
     }
-  };
+  }, []);
 
   // Generic operation handler
-  const runOperation = async (endpoint: string, successMessage: string): Promise<void> => {
+  const runOperation = useCallback(async (endpoint: string, successMessage: string): Promise<void> => {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('controlPanel.executing') });
@@ -286,10 +286,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
       setLoading(false);
       setTimeout(() => setOperationStatus(null), 5000);
     }
-  };
+  }, [t, fetchStatus, fetchDiagnostics]);
 
   // Operation with full path (allows query params)
-  const runOperationPath = async (path: string, successMessage: string): Promise<void> => {
+  const runOperationPath = useCallback(async (path: string, successMessage: string): Promise<void> => {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('controlPanel.executing') });
@@ -311,7 +311,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
       setLoading(false);
       setTimeout(() => setOperationStatus(null), 5000);
     }
-  };
+  }, [t, fetchStatus, fetchDiagnostics]);
 
   // Control operations (use legacy endpoints for start/stop)
   // Removed unused startFrontend and stopFrontend for linter compliance
@@ -329,9 +329,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     const interval = setInterval(fetchStatus, 5000);
     return () => {
       clearInterval(interval);
-      if (uptimeTimer) clearInterval(uptimeTimer);
+      if (uptimeTimerRef.current) clearInterval(uptimeTimerRef.current);
     };
-  }, []);
+  }, [fetchStatus, fetchDiagnostics, fetchPorts, fetchEnvironment]);
 
   // Tab change effects
   useEffect(() => {
@@ -344,7 +344,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     if (activeTab === 'logs' && logs.length === 0) {
       fetchLogs();
     }
-  }, [activeTab]);
+  }, [activeTab, diagnostics.length, ports.length, logs.length, fetchDiagnostics, fetchPorts, fetchLogs]);
 
   // Removed unused getStatusBadge for linter compliance
 
@@ -412,10 +412,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
             <Container size={20} className="text-blue-400" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-blue-300">
-                {t('controlPanel.runningIn')}: Docker Container Mode
+                {t('controlPanel.runningIn')}: {t('controlPanel.dockerContainer')}
               </p>
               <p className="text-xs text-blue-400 mt-1">
-                Some native operations are hidden. Use host commands (DOCKER.ps1 or NATIVE.ps1 (depending on mode)) for full system control.
+                {t('controlPanel.nativeOpsHidden')}
               </p>
             </div>
           </div>
@@ -467,43 +467,42 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                 <div className="flex items-start gap-4">
                   <Container size={24} className="text-blue-400 flex-shrink-0 mt-1" />
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-blue-300 mb-2">Docker Container Mode</h2>
+                    <h2 className="text-lg font-semibold text-blue-300 mb-2">{t('controlPanel.dockerContainer')}</h2>
                     <p className="text-sm text-blue-200 mb-4">
-                      Some operations are disabled because they require host-level access. Use these PowerShell commands from your terminal:
+                      {t('controlPanel.operationsRequireHost')}
                     </p>
 
                     {/* Commands in a clean grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                       <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">Container Management:</div>
-                        <code className="text-xs text-green-400 font-mono block">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Quick</code>
-                        <code className="text-xs text-red-400 font-mono block mt-1">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Stop</code>
-                        <code className="text-xs text-yellow-400 font-mono block mt-1">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart</code>
+                        <div className="text-xs text-gray-400 mb-1">{t('controlPanel.containerManagement')}</div>
+                        <code className="text-xs text-green-400 font-mono block">{t('controlPanel.dockerQuickCommand')}</code>
+                        <code className="text-xs text-red-400 font-mono block mt-1">{t('controlPanel.dockerStopCommand')}</code>
+                        <code className="text-xs text-yellow-400 font-mono block mt-1">{t('controlPanel.dockerRestartCommand')}</code>
                       </div>
                       <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">Monitoring:</div>
-                        <code className="text-xs text-blue-400 font-mono block">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Status</code>
-                        <code className="text-xs text-purple-400 font-mono block mt-1">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Logs</code>
-                        <code className="text-xs text-cyan-400 font-mono block mt-1">.\DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Help</code>
+                        <div className="text-xs text-gray-400 mb-1">{t('controlPanel.monitoring')}</div>
+                        <code className="text-xs text-blue-400 font-mono block">{t('controlPanel.dockerStatusCommand')}</code>
+                        <code className="text-xs text-purple-400 font-mono block mt-1">{t('controlPanel.dockerLogsCommand')}</code>
+                        <code className="text-xs text-cyan-400 font-mono block mt-1">{t('controlPanel.dockerHelpCommand')}</code>
                       </div>
                       <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">Build & Setup:</div>
-                        <code className="text-xs text-orange-400 font-mono block">docker compose build</code>
-                        <code className="text-xs text-cyan-400 font-mono block mt-1">.\SMART_SETUP.ps1</code>
+                        <div className="text-xs text-gray-400 mb-1">{t('controlPanel.buildSetup')}</div>
+                        <code className="text-xs text-orange-400 font-mono block">{t('controlPanel.dockerComposeBuildCommand')}</code>
+                        <code className="text-xs text-cyan-400 font-mono block mt-1">{t('controlPanel.smartSetupCommand')}</code>
                       </div>
                       <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">Hidden Operations:</div>
-                        <div className="text-xs text-gray-300 mt-1">• Dependency installation</div>
-                        <div className="text-xs text-gray-300">• Container lifecycle</div>
-                        <div className="text-xs text-gray-300">• Volume management</div>
+                        <div className="text-xs text-gray-400 mb-1">{t('controlPanel.hiddenOperations')}</div>
+                        <div className="text-xs text-gray-300 mt-1">• {t('controlPanel.hiddenOperationsList.dependencyInstallation')}</div>
+                        <div className="text-xs text-gray-300">• {t('controlPanel.hiddenOperationsList.containerLifecycle')}</div>
+                        <div className="text-xs text-gray-300">• {t('controlPanel.hiddenOperationsList.volumeManagement')}</div>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30">
                       <span className="text-lg">💡</span>
                       <p>
-                        <strong>Why?</strong> Docker containers can't manage their own lifecycle or install dependencies.
-                        These operations must be performed from the host system for security and reliability.
+                        <strong>{t('controlPanel.whyLabel')}</strong> {t('controlPanel.whyExplanation')}
                       </p>
                     </div>
                   </div>
@@ -676,14 +675,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
               </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-100 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Port</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Process</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">PID</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium">{t('controlPanel.port')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium">{t('controlPanel.status')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium">{t('controlPanel.process')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium">{t('controlPanel.pid')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -696,7 +695,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                             ? 'bg-green-900/30 text-green-400'
                             : 'bg-gray-700 text-gray-400'
                         }`}>
-                          {port.in_use ? 'In Use' : 'Available'}
+                          {port.in_use ? t('controlPanel.inUse') : t('controlPanel.available')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">{port.process_name || '-'}</td>
@@ -805,26 +804,26 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-2">Python</h3>
+                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.python')}</h3>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.version')}:</span> <span className="ml-2 font-mono">{environment.python_version || t('controlPanel.notInstalled')}</span></p>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.python_path || '-'}</span></p>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.virtualEnv')}:</span> <span className="ml-2">{environment.venv_active ? t('controlPanel.yes') : t('controlPanel.no')}</span></p>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-2">Node.js</h3>
+                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.nodejs')}</h3>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.version')}:</span> <span className="ml-2 font-mono">{environment.node_version || t('controlPanel.notInstalled')}</span></p>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.npm')}:</span> <span className="ml-2 font-mono">{environment.npm_version || t('controlPanel.notInstalled')}</span></p>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.node_path || '-'}</span></p>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-2">Docker</h3>
+                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.docker')}</h3>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.version')}:</span> <span className="ml-2 font-mono">{environment.docker_version || t('controlPanel.notInstalled')}</span></p>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-2">System</h3>
+                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('controlPanel.system')}</h3>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.platform')}:</span> <span className="ml-2 font-mono">{environment.platform || '-'}</span></p>
                     <p className="text-sm"><span className="text-gray-400">{t('controlPanel.workingDir')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.cwd || '-'}</span></p>
                   </div>
@@ -836,12 +835,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="text-gray-400">
-                              <th className="text-left py-1 pr-4">Package</th>
-                              <th className="text-left py-1">Version</th>
+                              <th className="text-left py-1 pr-4">{t('controlPanel.package')}</th>
+                              <th className="text-left py-1">{t('controlPanel.version')}</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-800">
-                            {Object.entries(environment.python_packages).map(([name, version]) => (
+                          <tbody>
+                            {environment.python_packages.map(({ name, version }: { name: string; version: string }) => (
                               <tr key={name}>
                                 <td className="py-1 pr-4 font-mono">{name}</td>
                                 <td className="py-1 font-mono">{version}</td>

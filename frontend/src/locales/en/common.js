@@ -161,10 +161,53 @@ export default {
   // Nested objects for structured translations
   errors: {
     unknown: 'An unknown error occurred',
+    iconWarning: '⚠️',
+    sectionError: 'Error in {{section}}',
+    sectionErrorDesc: 'This section encountered an error, but the rest of the app is still working.',
+    loadError: 'Failed to load {{operation}}',
+    genericError: 'Something went wrong',
+    iconRetry: '🔄'
   },
   messages: {
     pleaseWait: 'Please wait...',
+    devModeCheckConsole: '🔧 Development mode: Check console for detailed error logs',
   },
+  // Common short labels
+  retry: 'Retry',
+  opsShort: 'Ops',
+  lang: {
+    enShort: 'En',
+    elShort: 'Ελ'
+  },
+  validationPassed: 'Validation Passed',
+  readyToImport: 'Ready to import:',
+  validate: 'Validate',
+  validating: 'Validating...',
+  validationFailed: 'Validation Failed: {{count}} errors',
+  andMoreErrors: '...and {{count}} more errors',
+  validationTip: '💡 Tip: Click "Validate" first to check for errors before importing. A backup is automatically created before import.'
+  ,
+  bullet: '•',
+  fieldIsRequired: '{{field}} is required',
+  idLabel: 'ID: {{id}}',
+  loadedStudents: 'Loaded students: {{count}}',
+  scheduleCompact: '{{start}} · {{periods}} × {{duration}}m',
+  studentsCount: '{{count}} students',
+  'devtools.backendHost': 'localhost:8080',
+  'devtools.frontendHost': 'localhost:8080',
+  'devtools.safetyTips': 'Safety Tips',
+  'devtools.tip1': 'Always backup before resetting',
+  'devtools.tip2': 'Sample data is for testing only',
+  'devtools.tip3': 'Reset will delete ALL existing data',
+  'devtools.tip4': 'Check health status regularly',
+  'devtools.safetyHeading': '⚠️ Safety Tips',
+  categoryBreakdownItem: '{{category}}: {{average}}% (w {{weight}}%)',
+  percentageWithLetter: '{{percentage}}% ({{letter}})',
+  percentageWithGreek: '{{percentage}}% ({{greek}}/20)',
+  default: 'Default',
+  exampleScheduleEntry: '{{day}}: {{count}} {{periodLabel}} ({{start}}, {{minutes}} {{minuteLabel}})',
+  durationOption: '{{minutes}} {{minuteLabel}}',
+  durationOptionDefault: '{{minutes}} {{minuteLabel}} ({{defaultLabel}})',
   // Footer
   footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
 };

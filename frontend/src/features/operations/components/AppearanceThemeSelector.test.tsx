@@ -5,11 +5,15 @@ import { AppearanceThemeSelectorWidget } from './AppearanceThemeSelector';
 import { LanguageProvider } from '@/LanguageContext';
 
 // Mock framer-motion
+// Mock framer-motion with explicit types to avoid `any`
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    motion: {
+      div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent); }} tabIndex={-1} {...props}>{children}</div>
+      ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
 // Helper function to render with LanguageProvider

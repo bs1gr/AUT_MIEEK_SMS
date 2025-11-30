@@ -134,6 +134,7 @@ apiClient.interceptors.response.use(
   }
 );
 
+/* eslint-disable testing-library/no-await-sync-queries */
 // --- Preflight & dynamic base fallback ----------------------------------------------------
 let ORIGINAL_API_BASE_URL: string | undefined = API_BASE_URL;
 // previously used for fallback retries; not needed in TypeScript client right now
@@ -145,7 +146,7 @@ export async function preflightAPI(): Promise<string> {
   try {
     await axios.get(healthUrl, { timeout: 4000 });
     return apiClient.defaults?.baseURL || currentBase;
-  } catch (e) {
+  } catch {
     if (/^https?:\/\//i.test(ORIGINAL_API_BASE_URL || '')) {
       // Ensure defaults is correctly typed for axios
       if (!apiClient.defaults) apiClient.defaults = ({ baseURL: '/api/v1' } as AxiosRequestConfig);

@@ -147,8 +147,8 @@ const GradeDisplay = ({
           )}
           {showGPA && (
             <div>
-              <span>GPA: {grades.gpa}</span>
-            </div>
+                <span>{t('gpa')}: {grades.gpa}</span>
+              </div>
           )}
         </div>
       </div>
@@ -179,7 +179,7 @@ const GradeDisplay = ({
         {showGPA && (
           <div className="flex items-baseline space-x-1">
             <span className={`${sizes.secondary} text-gray-600`}>
-              GPA: {grades.gpa}
+              {t('gpa')}: {grades.gpa}
             </span>
           </div>
         )}
@@ -229,6 +229,7 @@ export const GradeComparison = ({ grades, labels }: { grades: number[]; labels?:
  * Grade Progress Bar
  */
 export const GradeProgressBar = ({ gpa, showLabel = true }: { gpa: number; showLabel?: boolean }) => {
+  const { t } = useLanguage();
   const percentage = gpaToPercentage(gpa);
   const greekGrade = gpaToGreekScale(gpa);
   const color = getGreekGradeColor(greekGrade);
@@ -246,9 +247,9 @@ export const GradeProgressBar = ({ gpa, showLabel = true }: { gpa: number; showL
   return (
     <div className="space-y-2">
       {showLabel && (
-        <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-sm">
           <span className={`font-semibold ${color}`}>
-            {greekGrade.toFixed(1)} / 20
+            {greekGrade.toFixed(1)} {t('outOf20')}
           </span>
           <span className="text-gray-600">
             {percentage.toFixed(0)}%

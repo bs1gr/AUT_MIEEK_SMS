@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { Student, Course } from '@/types';
 import { Users, BookOpen, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 // gradeUtils helpers are not required in this lightweight dashboard view
@@ -8,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 type StatCardProps = {
   title: string;
   value: string | number;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   color: 'indigo' | 'purple' | 'green' | 'yellow';
   subtitle?: string;
 };
@@ -39,8 +40,8 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }: StatCardProps) 
 
 
 type EnhancedDashboardViewProps = {
-  students: Array<Record<string, any>>;
-  courses?: Array<Record<string, any>>;
+  students: Student[];
+  courses?: Course[];
   stats: Record<string, number>;
 };
 
@@ -49,11 +50,7 @@ const EnhancedDashboardView = ({ students, stats }: Omit<EnhancedDashboardViewPr
   // topPerformers are not displayed in this compact dashboard view
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [students]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     if (students.length === 0) {
       setLoading(false);
       return;
@@ -86,7 +83,11 @@ const EnhancedDashboardView = ({ students, stats }: Omit<EnhancedDashboardViewPr
     } finally {
       setLoading(false);
     }
-  };
+  }, [students]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [students, loadDashboardData]);
 
   return (
     <div className="space-y-6">

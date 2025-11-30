@@ -119,7 +119,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="text-sm text-gray-600 mb-1">{t('letterGrade') || 'Letter Grade'}</div>
                   <div className="text-3xl font-bold text-yellow-700">{data.letter_grade}</div>
-                  <div className="text-xs text-gray-500 mt-1">GPA: {data.gpa}</div>
+                  <div className="text-xs text-gray-500 mt-1">{t('gpa')}: {data.gpa}</div>
                 </div>
               </div>
             </div>

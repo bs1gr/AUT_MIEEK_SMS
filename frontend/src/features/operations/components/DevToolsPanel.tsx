@@ -50,7 +50,8 @@ export interface DevToolsPanelProps {
   onToast: (toast: ToastState) => void;
 }
 
-const RAW_API_BASE = ((import.meta as any).env?.VITE_API_URL?.trim?.()) ?? '';
+const metaEnv = import.meta.env as Partial<Record<string, string | undefined>>;
+const RAW_API_BASE = (metaEnv?.VITE_API_URL?.trim?.()) ?? '';
 const FALLBACK_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080';
 const sanitizedApiBase = RAW_API_BASE.replace(/\/api\/v1\/?$/, '');
 
@@ -68,11 +69,9 @@ const FALLBACK_PORT_RAW = typeof window !== 'undefined' ? window.location.port |
 const BACKEND_PROTOCOL = resolvedBackendUrl.protocol || FALLBACK_PROTOCOL || 'http:';
 const FRONTEND_PROTOCOL = FALLBACK_PROTOCOL || 'http:';
 
-const MODE = (((import.meta as any).env?.MODE as string | undefined) ?? import.meta.env.MODE ?? 'production').toLowerCase();
+const MODE = ((metaEnv?.MODE as string | undefined) ?? metaEnv?.MODE ?? 'production').toLowerCase();
 const DEV_PORT_HINTS = new Set(['5173', '4173', '3000', '3001', '5174', '5175']);
-const DEFAULT_DEV_BACKEND_PORT =
-  (((import.meta as any).env?.VITE_DEV_BACKEND_PORT as string | undefined)?.trim?.()) ||
-  '8000';
+const DEFAULT_DEV_BACKEND_PORT = (metaEnv?.VITE_DEV_BACKEND_PORT?.trim?.()) || '8000';
 
 const resolvedBackendPortRaw = (resolvedBackendUrl.port ?? '').toString().trim();
 const fallbackPortRaw = (FALLBACK_PORT_RAW ?? '').toString().trim();
@@ -196,7 +195,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     ...payload,
   });
 
-  const persistUptime = (uptimeSource: number, recordedAt: number) => {
+  const persistUptime = useCallback((uptimeSource: number, recordedAt: number) => {
     uptimeTimerRef.current = { uptimeSource, recordedAt };
     if (typeof window !== 'undefined') {
       try {
@@ -205,9 +204,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         console.warn('[DevToolsPanel] Failed to cache uptime state', error);
       }
     }
-  };
+  }, []);
 
-  const updateUptime = (uptimeValue: unknown, timestamp?: string) => {
+  const updateUptime = useCallback((uptimeValue: unknown, timestamp?: string) => {
     const numeric = typeof uptimeValue === 'number' ? uptimeValue : Number(uptimeValue);
     if (!Number.isFinite(numeric) || numeric < 0) {
       return;
@@ -216,7 +215,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     persistUptime(numeric, recordedAt);
     const adjusted = numeric + Math.max(0, (Date.now() - recordedAt) / 1000);
     setUptimeSeconds(adjusted);
-  };
+  }, [persistUptime]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -264,7 +263,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     } finally {
       setHealthLoading(false);
     }
-  }, [onToast, t]);
+  }, [onToast, t, updateUptime]);
 
   useEffect(() => {
     void runHealthCheck();
@@ -344,7 +343,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     try {
       const url = `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/download`;
       window.open(url, '_blank');
-    } catch (e) {
+    } catch {
       onToast({ message: t('error'), type: 'error' });
     }
   };
@@ -357,7 +356,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     try {
       const url = `${CONTROL_API_BASE}/operations/database-backups/archive.zip`;
       window.open(url, '_blank');
-    } catch (e) {
+    } catch {
       onToast({ message: t('error'), type: 'error' });
     }
   };
@@ -390,8 +389,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         URL.revokeObjectURL(url);
         a.remove();
       }, 0);
-    } catch (e: any) {
-      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      onToast({ message: msg || (t('error') as string), type: 'error' });
     }
   };
 
@@ -417,8 +417,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       // Refresh list and clear selection
       await loadBackups();
       setSelectedBackups(new Set());
-    } catch (e: any) {
-      onToast({ message: e?.message || (t('error') as string), type: 'error' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      onToast({ message: msg || (t('error') as string), type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -503,21 +504,23 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       await refreshAcademicData();
       setClearConfirm(false);
       void runHealthCheck(); // Refresh health
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Clear database failed:', error);
       // Extract error message properly
       let errorMessage = t('utils.clearError');
-      if (error?.response?.data) {
-        const data = error.response.data;
+      const maybe = error as { response?: { data?: unknown }; message?: string } | undefined;
+      if (maybe?.response && typeof maybe.response.data === 'object' && maybe.response.data !== null) {
+        const data = maybe.response.data as Record<string, unknown>;
         if (typeof data.detail === 'string') {
           errorMessage = data.detail;
-        } else if (data.message) {
+        } else if (typeof data.message === 'string') {
           errorMessage = data.message;
-        } else if (data.detail?.message) {
-          errorMessage = data.detail.message;
+        } else if (typeof data.detail === 'object' && data.detail !== null) {
+          const detailObj = data.detail as Record<string, unknown>;
+          if (typeof detailObj.message === 'string') errorMessage = detailObj.message;
         }
-      } else if (error?.message) {
-        errorMessage = error.message;
+      } else if (maybe?.message) {
+        errorMessage = maybe.message;
       }
       setResult(withTimestamp('clear', { error: true }));
       onToast({ message: String(errorMessage), type: 'error' });
@@ -536,11 +539,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       const data = await importAPI.uploadFile(importFile, importType);
       setResult(withTimestamp('upload', { data }));
 
-      const created = Number((data as any)?.created ?? 0);
-      const updated = Number((data as any)?.updated ?? 0);
-      const errors = Array.isArray((data as any)?.errors) ? (data as any).errors.length : 0;
-      if (data && typeof (data as any)?.uptime !== 'undefined') {
-        updateUptime((data as any).uptime, (data as any)?.timestamp);
+      const respData = data as { created?: number | string; updated?: number | string; errors?: unknown[]; uptime?: number | string; timestamp?: string } | undefined;
+      const created = Number(respData?.created ?? 0);
+      const updated = Number(respData?.updated ?? 0);
+      const errors = Array.isArray(respData?.errors) ? respData.errors.length : 0;
+      if (respData && typeof respData.uptime !== 'undefined') {
+        updateUptime(respData.uptime as number, respData?.timestamp as string | undefined);
       }
 
       if (created > 0 || updated > 0) {
@@ -555,9 +559,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
       }
       setImportFile(null);
       await refreshAcademicData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Import failed', error);
-      const detail = error?.response?.data?.detail?.message ?? t('utils.importError');
+      const maybe = error as { response?: { data?: { detail?: { message?: string } } } } | undefined;
+      const detail = maybe?.response?.data?.detail?.message ?? t('utils.importError');
       setResult(withTimestamp('upload', { error: detail }));
       onToast({ message: detail, type: 'error' });
     } finally {
@@ -593,7 +598,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                   </span>
                 )}
                 <div className="flex items-center gap-2 text-white/85">
-                  {health?.version ? <span>v{health.version}</span> : null}
+                  {health?.version ? <span>{t('controlPanel.versionShort', { version: health.version })}</span> : null}
                   {health?.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
                   {lastChecked ? <span>({t('controlPanel.checkedAt')} {lastChecked})</span> : null}
                 </div>
@@ -639,18 +644,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                   aria-label={t('controlPanel.autoRefreshInterval')}
                   disabled={!autoRefresh}
                 >
-                  <option className="text-black" value="3000">
-                    3s
-                  </option>
-                  <option className="text-black" value="5000">
-                    5s
-                  </option>
-                  <option className="text-black" value="10000">
-                    10s
-                  </option>
-                  <option className="text-black" value="30000">
-                    30s
-                  </option>
+                  <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
+                  <option className="text-black" value="5000">{t('controlPanel.timeoutSeconds', { s: 5 })}</option>
+                  <option className="text-black" value="10000">{t('controlPanel.timeoutSeconds', { s: 10 })}</option>
+                  <option className="text-black" value="30000">{t('controlPanel.timeoutSeconds', { s: 30 })}</option>
                 </select>
               </div>
             </div>
@@ -673,7 +670,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
           {typeof uptimeDisplayValue === 'number' && (
             <div className={`${subtleCardClass} md:col-span-3`}>
               <div className="text-xs text-slate-500 dark:text-gray-400">{t('controlPanel.uptime')}</div>
-              <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{uptimeDisplayValue}s</div>
+              <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{t('controlPanel.timeoutSeconds', { s: uptimeDisplayValue })}</div>
             </div>
           )}
           <div className={`${subtleCardClass} md:col-span-3`}>

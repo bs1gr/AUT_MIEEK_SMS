@@ -32,15 +32,74 @@ const EnhancedAttendanceCalendar = () => {
 
   // FIXED: Common grade categories are defined centrally in CourseEvaluationRules and re-used there.
 
+  // Stable toast helper so effects/callbacks can reference it safely
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [studentsData, coursesData] = await Promise.all([
+        studentsAPI.getAll(),
+        coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
+      ]);
+
+      // Normalise paginated responses to arrays for this view
+      const studentList = Array.isArray(studentsData) ? studentsData : (studentsData?.items || []);
+      const courseList = Array.isArray(coursesData) ? coursesData : (coursesData?.items || []);
+
+      setStudents(studentList);
+      setCourses(courseList);
+      if (courseList.length > 0) {
+        setSelectedCourse(courseList[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      showToast(t('failedToLoadData') || 'Failed to load data', 'error');
+    }
+  }, [t, showToast]);
+
+  const loadEvaluationCategories = useCallback(() => {
+    try {
+      const course = courses.find(c => c.id === selectedCourse);
+      if (course && course.evaluation_rules) {
+        // Create a comprehensive list of daily-trackable categories
+        const dailyTrackableCategories = [
+          'Class Participation', 'Συμμετοχή στο Μάθημα',
+          'Homework/Assignments', 'Homework', 'Εκπόνηση Εργασιών',
+          'Lab Work', 'Εργαστηριακή Εργασία',
+          'Continuous Assessment', 'Συνεχής Αξιολόγηση',
+          'Quizzes', 'Κουίζ',
+          'Project', 'Πρότζεκτ',
+          'Presentation', 'Παρουσίαση'
+        ];
+
+        const dailyCategories = course.evaluation_rules.filter((rule: { category?: string }) =>
+          dailyTrackableCategories.some(cat =>
+            Boolean(rule.category) && (rule.category.includes(cat) || rule.category.toLowerCase().includes(cat.toLowerCase()))
+          )
+        );
+
+        setEvaluationCategories(dailyCategories);
+      } else {
+        setEvaluationCategories([]);
+      }
+    } catch (error) {
+      console.error('Error loading evaluation categories:', error);
+      setEvaluationCategories([]);
+    }
+  }, [courses, selectedCourse]);
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     if (selectedCourse) {
       loadEvaluationCategories();
     }
-  }, [selectedCourse]);
+  }, [selectedCourse, loadEvaluationCategories]);
 
   const loadData = async () => {
     try {
@@ -199,7 +258,7 @@ const EnhancedAttendanceCalendar = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t]);
+  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t, showToast]);
 
   // Autosave when attendance or performance changes
   const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;
@@ -253,7 +312,9 @@ const EnhancedAttendanceCalendar = () => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayName = dayNames[date.getDay()];
 
-    return Array.isArray(course.teaching_schedule) ? (course.teaching_schedule as Array<any>).some(period => period.day === dayName) : Object.keys(course.teaching_schedule || {}).some(k => k === dayName);
+    return Array.isArray(course.teaching_schedule)
+      ? (course.teaching_schedule as TeachingScheduleEntry[]).some(period => period.day === dayName)
+      : Object.keys(course.teaching_schedule || {}).some(k => k === dayName);
   };
 
   const previousMonth = () => {
@@ -434,12 +495,12 @@ const EnhancedAttendanceCalendar = () => {
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {Array.isArray(course.teaching_schedule)
-                      ? [...new Set((course.teaching_schedule as Array<any>).map(s => s.day))].map((day: string) => (
+                      ? [...new Set((course.teaching_schedule as TeachingScheduleEntry[]).map(s => s.day))].map((day: string) => (
                           <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
                             {day}
                           </span>
                         ))
-                      : Object.keys(course.teaching_schedule as Record<string, any>).map((day: string) => (
+                      : Object.keys(course.teaching_schedule as Record<string, TeachingScheduleEntry | undefined>).map((day: string) => (
                           <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
                             {day}
                           </span>

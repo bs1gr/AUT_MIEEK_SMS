@@ -2,12 +2,10 @@ import { useState, type ChangeEvent } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useLanguage } from '@/LanguageContext';
 
-type FormFieldProps = {
+type FormFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   value: string | number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-  [key: string]: any;
 };
 
 const FormField = ({ label, value, onChange, type = 'text', ...props }: FormFieldProps) => (
@@ -18,7 +16,7 @@ const FormField = ({ label, value, onChange, type = 'text', ...props }: FormFiel
       value={value}
       onChange={onChange}
       aria-label={label}
-      role="textbox"
+      
       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
       {...props}
     />

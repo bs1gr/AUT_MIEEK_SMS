@@ -272,7 +272,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 color: '#92400e',
                 textAlign: 'center'
               }}>
-                🔧 Development mode: Check console for detailed error logs
+                {t('messages.devModeCheckConsole') || '🔧 Development mode: Check console for detailed error logs'}
               </div>
             )}
           </div>
