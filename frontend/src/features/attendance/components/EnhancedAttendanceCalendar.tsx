@@ -45,9 +45,9 @@ const EnhancedAttendanceCalendar = () => {
         coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
       ]);
 
-      // Normalise paginated responses to arrays for this view
-      const studentList = Array.isArray(studentsData) ? studentsData : (studentsData?.items || []);
-      const courseList = Array.isArray(coursesData) ? coursesData : (coursesData?.items || []);
+      // API now returns arrays; prefer the array path and fall back to an empty list
+      const studentList: Student[] = Array.isArray(studentsData) ? studentsData : [];
+      const courseList: Course[] = Array.isArray(coursesData) ? coursesData : [];
 
       setStudents(studentList);
       setCourses(courseList);

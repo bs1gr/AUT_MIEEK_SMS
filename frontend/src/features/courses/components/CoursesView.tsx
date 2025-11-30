@@ -37,7 +37,6 @@ type ScheduleConflict = {
   time: string;
   conflictTime: string;
 };
-type PaginatedResponse<T> = { items: T[]; total?: number; skip?: number; limit?: number };
 import type { Course as CourseType } from '@/types';
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -89,10 +88,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const loadAllStudents = useCallback(async () => {
     try {
       const data = await studentsAPI.getAll();
-      // Normalize PaginatedResponse to array
-      const studentsArray: StudentLite[] = (data && (data as PaginatedResponse<StudentLite>).items)
-        ? (data as PaginatedResponse<StudentLite>).items
-        : (Array.isArray(data) ? (data as StudentLite[]) : []);
+      // studentsAPI returns a normalized array; prefer array shape
+      const studentsArray: StudentLite[] = Array.isArray(data) ? (data as StudentLite[]) : [];
       setAllStudents(studentsArray);
     } catch {
       showToast(t('failedToLoadData'), 'error');
@@ -135,11 +132,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const loadCourses = useCallback(async () => {
     try {
       const data = await coursesAPI.getAll(0, 1000);
-      // Backend returns PaginatedResponse { items, total, skip, limit }
-      // Normalize to array for UI
-      const coursesArray = (data && typeof data === 'object' && 'items' in data)
-        ? (data as PaginatedResponse<CourseType>).items
-        : (Array.isArray(data) ? data : []);
+      const coursesArray = Array.isArray(data) ? data : [];
       setCourses(coursesArray as CourseType[]);
     } catch {
       showToast(t('failedToLoadData'), 'error');

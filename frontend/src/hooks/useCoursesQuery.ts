@@ -27,15 +27,9 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
       setLoading(true);
       try {
         const response = await coursesAPI.getAll(0, 1000);  // Request up to 1000 courses
-        // Accept both array and object-with-items
-        let courses: Course[] = [];
-        if (Array.isArray(response)) {
-          courses = response;
-        } else if (response && Array.isArray(response.items)) {
-          courses = response.items;
-        } else {
-          courses = [];
-        }
+        // coursesAPI.getAll() returns a normalized array of Course objects.
+        // We keep a defensive check to handle unusual shapes, but prefer array paths.
+        const courses: Course[] = Array.isArray(response) ? (response as Course[]) : [];
         // Apply filters client-side
         let filteredCourses = courses;
         if (filters?.search) {
