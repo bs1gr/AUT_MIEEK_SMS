@@ -1,6 +1,7 @@
 # Student Management System
 
 ![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
+![CI/CD Pipeline](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg?branch=main)
 
 **Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)  
 **Location:** Limassol, Cyprus  
