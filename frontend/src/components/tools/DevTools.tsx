@@ -8,11 +8,11 @@ export default function DevTools() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const t = (key) => {
+  const t = (key: string): string => {
     const translated = translationFunction(key);
     if (translated !== key) return translated;
 
-    const fallbackTranslations = {
+    const fallbackTranslations: Record<string, string> = {
       'devtools.title': 'Dev Tools',
       'devtools.subtitle': 'Database & System Management',
       'devtools.databaseManagement': 'Database Management',
@@ -37,7 +37,7 @@ export default function DevTools() {
     return fallbackTranslations[key] || key;
   };
 
-  const showMessage = (msg) => {
+  const showMessage = (msg: string) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 5000);
   };
@@ -58,8 +58,9 @@ export default function DevTools() {
       } else {
           showMessage(t('devtools.resetError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };
@@ -77,8 +78,9 @@ export default function DevTools() {
       } else {
         showMessage(t('devtools.backupError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };
@@ -98,8 +100,9 @@ export default function DevTools() {
       } else {
         showMessage(t('devtools.sampleDataError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };

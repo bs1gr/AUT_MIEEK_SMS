@@ -9,7 +9,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 type StatCardProps = {
   title: string;
   value: string | number;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  // lucide-react icons accept size prop in addition to standard SVG props
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number }>;
   color: 'indigo' | 'purple' | 'green' | 'yellow';
   subtitle?: string;
 };

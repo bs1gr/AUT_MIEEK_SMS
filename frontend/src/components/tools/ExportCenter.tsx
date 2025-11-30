@@ -18,7 +18,7 @@ interface ExportCenterProps {
 
 // Session Export/Import Component
 interface SessionExportImportProps {
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, unknown>) => string;
   showToast: (message: string, type?: string) => void;
 }
 
@@ -37,11 +37,32 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     errors?: unknown[];
     total_errors?: number;
     summary?: Record<string, { created?: number; updated?: number; errors?: unknown[] }>;
+    counts?: { courses?: number; students?: number; grades?: number };
     [key: string]: unknown;
   } | null;
 
   const [validationResult, setValidationResult] = useState<ImportValidationResult>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const extractErrorMessage = (e: unknown, fallback?: string): string => {
+    if (typeof e !== 'object' || e === null) return String(e ?? fallback ?? '');
+    const obj = e as Record<string, unknown>;
+    const resp = obj['response'];
+    if (resp && typeof resp === 'object') {
+      const d = (resp as Record<string, unknown>)['data'];
+      if (d && typeof d === 'object') {
+        const detail = (d as Record<string, unknown>)['detail'];
+        const message = (d as Record<string, unknown>)['message'];
+        if (typeof detail === 'string') return detail;
+        if (typeof message === 'string') return message;
+      }
+    }
+    const detail = obj['detail'];
+    if (typeof detail === 'string') return detail;
+    const message = obj['message'];
+    if (typeof message === 'string') return message;
+    return fallback || t('sessionImportFailed');
+  };
 
   const loadSemesters = useCallback(async () => {
     setLoadingSemesters(true);
@@ -129,8 +150,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       loadSemesters();
     } catch (error: unknown) {
       console.error('Session import failed:', error);
-      const err = error as { response?: { data?: { detail?: string } } } | undefined;
-      const errorMsg = err?.response?.data?.detail || t('sessionImportFailed');
+      const errorMsg = extractErrorMessage(error);
       showToast(errorMsg, 'error');
     } finally {
       setImportingSession(false);
@@ -157,25 +177,31 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       formData.append('file', selectedFile);
       
       const response = await sessionAPI.importSession(selectedFile, mergeStrategy, true); // dry_run=true
-      setValidationResult(response);
+      setValidationResult(response as ImportValidationResult);
       
       if (response.validation_passed) {
         showToast(t('validationPassed'), 'success');
       }
     } catch (error: unknown) {
       console.error('Validation failed:', error);
-      const err = error as { response?: { data?: { context?: { validation_errors?: unknown[]; total_errors?: number } } ; detail?: string } } | undefined;
-      const errorData = err?.response?.data;
-      
-      if (errorData?.context?.validation_errors) {
+      const errorObj = typeof error === 'object' && error ? (error as Record<string, unknown>) : null;
+      const errorData = errorObj && 'response' in errorObj ? (errorObj['response'] as Record<string, unknown>)?.['data'] ?? error : error;
+
+      const errDataObj = (typeof errorData === 'object' && errorData) ? (errorData as Record<string, unknown>) : null;
+      if (errDataObj && 'context' in errDataObj && typeof errDataObj['context'] === 'object') {
+        const ctx = errDataObj['context'] as Record<string, unknown>;
+        const validationErrors = Array.isArray(ctx['validation_errors']) ? ctx['validation_errors'] as unknown[] : undefined;
+        const totalErrors = typeof ctx['total_errors'] === 'number' ? ctx['total_errors'] as number : undefined;
         setValidationResult({
           validation_passed: false,
-          errors: errorData.context.validation_errors,
-          total_errors: errorData.context.total_errors
+          errors: validationErrors,
+          total_errors: totalErrors
         });
-        showToast(t('validationFailed', { count: errorData.context.total_errors }), 'error');
+        showToast(t('validationFailed', { count: totalErrors }), 'error');
       } else {
-        showToast(errorData?.detail || t('sessionImportFailed'), 'error');
+        const detail = errDataObj && typeof errDataObj['detail'] === 'string' ? errDataObj['detail'] as string : undefined;
+        const message = errDataObj && typeof errDataObj['message'] === 'string' ? errDataObj['message'] as string : undefined;
+        showToast(detail || message || t('sessionImportFailed'), 'error');
       }
     } finally {
       setValidatingImport(false);
@@ -341,11 +367,11 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
                     </div>
                     <div className="text-sm text-red-700 max-h-40 overflow-y-auto">
                       <ul className="list-disc list-inside space-y-1">
-                        {validationResult.errors?.slice(0, 10).map((error: string, idx: number) => (
-                          <li key={idx}>{error}</li>
+                        {validationResult.errors?.slice(0, 10).map((err: unknown, idx: number) => (
+                          <li key={idx}>{String(err)}</li>
                         ))}
-                        {validationResult.errors?.length > 10 && (
-                          <li className="font-semibold">{t('andMoreErrors', { count: validationResult.errors.length - 10 })}</li>
+                        {validationResult.errors && validationResult.errors.length > 10 && (
+                          <li className="font-semibold">{t('andMoreErrors', { count: Number(validationResult.errors.length - 10) })}</li>
                         )}
                       </ul>
                     </div>
@@ -375,7 +401,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
 
               <button
                 onClick={handleImportSession}
-                disabled={importingSession || !selectedFile || (validationResult && !validationResult.validation_passed)}
+                disabled={importingSession || !selectedFile || !!(validationResult && !validationResult.validation_passed)}
                 className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {importingSession ? (
@@ -1047,7 +1073,7 @@ const buildPrintableSchedule = (courses: CourseType[]): Record<string, Printable
         end: calculateEndTime(start, periods, duration),
         duration,
         periods,
-        location: (dataRec?.location as string) || course?.location || (course as { room?: string })?.room || '',
+        location: (dataRec?.location as string) || (course as unknown as { location?: string })?.location || (course as { room?: string })?.room || '',
       });
     });
   });

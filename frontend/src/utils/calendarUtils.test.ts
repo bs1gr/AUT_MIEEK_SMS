@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Course } from '@/types';
+// test data uses a schedule shape that does not map directly to the domain `Course` type
 
 import {
   generateCourseScheduleICS,
   generateAllCoursesScheduleICS,
   downloadICS,
 } from './calendarUtils';
+import type { CourseSchedule } from './calendarUtils';
 
 // Mock document methods for downloadICS tests
 const mockCreateElement = vi.fn();
@@ -289,13 +290,13 @@ describe('calendarUtils', () => {
       const startDate = new Date(2024, 8, 1);
       const endDate = new Date(2024, 11, 20);
 
-      const result = generateAllCoursesScheduleICS(courses as Course[], startDate, endDate);
+      const result = generateAllCoursesScheduleICS(courses as CourseSchedule[], startDate, endDate);
 
       expect(result).toContain('20241220');
     });
 
     it('sets calendar name for all courses', () => {
-      const result = generateAllCoursesScheduleICS(courses as Course[]);
+      const result = generateAllCoursesScheduleICS(courses as CourseSchedule[]);
 
       expect(result).toContain('X-WR-CALNAME:All Courses Teaching Schedule');
     });

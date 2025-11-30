@@ -13,6 +13,7 @@ import axios, {
 } from 'axios';
 import authService from '@/services/authService';
 import { formatLocalDate } from '@/utils/date';
+import { normalizeResponseToArray } from '@/utils/normalize';
 import type {
   Student,
   Course,
@@ -148,9 +149,10 @@ export async function preflightAPI(): Promise<string> {
     return apiClient.defaults?.baseURL || currentBase;
   } catch {
     if (/^https?:\/\//i.test(ORIGINAL_API_BASE_URL || '')) {
-      // Ensure defaults is correctly typed for axios
-      if (!apiClient.defaults) apiClient.defaults = ({ baseURL: '/api/v1' } as AxiosRequestConfig);
-      apiClient.defaults.baseURL = '/api/v1';
+      // Ensure defaults is correctly typed for axios. Use a safe unknown-cast
+      // and operate with narrow property checks to avoid 'any'.
+      if (!apiClient.defaults) (apiClient as unknown as { defaults?: Record<string, unknown> }).defaults = { baseURL: '/api/v1' } as unknown as Record<string, unknown>;
+      (apiClient.defaults as unknown as { baseURL?: string }).baseURL = '/api/v1';
     }
     return apiClient.defaults?.baseURL || '/api/v1';
   }
@@ -160,18 +162,19 @@ export async function preflightAPI(): Promise<string> {
 export function __test_forceOriginalBase(url: string) {
   if (process.env.NODE_ENV !== 'test') return;
   ORIGINAL_API_BASE_URL = url;
-  if (!apiClient.defaults) apiClient.defaults = ({ baseURL: url } as AxiosRequestConfig);
-  apiClient.defaults.baseURL = url;
+  if (!apiClient.defaults) (apiClient as unknown as { defaults?: Record<string, unknown> }).defaults = { baseURL: url } as unknown as Record<string, unknown>;
+  (apiClient.defaults as unknown as { baseURL?: string }).baseURL = url;
 }
 
 // ==================== STUDENTS API ====================
 
 export const studentsAPI = {
-  getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<Student>> => {
-    const response = await apiClient.get<PaginatedResponse<Student>>('/students/', {
-      params: { skip, limit }
-    });
-    return response.data;
+  // Historically getAll normalized results to return an array of Student.
+  // Keep that behaviour for backward compatibility with tests and callers.
+  getAll: async (skip = 0, limit = 100): Promise<Student[]> => {
+    const response = await apiClient.get('/students/', { params: { skip, limit } });
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Student>(data);
   },
 
   getById: async (id: number): Promise<Student> => {
@@ -220,11 +223,11 @@ export const CONTROL_API_BASE = (() => {
 // ==================== COURSES API ====================
 
 export const coursesAPI = {
-  getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<Course>> => {
-    const response = await apiClient.get<PaginatedResponse<Course>>('/courses/', {
-      params: { skip, limit }
-    });
-    return response.data;
+  // Return array (normalized) to stay compatible with the legacy JS client behaviour
+  getAll: async (skip = 0, limit = 100): Promise<Course[]> => {
+    const response = await apiClient.get('/courses/', { params: { skip, limit } });
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Course>(data);
   },
 
   getById: async (id: number): Promise<Course> => {
@@ -436,11 +439,11 @@ export const analyticsAPI = {
     ]);
 
     // Normalise students/courses which may be paginated responses or arrays
-    const studentsList: Student[] = Array.isArray(students) ? students : (students?.items || []);
+    const studentsList: Student[] = normalizeResponseToArray<Student>(students);
 
     const totalStudents = studentsList.length;
     const activeStudents = studentsList.filter((s: Student) => Boolean(s.is_active)).length;
-    const totalCourses = Array.isArray(courses) ? courses.length : (courses?.items?.length ?? 0);
+    const totalCourses = normalizeResponseToArray<Course>(courses).length;
     return {
       totalStudents,
       activeStudents,
@@ -455,7 +458,7 @@ export const analyticsAPI = {
       attendanceRecords = await attendanceAPI.getByStudent(studentId);
     } else {
       const studentsAll = await studentsAPI.getAll();
-      const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
+      const studentsNormalized: Student[] = normalizeResponseToArray<Student>(studentsAll);
       const promises = (studentsNormalized || []).map((s: Student) => attendanceAPI.getByStudent(s.id));
       const results = await Promise.all(promises);
       attendanceRecords = results.flat();
@@ -484,7 +487,7 @@ export const analyticsAPI = {
       grades = await gradesAPI.getByCourse(courseId);
     } else {
       const studentsAll = await studentsAPI.getAll();
-      const studentsNormalized: Student[] = Array.isArray(studentsAll) ? studentsAll : (studentsAll?.items || []);
+      const studentsNormalized: Student[] = normalizeResponseToArray<Student>(studentsAll);
       const promises = (studentsNormalized || []).map((s: Student) => gradesAPI.getByStudent(s.id));
       const results = await Promise.all(promises);
       grades = results.flat();
@@ -735,6 +738,13 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
     return { status: 'unhealthy' };
   }
 };
+
+/**
+ * Safely normalise a response that might be an array or a paginated object
+ * into an array of T. This avoids repeated `as T[]` coercions across callers
+ * and provides a single, well-typed narrowing location.
+ */
+// normalizeResponseToArray is provided from '@/utils/normalize'
 
 // ==================== UTILITY FUNCTIONS ====================
 

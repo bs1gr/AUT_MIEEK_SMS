@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award } from 'lucide-react';
@@ -28,43 +29,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (studentId) {
-      loadStudentData();
-    }
-  }, [studentId, loadStudentData]);
-
-  // Listen for data changes and reload if it affects this student
-  useEffect(() => {
-    const handleDataChange = ({ studentId: updatedStudentId }: { studentId: number }) => {
-      if (updatedStudentId === studentId) {
-        loadStudentData();
-      }
-    };
-
-    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, handleDataChange);
-    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, handleDataChange);
-    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, handleDataChange);
-    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, handleDataChange);
-    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, handleDataChange);
-    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, handleDataChange);
-    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, handleDataChange);
-    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, handleDataChange);
-    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, handleDataChange);
-
-    return () => {
-      unsubscribeGradeAdded();
-      unsubscribeGradeUpdated();
-      unsubscribeGradeDeleted();
-      unsubscribeGradesBulk();
-      unsubscribeAttendanceAdded();
-      unsubscribeAttendanceBulk();
-      unsubscribeAttendanceUpdated();
-      unsubscribeAttendanceDeleted();
-      unsubscribeDailyPerformance();
-    };
-  }, [studentId, loadStudentData]);
-
+  // Move loadStudentData here so effects can depend on it without referencing a later declaration
   const loadStudentData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -108,7 +73,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           } catch {}
         }));
         setCoursesById(dict);
-        } catch {
+      } catch {
         setEnrollments([]);
         setCoursesById({});
       }
@@ -125,6 +90,48 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       setLoading(false);
     }
   }, [studentId, t]);
+
+  useEffect(() => {
+    if (studentId) {
+      loadStudentData();
+    }
+  }, [studentId, loadStudentData]);
+
+  // Listen for data changes and reload if it affects this student
+  useEffect(() => {
+    const handleDataChange = (args: unknown) => {
+      if (typeof args === 'object' && args && 'studentId' in (args as Record<string, unknown>)) {
+        const updatedStudentId = (args as Record<string, unknown>)['studentId'];
+        if (typeof updatedStudentId === 'number' && updatedStudentId === studentId) {
+          loadStudentData();
+        }
+      }
+    };
+
+    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+
+    return () => {
+      unsubscribeGradeAdded();
+      unsubscribeGradeUpdated();
+      unsubscribeGradeDeleted();
+      unsubscribeGradesBulk();
+      unsubscribeAttendanceAdded();
+      unsubscribeAttendanceBulk();
+      unsubscribeAttendanceUpdated();
+      unsubscribeAttendanceDeleted();
+      unsubscribeDailyPerformance();
+    };
+  }, [studentId, loadStudentData]);
+
+  
 
   const calculateStats = () => {
     // Attendance stats

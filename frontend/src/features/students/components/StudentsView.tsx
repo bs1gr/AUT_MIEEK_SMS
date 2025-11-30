@@ -72,7 +72,11 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       try {
         const response = await coursesAPI.getAll(0, 1000); // Fetch up to 1000 courses
         const map = new Map<number, Course>();
-        (response.items || []).forEach((course: Course) => {
+        const resp = response as unknown;
+        const list = Array.isArray(resp)
+          ? (resp as Course[])
+          : (Array.isArray((resp as { items?: unknown })?.items) ? (resp as { items?: Course[] }).items! : []);
+        (list || []).forEach((course: Course) => {
           map.set(course.id, course);
         });
         setCoursesMap(map);
@@ -85,16 +89,17 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   // Listen for data changes and invalidate affected student's stats
   useEffect(() => {
-    const invalidateStudentStats = ({ studentId }: { studentId: number }) => {
+    const invalidateStudentStats = (payload: unknown) => {
+      const { studentId } = (payload as { studentId?: number }) || {};
       // Invalidate the stats for this student so it will be reloaded on next expand
-      if (statsById[studentId]) {
+      if (typeof studentId === 'number' && statsById[studentId]) {
         setStatsById((prev) => {
           const updated = { ...prev };
           delete updated[studentId];
           return updated;
         });
         // If this student is currently expanded, reload their stats immediately
-        if (expandedId === studentId) {
+        if (typeof studentId === 'number' && expandedId === studentId) {
           loadStats(studentId);
         }
       }

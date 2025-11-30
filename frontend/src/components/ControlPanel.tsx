@@ -840,12 +840,23 @@ function formatUptime(seconds: number): string {
                             </tr>
                           </thead>
                           <tbody>
-                            {environment.python_packages.map(({ name, version }: { name: string; version: string }) => (
-                              <tr key={name}>
-                                <td className="py-1 pr-4 font-mono">{name}</td>
-                                <td className="py-1 font-mono">{version}</td>
-                              </tr>
-                            ))}
+                              {environment.python_packages.map((pkg: unknown) => {
+                                if (typeof pkg === 'string') {
+                                  // some health payloads return package entries as strings
+                                  return (
+                                    <tr key={pkg}>
+                                      <td className="py-1 pr-4 font-mono" colSpan={2}>{pkg}</td>
+                                    </tr>
+                                  );
+                                }
+                                const { name, version } = pkg as { name?: string; version?: string };
+                                return (
+                                  <tr key={name || JSON.stringify(pkg)}>
+                                    <td className="py-1 pr-4 font-mono">{name}</td>
+                                    <td className="py-1 font-mono">{version}</td>
+                                  </tr>
+                                );
+                              })}
                           </tbody>
                         </table>
                       </div>

@@ -1,5 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// test helper types made global so assertions and beforeEach helpers can reference them
+type MockFn = ReturnType<typeof vi.fn>;
+type Handlers = {
+  reqFulfilled?: (input: unknown) => unknown;
+  reqRejected?: (err: unknown) => unknown;
+  resFulfilled?: (input: unknown) => unknown;
+  resRejected?: (err: unknown) => unknown;
+};
+type AxiosInstanceMock = {
+  interceptors: {
+    request: { use: (onFulfilled: (input: unknown) => unknown, onRejected?: (err: unknown) => unknown) => void };
+    response: { use: (onFulfilled: (input: unknown) => unknown, onRejected?: (err: unknown) => unknown) => void };
+  };
+  get: MockFn;
+  post: MockFn;
+  put: MockFn;
+  delete: MockFn;
+};
+
 // Mock axios BEFORE importing the module under test
 vi.mock('axios', () => {
   type Handlers = {
@@ -52,17 +71,18 @@ import {
   formatDateForAPI,
   attendanceAPI,
 } from '../api';
+import type { Grade, Student, Course, Attendance } from '@/types';
 import { formatLocalDate } from '@/utils/date';
 
 describe('API client - interceptors and utilities', () => {
   beforeEach(() => {
     // reset mocks between tests
-    const mockAxios = axios as unknown as { __instance: typeof instance; get: MockFn };
+    const mockAxios = axios as unknown as { __instance: AxiosInstanceMock; get?: MockFn };
     mockAxios.__instance.get.mockReset();
     mockAxios.__instance.post.mockReset();
     mockAxios.__instance.put.mockReset();
     mockAxios.__instance.delete.mockReset();
-    mockAxios.get.mockReset?.();
+    mockAxios.get?.mockReset?.();
   });
 
   afterEach(() => {
@@ -77,19 +97,19 @@ describe('API client - interceptors and utilities', () => {
 
     // 404
     const err404 = { response: { status: 404, data: { detail: 'not found' } } };
-    await expect(__handlers.resRejected(err404)).rejects.toBe(err404);
+    await expect(__handlers.resRejected!(err404)).rejects.toBe(err404);
 
     // 500
     const err500 = { response: { status: 500, data: { detail: 'server down' } } };
-    await expect(__handlers.resRejected(err500)).rejects.toBe(err500);
+    await expect(__handlers.resRejected!(err500)).rejects.toBe(err500);
 
     // request present but no response
     const errNetwork = { request: {} };
-    await expect(__handlers.resRejected(errNetwork)).rejects.toBe(errNetwork);
+    await expect(__handlers.resRejected!(errNetwork)).rejects.toBe(errNetwork);
 
     // generic
     const errGeneric = { message: 'boom' };
-    await expect(__handlers.resRejected(errGeneric)).rejects.toBe(errGeneric);
+    await expect(__handlers.resRejected!(errGeneric)).rejects.toBe(errGeneric);
 
     expect(console.error).toHaveBeenCalled();
   });
@@ -134,24 +154,27 @@ describe('API client - interceptors and utilities', () => {
   });
 
   it('adminOps.restoreBackup posts multipart form-data', async () => {
-    const file = new Blob(['hello'], { type: 'text/plain' });
+    // use File (name + lastModified available) to match client expectations
+    const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
     (axios as unknown as { __instance: { post: MockFn } }).__instance.post.mockResolvedValueOnce({ data: { ok: true } } as unknown);
     const resp = await adminOpsAPI.restoreBackup(file);
     expect(resp).toEqual({ ok: true });
     const [, form, config] = (axios as unknown as { __instance: { post: MockFn } }).__instance.post.mock.calls[0] as [unknown, FormData, Record<string, unknown>];
-    expect(config.headers['Content-Type']).toContain('multipart/form-data');
+    const headers = (config as Record<string, unknown>)['headers'] as Record<string, unknown> | undefined;
+    expect(String(headers?.['Content-Type'])).toContain('multipart/form-data');
     // basic sanity: ensure FormData was passed
     expect(form instanceof FormData).toBe(true);
   });
 
   it('importAPI.uploadFile posts multipart form-data with type', async () => {
-    const file = new Blob(['hello'], { type: 'text/plain' });
+    const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
     (axios as unknown as { __instance: { post: MockFn } }).__instance.post.mockResolvedValueOnce({ data: { imported: 1 } } as unknown);
     const resp = await importAPI.uploadFile(file, 'students');
     expect(resp).toEqual({ imported: 1 });
     const [path, , config] = (axios as unknown as { __instance: { post: MockFn } }).__instance.post.mock.calls[0] as [string, unknown, Record<string, unknown>];
     expect(path).toBe('/imports/upload');
-    expect(config.headers['Content-Type']).toContain('multipart/form-data');
+    const uploadHeaders = (config as Record<string, unknown>)['headers'] as Record<string, unknown> | undefined;
+    expect(String(uploadHeaders?.['Content-Type'])).toContain('multipart/form-data');
   });
 
   it('gradesAPI.calculateAverage computes weighted average', async () => {
@@ -159,7 +182,7 @@ describe('API client - interceptors and utilities', () => {
       { course_id: 10, grade: 18, max_grade: 20, weight: 40 }, // 90% * 40
       { course_id: 10, grade: 14, max_grade: 20, weight: 60 }, // 70% * 60
       { course_id: 11, grade: 20, max_grade: 20, weight: 100 },
-    ] as unknown as unknown[]);
+    ] as unknown as Grade[]);
     const avg = await gradesAPI.calculateAverage(1, 10);
     // weighted: (90*40 + 70*60) / (40+60) = (3600+4200)/100 = 78
     expect(avg).toBeCloseTo(78, 5);
@@ -171,10 +194,10 @@ describe('API client - interceptors and utilities', () => {
       { id: 1, is_active: true },
       { id: 2, is_active: false },
       { id: 3, is_active: true },
-    ] as unknown as unknown[]);
+    ] as unknown as Student[]);
     const cSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValue([
       { id: 10 }, { id: 11 }
-    ] as unknown as unknown[]);
+    ] as unknown as Course[]);
     const stats = await analyticsAPI.getDashboardStats();
     expect(stats).toEqual({ totalStudents: 3, activeStudents: 2, totalCourses: 2, inactiveStudents: 1 });
     sSpy.mockRestore();
@@ -184,14 +207,14 @@ describe('API client - interceptors and utilities', () => {
   it('analyticsAPI.getAttendanceStats computes totals and rate (all students)', async () => {
     const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([
       { id: 1 }, { id: 2 }
-    ] as unknown as unknown[]);
+    ] as unknown as Student[]);
     const aSpy = vi.spyOn(attendanceAPI, 'getByStudent')
       .mockResolvedValueOnce([
         { status: 'Present' }, { status: 'Absent' }, { status: 'Excused' }
-      ] as unknown as unknown[])
+      ] as unknown as Attendance[])
       .mockResolvedValueOnce([
         { status: 'Present' }, { status: 'Present' }, { status: 'Late' }
-      ] as unknown as unknown[]);
+      ] as unknown as Attendance[]);
 
     const res = await analyticsAPI.getAttendanceStats();
     expect(res.total).toBe(6);
@@ -205,7 +228,7 @@ describe('API client - interceptors and utilities', () => {
   });
 
   it('analyticsAPI.getGradeStats returns zeros when empty', async () => {
-    const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([] as unknown as unknown[]);
+    const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([] as unknown as Student[]);
     const res = await analyticsAPI.getGradeStats();
     expect(res).toEqual({ count: 0, average: 0, highest: 0, lowest: 0 });
     sSpy.mockRestore();
@@ -216,7 +239,7 @@ describe('API client - interceptors and utilities', () => {
       { grade: 18, max_grade: 20, course_id: 10 }, // 90
       { grade: 12, max_grade: 20, course_id: 10 }, // 60
       { grade: 16, max_grade: 20, course_id: 11 }, // 80
-    ] as unknown as unknown[]);
+    ] as unknown as Grade[]);
     const res = await analyticsAPI.getGradeStats(1, 10);
     expect(res.count).toBe(2);
     expect(res.average).toBe('75.00');

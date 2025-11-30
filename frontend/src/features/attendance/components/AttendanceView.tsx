@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
-import type { Course, Student } from '@/types';
+import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -25,14 +25,7 @@ console.warn('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 err
 type Props = { courses: Course[]; students?: Student[] };
 
 // Teaching schedule can arrive either as an array of entries or an object keyed by day.
-type TeachingScheduleEntry = {
-  day: string;
-  periods?: number; // canonical
-  period_count?: number; // alternative naming from older schema
-  count?: number; // fallback naming
-  start_time?: string;
-  duration?: number;
-};
+
 
 type EvaluationRule = { category: string; weight?: number };
 type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
@@ -149,6 +142,12 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const activePeriods = useMemo(() => Array.from({ length: periodCount }, (_, idx) => idx + 1), [periodCount]);
   const hasMultiplePeriods = periodCount > 1;
 
+  // Attendance key generator (moved above effects to avoid use-before-declare errors)
+  const getAttendanceKey = useCallback((studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
+    `${studentId}|${periodNumber}|${dateStr}`,
+    [selectedDateStr]
+  );
+
   useEffect(() => {
     setExpandedStudents(new Set());
   }, [selectedCourse, selectedDateStr, getAttendanceKey]);
@@ -164,10 +163,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const getAttendanceKey = useCallback((studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
-    `${studentId}|${periodNumber}|${dateStr}`,
-    [selectedDateStr]
-  );
 
   const translateStatusLabel = (status: string) => {
     switch (status) {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import type { OperationsLocationState } from '@/features/operations/types';
-import type { Course as CourseType } from '@/types';
+import type { Course as CourseType, TeachingScheduleEntry } from '@/types';
 
 type DaySchedule = { periods: number; start_time: string; duration: number };
 
@@ -33,7 +33,7 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
       (sched as TeachingScheduleEntry[]).forEach((entry: TeachingScheduleEntry) => {
         const day = entry?.day;
         if (!day || !byDay[day]) return;
-        const cfg: DaySchedule = { periods: entry.periods, start_time: entry.start_time, duration: entry.duration };
+        const cfg: DaySchedule = { periods: entry.periods ?? 1, start_time: entry.start_time ?? '08:00', duration: entry.duration ?? 45 };
         byDay[day].push({ course: c, sched: cfg });
       });
     } else if (typeof sched === 'object') {

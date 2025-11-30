@@ -10,7 +10,7 @@ import type { Course } from '@/types';
 vi.mock('framer-motion', () => ({
   motion: {
       div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
-        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent); }} tabIndex={-1} {...props}>{children}</div>
+        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>); }} tabIndex={-1} {...props}>{children}</div>
       ),
   },
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,

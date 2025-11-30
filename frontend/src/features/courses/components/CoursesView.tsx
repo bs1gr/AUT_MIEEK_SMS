@@ -79,27 +79,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     { en: 'Friday', el: 'Παρασκευή', translated: t('friday') }
   ];
 
-  useEffect(() => {
-    // If consumer passed in courses via props, respect them; otherwise load from API
-    if (!externalCourses) {
-      loadCourses();
-    } else {
-      setCourses(externalCourses);
-    }
-    loadAllStudents();
-  }, [externalCourses, loadCourses, loadAllStudents]);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCourseData();
-      loadEnrolledStudents();
-    }
-  }, [selectedCourse, courses, loadCourseData, loadEnrolledStudents]);
-
-  // Reset pending selections when switching courses
-  useEffect(() => {
-    setSelectedToEnroll([]);
-  }, [selectedCourse]);
+  // We'll declare helper functions before invoking them in effects to avoid used-before-declaration errors.
 
   const showToast = useCallback((message: string, type: ToastType['type'] = 'info') => {
     setToast({ message, type });
@@ -157,7 +137,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       const data = await coursesAPI.getAll(0, 1000);
       // Backend returns PaginatedResponse { items, total, skip, limit }
       // Normalize to array for UI
-      const coursesArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
+      const coursesArray = (data && typeof data === 'object' && 'items' in data)
+        ? (data as PaginatedResponse<CourseType>).items
+        : (Array.isArray(data) ? data : []);
       setCourses(coursesArray as CourseType[]);
     } catch {
       showToast(t('failedToLoadData'), 'error');
@@ -391,6 +373,29 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   }, [selectedCourse, weeklySchedule, courses]);
 
+  // Effects: load initial data and react to course selection
+  useEffect(() => {
+    // If consumer passed in courses via props, respect them; otherwise load from API
+    if (!externalCourses) {
+      loadCourses();
+    } else {
+      setCourses(externalCourses);
+    }
+    loadAllStudents();
+  }, [externalCourses, loadCourses, loadAllStudents]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCourseData();
+      loadEnrolledStudents();
+    }
+  }, [selectedCourse, courses, loadCourseData, loadEnrolledStudents]);
+
+  // Reset pending selections when switching courses
+  useEffect(() => {
+    setSelectedToEnroll([]);
+  }, [selectedCourse]);
+
   const saveCourseData = async () => {
     if (activeTab === 'evaluation' && !validateRules()) return;
 
@@ -447,9 +452,18 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
+  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMinutes = totalMinutes % 60;
+    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+  };
+
   const handleExportSchedule = () => {
+    const current = courses.find((c) => c.id === (selectedCourse as number));
     try {
-      if (!currentCourse) {
+      if (!current) {
         showToast(t('pleaseSelectCourse'), 'error');
         return;
       }
@@ -468,9 +482,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       }
 
       const courseData = {
-        course_code: currentCourse.course_code,
-        course_name: currentCourse.course_name,
-        semester: currentCourse.semester || t('currentSemester'),
+        course_code: current?.course_code || '' ,
+        course_name: current?.course_name || '' ,
+        semester: current?.semester || t('currentSemester'),
         teaching_schedule: scheduleArray,
       };
 
@@ -478,7 +492,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       const icsContent = generateCourseScheduleICS(courseData);
 
       // Download file
-      const filename = `${currentCourse.course_code}_schedule.ics`;
+      const filename = `${current?.course_code || 'course'}_schedule.ics`;
       downloadICS(icsContent, filename);
 
       showToast(t('scheduleExported'), 'success');
@@ -488,13 +502,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
-  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60) % 24;
-    const endMinutes = totalMinutes % 60;
-    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-  };
+  
 
   const getTotalWeight = () => {
     return evaluationRules.reduce((sum, rule) => {

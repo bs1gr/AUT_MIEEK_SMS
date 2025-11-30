@@ -3,14 +3,14 @@
  * Generate ICS (iCalendar) files for teaching schedules
  */
 
-interface ScheduleEvent {
+export interface ScheduleEvent {
   day: string;
   startTime: string;
   endTime: string;
   location?: string;
 }
 
-interface CourseSchedule {
+export interface CourseSchedule {
   course_code: string;
   course_name: string;
   semester: string;

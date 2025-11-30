@@ -105,6 +105,8 @@ export interface UserAccount {
   role: UserRole;
   is_active: boolean;
   password_change_required?: boolean;
+  // Allow extra unknown properties (auth/profile endpoints may include additional fields)
+  [k: string]: unknown;
 }
 
 export interface CreateUserPayload {
@@ -134,6 +136,19 @@ export interface ImportResponse {
   created: number;
   updated: number;
   errors: string[];
+  // Import responses may include additional metadata (validation_passed, total_errors, summary, etc.)
+  [k: string]: unknown;
+}
+
+// Teaching schedule entry used across calendar and attendance components
+export interface TeachingScheduleEntry {
+  day: string;
+  periods?: number;
+  period_count?: number;
+  count?: number;
+  start_time?: string;
+  duration?: number;
+  location?: string;
 }
 
 export interface EnrollmentResponse {

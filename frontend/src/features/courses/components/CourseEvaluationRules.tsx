@@ -34,16 +34,6 @@ const CourseEvaluationRules = () => {
     { en: 'Presentation', translated: t('presentation') }
   ];
 
-  useEffect(() => {
-    loadCourses();
-  }, [loadCourses]);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadEvaluationRules();
-    }
-  }, [selectedCourse, loadEvaluationRules]);
-
   const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -64,7 +54,13 @@ const CourseEvaluationRules = () => {
     const course = courses.find((c: Course) => c.id === selectedCourse) as Course | undefined;
     if (course) {
       if (course.evaluation_rules) {
-        setEvaluationRules(course.evaluation_rules);
+        // Normalize incoming evaluation_rules to local shape (ensure weight is string|number)
+        const normalized = (course.evaluation_rules as Array<Record<string, unknown>>).map((r) => ({
+          category: String(r.category || ''),
+          weight: r.weight !== undefined ? r.weight : '',
+          description: r.description || ''
+        }));
+        setEvaluationRules(normalized as EvaluationRuleLocal[]);
       } else {
         setEvaluationRules([]);
       }
@@ -74,6 +70,16 @@ const CourseEvaluationRules = () => {
       setAbsencePenalty(0);
     }
   }, [courses, selectedCourse]);
+
+  useEffect(() => {
+    loadCourses();
+  }, [loadCourses]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadEvaluationRules();
+    }
+  }, [selectedCourse, loadEvaluationRules]);
 
   const addRule = useCallback(() => {
     setEvaluationRules([
@@ -88,9 +94,10 @@ const CourseEvaluationRules = () => {
     ]);
   }, [evaluationRules]);
 
-  const updateRule = useCallback((index: number, field: string, value: unknown) => {
+  const updateRule = useCallback((index: number, field: keyof EvaluationRuleLocal, value: EvaluationRuleLocal[keyof EvaluationRuleLocal]) => {
     const newRules = [...evaluationRules];
-    newRules[index][field] = value;
+    // Use an immutable update for type safety
+    newRules[index] = { ...newRules[index], [field]: value } as EvaluationRuleLocal;
     setEvaluationRules(newRules);
   }, [evaluationRules]);
 
@@ -105,7 +112,7 @@ const CourseEvaluationRules = () => {
     }
 
     const totalWeight = evaluationRules.reduce((sum, rule) => {
-      return sum + (parseFloat(rule.weight) || 0);
+      return sum + (parseFloat(String(rule.weight)) || 0);
     }, 0);
 
     if (Math.abs(totalWeight - 100) > 0.01) {

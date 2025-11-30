@@ -13,8 +13,7 @@ vi.mock('framer-motion', () => {
     get: (_target, prop: string) => {
       // return a simple element whose tag name matches the property (li, div, span, etc.)
       return ({ children, ...props }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) => (
-        // @ts-expect-error - tests run in JS context; keep props shallow
-        React.createElement(prop, props, children)
+          React.createElement(prop, props, children)
       );
     },
   });

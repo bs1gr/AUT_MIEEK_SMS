@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Star, TrendingUp, UserCheck, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import Spinner from '@/components/ui/Spinner';
-import { Student, Course } from '@/types';
+import { Student, Course, TeachingScheduleEntry } from '@/types';
 import { studentsAPI, coursesAPI } from '@/api/api';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -76,9 +76,10 @@ const EnhancedAttendanceCalendar = () => {
         ];
 
         const dailyCategories = course.evaluation_rules.filter((rule: { category?: string }) =>
-          dailyTrackableCategories.some(cat =>
-            Boolean(rule.category) && (rule.category.includes(cat) || rule.category.toLowerCase().includes(cat.toLowerCase()))
-          )
+          dailyTrackableCategories.some(cat => {
+            const catVal = rule.category ?? '';
+            return catVal.includes(cat) || catVal.toLowerCase().includes(cat.toLowerCase());
+          })
         );
 
         setEvaluationCategories(dailyCategories);
@@ -101,68 +102,10 @@ const EnhancedAttendanceCalendar = () => {
     }
   }, [selectedCourse, loadEvaluationCategories]);
 
-  const loadData = async () => {
-    try {
-      const [studentsData, coursesData] = await Promise.all([
-        studentsAPI.getAll(),
-        coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
-      ]);
-
-      // Normalise paginated responses to arrays for this view
-      const studentList = Array.isArray(studentsData) ? studentsData : (studentsData?.items || []);
-      const courseList = Array.isArray(coursesData) ? coursesData : (coursesData?.items || []);
-
-      setStudents(studentList);
-      setCourses(courseList);
-      if (courseList.length > 0) {
-        setSelectedCourse(courseList[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      showToast('Failed to load data', 'error');
-    }
-  };
 
   // FIXED: Updated to include ALL relevant evaluation categories for daily rating
-  const loadEvaluationCategories = () => {
-    try {
-      const course = courses.find(c => c.id === selectedCourse);
-      if (course && course.evaluation_rules) {
-        // Create a comprehensive list of daily-trackable categories
-        // Including all variations (English, Greek, with/without slashes)
-        const dailyTrackableCategories = [
-          'Class Participation', 'Συμμετοχή στο Μάθημα',
-          'Homework/Assignments', 'Homework', 'Εκπόνηση Εργασιών',
-          'Lab Work', 'Εργαστηριακή Εργασία',
-          'Continuous Assessment', 'Συνεχής Αξιολόγηση',
-          'Quizzes', 'Κουίζ',
-          'Project', 'Πρότζεκτ',
-          'Presentation', 'Παρουσίαση'
-          // Note: Excluding 'Midterm Exam', 'Final Exam', and 'Attendance'
-          // as these are typically not tracked daily
-        ];
 
-        const dailyCategories = course.evaluation_rules.filter(rule =>
-          dailyTrackableCategories.some(cat =>
-            rule.category.includes(cat) ||
-            rule.category.toLowerCase().includes(cat.toLowerCase())
-          )
-        );
-
-        setEvaluationCategories(dailyCategories);
-      } else {
-        setEvaluationCategories([]);
-      }
-    } catch (error) {
-      console.error('Error loading evaluation categories:', error);
-      setEvaluationCategories([]);
-    }
-  };
-
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  // showToast already declared above as a stable useCallback
 
   const formatDate = (date: Date | string) => formatLocalDate(date);
 
