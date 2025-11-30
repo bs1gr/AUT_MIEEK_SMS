@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import authService from '@/services/authService';
 import apiClient from '@/api/api';
 
@@ -34,7 +34,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [accessToken, setAccessTokenState] = useState<string | null>(authService.getAccessToken());
-  const [autoLoginAttempted, setAutoLoginAttempted] = useState(false);
+  // track whether we've attempted auto-login at mount time (ref to avoid effect deps)
+  const autoLoginAttemptedRef = useRef(false);
+  const initialUserRef = useRef(user);
+  const initialAccessTokenRef = useRef(accessToken);
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
@@ -43,21 +46,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [accessToken]);
 
   // Auto-login on mount with default credentials if AUTH is enabled
+  // Intentionally run once on mount to attempt auto-login; dependencies are intentionally omitted
   useEffect(() => {
-    console.warn('[Auth] useEffect mount - autoLoginAttempted:', autoLoginAttempted, 'user:', user);
-    if (autoLoginAttempted) {
+    console.warn('[Auth] useEffect mount - autoLoginAttempted:', autoLoginAttemptedRef.current, 'user:', initialUserRef.current);
+    if (autoLoginAttemptedRef.current) {
       console.warn('[Auth] Already attempted, returning');
       return;
     }
-    
-    setAutoLoginAttempted(true);
+    autoLoginAttemptedRef.current = true;
     
     // If user exists but no token, preserve user and attempt silent token acquisition.
     // This allows localStorage restoration tests and offline scenarios to retain user context.
-    if (user && !accessToken) {
+    if (initialUserRef.current && !initialAccessTokenRef.current) {
       console.warn('[Auth] User exists without token; preserving user and attempting silent token acquisition');
       // Fall through to auto-login attempt to obtain a fresh token; do NOT clear user.
-    } else if (user && accessToken) {
+    } else if (initialUserRef.current && initialAccessTokenRef.current) {
       // User and token exist - finish init
       console.warn('[Auth] User and token exist in state, setting isInitializing to false');
       setIsInitializing(false);
@@ -186,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Helper: fetch /auth/me with retry logic to tolerate backend cold-start or brief bootstrap races
-  const fetchMeWithRetry = async (attempts = 5, initialDelayMs = 800): Promise<any> => {
+  const fetchMeWithRetry = async (attempts = 5, initialDelayMs = 800): Promise<unknown> => {
     let lastErr: unknown = null;
     for (let i = 0; i < attempts; i += 1) {
       try {
@@ -199,7 +202,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       // exponential backoff
       const delay = initialDelayMs * Math.pow(1.6, i);
-      // eslint-disable-next-line no-await-in-loop
       await new Promise<void>((res) => setTimeout(res, Math.round(delay)));
     }
     throw lastErr ?? new Error('Failed to fetch /auth/me');

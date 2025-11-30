@@ -30,8 +30,11 @@ export default function PowerPage() {
     // If route changes and query param exists, respect it
     try {
       const params = new URLSearchParams(location.search);
-      if (params.get('showControl') === '1') setShowControlPanel(true);
-      if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
+      const id = setTimeout(() => {
+        if (params.get('showControl') === '1') setShowControlPanel(true);
+        if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
+      }, 0);
+      return () => clearTimeout(id);
     } catch {
       // ignore
     }

@@ -49,7 +49,7 @@ const sampleStudents: Student[] = [
   },
 ];
 
-const paginatedResponse = {
+const _paginatedResponse = {
   items: sampleStudents,
   total: sampleStudents.length,
   skip: 0,
@@ -74,7 +74,7 @@ describe('useStudentsQuery hooks', () => {
 
   describe('useStudents - basic fetching', () => {
     it('fetches students (array) and updates store', async () => {
-      const getAllSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as any);
+      const getAllSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useStudents(), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -86,7 +86,7 @@ describe('useStudentsQuery hooks', () => {
     });
 
     it('applies search filter across first, last, email (case-insensitive)', async () => {
-      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as any);
+      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useStudents({ search: 'xAvIeR' }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -95,7 +95,7 @@ describe('useStudentsQuery hooks', () => {
     });
 
     it('applies active filter', async () => {
-      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as any);
+      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useStudents({ active: true }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -104,7 +104,7 @@ describe('useStudentsQuery hooks', () => {
     });
 
     it('combines search + active filters', async () => {
-      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as any);
+      vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useStudents({ search: 'alice', active: true }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -121,7 +121,7 @@ describe('useStudentsQuery hooks', () => {
     });
 
     it('sets loading state during fetch lifecycle', async () => {
-      const getAllSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as any);
+      const getAllSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useStudents(), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(getAllSpy).toHaveBeenCalled());

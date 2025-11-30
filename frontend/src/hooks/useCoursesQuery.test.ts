@@ -17,7 +17,7 @@ vi.mock('@/api/api', () => ({
 
 import { coursesAPI } from '@/api/api';
 import { useCoursesStore } from '@/stores/useCoursesStore';
-import type { Course } from '@/types';
+import type { Course, PaginatedResponse } from '@/types';
 
 // Helper wrapper
 function createWrapper(queryClient: QueryClient) {
@@ -88,7 +88,7 @@ describe('useCoursesQuery hooks', () => {
 
   describe('useCourses - basic fetching', () => {
     it('fetches courses from paginated response and updates store', async () => {
-      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
 
@@ -102,7 +102,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('handles API returning an array directly', async () => {
-      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(sampleCourses as any);
+      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(sampleCourses as Course[]);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -111,7 +111,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('handles unexpected response shape (no items) gracefully', async () => {
-      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce({ foo: 'bar' } as any);
+      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce({ foo: 'bar' } as unknown as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -131,7 +131,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('applies search filter (case-insensitive across name and code)', async () => {
-      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses({ search: 'physics' }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -140,7 +140,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('applies active filter', async () => {
-      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses({ active: true }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -149,7 +149,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('applies semester filter', async () => {
-      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses({ semester: 'Spring Semester 2024' }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -158,7 +158,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('combines filters (search + active + semester)', async () => {
-      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses({ search: 'intro', active: true, semester: 'Spring Semester 2024' }), { wrapper: createWrapper(queryClient) });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -167,7 +167,7 @@ describe('useCoursesQuery hooks', () => {
     });
 
     it('sets loading state during fetch', async () => {
-      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as any);
+      const getAllSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValueOnce(paginatedResponse as PaginatedResponse<Course>);
       const queryClient = makeClient();
       const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
       // Immediately after start should have set loading true in store (can't guarantee timing; poll)

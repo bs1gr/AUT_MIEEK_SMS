@@ -88,7 +88,7 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
           <div style={{
             fontSize: '2rem',
             marginBottom: '0.5rem'
-          }}>⚠️</div>
+          }}>{this.props.t('errors.iconWarning') || '⚠️'}</div>
           <h3 style={{
             fontSize: '1.125rem',
             fontWeight: '600',
@@ -117,10 +117,12 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={e => (e.target as HTMLButtonElement).style.backgroundColor = '#b91c1c'}
-            onMouseOut={e => (e.target as HTMLButtonElement).style.backgroundColor = '#dc2626'}
+            onMouseOver={e => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#b91c1c')}
+            onFocus={e => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#b91c1c')}
+            onMouseOut={e => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626')}
+            onBlur={e => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc2626')}
           >
-            {this.props.t('common.retry') || 'Retry'}
+            {this.props.t('retry') || 'Retry'}
           </button>
         </div>
       );
@@ -217,7 +219,7 @@ class AsyncErrorBoundaryCore extends Component<AsyncErrorBoundaryCoreProps, Asyn
           <div style={{
             fontSize: '1.5rem',
             marginBottom: '0.5rem'
-          }}>🔄</div>
+          }}>{this.props.t('errors.iconRetry') || '🔄'}</div>
           <h4 style={{
             fontSize: '1rem',
             fontWeight: '600',

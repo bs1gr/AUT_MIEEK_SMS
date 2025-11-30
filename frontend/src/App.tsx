@@ -61,8 +61,12 @@ function AppLayout({ children }: AppLayoutProps) {
   // Show password change prompt if user has password_change_required=true
   useEffect(() => {
     if (user && typeof user === 'object' && 'password_change_required' in user && user.password_change_required) {
-      setShowPasswordPrompt(true);
+      // Avoid synchronous setState inside effect to prevent cascading renders in tests/runtime.
+      // Schedule change in a microtask so effect finishes before commit.
+      const id = setTimeout(() => setShowPasswordPrompt(true), 0);
+      return () => clearTimeout(id);
     }
+    return undefined;
   }, [user]);
   
   const handleOpenPasswordForm = () => {

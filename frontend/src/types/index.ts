@@ -169,8 +169,8 @@ export interface CourseFormData {
   is_active?: boolean;
 }
 
-export interface GradeFormData extends Omit<Grade, 'id'> {}
-export interface AttendanceFormData extends Omit<Attendance, 'id'> {}
+export type GradeFormData = Omit<Grade, 'id'>;
+export type AttendanceFormData = Omit<Attendance, 'id'>;
 
 // Analytics types
 export interface FinalGrade {

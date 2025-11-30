@@ -5,12 +5,15 @@ import EditCourseModal from './EditCourseModal';
 import { LanguageProvider } from '@/LanguageContext';
 import type { Course } from '@/types';
 
-// Mock framer-motion
+// Mock framer-motion with typed props (avoids `any`)
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, onClick, ...props }: any) => <div onClick={onClick} {...props}>{children}</div>,
+      div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent); }} tabIndex={-1} {...props}>{children}</div>
+      ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) => {

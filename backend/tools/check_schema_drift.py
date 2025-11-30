@@ -35,7 +35,8 @@ def _load_db_url() -> str:
     try:
         from backend.config import settings  # type: ignore
 
-        return settings.database_url
+        # Settings exposes DATABASE_URL (uppercase) via pydantic settings model
+        return getattr(settings, "DATABASE_URL", "")
     except Exception:
         # Fallback consistent with models.init_db default
         return "sqlite:///student_management.db"

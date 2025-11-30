@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+/* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award } from 'lucide-react';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
@@ -31,7 +32,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (studentId) {
       loadStudentData();
     }
-  }, [studentId]);
+  }, [studentId, loadStudentData]);
 
   // Listen for data changes and reload if it affects this student
   useEffect(() => {
@@ -62,9 +63,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       unsubscribeAttendanceDeleted();
       unsubscribeDailyPerformance();
     };
-  }, [studentId]);
+  }, [studentId, loadStudentData]);
 
-  const loadStudentData = async () => {
+  const loadStudentData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -107,7 +108,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           } catch {}
         }));
         setCoursesById(dict);
-      } catch (e) {
+        } catch {
         setEnrollments([]);
         setCoursesById({});
       }
@@ -123,7 +124,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId, t]);
 
   const calculateStats = () => {
     // Attendance stats

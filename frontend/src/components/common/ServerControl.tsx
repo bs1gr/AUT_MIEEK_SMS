@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import { getHealthStatus, CONTROL_API_BASE } from '../../api/api';
+import { getHealthStatus, CONTROL_API_BASE, type HealthStatus } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Base URL without /api/v1 for direct server endpoints
-// @ts-ignore
-const RAW_API_BASE = ((import.meta as any).env?.VITE_API_URL?.trim()) ?? '';
+const metaEnv = import.meta.env as Partial<Record<string, string | undefined>>;
+const RAW_API_BASE = (metaEnv?.VITE_API_URL?.trim()) ?? '';
 const FALLBACK_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080';
 const sanitizedApiBase = RAW_API_BASE.replace(/\/api\/v1\/?$/, '');
 
@@ -40,7 +40,7 @@ interface ServerStatus {
 
 const ServerControl: React.FC = () => {
   // ...existing code...
-  const { t } = useLanguage() as any;
+  const { t } = useLanguage();
   const { user } = useAuth();
 
   const [status, setStatus] = useState<ServerStatus>({
@@ -51,7 +51,7 @@ const ServerControl: React.FC = () => {
   const [currentUptime, setCurrentUptime] = useState<number>(0);
   const [isRestarting, setIsRestarting] = useState(false);
   const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [healthData, setHealthData] = useState<any>(null);
+  const [healthData, setHealthData] = useState<HealthStatus | null>(null);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
@@ -83,11 +83,6 @@ const ServerControl: React.FC = () => {
   const isOffline = !isRestarting && (status.backend === 'offline' || status.frontend === 'offline');
 
   // Check server status periodically
-  useEffect(() => {
-    checkStatus();
-    const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
 
   // Sync uptime from server when backend comes online or uptime changes significantly
   useEffect(() => {
@@ -100,7 +95,7 @@ const ServerControl: React.FC = () => {
     } else if (status.backend !== 'online') {
       setCurrentUptime(0);
     }
-  }, [status.backend, status.uptime]);
+  }, [status.backend, status.uptime, currentUptime]);
 
   // Update uptime counter every second
   useEffect(() => {
@@ -115,14 +110,15 @@ const ServerControl: React.FC = () => {
     }
   }, [status.backend]);
 
-  const checkStatus = async () => {
+  
+  const checkStatus = React.useCallback(async () => {
     try {
       const data = await getHealthStatus();
 
       let backendStatus: 'online' | 'offline' = 'offline';
       let uptime = 0;
-      let error = '';
-      let health: any = null;
+      const error = '';
+      let health: HealthStatus | null = null;
 
       const rawUptime = (data as { uptime_seconds?: unknown; uptime?: unknown })?.uptime_seconds ?? (data as { uptime?: unknown })?.uptime;
       if (typeof rawUptime === 'number' && Number.isFinite(rawUptime)) {
@@ -186,7 +182,7 @@ const ServerControl: React.FC = () => {
         setDidShowOffline(true);
       }
     }
-  };
+  }, [startupGraceUntil, didShowOffline, retryDelay]);
 
   // Auto-refresh for health details
   useEffect(() => {
@@ -195,7 +191,13 @@ const ServerControl: React.FC = () => {
       checkStatus();
     }, Math.max(2000, intervalMs));
     return () => clearInterval(id);
-  }, [autoRefresh, intervalMs, showDetails]);
+  }, [autoRefresh, intervalMs, showDetails, checkStatus]);
+
+  useEffect(() => {
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, [checkStatus]);
 
   useEffect(() => {
     if (isRestarting && status.backend === 'online') {
@@ -361,6 +363,16 @@ const ServerControl: React.FC = () => {
       <div
         className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={!!showDetails}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowDetails((s) => !s);
+            if (!healthData) checkStatus();
+          }
+        }}
         title={t('controlPanel.toggleDetailsRefresh')}
       >
 
@@ -430,7 +442,11 @@ const ServerControl: React.FC = () => {
           </div>
           {status.backend === 'online' && currentUptime > 0 && (
             <span className="text-xs text-gray-500">
-              {t('uptime')}: {Math.floor(currentUptime / 3600)}h {Math.floor((currentUptime % 3600) / 60)}m {currentUptime % 60}s
+              {t('uptime')}: {t('controlPanel.uptimeFormatShort', {
+                h: Math.floor(currentUptime / 3600),
+                m: Math.floor((currentUptime % 3600) / 60),
+                s: currentUptime % 60,
+              })}
             </span>
           )}
           {status.error && (
@@ -456,7 +472,7 @@ const ServerControl: React.FC = () => {
                     </span>
                   )}
                   <div className="flex items-center gap-2 text-white/90">
-                    {healthData?.version ? <span>v{healthData.version}</span> : null}
+                    {healthData?.version ? <span>{t('controlPanel.versionShort', { version: healthData.version })}</span> : null}
                     {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
                     {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
                   </div>
@@ -485,7 +501,7 @@ const ServerControl: React.FC = () => {
                 {healthData?.environment && (
                   <div className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded">
                     <span className="text-white/90 text-xs font-semibold">
-                      {healthData.environment === 'docker' ? '🐳 Docker' : '💻 ' + t('controlPanel.nativeMode')}
+                      {healthData.environment === 'docker' ? t('controlPanel.environmentDocker') : t('controlPanel.environmentNative')}
                     </span>
                   </div>
                 )}
@@ -507,10 +523,10 @@ const ServerControl: React.FC = () => {
                     aria-label={t('controlPanel.autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
-                    <option className="text-black" value="3000">3s</option>
-                    <option className="text-black" value="5000">5s</option>
-                    <option className="text-black" value="10000">10s</option>
-                    <option className="text-black" value="30000">30s</option>
+                    <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
+                    <option className="text-black" value="5000">{t('controlPanel.timeoutSeconds', { s: 5 })}</option>
+                    <option className="text-black" value="10000">{t('controlPanel.timeoutSeconds', { s: 10 })}</option>
+                    <option className="text-black" value="30000">{t('controlPanel.timeoutSeconds', { s: 30 })}</option>
                   </select>
                 </div>
               </div>
@@ -524,10 +540,14 @@ const ServerControl: React.FC = () => {
                   <div>
                     <div className="text-sm font-semibold text-indigo-900 mb-2">{t('controlPanel.uptime')}</div>
                     <div className="text-4xl font-bold text-indigo-600">
-                      {Math.floor(currentUptime / 3600)}h {Math.floor((currentUptime % 3600) / 60)}m {currentUptime % 60}s
+                      {t('controlPanel.uptimeFormatShort', {
+                        h: Math.floor(currentUptime / 3600),
+                        m: Math.floor((currentUptime % 3600) / 60),
+                        s: currentUptime % 60,
+                      })}
                     </div>
                   </div>
-                  <div className="text-6xl opacity-20">⏱️</div>
+                  <div className="text-6xl opacity-20">{t('controlPanel.timerEmoji')}</div>
                 </div>
               </div>
             )}

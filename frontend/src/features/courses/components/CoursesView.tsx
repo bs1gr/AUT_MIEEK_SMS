@@ -2,7 +2,8 @@
 // Location: frontend/src/components/views/CoursesView.tsx
 // Enhanced with teaching schedule management and hours per week
 
-import { useState, useEffect } from 'react';
+/* eslint-disable testing-library/no-await-sync-queries */
+import { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
@@ -86,26 +87,26 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       setCourses(externalCourses);
     }
     loadAllStudents();
-  }, [externalCourses]);
+  }, [externalCourses, loadCourses, loadAllStudents]);
 
   useEffect(() => {
     if (selectedCourse) {
       loadCourseData();
       loadEnrolledStudents();
     }
-  }, [selectedCourse, courses]);
+  }, [selectedCourse, courses, loadCourseData, loadEnrolledStudents]);
 
   // Reset pending selections when switching courses
   useEffect(() => {
     setSelectedToEnroll([]);
   }, [selectedCourse]);
 
-  const showToast = (message: string, type: ToastType['type'] = 'info') => {
+  const showToast = useCallback((message: string, type: ToastType['type'] = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
-  const loadAllStudents = async () => {
+  const loadAllStudents = useCallback(async () => {
     try {
       const data = await studentsAPI.getAll();
       // Normalize PaginatedResponse to array
@@ -116,9 +117,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [t, showToast]);
 
-  const loadEnrolledStudents = async () => {
+  const loadEnrolledStudents = useCallback(async () => {
     if (!selectedCourse) return;
     try {
       const data = await enrollmentsAPI.getEnrolledStudents(selectedCourse);
@@ -126,7 +127,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     } catch {
       setEnrolledStudents([]);
     }
-  };
+  }, [selectedCourse]);
 
   const enrollSelected = async () => {
     if (!selectedCourse || selectedToEnroll.length === 0) return;
@@ -151,7 +152,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
       const data = await coursesAPI.getAll(0, 1000);
       // Backend returns PaginatedResponse { items, total, skip, limit }
@@ -161,9 +162,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [t, showToast]);
 
-  const loadCourseData = () => {
+  const loadCourseData = useCallback(() => {
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
       setEvaluationRules((course.evaluation_rules as Rule[]) || []);
@@ -194,7 +195,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       setWeeklySchedule({});
       setHoursPerWeek(0);
     }
-  };
+  }, [courses, selectedCourse]);
 
   // Evaluation Rules Functions
   const addRule = () => {
@@ -279,7 +280,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   };
 
   // Check for schedule conflicts with other courses (year-based)
-  const checkScheduleConflicts = async (): Promise<ScheduleConflict[]> => {
+  const checkScheduleConflicts = useCallback(async (): Promise<ScheduleConflict[]> => {
     if (!selectedCourse || Object.keys(weeklySchedule).length === 0) {
       setScheduleConflicts([]);
       return [];
@@ -388,7 +389,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       console.error('Error checking conflicts:', err);
       return [];
     }
-  };
+  }, [selectedCourse, weeklySchedule, courses]);
 
   const saveCourseData = async () => {
     if (activeTab === 'evaluation' && !validateRules()) return;
@@ -783,7 +784,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                   </div>
                   {hasSchedule && !hoursOk && (
                     <div className="mt-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded p-3">
-                      {t('hoursPerWeekTooLow') || 'Hours per week must be at least 0.5 when a schedule is set.'}
+                      {t('hoursPerWeekTooLow')}
                     </div>
                   )}
                 </div>
@@ -798,8 +799,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                         <p className="flex items-center space-x-2">
                           <span className="font-semibold">{t('intermissionInfo')}:</span>
                         </p>
-                        <p className="ml-4">• {t('intermission1')}</p>
-                        <p className="ml-4">• {t('intermission2')}</p>
+                        <p className="ml-4">{t('bullet')} {t('intermission1')}</p>
+                        <p className="ml-4">{t('bullet')} {t('intermission2')}</p>
                       </div>
                     </div>
                   </div>
@@ -947,11 +948,11 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                   title={`${t('periodDuration')} (${t('minutes')})`}
                                 >
-                                  <option value="45">45 {t('minutes')} (Default)</option>
-                                  <option value="50">50 {t('minutes')}</option>
-                                  <option value="60">60 {t('minutes')}</option>
-                                  <option value="90">90 {t('minutes')}</option>
-                                  <option value="120">120 {t('minutes')}</option>
+                                  <option value="45">{t('durationOptionDefault', { minutes: 45, minuteLabel: t('minutes'), defaultLabel: t('default') })}</option>
+                                  <option value="50">{t('durationOption', { minutes: 50, minuteLabel: t('minutes') })}</option>
+                                  <option value="60">{t('durationOption', { minutes: 60, minuteLabel: t('minutes') })}</option>
+                                  <option value="90">{t('durationOption', { minutes: 90, minuteLabel: t('minutes') })}</option>
+                                  <option value="120">{t('durationOption', { minutes: 120, minuteLabel: t('minutes') })}</option>
                                 </select>
                               </div>
                             </div>
@@ -987,12 +988,12 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                       {allStudents.map((s) => {
                         const enrolled = enrolledStudents.some((e) => e.id === s.id);
                         return (
-                          <label key={s.id} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
+                          <label key={s.id} htmlFor={`enroll-${s.id}`} aria-label={`${s.first_name} ${s.last_name}`} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
                             <div>
                               <div className="font-medium">{s.first_name} {s.last_name}</div>
                               <div className="text-xs text-gray-500">{s.student_id}</div>
                             </div>
-                            <input type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
+                            <input id={`enroll-${s.id}`} type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
                               setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
                             }} />
                           </label>
@@ -1082,15 +1083,15 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('monday')}: 2 {t('periods')} (08:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('monday'), count: 2, start: '08:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('wednesday')}: 1 {t('period')} (10:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('wednesday'), count: 1, start: '10:00', minutes: 50, periodLabel: t('period'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">0.83 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('friday')}: 2 {t('periods')} (14:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('friday'), count: 2, start: '14:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-3 bg-indigo-100 rounded font-bold">

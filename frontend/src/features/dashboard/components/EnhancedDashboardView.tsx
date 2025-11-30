@@ -125,13 +125,10 @@ type EnhancedDashboardProps = {
 
 const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardProps) => {
   const { t } = useLanguage();
-  const navigate = useNavigate ? useNavigate() : undefined;
+  const navigate = useNavigate();
 
   const goToExport = useCallback(
     (scrollTo: OperationsLocationState['scrollTo']) => {
-      if (!navigate) {
-        return;
-      }
       const state: OperationsLocationState = { tab: 'exports', scrollTo };
       navigate('/operations', { state });
     },
@@ -287,7 +284,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             totalCredits: data.total_credits || 0,
             failedCourses,
           };
-        } catch (error) {
+        } catch {
           return {
             ...student,
             overallGPA: 0,
@@ -472,7 +469,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                               {t('credits')}
                             </p>
                             <p className={`text-xs ${failedCount > 0 ? 'text-red-600' : 'text-slate-500'}`}>
-                              {statusLabel} • {formatted.greekGrade}/20 • {letter}
+                              {statusLabel} {t('bullet')} {formatted.greekGrade}{t('outOf20')} {t('bullet')} {letter}
                             </p>
                           </div>
                           <div className="flex items-center gap-3">

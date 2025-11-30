@@ -83,11 +83,10 @@ export async function logErrorToBackend(
 
     // Also log to console in development
     if (import.meta.env.DEV) {
-      console.group('🔴 Error logged to backend');
+      console.error('🔴 Error logged to backend');
       console.error('Error:', error);
       console.error('Error Info:', errorInfo);
       console.error('Context:', context);
-      console.groupEnd();
     }
   } catch {
     // Don't let error reporting cause more errors

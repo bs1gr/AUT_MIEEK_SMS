@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import apiClient, { gradesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
@@ -54,8 +54,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   useEffect(() => {
     const storedStudent = sessionStorage.getItem('grading_filter_student');
     const storedCourse = sessionStorage.getItem('grading_filter_course');
-    if (storedStudent && !studentId) setStudentId(Number(storedStudent));
-    if (storedCourse && !courseId) setCourseId(Number(storedCourse));
+    if (storedStudent) setStudentId(prev => prev || Number(storedStudent));
+    if (storedCourse) setCourseId(prev => prev || Number(storedCourse));
     // Optionally clear after use
     sessionStorage.removeItem('grading_filter_student');
     sessionStorage.removeItem('grading_filter_course');
@@ -72,22 +72,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadFinal = async () => {
-    setFinalSummary(null);
-    setError(null);
-    if (!studentId || !courseId) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        throw new Error(txt || 'Failed to load final grade');
-      }
-      const data: FinalGrade = await res.json();
-      setFinalSummary(data);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load final grade');
-    }
-  };
+  // loadFinal is declared below and memoized with useCallback. Do not define a separate
+  // non-memoized loadFinal here — keep the single useCallback instance to satisfy
+  // react-hooks/exhaustive-deps and avoid re-creating the function each render.
 
   // Keep filters in sync
   useEffect(() => { setFilteredStudents(students || []); }, [students]);
@@ -116,7 +103,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       setFilteredStudents(students || []);
     };
     run();
-  }, [courseId, studentsString]); // Use studentsString to avoid infinite loop
+  }, [courseId, studentsString, studentId, students]); // Use studentsString to avoid infinite loop and include studentId
 
   // When student is chosen, restrict courses to those the student is enrolled in
   const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
@@ -146,9 +133,26 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       }
     };
     run();
-  }, [studentId, coursesString]); // Use coursesString to avoid infinite loop
+  }, [studentId, coursesString, courseId, courses]); // Use coursesString to avoid infinite loop and include courseId
 
-  useEffect(()=>{ loadFinal(); },[studentId, courseId]);
+  const loadFinal = useCallback(async () => {
+    setFinalSummary(null);
+    setError(null);
+    if (!studentId || !courseId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(txt || 'Failed to load final grade');
+      }
+      const data: FinalGrade = await res.json();
+      setFinalSummary(data);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load final grade');
+    }
+  }, [studentId, courseId]);
+
+  useEffect(() => { loadFinal(); }, [loadFinal]);
 
   useEffect(() => {
     const loadGrades = async () => {
@@ -182,15 +186,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       const attempts = grades.filter(g => normalizeCategory(g.category) === catNorm).length;
       const baseTitle = catNorm === 'midterm' ? 'Midterm Exam' : 'Final Exam';
       const suffix = attempts >= 1 ? 'B' : 'A';
+
       // Only override if empty or if previously auto-generated for the same family
-      const current = (assignmentName || '').trim().toLowerCase();
-      const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
-      if (!assignmentName || isAutoPattern) {
-        setAssignmentName(`${baseTitle} ${suffix}`);
-      }
-      if (maxGrade === '' || Number(maxGrade) <= 0) {
-        setMaxGrade(100);
-      }
+      setAssignmentName(prev => {
+        const current = (prev || '').trim().toLowerCase();
+        const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
+        if (!prev || isAutoPattern) return `${baseTitle} ${suffix}`;
+        return prev;
+      });
+
+      setMaxGrade(prev => {
+        const numeric = Number(prev || 0);
+        if (prev === '' || numeric <= 0) return 100;
+        return prev as number;
+      });
     }
   }, [category, grades, studentId, courseId]);
 
@@ -251,8 +260,26 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       } catch {}
       setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(100); setWeight('');
     } catch (e: unknown) {
-      // Attempt to extract common API error formats
-      const apiMsg = (e as any)?.response?.data?.detail || (e as any)?.response?.data || (e as any)?.message || 'Error';
+      // Attempt to extract common API error formats without using `any`
+      let apiMsg: string | undefined;
+      if (typeof e === 'object' && e !== null && 'response' in e) {
+        try {
+          // Narrow known shapes safely
+          const ev = e as { response?: { data?: unknown }; message?: string };
+          const data = ev.response?.data;
+          if (typeof data === 'string') apiMsg = data;
+          else if (typeof data === 'object' && data !== null) {
+            const detail = (data as Record<string, unknown>)['detail'];
+            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
+          } else if (typeof ev.message === 'string') apiMsg = ev.message;
+        } catch {
+          // ignore
+        }
+      }
+      if (!apiMsg) {
+        if (e instanceof Error) apiMsg = e.message;
+        else apiMsg = String(e);
+      }
       setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
     }
     finally { setSubmitting(false); }
@@ -303,7 +330,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             {typeof finalSummary.gpa === 'number' && (
               <>
                 <p className={`mt-1 ${getGreekGradeColor(gpaToGreekScale(finalSummary.gpa))}`}>
-                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(finalSummary.gpa).toFixed(1)}/20 • {getGreekGradeDescription(gpaToGreekScale(finalSummary.gpa))}
+                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(finalSummary.gpa).toFixed(1)}{t('outOf20')} {t('bullet')} {getGreekGradeDescription(gpaToGreekScale(finalSummary.gpa))}
                 </p>
                 <p className="text-gray-600">{gpaToPercentage(finalSummary.gpa).toFixed(1)}%</p>
               </>
@@ -313,7 +340,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                 <p className="font-semibold">{t('categoryBreakdown')}</p>
                 <ul className="list-disc ml-5">
                   {Object.keys(finalSummary.category_breakdown).map(k=> (
-                    <li key={k}>{translateCategory(k)}: {finalSummary.category_breakdown[k].average.toFixed(1)}% (w {finalSummary.category_breakdown[k].weight}%)</li>
+                    <li key={k}>{t('categoryBreakdownItem', { category: translateCategory(k), average: finalSummary.category_breakdown[k].average.toFixed(1), weight: finalSummary.category_breakdown[k].weight })}</li>
                   ))}
                 </ul>
               </div>

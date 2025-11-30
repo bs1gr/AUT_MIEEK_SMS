@@ -2,7 +2,7 @@
 // Location: frontend/src/components/views/CoursesView.tsx
 // Enhanced with teaching schedule management and hours per week
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';
@@ -87,29 +87,21 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     { en: 'Friday', el: 'Παρασκευή', translated: t('friday') }
   ];
 
-  useEffect(() => {
-    loadCourses();
-    loadAllStudents();
-  }, []);
+  // Initial load moved below where the callbacks are defined to avoid TDZ issues
 
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCourseData();
-      loadEnrolledStudents();
-    }
-  }, [selectedCourse, courses]);
+  // loadCourseData effect moved below callback definitions to avoid TDZ issues
 
   // Reset pending selections when switching courses
   useEffect(() => {
     setSelectedToEnroll([]);
   }, [selectedCourse]);
 
-  const showToast = (message: string, type: ToastType['type'] = 'info') => {
+  const showToast = useCallback((message: string, type: ToastType['type'] = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
-  const loadAllStudents = async () => {
+  const loadAllStudents = useCallback(async () => {
     try {
       const resp = await fetch(`${API_BASE_URL}/students/`);
       const data = await resp.json();
@@ -121,9 +113,9 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [showToast, t]);
 
-  const loadEnrolledStudents = async () => {
+  const loadEnrolledStudents = useCallback(async () => {
     if (!selectedCourse) return;
     try {
       const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
@@ -132,7 +124,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     } catch {
       setEnrolledStudents([]);
     }
-  };
+  }, [selectedCourse]);
 
   const enrollSelected = async () => {
     if (!selectedCourse || selectedToEnroll.length === 0) return;
@@ -162,7 +154,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     }
   };
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/courses/`);
       const data = await response.json();
@@ -173,9 +165,15 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [showToast, t]);
 
-  const loadCourseData = () => {
+  // Initial load needs to run after callbacks are declared
+  useEffect(() => {
+    loadCourses();
+    loadAllStudents();
+  }, [loadCourses, loadAllStudents]);
+
+  const loadCourseData = useCallback(() => {
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
       setEvaluationRules((course.evaluation_rules as Rule[]) || []);
@@ -206,7 +204,14 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       setWeeklySchedule({});
       setHoursPerWeek(0);
     }
-  };
+  }, [courses, selectedCourse]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCourseData();
+      loadEnrolledStudents();
+    }
+  }, [selectedCourse, courses, loadCourseData, loadEnrolledStudents]);
 
   // Evaluation Rules Functions
   const addRule = () => {
@@ -679,10 +684,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                       <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                           <div className="md:col-span-5">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label htmlFor={`category-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
                               {t('categoryName')}
                             </label>
                             <input
+                              id={`category-${index}`}
                               type="text"
                               value={rule.category}
                               onChange={(e) => updateRule(index, 'category', e.target.value)}
@@ -698,10 +704,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                           </div>
 
                           <div className="md:col-span-2">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label htmlFor={`weight-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
                               {t('weight')}
                             </label>
                             <input
+                              id={`weight-${index}`}
                               type="number"
                               min="0"
                               max="100"
@@ -714,10 +721,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                           </div>
 
                           <div className="md:col-span-4">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                            <label htmlFor={`description-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
                               {t('ruleDescription')}
                             </label>
                             <input
+                              id={`description-${index}`}
                               type="text"
                               value={rule.description || ''}
                               onChange={(e) => updateRule(index, 'description', e.target.value)}
@@ -965,11 +973,11 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                   title={`${t('periodDuration')} (${t('minutes')})`}
                                 >
-                                  <option value="45">45 {t('minutes')} (Default)</option>
-                                  <option value="50">50 {t('minutes')}</option>
-                                  <option value="60">60 {t('minutes')}</option>
-                                  <option value="90">90 {t('minutes')}</option>
-                                  <option value="120">120 {t('minutes')}</option>
+                                  <option value="45">{t('durationOptionDefault', { minutes: 45, minuteLabel: t('minutes'), defaultLabel: t('default') })}</option>
+                                  <option value="50">{t('durationOption', { minutes: 50, minuteLabel: t('minutes') })}</option>
+                                  <option value="60">{t('durationOption', { minutes: 60, minuteLabel: t('minutes') })}</option>
+                                  <option value="90">{t('durationOption', { minutes: 90, minuteLabel: t('minutes') })}</option>
+                                  <option value="120">{t('durationOption', { minutes: 120, minuteLabel: t('minutes') })}</option>
                                 </select>
                               </div>
                             </div>
@@ -986,15 +994,15 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
             {activeTab === 'enrollment' && (
               <div className="p-6">
                 <div className="mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">{t('enrollmentManagement') || 'Enrollment Management'}</h3>
-                  <p className="text-gray-600">{t('assignStudentsToCourse') || 'Assign students to this course'}</p>
+                  <h3 className="text-xl font-bold text-gray-800">{t('enrollmentManagement')}</h3>
+                  <p className="text-gray-600">{t('assignStudentsToCourse')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-gray-50 rounded-lg p-4 border">
                     <h4 className="font-semibold mb-2">{t('allStudents') || 'All Students'}</h4>
                     <div className="mb-2">
-                      <input type="text" placeholder={t('search') || 'Search'} className="w-full px-3 py-2 border rounded" onChange={(e) => {
+                      <input type="text" placeholder={t('search')} className="w-full px-3 py-2 border rounded" onChange={(e) => {
                         const q = e.target.value.toLowerCase();
                         allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
                         // simple filter display only; keep original in allStudents
@@ -1005,12 +1013,12 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                       {allStudents.map((s) => {
                         const enrolled = enrolledStudents.some((e) => e.id === s.id);
                         return (
-                          <label key={s.id} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
+                          <label key={s.id} htmlFor={`enroll-${s.id}`} aria-label={`${s.first_name} ${s.last_name}`} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
                             <div>
                               <div className="font-medium">{s.first_name} {s.last_name}</div>
                               <div className="text-xs text-gray-500">{s.student_id}</div>
                             </div>
-                            <input type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
+                            <input id={`enroll-${s.id}`} type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
                               setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
                             }} />
                           </label>
@@ -1022,8 +1030,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4 border">
-                    <h4 className="font-semibold mb-2">{t('enrolledStudents') || 'Enrolled Students'}</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 border">
+                    <h4 className="font-semibold mb-2">{t('enrolledStudents')}</h4>
                     <div className="max-h-96 overflow-auto space-y-2">
                       {enrolledStudents.length === 0 && <div className="text-sm text-gray-500">{t('noStudentsEnrolled') || 'No students enrolled yet'}</div>}
                       {enrolledStudents.map((s) => (
@@ -1032,7 +1040,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                             <div className="font-medium">{s.first_name} {s.last_name}</div>
                             <div className="text-xs text-gray-500">{s.student_id}</div>
                           </div>
-                          <button onClick={() => unenroll(s.id)} className="px-3 py-1 text-red-600 border border-red-300 rounded">{t('unenroll') || 'Unenroll'}</button>
+                          <button onClick={() => unenroll(s.id)} className="px-3 py-1 text-red-600 border border-red-300 rounded">{t('unenroll')}</button>
                         </div>
                       ))}
                     </div>
@@ -1104,15 +1112,15 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('monday')}: 2 {t('periods')} (08:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('monday'), count: 2, start: '08:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('wednesday')}: 1 {t('period')} (10:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('wednesday'), count: 1, start: '10:00', minutes: 50, periodLabel: t('period'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">0.83 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('friday')}: 2 {t('periods')} (14:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('friday'), count: 2, start: '14:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-3 bg-indigo-100 rounded font-bold">

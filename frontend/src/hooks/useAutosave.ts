@@ -98,6 +98,8 @@ export const useAutosave = (
     await executeSave();
   }, [executeSave]);
 
+  const depsKey = JSON.stringify(dependencies);
+
   useEffect(() => {
     // Skip initial render if configured
     if (skipInitial && initialRenderRef.current) {
@@ -130,7 +132,7 @@ export const useAutosave = (
         timeoutRef.current = null;
       }
     };
-  }, [...dependencies, enabled, delay, executeSave]);
+  }, [depsKey, enabled, delay, executeSave, skipInitial]);
 
   return {
     isSaving,

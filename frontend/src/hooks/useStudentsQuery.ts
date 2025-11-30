@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/* eslint-disable testing-library/no-await-sync-queries */
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
 import type { Student, StudentFormData } from '@/types';

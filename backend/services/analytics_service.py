@@ -65,6 +65,11 @@ class AnalyticsService:
             .first()
         )
 
+        # Ensure the query returned a student instance; get_by_id_or_404 above ensures
+        # the student exists, but mypy cannot reason about that. Assert to help
+        # static type checkers.
+        assert student_data is not None
+
         # Filter records by course and deleted_at status
         grades = [
             g for g in student_data.grades
@@ -96,6 +101,7 @@ class AnalyticsService:
 
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
+        assert student is not None
 
         # Collect all course IDs from loaded relationships
         course_ids = {
@@ -189,6 +195,7 @@ class AnalyticsService:
 
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
+        assert student is not None
 
         # Calculate from loaded relationships (no additional queries)
         attendance_records = [a for a in student.attendances if a.deleted_at is None]

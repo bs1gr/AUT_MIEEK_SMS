@@ -7,7 +7,8 @@ import logging
 from contextlib import contextmanager
 from typing import Any, Dict, Optional, TypeVar
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
+from backend.errors import ErrorCode, http_error
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Query, Session
 
@@ -127,7 +128,14 @@ def get_by_id(db: Session, model: Any, id: int, include_deleted: bool = False) -
     return query.first()
 
 
-def get_by_id_or_404(db: Session, model: Any, id: int, include_deleted: bool = False) -> Any:
+def get_by_id_or_404(
+    db: Session,
+    model: Any,
+    id: int,
+    include_deleted: bool = False,
+    error_code: Optional[ErrorCode] = None,
+    request: Optional[Request] = None,
+) -> Any:
     """
     Get record by ID or raise 404.
 
@@ -150,6 +158,11 @@ def get_by_id_or_404(db: Session, model: Any, id: int, include_deleted: bool = F
     obj = get_by_id(db, model, id, include_deleted)
 
     if obj is None:
+        # Allow callers to provide a stable error code and the request for
+        # richer structured error payloads (used throughout the services).
+        if error_code is not None:
+            raise http_error(status_code=404, code=error_code, message=f"{model.__name__} with id {id} not found", request=request)
+
         raise HTTPException(status_code=404, detail=f"{model.__name__} with id {id} not found")
 
     return obj

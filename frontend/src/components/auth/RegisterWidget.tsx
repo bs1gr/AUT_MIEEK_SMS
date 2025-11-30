@@ -73,13 +73,11 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
         if (onRegisterSuccess) {
           onRegisterSuccess();
         }
-      } catch (err: any) {
-        const detail = err?.response?.data?.detail ?? err?.response?.data ?? err;
-        setFeedback({ type: 'info', message: getErrorMessage(detail, t('auth.registerPartial')) });
+      } catch (err: unknown) {
+        setFeedback({ type: 'info', message: getErrorMessage(err, t('auth.registerPartial')) });
       }
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail ?? err?.response?.data ?? err;
-      setFeedback({ type: 'error', message: getErrorMessage(detail, t('auth.registerError')) });
+    } catch (err: unknown) {
+      setFeedback({ type: 'error', message: getErrorMessage(err, t('auth.registerError')) });
     } finally {
       setBusy(false);
     }

@@ -19,7 +19,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Sync with i18next when language changes
   useEffect(() => {
-    setLanguageState(i18n.language);
+    // Set language state asynchronously to avoid calling setState synchronously inside effect
+    // which can cause cascading renders in some environments.
+    const id = setTimeout(() => setLanguageState(i18n.language), 0);
+    return () => clearTimeout(id);
   }, [i18n.language]);
 
   // Update i18next when language is changed via setLanguage
@@ -58,7 +61,7 @@ export const useLanguage = () => {
 };
 
 export const LanguageSwitcher = () => {
-  const { language, setLanguage } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   return (
     <div className="flex items-center space-x-2 bg-white rounded-lg shadow px-3 py-2">
@@ -70,7 +73,7 @@ export const LanguageSwitcher = () => {
             : 'text-gray-600 hover:bg-gray-100'
         }`}
       >
-        En
+        {t('lang.enShort')}
       </button>
       <button
         onClick={() => setLanguage('el')}
@@ -80,7 +83,7 @@ export const LanguageSwitcher = () => {
             : 'text-gray-600 hover:bg-gray-100'
         }`}
       >
-        Ελ
+        {t('lang.elShort')}
       </button>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState, useCallback } from 'react';
 import type { Grade, Course } from '@/types';
 import { percentageToGreekScale, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
@@ -74,9 +74,9 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
     };
   }, [gradesList, coursesMap, fallbackCourses]);
 
-  const resolveCourseInfo = (courseId: number): Course | undefined => {
+  const resolveCourseInfo = useCallback((courseId: number): Course | undefined => {
     return coursesMap.get(courseId) || fallbackCourses[courseId];
-  };
+  }, [coursesMap, fallbackCourses]);
 
   // Memoize course grouping and calculations
   const courseBreakdown = useMemo(() => {
@@ -127,7 +127,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         byCategory,
       };
     });
-  }, [gradesList, coursesMap, fallbackCourses, t]);
+  }, [gradesList, resolveCourseInfo, t]);
 
   // Translate category names
   const translateCategory = (category: string): string => {
@@ -185,8 +185,8 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                           {avgGreek.toFixed(1)}/20
                         </span>
                       </div>
-                      <div className="text-xs text-gray-600">
-                        {avgPercentage.toFixed(1)}% ({letterGrade})
+                        <div className="text-xs text-gray-600">
+                        {t('percentageWithLetter', { percentage: avgPercentage.toFixed(1), letter: letterGrade })}
                       </div>
                     </div>
                     {onNavigateToCourse && (

@@ -1,7 +1,9 @@
+/* eslint-disable testing-library/no-await-sync-queries */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesAPI } from '@/api/api';
 import { useCoursesStore } from '@/stores';
 import type { Course, CourseFormData } from '@/types';
+// Query keys
 
 // Query keys
 export const courseKeys = {

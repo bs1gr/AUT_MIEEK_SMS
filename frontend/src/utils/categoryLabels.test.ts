@@ -80,13 +80,13 @@ describe('categoryLabels', () => {
     });
 
     it('returns empty string for null/undefined input', () => {
-      expect(getLocalizedCategory(null as any, mockT)).toBe('');
-      expect(getLocalizedCategory(undefined as any, mockT)).toBe('');
+      expect(getLocalizedCategory(null, mockT)).toBe('');
+      expect(getLocalizedCategory(undefined, mockT)).toBe('');
     });
 
     it('returns empty string for non-string input', () => {
-      expect(getLocalizedCategory(123 as any, mockT)).toBe('');
-      expect(getLocalizedCategory({} as any, mockT)).toBe('');
+      expect(getLocalizedCategory(123, mockT)).toBe('');
+      expect(getLocalizedCategory({}, mockT)).toBe('');
     });
 
     it('trims whitespace from input', () => {
@@ -155,13 +155,13 @@ describe('categoryLabels', () => {
     });
 
     it('returns empty string for null/undefined input', () => {
-      expect(getCanonicalCategory(null as any, mockT)).toBe('');
-      expect(getCanonicalCategory(undefined as any, mockT)).toBe('');
+      expect(getCanonicalCategory(null, mockT)).toBe('');
+      expect(getCanonicalCategory(undefined, mockT)).toBe('');
     });
 
     it('returns empty string for non-string input', () => {
-      expect(getCanonicalCategory(123 as any, mockT)).toBe('');
-      expect(getCanonicalCategory({} as any, mockT)).toBe('');
+      expect(getCanonicalCategory(123, mockT)).toBe('');
+      expect(getCanonicalCategory({}, mockT)).toBe('');
     });
 
     it('handles already canonical English input', () => {

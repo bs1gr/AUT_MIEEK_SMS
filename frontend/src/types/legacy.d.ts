@@ -6,29 +6,29 @@ declare global {
   type Numeric = number | string | unknown;
 
   interface Course {
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface Student {
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface Grade {
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface FinalGrade {
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface Highlight {
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
-  interface PaginatedResponse<T = any> {
+  interface PaginatedResponse<T = unknown> {
     items?: T[];
     results?: T[];
-    [key: string]: any;
+    [key: string]: unknown;
   }
 }
 

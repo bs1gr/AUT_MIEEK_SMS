@@ -39,6 +39,7 @@ import uvicorn
 
 # FastAPI imports
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -766,7 +767,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 # --------------------------------------------------------------------------
 # Global RFC 7807-style error handling
 # --------------------------------------------------------------------------
-from fastapi.exceptions import RequestValidationError  # type: ignore  # noqa: E402
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 

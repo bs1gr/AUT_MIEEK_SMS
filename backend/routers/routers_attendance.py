@@ -10,14 +10,7 @@ from typing import List, Optional, Tuple, cast
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session, joinedload
 
-logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"description": "Not found"}})
-
-
 from backend.config import settings
-
-# ========== DEPENDENCY INJECTION ==========
 from backend.db import get_session as get_db
 from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
@@ -30,6 +23,10 @@ from backend.schemas.attendance import (
 from backend.schemas.common import PaginatedResponse, PaginationParams
 
 from .routers_auth import optional_require_role
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"description": "Not found"}})
 
 
 def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) -> Optional[Tuple[date, date]]:
