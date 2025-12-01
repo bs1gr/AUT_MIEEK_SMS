@@ -1,7 +1,6 @@
 # Scripts Directory
-
-**Last Updated:** November 27, 2025  
-**Version:** 2.0
+.
+.\NATIVE.ps1 -Start           # Start both backend + frontend
 
 This directory contains management scripts for the Student Management System.
 
@@ -75,6 +74,8 @@ scripts/
 ```powershell
 .\NATIVE.ps1 -Setup           # Install/update dependencies
 .\NATIVE.ps1 -Start           # Start both backend + frontend
+ 
+
 .\NATIVE.ps1 -Backend         # Backend only (uvicorn --reload)
 .\NATIVE.ps1 -Frontend        # Frontend only (Vite HMR)
 .\NATIVE.ps1 -Stop            # Stop all processes
@@ -82,6 +83,39 @@ scripts/
 .\NATIVE.ps1 -Clean           # Clean artifacts (node_modules, .venv, caches)
 .\NATIVE.ps1 -Help            # Show all options
 ```
+
+Note: DEV_EASE is reserved for the pre-commit tool `COMMIT_READY.ps1` only and must not be used to change runtime behavior when starting backend or frontend. To allow local pre-commit skips (tests/cleanup/fixes) set the environment variable `DEV_EASE=true` before running `COMMIT_READY.ps1`.
+
+### Git hooks (optional)
+
+We provide a sample Git pre-commit hook that runs `COMMIT_READY.ps1 -Mode quick` automatically before commits.
+
+- Sample hook: `.githooks/commit-ready-precommit.sample`
+- Install manually by copying to `.git/hooks/pre-commit` and making it executable:
+
+  ```bash
+  cp .githooks/commit-ready-precommit.sample .git/hooks/pre-commit
+  chmod +x .git/hooks/pre-commit
+  ```
+
+- Or use the helper scripts in `scripts/` to install hooks across platforms:
+
+
+- PowerShell (Windows):
+
+  ```powershell
+  pwsh ./scripts/install-git-hooks.ps1
+  ```
+
+- POSIX (Linux/macOS):
+
+  ```bash
+  ./scripts/install-git-hooks.sh
+  ```
+
+On Windows you may prefer a PowerShell hook variant which invokes `pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick`.
+
+This hook helps catch lint/test issues early. If you intentionally want to skip steps that require DEV_EASE (SkipTests, SkipCleanup or AutoFix), set `DEV_EASE=true` in your shell before running `COMMIT_READY.ps1`.
 
 ### 🔍 SMOKE_TEST.ps1 - Quick Health Check
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Palette, Check } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { useAppearanceTheme, type AppearanceThemeVariant } from '@/contexts/AppearanceThemeContext';
@@ -134,10 +134,10 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
   const appearanceTitle = t('controlPanel.appearanceThemes') || 'Appearance Themes';
   const appearanceDescription = t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
 
-  const withFallback = (key: string, fallback: string) => {
+  const withFallback = useCallback((key: string, fallback: string) => {
     const value = t(key);
     return value === key ? fallback : value;
-  };
+  }, [t]);
 
   const themeOptions = useMemo(
     () =>
@@ -146,7 +146,7 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
         name: withFallback(meta.nameKey, meta.fallbackName),
         description: withFallback(meta.descriptionKey, meta.fallbackDescription),
       })),
-    [t]
+    [withFallback]
   );
 
   return (
@@ -291,13 +291,13 @@ const AppearanceThemeSelector = () => {
         </div>
         <div className="flex flex-wrap gap-2">
           <div className={`${theme.button} inline-flex items-center gap-2 text-xs`}>
-            <span className="font-semibold">Ops</span>
-            <span>{t('controlPanel.quickActions') || 'Quick Actions'}</span>
+            <span className="font-semibold">{t('opsShort')}</span>
+            <span>{t('controlPanel.quickActions')}</span>
           </div>
           <div className={`${theme.secondaryButton} inline-flex items-center gap-2 text-xs`}>
-            <span>{t('utils.operationsMonitor') || 'Operations monitor'}</span>
+            <span>{t('utils.operationsMonitor')}</span>
           </div>
-          <div className={`${theme.input} text-xs`}>{t('students') || 'Students'} • 128</div>
+          <div className={`${theme.input} text-xs`}>{t('studentsCount', { count: 128 })}</div>
         </div>
       </div>
 

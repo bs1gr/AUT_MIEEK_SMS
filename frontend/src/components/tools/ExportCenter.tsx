@@ -1,21 +1,16 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
+import type { Student as StudentType, Course as CourseType } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 
-interface Student {
-  id: number | string;
-  student_id: string;
-  first_name: string;
-  last_name: string;
-  [key: string]: any;
-}
+type Student = StudentType;
 
 interface ExportCenterProps {
   variant?: 'standalone' | 'embedded';
@@ -23,7 +18,7 @@ interface ExportCenterProps {
 
 // Session Export/Import Component
 interface SessionExportImportProps {
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, unknown>) => string;
   showToast: (message: string, type?: string) => void;
 }
 
@@ -37,20 +32,45 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
   const [exportingSession, setExportingSession] = useState(false);
   const [importingSession, setImportingSession] = useState(false);
   const [validatingImport, setValidatingImport] = useState(false);
-  const [validationResult, setValidationResult] = useState<any>(null);
+  type ImportValidationResult = {
+    validation_passed?: boolean;
+    errors?: unknown[];
+    total_errors?: number;
+    summary?: Record<string, { created?: number; updated?: number; errors?: unknown[] }>;
+    counts?: { courses?: number; students?: number; grades?: number };
+    [key: string]: unknown;
+  } | null;
+
+  const [validationResult, setValidationResult] = useState<ImportValidationResult>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadSemesters();
-  }, []);
+  const extractErrorMessage = (e: unknown, fallback?: string): string => {
+    if (typeof e !== 'object' || e === null) return String(e ?? fallback ?? '');
+    const obj = e as Record<string, unknown>;
+    const resp = obj['response'];
+    if (resp && typeof resp === 'object') {
+      const d = (resp as Record<string, unknown>)['data'];
+      if (d && typeof d === 'object') {
+        const detail = (d as Record<string, unknown>)['detail'];
+        const message = (d as Record<string, unknown>)['message'];
+        if (typeof detail === 'string') return detail;
+        if (typeof message === 'string') return message;
+      }
+    }
+    const detail = obj['detail'];
+    if (typeof detail === 'string') return detail;
+    const message = obj['message'];
+    if (typeof message === 'string') return message;
+    return fallback || t('sessionImportFailed');
+  };
 
-  const loadSemesters = async () => {
+  const loadSemesters = useCallback(async () => {
     setLoadingSemesters(true);
     try {
-      const data: any = await sessionAPI.listSemesters();
-      // API may return either an array of strings (simple list) or an object
-      // shaped like { semesters: string[] } depending on runtime. Normalise.
-      const list = Array.isArray(data) ? data : (data?.semesters || (data as any)?.list || []);
+      const data: unknown = await sessionAPI.listSemesters();
+      const list = Array.isArray(data)
+        ? (data as string[])
+        : ((data as { semesters?: string[] })?.semesters || (data as { list?: string[] })?.list || []);
       setSemesters(list);
       if (list && list.length > 0) setSelectedSemester(list[0]);
     } catch (error) {
@@ -59,7 +79,11 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     } finally {
       setLoadingSemesters(false);
     }
-  };
+  }, [showToast, t]);
+
+  useEffect(() => {
+    void loadSemesters();
+  }, [loadSemesters]);
 
   const handleExportSession = async () => {
     if (!selectedSemester) {
@@ -74,17 +98,17 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       // No headers are available when the API client returns a raw Blob, so
       // fall back to a sensible default filename.
       const filename = `session_export_${selectedSemester.replace(/\s+/g, '_')}.json`;
-      
+
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       showToast(t('sessionExportSuccess'), 'success');
     } catch (error) {
       console.error('Session export failed:', error);
@@ -105,10 +129,10 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       const result = await sessionAPI.importSession(selectedFile, mergeStrategy);
       
       // Show summary
-      const summary: any = result.summary;
-      const totalCreated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.created || 0), 0);
-      const totalUpdated = Object.values(summary).reduce((sum: number, item: any) => sum + (item.updated || 0), 0);
-      const totalErrors = Object.values(summary).reduce((sum: number, item: any) => sum + (item.errors?.length || 0), 0);
+        const summary = (result as { summary?: Record<string, { created?: number; updated?: number; errors?: unknown[] }> }).summary || {};
+      const totalCreated = Object.values(summary).reduce((sum: number, item: { created?: number }) => sum + (item.created || 0), 0);
+      const totalUpdated = Object.values(summary).reduce((sum: number, item: { updated?: number }) => sum + (item.updated || 0), 0);
+      const totalErrors = Object.values(summary).reduce((sum: number, item: { errors?: unknown[] }) => sum + ((item.errors?.length as number) || 0), 0);
 
       if (typeof totalErrors === 'number' && totalErrors > 0) {
         showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated}, ${t('errors')}: ${totalErrors})`, 'warning');
@@ -124,9 +148,9 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       
       // Reload semesters in case new ones were added
       loadSemesters();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Session import failed:', error);
-      const errorMsg = error.response?.data?.detail || t('sessionImportFailed');
+      const errorMsg = extractErrorMessage(error);
       showToast(errorMsg, 'error');
     } finally {
       setImportingSession(false);
@@ -153,24 +177,31 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       formData.append('file', selectedFile);
       
       const response = await sessionAPI.importSession(selectedFile, mergeStrategy, true); // dry_run=true
-      setValidationResult(response);
+      setValidationResult(response as ImportValidationResult);
       
       if (response.validation_passed) {
-        showToast('✅ Validation passed! Safe to import.', 'success');
+        showToast(t('validationPassed'), 'success');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Validation failed:', error);
-      const errorData = error.response?.data;
-      
-      if (errorData?.context?.validation_errors) {
+      const errorObj = typeof error === 'object' && error ? (error as Record<string, unknown>) : null;
+      const errorData = errorObj && 'response' in errorObj ? (errorObj['response'] as Record<string, unknown>)?.['data'] ?? error : error;
+
+      const errDataObj = (typeof errorData === 'object' && errorData) ? (errorData as Record<string, unknown>) : null;
+      if (errDataObj && 'context' in errDataObj && typeof errDataObj['context'] === 'object') {
+        const ctx = errDataObj['context'] as Record<string, unknown>;
+        const validationErrors = Array.isArray(ctx['validation_errors']) ? ctx['validation_errors'] as unknown[] : undefined;
+        const totalErrors = typeof ctx['total_errors'] === 'number' ? ctx['total_errors'] as number : undefined;
         setValidationResult({
           validation_passed: false,
-          errors: errorData.context.validation_errors,
-          total_errors: errorData.context.total_errors
+          errors: validationErrors,
+          total_errors: totalErrors
         });
-        showToast(`❌ Validation failed: ${errorData.context.total_errors} errors`, 'error');
+        showToast(t('validationFailed', { count: totalErrors }), 'error');
       } else {
-        showToast(errorData?.detail || t('sessionImportFailed'), 'error');
+        const detail = errDataObj && typeof errDataObj['detail'] === 'string' ? errDataObj['detail'] as string : undefined;
+        const message = errDataObj && typeof errDataObj['message'] === 'string' ? errDataObj['message'] as string : undefined;
+        showToast(detail || message || t('sessionImportFailed'), 'error');
       }
     } finally {
       setValidatingImport(false);
@@ -317,14 +348,14 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
                   <div>
                     <div className="flex items-center space-x-2 text-green-800 font-semibold mb-2">
                       <span>✅</span>
-                      <span>Validation Passed</span>
+                      <span>{t('validationPassed')}</span>
                     </div>
                     <div className="text-sm text-green-700">
-                      <p>Ready to import:</p>
+                      <p>{t('readyToImport')}</p>
                       <ul className="list-disc list-inside mt-1">
-                        <li>{validationResult.counts?.courses || 0} courses</li>
-                        <li>{validationResult.counts?.students || 0} students</li>
-                        <li>{validationResult.counts?.grades || 0} grades</li>
+                        <li>{validationResult.counts?.courses || 0} {t('courses')}</li>
+                        <li>{validationResult.counts?.students || 0} {t('students')}</li>
+                        <li>{validationResult.counts?.grades || 0} {t('grades')}</li>
                       </ul>
                     </div>
                   </div>
@@ -332,15 +363,15 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
                   <div>
                     <div className="flex items-center space-x-2 text-red-800 font-semibold mb-2">
                       <span>❌</span>
-                      <span>Validation Failed: {validationResult.total_errors} errors</span>
+                      <span>{t('validationFailed', { count: Number(validationResult.total_errors || 0) })}</span>
                     </div>
                     <div className="text-sm text-red-700 max-h-40 overflow-y-auto">
                       <ul className="list-disc list-inside space-y-1">
-                        {validationResult.errors?.slice(0, 10).map((error: string, idx: number) => (
-                          <li key={idx}>{error}</li>
+                        {validationResult.errors?.slice(0, 10).map((err: unknown, idx: number) => (
+                          <li key={idx}>{String(err)}</li>
                         ))}
-                        {validationResult.errors?.length > 10 && (
-                          <li className="font-semibold">...and {validationResult.errors.length - 10} more errors</li>
+                        {validationResult.errors && validationResult.errors.length > 10 && (
+                          <li className="font-semibold">{t('andMoreErrors', { count: Number(validationResult.errors.length - 10) })}</li>
                         )}
                       </ul>
                     </div>
@@ -358,19 +389,19 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
                 {validatingImport ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Validating...</span>
+                    <span>{t('validating')}</span>
                   </>
                 ) : (
                   <>
                     <span>🔍</span>
-                    <span>Validate</span>
+                    <span>{t('validate')}</span>
                   </>
                 )}
               </button>
 
               <button
                 onClick={handleImportSession}
-                disabled={importingSession || !selectedFile || (validationResult && !validationResult.validation_passed)}
+                disabled={importingSession || !selectedFile || !!(validationResult && !validationResult.validation_passed)}
                 className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {importingSession ? (
@@ -389,7 +420,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
 
             {/* Safety Note */}
             <div className="text-xs text-gray-500 italic">
-              💡 Tip: Click "Validate" first to check for errors before importing. A backup is automatically created before import.
+              {t('validationTip')}
             </div>
           </div>
         </div>
@@ -401,7 +432,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
 const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const { t, language } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseType[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
   const [showPrintCalendar, setShowPrintCalendar] = useState(false);
@@ -436,11 +467,12 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     // removeAfterPrint: true, // not supported in this version
   });
 
-  useEffect(() => {
-    loadData();
+  const showToast = useCallback((message: string, type: string = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [studentsData, coursesData] = await Promise.all([
         studentsAPI.getAll(),
@@ -454,12 +486,12 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       setStudents([]);
       setCourses([]);
     }
-  };
+  }, [t, showToast]);
 
-  const showToast = (message: string, type: string = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   const handleExport = async (endpoint: string, filename: string, exportType: string) => {
     setLoading(prev => ({ ...prev, [exportType]: true }));
@@ -486,7 +518,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       document.body.removeChild(a);
 
       showToast(t('downloading'), 'success');
-    } catch (error) {
+    } catch {
       showToast(t('failedToLoadData'), 'error');
     } finally {
       setLoading(prev => ({ ...prev, [exportType]: false }));
@@ -496,7 +528,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const handlePrintCalendar = () => {
     setShowPrintCalendar(true);
     setTimeout(() => {
-      printCalendar && printCalendar();
+      if (printCalendar) printCalendar();
     }, 100);
   };
 
@@ -674,7 +706,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
               ref={(el) => {
                 exportCardRefs.current[option.id] = el;
               }}
-              tabIndex={0}
+              tabIndex={-1}
             >
               <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>
                 <option.icon className="text-white" size={32} />
@@ -724,7 +756,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
 
           {/* DEBUG: Show number of students loaded */}
-          <div className="mb-2 text-xs text-gray-500">{`Loaded students: ${students.length}`}</div>
+          <div className="mb-2 text-xs text-gray-500">{t('loadedStudents', { count: students.length })}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {students.length === 0 ? (
               <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
@@ -872,19 +904,19 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           <h3 className="text-lg font-bold text-gray-800 mb-3">{t('exportTipsHeader')} {t('exportTips')}</h3>
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">
-              <span className="text-indigo-600 font-bold">•</span>
+              <span className="text-indigo-600 font-bold">{t('bullet')}</span>
               <span dangerouslySetInnerHTML={{ __html: t('exportTipExcel') }} />
             </li>
             <li className="flex items-start space-x-2">
-              <span className="text-indigo-600 font-bold">•</span>
+              <span className="text-indigo-600 font-bold">{t('bullet')}</span>
               <span dangerouslySetInnerHTML={{ __html: t('exportTipPDF') }} />
             </li>
             <li className="flex items-start space-x-2">
-              <span className="text-indigo-600 font-bold">•</span>
+              <span className="text-indigo-600 font-bold">{t('bullet')}</span>
               <span dangerouslySetInnerHTML={{ __html: t('exportTipStudentReports') }} />
             </li>
             <li className="flex items-start space-x-2">
-              <span className="text-indigo-600 font-bold">•</span>
+              <span className="text-indigo-600 font-bold">{t('bullet')}</span>
               <span>{t('exportTipTimestamp')}</span>
             </li>
           </ul>
@@ -906,7 +938,7 @@ type PrintableSession = {
 };
 
 interface PrintableCalendarSheetProps {
-  courses?: any[];
+  courses?: CourseType[];
   t: (key: string, options?: Record<string, unknown>) => string;
   language: string;
 }
@@ -1019,7 +1051,7 @@ const PrintableCalendarSheet = ({ courses = [], t, language }: PrintableCalendar
   );
 };
 
-const buildPrintableSchedule = (courses: any[]): Record<string, PrintableSession[]> => {
+const buildPrintableSchedule = (courses: CourseType[]): Record<string, PrintableSession[]> => {
   const schedule = WEEKDAY_CONFIG.reduce<Record<string, PrintableSession[]>>((acc, day) => {
     acc[day.key] = [];
     return acc;
@@ -1029,18 +1061,19 @@ const buildPrintableSchedule = (courses: any[]): Record<string, PrintableSession
     const entries = extractScheduleEntries(course?.teaching_schedule);
     entries.forEach(({ day, data }) => {
       if (!schedule[day]) return;
-      const start = normalizeTimeString(data?.start_time);
-      const duration = Number(data?.duration) || 45;
-      const periods = Number(data?.periods) || 1;
+      const dataRec = data as Record<string, unknown> | undefined;
+      const start = normalizeTimeString(dataRec?.start_time as string | undefined);
+      const duration = Number(dataRec?.duration as number | string) || 45;
+      const periods = Number(dataRec?.periods as number | string) || 1;
       schedule[day].push({
         courseId: course?.id ?? `${course?.course_code || course?.course_name}-${day}`,
-        courseName: course?.course_name || course?.name || '',
+        courseName: course?.course_name || (course as { name?: string })?.name || '',
         courseCode: course?.course_code || '',
         start,
         end: calculateEndTime(start, periods, duration),
         duration,
         periods,
-        location: data?.location || course?.location || course?.room || '',
+        location: (dataRec?.location as string) || (course as unknown as { location?: string })?.location || (course as { room?: string })?.room || '',
       });
     });
   });
@@ -1052,11 +1085,11 @@ const buildPrintableSchedule = (courses: any[]): Record<string, PrintableSession
   return schedule;
 };
 
-const extractScheduleEntries = (schedule: any): Array<{ day: string; data: any }> => {
-  const entries: Array<{ day: string; data: any }> = [];
+const extractScheduleEntries = (schedule: unknown): Array<{ day: string; data: unknown }> => {
+  const entries: Array<{ day: string; data: unknown }> = [];
   if (!schedule) return entries;
 
-  const pushEntry = (day?: string, data?: any) => {
+  const pushEntry = (day?: string, data?: unknown) => {
     if (!day) return;
     entries.push({ day, data: data || {} });
   };

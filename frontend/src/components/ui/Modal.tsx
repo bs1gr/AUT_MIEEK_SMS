@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/LanguageContext';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export default function Modal({
   footer,
   className,
 }: ModalProps) {
+  const { t } = useLanguage();
+
   if (!isOpen) return null;
 
   const sizes = {
@@ -41,10 +44,20 @@ export default function Modal({
     }
   };
 
-  const modalContent = (
-    <div
+    const modalContent = (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+      <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
+      tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+          // Allow Enter/Space to activate backdrop click when configured
+          if (closeOnBackdropClick && (e.key === 'Enter' || e.key === ' ')) {
+            // Only act if the event originates from the backdrop itself
+            if (e.target === e.currentTarget) onClose();
+          }
+        }}
     >
       <div
         className={cn(
@@ -52,7 +65,9 @@ export default function Modal({
           sizes[size],
           className
         )}
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || t('dialog') || 'Dialog'}
       >
         {/* Header */}
         {(title || showCloseButton) && (
@@ -64,7 +79,8 @@ export default function Modal({
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label="Close modal"
+                aria-label={t('close') || 'Close'}
+                title={t('close') || 'Close'}
               >
                 <svg
                   className="w-6 h-6"

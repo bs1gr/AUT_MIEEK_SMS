@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import type { OperationsLocationState } from '@/features/operations/types';
-import type { Course as CourseType } from '@/types';
+import type { Course as CourseType, TeachingScheduleEntry } from '@/types';
 
 type DaySchedule = { periods: number; start_time: string; duration: number };
 
@@ -12,7 +12,7 @@ type Props = {
 };
 
 const CalendarView: React.FC<Props> = ({ courses }) => {
-  const { t } = useLanguage() as any;
+  const { t } = useLanguage();
 
   // Days with keys for data lookup and translated display names
   const days: { key: string; displayName: string }[] = [
@@ -23,17 +23,17 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
     { key: 'Friday', displayName: t('friday') },
   ];
 
-  const byDay: Record<string, { course: Course; sched: DaySchedule }[]> = {};
+  const byDay: Record<string, { course: CourseType; sched: DaySchedule }[]> = {};
   for (const d of days) byDay[d.key] = [];
 
   courses.forEach((c) => {
-    const sched: any = (c as any).teaching_schedule || {};
+    const sched = c.teaching_schedule ?? {};
     if (Array.isArray(sched)) {
       // List of entries with .day and config
-      sched.forEach((entry: any) => {
+      (sched as TeachingScheduleEntry[]).forEach((entry: TeachingScheduleEntry) => {
         const day = entry?.day;
         if (!day || !byDay[day]) return;
-        const cfg: DaySchedule = { periods: entry.periods, start_time: entry.start_time, duration: entry.duration };
+        const cfg: DaySchedule = { periods: entry.periods ?? 1, start_time: entry.start_time ?? '08:00', duration: entry.duration ?? 45 };
         byDay[day].push({ course: c, sched: cfg });
       });
     } else if (typeof sched === 'object') {
@@ -49,12 +49,10 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
   });
 
 
-  const navigate = useNavigate ? useNavigate() : undefined;
+  const navigate = useNavigate();
 
   const handleGoToExport = () => {
-    if (!navigate) {
-      return;
-    }
+    // navigate is stable from react-router's useNavigate
     const state: OperationsLocationState = { tab: 'exports', scrollTo: 'print-calendar' };
     navigate('/operations', { state });
   };
@@ -98,7 +96,7 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
                       <div className="text-xs text-gray-500 flex items-center space-x-1">
                         <Clock size={14} />
                         <span>
-                          {sched.start_time} · {sched.periods} × {sched.duration}m
+                          {t('scheduleCompact', { start: sched.start_time, periods: sched.periods, duration: sched.duration })}
                         </span>
                       </div>
                     </div>

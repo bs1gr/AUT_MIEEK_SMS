@@ -111,6 +111,11 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
         animate="visible"
         exit="exit"
         onClick={onClose}
+        tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+          if (e.key === 'Enter' || e.key === ' ') onClose();
+        }}
       >
         <motion.div
           className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
@@ -170,6 +175,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{t('semester')} *</label>
               <select
                 value={semesterType}
+                title={t('semester')}
                 onChange={(e) => handleSemesterTypeChange(e.target.value as SemesterType)}
                 className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
               >

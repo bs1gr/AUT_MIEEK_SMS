@@ -1,7 +1,7 @@
 // Utility to localize backend canonical evaluation category names for display
 // Usage: getLocalizedCategory('Final Exam', t) -> localized label based on current language
 
-export function getLocalizedCategory(category: string, t: (key: string) => string): string {
+export function getLocalizedCategory(category: unknown, t: (key: string) => string): string {
   if (!category || typeof category !== 'string') return '';
   const key = category.trim().toLowerCase();
 
@@ -38,7 +38,7 @@ export function getLocalizedCategory(category: string, t: (key: string) => strin
 }
 
 // Map localized (e.g., Greek) labels or variants back to canonical English category names
-export function getCanonicalCategory(category: string, t: (key: string) => string): string {
+export function getCanonicalCategory(category: unknown, t: (key: string) => string): string {
   if (!category || typeof category !== 'string') return '';
 
   const normalize = (s: string) => s

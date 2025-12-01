@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import type { Course } from '@/types';
 
 /**
  * E2E Test Helpers
@@ -130,7 +131,7 @@ export async function createStudentViaAPI(page: Page, student: TestStudent) {
   return response.json();
 }
 
-export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: any[]) {
+export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: Course['evaluation_rules']) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
   
   const defaultRules = [

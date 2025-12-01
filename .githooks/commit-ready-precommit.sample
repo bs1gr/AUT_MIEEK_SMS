@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Sample pre-commit hook (cross-platform guidance)
+# Copy this file to .git/hooks/pre-commit and make executable (chmod +x .git/hooks/pre-commit)
+# It will run the project's COMMIT_READY.ps1 tool in "quick" mode before allowing a commit.
+# If COMMIT_READY fails, the commit will be blocked. If you intentionally want to skip tests/cleanup
+# or enable AutoFix during the pre-commit step, set DEV_EASE=true in your shell *before* running.
+
+# Linux / macOS (bash):
+if command -v pwsh >/dev/null 2>&1; then
+  echo "Running COMMIT_READY.ps1 (quick) using pwsh..."
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "${PWD}/COMMIT_READY.ps1" -Mode quick
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "COMMIT_READY failed with exit code $rc — commit blocked."
+    exit $rc
+  fi
+else
+  echo "pwsh not found. Skipping COMMIT_READY pre-commit action."
+fi
+
+# Windows PowerShell users (example pre-commit.ps1):
+# Place the following content in .git/hooks/pre-commit (PowerShell) and ensure it's executable by Git.
+#
+# if (Get-Command pwsh -ErrorAction SilentlyContinue) {
+#   pwsh -NoProfile -ExecutionPolicy Bypass -File "${PWD}\COMMIT_READY.ps1" -Mode quick
+#   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+# }
+
+# Notes:
+# - To allow local pre-commit skips or AutoFix usage pivotally set DEV_EASE=true prior to running. Example:
+#     PowerShell: $env:DEV_EASE = 'true' ; .\COMMIT_READY.ps1 -Mode quick -AutoFix
+# - COMMIT_READY enforces that SkipTests/SkipCleanup/AutoFix used during local runs MUST have DEV_EASE enabled.
+# - CI should not enable DEV_EASE.

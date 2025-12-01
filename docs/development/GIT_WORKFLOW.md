@@ -135,53 +135,51 @@ DOCKER.ps1 (production) and NATIVE.ps1 (development).
 
 ## Pre-Commit Automation
 
-### COMMIT_PREP.ps1 - Comprehensive Workflow
 
-**What it does:**
-1. Runs full smoke tests (Native + Docker)
-2. Cleans up obsolete files and Docker assets
-3. Reviews documentation and scripts
-4. Generates commit message in `commit_msg.txt`
+### Pre-commit automation — COMMIT_READY.ps1 (Unified)
 
-**Usage:**
+COMMIT_READY.ps1 is the consolidated pre-commit helper that replaced the older
+`COMMIT_PREP.ps1` / `PRE_COMMIT_CHECK.ps1` / `SMOKE_TEST_AND_COMMIT_PREP.ps1` family.
+It provides a single, consistent experience for pre-commit validation and automated cleanup.
 
-```powershell
-# Full workflow
-.\COMMIT_PREP.ps1
+Key features:
 
-# Quick mode (skip Docker tests)
-.\COMMIT_PREP.ps1 -Quick
+- Modes: quick (2–3 min), standard (5–8 min), full (15–20 min), cleanup (1–2 min)
+- Code quality: Ruff (backend), ESLint (frontend), TypeScript checks
+- Tests: pytest (backend) and Vitest (frontend)
+- Translation integrity checks (i18n parity)
+- Optional native/docker health checks (full mode)
+- AutoFix support (formatting, imports) and commit message generation
 
-# Skip specific phases
-.\COMMIT_PREP.ps1 -SkipCleanup
-.\COMMIT_PREP.ps1 -SkipDocs
-.\COMMIT_PREP.ps1 -SkipTests
-```
-
-**Output:**
-- ✅ All tests passed
-- ✅ Cleanup completed
-- ✅ Documentation reviewed
-- ✅ `commit_msg.txt` ready for commit
-
-### PRE_COMMIT_CHECK.ps1 - Smoke Tests Only
-
-**What it does:**
-- Verifies prerequisites (Python, Node.js, Docker)
-- Tests Native mode (Backend + Frontend)
-- Tests Docker mode (Container + Database)
-- Validates TypeScript/ESLint compilation
-- Checks git repository status
-
-**Usage:**
+Usage examples:
 
 ```powershell
-# Full tests
-.\PRE_COMMIT_CHECK.ps1
+# Standard validation (recommended)
+.\COMMIT_READY.ps1 -Mode standard
 
-# Quick mode (Native only)
-.\PRE_COMMIT_CHECK.ps1 -Quick
+# Fast pre-commit checks
+.\COMMIT_READY.ps1 -Mode quick
+
+# Comprehensive validation (includes health checks)
+.\COMMIT_READY.ps1 -Mode full
+
+# Cleanup-only
+.\COMMIT_READY.ps1 -Mode cleanup
+
+# Auto-fix where supported (use DEV_EASE if you intend to skip tests/cleanup locally)
+.\COMMIT_READY.ps1 -Mode standard -AutoFix
 ```
+
+### Developer note — DEV_EASE policy
+--------------------------------
+
+DEV_EASE is an opt-in flag that is now strictly reserved for local pre-commit operations.
+It must not be used to modify application runtime behavior or CI. To use DEV_EASE for
+local pre-commit skips (tests/cleanup) or AutoFix, set DEV_EASE in your shell before running
+COMMIT_READY — e.g., PowerShell: `$env:DEV_EASE = 'true'`.
+
+To ensure pre-commit checks run for all contributors, we provide a sample hook at
+`.githooks/commit-ready-precommit.sample` and cross-platform installers under `scripts/`.
 
 ## Workflow Examples
 

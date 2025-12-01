@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/* eslint-disable testing-library/no-await-sync-queries */
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
 import type { Student, StudentFormData } from '@/types';
@@ -22,9 +23,9 @@ export function useStudents(filters?: { search?: string; active?: boolean }) {
   return useQuery({
     queryKey: studentKeys.list(filters),
     queryFn: async () => {
-      setLoading(true);
+        setLoading(true);
       try {
-  const students = await studentsAPI.getAll() as unknown as Student[];
+      const students = await studentsAPI.getAll();
         // Apply filters client-side if needed
         let filteredStudents = students;
         if (filters?.search) {
@@ -39,8 +40,13 @@ export function useStudents(filters?: { search?: string; active?: boolean }) {
         if (filters?.active !== undefined) {
           filteredStudents = filteredStudents.filter((s: Student) => s.is_active === filters.active);
         }
-        setStudents(filteredStudents);
-        setError(null);
+        try {
+          setStudents(filteredStudents);
+          setError(null);
+        } catch (err) {
+          if (process.env.NODE_ENV === 'test') console.error('[useStudents] setStudents error', err);
+          throw err;
+        }
         return filteredStudents;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch students';

@@ -52,9 +52,9 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
       if (onLoginSuccess) {
         onLoginSuccess();
       }
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail ?? err?.response?.data ?? err;
-      setError(getErrorMessage(detail, t('auth.loginError')));
+    } catch (err: unknown) {
+      // Error can be many shapes (axios, Error, string) — use helper to extract a message
+      setError(getErrorMessage(err, t('auth.loginError')));
     } finally {
       setLoading(false);
     }
