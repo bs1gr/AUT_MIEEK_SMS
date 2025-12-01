@@ -6,6 +6,33 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to v1.9.0, see `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md`.
 
+## [1.9.4] - 2025-12-01
+
+### Added
+
+- DEV_EASE pre-commit-only policy and tools
+  - `COMMIT_READY.ps1` now enforces that SkipTests, SkipCleanup and AutoFix used during local pre-commit runs require an explicit opt-in via `DEV_EASE=true` so runtime/CI cannot be weakened.
+  - Added a sample pre-commit hook `.githooks/commit-ready-precommit.sample` that runs `COMMIT_READY.ps1 -Mode quick` before each commit.
+  - Added cross-platform installers to help contributors enable the sample hook easily: `scripts/install-git-hooks.ps1` (PowerShell) and `scripts/install-git-hooks.sh` (POSIX).
+
+- VS Code workspace testing convenience
+  - Added `.vscode` workspace settings, helpful test tasks, and launch configurations so the editor can run/debug the full test suites (backend pytest + frontend Vitest) easily.
+
+### Changed
+
+- Hardened runtime and CI
+  - Removed any CI/runtime paths that previously enabled DEV_EASE; DEV_EASE is reserved strictly for local pre-commit runs.
+  - `NATIVE.ps1` help text updated to mark runtime DEV_EASE as deprecated — the flag no longer alters running services.
+  - Backend `config.py` and `backend/.env.example` updated and documented so DEV_EASE does not alter runtime behavior.
+
+### Added / Docs
+
+- Updated documentation across the repository to explain the new DEV_EASE policy, how to install the pre-commit hook, and how to run tests in VS Code (CONTRIBUTING.md, README.md, backend/ENV_VARS.md, docs/development/* and others).
+
+### Fixed / Tests
+
+- Small tests and type improvements, plus added smoke and validation runners to ensure pre-commit and CI flows remain robust. Full test suite verified locally.
+
 ## [1.9.3] - 2025-11-27
 
 ### Added
@@ -233,6 +260,7 @@ For detailed changelog entries from versions prior to v1.9.0, see:
 
 ---
 
+[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.3...v1.9.4
 [1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.0...v1.9.1

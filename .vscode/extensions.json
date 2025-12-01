@@ -1,3 +1,10 @@
 {
+  "recommendations": [
+    "ms-python.python",
+    "maty.vscode-vitest",
+    "hbenl.vscode-test-explorer"
+  ]
+}
+{
     "recommendations": []
 }
