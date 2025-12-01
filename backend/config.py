@@ -193,6 +193,11 @@ class Settings(BaseSettings):
     AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
 
+    # NOTE: DEV_EASE is intentionally not handled here. DEV_EASE is reserved for
+    # pre-commit convenience in COMMIT_READY.ps1 only and must not alter runtime
+    # application behavior. Keep runtime auth/CSRF/SECRET_KEY enforcement governed
+    # exclusively by AUTH_ENABLED/AUTH_MODE and SECRET_KEY_STRICT_ENFORCEMENT.
+
     # Default administrator bootstrap (optional)
     DEFAULT_ADMIN_EMAIL: EmailStr | None = None
     DEFAULT_ADMIN_PASSWORD: str | None = None
@@ -475,7 +480,29 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def normalize_auth_for_pytest(self) -> "Settings":
-        # Removed pytest override to avoid interfering with router imports.
+        # Kept minimal: do not alter runtime auth/state from here. We intentionally
+        # avoid mutating AUTH settings during Settings validation to ensure that
+        # environment-driven configuration remains explicit and predictable.
+        try:
+            is_ci = bool(
+                os.environ.get("GITHUB_ACTIONS")
+                or os.environ.get("CI")
+                or os.environ.get("GITLAB_CI")
+                or os.environ.get("GITHUB_RUN_ID")
+                or os.environ.get("CI_SERVER")
+                or os.environ.get("CONTINUOUS_INTEGRATION")
+            )
+            is_pytest = bool(
+                os.environ.get("PYTEST_CURRENT_TEST")
+                or os.environ.get("PYTEST_RUNNING")
+                or any("pytest" in (arg or "").lower() for arg in sys.argv)
+            )
+        except Exception:
+            is_ci = False
+            is_pytest = False
+
+        # No runtime mutations; returning self keeps behavior unchanged for CI/tests
+        # and local runs where environment variables should drive the desired state.
         return self
 
     @field_validator("DEFAULT_ADMIN_PASSWORD")

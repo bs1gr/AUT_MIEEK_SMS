@@ -35,9 +35,19 @@
 .PARAMETER Help
     Show this help message
 
+.PARAMETER DevEase
+    Optional: set DEV_EASE for services started by this script (relaxes local auth/CSRF/secret checks). Use only for development.
+    (Deprecated) Historically NATIVE allowed starting services with a DEV_EASE runtime flag.
+    DEV_EASE is now reserved for the pre-commit helper `COMMIT_READY.ps1` only and must not be
+    used to change runtime behavior. This parameter is kept here for backward compatibility in the
+    help text but does not change process environments.
+
 .EXAMPLE
     .\NATIVE.ps1 -Start
     # Start both backend and frontend
+    .EXAMPLE
+    .\NATIVE.ps1 -Backend
+    # Start backend only
 
 .EXAMPLE
     .\NATIVE.ps1 -Backend
@@ -70,6 +80,7 @@ param(
     [switch]$Force,
     [switch]$Help,
     [switch]$NoReload  # Optional: start backend without --reload (stability workaround)
+    
 )
 
 # ============================================================================
@@ -506,6 +517,7 @@ function Start-Backend {
 
     Push-Location $BACKEND_DIR
     try {
+
         # Start process in new window
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
         $uvicornScript = Join-Path $venvPath "Scripts\uvicorn.exe"
@@ -611,6 +623,7 @@ function Start-Frontend {
 
     Push-Location $FRONTEND_DIR
     try {
+
         # Start process in new window
         # Use a PowerShell process to run the npm dev script so the process stays alive
         # (Start-Process npm may spawn child processes and exit immediately).
@@ -646,7 +659,7 @@ function Start-Frontend {
 
         return 0
     }
-    catch {
+        catch {
         Write-Error-Message "Failed to start frontend: $_"
         Remove-Item $FRONTEND_PID_FILE -Force -ErrorAction SilentlyContinue
         return 1

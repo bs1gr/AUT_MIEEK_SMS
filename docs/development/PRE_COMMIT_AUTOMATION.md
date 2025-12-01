@@ -44,6 +44,22 @@
 .\COMMIT_READY.ps1 -AutoFix
 ```
 
+### DEV_EASE and pre-commit hooks
+
+DEV_EASE is intentionally limited to pre-commit helper usage (COMMIT_READY.ps1) and must not be used
+to change application runtime behavior or be enabled in CI. It exists to allow developers to intentionally
+skip expensive checks or enable AutoFix during local pre-commit runs. To use DEV_EASE locally, set
+the environment variable before running COMMIT_READY, e.g.:
+
+```powershell
+$env:DEV_EASE = 'true'
+.\COMMIT_READY.ps1 -Mode quick -AutoFix
+```
+
+This repository provides a sample pre-commit hook at `.githooks/commit-ready-precommit.sample` and
+cross-platform installers under `scripts/install-git-hooks.ps1` and `scripts/install-git-hooks.sh` to
+make it easy for contributors to enable the consolidated pre-commit checks automatically at commit time.
+
 ### Execution Modes
 
 | Mode | Duration | Use Case | Operations |
