@@ -1,3 +1,4 @@
+$env:COMMIT_READY_DONT_AUTO_RUN = '1'
 . .\COMMIT_READY.ps1
 $Mode = 'quick'
 $exitCode = Invoke-MainWorkflow
