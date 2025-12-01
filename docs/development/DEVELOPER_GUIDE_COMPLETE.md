@@ -765,8 +765,8 @@ async def list_students(
 
 ### API Documentation
 
-**Access Swagger UI:** http://localhost:8000/docs  
-**Access ReDoc:** http://localhost:8000/redoc
+**Access Swagger UI:** [Swagger UI](http://localhost:8000/docs)  
+**Access ReDoc:** [ReDoc](http://localhost:8000/redoc)
 
 **Document Endpoint:**
 
@@ -998,18 +998,22 @@ See: [Performance Optimizations Guide](../../PERFORMANCE_OPTIMIZATIONS_2025-01-1
 
 1. **Fork repository** (external contributors)
 2. **Create feature branch** from `main`
+  
    ```bash
    git checkout -b feature/my-new-feature
    ```
+  
 3. **Make changes** with descriptive commits
 4. **Run tests** locally
-   ```bash
-   # Backend
-   cd backend && pytest
-   
-   # Frontend
-   cd frontend && npm run test:e2e
-   ```
+
+    ```bash
+    # Backend
+    cd backend && pytest
+
+    # Frontend
+    cd frontend && npm run test:e2e
+    ```
+
 5. **Push and create Pull Request**
 6. **CI runs automated tests**
 7. **Code review and merge**

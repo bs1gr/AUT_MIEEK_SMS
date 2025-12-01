@@ -13,7 +13,8 @@ You saw test failure messages because I attempted to run `COMMIT_READY.ps1` from
 
 **The validation script MUST be run from PowerShell, not Git Bash.**
 
-Git Bash is a Unix-like shell that doesn't have:
+- Git Bash is a Unix-like shell that doesn't have:
+
 - Direct access to Python.exe
 - Direct access to npm/node.exe
 - Direct access to TypeScript compiler
@@ -51,7 +52,8 @@ Additional validation steps (type-checking / linters / full CI checks) still sho
 
 ### Step 1: Run COMMIT_READY.ps1 from PowerShell
 
-**Open PowerShell** (NOT Git Bash):
+- **Open PowerShell** (NOT Git Bash):
+
 - Press `Win + X` → Select "Windows PowerShell" or "Terminal"
 - Navigate to repository: `cd D:\SMS\student-management-system`
 
@@ -67,7 +69,8 @@ Additional validation steps (type-checking / linters / full CI checks) still sho
 
 ### Step 2: Review Results
 
-The script will tell you:
+- The script will tell you:
+
 - ✅ Which checks passed (code quality, tests, cleanup)
 - ❌ Which checks failed (with specific error messages)
 - 📊 Summary report with next steps
@@ -95,6 +98,7 @@ git push origin main
 ### Step 3B: If Checks Fail ❌
 
 The script will show you:
+
 1. **Specific errors** (file names, line numbers, error messages)
 2. **What needs to be fixed** (linting issues, test failures, etc.)
 3. **How to fix** (sometimes with auto-fix suggestions)
@@ -162,9 +166,11 @@ All cleanup scripts are functional and ready to use:
 ## 📋 Detailed Audit Report
 
 For the complete audit findings, see:
+
 - [REPOSITORY_AUDIT_SUMMARY.md](REPOSITORY_AUDIT_SUMMARY.md)
 
-That document contains:
+- That document contains:
+
 - Detailed directory structure analysis
 - Complete list of all available scripts
 - Script reference audit results
@@ -177,16 +183,21 @@ That document contains:
 ## ❓ FAQ
 
 ### Q: Why didn't you run the tests?
+
 **A**: I'm running in Git Bash (MINGW64) which doesn't have access to Python, npm, or PowerShell. The validation script needs to be run from PowerShell.
 
 ### Q: Is the repository safe to commit?
+
 **A**: The **static analysis** shows excellent organization and no issues. However, you should run `COMMIT_READY.ps1` from PowerShell to validate code quality and tests before committing.
 
 ### Q: What if COMMIT_READY.ps1 finds issues?
+
 **A**: The script provides detailed error messages and often suggests fixes. Many issues can be auto-fixed with the `-AutoFix` flag. For test failures, you'll need to review and fix the specific issues reported.
 
-### Q: Can I skip the validation?
+-### Q: Can I skip the validation?
+
 **A**: Not recommended. The validation ensures:
+
 - Code quality standards are met
 - All tests pass
 - Translation keys are consistent
@@ -195,6 +206,7 @@ That document contains:
 However, for documentation-only changes, you could commit directly if you're confident.
 
 ### Q: What about the markdown linting warnings?
+
 **A**: Those are from the markdown linter and don't block commits. They can be fixed later or ignored if they don't affect readability.
 
 ---

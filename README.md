@@ -9,7 +9,7 @@
 
 ## 📦 Quick Start
 
-### **For End Users** - One-Click Installation ⭐ NEW!
+### **For End Users** — One-Click Installation ⭐ NEW
 
 #### 🎯 Windows Installer (Easiest Method)
 
@@ -78,6 +78,7 @@ Create a desktop shortcut to toggle SMS with a single click:
 ```
 
 Then double-click "SMS Toggle" on your Desktop:
+
 - **Click once** → Start SMS ✅
 - **Click again** → Stop SMS 🛑
 
@@ -130,10 +131,12 @@ Then double-click "SMS Toggle" on your Desktop:
 **Good News:** Admin account is created automatically on first startup!
 
 **Default Login Credentials:**
+
 - **Email:** `admin@example.com`
 - **Password:** `YourSecurePassword123!`
 
 **After First Login:**
+
 1. Go to **Control Panel** → **Maintenance** tab
 2. Use the "Change Your Password" section (teal card at top)
 3. Set your own secure password
@@ -142,11 +145,13 @@ Then double-click "SMS Toggle" on your Desktop:
 
 **Technical Details:**
 The admin account is automatically bootstrapped when the application starts because the `.env` file has these values configured:
+
 ```dotenv
 AUTH_ENABLED=True
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
+```
 
 Note about automated admin password rotation:
 
@@ -157,10 +162,10 @@ Note about automated admin password rotation:
   intended to make automated credential rotation (e.g., via CI/CD or secret
   managers) safe and predictable. The flag is intentionally off by default to
   avoid surprising changes in production.
-```
 
 **If Login Fails:**
 If you get "Invalid email or password", the admin user might not have been created. Run:
+
 ```powershell
 # For Docker:
 docker exec sms-app python /app/backend/tools/create_admin.py --email admin@example.com --password "YourSecurePassword123!"

@@ -357,105 +357,121 @@ const ServerControl: React.FC = () => {
     );
   }
 
+  const serverButtonInner = (
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Backend Status */}
+        <div className="flex items-center space-x-2">
+          <Server size={14} className="text-gray-500" />
+          <div className={getStatusColor('backend')}>{getStatusIcon('backend')}</div>
+          <span className="text-xs font-medium text-gray-700">{t('utils.backend')}</span>
+        </div>
+
+        {/* Frontend Status */}
+        <div className="flex items-center space-x-2">
+          <Monitor size={14} className="text-gray-500" />
+          <div className="text-green-500">
+            <CheckCircle size={14} />
+          </div>
+          <span className="text-xs font-medium text-gray-700">{t('utils.frontend')}</span>
+          <span className="text-xs font-mono text-gray-500 ml-2">{t('active')}</span>
+        </div>
+
+        {/* Docker Status */}
+        <div className="flex items-center space-x-2">
+          <Server size={14} className="text-gray-500" />
+          <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
+            {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
+          </div>
+          <span className="text-xs font-medium text-gray-700">{t('controlPanel.docker')}</span>
+          <span className="text-xs font-mono text-gray-500 ml-2">
+            {healthData?.docker === 'online' ? t('controlPanel.ready') : healthData?.docker === 'offline' ? t('controlPanel.notRunning') : t('controlPanel.unknown')}
+          </span>
+        </div>
+
+        {/* Environment Info */}
+        {healthData?.environment && (
+          <div className="flex items-center space-x-2 px-2 py-1 bg-indigo-50 rounded">
+            <span className="text-xs font-medium text-indigo-700">{t('controlPanel.runningIn')}:</span>
+            <span className="text-xs font-semibold text-indigo-900">
+              {healthData.environment === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Overall Status & (optional) restart controls */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-700">{getOverallStatus()}</span>
+          {restartSupported && (
+            <button
+              onClick={(event) => { event.stopPropagation(); handleRestart(); }}
+              disabled={isRestarting || !restartSupported}
+              className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              title={t('controlPanel.restart')}
+            >
+              <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
+              <span>{t('controlPanel.restart')}</span>
+            </button>
+          )}
+        </div>
+
+        {status.backend === 'online' && currentUptime > 0 && (
+          <span className="text-xs text-gray-500">
+            {t('uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
+          </span>
+        )}
+
+        {status.error && (
+          <span className="text-xs text-red-500 truncate max-w-32" title={typeof status.error === 'string' ? status.error : JSON.stringify(status.error)}>
+            {t('error') || 'Error'}: {typeof status.error === 'string' ? status.error.substring(0, 20) : String(status.error).substring(0, 20)}...
+          </span>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       {/* Enhanced Server Status Display */}
-      <div
-        className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
-        role="button"
-        tabIndex={0}
-        aria-expanded={!!showDetails}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setShowDetails((s) => !s);
-            if (!healthData) checkStatus();
-          }
-        }}
-        title={t('controlPanel.toggleDetailsRefresh')}
-      >
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Backend Status */}
-            <div className="flex items-center space-x-2">
-              <Server size={14} className="text-gray-500" />
-              <div className={getStatusColor('backend')}>
-                {getStatusIcon('backend')}
-              </div>
-              <span className="text-xs font-medium text-gray-700">{t('utils.backend')}</span>
-            </div>
-
-            {/* Frontend Status */}
-            <div className="flex items-center space-x-2">
-              <Monitor size={14} className="text-gray-500" />
-              <div className="text-green-500">
-                <CheckCircle size={14} />
-              </div>
-              <span className="text-xs font-medium text-gray-700">{t('utils.frontend')}</span>
-              <span className="text-xs font-mono text-gray-500 ml-2">{t('active')}</span>
-            </div>
-
-            {/* Docker Status */}
-            <div className="flex items-center space-x-2">
-              <Server size={14} className="text-gray-500" />
-              <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
-                {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
-              </div>
-              <span className="text-xs font-medium text-gray-700">{t('controlPanel.docker')}</span>
-              <span className="text-xs font-mono text-gray-500 ml-2">
-                {healthData?.docker === 'online' ? t('controlPanel.ready') : healthData?.docker === 'offline' ? t('controlPanel.notRunning') : t('controlPanel.unknown')}
-              </span>
-            </div>
-
-            {/* Environment Info */}
-            {healthData?.environment && (
-              <div className="flex items-center space-x-2 px-2 py-1 bg-indigo-50 rounded">
-                <span className="text-xs font-medium text-indigo-700">{t('controlPanel.runningIn')}:</span>
-                <span className="text-xs font-semibold text-indigo-900">
-                  {healthData.environment === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Overall Status & (optional) restart controls */}
-          <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-700">
-              {getOverallStatus()}
-            </span>
-              {restartSupported && (
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleRestart();
-                  }}
-                  disabled={isRestarting || !restartSupported}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={t('controlPanel.restart')}
-                >
-                  <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
-                  <span>{t('controlPanel.restart')}</span>
-                </button>
-              )}
-          </div>
-          {status.backend === 'online' && currentUptime > 0 && (
-            <span className="text-xs text-gray-500">
-              {t('uptime')}: {t('controlPanel.uptimeFormatShort', {
-                h: Math.floor(currentUptime / 3600),
-                m: Math.floor((currentUptime % 3600) / 60),
-                s: currentUptime % 60,
-              })}
-            </span>
-          )}
-          {status.error && (
-            <span className="text-xs text-red-500 truncate max-w-32" title={typeof status.error === 'string' ? status.error : JSON.stringify(status.error)}>
-              {t('error') || 'Error'}: {typeof status.error === 'string' ? status.error.substring(0, 20) : String(status.error).substring(0, 20)}...
-            </span>
-          )}
+      {showDetails ? (
+        <div
+          className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
+          role="button"
+          tabIndex={0}
+          aria-expanded="true"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowDetails((s) => !s);
+              if (!healthData) checkStatus();
+            }
+          }}
+          title={t('controlPanel.toggleDetailsRefresh')}
+        >
+          {serverButtonInner}
         </div>
-      </div>
+      ) : (
+        <div
+          className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
+          role="button"
+          tabIndex={0}
+          aria-expanded="false"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowDetails((s) => !s);
+              if (!healthData) checkStatus();
+            }
+          }}
+          title={t('controlPanel.toggleDetailsRefresh')}
+        >
+          {serverButtonInner}
+        </div>
+      )}
 
       {/* Detailed System Health (toggle) */}
       {showDetails && (

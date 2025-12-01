@@ -521,19 +521,78 @@ function Invoke-AutomatedCleanup {
     # Python cache cleanup
     Write-Section "Python Cache Cleanup"
     try {
-        $pycacheFiles = Get-ChildItem -Path $SCRIPT_DIR -Recurse -Include "__pycache__","*.pyc","*.pyo",".pytest_cache" -Directory -ErrorAction SilentlyContinue
+        # initialize counters
+        if (-not $totalRemoved) { $totalRemoved = 0 }
+        if (-not $totalSize) { $totalSize = 0 }
+
+        # Limit the search to backend (Python sources/tests) to avoid scanning large non-Python folders like node_modules
+        if (Test-Path $BACKEND_DIR) {
+            $searchRoot = $BACKEND_DIR
+        } else {
+            # If backend isn't present, fall back to repository root but exclude common large folders
+            $searchRoot = $SCRIPT_DIR
+            Write-Warning-Msg "Backend directory not found; restricting Python cache scan to repo root (with exclusions)"
+        }
+
+        # Find pycache directories and pytest cache dirs, but exclude virtualenvs (/\.venv/, /venv/) and site-packages
+        $excludePattern = '\\(?:\.venv|venv|Lib\\site-packages)\\'  # regex - exclude common virtualenv paths
+        $pycacheDirs = Get-ChildItem -Path $searchRoot -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch $excludePattern }
+        $pytestCacheDirs = Get-ChildItem -Path $searchRoot -Recurse -Directory -Filter ".pytest_cache" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch $excludePattern }
+
+        # Find compiled python files under the same root
+        # when searching repo root, exclude noisy folders for performance
+        if ($searchRoot -eq $SCRIPT_DIR) {
+            $pycFiles = Get-ChildItem -Path $searchRoot -Recurse -Include "*.pyc","*.pyo" -File -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch '\\node_modules\\|\\frontend\\dist\\|\\.git\\|\\backups\\|\\logs\\|\\(?:\\.venv|venv|Lib\\site-packages)\\' }
+        } else {
+            # For backend root we still skip virtualenv installs to avoid scanning third-party site-packages
+            $pycFiles = Get-ChildItem -Path $searchRoot -Recurse -Include "*.pyc","*.pyo" -File -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch $excludePattern }
+        }
+
+        $pycacheFiles = @()
+        if ($pycacheDirs) { $pycacheFiles += $pycacheDirs }
+        if ($pytestCacheDirs) { $pycacheFiles += $pytestCacheDirs }
+        if ($pycFiles) { $pycacheFiles += $pycFiles }
+        $totalItems = ($pycacheFiles | Measure-Object).Count
+        Write-Verbose "Python cache cleanup will process $totalItems items (search root: $searchRoot)"
+        # suppress default Remove-Item progress so we only show our concise status
+        $oldProgress = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'
+        $index = 0
         foreach ($item in $pycacheFiles) {
+            $index++
+            # Friendly progress for longer runs; visible when running with -Verbose
+            if ($PSBoundParameters.ContainsKey('Verbose') -or $VerbosePreference -ne 'SilentlyContinue') {
+                $percent = if ($totalItems -gt 0) { [int](($index / $totalItems) * 100) } else { 100 }
+                Write-Progress -Activity "Removing Python cache files" -Status "Processing $index of $totalItems" -PercentComplete $percent -CurrentOperation $item.FullName
+                Write-Verbose "Processing ($index/$totalItems): $($item.FullName)"
+            }
             try {
-                $size = (Get-ChildItem $item -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+                # compute size depending on whether the item is a directory or file
+                if ($item.PSIsContainer) {
+                    $size = (Get-ChildItem $item -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+                } else {
+                    $size = $item.Length
+                }
                 if ($null -eq $size) { $size = 0 }
-                Remove-Item $item -Recurse -Force -ErrorAction Stop
-                $totalRemoved++
-                $totalSize += $size
+
+                # Attempt removal quietly and only surface a concise warning if still present after attempt
+                Remove-Item $item -Recurse -Force -ErrorAction SilentlyContinue
+                if (-not (Test-Path $item.FullName)) {
+                    $totalRemoved++
+                    $totalSize += $size
+                } else {
+                    # only show one-line warning for problematic items to reduce noisy output
+                    Write-Warning-Msg "Could not remove $($item.FullName) — leaving in place"
+                }
             }
             catch {
-                Write-Warning-Msg "Could not remove $($item.FullName): $_"
+                # Should rarely happen now — keep warning concise
+                Write-Warning-Msg "Could not remove $($item.FullName) — $_"
             }
         }
+        # restore progress prefs
+        $ProgressPreference = $oldProgress
+
         Write-Success "Removed $totalRemoved Python cache items"
         Add-Result "Cleanup" "Python Cache" $true "$totalRemoved items"
     }
@@ -548,7 +607,10 @@ function Invoke-AutomatedCleanup {
         $nodeCache = Join-Path $FRONTEND_DIR "node_modules\.cache"
         if (Test-Path $nodeCache) {
             $size = (Get-ChildItem $nodeCache -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            $oldProgress = $ProgressPreference
+            $ProgressPreference = 'SilentlyContinue'
             Remove-Item $nodeCache -Recurse -Force
+            $ProgressPreference = $oldProgress
             $totalSize += $size
             Write-Success "Removed node_modules/.cache"
             Add-Result "Cleanup" "Node Cache" $true
@@ -572,8 +634,13 @@ function Invoke-AutomatedCleanup {
         
         foreach ($dir in $buildDirs) {
             if (Test-Path $dir) {
-                $size = (Get-ChildItem $dir -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            Write-Verbose "Calculating size of $(Split-Path $dir -Leaf) before removal"
+            $size = (Get-ChildItem $dir -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            Write-Progress -Activity "Cleaning build artifacts" -Status "Removing $(Split-Path $dir -Leaf)" -PercentComplete 0
+                $oldProgress = $ProgressPreference
+                $ProgressPreference = 'SilentlyContinue'
                 Remove-Item $dir -Recurse -Force
+                $ProgressPreference = $oldProgress
                 $totalSize += $size
                 Write-Success "Removed $(Split-Path $dir -Leaf)"
             }
@@ -589,10 +656,21 @@ function Invoke-AutomatedCleanup {
     Write-Section "Temporary Files Cleanup"
     try {
         $tempFiles = Get-ChildItem -Path $SCRIPT_DIR -Include "*.tmp","*.temp","*.bak","*.backup","*.old" -Recurse -File -ErrorAction SilentlyContinue
+        $tempCount = ($tempFiles | Measure-Object).Count
+        Write-Verbose "Found $tempCount temporary files to remove"
+        $fileIndex = 0
         foreach ($file in $tempFiles) {
-            try {
+            $fileIndex++
+            if ($PSBoundParameters.ContainsKey('Verbose') -or $VerbosePreference -ne 'SilentlyContinue') {
+                $percent = if ($tempCount -gt 0) { [int](($fileIndex / $tempCount) * 100) } else { 100 }
+                Write-Progress -Activity "Removing temporary files" -Status "Processing $fileIndex of $tempCount" -PercentComplete $percent -CurrentOperation $file.FullName
+            }
+                try {
                 $totalSize += $file.Length
-                Remove-Item $file -Force
+                    $oldProgress = $ProgressPreference
+                    $ProgressPreference = 'SilentlyContinue'
+                    Remove-Item $file -Force
+                    $ProgressPreference = $oldProgress
                 $totalRemoved++
             }
             catch {

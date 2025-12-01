@@ -73,93 +73,36 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
       const { t } = this.props;
 
       return (
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f3f4f6',
-          padding: '1rem',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-        }}>
-          <div style={{
-            maxWidth: '42rem',
-            width: '100%',
-            backgroundColor: 'white',
-            borderRadius: '0.5rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            padding: '2rem'
-          }}>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
+          <div className="max-w-3xl w-full bg-white rounded-md shadow-lg p-8">
             {/* Error Icon */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#fee2e2',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg style={{ width: '2rem', height: '2rem', color: '#dc2626' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
             </div>
 
             {/* Error Message */}
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                color: '#111827',
-                marginBottom: '0.5rem'
-              }}>
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
                 {t('errors.unknown') || 'Something went wrong'}
               </h2>
-              <p style={{
-                color: '#6b7280',
-                fontSize: '0.875rem'
-              }}>
+              <p className="text-sm text-gray-600">
                 {t('messages.pleaseWait') || 'We encountered an unexpected error. You can try reloading the page or return to the home page.'}
               </p>
             </div>
 
             {/* Error Details (Collapsible) */}
-            <div style={{
-              marginBottom: '1.5rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #e5e7eb',
-              overflow: 'hidden'
-            }}>
+            <div className="mb-6 rounded-md border border-gray-200 overflow-hidden">
               <button
                 onClick={this.toggleDetails}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#f9fafb',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  color: '#374151'
-                }}
+                className="w-full px-4 py-3 bg-gray-50 border-0 cursor-pointer flex items-center justify-between text-sm font-medium text-gray-700"
               >
                 <span>{t('common.info') || 'Error Details'}</span>
                 <svg
-                  style={{
-                    width: '1.25rem',
-                    height: '1.25rem',
-                    transform: showDetails ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s'
-                  }}
+                  className={"w-5 h-5 transition-transform " + (showDetails ? 'rotate-180' : 'rotate-0')}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -169,39 +112,13 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
               </button>
 
               {showDetails && (
-                <div style={{
-                  padding: '1rem',
-                  backgroundColor: '#f9fafb',
-                  borderTop: '1px solid #e5e7eb'
-                }}>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    color: '#dc2626',
-                    marginBottom: '0.75rem',
-                    padding: '0.75rem',
-                    backgroundColor: 'white',
-                    borderRadius: '0.25rem',
-                    border: '1px solid #fee2e2',
-                    overflowX: 'auto'
-                  }}>
+                <div className="p-4 bg-gray-50 border-t border-gray-200">
+                  <div className="text-xs font-mono text-rose-600 mb-3 p-3 bg-white rounded border border-rose-50 overflow-x-auto">
                     {error?.toString() || t('errors.unknown')}
                   </div>
 
                   {errorInfo?.componentStack && (
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontFamily: 'monospace',
-                      color: '#4b5563',
-                      padding: '0.75rem',
-                      backgroundColor: 'white',
-                      borderRadius: '0.25rem',
-                      border: '1px solid #e5e7eb',
-                      maxHeight: '12rem',
-                      overflowY: 'auto',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word'
-                    }}>
+                    <div className="text-xs font-mono text-gray-600 p-3 bg-white rounded border border-gray-200 max-h-48 overflow-y-auto whitespace-pre-wrap break-words">
                       {errorInfo.componentStack}
                     </div>
                   )}
@@ -210,52 +127,17 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
             </div>
 
             {/* Action Buttons */}
-            <div style={{
-              display: 'flex',
-              gap: '0.75rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap'
-            }}>
+            <div className="flex gap-3 justify-center flex-wrap">
               <button
                 onClick={this.handleReset}
-                style={{
-                  padding: '0.625rem 1.5rem',
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}
-                onMouseOver={e => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
-                onMouseOut={e => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
-                onFocus={e => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
-                onBlur={e => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+                className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-medium transition-colors shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
                 {t('common.reset') || 'Try Again'}
               </button>
 
               <button
                 onClick={this.handleGoHome}
-                style={{
-                  padding: '0.625rem 1.5rem',
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}
-                onMouseOver={e => (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb'}
-                onMouseOut={e => (e.target as HTMLButtonElement).style.backgroundColor = 'white'}
-                onFocus={e => (e.target as HTMLButtonElement).style.backgroundColor = '#f9fafb'}
-                onBlur={e => (e.target as HTMLButtonElement).style.backgroundColor = 'white'}
+                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
                 {t('common.home') || 'Go Home'}
               </button>
@@ -263,15 +145,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
 
             {/* Development Mode Warning */}
             {import.meta.env.DEV && (
-              <div style={{
-                marginTop: '1.5rem',
-                padding: '0.75rem',
-                backgroundColor: '#fef3c7',
-                borderRadius: '0.375rem',
-                fontSize: '0.75rem',
-                color: '#92400e',
-                textAlign: 'center'
-              }}>
+              <div className="mt-6 p-3 bg-amber-50 rounded-md text-xs text-amber-800 text-center">
                 {t('messages.devModeCheckConsole') || '🔧 Development mode: Check console for detailed error logs'}
               </div>
             )}

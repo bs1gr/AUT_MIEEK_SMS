@@ -311,8 +311,8 @@ describe('GradeProgressBar', () => {
       <GradeProgressBar gpa={3.0} />
     );
     
-    const progressFill = container.querySelector('[style*="width"]');
-    expect(progressFill).toHaveStyle({ width: '75%' });
+    const progressFill = container.querySelector('[class*="w-[75%]"]');
+    expect(progressFill).toBeInTheDocument();
   });
 
   it('applies correct color class for excellent grade', () => {
@@ -347,8 +347,8 @@ describe('GradeProgressBar', () => {
       <GradeProgressBar gpa={0} />
     );
     
-    const progressFill = container.querySelector('[style*="width"]');
-    expect(progressFill).toHaveStyle({ width: '0%' });
+    const progressFill = container.querySelector('[class*="w-[0%]"]');
+    expect(progressFill).toBeInTheDocument();
   });
 
   it('handles edge case of maximum GPA (4.0)', () => {
@@ -356,7 +356,7 @@ describe('GradeProgressBar', () => {
       <GradeProgressBar gpa={4.0} />
     );
     
-    const progressFill = container.querySelector('[style*="width"]');
-    expect(progressFill).toHaveStyle({ width: '100%' });
+    const progressFill = container.querySelector('[class*="w-[100%]"]');
+    expect(progressFill).toBeInTheDocument();
   });
 });

@@ -257,9 +257,11 @@ export const GradeProgressBar = ({ gpa, showLabel = true }: { gpa: number; showL
         </div>
       )}
       <div className="w-full bg-gray-200 rounded-full h-3">
+        {/* using an arbitrary width class to avoid inline styles; round percentage to integer for class name */}
         <div
-          className={`${bgColor} h-3 rounded-full transition-all duration-500`}
-          style={{ width: `${percentage}%` }}
+          className={`${bgColor} h-3 rounded-full transition-all duration-500 w-[${Math.round(
+            percentage
+          )}%]`}
         />
       </div>
     </div>

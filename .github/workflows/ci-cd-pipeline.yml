@@ -539,8 +539,8 @@ jobs:
       - name: Create backup before deployment
         run: |
           echo "💾 Creating pre-deployment backup..."
-          # SSH to production and trigger backup
-          # ssh ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "docker exec sms-fullstack python /app/backup_database.py"
+          # SSH to production and trigger backup (example placeholder)
+          # ssh <PROD_USER>@<PROD_HOST> "docker exec sms-fullstack python /app/backup_database.py"
 
       - name: Deploy to production
         run: |
