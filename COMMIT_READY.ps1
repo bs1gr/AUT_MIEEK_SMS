@@ -90,6 +90,23 @@ $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
 $CHANGELOG_FILE = Join-Path $SCRIPT_DIR "CHANGELOG.md"
 
+# Determine execution environment (CI vs local dev)
+$inCI = [bool](
+    $env:GITHUB_ACTIONS -or $env:CI -or $env:GITHUB_RUN_ID -or $env:CI_SERVER -or $env:CONTINUOUS_INTEGRATION
+)
+
+# Enforce: skipping tests/cleanup/auto-fixes in local pre-commit requires DEV_EASE opt-in
+if (-not $inCI) {
+    if ($SkipTests.IsPresent -or $SkipCleanup.IsPresent -or $AutoFix.IsPresent) {
+        $devEase = ($env:DEV_EASE -as [string]) -and ($env:DEV_EASE.ToLower() -in @('1','true','yes'))
+        if (-not $devEase) {
+            Write-Host "❌ Security: DEV_EASE must be enabled to use SkipTests, SkipCleanup, or AutoFix during local pre-commit runs." -ForegroundColor Red
+            Write-Host "   To allow this locally set (PowerShell): `$env:DEV_EASE = 'true'` and re-run the command." -ForegroundColor Yellow
+            exit 1
+        }
+    }
+}
+
 # Results tracking
 $script:Results = @{
     Linting = @()

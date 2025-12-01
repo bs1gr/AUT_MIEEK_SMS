@@ -98,6 +98,22 @@ Provide `DATABASE_URL` as a repository secret when running migrations in CI.
 If you prefer automated migrations at deploy time, run the same command from your deployment
 pipeline before switching traffic to the new release.
 
+## Developer convenience: DEV_EASE (pre-commit only)
+
+DEV_EASE is now strictly reserved for local pre-commit workflows (COMMIT_READY.ps1). It is **not** a
+runtime feature and must not be used to alter the behavior of the running backend or frontend.
+
+Usage: set the environment variable when running the pre-commit tool locally if you intentionally want
+to allow `COMMIT_READY.ps1` to skip tests/cleanup or to AutoFix issues during local development:
+
+```powershell
+$env:DEV_EASE = 'true'
+.\COMMIT_READY.ps1 -Mode standard -AutoFix
+```
+
+Why: This keeps runtime behavior unchanged in development, CI and production — avoiding accidental
+weakening of security on running services. CI workflows should remain strict and never enable DEV_EASE.
+
 ---
 Small checklist:
 

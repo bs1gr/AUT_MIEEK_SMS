@@ -20,6 +20,24 @@ pip install pre-commit
 pre-commit install
 # Run the hooks across the repo once (CI will also run pre-commit)
 pre-commit run --all-files
+
+Optional: install the repository-provided pre-commit sample hook which runs
+`COMMIT_READY.ps1 -Mode quick` before commits. This is useful if you want a
+consolidated full-check at commit time (lint + tests + i18n checks).
+
+Install the sample hook using the included installer scripts:
+
+PowerShell (Windows)
+
+```powershell
+pwsh ./scripts/install-git-hooks.ps1
+```
+
+POSIX (macOS / Linux)
+
+```bash
+./scripts/install-git-hooks.sh
+```
 ```
 
 1. Run tests locally

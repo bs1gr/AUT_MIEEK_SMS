@@ -65,6 +65,22 @@ Additional validation steps (type-checking / linters / full CI checks) still sho
 
 # OR Standard mode (5-8 minutes) - more comprehensive
 .\COMMIT_READY.ps1 -Mode standard
+Optional: To run COMMIT_READY automatically at commit time, install the provided pre-commit hook sample
+(`.githooks/commit-ready-precommit.sample`) using the helper scripts provided in `scripts/`:
+
+PowerShell (Windows):
+
+```powershell
+pwsh ./scripts/install-git-hooks.ps1
+```
+
+macOS / Linux:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+Reminder: DEV_EASE is pre-commit-only. Set DEV_EASE only in local shells when you intentionally want to skip tests/cleanup or run AutoFix during pre-commit validation; never enable DEV_EASE in CI or on running services.
 ```
 
 ### Step 2: Review Results

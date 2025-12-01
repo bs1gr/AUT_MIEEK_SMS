@@ -1024,8 +1024,31 @@ docker compose down
 For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 
 ```powershell
-.
-\NATIVE.ps1 -Start
+# Start backend + frontend (hot-reload)
+.\NATIVE.ps1 -Start
+
+# NOTE: DEV_EASE is used by the pre-commit script `COMMIT_READY.ps1` only and should
+# not be used to alter runtime behavior. To make local pre-commit skips explicit, set
+# the environment variable `DEV_EASE=true` when running COMMIT_READY locally.
+#
+# Optional: Install the sample pre-commit hook provided at `.githooks/commit-ready-precommit.sample`.
+# You can copy it to `.git/hooks/pre-commit` and make it executable, or use the included installers:
+#
+# PowerShell (Windows):
+#
+# ```powershell
+# pwsh ./scripts/install-git-hooks.ps1
+# ```
+#
+# macOS / Linux:
+#
+# ```bash
+# ./scripts/install-git-hooks.sh
+# ```
+#
+# On Windows you can also add a PowerShell hook variant that invokes:
+# `pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick`.
+> **Note:** Use the consolidated `NATIVE.ps1`. Legacy helpers under `scripts/dev/` were archived and are no longer supported.
 ```
 
 > **Note:** Use the consolidated `NATIVE.ps1`. Legacy helpers under `scripts/dev/` were archived and are no longer supported.

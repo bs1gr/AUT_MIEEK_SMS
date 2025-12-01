@@ -15,6 +15,12 @@ python -m pip install -r backend/requirements.txt
 ```
 
 > Tip: Run `NATIVE.ps1 -Start` (PowerShell) to start the backend and frontend in the supported native development mode. The helper script sets `SMS_ENV=development` automatically.
+>
+> If you need a permissive local dev mode that relaxes authentication and CSRF for convenient front-end/back-end iteration, use the `-DevEase` flag:
+>
+> ```pwsh
+> .\NATIVE.ps1 -Start -DevEase
+> ```
 
 ## Install development dependencies (type checking, linters)
 
