@@ -1,4 +1,21 @@
 {
+  // Backend Python tests
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  "python.testing.autoTestDiscoverOnSaveEnabled": false,
+
+  // Testing experience
+  "testing.gutterClickBehavior": "run",
+  "testing.autoRun": "off",
+  "testing.showInlineErrorMessages": true,
+
+  // Terminals for tasks should use PowerShell on Windows
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
+}
+{
     "python.analysis.typeCheckingMode": "standard",
     "projectManager.git.baseFolders": [
         ""

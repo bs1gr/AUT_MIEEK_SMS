@@ -9,5 +9,12 @@
 		"editor.aiStats.enabled": true,
 		"editor.autoIndentOnPaste": true,
 		"editor.bracketPairColorization.independentColorPoolPerBracketType": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"maty.vscode-vitest",
+			"hbenl.vscode-test-explorer"
+		]
 	}
 }
