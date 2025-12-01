@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useLayoutEffect, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark' | 'relaxing' | 'fancy' | 'system';
 
@@ -39,7 +39,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return 'light';
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const resolveTheme = () => {
       if (theme === 'system') {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -49,24 +49,27 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     const resolved = resolveTheme();
-    setEffectiveTheme(resolved);
 
     console.warn('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
+
+    // Do not update effectiveTheme synchronously here (avoid setState inside effect)
 
     // Apply theme to document with robust null checks and Edge compatibility
     const root = typeof document !== 'undefined' ? document.documentElement : null;
     const body = typeof document !== 'undefined' ? document.body : null;
     if (!root || !body) {
       console.warn('[ThemeProvider] document root or body is null, skipping theme application');
-      return;
+      return undefined;
     }
+
     // Remove all theme classes first, with guards (Edge compatible)
-  if (root.classList) root.classList.remove('dark', 'relaxing', 'fancy');
-  if (body.classList) body.classList.remove('dark', 'relaxing', 'fancy');
+    if (root.classList) root.classList.remove('dark', 'relaxing', 'fancy');
+    if (body.classList) body.classList.remove('dark', 'relaxing', 'fancy');
+
     if (resolved === 'dark') {
       if (root.classList) root.classList.add('dark');
       if (body.classList) body.classList.add('dark');
-      void root.offsetHeight;
+      void root.offsetHeight; // force repaint if needed
     } else if (resolved === 'relaxing') {
       if (root.classList) root.classList.add('relaxing');
       if (body.classList) body.classList.add('relaxing');
@@ -87,6 +90,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       void root.offsetHeight;
     }
+
     // Log actual state after applying
     setTimeout(() => {
       if (!root || !body) return;
@@ -106,13 +110,20 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     // Listen for system theme changes when 'system' is selected
     if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      type MaybeMediaQuery = MediaQueryList & {
+        addEventListener?: (type: string, listener: EventListenerOrEventListenerObject) => void;
+        removeEventListener?: (type: string, listener: EventListenerOrEventListenerObject) => void;
+        addListener?: (listener: (e: MediaQueryListEvent) => void) => void;
+        removeListener?: (listener: (e: MediaQueryListEvent) => void) => void;
+      };
+
+      const mediaQuery: MaybeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (e: MediaQueryListEvent | MediaQueryList) => {
         const newResolved = ('matches' in e ? e.matches : mediaQuery.matches) ? 'dark' : 'light';
         console.warn('[ThemeProvider] System theme changed to:', newResolved);
         setEffectiveTheme(newResolved);
-        root.classList.remove('dark', 'relaxing', 'fancy');
-        body.classList.remove('dark', 'relaxing', 'fancy');
+        if (root.classList) root.classList.remove('dark', 'relaxing', 'fancy');
+        if (body.classList) body.classList.remove('dark', 'relaxing', 'fancy');
         if (newResolved === 'dark') {
           root.classList.add('dark');
           body.classList.add('dark');
@@ -122,23 +133,48 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
       };
       // Modern browsers including Edge support addEventListener
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
+      if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+      }
+
+      // Fallback older browsers that use addListener/removeListener
+      if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(handler);
+        return () => mediaQuery.removeListener(handler);
+      }
+
+      return undefined;
     }
+
+    return undefined;
   }, [theme]);
 
-  const setTheme = (newTheme: Theme) => {
+  // NOTE: setTheme is implemented below as setThemeImmediate which updates
+  // effectiveTheme synchronously. The older setTheme helper was removed.
+
+  // Update effectiveTheme immediately when theme is changed via setTheme to keep
+  // behavior deterministic and tests synchronous.
+  const setThemeImmediate = (newTheme: Theme) => {
     try {
       setThemeState(newTheme);
       localStorage.setItem('theme', newTheme);
-      console.warn('[ThemeProvider] Theme set to:', newTheme);
     } catch (error) {
       console.error('[ThemeProvider] Failed to save theme:', error);
     }
+
+    // Resolve effective immediately for deterministic tests and UI updates
+    if (newTheme === 'system') {
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setEffectiveTheme(systemPrefersDark ? 'dark' : 'light');
+    } else {
+      setEffectiveTheme(newTheme as 'light' | 'dark' | 'relaxing' | 'fancy');
+    }
+    console.warn('[ThemeProvider] Theme set to:', newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: setThemeImmediate, effectiveTheme }}>
       {children}
     </ThemeContext.Provider>
   );

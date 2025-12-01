@@ -9,6 +9,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from backend.db import get_session as get_db
+from backend.errors import internal_server_error
+from backend.services import AnalyticsService
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -16,11 +20,6 @@ router = APIRouter(
     tags=["Analytics"],
     responses={404: {"description": "Not found"}},
 )
-
-
-from backend.db import get_session as get_db
-from backend.errors import internal_server_error
-from backend.services import AnalyticsService
 
 
 def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:

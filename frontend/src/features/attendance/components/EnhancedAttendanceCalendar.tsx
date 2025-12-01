@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, Star, TrendingUp, UserCheck, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import Spinner from '@/components/ui/Spinner';
-import { Student, Course } from '@/types';
+import { Student, Course, TeachingScheduleEntry } from '@/types';
 import { studentsAPI, coursesAPI } from '@/api/api';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -32,26 +32,22 @@ const EnhancedAttendanceCalendar = () => {
 
   // FIXED: Common grade categories are defined centrally in CourseEvaluationRules and re-used there.
 
-  useEffect(() => {
-    loadData();
+  // Stable toast helper so effects/callbacks can reference it safely
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   }, []);
 
-  useEffect(() => {
-    if (selectedCourse) {
-      loadEvaluationCategories();
-    }
-  }, [selectedCourse]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [studentsData, coursesData] = await Promise.all([
         studentsAPI.getAll(),
         coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
       ]);
 
-      // Normalise paginated responses to arrays for this view
-      const studentList = Array.isArray(studentsData) ? studentsData : (studentsData?.items || []);
-      const courseList = Array.isArray(coursesData) ? coursesData : (coursesData?.items || []);
+      // API now returns arrays; prefer the array path and fall back to an empty list
+      const studentList: Student[] = Array.isArray(studentsData) ? studentsData : [];
+      const courseList: Course[] = Array.isArray(coursesData) ? coursesData : [];
 
       setStudents(studentList);
       setCourses(courseList);
@@ -60,17 +56,15 @@ const EnhancedAttendanceCalendar = () => {
       }
     } catch (error) {
       console.error('Failed to load data:', error);
-      showToast('Failed to load data', 'error');
+      showToast(t('failedToLoadData') || 'Failed to load data', 'error');
     }
-  };
+  }, [t, showToast]);
 
-  // FIXED: Updated to include ALL relevant evaluation categories for daily rating
-  const loadEvaluationCategories = () => {
+  const loadEvaluationCategories = useCallback(() => {
     try {
       const course = courses.find(c => c.id === selectedCourse);
       if (course && course.evaluation_rules) {
         // Create a comprehensive list of daily-trackable categories
-        // Including all variations (English, Greek, with/without slashes)
         const dailyTrackableCategories = [
           'Class Participation', 'Συμμετοχή στο Μάθημα',
           'Homework/Assignments', 'Homework', 'Εκπόνηση Εργασιών',
@@ -79,15 +73,13 @@ const EnhancedAttendanceCalendar = () => {
           'Quizzes', 'Κουίζ',
           'Project', 'Πρότζεκτ',
           'Presentation', 'Παρουσίαση'
-          // Note: Excluding 'Midterm Exam', 'Final Exam', and 'Attendance'
-          // as these are typically not tracked daily
         ];
 
-        const dailyCategories = course.evaluation_rules.filter(rule =>
-          dailyTrackableCategories.some(cat =>
-            rule.category.includes(cat) ||
-            rule.category.toLowerCase().includes(cat.toLowerCase())
-          )
+        const dailyCategories = course.evaluation_rules.filter((rule: { category?: string }) =>
+          dailyTrackableCategories.some(cat => {
+            const catVal = rule.category ?? '';
+            return catVal.includes(cat) || catVal.toLowerCase().includes(cat.toLowerCase());
+          })
         );
 
         setEvaluationCategories(dailyCategories);
@@ -98,12 +90,22 @@ const EnhancedAttendanceCalendar = () => {
       console.error('Error loading evaluation categories:', error);
       setEvaluationCategories([]);
     }
-  };
+  }, [courses, selectedCourse]);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadEvaluationCategories();
+    }
+  }, [selectedCourse, loadEvaluationCategories]);
+
+
+  // FIXED: Updated to include ALL relevant evaluation categories for daily rating
+
+  // showToast already declared above as a stable useCallback
 
   const formatDate = (date: Date | string) => formatLocalDate(date);
 
@@ -199,7 +201,7 @@ const EnhancedAttendanceCalendar = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t]);
+  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t, showToast]);
 
   // Autosave when attendance or performance changes
   const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;
@@ -253,7 +255,9 @@ const EnhancedAttendanceCalendar = () => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayName = dayNames[date.getDay()];
 
-    return Array.isArray(course.teaching_schedule) ? (course.teaching_schedule as Array<any>).some(period => period.day === dayName) : Object.keys(course.teaching_schedule || {}).some(k => k === dayName);
+    return Array.isArray(course.teaching_schedule)
+      ? (course.teaching_schedule as TeachingScheduleEntry[]).some(period => period.day === dayName)
+      : Object.keys(course.teaching_schedule || {}).some(k => k === dayName);
   };
 
   const previousMonth = () => {
@@ -434,12 +438,12 @@ const EnhancedAttendanceCalendar = () => {
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {Array.isArray(course.teaching_schedule)
-                      ? [...new Set((course.teaching_schedule as Array<any>).map(s => s.day))].map((day: string) => (
+                      ? [...new Set((course.teaching_schedule as TeachingScheduleEntry[]).map(s => s.day))].map((day: string) => (
                           <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
                             {day}
                           </span>
                         ))
-                      : Object.keys(course.teaching_schedule as Record<string, any>).map((day: string) => (
+                      : Object.keys(course.teaching_schedule as Record<string, TeachingScheduleEntry | undefined>).map((day: string) => (
                           <span key={day} className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
                             {day}
                           </span>

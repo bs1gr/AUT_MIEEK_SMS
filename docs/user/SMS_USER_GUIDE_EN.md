@@ -145,6 +145,7 @@ Evaluation rules define how grades are calculated for the final grade.
    - **Daily Performance Multiplier** (optional, default: 1.0)
 
 **Example:**
+
 - Homework: 30%
 - Midterm: 30%
 - Final Exam: 40%
@@ -185,7 +186,8 @@ Quick overview of attendance across dates:
 3. Use quick-change dropdown to update status
 4. Changes save instantly
 
-**Color Coding:**
+-**Color Coding:**
+
 - Green dot: All present
 - Red dot: Has absences
 - Gray: No attendance recorded
@@ -223,7 +225,8 @@ The system enforces these rules:
 2. Find the student's course
 3. Click **View Breakdown**
 
-**Breakdown Shows:**
+-**Breakdown Shows:**
+
 - Category averages with weights
 - Daily performance impact
 - Attendance percentage (if configured)
@@ -255,11 +258,13 @@ Daily performance lets you rate student participation for each class session.
 ### How Daily Performance Affects Grades
 
 Daily performance scores are:
+
 1. Converted to percentages (1=20%, 2=40%, 3=60%, 4=80%, 5=100%)
 2. Multiplied by the category's **Daily Performance Multiplier**
 3. Averaged with regular grades in that category
 
 **Example:**
+
 - Category: "Homework" with 30% weight and 1.5 multiplier
 - Regular grades: 85%, 90%
 - Daily performance average: 80% × 1.5 = 120% (capped at 100%)
@@ -284,12 +289,14 @@ Autosave automatically saves your changes without requiring you to click "Save" 
 ### Visual Indicators
 
 Look for the **cloud upload icon** with a pulsing animation:
+
 - **Pulsing** - Changes are being saved
 - **Disappeared** - Save complete
 
 ### What If Autosave Fails?
 
 If autosave fails (network issues, validation errors):
+
 - You'll see a clear error notification
 - Your changes are NOT discarded
 - Fix any issues and the system will retry
@@ -299,7 +306,7 @@ If autosave fails (network issues, validation errors):
 
 - Uses the same authentication as manual saves
 - Teachers can only edit courses/attendance assigned to them
- - Rate limiting: environment-configurable via backend RATE_LIMIT_* settings (client uses 2-second debounce and chunked writes to avoid bursts)
+- Rate limiting: environment-configurable via backend RATE_LIMIT_* settings (client uses 2-second debounce and chunked writes to avoid bursts)
 
 ---
 
@@ -310,6 +317,7 @@ If autosave fails (network issues, validation errors):
 Session export/import lets you package entire semesters into JSON files and transfer them between systems.
 
 **What's Included:**
+
 - Courses
 - Students
 - Course enrollments
@@ -340,7 +348,8 @@ Session export/import lets you package entire semesters into JSON files and tran
 5. (Optional) Enable **Dry Run** to validate without importing
 6. Click **Import Session**
 
-**Safety Features:**
+-**Safety Features:**
+
 - Automatic backup created before import
 - Rollback available if needed
 - Dry-run validation shows what will happen
@@ -348,12 +357,14 @@ Session export/import lets you package entire semesters into JSON files and tran
 
 ### Merge Strategies
 
-**Update (Recommended):**
+-**Update (Recommended):**
+
 - Creates new students/courses/grades
 - Updates existing records with new data
 - Best for synchronizing data between systems
 
-**Skip:**
+-**Skip:**
+
 - Creates only new records
 - Skips existing records entirely
 - Best for merging non-overlapping data
@@ -376,6 +387,7 @@ If import causes issues:
 ### Student Reports
 
 **Individual Performance:**
+
 1. Go to **Performance** section
 2. Select student
 3. View:
@@ -384,7 +396,8 @@ If import causes issues:
    - Attendance summary
    - Grade trends
 
-**Grade Breakdown:**
+-**Grade Breakdown:**
+
 - Click **View Breakdown** on any course
 - See weighted category scores
 - View daily performance impact
@@ -394,6 +407,7 @@ If import causes issues:
 ### Course Reports
 
 **Course Performance:**
+
 1. Go to **Courses** section
 2. Open course details
 3. View **Statistics** tab:
@@ -417,12 +431,14 @@ Export data in multiple formats:
 4. Click **Export**
 
 **Excel Features:**
+
 - Sortable columns
 - Filterable data
 - Formulas preserved
 - Formatted cells
 
 **PDF Features:**
+
 - Print-ready layout
 - Professional formatting
 - Page numbers
@@ -445,11 +461,13 @@ Export data in multiple formats:
 ### Backup Management
 
 **Creating Backups:**
+
 1. Go to **Utils** → **Developer Tools**
 2. Click **Backup Database**
 3. SQLite database file downloads
 
 **Restoring Backups:**
+
 1. Go to **Utils** → **Developer Tools**
 2. Click **Restore DB**
 3. Upload backup `.db` file
@@ -457,6 +475,7 @@ Export data in multiple formats:
 5. Refresh page to reload data
 
 **Backup Operations Panel (Operations):**
+
 1. Go to **Operations** → **Manage Backups**
 2. View all backups with sizes and timestamps
 3. Actions:
@@ -480,11 +499,13 @@ Check system status:
 ### Database Management
 
 **Clear All Data:**
+
 1. Go to **Utils** → **Developer Tools**
 2. Click **Clear All Data**
 3. Confirm action (irreversible)
 
 **Load Sample Data:**
+
 1. Go to **Utils** → **Developer Tools**
 2. Click **Load Sample Data**
 3. System populates with test data
@@ -495,9 +516,10 @@ Check system status:
 
 ### Common Issues
 
-**Issue: Can't log in**
+#### Issue: Can't log in
 
-**Solution:**
+##### Solution
+
 - Verify credentials (check caps lock)
 - Ensure backend is running
 - Clear browser cache and cookies
@@ -505,9 +527,10 @@ Check system status:
 
 ---
 
-**Issue: Changes not saving**
+#### Issue: Changes not saving
 
-**Solution:**
+##### Solution
+
 - Check internet connection
 - Look for error notifications
 - Verify authentication token is valid
@@ -516,9 +539,10 @@ Check system status:
 
 ---
 
-**Issue: Autosave not working**
+#### Issue: Autosave not working
 
-**Solution:**
+##### Solution
+
 - Wait 2 seconds after last change
 - Check for pulsing cloud icon
 - Verify network connectivity
@@ -527,9 +551,10 @@ Check system status:
 
 ---
 
-**Issue: Grade breakdown shows unexpected values**
+#### Issue: Grade breakdown shows unexpected values
 
-**Solution:**
+##### Solution
+
 - Verify evaluation rules total 100%
 - Check absence penalty setting
 - Confirm daily performance multipliers
@@ -538,9 +563,10 @@ Check system status:
 
 ---
 
-**Issue: Session import fails**
+#### Issue: Session import fails
 
-**Solution:**
+##### Solution
+
 - Enable dry-run first to see errors
 - Check JSON file is valid export
 - Verify merge strategy is appropriate
@@ -549,9 +575,10 @@ Check system status:
 
 ---
 
-**Issue: PDF exports are blank**
+#### Issue: PDF exports are blank
 
-**Solution:**
+##### Solution
+
 - Ensure data exists for selected filters
 - Try Excel export instead
 - Check browser PDF viewer settings
@@ -562,15 +589,14 @@ Check system status:
 ### Getting More Help
 
 **GitHub Issues:**
-Report bugs or request features at:
-https://github.com/bs1gr/AUT_MIEEK_SMS/issues
+Report bugs or request features at: [AUT_MIEEK_SMS issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 
 **Discussion Forum:**
-Ask questions and share experiences:
-https://github.com/bs1gr/AUT_MIEEK_SMS/discussions
+Ask questions and share experiences: [Discussions](https://github.com/bs1gr/AUT_MIEEK_SMS/discussions)
 
 **Documentation:**
 Additional guides in the `docs/` directory:
+
 - `QUICK_START_GUIDE.md`
 - `SESSION_EXPORT_IMPORT_GUIDE.md`
 - `LOCALIZATION.md`
@@ -618,8 +644,8 @@ Additional guides in the `docs/` directory:
 
 ---
 
-**End of User Guide**
+### End of User Guide
 
-For the latest updates, visit: https://github.com/bs1gr/AUT_MIEEK_SMS
+For the latest updates, visit: [AUT_MIEEK_SMS on GitHub](https://github.com/bs1gr/AUT_MIEEK_SMS)
 
 © 2025 Vasileios Samaras. All rights reserved.

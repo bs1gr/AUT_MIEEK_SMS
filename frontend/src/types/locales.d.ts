@@ -1,6 +1,6 @@
 // Type declarations for JS locale modules so tsc can import them as records
 declare module './locales/*/*' {
-  const value: Record<string, string>;
+  const value: Record<string, string> | Record<string, Record<string, string>>;
   export default value;
 }
 
@@ -16,24 +16,24 @@ declare module './locales/*' {
 
 // Wildcard matches for imports like './locales/en/controlPanel' (no extension)
 declare module './locales/*/*' {
-  const contents: { [key: string]: any };
+  const contents: Record<string, string> | Record<string, Record<string, string>>;
   export default contents;
 }
 
 // Support alternative relative import forms
 declare module '../locales/*/*' {
-  const contents: { [key: string]: any };
+  const contents: Record<string, string> | Record<string, Record<string, string>>;
   export default contents;
 }
 
 // Generic catch-all for plain JS imports (files without a .d.ts)
 declare module '*.js' {
-  const value: any;
+  const value: unknown;
   export default value;
 }
 
 // Support imports via absolute aliases (e.g., '@/locales/en/...') if used
 declare module '@/locales/*/*' {
-  const contents: { [key: string]: any };
+  const contents: Record<string, string> | Record<string, Record<string, string>>;
   export default contents;
 }

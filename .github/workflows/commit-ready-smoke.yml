@@ -1,0 +1,82 @@
+name: COMMIT_READY Smoke (quick)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - '**'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+
+jobs:
+  commit-ready-quick:
+    name: Run COMMIT_READY quick (smoke)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies (fast)
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci --silent
+
+      - name: Run backend fast tests (pytest) and produce JUnit
+        shell: pwsh
+        run: |
+          Write-Host "Running backend fast tests and writing pytest-results.xml"
+          Push-Location backend
+          python -m pytest tests/ -m "not slow" -q --tb=short --junitxml=pytest-results.xml
+          Pop-Location
+
+      - name: Run frontend fast tests (vitest) and produce JUnit
+        shell: pwsh
+        run: |
+          Write-Host "Running frontend fast tests and writing vitest-results.xml"
+          Push-Location frontend
+          # Use npx to run vitest and redirect JUnit output into a file
+          npx -y vitest run --reporter junit > vitest-results.xml
+          Pop-Location
+
+      - name: Run COMMIT_READY quick smoke (skip tests + cleanup for speed) & save logs
+        shell: pwsh
+        run: |
+          Write-Host "Running COMMIT_READY quick smoke (skip tests, skip cleanup for speed)"
+          $outFile = "commit_ready_output_${{ matrix.os }}.txt"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -Verbose *>&1 | Tee-Object -FilePath $outFile
+          Write-Host "Wrote $outFile"
+
+      - name: Upload smoke logs + JUnit test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-ready-smoke-logs-${{ matrix.os }}
+          path: |
+            commit_ready_output_${{ matrix.os }}.txt
+            backend/pytest-results.xml
+            frontend/vitest-results.xml
+          retention-days: 7

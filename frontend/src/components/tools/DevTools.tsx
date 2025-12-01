@@ -1,19 +1,18 @@
-// @ts-nocheck
-/* eslint-disable */
+// DevTools - typed (keep linting enabled) 
 import { useLanguage } from '../../LanguageContext';
 import { useState } from 'react';
 import { Settings, Database, Download, Upload, Trash2, RefreshCw, CheckCircle, Power, AlertTriangle } from 'lucide-react';
 
 export default function DevTools() {
-  const { t: translationFunction } = useLanguage() as any;
+  const { t: translationFunction } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const t = (key) => {
+  const t = (key: string): string => {
     const translated = translationFunction(key);
     if (translated !== key) return translated;
 
-    const fallbackTranslations = {
+    const fallbackTranslations: Record<string, string> = {
       'devtools.title': 'Dev Tools',
       'devtools.subtitle': 'Database & System Management',
       'devtools.databaseManagement': 'Database Management',
@@ -26,11 +25,19 @@ export default function DevTools() {
       'devtools.backupDatabase': 'Backup Database',
       'devtools.shutdown': 'Shutdown & Quit',
       'devtools.shutdownBackend': 'Shutdown Backend Server',
+      'devtools.backendHost': 'localhost:8080',
+      'devtools.frontendHost': 'localhost:8080',
+      'devtools.safetyTips': 'Safety Tips',
+      'devtools.safetyHeading': '⚠️ Safety Tips',
+      'devtools.tip1': 'Always backup before resetting',
+      'devtools.tip2': 'Sample data is for testing only',
+      'devtools.tip3': 'Reset will delete ALL existing data',
+      'devtools.tip4': 'Check health status regularly',
     };
     return fallbackTranslations[key] || key;
   };
 
-  const showMessage = (msg, isError = false) => {
+  const showMessage = (msg: string) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 5000);
   };
@@ -47,12 +54,13 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-        showMessage(t('devtools.resetSuccess') || '✅ Database reset successfully!');
+          showMessage(t('devtools.resetSuccess'));
       } else {
-        showMessage(t('devtools.resetError') || '❌ Failed to reset database', true);
+          showMessage(t('devtools.resetError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`, true);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };
@@ -66,18 +74,19 @@ export default function DevTools() {
 
       if (response.ok) {
         const data = await response.json();
-        showMessage(t('devtools.backupSuccess') || `✅ Database backed up to: ${data.backup_file}`);
+        showMessage(`${t('devtools.backupSuccess')}${data?.backup_file ? `: ${data.backup_file}` : ''}`);
       } else {
-        showMessage(t('devtools.backupError') || '❌ Failed to backup database', true);
+        showMessage(t('devtools.backupError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`, true);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };
 
   const addSampleData = async () => {
-    if (!confirm(t('devtools.sampleDataConfirm') || 'Add sample students, courses, and grades for testing?')) return;
+    if (!confirm(t('devtools.sampleDataConfirm'))) return;
 
     setLoading(true);
     try {
@@ -87,12 +96,13 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-        showMessage(t('devtools.sampleDataSuccess') || '✅ Sample data added successfully!');
+        showMessage(t('devtools.sampleDataSuccess'));
       } else {
-        showMessage(t('devtools.sampleDataError') || '❌ Failed to add sample data', true);
+        showMessage(t('devtools.sampleDataError'));
       }
-    } catch (error) {
-      showMessage(`❌ ${t('devtools.error')}: ${error.message}`, true);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
     }
     setLoading(false);
   };
@@ -105,18 +115,18 @@ export default function DevTools() {
 
       if (response.ok) {
         const students = data?.statistics?.students ?? data?.students_count ?? '—';
-        showMessage(`✅ ${t('devtools.systemHealthy') || 'System Healthy'} | DB: ${data.database || data.db} | ${t('students')}: ${students}`);
+        showMessage(`✅ ${t('devtools.systemHealthy')} | DB: ${data.database || data.db} | ${t('students')}: ${students}`);
       } else {
-        showMessage(t('devtools.healthCheckFailed') || '❌ System health check failed', true);
+        showMessage(t('devtools.healthCheckFailed'));
       }
-    } catch (error) {
-      showMessage(t('devtools.cannotConnect') || '❌ Cannot connect to backend', true);
+    } catch {
+      showMessage(t('devtools.cannotConnect'));
     }
     setLoading(false);
   };
 
   const shutdownBackend = async () => {
-    if (!confirm(t('devtools.shutdownConfirm') || '⚠️ This will stop the backend server. Continue?')) return;
+    if (!confirm(t('devtools.shutdownConfirm'))) return;
 
     setLoading(true);
     try {
@@ -125,12 +135,12 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-        showMessage(t('devtools.shutdownSuccess') || '✅ Backend shutdown initiated. Server will stop in 2 seconds.');
+        showMessage(t('devtools.shutdownSuccess'));
       } else {
-        showMessage(t('devtools.shutdownError') || '❌ Failed to shutdown backend', true);
+        showMessage(t('devtools.shutdownError'));
       }
-    } catch (error) {
-      showMessage(t('devtools.shutdownInitiated') || '✅ Backend shutdown initiated (connection closed)', false);
+    } catch {
+      showMessage(t('devtools.shutdownInitiated'));
     }
     setLoading(false);
   };
@@ -143,8 +153,8 @@ export default function DevTools() {
           <div className="flex items-center gap-4 mb-4">
             <Settings className="w-10 h-10 text-purple-400" />
             <div>
-              <h1 className="text-4xl font-bold text-white">{t('devtools.title') || 'Dev Tools'}</h1>
-              <p className="text-purple-200">{t('devtools.subtitle') || 'Database & System Management'}</p>
+              <h1 className="text-4xl font-bold text-white">{t('devtools.title')}</h1>
+              <p className="text-purple-200">{t('devtools.subtitle')}</p>
             </div>
           </div>
 
@@ -173,11 +183,11 @@ export default function DevTools() {
           <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
             <div className="bg-white/5 p-4 rounded-lg">
               <div className="text-purple-300">{t('devtools.backend') || 'Backend'}</div>
-              <div className="text-white font-mono">localhost:8080</div>
+              <div className="text-white font-mono">{t('devtools.backendHost')}</div>
             </div>
             <div className="bg-white/5 p-4 rounded-lg">
               <div className="text-purple-300">{t('devtools.frontend') || 'Frontend'}</div>
-              <div className="text-white font-mono">localhost:8080</div>
+              <div className="text-white font-mono">{t('devtools.frontendHost')}</div>
             </div>
           </div>
         </div>
@@ -281,12 +291,12 @@ export default function DevTools() {
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-3">⚠️ {t('devtools.safetyTips') || 'Safety Tips'}</h3>
+            <h3 className="text-xl font-bold text-white mb-3">{t('devtools.safetyHeading')}</h3>
             <ul className="space-y-2 text-purple-200 text-sm">
-              <li>• {t('devtools.tip1') || 'Always backup before resetting'}</li>
-              <li>• {t('devtools.tip2') || 'Sample data is for testing only'}</li>
-              <li>• {t('devtools.tip3') || 'Reset will delete ALL existing data'}</li>
-              <li>• {t('devtools.tip4') || 'Check health status regularly'}</li>
+              <li>{t('bullet')} {t('devtools.tip1')}</li>
+              <li>{t('bullet')} {t('devtools.tip2')}</li>
+              <li>{t('bullet')} {t('devtools.tip3')}</li>
+              <li>{t('bullet')} {t('devtools.tip4')}</li>
             </ul>
           </div>
         </div>

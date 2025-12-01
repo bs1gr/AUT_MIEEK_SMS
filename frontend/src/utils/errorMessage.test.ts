@@ -119,7 +119,7 @@ describe('errorMessage', () => {
     });
 
     it('handles circular reference gracefully', () => {
-      const circular: any = { message: 'Error' };
+      const circular: Record<string, unknown> & { message?: string; self?: unknown } = { message: 'Error' };
       circular.self = circular;
       // Should handle serialization error and return fallback
       const result = getErrorMessage(circular, fallback);
@@ -136,7 +136,7 @@ describe('errorMessage', () => {
 
     it('handles symbols gracefully', () => {
       const sym = Symbol('error');
-      expect(getErrorMessage(sym as any, fallback)).toBe(fallback);
+      expect(getErrorMessage(sym as unknown, fallback)).toBe(fallback);
     });
 
     it('handles mixed case properties', () => {

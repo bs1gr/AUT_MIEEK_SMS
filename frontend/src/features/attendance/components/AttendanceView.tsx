@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
-import type { Course, Student } from '@/types';
+import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -25,14 +25,7 @@ console.warn('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 err
 type Props = { courses: Course[]; students?: Student[] };
 
 // Teaching schedule can arrive either as an array of entries or an object keyed by day.
-type TeachingScheduleEntry = {
-  day: string;
-  periods?: number; // canonical
-  period_count?: number; // alternative naming from older schema
-  count?: number; // fallback naming
-  start_time?: string;
-  duration?: number;
-};
+
 
 type EvaluationRule = { category: string; weight?: number };
 type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
@@ -82,25 +75,32 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     [dayNamesShort, language]
   );
   const selectedDateStr = useMemo(() => selectedDate ? formatLocalDate(selectedDate) : '', [selectedDate]);
-  const fullDayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const fullDayNames = useMemo(() => ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], []);
 
   const getWeekdayIndex = (d: Date) => {
     const weekday = d.getDay();
     return weekday === 0 ? 6 : weekday - 1;
   };
 
-  const matchesScheduleDay = (value: unknown, dateObj: Date) => {
-    if (value === undefined || value === null) return false;
-    const normalized = String(value).trim().toLowerCase();
-    const weekdayIndex = getWeekdayIndex(dateObj);
-    const dayName = fullDayNames[dateObj.getDay()];
-    return (
-      normalized === dayName.toLowerCase() ||
-      normalized === dayName.slice(0, 3).toLowerCase() ||
-      normalized === String(weekdayIndex)
-    );
-  };
-  const getScheduleEntriesForDate = (course: Course, dateObj: Date): TeachingScheduleEntry[] => {
+  // Narrow unknown thrown values to objects with optional response.status
+  const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
+    typeof e === 'object' && e !== null && 'response' in e
+  );
+
+  
+  const getScheduleEntriesForDate = useCallback((course: Course, dateObj: Date): TeachingScheduleEntry[] => {
+    const matchesScheduleDay = (value: unknown, dateObjInner: Date) => {
+      if (value === undefined || value === null) return false;
+      const normalized = String(value).trim().toLowerCase();
+      const weekdayIndex = getWeekdayIndex(dateObjInner);
+      const dayName = fullDayNames[dateObjInner.getDay()];
+      return (
+        normalized === dayName.toLowerCase() ||
+        normalized === dayName.slice(0, 3).toLowerCase() ||
+        normalized === String(weekdayIndex)
+      );
+    };
+
     if (!course?.teaching_schedule) return [];
     const schedule = course.teaching_schedule as unknown;
     const entries: TeachingScheduleEntry[] = [];
@@ -121,7 +121,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       });
     }
     return entries;
-  };
+  }, [fullDayNames]);
 
   const periodCount = useMemo(() => {
     if (!selectedCourse || !selectedDate) return 1;
@@ -137,14 +137,20 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       return sum + 1;
     }, 0);
     return total > 0 ? total : 1;
-  }, [localCourses, selectedCourse, selectedDate]);
+  }, [localCourses, selectedCourse, selectedDate, getScheduleEntriesForDate]);
 
   const activePeriods = useMemo(() => Array.from({ length: periodCount }, (_, idx) => idx + 1), [periodCount]);
   const hasMultiplePeriods = periodCount > 1;
 
+  // Attendance key generator (moved above effects to avoid use-before-declare errors)
+  const getAttendanceKey = useCallback((studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
+    `${studentId}|${periodNumber}|${dateStr}`,
+    [selectedDateStr]
+  );
+
   useEffect(() => {
     setExpandedStudents(new Set());
-  }, [selectedCourse, selectedDateStr]);
+  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
 
   useEffect(() => {
     if (!hasMultiplePeriods) {
@@ -157,8 +163,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const getAttendanceKey = (studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
-    `${studentId}|${periodNumber}|${dateStr}`;
 
   const translateStatusLabel = (status: string) => {
     switch (status) {
@@ -183,7 +187,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   };
 
   // Daily trackable categories - both EN and translated versions for matching
-  const dailyTrackableCategories = [
+  const dailyTrackableCategories = useMemo(() => [
     'Class Participation', t('classParticipation'),
     'Homework/Assignments', 'Homework', t('homework'),
     'Lab Work', t('labWork'),
@@ -191,7 +195,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     'Quizzes', t('quizzes'),
     'Project', t('project'),
     'Presentation', t('presentation')
-  ];
+  ], [t]);
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
@@ -317,7 +321,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     } catch {
       setEvaluationCategories([]);
     }
-  }, [selectedCourse, localCourses]);
+  }, [selectedCourse, localCourses, dailyTrackableCategories]);
 
   // Sync local courses with props and fallback fetch if empty
   useEffect(() => {
@@ -337,7 +341,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
     };
     ensureCourses();
-  }, [localCourses?.length]);
+  }, [localCourses]);
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)
@@ -408,7 +412,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
     };
     fetchEnrollments();
-  }, [courseIds]); // Only depend on course IDs string, not entire array
+  }, [courseIds, localCourses]); // Also include localCourses to satisfy exhaustive-deps
 
   // Ensure selectedCourse is within the filtered list
   useEffect(() => {
@@ -417,7 +421,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       const first = localCourses.find((c) => coursesWithEnrollment.has(c.id));
       setSelectedCourse(first ? first.id : '');
     }
-  }, [coursesWithEnrollment]);
+  }, [coursesWithEnrollment, localCourses, selectedCourse]);
 
   // Auto-select first course when available
   useEffect(() => {
@@ -447,7 +451,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       } catch { /* noop */ }
     };
     refreshSelectedCourse();
-  }, [selectedCourse]); // Only depend on selectedCourse, not localCourses
+  }, [selectedCourse, courseDetailsFetched]); // Only depend on selectedCourse and fetched set
 
   // Load enrolled students for selected course
   useEffect(() => {
@@ -501,13 +505,13 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       setAttendanceRecords(next);
       setAttendanceRecordIds(ids);
 
-      let dpData: any[] = [];
+      let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
       try {
         const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
         dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
       } catch (error) {
         // If 404, treat as no data
-        if ((error as any)?.response?.status === 404) {
+        if (isResponseLike(error) && error.response?.status === 404) {
           dpData = [];
         } else {
           console.error('[AttendanceView] Error fetching daily performance:', error);
@@ -535,7 +539,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     } finally {
       activeRequestsRef.current.delete(requestKey);
     }
-  }, [selectedCourse, selectedDateStr]);
+  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
 
   // Always fetch attendance and performance from backend on date/course change
   useEffect(() => {
@@ -547,7 +551,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       setDailyPerformance({});
       setDailyPerformanceIds({});
     }
-  }, [selectedCourse, selectedDate]);
+  }, [selectedCourse, selectedDate, refreshAttendancePrefill]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
@@ -580,10 +584,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         if (Array.isArray(attData)) {
           // Extract unique, timezone-safe dates from attendance records
           const uniqueDates = new Set<string>();
-          attData.forEach((record: any) => {
-            if (!record?.date) return;
-            uniqueDates.add(formatLocalDate(record.date));
-          });
+          attData.forEach((record: RawAttendanceRecord & { date?: string | undefined }) => {
+              if (!record?.date) return;
+              uniqueDates.add(formatLocalDate(record.date));
+            });
           setDatesWithAttendance(uniqueDates);
         }
       } catch (error) {
@@ -639,8 +643,8 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Support both array-of-objects and map-of-days
     if (Array.isArray(sched)) {
-      if (sched.length === 0) return true; // empty schedule -> allow all weekdays
-      return sched.some((p: any) =>
+    if ((sched as TeachingScheduleEntry[]).length === 0) return true; // empty schedule -> allow all weekdays
+    return (sched as TeachingScheduleEntry[]).some((p: TeachingScheduleEntry) =>
         p.day === dayName ||
         p.day === dayName.toLowerCase() ||
         p.day === String(weekdayIndex) ||
@@ -648,12 +652,12 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       );
     }
     if (typeof sched === 'object') {
-      const keys = Object.keys(sched as Record<string, any>);
+      const keys = Object.keys(sched as Record<string, TeachingScheduleEntry | undefined>);
       if (keys.length === 0) return true; // empty map -> allow all weekdays
       return Boolean(
-        (sched as Record<string, any>)[dayName] ||
-        (sched as Record<string, any>)[dayName.toLowerCase()] ||
-        (sched as Record<string, any>)[String(weekdayIndex)]
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[dayName] ||
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[dayName.toLowerCase()] ||
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[String(weekdayIndex)]
       );
     }
     return true;
@@ -736,7 +740,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     const totalSlots = studentsList.length * activePeriods.length;
 
     return { overall, perPeriod, totalSlots, recordedSlots, pendingSlots };
-  }, [attendanceRecords, enrolledStudents, activePeriods, selectedDateStr]);
+  }, [attendanceRecords, enrolledStudents, activePeriods, getAttendanceKey]);
 
   const statusOrder = [...ATTENDANCE_STATES];
   const coveragePercent = attendanceAnalytics.totalSlots
@@ -774,9 +778,9 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
               console.warn(`[Attendance] PUT response: success`);
               return res;
             })
-            .catch(error => {
+              .catch(error => {
               // If record doesn't exist (404), create it instead
-              if (error.response?.status === 404) {
+              if (isResponseLike(error) && error.response?.status === 404) {
                 console.warn(`[Attendance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/attendance/`, {
                   student_id: studentId,
@@ -824,7 +828,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             })
             .catch(error => {
               // If record doesn't exist (404), create it instead
-              if (error.response?.status === 404) {
+              if (isResponseLike(error) && error.response?.status === 404) {
                 console.warn(`[Performance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/daily-performance/`, {
                   student_id: parseInt(studentIdStr, 10),
@@ -918,7 +922,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t]);
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t, refreshAttendancePrefill]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)

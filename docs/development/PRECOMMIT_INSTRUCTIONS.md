@@ -36,3 +36,30 @@ Notes:
   executing the checker; local runs may fail if you don't have the same
   packages installed. If that happens, either install the relevant packages or
   run the checker inside a venv with the backend requirements installed.
+
+## Additional helper: repository-provided pre-commit hook sample
+
+This project provides a small sample pre-commit hook at `.githooks/commit-ready-precommit.sample`.
+It invokes `COMMIT_READY.ps1 -Mode quick` locally so your commit will automatically run the
+consolidated pre-commit checks (lint, tests, translation parity, etc.). To install the sample
+hook either copy it to `.git/hooks/pre-commit` and make it executable or use the included install
+scripts in `scripts/`:
+
+PowerShell (Windows)
+
+```powershell
+pwsh ./scripts/install-git-hooks.ps1
+# add -Force to overwrite existing hooks
+```
+
+POSIX (macOS / Linux)
+
+```bash
+./scripts/install-git-hooks.sh
+# or ./scripts/install-git-hooks.sh --force
+```
+
+Important: DEV_EASE is strictly a pre-commit-only helper and **must not** be used to alter runtime
+behavior of the backend or frontend. Set `DEV_EASE=true` only when you intentionally want to allow
+COMMIT_READY to skip tests/cleanup or to AutoFix during *local* pre-commit runs. CI and production
+must remain strict and should never enable DEV_EASE.

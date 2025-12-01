@@ -80,7 +80,8 @@ student-management-system/
      - Health checks (Native + Docker)
      - Auto-fix support
      - Commit message generation
-   - **Usage**: `.\COMMIT_READY.ps1 -Mode standard`
+   - **Usage**: `.\\COMMIT_READY.ps1 -Mode standard`
+   - **Note**: DEV_EASE is reserved for COMMIT_READY pre-commit runs only. Do not enable DEV_EASE in CI or on running services. A sample pre-commit hook is available at `.githooks/commit-ready-precommit.sample` and cross-platform installers are provided in `scripts/install-git-hooks.*` to help contributors enable it locally.
 
 2. **DOCKER.ps1 -DeepClean** - Nuclear Docker cleanup
    - Removes all Docker resources (images, containers, volumes)

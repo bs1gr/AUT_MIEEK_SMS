@@ -36,6 +36,21 @@ cd ..
 
 **That's it!** Your development environment is ready.
 
+Optional: install the repository-provided pre-commit hook which runs `COMMIT_READY.ps1 -Mode quick` at commit time.
+Use the helper scripts in `scripts/` to install hooks cross-platform:
+
+PowerShell (Windows):
+
+```powershell
+pwsh ./scripts/install-git-hooks.ps1
+```
+
+macOS / Linux:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
 ---
 
 ## 📦 Prerequisites

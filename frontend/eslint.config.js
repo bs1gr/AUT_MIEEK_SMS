@@ -62,6 +62,9 @@ const commonRules = {
 };
 
 export default [
+  // Migrate entries previously stored in .eslintignore (deprecated).
+  // See: eslint v9 flat config 'ignores' setting.
+  { ignores: ["dist", "node_modules", "coverage", ".vite", ".vitest", "playwright-report"] },
   js.configs.recommended,
   // typescript-eslint flat presets
   ...tseslint.configs.recommended,

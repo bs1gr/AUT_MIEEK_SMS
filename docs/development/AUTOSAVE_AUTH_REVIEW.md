@@ -7,7 +7,8 @@
 
 ✅ **All autosave components are properly configured for Teacher access**
 
-All backend endpoints used by autosave-enabled components use `optional_require_role("admin", "teacher")`, which means:
+- All backend endpoints used by autosave-enabled components use `optional_require_role("admin", "teacher")`, which means:
+
 - **Teachers have full access** to all autosave functionality
 - **Admins have full access** to all autosave functionality
 - When `AUTH_MODE=disabled`, all users have access (emergency mode)
@@ -22,17 +23,20 @@ All backend endpoints used by autosave-enabled components use `optional_require_
 
 **Backend Dependency:** NONE (localStorage only)
 
-**Authentication Status:**
+-**Authentication Status:**
+
 - ✅ **No backend calls** - Saves directly to browser localStorage
 - ✅ **Client-side only** - No authentication required
 - ✅ **Universal access** - All users can save notes locally
 
 **Data Flow:**
-```
+
+```text
 User types → onChange → localStorage.setItem() → Autosave triggered → No API call
 ```
 
 **Security Notes:**
+
 - Notes are stored in browser only (per-device, per-browser)
 - No server-side persistence
 - No authentication barriers
@@ -45,15 +49,18 @@ User types → onChange → localStorage.setItem() → Autosave triggered → No
 **Component:** `frontend/src/features/courses/components/CourseEvaluationRules.tsx`
 
 **Backend Endpoints Used:**
+
 1. `PUT /api/v1/courses/{course_id}` - Update course with evaluation rules
 2. `PUT /api/v1/courses/{course_id}/evaluation-rules` - Update evaluation rules specifically
 
 **Authentication Status:**
+
 - ✅ **Teachers have access** - Both endpoints use `optional_require_role("admin", "teacher")`
 - ✅ **Autosave works for teachers** - No permission barriers
 - ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (environment configurable; defaults are higher for high-throughput deployments) prevents abuse
 
 **Code Reference:**
+
 ```python
 # backend/routers/routers_courses.py
 
@@ -81,12 +88,14 @@ def update_evaluation_rules(
 ```
 
 **Data Flow:**
-```
+
+```text
 User edits rules → 2s debounce → performSave() → PUT /courses/{id} → 
 optional_require_role("admin", "teacher") → ✅ Teacher passes → Rules saved
 ```
 
-**Validation:**
+-**Validation:**
+
 - ✅ Rules must total 100% (validated before autosave)
 - ✅ Teacher can modify evaluation rules
 - ✅ Teacher can modify absence_penalty
@@ -99,17 +108,20 @@ optional_require_role("admin", "teacher") → ✅ Teacher passes → Rules saved
 **Component:** `frontend/src/features/attendance/components/AttendanceView.tsx`
 
 **Backend Endpoints Used:**
+
 1. `POST /api/v1/attendance/` - Create attendance records
 2. `PUT /api/v1/attendance/{attendance_id}` - Update attendance records
 3. `POST /api/v1/daily-performance/` - Create daily performance records
 4. `PUT /api/v1/daily-performance/{performance_id}` - Update daily performance
 
 **Authentication Status:**
+
 - ✅ **Teachers have access** - All endpoints use `optional_require_role("admin", "teacher")`
 - ✅ **Autosave works for teachers** - No permission barriers
 - ✅ **Rate limiting applied** - RATE_LIMIT_WRITE (environment configurable; defaults are higher for high-throughput deployments)
 
 **Code Reference:**
+
 ```python
 # backend/routers/routers_attendance.py
 
@@ -143,7 +155,8 @@ def update_attendance(
 
 **Backend Endpoints:** Same as AttendanceView (attendance + daily performance)
 
-**Authentication Status:**
+-**Authentication Status:**
+
 - ✅ **Teachers have access** - Identical endpoints to AttendanceView
 - ✅ **Autosave works for teachers** - No permission barriers
 
@@ -156,12 +169,14 @@ def update_attendance(
 This is the **correct pattern** for all educational operations. It means:
 
 **AUTH_MODE=disabled** (Emergency/Development):
+
 ```python
 # No authentication required
 return None  # All users pass
 ```
 
 **AUTH_MODE=permissive** (Recommended Production):
+
 ```python
 # Authentication optional
 if token_present and token_valid:
@@ -171,6 +186,7 @@ else:
 ```
 
 **AUTH_MODE=strict** (Maximum Security):
+
 ```python
 # Authentication required
 if not token_present:
@@ -214,6 +230,7 @@ All autosave endpoints have appropriate rate limiting:
 **Scenario:** Teacher marks attendance for 40 students in one session
 
 **Current Protection:**
+
 ```tsx
 // AttendanceView.tsx - Chunked processing
 const CHUNK_SIZE = 30;
@@ -235,12 +252,14 @@ for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
 
 **Scenario:** Teacher works for hours, token expires, autosave fails silently
 
-**Current Behavior:**
+-**Current Behavior:**
+
 - Token expires (default: 24 hours)
 - Autosave fails with 401
 - User loses changes
 
 **Recommended Fix:**
+
 ```tsx
 // In performSave callback
 try {
@@ -265,12 +284,14 @@ try {
 
 **Scenario:** Teacher loses internet connection, autosave fails
 
-**Current Behavior:**
+-**Current Behavior:**
+
 - Network error
 - Autosave fails
 - User sees error toast
 
 **Recommended Fix:**
+
 ```tsx
 // Queue failed saves in IndexedDB
 import { openDB } from 'idb';
@@ -327,6 +348,7 @@ def update_course(
 ### Manual Testing Checklist
 
 **As Teacher User:**
+
 1. ✅ Login as teacher role
 2. ✅ Navigate to Courses → Evaluation Rules
 3. ✅ Add/modify evaluation rule
@@ -343,9 +365,11 @@ def update_course(
 14. ✅ Verify attendance persists after page refresh
 
 **As Admin User:**
+
 - Same tests as teacher (should all pass)
 
 **Without Authentication (AUTH_MODE=disabled):**
+
 - Same tests without login (should all pass)
 
 ### Automated Testing
@@ -393,15 +417,18 @@ def test_teacher_can_update_evaluation_rules(client, teacher_token):
 ### Recommendations
 
 **Immediate:**
+
 - ✅ **No changes required** - All autosave functionality works correctly for teachers
 
 **Future Enhancements:**
+
 1. Add session expiration detection and token refresh
 2. Implement offline save queue with IndexedDB
 3. Add automatic retry logic for network failures
 4. Implement optimistic UI updates with rollback on error
 
-**Security Notes:**
+-**Security Notes:**
+
 - Rate limiting is appropriate (10 writes/min)
 - Chunked processing prevents bulk operation abuse
 - `optional_require_role` respects AUTH_MODE configuration
