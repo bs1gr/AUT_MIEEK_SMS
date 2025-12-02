@@ -6,6 +6,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to v1.9.0, see `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md`.
 
+## [Unreleased]
+
+### Changed
+
+#### Repository Cleanup & Maintenance (2025-12-02)
+
+- **Removed obsolete temporary files and artifacts**:
+  - Removed 12 temporary output files from root (*.txt logs from development/testing)
+  - Removed temporary test directories (`tmp_cleanup_smoke/`, `tmp_test_migrations/`)
+  - Removed obsolete planning documents (CONSOLIDATION_COMPLETE.md, MASTER_CONSOLIDATION_PLAN.md, PYTEST_FIX_GUIDE.md, QUICK_START_TESTING.md, REPOSITORY_AUDIT_SUMMARY.md, VALIDATION_STATUS.md, IMMEDIATE_FIX_INSTRUCTIONS.md, CLEANUP_SCRIPTS_ANALYSIS.md)
+  - Removed test variant script (COMMIT_READY.norun.ps1)
+  - Removed obsolete CI debug tools directory (`tools/ci/`)
+
+- **Updated documentation**:
+  - Updated TODO.md to v1.9.4 with completed cleanup items
+  - Updated CONTRIBUTING.md to remove reference to deleted CI integration tests
+  - Updated GitHub workflow (commit-ready-cleanup-smoke.yml) to remove obsolete test steps
+  - Updated DOCUMENTATION_INDEX.md to remove MASTER_CONSOLIDATION_PLAN.md reference
+
+- **Validation**: Full smoke test passed (88.6s) - all code quality checks, tests, and cleanup operations successful
+
 ## [1.9.4] - 2025-12-01
 
 ### Added

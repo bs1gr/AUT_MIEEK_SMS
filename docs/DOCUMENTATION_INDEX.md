@@ -216,7 +216,6 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 **Key Documents:**
 
 - `REPOSITORY_AUDIT_SUMMARY.md` - Full repository audit (425 lines)
-- `MASTER_CONSOLIDATION_PLAN.md` - Consolidation execution plan
 - Session consolidated 4 testing guides into 1 comprehensive guide
 
 #### Earlier Sessions (Pre-v1.9.1)

@@ -483,23 +483,10 @@ class Settings(BaseSettings):
         # Kept minimal: do not alter runtime auth/state from here. We intentionally
         # avoid mutating AUTH settings during Settings validation to ensure that
         # environment-driven configuration remains explicit and predictable.
-        try:
-            is_ci = bool(
-                os.environ.get("GITHUB_ACTIONS")
-                or os.environ.get("CI")
-                or os.environ.get("GITLAB_CI")
-                or os.environ.get("GITHUB_RUN_ID")
-                or os.environ.get("CI_SERVER")
-                or os.environ.get("CONTINUOUS_INTEGRATION")
-            )
-            is_pytest = bool(
-                os.environ.get("PYTEST_CURRENT_TEST")
-                or os.environ.get("PYTEST_RUNNING")
-                or any("pytest" in (arg or "").lower() for arg in sys.argv)
-            )
-        except Exception:
-            is_ci = False
-            is_pytest = False
+        # We intentionally keep this validator minimal and avoid runtime
+        # mutations. We do not need to compute or use `is_ci`/`is_pytest`
+        # here — environment driven behavior is preferred and handled
+        # by other parts of the application or CI configuration.
 
         # No runtime mutations; returning self keeps behavior unchanged for CI/tests
         # and local runs where environment variables should drive the desired state.

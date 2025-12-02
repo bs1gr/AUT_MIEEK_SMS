@@ -1,8 +1,8 @@
 # Project TODO
 
-**Last updated**: 2025-11-26 (v1.9.3 Release Preparation)
+**Last updated**: 2025-12-02 (v1.9.4 Post-Release Cleanup)
 **Review Score**: 9.8/10 (Excellent - Production Ready with Enhanced Quality Gates)
-**Current Version**: 1.9.3
+**Current Version**: 1.9.4
 
 ---
 
@@ -14,24 +14,32 @@
 | Performance | Eager loading (analytics); targeted DB indexes; response caching layer; React memoization; 85% reduction in API calls via autosave debouncing; **SQLAlchemy session optimization** |
 | Architecture | Service layer (9 services); component refactors; TypeScript strict mode; code splitting; **pre-commit hooks**; **Consolidated scripts** (DOCKER.ps1, NATIVE.ps1) |
 | Installer | **Bilingual installer** (EN/EL); **Code signing** with self-signed certificate; **VBS toggle** with pwsh.exe and -Silent flag; **First-time Docker install** working; **Desktop shortcut** creation |
-| Testing & Quality | **Translation integrity tests**; **exception handler regression tests**; **enhanced CI/CD** with frontend quality gates |
+| Testing & Quality | **Translation integrity tests**; **exception handler regression tests**; **enhanced CI/CD** with frontend quality gates; **DEV_EASE pre-commit policy** |
 | UX Enhancement | Universal autosave pattern; automatic data persistence; visual save indicators; eliminated manual save buttons |
-| Documentation | Port references standardized to 8080; legacy script refs updated to DOCKER.ps1/NATIVE.ps1; installer docs aligned |
-| **Legacy Cleanup** | All pre-v1.9.1 artifacts archived; CHANGELOG modernized; TODO refreshed for v1.9.x |
+| Documentation | Port references standardized to 8080; legacy script refs updated to DOCKER.ps1/NATIVE.ps1; installer docs aligned; **comprehensive Git workflow guide** |
+| **Legacy Cleanup** | All pre-v1.9.1 artifacts archived; CHANGELOG modernized; TODO refreshed for v1.9.x; **obsolete temp files removed**; **CI debug tools cleaned** |
 
 All high-impact objectives delivered; quality gates prevent regressions.
 
-## 🔄 v1.9.3 Release (In Progress)
+## 🔄 v1.9.4 Release (Completed)
 
-### Legacy Archival & Cleanup
+### DEV_EASE Pre-Commit Policy & Hardening
 
-- ✅ Archived pre-v1.9.1 release notes to `archive/pre-v1.9.1/`
-- ✅ Archived deprecated scripts and session documentation
-- ✅ Created CHANGELOG_ARCHIVE.md with historical summary
-- ✅ Refactored CHANGELOG.md for v1.9.x only
-- ✅ Updated TODO.md with current priorities
-- ✅ Update VERSION file to 1.9.3
-- ✅ Create v1.9.3 release notes (CHANGELOG.md updated with fixes)
+- ✅ DEV_EASE restricted to local pre-commit use only (no runtime/CI impact)
+- ✅ COMMIT_READY.ps1 enforces opt-in for SkipTests/SkipCleanup/AutoFix
+- ✅ Sample pre-commit hook added (`.githooks/commit-ready-precommit.sample`)
+- ✅ Cross-platform hook installers (PowerShell + POSIX)
+- ✅ VS Code workspace test tasks and launch configs
+- ✅ Documentation updates across repository
+- ✅ Full smoke test validation passed
+
+### Repository Cleanup (Completed)
+
+- ✅ Removed all temporary output files (*.txt logs in root)
+- ✅ Removed temporary test directories (tmp_cleanup_smoke, tmp_test_migrations)
+- ✅ Removed obsolete planning docs (CONSOLIDATION_COMPLETE.md, MASTER_CONSOLIDATION_PLAN.md, etc.)
+- ✅ Removed obsolete CI debug tools (tools/ci/)
+- ✅ Removed COMMIT_READY.norun.ps1 test variant
 
 ## 🧪 Testing Backlog
 
