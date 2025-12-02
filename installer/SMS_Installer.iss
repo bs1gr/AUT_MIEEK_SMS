@@ -597,7 +597,7 @@ begin
   if CurStep = ssInstall then
   begin
     // Before installing, backup user data if upgrading and keepdata task is selected
-    if IsUpgrade and IsTaskSelected('keepdata') then
+    if IsUpgrade and WizardIsTaskSelected('keepdata') then
     begin
       BackupPath := ExpandConstant('{app}\backups\pre_upgrade_' + '{#MyAppVersion}');
       
@@ -662,7 +662,7 @@ begin
       SaveStringToFile(ExpandConstant('{app}\config\lang.txt'), 'en', False);
     
     // Restore .env files from backup if upgrading
-    if IsUpgrade and IsTaskSelected('keepdata') then
+    if IsUpgrade and WizardIsTaskSelected('keepdata') then
     begin
       BackupPath := ExpandConstant('{app}\backups\pre_upgrade_' + '{#MyAppVersion}');
       
