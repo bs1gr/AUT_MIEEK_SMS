@@ -218,6 +218,55 @@ function Test-CommandAvailable {
     }
 }
 
+# Ensure Python backend dependencies are installed (CI-safe)
+function Ensure-BackendDependencies {
+    Write-Section "Backend: Ensure Python Dependencies"
+    try {
+        Push-Location $BACKEND_DIR
+        $pipAvailable = Test-CommandAvailable -Name "pip"
+        $pythonAvailable = Test-CommandAvailable -Name "python"
+        $installed = $false
+
+        # Prefer pip if available, else python -m pip
+        if ($pipAvailable) {
+            Write-Info "Installing runtime requirements (pip)"
+            pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $installed = $true
+            if (Test-Path "requirements-dev.txt") {
+                Write-Info "Installing dev requirements (pip)"
+                pip install -r requirements-dev.txt 2>&1 | Out-Null
+            }
+        } elseif ($pythonAvailable) {
+            Write-Info "Installing runtime requirements (python -m pip)"
+            python -m pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $installed = $true
+            if (Test-Path "requirements-dev.txt") {
+                Write-Info "Installing dev requirements (python -m pip)"
+                python -m pip install -r requirements-dev.txt 2>&1 | Out-Null
+            }
+        } else {
+            Write-Warning-Msg "Neither pip nor python found; cannot install dependencies"
+        }
+
+        if ($installed) {
+            Write-Success "Backend dependencies ensured"
+            Add-Result "Tests" "Backend Dependencies" $true
+            return $true
+        } else {
+            Add-Result "Tests" "Backend Dependencies" $false "pip/python not available"
+            return $false
+        }
+    }
+    catch {
+        Write-Failure "Dependency installation error: $_"
+        Add-Result "Tests" "Backend Dependencies" $false $_
+        return $false
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 # Helper: Find __pycache__ directories and .pyc/.pyo files without descending into excluded dirs
 function Get-PrunedPyCacheTargets {
     param(
@@ -599,6 +648,9 @@ function Invoke-TestSuite {
     
     $allPassed = $true
     
+    # Ensure backend deps (help CI runners without preinstalled packages)
+    Ensure-BackendDependencies | Out-Null
+
     # Backend tests
     Write-Section "Backend: pytest"
     try {
