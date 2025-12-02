@@ -205,9 +205,9 @@ Write-Host "`n$($Msg.NextSteps)" -ForegroundColor Yellow
 Write-Host "  1. $($Msg.InstallCert)" -ForegroundColor White
 Write-Host "     .\INSTALL_CERTIFICATE.ps1" -ForegroundColor Cyan
 Write-Host "  2. $($Msg.ReSign)" -ForegroundColor White
-Write-Host "     .\SIGN_INSTALLER.ps1 -InstallerPath ..\dist\SMS_Installer_1.9.3.exe" -ForegroundColor Cyan
+Write-Host "     .\SIGN_INSTALLER.ps1 -InstallerPath ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
 Write-Host "  3. $($Msg.Verify)" -ForegroundColor White
-Write-Host "     Get-AuthenticodeSignature ..\dist\SMS_Installer_1.9.3.exe" -ForegroundColor Cyan
+Write-Host "     Get-AuthenticodeSignature ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean up from certificate store (optional - keeping it there is fine)

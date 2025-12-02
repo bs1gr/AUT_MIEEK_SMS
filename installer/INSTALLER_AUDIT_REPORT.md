@@ -1,6 +1,7 @@
-# SMS Installer Audit Report v1.9.3
-**Date:** November 27, 2025  
-**Installer:** `SMS_Installer_1.9.3.exe` (5.53 MB, Signed)  
+# SMS Installer Audit Report v1.9.4
+
+**Date:** November 27, 2025
+**Installer:** `SMS_Installer_1.9.4.exe` (5.53 MB, Signed)
 **Digital Signature:** ✅ Valid (CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY)
 
 ---
@@ -10,9 +11,13 @@
 ### 1.1 Pre-Installation Phase
 
 #### **Existing Installation Detection** ✅ SAFE
+
 ```pascal
+
 function InitializeSetup: Boolean
+
 ```
+
 - **Behavior:** Checks registry (`HKLM/HKCU`) for previous installation
 - **Fallback:** If no registry entry, checks default path `{autopf}\SMS` for files
 - **User Choice:** Presents 3 options:
@@ -23,10 +28,14 @@ function InitializeSetup: Boolean
 - **Data Safety:** Upgrade mode preserves user data
 
 #### **Docker Detection** ✅ SAFE
+
 ```pascal
+
 function IsDockerInstalled: Boolean
 function IsDockerRunning: Boolean
+
 ```
+
 - **Docker Check:** `docker --version` (non-invasive)
 - **Runtime Check:** `docker info` (read-only)
 - **Container Check:** `docker inspect sms-app` (read-only)
@@ -36,6 +45,7 @@ function IsDockerRunning: Boolean
 ### 1.2 Installation Phase
 
 #### **File Operations** ✅ SAFE
+
 **Included Directories:**
 - `backend/` - Python application (excludes `__pycache__`, `.pytest_cache`, `logs`)
 - `frontend/` - React application (excludes `node_modules`, `dist`)
@@ -53,20 +63,28 @@ function IsDockerRunning: Boolean
 **Risk:** NONE - Standard installation, respects user data boundaries
 
 #### **Directory Permissions** ✅ SAFE
+
 ```pascal
+
 [Dirs]
 Name: "{app}\data"; Permissions: users-modify
 Name: "{app}\logs"; Permissions: users-modify
 Name: "{app}\backups"; Permissions: users-modify
+
 ```
+
 - **Permissions:** `users-modify` allows non-admin write access
 - **Purpose:** Runtime data storage without elevation
 - **Risk:** LOW - Proper permission scoping
 
 #### **Container Management During Install** ✅ SAFE
+
 ```pascal
+
 function PrepareToInstall(var NeedsRestart: Boolean): String
+
 ```
+
 **Actions:**
 1. **Stop Container:** `docker stop sms-app` (graceful shutdown)
 2. **For Fresh Install:** Remove previous installation
@@ -80,9 +98,13 @@ function PrepareToInstall(var NeedsRestart: Boolean): String
 ### 1.3 Post-Installation Phase
 
 #### **Backup Creation (Upgrade Mode)** ✅ SAFE
+
 ```pascal
+
 procedure CurStepChanged(CurStep: TSetupStep)
+
 ```
+
 **If upgrading with "keepdata" task:**
 - Creates backup: `{app}\backups\pre_upgrade_{version}`
 - Backs up:
@@ -92,13 +114,16 @@ procedure CurStepChanged(CurStep: TSetupStep)
 - **Risk:** NONE - Safety feature, no destructive actions
 
 #### **Environment File Management** ⚠️ REVIEW NEEDED
+
 ```pascal
+
 // New Installation
 if not FileExists(ExpandConstant('{app}\.env')) then
-  EnvContent := 
+  EnvContent :=
     'VERSION={#MyAppVersion}' + #13#10 +
     'SECRET_KEY=change-me-in-production-' + IntToStr(Random(999999)) + #13#10 +
     'DEBUG=0' + #13#10;
+
 ```
 
 **Concerns:**
@@ -115,29 +140,41 @@ if not FileExists(ExpandConstant('{app}\.env')) then
 - **Risk:** NONE - Preserves user configuration
 
 #### **Shortcut Cleanup** ✅ GOOD PRACTICE
+
 ```pascal
+
 // Clean up old shortcuts from previous versions
 DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
 DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
 DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+
 ```
+
 - **Behavior:** Removes legacy shortcuts with old naming
 - **Risk:** NONE - Housekeeping for clean upgrade
 
 #### **Uninstaller Renaming** ✅ GOOD PRACTICE
+
 ```pascal
-RenameFile(ExpandConstant('{app}\unins000.exe'), 
+
+RenameFile(ExpandConstant('{app}\unins000.exe'),
            ExpandConstant('{app}\{#UninstallerExe}'));
-// Becomes: Uninstall_SMS_1.9.3.exe
+// Becomes: Uninstall_SMS_1.9.4.exe
+
 ```
+
 - **Purpose:** Version-specific uninstaller for clarity
 - **Registry Update:** Updates uninstall registry entries
 - **Risk:** NONE - Better UX, proper registry sync
 
 #### **Language Preference Storage** ✅ SAFE
+
 ```pascal
+
 SaveStringToFile(ExpandConstant('{app}\config\lang.txt'), 'el', False)
+
 ```
+
 - **Purpose:** Persists installer language choice for VBS script
 - **Risk:** NONE - User preference storage
 
@@ -148,9 +185,13 @@ SaveStringToFile(ExpandConstant('{app}\config\lang.txt'), 'el', False)
 ### 2.1 Pre-Uninstall Phase
 
 #### **Container Cleanup** ✅ SAFE
+
 ```pascal
+
 function InitializeUninstall: Boolean
+
 ```
+
 **Actions:**
 1. `docker stop sms-app` - Graceful container stop
 2. `docker rm sms-app` - Remove container (NOT volumes)
@@ -162,7 +203,9 @@ function InitializeUninstall: Boolean
 ### 2.2 User Data Handling ✅ EXCELLENT UX
 
 #### **User Choice Dialog** ✅ SAFE
+
 ```pascal
+
 DeleteUserData := MsgBox(
   'Do you want to delete all user data?' + #13#10 + #13#10 +
   'This includes:' + #13#10 +
@@ -173,6 +216,7 @@ DeleteUserData := MsgBox(
   'Click YES to delete everything.' + #13#10 +
   'Click NO to keep your data for reinstallation.',
   mbConfirmation, MB_YESNO);
+
 ```
 
 **If YES (Delete All):**
@@ -188,12 +232,16 @@ DeleteUserData := MsgBox(
 ### 2.3 Cleanup Phase
 
 #### **Automated Cleanup** ✅ SAFE
+
 ```pascal
+
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\backend\__pycache__"
 Type: filesandordirs; Name: "{app}\frontend\node_modules"
 Type: files; Name: "{app}\backend\.env"
+
 ```
+
 - **Target:** Runtime-generated files only
 - **Preserved:** User data folders handled separately by user choice
 - **Risk:** NONE - Proper separation of concerns
@@ -205,17 +253,22 @@ Type: files; Name: "{app}\backend\.env"
 ### 3.1 Privilege Requirements
 
 #### **Admin Requirement** ⚠️ REVIEW
+
 ```pascal
+
 PrivilegesRequired=admin
+
 ```
+
 **Reason:** Installation to `Program Files`
 **Concern:** Requires UAC elevation
-**Mitigation:** 
+**Mitigation:**
 - User data folders have `users-modify` permissions
 - App can run without admin after install
 - **Recommendation:** Consider per-user installation option for non-admin scenarios
 
 ### 3.2 Code Signing ✅ VERIFIED
+
 - **Status:** Valid signature from AUT MIEEK
 - **Algorithm:** SHA256
 - **Timestamp:** DigiCert timestamp server
@@ -224,9 +277,13 @@ PrivilegesRequired=admin
 ### 3.3 Cryptographic Concerns
 
 #### **SECRET_KEY Generation** ⚠️ WEAK
+
 **Current Implementation:**
+
 ```pascal
+
 SECRET_KEY=change-me-in-production-' + IntToStr(Random(999999))
+
 ```
 
 **Issues:**
@@ -235,9 +292,12 @@ SECRET_KEY=change-me-in-production-' + IntToStr(Random(999999))
 - Not cryptographically secure
 
 **Recommendation:**
+
 ```pascal
+
 // Use Windows Crypto API or PowerShell
 $secureKey = [System.Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+
 ```
 
 **Risk Level:** MEDIUM
@@ -302,10 +362,13 @@ $secureKey = [System.Convert]::ToBase64String((1..32 | ForEach-Object { Get-Rand
 ### 6.1 Version Detection ✅ ROBUST
 
 **Registry Check:**
+
 ```pascal
-RegQueryStringValue(HKLM/HKCU, 
+
+RegQueryStringValue(HKLM/HKCU,
   'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
   'DisplayVersion', Version)
+
 ```
 
 **Disk Check (Fallback):**
@@ -351,7 +414,9 @@ RegQueryStringValue(HKLM/HKCU,
 ## 8. FILE SYSTEM AUDIT
 
 ### 8.1 Installation Structure
+
 ```
+
 C:\Program Files\SMS\
 ├── backend\          [Application files]
 ├── frontend\         [Application files]
@@ -367,9 +432,11 @@ C:\Program Files\SMS\
 ├── DOCKER_TOGGLE.vbs [Toggle script]
 ├── SMS_Toggle.ico    [Icon]
 └── Uninstall_SMS_1.9.4.exe [Versioned uninstaller]
+
 ```
 
 ### 8.2 Excluded from Installation ✅ PROPER
+
 - Development artifacts (`__pycache__`, `node_modules`)
 - Test files (`.pytest_cache`, coverage reports)
 - Build outputs (`dist/`, `.venv/`)
@@ -385,8 +452,8 @@ C:\Program Files\SMS\
 **Uninstall Key:** `HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}_is1`
 
 **Values:**
-- `DisplayName`: Student Management System 1.9.3
-- `DisplayVersion`: 1.9.3
+- `DisplayName`: Student Management System 1.9.4
+- `DisplayVersion`: 1.9.4
 - `Publisher`: AUT MIEEK
 - `InstallLocation`: {app path}
 - `UninstallString`: Path to versioned uninstaller
@@ -429,6 +496,7 @@ C:\Program Files\SMS\
 ## 11. COMPLIANCE & BEST PRACTICES
 
 ### 11.1 Windows Installer Best Practices ✅
+
 - ✅ Proper use of AppId (consistent across versions)
 - ✅ Version info embedded in executable
 - ✅ Clean uninstall with user data preservation option
@@ -438,12 +506,14 @@ C:\Program Files\SMS\
 - ✅ Multilingual support
 
 ### 11.2 Docker Best Practices ✅
+
 - ✅ Volume persistence
 - ✅ Graceful container shutdown
 - ✅ No forced removal of running containers
 - ⚠️ Missing: Automatic migration handling
 
 ### 11.3 Security Best Practices
+
 - ✅ Code signed executable
 - ✅ SHA256 signatures
 - ✅ Timestamped for long-term validity
@@ -455,6 +525,7 @@ C:\Program Files\SMS\
 ## 12. TESTING RECOMMENDATIONS
 
 ### 12.1 Installation Testing
+
 - [ ] Fresh install on clean Windows 10/11
 - [ ] Upgrade from previous version (data preservation)
 - [ ] Fresh install over existing (clean removal)
@@ -464,15 +535,17 @@ C:\Program Files\SMS\
 - [ ] Silent install: `SMS_Installer_1.9.4.exe /VERYSILENT`
 
 ### 12.2 Uninstallation Testing
+
 - [ ] Uninstall with "keep data" option
 - [ ] Uninstall with "delete all" option
 - [ ] Verify volume persistence after uninstall
 - [ ] Verify container removal
-- [ ] Silent uninstall: `Uninstall_SMS_1.9.3.exe /VERYSILENT`
+- [ ] Silent uninstall: `Uninstall_SMS_1.9.4.exe /VERYSILENT`
 
 ### 12.3 Upgrade Path Testing
-- [ ] 1.9.2 → 1.9.3 upgrade
-- [ ] Multi-version jump (e.g., 1.8.x → 1.9.3)
+
+- [ ] 1.9.3 → 1.9.4 upgrade
+- [ ] Multi-version jump (e.g., 1.8.x → 1.9.4)
 - [ ] Verify backup creation
 - [ ] Verify `.env` restoration
 - [ ] Verify database compatibility
@@ -519,20 +592,26 @@ C:\Program Files\SMS\
 ### Immediate (Before Production Deploy):
 
 1. **Fix SECRET_KEY Generation**
+
    ```pascal
+
    // In SMS_Installer.iss, ssPostInstall section
    // Replace Random(999999) with PowerShell secure random:
-   Exec('powershell', 
+   Exec('powershell',
      '-Command "$key = [System.Convert]::ToBase64String((1..32 | % { Get-Random -Min 0 -Max 256 })); ' +
      'echo \"SECRET_KEY=$key\" | Out-File -Encoding UTF8 .env -Append"',
      '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
    ```
 
 2. **Add Volume Version Check**
+
    ```pascal
+
    // In CurStepChanged, ssPostInstall
-   Exec(ExpandConstant('{app}\scripts\CHECK_VOLUME_VERSION.ps1'), 
+   Exec(ExpandConstant('{app}\scripts\CHECK_VOLUME_VERSION.ps1'),
      '-AutoMigrate', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+
    ```
 
 ### Future Enhancements:
@@ -544,7 +623,7 @@ C:\Program Files\SMS\
 
 ---
 
-**Report Generated:** 2025-11-27  
-**Auditor:** GitHub Copilot  
-**Installer Version:** 1.9.4  
+**Report Generated:** 2025-11-27
+**Auditor:** GitHub Copilot
+**Installer Version:** 1.9.4
 **Signature Status:** ✅ Valid (AUT MIEEK)
