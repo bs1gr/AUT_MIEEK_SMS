@@ -66,9 +66,19 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-    Version: 2.0.0
+        Version: 2.0.0
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
+
+        Cleanup safety behaviour:
+        - The automated cleanup stage uses a default timeout ($maxCleanupSeconds = 120) to avoid
+            scanning very large mounts (e.g. site-packages, node_modules) and will abort if the
+            operation takes longer than this value.
+        - Known large or sensitive directories are excluded from recursive pruning by default:
+            .git, node_modules, .venv, venv, backups, data, logs, docker
+        - In 'cleanup' mode the command's exit code is based on the cleanup phase results only
+            (0 = cleanup operations succeeded, 1 = cleanup reported failures). This helps CI
+            run cleanup as a smoke test without unrelated checks failing the job.
 #>
 
 [CmdletBinding()]
@@ -179,6 +189,139 @@ function Add-Result {
     if (-not $Success) {
         $script:Results.Overall = $false
     }
+}
+
+# Helper: Find __pycache__ directories and .pyc/.pyo files without descending into excluded dirs
+function Get-PrunedPyCacheTargets {
+    param(
+        [string]$RootPath,
+        [array]$ExcludePatterns,
+        [int]$MaxSeconds,
+        [datetime]$StartTime
+    )
+
+    $stack = New-Object System.Collections.Stack
+    $found = @()
+
+    try {
+        $rootItem = Get-Item -LiteralPath $RootPath -ErrorAction Stop
+    }
+    catch {
+        return @()
+    }
+
+    $stack.Push($rootItem)
+
+    while ($stack.Count -gt 0) {
+        $elapsed = (Get-Date) - $StartTime
+        if ($elapsed.TotalSeconds -gt $MaxSeconds) {
+            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting search for pycache targets."
+            break
+        }
+
+        $parent = $stack.Pop()
+
+        # Try to list directories (safe) and files within this parent
+        try {
+            $children = Get-ChildItem -Path $parent.FullName -Directory -ErrorAction SilentlyContinue
+            # quick name-based exclusion (fast) - skip known large directories
+            $skipNames = @('.git','node_modules','backups','data','logs','docker','.venv','venv')
+            foreach ($child in $children) {
+                $lower = $child.Name.ToLower()
+                if ($skipNames -contains $lower) { continue }
+
+                $skip = $false
+                foreach ($pattern in $ExcludePatterns) {
+                    if ($child.FullName -like "*$pattern*") { $skip = $true; break }
+                }
+                if ($skip) { continue }
+
+                if ($child.Name -eq '__pycache__') {
+                    $found += $child
+                } else {
+                    # descend into this child
+                    $stack.Push($child)
+                }
+            }
+
+            # Safe file checks (non-recursive) at this level
+            $pyc = Get-ChildItem -Path $parent.FullName -File -Filter "*.pyc" -ErrorAction SilentlyContinue
+            if ($pyc) { $found += $pyc }
+            $pyo = Get-ChildItem -Path $parent.FullName -File -Filter "*.pyo" -ErrorAction SilentlyContinue
+            if ($pyo) { $found += $pyo }
+        }
+        catch {
+            Write-Warning-Msg "Error enumerating $($parent.FullName): $_"
+            continue
+        }
+    }
+
+    return $found
+}
+
+# Helper: find temporary files (safe pruned traversal), matching extensions
+function Get-PrunedTempFiles {
+    param(
+        [string]$RootPath,
+        [array]$ExcludePatterns,
+        [int]$MaxSeconds,
+        [datetime]$StartTime
+    )
+
+    $stack = New-Object System.Collections.Stack
+    $found = @()
+
+    try {
+        $rootItem = Get-Item -LiteralPath $RootPath -ErrorAction Stop
+    }
+    catch {
+        return @()
+    }
+
+    $stack.Push($rootItem)
+
+    $exts = @('.tmp','.temp','.bak','.backup','.old')
+
+    while ($stack.Count -gt 0) {
+        $elapsed = (Get-Date) - $StartTime
+        if ($elapsed.TotalSeconds -gt $MaxSeconds) {
+            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting search for temp files."
+            break
+        }
+
+        $parent = $stack.Pop()
+
+        try {
+            $children = Get-ChildItem -Path $parent.FullName -Directory -ErrorAction SilentlyContinue
+            # skip common large folders by name to keep traversal fast
+            $skipNames = @('.git','node_modules','backups','data','logs','docker','.venv','venv')
+            foreach ($child in $children) {
+                $lower = $child.Name.ToLower()
+                if ($skipNames -contains $lower) { continue }
+
+                $skip = $false
+                foreach ($pattern in $ExcludePatterns) {
+                    if ($child.FullName -like "*$pattern*") { $skip = $true; break }
+                }
+                if ($skip) { continue }
+
+                # descend
+                $stack.Push($child)
+            }
+
+            # check non-recursive files at this level
+            $files = Get-ChildItem -Path $parent.FullName -File -ErrorAction SilentlyContinue
+            foreach ($f in $files) {
+                if ($exts -contains $f.Extension.ToLower()) { $found += $f }
+            }
+        }
+        catch {
+            Write-Warning-Msg "Error enumerating $($parent.FullName): $_"
+            continue
+        }
+    }
+
+    return $found
 }
 
 function Get-Version {
@@ -532,14 +675,47 @@ function Invoke-AutomatedCleanup {
         return $true
     }
     
+    # Safety: do not scan the entire workspace forever. Set a sensible timeout
+    # so a misconfigured mount or very large folder won't block cleanup.
+    $maxCleanupSeconds = 120
+    $cleanupStart = Get-Date
+
+    # Exclude very large folders from a full recursive sweep
+    $excludePatterns = @(
+        '\.git\',
+        '\\node_modules\\',
+        '\\frontend\\node_modules\\',
+        '\\.venv\\',
+        '\\backend\\.venv\\',
+        '\\backend\\venv\\',
+        '\\venv\\',
+        '\\backups\\',
+        '\\data\\',
+        '\\logs\\',
+        '\\docker\\'
+    )
+
     $totalRemoved = 0
     $totalSize = 0
     
     # Python cache cleanup
     Write-Section "Python Cache Cleanup"
     try {
-        $pycacheFiles = Get-ChildItem -Path $SCRIPT_DIR -Recurse -Include "__pycache__","*.pyc","*.pyo",".pytest_cache" -Directory -ErrorAction SilentlyContinue
-        foreach ($item in $pycacheFiles) {
+        # Find __pycache__ directories and standalone cache files (pyc/pyo) while
+        # skipping known large directories. We use Get-ChildItem with filtering
+        # and guard with a elapsed-time check so this never runs indefinitely.
+
+        # Use a pruned traversal that avoids descending into excluded directories (fast & safe)
+        $targets = Get-PrunedPyCacheTargets -RootPath $SCRIPT_DIR -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
+
+        foreach ($item in $targets) {
+            # Safety: bail out if we've been cleaning for too long
+            $elapsed = (Get-Date) - $cleanupStart
+            if ($elapsed.TotalSeconds -gt $maxCleanupSeconds) {
+                Write-Warning-Msg "Cleanup timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting remaining automated cleanup to avoid long-running operation."
+                Add-Result "Cleanup" "Python Cache" $false "Timeout after $([math]::Round($elapsed.TotalSeconds,1))s"
+                break
+            }
             try {
                 $size = (Get-ChildItem $item -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
                 if ($null -eq $size) { $size = 0 }
@@ -605,24 +781,48 @@ function Invoke-AutomatedCleanup {
     # Temporary files cleanup
     Write-Section "Temporary Files Cleanup"
     try {
-        $tempFiles = Get-ChildItem -Path $SCRIPT_DIR -Include "*.tmp","*.temp","*.bak","*.backup","*.old" -Recurse -File -ErrorAction SilentlyContinue
+        $tempFiles = Get-PrunedTempFiles -RootPath $SCRIPT_DIR -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
+        $tempFound = $tempFiles.Count
+        $failedRemovals = 0
+
         foreach ($file in $tempFiles) {
             try {
+                # safety: don't run indefinitely cleaning temp files
+                $elapsed = (Get-Date) - $cleanupStart
+                if ($elapsed.TotalSeconds -gt $maxCleanupSeconds) {
+                    Write-Warning-Msg "Cleanup timeout reached during temp files removal after $([math]::Round($elapsed.TotalSeconds,1))s — stopping further deletes."
+                    Add-Result "Cleanup" "Temp Files" $false "Timeout after $([math]::Round($elapsed.TotalSeconds,1))s"
+                    break
+                }
+
                 $totalSize += $file.Length
-                Remove-Item $file -Force
+                Remove-Item $file -Force -ErrorAction Stop
                 $totalRemoved++
             }
             catch {
-                Write-Warning-Msg "Could not remove $($file.FullName): $_"
+                # Record failures (commonly due to in-use/locked files on Windows)
+                $failedRemovals++
+                Write-Warning-Msg "Could not remove $($file.FullName): $($_.Exception.Message)"
             }
         }
-        
+
         if ($totalRemoved -gt 0) {
             Write-Success "Removed $totalRemoved temporary files"
         } else {
-            Write-Info "No temporary files found"
+            if ($tempFound -gt 0) {
+                Write-Warning-Msg "Found $tempFound temporary files but none could be removed. They may be in-use by other processes (e.g., editor/VSCode plugin testing) and will need the process terminated to be cleaned up." 
+            } else {
+                Write-Info "No temporary files found"
+            }
         }
-        Add-Result "Cleanup" "Temp Files" $true "$totalRemoved files"
+
+        # Consider cleanup a failure if we found files but couldn't remove one or more
+        if ($tempFound -gt 0 -and $failedRemovals -gt 0) {
+            $msg = "$totalRemoved removed, $failedRemovals failed (in-use/locked files likely)"
+            Add-Result "Cleanup" "Temp Files" $false $msg
+        } else {
+            Add-Result "Cleanup" "Temp Files" $true "$totalRemoved files removed"
+        }
     }
     catch {
         Write-Failure "Temp files cleanup error: $_"
@@ -858,7 +1058,20 @@ function Invoke-MainWorkflow {
         New-CommitMessage
     }
     
-    # Return exit code
+    # Compute and return exit code.
+    # In cleanup-only mode we should base success on cleanup results only (avoid unrelated flags
+    # like lint/tests causing a non-zero exit when caller only expects cleanup to be successful).
+    if ($Mode -eq 'cleanup') {
+        # Evaluate cleanup results only
+        $cleanupFailures = ($script:Results.Cleanup | Where-Object { -not $_.Success }).Count
+        if ($cleanupFailures -eq 0) {
+            return 0
+        }
+        else {
+            return 1
+        }
+    }
+
     return $(if ($script:Results.Overall) { 0 } else { 1 })
 }
 
