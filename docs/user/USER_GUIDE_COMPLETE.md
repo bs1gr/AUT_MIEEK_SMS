@@ -1,7 +1,7 @@
 # Complete User Guide - Student Management System
 
-**Version:** 1.9.3
-**Last Updated:** November 24, 2025  
+**Version:** 1.9.4
+**Last Updated:** November 24, 2025
 **Status:** ✅ Active
 
 ---
@@ -9,17 +9,29 @@
 ## 📋 Table of Contents
 
 1. [Introduction](#introduction)
+
 2. [Getting Started](#getting-started)
+
 3. [Installation & Access](#installation--access)
+
 4. [User Interface Overview](#user-interface-overview)
+
 5. [Student Management](#student-management)
+
 6. [Course Management](#course-management)
+
 7. [Grade Management](#grade-management)
+
 8. [Attendance Tracking](#attendance-tracking)
+
 9. [Reports & Analytics](#reports--analytics)
+
 10. [Import/Export Data](#importexport-data)
+
 11. [System Settings](#system-settings)
+
 12. [Troubleshooting](#troubleshooting)
+
 13. [Frequently Asked Questions](#frequently-asked-questions)
 
 ---
@@ -65,20 +77,26 @@ The Student Management System (SMS) is a comprehensive web-based application des
 ### First-Time Access
 
 1. **Open your web browser**
+
 2. **Navigate to:** `http://localhost:8080` (Docker mode) or `http://localhost:5173` (Native mode)
+
 3. **Default Admin Credentials:**
 
-   - **Email:** `admin@example.com`
-   - **Password:** `YourSecurePassword123!`
+- **Email:** `admin@example.com`
+- **Password:** `YourSecurePassword123!`
 
 ⚠️ **Important:** Change the default admin password immediately after first login!
 
 ### Changing Your Password
 
 1. Click **Control Panel** in the navigation menu
+
 2. Select **Maintenance** tab
+
 3. Click **Change Password**
+
 4. Enter current password and new password
+
 5. Click **Update Password**
 
 ### Language Selection
@@ -86,7 +104,9 @@ The Student Management System (SMS) is a comprehensive web-based application des
 The system automatically detects your browser language (English or Greek). To change:
 
 1. Look for the language selector (🇬🇧/🇬🇷) in the top-right corner
+
 2. Click to toggle between English and Greek
+
 3. The interface updates immediately
 
 ---
@@ -98,9 +118,9 @@ The system automatically detects your browser language (English or Greek). To ch
 **Automated Installation:**
 
 ```powershell
-# Download from GitHub Releases
-# Extract SMS_Distribution_1.8.6.3.zip
-# Run as Administrator:
+## Download from GitHub Releases
+## Extract SMS_Distribution_1.8.6.3.zip
+## Run as Administrator:
 .\SMS_Installer_1.8.6.3.exe
 ```
 
@@ -124,14 +144,14 @@ See: [Windows Installer Wizard Guide](../WINDOWS_INSTALLER_WIZARD_GUIDE.md)
 **Installation:**
 
 ```powershell
-# Windows
+## Windows
 .\DOCKER.ps1 -Install
 
-# Linux/Mac
+## Linux/Mac
 docker-compose up -d
 ```
 
-**Access:** http://localhost:8080
+**Access:** <http://localhost:8080>
 
 ### Option 3: Native Development Mode
 
@@ -144,21 +164,21 @@ docker-compose up -d
 **Installation:**
 
 ```powershell
-# Windows
+## Windows
 .\NATIVE.ps1 -Setup
 .\NATIVE.ps1 -Start
 
-# Linux/Mac
+## Linux/Mac
 cd backend && python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cd ../frontend && npm install
 npm run dev
 ```
 
-**Access:** 
+**Access:**
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
+- Frontend: <http://localhost:5173>
+- Backend API: <http://localhost:8000>
 
 ### Daily Operations
 
@@ -220,9 +240,13 @@ The dashboard displays:
 - **Custom**: Create your own
 
 **To Switch Themes:**
+
 1. Click the theme icon (🎨) in the top-right corner
+
 2. Select from available themes
+
 3. Changes apply immediately
+
 4. Preference saved in browser
 
 See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
@@ -234,41 +258,47 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 ### Viewing Students
 
 1. Click **Students** in navigation menu
+
 2. Student list displays with:
 
-   - Student ID
-   - Full Name
-   - Email
-   - Enrollment Status
-   - Quick Actions (Edit/Delete)
+- Student ID
+- Full Name
+- Email
+- Enrollment Status
+- Quick Actions (Edit/Delete)
 
 ### Adding a Student
 
 1. Click **Students** → **Add Student** button
+
 2. Fill in required fields:
 
-   - **First Name** (required)
-   - **Last Name** (required)
-   - **Email** (required, must be unique)
-   - **Student ID** (optional, auto-generated if empty)
-   - **Date of Birth** (optional)
-   - **Phone** (optional)
-   - **Address** (optional)
+- **First Name** (required)
+- **Last Name** (required)
+- **Email** (required, must be unique)
+- **Student ID** (optional, auto-generated if empty)
+- **Date of Birth** (optional)
+- **Phone** (optional)
+- **Address** (optional)
 
 3. Click **Save Student**
 
 **Validation Rules:**
 
-- Email must be valid format (name@domain.com)
+- Email must be valid format (name\@domain.com)
 - Student ID must be unique if provided
 - All fields are sanitized for security
 
 ### Editing a Student
 
 1. Click **Students** in navigation
+
 2. Find the student (use search if needed)
+
 3. Click **Edit** button (✏️) next to student name
+
 4. Modify fields as needed
+
 5. Click **Update Student**
 
 ### Deleting a Student
@@ -276,9 +306,13 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 ⚠️ **Warning:** Deleting a student removes all associated data (grades, attendance, enrollments)!
 
 1. Click **Students** in navigation
+
 2. Find the student
+
 3. Click **Delete** button (🗑️)
+
 4. Confirm deletion in popup dialog
+
 5. Student and all related data are removed
 
 **Best Practice:** Consider marking students as "inactive" instead of deleting for data retention.
@@ -299,17 +333,27 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 ### Bulk Operations
 
 **Import Students:**
+
 1. Click **Students** → **Import** button
+
 2. Download Excel template
+
 3. Fill in student data
+
 4. Upload completed template
+
 5. Review import preview
+
 6. Confirm import
 
 **Export Students:**
+
 1. Click **Students** → **Export** button
+
 2. Choose format: Excel (.xlsx) or JSON
+
 3. Select fields to include
+
 4. Click **Download**
 
 ---
@@ -319,26 +363,28 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 ### Viewing Courses
 
 1. Click **Courses** in navigation menu
+
 2. Course list displays with:
 
-   - Course Code
-   - Course Name
-   - Instructor
-   - Enrolled Students
-   - Quick Actions
+- Course Code
+- Course Name
+- Instructor
+- Enrolled Students
+- Quick Actions
 
 ### Creating a Course
 
 1. Click **Courses** → **Add Course** button
+
 2. Fill in course details:
 
-   - **Course Code** (required, unique)
-   - **Course Name** (required)
-   - **Description** (optional)
-   - **Credits** (optional)
-   - **Instructor** (optional)
-   - **Semester** (optional)
-   - **Year** (optional)
+- **Course Code** (required, unique)
+- **Course Name** (required)
+- **Description** (optional)
+- **Credits** (optional)
+- **Instructor** (optional)
+- **Semester** (optional)
+- **Year** (optional)
 
 3. Click **Save Course**
 
@@ -347,13 +393,15 @@ See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
 Each course can have custom grading rules:
 
 **Component-Based Grading:**
+
 1. Edit course → **Grading Rules** section
+
 2. Add grade components:
 
-   - **Midterm Exam**: 30% weight
-   - **Final Exam**: 40% weight
-   - **Assignments**: 20% weight
-   - **Participation**: 10% weight
+- **Midterm Exam**: 30% weight
+- **Final Exam**: 40% weight
+- **Assignments**: 20% weight
+- **Participation**: 10% weight
 
 3. Total weights must equal 100%
 
@@ -372,26 +420,35 @@ Each course can have custom grading rules:
 ### Enrolling Students
 
 **Manual Enrollment:**
+
 1. Click **Courses** → Select course
+
 2. Click **Enroll Students** button
+
 3. Search and select students
+
 4. Click **Enroll Selected**
 
 **Bulk Enrollment:**
+
 1. Click **Courses** → Select course
+
 2. Click **Import Enrollments**
+
 3. Upload Excel file with student IDs
+
 4. Review and confirm
 
 ### Course Schedule
 
 1. Edit course → **Schedule** section
+
 2. Add time slots:
 
-   - Day of week
-   - Start time
-   - End time
-   - Room/Location
+- Day of week
+- Start time
+- End time
+- Room/Location
 
 3. Save schedule
 
@@ -402,23 +459,37 @@ Each course can have custom grading rules:
 ### Recording Grades
 
 **Individual Grade Entry:**
+
 1. Click **Grades** in navigation
+
 2. Select **Course** and **Component Type** (Midterm, Final, etc.)
+
 3. Student list appears with grade input fields
+
 4. Enter grade for each student
+
 5. Click **Save Grades**
 
 **Quick Entry Mode:**
+
 1. Use Tab key to move between fields
+
 2. Press Enter to save and move to next student
+
 3. Validation happens in real-time
 
 **Bulk Grade Import:**
+
 1. Click **Grades** → **Import Grades**
+
 2. Download Excel template
+
 3. Fill in: Student ID, Course Code, Component, Grade, Max Grade
+
 4. Upload completed file
+
 5. Review import preview
+
 6. Confirm import
 
 ### Grade Components
@@ -457,15 +528,23 @@ Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
 ### Viewing Student Grades
 
 **Individual Student:**
+
 1. Click **Students** → Select student
+
 2. Click **Grades** tab
+
 3. View all courses and components
+
 4. See weighted averages and final grades
 
 **Course Grades:**
+
 1. Click **Courses** → Select course
+
 2. Click **Grades** tab
+
 3. View all enrolled students
+
 4. Export grade sheet to Excel
 
 ### Grade Statistics
@@ -485,17 +564,22 @@ For each course, view:
 ### Recording Attendance
 
 **Daily Attendance:**
+
 1. Click **Attendance** in navigation
+
 2. Select **Course** and **Date**
+
 3. Student list appears with attendance toggles
+
 4. Mark each student as:
 
-   - ✅ **Present**
-   - ❌ **Absent**
-   - 🏥 **Excused Absence**
-   - 🕐 **Late**
+- ✅ **Present**
+- ❌ **Absent**
+- 🏥 **Excused Absence**
+- 🕐 **Late**
 
 5. Add notes if needed (optional)
+
 6. Click **Save Attendance**
 
 **Bulk Attendance:**
@@ -507,38 +591,49 @@ For each course, view:
 ### Viewing Attendance
 
 **Individual Student:**
+
 1. Click **Students** → Select student
+
 2. Click **Attendance** tab
+
 3. View calendar with attendance markers
+
 4. See statistics:
 
-   - Total days present
-   - Total days absent
-   - Attendance percentage
-   - Excused vs unexcused
+- Total days present
+- Total days absent
+- Attendance percentage
+- Excused vs unexcused
 
 **Course Attendance:**
+
 1. Click **Courses** → Select course
+
 2. Click **Attendance** tab
+
 3. View attendance grid (students × dates)
+
 4. Filter by date range
+
 5. Export to Excel
 
 ### Attendance Reports
 
 **Generate Report:**
+
 1. Click **Attendance** → **Reports**
+
 2. Select filters:
 
-   - Course
-   - Date range
-   - Student (optional)
+- Course
+- Date range
+- Student (optional)
 
 3. View report with:
 
-   - Attendance summary
-   - Students at risk (< 80% attendance)
-   - Daily attendance trends
+- Attendance summary
+- Students at risk (< 80% attendance)
+- Daily attendance trends
 
 4. Export as PDF or Excel
 
@@ -576,61 +671,81 @@ Administrators receive email notifications for students with low attendance.
 ### Student Reports
 
 **Individual Performance Report:**
+
 1. Click **Reports** → **Student Reports**
+
 2. Select student
+
 3. Choose report type:
 
-   - **Transcript**: All courses and grades
-   - **Attendance Summary**: Attendance across all courses
-   - **Performance Trend**: Grade progression over time
+- **Transcript**: All courses and grades
+- **Attendance Summary**: Attendance across all courses
+- **Performance Trend**: Grade progression over time
 
 4. Select date range
+
 5. Click **Generate Report**
+
 6. Export as PDF
 
 **Cohort Analysis:**
+
 1. Select group of students (by enrollment year, course, etc.)
+
 2. Compare:
 
-   - Average grades
-   - Attendance rates
-   - Pass/fail rates
+- Average grades
+- Attendance rates
+- Pass/fail rates
 
 3. Visualize with charts
 
 ### Course Reports
 
 **Course Performance:**
+
 1. Click **Reports** → **Course Reports**
+
 2. Select course
+
 3. View:
 
-   - Grade distribution histogram
-   - Pass/fail statistics
-   - Component performance breakdown
-   - Attendance correlation with grades
+- Grade distribution histogram
+- Pass/fail statistics
+- Component performance breakdown
+- Attendance correlation with grades
 
 **Instructor Report:**
+
 1. Select instructor
+
 2. View all courses taught
+
 3. Compare performance across courses
+
 4. Export summary
 
 ### Custom Reports
 
 **Report Builder:**
+
 1. Click **Reports** → **Custom Report**
+
 2. Select data sources:
 
-   - Students
-   - Courses
-   - Grades
-   - Attendance
+- Students
+- Courses
+- Grades
+- Attendance
 
 3. Choose fields to include
+
 4. Apply filters
+
 5. Select grouping and sorting
+
 6. Preview report
+
 7. Export in desired format
 
 ### Export Formats
@@ -649,19 +764,23 @@ Available export formats:
 ### Importing Students
 
 **Excel Import:**
+
 1. Download template: **Students** → **Import** → **Download Template**
+
 2. Fill in required columns:
 
-   - `student_id` (optional, auto-generated if blank)
-   - `first_name` (required)
-   - `last_name` (required)
-   - `email` (required, unique)
-   - `date_of_birth` (optional, format: YYYY-MM-DD)
-   - `phone` (optional)
-   - `address` (optional)
+- `student_id` (optional, auto-generated if blank)
+- `first_name` (required)
+- `last_name` (required)
+- `email` (required, unique)
+- `date_of_birth` (optional, format: YYYY-MM-DD)
+- `phone` (optional)
+- `address` (optional)
 
 3. Upload file: Click **Choose File** → **Upload**
+
 4. Review preview with validation results
+
 5. Click **Confirm Import**
 
 **Validation Rules:**
@@ -727,55 +846,68 @@ Include these columns for automatic grading setup:
 ### Exporting Data
 
 **Student Export:**
+
 1. Click **Students** → **Export**
+
 2. Select fields:
 
-   - ☑️ Basic Info (name, email, student ID)
-   - ☑️ Contact Info (phone, address)
-   - ☑️ Enrollment Data (courses, status)
-   - ☑️ Performance Data (GPA, attendance)
+- ☑️ Basic Info (name, email, student ID)
+- ☑️ Contact Info (phone, address)
+- ☑️ Enrollment Data (courses, status)
+- ☑️ Performance Data (GPA, attendance)
 
 3. Choose format: Excel, CSV, JSON, PDF
+
 4. Click **Export**
 
 **Grade Export:**
+
 1. Click **Grades** → **Export**
+
 2. Filters:
 
-   - Course (all or specific)
-   - Date range
-   - Student group
+- Course (all or specific)
+- Date range
+- Student group
 
 3. Include:
 
-   - Individual component grades
-   - Calculated final grades
-   - Grade statistics
+- Individual component grades
+- Calculated final grades
+- Grade statistics
 
 4. Export to Excel with multiple sheets:
 
-   - **Summary**: Final grades by student
-   - **Components**: Detailed breakdown
-   - **Statistics**: Course statistics
+- **Summary**: Final grades by student
+- **Components**: Detailed breakdown
+- **Statistics**: Course statistics
 
 **Attendance Export:**
+
 1. Click **Attendance** → **Export**
+
 2. Select course and date range
+
 3. Format options:
 
-   - **Grid**: Students × Dates matrix
-   - **List**: One row per attendance record
-   - **Summary**: Attendance statistics only
+- **Grid**: Students × Dates matrix
+- **List**: One row per attendance record
+- **Summary**: Attendance statistics only
 
 4. Export to Excel or PDF
 
 ### Backup & Restore
 
 **Create Backup:**
+
 1. Click **Control Panel** → **Operations**
+
 2. Scroll to **Backups** section
+
 3. Click **Create Backup Now**
+
 4. Backup file saved to `backups/` directory
+
 5. Filename: `backup_YYYYMMDD_HHMMSS.db`
 
 **Automatic Backups:**
@@ -785,15 +917,23 @@ Include these columns for automatic grading setup:
 - Oldest backups auto-deleted
 
 **Restore from Backup:**
+
 1. Click **Control Panel** → **Operations**
+
 2. Click **Restore from Backup**
+
 3. Select backup file from list
+
 4. Confirm restoration (⚠️ Warning: Current data will be replaced!)
+
 5. System restarts with restored data
 
 **Download Backup:**
+
 1. Click **Download** next to backup file
+
 2. Save to safe location
+
 3. Store offsite for disaster recovery
 
 ---
@@ -815,14 +955,17 @@ Include these columns for automatic grading setup:
 ### User Management
 
 **Create New User:**
+
 1. Control Panel → Maintenance → **User Management**
+
 2. Click **Add User**
+
 3. Fill in:
 
-   - Email (unique)
-   - Password (strong password required)
-   - Full Name
-   - Role (admin, teacher, viewer)
+- Email (unique)
+- Password (strong password required)
+- Full Name
+- Role (admin, teacher, viewer)
 
 4. Click **Create User**
 
@@ -850,21 +993,26 @@ Include these columns for automatic grading setup:
 ⚠️ **Security Warning:** Never leave AUTH_MODE=disabled in production!
 
 **Change AUTH_MODE:**
+
 1. Edit `backend/.env` file
+
 2. Set `AUTH_MODE=permissive` (or strict)
+
 3. Restart backend: `docker restart <container_name>`
 
 ### System Configuration
 
 **Edit Configuration:**
+
 1. Control Panel → Maintenance → **System Settings**
+
 2. Available settings:
 
-   - **Semester Weeks**: Default semester length (12-16 weeks)
-   - **Pass Threshold**: Minimum grade to pass (default: 10/20)
-   - **Grade Scale**: 0-20 or 0-100
-   - **Attendance Threshold**: Minimum attendance % (default: 80%)
-   - **Email Notifications**: Enable/disable
+- **Semester Weeks**: Default semester length (12-16 weeks)
+- **Pass Threshold**: Minimum grade to pass (default: 10/20)
+- **Grade Scale**: 0-20 or 0-100
+- **Attendance Threshold**: Minimum attendance % (default: 80%)
+- **Email Notifications**: Enable/disable
 
 3. Click **Save Settings**
 
@@ -872,7 +1020,7 @@ Include these columns for automatic grading setup:
 Advanced users can edit `.env` file directly:
 
 ```env
-# Authentication
+## Authentication
 AUTH_ENABLED=true
 AUTH_MODE=permissive
 
@@ -894,14 +1042,15 @@ Note about automated admin password rotation:
 
    1. Store the new admin password in your secret manager (e.g. Vault, AWS Secrets Manager)
       and make it available to your deployment pipeline as `DEFAULT_ADMIN_PASSWORD`.
+
    2. Update the environment with the new password and enable auto-reset for the deployment
       by setting `DEFAULT_ADMIN_AUTO_RESET=true` (only for the moment of the rotation).
       Example (Docker Compose):
 
    ```powershell
-   # Update `.env` in the deployment or set the container env via your orchestration tool
+#   # Update `.env` in the deployment or set the container env via your orchestration tool
    Set-Content -Path ./backend/.env -Value (Get-Content ./backend/.env) -Force
-   # Then restart the backend so the bootstrap runs at startup
+#   # Then restart the backend so the bootstrap runs at startup
    docker compose restart sms-backend
    ```
 
@@ -909,22 +1058,22 @@ Note about automated admin password rotation:
       or revert it to `false` to avoid future automatic password changes:
 
    ```powershell
-   # Reset flag in your orchestration or .env and restart
+#   # Reset flag in your orchestration or .env and restart
    docker compose exec sms-backend pwsh -c "(Get-Content /app/backend/.env) -replace 'DEFAULT_ADMIN_AUTO_RESET=true','DEFAULT_ADMIN_AUTO_RESET=false' | Set-Content /app/backend/.env"
    docker compose restart sms-backend
    ```
 
    Notes:
-   - Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
-   - The flag defaults to false to avoid unexpected changes in production.
-   - When password rotation is in your CI/CD, prefer to perform a single atomic rollout
+- Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
+- The flag defaults to false to avoid unexpected changes in production.
+- When password rotation is in your CI/CD, prefer to perform a single atomic rollout
      so the new credential takes effect across all app instances consistently.
 
-# Database
+## Database
 DATABASE_ENGINE=sqlite
 DATABASE_URL=sqlite:///./data/student_management.db
 
-# Performance
+## Performance
 ENABLE_CACHING=true
 CACHE_TTL=300
 ```
@@ -946,24 +1095,29 @@ CACHE_TTL=300
 ### Monitoring
 
 **System Health:**
+
 1. Control Panel → Operations → **Health Check**
+
 2. View:
 
-   - ✅ Database connection status
-   - ✅ Disk space available
-   - ✅ Response times
-   - ✅ Active users
-   - ✅ Uptime
+- ✅ Database connection status
+- ✅ Disk space available
+- ✅ Response times
+- ✅ Active users
+- ✅ Uptime
 
 **View Logs:**
+
 1. Control Panel → Operations → **View Logs**
+
 2. Filter by:
 
-   - Date/time range
-   - Log level (ERROR, WARNING, INFO)
-   - Component (backend, frontend, database)
+- Date/time range
+- Log level (ERROR, WARNING, INFO)
+- Component (backend, frontend, database)
 
 3. Search for specific errors
+
 4. Download logs for troubleshooting
 
 ---
@@ -972,41 +1126,48 @@ CACHE_TTL=300
 
 ### Common Issues
 
-#### Cannot Access Application
+### Cannot Access Application
 
 **Symptom:** Browser shows "Cannot connect" or timeout error
 
 **Solution:**
+
 1. Check if application is running:
    ```powershell
    .\DOCKER.ps1 -Status
    ```
+
 2. If not running, start it:
    ```powershell
    .\DOCKER.ps1 -Start
    ```
+
 3. Check if Docker Desktop is running (Docker mode)
+
 4. Verify correct URL:
 
-   - Docker: http://localhost:8080
-   - Native: http://localhost:5173
+- Docker: <http://localhost:8080>
+- Native: <http://localhost:5173>
 
-#### Login Failed
+### Login Failed
 
 **Symptom:** "Invalid credentials" or "Access denied" error
 
 **Solution:**
+
 1. Verify credentials:
 
-   - Email: `admin@example.com`
-   - Password: `YourSecurePassword123!`
+- Email: `admin@example.com`
+- Password: `YourSecurePassword123!`
 
 2. Check if AUTH_MODE is causing issues:
    ```powershell
-   # Temporary: Set AUTH_MODE=disabled for emergency access
-   # Edit backend/.env, restart
+# Temporary: Set AUTH_MODE=disabled for emergency access
+# Edit backend/.env, restart
    ```
+
 3. Reset password using admin unlock endpoint
+
 4. Check caps lock and keyboard layout
 
 #### Slow Performance
@@ -1014,17 +1175,22 @@ CACHE_TTL=300
 **Symptom:** Pages load slowly, timeouts
 
 **Solution:**
+
 1. Check system resources (CPU, memory, disk)
+
 2. Enable caching in .env:
    ```env
    ENABLE_CACHING=true
    ```
+
 3. Restart application:
    ```powershell
    .\DOCKER.ps1 -Stop
    .\DOCKER.ps1 -Start
    ```
+
 4. Clear browser cache
+
 5. Check database size (optimize if > 1GB)
 
 #### Data Import Failed
@@ -1032,15 +1198,19 @@ CACHE_TTL=300
 **Symptom:** "Validation error" or "Import failed" message
 
 **Solution:**
+
 1. Download fresh template from application
+
 2. Check required fields are filled
+
 3. Verify data formats:
 
-   - Dates: YYYY-MM-DD
-   - Emails: name@domain.com
-   - Numbers: No text characters
+- Dates: YYYY-MM-DD
+- Emails: name\@domain.com
+- Numbers: No text characters
 
 4. Check for duplicate IDs or emails
+
 5. Import in smaller batches (< 1000 rows)
 
 #### Grades Not Calculating
@@ -1048,17 +1218,19 @@ CACHE_TTL=300
 **Symptom:** Final grade shows as 0 or incorrect value
 
 **Solution:**
+
 1. Check course grading configuration:
 
-   - Component weights must total 100%
-   - All components must have grades
+- Component weights must total 100%
+- All components must have grades
 
 2. Verify grade data:
 
-   - `max_grade` must be > 0
-   - `grade` must be ≤ `max_grade`
+- `max_grade` must be > 0
+- `grade` must be ≤ `max_grade`
 
 3. Check absence penalty is set correctly
+
 4. Recalculate grades: Grades → **Recalculate All**
 
 #### Backup Failed
@@ -1066,16 +1238,20 @@ CACHE_TTL=300
 **Symptom:** "Backup creation failed" error
 
 **Solution:**
+
 1. Check disk space (need at least 2x database size)
+
 2. Verify permissions on `backups/` directory
+
 3. Check database is not locked:
    ```powershell
    .\DOCKER.ps1 -Stop
    .\DOCKER.ps1 -Start
    ```
+
 4. Try manual backup:
    ```powershell
-   # Docker mode
+# Docker mode
    docker exec <container> sqlite3 /data/student_management.db ".backup /data/manual_backup.db"
    ```
 
@@ -1090,21 +1266,25 @@ CACHE_TTL=300
 
 **Support:**
 
-- GitHub Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
+- GitHub Issues: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Check logs: `.\DOCKER.ps1 -Logs`
-- Health check: http://localhost:8080/health
+- Health check: <http://localhost:8080/health>
 
 **Before Reporting Issues:**
+
 1. Check this troubleshooting section
+
 2. Review application logs
+
 3. Try restarting the application
+
 4. Include in your report:
 
-   - Version number (type `VERSION` or check http://localhost:8080/health)
-   - Operating system
-   - Deployment mode (Docker/Native)
-   - Exact error message
-   - Steps to reproduce
+- Version number (type `VERSION` or check http://localhost:8080/health)
+- Operating system
+- Deployment mode (Docker/Native)
+- Exact error message
+- Steps to reproduce
 
 ---
 
@@ -1112,7 +1292,7 @@ CACHE_TTL=300
 
 ### General Questions
 
-**Q: Can I use a different database than SQLite?**  
+**Q: Can I use a different database than SQLite?**
 A: Yes! The system supports PostgreSQL. Edit `backend/.env`:
 
 ```env
@@ -1120,21 +1300,21 @@ DATABASE_ENGINE=postgresql
 DATABASE_URL=postgresql://user:password@localhost:5432/sms_db
 ```
 
-**Q: How do I backup data automatically?**  
+**Q: How do I backup data automatically?**
 A: Backups are automatic (daily). Configure in Control Panel → Operations → Backup Settings.
 
-**Q: Is the system mobile-friendly?**  
+**Q: Is the system mobile-friendly?**
 A: Yes! The responsive design works on tablets and phones, though desktop is recommended for data entry.
 
-**Q: Can I customize the grading scale?**  
+**Q: Can I customize the grading scale?**
 A: Yes! Edit course settings to use 0-100 instead of 0-20, or define custom scales.
 
-**Q: How many students can the system handle?**  
+**Q: How many students can the system handle?**
 A: Tested with 10,000+ students. Performance depends on hardware. Use PostgreSQL for very large deployments.
 
 ### Security Questions
 
-**Q: How secure is the system?**  
+**Q: How secure is the system?**
 A: Very secure! Features include:
 
 - JWT token authentication
@@ -1144,32 +1324,32 @@ A: Very secure! Features include:
 - XSS protection
 - Secure password hashing (bcrypt)
 
-**Q: Should I use AUTH_MODE=disabled?**  
+**Q: Should I use AUTH_MODE=disabled?**
 A: No, only for emergency access. Use `permissive` (recommended) or `strict` in production.
 
-**Q: How often should I change the admin password?**  
+**Q: How often should I change the admin password?**
 A: Every 90 days minimum, or immediately if compromised.
 
-**Q: Can I enable two-factor authentication?**  
+**Q: Can I enable two-factor authentication?**
 A: Not currently supported. Planned for future release.
 
 ### Data Questions
 
-**Q: Can I import data from another system?**  
+**Q: Can I import data from another system?**
 A: Yes! Export data to Excel/CSV from your old system, then use our import feature. May need data transformation.
 
-**Q: What happens if I delete a student?**  
+**Q: What happens if I delete a student?**
 A: All related data (grades, attendance, enrollments) is permanently deleted. Consider marking inactive instead.
 
-**Q: Can I recover deleted data?**  
+**Q: Can I recover deleted data?**
 A: Only from backups. Restore the most recent backup before the deletion.
 
-**Q: How do I handle grade disputes?**  
+**Q: How do I handle grade disputes?**
 A: View grade history (shows who entered/modified grades and when). Export audit log for documentation.
 
 ### Performance Questions
 
-**Q: Why is the application slow?**  
+**Q: Why is the application slow?**
 A: Common causes:
 
 - Caching disabled (enable in .env)
@@ -1177,10 +1357,10 @@ A: Common causes:
 - Many concurrent users (upgrade hardware)
 - Browser cache full (clear cache)
 
-**Q: How can I speed up imports?**  
+**Q: How can I speed up imports?**
 A: Import in batches of 500-1000 rows. Use native mode for very large imports (faster than Docker).
 
-**Q: Does the system require internet?**  
+**Q: Does the system require internet?**
 A: No! Works completely offline after installation. Internet only needed for initial setup.
 
 ---
@@ -1233,7 +1413,7 @@ All dates use ISO 8601 format:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** November 22, 2025  
-**Maintained By:** SMS Development Team  
+**Document Version:** 1.0
+**Last Updated:** November 22, 2025
+**Maintained By:** SMS Development Team
 **Feedback:** Create an issue on GitHub with label `documentation`

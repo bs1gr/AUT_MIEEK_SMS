@@ -22,6 +22,7 @@
 ### TL;DR - Get Testing Working Now
 
 ```powershell
+
 # Install development dependencies
 cd backend
 pip install -r requirements-dev.txt
@@ -32,6 +33,7 @@ python -m pytest --version  # Should show: pytest 8.3.3
 # Run validation
 cd ..
 .\COMMIT_READY.ps1 -Mode quick
+
 ```
 
 **That's it!** Your development environment is ready.
@@ -43,12 +45,14 @@ PowerShell (Windows):
 
 ```powershell
 pwsh ./scripts/install-git-hooks.ps1
+
 ```
 
 macOS / Linux:
 
 ```bash
 ./scripts/install-git-hooks.sh
+
 ```
 
 ---
@@ -100,11 +104,13 @@ pip install -r requirements-dev.txt
 
 # Verify installation
 python -m pytest --version
+
 ```
 
 ### What Gets Installed
 
 **From requirements-dev.txt**:
+
 - ✅ pytest 8.3.3 (compatible with Python 3.13)
 - ✅ pytest-cov 6.0.0 (code coverage)
 - ✅ mypy 1.3.0 (type checking)
@@ -118,20 +124,26 @@ python -m pytest --version
 ### Issue 1: pytest Not Found
 
 **Symptom**:
+
 ```
 ValueError: I/O operation on closed file
+
 ```
 or
+
 ```
 python: No module named pytest
+
 ```
 
 **Cause**: Development dependencies not installed
 
 **Fix**:
+
 ```powershell
 cd backend
 pip install -r requirements-dev.txt
+
 ```
 
 ---
@@ -139,9 +151,11 @@ pip install -r requirements-dev.txt
 ### Issue 2: Python 3.13 Compatibility
 
 **Symptom**:
+
 ```
 ValueError: I/O operation on closed file
 pytest's capture.py at line 571: self.tmpfile.seek(0)
+
 ```
 
 **Cause**: Known compatibility issue between pytest < 8.0.0 and Python 3.13
@@ -149,15 +163,18 @@ pytest's capture.py at line 571: self.tmpfile.seek(0)
 **Fix Options**:
 
 #### Option A: Upgrade pytest (Recommended)
+
 ```powershell
 cd backend
 pip install --upgrade pytest>=8.0.0 pytest-cov>=4.1.0
+
 ```
 
 The project's `requirements-dev.txt` already specifies pytest 8.3.3, so a fresh install should work.
 
 #### Option B: Use Python 3.12 (Alternative)
 Download Python 3.12 from python.org and recreate virtual environment:
+
 ```powershell
 cd backend
 rm -rf .venv
@@ -165,12 +182,15 @@ python3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
+
 ```
 
 #### Option C: Disable pytest Capture (Temporary Workaround)
+
 ```powershell
 cd backend
 python -m pytest -s  # -s disables capture
+
 ```
 
 **Note**: Loses output control, not recommended for regular use.
@@ -184,13 +204,17 @@ python -m pytest -s  # -s disables capture
 **Cause**: Running PowerShell scripts from Git Bash
 
 **Fix**: Always run validation scripts from PowerShell:
+
 ```powershell
+
 # Press Win + X → Select "Windows PowerShell" or "Terminal"
 cd D:\SMS\student-management-system
 .\COMMIT_READY.ps1 -Mode quick
+
 ```
 
 **Why?** Git Bash (MINGW64) doesn't have:
+
 - Direct access to Python.exe
 - Direct access to npm/node.exe
 - Proper environment for PowerShell scripts
@@ -202,7 +226,9 @@ cd D:\SMS\student-management-system
 **Symptom**: Cannot start development server
 
 **Fix**:
+
 ```powershell
+
 # Check what's using the port
 netstat -ano | findstr :8000   # Backend
 netstat -ano | findstr :5173   # Frontend
@@ -210,6 +236,7 @@ netstat -ano | findstr :5173   # Frontend
 # Stop existing processes
 .\DOCKER.ps1 -Stop              # If Docker is running
 .\NATIVE.ps1 -Stop              # If native mode is running
+
 ```
 
 ---
@@ -221,23 +248,30 @@ netstat -ano | findstr :5173   # Frontend
 The project uses a unified pre-commit validation script with 4 modes:
 
 #### Quick Mode (2-3 minutes) - Recommended for iterations
+
 ```powershell
 .\COMMIT_READY.ps1 -Mode quick
+
 ```
 
 **Runs**:
+
 - ✅ Code quality checks (Ruff, ESLint)
 - ✅ Quick test suite
 - ✅ Automated cleanup
 
 #### Standard Mode (5-8 minutes) - DEFAULT
+
 ```powershell
 .\COMMIT_READY.ps1
+
 # or
 .\COMMIT_READY.ps1 -Mode standard
+
 ```
 
 **Runs**:
+
 - ✅ Full code quality checks
 - ✅ Complete test suite (backend + frontend)
 - ✅ TypeScript type checking
@@ -245,22 +279,28 @@ The project uses a unified pre-commit validation script with 4 modes:
 - ✅ Automated cleanup
 
 #### Full Mode (15-20 minutes) - Before releases
+
 ```powershell
 .\COMMIT_READY.ps1 -Mode full
+
 ```
 
 **Runs**:
+
 - ✅ Everything in standard mode
 - ✅ Health checks (Native + Docker)
 - ✅ Deployment validation
 - ✅ Comprehensive reporting
 
 #### Cleanup Only (1-2 minutes) - Maintenance
+
 ```powershell
 .\COMMIT_READY.ps1 -Mode cleanup
+
 ```
 
 **Runs**:
+
 - ✅ Remove Python cache (__pycache__, .pytest_cache)
 - ✅ Remove Node cache (node_modules/.cache)
 - ✅ Remove build artifacts (dist/, build/)
@@ -269,11 +309,14 @@ The project uses a unified pre-commit validation script with 4 modes:
 ### Auto-Fix Support
 
 ```powershell
+
 # Run with automatic fixes
 .\COMMIT_READY.ps1 -Mode quick -AutoFix
+
 ```
 
 **Auto-fixes**:
+
 - ✅ Code formatting (Ruff format)
 - ✅ Import organization
 - ✅ ESLint fixable issues
@@ -317,13 +360,14 @@ Based on latest repository audit (2025-11-28):
 3. ✅ **Port Documentation** - Correctly documents both modes
 4. ✅ **Build Artifacts** - None present (dist/, build/, cache/)
 5. ✅ **Temporary Files** - None found (.tmp, .old, orphaned files)
-6. ✅ **Version Consistency** - VERSION (1.9.3) matches CHANGELOG.md
+6. ✅ **Version Consistency** - VERSION (1.9.4) matches CHANGELOG.md
 7. ✅ **Git Status** - Clean working tree
 8. ✅ **Documentation** - Master index up-to-date
 
 ### Runtime Validation Required
 
 The following checks **require running** `COMMIT_READY.ps1`:
+
 - ❌ Backend pytest tests
 - ❌ Frontend TypeScript type checking
 - ❌ Frontend ESLint validation
@@ -337,6 +381,7 @@ The following checks **require running** `COMMIT_READY.ps1`:
 ### Daily Workflow
 
 ```powershell
+
 # 1. Start development environment
 .\NATIVE.ps1 -Start              # Backend + Frontend with hot-reload
 
@@ -349,27 +394,34 @@ The following checks **require running** `COMMIT_READY.ps1`:
 git add .
 git commit -m "your message"
 git push
+
 ```
 
 ### Before Creating Pull Request
 
 ```powershell
+
 # Run standard validation
 .\COMMIT_READY.ps1 -Mode standard
 
 # Or full validation for major changes
 .\COMMIT_READY.ps1 -Mode full
+
 ```
 
 ### Before Release
 
 ```powershell
+
 # Full validation with health checks
 .\COMMIT_READY.ps1 -Mode full
 
 # Review all reports
+
 # Create release notes
+
 # Tag release
+
 ```
 
 ---
@@ -379,23 +431,30 @@ git push
 After setup is complete:
 
 1. **Verify Testing Works**:
+
    ```powershell
    cd backend
    python -m pytest tests/ -v
+
    ```
 
 2. **Run Full Validation**:
+
    ```powershell
    cd ..
    .\COMMIT_READY.ps1 -Mode quick
+
    ```
 
 3. **Start Development**:
+
    ```powershell
    .\NATIVE.ps1 -Start
+
    ```
 
 4. **Read More Documentation**:
+
    - [GIT_WORKFLOW.md](GIT_WORKFLOW.md) - Git commit standards
    - [PRE_COMMIT_AUTOMATION.md](PRE_COMMIT_AUTOMATION.md) - Pre-commit hooks
    - [DEVELOPER_FAST_START.md](DEVELOPER_FAST_START.md) - Quick developer onboarding
@@ -413,6 +472,7 @@ After setup is complete:
 
 ### Q: Why are there multiple requirements files?
 **A**: Separation of concerns:
+
 - `requirements.txt` - Production (always install)
 - `requirements-dev.txt` - Development/Testing (dev only)
 - `requirements-runtime.txt` - Runtime-specific
@@ -426,16 +486,20 @@ After setup is complete:
 
 ### Q: How do I run only backend tests?
 **A**:
+
 ```powershell
 cd backend
 python -m pytest -v
+
 ```
 
 ### Q: How do I run only frontend tests?
 **A**:
+
 ```powershell
 cd frontend
 npm test
+
 ```
 
 ---
