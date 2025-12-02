@@ -366,7 +366,7 @@ C:\Program Files\SMS\
 ├── NATIVE.ps1        [Dev script]
 ├── DOCKER_TOGGLE.vbs [Toggle script]
 ├── SMS_Toggle.ico    [Icon]
-└── Uninstall_SMS_1.9.3.exe [Versioned uninstaller]
+└── Uninstall_SMS_1.9.4.exe [Versioned uninstaller]
 ```
 
 ### 8.2 Excluded from Installation ✅ PROPER
@@ -461,7 +461,7 @@ C:\Program Files\SMS\
 - [ ] Install with Docker not installed
 - [ ] Install with Docker not running
 - [ ] Install on non-admin account (should fail gracefully)
-- [ ] Silent install: `SMS_Installer_1.9.3.exe /VERYSILENT`
+- [ ] Silent install: `SMS_Installer_1.9.4.exe /VERYSILENT`
 
 ### 12.2 Uninstallation Testing
 - [ ] Uninstall with "keep data" option
@@ -546,5 +546,5 @@ C:\Program Files\SMS\
 
 **Report Generated:** 2025-11-27  
 **Auditor:** GitHub Copilot  
-**Installer Version:** 1.9.3  
+**Installer Version:** 1.9.4  
 **Signature Status:** ✅ Valid (AUT MIEEK)

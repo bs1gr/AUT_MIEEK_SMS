@@ -1,4 +1,4 @@
-# Final Installer Audit Report - SMS v1.9.3
+# Final Installer Audit Report - SMS v1.9.4
 
 **Date:** November 27, 2025  
 **Time:** 15:51 (Build + Sign completed)  
@@ -17,7 +17,7 @@ All cached elements have been resolved. The installer is fully updated with the 
 
 | Property | Value |
 |----------|-------|
-| **File** | `dist\SMS_Installer_1.9.3.exe` |
+| **File** | `dist\SMS_Installer_1.9.4.exe` |
 | **Size** | 5.54 MB |
 | **Build Time** | November 27, 2025 @ 15:51:22 |
 | **Source Script Modified** | November 27, 2025 @ 15:40:29 |
@@ -131,14 +131,14 @@ The installer now includes **enhanced cleanup logic** (lines 630-645 in `SMS_Ins
 ## 🧪 Testing Recommendations
 
 ### Test Scenario 1: Fresh Installation
-1. Run `SMS_Installer_1.9.3.exe` on clean system
+1. Run `SMS_Installer_1.9.4.exe` on clean system
 2. Verify only ONE desktop shortcut is created
 3. Verify shortcut name: "Student Management System"
 4. Test shortcut launches Docker correctly
 
 ### Test Scenario 2: Update Installation (Most Critical)
 1. Install older SMS version (with "SMS Toggle" shortcut)
-2. Run `SMS_Installer_1.9.3.exe` (upgrade)
+2. Run `SMS_Installer_1.9.4.exe` (upgrade)
 3. Verify "SMS Toggle" shortcut is removed ✅
 4. Verify new shortcut "Student Management System" is created ✅
 5. Verify no duplicate shortcuts exist ✅
@@ -183,7 +183,7 @@ Import-Certificate -FilePath "installer\AUT_MIEEK_CodeSign.cer" -CertStoreLocati
 - Compiled all source files (backend, frontend, Docker scripts)
 - Included enhanced shortcut cleanup logic
 - Build time: 3.25 seconds
-- Output: `dist\SMS_Installer_1.9.3.exe` (5.54 MB)
+- Output: `dist\SMS_Installer_1.9.4.exe` (25.5 MB - includes backend .venv for complete offline installation)
 
 ### 3. Code Signing (15:51:30)
 ```powershell
