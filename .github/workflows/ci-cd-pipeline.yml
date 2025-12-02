@@ -98,9 +98,8 @@ jobs:
 
       - name: Run MyPy type checker
         run: |
-          cd backend
-          # Run mypy using the repository config so CI matches local runs. Fail the job on type errors.
-          mypy --config-file=../config/mypy.ini backend --namespace-packages
+          # Run mypy from project root to avoid namespace conflicts
+          mypy --config-file=config/mypy.ini backend --namespace-packages
 
   lint-frontend:
     name: 🔍 Frontend Linting (TypeScript/React)
