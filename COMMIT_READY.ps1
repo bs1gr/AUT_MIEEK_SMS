@@ -85,6 +85,12 @@
 param(
     [ValidateSet('quick', 'standard', 'full', 'cleanup')]
     [string]$Mode = 'standard',
+
+    # Backward-compatible convenience switches used by CI workflows
+    [switch]$Quick,
+    [switch]$Standard,
+    [switch]$Full,
+    [switch]$Cleanup,
     
     [switch]$SkipTests,
     [switch]$SkipCleanup,
@@ -95,6 +101,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Normalize Mode based on legacy switches if provided (supports -Quick etc.)
+if ($Quick)    { $Mode = 'quick' }
+elseif ($Standard) { $Mode = 'standard' }
+elseif ($Full)     { $Mode = 'full' }
+elseif ($Cleanup)  { $Mode = 'cleanup' }
+
 $BACKEND_DIR = Join-Path $SCRIPT_DIR "backend"
 $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
