@@ -364,7 +364,50 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             # Best-effort; don't fail engine creation if directory check has issues
             pass
 
-        engine = create_engine(db_url, echo=False)
+        # Determine if this is a production environment
+        from backend.environment import get_runtime_context
+        runtime_context = get_runtime_context()
+        is_production = runtime_context.is_production
+        is_postgresql = db_url.startswith("postgresql://") or db_url.startswith("postgresql+psycopg://")
+        is_sqlite = db_url.startswith("sqlite:///")
+
+        # Production SQLite warning
+        if is_production and is_sqlite:
+            logger.warning(
+                "⚠️  SQLite detected in production mode. SQLite limitations:\n"
+                "   • Poor concurrency (write locks entire database)\n"
+                "   • No network access (single machine only)\n"
+                "   • Limited to ~1TB database size\n"
+                "   • Not recommended for multi-user production deployments\n"
+                "   ➜ Consider PostgreSQL for production use (see docs/development/ARCHITECTURE.md)"
+            )
+
+        # Configure connection pooling (primarily for PostgreSQL, but applies to all)
+        engine_kwargs = {
+            "echo": False,
+        }
+
+        if is_postgresql:
+            # PostgreSQL-specific pooling configuration
+            engine_kwargs.update({
+                "pool_size": 20,           # Connections in pool (default: 5)
+                "max_overflow": 10,        # Extra connections beyond pool_size (default: 10)
+                "pool_pre_ping": True,     # Test connections before use (detect stale connections)
+                "pool_recycle": 3600,      # Recycle connections after 1 hour (prevent stale connections)
+            })
+            logger.info(
+                "PostgreSQL connection pooling configured: "
+                "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s"
+            )
+        elif is_sqlite:
+            # SQLite-specific configuration
+            # Use NullPool for SQLite to avoid "database is locked" errors in multi-threaded scenarios
+            # Note: For single-threaded dev, default pool is fine; this is defensive for FastAPI workers
+            from sqlalchemy.pool import NullPool
+            engine_kwargs["poolclass"] = NullPool
+            logger.info("SQLite NullPool configured to avoid locking issues")
+
+        engine = create_engine(db_url, **engine_kwargs)
 
         # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
         try:
