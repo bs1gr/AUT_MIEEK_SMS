@@ -24,6 +24,7 @@ from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.services.import_service import ImportService
 
 from .routers_auth import optional_require_role
+from backend.security.api_keys import verify_api_key_optional
 
 logger = logging.getLogger(__name__)
 
@@ -436,7 +437,10 @@ def diagnose_import_environment(request: Request):
 @router.post("/courses")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def import_courses(
-    request: Request, db: Session = Depends(get_db), current_user=Depends(optional_require_role("admin", "teacher"))
+    request: Request,
+    db: Session = Depends(get_db),
+    api_key: str | None = Depends(verify_api_key_optional),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import all courses from JSON files in the courses templates directory.
 
@@ -778,6 +782,7 @@ async def import_from_upload(
     file: str | None = Form(None),  # absorb stray text field named 'file'
     json_text: str | None = Form(None),  # optional raw JSON text when file picker is unavailable
     db: Session = Depends(get_db),
+    api_key: str | None = Depends(verify_api_key_optional),
     current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import courses or students from uploaded JSON files.
@@ -1142,7 +1147,10 @@ async def import_from_upload(
 @router.post("/students")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def import_students(
-    request: Request, db: Session = Depends(get_db), current_user=Depends(optional_require_role("admin", "teacher"))
+    request: Request,
+    db: Session = Depends(get_db),
+    api_key: str | None = Depends(verify_api_key_optional),
+    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import all students from JSON files in the students templates directory.
 

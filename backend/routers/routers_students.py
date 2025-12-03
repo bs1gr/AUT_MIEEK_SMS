@@ -49,12 +49,20 @@ def create_student(
 @router.get("/", response_model=PaginatedResponse[StudentResponse])
 @limiter.limit(RATE_LIMIT_READ)
 def get_all_students(
-    request: Request, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None, db: Session = Depends(get_db)
+    request: Request,
+    skip: int = 0,
+    limit: int = 100,
+    is_active: Optional[bool] = None,
+    q: Optional[str] = None,
+    db: Session = Depends(get_db),
 ):
     """Retrieve all students with optional filtering and pagination."""
 
     service = StudentService(db, request)
-    result = service.list_students(skip=skip, limit=limit, is_active=is_active)
+    if q:
+        result = service.search_students(q=q, skip=skip, limit=limit, is_active=is_active)
+    else:
+        result = service.list_students(skip=skip, limit=limit, is_active=is_active)
     logger.info("Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit)
     return result
 

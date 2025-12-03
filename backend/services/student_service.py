@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import Request
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import (
@@ -53,6 +54,37 @@ class StudentService:
         query = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None))
         if is_active is not None:
             query = query.filter(self.Student.is_active == is_active)
+        return paginate(query, skip, limit)
+
+    def search_students(self, q: str, skip: int, limit: int, is_active: Optional[bool] = None):
+        """Full-text like search on first_name + last_name with Postgres optimization.
+
+        Fallback to ILIKE on non-Postgres dialects.
+        """
+        q = (q or "").strip()
+        if not q:
+            return self.list_students(skip, limit, is_active)
+
+        query = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None))
+        if is_active is not None:
+            query = query.filter(self.Student.is_active == is_active)
+
+        try:
+            dialect = str(getattr(self.db.bind.dialect, "name", ""))
+        except Exception:
+            dialect = ""
+
+        if dialect == "postgresql":
+            # Use to_tsvector match
+            vector = func.to_tsvector('simple', func.concat_ws(' ', self.Student.first_name, self.Student.last_name))
+            ts_query = func.plainto_tsquery('simple', q)
+            query = query.filter(vector.op('@@')(ts_query))
+        else:
+            like = f"%{q}%"
+            query = query.filter(
+                (self.Student.first_name.ilike(like)) | (self.Student.last_name.ilike(like))
+            )
+
         return paginate(query, skip, limit)
 
     def get_student(self, student_id: int):

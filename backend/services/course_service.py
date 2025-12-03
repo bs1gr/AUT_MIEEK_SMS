@@ -102,9 +102,9 @@ class CourseService:
         db_course = self.get_course(course_id)
 
         with transaction(self.db):
-            from datetime import datetime
+            from datetime import datetime, timezone
 
-            db_course.deleted_at = datetime.utcnow()
+            db_course.deleted_at = datetime.now(timezone.utc)
             self.db.flush()
 
         logger.info("Deleted course: %s - %s", db_course.id, db_course.course_code)
