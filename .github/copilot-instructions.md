@@ -82,7 +82,13 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 - **Indexing strategy**: Indexed fields include `email`, `student_id`, `course_code`, `date`, `semester`, `is_active`, `enrollment_date` for query performance
 
 **Entry points:**
-- Backend: `backend/main.py` (lifespan-managed with `@asynccontextmanager`, includes Control Panel at `/control`)
+- Backend: `backend/main.py` (minimal entry point, ~100 lines)
+  - **Modular Architecture (v1.9.5+):**
+    - `backend/app_factory.py` - FastAPI app creation and configuration
+    - `backend/lifespan.py` - Startup/shutdown lifecycle management
+    - `backend/middleware_config.py` - All middleware registration
+    - `backend/error_handlers.py` - Exception handler registration
+    - `backend/router_registry.py` - Router registration logic
 - Frontend: `frontend/src/App.tsx` → Main layout with navigation, auth, and error boundaries
 - Scripts: 
   - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
