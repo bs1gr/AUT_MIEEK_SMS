@@ -1,5 +1,6 @@
 backups/
 docs/archive/
+archive/**
 
 # Third-party and build artifacts
 node_modules/
@@ -13,3 +14,4 @@ tmp_test_migrations/**
 
 # Logs and generated content
 logs/
+
