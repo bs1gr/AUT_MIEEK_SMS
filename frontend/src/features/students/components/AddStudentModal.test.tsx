@@ -143,9 +143,21 @@ describe('AddStudentModal', () => {
       });
     });
 
-    it.skip('shows validation error for invalid email (browser native validation)', async () => {
-      // Skipping: browser's native email validation on type="email" prevents form submission
-      // before zod validation runs, so error message never appears in test environment
+    it('shows validation error for invalid email (schema validation)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+
+      await user.type(screen.getByLabelText(/student id/i), 'S12345');
+      await user.type(screen.getByPlaceholderText(/first name/i), 'John');
+      await user.type(screen.getByPlaceholderText(/last name/i), 'Doe');
+      await user.type(screen.getByPlaceholderText(/email/i), 'invalid-email');
+
+      const submitButton = screen.getByRole('button', { name: /add student/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+      });
     });
 
     it('shows validation error for invalid student ID pattern', async () => {
@@ -183,9 +195,28 @@ describe('AddStudentModal', () => {
       });
     });
 
-    it.skip('trims whitespace from text inputs (schema validates before trim)', async () => {
-      // Skipping: regex pattern validation runs before .trim() in zod,
-      // so any whitespace causes validation failure
+    it('normalizes whitespace and lowercases email on submit', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+
+      await user.type(screen.getByLabelText(/student id/i), '  S12345  ');
+      await user.type(screen.getByPlaceholderText(/first name/i), '  John  ');
+      await user.type(screen.getByPlaceholderText(/last name/i), '  Doe  ');
+      await user.type(screen.getByPlaceholderText(/email/i), '  JOHN@TEST.COM  ');
+
+      const submitButton = screen.getByRole('button', { name: /add student/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockOnAdd).toHaveBeenCalledWith(
+          expect.objectContaining({
+            student_id: 'S12345',
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john@test.com',
+          })
+        );
+      });
     });
 
     it('converts email to lowercase', async () => {

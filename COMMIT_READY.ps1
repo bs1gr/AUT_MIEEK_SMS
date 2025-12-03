@@ -121,7 +121,7 @@ elseif ($Cleanup)  { $Mode = 'cleanup' }
 $BACKEND_DIR = Join-Path $SCRIPT_DIR "backend"
 $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
-$CHANGELOG_FILE = Join-Path $SCRIPT_DIR "CHANGELOG.md" # reserved for future changelog checks
+# $CHANGELOG_FILE reserved for future changelog checks (removed to avoid unused variable warning)
 
 # Helper paths
 $FRONTEND_PACKAGE_JSON = Join-Path $FRONTEND_DIR "package.json"
@@ -232,7 +232,7 @@ function Test-CommandAvailable {
 }
 
 # Ensure Python backend dependencies are installed (CI-safe)
-function Ensure-BackendDependencies {
+function Install-BackendDependencies {
     Write-Section "Backend: Ensure Python Dependencies"
     try {
         Push-Location $BACKEND_DIR
@@ -467,8 +467,14 @@ function Update-TextFileVersionLines {
         $newContent3 = $newContent2 -replace '(?m)^;\s*Version:\s*\d+\.\d+\.\d+', "; Version: $Version"
         if ($newContent3 -ne $newContent2) { $updated = $true }
 
+        # Python docstrings or comments that reference Version lines
+        # Replace 'Version: See VERSION file' with explicit version, and also handle explicit numbers
+        $newContent4 = $newContent3 -replace '(?m)^\s*Version:\s*See VERSION file', "Version: $Version"
+        $newContent4 = $newContent4 -replace '(?m)^\s*Version:\s*\d+\.\d+\.\d+', "Version: $Version"
+        if ($newContent4 -ne $newContent3) { $updated = $true }
+
         if ($updated) {
-            Set-Content -Path $Path -Value $newContent3 -Encoding UTF8
+            Set-Content -Path $Path -Value $newContent4 -Encoding UTF8
             Write-Success "Synchronized version in $(Split-Path $Path -Leaf)"
         }
         return $true
@@ -526,7 +532,7 @@ function Invoke-VersionPropagationAndDocs {
 
         # Installer scripts may carry banner/version lines
         if (Test-Path $INSTALLER_DIR) {
-            Get-ChildItem $INSTALLER_DIR -Recurse -Include *.ps1,*.cmd,*.bat | ForEach-Object {
+            Get-ChildItem $INSTALLER_DIR -Recurse -Include *.ps1,*.cmd,*.bat,*.rtf,*.txt | ForEach-Object {
                 Update-TextFileVersionLines -Path $_.FullName -Version $version | Out-Null
             }
         }
@@ -661,8 +667,6 @@ function Invoke-InteractiveRelease {
     }
 
     # 2) Propagate versions across workspace and docs
-    $SyncVersion = $true
-    $UpdateDocs = $true
     Invoke-VersionPropagationAndDocs | Out-Null
 
     # 3) git commit, push, tag
@@ -835,6 +839,51 @@ function Invoke-CodeQualityChecks {
     finally {
         Pop-Location
     }
+
+    # Repository Markdown lint
+    Write-Section "Repository: Markdown Lint"
+    try {
+        Push-Location $SCRIPT_DIR
+        $npxAvailable = Test-CommandAvailable -Name "npx"
+        if ($npxAvailable) {
+            $mdConfig = Join-Path $SCRIPT_DIR "config\.markdownlint.json"
+            if (Test-Path $mdConfig) {
+                if ($AutoFix) {
+                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
+                } else {
+                    $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
+                }
+            } else {
+                if ($AutoFix) {
+                    $output = npx markdownlint-cli "**/*.md" --fix 2>&1
+                } else {
+                    $output = npx markdownlint-cli "**/*.md" 2>&1
+                }
+            }
+        } else {
+            Write-Warning-Msg "npx not available; skipping Markdown lint"
+            $LASTEXITCODE = 0
+            $output = "SKIPPED"
+        }
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Markdown linting passed"
+            Add-Result "Linting" "Markdown Lint" $true
+        } else {
+            Write-Failure "Markdown linting failed"
+            Write-Host $output -ForegroundColor Gray
+            Add-Result "Linting" "Markdown Lint" $false $output
+            $allPassed = $false
+        }
+    }
+    catch {
+        Write-Failure "Markdown linting error: $_"
+        Add-Result "Linting" "Markdown Lint" $false $_
+        $allPassed = $false
+    }
+    finally {
+        Pop-Location
+    }
     
     # Frontend: TypeScript type checking
     Write-Section "Frontend: TypeScript Type Checking"
@@ -927,7 +976,7 @@ function Invoke-TestSuite {
     $allPassed = $true
     
     # Ensure backend deps (help CI runners without preinstalled packages)
-    Ensure-BackendDependencies | Out-Null
+    Install-BackendDependencies | Out-Null
 
     # Backend tests
     Write-Section "Backend: pytest"
@@ -1486,7 +1535,6 @@ function Invoke-MainWorkflow {
                     Set-Content -Path $VERSION_FILE -Value $proposed -Encoding UTF8
                     Write-Success "Updated VERSION -> $proposed"
                 }
-                $SyncVersion = $true; $UpdateDocs = $true
                 Invoke-VersionPropagationAndDocs | Out-Null
             } else {
                 Write-Warning-Msg "User chose not to bump; continuing without changes"

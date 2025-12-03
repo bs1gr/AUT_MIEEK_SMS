@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,6 +41,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
     },
   });
 
+
   const onSubmit = (data: SchemaStudentFormData): void => {
     // Map schema data to existing StudentFormData type
     const studentData: StudentFormData = {
@@ -79,7 +81,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
         >
           <h2 className="text-xl font-bold mb-6">{t('addNewStudent')}</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
             <FormField
               control={form.control}
               name="student_id"

@@ -7,33 +7,33 @@ import { z } from 'zod';
 export const studentSchema = z.object({
   student_id: z
     .string()
+    .trim()
     .min(1, 'Student ID is required')
     .max(50, 'Student ID must be less than 50 characters')
     .regex(
       /^[A-Za-z0-9][A-Za-z0-9\-_]{0,49}$/,
       'Student ID must start with alphanumeric and can include - or _'
-    )
-    .trim(),
+    ),
 
   first_name: z
     .string()
+    .trim()
     .min(1, 'First name is required')
-    .max(100, 'First name must be less than 100 characters')
-    .trim(),
+    .max(100, 'First name must be less than 100 characters'),
 
   last_name: z
     .string()
+    .trim()
     .min(1, 'Last name is required')
-    .max(100, 'Last name must be less than 100 characters')
-    .trim(),
+    .max(100, 'Last name must be less than 100 characters'),
 
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, 'Email is required')
     .email('Invalid email address')
-    .max(255, 'Email must be less than 255 characters')
-    .toLowerCase()
-    .trim(),
+    .max(255, 'Email must be less than 255 characters'),
 
   phone: z
     .string()
