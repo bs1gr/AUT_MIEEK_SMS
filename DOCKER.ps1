@@ -230,6 +230,40 @@ function Find-AvailablePort {
     return $null
 }
 
+function Test-SecretKeySecure {
+    param([string]$Key, [string]$EnvType)
+    
+    if ([string]::IsNullOrWhiteSpace($Key)) {
+        return $false
+    }
+    
+    $key_lower = $Key.ToLower()
+    $insecure_patterns = @(
+        'change',
+        'placeholder',
+        'your-secret',
+        'example',
+        'local-dev-secret',
+        'dev-placeholder'
+    )
+    
+    # Check for insecure patterns
+    foreach ($pattern in $insecure_patterns) {
+        if ($key_lower.Contains($pattern)) {
+            Write-Warning "Insecure SECRET_KEY detected: contains '$pattern'"
+            return $false
+        }
+    }
+    
+    # Check length (minimum 32 characters for production)
+    if ($Key.Length -lt 32) {
+        Write-Warning "Insecure SECRET_KEY detected: too short ($($Key.Length) < 32 characters)"
+        return $false
+    }
+    
+    return $true
+}
+
 function Initialize-EnvironmentFiles {
     Write-Info "Checking environment configuration..."
 
@@ -886,6 +920,30 @@ function Start-Application {
 
     # Initialize env files
     Initialize-EnvironmentFiles | Out-Null
+
+    # Validate SECRET_KEY security for production deployments
+    if (Test-Path $ROOT_ENV) {
+        $envContent = Get-Content $ROOT_ENV -Raw
+        if ($envContent -match 'SECRET_KEY=(.+)') {
+            $currentKey = $matches[1].Trim()
+            $envType = if ($envContent -match 'SMS_ENV=(.+)') { $matches[1].Trim() } else { "production" }
+            
+            if (-not (Test-SecretKeySecure -Key $currentKey -EnvType $envType)) {
+                Write-Host ""
+                Write-Error-Message "CRITICAL SECURITY ISSUE: Weak or default SECRET_KEY detected!"
+                Write-Warning "This allows JWT token forgery and complete authentication bypass."
+                Write-Host ""
+                Write-Info "Generate a secure key:"
+                Write-Host "  python -c `"import secrets; print(secrets.token_urlsafe(48))`"" -ForegroundColor Yellow
+                Write-Host ""
+                Write-Info "Update in .env file:"
+                Write-Host "  SECRET_KEY=<generated_key>" -ForegroundColor Yellow
+                Write-Host ""
+                return 1
+            }
+            Write-Success "SECRET_KEY security validated"
+        }
+    }
 
     # Start container
     Write-Info "Starting container..."

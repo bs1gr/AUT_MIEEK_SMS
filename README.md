@@ -130,18 +130,22 @@ Then double-click "SMS Toggle" on your Desktop:
 
 **Good News:** Admin account is created automatically on first startup!
 
-**Default Login Credentials:**
+**⚠️ SECURITY WARNING: Default credentials below are INSECURE and must be changed!**
+
+**Default Login Credentials (CHANGE IMMEDIATELY):**
 
 - **Email:** `admin@example.com`
 - **Password:** `YourSecurePassword123!`
 
-**After First Login:**
+**❗ CRITICAL - After First Login:**
 
 1. Go to **Control Panel** → **Maintenance** tab
 2. Use the "Change Your Password" section (teal card at top)
-3. Set your own secure password
+3. Set your own secure password immediately
 
-> **⚠️ IMPORTANT:** Always change the default password after first login!
+> **🔐 PRODUCTION SECURITY:** These default credentials are intentionally weak examples.
+> **NEVER deploy to production without changing them first!**
+> Generate strong password: `python -c "import secrets; print(secrets.token_urlsafe(24))"`
 
 **Technical Details:**
 The admin account is automatically bootstrapped when the application starts because the `.env` file has these values configured:
@@ -1108,7 +1112,33 @@ Once the backend is running, access the interactive API documentation:
 - API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
 
 
-**Security Note:** Set a strong random `SECRET_KEY` in `.env`/environment variables (generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"`). Turn on `SECRET_KEY_STRICT_ENFORCEMENT=1` when you want the backend to refuse placeholder or short secrets (recommended for staging/production); leave it at `0` for local debugging where you control the environment.
+**🔐 Security Requirements (CRITICAL):**
+
+1. **SECRET_KEY** - MUST be set with a strong random value:
+
+   ```bash
+   # Generate secure key
+   python -c "import secrets; print(secrets.token_urlsafe(48))"
+   ```
+
+   - **Minimum length:** 32 characters (48+ recommended)
+   - **Never use defaults:** System rejects placeholder/example keys
+   - **Docker deployment:** No default fallback - must be set in `.env`
+   - **Validation:** Automatic checks on startup prevent weak keys
+   - **Impact if weak:** Complete authentication bypass, JWT token forgery
+
+2. **Admin Credentials** - Change defaults immediately:
+
+   - Default `admin@example.com` / `YourSecurePassword123!` are intentionally weak
+   - **MUST change after first login** via Control Panel → Maintenance
+   - Generate secure password: `python -c "import secrets; print(secrets.token_urlsafe(24))"`
+   - For production, set unique credentials in `.env` before first deployment
+
+3. **Enforcement Modes:**
+
+   - `AUTH_ENABLED=True` (recommended): Full authentication required
+   - `SECRET_KEY_STRICT_ENFORCEMENT=True`: Rejects weak keys (auto-enabled when AUTH_ENABLED)
+   - Docker mode: Automatic security validation during startup
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 

@@ -26,7 +26,9 @@ services:
       - CORS_ORIGINS=http://localhost:8080
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
-      - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
+      # SECRET_KEY is required - no default provided for security
+      # Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env file}
       # Authentication and admin bootstrap
       - AUTH_ENABLED=${AUTH_ENABLED:-True}
       - AUTH_MODE=${AUTH_MODE:-permissive}
@@ -72,7 +74,7 @@ services:
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
     ports:
-      - \"8080:80\"
+      - "8080:80"
 
 volumes:
   sms_data:
