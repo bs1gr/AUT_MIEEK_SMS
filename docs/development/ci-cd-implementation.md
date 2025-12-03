@@ -152,7 +152,7 @@ The pipeline builds and pushes Docker images using:
 
 ## 🚀 Complete Workflow Example
 
-### Scenario: Release v1.9.0
+### Scenario: Release $11.9.7
 
 ```bash
 # 1. Developer makes changes
@@ -182,7 +182,7 @@ Set-Content .\VERSION "1.9.0"
 .\scripts\VERIFY_VERSION.ps1 -Update
 git add -A
 git commit -m "chore: bump version to 1.9.0"
-git tag -a v1.9.0 -m "Release v1.9.0"
+git tag -a $11.9.7 -m "Release $11.9.7"
 git push origin main --tags
 # → Full pipeline runs
 # → Deploys to production (manual approval) 🎯
@@ -324,8 +324,8 @@ ssh user@server "cd /opt/sms && docker-compose pull && docker-compose up -d"
 **New:**
 ```bash
 # Automated via CI/CD
-git tag -a v1.9.0 -m "Release"
-git push origin v1.9.0
+git tag -a $11.9.7 -m "Release"
+git push origin $11.9.7
 # → Pipeline handles everything
 ```
 
@@ -479,3 +479,4 @@ You now have a **production-grade CI/CD pipeline** that:
 8. **Generates automatic releases** with all artifacts and reports
 
 **The entire software delivery lifecycle is now automated!** 🚀
+

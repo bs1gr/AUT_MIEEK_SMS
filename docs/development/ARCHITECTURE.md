@@ -47,7 +47,7 @@
 - **Pros**: Isolated, consistent environment, easier deployment
 - **Cons**: Requires Docker Desktop, slightly slower for dev
 
-### Database Options (v1.8.3+)
+### Database Options ($11.9.7+)
 
 - **SQLite** remains the zero-config default for all modes. The launcher (`DOCKER.ps1`) ensures migrations run against `data/student_management.db` or the `/data` volume inside containers.
 - **PostgreSQL** is now a first-class option. Set either `DATABASE_ENGINE=postgresql` or provide `POSTGRES_*` variables (host, port, user, password, db). When these variables are present, the backend auto-builds a Psycopg connection URL.
@@ -503,3 +503,4 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 1. **For now**: Use current manual workflow for volume migrations
 2. **Next step**: Add automatic version detection and warnings
 3. **Future**: Full automated migration with rollback support
+

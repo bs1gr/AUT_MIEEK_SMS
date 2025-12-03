@@ -171,8 +171,9 @@ The toggle script works seamlessly with your existing SMS scripts:
 
 ## Version History
 
-- **v1.0.0** (2025-01-25)
+- **$11.9.7** (2025-01-25)
   - Initial release
   - Smart start/stop toggle
   - Desktop shortcut creator
   - Visual feedback and status messages
+

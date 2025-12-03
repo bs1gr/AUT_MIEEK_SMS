@@ -8,21 +8,21 @@
  * npm install axios
  */
 
+
 import axios from 'axios';
 import * as authService from '../services/authService';
 import { formatLocalDate } from '@/utils/date';
+import { API_BASE_URL } from '@/config/api';
 
-// Base API URL - change this based on your environment
-// Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
-// For fullstack Docker deployment, use relative URL to work on any port
-// Track dynamic fallback state for resiliency when backend port changes or native reload dies
-let ORIGINAL_API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
-let API_BASE_URL = ORIGINAL_API_BASE_URL;
-if (!import.meta.env.VITE_API_URL) {
-  console.warn('[api] VITE_API_URL not defined. Using relative fallback /api/v1');
+
+// Use API_BASE_URL from config
+let ORIGINAL_API_BASE_URL = API_BASE_URL;
+if (!API_BASE_URL) {
+  console.warn('[api] API_BASE_URL not defined. Using relative fallback /api/v1');
+  ORIGINAL_API_BASE_URL = '/api/v1';
 }
 // If explicit absolute URL provided but ends with a trailing slash, normalize (keep /api/v1 suffix semantics)
-API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
+ORIGINAL_API_BASE_URL = ORIGINAL_API_BASE_URL.replace(/\/$/, '');
 
 // Canonical Control API base (backend mounts control router without /api/v1 prefix)
 // Derive robustly from API_BASE_URL by removing a trailing /api/v1, preserving any custom path prefix
@@ -33,7 +33,7 @@ API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 //  - 'https://host'                  => 'https://host/control/api'
 export const CONTROL_API_BASE = (() => {
   try {
-    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    const root = (ORIGINAL_API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
     if (!root || root.startsWith('/')) {
       const prefix = root.replace(/\/$/, '');
       // ensure single leading slash
@@ -48,7 +48,7 @@ export const CONTROL_API_BASE = (() => {
 
 // Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: ORIGINAL_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,16 +57,16 @@ const apiClient = axios.create({
 
 // Normalize defaults structure for environments where axios instance may lack .defaults
 if (!apiClient.defaults) {
-  apiClient.defaults = { baseURL: API_BASE_URL };
+  apiClient.defaults = { baseURL: ORIGINAL_API_BASE_URL };
 } else if (!apiClient.defaults.baseURL) {
-  apiClient.defaults.baseURL = API_BASE_URL;
+  apiClient.defaults.baseURL = ORIGINAL_API_BASE_URL;
 }
 // Convenience duplicate baseURL directly on instance for legacy test expectations
 // (Non-standard but harmless)
 // @ts-ignore
 if (!('baseURL' in apiClient)) {
   // @ts-ignore
-  apiClient.baseURL = API_BASE_URL;
+  apiClient.baseURL = ORIGINAL_API_BASE_URL;
 }
 
 // Request interceptor (for adding auth tokens in future)
@@ -112,6 +112,19 @@ apiClient.interceptors.response.use(
       console.error('Network Error: No response from server');
     } else {
       console.error('Error:', error.message);
+    }
+
+    // Retry logic: retry up to 3 times on 5xx or network errors with exponential backoff
+    const config = error.config || {};
+    config._retryCount = config._retryCount || 0;
+    const shouldRetry =
+      config._retryCount < 3 &&
+      ((error.response && error.response.status >= 500) || !error.response);
+    // Only retry if apiClient is a function (real axios instance), not in test mocks
+    if (shouldRetry && typeof apiClient === 'function') {
+      config._retryCount++;
+      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, config._retryCount) * 1000));
+      return apiClient(config);
     }
 
     // Dynamic fallback: if we are using an absolute base URL and connectivity failed (no response)

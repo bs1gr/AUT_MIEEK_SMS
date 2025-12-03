@@ -66,7 +66,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-        Version: 2.0.0
+Version: 1.9.7
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -96,7 +96,18 @@ param(
     [switch]$SkipCleanup,
     [switch]$SkipLint,
     [switch]$GenerateCommit,
-    [switch]$AutoFix
+    [switch]$AutoFix,
+    # New: Auto-update documentation and synchronize version across workspace
+    [switch]$SyncVersion,
+    [switch]$UpdateDocs,
+    # New: Audit-only mode and interactive release actions
+    [switch]$AuditVersion,
+    [string]$BumpToVersion,
+    [switch]$AutoTagAndPush,
+    # New: One-shot release flow: audit → optional bump → full pre-commit → commit+push+tag (if all OK)
+    [switch]$ReleaseFlow,
+    # Optional: run non-interactively for CI (auto-accept prompts)
+    [switch]$NonInteractive
 )
 
 $ErrorActionPreference = 'Stop'
@@ -114,6 +125,8 @@ $CHANGELOG_FILE = Join-Path $SCRIPT_DIR "CHANGELOG.md" # reserved for future cha
 
 # Helper paths
 $FRONTEND_PACKAGE_JSON = Join-Path $FRONTEND_DIR "package.json"
+$INSTALLER_DIR = Join-Path $SCRIPT_DIR "installer"
+$DOCS_DIR = Join-Path $SCRIPT_DIR "docs"
 
 # Determine execution environment (CI vs local dev)
 $inCI = [bool](
@@ -405,6 +418,271 @@ function Get-Version {
         return (Get-Content $VERSION_FILE -Raw).Trim()
     }
     return "unknown"
+}
+
+# ============================================================================
+# PHASE A: VERSION PROPAGATION & DOCS AUTO-UPDATE
+# ============================================================================
+
+function Set-PackageJsonVersion {
+    param(
+        [string]$Path,
+        [string]$Version
+    )
+    try {
+        $json = Get-Content $Path -Raw | ConvertFrom-Json
+        if ($null -ne $json.version -and $json.version -ne $Version) {
+            $json.version = $Version
+            ($json | ConvertTo-Json -Depth 10) | Set-Content -Path $Path -Encoding UTF8
+            Write-Success "Updated package.json version -> $Version"
+            return $true
+        }
+        return $true
+    }
+    catch {
+        Write-Warning-Msg "Unable to update ${Path}: $_"
+        return $false
+    }
+}
+
+function Update-TextFileVersionLines {
+    param(
+        [string]$Path,
+        [string]$Version
+    )
+    try {
+        if (-not (Test-Path $Path)) { return $true }
+        $content = Get-Content $Path -Raw
+        $updated = $false
+
+        # Common patterns: "Version: X.Y.Z" and banners like "vX.Y.Z"
+        $newContent = $content -replace '(?m)^\s*Version:\s*\d+\.\d+\.\d+', "Version: $Version"
+        if ($newContent -ne $content) { $updated = $true }
+
+        # Replace standalone banner versions vX.Y.Z within known headers
+        $newContent2 = $newContent -replace '(?m)(v)\d+\.\d+\.\d+', "`$1$Version"
+        if ($newContent2 -ne $newContent) { $updated = $true }
+        
+        # Inno Setup script header comments ("; Version: X.Y.Z")
+        $newContent3 = $newContent2 -replace '(?m)^;\s*Version:\s*\d+\.\d+\.\d+', "; Version: $Version"
+        if ($newContent3 -ne $newContent2) { $updated = $true }
+
+        if ($updated) {
+            Set-Content -Path $Path -Value $newContent3 -Encoding UTF8
+            Write-Success "Synchronized version in $(Split-Path $Path -Leaf)"
+        }
+        return $true
+    }
+    catch {
+        Write-Warning-Msg "Failed to update version lines in ${Path}: $_"
+        return $false
+    }
+}
+
+function Invoke-VersionPropagationAndDocs {
+    Write-Header "Phase A: Version Propagation & Docs Update" "DarkGreen"
+
+    $version = Get-Version
+    if ($version -eq 'unknown') {
+        Write-Warning-Msg "VERSION file missing or unreadable; skipping propagation"
+        Add-Result "Linting" "Version Propagation" $false "VERSION missing"
+        return $false
+    }
+
+    $ok = $true
+
+    # 1) Sync frontend package.json version when requested
+    if (Test-Path $FRONTEND_PACKAGE_JSON) {
+        if ($SyncVersion -or $AutoFix) {
+            $ok = (Set-PackageJsonVersion -Path $FRONTEND_PACKAGE_JSON -Version $version) -and $ok
+        } else {
+            Write-Info "Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)"
+        }
+    }
+
+    # 2) Update known documentation/version banners
+    if ($UpdateDocs -or $AutoFix -or ($Mode -in @('standard','full'))) {
+        $targets = @(
+            (Join-Path $SCRIPT_DIR 'README.md'),
+            (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1'),
+            (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
+            (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
+            (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
+            (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
+            (Join-Path $SCRIPT_DIR 'RELEASE_SUMMARY_$11.9.7.md'),
+            (Join-Path $SCRIPT_DIR 'PERFORMANCE_AUDIT_2025-12-03.md')
+        )
+
+        foreach ($t in $targets) {
+            Update-TextFileVersionLines -Path $t -Version $version | Out-Null
+        }
+
+        # Process docs directory broadly for Version lines
+        if (Test-Path $DOCS_DIR) {
+            Get-ChildItem $DOCS_DIR -Recurse -Filter *.md | ForEach-Object {
+                Update-TextFileVersionLines -Path $_.FullName -Version $version | Out-Null
+            }
+        }
+
+        # Installer scripts may carry banner/version lines
+        if (Test-Path $INSTALLER_DIR) {
+            Get-ChildItem $INSTALLER_DIR -Recurse -Include *.ps1,*.cmd,*.bat | ForEach-Object {
+                Update-TextFileVersionLines -Path $_.FullName -Version $version | Out-Null
+            }
+        }
+
+        Write-Success "Documentation and script version references synchronized"
+        Add-Result "Linting" "Docs & Version Sync" $true
+    } else {
+        Write-Info "Docs update skipped (use -UpdateDocs or -AutoFix to enable)"
+        Add-Result "Linting" "Docs & Version Sync" $true "Skipped"
+    }
+
+    return $ok
+}
+
+# ============================================================================
+# VERSION AUDIT & INTERACTIVE RELEASE ACTIONS
+# ============================================================================
+
+function Get-WorkspaceVersionRefs {
+    param([string]$Version)
+    $refs = @()
+
+    # package.json
+    if (Test-Path $FRONTEND_PACKAGE_JSON) {
+        try {
+            $pkg = Get-Content $FRONTEND_PACKAGE_JSON -Raw | ConvertFrom-Json
+            $refs += @{ Path = $FRONTEND_PACKAGE_JSON; Type = 'json'; Value = $pkg.version }
+        } catch {}
+    }
+
+    # Explicit files and docs banners
+    $explicitTargets = @(
+        (Join-Path $SCRIPT_DIR 'README.md'),
+        (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
+        (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
+        (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
+        (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
+        (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1')
+    ) | Where-Object { Test-Path $_ }
+
+    foreach ($t in $explicitTargets) {
+        try {
+            $content = Get-Content $t -Raw
+            $m1 = [regex]::Match($content, '(?m)^\s*Version:\s*(\d+\.\d+\.\d+)')
+            if ($m1.Success) { $refs += @{ Path = $t; Type = 'text-line'; Value = $m1.Groups[1].Value } }
+            $m2 = [regex]::Match($content, '\bv(\d+\.\d+\.\d+)\b')
+            if ($m2.Success) { $refs += @{ Path = $t; Type = 'banner'; Value = $m2.Groups[1].Value } }
+        } catch {}
+    }
+
+    if (Test-Path $DOCS_DIR) {
+        Get-ChildItem $DOCS_DIR -Recurse -Filter *.md | ForEach-Object {
+            try {
+                $content = Get-Content $_.FullName -Raw
+                $m1 = [regex]::Match($content, '(?m)^\s*Version:\s*(\d+\.\d+\.\d+)')
+                if ($m1.Success) { $refs += @{ Path = $_.FullName; Type = 'text-line'; Value = $m1.Groups[1].Value } }
+                $m2 = [regex]::Match($content, '\bv(\d+\.\d+\.\d+)\b')
+                if ($m2.Success) { $refs += @{ Path = $_.FullName; Type = 'banner'; Value = $m2.Groups[1].Value } }
+            } catch {}
+        }
+    }
+
+    if (Test-Path $INSTALLER_DIR) {
+        Get-ChildItem $INSTALLER_DIR -Recurse -Include *.ps1,*.cmd,*.bat | ForEach-Object {
+            try {
+                $content = Get-Content $_.FullName -Raw
+                $m1 = [regex]::Match($content, '(?m)^\s*Version:\s*(\d+\.\d+\.\d+)')
+                if ($m1.Success) { $refs += @{ Path = $_.FullName; Type = 'text-line'; Value = $m1.Groups[1].Value } }
+                $m2 = [regex]::Match($content, '\bv(\d+\.\d+\.\d+)\b')
+                if ($m2.Success) { $refs += @{ Path = $_.FullName; Type = 'banner'; Value = $m2.Groups[1].Value } }
+            } catch {}
+        }
+    }
+
+    return $refs
+}
+
+function Invoke-VersionAuditReport {
+    Write-Header "Version Audit Report" "DarkYellow"
+    $version = Get-Version
+    Write-Info "Source of truth VERSION: $version"
+
+    $refs = Get-WorkspaceVersionRefs -Version $version
+    if ($refs.Count -eq 0) {
+        Write-Warning-Msg "No version references found in workspace"
+        Add-Result "Linting" "Version Audit" $true "No refs"
+        return 0
+    }
+
+    $mismatches = 0
+    foreach ($r in $refs) {
+        $ok = ($r.Value -eq $version)
+        $icon = if ($ok) { '✅' } else { '❌' }
+        if (-not $ok) { $mismatches++ }
+        Write-Host " $icon $($r.Path) [$($r.Type)] -> $($r.Value)" -ForegroundColor $(if ($ok) { 'Green' } else { 'Red' })
+    }
+
+    if ($mismatches -gt 0) {
+        Write-Warning-Msg "$mismatches mismatches detected"
+        Add-Result "Linting" "Version Audit" $false "$mismatches mismatches"
+        return $mismatches
+    } else {
+        Write-Success "All references match VERSION"
+        Add-Result "Linting" "Version Audit" $true
+        return 0
+    }
+}
+
+function Invoke-InteractiveRelease {
+    param(
+        [string]$TargetVersion,
+        [switch]$TagAndPush
+    )
+
+    Write-Header "Interactive Release" "DarkCyan"
+    $current = Get-Version
+    if (-not $TargetVersion) { $TargetVersion = $current }
+    Write-Info "Current VERSION: $current"
+    Write-Info "Target VERSION:  $TargetVersion"
+
+    $response = if ($NonInteractive) { 'y' } else { Read-Host "Proceed to synchronize, commit, push and tag v$TargetVersion? (y/N)" }
+    if ($response.ToLower() -ne 'y') {
+        Write-Warning-Msg "Release aborted by user"
+        Add-Result "Linting" "Interactive Release" $false "aborted"
+        return $false
+    }
+
+    # 1) Write VERSION if bump requested
+    if ($TargetVersion -ne $current) {
+        Set-Content -Path $VERSION_FILE -Value $TargetVersion -Encoding UTF8
+        Write-Success "Updated VERSION -> $TargetVersion"
+    }
+
+    # 2) Propagate versions across workspace and docs
+    $SyncVersion = $true
+    $UpdateDocs = $true
+    Invoke-VersionPropagationAndDocs | Out-Null
+
+    # 3) git commit, push, tag
+    try {
+        git add .
+        git commit -m "chore: release v$TargetVersion"
+        if ($TagAndPush) {
+            git tag "v$TargetVersion"
+            git push origin "v$TargetVersion"
+            git push
+        }
+        Write-Success "Git commit/push/tag complete"
+        Add-Result "Linting" "Release Actions" $true
+        return $true
+    }
+    catch {
+        Write-Warning-Msg "Git operations failed: $_"
+        Add-Result "Linting" "Release Actions" $false $_
+        return $false
+    }
 }
 
 # ============================================================================
@@ -1068,6 +1346,8 @@ function New-CommitMessage {
     
     $status = if ($script:Results.Overall) { "✅ PASSED" } else { "❌ FAILED" }
     
+    $finalNote = if ($script:Results.Overall) { "All systems verified and ready for commit." } else { "Some checks failed — review the failures above and address them before committing." }
+
     $message = @"
 chore: pre-commit validation complete
 
@@ -1083,7 +1363,7 @@ Code Quality:
 $(if ($script:Results.Cleanup.Count -gt 0) {
 "Cleanup: $($script:Results.Cleanup.Count) operations completed
 "})
-All systems verified and ready for commit.
+$finalNote
 "@
 
     Write-Host $message -ForegroundColor White
@@ -1189,6 +1469,37 @@ function Invoke-MainWorkflow {
     Write-Host "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
     Write-Host ""
     
+    # Optional: Version audit only
+    if ($AuditVersion) {
+        $mismatchCount = Invoke-VersionAuditReport
+        # If mismatches exist, propose bump and prompt to proceed with full pre-commit
+        if ($mismatchCount -gt 0) {
+            $currentVer = Get-Version
+            Write-Host ""; Write-Host "Detected $mismatchCount mismatches against VERSION=$currentVer" -ForegroundColor Yellow
+            $proposed = if ($NonInteractive) { $currentVer } else { Read-Host "Enter target version to bump (default: $currentVer) or press Enter to keep" }
+            if ([string]::IsNullOrWhiteSpace($proposed)) { $proposed = $currentVer }
+            # Ask to proceed with bump & continue
+            $ans = if ($NonInteractive) { 'y' } else { Read-Host "Proceed with bump to v$proposed and continue pre-commit procedures? (y/N)" }
+            if ($ans.ToLower() -eq 'y') {
+                # perform bump + propagate, but do not commit/tag here; continue workflow
+                if ($proposed -ne $currentVer) {
+                    Set-Content -Path $VERSION_FILE -Value $proposed -Encoding UTF8
+                    Write-Success "Updated VERSION -> $proposed"
+                }
+                $SyncVersion = $true; $UpdateDocs = $true
+                Invoke-VersionPropagationAndDocs | Out-Null
+            } else {
+                Write-Warning-Msg "User chose not to bump; continuing without changes"
+            }
+        } else {
+            Write-Info "No mismatches detected; continuing with pre-commit procedures"
+        }
+        # Do NOT return here; continue with the rest of the pre-commit workflow
+    }
+
+    # Phase A: Version propagation & docs auto-update (runs early)
+    Invoke-VersionPropagationAndDocs | Out-Null
+
     # Phase 0: Version Consistency (always)
     Invoke-VersionConsistencyCheck | Out-Null
 
@@ -1228,6 +1539,30 @@ function Invoke-MainWorkflow {
         New-CommitMessage
     }
     
+    # One-shot release flow: if enabled and all checks passed, perform commit/push/tag automatically
+    if ($ReleaseFlow -and $script:Results.Overall) {
+        $finalVersion = Get-Version
+        Write-Header "Release Flow" "DarkGreen"
+        Write-Info "All checks passed; preparing to commit, push and tag v$finalVersion"
+        $proceed = if ($NonInteractive) { 'y' } else { Read-Host "Proceed with commit/push/tag for v$finalVersion? (y/N)" }
+        if ($proceed.ToLower() -eq 'y') {
+            try {
+                git add .
+                git commit -m "chore: release v$finalVersion"
+                git tag "v$finalVersion"
+                git push
+                git push origin "v$finalVersion"
+                Write-Success "Release push & tag complete"
+            }
+            catch {
+                Write-Warning-Msg "Release push/tag failed: $_"
+                $script:Results.Overall = $false
+            }
+        } else {
+            Write-Warning-Msg "Release flow skipped by user"
+        }
+    }
+
     # Compute and return exit code.
     # In cleanup-only mode we should base success on cleanup results only (avoid unrelated flags
     # like lint/tests causing a non-zero exit when caller only expects cleanup to be successful).
@@ -1268,3 +1603,4 @@ catch {
     Write-Host $_.ScriptStackTrace -ForegroundColor Gray
     exit 1
 }
+

@@ -1,6 +1,6 @@
 # Docker Versioning and Caching Strategy
 
-> **Note (v1.9.0+)**: The scripts `RUN.ps1` and `SMART_SETUP.ps1` referenced in this document have been consolidated into `DOCKER.ps1`. Use `DOCKER.ps1 -Start`, `DOCKER.ps1 -Update`, and `DOCKER.ps1 -UpdateClean` instead. The version verification logic described here is now built into `DOCKER.ps1`.
+> **Note ($11.9.7+)**: The scripts `RUN.ps1` and `SMART_SETUP.ps1` referenced in this document have been consolidated into `DOCKER.ps1`. Use `DOCKER.ps1 -Start`, `DOCKER.ps1 -Update`, and `DOCKER.ps1 -UpdateClean` instead. The version verification logic described here is now built into `DOCKER.ps1`.
 
 ## Overview
 
@@ -344,8 +344,8 @@ docker rmi 789ghi012jkl
 
 2. **Tag releases in Git**
    ```powershell
-   git tag -a v1.7.0 -m "Release version 1.7.0"
-   git push origin v1.7.0
+   git tag -a $11.9.7 -m "Release version 1.7.0"
+   git push origin $11.9.7
    ```
 
 3. **Keep VERSION file and Git tags in sync**
@@ -417,3 +417,4 @@ Potential enhancements:
 - ✅ Commit VERSION changes to Git for traceability
 
 **Golden Rule**: If you change VERSION file, rebuild and restart!
+

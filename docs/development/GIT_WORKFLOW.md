@@ -260,21 +260,21 @@ git commit -m "chore(release): bump version to 1.9.1"
 
 ```powershell
 # Create annotated tag
-git tag -a v1.9.1 -m "Release v1.9.1: Description
+git tag -a $11.9.7 -m "Release $11.9.7: Description
 
 - Feature 1
 - Feature 2
 - Bug fix 1"
 
 # Push tag
-git push origin v1.9.1
+git push origin $11.9.7
 ```
 
 ### 3. Create GitHub Release
 
 ```powershell
 # Use GitHub CLI (if available)
-gh release create v1.9.1 --notes-file docs/releases/v1.9.1.md
+gh release create $11.9.7 --notes-file docs/releases/$11.9.7.md
 
 # Or create manually on GitHub
 # Navigate to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
@@ -449,3 +449,4 @@ Recommended extensions:
 
 **Maintained by**: Development Team
 **Questions?**: Create GitHub issue with `documentation` label
+

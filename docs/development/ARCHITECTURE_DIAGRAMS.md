@@ -2,7 +2,7 @@
 
 **Status**: Draft
 **Last Updated**: 2025-11-16
-**Applies To**: v1.6.3+
+**Applies To**: $11.9.7+
 
 Mermaid diagrams illustrating key system flows.
 
@@ -115,3 +115,4 @@ flowchart LR
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
+

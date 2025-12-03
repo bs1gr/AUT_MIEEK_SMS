@@ -2,7 +2,7 @@
 
 **Status**: Draft
 **Last Updated**: 2025-11-16
-**Applies To**: v1.6.3+
+**Applies To**: $11.9.7+
 
 Guidelines for executing and interpreting backend load tests.
 
@@ -121,3 +121,4 @@ Action: Investigate commit diff, revert or optimize before release tagging.
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` and `PERFORMANCE_OPTIMIZATIONS_2025-01-10.md`.
+

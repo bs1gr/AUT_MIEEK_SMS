@@ -123,7 +123,7 @@ if is_production and is_sqlite:
 Added new section under "Performance & Optimization":
 
 ```markdown
-- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - v1.9.6)
+- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - $11.9.7)
   - Why migrate? (Concurrency, scalability, production requirements)
   - Step-by-step migration procedure
   - Performance tuning and monitoring
@@ -420,3 +420,4 @@ python -m backend.main
 4. Plan PostgreSQL migration for production (if using SQLite)
 
 **No breaking changes** - All fixes are backward compatible and non-disruptive.
+

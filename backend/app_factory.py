@@ -71,17 +71,11 @@ def create_app() -> FastAPI:
     
     # Set app state
     app.state.version = VERSION
-    try:
-        from backend.environment import require_production_constraints
-        app.state.runtime_context = require_production_constraints()
-    except Exception:
-        app.state.runtime_context = None
-    
-    try:
-        from backend.rate_limiting import limiter
-        app.state.limiter = limiter
-    except Exception:
-        app.state.limiter = None
+    from backend.environment import require_production_constraints
+    app.state.runtime_context = require_production_constraints()
+
+    from backend.rate_limiting import limiter
+    app.state.limiter = limiter
     
     # Register health check endpoints
     _register_health_endpoints(app)

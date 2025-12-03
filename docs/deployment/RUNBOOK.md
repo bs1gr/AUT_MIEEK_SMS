@@ -2,7 +2,7 @@
 
 **Status**: Draft (Initial Skeleton)
 **Last Updated**: 2025-11-16
-**Applies To**: v1.6.3+
+**Applies To**: $11.9.7+
 
 This runbook provides a concise, operational sequence for deploying, verifying, and rolling back the Student Management System (SMS).
 
@@ -62,7 +62,7 @@ Scenario: New release causes runtime errors or critical regression.
 ./DOCKER.ps1 -Stop
 ```
 
-2. Checkout previous stable tag (e.g. `git checkout v1.6.2`).
+2. Checkout previous stable tag (e.g. `git checkout $11.9.7`).
 3. Re-run deployment:
 
 ```powershell
@@ -140,3 +140,4 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ---
 **Maintain this file:** Update "Last Updated" and verification steps whenever deployment tooling changes.
+

@@ -1,4 +1,5 @@
 import { StudentsView, AddStudentModal, EditStudentModal } from '@/features/students';
+import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore } from '@/stores';
 import { useStudents, useStudentModals, useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks';
 import { useState } from 'react';
@@ -45,7 +46,7 @@ export default function StudentsPage() {
   };
 
   return (
-    <>
+    <SectionErrorBoundary section="StudentsPage">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <StudentsView
@@ -89,6 +90,6 @@ export default function StudentsPage() {
           }}
         />
       )}
-    </>
+    </SectionErrorBoundary>
   );
 }

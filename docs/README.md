@@ -43,8 +43,8 @@ docs/
 │   ├── session-export-import.md
 │   └── ...
 ├── releases/          # Release notes
-│   ├── v1.9.0.md
-│   ├── v1.8.8.md
+│   ├── $11.9.7.md
+│   ├── $11.9.7.md
 │   └── ...
 └── qnap/             # QNAP-specific documentation
     ├── QNAP_INSTALLATION_GUIDE.md
@@ -119,3 +119,4 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
+

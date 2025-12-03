@@ -314,7 +314,7 @@ _serialize_params({"email": "test@example.com'; DROP TABLE users--"})
 6. **Verify** you can login with new password
 7. **(Optional)** Update `DEFAULT_ADMIN_EMAIL` in .env to your actual email
 
-### For Fresh Installations (v1.9.3+)
+### For Fresh Installations ($11.9.7+)
 
 1. **Run install:**
 
@@ -437,3 +437,4 @@ _serialize_params({"email": "test@example.com'; DROP TABLE users--"})
 - [CWE-89: SQL Injection](https://cwe.mitre.org/data/definitions/89.html)
 - [JWT Best Practices RFC 8725](https://tools.ietf.org/html/rfc8725)
 - [FastAPI Security Documentation](https://fastapi.tiangolo.com/tutorial/security/)
+

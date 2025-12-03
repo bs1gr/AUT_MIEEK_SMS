@@ -320,8 +320,8 @@ gh pr merge --squash
 # 🚀 Full pipeline runs, deploys to staging
 
 # 5. Tag for production release
-git tag -a v1.9.0 -m "Release v1.9.0"
-git push origin v1.9.0
+git tag -a $11.9.7 -m "Release $11.9.7"
+git push origin $11.9.7
 # 🎯 Production deployment + GitHub Release
 ```
 
@@ -553,3 +553,4 @@ Error: The operation was canceled.
 **Last Updated:** 2025-11-24  
 **Maintained By:** SMS Development Team  
 **Pipeline Version:** 1.0.0
+

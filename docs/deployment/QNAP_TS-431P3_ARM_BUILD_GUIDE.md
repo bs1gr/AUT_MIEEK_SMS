@@ -203,7 +203,7 @@ nano docker/docker-compose.qnap.yml
 
 This will take 20-40 minutes on your QNAP.
 
-**IMPORTANT:** We use ARM-specific Dockerfiles that don't interfere with the main v1.9.3 build.
+**IMPORTANT:** We use ARM-specific Dockerfiles that don't interfere with the main $11.9.7 build.
 
 ```bash
 # Build backend using ARM-specific Dockerfile
@@ -240,7 +240,7 @@ docker images
 
 This will take 30-60 minutes on your QNAP.
 
-**IMPORTANT:** We use ARM-specific Dockerfiles that don't interfere with the main v1.9.3 build.
+**IMPORTANT:** We use ARM-specific Dockerfiles that don't interfere with the main $11.9.7 build.
 
 ```bash
 # Build frontend using ARM-specific Dockerfile
@@ -377,7 +377,7 @@ ls -la docker/docker-compose.qnap.arm32v7.yml
 head -20 docker/docker-compose.qnap.arm32v7.yml
 ```
 
-This keeps the main `docker-compose.qnap.yml` (for x86_64) untouched and your v1.9.3 release builds unaffected.
+This keeps the main `docker-compose.qnap.yml` (for x86_64) untouched and your $11.9.7 release builds unaffected.
 
 ---
 
@@ -690,7 +690,7 @@ cd /share/Container/student-management-system
 
 # 2. Pull latest code
 git fetch --tags
-git checkout v1.9.0  # Replace with desired version
+git checkout $11.9.7  # Replace with desired version
 
 # 3. Rebuild images (will take 30-60 min)
 docker build -f docker/Dockerfile.backend.qnap \
@@ -877,3 +877,4 @@ docker stats
 **Date:** 2025-11-27
 **Deployment Method:** Container Station (ARM32v7)
 **Expected Success Rate:** 95%+ (with 8GB RAM)
+

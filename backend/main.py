@@ -20,6 +20,7 @@ import sys
 import io
 import os
 from pathlib import Path
+from backend.import_resolver import ensure_backend_importable
 
 # UTF-8 encoding fix for Windows console
 if sys.platform == "win32" and os.environ.get("PYTEST_CURRENT_TEST") is None:
@@ -35,13 +36,8 @@ if sys.platform == "win32" and os.environ.get("PYTEST_CURRENT_TEST") is None:
     except Exception:
         pass
 
-# Ensure project root is on sys.path for absolute imports
-try:
-    PROJECT_ROOT = Path(__file__).resolve().parent.parent
-    if str(PROJECT_ROOT) not in sys.path:
-        sys.path.insert(0, str(PROJECT_ROOT))
-except Exception:
-    pass
+# Ensure project root is on sys.path for absolute imports via centralized resolver
+ensure_backend_importable()
 
 from backend.app_factory import create_app
 from backend.db import get_session as get_db  # Export for backward compatibility  # noqa: F401

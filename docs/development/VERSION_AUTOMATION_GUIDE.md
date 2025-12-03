@@ -55,7 +55,7 @@ This guide explains how to use the automated version verification tools to strea
    ```powershell
    git add -A
    git commit -m "chore: bump version to 1.9.0"
-   git tag -a v1.9.0 -m "Release v1.9.0"
+   git tag -a $11.9.7 -m "Release $11.9.7"
    git push origin main --tags
    ```
 
@@ -123,10 +123,10 @@ git diff
 
 # 6. Commit
 git add -A
-git commit -F COMMIT_MESSAGE_v1.9.0.md
+git commit -F COMMIT_MESSAGE_$11.9.7.md
 
 # 7. Tag and push
-git tag -a v1.9.0 -m "Release v1.9.0"
+git tag -a $11.9.7 -m "Release $11.9.7"
 git push origin main --tags
 ```
 
@@ -166,14 +166,14 @@ The verification script checks and updates:
 ### Check Specific Version
 
 ```powershell
-# Check if all files reference v1.8.8
+# Check if all files reference $11.9.7
 .\scripts\VERIFY_VERSION.ps1 -Version "1.8.8" -CheckOnly
 ```
 
 ### Update and Generate Report
 
 ```powershell
-# Update to v1.9.0 and generate detailed report
+# Update to $11.9.7 and generate detailed report
 .\scripts\VERIFY_VERSION.ps1 -Version "1.9.0" -Update -Report
 ```
 
@@ -337,3 +337,4 @@ Before each release:
 **Last Updated:** 2025-11-24  
 **Script Version:** 1.0.0  
 **Maintainer:** GitHub Copilot
+

@@ -2,7 +2,7 @@
 
 This document shows how to pull the prebuilt Docker images from Docker Hub or GHCR and run them locally or in production. It includes tag- and digest-based commands for reproducible deployments.
 
-## Images (v1.3.5)
+## Images ($11.9.7)
 
 - Docker Hub
   - vasileiossamaras/aut_mieek_sms-frontend:1.3.5
@@ -138,3 +138,4 @@ This avoids surprises from retagging `latest`.
 
 - If pull is denied: ensure you are authenticated and have permission for the repo.
 - If you see mismatched digests between Docker Hub and GHCR, each registry stores its own manifest digests; pick the registry you will deploy from and use its digest.
+

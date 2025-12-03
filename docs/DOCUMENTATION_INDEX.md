@@ -5,7 +5,7 @@
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes (v1.9.0)**: Documentation has been reorganized into a cleaner structure with better categorization. All files are now in their proper directories.
+> **Recent Changes ($11.9.7)**: Documentation has been reorganized into a cleaner structure with better categorization. All files are now in their proper directories.
 
 ---
 
@@ -39,7 +39,7 @@ Documentation is organized into four main directories:
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 
-### Monitoring & Operations (v1.8.3+)
+### Monitoring & Operations ($11.9.7+)
 
 - **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
   - On-demand vs eager activation modes
@@ -55,7 +55,7 @@ Documentation is organized into four main directories:
   - Audit logging specifications
   - Security considerations for control operations
 
-### Code Architecture & Refactoring (NEW - v1.8.0)
+### Code Architecture & Refactoring (NEW - $11.9.7)
 
 - **[CONTROL_ROUTER_REFACTORING.md](CONTROL_ROUTER_REFACTORING.md)** - Control router refactoring guide
   - Modular architecture design
@@ -66,7 +66,7 @@ Documentation is organized into four main directories:
 
 ### Performance & Optimization
 
-- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - v1.9.6)
+- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - $11.9.7)
   - Why migrate? (Concurrency, scalability, production requirements)
   - Step-by-step migration procedure
   - Performance tuning and monitoring
@@ -76,14 +76,14 @@ Documentation is organized into four main directories:
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
   - React optimization (+60-70% render speed)
-- **Database Connection Pooling** (NEW - v1.9.6)
+- **Database Connection Pooling** (NEW - $11.9.7)
   - PostgreSQL: pool_size=20, max_overflow=10, pool_pre_ping=True
   - SQLite: NullPool to avoid locking issues
   - See `backend/models.py` lines 367-411
 
 ### Scripts & Operations
 
-- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
+- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
   - **DOCKER.ps1** - All Docker deployment & management
   - **NATIVE.ps1** - Native development mode
   - Legacy script archive and migration notes
@@ -202,9 +202,9 @@ Documentation is organized into four main directories:
 
 ### Release Automation
 
-- **[docs/releases/v1.6.5.md](releases/v1.6.5.md)** - Canonical release notes for the Control API realignment and restart UX polish
-- **[docs/releases/v1.6.3.md](releases/v1.6.3.md)** - Previous release notes covering the archive/cleanup checklist
-- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to v1.6.2 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
+- **[docs/releases/$11.9.7.md](releases/$11.9.7.md)** - Canonical release notes for the Control API realignment and restart UX polish
+- **[docs/releases/$11.9.7.md](releases/$11.9.7.md)** - Previous release notes covering the archive/cleanup checklist
+- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to $11.9.7 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
 
@@ -227,7 +227,7 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 - `REPOSITORY_AUDIT_SUMMARY.md` - Full repository audit (425 lines)
 - Session consolidated 4 testing guides into 1 comprehensive guide
 
-#### Earlier Sessions (Pre-v1.9.1)
+#### Earlier Sessions (Pre-$11.9.7)
 
 **Path:** `archive/sessions_2025-11/`
 **Archive Index:** [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md)
@@ -430,3 +430,4 @@ Archived 20 historical documents and scripts to `archive/` for audit/reference:
 See `archive/README.md` for complete inventory and retrieval instructions.
 
 Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
+

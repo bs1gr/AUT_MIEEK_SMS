@@ -1,4 +1,5 @@
 import { GradingView } from '@/features/grading';
+import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 import { useCourses, useStudents } from '@/hooks';
 import { useEffect } from 'react';
@@ -16,5 +17,9 @@ export default function GradingPage() {
     refetchStudents();
   }, [refetchCourses, refetchStudents]);
 
-  return <GradingView students={students} courses={courses} />;
+  return (
+    <SectionErrorBoundary section="GradingPage">
+      <GradingView students={students} courses={courses} />
+    </SectionErrorBoundary>
+  );
 }
