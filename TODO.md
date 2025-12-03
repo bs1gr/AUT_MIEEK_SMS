@@ -11,6 +11,7 @@
 | Area | Highlights |
 |------|-----------|
 | **Security** | **🔒 CRITICAL FIXES (v1.9.5)**: SECRET_KEY enforcement (no defaults); admin credential hardening; SQL injection verification; multi-layer validation (Docker → PowerShell → Backend); comprehensive security documentation |
+| **Backend Architecture** | **🏗️ MODULAR REFACTORING (v1.9.5)**: Decomposed 1555-line main.py into 5 focused modules (app_factory, lifespan, middleware_config, error_handlers, router_registry); improved testability & maintainability |
 | Security (Legacy) | SECRET_KEY hardening; password strength validator; login throttling & lockout; CSRF middleware; AUTH_MODE compliance; RFC 7807 error handling; Security headers middleware; Code signing certificate (AUT MIEEK) |
 | Performance | Eager loading (analytics); targeted DB indexes; response caching layer; React memoization; 85% reduction in API calls via autosave debouncing; SQLAlchemy session optimization |
 | Architecture | Service layer (9 services); component refactors; TypeScript strict mode; code splitting; pre-commit hooks; Consolidated scripts (DOCKER.ps1, NATIVE.ps1) |
@@ -23,6 +24,18 @@
 All high-impact objectives delivered; critical security vulnerabilities eliminated.
 
 ## ✅ v1.9.5 Release (Completed - 2025-12-03)
+
+### Backend Architecture Refactoring
+
+- ✅ **Issue 2.1 (Maintainability)**: Refactored massive main.py (1555 lines) into modular architecture
+  - Created `app_factory.py` for FastAPI app creation and configuration
+  - Created `lifespan.py` for startup/shutdown lifecycle management
+  - Created `middleware_config.py` for all middleware registration
+  - Created `error_handlers.py` for exception handler registration
+  - Created `router_registry.py` for router registration logic
+  - Reduced `main.py` to minimal entry point (~100 lines)
+- ✅ All 355 backend tests pass with new architecture
+- ✅ Backward compatibility maintained via stub exports
 
 ### Critical Security Fixes
 
