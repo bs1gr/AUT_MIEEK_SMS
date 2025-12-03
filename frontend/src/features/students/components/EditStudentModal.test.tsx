@@ -185,8 +185,22 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('shows validation error for invalid email format', async () => {
-      // Skipping: browser native validation on type="email"
+    it('shows validation error for invalid email format (schema validation)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+
+      const emailInput = screen.getByPlaceholderText(/email/i);
+      await user.clear(emailInput);
+      await user.type(emailInput, 'invalid-email');
+
+      const submitButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+      });
     });
 
     it('validates phone number max length', async () => {
@@ -207,7 +221,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('converts email to lowercase on submission', async () => {
+    it('converts email to lowercase on submission', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -231,7 +245,7 @@ describe('EditStudentModal', () => {
   });
 
   describe('Form Submission', () => {
-    it.skip('calls onUpdate with modified student data', async () => {
+    it('calls onUpdate with modified student data', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -261,7 +275,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('preserves original student properties not in form', async () => {
+    it('preserves original student properties not in form', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -286,7 +300,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('calls onClose after successful update', async () => {
+    it('calls onClose after successful update', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -305,7 +319,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('updates phone and mobile_phone together', async () => {
+    it('updates phone and mobile_phone together', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -333,7 +347,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('handles submission with all fields modified', async () => {
+    it('handles submission with all fields modified', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -428,7 +442,7 @@ describe('EditStudentModal', () => {
       expect(screen.getByPlaceholderText(/phone/i)).toHaveValue('');
     });
 
-    it.skip('handles special characters in name fields', async () => {
+    it('handles special characters in name fields', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -458,7 +472,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('handles empty optional fields correctly', async () => {
+    it('handles empty optional fields correctly', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
