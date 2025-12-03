@@ -8,11 +8,11 @@ from datetime import date, timedelta
 from typing import List, Optional, Tuple, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from backend.config import settings
 from backend.db import get_session as get_db
-from backend.db_utils import get_by_id_or_404, paginate, transaction
+from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.schemas.attendance import (
@@ -21,6 +21,7 @@ from backend.schemas.attendance import (
     AttendanceUpdate,
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
+from backend.services import AttendanceService
 
 from .routers_auth import optional_require_role
 
@@ -76,48 +77,11 @@ def create_attendance(
     - **period_number**: Class period number (default: 1)
     """
     try:
-        from backend.import_resolver import import_names
-
-        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
-
-        # Validate student and course exist (call kept for validation)
-        _student = get_by_id_or_404(db, Student, attendance_data.student_id)
-        _course = get_by_id_or_404(db, Course, attendance_data.course_id)
-
-        existing = None
-
-        with transaction(db):
-            # Use database-level locking to prevent duplicate attendance records
-            existing = (
-                db.query(Attendance)
-                .filter(
-                    Attendance.student_id == attendance_data.student_id,
-                    Attendance.course_id == attendance_data.course_id,
-                    Attendance.date == attendance_data.date,
-                    Attendance.period_number == attendance_data.period_number,
-                    Attendance.deleted_at.is_(None),
-                )
-                .with_for_update()
-                .first()
-            )
-
-            if existing:
-                existing.status = attendance_data.status
-                existing.notes = attendance_data.notes
-                existing.period_number = attendance_data.period_number
-                existing.date = attendance_data.date
-                db_attendance = existing
-            else:
-                db_attendance = Attendance(**attendance_data.model_dump())
-                db.add(db_attendance)
-
-            db.flush()
-            db.refresh(db_attendance)
-
-        action = "Updated" if existing else "Created"
-        logger.info(f"{action} attendance record: {db_attendance.id}")
-        return db_attendance
-
+        service = AttendanceService(db, request)
+        # Reuse service duplicate protection; if record exists, update path can be used
+        created = service.create_attendance(attendance_data)
+        logger.info(f"Created attendance record: {created.id}")
+        return created
     except HTTPException:
         raise
     except Exception as e:
@@ -144,35 +108,22 @@ def get_all_attendance(
     - **status**: Filter by status (Present, Absent, Late, Excused)
     """
     try:
-        from backend.import_resolver import import_names
-
-        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
-
-        query = (
-            db.query(Attendance)
-            .options(joinedload(Attendance.student), joinedload(Attendance.course))
-            .filter(Attendance.deleted_at.is_(None))
-        )
-
-        if student_id:
-            query = query.filter(Attendance.student_id == student_id)
-        if course_id:
-            query = query.filter(Attendance.course_id == course_id)
-        if status:
-            query = query.filter(Attendance.status == status)
-        # Date range filtering
+        service = AttendanceService(db, request)
         rng = _normalize_date_range(start_date, end_date)
-        if rng:
-            s, e = rng
-            query = query.filter(Attendance.date >= s, Attendance.date <= e)
-
-        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
+        s, e = (rng if rng else (None, None))
+        result = service.list_attendance(
+            skip=pagination.skip,
+            limit=pagination.limit,
+            student_id=student_id,
+            course_id=course_id,
+            start_date=s,
+            end_date=e,
+            status=status,
+        )
         logger.info(
             f"Retrieved {len(result.items)} attendance records (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
         )
-
-        return result.dict()
-
+        return result
     except HTTPException:
         raise
     except Exception as e:
@@ -191,25 +142,16 @@ def get_student_attendance(
 ):
     """Get all attendance records for a student"""
     try:
+        service = AttendanceService(db, request)
+        # Ensure student exists (404)
         from backend.import_resolver import import_names
-
-        Attendance, Student = import_names("models", "Attendance", "Student")
-
-        # Validate student exists (call kept for validation)
-        _student = get_by_id_or_404(db, Student, student_id)
-
-        query = db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
-
-        if course_id:
-            query = query.filter(Attendance.course_id == course_id)
+        (Student,) = import_names("models", "Student")
+        get_by_id_or_404(db, Student, student_id)
         rng = _normalize_date_range(start_date, end_date)
-        if rng:
-            s, e = rng
-            query = query.filter(Attendance.date.between(s, e))
-
-        attendance_records = query.all()
-        return attendance_records
-
+        s, e = (rng if rng else (None, None))
+        # Use list_attendance to keep logic in one place
+        result = service.list_attendance(skip=0, limit=10**9, student_id=student_id, course_id=course_id, start_date=s, end_date=e)
+        return result.items
     except HTTPException:
         raise
     except Exception as e:
@@ -227,21 +169,15 @@ def get_course_attendance(
 ):
     """Get all attendance records for a course"""
     try:
+        service = AttendanceService(db, request)
+        # Ensure course exists (404)
         from backend.import_resolver import import_names
-
-        Attendance, Course = import_names("models", "Attendance", "Course")
-
-        # Validate course exists (call kept for validation)
-        _course = get_by_id_or_404(db, Course, course_id)
-
-        query = db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
+        (Course,) = import_names("models", "Course")
+        get_by_id_or_404(db, Course, course_id)
         rng = _normalize_date_range(start_date, end_date)
-        if rng:
-            s, e = rng
-            query = query.filter(Attendance.date.between(s, e))
-        attendance_records = query.all()
-        return attendance_records
-
+        s, e = (rng if rng else (None, None))
+        result = service.list_attendance(skip=0, limit=10**9, course_id=course_id, start_date=s, end_date=e)
+        return result.items
     except HTTPException:
         raise
     except Exception as e:
@@ -310,22 +246,9 @@ def update_attendance(
 ):
     """Update an attendance record"""
     try:
-        from backend.import_resolver import import_names
-
-        (Attendance,) = import_names("models", "Attendance")
-
-        db_attendance = get_by_id_or_404(db, Attendance, attendance_id)
-
-        with transaction(db):
-            update_data = attendance_data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(db_attendance, key, value)
-            db.flush()
-            db.refresh(db_attendance)
-
-        logger.info(f"Updated attendance: {attendance_id}")
-        return db_attendance
-
+        service = AttendanceService(db, request)
+        updated = service.update_attendance(attendance_id, attendance_data)
+        return updated
     except HTTPException:
         raise
     except Exception as e:
@@ -343,18 +266,10 @@ def delete_attendance(
 ):
     """Soft delete an attendance record"""
     try:
-        from backend.import_resolver import import_names
-
-        (Attendance,) = import_names("models", "Attendance")
-
-        db_attendance = get_by_id_or_404(db, Attendance, attendance_id)
-
-        with transaction(db):
-            db_attendance.mark_deleted()
-
+        service = AttendanceService(db, request)
+        service.delete_attendance(attendance_id)
         logger.info(f"Deleted attendance: {attendance_id}")
         return None
-
     except HTTPException:
         raise
     except Exception as e:
@@ -419,6 +334,7 @@ def bulk_create_attendance(
     """
     try:
         from backend.import_resolver import import_names
+        from backend.db_utils import transaction
 
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 

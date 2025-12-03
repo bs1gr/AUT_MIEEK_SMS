@@ -21,3 +21,8 @@ PyJWT==2.9.0            # JWT tokens (replaces python-jose)
 docker
 prometheus-client==0.21.0  # Prometheus metrics
 prometheus-fastapi-instrumentator==7.0.0  # FastAPI Prometheus integration
+opentelemetry-api==1.27.0
+opentelemetry-sdk==1.27.0
+opentelemetry-exporter-otlp==1.27.0
+opentelemetry-exporter-jaeger-thrift==1.27.0
+opentelemetry-instrumentation-fastapi==0.48b0

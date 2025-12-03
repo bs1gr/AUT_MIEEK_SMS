@@ -19,6 +19,7 @@ from backend.error_handlers import register_error_handlers
 from backend.router_registry import register_routers
 from backend.logging_config import initialize_logging
 from backend.db import get_session, engine
+from backend.tracing import setup_tracing
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,11 @@ def create_app() -> FastAPI:
     register_middlewares(app)
     register_error_handlers(app)
     register_routers(app)
+    # Optional tracing
+    try:
+        setup_tracing(app)
+    except Exception:
+        logger.debug("Tracing setup skipped or failed")
     
     # Set app state
     app.state.version = VERSION
