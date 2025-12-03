@@ -17,13 +17,11 @@ class BaseService(Generic[T]):
         self.db = db
 
     def get_all(self, skip: int = 0, limit: int = 100):
-        return (
-            self.db.query(self.model)
-            .filter(getattr(self.model, "deleted_at", None).is_(None) if hasattr(self.model, "deleted_at") else True)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        query = self.db.query(self.model)
+        if hasattr(self.model, "deleted_at"):
+            deleted_at_col = getattr(self.model, "deleted_at")
+            query = query.filter(deleted_at_col.is_(None))
+        return query.offset(skip).limit(limit).all()
 
     def get_by_id(self, entity_id: int):
         return self.db.query(self.model).filter(getattr(self.model, "id") == entity_id).first()
