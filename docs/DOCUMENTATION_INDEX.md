@@ -66,11 +66,20 @@ Documentation is organized into four main directories:
 
 ### Performance & Optimization
 
+- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - v1.9.6)
+  - Why migrate? (Concurrency, scalability, production requirements)
+  - Step-by-step migration procedure
+  - Performance tuning and monitoring
+  - Rollback procedures and troubleshooting
 - **[Archive: Performance Optimizations](../archive/sessions_2025-11/PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements (Archived)
   - Database indexing (+40% query speed)
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
   - React optimization (+60-70% render speed)
+- **Database Connection Pooling** (NEW - v1.9.6)
+  - PostgreSQL: pool_size=20, max_overflow=10, pool_pre_ping=True
+  - SQLite: NullPool to avoid locking issues
+  - See `backend/models.py` lines 367-411
 
 ### Scripts & Operations
 
