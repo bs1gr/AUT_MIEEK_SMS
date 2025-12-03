@@ -70,7 +70,7 @@ class StudentService:
             query = query.filter(self.Student.is_active == is_active)
 
         try:
-            dialect = str(getattr(self.db.bind.dialect, "name", ""))
+            dialect = str(self.db.bind.dialect.name) if self.db.bind else ""
         except Exception:
             dialect = ""
 

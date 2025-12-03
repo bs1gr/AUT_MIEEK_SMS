@@ -383,7 +383,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             )
 
         # Configure connection pooling (primarily for PostgreSQL, but applies to all)
-        engine_kwargs = {
+        engine_kwargs: dict[str, Any] = {
             "echo": False,
         }
 
