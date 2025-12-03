@@ -2,7 +2,7 @@
 
 **Status**: Draft (Initial Skeleton)
 **Last Updated**: 2025-11-16
-**Applies To**: v1.6.3+
+**Applies To**: $11.9.7+
 
 Concise examples of common API interactions. Replace placeholder values where noted.
 
@@ -165,3 +165,4 @@ Use these for client-side localization and reliable condition handling.
 ---
 
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
+

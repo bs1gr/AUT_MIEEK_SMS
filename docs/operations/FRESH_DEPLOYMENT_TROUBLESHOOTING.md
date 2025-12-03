@@ -78,7 +78,7 @@ cd ..
 
 ## Issue 2: PowerShell Script Issues
 
-**Current Scripts (v1.9.3+):**
+**Current Scripts ($11.9.7+):**
 
 - `DOCKER.ps1` - Docker deployment operations
 - `NATIVE.ps1` - Native development mode
@@ -331,3 +331,4 @@ netstat -ano | findstr ":8080"
 3. If no containers → Run `cd frontend && npm install` then restart
 
 **That fixes 90% of fresh deployment issues.**
+

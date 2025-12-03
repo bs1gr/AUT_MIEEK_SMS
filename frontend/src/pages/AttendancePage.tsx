@@ -1,5 +1,6 @@
 
 import { AttendanceView } from '@/features/attendance';
+import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 import { useCourses, useStudents } from '@/hooks';
 // React is not required in scope under the automatic JSX runtime
@@ -14,6 +15,8 @@ export default function AttendancePage() {
 
 
   return (
-    <AttendanceView students={students} courses={courses} />
+    <SectionErrorBoundary section="AttendancePage">
+      <AttendanceView students={students} courses={courses} />
+    </SectionErrorBoundary>
   );
 }

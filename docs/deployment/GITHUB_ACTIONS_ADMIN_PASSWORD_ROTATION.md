@@ -158,7 +158,7 @@ jobs:
           EOF
 
       - name: Deploy to production
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -227,7 +227,7 @@ jobs:
           echo "new_password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Update production environment
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -260,7 +260,7 @@ jobs:
           pa_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Send notification
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@$11.9.7
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
@@ -314,7 +314,7 @@ jobs:
           echo "password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Deploy to ${{ matrix.environment }}
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets[format('{0}_HOST', matrix.environment)] }}
           username: ${{ secrets[format('{0}_USER', matrix.environment)] }}
@@ -380,7 +380,7 @@ jobs:
           echo "password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Deploy updated configuration
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -441,7 +441,7 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
       - name: Deploy to production
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -669,3 +669,4 @@ For issues or questions:
 
 **Last Updated:** 2025-11-23
 **Version:** 1.8.8
+

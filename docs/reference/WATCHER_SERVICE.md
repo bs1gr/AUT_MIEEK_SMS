@@ -97,9 +97,9 @@ Watcher is automatically started by `RUN.ps1` when the application launches.
 **Critical Path Fix:**
 Originally used `/data/.triggers` which didn't match the bind mount. Fixed to use `/app/data/.triggers` to align with the Docker volume structure.
 
-### 3. (Legacy) Frontend UI (`frontend/src/pages/PowerPage.tsx` ≤ v1.8.2)
+### 3. (Legacy) Frontend UI (`frontend/src/pages/PowerPage.tsx` ≤ $11.9.7)
 
-Earlier versions surfaced a "Start Monitoring Stack" button that called the trigger endpoint directly. That UI was removed in v1.8.3 when the Power page was simplified to System Health + Control Panel. Operators can still build custom dashboards or use scripts to call the trigger endpoint (see section below for sample curl command).
+Earlier versions surfaced a "Start Monitoring Stack" button that called the trigger endpoint directly. That UI was removed in $11.9.7 when the Power page was simplified to System Health + Control Panel. Operators can still build custom dashboards or use scripts to call the trigger endpoint (see section below for sample curl command).
 
 ### 4. Startup Integration (`RUN.ps1`)
 
@@ -112,7 +112,7 @@ Earlier versions surfaced a "Start Monitoring Stack" button that called the trig
 
 ## How It Works
 
-1. **Trigger**: Operator calls the endpoint directly (CLI/scripts) or via legacy Power Page UI (≤ v1.8.2)
+1. **Trigger**: Operator calls the endpoint directly (CLI/scripts) or via legacy Power Page UI (≤ $11.9.7)
 2. **API Call**: Client sends POST to `/control/api/monitoring/trigger`
 3. **Trigger Creation**: Backend creates PowerShell script in `/app/data/.triggers/`
 4. **File Appears**: Bind mount makes file visible on host at `data/.triggers/`
@@ -207,7 +207,7 @@ Potential improvements:
 
 - `scripts/monitoring-watcher.ps1` - Watcher service script
 - `backend/routers/control/monitoring.py` - Trigger endpoint and control API
-- `frontend/src/pages/PowerPage.tsx` - Legacy monitoring UI (removed in v1.8.3)
+- `frontend/src/pages/PowerPage.tsx` - Legacy monitoring UI (removed in $11.9.7)
 - `RUN.ps1` - Application launcher with watcher integration
 - `docker-compose.monitoring.yml` - Monitoring stack definition
 
@@ -243,3 +243,4 @@ Test-Path data\.triggers\start_monitoring.ps1  # Should be False
 The Watcher Service provides a robust, Windows-compatible solution for true one-click monitoring auto-start from containerized applications. By leveraging PowerShell background jobs and bind mounts, it bridges the container/host boundary without requiring Docker socket mounting or manual command execution.
 
 **Key Achievement**: Button click → 2-5 seconds → monitoring running automatically. No manual intervention required.
+

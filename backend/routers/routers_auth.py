@@ -256,9 +256,14 @@ async def fetch_csrf_token(request: Request, response: Response):
 
 
 
-# Use PBKDF2-SHA256 to avoid platform-specific bcrypt backend issues.
-# It is widely supported, battle-tested, and avoids the 72-byte bcrypt limit.
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+# Use PBKDF2-SHA256 as the default, but support bcrypt during migration.
+# This avoids platform-specific bcrypt backend issues while allowing legacy hashes.
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256", "bcrypt"],
+    default="pbkdf2_sha256",
+    deprecated=["bcrypt"],
+    bcrypt__rounds=10,
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")  # retained for OpenAPI but not relied upon internally
 
 
@@ -266,8 +271,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")  # retained 
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against a hash.
+    
+    Supports both pbkdf2_sha256 (current) and bcrypt (legacy) hashes.
+    Use pwd_context.needs_update() after successful verification to detect
+    deprecated hashes that should be migrated.
+    """
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        result = pwd_context.verify(plain_password, hashed_password)
+        return result
     except Exception:
         return False
 
@@ -581,6 +593,18 @@ async def login(
 
         _reset_user_login_state(user, db)
         _reset_throttle_entries(throttle_keys)
+
+        # Auto-rehash password if using deprecated scheme (bcrypt -> pbkdf2_sha256)
+        try:
+            if pwd_context.needs_update(hashed_pw):
+                user.hashed_password = get_password_hash(payload.password)
+                db.add(user)
+                db.commit()
+                logger.info(f"Auto-rehashed password for user {normalized_email} from deprecated scheme")
+        except Exception as rehash_error:
+            # Non-critical: log and continue with login even if rehash fails
+            db.rollback()
+            logger.warning(f"Failed to auto-rehash password for {normalized_email}: {rehash_error}")
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
-> **Note**: For historical changes prior to v1.9.0, see `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md`.
+> **Note**: For historical changes prior to $11.9.7, see `archive/pre-$11.9.7/CHANGELOG_ARCHIVE.md`.
 
 ## [Unreleased]
 
@@ -76,7 +76,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Removed obsolete CI debug tools directory (`tools/ci/`)
 
 - **Updated documentation**:
-  - Updated TODO.md to v1.9.4 with completed cleanup items
+  - Updated TODO.md to $11.9.7 with completed cleanup items
   - Updated CONTRIBUTING.md to remove reference to deleted CI integration tests
   - Updated GitHub workflow (commit-ready-cleanup-smoke.yml) to remove obsolete test steps
   - Updated DOCUMENTATION_INDEX.md to remove MASTER_CONSOLIDATION_PLAN.md reference
@@ -131,7 +131,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 #### Legacy Cleanup & Release Preparation
 
-- **Complete Legacy Archival**: Moved all pre-v1.9.1 artifacts to `archive/pre-v1.9.1/`
+- **Complete Legacy Archival**: Moved all pre-$11.9.7 artifacts to `archive/pre-$11.9.7/`
   - Archived 7 legacy release notes (v1.6.x, v1.8.x series)
   - Archived deprecated scripts and tools (SMART_SETUP.ps1, obsolete .bat wrappers)
   - Archived one-time migration scripts (reorganize_scripts.py, CONSOLIDATE_BAT_WRAPPERS.ps1)
@@ -197,7 +197,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 - Added comprehensive `COMMIT_PREP_USAGE.md` guide for pre-commit workflow automation
 - Updated copilot-instructions.md with new config/docker directory paths
-- Updated DOCUMENTATION_INDEX.md to v1.9.2 with infrastructure changes
+- Updated DOCUMENTATION_INDEX.md to $11.9.7 with infrastructure changes
 - Fixed docker-compose paths in MONITORING.md and PRODUCTION_DOCKER_GUIDE.md
 - Updated README.md with v2.0 consolidated scripts
 - Updated Greek docs (ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ, ΟΔΗΓΟΣ_ΧΡΗΣΗΣ) with current scripts
@@ -229,7 +229,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 - **Help & Documentation Enhancements** - Comprehensive help system improvements
   - Added "Autosave & Data Persistence" section with 7 Q&A entries
-  - Added "Recent Improvements (v1.8.x → v1.9.0)" section with 7 Q&A entries
+  - Added "Recent Improvements (v1.8.x → $11.9.7)" section with 7 Q&A entries
   - Created clickable resource cards with download links and GitHub references
   - Added PDF user guide downloads (English/Greek) with 40-45 pages each
   - Added GitHub Issues and Discussions forum links
@@ -277,7 +277,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Fixed
 
 - Fixed CI linting errors and package-lock corruption
-- Added v1.9.0 release notes
+- Added $11.9.7 release notes
 
 ### Security
 
@@ -317,28 +317,29 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
-## Pre-v1.9.0 History
+## Pre-$11.9.7 History
 
-For detailed changelog entries from versions prior to v1.9.0, see:
+For detailed changelog entries from versions prior to $11.9.7, see:
 
-- `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md` - Summarized historical entries
+- `archive/pre-$11.9.7/CHANGELOG_ARCHIVE.md` - Summarized historical entries
 - [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases) - Official release assets
 
 ### Version History Summary
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| v1.8.7 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
-| v1.8.6.4 | 2025-11-22 | Windows GUI Installer Wizard |
-| v1.8.0 | 2025-11-19 | QNAP deployment, On-demand monitoring |
-| v1.6.0 | 2025-11-13 | Refresh token authentication |
-| v1.3.9 | 2025-11-06 | CSV import, codebase cleanup |
-| v1.2.0 | 2025-10-30 | JWT authentication, RBAC |
+| $11.9.7 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
+| $11.9.7.4 | 2025-11-22 | Windows GUI Installer Wizard |
+| $11.9.7 | 2025-11-19 | QNAP deployment, On-demand monitoring |
+| $11.9.7 | 2025-11-13 | Refresh token authentication |
+| $11.9.7 | 2025-11-06 | CSV import, codebase cleanup |
+| $11.9.7 | 2025-10-30 | JWT authentication, RBAC |
 
 ---
 
-[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.3...v1.9.4
-[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.2...v1.9.3
-[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.1...v1.9.2
-[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.0...v1.9.1
-[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.9.0
+[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
+[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
+[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
+[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
+[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+

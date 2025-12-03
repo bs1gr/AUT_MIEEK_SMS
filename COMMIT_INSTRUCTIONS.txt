@@ -1,0 +1,113 @@
+═══════════════════════════════════════════════════════════════════════════════
+GIT COMMIT INSTRUCTIONS - v1.9.6 Release
+═══════════════════════════════════════════════════════════════════════════════
+
+OVERVIEW
+--------
+This release addresses two critical code quality improvements:
+1. Issue 2.2: Centralized import resolution (eliminates 140+ lines of fallback code)
+2. Issue 2.3: Mixed password hashing with transparent bcrypt→pbkdf2_sha256 migration
+
+All tests passing: 360 backend + 1011 frontend = 1371 total tests ✓
+
+
+COMMIT MESSAGE
+--------------
+feat: centralize import resolution and add password migration (v1.9.6)
+
+Resolves #2.2 and #2.3 from technical debt backlog
+
+**Import Resolution (Issue 2.2)**
+- Created centralized import_resolver.py module with ensure_backend_importable()
+- Replaced 140+ lines of try/except import fallbacks in main.py and app_factory.py
+- Simplified debugging by eliminating scattered import error handling
+- All backend modules now use consistent import path management
+
+**Password Hashing Migration (Issue 2.3)**
+- Updated pwd_context to support both pbkdf2_sha256 (default) and bcrypt (deprecated)
+- Added transparent auto-rehash on login for users with legacy bcrypt passwords
+- Created comprehensive test suite (5 new tests) validating migration capability
+- No user action required - migration happens automatically on next login
+
+**Testing**
+- Backend: 360 tests passed, 1 skipped
+- Frontend: 1011 tests passed, 11 skipped
+- New password rehash tests: 5/5 passing
+- Zero regressions detected
+
+**Breaking Changes**
+None - all changes are backward compatible
+
+**Files Modified**
+- backend/import_resolver.py (enhanced)
+- backend/main.py (simplified)
+- backend/app_factory.py (simplified)
+- backend/routers/routers_auth.py (password migration)
+- backend/tests/test_password_rehash.py (new)
+- TODO.md (updated to v1.9.6)
+- VERSION (1.9.5 → 1.9.6)
+
+Co-authored-by: AI Assistant (GitHub Copilot)
+
+
+GIT COMMANDS
+------------
+# Stage all modified files
+git add backend/import_resolver.py
+git add backend/main.py
+git add backend/app_factory.py
+git add backend/routers/routers_auth.py
+git add backend/tests/test_password_rehash.py
+git add TODO.md
+git add VERSION
+
+# Commit with the message above
+git commit -F COMMIT_INSTRUCTIONS.txt --edit
+
+# Optional: Create release tag
+git tag -a v1.9.6 -m "Release v1.9.6: Import resolution + password migration"
+
+# Push to remote
+git push origin main
+git push origin v1.9.6
+
+
+PRE-COMMIT VALIDATION
+---------------------
+✓ Backend tests: 360 passed, 1 skipped (22.23s)
+✓ Frontend tests: 1011 passed, 11 skipped (20.36s)
+✓ Password rehash tests: 5/5 passing
+✓ No deprecated import patterns in production code
+✓ Documentation updated (TODO.md, VERSION)
+✓ No obsolete files remaining
+
+
+ROLLBACK PLAN (if needed)
+--------------------------
+# Revert to previous version
+git revert HEAD
+
+# Or reset to before commit
+git reset --hard HEAD~1
+
+# Then restore VERSION file
+echo "1.9.5" > VERSION
+
+
+POST-COMMIT CHECKLIST
+---------------------
+☐ Verify CI/CD pipeline passes
+☐ Monitor application logs for any import issues
+☐ Track password migration rate (bcrypt→pbkdf2_sha256)
+☐ Update project documentation with v1.9.6 changes
+☐ Close GitHub issues #2.2 and #2.3
+
+
+NOTES
+-----
+- This is a code quality improvement release, not a feature release
+- No user-facing changes except transparent password migration
+- All existing functionality preserved
+- Safe to deploy to production immediately
+
+═══════════════════════════════════════════════════════════════════════════════

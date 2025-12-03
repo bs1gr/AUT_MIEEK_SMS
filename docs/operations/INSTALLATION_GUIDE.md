@@ -409,7 +409,7 @@ pwsh ./DOCKER.ps1 -Start
 docker compose up -d --build
 ```
 
-> **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in v1.9.0+. All legacy scripts were consolidated.
+> **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in $11.9.7+. All legacy scripts were consolidated.
 
 ---
 
@@ -485,3 +485,4 @@ After installation:
 **Version**: 1.9.3
 **Last Updated**: January 2025
 **License**: MIT
+

@@ -2,9 +2,9 @@
 
 **Version:** 2.0.0  
 **Updated:** 2025-11-27  
-**Purpose:** Unified pre-commit verification automation for SMS v1.9.3+
+**Purpose:** Unified pre-commit verification automation for SMS $11.9.7+
 
-> **Migration Notice (v1.9.3)**: Multiple commit preparation scripts (`COMMIT_PREP.ps1`, `PRE_COMMIT_CHECK.ps1`, `PRE_COMMIT_HOOK.ps1`, `SMOKE_TEST_AND_COMMIT_PREP.ps1`) have been consolidated into a single unified script `COMMIT_READY.ps1`. See `archive/deprecated_commit_scripts_2025-11-27/README.md` for migration details.
+> **Migration Notice ($11.9.7)**: Multiple commit preparation scripts (`COMMIT_PREP.ps1`, `PRE_COMMIT_CHECK.ps1`, `PRE_COMMIT_HOOK.ps1`, `SMOKE_TEST_AND_COMMIT_PREP.ps1`) have been consolidated into a single unified script `COMMIT_READY.ps1`. See `archive/deprecated_commit_scripts_2025-11-27/README.md` for migration details.
 
 ---
 
@@ -411,3 +411,4 @@ See `archive/deprecated_commit_scripts_2025-11-27/README.md` for detailed migrat
 **Last Updated:** 2025-11-27  
 **Version:** 2.0.0  
 **Script:** COMMIT_READY.ps1
+

@@ -1277,7 +1277,7 @@ cd /share/Container/student-management-system
 
 # 2. Pull latest code
 git fetch --tags
-git checkout v1.9.0  # Replace with desired version
+git checkout $11.9.7  # Replace with desired version
 
 # 3. Update environment if needed
 diff .env.qnap.example .env.qnap
@@ -1349,5 +1349,6 @@ For questions or issues, consult the troubleshooting section or submit an issue 
 **Document Version:** 1.0
 **Author:** Claude Code (Anthropic)
 **Date:** 2025-11-27
-**Based on:** SMS v1.8.5, QNAP QTS 5.x, Container Station
+**Based on:** SMS $11.9.7, QNAP QTS 5.x, Container Station
 **License:** Same as Student Management System project
+

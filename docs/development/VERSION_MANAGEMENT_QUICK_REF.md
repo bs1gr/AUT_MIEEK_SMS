@@ -88,7 +88,7 @@ git add -A
 git commit -m "chore: bump version to 1.9.0"
 
 # 5. Tag release
-git tag -a v1.9.0 -m "Release v1.9.0"
+git tag -a $11.9.7 -m "Release $11.9.7"
 
 # 6. Push
 git push origin main --tags
@@ -207,3 +207,4 @@ Remove-Variable * -ErrorAction SilentlyContinue
 **Last Updated:** 2025-11-24  
 **Script Version:** 1.0.0  
 **Maintained By:** SMS Development Team
+

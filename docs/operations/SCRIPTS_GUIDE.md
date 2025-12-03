@@ -23,7 +23,7 @@ The project's operational scripts have been consolidated into two primary entry 
 1. **Docker Deployment** (`DOCKER.ps1`) - For Docker-based deployment, management, and production operations
 2. **Native Development** (`NATIVE.ps1`) - For local development with hot reload
 
-> **Note:** As of v1.9.0, all legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`) have been consolidated into `DOCKER.ps1` and `NATIVE.ps1`. See `archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md` for migration details.
+> **Note:** As of $11.9.7, all legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native.ps1`) have been consolidated into `DOCKER.ps1` and `NATIVE.ps1`. See `archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md` for migration details.
 
 This consolidation ensures:
 
@@ -259,9 +259,9 @@ scripts\dev\internal\VERIFY_LOCALIZATION.ps1
 
 Scripts for deployment and production operations. See [scripts/deploy/README.md](../scripts/deploy/README.md) for detailed documentation.
 
-### Primary Entry Points (v1.9.0+)
+### Primary Entry Points ($11.9.7+)
 
-As of v1.9.0, use the consolidated root-level scripts:
+As of $11.9.7, use the consolidated root-level scripts:
 
 - `.\DOCKER.ps1` - All Docker operations
 - `.\NATIVE.ps1` - All native development operations
@@ -379,10 +379,10 @@ Purpose-built PowerShell helpers that keep GitHub releases, GHCR packages, and c
 
     ```powershell
     # Live data via gh
-    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -Repo bs1gr/AUT_MIEEK_SMS -ThresholdTag v1.6.2 -DryRun
+    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -Repo bs1gr/AUT_MIEEK_SMS -ThresholdTag $11.9.7 -DryRun
 
     # Offline simulation/local CI (no gh calls)
-    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -ThresholdTag v1.6.2 -DryRun `
+    pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -ThresholdTag $11.9.7 -DryRun `
         -ReleasesJsonPath scripts/ops/samples/releases.sample.json
     ```
 
@@ -493,7 +493,7 @@ scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 ### GitHub Release Maintenance
 
 - `scripts/ops/archive-releases.ps1` — PowerShell helper that marks historical GitHub releases as archived/pre-release and injects the standard warning banner. Supports `-DryRun`, custom repository/owner overrides, offline fixtures via `-ReleasesJsonPath` (see `scripts/ops/samples/releases.sample.json`), and optional body suffixes so you can verify the exact markdown that will be pushed before touching production releases. Run it from the repo root (`pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -DryRun`) to audit the changes, then rerun without `-DryRun` when ready.
-- `.github/workflows/archive-legacy-releases.yml` — Manual GitHub Actions workflow that wraps the helper above so Release Engineering can run the archival pass directly from the Actions tab. Provide a `threshold_tag` (defaults to `v1.6.2`) and keep `dry_run=true` for verification before re-running live.
+- `.github/workflows/archive-legacy-releases.yml` — Manual GitHub Actions workflow that wraps the helper above so Release Engineering can run the archival pass directly from the Actions tab. Provide a `threshold_tag` (defaults to `$11.9.7`) and keep `dry_run=true` for verification before re-running live.
 - `scripts/ops/remove-legacy-packages.ps1` — Companion script that iterates over GHCR container packages (defaults to `sms-backend`, `sms-frontend`, `sms-fullstack`) and either deletes every version or switches visibility to private. Supports `-DryRun`, `-Privatize`, offline fixtures via `-PackageDataPath` (example: `scripts/ops/samples/package-versions.sample.json`), and custom organization/package overrides.
 
 ## Linux Helpers
@@ -510,7 +510,7 @@ See also: Linux Quick Start in the main [README](../README.md#-linux-quick-start
 
 ### From Previous Versions
 
-If you're upgrading from a version before the script consolidation (v1.9.0):
+If you're upgrading from a version before the script consolidation ($11.9.7):
 
 **Old scripts → New commands (v2.0)**:
 
@@ -530,7 +530,7 @@ If you're upgrading from a version before the script consolidation (v1.9.0):
 - `scripts/internal/*` → Split between `scripts/dev/internal/` and `scripts/deploy/internal/`
 - `scripts/docker/*` → `scripts/deploy/docker/`
 
-**Recommended workflow (v1.9.0+)**:
+**Recommended workflow ($11.9.7+)**:
 
 1. Use `DOCKER.ps1` (Docker) or `NATIVE.ps1` (native dev) as your entry point
 2. Use `-Help` flag to see all available commands
@@ -540,7 +540,7 @@ If you're upgrading from a version before the script consolidation (v1.9.0):
 
 ### Breaking Changes
 
-All legacy scripts are consolidated in v1.9.0. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
+All legacy scripts are consolidated in $11.9.7. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
 
 ### Benefits of New Organization
 
@@ -560,12 +560,12 @@ All legacy scripts are consolidated in v1.9.0. Use only the canonical entry poin
 
 ## Version History
 
-- **v1.9.0** (January 2025): Scripts consolidated to DOCKER.ps1 and NATIVE.ps1
-- **v1.5.0** (November 2025): Legacy scripts archived
-- **v1.2.3+** (October 2025): Scripts reorganized into dev/ and deploy/
-- **v1.2.0** (September 2025): Introduced SMART_SETUP.ps1 and SMS.ps1
-- **v1.1.0** (August 2025): Added Docker volume versioning
-- **v1.0.0** (July 2025): Initial release
+- **$11.9.7** (January 2025): Scripts consolidated to DOCKER.ps1 and NATIVE.ps1
+- **$11.9.7** (November 2025): Legacy scripts archived
+- **$11.9.7+** (October 2025): Scripts reorganized into dev/ and deploy/
+- **$11.9.7** (September 2025): Introduced SMART_SETUP.ps1 and SMS.ps1
+- **$11.9.7** (August 2025): Added Docker volume versioning
+- **$11.9.7** (July 2025): Initial release
 
 ## Contributing
 
@@ -585,3 +585,4 @@ When adding new scripts:
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check status: `.\DOCKER.ps1 -Status`
+

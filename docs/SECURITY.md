@@ -68,7 +68,7 @@ The following patterns are automatically detected and rejected:
 
 - Contains "change", "placeholder", "example", "your-secret"
 - Less than 32 characters
-- Default Docker compose fallback (removed in v1.9.3)
+- Default Docker compose fallback (removed in $11.9.7)
 - Empty or whitespace-only values
 
 ## 2. Admin Credentials
@@ -359,8 +359,9 @@ We will acknowledge within 48 hours and provide a timeline for fix.
 
 ## Version History
 
-- **v1.9.3** (2025-12-03): Removed SECRET_KEY default in docker-compose.yml, hardened .env.example, added startup validation
-- **v1.9.0** (2025-11): Added SECRET_KEY_STRICT_ENFORCEMENT, CSRF protection
-- **v1.8.0** (2025-10): Implemented JWT authentication, role-based access control
+- **$11.9.7** (2025-12-03): Removed SECRET_KEY default in docker-compose.yml, hardened .env.example, added startup validation
+- **$11.9.7** (2025-11): Added SECRET_KEY_STRICT_ENFORCEMENT, CSRF protection
+- **$11.9.7** (2025-10): Implemented JWT authentication, role-based access control
+
 
 

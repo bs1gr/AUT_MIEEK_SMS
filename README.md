@@ -66,7 +66,7 @@ We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 
-See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
 
 ##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
 
@@ -188,7 +188,7 @@ Deploy to QNAP Container Station with PostgreSQL database:
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
-**Monitoring UI deprecation (v1.8.3):**
+**Monitoring UI deprecation ($11.9.7):**
 
 - The embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) has been removed from the app.
 - The Power page now focuses on System Health and the Control Panel only.
@@ -248,9 +248,9 @@ All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native
 - ✅ 100% feature parity maintained
 - ✅ Better error handling and diagnostics
 
-**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
 
-**Archived:** Legacy scripts preserved in `archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/`
+**Archived:** Legacy scripts preserved in `archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/`
 
 ### Documentation Consolidation ✅
 
@@ -406,15 +406,15 @@ Full release notes: `CHANGELOG.md` (sections 1.8.6.0–1.8.6.4).
 
 ## Historical Highlights (Selected)
 
-### v1.6.5 – Control API Re-base Path & Restart UX
+### $11.9.7 – Control API Re-base Path & Restart UX
 
 Canonical `/control/api/*` path, shared `CONTROL_API_BASE`, restart UX improvements.
 
-### v1.6.4 – Repository Cleanup
+### $11.9.7 – Repository Cleanup
 
 Systematic cleanup & maintainability upgrades.
 
-### v1.6.3 – Release Archive Pipeline
+### $11.9.7 – Release Archive Pipeline
 
 Legacy release archival & GHCR retirement guidance.
 
@@ -423,7 +423,7 @@ Legacy release archival & GHCR retirement guidance.
 - 🚪 **Canonical Control API path:** Operational endpoints now sit under `/control/api/*`, decoupling them from the public REST surface and matching the FastAPI lifespan design.
 - 🔗 **Shared Control API base helper:** Frontend utilities export `CONTROL_API_BASE`, so Control Panel components, backups, and restart workflows all target the same origin with zero string duplication.
 - ♻️ **Restart UX polish:** Buttons render backend hints (Docker vs. native), localized fallbacks, and instructions for configuring shutdown tokens so operators always know why a restart is blocked.
-- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/v1.6.5.md`.
+- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$11.9.7.md`.
 
 ---
 
@@ -439,28 +439,28 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in v1.6.3
+## 📦 What's New in $11.9.7
 
-- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below v1.6.2 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
+- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $11.9.7 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
 - 📦 **GitHub Packages retirement playbook:** Added guidance in the docs and management scripts for deleting or privatizing the three obsolete packages so downstream deployments don’t accidentally pull stale artifacts.
-- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out v1.6.3 as the active release and explain how the archive flow works for operators.
-- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/v1.6.3.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
+- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $11.9.7 as the active release and explain how the archive flow works for operators.
+- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$11.9.7.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
 - 🧰 **Operator visibility:** Control Panel + RUN/SMS scripts reference the new archive path in their troubleshooting copy, keeping previously removed helpers discoverable but isolated from day-to-day workflows.
 - 🔒 **Compliance follow-up:** Documented the Starlette 0.49.1 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
 - 📣 **Upgrade messaging:** Added explicit instructions for tagging/publishing the new release and for consumers who need to migrate automation off the deprecated assets.
 
 ## 📦 Releases
 
-- Latest: [v1.6.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5) – Canonical Control API base path, shared frontend helper, and restart UX improvements
-- Previous: [v1.6.4](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
-- Archive: [v1.6.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3) – Release archive pipeline, GHCR retirement guidance, and automation hooks
+- Latest: [$11.9.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7) – Canonical Control API base path, shared frontend helper, and restart UX improvements
+- Previous: [$11.9.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
+- Archive: [$11.9.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7) – Release archive pipeline, GHCR retirement guidance, and automation hooks
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/v1.6.5.md` using `gh release create v1.6.5 --notes-file docs/releases/v1.6.5.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/$11.9.7.md` using `gh release create $11.9.7 --notes-file docs/releases/$11.9.7.md`.
 
 ---
 
-## 📦 What's New in v1.5.0
+## 📦 What's New in $11.9.7
 
 - 🟢 **Canonical entry points:** Consolidated to `DOCKER.ps1` (Docker deployment) and `NATIVE.ps1` (native development). All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) were archived in v2.0.
 - 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
@@ -470,7 +470,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in v1.4.0
+## 📦 What's New in $11.9.7
 
 - 🚀 **One-click deployment** with `DOCKER.ps1` (formerly `RUN.ps1`)
 - 💾 **Automatic backups** before updates
@@ -493,7 +493,7 @@ Legacy release archival & GHCR retirement guidance.
 .\SETUP_AFTER_GITHUB_ZIP.ps1
 ```
 
-This automatically installs everything! Or use the classic method: (v1.8.3)
+This automatically installs everything! Or use the classic method: ($11.9.7)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -567,7 +567,7 @@ The runtime enforces a clear separation between release and development workflow
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
 - `DOCKER.ps1` and helper scripts respect these guards to prevent configuration drift.
 
-### PostgreSQL Support & Migration (v1.8.3)
+### PostgreSQL Support & Migration ($11.9.7)
 
 - `RUN.ps1` and all Docker helpers now read `DATABASE_URL`,
   `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
@@ -719,7 +719,7 @@ Troubleshooting:
 
 ---
 
-## 🎯 What's New in v1.3.8
+## 🎯 What's New in $11.9.7
 
 ### Testing & Quality Improvements Release
 
@@ -745,7 +745,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ---
 
-## 🎯 What's New in v1.2.0
+## 🎯 What's New in $11.9.7
 
 ### Under the Hood
 
@@ -887,7 +887,7 @@ For Docker operations:
 
 Once the stack is running you have two management surfaces:
 
-- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in v1.8.3, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $11.9.7, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
 - **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
@@ -996,7 +996,7 @@ Reverting: edit or delete docker-compose.override.yml and restart compose. Old v
 
 ### Quick Maintenance Scripts (Windows)
 
-> **Note:** As of v1.5.0, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
+> **Note:** As of $11.9.7, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
 
 - `CLEANUP.bat` — Non-destructive cleanup: stops Docker services, clears caches/logs, preserves data and Docker volumes, backs up native DB.
 - `CLEANUP_COMPREHENSIVE.ps1` — Deep cleanup of all artifacts, logs, and build files.
@@ -1366,4 +1366,5 @@ We added extra safety and convenience features to `NATIVE.ps1` to make first-tim
 If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
 
 These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
+
 

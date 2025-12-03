@@ -912,7 +912,7 @@ test('create example item', async ({ page }) => {
 
 ## Performance Optimization
 
-### Recent Optimizations (v1.8.6+)
+### Recent Optimizations ($11.9.7+)
 
 **Database Indexing (+40% query speed):**
 
@@ -1188,3 +1188,4 @@ docker-compose up -d --build
 **Last Updated:** November 22, 2025  
 **Maintained By:** SMS Development Team  
 **Feedback:** Create issue with label `documentation`
+

@@ -1,6 +1,6 @@
 # pip Version Management
 
-> **Note (v1.9.0+)**: The script `SMART_SETUP.ps1` referenced in this document has been consolidated into `NATIVE.ps1`. Use `NATIVE.ps1 -Setup` for native development setup.
+> **Note ($11.9.7+)**: The script `SMART_SETUP.ps1` referenced in this document has been consolidated into `NATIVE.ps1`. Use `NATIVE.ps1 -Setup` for native development setup.
 
 ## Current Target Version: 25.3
 
@@ -102,3 +102,4 @@ The following files ensure pip 25.3 is used:
 - [Python Virtual Environments](https://docs.python.org/3/library/venv.html)
 - [pip Documentation](https://pip.pypa.io/)
 - [pip Release Notes](https://pip.pypa.io/en/stable/news/)
+
