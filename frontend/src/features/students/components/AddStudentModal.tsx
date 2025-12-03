@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+// Note: no React hooks needed here
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -104,7 +104,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                   <FormItem>
                     <FormLabel>{t('firstNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('firstNamePlaceholder')} {...field} />
+                      <Input placeholder={t('firstNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,7 +117,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                   <FormItem>
                     <FormLabel>{t('lastNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('lastNamePlaceholder')} {...field} />
+                      <Input placeholder={t('lastNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,7 +132,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 <FormItem>
                   <FormLabel>{t('emailPlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} />
+                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

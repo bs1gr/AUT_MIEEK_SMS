@@ -1,5 +1,11 @@
 {
   "default": true,
+  "ignores": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "backend/migrations/**",
+    "tmp_test_migrations/**"
+  ],
   "MD013": { "line_length": 120, "code_blocks": false, "tables": false },
   "MD022": { "lines_above": 1, "lines_below": 1 },
   "MD031": true,
