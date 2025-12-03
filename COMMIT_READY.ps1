@@ -847,17 +847,34 @@ function Invoke-CodeQualityChecks {
         $npxAvailable = Test-CommandAvailable -Name "npx"
         if ($npxAvailable) {
             $mdConfig = Join-Path $SCRIPT_DIR "config\.markdownlint.json"
+            $mdIgnore = Join-Path $SCRIPT_DIR ".markdownlintignore"
             if (Test-Path $mdConfig) {
                 if ($AutoFix) {
-                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
+                    if (Test-Path $mdIgnore) {
+                        $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
+                    } else {
+                        $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
+                    }
                 } else {
-                    $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
+                    if (Test-Path $mdIgnore) {
+                        $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
+                    } else {
+                        $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
+                    }
                 }
             } else {
                 if ($AutoFix) {
-                    $output = npx markdownlint-cli "**/*.md" --fix 2>&1
+                    if (Test-Path $mdIgnore) {
+                        $output = npx markdownlint-cli "**/*.md" --fix --ignore-path "$mdIgnore" 2>&1
+                    } else {
+                        $output = npx markdownlint-cli "**/*.md" --fix 2>&1
+                    }
                 } else {
-                    $output = npx markdownlint-cli "**/*.md" 2>&1
+                    if (Test-Path $mdIgnore) {
+                        $output = npx markdownlint-cli "**/*.md" --ignore-path "$mdIgnore" 2>&1
+                    } else {
+                        $output = npx markdownlint-cli "**/*.md" 2>&1
+                    }
                 }
             }
         } else {

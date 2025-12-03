@@ -58,15 +58,15 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
   }, [student, form]);
 
   const onSubmit = (data: StudentUpdateFormData): void => {
-    // Map schema data back to Student type
+    // Map schema data back to Student type, preserving existing values when undefined
     const updatedStudent: Student = {
       ...student,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone: data.phone || '',
-      mobile_phone: data.phone || '',
-      enrollment_date: data.enrollment_date,
+      first_name: data.first_name ?? student.first_name,
+      last_name: data.last_name ?? student.last_name,
+      email: data.email ?? student.email,
+      phone: data.phone ?? student.phone ?? '',
+      mobile_phone: data.phone ?? student.mobile_phone ?? '',
+      enrollment_date: data.enrollment_date ?? student.enrollment_date,
     };
     onUpdate(updatedStudent);
     onClose();
@@ -101,7 +101,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('firstNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('firstNamePlaceholder')} {...field} />
+                      <Input placeholder={t('firstNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,7 +114,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('lastNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('lastNamePlaceholder')} {...field} />
+                      <Input placeholder={t('lastNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +129,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 <FormItem>
                   <FormLabel>{t('emailPlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} />
+                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

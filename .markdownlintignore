@@ -1,2 +1,15 @@
 backups/
 docs/archive/
+
+# Third-party and build artifacts
+node_modules/
+**/node_modules/**
+dist/
+**/dist/**
+
+# Database migrations and test fixtures
+backend/migrations/**
+tmp_test_migrations/**
+
+# Logs and generated content
+logs/
