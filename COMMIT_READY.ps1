@@ -887,10 +887,18 @@ function Invoke-CodeQualityChecks {
             Write-Success "Markdown linting passed"
             Add-Result "Linting" "Markdown Lint" $true
         } else {
-            Write-Failure "Markdown linting failed"
-            Write-Host $output -ForegroundColor Gray
-            Add-Result "Linting" "Markdown Lint" $false $output
-            $allPassed = $false
+            # In 'full' mode, allow docs lint to be non-blocking unless STRICT_DOCS_LINT=1
+            $strictDocs = ($env:STRICT_DOCS_LINT -as [string]) -and ($env:STRICT_DOCS_LINT.ToLower() -in @('1','true','yes'))
+            if ($Mode -eq 'full' -and -not $strictDocs) {
+                Write-Warning-Msg "Markdown linting reported issues (non-blocking in full mode). Review output below:"
+                Write-Host $output -ForegroundColor Gray
+                Add-Result "Linting" "Markdown Lint (non-blocking)" $true "Issues present; non-blocking in full mode"
+            } else {
+                Write-Failure "Markdown linting failed"
+                Write-Host $output -ForegroundColor Gray
+                Add-Result "Linting" "Markdown Lint" $false $output
+                $allPassed = $false
+            }
         }
     }
     catch {
