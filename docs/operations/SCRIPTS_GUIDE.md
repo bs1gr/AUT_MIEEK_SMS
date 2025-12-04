@@ -58,7 +58,7 @@ student-management-system/
 │   │   ├── CHECK_VOLUME_VERSION.ps1
 │   │   ├── set-docker-metadata.ps1
 │   │   ├── docker/                # Docker operations (archived - use DOCKER.ps1)
-│   │   │   └── (scripts moved to archive/pre-v1.9.7-docker-scripts/)
+│   │   │   └── (scripts moved to archive/pre-$11.9.7-docker-scripts/)
 │   │   └── internal/              # Packaging tools
 │   │       ├── CREATE_PACKAGE.ps1/.bat
 │   │       ├── CREATE_DEPLOYMENT_PACKAGE.ps1/.bat
@@ -264,7 +264,7 @@ As of $11.9.7, use the consolidated root-level scripts:
 
 ### Docker Operations (`scripts/deploy/docker/`)
 
-> **Note:** For Docker operations, use `.\DOCKER.ps1` which provides comprehensive functionality including build, start, stop, restart, update, monitoring, backup, and cleanup operations. Legacy helper scripts have been archived to `archive/pre-v1.9.7-docker-scripts/` as of v1.9.7.
+> **Note:** For Docker operations, use `.\DOCKER.ps1` which provides comprehensive functionality including build, start, stop, restart, update, monitoring, backup, and cleanup operations. Legacy helper scripts have been archived to `archive/pre-$11.9.7-docker-scripts/` as of $11.9.7.
 
 ### Volume Management
 
@@ -541,4 +541,5 @@ When adding new scripts:
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check status: `.\DOCKER.ps1 -Status`
+
 
