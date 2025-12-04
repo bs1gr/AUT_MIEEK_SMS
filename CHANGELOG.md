@@ -31,7 +31,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 #### Script Consolidation (2025-12-04)
 
 - **Docker Helper Scripts Archived**: Consolidated 6 Docker helper scripts
-  - Archived to `archive/pre-v1.9.7-docker-scripts/` with migration guide
+  - Archived to `archive/pre-$11.9.7-docker-scripts/` with migration guide
   - Scripts: `DOCKER_UP`, `DOCKER_DOWN`, `DOCKER_REFRESH`, `DOCKER_RUN`, `DOCKER_SMOKE`, `DOCKER_UPDATE_VOLUME`
   - **DOCKER.ps1 is now single source of truth** for all Docker operations
   - Eliminates 283 lines of duplicate code
@@ -397,4 +397,5 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+
 

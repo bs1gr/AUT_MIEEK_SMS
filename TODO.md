@@ -1,8 +1,8 @@
 # Project TODO
 
-**Last updated**: 2025-12-04 (v1.9.7 Pre-Release Audit & Cleanup)
-**Review Score**: 10/10 (Excellent - Production Ready with Enhanced Code Quality)
-**Current Version**: 1.9.7
+**Last updated**: 2025-12-04 (v1.9.7 Released - Script Consolidation Complete)
+**Review Score**: 10/10 (Excellent - Production Ready with Enhanced Code Quality & Maintainability)
+**Current Version**: 1.9.7 (Released)
 
 ---
 
@@ -19,11 +19,12 @@
 | Testing & Quality | **Security validation tests** (17/17 passing); Translation integrity tests; Exception handler regression tests; Enhanced CI/CD with frontend quality gates; DEV_EASE pre-commit policy |
 | UX Enhancement | Universal autosave pattern; automatic data persistence; visual save indicators; eliminated manual save buttons |
 | Documentation | **SECURITY.md** (15-section guide); **SECURITY_AUDIT_REPORT.md**; **SECURITY_FIX_SUMMARY.md**; Port references standardized to 8080; Legacy script refs updated; Comprehensive Git workflow guide |
-| **Legacy Cleanup** | All pre-v1.9.1 artifacts archived; Obsolete test files removed; CI debug tools cleaned; **v1.9.5: Temporary security test artifacts cleaned**; **v1.9.6: Import fallback complexity eliminated** |
+| **Legacy Cleanup** | All pre-v1.9.1 artifacts archived; Obsolete test files removed; CI debug tools cleaned; **v1.9.5: Temporary security test artifacts cleaned**; **v1.9.6: Import fallback complexity eliminated**; **v1.9.7: Script consolidation (~427 lines eliminated, 7 scripts archived)** |
+| **Script Quality** | **🧹 CONSOLIDATION (v1.9.7)**: Archived 6 Docker helper scripts → DOCKER.ps1 single source of truth; Consolidated 2 VERIFY_VERSION scripts with dual modes; Created shared cleanup library (scripts/lib/cleanup_common.ps1); Eliminated duplicate code |
 
-All high-impact objectives delivered; critical security vulnerabilities eliminated; import resolution centralized.
+All high-impact objectives delivered; critical security vulnerabilities eliminated; import resolution centralized; script organization optimized.
 
-## ✅ v1.9.7 Release (Completed - 2025-12-03)
+## ✅ v1.9.7 Release (Completed - 2025-12-04)
 
 ### Performance Optimizations & Database Improvements
 
@@ -59,12 +60,38 @@ All high-impact objectives delivered; critical security vulnerabilities eliminat
   - Added proper environment isolation in test
   - All 360 backend tests now pass (100% success rate)
 
+### Script Consolidation & Code Quality (2025-12-04)
+
+- ✅ **Docker Helper Scripts**: Archived 6 scripts (283 lines) to `archive/pre-v1.9.7-docker-scripts/`
+  - Scripts: DOCKER_UP, DOCKER_DOWN, DOCKER_REFRESH, DOCKER_RUN, DOCKER_SMOKE, DOCKER_UPDATE_VOLUME
+  - DOCKER.ps1 confirmed as single source of truth (1293 lines comprehensive)
+  
+- ✅ **Version Verification Consolidation**: Added `-CIMode` to VERIFY_VERSION.ps1
+  - Fast CI mode for pipeline validation (VERSION ↔ package.json)
+  - Archived redundant `scripts/ci/VERIFY_VERSION.ps1` (45 lines)
+  
+- ✅ **Shared Cleanup Library**: Created `scripts/lib/cleanup_common.ps1` (174 lines)
+  - Functions: Remove-SafeItem, Format-FileSize, Write-CleanupSummary, Test-GitKeepFile
+  - Refactored CLEANUP_PRE_RELEASE.ps1 and CLEANUP_COMPREHENSIVE.ps1 to use shared code
+  - Eliminates ~100 lines of duplicate code
+
+- ✅ **Impact**: ~427 total lines eliminated, 67→56 active scripts, single source of truth for Docker/version ops
+
 ### Documentation
 
-- ✅ Created `PERFORMANCE_AUDIT_2025-12-03.md` (comprehensive audit report)
-- ✅ Created `TEST_RESULTS_2025-12-03.md` (validation results)
+- ✅ Created comprehensive `SCRIPT_CONSOLIDATION_REPORT.md` (300+ lines)
+- ✅ Created `PERFORMANCE_AUDIT_2025-12-03.md` (archived to session artifacts)
+- ✅ Created `TEST_RESULTS_2025-12-03.md` (archived to session artifacts)
 - ✅ Updated `docs/DOCUMENTATION_INDEX.md` with migration guide
-- ✅ Updated CHANGELOG.md with performance improvements
+- ✅ Updated `docs/operations/SCRIPTS_GUIDE.md` (removed archived script references)
+- ✅ Updated CHANGELOG.md with performance improvements and script consolidation
+- ✅ Updated `.github/copilot-instructions.md` to v1.9.7
+
+### Final Cleanup (2025-12-04)
+
+- ✅ Archived temporary audit files to `archive/session-artifacts-v1.9.7/`
+- ✅ Archived old installer artifacts to `installer/archive-v1.9.4-artifacts/`
+- ✅ Removed duplicate commit instruction files (kept COMMIT_INSTRUCTIONS.md)
 
 ## ✅ v1.9.6 Release (Completed - 2025-12-03)
 
