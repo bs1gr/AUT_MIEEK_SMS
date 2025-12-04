@@ -4,12 +4,11 @@
 
 .DESCRIPTION
     Ensures all Greek-language files in the installer use proper encoding:
-    - Greek.isl: Must declare LanguageCodePage=1253 (Windows-1253)
-    - *.txt files: Must be encoded as Windows-1253 (Greek)
-    - *.rtf files: Must use UTF-8 or Windows-1253
+    - Greek.isl: Must declare LanguageCodePage=65001 (UTF-8)
+    - *.txt files: Must be encoded as UTF-8 with BOM
     
     Inno Setup 6 requires proper encoding declarations to render Greek text correctly.
-    Previous releases used Windows-1253 (CP1253) encoding for all Greek files.
+    Current approach uses UTF-8 with BOM for all Greek content files.
 
 .PARAMETER Audit
     Only audit files, don't fix encoding issues
@@ -33,16 +32,16 @@
     Created: 2025-12-04
     
     Greek Encoding Strategy:
-    - Windows-1253 (CP1253): Standard for Greek text files in Windows/Inno Setup
+    - UTF-8 with BOM: Standard for Greek text files when LanguageCodePage=65001
     - Files affected:
-      * installer/Greek.isl
-      * installer/installer_welcome_el.txt
-      * installer/installer_complete_el.txt
-      * installer/LICENSE_EL.txt
+      * installer/Greek.isl (UTF-8 with BOM, LanguageCodePage=65001)
+      * installer/installer_welcome_el.txt (UTF-8 with BOM)
+      * installer/installer_complete_el.txt (UTF-8 with BOM)
+      * installer/LICENSE_EL.txt (UTF-8 with BOM)
     
     Inno Setup CodePage Reference:
-    1253 = Greek (Windows-1253)
-    0408 = Greek Language ID
+    65001 = UTF-8 (recommended for modern Unicode support)
+    1253 = Greek (Windows-1253 - legacy)
 #>
 
 [CmdletBinding()]
@@ -69,20 +68,20 @@ $GreekFiles = @(
     @{
         Path = Join-Path $ScriptDir "installer_welcome_el.txt"
         Type = "Welcome Text"
-        Encoding = "Windows-1253"
-        Description = "Greek welcome message (RTF content)"
+        Encoding = "UTF-8-BOM"
+        Description = "Greek welcome message (UTF-8 with BOM)"
     },
     @{
         Path = Join-Path $ScriptDir "installer_complete_el.txt"
         Type = "Completion Text"
-        Encoding = "Windows-1253"
-        Description = "Greek completion message"
+        Encoding = "UTF-8-BOM"
+        Description = "Greek completion message (UTF-8 with BOM)"
     },
     @{
         Path = Join-Path $ScriptDir "LICENSE_EL.txt"
         Type = "License File"
-        Encoding = "Windows-1253"
-        Description = "Greek license text"
+        Encoding = "UTF-8-BOM"
+        Description = "Greek license text (UTF-8 with BOM)"
     }
 )
 
@@ -262,11 +261,12 @@ function Fix-GreekTextFile {
     }
     
     try {
-        # Read with default encoding (system locale, typically Windows-1253 on Greek systems)
-        $content = Get-Content $Path -Raw -Encoding Default
+        # Read as UTF-8 (current encoding)
+        $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
         
-        # Write back with Windows-1253 encoding
-        Set-Content -Path $Path -Value $content -Encoding Default -Force
+        # Write back with UTF-8 with BOM (required by Inno Setup when LanguageCodePage=65001)
+        $utf8bom = New-Object System.Text.UTF8Encoding($true)
+        [System.IO.File]::WriteAllText($Path, $content, $utf8bom)
         
         Write-Status OK "$Description encoding fixed ✓"
         return $true
