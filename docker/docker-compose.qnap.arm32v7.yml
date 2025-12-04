@@ -1,5 +1,5 @@
 # QNAP ARM32v7 Container Station Deployment
-# Student Management System v1.9.3
+# Student Management System v1.9.7
 # FOR ARM-BASED QNAP ONLY (TS-431P3, TS-x31P series)
 #
 # This compose file uses ARM-specific Dockerfiles
@@ -61,7 +61,7 @@ services:
       - "com.sms.service=database"
       - "com.sms.deployment=qnap-arm"
       - "com.sms.architecture=arm32v7"
-      - "com.sms.version=${VERSION:-1.9.3}"
+      - "com.sms.version=${VERSION:-1.9.7}"
 
   # Backend Service (FastAPI)
   backend:
@@ -73,7 +73,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.backend.arm32v7
       args:
-        - VERSION=${VERSION:-1.9.3}
+        - VERSION=${VERSION:-1.9.7}
         - BUILD_DATE=${BUILD_DATE:-unknown}
     restart: unless-stopped
     depends_on:
@@ -153,7 +153,7 @@ services:
       - "com.sms.service=backend"
       - "com.sms.deployment=qnap-arm"
       - "com.sms.architecture=arm32v7"
-      - "com.sms.version=${VERSION:-1.9.3}"
+      - "com.sms.version=${VERSION:-1.9.7}"
 
   # Frontend Service (React + Nginx)
   frontend:
@@ -166,7 +166,7 @@ services:
       dockerfile: docker/Dockerfile.frontend.arm32v7
       args:
         - VITE_API_URL=/api/v1
-        - VERSION=${VERSION:-1.9.3}
+        - VERSION=${VERSION:-1.9.7}
         - BUILD_DATE=${BUILD_DATE:-unknown}
     restart: unless-stopped
     depends_on:
@@ -204,7 +204,7 @@ services:
       - "com.sms.service=frontend"
       - "com.sms.deployment=qnap-arm"
       - "com.sms.architecture=arm32v7"
-      - "com.sms.version=${VERSION:-1.9.3}"
+      - "com.sms.version=${VERSION:-1.9.7}"
 
 networks:
   sms-network:

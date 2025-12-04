@@ -1,6 +1,6 @@
 # Scripts Organization Guide
 
-**Last Updated**: January 2025 | **Version**: 1.9.3
+**Last Updated**: December 2025 | **Version**: 1.9.7
 
 This document describes the complete script organization for the Student Management System, including the purpose, audience, and usage of all operational scripts.
 

@@ -3,12 +3,12 @@
 # DO NOT USE for x86_64 builds - Use Dockerfile.backend.qnap instead
 #
 # This file is specifically for ARM-based QNAP NAS devices (TS-431P3, TS-x31P series)
-# Version: 1.9.3 compatible
+# Version: 1.9.7 compatible
 
 FROM python:3.11-slim
 
 # Build arguments for versioning and metadata
-ARG VERSION=1.9.3
+ARG VERSION=1.9.7
 ARG BUILD_DATE
 ARG VCS_REF
 

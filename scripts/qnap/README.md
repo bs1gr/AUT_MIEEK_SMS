@@ -225,7 +225,7 @@ If you encounter issues:
 ## 🔄 Version Compatibility
 
 These scripts are designed for:
-- Student Management System v1.9.0+
+- Student Management System v1.9.7+
 - QNAP QTS 5.0+ or QuTS hero h5.0+
 - Container Station 3.0+
 - Docker 20.10+
