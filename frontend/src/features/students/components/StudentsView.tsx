@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
+import { ListSkeleton, StudentCardSkeleton, VirtualList } from '@/components/ui';
 import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
+import { usePerformanceMonitor } from '@/hooks';
 import type { Student, Attendance, Grade, Course } from '@/types';
 import { listContainerVariants } from '@/utils/animations';
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
@@ -36,6 +37,9 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   loading,
   setShowAddModal,
 }) => {
+  // Performance monitoring for component renders
+  usePerformanceMonitor('StudentsView', 150);
+  
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [internalSearch, setInternalSearch] = useState<string>('');
@@ -237,30 +241,59 @@ const StudentsView: React.FC<StudentsViewProps> = ({
         <p className="text-gray-500 text-center py-8">{t('noStudentsFound')}</p>
       )}
 
+      {/* Student List with Virtual Scrolling for large lists */}
       {!loading && filtered.length > 0 && (
-        <motion.ul
-          className="space-y-2"
-          variants={listContainerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {filtered.map((student) => (
-            <StudentCard
-              key={student.id}
-              student={student}
-              stats={statsById[student.id]}
-              isExpanded={expandedId === student.id}
-              noteValue={notesById[student.id] || ''}
-              onNoteChange={(value) => updateNote(student.id, value)}
-              onToggleExpand={toggleExpand}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              coursesMap={coursesMap}
-              onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-              onViewProfile={onViewProfile}
+        <>
+          {/* Use virtual scrolling for 50+ items */}
+          {filtered.length >= 50 ? (
+            <VirtualList
+              items={filtered}
+              estimateSize={150}
+              renderItem={(student) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  stats={statsById[student.id]}
+                  isExpanded={expandedId === student.id}
+                  noteValue={notesById[student.id] || ''}
+                  onNoteChange={(value) => updateNote(student.id, value)}
+                  onToggleExpand={toggleExpand}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  coursesMap={coursesMap}
+                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                  onViewProfile={onViewProfile}
+                />
+              )}
+              emptyMessage={t('noStudentsFound')}
+              className="space-y-2"
             />
-          ))}
-        </motion.ul>
+          ) : (
+            <motion.ul
+              className="space-y-2"
+              variants={listContainerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {filtered.map((student) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  stats={statsById[student.id]}
+                  isExpanded={expandedId === student.id}
+                  noteValue={notesById[student.id] || ''}
+                  onNoteChange={(value) => updateNote(student.id, value)}
+                  onToggleExpand={toggleExpand}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  coursesMap={coursesMap}
+                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                  onViewProfile={onViewProfile}
+                />
+              ))}
+            </motion.ul>
+          )}
+        </>
       )}
     </div>
   );

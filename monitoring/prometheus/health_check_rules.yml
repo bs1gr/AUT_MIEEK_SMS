@@ -1,0 +1,232 @@
+# Prometheus Alert Rules for Student Management System
+# Health Check and Service Degradation Alerts
+
+groups:
+  - name: health_checks
+    interval: 30s
+    rules:
+      # API Health
+      - alert: APIHealthCheckFailed
+        expr: up{job="api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API service is down"
+          description: "API health check has been failing for {{ $value }}m"
+          action: "Check API logs: docker logs sms-fullstack | tail -100"
+
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "API error rate is high ({{ $value | humanizePercentage }})"
+          description: "Error rate in last 5 minutes exceeds 5%"
+          action: "Review API error logs and recent deployments"
+
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, http_request_duration_seconds) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "API response time is high ({{ $value }}s)"
+          description: "95th percentile latency exceeds 1 second"
+          action: "Check database performance and API metrics"
+
+      # Database Health
+      - alert: DatabaseConnectionFailed
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database is unreachable"
+          description: "Cannot connect to PostgreSQL database"
+          action: "Check database container: docker ps | grep postgres"
+
+      - alert: DatabaseHighConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection pool nearly full ({{ $value }}/100)"
+          description: "High number of active database connections"
+          action: "Review active queries and connection pool settings"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_statements_mean_time[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected ({{ $value }}ms avg)"
+          description: "Average query time exceeds 1 second"
+          action: "Check query performance logs and add indexes if needed"
+
+      - alert: DatabaseDiskSpace
+        expr: (pg_database_size_bytes / 1024 / 1024) > 900  # 900MB out of 1GB
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database disk usage is high ({{ $value }}MB)"
+          description: "Database size exceeds 90% of allocated space"
+          action: "Consider archiving old data or increasing storage"
+
+      # Frontend Health
+      - alert: FrontendHealthCheckFailed
+        expr: up{job="frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: frontend
+        annotations:
+          summary: "Frontend service is down"
+          description: "Frontend health check has been failing for 2+ minutes"
+          action: "Check frontend container: docker logs sms-frontend | tail -50"
+
+      # Service Degradation
+      - alert: ServiceDegraded
+        expr: (up{job=~"api|frontend|postgres"}) == 0
+        for: 3m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "One or more services are down"
+          description: "Service degradation detected"
+          action: "Run: docker-compose ps or DOCKER.ps1 -Status"
+
+      # Certificate Expiration
+      - alert: SSLCertificateExpiringSoon
+        expr: ssl_certificate_not_after_seconds - time() < 86400 * 7  # 7 days
+        for: 1h
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "SSL certificate expiring in {{ $value | humanizeDuration }}"
+          description: "SSL certificate will expire soon"
+          action: "Renew SSL certificate"
+
+      # Backup Health
+      - alert: LatestBackupTooOld
+        expr: (time() - postgresql_backup_latest_timestamp_seconds) > 86400 * 2  # 2 days
+        for: 1h
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Latest backup is older than 2 days"
+          description: "No recent backups found. Last backup: {{ $value | humanizeDuration }} ago"
+          action: "Trigger manual backup or check backup service"
+
+      - alert: BackupFailedRecently
+        expr: rate(backup_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database backup failures detected"
+          description: "One or more backups have failed"
+          action: "Check backup logs and fix backup service"
+
+      # Resource Utilization
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Container memory usage is high ({{ $value | humanizePercentage }})"
+          description: "Memory usage exceeds 85% of limit"
+          action: "Review memory-intensive processes or increase container limits"
+
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Container CPU usage is high ({{ $value | humanizePercentage }})"
+          description: "CPU usage exceeds 80%"
+          action: "Check for CPU-intensive operations or optimize code"
+
+      # Security Alerts
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(auth_failures_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High number of failed authentication attempts"
+          description: "{{ $value }} failed login attempts in last 5 minutes"
+          action: "Review security logs for potential attack patterns"
+
+      - alert: SQLInjectionAttemptDetected
+        expr: rate(sql_injection_attempts_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Potential SQL injection attack detected"
+          description: "SQL injection pattern detected in requests"
+          action: "Review access logs and block suspicious IPs"
+
+  - name: slo_alerts
+    interval: 1m
+    rules:
+      # Service Level Objectives (SLO)
+      - alert: APIErrorRateSLOViolation
+        expr: |
+          (
+            sum(rate(http_requests_total{job="api", status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{job="api"}[5m]))
+          ) > 0.01  # 1% error rate threshold
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+          slo: "error_rate"
+        annotations:
+          summary: "API error rate SLO violated ({{ $value | humanizePercentage }})"
+          description: "Error rate exceeds 1% SLO for 10+ minutes"
+
+      - alert: APILatencySLOViolation
+        expr: histogram_quantile(0.99, http_request_duration_seconds{job="api"}) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+          slo: "latency"
+        annotations:
+          summary: "API latency SLO violated ({{ $value }}s)"
+          description: "99th percentile latency exceeds 2 second SLO"
+
+      - alert: APIAvailabilitySLOViolation
+        expr: avg(up{job="api"}) < 0.999  # 99.9% uptime
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+          slo: "availability"
+        annotations:
+          summary: "API availability SLO violated ({{ $value | humanizePercentage }})"
+          description: "Availability below 99.9% SLO"

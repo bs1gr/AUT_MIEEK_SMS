@@ -25,12 +25,15 @@ _DEFAULT_READ = int(os.environ.get("RATE_LIMIT_READ_PER_MINUTE", 1000))
 _DEFAULT_WRITE = int(os.environ.get("RATE_LIMIT_WRITE_PER_MINUTE", 600))
 _DEFAULT_HEAVY = int(os.environ.get("RATE_LIMIT_HEAVY_PER_MINUTE", 200))
 _DEFAULT_AUTH = int(os.environ.get("RATE_LIMIT_AUTH_PER_MINUTE", 50))
+# Teacher imports: loosened to allow uninterrupted data imports (e.g., bulk student/grade uploads)
+_DEFAULT_TEACHER_IMPORT = int(os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 5000))
 
 # Exported strings expected across the codebase/tests
 RATE_LIMIT_READ = f"{_DEFAULT_READ}/minute"
 RATE_LIMIT_WRITE = f"{_DEFAULT_WRITE}/minute"
 RATE_LIMIT_HEAVY = f"{_DEFAULT_HEAVY}/minute"
 RATE_LIMIT_AUTH = f"{_DEFAULT_AUTH}/minute"
+RATE_LIMIT_TEACHER_IMPORT = f"{_DEFAULT_TEACHER_IMPORT}/minute"
 
 # Quick helpers so tests and docs can parse numeric value if required
 def _limit_value(limit_str: str) -> int:
@@ -46,4 +49,5 @@ DEFAULTS = {
 	"write": _DEFAULT_WRITE,
 	"heavy": _DEFAULT_HEAVY,
 	"auth": _DEFAULT_AUTH,
+	"teacher_import": _DEFAULT_TEACHER_IMPORT,
 }
