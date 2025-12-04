@@ -66,7 +66,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.9.7
+Version: 1.9.8
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -1711,4 +1711,5 @@ catch {
     Write-Host $_.ScriptStackTrace -ForegroundColor Gray
     exit 1
 }
+
 
