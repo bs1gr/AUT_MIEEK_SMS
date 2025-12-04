@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
-> **Note**: For historical changes prior to $11.9.7, see `archive/pre-$11.9.7/CHANGELOG_ARCHIVE.md`.
+> **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
 ## [Unreleased]
+
+## [1.9.8] - 2025-12-04
 
 ### Added
 
@@ -507,6 +509,7 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+
 
 
 
