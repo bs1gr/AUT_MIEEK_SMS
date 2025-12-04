@@ -8,6 +8,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI/CD: Trivy SARIF Upload Failures** 🔧
+  - Fixed `upload-sarif` step failing when Trivy scans don't produce SARIF files
+  - Added pre-upload check to verify SARIF file existence before upload
+  - Enhanced Trivy report to show actual scan status (✅ success / ⚠️ failed)
+  - Prevents "Path does not exist" errors in GitHub Actions workflow
+  - Artifact upload now conditional on successful scans
+
 ## [1.9.8] - 2025-12-04
 
 ### Fixed
