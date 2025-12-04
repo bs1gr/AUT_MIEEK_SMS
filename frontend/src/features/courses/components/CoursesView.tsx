@@ -6,7 +6,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { usePerformanceMonitor } from '@/hooks';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
+import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
 import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI } from '@/api/api';
 
@@ -41,6 +43,9 @@ import type { Course as CourseType } from '@/types';
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
 const CourseManagement = ({ courses: externalCourses, loading: externalLoading = false, onAddCourse, onEdit, onDelete }: { courses?: CourseType[]; loading?: boolean; onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
+  // Performance monitoring for component renders
+  usePerformanceMonitor('CoursesView', 200);
+  
   const { t } = useLanguage();
   const [courses, setCourses] = useState<CourseType[]>(externalCourses || []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -563,20 +568,27 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="course-select">{t('selectCourseForRules')}</label>
-        <select
-          id="course-select"
-          value={selectedCourse || ''}
-          onChange={(e) => setSelectedCourse(parseInt(e.target.value) || null)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          title={t('selectCourseForRules')}
-        >
-          <option value="">{t('chooseCourse')}</option>
-          {courses.map((course: CourseType) => (
-            <option key={course.id} value={course.id}>
-              {course.course_code} - {course.course_name}
-            </option>
-          ))}
-        </select>
+        
+        {/* Loading State */}
+        {(externalLoading || isLoading) && <ListSkeleton count={1} itemComponent={CourseCardSkeleton} />}
+        
+        {/* Course Selection */}
+        {!externalLoading && !isLoading && (
+          <select
+            id="course-select"
+            value={selectedCourse || ''}
+            onChange={(e) => setSelectedCourse(parseInt(e.target.value) || null)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            title={t('selectCourseForRules')}
+          >
+            <option value="">{t('chooseCourse')}</option>
+            {courses.map((course: CourseType) => (
+              <option key={course.id} value={course.id}>
+                {course.course_code} - {course.course_name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {selectedCourse && (

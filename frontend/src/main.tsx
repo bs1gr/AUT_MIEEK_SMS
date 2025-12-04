@@ -3,23 +3,26 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
+import './pwa-register'; // Initialize PWA service worker
 import { AuthProvider } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/auth/RequireAuth';
 
-// Lazy load page components
-import { lazy, Suspense } from 'react';
+// Import route components and preload utility
+import { Suspense } from 'react';
 import Spinner from './components/ui/Spinner';
-
-const AuthPage = lazy(() => import('./pages/AuthPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const StudentsPage = lazy(() => import('./pages/StudentsPage'));
-const StudentProfilePage = lazy(() => import('./pages/StudentProfilePage'));
-const CoursesPage = lazy(() => import('./pages/CoursesPage'));
-const AttendancePage = lazy(() => import('./pages/AttendancePage'));
-const GradingPage = lazy(() => import('./pages/GradingPage'));
-const CalendarPage = lazy(() => import('./pages/CalendarPage'));
-const OperationsPage = lazy(() => import('./pages/OperationsPage'));
-const PowerPage = lazy(() => import('./pages/PowerPage'));
+import {
+  AuthPage,
+  DashboardPage,
+  StudentsPage,
+  StudentProfilePage,
+  CoursesPage,
+  AttendancePage,
+  GradingPage,
+  CalendarPage,
+  OperationsPage,
+  PowerPage,
+  preloadCriticalRoutes,
+} from './routes';
 
 // Initialize global error handlers without forcing the module into the main chunk
 void import('./utils/errorReporting')
@@ -27,6 +30,9 @@ void import('./utils/errorReporting')
   .catch((error) => {
     console.error('[error-reporting] Failed to initialize error reporting', error);
   });
+
+// Preload critical routes after initial render
+setTimeout(preloadCriticalRoutes, 100);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

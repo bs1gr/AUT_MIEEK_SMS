@@ -9,3 +9,9 @@ export * from './useCourseModals';
 
 // Export utility hooks
 export * from './useAutosave';
+
+// Export performance and error recovery hooks
+export * from './useErrorRecovery';
+export * from './usePerformanceMonitor';
+export * from './useFormValidation';
+export * from './useApiWithRecovery';

@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from sqlalchemy.orm import Session
 
 from backend.errors import ErrorCode, http_error
-from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
+from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
 from backend.services.import_service import ImportService
 
 from .routers_auth import optional_require_role
@@ -435,7 +435,7 @@ def diagnose_import_environment(request: Request):
 
 
 @router.post("/courses")
-@limiter.limit(RATE_LIMIT_HEAVY)
+@limiter.limit(RATE_LIMIT_TEACHER_IMPORT)
 def import_courses(
     request: Request,
     db: Session = Depends(get_db),
@@ -444,7 +444,7 @@ def import_courses(
 ):
     """Import all courses from JSON files in the courses templates directory.
 
-    **Rate limit:** 5 requests per minute (heavy operation)
+    **Rate limit:** 83 requests per minute (teacher import operation, loosened to avoid throttling bulk uploads)
 
     JSON schema example:
     {
@@ -1145,7 +1145,7 @@ async def import_from_upload(
 
 
 @router.post("/students")
-@limiter.limit(RATE_LIMIT_HEAVY)
+@limiter.limit(RATE_LIMIT_TEACHER_IMPORT)
 def import_students(
     request: Request,
     db: Session = Depends(get_db),
@@ -1154,7 +1154,7 @@ def import_students(
 ):
     """Import all students from JSON files in the students templates directory.
 
-    **Rate limit:** 5 requests per minute (heavy operation)
+    **Rate limit:** 83 requests per minute (teacher import operation, loosened to avoid throttling bulk uploads)
 
     JSON schema example:
     {
