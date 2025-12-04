@@ -1,12 +1,13 @@
-﻿; *** Inno Setup version 6.0.x Greek messages (normalized for Windows-1253) ***
+; *** Inno Setup version 6.0.x Greek messages (normalized for Windows-1253) ***
 ;
 ; Minimal Greek language file providing LangOptions and CustomMessages.
 ; Base messages fall back to compiler defaults to avoid version warnings.
 
 [LangOptions]
+LanguageCodePage=1253
 LanguageName=Ελληνικά
 LanguageID=$0408
-LanguageCodePage=1253
+LanguageCodePage=65001
 
 [Messages]
 ; Essential Greek messages for installer UI
