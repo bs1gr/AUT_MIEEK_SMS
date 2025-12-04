@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start for AI Agents
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.3** (see VERSION file).
+**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.7** (see VERSION file).
 
 **Most common tasks:**
 
@@ -30,9 +30,10 @@
 .\COMMIT_READY.ps1 -Full          # Full validation (15-20 min): + all frontend tests
 .\COMMIT_READY.ps1 -Cleanup       # Just cleanup (1-2 min): format + organize imports
 
-# Legacy Scripts (Deprecated - archived in archive/pre-v1.9.1/)
-# RUN.ps1, INSTALL.ps1, SMS.ps1 → Use DOCKER.ps1 instead
-# scripts\dev\run-native.ps1 → Use NATIVE.ps1 instead
+# Legacy Scripts (Deprecated & Archived)
+# archive/pre-v1.9.1/: RUN.ps1, INSTALL.ps1, SMS.ps1, run-native.ps1 → Use DOCKER.ps1/NATIVE.ps1
+# archive/pre-v1.9.7-docker-scripts/: DOCKER_UP/DOWN/REFRESH/RUN/SMOKE/UPDATE_VOLUME → Use DOCKER.ps1
+# scripts/ci/VERIFY_VERSION.ps1 → Use scripts/VERIFY_VERSION.ps1 -CIMode
 
 # Database & Testing
 cd backend && pytest -q                                             # Run tests (rate limiter auto-disabled)

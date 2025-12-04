@@ -8,6 +8,61 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.9.7] - 2025-12-04
+
+### Added
+
+#### Script Consolidation & Code Quality (2025-12-04)
+
+- **Shared Cleanup Library**: Created `scripts/lib/cleanup_common.ps1`
+  - Extracted common cleanup functions from duplicate scripts
+  - Functions: `Remove-SafeItem`, `Format-FileSize`, `Write-CleanupSummary`, `Test-GitKeepFile`
+  - Eliminates ~100 lines of duplicated code
+  - Both `CLEANUP_PRE_RELEASE.ps1` and `CLEANUP_COMPREHENSIVE.ps1` now use shared utilities
+
+- **Version Verification CI Mode**: Enhanced `scripts/VERIFY_VERSION.ps1`
+  - Added `-CIMode` parameter for fast CI pipeline validation
+  - Quick check: VERSION file ↔ frontend/package.json consistency
+  - Full mode: Comprehensive 24-file, 47-reference verification
+  - Consolidates functionality from separate CI script
+
+### Changed
+
+#### Script Consolidation (2025-12-04)
+
+- **Docker Helper Scripts Archived**: Consolidated 6 Docker helper scripts
+  - Archived to `archive/pre-v1.9.7-docker-scripts/` with migration guide
+  - Scripts: `DOCKER_UP`, `DOCKER_DOWN`, `DOCKER_REFRESH`, `DOCKER_RUN`, `DOCKER_SMOKE`, `DOCKER_UPDATE_VOLUME`
+  - **DOCKER.ps1 is now single source of truth** for all Docker operations
+  - Eliminates 283 lines of duplicate code
+  - All functionality preserved in comprehensive DOCKER.ps1 (1293 lines)
+
+- **Version Verification Consolidated**: Merged two `VERIFY_VERSION.ps1` scripts
+  - Archived `scripts/ci/VERIFY_VERSION.ps1` (45 lines redundant)
+  - Main script now supports both CI mode (fast) and comprehensive mode
+  - GitHub Actions workflows already use consolidated script
+
+### Documentation
+
+- **Script Consolidation Report**: Created comprehensive consolidation documentation
+  - File: `SCRIPT_CONSOLIDATION_REPORT.md`
+  - Details all 3 consolidation phases with migration guides
+  - Impact analysis: ~427 lines eliminated, maintenance complexity reduced
+
+- **Scripts Guide Updated**: Revised `docs/operations/SCRIPTS_GUIDE.md`
+  - Removed references to archived Docker helper scripts
+  - Clarified that DOCKER.ps1 is the primary Docker interface
+  - Updated directory tree to reflect consolidation
+
+### Performance
+
+- **Code Reduction**: Eliminated ~427 lines of duplicate/redundant code
+  - Docker scripts: -283 lines
+  - Version verification: -44 lines (net)
+  - Shared cleanup library: -100 lines of duplication
+- **Maintenance Improvement**: Single source of truth for Docker and version operations
+- **Scripts Reduced**: 67 active scripts → 60 active scripts (-7)
+
 ### Added
 
 #### Performance Optimizations (2025-12-03)
