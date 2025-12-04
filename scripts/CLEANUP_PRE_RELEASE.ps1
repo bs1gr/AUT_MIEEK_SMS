@@ -37,8 +37,13 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+# Import shared cleanup utilities
+. "$PSScriptRoot\lib\cleanup_common.ps1"
+
 $script:CleanupCount = 0
 $script:SpaceFreed = 0
+$script:Errors = @()
 
 function Write-Header {
     param([string]$Text)
@@ -58,44 +63,16 @@ function Remove-SafePath {
         [string]$Description
     )
     
-    if (Test-Path $Path) {
-        $size = 0
-        if (Test-Path $Path -PathType Container) {
-            $size = (Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | 
-                     Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
-        } else {
-            $size = (Get-Item $Path -ErrorAction SilentlyContinue).Length
-        }
-        
-        if ($size) {
-            $script:SpaceFreed += $size
-        }
-        
-        if ($DryRun) {
-            Write-Host "  [DRY RUN] Would delete: $Path" -ForegroundColor DarkGray
-            Write-Host "            ($Description) - $(Format-FileSize $size)" -ForegroundColor DarkGray
-        } else {
-            Write-Host "  Removing: $Path" -ForegroundColor Green
-            Remove-Item -Path $Path -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Host "            ($Description) - $(Format-FileSize $size)" -ForegroundColor DarkGray
-        }
-        $script:CleanupCount++
+    $result = Remove-SafeItem -Path $Path -Description $Description -DryRun:$DryRun `
+                               -SpaceFreedRef ([ref]$script:SpaceFreed) `
+                               -CleanupCountRef ([ref]$script:CleanupCount)
+    
+    if (-not $result -and (Test-Path $Path)) {
+        $script:Errors += "Failed to remove: $Description"
     }
 }
 
-function Format-FileSize {
-    param([long]$Size)
-    
-    if ($Size -gt 1GB) {
-        return "{0:N2} GB" -f ($Size / 1GB)
-    } elseif ($Size -gt 1MB) {
-        return "{0:N2} MB" -f ($Size / 1MB)
-    } elseif ($Size -gt 1KB) {
-        return "{0:N2} KB" -f ($Size / 1KB)
-    } else {
-        return "$Size bytes"
-    }
-}
+# Note: Format-FileSize now provided by cleanup_common.ps1
 
 # Main execution
 try {

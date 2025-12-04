@@ -57,12 +57,8 @@ student-management-system/
 │   │   ├── README.md              # Deployment documentation
 │   │   ├── CHECK_VOLUME_VERSION.ps1
 │   │   ├── set-docker-metadata.ps1
-│   │   ├── docker/                # Docker operations
-│   │   │   ├── DOCKER_UP.ps1
-│   │   │   ├── DOCKER_DOWN.ps1
-│   │   │   ├── DOCKER_REFRESH.ps1
-│   │   │   ├── DOCKER_SMOKE.ps1
-│   │   │   └── DOCKER_*.ps1
+│   │   ├── docker/                # Docker operations (archived - use DOCKER.ps1)
+│   │   │   └── (scripts moved to archive/pre-v1.9.7-docker-scripts/)
 │   │   └── internal/              # Packaging tools
 │   │       ├── CREATE_PACKAGE.ps1/.bat
 │   │       ├── CREATE_DEPLOYMENT_PACKAGE.ps1/.bat
@@ -268,47 +264,7 @@ As of $11.9.7, use the consolidated root-level scripts:
 
 ### Docker Operations (`scripts/deploy/docker/`)
 
-> **Note:** These lower-level scripts are available for specialized use cases. For most operations, prefer `.\DOCKER.ps1`.
-
-#### `DOCKER_UP.ps1`
-
-Start Docker containers.
-
-```powershell
-scripts\deploy\docker\DOCKER_UP.ps1
-```
-
-#### `DOCKER_DOWN.ps1`
-
-Stop Docker containers.
-
-```powershell
-scripts\deploy\docker\DOCKER_DOWN.ps1
-```
-
-#### `DOCKER_REFRESH.ps1`
-
-Rebuild and restart containers.
-
-```powershell
-scripts\deploy\docker\DOCKER_REFRESH.ps1
-```
-
-#### `DOCKER_SMOKE.ps1`
-
-Smoke test Docker deployment.
-
-```powershell
-scripts\deploy\docker\DOCKER_SMOKE.ps1
-```
-
-#### `DOCKER_UPDATE_VOLUME.ps1`
-
-Update or migrate Docker volumes.
-
-```powershell
-scripts\deploy\docker\DOCKER_UPDATE_VOLUME.ps1
-```
+> **Note:** For Docker operations, use `.\DOCKER.ps1` which provides comprehensive functionality including build, start, stop, restart, update, monitoring, backup, and cleanup operations. Legacy helper scripts have been archived to `archive/pre-v1.9.7-docker-scripts/` as of v1.9.7.
 
 ### Volume Management
 

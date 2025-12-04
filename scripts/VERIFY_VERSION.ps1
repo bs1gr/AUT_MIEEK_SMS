@@ -18,9 +18,16 @@
 .PARAMETER CheckOnly
     Only check for inconsistencies without updating (default behavior).
 
+.PARAMETER CIMode
+    Fast CI mode - only check VERSION vs frontend package.json (exit code 0=OK, 1=mismatch).
+
 .EXAMPLE
     .\scripts\VERIFY_VERSION.ps1
     Check if all version references match the VERSION file.
+
+.EXAMPLE
+    .\scripts\VERIFY_VERSION.ps1 -CIMode
+    Quick check for CI pipelines (VERSION vs package.json only).
 
 .EXAMPLE
     .\scripts\VERIFY_VERSION.ps1 -Version "1.8.9" -Update
@@ -40,7 +47,8 @@ param(
     [Parameter()][string]$Version,
     [Parameter()][switch]$Update,
     [Parameter()][switch]$Report,
-    [Parameter()][switch]$CheckOnly
+    [Parameter()][switch]$CheckOnly,
+    [Parameter()][switch]$CIMode
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,6 +60,38 @@ function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Gree
 function Write-Warning { param($msg) Write-Host "⚠️  $msg" -ForegroundColor Yellow }
 function Write-Error-Message { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }
 function Write-Info { param($msg) Write-Host "ℹ️  $msg" -ForegroundColor Cyan }
+
+# ============================================================================
+# CI MODE - Fast VERSION ↔ package.json validation only
+# ============================================================================
+if ($CIMode) {
+    $VERSION_FILE = Join-Path $PROJECT_ROOT 'VERSION'
+    $FRONTEND_PKG = Join-Path $PROJECT_ROOT 'frontend\package.json'
+    
+    if (-not (Test-Path $VERSION_FILE) -or -not (Test-Path $FRONTEND_PKG)) {
+        Write-Error-Message "Missing VERSION or frontend/package.json"
+        exit 1
+    }
+    
+    $versionFile = (Get-Content $VERSION_FILE -Raw).Trim()
+    $pkg = Get-Content $FRONTEND_PKG -Raw | ConvertFrom-Json
+    $versionPkg = $pkg.version
+    
+    Write-Host "VERSION file: $versionFile"
+    Write-Host "package.json: $versionPkg"
+    
+    if ($versionFile -ne $versionPkg) {
+        Write-Error-Message "Version mismatch: VERSION ($versionFile) != package.json ($versionPkg)"
+        exit 1
+    }
+    
+    Write-Success "Version consistency OK (CI mode)"
+    exit 0
+}
+
+# ============================================================================
+# FULL MODE - Comprehensive version verification
+# ============================================================================
 
 # Banner
 Write-Host "`n" + ("=" * 70) -ForegroundColor Cyan
