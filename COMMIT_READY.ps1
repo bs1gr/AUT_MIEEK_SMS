@@ -1183,6 +1183,40 @@ function Invoke-HealthChecks {
 }
 
 # ============================================================================
+# PHASE 3B: INSTALLER PRODUCTION AUDIT
+# ============================================================================
+
+function Invoke-InstallerAudit {
+    if ($Mode -ne 'full') {
+        return $true
+    }
+    
+    Write-Section "Installer Production Audit"
+    
+    try {
+        Write-Info "Auditing installer versioning and components..."
+        $installerBuilder = Join-Path $SCRIPT_DIR "INSTALLER_BUILDER.ps1"
+        
+        if (-not (Test-Path $installerBuilder)) {
+            Write-Info "INSTALLER_BUILDER.ps1 not found, skipping installer audit"
+            return $true
+        }
+        
+        $auditOutput = & $installerBuilder -Action audit -Verbose:$Verbose -ErrorAction Stop 2>&1
+        $auditOutput | ForEach-Object { Write-Info $_ }
+        
+        Write-Success "Installer audit passed ✓"
+        Add-Result "Health" "Installer Audit" $true
+        return $true
+    }
+    catch {
+        Write-Failure "Installer audit failed: $_"
+        Add-Result "Health" "Installer Audit" $false $_
+        return $false
+    }
+}
+
+# ============================================================================
 # PHASE 4: AUTOMATED CLEANUP
 # ============================================================================
 
@@ -1593,6 +1627,7 @@ function Invoke-MainWorkflow {
         # Phase 3: Health Checks (only in full mode)
         if ($Mode -eq 'full') {
             Invoke-HealthChecks | Out-Null
+            Invoke-InstallerAudit | Out-Null
         }
         
         # Phase 4: Cleanup

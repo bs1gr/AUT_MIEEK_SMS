@@ -266,76 +266,25 @@ if (-not $InstallerOnly -and -not $NoZip) {
 }
 
 # ============================================================================
-# Build Installer
+# Build Installer (via INSTALLER_BUILDER.ps1)
 # ============================================================================
 
 if (-not $ZipOnly) {
     Write-Header "Building Windows Installer"
     
-    $InnoSetup = Find-InnoSetup
-    
-    if (-not $InnoSetup) {
-        Write-Warning "Inno Setup 6 not found!"
-        Write-Host ""
-        Write-Host "  To build the installer, please install Inno Setup 6:" -ForegroundColor Yellow
-        Write-Host "  https://jrsoftware.org/isdl.php" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "  After installation, run this script again." -ForegroundColor Yellow
+    $installerBuilder = Join-Path $ProjectRoot "INSTALLER_BUILDER.ps1"
+    if (Test-Path $installerBuilder) {
+        Write-Step "Delegating to INSTALLER_BUILDER.ps1..."
+        & $installerBuilder -Action build -Verbose
         
-        if (-not $NoZip -and -not $InstallerOnly) {
+        if ($LASTEXITCODE -eq 0) {
             Write-Host ""
-            Write-Host "  ZIP distribution was created successfully." -ForegroundColor Green
+            Write-Host "  ✓ Installer build completed successfully" -ForegroundColor Green
+        } else {
+            Write-Error "Installer build failed - see above for details"
         }
     } else {
-        Write-Step "Found Inno Setup: $InnoSetup"
-        
-        # Check for required wizard images
-        $wizardImage = "$ProjectRoot\installer\wizard_image.bmp"
-        $wizardSmall = "$ProjectRoot\installer\wizard_small.bmp"
-        
-        if (-not (Test-Path $wizardImage) -or -not (Test-Path $wizardSmall)) {
-            Write-Step "Creating default wizard images..."
-            
-            # Create simple placeholder images using PowerShell
-            # These are minimal valid BMP files
-            & "$ProjectRoot\installer\create_wizard_images.ps1" -ErrorAction SilentlyContinue
-            
-            if (-not (Test-Path $wizardImage)) {
-                Write-Warning "Wizard images not found. Using Inno Setup defaults."
-            }
-        }
-        
-        Write-Step "Compiling installer..."
-        $issFile = "$ProjectRoot\installer\SMS_Installer.iss"
-        
-        # Run Inno Setup compiler
-        $process = Start-Process -FilePath $InnoSetup -ArgumentList "`"$issFile`"" -Wait -PassThru -NoNewWindow
-        
-        if ($process.ExitCode -eq 0) {
-            $installerPath = Join-Path $DistDir $InstallerName
-            if (Test-Path $installerPath) {
-                $installerSize = [math]::Round((Get-Item $installerPath).Length / 1MB, 2)
-                Write-Host ""
-                Write-Host "  ✓ Created: $InstallerName ($installerSize MB)" -ForegroundColor Green
-                
-                # Sign the installer if certificate exists
-                $certPath = "$ProjectRoot\installer\AUT_MIEEK_CodeSign.pfx"
-                if (Test-Path $certPath) {
-                    Write-Step "Signing installer..."
-                    & "$ProjectRoot\installer\SIGN_INSTALLER.ps1" -InstallerPath $installerPath
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Host "  ✓ Installer signed successfully" -ForegroundColor Green
-                    } else {
-                        Write-Warning "Installer signing failed - continuing without signature"
-                    }
-                } else {
-                    Write-Warning "Code signing certificate not found - installer will be unsigned"
-                }
-            }
-        } else {
-            Write-Error "Installer compilation failed (exit code: $($process.ExitCode))"
-            Write-Host "  Check the Inno Setup log for details." -ForegroundColor Yellow
-        }
+        Write-Error "INSTALLER_BUILDER.ps1 not found at $installerBuilder"
     }
 }
 
