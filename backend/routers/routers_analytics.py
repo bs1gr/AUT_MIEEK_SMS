@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.errors import internal_server_error
+from backend.rate_limiting import RATE_LIMIT_READ, limiter
 from backend.services import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:
 
 
 @router.get("/student/{student_id}/course/{course_id}/final-grade")
+@limiter.limit(RATE_LIMIT_READ)
 def calculate_final_grade(
     request: Request,
     student_id: int,
@@ -44,6 +46,7 @@ def calculate_final_grade(
 
 
 @router.get("/student/{student_id}/all-courses-summary")
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_all_courses_summary(
     request: Request,
     student_id: int,
@@ -59,6 +62,7 @@ def get_student_all_courses_summary(
 
 
 @router.get("/student/{student_id}/summary")
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_summary(
     request: Request,
     student_id: int,

@@ -20,6 +20,7 @@ from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import (  # Add rate limiting for write endpoints
+    RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
     limiter,
 )
@@ -107,6 +108,7 @@ def create_grade(
 
 
 @router.get("/", response_model=PaginatedResponse[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_all_grades(
     request: Request,
     pagination: PaginationParams = Depends(),
@@ -147,6 +149,7 @@ def get_all_grades(
 
 
 @router.get("/student/{student_id}", response_model=List[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_grades(
     request: Request,
     student_id: int,
@@ -171,6 +174,7 @@ def get_student_grades(
 
 
 @router.get("/course/{course_id}", response_model=List[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_course_grades(
     request: Request,
     course_id: int,
@@ -194,6 +198,7 @@ def get_course_grades(
 
 
 @router.get("/{grade_id}", response_model=GradeResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     """
     Get a single grade by its ID.

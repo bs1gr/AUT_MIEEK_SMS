@@ -95,7 +95,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (studentId) {
       loadStudentData();
     }
-  }, [studentId, loadStudentData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
 
   // Listen for data changes and reload if it affects this student
   useEffect(() => {
@@ -129,7 +130,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       unsubscribeAttendanceDeleted();
       unsubscribeDailyPerformance();
     };
-  }, [studentId, loadStudentData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
 
   
 

@@ -251,9 +251,33 @@ Continuous integration and deployment automation.
 
 ---
 
-## ⚠️ Deprecated Scripts
+## ⚠️ Deprecated Scripts & Migration Guide
 
-The following scripts in this directory are **deprecated** and redirect to v2.0 commands:
+### v1.9.7+ Script Consolidation
+
+The following scripts have been **archived** and replaced by unified scripts:
+
+#### Pre-v1.9.1 Scripts (Archived to `archive/pre-v1.9.1/`)
+
+| Deprecated Script | Replacement | Status |
+|-------------------|-------------|--------|
+| `RUN.ps1` | `.\DOCKER.ps1 -Start` | ✅ Archived |
+| `INSTALL.ps1` | `.\DOCKER.ps1 -Install` | ✅ Archived |
+| `SMS.ps1` | `.\DOCKER.ps1 -Help` | ✅ Archived |
+| `run-native.ps1` | `.\NATIVE.ps1 -Start` | ✅ Archived |
+
+#### Pre-v1.9.7 Docker Scripts (Archived to `archive/pre-v1.9.7-docker-scripts/`)
+
+| Deprecated Script | Replacement | Status |
+|-------------------|-------------|--------|
+| `DOCKER_UP.ps1` | `.\DOCKER.ps1 -Start` | ✅ Archived |
+| `DOCKER_DOWN.ps1` | `.\DOCKER.ps1 -Stop` | ✅ Archived |
+| `DOCKER_REFRESH.ps1` | `.\DOCKER.ps1 -UpdateClean` | ✅ Archived |
+| `DOCKER_RUN.ps1` | `.\DOCKER.ps1 -Start` | ✅ Archived |
+| `DOCKER_SMOKE.ps1` | `.\scripts\SMOKE_TEST.ps1` | ✅ Archived |
+| `DOCKER_UPDATE_VOLUME.ps1` | `.\DOCKER.ps1 -Update` | ✅ Archived |
+
+**Migration Note:** All deprecated functionality is preserved in `DOCKER.ps1` (v2.0). See archived scripts for migration notes.
 
 ### Root-level Deprecated Scripts
 

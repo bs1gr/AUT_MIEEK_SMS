@@ -14,7 +14,7 @@ from backend.config import settings
 from backend.db import get_session as get_db
 from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
-from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
@@ -90,6 +90,7 @@ def create_attendance(
 
 
 @router.get("/", response_model=PaginatedResponse[AttendanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_all_attendance(
     request: Request,
     pagination: PaginationParams = Depends(),
@@ -132,6 +133,7 @@ def get_all_attendance(
 
 
 @router.get("/student/{student_id}", response_model=List[AttendanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_attendance(
     request: Request,
     student_id: int,
@@ -160,6 +162,7 @@ def get_student_attendance(
 
 
 @router.get("/course/{course_id}", response_model=List[AttendanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_course_attendance(
     request: Request,
     course_id: int,
@@ -186,6 +189,7 @@ def get_course_attendance(
 
 
 @router.get("/date/{attendance_date}/course/{course_id}", response_model=List[AttendanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_attendance_by_date_and_course(
     request: Request,
     attendance_date: date,
@@ -218,6 +222,7 @@ def get_attendance_by_date_and_course(
 
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db)):
     """Get a specific attendance record"""
     try:
@@ -278,6 +283,7 @@ def delete_attendance(
 
 
 @router.get("/stats/student/{student_id}/course/{course_id}")
+@limiter.limit(RATE_LIMIT_READ)
 def get_attendance_stats(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get attendance statistics for a student in a course"""
     try:
