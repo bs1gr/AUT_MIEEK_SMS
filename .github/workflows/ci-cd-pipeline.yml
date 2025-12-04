@@ -449,38 +449,37 @@ jobs:
           skip-dirs: 'node_modules,.git'
         continue-on-error: true
 
-      - name: Check which SARIF files exist
-        if: always()
-        id: check_sarif
-        run: |
-          SARIF_FILES=""
-          for file in trivy-backend-results.sarif trivy-frontend-results.sarif trivy-filesystem-results.sarif trivy-config-results.sarif; do
-            if [ -f "$file" ]; then
-              if [ -z "$SARIF_FILES" ]; then
-                SARIF_FILES="$file"
-              else
-                SARIF_FILES="$SARIF_FILES"$'\n'"$file"
-              fi
-              echo "Found: $file"
-            else
-              echo "Missing: $file"
-            fi
-          done
-          if [ -z "$SARIF_FILES" ]; then
-            echo "has_sarif=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_sarif=true" >> $GITHUB_OUTPUT
-            echo "sarif_files<<EOF" >> $GITHUB_OUTPUT
-            echo "$SARIF_FILES" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload Trivy results to GitHub Security tab
+      - name: Upload Trivy backend results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always() && steps.check_sarif.outputs.has_sarif == 'true'
+        if: always() && hashFiles('trivy-backend-results.sarif') != ''
         with:
-          sarif_file: ${{ steps.check_sarif.outputs.sarif_files }}
-          category: 'trivy'
+          sarif_file: trivy-backend-results.sarif
+          category: 'trivy-backend'
+        continue-on-error: true
+
+      - name: Upload Trivy frontend results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-frontend-results.sarif') != ''
+        with:
+          sarif_file: trivy-frontend-results.sarif
+          category: 'trivy-frontend'
+        continue-on-error: true
+
+      - name: Upload Trivy filesystem scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-filesystem-results.sarif') != ''
+        with:
+          sarif_file: trivy-filesystem-results.sarif
+          category: 'trivy-filesystem'
+        continue-on-error: true
+
+      - name: Upload Trivy config scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-config-results.sarif') != ''
+        with:
+          sarif_file: trivy-config-results.sarif
+          category: 'trivy-config'
+        continue-on-error: true
 
       - name: Generate Trivy report
         if: always()
@@ -492,45 +491,51 @@ jobs:
           echo "### Scans Performed:" >> $GITHUB_STEP_SUMMARY
           
           # Check which scans completed successfully
+          SCANS_FOUND=0
           if [ -f "trivy-backend-results.sarif" ]; then
             echo "- ✅ Docker Image Scanning (Backend)" >> $GITHUB_STEP_SUMMARY
+            SCANS_FOUND=1
           else
             echo "- ⚠️ Docker Image Scanning (Backend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
           
           if [ -f "trivy-frontend-results.sarif" ]; then
             echo "- ✅ Docker Image Scanning (Frontend)" >> $GITHUB_STEP_SUMMARY
+            SCANS_FOUND=1
           else
             echo "- ⚠️ Docker Image Scanning (Frontend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
           
           if [ -f "trivy-filesystem-results.sarif" ]; then
             echo "- ✅ Filesystem Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+            SCANS_FOUND=1
           else
             echo "- ⚠️ Filesystem Vulnerability Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
           
           if [ -f "trivy-config-results.sarif" ]; then
             echo "- ✅ Infrastructure-as-Code (IaC) Configuration Scan" >> $GITHUB_STEP_SUMMARY
+            SCANS_FOUND=1
           else
             echo "- ⚠️ Infrastructure-as-Code (IaC) Configuration Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f "trivy-backend-results.sarif" ] || [ -f "trivy-frontend-results.sarif" ] || [ -f "trivy-filesystem-results.sarif" ] || [ -f "trivy-config-results.sarif" ]; then
+          if [ $SCANS_FOUND -eq 1 ]; then
             echo "Results have been uploaded to GitHub Security tab for review." >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ No scan results available. Check individual scan steps for errors." >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload Trivy reports as artifacts
-        if: always() && steps.check_sarif.outputs.has_sarif == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-security-reports
           path: |
             trivy-*-results.sarif
           retention-days: 90
+          if-no-files-found: ignore
 
   security-scan-dependencies:
     name: 🔒 Security Scan (Dependencies)
