@@ -1,4 +1,4 @@
-# Greek Encoding Fix for Inno Setup Installer (v1.9.7)
+# Greek Encoding Fix for Inno Setup Installer ($11.9.7)
 
 ## Problem Solved
 
@@ -10,7 +10,7 @@ The installer was displaying corrupted Greek text (mojibake) in the license, wel
 - **Result**: Inno Setup interpreted UTF-8 bytes as Windows-1253, producing garbled characters
 - **Example**: Greek "Άδεια" (License) displayed as corrupted escape sequences
 
-## Solution Implemented (v1.9.7+)
+## Solution Implemented ($11.9.7+)
 
 ### Greek.isl Language File
 
@@ -63,7 +63,7 @@ The `INSTALLER_BUILDER.ps1` script automatically:
 
 ## Testing Results
 
-✅ **Successfully Verified in v1.9.7.exe**:
+✅ **Successfully Verified in $11.9.7.exe**:
 
 - License content displays readable Greek text ("Άδεια MIT", license terms, etc.)
 - Welcome message shows proper Greek characters
@@ -88,8 +88,9 @@ To maintain proper Greek encoding in future updates:
 
 ## Changelog
 
-- **v1.9.7**: Fixed Greek encoding to use UTF-8 with BOM + LanguageCodePage=65001
+- **$11.9.7**: Fixed Greek encoding to use UTF-8 with BOM + LanguageCodePage=65001
   - Changed from Windows-1253 approach to UTF-8
   - Updated GREEK_ENCODING_AUDIT.ps1 to enforce UTF-8 with BOM
   - Updated Greek.isl to declare LanguageCodePage=65001
   - Verified all Greek text displays correctly in installer
+
