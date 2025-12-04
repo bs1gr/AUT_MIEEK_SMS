@@ -68,6 +68,7 @@ def get_all_students(
 
 
 @router.get("/{student_id}", response_model=StudentResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_student(request: Request, student_id: int, db: Session = Depends(get_db)):
     """Retrieve a specific student by ID."""
 

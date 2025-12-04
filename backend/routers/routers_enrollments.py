@@ -15,6 +15,7 @@ from backend.db import get_session as get_db
 from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.rate_limiting import (  # Rate limiting for write endpoints
+    RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
     limiter,
 )
@@ -30,6 +31,7 @@ from backend.services.enrollment_service import EnrollmentService
 
 # ===== Endpoints =====
 @router.get("/", response_model=PaginatedResponse[EnrollmentResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_all_enrollments(
     request: Request,
     pagination: PaginationParams = Depends(),
@@ -44,6 +46,7 @@ def get_all_enrollments(
 
 
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_course_enrollments(db, course_id, request)
@@ -55,6 +58,7 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
 
 
 @router.get("/student/{student_id}", response_model=List[EnrollmentResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
@@ -67,6 +71,7 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
 
 
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
+@limiter.limit(RATE_LIMIT_READ)
 def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_enrolled_students(db, course_id, request)

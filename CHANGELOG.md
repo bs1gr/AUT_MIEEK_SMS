@@ -10,6 +10,32 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.9.8] - 2025-12-04
 
+### Fixed
+
+#### Rate Limiting & Performance (2025-12-04)
+
+- **Backend: Missing Rate Limiters on GET Endpoints** ⚠️ CRITICAL
+  - Added `@limiter.limit(RATE_LIMIT_READ)` to 21 previously unprotected GET endpoints
+  - Routers fixed: `routers_enrollments` (4), `routers_performance` (4), `routers_grades` (6), `routers_highlights` (3), `routers_students` (1), `routers_analytics` (3)
+  - Prevents API abuse and ensures consistent rate limiting across all endpoints
+  - All GET endpoints now limited to 1000 requests/minute
+
+- **Frontend: Infinite Loop in AttendanceView** 🔄 CRITICAL
+  - Fixed `useEffect` dependency causing cascade of duplicate API calls
+  - Removed `refreshAttendancePrefill` from dependency array (line 554)
+  - Eliminated 14+ rapid-fire duplicate requests causing 429 errors
+  - Clears state before fetch to prevent stale data issues
+
+- **Frontend: Infinite Loop Risk in StudentProfile** 🔄
+  - Fixed `loadStudentData` in two `useEffect` hooks causing potential re-render loops
+  - Removed callback from dependency arrays with ESLint override
+  - Prevents unnecessary data refetching and performance degradation
+
+- **Request Deduplication**: Enhanced AttendanceView logic
+  - `activeRequestsRef` prevents concurrent duplicate requests
+  - Request keys ensure single in-flight request per resource
+  - Works in conjunction with rate limiting for optimal performance
+
 ### Added
 
 #### Frontend Performance Hooks (2025-12-04)

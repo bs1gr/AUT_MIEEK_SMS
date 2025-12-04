@@ -545,13 +545,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   useEffect(() => {
     // Only fetch if both course and date are selected
     if (selectedCourse && selectedDate) {
-      refreshAttendancePrefill();
+      // Clear state before fetch to avoid stale data
       setAttendanceRecords({});
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      // Fetch new data - don't include refreshAttendancePrefill in deps to avoid infinite loop
+      refreshAttendancePrefill();
     }
-  }, [selectedCourse, selectedDate, refreshAttendancePrefill]);
+  }, [selectedCourse, selectedDate]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
