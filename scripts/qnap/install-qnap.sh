@@ -19,7 +19,7 @@ set -u  # Exit on undefined variable
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 QNAP_BASE="/share/Container"
-VERSION="1.8.0"
+VERSION="1.9.7"
 
 # Colors for output
 RED='\033[0;31m'

@@ -291,7 +291,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 TODO.md                   # Active task tracking
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.9.2)
+├── 📄 VERSION                   # Current version (1.9.7)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -1350,7 +1350,7 @@ See [LICENSE](LICENSE) file for details.
 
 ## Version
 
-Current version: 1.9.2 (see [VERSION](VERSION) file)
+Current version: 1.9.7 (see [VERSION](VERSION) file)
 
 **Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
 

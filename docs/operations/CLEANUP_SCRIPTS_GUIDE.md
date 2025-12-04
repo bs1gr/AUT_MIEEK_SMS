@@ -1,7 +1,7 @@
 # Cleanup Scripts Guide
 
-**Last Updated**: 2025-11-28
-**Repository Version**: 1.9.3
+**Last Updated**: 2025-12-04
+**Repository Version**: 1.9.7
 **Purpose**: Comprehensive guide to all cleanup operations and maintenance scripts
 
 ---

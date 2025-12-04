@@ -105,8 +105,8 @@ For a complete catalog of all documentation, see:
 
 ## 🔄 Version
 
-**Current Version:** 1.9.2  
-**Last Updated:** 2025-11-24
+**Current Version:** 1.9.7  
+**Last Updated:** 2025-12-04
 
 ## 📝 Contributing
 

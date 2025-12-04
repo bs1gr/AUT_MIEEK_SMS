@@ -90,7 +90,7 @@
 2. **Edit the root `.env` file** (in project root directory):
 
    ```dotenv
-   VERSION=1.9.3
+   VERSION=1.9.7
 
    # Add these lines:
    AUTH_ENABLED=True

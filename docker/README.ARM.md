@@ -14,7 +14,7 @@
 > - Deploy on cloud VPS (DigitalOcean, AWS)
 > - Use TS-431P3 for file storage only
 
-**Version:** 1.9.3
+**Version:** 1.9.7
 **Architecture:** ARM32v7
 **Target Devices:** QNAP TS-431P3, TS-x31P series, and other ARM-based QNAP NAS
 **Deployment Status:** ❌ Non-functional on TS-431P3 due to 32KB page size
@@ -28,7 +28,7 @@ This directory contains **separate ARM-specific build files** that were created 
 ### Why Separate Files?
 
 - ✅ **Preserve main builds** - Standard x86_64 builds remain untouched
-- ✅ **Version consistency** - ARM builds track v1.9.3 release
+- ✅ **Version consistency** - ARM builds track v1.9.7 release
 - ✅ **Clear separation** - No confusion between architectures
 - ✅ **Easy maintenance** - Update ARM builds independently
 

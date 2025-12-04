@@ -1,7 +1,7 @@
 # Student Management System - Installation Guide
 
-**Version**: 1.9.3
-**Last Updated**: January 2025
+**Version**: 1.9.7
+**Last Updated**: December 2025
 
 ---
 

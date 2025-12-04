@@ -66,7 +66,7 @@ $graphics.DrawLine($pen, 30, 220, $width - 30, 220)
 
 # Draw version
 $versionFont = New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Regular)
-$version = (Get-Content "$scriptDir\..\VERSION" -Raw -ErrorAction SilentlyContinue) ?? "1.9.4"
+$version = (Get-Content "$scriptDir\..\VERSION" -Raw -ErrorAction SilentlyContinue) ?? "1.9.7"
 $graphics.DrawString("v$($version.Trim())", $versionFont, $textBrush, ($width / 2), 280, $format)
 
 # Save
