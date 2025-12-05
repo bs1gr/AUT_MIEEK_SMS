@@ -438,6 +438,16 @@ jobs:
           skip-dirs: 'node_modules,.git,docker,deploy'
         continue-on-error: true
 
+      - name: Check Trivy filesystem scan output exists
+        id: trivy_fs_check
+        shell: bash
+        run: |
+          if [ -f "trivy-filesystem-results.sarif" ]; then
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Trivy config scan (IaC vulnerabilities)
         uses: aquasecurity/trivy-action@master
         with:
@@ -448,6 +458,16 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           skip-dirs: 'node_modules,.git'
         continue-on-error: true
+
+      - name: Check Trivy config scan output exists
+        id: trivy_config_check
+        shell: bash
+        run: |
+          if [ -f "trivy-config-results.sarif" ]; then
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload Trivy backend results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
@@ -467,7 +487,7 @@ jobs:
 
       - name: Upload Trivy filesystem scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always() && hashFiles('trivy-filesystem-results.sarif') != ''
+        if: always() && steps.trivy_fs_check.outputs.sarif_exists == 'true'
         with:
           sarif_file: trivy-filesystem-results.sarif
           category: 'trivy-filesystem'
@@ -475,7 +495,7 @@ jobs:
 
       - name: Upload Trivy config scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always() && hashFiles('trivy-config-results.sarif') != ''
+        if: always() && steps.trivy_config_check.outputs.sarif_exists == 'true'
         with:
           sarif_file: trivy-config-results.sarif
           category: 'trivy-config'
