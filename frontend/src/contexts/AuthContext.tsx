@@ -2,6 +2,15 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import authService from '@/services/authService';
 import apiClient from '@/api/api';
 
+// Environment-driven flags (resolved at build time via Vite)
+const env = (import.meta as { env?: Record<string, string | undefined> }).env || {};
+const AUTO_LOGIN_ENABLED = (() => {
+  const val = env.VITE_ENABLE_AUTO_LOGIN?.toLowerCase?.();
+  return val === '1' || val === 'true' || val === 'yes';
+})();
+const DEFAULT_LOGIN_EMAIL = env.VITE_AUTO_LOGIN_EMAIL || '';
+const DEFAULT_LOGIN_PASSWORD = env.VITE_AUTO_LOGIN_PASSWORD || '';
+
 type User = {
   id: number;
   email: string;
@@ -45,8 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authService.setAccessToken(accessToken);
   }, [accessToken]);
 
-  // Auto-login on mount with default credentials if AUTH is enabled
-  // Intentionally run once on mount to attempt auto-login; dependencies are intentionally omitted
+  // Optional auto-login on mount (disabled by default). Intentionally run once on mount.
   useEffect(() => {
     console.warn('[Auth] useEffect mount - autoLoginAttempted:', autoLoginAttemptedRef.current, 'user:', initialUserRef.current);
     if (autoLoginAttemptedRef.current) {
@@ -55,18 +63,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     autoLoginAttemptedRef.current = true;
     
-    // If user exists but no token, preserve user and attempt silent token acquisition.
-    // This allows localStorage restoration tests and offline scenarios to retain user context.
+    // If user exists but no token, preserve user. Token restoration is handled by manual login.
     if (initialUserRef.current && !initialAccessTokenRef.current) {
-      console.warn('[Auth] User exists without token; preserving user and attempting silent token acquisition');
-      // Fall through to auto-login attempt to obtain a fresh token; do NOT clear user.
+      console.warn('[Auth] User exists without token; preserving user (no auto-login)');
+      setIsInitializing(false);
+      return;
     } else if (initialUserRef.current && initialAccessTokenRef.current) {
       // User and token exist - finish init
       console.warn('[Auth] User and token exist in state, setting isInitializing to false');
       setIsInitializing(false);
       return;
     }
-    
+
+    // Auto-login is opt-in via VITE_ENABLE_AUTO_LOGIN; skip by default in production.
+    if (!AUTO_LOGIN_ENABLED) {
+      console.warn('[Auth] Auto-login disabled (VITE_ENABLE_AUTO_LOGIN not set). Skipping auto-login.');
+      setIsInitializing(false);
+      return;
+    }
+
+    // Require explicit credentials for auto-login; otherwise skip to avoid 400s.
+    if (!DEFAULT_LOGIN_EMAIL || !DEFAULT_LOGIN_PASSWORD) {
+      console.warn('[Auth] Auto-login enabled but credentials missing (VITE_AUTO_LOGIN_EMAIL/PASSWORD). Skipping.');
+      setIsInitializing(false);
+      return;
+    }
+
     console.warn('[Auth] Attempting auto-login');
     let timeoutId: number | undefined;
     let mounted = true;
@@ -81,10 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           controller.abort();
         }, 10000);
         
-        console.warn('[Auth] Posting to /auth/login');
+        console.warn('[Auth] Posting to /auth/login (auto-login)');
         const resp = await apiClient.post('/auth/login', {
-          email: 'admin@example.com',
-          password: 'YourSecurePassword123!'
+          email: DEFAULT_LOGIN_EMAIL,
+          password: DEFAULT_LOGIN_PASSWORD,
         }, { withCredentials: true, signal: controller.signal });
         
         if (!mounted) {

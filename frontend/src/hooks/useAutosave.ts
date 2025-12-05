@@ -109,6 +109,13 @@ export const useAutosave = (
 
     // Don't autosave if disabled
     if (!enabled) {
+      // If autosave is disabled (e.g., user reverted changes), ensure pending state is cleared
+      // and cancel any in-flight debounce timer.
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setIsPending(false);
       return;
     }
 
