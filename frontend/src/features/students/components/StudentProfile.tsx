@@ -95,6 +95,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (studentId) {
       loadStudentData();
     }
+    // Do not include loadStudentData in deps to avoid loops
+    // Callback itself depends on studentId and will be recreated when needed
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 

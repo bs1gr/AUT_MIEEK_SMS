@@ -106,7 +106,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   }, [courseId, studentsString, studentId, students]); // Use studentsString to avoid infinite loop and include studentId
 
   // When student is chosen, restrict courses to those the student is enrolled in
-  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
+  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses?.length]); // Use length to prevent loops
 
   useEffect(() => {
     const run = async () => {

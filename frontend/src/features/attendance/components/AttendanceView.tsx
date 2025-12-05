@@ -36,6 +36,18 @@ type AttendanceState = typeof ATTENDANCE_STATES[number];
 const isTrackedStatus = (status?: string): status is AttendanceState =>
   Boolean(status && ATTENDANCE_STATES.includes(status as AttendanceState));
 
+const shallowEqualStringMap = (a: Record<string, string>, b: Record<string, string>) => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
+};
+
+const shallowEqualNumberMap = (a: Record<string, number>, b: Record<string, number>) => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
+};
+
 const AttendanceView: React.FC<Props> = ({ courses }) => {
 
 
@@ -51,6 +63,11 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const [attendanceRecordIds, setAttendanceRecordIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
   const [dailyPerformanceIds, setDailyPerformanceIds] = useState<Record<string, number>>({}); // Track API record IDs
+
+  // Persisted state from backend (used to detect dirty/pending changes)
+  const [persistedAttendanceRecords, setPersistedAttendanceRecords] = useState<Record<string, string>>({});
+  const [persistedDailyPerformance, setPersistedDailyPerformance] = useState<Record<string, number>>({});
+
   const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [, setLoading] = useState(false);
@@ -63,6 +80,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
+  const courseDetailsFetchedRef = useRef<Set<number>>(new Set());
   // debounce timer (currently unused in this refactor)
   // const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -321,43 +339,27 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     } catch {
       setEvaluationCategories([]);
     }
-  }, [selectedCourse, localCourses, dailyTrackableCategories]);
+  }, [selectedCourse, localCourses.length, dailyTrackableCategories]);
 
-  // Sync local courses with props and fallback fetch if empty
+  // Sync local courses with props (only on initial mount or when props change)
   useEffect(() => {
-    setLocalCourses(Array.isArray(courses) ? courses : []);
-  }, [courses]);
-
-  useEffect(() => {
-    const ensureCourses = async () => {
-      if (localCourses && localCourses.length > 0) return;
-      try {
-        const resp = await fetch(`${API_BASE_URL}/courses/`);
-        if (!resp.ok) throw new Error(`Failed to fetch courses: ${resp.status} ${resp.statusText}`);
-        const data = await resp.json();
-        setLocalCourses(Array.isArray(data) ? data : []);
-      } catch {
-        setLocalCourses([]);
-      }
-    };
-    ensureCourses();
-  }, [localCourses]);
+    if (Array.isArray(courses) && courses.length > 0) {
+      setLocalCourses(courses);
+    }
+  }, [courses.length]); // Use length instead of entire array to prevent loops
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)
   // const coursesLength = localCourses?.length || 0;
-  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
+  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses.length]); // Use length to prevent loops
 
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (!localCourses || localCourses.length === 0) { setCoursesWithEnrollment(new Set()); return; }
 
-      // Request deduplication key
+      // Only fetch if we have a new courseIds value and haven't fetched this combo yet
       const requestKey = `enrollments-${courseIds}`;
-
-      // Prevent duplicate concurrent requests
       if (activeRequestsRef.current.has(requestKey)) {
-        console.warn('[AttendanceView] Skipping duplicate enrollments request');
         return;
       }
 
@@ -431,27 +433,28 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
   // Keep selected course up-to-date (teaching_schedule) by fetching details
   // Only run once when course is selected, not continuously
-  const [courseDetailsFetched, setCourseDetailsFetched] = useState<Set<number>>(new Set());
-
   useEffect(() => {
     const refreshSelectedCourse = async () => {
-      if (!selectedCourse || courseDetailsFetched.has(selectedCourse as number)) return;
+      if (!selectedCourse) return;
+      const courseId = selectedCourse as number;
+      if (courseDetailsFetchedRef.current.has(courseId)) return;
+      
       try {
-        const resp = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`);
+        const resp = await fetch(`${API_BASE_URL}/courses/${courseId}`);
         if (!resp.ok) throw new Error(`Failed to fetch course: ${resp.status} ${resp.statusText}`);
         const detail = await resp.json();
         setLocalCourses((prev) => {
-          const idx = prev.findIndex((c) => c.id === selectedCourse);
+          const idx = prev.findIndex((c) => c.id === courseId);
           if (idx === -1) return prev;
           const next = [...prev];
           next[idx] = { ...next[idx], ...detail };
           return next;
         });
-        setCourseDetailsFetched(prev => new Set(prev).add(selectedCourse as number));
+        courseDetailsFetchedRef.current.add(courseId);
       } catch { /* noop */ }
     };
     refreshSelectedCourse();
-  }, [selectedCourse, courseDetailsFetched]); // Only depend on selectedCourse and fetched set
+  }, [selectedCourse]); // Only depend on selectedCourse and fetched set
 
   // Load enrolled students for selected course
   useEffect(() => {
@@ -504,6 +507,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
       setAttendanceRecords(next);
       setAttendanceRecordIds(ids);
+      setPersistedAttendanceRecords(next);
 
       let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
       try {
@@ -530,12 +534,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
       setDailyPerformance(dp);
       setDailyPerformanceIds(dpIds);
+      setPersistedDailyPerformance(dp);
     } catch (error) {
       console.error('[AttendanceView] Error fetching attendance:', error);
       setAttendanceRecords({});
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
     } finally {
       activeRequestsRef.current.delete(requestKey);
     }
@@ -550,6 +557,8 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
       // Fetch new data - don't include refreshAttendancePrefill in deps to avoid infinite loop
       refreshAttendancePrefill();
     }
@@ -911,13 +920,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         eventBus.emit(EVENTS.ATTENDANCE_BULK_ADDED, { studentId, courseId: selectedCourse });
         eventBus.emit(EVENTS.DAILY_PERFORMANCE_ADDED, { studentId, courseId: selectedCourse });
       });
+
+      // Mark current state as persisted before attempting a refresh; this prevents the
+      // autosave banner from sticking if a post-save refresh fails intermittently.
+      setPersistedAttendanceRecords(attendanceRecords);
+      setPersistedDailyPerformance(dailyPerformance);
       
       await refreshAttendancePrefill();
-      // After save and backend refresh, clear local state again to ensure no pending changes
-      setAttendanceRecords({});
-      setAttendanceRecordIds({});
-      setDailyPerformance({});
-      setDailyPerformanceIds({});
+      // After refreshAttendancePrefill, state is synced with backend.
+      // Keep the fetched values so dirty detection sees a clean state.
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
       console.error('[Attendance] Save error:', e);
@@ -929,7 +940,16 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
   // Only show pending if there are unsaved changes after user interaction
-  const hasChanges = Boolean(selectedCourse && selectedDate && (Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0));
+  const hasDirtyAttendance = useMemo(
+    () => !shallowEqualStringMap(attendanceRecords, persistedAttendanceRecords),
+    [attendanceRecords, persistedAttendanceRecords]
+  );
+  const hasDirtyPerformance = useMemo(
+    () => !shallowEqualNumberMap(dailyPerformance, persistedDailyPerformance),
+    [dailyPerformance, persistedDailyPerformance]
+  );
+
+  const hasChanges = Boolean(selectedCourse && selectedDate && (hasDirtyAttendance || hasDirtyPerformance));
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
     [attendanceRecords, dailyPerformance],
