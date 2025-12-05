@@ -49,7 +49,7 @@ MinVersion=10.0
 UninstallDisplayIcon={app}\SMS_Toggle.ico
 UninstallFilesDir={app}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
-ShowLanguageDialog=yes
+ShowLanguageDialog=auto
 DisableWelcomePage=no
 ; Version info for Windows (shows in Properties and UAC dialogs)
 VersionInfoVersion={#MyAppVersion}
@@ -75,7 +75,7 @@ WizardSmallImageFile=wizard_small.bmp
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
-Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
+Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.txt"; InfoAfterFile: "installer_complete_el.txt"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
 ; English messages serve as fallback

@@ -392,6 +392,40 @@ StatusUninstalling=Απεγκατάσταση %1...
 ShutdownBlockReasonInstallingApp=Εγκατάσταση του %1.
 ShutdownBlockReasonUninstallingApp=Απεγκατάσταση του %1.
 
+; *** Uninstaller messages
+UninstallNotFound=Το αρχείο "%1" δεν υπάρχει. Δεν είναι δυνατή η απεγκατάσταση.
+UninstallOpenError=Το αρχείο "%1" δεν ήταν δυνατό να ανοίξει. Δεν είναι δυνατή η απεγκατάσταση
+UninstallUnsupportedVer=Το αρχείο καταγραφής απεγκατάστασης "%1" είναι σε μορφή που δεν αναγνωρίζεται από αυτήν την έκδοση του Οδηγού Απεγκατάστασης. Δεν ήταν δυνατή η απεγκατάσταση
+UninstallUnknownEntry=Μια άγνωστη καταχώρηση (%1) εντοπίστηκε στο αρχείο καταγραφής απεγκατάστασης
+ConfirmUninstall=Είστε βέβαιοι ότι θέλετε να καταργήσετε εντελώς το %1 και όλα τα στοιχεία του;
+UninstallOnlyOnWin64=Αυτή η εγκατάσταση μπορεί να απεγκατασταθεί μόνο σε Windows 64-bit.
+OnlyAdminCanUninstall=Αυτή η εγκατάσταση μπορεί να απεγκατασταθεί μόνο από χρήστη με δικαιώματα διαχειριστή.
+UninstallStatusLabel=Παρακαλώ περιμένετε μέχρι να καταργηθεί το %1 από τον υπολογιστή σας.
+UninstalledAll=Το %1 αφαιρέθηκε με επιτυχία από τον υπολογιστή σας.
+UninstalledMost=Το %1 αφαιρέθηκε με επιτυχία.%n%nΟρισμένα στοιχεία δεν ήταν δυνατό να καταργηθούν. Αυτά μπορούν να αφαιρεθούν από εσάς.
+UninstalledAndNeedsRestart=Για να ολοκληρώσετε την απεγκατάσταση του %1, ο υπολογιστής σας πρέπει να επανεκκινηθεί.%n%nΘα θέλατε να κάνετε επανεκκίνηση τώρα;
+UninstallDataCorrupted=Το "%1" αρχείο είναι κατεστραμμένο. Δεν ήταν δυνατή η απεγκατάσταση
+
+; *** Uninstallation phase messages
+ConfirmDeleteSharedFileTitle=Κατάργηση Κοινόχρηστου Αρχείου;
+ConfirmDeleteSharedFile2=Το σύστημα υποδεικνύει ότι το ακόλουθο κοινόχρηστο αρχείο δεν χρησιμοποιείται πλέον από κανένα πρόγραμμα. Θέλετε να καταργηθεί αυτό το κοινόχρηστο αρχείο;%n%nΕάν κάποιο πρόγραμμα εξακολουθεί να το χρησιμοποιεί, ενδέχεται να μην λειτουργήσει σωστά. Εάν δεν είστε βέβαιοι, επιλέξτε Όχι. Αφήνοντάς το στο σύστημά σας δεν θα προκληθεί καμία ζημιά.
+SharedFileNameLabel=Όνομα Αρχείου:
+SharedFileLocationLabel=Τοποθεσία:
+WizardUninstalling=Πρόοδος Απεγκατάστασης
+StatusUninstalling=Απεγκατάσταση %1...
+
+; *** Shutdown block reasons
+ShutdownBlockReasonInstallingApp=Εγκατάσταση του %1.
+ShutdownBlockReasonUninstallingApp=Απεγκατάσταση του %1.
+
+; *** Version update messages (Inno Setup 6.1+)
+AlreadyInstalledTitle=%1 είναι ήδη εγκατεστημένο
+AlreadyInstalledLongMessage=Η έκδοση %1 του %2 είναι ήδη εγκατεστημένη στον υπολογιστή σας. Κάντε ότι θέλετε να κάνετε.%n%nΝα ενημερωθεί;%n%nΕκτέλεση νέας εγκατάστασης (αφαίρεση της προηγούμενης εγκατάστασης πρώτα) ή να αφαιρεθούν τα παλιά στοιχεία;
+AlreadyInstalledQuestion=Θέλετε να ενημερώσετε την εγκατάσταση ή να προχωρήσετε με νέα εγκατάσταση;
+UpdateItMsg=Ενημέρωση/Αντικατάσταση (διατήρηση δεδομένων και ρυθμίσεων)
+UpdateItMsgLong=Ενημέρωση/Αντικατάσταση (διατήρηση δεδομένων και ρυθμίσεων)
+UninstallItMsg=Νέα εγκατάσταση (αφαίρεση της προηγούμενης εγκατάστασης)
+
 ; The custom messages below aren't used by Setup itself, but if you make
 ; use of them in your scripts, you'll want to translate them.
 
