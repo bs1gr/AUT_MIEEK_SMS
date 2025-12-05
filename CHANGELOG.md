@@ -10,6 +10,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Fixed
 
+- **Build: Non-blocking Code Signing** 🔧
+  - Made code signing in installer build non-blocking (signed optional)
+  - Build now succeeds with exit code 0 even if signing script errors
+  - Installer compiled and fully functional without signature
+  - Suppresses "Count property not found" errors that were previously failing builds
+  - Users can manually sign installer if needed using signtool
+
+- **Frontend: Duplicate /api/v1 Prefix in Auth Endpoint** 🔐
+  - Fixed axios baseURL + endpoint concatenation causing `/api/v1/api/v1/auth/login`
+  - AuthContext now uses `/auth/login` instead of `/api/v1/auth/login`
+  - Fixes 404 errors: "Failed to load resource: status 404" on login attempts
+  - Updated tests to match corrected endpoint paths
+
 - **CI/CD: Trivy SARIF Upload Failures** 🔧
   - Fixed `upload-sarif` step failing when Trivy scans don't produce SARIF files
   - Added pre-upload check to verify SARIF file existence before upload

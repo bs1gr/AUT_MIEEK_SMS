@@ -110,10 +110,11 @@ cd AUT_MIEEK_SMS
    - You should see the Student Management dashboard
 
 **First-Time Features**:
-   - Automatic database initialization
-   - Rate limiting enabled (1000 reads/min, 600 writes/min)
-   - Health checks running
-   - Offline mode ready (PWA enabled)
+
+- Automatic database initialization
+- Rate limiting enabled (1000 reads/min, 600 writes/min)
+- Health checks running
+- Offline mode ready (PWA enabled)
 
 ---
 
