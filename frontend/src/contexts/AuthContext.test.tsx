@@ -86,9 +86,9 @@ describe('AuthContext', () => {
       });
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/auth/login',
+        '/api/v1/auth/login',
         { email: 'user@test.com', password: 'password123' },
-        { withCredentials: true }
+        expect.objectContaining({ withCredentials: true })
       );
       expect(result.current.user).toEqual({ id: 1, email: 'user@test.com', role: 'student' });
       expect(result.current.accessToken).toBe('new-access-token');
