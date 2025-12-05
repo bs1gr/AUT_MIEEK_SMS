@@ -1,6 +1,6 @@
 ﻿; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.9.7 - Bilingual (English / Greek)
+; Version: 1.9.8 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ; ============================================================================
 
@@ -77,7 +77,7 @@ WizardSmallImageFile=wizard_small.bmp
 Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
 Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.txt"; InfoAfterFile: "installer_complete_el.txt"
 
-; Note: Greek messages are in Greek.isl file
+; Note: Greek messages use local Greek.isl (official Inno translation)
 ; English messages serve as fallback
 
 [CustomMessages]
@@ -110,35 +110,7 @@ english.KeepDataPrompt=Do you want to keep your data (database, backups, setting
 english.ViewReadme=View README documentation
 english.DockerStatusTitle=Docker Desktop Status
 english.DockerRefreshButton=Refresh
-; Greek custom messages
-greek.DockerRequired=Απαιτείται το Docker Desktop
-greek.DockerNotFound=Το Docker Desktop δεν εντοπίστηκε.%n%nΘέλετε να ανοίξετε τη σελίδα λήψης;
-greek.LaunchApp=Εκκίνηση του SMS μετά την εγκατάσταση
-greek.CreateShortcut=Δημιουργία συντόμευσης στην επιφάνεια εργασίας
-greek.BuildContainer=Δημιουργία Docker container (~5-10 λεπτά)
-greek.Prerequisites=Προαπαιτούμενα:
-greek.OpenDockerPage=Άνοιγμα σελίδας λήψης Docker Desktop
-greek.DockerInstalled=Το Docker Desktop είναι εγκατεστημένο
-greek.DockerNotInstalled=Το Docker Desktop ΔΕΝ είναι εγκατεστημένο
-greek.DockerRunning=Το Docker Desktop εκτελείται
-greek.DockerNotRunning=Το Docker Desktop δεν εκτελείται
-greek.BuildingContainer=Δημιουργία SMS Docker container...
-greek.FirstRunNote=Η πρώτη εκτέλεση θα δημιουργήσει το container (5-10 λεπτά)
-greek.ExistingInstallDetected=Εντοπίστηκε υπάρχουσα εγκατάσταση
-greek.ExistingVersionFound=Η έκδοση %1 είναι ήδη εγκατεστημένη στη διαδρομή:%n%2%n%nΤι θέλετε να κάνετε;
-greek.SameVersionFound=Η έκδοση %1 είναι ήδη εγκατεστημένη στη διαδρομή:%n%2%n%nΤι θέλετε να κάνετε;
-greek.UpgradeOption=Ενημέρωση/Αντικατάσταση (διατήρηση δεδομένων)
-greek.CleanInstallOption=Νέα εγκατάσταση (αφαίρεση προηγούμενης πρώτα)
-greek.CancelOption=Ακύρωση
-greek.UpgradingFrom=Αναβάθμιση από έκδοση %1 σε %2
-greek.BackupCreated=Δημιουργήθηκε αντίγραφο ασφαλείας: %1
-greek.KeepUserData=Διατήρηση δεδομένων χρήστη
-greek.RemoveOldVersion=Αφαίρεση προηγούμενης έκδοσης
-greek.UpgradePrompt=Πατήστε ΝΑΙ για ενημέρωση, ΟΧΙ για νέα εγκατάσταση, ή ΑΚΥΡΟ.
-greek.KeepDataPrompt=Θέλετε να διατηρήσετε τα δεδομένα σας;%n%nΠατήστε ΝΑΙ για διατήρηση.%nΠατήστε ΟΧΙ για διαγραφή όλων.
-greek.ViewReadme=Προβολή τεκμηρίωσης README
-greek.DockerStatusTitle=Κατάσταση Docker Desktop
-greek.DockerRefreshButton=Ανανέωση
+; Greek translations are in Greek.isl - no custom messages needed here
 
 [Tasks]
 Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce; Check: IsUpgradeInstall

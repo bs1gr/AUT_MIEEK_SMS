@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     Ensures all Greek-language files in the installer use proper encoding:
-    - Greek.isl: Must declare LanguageCodePage=65001 (UTF-8)
-    - *.txt files: Must be encoded as UTF-8 with BOM
+    - Greek.isl: Official Inno translation, LanguageCodePage=1253 (Windows-1253)
+    - *.txt files: UTF-8 with BOM
     
     Inno Setup 6 requires proper encoding declarations to render Greek text correctly.
     Current approach uses UTF-8 with BOM for all Greek content files.
@@ -31,17 +31,14 @@
     Version: 1.0
     Created: 2025-12-04
     
-    Greek Encoding Strategy:
-    - UTF-8 with BOM: Standard for Greek text files when LanguageCodePage=65001
-    - Files affected:
-      * installer/Greek.isl (UTF-8 with BOM, LanguageCodePage=65001)
-      * installer/installer_welcome_el.txt (UTF-8 with BOM)
-      * installer/installer_complete_el.txt (UTF-8 with BOM)
-      * installer/LICENSE_EL.txt (UTF-8 with BOM)
-    
-    Inno Setup CodePage Reference:
-    65001 = UTF-8 (recommended for modern Unicode support)
-    1253 = Greek (Windows-1253 - legacy)
+        Greek Encoding Strategy:
+        - Greek.isl: Windows-1253 code page declaration (official Inno Setup Greek)
+        - Greek text files: UTF-8 with BOM
+
+        Inno Setup CodePage Reference:
+        1253 = Greek (Windows-1253)
+        65001 = UTF-8
+        0 = Unicode (unused for language files here)
 #>
 
 [CmdletBinding()]
@@ -237,7 +234,7 @@ function Fix-GreekISL {
             $content = $content -replace '\[LangOptions\]', "[LangOptions]`nLanguageCodePage=1253"
         }
         
-        # Write back with Windows-1253 encoding (via Default which respects system settings)
+        # Write back with Windows-1253 encoding
         Set-Content -Path $Path -Value $content -Encoding Default -Force
         
         Write-Status OK "Greek.isl encoding fixed ✓"

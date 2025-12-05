@@ -1,303 +1,291 @@
-# 📚 Complete Documentation Index
+# Documentation Index
 
-## 🎯 Quick Navigation
-
-### For Testing Right Now
-- **Start here:** `ACTION_GUIDE.md` - 5-minute testing checklist
-- **Dev server running at:** http://127.0.0.1:8080
-
-### For Setup & Implementation
-- **Quick setup (5 min):** `QUICK_START_IMPROVEMENTS.md`
-- **Detailed PWA setup:** `docs/PWA_SETUP_GUIDE.md`
-- **Full technical guide:** `docs/IMPROVEMENTS_AUDIT_REPORT.md`
-
-### For Verification & Deployment
-- **Today's report:** `PWA_VERIFICATION_REPORT.md`
-- **Verification items:** `IMPLEMENTATION_CHECKLIST.md`
-- **Features overview:** `README_IMPROVEMENTS.md`
+**Last Updated:** December 5, 2025 (v1.9.8)  
+**Version:** 1.9.8  
+**Status:** Production Ready
 
 ---
 
-## 📋 Documentation Files
+## Quick Navigation
 
-### Execution & Testing
-| File | Purpose | Read Time | Status |
-|------|---------|-----------|--------|
-| **ACTION_GUIDE.md** | 5-min testing steps | 3 min | ✅ Ready to use |
-| **PWA_VERIFICATION_REPORT.md** | Execution report | 5 min | ✅ Complete |
-| **FINAL_SUMMARY.md** | What was done | 3 min | ✅ Complete |
+### For Quick Start
+- **First time?** → Read `START_HERE.md` (5 minutes)
+- **Need the overview?** → Read `README.md` (comprehensive guide)
+- **Want to deploy?** → Read `DEPLOYMENT_READINESS.md` (pre-deployment checklist)
 
-### Setup & Implementation
-| File | Purpose | Read Time | Status |
-|------|---------|-----------|--------|
-| **QUICK_START_IMPROVEMENTS.md** | Quick setup | 5 min | ✅ Ready |
-| **docs/PWA_SETUP_GUIDE.md** | PWA setup guide | 15 min | ✅ Complete |
-| **README_IMPROVEMENTS.md** | Features overview | 5 min | ✅ Complete |
+### For Development & Architecture
+- **System architecture?** → `docs/development/ARCHITECTURE.md`
+- **Security details?** → `docs/SECURITY.md`
+- **Git workflow?** → `docs/development/GIT_WORKFLOW.md`
+- **API reference?** → `backend/CONTROL_API.md`
 
-### Reference & Technical
-| File | Purpose | Read Time | Status |
-|------|---------|-----------|--------|
-| **docs/IMPROVEMENTS_AUDIT_REPORT.md** | Full technical details | 30 min | ✅ 5000+ lines |
-| **IMPLEMENTATION_CHECKLIST.md** | Verification items | 10 min | ✅ 100+ items |
+### For Audits & Reports
+- **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
+- **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
+- **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.9.8.md`
 
----
-
-## 🎯 Reading Recommendations
-
-### If you have 5 minutes:
-1. Open `ACTION_GUIDE.md`
-2. Follow the testing steps
-3. Check DevTools Service Worker
-
-### If you have 15 minutes:
-1. Read `QUICK_START_IMPROVEMENTS.md`
-2. Run the steps
-3. Test locally with DevTools
-4. Optional: Install on mobile
-
-### If you have 30 minutes:
-1. Read `docs/PWA_SETUP_GUIDE.md`
-2. Test on desktop
-3. Test offline mode
-4. Run Lighthouse audit
-
-### If you need full details:
-1. Read `docs/IMPROVEMENTS_AUDIT_REPORT.md`
-2. Review architecture decisions
-3. Check performance metrics
-4. Study security considerations
+### For Operations
+- **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
+- **Production setup?** → `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
+- **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
+- **Monitoring setup?** → `docs/deployment/INDEX.md`
 
 ---
 
-## 📂 Code Files Created
+## Core Documentation
 
-### Frontend PWA Implementation
-```
-frontend/src/pwa-register.ts          - Service worker registration
-frontend/src/hooks/useVirtualScroll.ts - Virtual scrolling hook
-frontend/public/manifest.json          - PWA manifest
-frontend/public/pwa-*.png (8 files)    - PWA icons
-```
+### Root Level Files
 
-### DevOps & Infrastructure
-```
-scripts/generate-pwa-icons.js          - Icon generation
-scripts/backup-database.sh             - Database backup script
-monitoring/prometheus/health_check_rules.yml - Alert rules
-```
+| File | Purpose | Audience |
+|------|---------|----------|
+| `START_HERE.md` | First-time user guide | Everyone |
+| `README.md` | Complete project overview | Everyone |
+| `CHANGELOG.md` | Version history and changes | Developers |
+| `TODO.md` | Project status and roadmap | Team members |
+| `DEPLOYMENT_READINESS.md` | Pre-deployment checklist | Operators |
+| `CONTRIBUTING.md` | Contribution guidelines | Developers |
+| `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |
+| `CODEBASE_AUDIT_REPORT.md` | Detailed audit analysis | Technical leads |
+| `INSTALLER_RELEASE_NOTES_v1.9.8.md` | v1.9.8 release notes | End users |
 
-### Configuration Changes
-```
-frontend/vite.config.ts                - PWA plugin config
-frontend/index.html                    - Meta tags
-frontend/package.json                  - Dependencies
-frontend/src/main.tsx                  - PWA registration
-docker/docker-compose.prod.yml         - Backup service
-.github/workflows/ci-cd-pipeline.yml   - Security scanning
-```
+### Development Documentation
 
----
+Located in `docs/development/`:
 
-## 🚀 Development Server
+- `ARCHITECTURE.md` - System design and module organization
+- `AUTHENTICATION.md` - Auth system documentation
+- `GIT_WORKFLOW.md` - Git standards and commit conventions
+- `FRONTEND_AUDIT_IMPROVEMENTS.md` - Frontend optimization details
+- `FRONTEND_DOCUMENTATION_SUMMARY.md` - Frontend architecture overview
 
-### Current Status
-```
-✅ Running: http://127.0.0.1:8080
-✅ HMR: Enabled
-✅ PWA: Active
-✅ Ready: Yes
-```
+### Deployment Documentation
 
-### Access Points
-- **Local:** http://127.0.0.1:8080 (this machine)
-- **Network:** http://<YOUR_IP>:8080 (from other devices)
+Located in `docs/deployment/`:
 
-### Available Features
-- ✅ Service Worker (offline support)
-- ✅ Manifest (app installation)
-- ✅ Icons (all 8 PWA assets)
-- ✅ Hot Reload (HMR enabled)
-- ✅ DevTools Integration (Chrome/Edge/Firefox)
+- `INDEX.md` - Deployment guide index
+- `DOCKER_OPERATIONS.md` - Docker operations and commands
+- `PRODUCTION_DOCKER_GUIDE.md` - Production setup procedures
+- `POSTGRES_MIGRATION_GUIDE.md` - SQLite to PostgreSQL migration
+- `DEPLOY.md` - General deployment procedures
+- `CI_CD_PIPELINE_GUIDE.md` - GitHub Actions configuration
 
----
+### User Documentation
 
-## ✅ Implementation Summary
+Located in `docs/user/`:
 
-### What Was Built
-- ✅ Progressive Web App (PWA)
-- ✅ Virtual scrolling hook
-- ✅ Health check monitoring (20+ rules)
-- ✅ Automated database backups
-- ✅ Vulnerability scanning in CI/CD
-- ✅ Comprehensive documentation
+- `QUICK_START_GUIDE.md` - End-user quick start
+- `LOCALIZATION.md` - Internationalization setup
+- `PWA_SETUP_GUIDE.md` - PWA features guide
+- `QUICK_REFERENCE_MANUAL.md` - User reference manual
+- `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md` - Greek language user guide
 
-### What Works Now
-- ✅ Icon generation automation
-- ✅ Service worker auto-update
-- ✅ Offline functionality
-- ✅ App installation (iOS, Android, Desktop)
-- ✅ Large list rendering (85% faster)
-- ✅ Production build with PWA
+### Security Documentation
 
-### What's Ready to Test
-- ✅ Desktop browser (Chrome, Edge, Firefox, Safari)
-- ✅ Mobile installation (iOS, Android)
-- ✅ Offline mode
-- ✅ App-like experience
-- ✅ Performance (Lighthouse audit)
+Located in `docs/`:
+
+- `SECURITY.md` - Comprehensive security guide
+- `SECURITY_AUDIT_REPORT.md` - Security audit findings
+- `SECURITY_FIX_SUMMARY.md` - Security fixes applied
+
+### Reference Documentation
+
+Located in `docs/reference/`:
+
+- `session-import-safety.md` - Session import procedures
+- Various API and feature references
 
 ---
 
-## 🎓 Key Concepts
+## Navigation by Use Case
 
-### PWA Features Enabled
-- **Service Worker:** Handles caching and offline
-- **Manifest:** Enables app installation
-- **Icons:** 8 assets for all platforms
-- **Auto-update:** Checks every 60 seconds
-- **Push Ready:** Notification support enabled
+### I Want to Deploy the Application
 
-### Performance Improvements
-- **Network:** 60% fewer requests
-- **First Paint:** 33% faster
-- **List Rendering:** 85.8% faster
-- **Memory Usage:** 92.9% less
+**Start with:** `DEPLOYMENT_READINESS.md`
 
-### Monitoring & Operations
-- **Health Checks:** 20+ Prometheus rules
-- **Backups:** Daily automatic backups
-- **Alerts:** Multi-channel routing
-- **Security:** Automated scanning
+1. Check pre-deployment checklist
+2. Read `docs/deployment/DOCKER_OPERATIONS.md`
+3. For production, see `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
+4. For monitoring, see `docs/deployment/INDEX.md`
 
----
+### I Want to Set Up Development Environment
 
-## 🔄 Workflow Overview
+**Start with:** `START_HERE.md`
 
-### Development
-```
-Frontend Dev: npm run dev
-Deploy Server: http://127.0.0.1:8080
-Test Offline: DevTools → Network → Offline
-```
+1. Follow quick start instructions
+2. Run `NATIVE.ps1 -Setup` or `DOCKER.ps1 -Install`
+3. Refer to `docs/development/ARCHITECTURE.md` for code structure
+4. Check `docs/development/GIT_WORKFLOW.md` for commit standards
 
-### Testing
-```
-Desktop: Chrome/Edge DevTools
-Mobile: Install app on home screen
-Offline: Disable network, reload app
-Performance: Lighthouse audit
-```
+### I Want to Understand the Codebase
 
-### Deployment
-```
-Build: npm run build
-Upload: dist/ folder to server
-Configure: HTTPS + cache headers
-Monitor: Service worker registration
-```
+**Start with:** `CODEBASE_AUDIT_REPORT.md` or `AUDIT_SUMMARY.md`
 
----
+1. Get overview of code quality (10/10 rating)
+2. Review `docs/development/ARCHITECTURE.md` for design
+3. Check `docs/SECURITY.md` for security measures
+4. Review test files in `backend/tests/` and `frontend/tests/`
 
-## 🆘 Quick Help
+### I Need to Troubleshoot an Issue
 
-### Can't find something?
-→ Check this index first
+**Quick checklist:**
 
-### Want to test PWA?
-→ Open `ACTION_GUIDE.md`
+1. Check relevant documentation in `docs/`
+2. Review `CHANGELOG.md` for known issues
+3. Check logs: `backend/logs/app.log` or browser console
+4. Review GitHub issues for similar problems
 
-### Need setup help?
-→ Read `QUICK_START_IMPROVEMENTS.md`
+### I Want to Review Security
 
-### Want technical details?
-→ See `docs/IMPROVEMENTS_AUDIT_REPORT.md`
+**Start with:** `docs/SECURITY.md`
 
-### Need to verify everything?
-→ Use `IMPLEMENTATION_CHECKLIST.md`
+1. Review security guide (15 sections)
+2. Check `docs/SECURITY_AUDIT_REPORT.md`
+3. Review `docs/SECURITY_FIX_SUMMARY.md`
+4. Check authentication: `docs/development/AUTHENTICATION.md`
+
+### I Need to Migrate to PostgreSQL
+
+**Start with:** `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
+
+1. Read complete migration guide (443 lines)
+2. Backup existing SQLite database
+3. Follow step-by-step procedures
+4. Use troubleshooting section if issues arise
 
 ---
 
-## 📊 Key Statistics
+## File Organization
 
-### Code Implementation
-- **Files Created:** 9 new files
-- **Files Modified:** 6 existing files
-- **Lines of Code:** 1000+ implementation
-- **Lines of Documentation:** 5000+ reference
+### Root Level
+```
+├── START_HERE.md                  (5-minute start)
+├── README.md                      (comprehensive overview)
+├── CHANGELOG.md                   (version history)
+├── TODO.md                        (project status)
+├── DEPLOYMENT_READINESS.md        (pre-deployment)
+├── AUDIT_SUMMARY.md               (quick audit)
+├── CODEBASE_AUDIT_REPORT.md       (detailed audit)
+├── CONTRIBUTING.md                (contribution guide)
+└── INSTALLER_RELEASE_NOTES_v1.9.8.md (release notes)
+```
 
-### PWA Assets
-- **Icons Generated:** 8 PNG files
-- **Total Size:** 93 KB
-- **Formats:** Standard, Maskable, iOS, Favicon
-- **Screenshots:** Mobile + Desktop
+### Backend
+```
+backend/
+├── main.py                        (entry point)
+├── app_factory.py                 (app creation)
+├── models.py                      (database models)
+├── routers/                       (15 API routers)
+├── schemas/                       (Pydantic models)
+├── tests/                         (360+ tests)
+├── CONTROL_API.md                 (control API docs)
+└── README.md                      (backend readme)
+```
 
-### Build Output
-- **Service Worker:** Automatically generated
-- **Precache Entries:** 71 assets
-- **Build Time:** 8.46 seconds
-- **Gzip Compression:** 98.61 KB
+### Frontend
+```
+frontend/
+├── src/
+│   ├── App.tsx                    (main component)
+│   ├── main.tsx                   (entry point)
+│   ├── features/                  (feature modules)
+│   ├── components/                (UI components)
+│   ├── pages/                     (page components)
+│   ├── api/                       (axios client)
+│   ├── translations.ts            (i18n setup)
+│   └── locales/                   (EN/EL translations)
+└── README.md                      (frontend readme)
+```
 
 ### Documentation
-- **Total Pages:** 8 markdown files
-- **Total Words:** 8000+
-- **Checklists:** 100+ items
-- **Code Examples:** 50+
+```
+docs/
+├── development/                   (development guides)
+├── deployment/                    (deployment guides)
+├── user/                          (user guides)
+├── reference/                     (API references)
+├── SECURITY.md                    (security guide)
+└── ARCHITECTURE.md                (system design)
+```
+
+### Archive
+```
+archive/
+├── pre-v1.9.1/                    (legacy content)
+├── pre-v1.9.7-docker-scripts/     (old docker helpers)
+├── root_docs_cleanup_2025-12-05/  (archived root docs)
+├── sessions/                      (session artifacts)
+├── deprecated_commit_scripts_2025-11-27/
+└── README.md                      (archive guide)
+```
 
 ---
 
-## 🎯 Next Actions
+## Key Statistics
 
-### Immediate (Now)
-- [ ] Read `ACTION_GUIDE.md`
-- [ ] Test in desktop browser
-- [ ] Check DevTools Service Worker
+### Documentation
+- **Total files:** 50+ guides
+- **Total pages:** Comprehensive coverage
+- **Translations:** English + Greek (select files)
+- **Updated:** December 5, 2025
 
-### Short Term (Today)
-- [ ] Test on mobile device
-- [ ] Run Lighthouse audit
-- [ ] Test offline functionality
+### Codebase
+- **Backend:** FastAPI + SQLAlchemy
+- **Frontend:** React 19.2.0 + TypeScript + Vite
+- **Tests:** 360+ backend tests (100% passing)
+- **Code quality:** 10/10 (Production Ready)
 
-### Medium Term (This Week)
-- [ ] Deploy to staging
-- [ ] Test on production URLs
-- [ ] Gather user feedback
-
-### Long Term (Maintenance)
-- [ ] Monitor service worker registration
-- [ ] Check error logs
-- [ ] Review performance metrics
+### Version
+- **Current:** 1.9.8
+- **Status:** Production Ready
+- **Release Date:** December 4, 2025
+- **Repository:** github.com/bs1gr/AUT_MIEEK_SMS
 
 ---
 
-## 📞 Support Resources
+## Getting Help
 
 ### Quick Questions
-→ Look in this index (📚 Complete Documentation Index)
 
-### Setup Issues
-→ See `docs/PWA_SETUP_GUIDE.md` (Troubleshooting section)
+1. **Can't find something?** → Search this index or use Ctrl+F
+2. **Need setup help?** → `START_HERE.md`
+3. **Want overview?** → `README.md`
+4. **Deployment help?** → `DEPLOYMENT_READINESS.md`
 
-### Testing Help
-→ Follow `ACTION_GUIDE.md` (Step-by-step guide)
+### Technical Questions
 
-### Technical Deep Dive
-→ Read `docs/IMPROVEMENTS_AUDIT_REPORT.md` (5000+ lines)
+1. **Architecture?** → `docs/development/ARCHITECTURE.md`
+2. **Security?** → `docs/SECURITY.md`
+3. **API?** → `backend/CONTROL_API.md`
+4. **Git?** → `docs/development/GIT_WORKFLOW.md`
 
-### Verification
-→ Use `IMPLEMENTATION_CHECKLIST.md` (100+ items)
+### For Auditors/Managers
 
----
-
-## ✨ Summary
-
-**Everything you need is in this repository.**
-
-**All improvements have been implemented.**
-
-**Start with `ACTION_GUIDE.md` for immediate testing.**
+1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
+2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
+3. **Security posture?** → `docs/SECURITY_AUDIT_REPORT.md`
+4. **Release info?** → `INSTALLER_RELEASE_NOTES_v1.9.8.md`
 
 ---
 
-**Last Updated:** December 4, 2025  
-**Status:** ✅ COMPLETE & READY  
-**Dev Server:** http://127.0.0.1:8080
+## Documentation Updates
+
+### December 5, 2025 (v1.9.8)
+- ✅ Archived obsolete documentation (17 files)
+- ✅ Updated main documentation index
+- ✅ Created comprehensive audit reports
+- ✅ Consolidated documentation structure
+
+### Previous Updates
+- See `CHANGELOG.md` for complete version history
+- See `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md` for legacy history
+
+---
+
+## Version Information
+
+**Documentation Version:** v1.9.8  
+**Last Updated:** December 5, 2025  
+**Status:** Current and Complete
+
+All documentation reflects the current state of the codebase and is verified accurate as of v1.9.8.

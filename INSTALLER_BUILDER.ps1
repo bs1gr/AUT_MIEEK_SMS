@@ -23,12 +23,13 @@
 
 .PARAMETER Action
     Operation to perform:
-    - 'audit'     : Check version consistency, validate wizard images
-    - 'build'     : Full build pipeline (validate → regenerate images → compile → sign)
-    - 'validate'  : Quick validation without building
-    - 'sign'      : Sign existing installer
-    - 'test'      : Smoke test installer (runs setup with /SILENT)
-    - 'release'   : Complete release flow (audit → build → tag → upload)
+    - 'audit'          : Check version consistency, validate wizard images
+    - 'validate'       : Quick validation without building
+    - 'build'          : Full build pipeline (validate → regenerate images → compile → sign)
+    - 'sign'           : Sign existing installer
+    - 'test'           : Smoke test installer (runs setup with /SILENT)
+    - 'update-images'  : Update wizard images to latest version only (Modern v2.0)
+    - 'release'        : Complete release flow (audit → build → tag → upload)
     Default: 'build'
 
 .PARAMETER Version
@@ -54,6 +55,10 @@
     Show detailed build output and timings
 
 .EXAMPLE
+    .\INSTALLER_BUILDER.ps1 -Action update-images
+    # Update wizard images to latest version with Modern v2.0 design
+
+.EXAMPLE
     .\INSTALLER_BUILDER.ps1 -Action audit
     # Check version consistency across all installer components
 
@@ -70,7 +75,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-    Version: 1.9.7
+    Version: 1.9.8
     Created: 2025-12-04
     
     Integration Points:
@@ -222,7 +227,7 @@ function Test-VersionConsistency {
         $timeSinceUpdate = (Get-Date) - $lastModified
         if ($timeSinceUpdate.TotalMinutes -gt 60) {
             $hoursOld = [Math]::Round($timeSinceUpdate.TotalHours)
-            Write-Result Warning "Wizard images may contain outdated version ($hoursOld hours old)"
+            Write-Result Warning "Wizard images may be outdated - last modified $hoursOld hrs ago"
             $issues += "Wizard images potentially outdated"
         }
     }
@@ -272,7 +277,7 @@ function Invoke-GreekEncodingAudit {
 
 function Invoke-WizardImageRegeneration {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    Write-Result Info "WIZARD IMAGE REGENERATION"
+    Write-Result Info "WIZARD IMAGE REGENERATION (v2.0 Modern Design)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     
     if (-not (Test-FileExists $WizardImageScript)) {
@@ -281,9 +286,16 @@ function Invoke-WizardImageRegeneration {
     }
     
     try {
-        Write-Result Info "Regenerating wizard images with version $CurrentVersion..."
-        & $WizardImageScript -ErrorAction Stop
+        Write-Result Info "Regenerating wizard images with version v$CurrentVersion..."
+        Write-Result Info "Design: Modern v2.0 with enhanced visuals"
+        
+        # Always regenerate with -Force to ensure latest version
+        & $WizardImageScript -Force -ErrorAction Stop
+        
         Write-Result Success "Wizard images regenerated ✓"
+        Write-Result Info "Large Image: wizard_image.bmp (164x314)"
+        Write-Result Info "Small Image: wizard_small.bmp (55x55)"
+        
         return $true
     } catch {
         Write-Result Error "Failed to regenerate wizard images: $_"
@@ -448,11 +460,11 @@ function Invoke-GitTagAndPush {
 # ============================================================================
 
 Write-Result Info ""
-Write-Result Info "╔═══════════════════════════════════════════════════════════════╗"
-Write-Result Info "║  INSTALLER PRODUCTION & VERSIONING PIPELINE v1.9.7           ║"
-Write-Result Info "║  Action: $($Action.ToUpper().PadRight(54)) ║"
-Write-Result Info "║  Version: $($CurrentVersion.PadRight(54)) ║"
-Write-Result Info "╚═══════════════════════════════════════════════════════════════╝"
+Write-Result Info "================================================================="
+Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE v1.9.8"
+Write-Result Info "Action: $($Action.ToUpper())"
+Write-Result Info "Version: $CurrentVersion"
+Write-Result Info "================================================================="
 Write-Result Info ""
 
 $success = $false
@@ -511,6 +523,11 @@ switch ($Action) {
         $success = Test-InstallerSmoke
     }
     
+    'update-images' {
+        # Update wizard images to latest version only
+        $success = Invoke-WizardImageRegeneration
+    }
+    
     'release' {
         # Complete release flow
         # Greek encoding audit (critical for release)
@@ -534,15 +551,15 @@ switch ($Action) {
 }
 
 Write-Result Info ""
-Write-Result Info "╔═══════════════════════════════════════════════════════════════╗"
+Write-Result Info "================================================================="
 if ($success) {
-    Write-Result Success "║  BUILD SUCCESSFUL ✓                                      ║"
-    Write-Result Info "║  Installer: SMS_Installer_$($CurrentVersion).exe"
-    Write-Result Info "║  Location: $DistDir"
+    Write-Result Success "BUILD SUCCESSFUL"
+    Write-Result Info "Installer: SMS_Installer_$($CurrentVersion).exe"
+    Write-Result Info "Location: $DistDir"
 } else {
-    Write-Result Error "║  BUILD FAILED ✗                                          ║"
+    Write-Result Error "BUILD FAILED"
 }
-Write-Result Info "╚═══════════════════════════════════════════════════════════════╝"
+Write-Result Info "================================================================="
 Write-Result Info ""
 
 exit $(if ($success) { 0 } else { 1 })

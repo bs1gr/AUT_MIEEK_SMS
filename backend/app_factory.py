@@ -207,7 +207,10 @@ def _register_root_endpoints(app: FastAPI, version: str):
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
     SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
+    # Default to serving the built SPA when a dist folder exists unless explicitly disabled.
     SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
+    if SPA_INDEX_FILE.exists() and os.environ.get("SERVE_FRONTEND") is None:
+        SERVE_FRONTEND = True
     
     def _api_metadata() -> dict:
         return {
@@ -229,7 +232,15 @@ def _register_root_endpoints(app: FastAPI, version: str):
         """Root endpoint - serves SPA or API metadata."""
         try:
             if SERVE_FRONTEND and SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
-                return FileResponse(str(SPA_INDEX_FILE))
+                with open(SPA_INDEX_FILE, "r", encoding="utf-8") as f:
+                    content = f.read()
+                from fastapi.responses import HTMLResponse
+                response = HTMLResponse(content=content)
+                # Prevent caching of index.html to ensure fresh content on reload
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
+                response.headers["Pragma"] = "no-cache"
+                response.headers["Expires"] = "0"
+                return response
         except Exception:
             pass
         return _api_metadata()
@@ -277,10 +288,53 @@ def _register_root_endpoints(app: FastAPI, version: str):
                     return FileResponse(str(favicon_path), media_type="image/svg+xml")
                 raise HTTPException(status_code=404, detail="Favicon SVG not found")
             
+            @app.get("/manifest.json")
+            async def serve_manifest():
+                """Serve PWA manifest with correct MIME type."""
+                manifest_path = SPA_DIST_DIR / "manifest.json"
+                if manifest_path.exists():
+                    return FileResponse(str(manifest_path), media_type="application/json")
+                raise HTTPException(status_code=404, detail="Manifest not found")
+            
+            @app.get("/registerSW.js")
+            async def serve_register_sw():
+                """Serve service worker registration script with correct MIME type."""
+                # Check if file exists in dist
+                sw_file = SPA_DIST_DIR / "registerSW.js"
+                if sw_file.exists():
+                    return FileResponse(str(sw_file), media_type="application/javascript")
+                # Generate a minimal service worker registration if file doesn't exist
+                sw_code = """
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(new URL('./sw.js', import.meta.url), { scope: '/' })
+    .then(reg => console.log('Service Worker registered'))
+    .catch(err => console.log('Service Worker registration failed:', err));
+}
+"""
+                from fastapi.responses import Response
+                return Response(content=sw_code, media_type="application/javascript")
+            
+            @app.get("/apple-touch-icon.png")
+            async def serve_apple_touch_icon():
+                """Serve Apple touch icon."""
+                icon_path = SPA_DIST_DIR / "apple-touch-icon.png"
+                if icon_path.exists():
+                    return FileResponse(str(icon_path), media_type="image/png")
+                raise HTTPException(status_code=404, detail="Apple touch icon not found")
+            
+            @app.get("/sw.js")
+            async def serve_service_worker():
+                """Serve Service Worker script with correct MIME type."""
+                sw_path = SPA_DIST_DIR / "sw.js"
+                if sw_path.exists():
+                    return FileResponse(str(sw_path), media_type="application/javascript")
+                raise HTTPException(status_code=404, detail="Service Worker not found")
+            
             # SPA fallback handler
             EXCLUDE_PREFIXES = (
                 "api/", "docs", "redoc", "openapi.json", "control", "health", "metrics",
                 "favicon.ico", "favicon.svg", "assets/", "logo.png", "login-bg.png",
+                "manifest.json", "registerSW.js", "apple-touch-icon.png", "sw.js",
             )
             
             @app.exception_handler(StarletteHTTPException)

@@ -21,12 +21,13 @@ limiter = Limiter(key_func=get_remote_address, enabled=(not _testing), storage_u
 # These can be overridden via environment variables so deployments can
 # increase or decrease limits without changing source.
 # Format used by slowapi: "<count>/minute"
-_DEFAULT_READ = int(os.environ.get("RATE_LIMIT_READ_PER_MINUTE", 1000))
-_DEFAULT_WRITE = int(os.environ.get("RATE_LIMIT_WRITE_PER_MINUTE", 600))
-_DEFAULT_HEAVY = int(os.environ.get("RATE_LIMIT_HEAVY_PER_MINUTE", 200))
-_DEFAULT_AUTH = int(os.environ.get("RATE_LIMIT_AUTH_PER_MINUTE", 50))
+# NOTE: Educational tool for teachers - generous limits, not strict
+_DEFAULT_READ = int(os.environ.get("RATE_LIMIT_READ_PER_MINUTE", 10000))
+_DEFAULT_WRITE = int(os.environ.get("RATE_LIMIT_WRITE_PER_MINUTE", 5000))
+_DEFAULT_HEAVY = int(os.environ.get("RATE_LIMIT_HEAVY_PER_MINUTE", 2000))
+_DEFAULT_AUTH = int(os.environ.get("RATE_LIMIT_AUTH_PER_MINUTE", 500))
 # Teacher imports: loosened to allow uninterrupted data imports (e.g., bulk student/grade uploads)
-_DEFAULT_TEACHER_IMPORT = int(os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 5000))
+_DEFAULT_TEACHER_IMPORT = int(os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 10000))
 
 # Exported strings expected across the codebase/tests
 RATE_LIMIT_READ = f"{_DEFAULT_READ}/minute"
