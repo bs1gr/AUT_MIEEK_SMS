@@ -91,7 +91,9 @@ const StudentManagementApp = () => {
     if (activeView === 'calendar') {
       refetchCourses();
     }
-  }, [activeView, refetchCourses]);
+    // Omit refetchCourses from deps to prevent loops; only depend on view
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
