@@ -96,6 +96,7 @@ param(
     [switch]$Help,
     [switch]$NoPause,
     [switch]$Silent,  # Unattended mode: skip prompts (for installer integration)
+    [switch]$NoShortcut,  # Skip desktop shortcut creation (for installer integration)
     [int]$GrafanaPort = 3000
 )
 
@@ -840,16 +841,17 @@ function Start-Installation {
     Write-Header "Installation Complete!"
     Write-Host ""
     
-    # Create desktop shortcut
-    Create-DesktopShortcut | Out-Null
+    # Create desktop shortcut only if not suppressed (installer handles it)
+    if (-not $NoShortcut) {
+        Create-DesktopShortcut | Out-Null
+        Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
+    }
     
     Write-Info "Next steps:"
     Write-Host "  1. Start application:  .\DOCKER.ps1 -Start" -ForegroundColor White
     Write-Host "  2. Access web app:     http://localhost:$PORT" -ForegroundColor White
     Write-Host "  3. Login:              admin@example.com / YourSecurePassword123!" -ForegroundColor White
     Write-Host "  4. Change password:    Control Panel → Maintenance" -ForegroundColor White
-    Write-Host ""
-    Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
     Write-Host ""
 
     # In silent mode, don't prompt and don't auto-start

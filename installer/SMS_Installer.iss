@@ -115,17 +115,23 @@ english.InstallDockerOnly=Docker Production Only (Recommended)
 english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastest, cleanest)
 english.InstallDevEnvironment=Include Development Environment
 english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
-; Greek translations are in Greek.isl - no custom messages needed here
+
+; Greek translations
+greek.InstallationType=Τύπος Εγκατάστασης
+greek.InstallDockerOnly=Μόνο Docker Production (Συνιστάται)
+greek.InstallDockerOnlyDesc=Ελάχιστη εγκατάσταση με Docker container (ταχύτερη, καθαρότερη)
+greek.InstallDevEnvironment=Συμπερίληψη Περιβάλλοντος Ανάπτυξης
+greek.InstallDevEnvironmentDesc=Προσθήκη Node.js, Python και αρχείων για τοπική ανάπτυξη
 
 [Tasks]
 Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{cm:Prerequisites}"; Check: not IsDockerInstalled
-Name: "devenv"; Description: "{cm:InstallDevEnvironment}"; GroupDescription: "{cm:InstallationType}"
 
 [Files]
-; Core application files - backend/frontend only for dev environment
-Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv"; Check: IsDevInstall
-Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"; Check: IsDevInstall
+; Core application files - backend/frontend ALWAYS needed for Docker build
+Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv"
+Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"
 Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.py,*.sh"
@@ -135,7 +141,6 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\DOCKER_TOGGLE.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\DOCKER_TOGGLE.vbs"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\CREATE_DESKTOP_SHORTCUT.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Development scripts - only for dev environment
@@ -191,8 +196,8 @@ Name: "{group}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCK
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
-; Desktop shortcut
-Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"
+; Desktop shortcut (optional)
+Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"; Tasks: desktopicon
 
 [Run]
 ; Open Docker download page if requested
@@ -440,6 +445,9 @@ begin
 end;
 
 procedure InitializeWizard;
+var
+  DockerOnlyDesc: TLabel;
+  DevEnvDesc: TLabel;
 begin
   // Create custom Installation Type page (before Tasks page)
   InstallTypePage := CreateCustomPage(wpReady - 1, CustomMessage('InstallationType'), 
@@ -450,43 +458,41 @@ begin
   DockerOnlyRadio.Left := 0;
   DockerOnlyRadio.Top := 10;
   DockerOnlyRadio.Width := InstallTypePage.SurfaceWidth;
-  DockerOnlyRadio.Height := 25;
+  DockerOnlyRadio.Height := 20;
   DockerOnlyRadio.Caption := CustomMessage('InstallDockerOnly');
   DockerOnlyRadio.Checked := True;
   
-  TLabel.Create(InstallTypePage).Parent := InstallTypePage.Surface;
-  with TLabel(InstallTypePage.Surface.Controls[InstallTypePage.Surface.ControlCount - 1]) do
-  begin
-    Left := 20;
-    Top := 35;
-    Width := InstallTypePage.SurfaceWidth - 20;
-    Height := 40;
-    WordWrap := True;
-    Caption := CustomMessage('InstallDockerOnlyDesc');
-    Font.Color := clGray;
-    Font.Size := 9;
-  end;
+  DockerOnlyDesc := TLabel.Create(InstallTypePage);
+  DockerOnlyDesc.Parent := InstallTypePage.Surface;
+  DockerOnlyDesc.Left := 24;
+  DockerOnlyDesc.Top := 32;
+  DockerOnlyDesc.Width := InstallTypePage.SurfaceWidth - 30;
+  DockerOnlyDesc.Height := 50;
+  DockerOnlyDesc.WordWrap := True;
+  DockerOnlyDesc.AutoSize := True;
+  DockerOnlyDesc.Caption := CustomMessage('InstallDockerOnlyDesc');
+  DockerOnlyDesc.Font.Color := clGray;
+  DockerOnlyDesc.Font.Size := 8;
   
   DevEnvRadio := TRadioButton.Create(InstallTypePage);
   DevEnvRadio.Parent := InstallTypePage.Surface;
   DevEnvRadio.Left := 0;
-  DevEnvRadio.Top := 80;
+  DevEnvRadio.Top := 95;
   DevEnvRadio.Width := InstallTypePage.SurfaceWidth;
-  DevEnvRadio.Height := 25;
+  DevEnvRadio.Height := 20;
   DevEnvRadio.Caption := CustomMessage('InstallDevEnvironment');
   
-  TLabel.Create(InstallTypePage).Parent := InstallTypePage.Surface;
-  with TLabel(InstallTypePage.Surface.Controls[InstallTypePage.Surface.ControlCount - 1]) do
-  begin
-    Left := 20;
-    Top := 105;
-    Width := InstallTypePage.SurfaceWidth - 20;
-    Height := 60;
-    WordWrap := True;
-    Caption := CustomMessage('InstallDevEnvironmentDesc');
-    Font.Color := clGray;
-    Font.Size := 9;
-  end;
+  DevEnvDesc := TLabel.Create(InstallTypePage);
+  DevEnvDesc.Parent := InstallTypePage.Surface;
+  DevEnvDesc.Left := 24;
+  DevEnvDesc.Top := 117;
+  DevEnvDesc.Width := InstallTypePage.SurfaceWidth - 30;
+  DevEnvDesc.Height := 50;
+  DevEnvDesc.WordWrap := True;
+  DevEnvDesc.AutoSize := True;
+  DevEnvDesc.Caption := CustomMessage('InstallDevEnvironmentDesc');
+  DevEnvDesc.Font.Color := clGray;
+  DevEnvDesc.Font.Size := 8;
 
   // Create custom Docker status page
   DockerPage := CreateCustomPage(wpSelectTasks, CustomMessage('DockerRequired'), 
@@ -685,10 +691,13 @@ begin
     CommonShortcut := ExpandConstant('{commondesktop}\{#MyAppName}.lnk');
     UserShortcut := ExpandConstant('{userdesktop}\{#MyAppName}.lnk');
 
-    // Clean up any manually created folder shortcuts (case-insensitive match via exact known name)
+    // Clean up legacy shortcuts from previous versions or manual creation
     DeleteFile(ExpandConstant('{autodesktop}\student-management-system - Shortcut.lnk'));
     DeleteFile(ExpandConstant('{userdesktop}\student-management-system - Shortcut.lnk'));
-    Log('Cleaned up manual folder shortcuts');
+    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
+    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
+    Log('Cleaned up legacy shortcuts');
     
     // Rename uninstaller to include version and update registry
     // Uses constants defined at top: UninstallerExe, UninstallerDat
