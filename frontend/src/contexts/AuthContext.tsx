@@ -81,8 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           controller.abort();
         }, 10000);
         
-        console.warn('[Auth] Posting to /api/v1/auth/login');
-        const resp = await apiClient.post('/api/v1/auth/login', {
+        console.warn('[Auth] Posting to /auth/login');
+        const resp = await apiClient.post('/auth/login', {
           email: 'admin@example.com',
           password: 'YourSecurePassword123!'
         }, { withCredentials: true, signal: controller.signal });
@@ -161,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []); // Empty dependency - run only once on mount
 
   const login = async (email: string, password: string) => {
-    const url = '/api/v1/auth/login';
+    const url = '/auth/login';
     const resp = await apiClient.post(url, { email, password }, { withCredentials: true });
     const data = resp.data || {};
 

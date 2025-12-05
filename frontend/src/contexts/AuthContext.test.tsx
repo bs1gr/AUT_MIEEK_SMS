@@ -86,7 +86,7 @@ describe('AuthContext', () => {
       });
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/auth/login',
+        '/auth/login',
         { email: 'user@test.com', password: 'password123' },
         expect.objectContaining({ withCredentials: true })
       );
