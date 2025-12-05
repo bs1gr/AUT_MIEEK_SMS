@@ -155,7 +155,6 @@ Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\DEPLOYMENT_READINESS.md"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Dev documentation - only for dev environment
 Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
