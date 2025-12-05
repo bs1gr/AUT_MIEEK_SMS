@@ -75,7 +75,7 @@ WizardSmallImageFile=wizard_small.bmp
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
-Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
+Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
 ; English messages serve as fallback
