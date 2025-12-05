@@ -110,42 +110,56 @@ english.KeepDataPrompt=Do you want to keep your data (database, backups, setting
 english.ViewReadme=View README documentation
 english.DockerStatusTitle=Docker Desktop Status
 english.DockerRefreshButton=Refresh
+english.InstallationType=Installation Type
+english.InstallDockerOnly=Docker Production Only (Recommended)
+english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastest, cleanest)
+english.InstallDevEnvironment=Include Development Environment
+english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
 ; Greek translations are in Greek.isl - no custom messages needed here
 
 [Tasks]
-Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce; Check: IsUpgradeInstall
+Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{cm:Prerequisites}"; Check: not IsDockerInstalled
+Name: "devenv"; Description: "{cm:InstallDevEnvironment}"; GroupDescription: "{cm:InstallationType}"
 
 [Files]
-; Core application files
-Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env"
-Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env"
+; Core application files - backend/frontend only for dev environment
+Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv"; Check: IsDevInstall
+Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"; Check: IsDevInstall
 Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.py,*.sh"
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Main scripts
+; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\DOCKER_TOGGLE.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\DOCKER_TOGGLE.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CREATE_DESKTOP_SHORTCUT.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
+; Development scripts - only for dev environment
+Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\COMMIT_READY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+
 ; Icon file
 Source: "..\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
-; Documentation
+; Documentation - keep only essential for all users
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\DESKTOP_SHORTCUT_QUICK_START.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\DEPLOYMENT_READINESS.md"; DestDir: "{app}"; Flags: ignoreversion
 
-; Example env files
-Source: "..\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion
-Source: "..\frontend\.env.example"; DestDir: "{app}\frontend"; DestName: ".env.example"; Flags: ignoreversion
+; Dev documentation - only for dev environment
+Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\START_HERE.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\DOCUMENTATION_INDEX.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+
+; Example env files - only for dev environment
+Source: "..\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\frontend\.env.example"; DestDir: "{app}\frontend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Create data directory
 Source: "placeholder.txt"; DestDir: "{app}\data"; Flags: ignoreversion
@@ -199,6 +213,16 @@ var
   PreviousVersion: String;
   PreviousInstallPath: String;
   IsUpgrade: Boolean;
+  InstallTypePage: TWizardPage;
+  DockerOnlyRadio: TRadioButton;
+  DevEnvRadio: TRadioButton;
+  InstallDevEnvironment: Boolean;
+
+// Function to check if this is a dev environment install
+function IsDevInstall: Boolean;
+begin
+  Result := InstallDevEnvironment;
+end;
 
 // Function to check if this is an upgrade (for Tasks Check)
 function IsUpgradeInstall: Boolean;
@@ -322,6 +346,7 @@ var
 begin
   Result := True;
   IsUpgrade := False;
+  InstallDevEnvironment := False;  // Default: Docker-only installation
   
   PreviousVersion := GetPreviousVersion;
   PreviousInstallPath := GetPreviousInstallPath;
@@ -416,6 +441,53 @@ end;
 
 procedure InitializeWizard;
 begin
+  // Create custom Installation Type page (before Tasks page)
+  InstallTypePage := CreateCustomPage(wpReady - 1, CustomMessage('InstallationType'), 
+    'Choose your installation configuration');
+  
+  DockerOnlyRadio := TRadioButton.Create(InstallTypePage);
+  DockerOnlyRadio.Parent := InstallTypePage.Surface;
+  DockerOnlyRadio.Left := 0;
+  DockerOnlyRadio.Top := 10;
+  DockerOnlyRadio.Width := InstallTypePage.SurfaceWidth;
+  DockerOnlyRadio.Height := 25;
+  DockerOnlyRadio.Caption := CustomMessage('InstallDockerOnly');
+  DockerOnlyRadio.Checked := True;
+  
+  TLabel.Create(InstallTypePage).Parent := InstallTypePage.Surface;
+  with TLabel(InstallTypePage.Surface.Controls[InstallTypePage.Surface.ControlCount - 1]) do
+  begin
+    Left := 20;
+    Top := 35;
+    Width := InstallTypePage.SurfaceWidth - 20;
+    Height := 40;
+    WordWrap := True;
+    Caption := CustomMessage('InstallDockerOnlyDesc');
+    Font.Color := clGray;
+    Font.Size := 9;
+  end;
+  
+  DevEnvRadio := TRadioButton.Create(InstallTypePage);
+  DevEnvRadio.Parent := InstallTypePage.Surface;
+  DevEnvRadio.Left := 0;
+  DevEnvRadio.Top := 80;
+  DevEnvRadio.Width := InstallTypePage.SurfaceWidth;
+  DevEnvRadio.Height := 25;
+  DevEnvRadio.Caption := CustomMessage('InstallDevEnvironment');
+  
+  TLabel.Create(InstallTypePage).Parent := InstallTypePage.Surface;
+  with TLabel(InstallTypePage.Surface.Controls[InstallTypePage.Surface.ControlCount - 1]) do
+  begin
+    Left := 20;
+    Top := 105;
+    Width := InstallTypePage.SurfaceWidth - 20;
+    Height := 60;
+    WordWrap := True;
+    Caption := CustomMessage('InstallDevEnvironmentDesc');
+    Font.Color := clGray;
+    Font.Size := 9;
+  end;
+
   // Create custom Docker status page
   DockerPage := CreateCustomPage(wpSelectTasks, CustomMessage('DockerRequired'), 
     CustomMessage('DockerStatusTitle'));
@@ -469,6 +541,12 @@ var
   ErrorCode: Integer;
 begin
   Result := True;
+  
+  // Handle installation type page selection
+  if CurPageID = InstallTypePage.ID then
+  begin
+    InstallDevEnvironment := DevEnvRadio.Checked;
+  end;
   
   if CurPageID = DockerPage.ID then
   begin
