@@ -20,7 +20,7 @@ def register_middlewares(app):
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    # Security headers middleware
+    # Security headers middleware with cache control
     @app.middleware("http")
     async def add_security_headers(request, call_next):
         response = await call_next(request)
@@ -28,6 +28,21 @@ def register_middlewares(app):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        
+        # Cache control for different content types
+        path = request.url.path
+        if path.startswith("/assets/"):
+            # Static assets with hashes in filenames - cache for 1 year
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path in ("/", "/index.html"):
+            # HTML files - always revalidate to detect updates
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        elif path.startswith(("/api/", "/docs", "/redoc", "/openapi.json", "/control", "/health", "/metrics")):
+            # API endpoints - don't cache
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        
         return response
     # GZip compression
     if getattr(settings, "ENABLE_GZIP", True):
