@@ -296,8 +296,8 @@ archive/
 
 ## Version Information
 
-**Documentation Version:** v1.9.8  
-**Last Updated:** December 5, 2025  
+**Documentation Version:** v1.9.9  
+**Last Updated:** December 6, 2025  
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.9.8.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.9.9.
