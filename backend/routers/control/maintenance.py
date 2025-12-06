@@ -342,7 +342,7 @@ async def check_for_updates(request: Request):
     Compares current version with latest GitHub release and provides
     update instructions for Docker deployments.
     """
-    from backend.environment import RuntimeContext
+    from backend.environment import get_runtime_context
     
     current_version = _get_version()
     
@@ -373,8 +373,8 @@ async def check_for_updates(request: Request):
                 installer_hash = _fetch_github_file_content(asset["url"])
         
         # Determine instructions based on deployment type
-        environment = RuntimeContext.get_environment()
-        if environment == "docker":
+        context = get_runtime_context()
+        if context.is_docker:
             instructions = (
                 "To update your Docker deployment:\n\n"
                 "1. On your host machine, run:\n"
