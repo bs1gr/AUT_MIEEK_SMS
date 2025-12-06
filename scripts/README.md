@@ -158,7 +158,7 @@ This hook helps catch lint/test issues early. If you intentionally want to skip 
 
 ## 🗂️ Subdirectories
 
-### `internal/` - Internal Utilities (Advanced Users)
+### `dev/internal/` - Internal Utilities (Advanced Users)
 
 Specialized maintenance and diagnostic tools. Most users won't need these directly under v2.0.
 
@@ -168,11 +168,15 @@ Specialized maintenance and diagnostic tools. Most users won't need these direct
 - `DIAGNOSE_FRONTEND.ps1` - Frontend-specific diagnostics
 - `DIAGNOSE_STATE.ps1` - Comprehensive system state analysis
 - `DEVTOOLS.ps1` - Development tooling utilities
-- `CLEANUP_*.ps1` - Various cleanup scripts
+- `CLEANUP_COMPREHENSIVE.ps1` - Master cleanup script (removes obsolete files, cache, build artifacts)
+- `VERIFY_LOCALIZATION.ps1` - Translation key parity checker
+- `TEST_TERMINAL.ps1` - Terminal configuration tester
 
 **Deprecated Scripts:**
 
 - `KILL_FRONTEND_NOW.ps1` - ⚠️ Moved to `operator/` → Use `NATIVE.ps1 -Stop`
+- `CLEANUP_OBSOLETE_FILES.ps1` - ⚠️ Consolidated into `CLEANUP_COMPREHENSIVE.ps1`
+- `CLEANUP_DOCS.ps1` - ⚠️ Removed (empty file)
 
 ### `docker/` - Docker Helpers (Mostly Deprecated)
 
@@ -199,10 +203,11 @@ Deployment automation and packaging tools.
 - `set-docker-metadata.ps1` - Set Docker image metadata
 - `run-docker-release.ps1` - Run release Docker image
 - `CHECK_VOLUME_VERSION.ps1` - Version checking for deployment
-- `internal/CREATE_DEPLOYMENT_PACKAGE.ps1` - Package creation
+- `internal/CREATE_DEPLOYMENT_PACKAGE.ps1` - Package creation (comprehensive, includes Docker image support)
 
 **Deprecated:**
 
+- `internal/CREATE_PACKAGE.ps1` - ⚠️ Consolidated into `CREATE_DEPLOYMENT_PACKAGE.ps1` (more comprehensive)
 - `STOP.ps1` - ⚠️ Use `DOCKER.ps1 -Stop`
 
 ### `ops/` - Operations Scripts
@@ -299,6 +304,26 @@ Legacy `scripts/docker/` folder was removed. Docker helpers now live in `scripts
 # New (v2.0)
 .\DOCKER.ps1 -Start
 ```
+
+### PowerShell Installer Wizards (v1.9.7+ Consolidated to Inno Setup)
+
+All PowerShell-based installer wizards in `tools/installer/` have been consolidated into a single Inno Setup-based system (canonical: `installer/SMS_Installer.iss`).
+
+| Deprecated Script | Status | Replacement |
+|-------------------|--------|-------------|
+| `SMS_INSTALLER_WIZARD.ps1` | ⚠️ Legacy | `installer/SMS_Installer.iss` + `SMS_Installer_{version}.exe` |
+| `SMS_UNINSTALLER_WIZARD.ps1` | ⚠️ Legacy | Uninstall_SMS_{version}.exe (created by Inno Setup) |
+| `BUILD_SIMPLE.ps1` | ⚠️ Legacy | `.\INSTALLER_BUILDER.ps1` (root level) |
+| `BUILD_INSTALLER_EXECUTABLE.ps1` | ⚠️ Legacy | `.\INSTALLER_BUILDER.ps1` (root level) |
+
+**Why:** Inno Setup provides:
+
+- Better Windows integration
+- Code signing support
+- Native uninstaller generation
+- Simpler distribution
+
+**User Impact:** Users should download the .exe installer from GitHub Releases instead of running PowerShell scripts directly.
 
 ---
 
