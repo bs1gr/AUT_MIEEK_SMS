@@ -70,6 +70,7 @@ def create_highlight(
 @router.get("/", response_model=HighlightListResponse)
 @limiter.limit(RATE_LIMIT_READ)
 def list_highlights(
+    request: Request,
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Max records to return"),
     student_id: Optional[int] = Query(None, description="Filter by student ID"),
