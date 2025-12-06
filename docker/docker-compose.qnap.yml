@@ -2,7 +2,7 @@
 # Student Management System v1.8.0
 # Optimized for QNAP NAS with Container Station
 #
-# Documentation: docs/qnap/QNAP_INSTALLATION_GUIDE.md
+# Documentation: docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md
 # 
 # Quick Start:
 #   1. Copy .env.qnap.example to .env.qnap and configure

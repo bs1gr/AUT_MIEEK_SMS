@@ -51,7 +51,7 @@ Exit codes: `0` = all consistent, `1` = critical failure, `2` = inconsistent (ne
 - `docs/user/USER_GUIDE_COMPLETE.md`
 - `docs/development/DEVELOPER_GUIDE_COMPLETE.md`
 - `docs/DOCUMENTATION_INDEX.md`
-- `docs/qnap/QNAP_INSTALLATION_GUIDE.md`
+- `docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md`
 
 **Installer Scripts:**
 
