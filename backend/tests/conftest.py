@@ -24,6 +24,8 @@ os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
 # Disable CSRF in tests since TestClient doesn't handle CSRF token cookies easily
 os.environ.setdefault("CSRF_ENABLED", "0")
 os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "0")
+# Disable frontend serving in tests to ensure API metadata is returned at root endpoint
+os.environ.setdefault("SERVE_FRONTEND", "0")
 
 from backend import models
 from backend.config import settings

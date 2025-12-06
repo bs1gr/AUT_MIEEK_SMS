@@ -309,11 +309,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <input className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={String(weight)} onChange={e=>setWeight(e.target.value? Number(e.target.value): '')} disabled={category==='Midterm' || category==='Final Exam'} />
+          <input className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={String(weight)} onChange={e=>{const val = e.target.value.replace(',', '.'); setWeight(val? Number(val): '')}} disabled={category==='Midterm' || category==='Final Exam'} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={String(gradeValue)} onChange={e=>setGradeValue(e.target.value? Number(e.target.value): '')} />
-          <input className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={String(maxGrade)} onChange={e=>setMaxGrade(e.target.value? Number(e.target.value): '')} />
+          <input className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={String(gradeValue)} onChange={e=>{const val = e.target.value.replace(',', '.'); setGradeValue(val? Number(val): '')}} />
+          <input className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={String(maxGrade)} onChange={e=>{const val = e.target.value.replace(',', '.'); setMaxGrade(val? Number(val): '')}} />
           <button disabled={submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{submitting? t('saving') : t('saveGrade')}</button>
         </div>
       </form>
