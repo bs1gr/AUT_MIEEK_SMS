@@ -456,7 +456,7 @@ After setup is complete:
 4. **Read More Documentation**:
 
    - [GIT_WORKFLOW.md](GIT_WORKFLOW.md) - Git commit standards
-   - [PRE_COMMIT_AUTOMATION.md](PRE_COMMIT_AUTOMATION.md) - Pre-commit hooks
+   - [PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md) - Unified pre-commit workflow
    - [DEVELOPER_FAST_START.md](DEVELOPER_FAST_START.md) - Quick developer onboarding
    - [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) - Complete documentation index
 
@@ -507,7 +507,7 @@ npm test
 ## 📚 Related Documentation
 
 - [GIT_WORKFLOW.md](GIT_WORKFLOW.md) - Git workflow and commit standards
-- [PRE_COMMIT_AUTOMATION.md](PRE_COMMIT_AUTOMATION.md) - Pre-commit hook automation
+- [PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md) - Unified pre-commit workflow
 - [DEVELOPER_FAST_START.md](DEVELOPER_FAST_START.md) - Quick start for new developers
 - [API_EXAMPLES.md](API_EXAMPLES.md) - API usage examples
 - [../operations/SCRIPTS_GUIDE.md](../operations/SCRIPTS_GUIDE.md) - All available scripts

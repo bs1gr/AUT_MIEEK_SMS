@@ -441,11 +441,12 @@ Recommended extensions:
 
 ## Related Documentation
 
+- [docs/development/PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md) - Unified pre-commit workflow (replaces multiple docs)
 - [PRE_COMMIT_AUTOMATION_SUMMARY.md](../../archive/sessions_2025-11/PRE_COMMIT_AUTOMATION_SUMMARY.md) - Automation implementation details (archived)
-- [docs/development/PRECOMMIT_INSTRUCTIONS.md](PRECOMMIT_INSTRUCTIONS.md) - Additional pre-commit guidance
+- [archive/pre-commit-2025-12-06/](../../archive/pre-commit-2025-12-06/) - Legacy pre-commit docs (superseded)
 - [CHANGELOG.md](../../CHANGELOG.md) - Version history
 
----
+--------------------------------
 
 **Maintained by**: Development Team
 **Questions?**: Create GitHub issue with `documentation` label

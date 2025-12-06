@@ -570,7 +570,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Git status validation with detailed reporting
   - Test results summary with pass/fail tracking
   - Quick mode for faster iteration (`-Quick` flag)
-  - See `docs/development/PRE_COMMIT_AUTOMATION.md` for complete guide
+  - See `docs/development/PRE_COMMIT_GUIDE.md` for the current unified guide (replaces PRE_COMMIT_AUTOMATION.md)
 
 - **Help & Documentation Enhancements** - Comprehensive help system improvements
   - Added "Autosave & Data Persistence" section with 7 Q&A entries
@@ -617,7 +617,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 - Reorganized documentation structure
 - Updated `docs/development/AUTOSAVE_PATTERN.md` with new implementations
-- Added automation guide: `docs/development/PRE_COMMIT_AUTOMATION.md`
+- Added automation guide (now consolidated as `docs/development/PRE_COMMIT_GUIDE.md`)
 
 ### Fixed
 

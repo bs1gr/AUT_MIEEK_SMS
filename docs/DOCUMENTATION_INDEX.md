@@ -177,6 +177,9 @@ Documentation is organized into four main directories:
   - Testing setup (pytest + Python 3.13 compatibility)
   - Pre-commit validation
   - Troubleshooting common issues
+- **[development/PRE_COMMIT_GUIDE.md](development/PRE_COMMIT_GUIDE.md)** ⭐ NEW - Unified pre-commit workflow
+  - Replaces PRE_COMMIT_AUTOMATION.md, PRECOMMIT_INSTRUCTIONS.md, pre-commit-workflow.md (archived to `archive/pre-commit-2025-12-06/`)
+  - Covers COMMIT_READY.ps1 modes, hooks installation, DEV_EASE policy, troubleshooting
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
 ### 🚀 For DevOps/Operators
@@ -207,7 +210,10 @@ Documentation is organized into four main directories:
 
 **Reference Guides** (NEW):
 
-- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
+- **[SECURITY_GUIDE_COMPLETE.md](SECURITY_GUIDE_COMPLETE.md)** - **NEW consolidated security guide (Dec 2025)**
+  - Replaces: SECURITY.md, SECURITY_AUDIT_REPORT.md, SECURITY_FIX_SUMMARY.md (archived to `archive/security-audit-2025-12-06/`)
+  - Includes SECRET_KEY requirements, admin hardening, SQL injection verification, audit results, emergency procedures
+- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Legacy security quick reference (supplementary)
 - **[reference/DOCKER_CLEANUP_GUIDE.md](reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures
 
 
