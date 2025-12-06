@@ -5,7 +5,7 @@
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes ($11.9.7)**: Documentation has been reorganized into a cleaner structure with better categorization. All files are now in their proper directories.
+> **Recent Changes (1.9.9)**: Frontend routing validation, React Router v7 type safety improvements, decimal input parsing for international locales, comprehensive routing documentation added.
 
 ---
 
@@ -26,7 +26,12 @@ Documentation is organized into four main directories:
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-22)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
+- **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
+  - Frontend routing type safety and React Router v7 validation
+  - International locale support (European decimal separators)
+  - Backend test infrastructure improvements
+  - Test results and verification checklist
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
@@ -63,6 +68,12 @@ Documentation is organized into four main directories:
   - Development guidelines and best practices
   - Testing strategy and troubleshooting
   - Module responsibilities and usage examples
+
+- **[ROUTING_VALIDATION_FIXES.md](../ROUTING_VALIDATION_FIXES.md)** - React Router v7 routing improvements (NEW - 1.9.9)
+  - React Router v7 layout route pattern validation
+  - Type-safe useParams implementation with StudentProfileParams interface
+  - Route configuration validation against navigation settings
+  - Comprehensive reference for routing architecture and maintenance
 
 ### Performance & Optimization
 

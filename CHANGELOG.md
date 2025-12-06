@@ -10,6 +10,30 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Fixed
 
+#### Frontend & Routing (2025-12-06)
+
+- **Frontend: React Router v7 Type Safety** 🎯
+  - Added explicit `StudentProfileParams` interface for `useParams<StudentProfileParams>()`
+  - Improves TypeScript type clarity for route parameter extraction
+  - Follows React Router v7 best practices for type-safe route handling
+  - Component: `frontend/src/pages/StudentProfilePage.tsx`
+
+- **Frontend: Decimal Input Parsing for International Locales** 🌍
+  - Fixed numeric input parsing in GradingView to support both comma (`,`) and period (`.`) decimal separators
+  - Added `.replace(',', '.')` conversion for weight, grade, and maxGrade fields
+  - Users in European locales can now input grades with comma separator (e.g., "4,5" → parsed as 4.5)
+  - Improves UX for multilingual application with Greek locale support
+  - Component: `frontend/src/features/grading/components/GradingView.tsx`
+
+- **Backend: Test Infrastructure - Environment Variable Isolation** 🧪
+  - Fixed `test_root_endpoint` failure by adding `SERVE_FRONTEND=0` to pytest environment
+  - Prevents frontend dist folder from being served during tests
+  - Root endpoint now correctly returns JSON metadata instead of HTML during test execution
+  - All 375 backend tests now passing (previously 1 failure)
+  - Configuration: `backend/tests/conftest.py`
+
+#### Installer & Build (2025-12-06)
+
 - **Installer: Permanent Greek Text Encoding Solution** 🎯
   - Implemented build-time encoding pipeline: UTF-8 (git) → CP1253 (Inno Setup)
   - Added `fix_greek_encoding_permanent.py` - automatic UTF-8 to Windows-1253 converter
@@ -34,10 +58,22 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Documentation
 
+- **NEW: Added `ROUTING_VALIDATION_FIXES.md`** (123 lines)
+  - Comprehensive routing architecture documentation for v1.9.9
+  - Documents React Router v7 layout pattern and type safety improvements
+  - Route configuration validation against navigation settings
+  - Reference documentation for future routing maintenance
+
 - Added comprehensive `docs/GREEK_ENCODING_FIX.md` guide (175 lines)
-- Explains UTF-8 → CP1253 build-time encoding pipeline
-- Documents why PowerShell shows "garbled" text (expected behavior)
-- Provides update instructions for future Greek text changes
+  - Explains UTF-8 → CP1253 build-time encoding pipeline
+  - Documents why PowerShell shows "garbled" text (expected behavior)
+  - Provides update instructions for future Greek text changes
+
+### Test Coverage
+
+- ✅ Backend: 375 tests passing (1 skipped)
+- ✅ Frontend: 1022 tests passing across 46 test files
+- ✅ All pre-commit validation checks passed (86.3s): version, linting, tests, cleanup
 
 ## [1.9.8] - 2025-12-05
 
