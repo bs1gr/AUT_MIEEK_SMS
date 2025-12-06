@@ -406,7 +406,7 @@ show_summary() {
     echo "   2. Review configuration: $PROJECT_ROOT/.env.qnap"
     echo "   3. Set up regular backups: scripts/qnap/manage-qnap.sh"
     echo "   4. Configure QNAP firewall if needed"
-    echo "   5. Read documentation: docs/qnap/"
+    echo "   5. Read documentation: docs/deployment/"
     echo ""
     echo "=========================================="
 }

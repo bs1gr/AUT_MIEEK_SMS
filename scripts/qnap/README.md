@@ -207,10 +207,8 @@ vi .env.qnap
 
 ## 📖 Related Documentation
 
-- [QNAP Installation Guide](../../docs/qnap/QNAP_INSTALLATION_GUIDE.md)
-- [QNAP Configuration Guide](../../docs/qnap/QNAP_CONFIGURATION_GUIDE.md)
-- [QNAP Troubleshooting](../../docs/qnap/QNAP_TROUBLESHOOTING.md)
-- [Main QNAP Documentation](../../docs/QNAP.md)
+- [QNAP Deployment Guide](../../docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) (Consolidated)
+- For detailed guides, see [Deployment Index](../../docs/deployment/INDEX.md)
 
 ## 🆘 Support
 
@@ -225,6 +223,7 @@ If you encounter issues:
 ## 🔄 Version Compatibility
 
 These scripts are designed for:
+
 - Student Management System v1.9.7+
 - QNAP QTS 5.0+ or QuTS hero h5.0+
 - Container Station 3.0+

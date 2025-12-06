@@ -46,8 +46,8 @@ docs/
 │   ├── $11.9.7.md
 │   ├── $11.9.7.md
 │   └── ...
-└── qnap/             # QNAP-specific documentation
-    ├── QNAP_INSTALLATION_GUIDE.md
+└── deployment/        # Deployment guides (QNAP consolidated here)
+    ├── QNAP_DEPLOYMENT_GUIDE_COMPLETE.md
     └── ...
 ```
 

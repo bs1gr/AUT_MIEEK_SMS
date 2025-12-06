@@ -174,10 +174,10 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "docs/qnap/QNAP_INSTALLATION_GUIDE.md"
+        File = "docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md"
         Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
         Replace = "**Version**: $Version"
-        Description = "QNAP installation guide version"
+        Description = "QNAP deployment guide version"
         Critical = $false
     },
     @{

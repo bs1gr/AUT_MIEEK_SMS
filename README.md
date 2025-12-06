@@ -117,7 +117,7 @@ Then double-click "SMS Toggle" on your Desktop:
 .\NATIVE.ps1 -Help           # Command reference
 ```
 
-> **📖 Full Cleanup Guide:** See [DOCKER_CLEANUP_GUIDE.md](DOCKER_CLEANUP_GUIDE.md) for detailed instructions
+> **📖 Full Cleanup Guide:** See [docs/reference/DOCKER_CLEANUP_GUIDE.md](docs/reference/DOCKER_CLEANUP_GUIDE.md) for detailed instructions
 
 **Requirements:**
 
@@ -184,7 +184,7 @@ python backend/tools/create_admin.py --email admin@example.com --password "YourS
 
 Deploy to QNAP Container Station with PostgreSQL database:
 
-- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md)
+- See [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
@@ -552,7 +552,7 @@ The runtime enforces a clear separation between release and development workflow
 - Management menu with backup/restore/update operations
 - Monitoring stack with Grafana and Prometheus
 - Complete rollback capabilities
-- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) for full documentation
+- See [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) for full documentation
 
 #### 🔧 Local Development (Native)
 
@@ -707,7 +707,7 @@ Troubleshooting:
 **Four deployment options:**
 
 1. **Windows Docker**: Copy project → Run `DOCKER.ps1 -Start` (`pwsh -NoProfile -File .\DOCKER.ps1 -Start`)
-2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/qnap/QNAP_INSTALLATION_GUIDE.md))
+2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md))
 3. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 4. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
@@ -1101,7 +1101,7 @@ student-management-system/
 - [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
 - [docs/development/AUTHENTICATION.md](docs/development/AUTHENTICATION.md) – Authentication/authorization implementation details
 - [docs/user/QUICK_START_GUIDE.md](docs/user/QUICK_START_GUIDE.md) – Five-minute onboarding for new operators
-- [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) – Dedicated QNAP deployment instructions
+- [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) – Dedicated QNAP deployment instructions
 
 ## API Documentation
 
