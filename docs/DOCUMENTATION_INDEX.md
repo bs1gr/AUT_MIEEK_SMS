@@ -172,12 +172,8 @@ Documentation is organized into four main directories:
 
 **Development Tools**:
 
-- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
-- **[development/DEVELOPMENT_SETUP_GUIDE.md](development/DEVELOPMENT_SETUP_GUIDE.md)** ⭐ NEW - Comprehensive setup & testing guide
-  - Prerequisites & dependencies
-  - Testing setup (pytest + Python 3.13 compatibility)
-  - Pre-commit validation
-  - Troubleshooting common issues
+- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** (archived reference) - Use DEVELOPER_GUIDE_COMPLETE instead
+- **[development/DEVELOPMENT_SETUP_GUIDE.md](development/DEVELOPMENT_SETUP_GUIDE.md)** (reference) - Comprehensive setup guide (content consolidated in DEVELOPER_GUIDE_COMPLETE)
 - **[development/PRE_COMMIT_GUIDE.md](development/PRE_COMMIT_GUIDE.md)** ⭐ NEW - Unified pre-commit workflow
   - Replaces PRE_COMMIT_AUTOMATION.md, PRECOMMIT_INSTRUCTIONS.md, pre-commit-workflow.md (archived to `archive/pre-commit-2025-12-06/`)
   - Covers COMMIT_READY.ps1 modes, hooks installation, DEV_EASE policy, troubleshooting

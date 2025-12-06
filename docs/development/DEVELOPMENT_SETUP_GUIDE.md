@@ -1,10 +1,8 @@
-# Development Setup Guide
+# Development Setup Guide (Full Reference)
 
-**Last Updated**: 2025-11-28
-**Version**: 1.0.0
-**Audience**: Developers setting up local development environment
-
----
+> **📖 Canonical Guide:** This is now supplementary to **[DEVELOPER_GUIDE_COMPLETE.md](DEVELOPER_GUIDE_COMPLETE.md)** which includes all content below.
+>
+> **Use:** Refer to the complete guide for integrated setup + architecture + best practices.
 
 ## 📋 Table of Contents
 

@@ -1,6 +1,10 @@
-# Developer Fast Start — Pre-commit & tests
+# Developer Fast Start (Archived - Use DEVELOPER_GUIDE_COMPLETE.md)
 
-This short guide helps developers get up and running quickly with the repository's local tooling (Windows PowerShell and Unix shells).
+> **📖 For Complete Guide:** See **[DEVELOPER_GUIDE_COMPLETE.md](DEVELOPER_GUIDE_COMPLETE.md)** for comprehensive setup, testing, and troubleshooting.
+>
+> **Quick Start Only**: This document is kept for historical reference. All setup information is consolidated in the complete guide.
+
+## Quick Setup Steps
 
 1. Set up Python environment (Windows PowerShell)
 
