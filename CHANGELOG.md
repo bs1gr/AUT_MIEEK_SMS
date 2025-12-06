@@ -6,6 +6,63 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.9.10] - 2025-12-07
+
+### Changed
+
+#### Repository Consolidation & Cleanup (2025-12-07)
+
+- **Script Consolidation** 🧹
+  - Removed empty `scripts/dev/internal/CLEANUP_DOCS.ps1`
+  - Deprecated `scripts/dev/internal/CLEANUP_OBSOLETE_FILES.ps1` → Use `CLEANUP_COMPREHENSIVE.ps1` (canonical)
+  - Deprecated `scripts/deploy/internal/CREATE_PACKAGE.ps1` → Use `CREATE_DEPLOYMENT_PACKAGE.ps1` (more comprehensive with Docker image support)
+  - Deprecated `scripts/run_in_venv_clean.py` → Use `run_in_venv.py` (actively used in pre-commit hooks)
+  - All deprecated scripts show clear warnings directing users to canonical alternatives
+
+- **Installer Consolidation (PowerShell → Inno Setup)** 📦
+  - Deprecated 4 PowerShell-based installer wizard scripts in `tools/installer/`:
+    - `SMS_INSTALLER_WIZARD.ps1` → Use Inno Setup `installer/SMS_Installer.iss` (canonical)
+    - `SMS_UNINSTALLER_WIZARD.ps1` → Use Inno Setup-generated uninstaller
+    - `BUILD_SIMPLE.ps1` → Use `INSTALLER_BUILDER.ps1` (root level)
+    - `BUILD_INSTALLER_EXECUTABLE.ps1` → Use `INSTALLER_BUILDER.ps1` (root level)
+  - Inno Setup provides better Windows integration, code signing support, and simpler distribution
+  - All scripts retained with deprecation notices for backward compatibility
+
+- **Documentation Consolidation** 📚
+  - Fixed broken references in `START_HERE.md` (removed non-existent `ACTION_GUIDE.md` and `SESSION_REPORT.md`)
+  - Consolidated monitoring docs: `MONITORING_ARCHITECTURE.md` marked deprecated → canonical `MONITORING.md`
+  - Consolidated development setup guides: marked 3 guides as deprecated/reference → canonical `DEVELOPER_GUIDE_COMPLETE.md`
+    - `DEVELOPMENT.md` (58 lines) - minimal setup steps preserved as reference
+    - `DEVELOPER_FAST_START.md` (41 lines) - quick setup preserved as reference
+    - `DEVELOPMENT_SETUP_GUIDE.md` (342 lines) - comprehensive reference
+  - Updated `docs/DOCUMENTATION_INDEX.md` to clarify canonical vs reference materials
+  - Updated `scripts/README.md` with comprehensive consolidation documentation
+
+### Security
+
+#### Configuration Security (2025-12-07)
+
+- **Environment File Protection** 🔒
+  - Removed `.env.qnap` from git tracking (file contained passwords and secret keys)
+  - Added explicit `.gitignore` entry for `.env.qnap` to prevent future tracking
+  - File remains locally for users but won't be committed to repository
+
+- **Binary File Management** 🗃️
+  - Added `.gitignore` rules for `*.exe` files to prevent repository bloat
+  - Exception for `installer/SMS_Installer_*.exe` (tagged release installers only)
+  - Prevents large binaries (~5MB each) from inflating git history
+  - Installers should be distributed via GitHub Releases
+
+### Impact
+
+- **Scripts consolidated**: 8+ redundant or duplicate scripts deprecated with clear migration paths
+- **Security issues fixed**: 2 (secrets removed from tracking, binary bloat prevention)
+- **Documentation clarity**: All deprecated docs marked with headers pointing to canonical guides
+- **Backward compatibility**: All deprecated scripts still work with clear warnings
+- **Repository hygiene**: Cleaner structure with better organization and security
+
+---
+
 ## [1.9.9] - 2025-12-06
 
 ### Fixed
