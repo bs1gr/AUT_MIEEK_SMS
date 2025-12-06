@@ -61,9 +61,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     sessionStorage.removeItem('grading_filter_course');
   }, []);
   const [category, setCategory] = useState('Midterm');
-  const [gradeValue, setGradeValue] = useState<number | ''>('');
-  const [maxGrade, setMaxGrade] = useState<number | ''>(100);
-  const [weight, setWeight] = useState<number | ''>('');
+  const [gradeValue, setGradeValue] = useState<string>('');
+  const [maxGrade, setMaxGrade] = useState<string>('100');
+  const [weight, setWeight] = useState<string>('');
   const [assignmentName, setAssignmentName] = useState('');
   const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -197,8 +197,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
 
       setMaxGrade(prev => {
         const numeric = Number(prev || 0);
-        if (prev === '' || numeric <= 0) return 100;
-        return prev as number;
+        if (prev === '' || numeric <= 0) return '100';
+        return prev;
       });
     }
   }, [category, grades, studentId, courseId]);
@@ -224,7 +224,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // Force Midterm/Final Exam to weight=1
   useEffect(() => {
     if (category === 'Midterm' || category === 'Final Exam') {
-      setWeight(1);
+      setWeight('1');
     }
   }, [category]);
 
@@ -233,7 +233,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     if (!studentId || !courseId) { setError(t('selectStudentAndCourseError')); return; }
     if (!assignmentName || String(assignmentName).trim().length === 0) { setError(t('assignmentNameRequired')); return; }
     if (gradeValue === '' || maxGrade === '') { setError(t('fillRequiredFields')); return; }
-    const gv = Number(gradeValue); const mg = Number(maxGrade || 100);
+    const gv = Number(gradeValue.replace(',', '.')); const mg = Number(maxGrade.replace(',', '.') || 100);
     if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
     if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
     setSubmitting(true); setError(null);
@@ -245,7 +245,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         category,
         grade: gv,
         max_grade: mg,
-        weight: Number(category === 'Midterm' || category === 'Final Exam' ? 1 : (weight || 1)),
+        weight: Number((category === 'Midterm' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
         date_submitted: new Date().toISOString().split('T')[0],
         // optional fields not set: date_assigned, notes
       };
@@ -258,7 +258,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
         setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
       } catch {}
-      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(100); setWeight('');
+      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
     } catch (e: unknown) {
       // Attempt to extract common API error formats without using `any`
       let apiMsg: string | undefined;
@@ -309,11 +309,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <input className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={String(weight)} onChange={e=>{const val = e.target.value.replace(',', '.'); setWeight(val? Number(val): '')}} disabled={category==='Midterm' || category==='Final Exam'} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={weight} onChange={e => setWeight(e.target.value)} disabled={category==='Midterm' || category==='Final Exam'} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={String(gradeValue)} onChange={e=>{const val = e.target.value.replace(',', '.'); setGradeValue(val? Number(val): '')}} />
-          <input className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={String(maxGrade)} onChange={e=>{const val = e.target.value.replace(',', '.'); setMaxGrade(val? Number(val): '')}} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
           <button disabled={submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{submitting? t('saving') : t('saveGrade')}</button>
         </div>
       </form>
