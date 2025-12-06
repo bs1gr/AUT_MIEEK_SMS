@@ -73,19 +73,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         globIgnores: ['**/node_modules/**/*', './**/*.map'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB max per file
+        // IMPORTANT: Never cache API responses - always fetch fresh data
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 minutes
-              },
-              networkTimeoutSeconds: 3,
-            },
-          },
+          // Skip API caching entirely - let browser handle it naturally
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
             handler: 'StaleWhileRevalidate',

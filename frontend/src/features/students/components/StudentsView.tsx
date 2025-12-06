@@ -149,7 +149,9 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       const [attendance, grades, finalGradeSummary] = await Promise.all([
         attendanceAPI.getByStudent(studentId),
         gradesAPI.getByStudent(studentId),
-        fetch(`${API_BASE_URL}/analytics/student/${studentId}/all-courses-summary`).then(res => res.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/analytics/student/${studentId}/all-courses-summary`)
+          .then(res => res.ok ? res.json() : null)
+          .catch(() => null),
       ]);
       const total = attendance.length;
       const present = attendance.filter((a: Attendance) => a.status === 'Present').length;

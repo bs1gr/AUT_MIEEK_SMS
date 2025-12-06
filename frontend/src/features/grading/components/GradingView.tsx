@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
-import apiClient, { gradesAPI } from '@/api/api';
+import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
@@ -87,17 +87,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     const run = async () => {
       if (!courseId) { setFilteredStudents(students || []); return; }
       try {
-        const res = await fetch(`${API_BASE_URL}/enrollments/course/${courseId}/students`);
-        if (res.ok) {
-          const arr: Student[] = await res.json();
-          const ids = new Set(arr.map(s => s.id));
-          const list = (students || []).filter(s => ids.has(s.id));
-          setFilteredStudents(list);
-          if (studentId && !ids.has(studentId as number)) {
-            setStudentId('');
-          }
-          return;
+        const arr: Student[] = await enrollmentsAPI.getStudentsByCourse(courseId as number);
+        const ids = new Set(arr.map(s => s.id));
+        const list = (students || []).filter(s => ids.has(s.id));
+        setFilteredStudents(list);
+        if (studentId && !ids.has(studentId as number)) {
+          setStudentId('');
         }
+        return;
       } catch {}
       // Fallback: leave students unfiltered
       setFilteredStudents(students || []);
@@ -115,9 +112,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       try {
         const results = await Promise.all((courses || []).map(async (c) => {
           try {
-            const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
-            if (!r.ok) return { id: c.id, has: false };
-            const studs: Student[] = await r.json();
+            const studs: Student[] = await enrollmentsAPI.getStudentsByCourse(c.id);
             const has = studs.some(s => s.id === studentId);
             return { id: c.id, has };
           } catch { return { id: c.id, has: false }; }
@@ -160,7 +155,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       if (!studentId) return;
       try {
         const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res.data) ? res.data as Grade[] : []);
+        // API returns paginated response with items array
+        const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+        setGrades(gradesData as Grade[]);
       } catch {
         // noop; errors surfaced during submission
       }

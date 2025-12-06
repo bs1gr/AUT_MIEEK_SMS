@@ -8,6 +8,7 @@ import { Settings, Plus, Trash2, AlertCircle, BookOpen, Calculator, CloudUpload 
 import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { useAutosave } from '@/hooks';
+import { coursesAPI } from '@/api/api';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
@@ -41,10 +42,8 @@ const CourseEvaluationRules = () => {
 
   const loadCourses = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/courses/`);
-      if (!response.ok) throw new Error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
-      const data = await response.json();
-      setCourses(data);
+      const coursesList = await coursesAPI.getAll();
+      setCourses(coursesList);
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
