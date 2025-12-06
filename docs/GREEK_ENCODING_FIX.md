@@ -1,96 +1,175 @@
-# Greek Encoding Fix for Inno Setup Installer ($11.9.7)
+# Greek Text Encoding in Inno Setup Installer (v1.9.8+)
 
-## Problem Solved
+## The Permanent Solution: Build-Time Conversion Pipeline
 
-The installer was displaying corrupted Greek text (mojibake) in the license, welcome, and completion screens. After extensive troubleshooting, the root cause was identified and fixed.
+### Problem Solved
 
-## Root Cause
+The installer was experiencing Greek text encoding issues that persisted across rebuilds:
 
-- **Before**: Greek language files were declared as Windows-1253 (`LanguageCodePage=1253`) but contained UTF-8 content
-- **Result**: Inno Setup interpreted UTF-8 bytes as Windows-1253, producing garbled characters
-- **Example**: Greek "Άδεια" (License) displayed as corrupted escape sequences
+- **Previous Issue**: Files stored with corrupted encoding in git
+- **Temporary Fixes**: Manual conversions worked for one build, then vanished on rebuild
+- **Display Confusion**: PowerShell shows "garbled" output (misinterprets CP1253 as UTF-8)
+- **Root Cause**: No automated process to ensure consistent encoding
 
-## Solution Implemented ($11.9.7+)
+### Current Solution (v1.9.8+)
 
-### Greek.isl Language File
+An **automatic encoding pipeline** that applies every build:
 
-- Changed from `LanguageCodePage=1253` → `LanguageCodePage=65001` (UTF-8)
-- File remains UTF-8 with BOM (EF BB BF header)
-- Tells Inno Setup to interpret content as UTF-8
-
-### Greek Text Files
-
-All Greek content files use UTF-8 with BOM encoding:
-
-- `installer/LICENSE_EL.txt` - Greek license text
-- `installer/installer_welcome_el.txt` - Greek welcome message
-- `installer/installer_complete_el.txt` - Greek completion message
-
-### Automated Fix via GREEK_ENCODING_AUDIT.ps1
-
-The build pipeline automatically:
-
-- Verifies Greek.isl has `LanguageCodePage=65001`
-- Ensures all .txt files are UTF-8 with BOM
-- Runs during `INSTALLER_BUILDER.ps1` build process
-
-## Technical Details
-
-### Inno Setup CodePage Reference
-
-| CodePage | Encoding | Usage |
-|----------|----------|-------|
-| 1253 | Windows-1253 (CP1253) | Legacy Greek (deprecated) |
-| 65001 | UTF-8 | Modern Unicode (recommended) |
-| 0408 | Greek Language ID | UI language selection |
-
-### File Encoding Verification
-
-```powershell
-# Check if file is UTF-8 with BOM
-$bytes = [System.IO.File]::ReadAllBytes("installer/LICENSE_EL.txt") | Select-Object -First 3
-# Should show: EF BB BF (UTF-8 BOM)
+```
+Git Storage (UTF-8 - human-readable)
+    ↓
+INSTALLER_BUILDER.ps1 triggers build
+    ↓
+fix_greek_encoding_permanent.py converts UTF-8 → Windows-1253
+    ↓
+Inno Setup 6 reads CP1253 text files
+    ↓
+Compiles proper Greek text into installer binary
+    ↓
+Windows displays correct Greek characters ✓
 ```
 
-### Build Pipeline Integration
+### How It Works
 
-The `INSTALLER_BUILDER.ps1` script automatically:
+#### 1. Source Files in Git (UTF-8)
+Files are stored as UTF-8 for readability and easy editing:
+- `installer/installer_welcome_el.txt` - Welcome screen text (UTF-8)
+- `installer/installer_complete_el.txt` - Completion screen text (UTF-8)
+- `fix_greek_encoding_permanent.py` - Authoritative Greek text source
 
-1. Verifies version consistency
-2. Runs `GREEK_ENCODING_AUDIT.ps1 -Fix` to validate/fix encodings
-3. Compiles installer with Inno Setup
-4. Signs with AUT MIEEK certificate
+#### 2. Build-Time Conversion
+The `fix_greek_encoding_permanent.py` script:
+- Reads authoritative UTF-8 Greek text
+- Converts to Windows-1253 (CP1253) on disk
+- Runs automatically before Inno Setup compilation
+- No manual steps needed
 
-## Testing Results
+#### 3. Inno Setup Compilation
+- Reads CP1253 files (correct format for Greek)
+- Language file `Greek.isl` has `LanguageCodePage=1253`
+- Embeds proper Greek text into installer
+- Result: Correct Greek characters in UI
 
-✅ **Successfully Verified in $11.9.7.exe**:
+### Why This Approach Works
 
-- License content displays readable Greek text ("Άδεια MIT", license terms, etc.)
-- Welcome message shows proper Greek characters
-- Completion message renders correctly
-- No mojibake or escape sequences visible
+**✅ Permanent**: Fix embedded in build pipeline  
+**✅ Automatic**: No manual intervention required  
+**✅ Survives Rebuilds**: Applied every time installer is built  
+**✅ Git-Friendly**: UTF-8 source is human-readable  
+**✅ Self-Documenting**: Python script contains Greek text definitions  
+**✅ Simple**: Clear separation: storage (UTF-8) vs. compilation (CP1253)  
 
-## Prevention for Future Releases
+### Understanding PowerShell Display
 
-To maintain proper Greek encoding in future updates:
+When you read CP1253 files in PowerShell, they appear "garbled":
 
-1. **Never edit Greek files in tools that force Windows-1253** (e.g., Notepad on non-Greek systems)
-2. **Use UTF-8 compatible editors** (VS Code, Notepad++, etc.)
-3. **Run `GREEK_ENCODING_AUDIT.ps1 -Audit`** before committing changes
-4. **Run `INSTALLER_BUILDER.ps1 -Action build`** which automatically fixes any encoding issues
+```
+Disk File (hex):     CA E1 EB FE F2 20 DE F1 E8 E1 F4 E5...
+PowerShell display:  ΄±»þò £ðèñôå...  (wrong interpretation)
+Inno Setup reads:    "Καλώς ήρθατε..."  (correct)
+Installer output:    Καλώς ήρθατε      (displayed correctly)
+```
 
-## References
+**This is normal and expected:**
+- PowerShell defaults to UTF-8 interpretation
+- Windows-1253 bytes don't map to valid UTF-8 sequences
+- Inno Setup knows to interpret as Windows-1253
+- The final installer has correct Greek text
 
-- [Inno Setup Language File Format](https://jrsoftware.org/ishelp/index.php?topic=componentslanguages)
-- [UTF-8 with BOM (EF BB BF)](https://en.wikipedia.org/wiki/Byte_order_mark#UTF-8)
-- `installer/GREEK_ENCODING_AUDIT.ps1` - Automated validation script
-- `INSTALLER_BUILDER.ps1` - Build pipeline with encoding checks
+### How to Update Greek Text
 
-## Changelog
+To change Greek installer text:
 
-- **$11.9.7**: Fixed Greek encoding to use UTF-8 with BOM + LanguageCodePage=65001
-  - Changed from Windows-1253 approach to UTF-8
-  - Updated GREEK_ENCODING_AUDIT.ps1 to enforce UTF-8 with BOM
-  - Updated Greek.isl to declare LanguageCodePage=65001
-  - Verified all Greek text displays correctly in installer
+1. **Edit** `fix_greek_encoding_permanent.py`:
+   ```python
+   content_welcome = """Καλώς ήρθατε στην Εγκατάσταση SMS
+   =====================================
+   
+   [Your updated Greek text here]
+   """
+   ```
+
+2. **Commit** to git:
+   ```bash
+   git add fix_greek_encoding_permanent.py
+   git commit -m "chore: update Greek installer text"
+   ```
+
+3. **Rebuild** installer:
+   ```bash
+   .\INSTALLER_BUILDER.ps1 -Action build
+   ```
+
+Conversion happens automatically.
+
+### Build Process Details
+
+When you run `.\INSTALLER_BUILDER.ps1 -Action build`:
+
+1. Version consistency audit
+2. Greek encoding audit (verifies file status)
+3. **Greek text encoding fix** ← Automatic UTF-8 → CP1253 conversion
+4. Wizard image regeneration
+5. Inno Setup compilation (ISCC)
+6. Code signing
+7. Smoke test
+
+Step 3 ensures proper encoding **every build**.
+
+### Technical Specifications
+
+| Aspect | Value |
+|--------|-------|
+| **Inno Setup Version** | 6.0.5+ |
+| **Language Code Page** | 1253 (Windows-1253) |
+| **File Format** | Plain text (no RTF) |
+| **Git Storage** | UTF-8 (human-readable) |
+| **Disk Storage (build)** | Windows-1253 (CP1253) |
+| **Conversion Tool** | Python 3 (`cp1253` codec) |
+| **Build Integration** | `INSTALLER_BUILDER.ps1` |
+
+### Verifying the Fix
+
+To confirm Greek text displays correctly:
+
+1. Download `SMS_Installer_1.9.8.exe`
+2. Run installer, select **Ελληνικά** (Greek)
+3. Verify text appears correctly:
+   - Welcome: "Καλώς ήρθατε στην Εγκατάσταση SMS"
+   - Requirements: All in Greek ✓
+   - Completion: "Συγχαρητήρια! Η Εγκατάσταση ολοκληρώθηκε!"
+
+### Key Files
+
+- **Encoding Script**: `fix_greek_encoding_permanent.py` - UTF-8 → CP1253 conversion
+- **Build Script**: `INSTALLER_BUILDER.ps1` - Calls encoding fix automatically
+- **Installer Config**: `installer/SMS_Installer.iss` - Inno Setup script
+- **Language File**: `installer/Greek.isl` - Official Inno Setup Greek translation
+- **Text Files**: `installer/installer_*_el.txt` - Greek UI text
+
+### References
+
+- [Windows-1253 Encoding](https://en.wikipedia.org/wiki/Windows-1253)
+- [Inno Setup Language Files](https://jrsoftware.org/files/istrans/)
+- [Inno Setup Documentation](https://jrsoftware.org/ishelp/)
+
+---
+
+## Why This Solution is Better Than Previous Approaches
+
+### Problem with Manual Fixes
+- Temporary: worked for one build, then vanished
+- Required manual intervention
+- Didn't survive git pulls
+
+### Problem with Previous UTF-8 Approach  
+- Complex: switching between code pages
+- Fragile: required manual validation
+- Didn't prevent encoding corruption
+
+### Current Approach
+- **Automatic**: Applied every build by design
+- **Simple**: Clear UTF-8 (git) → CP1253 (compile) pipeline
+- **Reliable**: No ambiguity or manual steps
+- **Permanent**: Embedded in build process
 
