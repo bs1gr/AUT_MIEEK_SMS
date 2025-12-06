@@ -280,95 +280,109 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       setLoading(false);
       return;
     }
+
+    const DESIRED_TOP_COUNT = 5;
+    const MIN_BUFFER = 12; // fetch a bit extra so ranking modes have data
+    const MAX_STUDENTS_FOR_ANALYTICS = 60; // cap work to avoid long loading times
+    const BATCH_SIZE = 6; // keep concurrent requests manageable
+
+    const hasPerformanceData = (student: StudentWithGPA) =>
+      (student.overallGPA ?? 0) > 0 ||
+      (student.attendanceRate ?? 0) > 0 ||
+      (student.examAverage ?? 0) > 0 ||
+      (student.overallScore ?? 0) > 0 ||
+      (student.totalCourses ?? 0) > 0 ||
+      (student.totalCredits ?? 0) > 0;
+
+    const fetchStudentSnapshot = async (student: Student): Promise<StudentWithGPA> => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const [analyticsResponse, attendanceResponse, gradesResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }),
+          fetch(`${API_BASE_URL}/attendance?student_id=${student.id}&limit=500`, { signal: controller.signal }),
+          fetch(`${API_BASE_URL}/grades?student_id=${student.id}&limit=500`, { signal: controller.signal }),
+        ]);
+
+        clearTimeout(timeoutId);
+
+        const analyticsData = analyticsResponse.ok ? await analyticsResponse.json() : null;
+        const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : null;
+        const gradesData = gradesResponse.ok ? await gradesResponse.json() : null;
+
+        const failedCourses = (analyticsData?.courses || []).filter(
+          (course: { letter_grade?: string; gpa?: string | number }) =>
+            course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
+        ).length;
+
+        const attendances = attendanceData?.items || attendanceData?.attendances || [];
+        const attendanceRate = attendances.length > 0
+          ? (attendances.filter((a: any) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
+          : 0;
+
+        const grades = gradesData?.items || gradesData?.grades || [];
+        const examGrades = grades.filter((g: any) =>
+          ['exam', 'midterm', 'final', 'εξέταση', 'ενδιάμεση', 'τελική'].includes(
+            (g.category || '').toLowerCase()
+          )
+        );
+        const examAverage = examGrades.length > 0
+          ? examGrades.reduce((sum: number, g: any) => sum + (g.grade / g.max_grade * 100), 0) / examGrades.length
+          : 0;
+
+        const overallScore = (
+          (analyticsData?.overall_gpa || 0) * 25 + // GPA weight: 25%
+          attendanceRate * 0.25 + // Attendance: 25%
+          examAverage * 0.35 + // Exams: 35%
+          ((analyticsData?.total_credits || 0) / 10) * 15 // Credits completion: 15%
+        );
+
+        return {
+          ...student,
+          overallGPA: analyticsData?.overall_gpa || 0,
+          totalCourses: analyticsData?.courses?.length || 0,
+          totalCredits: analyticsData?.total_credits || 0,
+          failedCourses,
+          attendanceRate: Math.round(attendanceRate * 10) / 10,
+          examAverage: Math.round(examAverage * 10) / 10,
+          overallScore: Math.round(overallScore * 10) / 10,
+        };
+      } catch {
+        return {
+          ...student,
+          overallGPA: 0,
+          totalCourses: 0,
+          totalCredits: 0,
+          failedCourses: 0,
+          attendanceRate: 0,
+          examAverage: 0,
+          overallScore: 0,
+        };
+      }
+    };
+
     setLoading(true);
     try {
-      const studentPromises = students.slice(0, 10).map(async (student) => {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
+      // Prioritize active students first to improve chances of meaningful analytics
+      const prioritized = [...students].sort((a, b) => Number(b.is_active !== false) - Number(a.is_active !== false));
+      const studentsForAnalytics = prioritized.slice(0, MAX_STUDENTS_FOR_ANALYTICS);
 
-          // Fetch analytics summary
-          const analyticsResponse = await fetch(
-            `${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`,
-            { signal: controller.signal }
-          );
-          
-          // Fetch attendance data
-          const attendanceResponse = await fetch(
-            `${API_BASE_URL}/attendance?student_id=${student.id}`,
-            { signal: controller.signal }
-          );
-          
-          // Fetch grades data
-          const gradesResponse = await fetch(
-            `${API_BASE_URL}/grades?student_id=${student.id}`,
-            { signal: controller.signal }
-          );
-          
-          clearTimeout(timeoutId);
+      const hydrated: StudentWithGPA[] = [];
+      let withData: StudentWithGPA[] = [];
 
-          const analyticsData = analyticsResponse.ok ? await analyticsResponse.json() : null;
-          const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : null;
-          const gradesData = gradesResponse.ok ? await gradesResponse.json() : null;
+      for (let i = 0; i < studentsForAnalytics.length; i += BATCH_SIZE) {
+        const batch = studentsForAnalytics.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(batch.map(fetchStudentSnapshot));
+        hydrated.push(...batchResults);
 
-          // Calculate metrics
-          const failedCourses = (analyticsData?.courses || []).filter(
-            (course: { letter_grade?: string; gpa?: string | number }) => 
-              course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
-          ).length;
+        // Filter incrementally and early-exit once we have enough data to render rankings
+        withData = hydrated.filter(hasPerformanceData);
+        const enoughData = withData.length >= Math.max(DESIRED_TOP_COUNT * 2, MIN_BUFFER);
+        if (enoughData) break;
+      }
 
-          // Calculate attendance rate (API returns paginated response with items array)
-          const attendances = attendanceData?.items || attendanceData?.attendances || [];
-          const attendanceRate = attendances.length > 0
-            ? (attendances.filter((a: any) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
-            : 0;
-
-          // Calculate exam average (from grades with category 'exam' or 'midterm' or 'final')
-          // API returns paginated response with items array
-          const grades = gradesData?.items || gradesData?.grades || [];
-          const examGrades = grades.filter((g: any) => 
-            ['exam', 'midterm', 'final', 'εξέταση', 'ενδιάμεση', 'τελική'].includes(
-              (g.category || '').toLowerCase()
-            )
-          );
-          const examAverage = examGrades.length > 0
-            ? examGrades.reduce((sum: number, g: any) => sum + (g.grade / g.max_grade * 100), 0) / examGrades.length
-            : 0;
-
-          // Overall score: weighted combination
-          const overallScore = (
-            (analyticsData?.overall_gpa || 0) * 25 + // GPA weight: 25%
-            attendanceRate * 0.25 +                    // Attendance: 25%
-            examAverage * 0.35 +                       // Exams: 35%
-            ((analyticsData?.total_credits || 0) / 10) * 15 // Credits completion: 15%
-          );
-
-          return {
-            ...student,
-            overallGPA: analyticsData?.overall_gpa || 0,
-            totalCourses: analyticsData?.courses?.length || 0,
-            totalCredits: analyticsData?.total_credits || 0,
-            failedCourses,
-            attendanceRate: Math.round(attendanceRate * 10) / 10,
-            examAverage: Math.round(examAverage * 10) / 10,
-            overallScore: Math.round(overallScore * 10) / 10,
-          };
-        } catch {
-          return {
-            ...student,
-            overallGPA: 0,
-            totalCourses: 0,
-            totalCredits: 0,
-            failedCourses: 0,
-            attendanceRate: 0,
-            examAverage: 0,
-            overallScore: 0,
-          };
-        }
-      });
-
-      const studentsWithData = await Promise.all(studentPromises);
-      setTopPerformers(studentsWithData.filter(s => s.overallGPA > 0 || s.attendanceRate > 0));
+      setTopPerformers(withData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {

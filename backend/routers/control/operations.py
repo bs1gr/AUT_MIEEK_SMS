@@ -428,35 +428,60 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
 
 @router.post("/operations/database-restore", response_model=OperationResult)
 async def restore_database(request: Request, backup_filename: str):
+    import shutil as _sh
+    import logging
+    logger = logging.getLogger(__name__)
     try:
         from backend.config import settings
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = project_root / "backups" / "database"
         backup_path = backup_dir / backup_filename
+        logger.info(f"Restore request for {backup_filename}")
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+        logger.info(f"DB path: {db_path}")
         safety_backup = None
         if db_path.exists():
             safety_backup = db_path.with_suffix(f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}{db_path.suffix}")
-            import shutil as _sh
-            _sh.copy2(db_path, safety_backup)
+            logger.info(f"Creating safety backup: {safety_backup}")
+            try:
+                _sh.copyfile(db_path, safety_backup)
+                logger.info("Safety backup created with copyfile")
+            except PermissionError as e:
+                logger.warning(f"copyfile failed ({e}), trying copy")
+                _sh.copy(db_path, safety_backup)
+                logger.info("Safety backup created with copy")
         try:
             from backend import db as db_module
             db_module.engine.dispose()
-        except Exception:
-            pass
+            logger.info("Engine disposed")
+        except Exception as e:
+            logger.warning(f"Engine dispose failed: {e}")
         wal_path = db_path.with_suffix(db_path.suffix + "-wal")
         shm_path = db_path.with_suffix(db_path.suffix + "-shm")
         wal_path.unlink(missing_ok=True)
         shm_path.unlink(missing_ok=True)
-        import shutil as _sh
-        _sh.copy2(backup_path, db_path)
+        logger.info("WAL/SHM files removed")
+        try:
+            logger.info(f"Attempting copyfile from {backup_path} to {db_path}")
+            _sh.copyfile(backup_path, db_path)
+            logger.info("Restore completed with copyfile")
+        except (PermissionError, OSError) as e:
+            logger.warning(f"copyfile failed ({e}), trying copy")
+            _sh.copy(backup_path, db_path)
+            logger.info("Restore completed with copy")
+        # Don't attempt chmod - may fail on Docker volumes with root-owned files
         try:
             from backend import db as db_module
             db_module.ensure_schema(db_module.engine)
-        except Exception:
-            pass
+            logger.info("Schema ensured")
+        except Exception as e:
+            logger.warning(f"Schema ensure failed: {e}")
+        logger.info("Restore completed successfully")
         return OperationResult(success=True, message="Database restored successfully. Restart may be required.", details={"restored_from": str(backup_path), "database_path": str(db_path), "safety_backup": str(safety_backup) if safety_backup else None})
+    except HTTPException:
+        raise
     except Exception as exc:
+        logger.error(f"Restore failed: {exc}", exc_info=True)
         raise http_error(500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}) from exc

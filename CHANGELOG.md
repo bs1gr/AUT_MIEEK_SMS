@@ -69,10 +69,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Documents why PowerShell shows "garbled" text (expected behavior)
   - Provides update instructions for future Greek text changes
 
+#### Backend & Control Panel (2025-12-06)
+
+- **Control Panel: Database Restore Reliability (Docker volumes)** 🔧
+  - Replaced `copy2` with `copyfile`/`copy` fallbacks to avoid Docker volume `PermissionError` during restore
+  - Safety backups now use metadata-safe copy methods; chmod attempts removed for root-owned volumes
+  - Added detailed restore logging and ensured engine disposal before file swap
+  - Control database restore endpoint now succeeds on Docker deployments
+
 ### Test Coverage
 
 - ✅ Backend: 375 tests passing (1 skipped)
-- ✅ Frontend: 1022 tests passing across 46 test files
+- ✅ Frontend: 1027 tests passing across 47 test files
 - ✅ All pre-commit validation checks passed (86.3s): version, linting, tests, cleanup
 
 ## [1.9.8] - 2025-12-05
