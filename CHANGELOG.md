@@ -6,7 +6,40 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
-## [Unreleased]
+## [1.9.9] - 2025-12-06
+
+### Fixed
+
+- **Installer: Permanent Greek Text Encoding Solution** 🎯
+  - Implemented build-time encoding pipeline: UTF-8 (git) → CP1253 (Inno Setup)
+  - Added `fix_greek_encoding_permanent.py` - automatic UTF-8 to Windows-1253 converter
+  - Integrated into `INSTALLER_BUILDER.ps1` - runs before every compilation
+  - Fix survives all rebuilds (no more temporary/manual fixes)
+  - Greek text displays correctly in installer UI (welcome, completion screens)
+  - Documented comprehensive solution in `docs/GREEK_ENCODING_FIX.md`
+
+- **Control Panel: Update Check RuntimeContext Error** 🔧
+  - Fixed `AttributeError: type object 'RuntimeContext' has no attribute 'get_environment'`
+  - Changed from `RuntimeContext.get_environment()` to `get_runtime_context().is_docker`
+  - Update checking now works correctly for Docker and native deployments
+  - Control Panel Updates tab displays proper deployment-specific instructions
+
+### Changed
+
+- **Codebase: Cleanup Obsolete Scripts** 🧹
+  - Removed `convert_isl_utf8.py` (temporary encoding script)
+  - Removed `fix_greek_encoding.py` (temporary encoding script)
+  - Consolidated documentation in `DOCUMENTATION_INDEX.md`
+  - Added "Installer & Build Documentation" section
+
+### Documentation
+
+- Added comprehensive `docs/GREEK_ENCODING_FIX.md` guide (175 lines)
+- Explains UTF-8 → CP1253 build-time encoding pipeline
+- Documents why PowerShell shows "garbled" text (expected behavior)
+- Provides update instructions for future Greek text changes
+
+## [1.9.8] - 2025-12-05
 
 ### Added
 
