@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Clean venv wrapper for testing.
+"""⚠️ DEPRECATED - Use run_in_venv.py instead.
 
-Usage:
+This is a legacy duplicate of run_in_venv.py with minimal differences.
+Kept for historical reference only.
+
+Original usage:
   python scripts/run_in_venv_clean.py --install-deps -- tools/check_imports_requirements.py
+
+New usage:
+  python scripts/run_in_venv.py --install-deps -- tools/check_imports_requirements.py
 """
 
 from __future__ import annotations
-import subprocess
 import sys
-from pathlib import Path
+
+print("⚠️  DEPRECATED: Use scripts/run_in_venv.py instead", file=sys.stderr)
+print("This script is a duplicate and will be removed in a future version.", file=sys.stderr)
+sys.exit(1)
 
 ROOT = Path(__file__).resolve().parents[1]
 VENV_DIR = ROOT / ".venv-tools"
