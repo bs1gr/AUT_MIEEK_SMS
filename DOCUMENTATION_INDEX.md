@@ -87,6 +87,18 @@ Located in `docs/`:
 - `SECURITY_AUDIT_REPORT.md` - Security audit findings
 - `SECURITY_FIX_SUMMARY.md` - Security fixes applied
 
+### Installer & Build Documentation
+
+Located in `docs/`:
+
+- `GREEK_ENCODING_FIX.md` - Greek text encoding solution for Inno Setup
+- `DOCKER_NAMING_CONVENTIONS.md` - Volume versioning and naming conventions
+
+Located in root:
+
+- `INSTALLER_BUILDER.ps1` - Consolidated installer build script
+- `fix_greek_encoding_permanent.py` - Build-time Greek encoding converter
+
 ### Reference Documentation
 
 Located in `docs/reference/`:
