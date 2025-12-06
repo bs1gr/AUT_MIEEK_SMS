@@ -37,6 +37,14 @@ class DailyPerformanceCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class DailyPerformanceUpdate(BaseModel):
+    """Schema for updating daily performance records. All fields optional."""
+    score: Optional[float] = None
+    max_score: Optional[float] = None
+    notes: Optional[str] = None
+    category: Optional[str] = None
+
+
 class DailyPerformanceResponse(BaseModel):
     id: int
     student_id: int
@@ -87,6 +95,29 @@ def create_daily_performance(
         raise
     except Exception as exc:
         logger.error("Error creating daily performance: %s", exc, exc_info=True)
+        raise internal_server_error(request=request) from exc
+
+
+@router.put("/{id}", response_model=DailyPerformanceResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+def update_daily_performance(
+    id: int = Path(..., description="DailyPerformance record ID"),
+    performance: DailyPerformanceUpdate = None,
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
+):
+    """Update an existing daily performance record."""
+    try:
+        import_names("models", "DailyPerformance")
+        with transaction(db):
+            updated = DailyPerformanceService.update(db, id, performance, request)
+            db.flush()
+        return updated
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error updating daily performance id=%s: %s", id, exc, exc_info=True)
         raise internal_server_error(request=request) from exc
 
 
