@@ -1,12 +1,8 @@
 import { StudentProfile } from '@/features/students';
 import { useParams, useNavigate } from 'react-router-dom';
 
-interface StudentProfileParams {
-  id: string;
-}
-
 export default function StudentProfilePage() {
-  const { id } = useParams<StudentProfileParams>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   if (!id) {
