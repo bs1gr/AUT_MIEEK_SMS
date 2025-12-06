@@ -87,7 +87,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     const run = async () => {
       if (!courseId) { setFilteredStudents(students || []); return; }
       try {
-        const arr: Student[] = await enrollmentsAPI.getStudentsByCourse(courseId as number);
+        const arr: Student[] = await enrollmentsAPI.getEnrolledStudents(courseId as number);
         const ids = new Set(arr.map(s => s.id));
         const list = (students || []).filter(s => ids.has(s.id));
         setFilteredStudents(list);
@@ -112,7 +112,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       try {
         const results = await Promise.all((courses || []).map(async (c) => {
           try {
-            const studs: Student[] = await enrollmentsAPI.getStudentsByCourse(c.id);
+            const studs: Student[] = await enrollmentsAPI.getEnrolledStudents(c.id);
             const has = studs.some(s => s.id === studentId);
             return { id: c.id, has };
           } catch { return { id: c.id, has: false }; }
