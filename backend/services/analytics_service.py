@@ -87,7 +87,7 @@ class AnalyticsService:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
         assert student is not None
 
-        # Fetch only active course enrollments to limit scope
+        # Try to fetch course enrollments first (most efficient)
         enrollments = (
             self.db.query(self.CourseEnrollment)
             .filter(
@@ -99,8 +99,25 @@ class AnalyticsService:
         
         course_ids = {e.course_id for e in enrollments}
         
+        # If no enrollments exist, fall back to finding courses from grades/attendance/daily performance
         if not course_ids:
-            # No enrollments, return empty summary
+            course_ids = {
+                *(g.course_id for g in self.db.query(self.Grade.course_id).filter(
+                    self.Grade.student_id == student_id, 
+                    self.Grade.deleted_at.is_(None)
+                ).distinct()),
+                *(d.course_id for d in self.db.query(self.DailyPerformance.course_id).filter(
+                    self.DailyPerformance.student_id == student_id,
+                    self.DailyPerformance.deleted_at.is_(None)
+                ).distinct()),
+                *(a.course_id for a in self.db.query(self.Attendance.course_id).filter(
+                    self.Attendance.student_id == student_id,
+                    self.Attendance.deleted_at.is_(None)
+                ).distinct()),
+            }
+        
+        if not course_ids:
+            # No data at all for this student
             return {
                 "student": {
                     "id": student.id,
