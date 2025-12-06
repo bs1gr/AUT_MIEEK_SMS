@@ -72,6 +72,10 @@ frontend/.env
 # Ignore release artifacts
 dist/
 
+# Installer executables (distribute via GitHub Releases)
+*.exe
+!installer/SMS_Installer_*.exe  # Keep tagged release installers only
+
 # Temporary CI/local artifact folders
 tmp_artifacts/
 tmp_*
