@@ -6,7 +6,10 @@ authentication and authorization policies.
 
 from __future__ import annotations
 
+import json
+import logging
 import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Literal, Optional
@@ -14,6 +17,7 @@ from typing import Any, Dict, Literal, Optional
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -43,6 +47,21 @@ class OperationResult(BaseModel):
     success: bool
     message: str
     details: Optional[Dict[str, Any]] = None
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
+class UpdateCheckResponse(BaseModel):
+    """Response from update check."""
+    current_version: str
+    latest_version: Optional[str] = None
+    update_available: bool
+    release_url: Optional[str] = None
+    release_name: Optional[str] = None
+    release_body: Optional[str] = None
+    installer_url: Optional[str] = None
+    installer_hash: Optional[str] = None
+    docker_image_url: Optional[str] = None
+    update_instructions: str
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -314,3 +333,147 @@ async def get_auth_policy_guide():
             }
         }
     }
+
+
+@router.get("/maintenance/updates/check", response_model=UpdateCheckResponse)
+async def check_for_updates(request: Request):
+    """Check for available updates from GitHub releases.
+    
+    Compares current version with latest GitHub release and provides
+    update instructions for Docker deployments.
+    """
+    from backend.environment import RuntimeContext
+    
+    current_version = _get_version()
+    
+    try:
+        # Fetch latest release from GitHub
+        latest_release = _fetch_github_latest_release()
+        
+        if not latest_release:
+            return UpdateCheckResponse(
+                current_version=current_version,
+                latest_version=None,
+                update_available=False,
+                update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases"
+            )
+        
+        latest_version = latest_release.get("tag_name", "").lstrip("v")
+        update_available = _version_is_newer(latest_version, current_version)
+        
+        # Extract assets (installer, hash, etc.)
+        assets = latest_release.get("assets", [])
+        installer_url = None
+        installer_hash = None
+        
+        for asset in assets:
+            if asset["name"].endswith(".exe"):
+                installer_url = asset["browser_download_url"]
+            elif asset["name"].endswith(".sha256"):
+                installer_hash = _fetch_github_file_content(asset["url"])
+        
+        # Determine instructions based on deployment type
+        environment = RuntimeContext.get_environment()
+        if environment == "docker":
+            instructions = (
+                "To update your Docker deployment:\n\n"
+                "1. On your host machine, run:\n"
+                "   .\\DOCKER.ps1 -UpdateClean\n\n"
+                "2. This will:\n"
+                "   - Pull the latest code\n"
+                "   - Create an automatic backup\n"
+                "   - Rebuild Docker image with latest fixes\n"
+                "   - Restart the container\n\n"
+                "3. The application will be available again shortly."
+            )
+        else:
+            instructions = (
+                "To update your native installation:\n\n"
+                "1. Download the latest installer from:\n"
+                f"   {installer_url}\n\n"
+                "2. Run the installer to update your installation\n\n"
+                "3. Or if using source code:\n"
+                "   git pull\n"
+                "   .\\NATIVE.ps1 -Setup\n"
+                "   .\\NATIVE.ps1 -Start"
+            )
+        
+        return UpdateCheckResponse(
+            current_version=current_version,
+            latest_version=latest_version,
+            update_available=update_available,
+            release_url=latest_release.get("html_url"),
+            release_name=latest_release.get("name"),
+            release_body=latest_release.get("body"),
+            installer_url=installer_url,
+            installer_hash=installer_hash,
+            docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
+            update_instructions=instructions
+        )
+        
+    except Exception as exc:
+        logger.error("Error checking for updates: %s", exc, exc_info=True)
+        return UpdateCheckResponse(
+            current_version=current_version,
+            latest_version=None,
+            update_available=False,
+            update_instructions=f"Error checking for updates: {str(exc)}. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases"
+        )
+
+
+def _get_version() -> str:
+    """Read version from VERSION file or default."""
+    version_file = Path(__file__).resolve().parents[3] / "VERSION"
+    if version_file.exists():
+        return version_file.read_text(encoding="utf-8").strip()
+    return "1.0.0"
+
+
+def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
+    """Fetch latest release info from GitHub API."""
+    try:
+        # Use gh CLI if available
+        result = subprocess.run(
+            ["gh", "release", "view", "--json", "tagName,name,body,htmlUrl,assets"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0:
+            return json.loads(result.stdout)
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        pass
+    
+    # Fallback to direct API call
+    try:
+        import urllib.request
+        url = "https://api.github.com/repos/bs1gr/AUT_MIEEK_SMS/releases/latest"
+        with urllib.request.urlopen(url, timeout=10) as response:
+            return json.loads(response.read().decode())
+    except Exception:
+        return None
+
+
+def _fetch_github_file_content(asset_url: str) -> Optional[str]:
+    """Fetch file content from GitHub release asset."""
+    try:
+        import urllib.request
+        headers = {"Accept": "application/octet-stream"}
+        req = urllib.request.Request(asset_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return response.read().decode().strip()
+    except Exception:
+        return None
+
+
+def _version_is_newer(latest: str, current: str) -> bool:
+    """Compare semantic versions. Returns True if latest > current."""
+    try:
+        def parse_version(v: str) -> tuple:
+            """Parse version string into tuple of ints."""
+            parts = v.lstrip("v").split(".")
+            return tuple(int(p) for p in parts[:3])  # Compare major.minor.patch
+        
+        return parse_version(latest) > parse_version(current)
+    except (ValueError, IndexError):
+        return False

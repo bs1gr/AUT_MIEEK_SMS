@@ -12,13 +12,15 @@ import {
   Trash2,
   Cpu,
   Server,
-  Shield
+  Shield,
+  Download
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
 import Toast from './ui/Toast';
 import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
+import UpdatesPanel from './ControlPanel/UpdatesPanel';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -428,6 +430,7 @@ function formatUptime(seconds: number): string {
           <nav className="flex gap-1">
             {[
               { id: 'operations', label: t('controlPanel.operations'), icon: Terminal },
+              { id: 'updates', label: t('controlPanel.updates') || 'Updates', icon: Download },
               { id: 'diagnostics', label: t('controlPanel.diagnostics'), icon: AlertTriangle },
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
               { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
@@ -461,7 +464,6 @@ function formatUptime(seconds: number): string {
         {/* Operations Tab */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
-            {/* Docker Mode Consolidated Info Card */}
             {environment?.environment_mode === 'docker' && (
               <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg p-6">
                 <div className="flex items-start gap-4">
@@ -612,6 +614,11 @@ function formatUptime(seconds: number): string {
             </div>
             )}
           </div>
+        )}
+
+        {/* Updates Tab */}
+        {activeTab === 'updates' && (
+          <UpdatesPanel controlApi={CONTROL_API} />
         )}
 
         {/* Diagnostics Tab */}
