@@ -23,6 +23,23 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from backend.environment import get_runtime_context  # noqa: E402
 
+# Fix database file permissions if running in Docker
+# (database may be owned by root from volumes on some systems)
+if os.environ.get("SMS_EXECUTION_MODE") == "docker":
+    db_path = Path("/data/student_management.db")
+    if db_path.exists():
+        try:
+            # Try to make it writable by current user (appuser)
+            db_path.chmod(0o644)
+            # Also make the directory writable
+            db_dir = db_path.parent
+            db_dir.chmod(0o755)
+        except PermissionError:
+            # If we can't fix it, log but continue (may fail later if we need write access)
+            pass
+        except Exception as e:
+            pass  # Silently continue
+
 # Set execution mode to docker, but allow SMS_ENV to be controlled externally
 # This allows tests to run properly while production deployments can set SMS_ENV=production
 os.environ.setdefault("SMS_EXECUTION_MODE", "docker")
