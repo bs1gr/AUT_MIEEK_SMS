@@ -139,7 +139,7 @@ This hook helps catch lint/test issues early. If you intentionally want to skip 
 .\scripts\VERIFY_VERSION.ps1 -Report      # Generate report
 ```
 
-**Documentation:** `docs/VERSION_AUTOMATION_GUIDE.md`
+**Documentation:** `docs/development/VERSION_MANAGEMENT_GUIDE.md`
 
 ### 🗄️ CHECK_VOLUME_VERSION.ps1 - Database Schema Check
 

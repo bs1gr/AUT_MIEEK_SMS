@@ -25,6 +25,8 @@ Documentation for deploying and operating the Student Management System in produ
   - Post-deployment validation
   - Smoke tests
 
+- **[QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** - Consolidated QNAP Container Station guide (standard, ARM/TS-431P3, virtual host)
+
 ### Docker Operations
 
 - **[DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)** - Docker commands & management
@@ -35,7 +37,7 @@ Documentation for deploying and operating the Student Management System in produ
   - Network configuration
 
 - **[../DOCKER_NAMING_CONVENTIONS.md](../DOCKER_NAMING_CONVENTIONS.md)** - Docker naming standards
-- **[../DOCKER_CLEANUP.md](../DOCKER_CLEANUP.md)** - Docker cleanup procedures
+- **[../reference/DOCKER_CLEANUP_GUIDE.md](../reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures (canonical)
 
 ## 🔧 Troubleshooting
 
