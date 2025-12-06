@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated:** December 6, 2025 (v1.9.9)  
-**Version:** 1.9.9  
+**Last Updated:** December 6, 2025 (v1.9.10)  
+**Version:** 1.9.10  
 **Status:** Production Ready
 
 ---
@@ -22,7 +22,7 @@
 ### For Audits & Reports
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.9.8.md`
+- **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.9.10.md`
 
 ### For Operations
 - **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
@@ -46,7 +46,7 @@
 | `CONTRIBUTING.md` | Contribution guidelines | Developers |
 | `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |
 | `CODEBASE_AUDIT_REPORT.md` | Detailed audit analysis | Technical leads |
-| `INSTALLER_RELEASE_NOTES_v1.9.8.md` | v1.9.8 release notes | End users |
+| `INSTALLER_RELEASE_NOTES_v1.9.10.md` | v1.9.10 release notes | End users |
 
 ### Development Documentation
 
@@ -178,7 +178,7 @@ Located in `docs/reference/`:
 ├── AUDIT_SUMMARY.md               (quick audit)
 ├── CODEBASE_AUDIT_REPORT.md       (detailed audit)
 ├── CONTRIBUTING.md                (contribution guide)
-└── INSTALLER_RELEASE_NOTES_v1.9.8.md (release notes)
+└── INSTALLER_RELEASE_NOTES_v1.9.10.md (release notes)
 ```
 
 ### Backend
@@ -223,8 +223,8 @@ docs/
 ### Archive
 ```
 archive/
-├── pre-v1.9.1/                    (legacy content)
-├── pre-v1.9.7-docker-scripts/     (old docker helpers)
+├── pre-v1.9.10/                    (legacy content)
+├── pre-v1.9.10-docker-scripts/     (old docker helpers)
 ├── root_docs_cleanup_2025-12-05/  (archived root docs)
 ├── sessions/                      (session artifacts)
 ├── deprecated_commit_scripts_2025-11-27/
@@ -276,13 +276,13 @@ archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_AUDIT_REPORT.md`
-4. **Release info?** → `INSTALLER_RELEASE_NOTES_v1.9.8.md`
+4. **Release info?** → `INSTALLER_RELEASE_NOTES_v1.9.10.md`
 
 ---
 
 ## Documentation Updates
 
-### December 5, 2025 (v1.9.8)
+### December 5, 2025 (v1.9.10)
 - ✅ Archived obsolete documentation (17 files)
 - ✅ Updated main documentation index
 - ✅ Created comprehensive audit reports
@@ -290,14 +290,14 @@ archive/
 
 ### Previous Updates
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.9.1/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.9.10/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.9.9  
+**Documentation Version:** v1.9.10  
 **Last Updated:** December 6, 2025  
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.9.9.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.9.10.
