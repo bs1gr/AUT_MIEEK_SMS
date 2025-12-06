@@ -696,46 +696,47 @@ function Invoke-InteractiveRelease {
 function Invoke-VersionConsistencyCheck {
     Write-Header "Phase 0: Version Consistency" "DarkCyan"
 
-    $ok = $true
-    $version = Get-Version
-    Write-Info "VERSION file: $version"
-
-    # Frontend package.json version
-    if (Test-Path $FRONTEND_PACKAGE_JSON) {
-        try {
-            $pkg = Get-Content $FRONTEND_PACKAGE_JSON -Raw | ConvertFrom-Json
-            $feVersion = $pkg.version
-            Write-Info "Frontend package.json: $feVersion"
-            if ($feVersion -ne $version) {
-                $strictVersion = ($env:STRICT_VERSION_CHECK -as [string]) -and ($env:STRICT_VERSION_CHECK.ToLower() -in @('1','true','yes'))
-                if ($strictVersion) {
-                    Write-Warning-Msg "Version mismatch: frontend package.json ($feVersion) != VERSION ($version) (STRICT_VERSION_CHECK=1)"
-                    $ok = $false
-                } else {
-                    Write-Warning-Msg "Version mismatch: frontend package.json ($feVersion) != VERSION ($version) — allowing in non-strict mode"
-                    $ok = $true
-                }
-            }
-        }
-        catch {
-            Write-Warning-Msg "Could not read frontend package.json: $_"
-            $ok = $false
-        }
-    } else {
-        Write-Warning-Msg "Frontend package.json not found"
-        $ok = $false
+    # Run comprehensive version verification using VERIFY_VERSION.ps1
+    $verifyScript = Join-Path $SCRIPT_DIR "scripts\VERIFY_VERSION.ps1"
+    
+    if (-not (Test-Path $verifyScript)) {
+        Write-Warning-Msg "VERIFY_VERSION.ps1 not found, falling back to basic check"
+        $version = Get-Version
+        Write-Info "VERSION file: $version"
+        Add-Result "Linting" "Version Consistency" $true "Basic check only"
+        return $true
     }
 
-    # Optional: Installer banner/version sync can be validated through docs/logs when present
-    # We keep this non-fatal in smoke mode; the primary gate is package.json vs VERSION.
-
-    if ($ok) {
-        Write-Success "Version consistency OK"
-        Add-Result "Linting" "Version Consistency" $true
-        return $true
+    Write-Info "Running comprehensive version verification..."
+    
+    # Check if AutoFix is enabled and apply updates if inconsistencies found
+    if ($AutoFix) {
+        Write-Info "AutoFix enabled - will update inconsistent version references"
+        $result = & $verifyScript -Update 2>&1
+        $exitCode = $LASTEXITCODE
     } else {
-        Write-Failure "Version consistency failed"
-        Add-Result "Linting" "Version Consistency" $false "Mismatch between VERSION and package.json"
+        $result = & $verifyScript -CheckOnly 2>&1
+        $exitCode = $LASTEXITCODE
+    }
+    
+    # Display output
+    $result | ForEach-Object { Write-Host $_ }
+    
+    # Exit codes: 0=success, 1=critical failure, 2=inconsistencies found
+    if ($exitCode -eq 0) {
+        Write-Success "All version references consistent across codebase"
+        Add-Result "Linting" "Version Consistency" $true "All 9 version checks passed"
+        return $true
+    } 
+    elseif ($exitCode -eq 2 -and -not $AutoFix) {
+        Write-Warning-Msg "Version inconsistencies detected. Run with -AutoFix to update automatically."
+        Write-Info "Manual fix: .\scripts\VERIFY_VERSION.ps1 -Update"
+        Add-Result "Linting" "Version Consistency" $false "Inconsistencies found (use -AutoFix)"
+        return $false
+    }
+    else {
+        Write-Failure "Version verification failed"
+        Add-Result "Linting" "Version Consistency" $false "Critical version mismatch"
         return $false
     }
 }
