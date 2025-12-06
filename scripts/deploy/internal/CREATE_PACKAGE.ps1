@@ -1,6 +1,12 @@
 #!/usr/bin/env pwsh
-# Student Management System - Create Deployment Package
+# ⚠️  DEPRECATED - Student Management System - Create Deployment Package
+# Use CREATE_DEPLOYMENT_PACKAGE.ps1 instead (more comprehensive)
+
 # This script creates a clean ZIP file ready for deployment
+
+Write-Host ""
+Write-Host "⚠️  This script is deprecated. Use CREATE_DEPLOYMENT_PACKAGE.ps1 instead." -ForegroundColor Yellow
+Write-Host ""
 
 param(
     [string]$Version = "",
