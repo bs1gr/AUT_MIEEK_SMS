@@ -1,8 +1,12 @@
 <#
 .SYNOPSIS
-    Student Management System - Windows Uninstaller Wizard (GUI)
+    ⚠️  LEGACY - Student Management System - Windows Uninstaller Wizard (GUI)
 
 .DESCRIPTION
+    ⚠️  DEPRECATED: Use the official Inno Setup uninstaller instead.
+    This PowerShell-based wizard is kept for historical reference.
+    
+    Historical documentation:
     Professional Windows uninstaller with GUI interface that:
     - Provides uninstallation options (keep data, full cleanup)
     - Backs up database and user files
@@ -10,18 +14,27 @@
     - Optional deep Docker cleanup
     - Removes application files
     
+    For end-users, use the packaged uninstaller created by Inno Setup.
+
 .EXAMPLE
     .\SMS_UNINSTALLER_WIZARD.ps1
-    Launch the GUI uninstallation wizard
+    Launch the GUI uninstallation wizard (DEPRECATED)
 
 .EXAMPLE
     .\SMS_UNINSTALLER_WIZARD.ps1 -DeepClean
-    Perform deep Docker cleanup (removes all SMS Docker resources)
+    Perform deep Docker cleanup (DEPRECATED)
 
 .NOTES
-    Version: 1.0.0
+    Version: 1.0.0 (Legacy)
+    Deprecated: v1.9.7+
+    Replacement: Uninstall_SMS_{version}.exe (created by Inno Setup)
     Requires: Windows 10/11, PowerShell 5.1+
 #>
+
+Write-Host ""
+Write-Host "⚠️  WARNING: This PowerShell uninstaller is deprecated." -ForegroundColor Yellow
+Write-Host "Use the official Inno Setup uninstaller instead (Uninstall_SMS_{version}.exe)" -ForegroundColor Yellow
+Write-Host ""
 
 param(
     [switch]$SilentMode,

@@ -1,6 +1,13 @@
+# ⚠️ DEPRECATED - This script is kept for historical reference.
+# Use the canonical CLEANUP_COMPREHENSIVE.ps1 instead.
+
 # ============================================================================
-#   Student Management System - Cleanup Obsolete Files Script
+#   Student Management System - Cleanup Obsolete Files Script (DEPRECATED)
 # ============================================================================
+
+Write-Host ""
+Write-Host "⚠️  This script is deprecated. Use CLEANUP_COMPREHENSIVE.ps1 instead." -ForegroundColor Yellow
+Write-Host ""
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $projectRoot

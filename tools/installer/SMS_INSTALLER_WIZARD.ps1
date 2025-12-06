@@ -1,8 +1,12 @@
 <#
 .SYNOPSIS
-    Student Management System - Windows Installation Wizard (GUI)
+    ⚠️  LEGACY - Student Management System - Windows Installation Wizard (GUI)
 
 .DESCRIPTION
+    ⚠️  DEPRECATED: Use the canonical Inno Setup installer (installer/SMS_Installer.iss) instead.
+    This PowerShell-based wizard is kept for historical reference.
+    
+    Historical documentation:
     Professional Windows installer with GUI wizard interface that:
     - Provides step-by-step installation wizard
     - Checks and installs prerequisites (Docker Desktop)
@@ -10,20 +14,17 @@
     - Validates installation
     - Provides post-installation instructions
     
-    Designed for distribution as standalone executable.
+    For end-users, use the packaged .exe file built with Inno Setup.
 
 .EXAMPLE
     .\SMS_INSTALLER_WIZARD.ps1
-    Launch the GUI installation wizard
-
-.EXAMPLE
-    .\SMS_INSTALLER_WIZARD.ps1 -SilentMode
-    Run silent installation with default settings
+    Launch the GUI installation wizard (DEPRECATED)
 
 .NOTES
-    Version: 1.0.0
+    Version: 1.0.0 (Legacy)
+    Deprecated: v1.9.7+
+    Replacement: installer/SMS_Installer.iss + SMS_Installer_{version}.exe
     Requires: Windows 10/11, PowerShell 5.1+
-    Package with: PS2EXE or Advanced Installer
 #>
 
 param(
@@ -31,6 +32,13 @@ param(
     [switch]$SkipDockerCheck,
     [string]$InstallPath = "$env:ProgramFiles\StudentManagementSystem"
 )
+
+Write-Host ""
+Write-Host "⚠️  WARNING: This PowerShell installer is deprecated." -ForegroundColor Yellow
+Write-Host "Please use the official Inno Setup installer instead:" -ForegroundColor Yellow
+Write-Host "  → Download SMS_Installer_{version}.exe from GitHub Releases" -ForegroundColor Yellow
+Write-Host "  → Or use: installer\SMS_Installer.iss (requires Inno Setup 6.x)" -ForegroundColor Yellow
+Write-Host ""
 
 #Requires -Version 5.1
 #Requires -RunAsAdministrator

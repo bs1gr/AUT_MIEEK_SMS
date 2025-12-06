@@ -1,9 +1,12 @@
 <#
 .SYNOPSIS
-    Build executable installers for Student Management System
+    ⚠️  DEPRECATED - Build executable installers for Student Management System
 
 .DESCRIPTION
-    Creates distributable Windows executable installers using PS2EXE or Advanced Installer.
+    ⚠️  DEPRECATED: Use the canonical Inno Setup build system instead (installer/SMS_Installer.iss).
+    This PS2EXE-based builder is kept for historical reference.
+    
+    Legacy description: Creates distributable Windows executable installers using PS2EXE or Advanced Installer.
     Packages the GUI wizard scripts into standalone executables with embedded resources.
 
 .PARAMETER Method
@@ -13,11 +16,18 @@
     Where to create the installers (default: .\dist)
 
 .PARAMETER IncludeUninstaller
-    Include uninstaller in the package
+    Include uninstaller in the package (DEPRECATED)
 
 .EXAMPLE
     .\BUILD_INSTALLER_EXECUTABLE.ps1
-    Build installer using default method (PS2EXE)
+    Build installer using default method (DEPRECATED - use Inno Setup instead)
+#>
+
+Write-Host ""
+Write-Host "⚠️  This script is deprecated. Use the official Inno Setup build system:" -ForegroundColor Yellow
+Write-Host "  → installer/SMS_Installer.iss (canonical)" -ForegroundColor Yellow
+Write-Host "  → Run: .\INSTALLER_BUILDER.ps1 (root level)" -ForegroundColor Yellow
+Write-Host ""
 
 .EXAMPLE
     .\BUILD_INSTALLER_EXECUTABLE.ps1 -Method AdvancedInstaller
