@@ -123,7 +123,7 @@ After installation, the system creates a default admin account:
 
 #### Secure Admin Setup
 
-**Method 1: Pre-Deployment (Recommended for Production)**
+#### Method 1: Pre-Deployment (Recommended for Production)
 
 Edit `backend/.env` **before first startup**:
 
@@ -138,14 +138,14 @@ Generate secure password:
 python -c "import secrets; print(secrets.token_urlsafe(24))"
 ```
 
-**Method 2: Post-Deployment via Control Panel**
+#### Method 2: Post-Deployment via Control Panel
 
 1. Login with default credentials (immediately after first start only)
 2. Navigate to Control Panel → Authentication
 3. Change email and password
 4. **CRITICAL:** Update `backend/.env` if using persistence features
 
-**Method 3: Password Reset Scripts**
+#### Method 3: Password Reset Scripts
 
 Use dedicated scripts for credential management:
 
@@ -173,11 +173,13 @@ See: `docs/deployment/GITHUB_ACTIONS_ADMIN_PASSWORD_ROTATION.md`
 #### Connection Security
 
 **SQLite (Development):**
+
 - File permissions restricted to owner
 - Located in `data/` directory (Docker volume or native path)
 - WAL mode for better concurrency
 
 **PostgreSQL (Production - Recommended):**
+
 - Use strong passwords (16+ characters)
 - Restrict network access (127.0.0.1 or Docker network only)
 - Enable SSL/TLS for remote connections
@@ -196,6 +198,7 @@ See: `docs/operations/SQLITE_TO_POSTGRESQL_MIGRATION.md`
 **Status:** ✅ VERIFIED SECURE
 
 The application uses SQLAlchemy ORM exclusively:
+
 - All queries use parameterized statements
 - No dynamic SQL string construction
 - Parameters sanitized via `repr()` for logging
@@ -208,6 +211,7 @@ The application uses SQLAlchemy ORM exclusively:
 ### Audit Date: December 3, 2025
 
 **Methodology:**
+
 - Static code analysis (Docker compose, PowerShell scripts, Python backend)
 - Dynamic testing (validation functions, authentication flows, SQL queries)
 - Documentation review (README, security guides, environment examples)
@@ -218,11 +222,13 @@ The application uses SQLAlchemy ORM exclusively:
 **Location:** `docker/docker-compose.yml:29`
 
 **Before:**
+
 ```yaml
 SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
 ```
 
 **After:**
+
 ```yaml
 # SECRET_KEY is required - no default provided for security
 # Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
@@ -230,7 +236,8 @@ SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
 ```
 
 **Test Results:**
-```
+
+```text
 Test: docker compose config without SECRET_KEY
 Result: error while interpolating services.backend.environment
 Message: required variable SECRET_KEY is missing a value: SECRET_KEY must be set in .env file
@@ -238,6 +245,7 @@ Verdict: ✅ PASS - Correctly rejects missing SECRET_KEY
 ```
 
 **Verification:**
+
 - ✅ Docker compose rejects missing SECRET_KEY
 - ✅ Clear error message guides users
 - ✅ No default fallback possible
@@ -250,12 +258,14 @@ Verdict: ✅ PASS - Correctly rejects missing SECRET_KEY
 **Location:** `backend/.env.example:87-88`
 
 **Before:**
+
 ```dotenv
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 ```
 
 **After:**
+
 ```dotenv
 # ⚠️  SECURITY WARNING: DO NOT use these example values in production!
 # Generate a secure password with: python -c "import secrets; print(secrets.token_urlsafe(24))"
@@ -267,6 +277,7 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ```
 
 **Verification:**
+
 - ✅ No hardcoded credentials active by default
 - ✅ Prominent security warnings added
 - ✅ Password generation command provided
@@ -279,6 +290,7 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 **Location:** `backend/performance_monitor.py`, all routers, services
 
 **Verification Results:**
+
 - ✅ Uses SQLAlchemy ORM with parameterized queries
 - ✅ Parameters sanitized via `repr()` for logging
 - ✅ No dynamic SQL string construction found
@@ -291,7 +303,8 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ### Validation Results Summary
 
 **PowerShell Validation (8/8 tests passing):**
-```
+
+```text
 ✅ Empty key rejected
 ✅ Key with 'change' rejected
 ✅ Key with 'placeholder' rejected
@@ -303,7 +316,8 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ```
 
 **Backend Validation (4/4 tests passing):**
-```
+
+```text
 ✅ Weak key rejected when AUTH_ENABLED
 ✅ Empty key rejected when AUTH_ENABLED
 ✅ Valid key accepted in all modes
@@ -311,7 +325,8 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ```
 
 **SQL Sanitization (3/3 tests passing):**
-```
+
+```text
 ✅ String parameters properly escaped
 ✅ Special characters sanitized
 ✅ Numeric parameters safely converted
@@ -368,16 +383,19 @@ See: `backend/ENV_VARS.md` for complete reference
 ### Authentication Modes
 
 **`disabled`** - No authentication (⚠️ INSECURE - emergency access only)
+
 - Bypasses all authentication checks
 - Use only for disaster recovery
 - Document reason in change log
 
 **`permissive`** (RECOMMENDED for production)
+
 - Authentication optional for admin endpoints
 - Allows emergency access if authentication fails
 - Logs all unauthenticated admin access
 
 **`strict`** (Maximum security)
+
 - Full authentication required for all protected endpoints
 - No emergency bypass
 - Recommended for highly sensitive deployments
@@ -387,11 +405,13 @@ See: `backend/ENV_VARS.md` for complete reference
 **Status:** ✅ ENABLED BY DEFAULT
 
 CSRF middleware automatically protects against cross-site request forgery:
+
 - Validates CSRF tokens on state-changing requests (POST, PUT, DELETE)
 - Exempts read-only operations (GET, HEAD, OPTIONS)
 - Automatically disabled in test environments
 
 **Configuration:**
+
 ```dotenv
 CSRF_ENABLED=True  # Disable only for testing/debugging
 ```
@@ -403,12 +423,14 @@ CSRF_ENABLED=True  # Disable only for testing/debugging
 ### 1. Regular Updates
 
 **Monthly:**
+
 - Review dependency security advisories
 - Update Python packages: `pip-audit` report
 - Update npm packages: `npm audit`
 - Review Docker base image updates
 
 **Quarterly:**
+
 - Full security audit using checklist
 - Review authentication logs for anomalies
 - Test disaster recovery procedures
@@ -417,12 +439,14 @@ CSRF_ENABLED=True  # Disable only for testing/debugging
 ### 2. Monitoring & Logging
 
 **Key Security Metrics:**
+
 - Failed login attempts (threshold: 5 per user per hour)
 - Admin endpoint access (log all requests)
 - Database query performance (slow queries may indicate attack)
 - Rate limit triggers (unusual API usage patterns)
 
 **Log Analysis:**
+
 ```bash
 # Check for failed logins
 grep "Authentication failed" backend/logs/app.log
@@ -462,43 +486,50 @@ See: `docs/operations/DOCKER_NAMING_CONVENTIONS.md` for backup procedures
 **Immediate Actions (within 15 minutes):**
 
 1. **Stop the service:**
-   ```powershell
-   .\DOCKER.ps1 -Stop
-   ```
+
+```powershell
+./DOCKER.ps1 -Stop
+```
 
 2. **Preserve evidence:**
-   ```powershell
-   # Copy logs before they rotate
-   Copy-Item backend/logs/app.log "incident_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
-   ```
+
+```powershell
+# Copy logs before they rotate
+Copy-Item backend/logs/app.log "incident_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+```
 
 3. **Reset credentials:**
-   ```bash
-   cd backend
-   python -m backend.tools.create_admin --force-reset
-   ```
+
+```bash
+cd backend
+python -m backend.tools.create_admin --force-reset
+```
 
 4. **Regenerate SECRET_KEY:**
-   ```bash
-   python -c "import secrets; print(secrets.token_urlsafe(48))"
-   # Update .env file with new key
-   ```
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+# Update .env file with new key
+```
 
 5. **Audit database:**
-   ```sql
-   SELECT * FROM users WHERE last_login > NOW() - INTERVAL '24 hours';
-   SELECT * FROM audit_log WHERE timestamp > NOW() - INTERVAL '24 hours';
-   ```
+
+```sql
+SELECT * FROM users WHERE last_login > NOW() - INTERVAL '24 hours';
+SELECT * FROM audit_log WHERE timestamp > NOW() - INTERVAL '24 hours';
+```
 
 ### Forgotten Admin Password
 
-**Option 1: Use Recovery Script**
+#### Option 1: Use Recovery Script
+
 ```bash
 cd backend
 python -m backend.tools.create_admin --reset-password admin@example.com
 ```
 
-**Option 2: Direct Database Reset**
+#### Option 2: Direct Database Reset
+
 ```bash
 # SQLite
 sqlite3 data/student_management.db
@@ -508,7 +539,8 @@ UPDATE users SET password_hash = '<new-bcrypt-hash>' WHERE email = 'admin@exampl
 psql -d sms_db -c "UPDATE users SET password_hash = '<new-bcrypt-hash>' WHERE email = 'admin@example.com';"
 ```
 
-**Option 3: Emergency Access Mode**
+#### Option 3: Emergency Access Mode
+
 ```dotenv
 # Temporarily in backend/.env (DISABLE AFTER USE)
 AUTH_MODE=disabled
@@ -523,11 +555,13 @@ See: `docs/operations/OPERATOR_EMERGENCY_GUIDE.md`
 ### Security Testing
 
 **Pre-Commit Validation:**
+
 ```powershell
-.\COMMIT_READY.ps1 -Standard
+./COMMIT_READY.ps1 -Standard
 ```
 
 **Security-Specific Tests:**
+
 ```bash
 # Backend security tests
 cd backend
@@ -551,11 +585,13 @@ npm run test -- src/**/*auth*.test.*
 ### Compliance Frameworks
 
 **General Best Practices Alignment:**
+
 - OWASP Top 10 (Web Application Security Risks)
 - NIST Cybersecurity Framework (Identify, Protect, Detect, Respond, Recover)
 - CWE/SANS Top 25 (Most Dangerous Software Weaknesses)
 
 **Specific Controls:**
+
 - A02:2021 – Cryptographic Failures ✅ (Strong SECRET_KEY enforcement)
 - A03:2021 – Injection ✅ (SQLAlchemy ORM parameterized queries)
 - A07:2021 – Identification and Authentication Failures ✅ (JWT tokens, password hashing, admin hardening)
@@ -583,6 +619,7 @@ npm run test -- src/**/*auth*.test.*
 | 2025-11-13 | 1.9.0 | Initial security documentation |
 
 **Archived Versions:**
+
 - `archive/security-audit-2025-12-06/SECURITY.md` (241 lines)
 - `archive/security-audit-2025-12-06/SECURITY_AUDIT_REPORT.md` (313 lines)
 - `archive/security-audit-2025-12-06/SECURITY_FIX_SUMMARY.md` (317 lines)
