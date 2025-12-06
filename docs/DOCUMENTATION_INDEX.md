@@ -46,7 +46,7 @@ Documentation is organized into four main directories:
 
 ### Monitoring & Operations ($11.9.7+)
 
-- **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
+- **[operations/MONITORING.md](operations/MONITORING.md)** - Canonical monitoring & alerting guide
   - On-demand vs eager activation modes
   - Docker-only deployment constraints
   - Security considerations and hardening
@@ -54,7 +54,8 @@ Documentation is organized into four main directories:
 - **[../monitoring/README.md](../monitoring/README.md)** - Monitoring quick reference
   - Configuration for Prometheus, Grafana, Loki
   - Alert rules and dashboard customization
-- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide
+- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide (canonical)
+- **[user/SESSION_EXPORT_IMPORT_GUIDE.md](user/SESSION_EXPORT_IMPORT_GUIDE.md)** - Session export/import user guide (canonical)
 - **[../backend/CONTROL_API.md](../backend/CONTROL_API.md)** - Control API documentation (Updated)
   - Monitoring lifecycle endpoints
   - Audit logging specifications

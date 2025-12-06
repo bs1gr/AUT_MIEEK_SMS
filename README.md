@@ -1096,7 +1096,7 @@ student-management-system/
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) – Production deployment steps
 - [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) – Final verification before going live
 - [docs/deployment/POSTGRES_MIGRATION_GUIDE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE.md) – SQLite → PostgreSQL migration workflow
-- [docs/MONITORING_ARCHITECTURE.md](docs/MONITORING_ARCHITECTURE.md) – Monitoring stack design + troubleshooting
+- [docs/operations/MONITORING.md](docs/operations/MONITORING.md) – Monitoring & alerting guide (canonical)
 - [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) – Supported automation scripts and entry points
 - [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
 - [docs/development/AUTHENTICATION.md](docs/development/AUTHENTICATION.md) – Authentication/authorization implementation details
@@ -1199,7 +1199,7 @@ Restart the application after rollback to clear caches.
 
 **Deprecation Notice:** POST export endpoint will be removed in a future release – use GET.
 
-For a full end-to-end walkthrough with scenarios and troubleshooting, see `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md`.
+For a full end-to-end walkthrough with scenarios and troubleshooting, see `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md` (user guide; technical details in `docs/reference/session-export-import.md`).
 
 ### Academic settings and date range filtering
 

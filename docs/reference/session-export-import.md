@@ -1,6 +1,11 @@
-# Session Export/Import Feature Implementation
+# Session Export/Import Implementation Details (Technical Reference)
+
+> **ℹ️ For Users**: See the **[user guide](../user/SESSION_EXPORT_IMPORT_GUIDE.md)** for how to use this feature.
+>
+> **Technical Details**: This document describes the implementation of the session export/import feature.
 
 ## Overview
+
 Added comprehensive session-based export/import functionality to allow users to export all data for a specific semester with one button, and import/merge session data from another system with another button.
 
 ## Changes Made
