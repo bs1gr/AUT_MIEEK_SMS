@@ -10,6 +10,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Fixed
 
+- **Backend: Missing PUT Endpoint for Daily Performance** 🔧
+  - Added `PUT /api/v1/daily-performance/{id}` endpoint for updating records
+  - Frontend was calling PUT but backend only had GET at `/{id}` path
+  - Fixed 405 (Method Not Allowed) errors appearing in browser console
+  - Added `DailyPerformanceUpdate` schema with optional fields for partial updates
+  - Implemented `DailyPerformanceService.update()` method with field validation
+  - Includes rate limiting (`RATE_LIMIT_WRITE`) and admin/teacher authorization
+  - Added comprehensive tests: `test_update_daily_performance_success` and `test_update_daily_performance_not_found`
+  - All 363 backend tests passing, 1022 frontend tests passing
+  - Reviewed all other routers - no similar issues found
+
 - **Build: Non-blocking Code Signing** 🔧
   - Made code signing in installer build non-blocking (signed optional)
   - Build now succeeds with exit code 0 even if signing script errors

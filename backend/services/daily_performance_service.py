@@ -47,6 +47,36 @@ class DailyPerformanceService:
         return db_performance
 
     @staticmethod
+    def update(db: Session, record_id: int, payload, request=None):
+        """Update a DailyPerformance entry.
+
+        Args:
+            db: SQLAlchemy session
+            record_id: ID of the record to update
+            payload: Pydantic object with update fields (must have model_dump())
+            request: Optional request for error context
+        Returns:
+            Updated ORM object
+        """
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
+        record = get_by_id_or_404(db, DailyPerformance, record_id)
+        
+        # Update fields from payload
+        update_data = payload.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(record, key, value)
+        
+        db.flush()
+        db.refresh(record)
+        logger.info(
+            "Updated daily performance id=%s for student=%s course=%s",
+            record_id,
+            record.student_id,
+            record.course_id,
+        )
+        return record
+
+    @staticmethod
     def list_for_student(db: Session, student_id: int) -> List:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         return (
