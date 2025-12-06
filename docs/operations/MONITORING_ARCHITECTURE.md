@@ -1,8 +1,8 @@
-# Monitoring Architecture
+# Monitoring Architecture (Deprecated - Use MONITORING.md)
 
-> Deprecation notice ($11.9.7)
+> **⚠️ DEPRECATED**: This document is kept for historical reference. Use the canonical **[MONITORING.md](MONITORING.md)** for current monitoring operations and guidelines.
 >
-> As of $11.9.7 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
+> Deprecation notice (v1.9.7): As of v1.9.7 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
 >
 > **Note ($11.9.7+):** Legacy scripts (RUN.ps1, SMS.ps1) have been deprecated. Use `DOCKER.ps1` for all Docker operations and `NATIVE.ps1` for native development.
 
