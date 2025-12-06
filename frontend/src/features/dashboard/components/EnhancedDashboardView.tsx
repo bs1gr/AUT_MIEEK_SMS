@@ -594,13 +594,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                       secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${student.attendanceRate}% ${t('attendance')}`;
                     }
                     
-                    const statusLabel =
-                      failedCount > 0
-                        ? t('failedCoursesCount', { count: failedCount }).replace(
-                            '{count}',
-                            String(failedCount)
-                          )
-                        : formatted.description;
                     const accentPalette = [
                       'border-amber-400 bg-amber-50',
                       'border-slate-300 bg-slate-50',
