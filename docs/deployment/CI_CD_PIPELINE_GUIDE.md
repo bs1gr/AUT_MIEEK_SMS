@@ -543,9 +543,10 @@ Error: The operation was canceled.
 
 ## Related Documentation
 
-- **Version Automation:** `docs/VERSION_AUTOMATION_GUIDE.md`
+- **Version Management:** `docs/development/VERSION_MANAGEMENT_GUIDE.md` (canonical)
 - **Docker Deployment:** `DOCKER.ps1`, `docs/DOCKER_NAMING_CONVENTIONS.md`
-- **Pre-Commit Workflow:** `PRE_COMMIT_WORKFLOW_SUMMARY.md`
+- **Pre-Commit Workflow:** `docs/development/PRE_COMMIT_GUIDE.md`
+- **CI/CD change history:** see archive `archive/ci-cd-2025-12-06/` (implementation summary, improvements log)
 - **Architecture:** `docs/ARCHITECTURE.md`
 
 ---

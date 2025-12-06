@@ -508,7 +508,7 @@ $env:VERSION = $version
 ## Related Documentation
 
 - [README.md](../README.md) - Main project documentation
-- [DOCKER_CLEANUP.md](DOCKER_CLEANUP.md) - Docker cleanup procedures
+- [reference/DOCKER_CLEANUP_GUIDE.md](../reference/DOCKER_CLEANUP_GUIDE.md) - Docker cleanup procedures (canonical)
 - [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) - One-click deployment guide (`RUN.ps1`)
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
 

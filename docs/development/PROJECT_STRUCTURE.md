@@ -48,18 +48,21 @@ These stay at project root for discoverability:
 ## 🎯 Quick Navigation
 
 ### For Users
+
 - **Getting Started**: [README.md](../README.md) → [INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md)
 - **Quick Start**: [docs/user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)
 - **Customization**: [docs/user/THEMES_SUMMARY.md](user/THEMES_SUMMARY.md)
 - **Languages**: [docs/user/LOCALIZATION.md](user/LOCALIZATION.md)
 
 ### For Developers
+
 - **Architecture**: [docs/development/ARCHITECTURE.md](development/ARCHITECTURE.md)
 - **API Guide**: [docs/development/API_EXAMPLES.md](development/API_EXAMPLES.md)
 - **Auth System**: [docs/development/AUTHENTICATION.md](development/AUTHENTICATION.md)
 - **Testing**: [frontend/tests/e2e/README.md](../frontend/tests/e2e/README.md)
 
 ### For Operators
+
 - **Deployment**: [docs/deployment/RUNBOOK.md](deployment/RUNBOOK.md)
 - **Docker Ops**: [docs/deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)
 - **Troubleshooting**: [docs/deployment/TROUBLESHOOTING.md](deployment/TROUBLESHOOTING.md)
@@ -67,29 +70,34 @@ These stay at project root for discoverability:
 ## 🔄 Migration Status
 
 ### Moved to User Docs
+
 - ✅ `QUICK_START_GUIDE.md` → `docs/user/`
 - ✅ `THEMES_SUMMARY.md` → `docs/user/`
 - ✅ `LOCALIZATION.md` → `docs/user/`
 
 ### Moved to Development Docs
+
 - ✅ `ARCHITECTURE.md` → Already in `docs/development/`
 - ✅ `AUTHENTICATION.md` → `docs/development/`
 - ✅ `DEVELOPER_FAST_START.md` → `docs/development/`
 
 ### Moved to Deployment Docs
+
 - ✅ `DOCKER_OPERATIONS.md` → `docs/deployment/`
 - ✅ `DEPLOY.md` → `docs/deployment/`
 - ✅ `FRESH_DEPLOYMENT_TROUBLESHOOTING.md` → `docs/deployment/TROUBLESHOOTING.md`
 
 ### Consolidated
+
 - ✅ Created unified `docs/deployment/TROUBLESHOOTING.md` from:
   - `FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
   - `REBUILD_TROUBLESHOOTING.md`
-  - `DOCKER_CLEANUP.md`
+  - `DOCKER_CLEANUP.md` (now archived; cleanup content lives in `docs/reference/DOCKER_CLEANUP_GUIDE.md`)
 
 ## 📋 Index Files
 
 Each directory contains an `INDEX.md`:
+
 - `docs/user/INDEX.md` - User documentation index
 - `docs/development/INDEX.md` - Developer documentation index
 - `docs/deployment/INDEX.md` - Operations documentation index
@@ -97,6 +105,7 @@ Each directory contains an `INDEX.md`:
 ## 🗑️ Cleanup Actions
 
 Files moved to `archive/` (historical reference only):
+
 - Completed analyses
 - One-time migration docs
 - Superseded guides
@@ -105,6 +114,7 @@ Files moved to `archive/` (historical reference only):
 ## 📊 Documentation Health Monitoring
 
 GitHub Action `.github/workflows/doc-audit.yml` runs weekly to:
+
 - Check last-modified dates
 - Validate status tags
 - Report stale documentation
@@ -123,6 +133,7 @@ GitHub Action `.github/workflows/doc-audit.yml` runs weekly to:
 ## 📝 Contributing to Documentation
 
 When adding new documentation:
+
 1. Place in appropriate directory (`user/`, `development/`, `deployment/`)
 2. Update relevant `INDEX.md`
 3. Add entry to this structure document

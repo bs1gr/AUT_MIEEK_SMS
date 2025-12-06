@@ -180,6 +180,10 @@ Documentation is organized into four main directories:
 - **[development/PRE_COMMIT_GUIDE.md](development/PRE_COMMIT_GUIDE.md)** ⭐ NEW - Unified pre-commit workflow
   - Replaces PRE_COMMIT_AUTOMATION.md, PRECOMMIT_INSTRUCTIONS.md, pre-commit-workflow.md (archived to `archive/pre-commit-2025-12-06/`)
   - Covers COMMIT_READY.ps1 modes, hooks installation, DEV_EASE policy, troubleshooting
+- **[development/VERSION_MANAGEMENT_GUIDE.md](development/VERSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Version automation (VERIFY_VERSION.ps1) + CI/hooks/pip note
+  - Replaces VERSION_AUTOMATION_GUIDE.md, VERSION_MANAGEMENT_QUICK_REF.md, version-automation.md, PIP_VERSION.md (archived to `archive/version-management-2025-12-06/`)
+- **[development/AUTOSAVE_PATTERN.md](development/AUTOSAVE_PATTERN.md)** - Canonical autosave pattern (coverage, auth review, troubleshooting)
+  - Supersedes autosave summaries (archived to `archive/autosave-2025-12-06/`)
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
 ### 🚀 For DevOps/Operators
@@ -193,6 +197,7 @@ Documentation is organized into four main directories:
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker commands and management
 - **[deployment/DEPLOY.md](deployment/DEPLOY.md)** - Deployment procedures
 - **[deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational runbook
+- **[deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** ⭐ NEW - Consolidated QNAP guide (standard, ARM/TS-431P3, virtual host) with deep dives archived
 
 **Troubleshooting**:
 
@@ -260,7 +265,16 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 | **QNAP Deployment** | 3 files | QNAP deployment documentation (Nov 19-20) |
 | **Performance** | 1 file | Performance optimizations summary (Jan 10) |
 
-**Total:** 18 files archived (~500 KB, ~15,000 lines)
+**New archives (Dec 2025):**
+
+- `archive/pre-commit-2025-12-06/` – legacy pre-commit docs
+- `archive/version-management-2025-12-06/` – version automation + pip notes
+- `archive/autosave-2025-12-06/` – autosave summaries/auth review
+- `archive/qnap-2025-12-06/` – detailed QNAP plans (ARM, virtual host, compatibility)
+- `archive/ci-cd-2025-12-06/` – CI/CD implementation summaries & change logs
+- `archive/docker-cleanup-2025-12-06/` – legacy Docker cleanup guide
+
+**Total:** 18 files archived (~500 KB, ~15,000 lines) + new December archive sets (see paths above)
 
 ### Key Archived Documents
 
