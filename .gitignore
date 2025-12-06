@@ -67,6 +67,7 @@ backend/.env
 frontend/.env
 *.env
 !*.env.example
+.env.qnap  # QNAP-specific config with secrets (was mistakenly tracked)
 
 # Ignore release artifacts
 dist/
