@@ -8,6 +8,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+- **Control Panel: Automatic Update Checking System** 🔄 NEW
+  - New "Updates" tab in Control Panel with GitHub integration
+  - Backend endpoint: `GET /control/api/maintenance/updates/check`
+  - Fetches latest release info and compares semantic versions
+  - Deployment-aware instructions:
+    - Docker mode: Guides users to `.\\DOCKER.ps1 -UpdateClean`
+    - Native mode: Provides installer download links and setup commands
+  - Auto-checks every 6 hours without user action
+  - Shows changelog, download assets, SHA256 hashes
+  - No Docker restart required - users stay in UI during update check
+
 ### Fixed
 
 - **Backend: Missing PUT Endpoint for Daily Performance** 🔧
