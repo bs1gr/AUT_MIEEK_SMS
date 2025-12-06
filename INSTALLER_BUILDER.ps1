@@ -303,6 +303,42 @@ function Invoke-WizardImageRegeneration {
     }
 }
 
+function Invoke-GreekEncodingFix {
+    <#
+    .SYNOPSIS
+        Fix Greek text files encoding for Inno Setup compilation.
+    .DESCRIPTION
+        Converts proper UTF-8 Greek text to Windows-1253 (CP1253) for Inno Setup.
+        This is a build-time transformation that ensures proper Greek text handling
+        in the installer UI, regardless of how the files are stored in git.
+    #>
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    Write-Result Info "GREEK TEXT ENCODING FIX (for Inno Setup)"
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    
+    try {
+        $pythonScript = Join-Path $PSScriptRoot "fix_greek_encoding_permanent.py"
+        if (-not (Test-Path $pythonScript)) {
+            Write-Result Warn "Greek encoding fix script not found, skipping Greek text conversion"
+            return $true
+        }
+        
+        Write-Result Info "Running Greek text encoding conversion..."
+        & python3 $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Result Success "Greek text files encoded properly for Inno Setup ✓"
+            return $true
+        } else {
+            Write-Result Error "Greek encoding conversion failed (exit code: $LASTEXITCODE)"
+            return $false
+        }
+    } catch {
+        Write-Result Error "Greek encoding fix error: $_"
+        return $false
+    }
+}
+
 function Invoke-InstallerCompilation {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "INSTALLER COMPILATION (Inno Setup)"
@@ -500,6 +536,11 @@ switch ($Action) {
         
         # Greek encoding audit (before wizard regeneration)
         Invoke-GreekEncodingAudit | Out-Null
+        
+        # Fix Greek text encoding (build-time transformation)
+        if (-not (Invoke-GreekEncodingFix)) {
+            exit 1
+        }
         
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
