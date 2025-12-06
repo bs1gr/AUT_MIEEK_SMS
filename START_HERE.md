@@ -32,7 +32,7 @@
 ```
 
 ### Option 3: Read Full Guide (5 min)
-→ Open `ACTION_GUIDE.md`
+→ Open `docs/DOCUMENTATION_INDEX.md`
 
 ---
 
@@ -40,11 +40,11 @@
 
 | Document | Time | Purpose |
 |----------|------|---------|
-| **ACTION_GUIDE.md** | 3 min | Testing steps |
-| **QUICK_START_IMPROVEMENTS.md** | 5 min | Setup guide |
-| **docs/PWA_SETUP_GUIDE.md** | 15 min | Detailed setup |
-| **DOCUMENTATION_INDEX.md** | 5 min | Navigation |
-| **SESSION_REPORT.md** | 10 min | What was done |
+| **DOCUMENTATION_INDEX.md** | 5 min | Navigation hub |
+| **docs/PWA_SETUP_GUIDE.md** | 15 min | Detailed PWA setup |
+| **README.md** | 10 min | Complete project overview |
+| **docs/user/QUICK_START_GUIDE.md** | 5 min | User quick start |
+| **DEPLOYMENT_GUIDE.md** | 15 min | Production deployment |
 
 ---
 
@@ -147,8 +147,8 @@ npm run preview
 
 Choose one:
 1. **Test now:** Open http://127.0.0.1:8080
-2. **Read guide:** Open ACTION_GUIDE.md
-3. **Full details:** Open SESSION_REPORT.md
+2. **Read guide:** Open `DOCUMENTATION_INDEX.md`
+3. **Deployment:** Open `DEPLOYMENT_GUIDE.md`
 
 ---
 
