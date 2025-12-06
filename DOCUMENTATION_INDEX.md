@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated:** December 5, 2025 (v1.9.8)  
-**Version:** 1.9.8  
+**Last Updated:** December 6, 2025 (v1.9.9)  
+**Version:** 1.9.9  
 **Status:** Production Ready
 
 ---

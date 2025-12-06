@@ -167,6 +167,13 @@ $versionChecks = @(
         Critical = $false
     },
     @{
+        File = "DOCUMENTATION_INDEX.md"
+        Pattern = 'v\d+\.\d+\.\d+'
+        Replace = "v$Version"
+        Description = "Root documentation index version footer"
+        Critical = $false
+    },
+    @{
         File = "docs/qnap/QNAP_INSTALLATION_GUIDE.md"
         Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
         Replace = "**Version**: $Version"
