@@ -1,10 +1,19 @@
 <#
 .SYNOPSIS
-    Simple executable builder for SMS Installer Wizards
+    ⚠️  DEPRECATED - Simple executable builder for SMS Installer Wizards
 
 .DESCRIPTION
-    Creates Windows executables from PowerShell GUI installer scripts using PS2EXE
+    ⚠️  DEPRECATED: Use the canonical Inno Setup build system instead (installer/SMS_Installer.iss).
+    This PS2EXE-based builder is kept for historical reference.
+    
+    Legacy description: Creates Windows executables from PowerShell GUI installer scripts using PS2EXE
 #>
+
+Write-Host ""
+Write-Host "⚠️  This script is deprecated. Use the official Inno Setup build system:" -ForegroundColor Yellow
+Write-Host "  → installer/SMS_Installer.iss (canonical)" -ForegroundColor Yellow
+Write-Host "  → Run: .\INSTALLER_BUILDER.ps1 (root level)" -ForegroundColor Yellow
+Write-Host ""
 
 param(
     [string]$OutputPath = ".\dist"
