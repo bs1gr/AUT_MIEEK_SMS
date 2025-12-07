@@ -26,7 +26,7 @@ interface GradingViewProps {
 }
 
 const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
@@ -216,7 +216,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     const rules = evaluationRules.map(r => r.category).filter(Boolean);
     const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
     return [...base, ...customRules];
-  }, [evaluationRules, t]);
+  }, [evaluationRules, t, language]);
 
   // Force Midterm/Final Exam to weight=1
   useEffect(() => {
