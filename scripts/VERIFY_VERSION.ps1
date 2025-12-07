@@ -193,6 +193,20 @@ $versionChecks = @(
         Replace = "Version          = `"$Version`""
         Description = "Uninstaller wizard version"
         Critical = $false
+    },
+    @{
+        File = "COMMIT_READY.ps1"
+        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Replace = "Version: $Version"
+        Description = "COMMIT_READY.ps1 version"
+        Critical = $false
+    },
+    @{
+        File = "DOCUMENTATION_INDEX.md"
+        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
+        Replace = "**Version:** $Version"
+        Description = "Root DOCUMENTATION_INDEX.md version"
+        Critical = $false
     }
 )
 
