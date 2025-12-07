@@ -6,6 +6,47 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.10.0] - 2025-12-07
+
+### Added
+
+#### Grading & Recognition System (2025-12-07)
+
+- **Excellence Highlights Auto-Generation** ⭐
+  - Automatically creates "Excellence" highlights when grades achieve A or A+ (≥93%)
+  - Rating assigned: 5 stars for A+, 4 stars for A
+  - Includes assignment name, percentage, and course code in highlight text
+  - Prevents duplicate highlights for identical assignments
+  - Best-effort approach—failure doesn't block grade creation
+  - Visible in student profile "Recent Highlights" section
+
+- **Enhanced Grading UI & Coverage** 🧪
+  - Added backend integration test: `test_create_and_retrieve_multiple_assignments` validates persistence and ordering of multiple grades
+  - Added frontend UI test: `test_adds_a_grade_and_shows_it_in_grade_history_after_refresh` verifies grade creation and display in history table
+  - Tests mock API endpoints and ensure new grades appear immediately after creation
+
+### Fixed
+
+#### Internationalization (i18n) (2025-12-07)
+
+- **Missing Grading Category Translations**
+  - Added Greek translations for all grading categories:
+    - `midtermExam` (Ενδιάμεση Εξέταση)
+    - `finalExam` (Τελική Εξέταση)
+    - `quizzes` (Κουίζ)
+    - `labWork` (Εργαστηριακή Εργασία)
+    - `homework` (Εργασίες)
+    - `classParticipation` (Συμμετοχή στη Τάξη)
+    - `continuousAssessment` (Συνεχής Αξιολόγηση)
+    - `project` (Εργαλείο)
+  - Ensures grading page displays correctly in both English and Greek
+
+- **Attendance Average Label Conflict**
+  - Fixed attendance locale "average" key overriding global "average" translation
+  - Renamed to `averageRating` to prevent collision
+  - Attendance components now use correct fallback translation
+  - Resolves "Μέτρια" (mediocre) incorrectly showing instead of "Μέσος Όρος" (average)
+
 ## [1.9.10] - 2025-12-07
 
 ### Changed
