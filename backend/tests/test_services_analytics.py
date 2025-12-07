@@ -100,7 +100,7 @@ def test_calculate_final_grade_handles_rules_and_penalties(session):
     result = service.calculate_final_grade(student.id, course.id)
 
     assert result["final_grade"] < 90  # absence penalty applied
-    assert result["letter_grade"] == "B"
+    assert result["letter_grade"] == "B-"  # 80-82% = B-
     assert result["absence_penalty"] == 5.0
     assert result["unexcused_absences"] == 1
 

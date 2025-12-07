@@ -131,7 +131,7 @@ def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     # Expected computation (rounded to 2 decimals): 77.75%
     assert data["percentage"] == 77.75
     assert data["final_grade"] == 77.75
-    assert data["letter_grade"] == "C"
+    assert data["letter_grade"] == "C+"  # 77-79% = C+
     assert data["gpa"] == round(77.75 / 100 * 4, 2)
     assert data["total_weight_used"] == 100.0
     assert data["absence_penalty"] == 2.0
