@@ -394,6 +394,81 @@ Total Time: ~21 seconds
 
 ---
 
+## Comprehensive Pre-Commit Workflow Integration
+
+### New Workflow Tool: PRE_COMMIT_COMPREHENSIVE.ps1
+
+**Added:** December 7, 2025  
+**Purpose:** Automated 5-phase pre-commit verification and cleanup
+
+The comprehensive workflow script has been integrated to ensure repository quality before each release:
+
+#### Phase 1: Verification & Testing
+- ✅ Smoke test execution (full COMMIT_READY.ps1)
+- ✅ Version consistency audit (12 reference points)
+- ✅ Legacy code detection (deprecated patterns, old versions)
+
+#### Phase 2: Cleanup Operations
+- ✅ Obsolete file archival (old release notes → archive/)
+- ✅ Temporary directory removal (tmp_test_migrations)
+- ✅ Test settings verification (AUTH_ENABLED=False)
+
+#### Phase 3: Documentation Consolidation
+- ✅ Markdown audit (329 files reviewed)
+- ✅ Release notes archival (v1.9.9, v1.9.10 → archive/)
+- ✅ Critical documentation verification
+
+#### Phase 4: Final Validation
+- ✅ Residual check (final smoke test)
+- ✅ Component status verification
+- ✅ Repository structure validation
+
+#### Phase 5: Git Commit Preparation
+- ✅ Change summary generation
+- ✅ Commit message automation
+- ✅ Pre-commit checklist verification
+
+### Workflow Execution
+
+```powershell
+# Full workflow (recommended before releases)
+.\PRE_COMMIT_COMPREHENSIVE.ps1
+
+# Dry run (preview changes)
+.\PRE_COMMIT_COMPREHENSIVE.ps1 -DryRun
+
+# Skip specific phases
+.\PRE_COMMIT_COMPREHENSIVE.ps1 -SkipTests -SkipCleanup
+```
+
+### Integration with Release Process
+
+1. Complete feature development
+2. Run `.\PRE_COMMIT_COMPREHENSIVE.ps1`
+3. Review automated cleanup results
+4. Update VERSION file
+5. Run `.\INSTALLER_BUILDER.ps1 -Action build -AutoFix`
+6. Run final `.\PRE_COMMIT_COMPREHENSIVE.ps1`
+7. Commit and tag release
+
+### Cleanup Results (v1.10.0)
+
+**Files Archived:**
+- v1.9.9_RELEASE_NOTES.md → archive/release-notes-pre-v1.10.0/
+- v1.9.10_RELEASE_NOTES.md → archive/release-notes-pre-v1.10.0/
+- INSTALLER_RELEASE_v1.9.10.md → archive/release-notes-pre-v1.10.0/
+
+**Files Removed:**
+- tmp_test_migrations/ (1 item)
+
+**Validation:**
+- 329 Markdown files audited
+- 11/11 version references consistent
+- 1411 tests passing
+- All components operational
+
+---
+
 **Protocol Version:** 1.0  
 **Build Date:** December 7, 2025  
 **Build Engineer:** GitHub Copilot  
