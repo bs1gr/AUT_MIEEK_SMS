@@ -216,9 +216,11 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                         <span className="text-sm font-medium text-gray-800">
                           {translateCategory(category)}
                         </span>
-                        <span className="text-sm text-gray-700">
-                          {t('average')}: <span className="font-semibold">{catAvg.toFixed(1)}%</span>
-                        </span>
+                        {catGrades.length > 1 && (
+                          <span className="text-sm text-gray-700">
+                            {t('average')}: <span className="font-semibold">{catAvg.toFixed(1)}%</span>
+                          </span>
+                        )}
                       </div>
                       <div className="space-y-1">
                         {catGrades.map((grade, idx) => (
