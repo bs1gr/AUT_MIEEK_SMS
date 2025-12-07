@@ -223,14 +223,21 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                         )}
                       </div>
                       <div className="space-y-1">
-                        {catGrades.map((grade, idx) => (
-                          <div key={idx} className="flex justify-between text-xs text-gray-600">
-                            <span>{grade.assignment_name}</span>
-                            <span>
-                              {grade.grade}/{grade.max_grade} ({((grade.grade / grade.max_grade) * 100).toFixed(1)}%)
-                            </span>
-                          </div>
-                        ))}
+                        {catGrades.map((grade, idx) => {
+                          const percentage = (grade.grade / grade.max_grade) * 100;
+                          const letterGrade = getLetterGrade(percentage);
+                          return (
+                            <div key={idx} className="flex justify-between items-center text-xs text-gray-600">
+                              <span className="flex-1">{grade.assignment_name}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="font-medium text-indigo-700 min-w-[2rem] text-center">{letterGrade}</span>
+                                <span className="min-w-[6rem] text-right">
+                                  {grade.grade}/{grade.max_grade} ({percentage.toFixed(1)}%)
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
