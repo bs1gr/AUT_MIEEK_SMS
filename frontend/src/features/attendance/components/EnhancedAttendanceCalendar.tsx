@@ -662,7 +662,7 @@ const EnhancedAttendanceCalendar = () => {
 
                     <div className="flex justify-between mt-2 text-sm text-gray-600">
                       <span>{t('poor')} (0)</span>
-                      <span>{t('average')} (5)</span>
+                      <span>{t('averageRating') || t('average')} (5)</span>
                       <span>{t('excellent')} (10)</span>
                     </div>
                   </div>

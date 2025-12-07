@@ -49,7 +49,7 @@ export default {
   attendanceAndPerformanceSaved: 'Η παρουσία και η απόδοση αποθηκεύτηκαν επιτυχώς!',
   performanceScoresRecorded: 'Οι βαθμοί απόδοσης καταγράφηκαν. Κάντε κλικ στο "Αποθήκευση Όλων".',
   poor: 'Χαμηλή',
-  average: 'Μέτρια',
+  averageRating: 'Μέτρια',
   excellent: 'Άριστη',
   markAbsent: 'Σημείωση Απουσίας',
   studentMarkedAbsent: 'Ο σπουδαστής έχει σημειωθεί ως Απών. Η αξιολόγηση απόδοσης είναι απενεργοποιημένη.',

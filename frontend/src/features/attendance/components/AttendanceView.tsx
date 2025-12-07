@@ -1349,7 +1349,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                             title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
                             className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
                           />
-                          <div className="flex justify-between text-[11px] text-gray-600"><span>{t('poor') || 'Poor'} (0)</span><span>{t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
+                          <div className="flex justify-between text-[11px] text-gray-600"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
                         </div>
                       );
                     })}

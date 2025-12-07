@@ -49,7 +49,7 @@ export default {
   attendanceAndPerformanceSaved: 'Attendance and performance saved successfully!',
   performanceScoresRecorded: 'Performance scores recorded. Click "Save All" to submit.',
   poor: 'Poor',
-  average: 'Average',
+  averageRating: 'Average',
   excellent: 'Excellent',
   markAbsent: 'Mark Absent',
   studentMarkedAbsent: 'Student is marked as Absent. Performance rating is disabled.',
