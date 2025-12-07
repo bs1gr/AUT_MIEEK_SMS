@@ -15,7 +15,7 @@
 
 ### For Development & Architecture
 - **System architecture?** → `docs/development/ARCHITECTURE.md`
-- **Security details?** → `docs/SECURITY.md`
+- **Security details?** → `docs/SECURITY_GUIDE_COMPLETE.md`
 - **Git workflow?** → `docs/development/GIT_WORKFLOW.md`
 - **API reference?** → `backend/CONTROL_API.md`
 
@@ -83,9 +83,10 @@ Located in `docs/user/`:
 
 Located in `docs/`:
 
-- `SECURITY.md` - Comprehensive security guide
-- `SECURITY_AUDIT_REPORT.md` - Security audit findings
-- `SECURITY_FIX_SUMMARY.md` - Security fixes applied
+- `SECURITY_GUIDE_COMPLETE.md` - **Comprehensive consolidated security guide** (Dec 2025)
+  - Replaces: SECURITY.md, SECURITY_AUDIT_REPORT.md, SECURITY_FIX_SUMMARY.md
+  - Archived originals: `archive/security-audit-2025-12-06/`
+- `reference/SECURITY_GUIDE.md` - Quick reference (supplementary)
 
 ### Installer & Build Documentation
 
@@ -134,7 +135,7 @@ Located in `docs/reference/`:
 
 1. Get overview of code quality (10/10 rating)
 2. Review `docs/development/ARCHITECTURE.md` for design
-3. Check `docs/SECURITY.md` for security measures
+3. Check `docs/SECURITY_GUIDE_COMPLETE.md` for security measures
 4. Review test files in `backend/tests/` and `frontend/tests/`
 
 ### I Need to Troubleshoot an Issue
@@ -148,12 +149,11 @@ Located in `docs/reference/`:
 
 ### I Want to Review Security
 
-**Start with:** `docs/SECURITY.md`
+**Start with:** `docs/SECURITY_GUIDE_COMPLETE.md`
 
-1. Review security guide (15 sections)
-2. Check `docs/SECURITY_AUDIT_REPORT.md`
-3. Review `docs/SECURITY_FIX_SUMMARY.md`
-4. Check authentication: `docs/development/AUTHENTICATION.md`
+1. Review comprehensive security guide (covers all December 2025 audit findings)
+2. Check authentication: `docs/development/AUTHENTICATION.md`
+3. See archived details: `archive/security-audit-2025-12-06/`
 
 ### I Need to Migrate to PostgreSQL
 
