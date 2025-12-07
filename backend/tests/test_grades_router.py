@@ -62,6 +62,77 @@ def test_create_grade_success(client):
     assert data["category"] == "Homework"
 
 
+def test_create_and_retrieve_multiple_assignments(client):
+    """Creating multiple grades for a course should persist and return them with correct values."""
+
+    student = client.post(
+        "/api/v1/students/",
+        json={
+            "first_name": "Multi",
+            "last_name": "Grade",
+            "email": "multi.grade@example.com",
+            "student_id": "MUL100",
+        },
+    ).json()
+
+    course = client.post(
+        "/api/v1/courses/",
+        json={
+            "course_code": "GRD200",
+            "course_name": "Grading 200",
+            "semester": "Fall 2025",
+        },
+    ).json()
+
+    base = date(2025, 9, 1)
+    assignments = [
+        {"assignment_name": "Homework 1", "category": "Homework", "grade": 88.0, "day_offset": 0},
+        {"assignment_name": "Lab 1", "category": "Lab Work", "grade": 92.0, "day_offset": 7},
+        {"assignment_name": "Midterm Exam", "category": "Midterm Exam", "grade": 78.5, "day_offset": 30},
+        {"assignment_name": "Project Presentation", "category": "Project", "grade": 96.0, "day_offset": 60},
+    ]
+
+    created_ids = []
+    for idx, info in enumerate(assignments, start=1):
+        assigned = base + timedelta(days=info["day_offset"])
+        payload = make_grade_payload(
+            idx,
+            student_id=student["id"],
+            course_id=course["id"],
+            assignment_name=info["assignment_name"],
+            category=info["category"],
+            grade=info["grade"],
+            max_grade=100.0,
+            date_assigned=assigned.isoformat(),
+            date_submitted=(assigned + timedelta(days=1)).isoformat(),
+        )
+        resp = client.post("/api/v1/grades/", json=payload)
+        assert resp.status_code == 201, resp.text
+        created_ids.append(resp.json()["id"])
+
+    # Paginated list filtered by student and course should include all assignments
+    r_list = client.get(f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20")
+    assert r_list.status_code == 200
+    body = r_list.json()
+    assert body["total"] == len(assignments)
+    names = [item["assignment_name"] for item in body["items"]]
+    expected_names = {a["assignment_name"] for a in assignments}
+    assert set(names) == expected_names
+
+    # Order should be by most recent assignment date (date_assigned desc)
+    assert names[0] == "Project Presentation"
+    assert names[-1] == "Homework 1"
+
+    # Fetch each grade individually to ensure persistence and returned fields
+    for gid, info in zip(created_ids, assignments):
+        r_get = client.get(f"/api/v1/grades/{gid}")
+        assert r_get.status_code == 200
+        payload = r_get.json()
+        assert payload["assignment_name"] == info["assignment_name"]
+        assert payload["grade"] == info["grade"]
+        assert payload["category"] == info["category"].title()
+
+
 def test_create_grade_weight_exceeds_limit(client):
     """Test that weight > 3.0 is rejected by Pydantic validator."""
     # Setup: create student and course
