@@ -1,16 +1,25 @@
-# SMS Installer - v1.9.7
+# SMS Installer - v1.10.0
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
-## Recent Changes (v1.9.7)
+## Recent Changes (v1.10.0)
 
-**Critical Fixes:**
-- ✅ Fixed circular npm dependency that caused infinite symlink loops
-- ✅ Version consistency across all 24 files (47 references updated)
-- ✅ Enhanced uninstaller to preserve user data option
-- ✅ Improved upgrade path with automatic backup
+**New Features:**
+
+- ✅ Excellence Highlights: Auto-recognition for A/A+ grades (⭐ 4-5 stars)
+- ✅ Enhanced test coverage: Backend integration + UI tests
+- ✅ Translation fixes: 8 missing grading categories + attendance collision resolved
+- ✅ Version management: Enhanced script tracks all 12 version references
+
+**Technical Improvements:**
+
+- Updated wizard images to v1.10.0 with Modern v2.0 design
+- All version references synchronized across codebase
+- Comprehensive audit and verification completed
+- 1411 tests passing (378 backend + 1033 frontend)
 
 **What's Excluded from Installer:**
+
 - `frontend/node_modules/` - Built during Docker image creation
 - `frontend/dist/` - Built during Docker image creation
 - `backend/__pycache__/` - Python bytecode (regenerated)
