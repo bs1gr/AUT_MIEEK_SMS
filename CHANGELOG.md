@@ -6,6 +6,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.10.1] - 2025-12-07
+
+### Fixed
+
+#### Internationalization (i18n) - Grading Categories (2025-12-07)
+
+- **Grading Category Dropdown Corrections** 🌐
+  - Fixed category dropdown in grading page to show all 8 standard categories
+  - Corrected category values to match backend expectations:
+    - Changed `'Midterm'` → `'Midterm Exam'`
+    - Changed `'Quiz'` → `'Quizzes'`
+    - Changed `'Lab'` → `'Lab Work'`
+    - Changed `'Assignment'` → `'Homework'`
+    - Added `'Class Participation'` (was missing)
+    - Added `'Continuous Assessment'` (was missing)
+  - All categories now properly display Greek translations when language is set to Greek
+  - Ensures consistent category naming between frontend dropdown and backend storage
+  - Fixes issue where some English text remained visible in Greek language mode
+
 ## [1.10.0] - 2025-12-07
 
 ### Added

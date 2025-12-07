@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated:** December 6, 2025 (v1.10.0)  
-**Version:** 1.10.0  
+**Last Updated:** December 6, 2025 (v1.10.1)  
+**Version:** 1.10.1  
 **Status:** Production Ready
 
 ---
@@ -22,7 +22,7 @@
 ### For Audits & Reports
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.10.0.md`
+- **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.10.1.md`
 
 ### For Operations
 - **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
@@ -46,7 +46,7 @@
 | `CONTRIBUTING.md` | Contribution guidelines | Developers |
 | `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |
 | `CODEBASE_AUDIT_REPORT.md` | Detailed audit analysis | Technical leads |
-| `INSTALLER_RELEASE_NOTES_v1.10.0.md` | v1.10.0 release notes | End users |
+| `INSTALLER_RELEASE_NOTES_v1.10.1.md` | v1.10.1 release notes | End users |
 
 ### Development Documentation
 
@@ -178,7 +178,7 @@ Located in `docs/reference/`:
 ├── AUDIT_SUMMARY.md               (quick audit)
 ├── CODEBASE_AUDIT_REPORT.md       (detailed audit)
 ├── CONTRIBUTING.md                (contribution guide)
-└── INSTALLER_RELEASE_NOTES_v1.10.0.md (release notes)
+└── INSTALLER_RELEASE_NOTES_v1.10.1.md (release notes)
 ```
 
 ### Backend
@@ -223,8 +223,8 @@ docs/
 ### Archive
 ```
 archive/
-├── pre-v1.10.0/                    (legacy content)
-├── pre-v1.10.0-docker-scripts/     (old docker helpers)
+├── pre-v1.10.1/                    (legacy content)
+├── pre-v1.10.1-docker-scripts/     (old docker helpers)
 ├── root_docs_cleanup_2025-12-05/  (archived root docs)
 ├── sessions/                      (session artifacts)
 ├── deprecated_commit_scripts_2025-11-27/
@@ -276,13 +276,13 @@ archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_AUDIT_REPORT.md`
-4. **Release info?** → `INSTALLER_RELEASE_NOTES_v1.10.0.md`
+4. **Release info?** → `INSTALLER_RELEASE_NOTES_v1.10.1.md`
 
 ---
 
 ## Documentation Updates
 
-### December 5, 2025 (v1.10.0)
+### December 5, 2025 (v1.10.1)
 - ✅ Archived obsolete documentation (17 files)
 - ✅ Updated main documentation index
 - ✅ Created comprehensive audit reports
@@ -290,14 +290,14 @@ archive/
 
 ### Previous Updates
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.10.0/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.10.1/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.10.0  
+**Documentation Version:** v1.10.1  
 **Last Updated:** December 6, 2025  
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.10.0.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.10.1.
