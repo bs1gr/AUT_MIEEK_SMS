@@ -133,11 +133,18 @@ export const formatAllGrades = (gpa: number): AllGradeFormats => {
 };
 
 /**
- * Get letter grade (A-F) from percentage
+ * Get letter grade from percentage using standard academic scale
+ * A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86), B- (80-82),
+ * C+ (77-79), C (70-76), D (60-69), F (0-59)
  */
 export const getLetterGrade = (percentage: number): string => {
-  if (percentage >= 90) return 'A';
-  if (percentage >= 80) return 'B';
+  if (percentage >= 97) return 'A+';
+  if (percentage >= 93) return 'A';
+  if (percentage >= 90) return 'A-';
+  if (percentage >= 87) return 'B+';
+  if (percentage >= 83) return 'B';
+  if (percentage >= 80) return 'B-';
+  if (percentage >= 77) return 'C+';
   if (percentage >= 70) return 'C';
   if (percentage >= 60) return 'D';
   return 'F';

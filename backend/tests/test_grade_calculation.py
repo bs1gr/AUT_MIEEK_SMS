@@ -80,7 +80,7 @@ def test_grade_calculation_logic():
     print("  - Percentage: 85%")
     print("  - GPA (4.0 scale): (85/100) * 4.0 = 3.4")
     print("  - Greek (20 scale): (85/100) * 20.0 = 17.0")
-    print("  - Letter grade: B (80-89%)")
+    print("  - Letter grade: B (83-86%)")
     print("✓ Logic: Correct linear conversions")
 
     # Test 6: Edge cases

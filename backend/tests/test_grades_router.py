@@ -478,10 +478,11 @@ def test_get_grade_analysis_with_and_without_data(client):
     assert r_analysis.status_code == 200
     data = r_analysis.json()
     assert data["total_grades"] == 4
-    assert data["grade_distribution"]["A (90-100)"] == 1
-    assert data["grade_distribution"]["B (80-89)"] == 1
-    assert data["grade_distribution"]["D (60-69)"] == 1
-    assert data["grade_distribution"]["F (below 60)"] == 1
+    # Grades: 95 (A), 82 (B-), 68 (D), 55 (F)
+    assert data["grade_distribution"]["A (93-96)"] == 1  # 95%
+    assert data["grade_distribution"]["B- (80-82)"] == 1  # 82%
+    assert data["grade_distribution"]["D (60-69)"] == 1  # 68%
+    assert data["grade_distribution"]["F (below 60)"] == 1  # 55%
 
 
 @pytest.mark.parametrize(

@@ -592,18 +592,29 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
 
 def _letter_grade(percentage: float) -> str:
     """
-    Convert a percentage grade to a letter grade.
+    Convert a percentage grade to a letter grade using standard academic scale.
 
     Args:
         percentage: Numeric grade as a percentage (0-100)
 
     Returns:
-        Letter grade: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
+        Letter grade: A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86),
+                     B- (80-82), C+ (77-79), C (70-76), D (60-69), F (0-59)
     """
-    if percentage >= 90:
+    if percentage >= 97:
+        return "A+"
+    if percentage >= 93:
         return "A"
-    if percentage >= 80:
+    if percentage >= 90:
+        return "A-"
+    if percentage >= 87:
+        return "B+"
+    if percentage >= 83:
         return "B"
+    if percentage >= 80:
+        return "B-"
+    if percentage >= 77:
+        return "C+"
     if percentage >= 70:
         return "C"
     if percentage >= 60:
