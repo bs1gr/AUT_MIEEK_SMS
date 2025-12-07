@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import GradingView from '../GradingView';
 import * as apiModule from '../../../../api/api';
@@ -12,6 +12,10 @@ vi.mock('../../../../api/api', () => ({
   },
   gradesAPI: {
     submitGrade: vi.fn(),
+    create: vi.fn(),
+  },
+  enrollmentsAPI: {
+    getEnrolledStudents: vi.fn(),
   },
 }));
 
@@ -58,14 +62,18 @@ const mockCourses = [
 describe('GradingView - Decimal Input', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Stub fetch used by loadFinal
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => '' } as any));
     // Mock API responses
     vi.mocked(apiModule.default.get).mockResolvedValue({
-      data: [],
+      data: { items: [] },
       status: 200,
       statusText: 'OK',
       headers: {},
       config: {} as any,
     });
+    vi.mocked(apiModule.enrollmentsAPI.getEnrolledStudents).mockResolvedValue(mockStudents);
+    vi.mocked(apiModule.gradesAPI.create).mockResolvedValue({ data: {}, status: 201, statusText: 'Created', headers: {}, config: {} as any });
   });
 
   it('allows decimal point input in grade field', async () => {
@@ -161,5 +169,56 @@ describe('GradingView - Decimal Input', () => {
     // Type partial decimal (just the dot)
     fireEvent.change(gradeInput, { target: { value: '4.' } });
     expect(gradeInput.value).toBe('4.');
+  });
+
+  it('adds a grade and shows it in grade history after refresh', async () => {
+    // Sequence: initial GETs (student selection, course selection) return empty; refresh after submit returns one grade
+    const getMock = vi.mocked(apiModule.default.get);
+    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any }); // after student select
+    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any }); // after course select
+    getMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: 10,
+          student_id: 1,
+          course_id: 1,
+          assignment_name: 'Quiz 1',
+          category: 'Quiz',
+          grade: 95,
+          max_grade: 100,
+          weight: 1,
+          date_submitted: '2025-09-02',
+        },
+      ],
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any,
+    });
+
+    render(
+      <BrowserRouter>
+        <GradingView students={mockStudents} courses={mockCourses} />
+      </BrowserRouter>
+    );
+
+    // Select student and course to enable form and grade list
+    fireEvent.change(screen.getByLabelText('selectStudent'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('selectCourse'), { target: { value: '1' } });
+
+    fireEvent.change(screen.getByPlaceholderText('assignmentNamePlaceholder'), { target: { value: 'Quiz 1' } });
+    fireEvent.change(screen.getByPlaceholderText('gradePlaceholder'), { target: { value: '95' } });
+    fireEvent.change(screen.getByPlaceholderText('maxGradePlaceholder'), { target: { value: '100' } });
+
+    fireEvent.click(screen.getByText('saveGrade'));
+
+    expect(apiModule.gradesAPI.create).toHaveBeenCalledTimes(1);
+    expect(apiModule.gradesAPI.create).toHaveBeenCalledWith(expect.objectContaining({ assignment_name: 'Quiz 1', grade: 95 }));
+
+    // Grade history should eventually show the new assignment name
+    await waitFor(async () => {
+      const item = await screen.findByText('Quiz 1');
+      expect(item).toBeInTheDocument();
+    });
   });
 });
