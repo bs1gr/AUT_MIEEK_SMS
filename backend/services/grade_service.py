@@ -13,6 +13,9 @@ from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
 from backend.schemas.grades import GradeCreate, GradeUpdate
+from backend.schemas.highlights import HighlightCreate
+from backend.services.analytics_service import AnalyticsService
+from backend.services.highlight_service import HighlightService
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,9 @@ class GradeService:
             self.db.add(db_grade)
             self.db.flush()
             self.db.refresh(db_grade)
+
+            # Auto-create excellence highlight for top performance (A / A+)
+            self._maybe_create_excellence_highlight(db_grade)
 
         logger.info(
             "Created grade: %s for student %s, course %s",
@@ -242,3 +248,59 @@ class GradeService:
         except Exception:
             # Metrics optional
             pass
+
+    # -------------------- Internal helpers --------------------
+    def _maybe_create_excellence_highlight(self, db_grade: Any) -> None:
+        """Create a positive Excellence highlight when a grade is A or A+.
+
+        Avoids duplicates by matching on identical highlight_text for the same student.
+        """
+        try:
+            (Highlight,) = import_names("models", "Highlight")
+            course = self.db.query(self.Course).filter(self.Course.id == db_grade.course_id).first()
+            if not course:
+                return
+
+            percentage = 0.0
+            try:
+                percentage = float(db_grade.grade) / float(db_grade.max_grade or 1) * 100.0
+            except Exception:
+                percentage = 0.0
+
+            letter = AnalyticsService.get_letter_grade(percentage)
+            if letter not in ("A", "A+"):
+                return
+
+            highlight_text = (
+                f"Excellence: {db_grade.assignment_name} ({letter}, {percentage:.1f}%) in {getattr(course, 'course_code', 'Course')}"
+            )
+
+            existing = (
+                self.db.query(Highlight)
+                .filter(
+                    Highlight.student_id == db_grade.student_id,
+                    Highlight.category == "Excellence",
+                    Highlight.highlight_text == highlight_text,
+                    Highlight.deleted_at.is_(None),
+                )
+                .first()
+            )
+            if existing:
+                return
+
+            payload = HighlightService.create(
+                self.db,
+                HighlightCreate(
+                    student_id=db_grade.student_id,
+                    semester=getattr(course, "semester", "Unknown"),
+                    rating=5 if letter == "A+" else 4,
+                    category="Excellence",
+                    highlight_text=highlight_text,
+                    is_positive=True,
+                ),
+            )
+            return payload
+        except Exception:
+            # Highlight creation is best-effort and should not block grade creation
+            logger.warning("Excellence highlight creation skipped", exc_info=True)
+            return None
