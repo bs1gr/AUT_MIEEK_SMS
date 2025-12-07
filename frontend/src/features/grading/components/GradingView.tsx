@@ -206,12 +206,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // Category options with display names
   const categoryOptions: CategoryOption[] = useMemo(() => {
     const base: CategoryOption[] = [
-      { value: 'Midterm', label: t('midterm') },
+      { value: 'Midterm Exam', label: t('midtermExam') },
       { value: 'Final Exam', label: t('finalExam') },
-      { value: 'Assignment', label: t('assignment') },
-      { value: 'Quiz', label: t('quiz') },
+      { value: 'Quizzes', label: t('quizzes') },
+      { value: 'Lab Work', label: t('labWork') },
+      { value: 'Homework', label: t('homework') },
       { value: 'Project', label: t('project') },
-      { value: 'Lab', label: t('lab') }
+      { value: 'Class Participation', label: t('classParticipation') },
+      { value: 'Continuous Assessment', label: t('continuousAssessment') }
     ];
     const rules = evaluationRules.map(r => r.category).filter(Boolean);
     const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
@@ -220,7 +222,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
 
   // Force Midterm/Final Exam to weight=1
   useEffect(() => {
-    if (category === 'Midterm' || category === 'Final Exam') {
+    if (category === 'Midterm Exam' || category === 'Final Exam') {
       setWeight('1');
     }
   }, [category]);
@@ -242,7 +244,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         category,
         grade: gv,
         max_grade: mg,
-        weight: Number((category === 'Midterm' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
+        weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
         date_submitted: new Date().toISOString().split('T')[0],
         // optional fields not set: date_assigned, notes
       };
