@@ -6,6 +6,44 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [Unreleased]
+
+### Changed
+
+#### Repository Structure - Phase 1 Consolidation (2025-12-09)
+
+- **tools/ → scripts/utils/ Migration** 🔄
+  - Migrated 13 utility scripts to organized subdirectories under `scripts/utils/`:
+    - `converters/` - MIEEK/PDF data conversion tools
+    - `validators/` - Import checking and validation utilities
+    - `installer/` - Installation wizard scripts
+    - `ci/` - CI/CD monitoring and automation tools
+    - `backups/` - Backup management utilities
+    - `lint/` - Code quality and markdown linting tools
+    - `tests/` - Test utilities and helpers
+  - Created 28 backward-compatible stub redirects in `tools/` directory:
+    - 7 Python stubs with deprecation warnings
+    - 13 PowerShell stubs with full parameter forwarding
+    - 2 test utilities
+    - Sample data files preserved
+  - **Deprecation Timeline**: All `tools/` stubs will be removed in v1.12.0 (6 months)
+  - **Benefits**: Clearer organization, better discoverability, consistent structure
+
+### Fixed
+
+#### Test & Code Quality (2025-12-09)
+
+- **test_db_utils.py**: Removed unused imports (SimpleNamespace, SessionLocal)
+- **backup_tools.ps1**: Fixed parameter validation with explicit parameter declaration and splatting
+- **test_check_imports_requirements.py**: Corrected working directory and test mode for proper validation
+
+### Documentation
+
+- Updated `tools/README.md` with migration guide and new locations
+- Updated `scripts/utils/README.md` with complete subdirectory documentation
+- Created comprehensive Phase 1 migration report (archived)
+- Updated `scripts/utils/CONSOLIDATION_MAP.md` with completion status
+
 ## [1.10.1] - 2025-12-07
 
 ### Fixed
