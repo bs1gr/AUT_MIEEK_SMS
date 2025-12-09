@@ -35,8 +35,6 @@ scripts/
 
 ## 🎯 Main Scripts (v2.0)
 
-## 🎯 Main Scripts (v2.0)
-
 ### 🐳 DOCKER.ps1 - Docker Deployment & Operations
 
 **Location:** `..\DOCKER.ps1` (repository root)
@@ -126,6 +124,8 @@ This hook helps catch lint/test issues early. If you intentionally want to skip 
 ```powershell
 .\scripts\SMOKE_TEST.ps1      # Run health checks
 ```
+
+> Tip: use this when services are already running. For end-to-end validation that can auto-start/stop Docker, prefer `PRECOMMIT_WORKFLOW.ps1` (which wraps COMMIT_READY and smoke probes).
 
 ### ✅ PRECOMMIT_WORKFLOW.ps1 - Preferred End-to-End Pre-Commit Flow
 
