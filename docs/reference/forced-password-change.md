@@ -1,6 +1,7 @@
 # Forced Password Change Feature - Implementation Summary
 
 ## ✅ Feature Overview
+
 Added a mandatory password change prompt on first login for the default admin account. This ensures users cannot use default credentials after application startup.
 
 ## 🎯 Core Implementation
@@ -8,11 +9,13 @@ Added a mandatory password change prompt on first login for the default admin ac
 ### Backend Changes
 
 #### 1. Database Model Update (`backend/models.py`)
+
 - **Added Field**: `password_change_required: Column(Boolean, default=False, nullable=False, index=True)`
 - **Purpose**: Track which users need to change their password
 - **Auto-indexed**: For efficient queries on login
 
 #### 2. Alembic Migration (`backend/migrations/versions/d377f961aa1f_...`)
+
 - Created migration to add `password_change_required` column to `users` table
 - Migration includes:
   - Adding the new column with server default of `False`
@@ -20,34 +23,39 @@ Added a mandatory password change prompt on first login for the default admin ac
   - Proper downgrade path for rollback
 
 #### 3. Schema Update (`backend/schemas/auth.py`)
+
 - **Updated `UserResponse`**: Added `password_change_required: bool = False` field
 - This field is now returned on:
   - Login (`/auth/login`)
   - Get current user (`/auth/me`)
   - Admin user list (`/admin/users`)
 
-#### 4. Admin Bootstrap Logic (`backend/admin_bootstrap.py`)
+#### 4. Admin Bootstrap Logic (`backend/scripts/admin/bootstrap.py`)
+
 - **When creating default admin**: Sets `password_change_required=True`
 - **When resetting password**: Sets flag to `True` (forces change on next login)
 - **Log message**: Includes flag status for debugging
 
 #### 5. Password Change Endpoint (`backend/routers/routers_auth.py`)
-- **Enhanced `/auth/change-password`**: 
-  - Sets `password_change_required=False` after successful password change
-  - Clears the flag so modal won't reappear
+
+- **Enhanced `/auth/change-password`**:
+- Sets `password_change_required=False` after successful password change
+- Clears the flag so modal won't reappear
 
 ### Frontend Changes
 
 #### 1. New Modal Component (`frontend/src/components/modals/ChangePasswordPromptModal.tsx`)
+
 - **Purpose**: Force users to change default password before using application
 - **Features**:
-  - Clear warning message with security icon
-  - Non-dismissible until password is changed
-  - Password requirements checklist
-  - Direct button to open password change form
-  - Bilingual support (English/Greek)
+- Clear warning message with security icon
+- Non-dismissible until password is changed
+- Password requirements checklist
+- Direct button to open password change form
+- Bilingual support (English/Greek)
 
 #### 2. App Integration (`frontend/src/App.tsx`)
+
 - **Added modal state management**:
   - Detects when `user.password_change_required === true`
   - Shows modal automatically on app load if flag is set
@@ -56,26 +64,31 @@ Added a mandatory password change prompt on first login for the default admin ac
   - Closes modal after navigation
 
 #### 3. Authentication Context Enhancement (`frontend/src/contexts/AuthContext.tsx`)
+
 - **Added method**: `updateUser(updatedUser: User) => void`
 - **Purpose**: Allows components to refresh user state after password change
 - **Implementation**: Updates both state and localStorage simultaneously
 
 #### 4. Admin Users Panel Update (`frontend/src/components/admin/AdminUsersPanel.tsx`)
+
 - **Enhanced password change handler**:
-  - Refreshes user profile via `/auth/me` after success
-  - Updates AuthContext user state via `updateUser()`
-  - This removes `password_change_required` flag
-  - Modal automatically closes as effect watches for flag change
+- Refreshes user profile via `/auth/me` after success
+- Updates AuthContext user state via `updateUser()`
+- This removes `password_change_required` flag
+- Modal automatically closes as effect watches for flag change
 
 #### 5. API Client Enhancement (`frontend/src/api/api.ts`)
+
 - **Added method**: `adminUsersAPI.getCurrentUser()`
 - **Purpose**: Fetch updated user profile including `password_change_required` flag
 
 #### 6. Type Definitions Update (`frontend/src/types/index.ts`)
+
 - **Updated `UserAccount` interface**: Added optional `password_change_required?: boolean` field
 - Ensures TypeScript knows about the new field
 
 #### 7. Translations (`frontend/src/locales/`)
+
 - **English** (`locales/en/controlPanel.js`):
   - `changePasswordRequired`: Modal title
   - `changePasswordRequiredMessage`: Main warning
@@ -90,7 +103,7 @@ Added a mandatory password change prompt on first login for the default admin ac
 
 ## 🔄 User Flow
 
-```
+```text
 1. User logs in with admin@example.com / YourSecurePassword123!
    ↓
 2. Backend returns: password_change_required=True
@@ -147,28 +160,34 @@ Added a mandatory password change prompt on first login for the default admin ac
 ## 🚀 Deployment Notes
 
 1. **Database Migration**: Required on existing installations
-   - Run: `alembic upgrade head` in backend directory
-   - Migration adds column with default=False (backward compatible)
+
+- Run: `alembic upgrade head` in backend directory
+- Migration adds column with default=False (backward compatible)
 
 2. **First-Time Setup**: Works automatically
-   - DOCKER.ps1 creates admin with default credentials
-   - Flag is set by bootstrap automatically
-   - Modal appears on first login
+
+- DOCKER.ps1 creates admin with default credentials
+- Flag is set by bootstrap automatically
+- Modal appears on first login
 
 3. **Admin Password Reset**: Administrators can use admin panel to reset user passwords
-   - Sets flag=true for the user
-   - User must change password on next login
+
+- Sets flag=true for the user
+- User must change password on next login
 
 ## 📚 Related Files Modified
 
 ### Backend
+
 - `backend/models.py` - Added field
 - `backend/schemas/auth.py` - Added to response
-- `backend/admin_bootstrap.py` - Set flag on creation
+- `backend/scripts/admin/bootstrap.py` - Set flag on creation (primary)
+- `backend/admin_bootstrap.py` - Deprecated stub retained for backward compatibility
 - `backend/routers/routers_auth.py` - Clear flag on change
 - `backend/migrations/versions/d377f961aa1f_...` - New migration
 
 ### Frontend
+
 - `frontend/src/components/modals/ChangePasswordPromptModal.tsx` - New component
 - `frontend/src/App.tsx` - Integrated modal
 - `frontend/src/contexts/AuthContext.tsx` - Added updateUser method

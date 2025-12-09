@@ -493,7 +493,6 @@ If you're upgrading from a version before the script consolidation ($11.9.7):
 3. Developers: Bookmark `scripts/dev/` scripts
 4. DevOps: Bookmark `scripts/deploy/` scripts
 
-
 ### Breaking Changes
 
 All legacy scripts are consolidated in $11.9.7. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
@@ -541,5 +540,3 @@ When adding new scripts:
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check status: `.\DOCKER.ps1 -Status`
-
-

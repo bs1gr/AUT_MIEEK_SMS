@@ -1,4 +1,5 @@
 # QNAP File Organization & Audit
+
 ## Complete Reference for All QNAP Deployment Files
 
 **Date:** 2025-11-28
@@ -90,6 +91,7 @@ student-management-system/
 #### Use Case 1: Quick Start on x86_64 QNAP
 
 **Files Needed:**
+
 ```
 📖 QNAP.md                           (read first)
 🐳 docker/Dockerfile.backend.qnap
@@ -99,6 +101,7 @@ student-management-system/
 ```
 
 **Workflow:**
+
 1. Read [QNAP.md](../QNAP.md)
 2. Copy `.env.qnap.example` → `.env.qnap`
 3. Configure `.env.qnap`
@@ -109,6 +112,7 @@ student-management-system/
 #### Use Case 2: Production Virtual Host (x86_64)
 
 **Files Needed:**
+
 ```
 📖 QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md  (comprehensive guide)
 📖 QNAP_DEPLOYMENT_SUMMARY.md             (decision reference)
@@ -120,6 +124,7 @@ student-management-system/
 ```
 
 **Workflow:**
+
 1. Read [QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md](../QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md)
 2. Follow 8 phases for complete setup
 3. Configure QNAP Web Server
@@ -130,6 +135,7 @@ student-management-system/
 #### Use Case 3: ARM QNAP (TS-431P3)
 
 **Files Needed:**
+
 ```
 📖 QNAP_TS-431P3_COMPATIBILITY.md    (read first - check RAM!)
 📖 QNAP_TS-431P3_ARM_BUILD_GUIDE.md  (step-by-step)
@@ -142,6 +148,7 @@ student-management-system/
 ```
 
 **Workflow:**
+
 1. Read [QNAP_TS-431P3_COMPATIBILITY.md](../QNAP_TS-431P3_COMPATIBILITY.md)
 2. Verify 8GB RAM (required!)
 3. Follow [QNAP_TS-431P3_ARM_BUILD_GUIDE.md](../QNAP_TS-431P3_ARM_BUILD_GUIDE.md)
@@ -153,12 +160,14 @@ student-management-system/
 #### Use Case 4: ARM + Virtual Host (Production)
 
 **Files Needed:**
+
 ```
 All files from Use Case 3
 + QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md (Phase 4-6)
 ```
 
 **Workflow:**
+
 1. Complete Use Case 3 (ARM build & deploy)
 2. Follow virtual host setup from main plan
 3. Configure QNAP Web Server for ARM backend
@@ -189,6 +198,7 @@ All files from Use Case 3
 | `Dockerfile.*.arm32v7` | `Dockerfile.backend.arm32v7` | ARM32v7 |
 
 **Clear Separation:**
+
 - `.qnap` suffix = x86_64 architecture
 - `.arm32v7` suffix = ARM32v7 architecture
 - No confusion between builds
@@ -374,6 +384,7 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 **Starting point:** [INDEX.md](INDEX.md)
 
 **Quick questions:**
+
 - Which file to use? → [INDEX.md](INDEX.md) decision tree
 - x86_64 vs ARM? → [docker/README.ARM.md](../../docker/README.ARM.md)
 - Production setup? → [QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md](../QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md)
@@ -381,6 +392,7 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 ### For Maintainers
 
 **This file** provides:
+
 - Complete file inventory
 - Purpose of each file
 - Relationships and dependencies
@@ -390,6 +402,7 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 ### For Contributors
 
 **Before adding new QNAP files:**
+
 1. Check if existing files can be updated instead
 2. Follow naming conventions
 3. Add to this audit document
@@ -439,5 +452,3 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 **Maintainer:** Student Management System Team
 **Version:** 1.9.3
 **License:** Same as main project
-
-

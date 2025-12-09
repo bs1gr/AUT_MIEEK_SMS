@@ -14,11 +14,13 @@
 ### Critical Finding
 
 **Exit Code 139 / ELF Page Alignment Errors:**
+
 ```
 libc.so.6: ELF load command address/offset not page-aligned
 ```
 
 This error occurs across:
+
 - All Python Docker images (python:3.11-slim, python:3.11-slim-bookworm, balenalib/armv7hf-debian)
 - PostgreSQL Alpine images (postgres:16-alpine)
 - PostgreSQL Debian images (postgres:16)
@@ -42,6 +44,7 @@ This error occurs across:
 | **Container Station** | 3.x |
 
 ### What Works
+
 ✅ SSH access
 ✅ Docker daemon
 ✅ Basic BusyBox utilities
@@ -49,6 +52,7 @@ This error occurs across:
 ✅ File transfers
 
 ### What Doesn't Work
+
 ❌ Python Docker images (all variants tested)
 ❌ PostgreSQL containers (Alpine & Debian)
 ❌ Balena ARM images
@@ -61,48 +65,62 @@ This error occurs across:
 ## Deployment Attempts Log
 
 ### Attempt 1: Standard Docker Deployment (x86_64)
+
 **Status:** ❌ Failed immediately
 **Error:** Architecture mismatch - expected x86_64, got armv7l
 
 ### Attempt 2: ARM Docker Build (python:3.11-slim)
+
 **Status:** ❌ Failed at RUN step
 **Error:**
+
 ```
 apt-get: error while loading shared libraries: libz.so.1:
 ELF load command address/offset not page-aligned
 ```
+
 **Root Cause:** Base image compiled for 4KB pages, TS-431P3 uses 32KB pages
 
 ### Attempt 3: ARM Docker Build (python:3.11-slim-bookworm)
+
 **Status:** ❌ Failed at RUN step
 **Error:**
+
 ```
 /bin/sh: error while loading shared libraries: libc.so.6:
 ELF load command address/offset not page-aligned
 ```
+
 **Root Cause:** Same page size incompatibility
 
 ### Attempt 4: Balena ARM Images (balenalib/armv7hf-debian:bookworm)
+
 **Status:** ❌ Failed at RUN step
 **Error:**
+
 ```
 /bin/sh: error while loading shared libraries: libc.so.6:
 ELF load command address/offset not page-aligned
 ```
+
 **Root Cause:** Even Balena's specialized ARM images use 4KB pages
 
 ### Attempt 5: PostgreSQL Container (postgres:16-alpine)
+
 **Status:** ❌ Container constantly restarting
 **Exit Code:** 139 (SIGSEGV - segmentation fault)
 **Root Cause:** Alpine musl libc compiled for 4KB pages
 
 ### Attempt 6: PostgreSQL Container (postgres:16)
+
 **Status:** ❌ Not attempted after Alpine failure
 **Reason:** Debian-based images have same page size issue
 
 ### Attempt 7: Hybrid Approach (MariaDB + Native Python)
+
 **Status:** ❌ Failed
 **Progress:**
+
 - ✅ MariaDB 10 installed from QNAP App Center (port 3307)
 - ✅ Database `student_management` created
 - ✅ User `sms_user` created with privileges
@@ -116,11 +134,13 @@ ELF load command address/offset not page-aligned
 ### The 32KB Page Size Problem
 
 **Standard ARM (most devices):**
+
 - Memory page size: 4KB
 - Compatible with 99% of Docker images
 - Standard Linux kernel configuration
 
 **TS-431P3 (AnnapurnaLabs AL-314):**
+
 - Memory page size: 32KB
 - Custom ARM implementation
 - Requires ALL software to be recompiled
@@ -131,6 +151,7 @@ ELF load command address/offset not page-aligned
 Every executable (including shared libraries like libc.so.6) has memory alignment requirements embedded at compile time. Software compiled for 4KB pages literally cannot load on a 32KB page system - it's a fundamental binary incompatibility.
 
 **This affects:**
+
 - Docker images (base layers compiled for 4KB)
 - Python packages (C extensions)
 - Node.js native modules
@@ -189,6 +210,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ## Infrastructure Created on QNAP
 
 ### Successfully Installed
+
 - ✅ **MariaDB 10** (1.2.1.31) - Port 3307
   - Database: `student_management`
   - User: `sms_user`
@@ -197,6 +219,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
   - Fully functional
 
 ### File Structure
+
 ```
 /share/Container/student-management-system/
 ├── backend/                    # Application files
@@ -259,17 +282,20 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ### ✅ Recommended: x86_64 QNAP
 
 **Models:**
+
 - TS-453D (~$400)
 - TS-253E (~$300)
 - TS-x53D/E series
 
 **Deployment:**
+
 - Use `docker-compose.qnap.yml` (already created)
 - 30-60 minute setup
 - Full Docker support
 - All documentation applies
 
 **Advantages:**
+
 - Standard architecture
 - All Docker images work
 - Better performance
@@ -278,18 +304,21 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ### ✅ Recommended: Cloud Deployment
 
 **Providers:**
+
 - DigitalOcean ($6/month for 1GB RAM VPS)
 - AWS Lightsail ($3.50/month starter)
 - Linode ($5/month)
 - Hetzner ($4/month)
 
 **Deployment:**
+
 - Use standard Docker deployment
 - Works immediately
 - Automatic backups
 - Better uptime
 
 **Advantages:**
+
 - No hardware investment
 - Scalable
 - Professional infrastructure
@@ -298,6 +327,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ### ⚠️ Possible but Complex: Custom Compilation
 
 **Requirements:**
+
 - Build Python 3.11+ from source with 32KB page support
 - Compile all Python packages natively
 - Build Node.js from source
@@ -308,6 +338,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 **Maintainability:** Very poor (every update requires recompilation)
 
 **Not Recommended** unless you have:
+
 - Expert Linux/ARM knowledge
 - Significant time investment
 - No alternative hardware options
@@ -317,6 +348,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ## Financial Analysis
 
 ### Option 1: Keep TS-431P3 + Custom Build
+
 - **Hardware cost:** $0 (already owned)
 - **Time cost:** 20-40 hours @ developer rate
 - **Maintenance:** High (ongoing recompilation)
@@ -324,6 +356,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 - **Total cost:** Very high (time)
 
 ### Option 2: Buy x86_64 QNAP
+
 - **Hardware cost:** $300-400 (one-time)
 - **Time cost:** 1-2 hours setup
 - **Maintenance:** Low (standard updates)
@@ -331,6 +364,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 - **Total cost:** $300-400 + 2 hours
 
 ### Option 3: Cloud VPS
+
 - **Hardware cost:** $0
 - **Monthly cost:** $5-10/month
 - **Time cost:** 1 hour setup
@@ -349,6 +383,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ## What Works on TS-431P3
 
 The TS-431P3 is excellent for:
+
 - ✅ File sharing (SMB/AFP/NFS)
 - ✅ Media streaming (Plex with transcoding limits)
 - ✅ Backup storage
@@ -357,6 +392,7 @@ The TS-431P3 is excellent for:
 - ✅ MariaDB/MySQL databases
 
 The TS-431P3 is NOT suitable for:
+
 - ❌ Modern containerized applications
 - ❌ Python/Node.js web applications
 - ❌ Development environments
@@ -368,6 +404,7 @@ The TS-431P3 is NOT suitable for:
 ## Git Repository Status
 
 ### Files to Keep (Useful for x86_64 QNAP)
+
 ```
 docs/deployment/QNAP.md
 docs/deployment/QNAP_DEPLOYMENT_SUMMARY.md
@@ -380,6 +417,7 @@ docker/nginx.qnap.conf
 ```
 
 ### Files to Mark as Non-Functional (TS-431P3 specific)
+
 ```
 docs/deployment/QNAP_TS-431P3_COMPATIBILITY.md (update with failure notice)
 docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md (mark as unfeasible)
@@ -404,16 +442,20 @@ docker/README.ARM.md (update with limitations)
 
 1. **Keep MariaDB** (might be useful for other projects)
 2. **Remove unused directories:**
+
    ```bash
    rm -rf /share/Container/sms-data
    rm -rf /share/Container/sms-backups
    rm -rf /share/Container/sms-logs
    ```
+
 3. **Clean up failed containers:**
+
    ```bash
    docker stop sms-postgres-qnap 2>/dev/null
    docker rm sms-postgres-qnap 2>/dev/null
    ```
+
 4. **Keep application files** for potential future x86_64 migration
 
 ---
@@ -421,6 +463,7 @@ docker/README.ARM.md (update with limitations)
 ## Next Steps for User
 
 ### Immediate (This Week)
+
 1. ✅ Review this summary document
 2. ⬜ Decide on deployment strategy:
    - Cloud VPS (fastest, cheapest monthly)
@@ -428,11 +471,13 @@ docker/README.ARM.md (update with limitations)
    - Different deployment platform
 
 ### Short Term (This Month)
+
 1. ⬜ If cloud VPS: Deploy using standard Docker method
 2. ⬜ If x86_64 QNAP: Purchase hardware, use existing docs
 3. ⬜ Keep TS-431P3 for file storage (its strength)
 
 ### Long Term
+
 1. ⬜ When TS-431P3 replacement is due, choose x86_64 model
 2. ⬜ Document institutional deployment requirements
 3. ⬜ Consider high-availability setup for production
@@ -442,16 +487,19 @@ docker/README.ARM.md (update with limitations)
 ## Technical Debt Created
 
 ### Documentation
+
 - 7 markdown files (3,900+ lines) - mostly useful for x86_64
 - 4 Docker files specific to ARM32v7 (non-functional)
 - 1 comprehensive file organization audit
 
 ### Code
+
 - No application code changes
 - Configuration files created (.env.qnap)
 - Docker files that won't work on TS-431P3
 
 ### Infrastructure
+
 - MariaDB installed (reusable)
 - Directory structure created (minimal)
 
@@ -473,16 +521,19 @@ docker/README.ARM.md (update with limitations)
 ## Support Resources
 
 ### For x86_64 QNAP Deployment
+
 - Start with: `docs/deployment/QNAP.md`
 - Production setup: `docs/deployment/QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md`
 - Navigation: `docs/deployment/qnap/INDEX.md`
 
 ### For Cloud VPS Deployment
+
 - Use standard Docker deployment
 - See main project README.md
 - DigitalOcean/AWS Lightsail recommended
 
 ### For TS-431P3 Questions
+
 - This document
 - QNAP Community Forum
 - AnnapurnaLabs documentation (limited)

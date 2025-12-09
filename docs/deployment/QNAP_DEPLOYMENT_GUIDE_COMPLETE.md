@@ -33,12 +33,14 @@ Open `http://<NAS-IP>:8080/`.
 **Data volume:** `sms_data_qnap` (change to a bind mount if you prefer a shared folder).
 
 **Upgrade / restart:**
+
 ```bash
 docker compose -f docker-compose.qnap.yml pull
 docker compose -f docker-compose.qnap.yml up -d --build
 ```
 
 **Uninstall:**
+
 ```bash
 docker compose -f docker-compose.qnap.yml down
 ```

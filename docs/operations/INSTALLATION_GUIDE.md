@@ -11,6 +11,7 @@
 This guide will help you install and run the Student Management System on your computer. The entire process takes about **10-15 minutes** for first-time setup.
 
 ### What's New in $11.9.8
+
 - ✅ **Critical Rate Limiting Fix**: 21 GET endpoints now properly protected (prevents 429 errors)
 - ✅ **Infinite Loop Fixes**: Eliminated cascade requests in AttendanceView and StudentProfile
 - ✅ **CI/CD Pipeline Enhanced**: Trivy security scanning now handles failures gracefully
@@ -118,7 +119,7 @@ cd AUT_MIEEK_SMS
 
 ---
 
-## 🎉 You're Done!
+## 🎉 You're Done
 
 The application is now running. Here's what you can do:
 
@@ -174,6 +175,7 @@ The application is now running. Here's what you can do:
 ```
 
 This will:
+
 1. ✅ Create automatic backup of your database
 2. ✅ Download latest changes via git
 3. ✅ Rebuild Docker image
@@ -186,6 +188,7 @@ This will:
 ```
 
 Use this if you encounter build issues:
+
 1. ✅ Creates backup
 2. ✅ Clears Docker cache (no-cache build)
 3. ✅ Fresh image build
@@ -196,6 +199,7 @@ Use this if you encounter build issues:
 ### $11.9.8 Specific Updates
 
 If upgrading from $11.9.8 or earlier, you'll benefit from:
+
 - Fixed rate limiting (no more 429 errors)
 - Faster AttendanceView (eliminated duplicate requests)
 - Smoother StudentProfile loading
@@ -429,9 +433,11 @@ If you're upgrading from an older version, run:
 To access SMS from other computers on your network:
 
 1. **Find your computer's IP address**:
+
    ```powershell
    ipconfig | findstr IPv4
    ```
+
    (Look for something like `192.168.1.100`)
 
 2. **Allow firewall access**:
@@ -479,6 +485,7 @@ To run SMS on a QNAP NAS:
    ```
 
 3. **Build the image** (on your computer first):
+
    ```powershell
    docker build -t sms-fullstack:1.4.0 -f docker/Dockerfile.fullstack .
    docker save sms-fullstack:1.4.0 -o sms-fullstack-1.4.0.tar
@@ -498,7 +505,6 @@ To run SMS on a QNAP NAS:
    - `http://QNAP_IP:8080`
 
 ---
-
 
 ## 🔧 Advanced Installation (Mac/Linux)
 
@@ -590,5 +596,3 @@ After installation:
 **Version**: 1.9.3
 **Last Updated**: January 2025
 **License**: MIT
-
-

@@ -13,6 +13,7 @@ Added comprehensive session-based export/import functionality to allow users to 
 ### Backend Changes
 
 #### 1. New Router: `backend/routers/routers_sessions.py`
+
 - **Purpose**: Provides endpoints for session export/import operations
 - **Endpoints**:
   - `GET /api/v1/sessions/semesters` - List all available semesters in the system
@@ -36,18 +37,21 @@ Added comprehensive session-based export/import functionality to allow users to 
   - **Error Handling**: Returns detailed summary with counts of created/updated/skipped/errors for each data type
 
 #### 2. Router Registration: `backend/main.py`
+
 - Added `routers_sessions` to `register_routers()` function
 - Tags: ["Sessions"]
 
 ### Frontend Changes
 
 #### 1. API Client: `frontend/src/api/api.js`
+
 - **New Export**: `sessionAPI` object with three methods:
   - `listSemesters()` - Fetch available semesters
   - `exportSession(semester)` - Download session export file (blob response)
   - `importSession(file, mergeStrategy)` - Upload and import session JSON file
 
 #### 2. UI Component: `frontend/src/components/tools/ExportCenter.tsx`
+
 - **New Component**: `SessionExportImport`
   - Two-column layout (export left, import right)
   - **Export Panel**:
@@ -65,7 +69,9 @@ Added comprehensive session-based export/import functionality to allow users to 
 #### 3. Translations
 
 ##### English: `frontend/src/locales/en/export.js`
+
 Added 29 new translation keys:
+
 - Section headers (sessionExportImport, exportCompleteSession, importSession)
 - UI labels (selectSemester, selectFile, mergeStrategy, etc.)
 - Button labels (exportSession, importSessionButton)
@@ -74,11 +80,13 @@ Added 29 new translation keys:
 - Strategy descriptions
 
 ##### Greek: `frontend/src/locales/el/export.js`
+
 Added all corresponding Greek translations
 
 ## Data Flow
 
 ### Export Flow
+
 1. User selects semester from dropdown (populated from `/sessions/semesters`)
 2. Clicks "Export Session" button
 3. Backend queries all related data for that semester:
@@ -91,6 +99,7 @@ Added all corresponding Greek translations
 5. Browser downloads `session_export_<semester>_<timestamp>.json`
 
 ### Import Flow
+
 1. User selects JSON file (from previous export)
 2. Chooses merge strategy (update vs skip existing)
 3. Clicks "Import Session" button
@@ -110,16 +119,19 @@ Added all corresponding Greek translations
 ## Key Features
 
 ### 1. Comprehensive Data Package
+
 - Single JSON file contains ALL data for a semester
 - Maintains referential integrity (uses course_code/student_id refs)
 - Includes metadata for tracking (exported_at, exported_by, version)
 
 ### 2. Intelligent Merge Logic
+
 - **Update Mode**: Merges with existing data (updates duplicates, adds new)
 - **Skip Mode**: Only adds new data (leaves existing untouched)
 - Handles conflicts gracefully (reports errors without failing entire import)
 
 ### 3. User-Friendly UI
+
 - Clear visual distinction between export and import
 - Color-coded panels (blue for export, green for import)
 - Loading states and progress indicators
@@ -128,6 +140,7 @@ Added all corresponding Greek translations
 - Accessible (ARIA labels, proper form structure)
 
 ### 4. Error Resilience
+
 - Individual record failures don't abort entire import
 - Error summary lists specific problems
 - Database transaction ensures atomicity (commit only if no critical errors)
@@ -135,21 +148,25 @@ Added all corresponding Greek translations
 ## Use Cases
 
 ### 1. Data Migration Between Systems
+
 - Export session from development PC
 - Import to production server
 - All data transferred in one operation
 
 ### 2. Semester Backup
+
 - Export entire semester at end of term
 - Archive JSON file for records
 - Can restore specific semester later
 
 ### 3. Data Sharing
+
 - Teacher exports session for review
 - Share with coordinator/admin
 - They import to their system for analysis
 
 ### 4. Multi-PC Workflow
+
 - User A fills data on laptop
 - Exports session
 - User B imports to desktop
@@ -158,6 +175,7 @@ Added all corresponding Greek translations
 ## Technical Details
 
 ### Export Serialization
+
 ```python
 {
   "metadata": {
@@ -178,6 +196,7 @@ Added all corresponding Greek translations
 ```
 
 ### Import Logic Pseudocode
+
 ```python
 for course in import_data["courses"]:
     existing = db.query(Course).filter_by(course_code=course["course_code"]).first()
@@ -193,6 +212,7 @@ for course in import_data["courses"]:
 ```
 
 ### Database Relationships Preserved
+
 - Enrollments reference `student_id_ref` and `course_code_ref` (not internal IDs)
 - Import resolves references to actual database IDs dynamically
 - Soft-deleted records excluded from export (`deleted_at IS NULL`)
@@ -238,9 +258,11 @@ for course in import_data["courses"]:
 ## File Changes Summary
 
 **Created**:
+
 - `backend/routers/routers_sessions.py` (688 lines)
 
 **Modified**:
+
 - `backend/main.py` (added router registration)
 - `frontend/src/api/api.js` (added sessionAPI)
 - `frontend/src/components/tools/ExportCenter.tsx` (added SessionExportImport component)

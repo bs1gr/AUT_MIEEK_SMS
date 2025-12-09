@@ -11,6 +11,7 @@ This guide provides step-by-step instructions for implementing and testing the P
 ### Automatic Generation (Recommended)
 
 #### Prerequisites
+
 ```bash
 # Install sharp (for icon generation)
 cd frontend
@@ -18,11 +19,13 @@ npm install
 ```
 
 #### Generate All Icons
+
 ```bash
 npm run generate-icons
 ```
 
 This will create the following assets in `frontend/public/`:
+
 - `pwa-192x192.png` - Standard icon
 - `pwa-512x512.png` - Large icon
 - `pwa-maskable-192x192.png` - Icon with safe zone for masking
@@ -33,6 +36,7 @@ This will create the following assets in `frontend/public/`:
 - `screenshot-1280x720.png` - Desktop app screenshot
 
 #### Verify Generation
+
 ```bash
 # List generated files
 ls -lh frontend/public/pwa*.png
@@ -41,6 +45,7 @@ ls -lh frontend/public/screenshot*.png
 ```
 
 Expected output:
+
 ```
 frontend/public/pwa-192x192.png ✅
 frontend/public/pwa-512x512.png ✅
@@ -56,7 +61,7 @@ frontend/public/screenshot-1280x720.png ✅
 
 If automatic generation fails, create icons manually:
 
-1. **Use online tool:** https://www.pwabuilder.com/imageGenerator
+1. **Use online tool:** <https://www.pwabuilder.com/imageGenerator>
 2. **Requirements:**
    - Minimum 512x512 PNG image
    - Include transparent padding (safe zone for maskable icons)
@@ -64,6 +69,7 @@ If automatic generation fails, create icons manually:
    - Include "SMS" text/logo
 
 3. **Save to:**
+
    ```
    frontend/public/
    ├── pwa-192x192.png
@@ -93,6 +99,7 @@ cat dist/manifest.json
 ```
 
 Expected manifest structure:
+
 ```json
 {
   "name": "Student Management System",
@@ -113,6 +120,7 @@ Expected manifest structure:
 ### Browser DevTools Verification
 
 #### Chrome/Edge
+
 1. Start dev server: `npm run dev`
 2. Open DevTools (F12)
 3. Go to **Application** tab
@@ -124,11 +132,13 @@ Expected manifest structure:
    - ✅ Should have offline support checked
 
 #### Firefox
+
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click "Inspect" on your app
 3. Check **Manifest** tab in Inspector
 
 #### Safari/iOS
+
 1. Open app in Safari
 2. Tap Share → Add to Home Screen
 3. App should appear on home screen with correct icon
@@ -141,8 +151,9 @@ Expected manifest structure:
 ### Test Offline Functionality
 
 #### Desktop
+
 1. **Start dev server:** `npm run dev`
-2. **Open app:** http://localhost:5173 (or configured port)
+2. **Open app:** <http://localhost:5173> (or configured port)
 3. **DevTools → Network:**
    - Check "Offline" checkbox
    - Navigate app - should work seamlessly
@@ -151,6 +162,7 @@ Expected manifest structure:
    - Any queued requests should process
 
 #### Mobile (Android)
+
 1. **Install app:**
    - Open in Chrome
    - Menu (⋮) → Install app
@@ -164,6 +176,7 @@ Expected manifest structure:
    - App should auto-sync
 
 #### Mobile (iOS 16.4+)
+
 1. **Install app:**
    - Open in Safari
    - Share button → Add to Home Screen
@@ -189,6 +202,7 @@ Expected manifest structure:
 ### Test Caching Strategies
 
 #### API Cache (NetworkFirst)
+
 ```bash
 # DevTools → Application → Cache Storage
 # Should see 'api-cache' with recent requests:
@@ -198,6 +212,7 @@ Expected manifest structure:
 ```
 
 #### Font Cache (StaleWhileRevalidate)
+
 ```bash
 # DevTools → Application → Cache Storage
 # Should see 'fonts-cache' with:
@@ -206,6 +221,7 @@ Expected manifest structure:
 ```
 
 #### Static Assets Cache
+
 ```bash
 # DevTools → Application → Cache Storage
 # Should see 'precache' with:
@@ -222,6 +238,7 @@ Expected manifest structure:
 ### Lighthouse Audit
 
 #### Desktop
+
 1. **DevTools → Lighthouse**
 2. **Check these metrics:**
    - ✅ Performance: >90
@@ -231,6 +248,7 @@ Expected manifest structure:
    - ✅ SEO: >90
 
 #### Mobile
+
 1. **DevTools → Lighthouse → Mobile**
 2. **Expected scores:**
    - ✅ Performance: >80
@@ -261,28 +279,33 @@ Expected manifest structure:
 ## 5. Installation Testing
 
 ### Chrome/Chromium
+
 1. **Address bar:** Should show install button after 30s
 2. **Menu → "Install SMS":** Opens install dialog
 3. **Confirm:** App appears in app drawer
 4. **Launch:** Opens in standalone window (no address bar)
 
 ### Firefox
+
 1. **Address bar:** May show "+" icon to install
 2. **Click install:** Adds to home screen or app menu
 3. **Launch:** Opens as isolated window
 
 ### Edge
+
 1. **Settings → "Install SMS":** Top right menu
 2. **Confirm:** Adds to Start menu
 3. **Launch:** Opens in standalone mode
 
 ### Safari (iOS 16.4+)
+
 1. **Share → Add to Home Screen**
 2. **Confirm name and icon**
 3. **App appears on home screen**
 4. **Tap to launch:** Opens fullscreen
 
 ### Android Chrome
+
 1. **Menu → "Install app"** (or search bar "Install" button)
 2. **Confirm:** Adds to home screen
 3. **Tap icon:** Launches standalone
@@ -294,12 +317,14 @@ Expected manifest structure:
 ### Issue: App doesn't install
 
 **Causes:**
+
 - Missing manifest.json
 - Manifest not linked in HTML
 - HTTPS required in production (HTTP ok for localhost)
 - Service worker not registered
 
 **Solution:**
+
 ```bash
 # Check manifest link in index.html
 grep "manifest" frontend/index.html
@@ -317,11 +342,13 @@ cat dist/manifest.json | head -20
 ### Issue: Icons don't appear
 
 **Causes:**
+
 - Icons not generated/uploaded
 - Manifest paths incorrect
 - Wrong image format or size
 
 **Solution:**
+
 ```bash
 # Regenerate icons
 npm run generate-icons
@@ -338,11 +365,13 @@ grep "src.*png" dist/manifest.json
 ### Issue: Offline mode doesn't work
 
 **Causes:**
+
 - Service worker not activated
 - Caching strategy not applied
 - Network requests not matching patterns
 
 **Solution:**
+
 ```bash
 # DevTools → Application → Service Workers
 # ✅ Should show "Active and running"
@@ -361,11 +390,13 @@ grep "src.*png" dist/manifest.json
 ### Issue: Updates not detected
 
 **Causes:**
+
 - Service worker lifecycle not managing updates
 - Browser cache preventing new SW registration
 - Build output not changing
 
 **Solution:**
+
 ```bash
 # Clear browser cache
 # DevTools → Application → Storage → Clear site data
@@ -413,6 +444,7 @@ npm run build
 ### Production Monitoring
 
 **Check these metrics:**
+
 - Service worker registration success rate
 - Cache hit rates (DevTools → Network → Size column)
 - App installation rate (via analytics)
@@ -426,6 +458,7 @@ npm run build
 ### API Caching Strategy
 
 **Current:** NetworkFirst (try network, fallback to cache)
+
 - Good for: Real-time data, updates
 - Timeout: 3 seconds
 
@@ -446,6 +479,7 @@ npm run build
 ```
 
 **To adjust:**
+
 - Longer timeout: `networkTimeoutSeconds: 5`
 - Longer cache: `maxAgeSeconds: 600` (10 min)
 - More entries: `maxEntries: 100`
@@ -455,12 +489,14 @@ npm run build
 ⚠️ **Important:** Auth tokens NOT cached by default
 
 Current behavior:
+
 - ✅ Login redirects work offline
 - ✅ Public routes work offline
 - ✅ Protected routes show cached data (if user was logged in)
 - ✅ Fresh auth check on reconnect
 
 To enhance offline auth:
+
 ```typescript
 // In pwa-register.ts - clear caches on logout
 window.addEventListener('logout', () => {
@@ -479,18 +515,21 @@ window.addEventListener('logout', () => {
 ## 9. Monitoring & Maintenance
 
 ### Weekly Checklist
+
 - [ ] Check service worker registration errors
 - [ ] Monitor app installation metrics
 - [ ] Review offline usage patterns
 - [ ] Check cache hit rates
 
 ### Monthly Tasks
+
 - [ ] Update icon designs if branding changes
 - [ ] Review cache strategy effectiveness
 - [ ] Analyze user feedback on PWA features
 - [ ] Performance regression testing
 
 ### Performance Targets
+
 - ✅ First Paint: <1.5s
 - ✅ Service Worker overhead: <100KB
 - ✅ Cache storage: <50MB
@@ -501,17 +540,20 @@ window.addEventListener('logout', () => {
 ## 10. References
 
 ### Documentation
+
 - [PWA Capabilities](https://web.dev/capabilities/)
 - [Web App Manifest](https://www.w3.org/TR/appmanifest/)
 - [Service Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
 - [Workbox Documentation](https://developers.google.com/web/tools/workbox)
 
 ### Tools
+
 - [PWA Builder](https://www.pwabuilder.com/)
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse)
 - [Chrome DevTools Application Tab](https://developer.chrome.com/docs/devtools/progressive-web-apps/)
 
 ### Testing
+
 - [PWA Checklist](https://web.dev/pwa-checklist/)
 - [Installation Triggers](https://web.dev/install-criteria/)
 - [Offline Testing Guide](https://web.dev/offline-fallbacks-for-navigations/)
@@ -523,6 +565,7 @@ window.addEventListener('logout', () => {
 Refer to the main audit report: `docs/IMPROVEMENTS_AUDIT_REPORT.md`
 
 For PWA-specific issues, check the implementation in:
+
 - `frontend/vite.config.ts` - PWA configuration
 - `frontend/src/pwa-register.ts` - Service worker registration
 - `frontend/public/manifest.json` - App manifest

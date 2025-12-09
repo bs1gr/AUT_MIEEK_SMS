@@ -48,12 +48,15 @@ The Monitoring Watcher Service is a Windows PowerShell background job that enabl
 ## Why This Solution?
 
 ### The Problem
+
 Docker containers cannot directly execute Docker commands on the host. On Linux, this is typically solved by mounting the Docker socket (`/var/run/docker.sock`), but **Windows does not support this approach** due to how Docker Desktop operates with WSL.
 
 ### Previous Attempt (Failed)
+
 Initial implementation created trigger files but required manual command execution by the user, which defeated the purpose of "one-click" automation.
 
 ### Current Solution (Successful)
+
 - **Background Watcher**: PowerShell job runs on the host, has full Docker access
 - **Shared Trigger Directory**: Bind-mounted to allow container→host communication
 - **Automatic Execution**: No user intervention required after button click
@@ -243,4 +246,3 @@ Test-Path data\.triggers\start_monitoring.ps1  # Should be False
 The Watcher Service provides a robust, Windows-compatible solution for true one-click monitoring auto-start from containerized applications. By leveraging PowerShell background jobs and bind mounts, it bridges the container/host boundary without requiring Docker socket mounting or manual command execution.
 
 **Key Achievement**: Button click → 2-5 seconds → monitoring running automatically. No manual intervention required.
-

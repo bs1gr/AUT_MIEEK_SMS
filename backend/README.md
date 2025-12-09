@@ -98,6 +98,54 @@ Provide `DATABASE_URL` as a repository secret when running migrations in CI.
 If you prefer automated migrations at deploy time, run the same command from your deployment
 pipeline before switching traffic to the new release.
 
+## Administrative CLI Tools
+
+The project includes administrative CLI tools under `backend/db/cli/` for common database operations:
+
+### Available Modules
+
+- **`backend.db.cli.admin`** - User administration (create admin users)
+- **`backend.db.cli.schema`** - Schema validation and drift detection for CI
+- **`backend.db.cli.diagnostics`** - First-run validation and configuration checks
+
+### Usage Examples
+
+Create an admin user:
+
+```powershell
+python -m backend.db.cli.admin --email admin@example.com
+```
+
+Check for schema drift (useful in CI):
+
+```powershell
+python -m backend.db.cli.schema --check-drift
+```
+
+Validate first-run database creation:
+
+```powershell
+python -m backend.db.cli.diagnostics --validate-first-run
+```
+
+### Python API
+
+```python
+from backend.db.cli import create_admin, check_schema_drift, validate_first_run
+
+# Create a user programmatically
+user = create_admin("admin@example.com", "password")
+
+# Check schema in CI
+exit_code = check_schema_drift(engine, fail_on_drift=True)
+
+# Validate first run
+ok = validate_first_run("data/student_management.db")
+```
+
+For detailed migration information from the legacy `backend/tools/` module, see
+[`docs/development/TOOLS_CONSOLIDATION.md`](../docs/development/TOOLS_CONSOLIDATION.md).
+
 ## Developer convenience: DEV_EASE (pre-commit only)
 
 DEV_EASE is now strictly reserved for local pre-commit workflows (COMMIT_READY.ps1). It is **not** a

@@ -90,6 +90,7 @@ docs/deployment/qnap/
 ```
 
 **Related Files:**
+
 ```
 docker/
 ├── Dockerfile.backend.qnap           # x86_64 backend (standard)
@@ -137,6 +138,7 @@ docker compose -f docker/docker-compose.qnap.yml up -d
 **Time:** 2-3 hours (includes build)
 **Access:** `http://QNAP_IP:8080`
 **Guides:**
+
 1. [ARM-TS431P3-COMPATIBILITY.md](ARM-TS431P3-COMPATIBILITY.md)
 2. [ARM-TS431P3-BUILD-GUIDE.md](ARM-TS431P3-BUILD-GUIDE.md)
 
@@ -156,6 +158,7 @@ docker compose -f docker/docker-compose.qnap.arm32v7.yml up -d
 **Time:** 3-4 hours total
 **Access:** `https://sms.yourdomain.com`
 **Guides:**
+
 1. [ARM-TS431P3-BUILD-GUIDE.md](ARM-TS431P3-BUILD-GUIDE.md)
 2. [01-VIRTUAL-HOST-SETUP.md](01-VIRTUAL-HOST-SETUP.md)
 
@@ -171,6 +174,7 @@ docker compose -f docker/docker-compose.qnap.arm32v7.yml up -d
 ### How to Check Your QNAP Architecture
 
 **SSH Method:**
+
 ```bash
 ssh admin@YOUR_QNAP_IP
 uname -m

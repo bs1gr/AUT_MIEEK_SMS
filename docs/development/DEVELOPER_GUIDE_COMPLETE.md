@@ -1188,4 +1188,3 @@ docker-compose up -d --build
 **Last Updated:** November 22, 2025  
 **Maintained By:** SMS Development Team  
 **Feedback:** Create issue with label `documentation`
-

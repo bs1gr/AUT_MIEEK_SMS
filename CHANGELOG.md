@@ -26,7 +26,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
     - 13 PowerShell stubs with full parameter forwarding
     - 2 test utilities
     - Sample data files preserved
-  - **Deprecation Timeline**: All `tools/` stubs will be removed in v1.12.0 (6 months)
+  - **Deprecation Timeline**: All `tools/` stubs will be removed in $11.10.1 (6 months)
   - **Benefits**: Clearer organization, better discoverability, consistent structure
 
 ### Fixed
@@ -842,8 +842,4 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
-
-
-
-
 

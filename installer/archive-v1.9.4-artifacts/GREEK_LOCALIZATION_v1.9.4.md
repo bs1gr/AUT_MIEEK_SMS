@@ -7,6 +7,7 @@ Complete Greek localization for the SMS installer with updated branding.
 ## Changes Made
 
 ### 1. Greek Language File (`Greek.isl`)
+
 - ✅ Added all essential Greek translations for Inno Setup wizard pages
 - ✅ Fixed UTF-8 encoding issues - all Greek characters display correctly
 - ✅ Covers all user-facing installer UI elements:
@@ -17,6 +18,7 @@ Complete Greek localization for the SMS installer with updated branding.
   - Uninstaller messages
 
 ### 2. Wizard Banner (`wizard_image.bmp`)
+
 - ✅ Updated from v1.9.2 to v1.9.4
 - ✅ Integrated AUT logo at the top
 - ✅ Professional blue gradient design
@@ -24,7 +26,9 @@ Complete Greek localization for the SMS installer with updated branding.
 - 🔧 Generated dynamically from `AUT_Logo.png` + VERSION file
 
 ### 3. Docker/SMS Custom Messages
+
 All custom installer prompts in Greek:
+
 - Docker detection and status
 - Upgrade vs fresh install options
 - Data preservation prompts
@@ -68,11 +72,13 @@ Output: `dist\SMS_Installer_1.9.4.exe`
 ## Maintenance
 
 To update version in banner for future releases:
+
 1. Update `VERSION` file
 2. Run: PowerShell script regenerates `wizard_image.bmp` automatically
 3. Rebuild installer
 
 Banner generation is automated and uses:
+
 - `AUT_Logo.png` (root directory)
 - `VERSION` file
 - System.Drawing .NET library

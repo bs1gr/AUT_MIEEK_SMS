@@ -88,6 +88,7 @@ openssl rand -base64 32
 ```
 
 **Requirements:**
+
 - Minimum length: 12 characters (recommend 24+)
 - Include uppercase, lowercase, digits, and special characters
 - Avoid dictionary words or predictable patterns
@@ -96,6 +97,7 @@ openssl rand -base64 32
 ### Secret Management
 
 **DO:**
+
 - ✅ Store passwords in GitHub Secrets or a secret manager
 - ✅ Use environment-specific secrets (dev/staging/prod)
 - ✅ Enable audit logging for secret access
@@ -103,6 +105,7 @@ openssl rand -base64 32
 - ✅ Use separate admin accounts for different environments
 
 **DON'T:**
+
 - ❌ Hardcode passwords in workflow files
 - ❌ Echo passwords in workflow logs
 - ❌ Commit `.env` files with real credentials
@@ -459,11 +462,13 @@ jobs:
 **Symptom:** Application starts but password remains unchanged
 
 **Causes:**
+
 1. `DEFAULT_ADMIN_AUTO_RESET` not set to `True`
 2. Password hash comparison fails silently
 3. Environment file not reloaded
 
 **Solution:**
+
 ```bash
 # Verify environment configuration
 grep "DEFAULT_ADMIN_AUTO_RESET" backend/.env
@@ -483,11 +488,13 @@ docker logs sms-app | grep -i "bootstrap"
 **Symptom:** Old sessions still work after password rotation
 
 **Causes:**
+
 1. Token revocation failed silently
 2. Database transaction rollback
 3. `RefreshToken` model not available
 
 **Solution:**
+
 ```bash
 # Manually revoke all refresh tokens for admin
 docker exec sms-app python3 -c "
@@ -513,6 +520,7 @@ finally:
 **Common Errors:**
 
 **SSH Connection Failed:**
+
 ```yaml
 # Solution: Verify SSH key and host
 - name: Test SSH connection
@@ -524,6 +532,7 @@ finally:
 ```
 
 **Permission Denied:**
+
 ```bash
 # Solution: Ensure deployment user has correct permissions
 sudo chown -R deploy:deploy /opt/student-management-system
@@ -531,6 +540,7 @@ sudo chmod -R 755 /opt/student-management-system
 ```
 
 **Application Won't Start:**
+
 ```bash
 # Check Docker logs
 docker logs sms-app --tail 100
@@ -560,6 +570,7 @@ docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 ### Q: How often should I rotate the admin password?
 
 **A:** Follow your organization's security policy. Common intervals:
+
 - **High Security:** Every 30-60 days
 - **Medium Security:** Every 90 days
 - **Low Security:** Every 180 days
@@ -568,6 +579,7 @@ docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 ### Q: Can I rotate passwords for multiple admin accounts?
 
 **A:** The `DEFAULT_ADMIN_AUTO_RESET` feature only affects the configured `DEFAULT_ADMIN_EMAIL` account. For multiple admins:
+
 1. Create separate workflow runs for each account
 2. Use database scripts to update additional accounts
 3. Consider using a user management API endpoint
@@ -575,6 +587,7 @@ docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 ### Q: What happens to active user sessions during rotation?
 
 **A:**
+
 - **Access tokens** remain valid until expiry (typically 15-60 minutes)
 - **Refresh tokens** are immediately revoked
 - Users must re-authenticate when their access token expires
@@ -585,6 +598,7 @@ docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 **A:** Yes, several options:
 
 **Option 1: Restore from backup**
+
 ```bash
 # The workflow example backs up .env before changes
 cp backend/.env.backup.20251123_020000 backend/.env
@@ -593,6 +607,7 @@ cp backend/.env.backup.20251123_020000 backend/.env
 ```
 
 **Option 2: Set previous password**
+
 ```bash
 # Update .env with previous password
 DEFAULT_ADMIN_PASSWORD=<previous-password>
@@ -604,6 +619,7 @@ DEFAULT_ADMIN_AUTO_RESET=True
 ```
 
 **Option 3: Manual database update**
+
 ```bash
 # Use admin reset script
 python3 scripts/reset_admin_password.py \
@@ -614,6 +630,7 @@ python3 scripts/reset_admin_password.py \
 ### Q: Can I disable auto-reset after rotation?
 
 **A:** Yes, set `DEFAULT_ADMIN_AUTO_RESET=False` after the rotation completes. However, leaving it enabled is recommended for:
+
 - Consistent rotation behavior
 - Emergency credential updates
 - CI/CD pipeline integration
@@ -621,6 +638,7 @@ python3 scripts/reset_admin_password.py \
 ### Q: How do I verify the rotation succeeded?
 
 **A:**
+
 ```bash
 # Test login with new credentials
 curl -X POST http://localhost:8000/api/v1/auth/login \
@@ -637,6 +655,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 ### Q: Can I use this feature without GitHub Actions?
 
 **A:** Absolutely! `DEFAULT_ADMIN_AUTO_RESET` works with:
+
 - Manual `.env` file updates
 - AWS Systems Manager Parameter Store
 - Azure Key Vault
@@ -658,6 +677,7 @@ Simply set the environment variable and restart the application.
 ## Support
 
 For issues or questions:
+
 1. Check application logs: `docker logs sms-app`
 2. Review this guide's troubleshooting section
 3. Open a GitHub issue with:
@@ -669,4 +689,3 @@ For issues or questions:
 
 **Last Updated:** 2025-11-23
 **Version:** 1.8.8
-

@@ -1,20 +1,23 @@
 """
-Quick validation script for first-run DB creation and migrations.
+DEPRECATED: Use backend.db.cli.diagnostics instead.
 
-This creates a fresh SQLite database under data/first_run_test.db,
-sets DATABASE_URL accordingly, runs Alembic migrations programmatically,
-and verifies that the DB file and expected tables exist.
+This module is kept for backward compatibility only. All functionality has been
+moved to backend.db.cli.diagnostics.
 
-Usage:
-  python backend/tools/validate_first_run.py
+Migration guide:
+  OLD: from backend.tools import validate_first_run
+  NEW: from backend.db.cli import validate_first_run
 """
 
-from __future__ import annotations
-
+import sys
 import os
 import sqlite3
-import sys
 from pathlib import Path
+
+# Ensure repository root on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+# Import from new location
 
 
 def main() -> int:

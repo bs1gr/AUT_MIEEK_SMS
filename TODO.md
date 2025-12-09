@@ -332,4 +332,3 @@ Backend coverage goal (≥80%) achieved; focus now on frontend depth & resilienc
 - Legacy phase tracking removed (obsolete after v1.9.x consolidation)
 - Pre-v1.9.1 documentation archived to `archive/pre-v1.9.1/`
 - Completed work retained only as summary; document focuses on actionable backlog
-

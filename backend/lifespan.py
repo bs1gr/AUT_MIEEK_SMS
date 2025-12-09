@@ -3,8 +3,8 @@ import logging
 import os
 import threading
 import time as _time
-from backend.run_migrations import run_migrations
-from backend.admin_bootstrap import ensure_default_admin_account
+from backend.scripts.migrate.runner import run_migrations
+from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.db import SessionLocal
 from backend.config import settings
 

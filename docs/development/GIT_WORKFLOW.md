@@ -74,6 +74,7 @@ git push origin main
 ### Scopes
 
 Common scopes in this project:
+
 - `auth` - Authentication/authorization
 - `api` - Backend API endpoints
 - `ui` - Frontend user interface
@@ -135,7 +136,6 @@ DOCKER.ps1 (production) and NATIVE.ps1 (development).
 
 ## Pre-Commit Automation
 
-
 ### Pre-commit automation — COMMIT_READY.ps1 (Unified)
 
 COMMIT_READY.ps1 is the consolidated pre-commit helper that replaced the older
@@ -171,6 +171,7 @@ Usage examples:
 ```
 
 ### Developer note — DEV_EASE policy
+
 --------------------------------
 
 DEV_EASE is an opt-in flag that is now strictly reserved for local pre-commit operations.
@@ -429,6 +430,7 @@ pwsh -File ./COMMIT_PREP.ps1 -Quick
 ### VS Code Extensions
 
 Recommended extensions:
+
 - GitLens - Enhanced git capabilities
 - Conventional Commits - Commit message helper
 - Git Graph - Visual git history
@@ -450,4 +452,3 @@ Recommended extensions:
 
 **Maintained by**: Development Team
 **Questions?**: Create GitHub issue with `documentation` label
-

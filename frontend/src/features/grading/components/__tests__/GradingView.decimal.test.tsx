@@ -73,7 +73,17 @@ describe('GradingView - Decimal Input', () => {
       config: {} as any,
     });
     vi.mocked(apiModule.enrollmentsAPI.getEnrolledStudents).mockResolvedValue(mockStudents);
-    vi.mocked(apiModule.gradesAPI.create).mockResolvedValue({ data: {}, status: 201, statusText: 'Created', headers: {}, config: {} as any });
+    vi.mocked(apiModule.gradesAPI.create).mockResolvedValue({
+      id: 1,
+      student_id: mockStudents[0].id,
+      course_id: mockCourses[0].id,
+      assignment_name: 'Test Grade',
+      category: 'exam',
+      grade: 15.5,
+      max_grade: 20,
+      weight: 30,
+      date_assigned: new Date().toISOString().split('T')[0],
+    });
   });
 
   it('allows decimal point input in grade field', async () => {

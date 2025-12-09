@@ -165,4 +165,3 @@ Use these for client-side localization and reliable condition handling.
 ---
 
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
-

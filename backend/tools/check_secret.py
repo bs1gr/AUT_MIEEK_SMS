@@ -1,13 +1,22 @@
 """
-Secret guard script used in CI.
+DEPRECATED: Use backend.db.cli.diagnostics instead.
 
-Per maintainer preference, this script prints warnings when the
-`SECRET_KEY` is missing or still the dev placeholder, but does not
-fail CI. The workflow controls whether to treat findings as fatal.
+This module is kept for backward compatibility only. All functionality has been
+moved to backend.db.cli.diagnostics.
+
+Migration guide:
+  OLD: from backend.tools import check_secret
+  NEW: from backend.db.cli import check_secret
 """
 
+import sys
 import os
 
+# Ensure repository root on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+# Import from new location
+# Note: There's no PLACEHOLDER constant in config, using hardcoded default value check
 PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 
@@ -20,7 +29,7 @@ def main() -> int:
     if not secret:
         problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
 
-    if secret == PLACEHOLDER:
+    if secret == PLACEHOLDER or "placeholder" in secret.lower():
         problems.append(
             "SECRET_KEY is set to the development placeholder. Replace it with a secure secret in CI/production."
         )

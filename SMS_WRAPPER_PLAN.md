@@ -2,39 +2,47 @@
 
 ## Purpose
 
-Create a unified entry point for all SMS management scripts to improve UX and 
+Create a unified entry point for all SMS management scripts to improve UX and
 provide centralized help system.
 
 ## Proposed Usage
 
 \\\powershell
+
 # Show help
+
 .\SMS.ps1 -Help
 
 # Docker operations
+
 .\SMS.ps1 -Docker -Install
 .\SMS.ps1 -Docker -Start
 .\SMS.ps1 -Docker -Stop
 
 # Native development
+
 .\SMS.ps1 -Native -Setup
 .\SMS.ps1 -Native -Start
 .\SMS.ps1 -Native -Backend
 
 # Pre-commit quality gates
+
 .\SMS.ps1 -CommitReady -Quick
 .\SMS.ps1 -CommitReady -Full
 
 # Build operations
+
 .\SMS.ps1 -Installer -Build
 .\SMS.ps1 -Installer -Sign
 
 # Version management
+
 .\SMS.ps1 -Version -Check
 .\SMS.ps1 -Version -Update "1.11.0"
 .\SMS.ps1 -Version -Report
 
 # Workspace verification
+
 .\SMS.ps1 -Verify -Workspace
 .\SMS.ps1 -Verify -Health
 \\\

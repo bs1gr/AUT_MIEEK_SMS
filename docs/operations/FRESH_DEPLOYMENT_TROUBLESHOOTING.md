@@ -331,4 +331,3 @@ netstat -ano | findstr ":8080"
 3. If no containers → Run `cd frontend && npm install` then restart
 
 **That fixes 90% of fresh deployment issues.**
-

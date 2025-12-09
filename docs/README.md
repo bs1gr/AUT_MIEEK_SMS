@@ -54,22 +54,25 @@ docs/
 ## 📖 Core Documents
 
 ### Getting Started
+
 - **[../README.md](../README.md)** - Main project README
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - 5-minute quick start
 - **[operations/INSTALLATION_GUIDE.md](operations/INSTALLATION_GUIDE.md)** - Full installation guide
 
 ### Comprehensive Guides
+
 - **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** - Complete user manual
 - **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** - Complete developer guide
 
 ### System Documentation
+
 - **[development/ARCHITECTURE.md](development/ARCHITECTURE.md)** - System architecture
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker operations
 - **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
 
 ## 🔍 Finding What You Need
 
-### I want to...
+### I want to
 
 **Install the system**
 → [operations/INSTALLATION_GUIDE.md](operations/INSTALLATION_GUIDE.md)
@@ -95,6 +98,7 @@ docs/
 ## 🌍 Internationalization
 
 Greek documentation is available:
+
 - **[user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start
 - **[user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user guide
 
@@ -111,6 +115,7 @@ For a complete catalog of all documentation, see:
 ## 📝 Contributing
 
 When contributing documentation:
+
 1. Place files in the appropriate directory
 2. Update relevant INDEX.md files
 3. Update [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
@@ -119,4 +124,3 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
-

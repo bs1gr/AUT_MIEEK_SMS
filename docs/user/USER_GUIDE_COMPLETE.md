@@ -1064,18 +1064,22 @@ Note about automated admin password rotation:
    ```
 
    Notes:
+
 - Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
 - The flag defaults to false to avoid unexpected changes in production.
 - When password rotation is in your CI/CD, prefer to perform a single atomic rollout
      so the new credential takes effect across all app instances consistently.
 
 ## Database
+
 DATABASE_ENGINE=sqlite
 DATABASE_URL=sqlite:///./data/student_management.db
 
 ## Performance
+
 ENABLE_CACHING=true
 CACHE_TTL=300
+
 ```
 
 ### Performance Settings
@@ -1138,6 +1142,7 @@ CACHE_TTL=300
    ```
 
 2. If not running, start it:
+
    ```powershell
    .\DOCKER.ps1 -Start
    ```
@@ -1161,9 +1166,13 @@ CACHE_TTL=300
 - Password: `YourSecurePassword123!`
 
 2. Check if AUTH_MODE is causing issues:
+
    ```powershell
+
 # Temporary: Set AUTH_MODE=disabled for emergency access
+
 # Edit backend/.env, restart
+
    ```
 
 3. Reset password using admin unlock endpoint
@@ -1184,6 +1193,7 @@ CACHE_TTL=300
    ```
 
 3. Restart application:
+
    ```powershell
    .\DOCKER.ps1 -Stop
    .\DOCKER.ps1 -Start
@@ -1244,15 +1254,20 @@ CACHE_TTL=300
 2. Verify permissions on `backups/` directory
 
 3. Check database is not locked:
+
    ```powershell
    .\DOCKER.ps1 -Stop
    .\DOCKER.ps1 -Start
    ```
 
 4. Try manual backup:
+
    ```powershell
+
 # Docker mode
+
    docker exec <container> sqlite3 /data/student_management.db ".backup /data/manual_backup.db"
+
    ```
 
 ### Getting Help

@@ -45,6 +45,7 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 ### 1. ci-cd-pipeline.yml (Main Pipeline)
 
 **Trigger Events:**
+
 - Push to `main` branch
 - Pull requests to `main`
 - Git tags matching `v*.*.*`
@@ -55,6 +56,7 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 **Stages:**
 
 #### Stage 1: Version Verification
+
 ```yaml
 version-verification:
   - Validates VERSION file consistency across codebase
@@ -64,11 +66,13 @@ version-verification:
 ```
 
 **Exit Codes:**
+
 - `0`: All versions consistent ✅
 - `1`: Critical failures (blocks pipeline) ❌
 - `2`: Inconsistencies found (blocks pipeline) ⚠️
 
 #### Stage 2: Linting & Code Quality
+
 ```yaml
 lint-backend:
   - Ruff linter (PEP 8 compliance)
@@ -81,6 +85,7 @@ lint-frontend:
 ```
 
 #### Stage 3: Automated Testing
+
 ```yaml
 test-backend:
   - Pytest with coverage
@@ -99,6 +104,7 @@ smoke-tests:
 ```
 
 #### Stage 4: Build & Package
+
 ```yaml
 build-frontend:
   - Production React build
@@ -114,12 +120,14 @@ build-docker-images:
 ```
 
 **Docker Image Tags:**
+
 - `latest` - Latest main branch
 - `vX.Y.Z` - Semantic version from VERSION file
 - `<branch>-<sha>` - Branch-specific builds
 - `vX.Y` - Major.minor version
 
 #### Stage 5: Security Scanning
+
 ```yaml
 security-scan-backend:
   - Safety (dependency vulnerabilities)
@@ -134,6 +142,7 @@ security-scan-docker:
 ```
 
 #### Stage 6: Documentation Validation
+
 ```yaml
 cleanup-and-docs:
   - Check for TODO/FIXME items
@@ -143,6 +152,7 @@ cleanup-and-docs:
 ```
 
 #### Stage 7: Staging Deployment
+
 ```yaml
 deploy-staging:
   - Triggers: Push to main branch
@@ -153,6 +163,7 @@ deploy-staging:
 ```
 
 #### Stage 8: Production Deployment
+
 ```yaml
 deploy-production:
   - Triggers: Git tags (v*.*.*)
@@ -164,6 +175,7 @@ deploy-production:
 ```
 
 #### Stage 9: Release Management
+
 ```yaml
 create-release:
   - Generates release notes
@@ -173,6 +185,7 @@ create-release:
 ```
 
 #### Stage 10: Monitoring
+
 ```yaml
 post-deployment-monitoring:
   - 5-minute health monitoring
@@ -185,6 +198,7 @@ post-deployment-monitoring:
 ### 2. quickstart-validation.yml (Fast Pre-Commit)
 
 **Trigger Events:**
+
 - Push to any branch except `main`
 - Pull requests to `main`
 
@@ -193,6 +207,7 @@ post-deployment-monitoring:
 **Purpose:** Rapid feedback loop for developers
 
 **Checks:**
+
 - Version consistency (non-blocking)
 - Quick backend lint (Ruff only)
 - Backend tests (fail-fast)
@@ -218,6 +233,7 @@ The pipeline integrates with the automated version management system:
 ```
 
 **Automatic Version Extraction:**
+
 ```yaml
 - name: Extract version from VERSION file
   id: version
@@ -227,6 +243,7 @@ The pipeline integrates with the automated version management system:
 ```
 
 This version is used for:
+
 - Docker image tagging
 - Release creation
 - Deployment metadata
@@ -249,18 +266,21 @@ This version is used for:
 ## Artifacts Generated
 
 ### Test Results
+
 - `backend-test-results/` - Pytest HTML/JSON reports
 - `frontend-test-results/` - Vitest coverage
 - `backend-security-reports/` - Bandit findings
 - `frontend-security-reports/` - npm audit results
 
 ### Build Artifacts
+
 - `frontend-dist/` - Production React bundle
 - `frontend-build-stats/` - Vite build statistics
 - `version-verification-report/` - Version consistency analysis
 - `documentation-index/` - Generated docs index
 
 ### Release Assets
+
 All artifacts are automatically attached to GitHub Releases.
 
 ---
@@ -270,15 +290,18 @@ All artifacts are automatically attached to GitHub Releases.
 ### Required Secrets
 
 #### For Docker Registry (GitHub Container Registry)
+
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 #### For Deployments (Optional - customize based on your infrastructure)
+
 - `PROD_USER` - Production server SSH user
 - `PROD_HOST` - Production server hostname
 - `STAGING_USER` - Staging server SSH user
 - `STAGING_HOST` - Staging server hostname
 
 #### For External Integrations (Optional)
+
 - `CODECOV_TOKEN` - Codecov integration
 - `SLACK_WEBHOOK` - Slack notifications
 - `TEAMS_WEBHOOK` - Microsoft Teams notifications
@@ -288,10 +311,12 @@ All artifacts are automatically attached to GitHub Releases.
 Configure in GitHub Settings → Environments:
 
 **staging:**
+
 - Auto-deployment on main branch push
 - No manual approval required
 
 **production:**
+
 - Deployment on tags only
 - Require manual approval from team leads
 - Restrict to protected branches
@@ -439,11 +464,13 @@ gh run view <run-id> --log-failed
 ### Common Issues
 
 #### Version Verification Fails
+
 ```
 ❌ Version inconsistencies detected
 ```
 
 **Solution:**
+
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Update
 git add -A
@@ -451,21 +478,25 @@ git commit -m "fix: update version references"
 ```
 
 #### Docker Build Fails
+
 ```
 ERROR: failed to solve: failed to push
 ```
 
 **Solution:**
+
 - Check GITHUB_TOKEN permissions
 - Verify repository has Packages enabled
 - Ensure GitHub Container Registry is accessible
 
 #### Tests Timeout
+
 ```
 Error: The operation was canceled.
 ```
 
 **Solution:**
+
 - Increase timeout in workflow YAML
 - Optimize slow tests
 - Check for database lock issues
@@ -477,6 +508,7 @@ Error: The operation was canceled.
 ### Pipeline Speed Improvements
 
 1. **Cache Dependencies**
+
    ```yaml
    - uses: actions/cache@v3
      with:
@@ -490,6 +522,7 @@ Error: The operation was canceled.
    - Independent stages have no `needs:` dependencies
 
 3. **Docker Layer Caching**
+
    ```yaml
    cache-from: type=gha
    cache-to: type=gha,mode=max
@@ -507,18 +540,21 @@ Error: The operation was canceled.
 ## Compliance & Audit
 
 ### Audit Trail
+
 - All deployments logged in GitHub Actions
 - Version history tracked in Git tags
 - Release notes generated automatically
 - Test results retained for 30 days
 
 ### Security Scanning
+
 - Dependency vulnerabilities (Safety, npm audit)
 - Code security issues (Bandit)
 - Container vulnerabilities (Trivy)
 - Results uploaded to GitHub Security tab
 
 ### Documentation
+
 - Version verification reports
 - Test coverage reports
 - Build statistics
@@ -554,4 +590,3 @@ Error: The operation was canceled.
 **Last Updated:** 2025-11-24  
 **Maintained By:** SMS Development Team  
 **Pipeline Version:** 1.0.0
-

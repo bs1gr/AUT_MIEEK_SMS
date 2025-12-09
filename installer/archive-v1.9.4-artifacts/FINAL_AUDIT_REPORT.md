@@ -44,7 +44,7 @@ All cached elements have been resolved. The installer is fully updated with the 
 - **Country:** Cyprus (CY) ✅
 - **Built for:** ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
 - **Developer:** Teacher at ΜΙΕΕΚ
-- **ΜΙΕΕΚ Website:** https://www.mieek.ac.cy/index.php/el/
+- **ΜΙΕΕΚ Website:** <https://www.mieek.ac.cy/index.php/el/>
 
 ---
 
@@ -76,6 +76,7 @@ The installer now includes **enhanced cleanup logic** (lines 630-645 in `SMS_Ins
 ## 📋 Version Control Verification
 
 ### Timestamp Comparison
+
 | File | Modified Time | Status |
 |------|---------------|--------|
 | `SMS_Installer.iss` | 15:40:29 | ✅ Source script |

@@ -147,7 +147,7 @@ def main() -> int:
         try:
             logger.info("Starting auto-import script in background...")
             subprocess.Popen(
-                ["python", "-u", "-m", "backend.auto_import_courses"],
+                ["python", "-u", "-m", "backend.scripts.import_.courses"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )

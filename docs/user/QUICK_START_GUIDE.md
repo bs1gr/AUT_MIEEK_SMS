@@ -231,8 +231,10 @@ Optional: run with `-DevEase` to enable a permissive local dev mode that relaxes
 ```powershell
 .\NATIVE.ps1 -Start -DevEase
 ```
-5. Open browser to http://localhost:5173
+
+5. Open browser to <http://localhost:5173>
 6. Hot reload enabled for development
+
 ```
 
 ---
