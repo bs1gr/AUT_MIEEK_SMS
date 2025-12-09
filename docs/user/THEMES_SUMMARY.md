@@ -251,7 +251,7 @@ Potential additions:
 
 ---
 
-## Try It Now!
+## Try It Now
 
 1. Navigate to **Control Panel → Operations**
 2. Click the **Theme** button

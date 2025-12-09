@@ -115,4 +115,3 @@ flowchart LR
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
-

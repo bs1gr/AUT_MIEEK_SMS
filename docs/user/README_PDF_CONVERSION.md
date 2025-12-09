@@ -11,7 +11,7 @@ This directory contains comprehensive user guides in Markdown format that need t
 
 ### Method 1: Using Pandoc (Recommended)
 
-Install Pandoc: https://pandoc.org/installing.html
+Install Pandoc: <https://pandoc.org/installing.html>
 
 ```bash
 # English PDF
@@ -29,8 +29,8 @@ pandoc SMS_USER_GUIDE_EL.md -o ../SMS_User_Guide_EL.pdf --pdf-engine=xelatex -V 
    - Press `Ctrl+Shift+P` → "Markdown PDF: Export (pdf)"
 
 2. **Online Converters**
-   - https://www.markdowntopdf.com/
-   - https://md2pdf.netlify.app/
+   - <https://www.markdowntopdf.com/>
+   - <https://md2pdf.netlify.app/>
    - Upload the .md file and download the PDF
 
 ### Method 3: Using GitHub Actions (Automated)
@@ -85,10 +85,12 @@ jobs:
 ## Output Location
 
 PDFs should be placed in:
+
 - `frontend/public/docs/SMS_User_Guide_EN.pdf`
 - `frontend/public/docs/SMS_User_Guide_EL.pdf`
 
 This makes them accessible at:
+
 - `<http://localhost:8080/docs/SMS_User_Guide_EN.pdf>`
 - `<http://localhost:8080/docs/SMS_User_Guide_EL.pdf>`
 
@@ -171,6 +173,7 @@ If automated conversion is not available:
 ## Verification
 
 After conversion, verify:
+
 - [ ] Table of contents is generated correctly
 - [ ] All headings are properly formatted
 - [ ] Code blocks are readable

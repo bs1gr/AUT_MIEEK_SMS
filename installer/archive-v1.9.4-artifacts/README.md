@@ -6,9 +6,11 @@
 ## Contents
 
 ### Installer Executables
+
 - `SMS_Installer_1.9.3.exe` - Old installer executable (superseded by v1.9.7)
 
 ### Documentation
+
 - `FINAL_AUDIT_REPORT.md` - Final audit report for v1.9.4 installer
 - `GREEK_LOCALIZATION_v1.9.4.md` - Greek localization improvements (v1.9.4)
 - `INSTALLER_AUDIT_REPORT.md` - Installer audit report (v1.9.4)
@@ -24,6 +26,7 @@ These artifacts are from v1.9.3/v1.9.4 development cycles and are no longer curr
 ## Current Installer
 
 For current installer information, see:
+
 - `installer/SMS_Installer.iss` - Current Inno Setup script (v1.9.7)
 - `installer/INSTALLER_UPDATE_v1.9.7.md` - Latest installer changes
 - `installer/README.md` - Current installer documentation
@@ -36,6 +39,7 @@ For current installer information, see:
 ```
 
 Current installer uses:
+
 - Version: 1.9.7
 - Code signing: AUT_MIEEK_CodeSign.pfx
 - Bilingual support: EN/EL

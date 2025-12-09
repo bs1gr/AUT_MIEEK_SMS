@@ -1,30 +1,59 @@
 # Documentation Index
 
-**Last Updated:** December 6, 2025 (v1.10.1)  
+> **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
+
+**Last Updated:** December 9, 2025 (v1.10.1)  
 **Version:** 1.10.1  
-**Status:** Production Ready
+**Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
+
+## 🚀 Quick Start
+
+**New to SMS?** Start here:
+
+1. Read `../START_HERE.md` (5 minutes)
+2. Visit `docs/DOCUMENTATION_INDEX.md` for complete navigation
+3. Choose your role below for specialized guides
+
+**Returning developer?** Go straight to: `docs/DOCUMENTATION_INDEX.md`
 
 ---
 
-## Quick Navigation
+## 📍 Main Documentation Index
+
+**The canonical documentation hub is at:** [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md)
+
+All documentation is organized under `docs/` into four main categories:
+
+- **[docs/user/](docs/user/)** - User guides, quick starts, and how-tos
+- **[docs/development/](docs/development/)** - Technical docs, architecture, APIs
+- **[docs/deployment/](docs/deployment/)** - Operations, deployment, troubleshooting
+- **[docs/reference/](docs/reference/)** - Quick reference guides (scripts, security, Docker)
+
+---
+
+## 🎯 Quick Navigation
 
 ### For Quick Start
+
 - **First time?** → Read `START_HERE.md` (5 minutes)
 - **Need the overview?** → Read `README.md` (comprehensive guide)
 - **Want to deploy?** → Read `DEPLOYMENT_READINESS.md` (pre-deployment checklist)
 
 ### For Development & Architecture
+
 - **System architecture?** → `docs/development/ARCHITECTURE.md`
 - **Security details?** → `docs/SECURITY_GUIDE_COMPLETE.md`
 - **Git workflow?** → `docs/development/GIT_WORKFLOW.md`
 - **API reference?** → `backend/CONTROL_API.md`
 
 ### For Audits & Reports
+
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
 - **Release notes?** → `CHANGELOG.md` or `INSTALLER_RELEASE_NOTES_v1.10.1.md`
 
 ### For Operations
+
 - **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
 - **Production setup?** → `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
@@ -169,6 +198,7 @@ Located in `docs/reference/`:
 ## File Organization
 
 ### Root Level
+
 ```
 ├── START_HERE.md                  (5-minute start)
 ├── README.md                      (comprehensive overview)
@@ -182,6 +212,7 @@ Located in `docs/reference/`:
 ```
 
 ### Backend
+
 ```
 backend/
 ├── main.py                        (entry point)
@@ -195,6 +226,7 @@ backend/
 ```
 
 ### Frontend
+
 ```
 frontend/
 ├── src/
@@ -210,6 +242,7 @@ frontend/
 ```
 
 ### Documentation
+
 ```
 docs/
 ├── development/                   (development guides)
@@ -221,6 +254,7 @@ docs/
 ```
 
 ### Archive
+
 ```
 archive/
 ├── pre-v1.10.1/                    (legacy content)
@@ -236,18 +270,21 @@ archive/
 ## Key Statistics
 
 ### Documentation
+
 - **Total files:** 50+ guides
 - **Total pages:** Comprehensive coverage
 - **Translations:** English + Greek (select files)
 - **Updated:** December 5, 2025
 
 ### Codebase
+
 - **Backend:** FastAPI + SQLAlchemy
 - **Frontend:** React 19.2.0 + TypeScript + Vite
 - **Tests:** 360+ backend tests (100% passing)
 - **Code quality:** 10/10 (Production Ready)
 
 ### Version
+
 - **Current:** 1.9.8
 - **Status:** Production Ready
 - **Release Date:** December 4, 2025
@@ -283,12 +320,14 @@ archive/
 ## Documentation Updates
 
 ### December 5, 2025 (v1.10.1)
+
 - ✅ Archived obsolete documentation (17 files)
 - ✅ Updated main documentation index
 - ✅ Created comprehensive audit reports
 - ✅ Consolidated documentation structure
 
 ### Previous Updates
+
 - See `CHANGELOG.md` for complete version history
 - See `archive/pre-v1.10.1/CHANGELOG_ARCHIVE.md` for legacy history
 

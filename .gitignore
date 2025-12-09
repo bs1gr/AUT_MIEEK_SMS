@@ -150,3 +150,9 @@ SMS-Docker-Image-*.tar
 # Code signing private key
 *.pfx
 AUT_MIEEK_CodeSign.pfx
+
+# Test artifacts & reporting
+frontend/test-results/
+frontend/playwright-report/
+.last-run.json
+

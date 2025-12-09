@@ -39,6 +39,7 @@
 ## 📝 CRITICAL RULES (MANDATORY)
 
 ### Rule 1: i18n for ALL Visible Text
+
 ```tsx
 // ✅ ALWAYS do this
 const { t } = useTranslation();
@@ -49,6 +50,7 @@ return <h1>Students</h1>;
 ```
 
 ### Rule 2: Auth Respects AUTH_MODE
+
 ```tsx
 // ✅ Use optional_require_role
 @router.get("/admin/users")
@@ -62,6 +64,7 @@ async def list_users(current_admin: Any = Depends(require_role("admin"))):
 ```
 
 ### Rule 3: Validation on Both Sides
+
 ```tsx
 // Frontend: Client-side UX
 const [errors, setErrors] = useState({});
@@ -72,6 +75,7 @@ Pydantic validators always run
 ```
 
 ### Rule 4: React Query Cache Invalidation
+
 ```tsx
 // ✅ After mutation, always invalidate
 onSuccess: () => {
@@ -85,6 +89,7 @@ onSuccess: () => {
 ```
 
 ### Rule 5: Error Boundaries Everywhere
+
 ```tsx
 // ✅ Wrap pages with error boundary
 <SectionErrorBoundary section="StudentsPage">
@@ -99,6 +104,7 @@ onSuccess: () => {
 ## 🎯 PATTERNS & EXAMPLES
 
 ### Pattern 1: Server State (React Query)
+
 ```typescript
 // Fetch with cache
 const { data: students, isLoading, error } = useStudents(filters);
@@ -113,6 +119,7 @@ const mutation = useMutation({
 ```
 
 ### Pattern 2: Client State (Zustand)
+
 ```typescript
 // Select from store
 const students = useStudentsStore((state) => state.students);
@@ -123,6 +130,7 @@ selectStudent(student);  // Triggers re-render
 ```
 
 ### Pattern 3: Modal Management
+
 ```typescript
 const addModal = useModal();
 
@@ -133,6 +141,7 @@ const addModal = useModal();
 ```
 
 ### Pattern 4: Form Validation
+
 ```typescript
 const validate = () => {
   const newErrors = {};
@@ -145,6 +154,7 @@ const validate = () => {
 ```
 
 ### Pattern 5: Toast Notifications
+
 ```typescript
 const { toast, show } = useToast();
 
@@ -191,6 +201,7 @@ When creating a new component:
 ## 🚀 TOP 5 QUICK WINS
 
 1. **Add React.memo to Row Components (15 min)**
+
    ```tsx
    export const StudentRow = React.memo(({ student, onEdit }) => (
      <tr>...</tr>
@@ -198,24 +209,28 @@ When creating a new component:
    ```
 
 2. **Implement Skeleton Loading (20 min)**
+
    ```tsx
    {isLoading && <StudentRowSkeleton />}
    {data && <StudentRow student={data} />}
    ```
 
 3. **Add useRateLimit to Forms (10 min)**
+
    ```tsx
    const { isRateLimited, call } = useRateLimit(500);
    <button disabled={isRateLimited} onClick={handleSubmit}>
    ```
 
 4. **Enable Virtual Scrolling (10 min)**
+
    ```tsx
    const { visibleItems } = useVirtualScroll(items, { itemHeight: 48 });
    {visibleItems.map(item => <Row key={item.id} {...item} />)}
    ```
 
 5. **Add Error Retry Button (10 min)**
+
    ```tsx
    {error && (
      <ErrorNotification 
@@ -263,6 +278,7 @@ When creating a new component:
 ## 🎨 TAILWIND CLASS REFERENCE
 
 ### Common Patterns
+
 ```tsx
 // Spacing
 <div className="p-4 m-2">              {/* Padding 4, Margin 2 */}
@@ -423,6 +439,7 @@ npm update --save        # Update packages
 ## 💡 TIPS & TRICKS
 
 ### Tip 1: Quick API Testing
+
 ```bash
 # Test API locally
 curl http://localhost:8000/api/v1/students/ \
@@ -430,11 +447,13 @@ curl http://localhost:8000/api/v1/students/ \
 ```
 
 ### Tip 2: Redux DevTools Chrome Extension
+
 - Inspect React Query cache
 - Time travel debugging
 - Replay mutations
 
 ### Tip 3: Measure Component Render Time
+
 ```typescript
 import { Profiler } from 'react';
 
@@ -444,12 +463,14 @@ import { Profiler } from 'react';
 ```
 
 ### Tip 4: Network Tab Inspection
+
 - Sort by size (find bloat)
 - Filter by status (find 404s)
 - Check cache headers
 - Monitor XHR calls
 
 ### Tip 5: Lighthouse Audit
+
 ```bash
 # In Chrome DevTools
 Ctrl+Shift+J → Lighthouse Tab
@@ -474,4 +495,3 @@ Print or bookmark this reference for quick lookup during development.
 
 *Last Updated: December 4, 2025*  
 *Frontend $11.9.7 - Modern React Architecture*
-

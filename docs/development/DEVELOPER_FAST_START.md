@@ -42,6 +42,7 @@ POSIX (macOS / Linux)
 ```bash
 ./scripts/install-git-hooks.sh
 ```
+
 ```
 
 1. Run tests locally

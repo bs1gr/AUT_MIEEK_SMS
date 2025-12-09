@@ -1,6 +1,5 @@
 # Environment variables (runtime configuration)
 
-
 This document lists the important environment variables used by the backend and their recommended usage for development, CI and production.
 
 DISABLE_STARTUP_TASKS

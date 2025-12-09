@@ -30,11 +30,13 @@ This directory contains the Inno Setup installer configuration and code signing 
 This installer is for a **Student Management System** built for teachers at:
 
 **ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης**
-- Official Website: https://www.mieek.ac.cy/index.php/el/
+
+- Official Website: <https://www.mieek.ac.cy/index.php/el/>
 - Location: Limassol, Cyprus
 
 **Developer:** Independent teacher at ΜΙΕΕΚ
-- GitHub Repository: https://github.com/bs1gr/AUT_MIEEK_SMS
+
+- GitHub Repository: <https://github.com/bs1gr/AUT_MIEEK_SMS>
 
 ## Files
 
@@ -53,23 +55,26 @@ This installer is for a **Student Management System** built for teachers at:
 ## Building the Installer
 
 1. **Build the installer:**
+
    ```powershell
    & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\SMS_Installer.iss"
    ```
 
 2. **Sign the installer:**
+
    ```powershell
    .\installer\SIGN_INSTALLER.ps1
    ```
 
    Or manually:
+
    ```powershell
    signtool sign /f "installer\AUT_MIEEK_CodeSign.pfx" /p "SMSCodeSign2025!" /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "Student Management System" "dist\SMS_Installer_X.X.X.exe"
    ```
 
 ## Code Signing Certificate
 
-The installer is signed with a self-signed certificate for "AUT MIEEK". 
+The installer is signed with a self-signed certificate for "AUT MIEEK".
 
 ### For End Users
 
@@ -80,6 +85,7 @@ To trust the installer and avoid "Unknown publisher" warnings, run as Administra
 ```
 
 Or manually:
+
 ```powershell
 certutil -addstore Root "installer\AUT_MIEEK_CodeSign.cer"
 certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
@@ -100,6 +106,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 ## Installer Features
 
 **Core Features:**
+
 - ✅ Bilingual: English and Greek (ISO-compliant translations)
 - ✅ Detects existing installations and offers upgrade vs fresh install
 - ✅ Creates desktop shortcut: Student Management System
@@ -107,6 +114,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 - ✅ Preserves user data during upgrades/uninstall (optional)
 
 **Upgrade Intelligence (v1.9.7+):**
+
 - Detects previous version and offers:
   - **Update/Overwrite:** Keep data, install over existing
   - **Fresh Install:** Remove previous installation completely
@@ -116,6 +124,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 - Restores `.env` files from backup after upgrade
 
 **Data Preservation:**
+
 - Database (`data/` folder)
 - Backups (`backups/` folder)
 - Logs (`logs/` folder)
@@ -123,6 +132,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 - User can choose to keep or delete on uninstall
 
 **Dependency Handling:**
+
 - Frontend dependencies: Installed during Docker build (`npm ci`)
 - Backend dependencies: Installed during Docker build (`pip install`)
 - No `node_modules` or `__pycache__` in installer package
@@ -131,6 +141,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 ## Output
 
 The built installer will be placed in:
+
 ```
 dist\SMS_Installer_1.9.7.exe
 ```
@@ -138,16 +149,21 @@ dist\SMS_Installer_1.9.7.exe
 ## Important Notes for v1.9.7
 
 ### Circular Dependency Fix
+
 Version 1.9.7 fixed a critical bug where `frontend/package.json` contained:
+
 ```json
 "sms-monorepo": "file:.."
 ```
+
 This caused infinite symlink recursion (17x depth) in `node_modules/`. **The dependency has been removed.**
 
 ### Uninstaller Behavior
+
 The uninstaller is renamed to include version: `Uninstall_SMS_1.9.7.exe`
 
 **During Uninstall:**
+
 1. Stops Docker container (`docker stop sms-app`)
 2. Removes container (`docker rm sms-app`)
 3. Asks user: "Delete all user data?"
@@ -157,13 +173,16 @@ The uninstaller is renamed to include version: `Uninstall_SMS_1.9.7.exe`
 5. Removes empty directories
 
 **Preserved on "NO":**
+
 - Database: `{app}\data\student_management.db`
 - Backups: `{app}\backups\*.db.backup`
 - Logs: `{app}\logs\*.log`
 - Config: `{app}\backend\.env`, `{app}\frontend\.env`
 
 ### Upgrade Path Testing
+
 When upgrading from previous versions:
+
 1. Installer detects existing installation
 2. Shows version comparison dialog
 3. If "Update" chosen:
@@ -174,6 +193,7 @@ When upgrading from previous versions:
 4. First launch rebuilds Docker image with fixed `package.json`
 
 ### Testing Checklist
+
 - [ ] Fresh install on clean system
 - [ ] Upgrade from v1.9.6 with data preservation
 - [ ] Upgrade from v1.9.6 with fresh install

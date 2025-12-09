@@ -11,6 +11,7 @@ This document explains how SMS handles Docker image versioning, caching, and ens
 **Issue Discovered**: Container was running old image (`sms-fullstack:1.7.0`) while new image was built as `sms-fullstack:1.7.3`. The VERSION file said `1.7.0`, so `RUN.ps1` correctly started the 1.7.0 container, but the developer had built 1.7.3 expecting it to be used.
 
 **Root Cause**: Mismatch between:
+
 - Manual builds: `docker build -t sms-fullstack:1.7.3 ...`
 - Deployment scripts: Use `$IMAGE_TAG = "sms-fullstack:${VERSION}"` where VERSION file contains `1.7.0`
 
@@ -19,6 +20,7 @@ This document explains how SMS handles Docker image versioning, caching, and ens
 ### Version Source of Truth
 
 **Single Source**: `VERSION` file at repository root
+
 ```text
 VERSION file contains: 1.7.0
 ↓
@@ -57,11 +59,13 @@ Volume name: sms_data
 **Format**: `sms-fullstack:${VERSION}`
 
 **Examples**:
+
 - Production: `sms-fullstack:1.7.0`
 - Development: `sms-fullstack:1.7.1-dev`
 - Testing: `sms-fullstack:1.7.0-rc1`
 
 **DO NOT**:
+
 - Use `latest` in production (loses version tracking)
 - Manually specify versions in scripts (use VERSION file)
 - Mix version numbers (one tag per semantic version)
@@ -71,11 +75,13 @@ Volume name: sms_data
 ### Docker Layer Caching
 
 **Normal Build** (uses cache):
+
 ```powershell
 docker build -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 ```
 
 **Force Rebuild** (no cache):
+
 ```powershell
 docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 ```
@@ -83,24 +89,28 @@ docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 ### When to Force Rebuild
 
 Use `--no-cache` when:
+
 1. Dependencies changed significantly
 2. Base image updated (security patches)
 3. Debugging build issues
 4. After modifying Dockerfile significantly
 
 **Commands**:
+
 - `.\RUN.ps1 -UpdateNoCache` - Update with full rebuild
 - `.\SMART_SETUP.ps1 -Force` - Setup with cache invalidation
 
 ### Cache Invalidation Triggers
 
 Docker automatically invalidates cache when:
+
 1. **Dockerfile changes** - Any modification to build steps
 2. **Context files change** - Files being COPY'd are different
 3. **Base image updated** - FROM image has new version
 4. **Build args change** - Different ARG values
 
 Docker KEEPS cache when:
+
 1. Files not in COPY commands change (e.g., docs, tests)
 2. Comments in Dockerfile change
 3. Whitespace-only changes
@@ -112,12 +122,14 @@ Docker KEEPS cache when:
 When starting the application, RUN.ps1 now:
 
 1. **Checks running container's image**:
+
 ```powershell
 $containerImage = docker inspect sms-app --format '{{.Config.Image}}'
 # Returns: sms-fullstack:1.7.0
 ```
 
 2. **Compares with expected version**:
+
 ```powershell
 $IMAGE_TAG = "sms-fullstack:${VERSION}"  # e.g., sms-fullstack:1.7.0
 if ($containerImage -ne $IMAGE_TAG) {
@@ -127,6 +139,7 @@ if ($containerImage -ne $IMAGE_TAG) {
 ```
 
 3. **Auto-corrects version mismatch**:
+
 - Stops old container
 - Removes old container
 - Starts new container with correct image
@@ -151,6 +164,7 @@ if ($imageCheck) {
 **Problem**: Testing changes without affecting production image.
 
 **Solution**: Temporary version bump
+
 ```powershell
 # 1. Update VERSION file temporarily
 "1.7.1-dev" | Set-Content VERSION
@@ -169,6 +183,7 @@ git checkout VERSION  # or git add VERSION && git commit
 **Problem**: Deploying new version to production.
 
 **Steps**:
+
 ```powershell
 # 1. Update VERSION file
 "1.7.1" | Set-Content VERSION
@@ -190,6 +205,7 @@ docker inspect sms-app --format '{{.Config.Image}}'
 **Problem**: Need to force complete rebuild due to corrupted cache.
 
 **Solution**:
+
 ```powershell
 # Option 1: Using RUN.ps1
 .\RUN.ps1 -UpdateNoCache
@@ -210,6 +226,7 @@ docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 **Problem**: Need to test different versions side-by-side.
 
 **Solution**: Use different container names
+
 ```powershell
 # Version 1.7.0 (production)
 docker run -d --name sms-app-prod -p 8080:8000 sms-fullstack:1.7.0
@@ -227,6 +244,7 @@ curl http://localhost:8081/health  # Testing
 ### Issue: "Container running old image"
 
 **Symptom**:
+
 ```text
 WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-fullstack:1.7.1)
 ```
@@ -234,6 +252,7 @@ WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-full
 **Cause**: VERSION file was updated but container wasn't restarted.
 
 **Fix**: Script auto-restarts, or manually:
+
 ```powershell
 .\RUN.ps1 -Stop
 .\RUN.ps1
@@ -242,6 +261,7 @@ WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-full
 ### Issue: "Image not found"
 
 **Symptom**:
+
 ```text
 Error response from daemon: No such image: sms-fullstack:1.7.1
 ```
@@ -249,6 +269,7 @@ Error response from daemon: No such image: sms-fullstack:1.7.1
 **Cause**: Image hasn't been built yet.
 
 **Fix**:
+
 ```powershell
 .\SMART_SETUP.ps1
 # or
@@ -262,6 +283,7 @@ docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
 **Cause**: Docker used cached layers.
 
 **Fix**: Force rebuild
+
 ```powershell
 .\RUN.ps1 -UpdateNoCache
 ```
@@ -269,6 +291,7 @@ docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
 ### Issue: "Multiple images with same tag"
 
 **Symptom**:
+
 ```powershell
 docker images | grep sms-fullstack
 sms-fullstack    1.7.0    abc123def456    2 days ago    500MB
@@ -278,6 +301,7 @@ sms-fullstack    1.7.0    789ghi012jkl    5 minutes ago  502MB
 **Cause**: Built new image without removing old one with same tag.
 
 **Fix**: Clean up dangling images
+
 ```powershell
 docker image prune -f
 # or remove specific image by ID
@@ -289,6 +313,7 @@ docker rmi 789ghi012jkl
 ### For Developers
 
 1. **Always check VERSION file** before building
+
    ```powershell
    Get-Content VERSION
    ```
@@ -298,11 +323,13 @@ docker rmi 789ghi012jkl
    - ❌ `docker build ... && docker run ...`
 
 3. **Verify running version after deployment**
+
    ```powershell
    docker inspect sms-app --format '{{.Config.Image}}'
    ```
 
 4. **Commit VERSION changes**
+
    ```powershell
    git add VERSION
    git commit -m "chore: bump version to X.Y.Z"
@@ -311,6 +338,7 @@ docker rmi 789ghi012jkl
 ### For CI/CD
 
 1. **Read version from VERSION file**
+
    ```yaml
    - name: Get version
      run: |
@@ -319,6 +347,7 @@ docker rmi 789ghi012jkl
    ```
 
 2. **Tag images consistently**
+
    ```yaml
    - name: Build
      run: docker build -t ${{ env.IMAGE_TAG }} .
@@ -328,6 +357,7 @@ docker rmi 789ghi012jkl
    ```
 
 3. **Verify deployment**
+
    ```yaml
    - name: Verify
      run: |
@@ -343,12 +373,14 @@ docker rmi 789ghi012jkl
    - PATCH: Bug fixes
 
 2. **Tag releases in Git**
+
    ```powershell
    git tag -a $11.9.7 -m "Release version 1.7.0"
    git push origin $11.9.7
    ```
 
 3. **Keep VERSION file and Git tags in sync**
+
    ```powershell
    $version = Get-Content VERSION
    git tag | Select-String $version
@@ -360,23 +392,28 @@ docker rmi 789ghi012jkl
 ## Configuration Files
 
 ### VERSION File
+
 ```text
 1.7.0
 ```
+
 - Plain text, single line
 - Semantic version format
 - No prefix (no 'v')
 - No trailing newlines/spaces (use `.Trim()` when reading)
 
 ### .env File (Root)
+
 ```text
 VERSION=1.7.0
 ```
+
 - Auto-synced by SMART_SETUP.ps1
 - Used by docker-compose.yml
 - Should match VERSION file
 
 ### docker-compose.yml
+
 ```yaml
 services:
   backend:
@@ -384,6 +421,7 @@ services:
   frontend:
     image: sms-frontend:${VERSION:-latest}
 ```
+
 - Uses VERSION from .env
 - Falls back to `latest` if not set
 
@@ -399,6 +437,7 @@ services:
 ## Future Improvements
 
 Potential enhancements:
+
 1. **Automatic version bumping** via script
 2. **Git pre-commit hook** to validate VERSION format
 3. **CI/CD version validation** in pipeline
@@ -409,6 +448,7 @@ Potential enhancements:
 ## Summary
 
 **Key Takeaways**:
+
 - ✅ VERSION file is single source of truth
 - ✅ All scripts read VERSION file for consistency
 - ✅ RUN.ps1 auto-detects and corrects version mismatches
@@ -417,4 +457,3 @@ Potential enhancements:
 - ✅ Commit VERSION changes to Git for traceability
 
 **Golden Rule**: If you change VERSION file, rebuild and restart!
-

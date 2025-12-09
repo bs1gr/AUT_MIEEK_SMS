@@ -1,4 +1,5 @@
 # Frontend Comprehensive Review - $11.9.7
+
 **Date:** Session context preservation  
 **Status:** Complete architectural analysis  
 **Scope:** React 18 + TypeScript + Vite SPA, all 39 components analyzed
@@ -8,6 +9,7 @@
 ## 1. ARCHITECTURE OVERVIEW
 
 ### 1.1 Technology Stack
+
 - **Framework:** React 18 (TypeScript/TSX)
 - **Build Tool:** Vite 5 with HMR
 - **UI Framework:** Tailwind CSS 3
@@ -19,6 +21,7 @@
 - **Styling:** Tailwind CSS + CSS modules
 
 ### 1.2 Deployment Architecture
+
 ```
 Frontend (SPA)
 ├── Development: Vite dev server (localhost:5173)
@@ -27,6 +30,7 @@ Frontend (SPA)
 ```
 
 ### 1.3 File Structure
+
 ```
 frontend/src/
 ├── App.tsx                          # Root with providers & navigation
@@ -51,6 +55,7 @@ frontend/src/
 ## 2. COMPONENT INVENTORY (39 TOTAL)
 
 ### 2.1 Authentication & Authorization (3 components)
+
 | Component | Location | Purpose | Auth Mode |
 |-----------|----------|---------|-----------|
 | LoginPage | `/auth/LoginPage.tsx` | Username/password login | Respects AUTH_MODE |
@@ -60,6 +65,7 @@ frontend/src/
 **Pattern:** LoginPage calls `authService.login()` which stores token in localStorage.
 
 ### 2.2 Student Management (8 components)
+
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | StudentList | Main student page | Filter, paginate, search |
@@ -72,6 +78,7 @@ frontend/src/
 | EnrollmentPanel | Course enrollment | Manage courses per student |
 
 ### 2.3 Course Management (6 components)
+
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | CourseList | Main course page | Table view, search |
@@ -82,6 +89,7 @@ frontend/src/
 | AddCourseButton | Action trigger | Opens modal |
 
 ### 2.4 Grade & Performance (6 components)
+
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | GradeList | Display grades | Grade calculation display |
@@ -92,6 +100,7 @@ frontend/src/
 | PerformanceForm | Record performance | 1-10 scale |
 
 ### 2.5 Common/Reusable UI (8 components)
+
 | Component | Purpose | Usage |
 |-----------|---------|-------|
 | Modal | Generic dialog | All forms use Modal |
@@ -104,6 +113,7 @@ frontend/src/
 | LanguageToggle | EN/EL switcher | Navbar |
 
 ### 2.6 Operations & Control (4 components)
+
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | OperationsPage | Control panel | Backup management, stats |
@@ -112,6 +122,7 @@ frontend/src/
 | ControlPanel | Admin controls | Feature toggles (future) |
 
 ### 2.7 Navigation & Layout (4 components)
+
 | Component | Purpose | Features |
 |-----------|---------|----------|
 | App | Root layout | Providers, routing, auth |
@@ -124,6 +135,7 @@ frontend/src/
 ## 3. CRITICAL PATTERNS & BEST PRACTICES
 
 ### 3.1 🔐 Authentication Pattern
+
 ```typescript
 // ✅ CORRECT: Respects AUTH_MODE (permissive, strict, disabled)
 const { data, isLoading } = useQuery({
@@ -149,6 +161,7 @@ if (!localStorage.getItem('token')) {
 **Key Point:** The API client automatically includes the `Authorization: Bearer <token>` header if `localStorage.token` exists.
 
 ### 3.2 🌍 i18n Mandatory Pattern
+
 ```typescript
 // ✅ MANDATORY for all visible text
 import { useTranslation } from 'react-i18next';
@@ -170,6 +183,7 @@ function MyComponent() {
 ```
 
 **Translation Structure:**
+
 ```
 frontend/src/locales/
 ├── en/
@@ -187,6 +201,7 @@ frontend/src/locales/
 ```
 
 ### 3.3 🎨 Form Validation Pattern
+
 ```typescript
 // ✅ Validation on client + backend
 const [formData, setFormData] = useState({
@@ -221,6 +236,7 @@ const handleSubmit = async (e) => {
 ```
 
 ### 3.4 📅 Date Handling Pattern
+
 ```typescript
 import { formatLocalDate, parseLocalDate } from '@/utils/date';
 
@@ -238,6 +254,7 @@ await api.post('/students/', {
 ```
 
 ### 3.5 🔄 React Query Pattern
+
 ```typescript
 import { useQuery, useMutation } from '@tanstack/react-query';
 
@@ -265,6 +282,7 @@ const handleCreate = (formData) => {
 ```
 
 ### 3.6 🛡️ Error Handling Pattern
+
 ```typescript
 // Centralized error display:
 <ErrorBoundary>
@@ -294,6 +312,7 @@ apiClient.interceptors.response.use(
 ## 4. COMPONENT DEEP DIVES
 
 ### 4.1 App.tsx (Root Component)
+
 ```typescript
 function App() {
   return (
@@ -325,6 +344,7 @@ function App() {
 ```
 
 **Provider Stack:**
+
 1. ErrorBoundary - Catches React render errors
 2. AuthContext - Global auth state
 3. LanguageProvider - i18n setup
@@ -332,6 +352,7 @@ function App() {
 5. BrowserRouter - React Router
 
 ### 4.2 StudentList Component (Example)
+
 ```typescript
 function StudentList() {
   const { t } = useTranslation();
@@ -376,6 +397,7 @@ function StudentList() {
 ```
 
 ### 4.3 StudentForm Component (Example)
+
 ```typescript
 function StudentForm({ student, onSubmit, onCancel }) {
   const { t } = useTranslation();
@@ -455,6 +477,7 @@ function StudentForm({ student, onSubmit, onCancel }) {
 ## 5. API INTEGRATION
 
 ### 5.1 API Client Setup (api.js)
+
 ```javascript
 // Exported constants:
 export const CONTROL_API_BASE = '/control/api';  // For backup endpoints
@@ -484,6 +507,7 @@ apiClient.interceptors.response.use(
 ### 5.2 API Endpoints Summary
 
 **Students:**
+
 - `GET /students/` - List with filters
 - `POST /students/` - Create
 - `GET /students/{id}` - Get by ID
@@ -491,6 +515,7 @@ apiClient.interceptors.response.use(
 - `DELETE /students/{id}` - Soft delete
 
 **Courses:**
+
 - `GET /courses/` - List
 - `POST /courses/` - Create
 - `GET /courses/{id}` - Get by ID
@@ -498,17 +523,20 @@ apiClient.interceptors.response.use(
 - `DELETE /courses/{id}` - Soft delete
 
 **Grades:**
+
 - `GET /grades/` - List with filters
 - `POST /grades/` - Create
 - `PUT /grades/{id}` - Update
 - `DELETE /grades/{id}` - Soft delete
 
 **Attendance:**
+
 - `GET /attendance/` - List
 - `POST /attendance/` - Record absence
 - `DELETE /attendance/{id}` - Remove record
 
 **Control (Backups):**
+
 - `GET /control/api/operations/backups` - List backups
 - `GET /control/api/operations/backups/{filename}` - Download
 - `POST /control/api/operations/backups` - Create backup
@@ -520,6 +548,7 @@ apiClient.interceptors.response.use(
 ## 6. STATE MANAGEMENT
 
 ### 6.1 Global State (React Context)
+
 ```typescript
 // AuthContext - Authentication state
 interface AuthContextType {
@@ -534,6 +563,7 @@ const { user, login, logout } = useContext(AuthContext);
 ```
 
 ### 6.2 Server State (React Query)
+
 ```typescript
 // Cached queries with automatic invalidation:
 useQuery({
@@ -551,6 +581,7 @@ useMutation({
 ```
 
 ### 6.3 UI State (Local React State)
+
 ```typescript
 const [showForm, setShowForm] = useState(false);
 const [selectedStudent, setSelectedStudent] = useState(null);
@@ -563,6 +594,7 @@ const [errors, setErrors] = useState({});
 ## 7. TESTING STRATEGY
 
 ### 7.1 Test File Location & Naming
+
 ```
 frontend/src/components/students/__tests__/StudentList.test.tsx
 frontend/src/components/students/__tests__/StudentForm.test.tsx
@@ -571,6 +603,7 @@ frontend/src/utils/__tests__/date.test.ts
 ```
 
 ### 7.2 Test Patterns
+
 ```typescript
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -621,6 +654,7 @@ describe('StudentList', () => {
 ## 8. CONFIGURATION
 
 ### 8.1 Environment Variables
+
 ```
 # frontend/.env
 VITE_API_URL=http://localhost:8000/api/v1      # Dev
@@ -630,6 +664,7 @@ VITE_ENABLE_DEBUG=false
 ```
 
 ### 8.2 Vite Config (vite.config.ts)
+
 ```typescript
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -650,6 +685,7 @@ export default defineConfig({
 ```
 
 ### 8.3 Build Output
+
 ```bash
 npm run build        # Creates frontend/dist/
                      # Copy to backend/static/
@@ -661,6 +697,7 @@ npm run build        # Creates frontend/dist/
 ## 9. BUILD & DEPLOYMENT
 
 ### 9.1 Development Mode
+
 ```bash
 cd frontend
 npm install
@@ -669,6 +706,7 @@ npm run dev              # HMR on localhost:5173
 ```
 
 ### 9.2 Production Mode (Docker)
+
 ```bash
 npm run build            # → frontend/dist/
 COPY dist /app/static    # Dockerfile copies to backend/static/
@@ -676,6 +714,7 @@ FastAPI serves SPA       # GET * → index.html (React handles routing)
 ```
 
 ### 9.3 SPA Routing Fallback
+
 ```python
 # backend/main.py
 @app.get("/{full_path:path}")
@@ -690,19 +729,23 @@ async def serve_spa(full_path: str):
 ## 10. SECURITY CONSIDERATIONS
 
 ### 10.1 Authentication
+
 - Token stored in `localStorage` (XSS vulnerability risk if not careful)
 - Sent via `Authorization: Bearer <token>` header
 - Interceptor redirects to login on 401
 
 ### 10.2 CORS
+
 - Backend configured with CORS middleware
 - Frontend makes requests to `/api/v1` (same origin in prod)
 
 ### 10.3 Form Validation
+
 - Client-side validation for UX
 - Server-side validation mandatory (never trust client)
 
 ### 10.4 Rate Limiting
+
 - Backend enforces rate limits
 - Frontend should show error messages gracefully
 
@@ -725,6 +768,7 @@ async def serve_spa(full_path: str):
 ## 12. PERFORMANCE OPTIMIZATION
 
 ### 12.1 Code Splitting
+
 ```typescript
 const StudentList = React.lazy(() => import('./StudentList'));
 const StudentForm = React.lazy(() => import('./StudentForm'));
@@ -735,6 +779,7 @@ const StudentForm = React.lazy(() => import('./StudentForm'));
 ```
 
 ### 12.2 Query Optimization
+
 ```typescript
 // Only refetch when filters change:
 const { data } = useQuery({
@@ -746,6 +791,7 @@ const { data } = useQuery({
 ```
 
 ### 12.3 Memoization
+
 ```typescript
 const StudentListMemo = React.memo(StudentList, (prev, next) => {
   return prev.filters === next.filters;
@@ -757,11 +803,13 @@ const StudentListMemo = React.memo(StudentList, (prev, next) => {
 ## 13. DEBUGGING & MONITORING
 
 ### 13.1 Browser DevTools
+
 - React DevTools extension for component hierarchy
 - Network tab to inspect API calls
 - Console for error logs
 
 ### 13.2 Frontend Logging
+
 ```typescript
 // Log API responses
 api.interceptors.response.use(response => {
@@ -771,6 +819,7 @@ api.interceptors.response.use(response => {
 ```
 
 ### 13.3 Error Reporting
+
 ```typescript
 // POST frontend errors to backend
 fetch('/api/logs/frontend-error', {
@@ -788,6 +837,7 @@ fetch('/api/logs/frontend-error', {
 ## 14. CHECKLIST FOR NEW FEATURES
 
 When adding a new feature:
+
 - [ ] Create component in `frontend/src/components/{module}/`
 - [ ] Add i18n keys in `frontend/src/locales/en/{module}.ts` + `el/{module}.ts`
 - [ ] Use `const { t } = useTranslation()` for all visible text
@@ -803,17 +853,16 @@ When adding a new feature:
 
 ## 15. REFERENCES & LINKS
 
-- **React Documentation:** https://react.dev
-- **Vite Documentation:** https://vitejs.dev
-- **React Router:** https://reactrouter.com
-- **React Query:** https://tanstack.com/query
-- **i18next:** https://www.i18next.com
-- **Tailwind CSS:** https://tailwindcss.com
-- **TypeScript:** https://www.typescriptlang.org
+- **React Documentation:** <https://react.dev>
+- **Vite Documentation:** <https://vitejs.dev>
+- **React Router:** <https://reactrouter.com>
+- **React Query:** <https://tanstack.com/query>
+- **i18next:** <https://www.i18next.com>
+- **Tailwind CSS:** <https://tailwindcss.com>
+- **TypeScript:** <https://www.typescriptlang.org>
 
 ---
 
 **Last Updated:** $11.9.7  
 **Maintainer:** Development Team  
 **Questions?** Check the main `ARCHITECTURE.md` or `docs/user/LOCALIZATION.md`
-

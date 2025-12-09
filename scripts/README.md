@@ -1,4 +1,5 @@
 # Scripts Directory
+
 .
 .\NATIVE.ps1 -Start           # Start both backend + frontend
 
@@ -99,7 +100,6 @@ We provide a sample Git pre-commit hook that runs `COMMIT_READY.ps1 -Mode quick`
   ```
 
 - Or use the helper scripts in `scripts/` to install hooks across platforms:
-
 
 - PowerShell (Windows):
 
@@ -381,7 +381,6 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 ## 🎯 Decision Tree: Which Script Should I Use?
 
-
 **Starting the application?**
 → Docker: `DOCKER.ps1 -Start` | Native: `NATIVE.ps1 -Start`
 
@@ -406,7 +405,6 @@ If you need lower-level control during development, use the Docker Compose helpe
 ---
 
 ## 🔧 Script Reference (Alphabetical)
-
 
 ### Main User-Facing Scripts (Root & scripts/)
 

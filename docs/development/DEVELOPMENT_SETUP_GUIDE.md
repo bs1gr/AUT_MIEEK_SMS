@@ -127,6 +127,7 @@ python -m pytest --version
 ValueError: I/O operation on closed file
 
 ```
+
 or
 
 ```
@@ -171,6 +172,7 @@ pip install --upgrade pytest>=8.0.0 pytest-cov>=4.1.0
 The project's `requirements-dev.txt` already specifies pytest 8.3.3, so a fresh install should work.
 
 #### Option B: Use Python 3.12 (Alternative)
+
 Download Python 3.12 from python.org and recreate virtual environment:
 
 ```powershell
@@ -299,10 +301,10 @@ The project uses a unified pre-commit validation script with 4 modes:
 
 **Runs**:
 
-- ✅ Remove Python cache (__pycache__, .pytest_cache)
+- ✅ Remove Python cache (**pycache**, .pytest_cache)
 - ✅ Remove Node cache (node_modules/.cache)
 - ✅ Remove build artifacts (dist/, build/)
-- ✅ Remove temporary files (*.tmp, *.bak)
+- ✅ Remove temporary files (*.tmp,*.bak)
 
 ### Auto-Fix Support
 
@@ -463,12 +465,15 @@ After setup is complete:
 ## ❓ FAQ
 
 ### Q: Do I need Docker for development?
+
 **A**: No. Use `NATIVE.ps1` for development with hot-reload. Docker is only required for production-like testing.
 
 ### Q: Which Python version should I use?
+
 **A**: Python 3.12 is recommended for best compatibility. Python 3.13 works but requires pytest >= 8.0.0.
 
 ### Q: Why are there multiple requirements files?
+
 **A**: Separation of concerns:
 
 - `requirements.txt` - Production (always install)
@@ -477,12 +482,15 @@ After setup is complete:
 - `requirements-lock.txt` - CI/CD reproducibility
 
 ### Q: Can I skip validation before committing?
+
 **A**: Not recommended. Validation ensures code quality, passing tests, and no regressions.
 
 ### Q: What if COMMIT_READY.ps1 fails?
+
 **A**: The script provides specific error messages and fix suggestions. Use `-AutoFix` for automatic fixes where possible.
 
 ### Q: How do I run only backend tests?
+
 **A**:
 
 ```powershell
@@ -492,6 +500,7 @@ python -m pytest -v
 ```
 
 ### Q: How do I run only frontend tests?
+
 **A**:
 
 ```powershell

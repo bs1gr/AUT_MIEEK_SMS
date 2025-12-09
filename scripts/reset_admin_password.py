@@ -1,7 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from backend.config import settings
-from backend.admin_bootstrap import ensure_default_admin_account
+from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.db import SessionLocal
 
 # Force reset flag

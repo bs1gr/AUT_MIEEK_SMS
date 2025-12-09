@@ -127,7 +127,7 @@ for i in {1..30}; do curl http://localhost:8080/api/v1/students; done
 - [ ] Fill form with test data:
   - First Name: Γιάννης
   - Last Name: Παπαδόπουλος
-  - Email: student1@test.com
+  - Email: <student1@test.com>
   - Student ID: STU001
 - [ ] Submit form
 - [ ] Student appears in list
@@ -136,7 +136,7 @@ for i in {1..30}; do curl http://localhost:8080/api/v1/students; done
 **Edit Student:**
 
 - [ ] Click edit on created student
-- [ ] Change email to: student1-updated@test.com
+- [ ] Change email to: <student1-updated@test.com>
 - [ ] Save changes
 - [ ] Verify update persists after refresh
 
@@ -535,4 +535,3 @@ npm run test:e2e  # Playwright E2E
 **Version**: 1.0.0
 **Last Updated**: 2025-12-04
 **Next Review**: $11.9.7 release
-

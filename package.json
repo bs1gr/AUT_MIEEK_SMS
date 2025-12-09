@@ -1,5 +1,8 @@
 {
   "name": "sms-monorepo",
   "private": true,
-  "description": "Meta package file. Frontend dependencies live under frontend/package.json."
+  "description": "Meta package file. Frontend dependencies live under frontend/package.json.",
+  "devDependencies": {
+    "markdownlint-cli": "^0.46.0"
+  }
 }

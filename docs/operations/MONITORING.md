@@ -28,14 +28,15 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.
 
 | Service | URL | Default Credentials |
 |---------|-----|-------------------|
-| Grafana | http://localhost:3000 | admin / admin |
-| Prometheus | http://localhost:9090 | N/A |
-| AlertManager | http://localhost:9093 | N/A |
-| Loki | http://localhost:3100 | N/A |
+| Grafana | <http://localhost:3000> | admin / admin |
+| Prometheus | <http://localhost:9090> | N/A |
+| AlertManager | <http://localhost:9093> | N/A |
+| Loki | <http://localhost:3100> | N/A |
 
 ### First-Time Setup
 
 1. **Change Grafana Password**
+
    ```bash
    # Login to Grafana at http://localhost:3000
    # Navigate to: Profile > Change Password
@@ -44,6 +45,7 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.
 2. **Configure Email Alerts**
    - Edit `monitoring/alertmanager/alertmanager.yml`
    - Update SMTP settings:
+
      ```yaml
      smtp_smarthost: 'your-smtp-server:587'
      smtp_from: 'alerts@yourdomain.com'
@@ -54,11 +56,13 @@ docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.
 3. **Configure Slack Notifications** (Optional)
    - Get Slack webhook URL from Slack App settings
    - Update `monitoring/alertmanager/alertmanager.yml`:
+
      ```yaml
      slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
      ```
 
 4. **Restart AlertManager**
+
    ```bash
    docker-compose -f docker-compose.monitoring.yml restart alertmanager
    ```
@@ -151,6 +155,7 @@ Application Logs
 **Location**: Grafana > Dashboards > Student Management System > Overview
 
 **Panels**:
+
 - API Status (UP/DOWN)
 - Total Active Students
 - Active Enrollments
@@ -170,6 +175,7 @@ Application Logs
 3. Add Panel
 4. Select Prometheus datasource
 5. Enter PromQL query:
+
    ```promql
    # Example: Request rate by endpoint
    rate(sms_http_requests_total[5m])
@@ -216,6 +222,7 @@ Application Logs
 ### Useful PromQL Queries
 
 **Request Rate**:
+
 ```promql
 # Total request rate
 rate(sms_http_requests_total[5m])
@@ -225,6 +232,7 @@ sum by (handler) (rate(sms_http_requests_total[5m]))
 ```
 
 **Response Time**:
+
 ```promql
 # 50th percentile (median)
 histogram_quantile(0.50, rate(sms_http_request_duration_seconds_bucket[5m]))
@@ -237,6 +245,7 @@ histogram_quantile(0.99, rate(sms_http_request_duration_seconds_bucket[5m]))
 ```
 
 **Error Rate**:
+
 ```promql
 # 4xx error rate
 rate(sms_http_requests_total{status=~"4.."}[5m])
@@ -253,6 +262,7 @@ rate(sms_http_requests_total{status=~"5.."}[5m])
 ```
 
 **Active Students**:
+
 ```promql
 # Total active students
 sms_students_total{status="active"}
@@ -262,6 +272,7 @@ rate(sms_students_total{status="active"}[1h])
 ```
 
 **Cache Performance**:
+
 ```promql
 # Cache hit rate
 (
@@ -276,31 +287,37 @@ rate(sms_students_total{status="active"}[1h])
 ### LogQL Basics
 
 **View all backend logs**:
+
 ```logql
 {job="sms-backend"}
 ```
 
 **Filter by log level**:
+
 ```logql
 {job="sms-backend", level="ERROR"}
 ```
 
 **Search for specific text**:
+
 ```logql
 {job="sms-backend"} |= "authentication failed"
 ```
 
 **Filter out noise**:
+
 ```logql
 {job="sms-backend"} != "health check"
 ```
 
 **Extract and count errors**:
+
 ```logql
 sum(count_over_time({job="sms-backend", level="ERROR"}[5m]))
 ```
 
 **Parse JSON logs**:
+
 ```logql
 {job="sms-backend"} | json | line_format "{{.level}} {{.message}}"
 ```
@@ -312,6 +329,7 @@ sum(count_over_time({job="sms-backend", level="ERROR"}[5m]))
 **Problem**: Docker containers fail to start
 
 **Solutions**:
+
 ```bash
 # Check logs
 docker-compose -f docker-compose.monitoring.yml logs
@@ -329,16 +347,19 @@ docker-compose -f docker-compose.monitoring.yml up -d
 **Problem**: Prometheus shows no data
 
 **Solutions**:
+
 1. Check if backend is exposing metrics:
+
    ```bash
    curl http://localhost:8000/metrics
    ```
 
 2. Check Prometheus targets:
-   - Navigate to http://localhost:9090/targets
+   - Navigate to <http://localhost:9090/targets>
    - Ensure `sms-backend` target is UP
 
 3. Check Prometheus logs:
+
    ```bash
    docker-compose -f docker-compose.monitoring.yml logs prometheus
    ```
@@ -348,17 +369,21 @@ docker-compose -f docker-compose.monitoring.yml up -d
 **Problem**: Logs not appearing in Grafana
 
 **Solutions**:
+
 1. Check if logs directory exists:
+
    ```bash
    ls logs/
    ```
 
 2. Check Promtail status:
+
    ```bash
    docker-compose -f docker-compose.monitoring.yml logs promtail
    ```
 
 3. Verify Loki endpoint:
+
    ```bash
    curl http://localhost:3100/ready
    ```
@@ -368,16 +393,19 @@ docker-compose -f docker-compose.monitoring.yml up -d
 **Problem**: Expected alerts not triggered
 
 **Solutions**:
+
 1. Check alert rules in Prometheus:
-   - Navigate to http://localhost:9090/alerts
+   - Navigate to <http://localhost:9090/alerts>
    - Verify rule syntax and evaluation
 
 2. Check AlertManager status:
+
    ```bash
    curl http://localhost:9093/api/v1/alerts
    ```
 
 3. Review AlertManager logs:
+
    ```bash
    docker-compose -f docker-compose.monitoring.yml logs alertmanager
    ```
@@ -387,6 +415,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 **Problem**: Monitoring stack consuming too much memory
 
 **Solutions**:
+
 ```yaml
 # In docker-compose.monitoring.yml, add memory limits:
 services:
@@ -404,6 +433,7 @@ services:
 ### Prometheus Retention
 
 Adjust retention period in `docker-compose.monitoring.yml`:
+
 ```yaml
 command:
   - '--storage.tsdb.retention.time=30d'  # Keep 30 days
@@ -413,6 +443,7 @@ command:
 ### Loki Retention
 
 Edit `monitoring/loki/loki-config.yml`:
+
 ```yaml
 limits_config:
   retention_period: 744h  # 31 days
@@ -421,11 +452,13 @@ limits_config:
 ### Scrape Interval
 
 Balance between granularity and load:
+
 - **Default**: 15s (good for most cases)
 - **High-traffic**: 30s (reduce load)
 - **Detailed debugging**: 5s (temporary only)
 
 Edit `monitoring/prometheus/prometheus.yml`:
+
 ```yaml
 global:
   scrape_interval: 15s
@@ -438,6 +471,7 @@ global:
    - SMTP credentials
 
 2. **Enable Authentication**
+
    ```yaml
    # In monitoring/prometheus/prometheus.yml
    basic_auth:
@@ -455,6 +489,7 @@ global:
    - Use VPN for remote access
 
 5. **Secure Secrets**
+
    ```bash
    # Use environment variables
    export GRAFANA_ADMIN_PASSWORD=<strong-password>
@@ -542,6 +577,7 @@ watch -n 1 'curl -s http://localhost:9090/api/v1/query?query=rate(sms_http_reque
 ## Support
 
 For monitoring-related issues:
+
 1. Check this documentation
 2. Review service logs
 3. Consult [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)

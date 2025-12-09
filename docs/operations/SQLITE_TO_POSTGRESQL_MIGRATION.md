@@ -108,6 +108,7 @@ POSTGRES_SSLMODE=prefer
 ```
 
 **Security Best Practices**:
+
 ```bash
 # Generate strong password
 python -c "import secrets; print(secrets.token_urlsafe(32))"
@@ -207,6 +208,7 @@ pg_conn.close()
 ```
 
 Run migration script:
+
 ```powershell
 cd backend
 python scripts/migrate_sqlite_to_postgres.py
@@ -263,6 +265,7 @@ print('✓ Verification complete')
 ### Step 7: Production Deployment
 
 **For Docker Mode**:
+
 ```powershell
 # Update docker-compose configuration to use external PostgreSQL
 # Edit docker/docker-compose.yml or set environment variables
@@ -276,6 +279,7 @@ $env:POSTGRES_PASSWORD="your-secure-password"
 ```
 
 **For Native Mode**:
+
 ```powershell
 # Ensure backend/.env has PostgreSQL configuration
 .\NATIVE.ps1 -Start
@@ -391,6 +395,7 @@ LIMIT 20;
 ## Troubleshooting
 
 ### Connection Refused
+
 ```bash
 # Check if PostgreSQL is running
 docker ps | grep postgres
@@ -402,12 +407,14 @@ nc -zv localhost 5432
 ```
 
 ### Authentication Failed
+
 ```bash
 # Reset password
 docker exec -it sms-postgres psql -U postgres -c "ALTER USER sms_user PASSWORD 'new_password';"
 ```
 
 ### Slow Queries After Migration
+
 ```sql
 -- Create missing indexes
 CREATE INDEX idx_students_email ON students(email);
@@ -420,6 +427,7 @@ VACUUM ANALYZE;
 ```
 
 ### Out of Connections
+
 ```sql
 -- Check current connections
 SELECT count(*) FROM pg_stat_activity;
@@ -435,9 +443,9 @@ SQLALCHEMY_MAX_OVERFLOW=5
 
 ## Support
 
-- **PostgreSQL Documentation**: https://www.postgresql.org/docs/
-- **SQLAlchemy PostgreSQL Dialect**: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html
-- **Project Issues**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
+- **PostgreSQL Documentation**: <https://www.postgresql.org/docs/>
+- **SQLAlchemy PostgreSQL Dialect**: <https://docs.sqlalchemy.org/en/20/dialects/postgresql.html>
+- **Project Issues**: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 
 ## References
 
@@ -445,4 +453,3 @@ SQLALCHEMY_MAX_OVERFLOW=5
 - `backend/models.py` - Connection pooling setup
 - `docs/development/ARCHITECTURE.md` - System architecture
 - `backend/ENV_VARS.md` - Environment variables
-

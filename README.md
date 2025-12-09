@@ -375,7 +375,6 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
-
 ## 🆕 Latest Highlights
 
 ### Security & Auth
@@ -482,7 +481,6 @@ Legacy release archival & GHCR retirement guidance.
 - 🛠️ **Dev mode** option for multi-container setup
 
 ---
-
 
 ## 🚀 Quick Start
 
@@ -826,7 +824,6 @@ For development with hot-reload:
 .\NATIVE.ps1 -Stop       # Stop all
 ```
 
-
 ### Starting the Application
 
 Start with one command:
@@ -993,7 +990,6 @@ docker compose up -d
 
 Reverting: edit or delete docker-compose.override.yml and restart compose. Old volumes are preserved and can be listed with `docker volume ls`.
 
-
 ### Quick Maintenance Scripts (Windows)
 
 > **Note:** As of $11.9.7, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
@@ -1021,7 +1017,6 @@ docker compose up -d
 # Stop
 docker compose down
 ```
-
 
 ### Native Development Mode
 
@@ -1085,7 +1080,6 @@ student-management-system/
 └── tools/                    # Data import/export tools
 ```
 
-
 ## Documentation
 
 ### Available Documentation
@@ -1110,7 +1104,6 @@ Once the backend is running, access the interactive API documentation:
 - Swagger UI: <http://localhost:8080/docs> (Docker) or <http://localhost:8000/docs> (Native)
 - ReDoc: <http://localhost:8080/redoc> (Docker) or <http://localhost:8000/redoc> (Native)
 - API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
-
 
 **🔐 Security Requirements (CRITICAL):**
 
@@ -1264,7 +1257,6 @@ Use DOCKER.ps1 for database management:
 - Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
 - Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
 
-
 ### Frontend Issues
 
 If the frontend isn't loading, try rebuilding:
@@ -1347,7 +1339,6 @@ Need help?
 
 See [LICENSE](LICENSE) file for details.
 
-
 ## Version
 
 Current version: 1.9.7 (see [VERSION](VERSION) file)
@@ -1366,5 +1357,3 @@ We added extra safety and convenience features to `NATIVE.ps1` to make first-tim
 If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
 
 These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
-
-

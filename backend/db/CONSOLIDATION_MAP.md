@@ -20,18 +20,20 @@ backend/db/
 
 ## Consolidation Status
 
-**Phase:** Planned for v1.11.0  
-**Current:** Files scattered across backend/db.py, db_utils.py, tools/  
-**Target:** All DB code under backend/db/ hierarchy
+__Phase:__ Planned for v1.11.0  
+__Current:__ Files scattered across backend/db.py, db_utils.py, tools/  
+__Target:__ All DB code under backend/db/ hierarchy
 
 ## File Mapping
 
 ### Core Database Files
+
 - backend/db.py → backend/db/connection.py
 - backend/db_utils.py → backend/db/utils.py
 - (backend/models.py → backend/db/models.py) [future, requires careful migration]
 
 ### Database CLI Tools
+
 - backend/tools/create_admin.py → backend/db/cli/admin.py
 - backend/tools/create_tables.py → backend/db/cli/schema.py
 - backend/tools/verify_schema.py → backend/db/cli/schema.py
@@ -43,6 +45,7 @@ backend/db/
 ## Import Path Changes
 
 ### Current (Scattered)
+
 \\\python
 from backend.db import get_session
 from backend.db_utils import BaseQuery
@@ -51,6 +54,7 @@ from backend.models import Student
 \\\
 
 ### Future (Consolidated)
+
 \\\python
 from backend.db import get_session
 from backend.db.utils import BaseQuery

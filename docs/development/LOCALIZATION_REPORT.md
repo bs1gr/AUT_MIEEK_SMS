@@ -323,6 +323,7 @@ describe('Translation Quality', () => {
 ### Adding New Translations
 
 1. **Add to English module:**
+
    ```javascript
    // frontend/src/locales/en/common.js
    export default {
@@ -333,6 +334,7 @@ describe('Translation Quality', () => {
    ```
 
 2. **Add to Greek module:**
+
    ```javascript
    // frontend/src/locales/el/common.js
    export default {
@@ -343,6 +345,7 @@ describe('Translation Quality', () => {
    ```
 
 3. **Use in component:**
+
    ```typescript
    const { t } = useLanguage();
    return <h1>{t('newFeature')}</h1>;

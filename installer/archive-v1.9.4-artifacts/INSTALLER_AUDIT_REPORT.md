@@ -47,6 +47,7 @@ function IsDockerRunning: Boolean
 #### **File Operations** ✅ SAFE
 
 **Included Directories:**
+
 - `backend/` - Python application (excludes `__pycache__`, `.pytest_cache`, `logs`)
 - `frontend/` - React application (excludes `node_modules`, `dist`)
 - `docker/` - Docker compose files
@@ -55,6 +56,7 @@ function IsDockerRunning: Boolean
 - `templates/` - Application templates
 
 **Excluded Patterns (Proper Cleanup):**
+
 - Build artifacts: `__pycache__`, `*.pyc`, `node_modules`, `dist`
 - Development files: `.pytest_cache`, `.mypy_cache`, `.ruff_cache`
 - User data: `.env`, `*.db`, `logs`, `backups`, `data`
@@ -86,11 +88,13 @@ function PrepareToInstall(var NeedsRestart: Boolean): String
 ```
 
 **Actions:**
+
 1. **Stop Container:** `docker stop sms-app` (graceful shutdown)
 2. **For Fresh Install:** Remove previous installation
 3. **For Upgrade:** Keep files, allow overwrite
 
 **Risk:** LOW
+
 - Graceful container stop (not forced removal)
 - No data loss - container stop doesn't delete volumes
 - User data protected by Docker volume persistence
@@ -106,6 +110,7 @@ procedure CurStepChanged(CurStep: TSetupStep)
 ```
 
 **If upgrading with "keepdata" task:**
+
 - Creates backup: `{app}\backups\pre_upgrade_{version}`
 - Backs up:
   - `data\` directory (database)
@@ -127,6 +132,7 @@ if not FileExists(ExpandConstant('{app}\.env')) then
 ```
 
 **Concerns:**
+
 1. **Weak Secret Generation:** `Random(999999)` provides only ~20 bits entropy
    - **Recommendation:** Use cryptographically secure random generation
    - **Risk:** MEDIUM - Predictable secrets could compromise security
@@ -136,6 +142,7 @@ if not FileExists(ExpandConstant('{app}\.env')) then
    - **Risk:** LOW - Standard practice, but ensure proper file permissions
 
 **Upgrade Mode:**
+
 - Restores `.env` from backup if "keepdata" selected
 - **Risk:** NONE - Preserves user configuration
 
@@ -193,10 +200,12 @@ function InitializeUninstall: Boolean
 ```
 
 **Actions:**
+
 1. `docker stop sms-app` - Graceful container stop
 2. `docker rm sms-app` - Remove container (NOT volumes)
 
 **Risk:** NONE
+
 - Volume `sms_data` preserved (contains database)
 - Only removes container instance, not data
 
@@ -220,10 +229,12 @@ DeleteUserData := MsgBox(
 ```
 
 **If YES (Delete All):**
+
 - Removes: `data\`, `backups\`, `logs\`, `config\`
 - Removes: `.env` files
 
 **If NO (Keep Data):**
+
 - Preserves all user data for future reinstall
 - Only removes application files
 
@@ -263,6 +274,7 @@ PrivilegesRequired=admin
 **Reason:** Installation to `Program Files`
 **Concern:** Requires UAC elevation
 **Mitigation:**
+
 - User data folders have `users-modify` permissions
 - App can run without admin after install
 - **Recommendation:** Consider per-user installation option for non-admin scenarios
@@ -287,6 +299,7 @@ SECRET_KEY=change-me-in-production-' + IntToStr(Random(999999))
 ```
 
 **Issues:**
+
 - Only 6 digits (~20 bits entropy)
 - Predictable with `Random()` seeding
 - Not cryptographically secure
@@ -311,16 +324,19 @@ $secureKey = [System.Convert]::ToBase64String((1..32 | ForEach-Object { Get-Rand
 ### 4.1 Container Lifecycle Management ✅ SAFE
 
 **During Installation:**
+
 - Stops container: `docker stop sms-app`
 - Does NOT remove volumes
 - Does NOT prune images
 
 **During Uninstallation:**
+
 - Stops container: `docker stop sms-app`
 - Removes container: `docker rm sms-app`
 - Preserves volumes: `sms_data` intact
 
 **Data Persistence:**
+
 - Database: `sms_data:/data/student_management.db`
 - Survives container removal
 - Survives uninstallation (unless user explicitly chooses delete)
@@ -332,6 +348,7 @@ $secureKey = [System.Convert]::ToBase64String((1..32 | ForEach-Object { Get-Rand
 **Installer Behavior:** Does NOT automatically handle volume migration
 
 **Recommendation:**
+
 - Add post-install step to check volume version
 - Offer to run migrations if needed
 - Document in post-install info
@@ -343,14 +360,17 @@ $secureKey = [System.Convert]::ToBase64String((1..32 | ForEach-Object { Get-Rand
 ### 5.1 Language Implementation ✅ PROPER
 
 **Supported Languages:**
+
 - English (default)
 - Greek (custom messages file)
 
 **Language Persistence:**
+
 - Saved to `{app}\config\lang.txt`
 - Used by `DOCKER_TOGGLE.vbs` for consistent UX
 
 **Coverage:**
+
 - All UI messages translated
 - License files: `LICENSE` (EN), `LICENSE_EL.txt` (EL)
 - Welcome/Complete screens: Separate RTF/TXT files
@@ -372,12 +392,14 @@ RegQueryStringValue(HKLM/HKCU,
 ```
 
 **Disk Check (Fallback):**
+
 - Checks for `DOCKER_TOGGLE.vbs` or `DOCKER.ps1`
 - Handles orphaned installations (registry removed but files remain)
 
 ### 6.2 Upgrade Behavior ✅ SAFE
 
 **"Upgrade" Mode (Keep Data):**
+
 1. Backup current data to `pre_upgrade_{version}`
 2. Stop container gracefully
 3. Install new files (overwrite)
@@ -385,6 +407,7 @@ RegQueryStringValue(HKLM/HKCU,
 5. Keep `data\`, `backups\`, `logs\`
 
 **"Fresh Install" Mode (Clean Slate):**
+
 1. Run previous uninstaller silently
 2. Wait for completion
 3. Proceed with fresh installation
@@ -397,15 +420,18 @@ RegQueryStringValue(HKLM/HKCU,
 ### 7.1 Optional Run Actions ✅ PROPER
 
 **Launch App:**
+
 - Only offered if Docker is running
 - Uses: `wscript.exe DOCKER_TOGGLE.vbs`
 - Flags: `postinstall`, `nowait`, `runascurrentuser`
 
 **Open Docker Download:**
+
 - Task-based: Only if user selected "installdocker" task
 - Opens in default browser
 
 **View README:**
+
 - Optional, unchecked by default
 - Opens in default markdown viewer
 
@@ -452,6 +478,7 @@ C:\Program Files\SMS\
 **Uninstall Key:** `HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}_is1`
 
 **Values:**
+
 - `DisplayName`: Student Management System 1.9.4
 - `DisplayVersion`: 1.9.4
 - `Publisher`: AUT MIEEK
@@ -460,6 +487,7 @@ C:\Program Files\SMS\
 - `QuietUninstallString`: Silent uninstall command
 
 **App Mutex:** `StudentManagementSystemMutex`
+
 - Prevents multiple installations running simultaneously
 
 ---
@@ -557,6 +585,7 @@ C:\Program Files\SMS\
 ### Overall Assessment: ✅ **SAFE FOR DEPLOYMENT**
 
 **Strengths:**
+
 - Proper data preservation during upgrades
 - Explicit user consent for destructive actions
 - Clean separation of app and user data
@@ -567,10 +596,12 @@ C:\Program Files\SMS\
 **Critical Issues:** None
 
 **Medium Priority Issues:**
+
 1. Weak SECRET_KEY generation (should be fixed before production)
 2. No automatic volume migration check
 
 **Low Priority Issues:**
+
 1. Admin privilege requirement (limits deployment scenarios)
 2. No installation logging
 3. Missing first-run experience
@@ -578,9 +609,11 @@ C:\Program Files\SMS\
 ### Deployment Readiness: 85%
 
 **Blockers for Production:**
+
 - Fix SECRET_KEY generation method
 
 **Nice-to-Have Before Production:**
+
 - Add volume migration check
 - Implement installation logging
 - Add first-run guide
@@ -589,7 +622,7 @@ C:\Program Files\SMS\
 
 ## 14. CHANGE RECOMMENDATIONS
 
-### Immediate (Before Production Deploy):
+### Immediate (Before Production Deploy)
 
 1. **Fix SECRET_KEY Generation**
 
@@ -614,7 +647,7 @@ C:\Program Files\SMS\
 
    ```
 
-### Future Enhancements:
+### Future Enhancements
 
 1. **Installation Logging**
 2. **First-Run Wizard**

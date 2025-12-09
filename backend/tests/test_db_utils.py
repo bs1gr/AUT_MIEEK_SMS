@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, create_mock_engine, text
 
 from backend.db import get_session
 from backend.db.connection import _ensure_column, ensure_schema
@@ -68,7 +68,10 @@ def test_ensure_column_handles_non_sqlite(monkeypatch: pytest.MonkeyPatch):
         lambda engine: FakeInspector(),
     )
 
-    engine = create_engine("postgresql://dummy", strategy="mock", executor=lambda *a, **kw: None)
+    def executor(sql, *_, **__):
+        executed.append(str(sql))
+
+    engine = create_mock_engine("postgresql://dummy", executor)
     engine.dialect.name = "postgresql"
 
     with monkeypatch.context() as ctx:

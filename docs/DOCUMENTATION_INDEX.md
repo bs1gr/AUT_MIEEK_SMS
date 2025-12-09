@@ -113,6 +113,48 @@ Documentation is organized into four main directories:
   - `docker/docker-compose.monitoring.yml` - Monitoring stack
   - `docker/docker-compose.qnap.yml` - QNAP optimized
 
+### Workspace Consolidation ($11.10.1 - $11.10.1)
+
+**Complete Consolidation Journey** (Dec 2025):
+
+- **[development/PHASE1_CONSOLIDATION_COMPLETE.md](development/PHASE1_CONSOLIDATION_COMPLETE.md)** - Phase 1: Code Organization (✅ COMPLETE)
+  - Backend database utilities consolidated → `backend/db/cli/`
+  - Import validation unified → `scripts/utils/validators/import_checker.py`
+  - Scripts reorganized → `scripts/utils/` (50+ files)
+  - Backward compatibility fully maintained
+  - Test results: 378 backend + 1033 frontend tests passing
+
+- **[development/PHASE2_CONSOLIDATION_COMPLETE.md](development/PHASE2_CONSOLIDATION_COMPLETE.md)** - Phase 2: Management Simplification (✅ COMPLETE)
+  - SMS.ps1 meta-wrapper created (universal entry point)
+  - Configuration strategy documented (root .env as authoritative)
+  - Help system implemented and tested
+  - Usage examples provided for all operations
+
+- **[development/PHASE3_CONSOLIDATION_PLAN.md](development/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - $11.10.1)
+  - Task 1: Documentation consolidation (establish `docs/DOCUMENTATION_INDEX.md` as source of truth)
+  - Task 2: Backend scripts organization (`backend/scripts/` hierarchy)
+  - Task 3: Symlink management strategy (Windows-compatible approach)
+  - Timeline: 13.5 hours estimated | Target: Dec 12, 2025
+
+**Related Documentation**:
+
+- **[development/TOOLS_CONSOLIDATION.md](development/TOOLS_CONSOLIDATION.md)** - Backend migration guide
+  - Why consolidate? (organization, discoverability)
+  - Deprecated import paths with timeline
+  - New import structure with examples
+  - FAQ and troubleshooting
+
+- **[CONFIG_STRATEGY.md](../CONFIG_STRATEGY.md)** - Environment configuration strategy
+  - .env file hierarchy and sourcing order
+  - Root .env as single source of truth
+  - Configuration sourcing for Docker and native modes
+  - Migration timeline ($11.10.1 → $11.10.1 → $11.10.1)
+
+- **[archive/consolidation-planning-2025-12-09/](../archive/consolidation-planning-2025-12-09/)** - Planning documents
+  - CONSOLIDATION_EXECUTIVE_SUMMARY.md - Overall plan and impact
+  - WORKSPACE_CONSOLIDATION_ANALYSIS.md - Deep analysis of 6 consolidation opportunities
+  - PHASE_1_MIGRATION_REPORT.md - Detailed Phase 1 execution report
+
 ---
 
 ## 📂 Documentation by Role
@@ -218,7 +260,6 @@ Documentation is organized into four main directories:
 - **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Legacy security quick reference (supplementary)
 - **[reference/DOCKER_CLEANUP_GUIDE.md](reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures
 
-
 ### Release Automation
 
 - **[docs/releases/$11.9.7.md](releases/$11.9.7.md)** - Canonical release notes for the Control API realignment and restart UX polish
@@ -226,7 +267,6 @@ Documentation is organized into four main directories:
 - **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to $11.9.7 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
-
 
 ---
 

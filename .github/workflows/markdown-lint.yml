@@ -22,7 +22,7 @@ jobs:
 
       - name: Run markdown lint (scan only)
         run: |
-          python tools/lint/markdown_lint.py || echo "Script exited non-zero; continuing (non-blocking)."
+          python scripts/utils/lint/markdown_lint.py || echo "Script exited non-zero; continuing (non-blocking)."
 
       - name: Extract issue count
         id: count

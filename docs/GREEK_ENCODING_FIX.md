@@ -32,19 +32,24 @@ Windows displays correct Greek characters ✓
 ### How It Works
 
 #### 1. Source Files in Git (UTF-8)
+
 Files are stored as UTF-8 for readability and easy editing:
+
 - `installer/installer_welcome_el.txt` - Welcome screen text (UTF-8)
 - `installer/installer_complete_el.txt` - Completion screen text (UTF-8)
 - `fix_greek_encoding_permanent.py` - Authoritative Greek text source
 
 #### 2. Build-Time Conversion
+
 The `fix_greek_encoding_permanent.py` script:
+
 - Reads authoritative UTF-8 Greek text
 - Converts to Windows-1253 (CP1253) on disk
 - Runs automatically before Inno Setup compilation
 - No manual steps needed
 
 #### 3. Inno Setup Compilation
+
 - Reads CP1253 files (correct format for Greek)
 - Language file `Greek.isl` has `LanguageCodePage=1253`
 - Embeds proper Greek text into installer
@@ -71,6 +76,7 @@ Installer output:    Καλώς ήρθατε      (displayed correctly)
 ```
 
 **This is normal and expected:**
+
 - PowerShell defaults to UTF-8 interpretation
 - Windows-1253 bytes don't map to valid UTF-8 sequences
 - Inno Setup knows to interpret as Windows-1253
@@ -81,6 +87,7 @@ Installer output:    Καλώς ήρθατε      (displayed correctly)
 To change Greek installer text:
 
 1. **Edit** `fix_greek_encoding_permanent.py`:
+
    ```python
    content_welcome = """Καλώς ήρθατε στην Εγκατάσταση SMS
    =====================================
@@ -90,12 +97,14 @@ To change Greek installer text:
    ```
 
 2. **Commit** to git:
+
    ```bash
    git add fix_greek_encoding_permanent.py
    git commit -m "chore: update Greek installer text"
    ```
 
 3. **Rebuild** installer:
+
    ```bash
    .\INSTALLER_BUILDER.ps1 -Action build
    ```
@@ -158,19 +167,20 @@ To confirm Greek text displays correctly:
 ## Why This Solution is Better Than Previous Approaches
 
 ### Problem with Manual Fixes
+
 - Temporary: worked for one build, then vanished
 - Required manual intervention
 - Didn't survive git pulls
 
 ### Problem with Previous UTF-8 Approach  
+
 - Complex: switching between code pages
 - Fragile: required manual validation
 - Didn't prevent encoding corruption
 
 ### Current Approach
+
 - **Automatic**: Applied every build by design
 - **Simple**: Clear UTF-8 (git) → CP1253 (compile) pipeline
 - **Reliable**: No ambiguity or manual steps
 - **Permanent**: Embedded in build process
-
-

@@ -27,7 +27,7 @@ When running native development with `NATIVE.ps1`, you have several alternatives
 
 **What you get:**
 
-- ✅ Application metrics at http://localhost:8000/metrics
+- ✅ Application metrics at <http://localhost:8000/metrics>
 - ✅ Prometheus-compatible format
 - ✅ No additional infrastructure needed
 
@@ -105,10 +105,10 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
 
 3. **Access everything:**
 
-   - Backend: http://localhost:8000 (native)
-   - Frontend: http://localhost:5173 (native)
-   - Grafana: http://localhost:3000 (Docker)
-   - Prometheus: http://localhost:9090 (Docker)
+   - Backend: <http://localhost:8000> (native)
+   - Frontend: <http://localhost:5173> (native)
+   - Grafana: <http://localhost:3000> (Docker)
+   - Prometheus: <http://localhost:9090> (Docker)
 
 **Benefits:**
 
@@ -140,6 +140,7 @@ scrape_configs:
 #### Install Prometheus
 
 1. **Download Prometheus:**
+
    ```powershell
    # Download from https://prometheus.io/download/
    # Or use Chocolatey
@@ -147,6 +148,7 @@ scrape_configs:
    ```
 
 2. **Create config:**
+
    ```yaml
    # prometheus.yml
    global:
@@ -163,16 +165,18 @@ scrape_configs:
    ```
 
 3. **Run Prometheus:**
+
    ```powershell
    prometheus --config.file=prometheus.yml
    ```
 
 4. **Access UI:**
-   http://localhost:9090
+   <http://localhost:9090>
 
 #### Install Grafana (Optional)
 
 1. **Download Grafana:**
+
    ```powershell
    # Download from https://grafana.com/grafana/download
    # Or use Chocolatey
@@ -180,16 +184,17 @@ scrape_configs:
    ```
 
 2. **Start Grafana:**
+
    ```powershell
    grafana-server
    ```
 
 3. **Access UI:**
-   http://localhost:3000 (admin/admin)
+   <http://localhost:3000> (admin/admin)
 
 4. **Add Prometheus datasource:**
 
-   - URL: http://localhost:9090
+   - URL: <http://localhost:9090>
    - Save & Test
 
 **Pros:**
@@ -218,17 +223,20 @@ scrape_configs:
 **How to use:**
 
 1. **Enable debug logging:**
+
    ```powershell
    # In backend/.env
    LOG_LEVEL=DEBUG
    ```
 
 2. **Start backend with logging:**
+
    ```powershell
    backend\.venv\Scripts\python -m uvicorn backend.main:app --reload --log-level debug
    ```
 
 3. **View logs in real-time:**
+
    ```powershell
    # Logs output to console
    # Also saved to backend/logs/ directory
@@ -397,14 +405,15 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 **Step 6: Verify**
 
-- Backend: http://localhost:8000
-- Frontend: http://localhost:5173
-- Metrics: http://localhost:8000/metrics
-- Grafana: http://localhost:3000
-- Prometheus: http://localhost:9090
+- Backend: <http://localhost:8000>
+- Frontend: <http://localhost:5173>
+- Metrics: <http://localhost:8000/metrics>
+- Grafana: <http://localhost:3000>
+- Prometheus: <http://localhost:9090>
 
 **Step 7: View in Grafana**
-1. Login to http://localhost:3000 (admin/admin)
+
+1. Login to <http://localhost:3000> (admin/admin)
 2. Go to Dashboards → SMS Overview
 3. See live metrics from your native backend!
 
@@ -462,7 +471,7 @@ curl http://localhost:8000/metrics
 
 **Check 3: Prometheus is scraping**
 
-- Open http://localhost:9090/targets
+- Open <http://localhost:9090/targets>
 - Check `sms-backend` status
 - Should show "UP"
 
