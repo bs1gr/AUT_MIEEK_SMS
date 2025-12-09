@@ -127,6 +127,24 @@ This hook helps catch lint/test issues early. If you intentionally want to skip 
 .\scripts\SMOKE_TEST.ps1      # Run health checks
 ```
 
+### ✅ PRECOMMIT_WORKFLOW.ps1 - End-to-End Pre-Commit Orchestrator
+
+**Location:** `\.\scripts\PRECOMMIT_WORKFLOW.ps1`
+
+**Purpose:** One command to run cleanup, COMMIT_READY, smoke probes, and generate `COMMIT_MESSAGE.txt` without duplicating logic.
+
+```powershell
+pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1               # Full workflow (cleanup + COMMIT_READY full + smoke)
+pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1 -Mode quick   # Fast path, skips heavy checks
+pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1 -SkipCleanup -SkipSmoke  # Use when only tests are needed
+```
+
+Flags forward to the underlying scripts:
+
+- `-CleanupDryRun` / `-IncludeBackups` → `CLEANUP_PRE_RELEASE.ps1`
+- `-SkipVersionSync` / `-SkipDocsSync` / `-GenerateCommit` / `-AutoFix` / `-NonInteractive` → `COMMIT_READY.ps1`
+- `-SkipSmoke` skips the extra probe (COMMIT_READY full mode already performs health checks)
+
 ### 📋 VERIFY_VERSION.ps1 - Version Management
 
 **Location:** `.\scripts\VERIFY_VERSION.ps1`

@@ -248,9 +248,9 @@ Status: ✅ PASSED
 
 ## Migration Timeline
 
-- **v1.10.1 (Now):** Both import paths work, deprecation warnings shown
-- **v1.10.1+:** Enhanced diagnostics if old paths used
-- **v1.12.0+:** Possible removal of old import stubs (with notice period)
+- **$11.10.1 (Now):** Both import paths work, deprecation warnings shown
+- **$11.10.1+:** Enhanced diagnostics if old paths used
+- **$11.10.1+:** Possible removal of old import stubs (with notice period)
 
 ---
 
@@ -316,3 +316,4 @@ Status: ✅ PASSED
 **Status:** Committed to Task 2 Completion  
 **Next Review:** Before starting Task 3  
 **Owner:** AI Agent (SMS Development)
+
