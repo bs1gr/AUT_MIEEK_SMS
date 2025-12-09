@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from sqlalchemy import create_engine, text
 
-from backend.db import get_session, SessionLocal
+from backend.db import get_session
 from backend.db.connection import _ensure_column, ensure_schema
 
 

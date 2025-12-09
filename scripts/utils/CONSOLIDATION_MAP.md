@@ -29,7 +29,7 @@ scripts/
 
 ## Migration Status
 
-This structure consolidates former root-level \	ools/\ directory into 
+This structure consolidates former root-level tools/ directory into
 \scripts/utils/\ for unified utility organization.
 
 **Current:** Both scripts/ and tools/ directories exist  
@@ -38,14 +38,19 @@ This structure consolidates former root-level \	ools/\ directory into
 
 ## Files to Migrate (Phase 1)
 
-- [ ] tools/check_imports.py → scripts/utils/validators/import_checker.py
-- [ ] tools/check_imports_requirements.py → scripts/utils/validators/
-- [ ] tools/convert_*.py → scripts/utils/converters/
-- [ ] tools/post_register.py → scripts/utils/
-- [ ] tools/release.py → scripts/utils/
-- [ ] tools/installer/ → scripts/utils/installer/
-- [ ] tools/lint/ → scripts/utils/lint/
-- [ ] tools/tests/ → scripts/utils/tests/
+- [x] tools/check_imports.py → scripts/utils/validators/import_checker.py (stub redirect)
+- [x] tools/check_imports_requirements.py → scripts/utils/validators/ (stub redirect)
+- [x] tools/convert_*.py → scripts/utils/converters/
+- [x] tools/post_register.py → scripts/utils/
+- [x] tools/release.py → scripts/utils/
+- [x] tools/installer/ → scripts/utils/installer/
+- [x] tools/lint/ → scripts/utils/lint/
+- [x] tools/tests/ → scripts/utils/tests/
+- [x] tools/backup_tools.ps1 → scripts/utils/backups/ (stub redirect)
+- [x] tools/ci_list_now.ps1 → scripts/utils/ci/ (stub redirect)
+- [x] tools/monitor_ci_issues.ps1 → scripts/utils/ci/ (stub redirect)
+- [x] tools/import_name_mapping.json → scripts/utils/ci/
+- [x] tools/runs.json → scripts/utils/ci/
 
 ## Import Path Changes
 
@@ -69,4 +74,4 @@ from validators.import_checker import validate_imports
 
 ---
 Generated: 2025-12-09
-Status: Structure created, migration pending
+Status: Structure created, migration completed

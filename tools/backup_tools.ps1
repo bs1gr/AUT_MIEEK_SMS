@@ -1,51 +1,31 @@
-# PowerShell script to grab (download) and put (restore) backups for AUT_MIEEK_SMS
-# Usage:
-#   .\backup_tools.ps1 -Action grab -Destination <path>
-#   .\backup_tools.ps1 -Action put -Source <backup_file>
-#
-# - 'grab' copies the latest backup from ./backups to the specified destination
-# - 'put' uploads a backup file and triggers restore via the API
+# DEPRECATED: use scripts/utils/backups/backup_tools.ps1
+# This stub forwards all parameters to the consolidated location.
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [ValidateSet('grab','put')]
     [string]$Action,
     [string]$Destination,
     [string]$Source,
-    [string]$ApiUrl = "http://localhost:8080/api/v1/adminops/restore",
-    [string]$Token = ""
+    [string]$ApiUrl,
+    [string]$Token
 )
 
-$backupsDir = Join-Path $PSScriptRoot 'backups'
+$root = Split-Path $PSScriptRoot -Parent
+$target = Join-Path $root 'scripts\utils\backups\backup_tools.ps1'
+Write-Host "[DEPRECATED] Redirecting to $target" -ForegroundColor Yellow
 
-if ($Action -eq 'grab') {
-    if (-not $Destination) {
-        Write-Error "Destination path required for grab."
-        exit 1
-    }
-    $latest = Get-ChildItem -Path $backupsDir -Filter 'backup_*.db' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if (-not $latest) {
-        Write-Error "No backup files found in $backupsDir."
-        exit 1
-    }
-    Copy-Item $latest.FullName $Destination -Force
-    Write-Host "Copied $($latest.Name) to $Destination"
-}
-elseif ($Action -eq 'put') {
-    if (-not $Source) {
-        Write-Error "Source backup file required for put."
-        exit 1
-    }
-    if (-not (Test-Path $Source)) {
-        Write-Error "Source file $Source does not exist."
-        exit 1
-    }
-    $headers = @{"accept"="application/json"}
-    if ($Token) { $headers["Authorization"] = "Bearer $Token" }
-    $response = Invoke-RestMethod -Uri $ApiUrl -Method Post -Headers $headers -InFile $Source -ContentType 'application/octet-stream' -ErrorAction Stop
-    Write-Host "Restore triggered. Response: $($response | ConvertTo-Json)"
-}
-else {
-    Write-Error "Unknown action: $Action"
+if (-not (Test-Path $target)) {
+    Write-Error "Target script not found: $target"
     exit 1
 }
+
+# Build argument list for forwarding
+$forwardParams = @{}
+if ($Action) { $forwardParams['Action'] = $Action }
+if ($Destination) { $forwardParams['Destination'] = $Destination }
+if ($Source) { $forwardParams['Source'] = $Source }
+if ($ApiUrl) { $forwardParams['ApiUrl'] = $ApiUrl }
+if ($Token) { $forwardParams['Token'] = $Token }
+
+& $target @forwardParams

@@ -11,14 +11,16 @@ Provides shared utilities for importing, validation, conversion, and system diag
 ```
 utils/
 ├── validators/              # Input and system validation
-│   ├── check_imports.py    # Unified import validator
+│   ├── import_checker.py   # Unified import validator
 │   └── schema_validator.py # Database schema validation
-├── converters/             # Data format converters
+├── converters/             # Data format converters + sample inputs
 │   ├── convert_mieek_to_import.py
 │   ├── convert_pdf_to_import.py
 │   └── example_input_*.json
-├── installer/              # Installer utilities
-├── lint/                   # Linting and formatting tools
+├── installer/              # Installer utilities (legacy wizard assets)
+├── lint/                   # Linting and formatting tools (markdown, mypy helper)
+├── ci/                     # CI helpers (issue monitors, quick listings)
+├── backups/                # Backup utility helpers
 ├── tests/                  # Test utilities
 ├── post_register.py        # Post-registration hooks
 ├── release.py              # Release utilities
@@ -29,7 +31,7 @@ utils/
 
 ### Validators
 
-#### check_imports.py (Unified Import Validator)
+#### import_checker.py (Unified Import Validator)
 
 **Purpose:** Validate Python import consistency across the project
 
@@ -37,15 +39,16 @@ utils/
 
 ```bash
 # Check all import types
-python scripts/utils/validators/check_imports.py
+python scripts/utils/validators/import_checker.py
 
 # Check specific mode
-python scripts/utils/validators/check_imports.py --mode requirements
-python scripts/utils/validators/check_imports.py --mode backend
-python scripts/utils/validators/check_imports.py --mode package
+python scripts/utils/validators/import_checker.py --mode requirements
+python scripts/utils/validators/import_checker.py --mode backend
+python scripts/utils/validators/import_checker.py --mode package
 ```
 
 **Modes:**
+
 - `requirements` - Validate requirements.txt coverage
 - `backend` - Validate backend.db imports
 - `package` - Validate package imports
@@ -63,6 +66,8 @@ python scripts/utils/converters/convert_mieek_to_import.py \
   --output import_ready.json
 ```
 
+Sample inputs are provided in `converters/example_input_*.json` (old `tools/` paths keep deprecation stubs for backward compatibility).
+
 #### convert_pdf_to_import.py
 
 Convert PDF documents to SMS import format.
@@ -75,7 +80,7 @@ python scripts/utils/converters/convert_pdf_to_import.py \
 
 ### Installers
 
-Located in `installers/` subdirectory - utilities for installer creation and validation.
+Located in `installer/` subdirectory - utilities for installer creation and validation (legacy PS2EXE/GUI wizards now consolidated here). Deprecated wrappers remain in `tools/installer/` until v1.12.0.
 
 ### Linting Tools
 
@@ -87,19 +92,21 @@ Located in `tests/` subdirectory - helper utilities for testing and validation.
 
 ## Consolidation Notes
 
-This directory was created as part of workspace consolidation in v1.10.1 to unify 
-utility organization. Items previously in the root `tools/` directory are being 
-migrated here.
+This directory was created as part of workspace consolidation in v1.10.1 to unify
+utility organization. Items previously in the root `tools/` directory have been
+migrated here with backward-compatible stubs left in `tools/`.
 
 ### Migration Status
 
 - ✅ Directory structure created (v1.10.1)
-- ⏳ File migration (planned for v1.11.0)
-- ⏳ Import path updates (planned for v1.11.0)
+- ✅ File migration (v1.11.0 Phase 1)
+- ✅ Import path updates with backward-compatible shims (v1.11.0)
+- ✅ CI/backup utilities migrated from `tools/` (v1.11.0 Phase 1)
 
 ### Backward Compatibility
 
-During migration:
+During migration we kept backward compatibility via
+
 - Original root `tools/` directory maintained (deprecated)
 - Import aliases available for backward compatibility
 - Full deprecation period planned for v1.12.0+
@@ -169,5 +176,5 @@ if __name__ == '__main__':
 ---
 
 **Created:** December 9, 2025  
-**Status:** Structure established, migrations in progress  
+**Status:** Structure established, migrations complete for Phase 1  
 **Consolidation Phase:** v1.10.1 (planning), v1.11.0 (implementation)

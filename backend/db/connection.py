@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from typing import Generator
 
-from sqlalchemy import create_engine, inspect, text
+import sqlalchemy as sa
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 # Import settings and models dynamically to avoid import-time redefinition warnings
@@ -63,7 +64,7 @@ def _ensure_column(engine, table: str, column: str, coltype_sql: str, default_sq
                     conn.commit()
             else:
                 # Generic approach for other dialects
-                inspector = inspect(engine)
+                inspector = sa.inspect(engine)
                 cols = [c["name"] for c in inspector.get_columns(table)]
                 if column not in cols:
                     alter = f"ALTER TABLE {table} ADD COLUMN {column} {coltype_sql}"

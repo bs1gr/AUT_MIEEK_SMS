@@ -20,8 +20,16 @@
       "30"
     ],
     "teaching_schedule": {
-      "Monday": {"periods": 2, "start_time": "08:00", "duration": 50},
-      "Wednesday": {"periods": 1, "start_time": "10:00", "duration": 50}
+      "Monday": {
+        "periods": 2,
+        "start_time": "08:00",
+        "duration": 50
+      },
+      "Wednesday": {
+        "periods": 1,
+        "start_time": "10:00",
+        "duration": 50
+      }
     }
   },
   {
