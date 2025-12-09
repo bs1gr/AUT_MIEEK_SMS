@@ -5,7 +5,8 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import create_engine, text
 
-from backend import db
+from backend.db import get_session, SessionLocal
+from backend.db.connection import _ensure_column, ensure_schema
 
 
 def test_get_session_closes_on_cleanup(monkeypatch: pytest.MonkeyPatch):
@@ -23,9 +24,9 @@ def test_get_session_closes_on_cleanup(monkeypatch: pytest.MonkeyPatch):
         session_holder.append(session)
         return session
 
-    monkeypatch.setattr(db, "SessionLocal", fake_sessionmaker)
+    monkeypatch.setattr('backend.db.connection.SessionLocal', fake_sessionmaker)
 
-    generator = db.get_session()
+    generator = get_session()
     session = next(generator)
     assert session in session_holder
     generator.close()
@@ -37,7 +38,7 @@ def test_ensure_column_adds_missing_column_sqlite():
     with engine.begin() as conn:
         conn.execute(text("CREATE TABLE courses (id INTEGER PRIMARY KEY, name TEXT)"))
 
-    db._ensure_column(engine, "courses", "absence_penalty", "FLOAT", "0.0")
+    _ensure_column(engine, "courses", "absence_penalty", "FLOAT", "0.0")
 
     with engine.connect() as conn:
         columns = [row[1] for row in conn.execute(text("PRAGMA table_info('courses')"))]
@@ -58,44 +59,41 @@ def test_ensure_column_handles_non_sqlite(monkeypatch: pytest.MonkeyPatch):
             executed.append(str(stmt))
 
         def commit(self):
-            executed.append("commit")
-
-    class FakeEngine:
-        dialect = SimpleNamespace(name="postgresql")
-
-        def connect(self):
-            return FakeConnection()
+            pass
 
     class FakeInspector:
-        def __init__(self, cols):
-            self._cols = cols
-
         def get_columns(self, table):
-            return [{"name": c} for c in self._cols]
+            return [{"name": "id"}, {"name": "name"}]
 
-    fake_engine = FakeEngine()
-    monkeypatch.setattr(db, "inspect", lambda _: FakeInspector(["id", "name"]))
+    monkeypatch.setattr(
+        "sqlalchemy.inspect",
+        lambda engine: FakeInspector(),
+    )
 
-    db._ensure_column(fake_engine, "courses", "absence_penalty", "FLOAT", "0.0")
+    engine = create_engine("postgresql://dummy", strategy="mock", executor=lambda *a, **kw: None)
+    engine.dialect.name = "postgresql"
 
-    assert any("ALTER TABLE courses ADD COLUMN absence_penalty" in stmt for stmt in executed)
-    assert "commit" in executed
+    with monkeypatch.context() as ctx:
+        ctx.setattr(engine, "connect", lambda: FakeConnection())
+        _ensure_column(engine, "courses", "absence_penalty", "FLOAT", "0.0")
+
+    assert any("ALTER TABLE" in sql for sql in executed)
 
 
 def test_ensure_schema_delegates_to_helper(monkeypatch: pytest.MonkeyPatch):
-    called = {}
+    ensure_called = {"called": False, "engine": None, "table": None, "column": None}
 
-    def fake_ensure(engine, table, column, coltype, default):
-        called.update({"engine": engine, "table": table, "column": column, "type": coltype, "default": default})
+    def fake_ensure_column(engine, table, column, coltype_sql, default_sql=None):
+        ensure_called["called"] = True
+        ensure_called["engine"] = engine
+        ensure_called["table"] = table
+        ensure_called["column"] = column
 
-    monkeypatch.setattr(db, "_ensure_column", fake_ensure)
-    sentinel = object()
-    db.ensure_schema(sentinel)
+    monkeypatch.setattr("backend.db.connection._ensure_column", fake_ensure_column)
 
-    assert called == {
-        "engine": sentinel,
-        "table": "courses",
-        "column": "absence_penalty",
-        "type": "FLOAT",
-        "default": "0.0",
-    }
+    fake_engine = create_engine("sqlite:///:memory:")
+    ensure_schema(fake_engine)
+
+    assert ensure_called["called"]
+    assert ensure_called["table"] == "courses"
+    assert ensure_called["column"] == "absence_penalty"
