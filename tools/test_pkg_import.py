@@ -1,15 +1,25 @@
-import sys
-import importlib
-import traceback
-import os
+"""
+DEPRECATED: Use scripts/utils/validators/import_checker.py
+This stub runs the unified import validator in PACKAGE mode.
 
-repo = os.path.abspath(os.path.join(os.getcwd()))
-# Ensure repo root is on sys.path first
-if repo not in sys.path:
-    sys.path.insert(0, repo)
-print("Inserted repo root into sys.path[0]:", sys.path[0])
-try:
-    importlib.import_module("backend.main")
-    print("Imported backend.main successfully")
-except Exception:
-    traceback.print_exc()
+Example:
+    python scripts/utils/validators/import_checker.py --mode package
+"""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    target = root / "scripts" / "utils" / "validators" / "import_checker.py"
+    cmd = [sys.executable, str(target), "--mode", "package", *sys.argv[1:]]
+    print("[DEPRECATED] Redirecting to unified validator: import_checker.py --mode package")
+    return subprocess.call(cmd)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

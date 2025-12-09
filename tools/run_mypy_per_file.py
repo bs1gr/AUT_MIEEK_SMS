@@ -1,27 +1,20 @@
-"""Run mypy on each .py file under backend individually to avoid path scanning issues on Windows."""
+"""
+DEPRECATED: moved to scripts/utils/lint/run_mypy_per_file.py
+"""
+from __future__ import annotations
 
 import subprocess
 import sys
 from pathlib import Path
 
-root = Path(__file__).resolve().parent.parent
-backend = root / "backend"
 
-py_files = list(backend.rglob("*.py"))
-if not py_files:
-    print("No python files found under backend")
-    sys.exit(0)
+def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    target = root / "scripts" / "utils" / "lint" / "run_mypy_per_file.py"
+    cmd = [sys.executable, str(target), *sys.argv[1:]]
+    print("[DEPRECATED] Redirecting to scripts/utils/lint/run_mypy_per_file.py")
+    return subprocess.call(cmd)
 
-ok = True
-for p in py_files:
-    print("Running mypy on", p)
-    cmd = [sys.executable, "-m", "mypy", "--config-file", str(root / "mypy.ini"), str(p)]
-    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    print(res.stdout)
-    if res.returncode != 0:
-        ok = False
 
-if not ok:
-    print("One or more files failed mypy")
-    sys.exit(1)
-print("All files passed mypy (per-file).")
+if __name__ == "__main__":
+    sys.exit(main())
