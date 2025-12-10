@@ -343,13 +343,13 @@ async def check_for_updates(request: Request):
     update instructions for Docker deployments.
     """
     from backend.environment import get_runtime_context
-    
+
     current_version = _get_version()
-    
+
     try:
         # Fetch latest release from GitHub
         latest_release = _fetch_github_latest_release()
-        
+
         if not latest_release:
             return UpdateCheckResponse(
                 current_version=current_version,
@@ -357,21 +357,21 @@ async def check_for_updates(request: Request):
                 update_available=False,
                 update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases"
             )
-        
+
         latest_version = latest_release.get("tag_name", "").lstrip("v")
         update_available = _version_is_newer(latest_version, current_version)
-        
+
         # Extract assets (installer, hash, etc.)
         assets = latest_release.get("assets", [])
         installer_url = None
         installer_hash = None
-        
+
         for asset in assets:
             if asset["name"].endswith(".exe"):
                 installer_url = asset["browser_download_url"]
             elif asset["name"].endswith(".sha256"):
                 installer_hash = _fetch_github_file_content(asset["url"])
-        
+
         # Determine instructions based on deployment type
         context = get_runtime_context()
         if context.is_docker:
@@ -397,7 +397,7 @@ async def check_for_updates(request: Request):
                 "   .\\NATIVE.ps1 -Setup\n"
                 "   .\\NATIVE.ps1 -Start"
             )
-        
+
         return UpdateCheckResponse(
             current_version=current_version,
             latest_version=latest_version,
@@ -410,7 +410,7 @@ async def check_for_updates(request: Request):
             docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
             update_instructions=instructions
         )
-        
+
     except Exception as exc:
         logger.error("Error checking for updates: %s", exc, exc_info=True)
         return UpdateCheckResponse(
@@ -443,7 +443,7 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
             return json.loads(result.stdout)
     except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
         pass
-    
+
     # Fallback to direct API call
     try:
         import urllib.request
@@ -473,7 +473,7 @@ def _version_is_newer(latest: str, current: str) -> bool:
             """Parse version string into tuple of ints."""
             parts = v.lstrip("v").split(".")
             return tuple(int(p) for p in parts[:3])  # Compare major.minor.patch
-        
+
         return parse_version(latest) > parse_version(current)
     except (ValueError, IndexError):
         return False

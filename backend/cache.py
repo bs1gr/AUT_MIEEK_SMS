@@ -166,7 +166,7 @@ def cached_response(ttl_seconds: int = 300, maxsize: int = 128):
 
 class RedisCache:
     """Redis caching client with fallback to in-memory cache"""
-    
+
     def __init__(self):
         self.enabled = (
             os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
@@ -174,7 +174,7 @@ class RedisCache:
         )
         self.client: Optional[redis.Redis] = None
         self.fallback_cache = TimedLRUCache(maxsize=256, ttl_seconds=300)
-        
+
         if self.enabled:
             try:
                 self.client = redis.Redis(
@@ -189,7 +189,7 @@ class RedisCache:
             except Exception as e:
                 logger.warning(f"⚠️ Redis unavailable: {e}. Using in-memory cache.")
                 self.enabled = False
-    
+
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
         try:
@@ -203,7 +203,7 @@ class RedisCache:
         except Exception as e:
             logger.warning(f"Cache get error for {key}: {e}")
         return None
-    
+
     def set(self, key: str, value: Any, ttl: timedelta) -> bool:
         """Set value in cache"""
         try:
@@ -218,7 +218,7 @@ class RedisCache:
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
         return False
-    
+
     def delete(self, key: str) -> bool:
         """Delete key from cache"""
         try:
@@ -232,7 +232,7 @@ class RedisCache:
         except Exception as e:
             logger.warning(f"Cache delete error: {e}")
         return False
-    
+
     def invalidate_pattern(self, pattern: str) -> int:
         """Invalidate keys matching pattern"""
         try:
@@ -244,12 +244,12 @@ class RedisCache:
         except Exception as e:
             logger.warning(f"Cache invalidate error: {e}")
         return 0
-    
+
     def health_check(self) -> dict:
         """Check cache health"""
         if not self.enabled or not self.client:
             return {"status": "in-memory", "type": "fallback"}
-        
+
         try:
             self.client.ping()
             return {"status": "healthy", "type": "redis"}
@@ -280,15 +280,45 @@ def cached_async(
                 key_parts = [func.__name__] + list(args)
                 key_parts.extend(f"{k}={v}" for k, v in kwargs.items())
                 key = cache_key(*key_parts)
-            
+
             cached_value = redis_cache.get(key)
             if cached_value is not None:
                 return cached_value
-            
+
             result = await func(*args, **kwargs)
             redis_cache.set(key, result, ttl)
             return result
-        
+
+        return wrapper
+    return decorator
+
+
+def cached(ttl: timedelta = timedelta(minutes=5)):
+    """Decorator for caching sync function results (FastAPI endpoints)
+    
+    Works with both Redis (if enabled) and in-memory fallback
+    """
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Build cache key from function name and arguments
+            key_parts = [func.__name__] + list(args)
+            key_parts.extend(f"{k}={v}" for k, v in kwargs.items())
+            key = cache_key(*key_parts)
+
+            # Try cache first
+            cached_value = redis_cache.get(key)
+            if cached_value is not None:
+                logger.debug(f"Cache HIT: {key}")
+                return cached_value
+
+            # Call original function
+            result = func(*args, **kwargs)
+
+            # Cache result
+            redis_cache.set(key, result, ttl)
+            return result
+
         return wrapper
     return decorator
 

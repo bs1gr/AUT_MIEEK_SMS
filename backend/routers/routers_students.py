@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.cache import cached, invalidate_cache, CacheConfig
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -43,11 +44,15 @@ def create_student(
     """Create a new student with duplicate protections."""
 
     service = StudentService(db, request)
-    return service.create_student(student)
+    result = service.create_student(student)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    return result
 
 
 @router.get("/", response_model=PaginatedResponse[StudentResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@cached(ttl=CacheConfig.STUDENTS_LIST)
 def get_all_students(
     request: Request,
     skip: int = 0,
@@ -69,6 +74,7 @@ def get_all_students(
 
 @router.get("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@cached(ttl=CacheConfig.STUDENT_DETAIL)
 def get_student(request: Request, student_id: int, db: Session = Depends(get_db)):
     """Retrieve a specific student by ID."""
 
@@ -88,7 +94,11 @@ def update_student(
     """Update a student's information."""
 
     service = StudentService(db, request)
-    return service.update_student(student_id, student_data)
+    result = service.update_student(student_id, student_data)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    invalidate_cache("get_student", student_id)
+    return result
 
 
 @router.delete("/{student_id}", status_code=204)
@@ -103,6 +113,9 @@ def delete_student(
 
     service = StudentService(db, request)
     service.delete_student(student_id)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    invalidate_cache("get_student", student_id)
     return None
 
 
@@ -152,5 +165,7 @@ def bulk_create_students(
     """
     service = StudentService(db, request)
     result = service.bulk_create_students(students_data)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
     logger.info("Bulk created %s students, %s errors", result["created"], result["failed"])
     return result

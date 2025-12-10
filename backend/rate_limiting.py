@@ -38,17 +38,17 @@ RATE_LIMIT_TEACHER_IMPORT = f"{_DEFAULT_TEACHER_IMPORT}/minute"
 
 # Quick helpers so tests and docs can parse numeric value if required
 def _limit_value(limit_str: str) -> int:
-	"""Return numeric portion for a "<n>/minute" formatted limit."""
-	try:
-		return int(limit_str.split("/")[0])
-	except Exception:
-		raise ValueError("Invalid rate limit format, expected '<n>/minute'")
+    """Return numeric portion for a "<n>/minute" formatted limit."""
+    try:
+        return int(limit_str.split("/")[0])
+    except Exception:
+        raise ValueError("Invalid rate limit format, expected '<n>/minute'")
 
 # Backwards-compat: attach helper to module so tests/tools can import
 DEFAULTS = {
-	"read": _DEFAULT_READ,
-	"write": _DEFAULT_WRITE,
-	"heavy": _DEFAULT_HEAVY,
-	"auth": _DEFAULT_AUTH,
-	"teacher_import": _DEFAULT_TEACHER_IMPORT,
+    "read": _DEFAULT_READ,
+    "write": _DEFAULT_WRITE,
+    "heavy": _DEFAULT_HEAVY,
+    "auth": _DEFAULT_AUTH,
+    "teacher_import": _DEFAULT_TEACHER_IMPORT,
 }

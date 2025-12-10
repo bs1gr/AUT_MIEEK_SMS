@@ -61,7 +61,7 @@ def detect_drift() -> List[Any]:
     """
     from sqlalchemy import create_engine
     from alembic.migration import MigrationContext
-    
+
     db_url = _load_db_url()
     engine = create_engine(db_url)
     metadata = _load_metadata()

@@ -51,9 +51,9 @@ def create_app() -> FastAPI:
     """
     # Initialize logging first
     initialize_logging(log_dir="logs", log_level="INFO")
-    
+
     VERSION = get_version()
-    
+
     # Create FastAPI app with lifespan
     app = FastAPI(
         title="Student Management System API",
@@ -64,7 +64,7 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
         lifespan=get_lifespan()
     )
-    
+
     # Register core components
     register_middlewares(app)
     register_error_handlers(app)
@@ -74,7 +74,7 @@ def create_app() -> FastAPI:
         setup_tracing(app)
     except Exception:
         logger.debug("Tracing setup skipped or failed")
-    
+
     # Set app state
     app.state.version = VERSION
     from backend.environment import require_production_constraints
@@ -82,43 +82,43 @@ def create_app() -> FastAPI:
 
     from backend.rate_limiting import limiter
     app.state.limiter = limiter
-    
+
     # Register health check endpoints
     _register_health_endpoints(app)
-    
+
     # Register frontend logging endpoints
     _register_frontend_logging_endpoints(app)
-    
+
     # Register root endpoints and SPA serving
     _register_root_endpoints(app, VERSION)
-    
+
     # Register metrics endpoint if enabled
     _register_metrics_endpoint(app)
-    
+
     logger.info(f"FastAPI application created successfully (version={VERSION})")
-    
+
     return app
 
 
 def _register_health_endpoints(app: FastAPI):
     """Register health check endpoints."""
-    
+
     @app.get("/health")
     async def health_check(db: Session = Depends(get_session)):
         """Comprehensive health check endpoint."""
         from backend.import_resolver import import_names
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
-        
+
         checker = HealthChecker(app.state, engine)
         result = checker.check_health(db)
-        
+
         # Backward-compatible shape
         try:
             checks = result.get("checks", {})
             system = result.get("system", {})
             db_status = checks.get("database", {}).get("status", "unknown")
             database_str = "connected" if db_status == "healthy" else "disconnected"
-            
+
             legacy_overlay = {
                 "database": database_str,
                 "services": {k: v.get("status", "unknown") for k, v in checks.items()},
@@ -127,40 +127,40 @@ def _register_health_endpoints(app: FastAPI):
                     "ips": system.get("ips", []),
                 },
             }
-            
+
             result.update(legacy_overlay)
             return result
         except Exception:
             return result
-    
+
     @app.get("/health/ready")
     async def readiness_check(db: Session = Depends(get_session)):
         """Readiness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
-        
+
         checker = HealthChecker(app.state, engine)
         return checker.check_readiness(db)
-    
+
     @app.get("/health/live")
     async def liveness_check():
         """Liveness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
-        
+
         checker = HealthChecker(app.state, engine)
         return checker.check_liveness()
 
 
 def _register_frontend_logging_endpoints(app: FastAPI):
     """Register frontend error logging endpoints."""
-    
+
     @app.post("/api/logs/frontend-error")
     async def log_frontend_error(request: Request):
         """Receive and log frontend errors for centralized monitoring."""
         try:
             error_data = await request.json()
-            
+
             logger.error(
                 f"Frontend Error: {error_data.get('message', 'Unknown')}",
                 extra={
@@ -173,18 +173,18 @@ def _register_frontend_logging_endpoints(app: FastAPI):
                     "component_stack": error_data.get("componentStack", "")[:500],
                 },
             )
-            
+
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
             logger.warning(f"Failed to log frontend error: {e}")
             return {"status": "failed", "error": str(e)}
-    
+
     @app.post("/api/logs/frontend-warning")
     async def log_frontend_warning(request: Request):
         """Receive and log frontend warnings."""
         try:
             warning_data = await request.json()
-            
+
             logger.warning(
                 f"Frontend Warning: {warning_data.get('message', 'Unknown')}",
                 extra={
@@ -194,7 +194,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
                     "user_agent": warning_data.get("userAgent"),
                 },
             )
-            
+
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
             logger.warning(f"Failed to log frontend warning: {e}")
@@ -203,7 +203,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
 
 def _register_root_endpoints(app: FastAPI, version: str):
     """Register root endpoints and SPA serving."""
-    
+
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
     SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
@@ -211,7 +211,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
     SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
     if SPA_INDEX_FILE.exists() and os.environ.get("SERVE_FRONTEND") is None:
         SERVE_FRONTEND = True
-    
+
     def _api_metadata() -> dict:
         return {
             "message": "Student Management System API",
@@ -226,7 +226,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 "attendance": "/api/v1/attendance",
             },
         }
-    
+
     @app.get("/")
     async def root():
         """Root endpoint - serves SPA or API metadata."""
@@ -244,12 +244,12 @@ def _register_root_endpoints(app: FastAPI, version: str):
         except Exception:
             pass
         return _api_metadata()
-    
+
     @app.get("/api")
     async def api_info():
         """Informational API metadata (JSON)."""
         return _api_metadata()
-    
+
     @app.get("/favicon.ico")
     async def favicon():
         """Serve favicon for browser requests."""
@@ -259,13 +259,13 @@ def _register_root_endpoints(app: FastAPI, version: str):
 </svg>"""
         from fastapi.responses import Response
         return Response(content=svg_content, media_type="image/svg+xml")
-    
+
     # SPA serving setup
     if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
         try:
             # Serve static assets
             app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
-            
+
             # Serve root-level static files
             @app.get("/logo.png")
             async def serve_logo():
@@ -273,21 +273,21 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 if logo_path.exists():
                     return FileResponse(str(logo_path), media_type="image/png")
                 raise HTTPException(status_code=404, detail="Logo not found")
-            
+
             @app.get("/login-bg.png")
             async def serve_login_bg():
                 bg_path = SPA_DIST_DIR / "login-bg.png"
                 if bg_path.exists():
                     return FileResponse(str(bg_path), media_type="image/png")
                 raise HTTPException(status_code=404, detail="Background image not found")
-            
+
             @app.get("/favicon.svg")
             async def serve_favicon_svg():
                 favicon_path = SPA_DIST_DIR / "favicon.svg"
                 if favicon_path.exists():
                     return FileResponse(str(favicon_path), media_type="image/svg+xml")
                 raise HTTPException(status_code=404, detail="Favicon SVG not found")
-            
+
             @app.get("/manifest.json")
             async def serve_manifest():
                 """Serve PWA manifest with correct MIME type."""
@@ -295,7 +295,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 if manifest_path.exists():
                     return FileResponse(str(manifest_path), media_type="application/json")
                 raise HTTPException(status_code=404, detail="Manifest not found")
-            
+
             @app.get("/registerSW.js")
             async def serve_register_sw():
                 """Serve service worker registration script with correct MIME type."""
@@ -313,7 +313,7 @@ if ('serviceWorker' in navigator) {
 """
                 from fastapi.responses import Response
                 return Response(content=sw_code, media_type="application/javascript")
-            
+
             @app.get("/apple-touch-icon.png")
             async def serve_apple_touch_icon():
                 """Serve Apple touch icon."""
@@ -321,7 +321,7 @@ if ('serviceWorker' in navigator) {
                 if icon_path.exists():
                     return FileResponse(str(icon_path), media_type="image/png")
                 raise HTTPException(status_code=404, detail="Apple touch icon not found")
-            
+
             @app.get("/sw.js")
             async def serve_service_worker():
                 """Serve Service Worker script with correct MIME type."""
@@ -329,14 +329,14 @@ if ('serviceWorker' in navigator) {
                 if sw_path.exists():
                     return FileResponse(str(sw_path), media_type="application/javascript")
                 raise HTTPException(status_code=404, detail="Service Worker not found")
-            
+
             # SPA fallback handler
             EXCLUDE_PREFIXES = (
                 "api/", "docs", "redoc", "openapi.json", "control", "health", "metrics",
                 "favicon.ico", "favicon.svg", "assets/", "logo.png", "login-bg.png",
                 "manifest.json", "registerSW.js", "apple-touch-icon.png", "sw.js",
             )
-            
+
             @app.exception_handler(StarletteHTTPException)
             async def spa_404_handler(request: Request, exc: StarletteHTTPException):
                 if exc.status_code == 404:
@@ -347,7 +347,7 @@ if ('serviceWorker' in navigator) {
                     if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
                         return FileResponse(str(SPA_INDEX_FILE))
                 return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
-            
+
             logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.")
         except Exception as e:
             logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
@@ -359,7 +359,7 @@ def _register_metrics_endpoint(app: FastAPI):
         try:
             from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
             from starlette.responses import Response as MetricsResponse
-            
+
             @app.get("/metrics", include_in_schema=False)
             async def metrics_endpoint():
                 """Prometheus metrics endpoint"""
@@ -367,7 +367,7 @@ def _register_metrics_endpoint(app: FastAPI):
                     content=generate_latest(),
                     media_type=CONTENT_TYPE_LATEST,
                 )
-            
+
             logger.info("✅ /metrics endpoint registered")
         except Exception as e:
             logger.warning(f"Failed to register /metrics endpoint: {e}")

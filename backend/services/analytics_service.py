@@ -60,13 +60,13 @@ class AnalyticsService:
             .filter(self.Grade.student_id == student_id, self.Grade.course_id == course_id, self.Grade.deleted_at.is_(None))
             .all()
         ]
-        
+
         daily = [
             d for d in self.db.query(self.DailyPerformance)
             .filter(self.DailyPerformance.student_id == student_id, self.DailyPerformance.course_id == course_id, self.DailyPerformance.deleted_at.is_(None))
             .all()
         ]
-        
+
         attendance = [
             a for a in self.db.query(self.Attendance)
             .filter(self.Attendance.student_id == student_id, self.Attendance.course_id == course_id, self.Attendance.deleted_at.is_(None))
@@ -96,14 +96,14 @@ class AnalyticsService:
             )
             .all()
         )
-        
+
         course_ids = {e.course_id for e in enrollments}
-        
+
         # If no enrollments exist, fall back to finding courses from grades/attendance/daily performance
         if not course_ids:
             course_ids = {
                 *(g.course_id for g in self.db.query(self.Grade.course_id).filter(
-                    self.Grade.student_id == student_id, 
+                    self.Grade.student_id == student_id,
                     self.Grade.deleted_at.is_(None)
                 ).distinct()),
                 *(d.course_id for d in self.db.query(self.DailyPerformance.course_id).filter(
@@ -115,7 +115,7 @@ class AnalyticsService:
                     self.Attendance.deleted_at.is_(None)
                 ).distinct()),
             }
-        
+
         if not course_ids:
             # No data at all for this student
             return {
@@ -140,7 +140,7 @@ class AnalyticsService:
             .all()
         }
 
-        # Fetch related data for enrolled courses only  
+        # Fetch related data for enrolled courses only
         grades_by_course: Dict[int, List[Any]] = {}
         for grade in (
             self.db.query(self.Grade)
