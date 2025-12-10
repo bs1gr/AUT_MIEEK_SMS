@@ -21,7 +21,7 @@ import logging
 import os
 from functools import wraps
 from time import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, cast
 from datetime import timedelta
 
 try:
@@ -240,9 +240,8 @@ class RedisCache:
             if self.enabled and self.client:
                 keys = list(self.client.scan_iter(match=pattern))
                 if keys:
-                    # Type cast to int for mypy - delete() returns int
-                    deleted: int = self.client.delete(*keys)
-                    return deleted
+                    # Explicitly cast for mypy - Redis.delete() returns int
+                    return cast(int, self.client.delete(*keys))
             logger.debug(f"Cache INVALIDATE: {pattern}")
         except Exception as e:
             logger.warning(f"Cache invalidate error: {e}")
