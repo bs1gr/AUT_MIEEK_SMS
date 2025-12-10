@@ -75,6 +75,8 @@ dist/
 # Installer executables (distribute via GitHub Releases)
 *.exe
 !installer/SMS_Installer_*.exe  # Keep tagged release installers only
+dist/*.exe
+installer/.version_cache
 
 # Temporary CI/local artifact folders
 tmp_artifacts/
@@ -136,6 +138,7 @@ docker-compose.override.yml
 # Windows special device files
 nul
 backend/nul
+backend/-w
 
 # Personal/sensitive data files (student records, enrollments, etc.)
 templates/students/*.csv

@@ -139,8 +139,6 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 
 ; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\DOCKER_TOGGLE.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\DOCKER_TOGGLE.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Development scripts - only for dev environment
