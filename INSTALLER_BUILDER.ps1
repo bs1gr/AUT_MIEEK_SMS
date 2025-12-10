@@ -319,7 +319,7 @@ function Invoke-GreekEncodingFix {
     try {
         $pythonScript = Join-Path $PSScriptRoot "fix_greek_encoding_permanent.py"
         if (-not (Test-Path $pythonScript)) {
-            Write-Result Warn "Greek encoding fix script not found, skipping Greek text conversion"
+            Write-Result Warning "Greek encoding fix script not found, skipping Greek text conversion"
             return $true
         }
         

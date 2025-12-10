@@ -8,6 +8,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+_No unreleased changes yet._
+
+## [1.10.2] - 2025-12-10
+
 ### Changed
 
 #### Repository Structure - Phase 1 Consolidation (2025-12-09)
