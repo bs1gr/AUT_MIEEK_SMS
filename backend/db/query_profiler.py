@@ -15,7 +15,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
@@ -117,13 +117,13 @@ class QueryProfiler:
             pass
         return "unknown"
 
-    def detect_n_plus_one(self, threshold: int = 5) -> List[tuple]:
+    def detect_n_plus_one(self, threshold: int = 5) -> List[Tuple[str, int]]:
         """Detect potential N+1 query patterns
         
         Returns:
             List of (table_name, count) tuples for tables with excessive queries
         """
-        n_plus_one_patterns = [
+        n_plus_one_patterns: List[Tuple[str, int]] = [
             (table, count)
             for table, count in self.query_patterns.items()
             if count > threshold

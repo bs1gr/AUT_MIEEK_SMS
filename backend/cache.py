@@ -197,7 +197,8 @@ class RedisCache:
                 value = self.client.get(key)
                 if value:
                     logger.debug(f"Cache HIT: {key}")
-                    return json.loads(value)
+                    # Type cast to satisfy mypy - Redis get() returns bytes|None
+                    return json.loads(str(value.decode('utf-8') if isinstance(value, bytes) else value))
             else:
                 return self.fallback_cache.get(key)
         except Exception as e:
@@ -239,7 +240,9 @@ class RedisCache:
             if self.enabled and self.client:
                 keys = list(self.client.scan_iter(match=pattern))
                 if keys:
-                    return self.client.delete(*keys)
+                    # Type cast to int for mypy - delete() returns int
+                    deleted: int = self.client.delete(*keys)
+                    return deleted
             logger.debug(f"Cache INVALIDATE: {pattern}")
         except Exception as e:
             logger.warning(f"Cache invalidate error: {e}")
