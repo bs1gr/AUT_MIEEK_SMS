@@ -1,0 +1,59 @@
+name: Frontend Dependency Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  pull_request:
+    paths:
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/frontend-deps.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Run npm audit
+        working-directory: ./frontend
+        run: npm audit --json > audit-report.json || true
+      
+      - name: Check for critical vulnerabilities
+        working-directory: ./frontend
+        run: |
+          if npm audit | grep -i "critical"; then
+            echo "❌ Critical vulnerabilities found!"
+            exit 1
+          else
+            echo "✅ No critical vulnerabilities"
+          fi
+      
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-audit-report
+          path: frontend/audit-report.json
+          retention-days: 30
+  
+  update-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Check for outdated packages
+        working-directory: ./frontend
+        run: |
+          echo "📦 Outdated packages:"
+          npm outdated || true

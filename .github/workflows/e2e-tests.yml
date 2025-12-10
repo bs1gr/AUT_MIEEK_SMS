@@ -1,0 +1,70 @@
+name: E2E Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+      
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Start backend in background
+        working-directory: ./backend
+        run: |
+          DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=disabled python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          echo $! > backend.pid
+          sleep 3
+      
+      - name: Run E2E tests
+        working-directory: ./frontend
+        run: npm run e2e
+      
+      - name: Kill backend
+        if: always()
+        run: kill $(cat ./backend/backend.pid) || true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results
+          path: frontend/playwright-report/
+          retention-days: 30
+      
+      - name: Publish E2E report
+        if: always()
+        uses: daun/playwright-report-comment@v3
+        with:
+          report-path: frontend/playwright-report
