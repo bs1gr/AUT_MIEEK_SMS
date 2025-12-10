@@ -25,3 +25,4 @@ opentelemetry-api==1.27.0
 opentelemetry-sdk==1.27.0
 opentelemetry-exporter-otlp==1.27.0
 opentelemetry-instrumentation-fastapi==0.48b0
+redis==5.0.1  # Redis caching support (optional, enable via REDIS_ENABLED=true)
