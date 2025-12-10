@@ -3,10 +3,10 @@ import { Page } from '@playwright/test';
 export async function login(
   page: Page,
   email: string,
-  password: string,
-  baseURL = 'http://localhost:5173'
+  password: string
 ) {
-  await page.goto(`${baseURL}/login`);
+  // Use relative paths - Playwright will resolve against baseURL from config
+  await page.goto('/login');
   
   // Wait for login form
   await page.waitForLoadState('networkidle');
@@ -19,17 +19,17 @@ export async function login(
   await page.click('button[type="submit"]');
   
   // Wait for redirect
-  await page.waitForURL(`${baseURL}/dashboard`, { timeout: 10000 });
+  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
   await page.waitForLoadState('networkidle');
 }
 
-export async function logout(page: Page, baseURL = 'http://localhost:5173') {
+export async function logout(page: Page) {
   // Click user menu or logout button
   await page.click('[data-testid="user-menu"]');
   await page.click('[data-testid="logout-btn"]');
   
   // Wait for redirect to login
-  await page.waitForURL(`${baseURL}/login`, { timeout: 5000 });
+  await page.waitForURL(/\/login/, { timeout: 5000 });
 }
 
 export async function navigateTo(page: Page, path: string) {
