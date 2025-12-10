@@ -62,7 +62,14 @@ jobs:
         working-directory: ./frontend
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
-        run: npm run e2e
+        # Quick sanity check that frontend is being served
+        run: |
+          echo "--- Sanity check: curl /login ---"
+          curl -I http://127.0.0.1:8000/login || true
+          echo "--- Sanity check: curl / ---"
+          curl -I http://127.0.0.1:8000/ || true
+          echo "--- Running Playwright E2E ---"
+          npm run e2e
       
       - name: Kill backend
         if: always()
