@@ -1,0 +1,58 @@
+name: Backend Dependency Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  pull_request:
+    paths:
+      - 'backend/requirements*.txt'
+      - '.github/workflows/backend-deps.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Run pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit --desc --format json > backend-audit.json || true
+      
+      - name: Check for critical vulnerabilities
+        run: |
+          if pip-audit --desc | grep -i "critical"; then
+            echo "❌ Critical vulnerabilities found!"
+            exit 1
+          else
+            echo "✅ No critical vulnerabilities"
+          fi
+      
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-audit-report
+          path: backend-audit.json
+          retention-days: 30
+
+  update-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Check for outdated packages
+        run: |
+          pip install pip-audit
+          echo "📦 Outdated packages:"
+          pip list --outdated || true
