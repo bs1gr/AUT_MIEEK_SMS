@@ -10,10 +10,17 @@ export async function login(
   
   // Wait for login form
   await page.waitForLoadState('networkidle');
+
+  // Prefer stable data-testid/ids, fallback to name
+  const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"]');
+  const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"]');
+
+  await emailInput.waitFor({ state: 'visible', timeout: 10_000 });
+  await passwordInput.waitFor({ state: 'visible', timeout: 10_000 });
   
   // Fill credentials
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
+  await emailInput.fill(email);
+  await passwordInput.fill(password);
   
   // Submit form
   await page.click('button[type="submit"]');
