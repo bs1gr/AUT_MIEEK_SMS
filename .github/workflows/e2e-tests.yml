@@ -34,7 +34,7 @@ jobs:
       
       - name: Install Playwright browsers
         working-directory: ./frontend
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium
       
       - name: Build frontend
         working-directory: ./frontend
@@ -52,7 +52,8 @@ jobs:
       
       - name: Kill backend
         if: always()
-        run: kill $(cat backend.pid) || true
+        run: |
+          if [ -f backend.pid ]; then kill $(cat backend.pid); fi || true
       
       - name: Upload test results
         if: always()
