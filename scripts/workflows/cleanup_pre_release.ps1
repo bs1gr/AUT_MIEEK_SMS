@@ -17,11 +17,11 @@
     Also clean backup directories (use with caution)
 
 .EXAMPLE
-    .\scripts\CLEANUP_PRE_RELEASE.ps1 -DryRun
+    .\scripts\workflows\cleanup_pre_release.ps1 -DryRun
     Preview cleanup actions
 
 .EXAMPLE
-    .\scripts\CLEANUP_PRE_RELEASE.ps1
+    .\scripts\workflows\cleanup_pre_release.ps1
     Execute cleanup
 
 .NOTES
@@ -38,8 +38,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$workflowsDir = $PSScriptRoot
+$scriptsDir   = Split-Path -Parent $workflowsDir
+$rootDir      = Split-Path -Parent $scriptsDir
+
 # Import shared cleanup utilities
-. "$PSScriptRoot\lib\cleanup_common.ps1"
+. "$scriptsDir\lib\cleanup_common.ps1"
 
 $script:CleanupCount = 0
 $script:SpaceFreed = 0
@@ -84,8 +88,6 @@ try {
         Write-Host "`n⚡ LIVE MODE - Files will be permanently deleted" -ForegroundColor Red
         Start-Sleep -Seconds 2
     }
-
-    $rootDir = Split-Path -Parent $PSScriptRoot
 
     # 1. PYTHON CACHE CLEANUP
     Write-Section "Python Cache & Bytecode"
@@ -204,7 +206,7 @@ try {
         } | ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Test database"
         }
-    
+
     # Remove WAL and SHM files
     Get-ChildItem -Path $rootDir -Include "*.db-wal", "*.db-shm" -File -Recurse -ErrorAction SilentlyContinue | 
         ForEach-Object {
@@ -214,7 +216,6 @@ try {
     # 8. OLD BACKUPS (if requested)
     if ($IncludeBackups) {
         Write-Section "Old Backups (CAUTION)"
-        
         Write-Host "  ⚠️  Backup cleanup requested" -ForegroundColor Yellow
         
         if (Test-Path "$rootDir\backups\pip-audit-report*.json") {
@@ -267,7 +268,10 @@ try {
     Write-Host "  • frontend/node_modules/ (dependencies)" -ForegroundColor Gray
     Write-Host "  • backend/.venv/ (Python environment)" -ForegroundColor Gray
     
-} catch {
+}
+catch {
     Write-Host "`n❌ ERROR: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
+
+exit 0
