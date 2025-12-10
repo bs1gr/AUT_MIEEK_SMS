@@ -47,7 +47,16 @@ jobs:
         run: |
           DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=disabled python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
-          sleep 3
+          sleep 5
+          # Wait for backend to be ready
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8000/health > /dev/null; then
+              echo "Backend is ready"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 1
+          done
       
       - name: Run E2E tests
         working-directory: ./frontend
