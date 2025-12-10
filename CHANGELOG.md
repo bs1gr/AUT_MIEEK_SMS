@@ -14,6 +14,20 @@ _No unreleased changes yet._
 
 ### Fixed
 
+#### Frontend TypeScript & Icon Imports (2025-12-10)
+
+- **lucide-react Icon Import Resolution** 🎨
+  - Created type augmentation (`frontend/src/types/lucide-react.d.ts`) to resolve lucide-react export mismatch
+  - **Issue**: lucide-react exports all icons with `Lucide` prefix only (e.g., `LucideRefreshCw`)
+  - **Solution**: Type augmentation re-exports prefixed icons with plain names for backward compatibility
+  - Resolved **136 TypeScript compilation errors** without modifying component code
+  - Runtime behavior unchanged - icons always displayed correctly
+  - Supported icons: RefreshCw, CheckCircle, XCircle, Mail, Award, Check, X, Clock, AlertCircle, Eye, EyeOff, AlertTriangle, Chevron*, User*, Settings, LogOut/In, Save, Download, Upload, Trash/Trash2, Edit/Edit3, Plus, Minus, Search, Filter, Calendar, Book, FileText, HelpCircle, Power, Activity, RotateCw, Home, GraduationCap, BookOpen, Clipboard, BarChart/BarChart3, TrendingUp, Sun, Moon, Globe, ArrowLeft/Right, Briefcase, Calculator, CloudUpload, Container, Cpu, Database, ExternalLink, FileCheck, FileSpreadsheet, Flower2, LockKeyhole, MessageCircle, Monitor, Package, Palette, PieChart, Server, Shield, ShieldCheck, Sparkles, Star, Target, Terminal, UserCheck, Video
+
+- **MetricCard Type Compatibility** 🔧
+  - Updated `EnhancedDashboardView.tsx` MetricCard icon prop type to accept lucide-react components
+  - Fixed ComponentType constraint to be compatible with LucideProps interface
+
 #### CI/CD Pipeline & Type Checking (2025-12-10)
 
 - **MyPy Type Checking Fixes** 🔧
@@ -34,7 +48,7 @@ _No unreleased changes yet._
 
 ### Documentation
 
-- Updated installer wizard images with $11.11.1 version
+- Updated installer wizard images with v1.11.1 version
 - Rebuilt code-signed installer: `SMS_Installer_1.11.1.exe` (5.33 MB)
 
 ## [1.11.0] - 2025-12-10
