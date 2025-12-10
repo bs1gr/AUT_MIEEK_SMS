@@ -41,7 +41,6 @@ jobs:
         run: npm run build
       
       - name: Start backend in background
-        working-directory: ./backend
         run: |
           DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=disabled python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
@@ -53,7 +52,7 @@ jobs:
       
       - name: Kill backend
         if: always()
-        run: kill $(cat ./backend/backend.pid) || true
+        run: kill $(cat backend.pid) || true
       
       - name: Upload test results
         if: always()
