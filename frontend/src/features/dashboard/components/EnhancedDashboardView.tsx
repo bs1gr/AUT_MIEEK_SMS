@@ -95,7 +95,7 @@ type MetricCardProps = {
   title: string;
   value: string | number;
   hint: string;
-  icon: ComponentType<{ size?: number }>;
+  icon: ComponentType<any>;
   accent?: AccentColor;
 };
 
