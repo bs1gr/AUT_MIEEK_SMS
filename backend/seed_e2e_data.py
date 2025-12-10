@@ -2,18 +2,21 @@
 
 This script creates test users, students, courses, and other entities
 needed for end-to-end testing.
+
+Run from project root: python backend/seed_e2e_data.py
 """
 
 import sys
 from pathlib import Path
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Ensure we can import backend modules
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.models import User, Student, Course, Base
-from backend.security.auth import get_password_hash
+from backend.routers.routers_auth import get_password_hash
 
 
 def seed_e2e_data():
@@ -40,7 +43,6 @@ def seed_e2e_data():
         # Create test user
         test_user = User(
             email="test@example.com",
-            username="testuser",
             full_name="Test User",
             hashed_password=get_password_hash("password123"),
             role="admin",
@@ -58,7 +60,7 @@ def seed_e2e_data():
         ]
         
         for student_data in students_data:
-            student = Student(**student_data, is_active=True)
+            student = Student(**student_data)
             db.add(student)
         
         # Create test courses
@@ -68,7 +70,7 @@ def seed_e2e_data():
         ]
         
         for course_data in courses_data:
-            course = Course(**course_data, is_active=True)
+            course = Course(**course_data)
             db.add(course)
         
         db.commit()
