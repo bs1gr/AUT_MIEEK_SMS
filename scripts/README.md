@@ -30,6 +30,7 @@ scripts/
 ├── maintenance/                   # 🔧 Maintenance tasks
 ├── operator/                      # 👤 Operator-only (destructive)
 ├── docs/                          # 📚 Documentation automation
+├── workflows/                     # 📦 Canonical workflow wrappers (precommit, cleanup)
 └── ci/                            # 🤖 CI/CD scripts
 ```
 
@@ -129,15 +130,17 @@ This hook helps catch lint/test issues early. If you intentionally want to skip 
 
 ### ✅ PRECOMMIT_WORKFLOW.ps1 - Preferred End-to-End Pre-Commit Flow
 
-**Location:** `\.\scripts\PRECOMMIT_WORKFLOW.ps1`
+**Location:** `\.\scripts\workflows\precommit_workflow.ps1`
 
 **Purpose:** One command to run cleanup, COMMIT_READY, smoke probes, and generate `COMMIT_MESSAGE.txt` without duplicating logic.
 
 ```powershell
-pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1               # Preferred: cleanup + COMMIT_READY (mode full) + smoke
-pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1 -Mode quick   # Fast path, skips heavy checks
-pwsh ./scripts/PRECOMMIT_WORKFLOW.ps1 -SkipCleanup -SkipSmoke  # Use when only tests are needed
+pwsh ./scripts/workflows/precommit_workflow.ps1               # Preferred: cleanup + COMMIT_READY (mode full) + smoke
+pwsh ./scripts/workflows/precommit_workflow.ps1 -Mode quick   # Fast path, skips heavy checks
+pwsh ./scripts/workflows/precommit_workflow.ps1 -SkipCleanup -SkipSmoke  # Use when only tests are needed
 ```
+
+Cleanup helper lives at `scripts/workflows/cleanup_pre_release.ps1`.
 
 Flags forward to the underlying scripts:
 
