@@ -48,7 +48,7 @@ _No unreleased changes yet._
 
 ### Documentation
 
-- Updated installer wizard images with v1.11.1 version
+- Updated installer wizard images with $11.11.1 version
 - Rebuilt code-signed installer: `SMS_Installer_1.11.1.exe` (5.33 MB)
 
 ## [1.11.0] - 2025-12-10
@@ -935,5 +935,6 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+
 
 

@@ -75,7 +75,7 @@ def seed_e2e_data():
         
         db.commit()
         print("✓ E2E test data seeded successfully")
-        print(f"  - Created test user: test@example.com (password: password123)")
+        print("  - Created test user: test@example.com (password: password123)")
         print(f"  - Created {len(students_data)} students")
         print(f"  - Created {len(courses_data)} courses")
         

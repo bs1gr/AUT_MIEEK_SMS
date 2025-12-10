@@ -80,7 +80,7 @@ test.describe('Student Management - Critical Flows', () => {
     await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
     
     // Verify success message or student appears in list
-    await expect(page.locator(`text=${student.firstName}`)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(student.firstName)).toBeVisible({ timeout: 5000 });
   });
 
   test('should edit an existing student', async ({ page }) => {
@@ -112,7 +112,7 @@ test.describe('Student Management - Critical Flows', () => {
     await page.click('button[type="submit"]:has-text("Update"), button:has-text("Save")');
     
     // Verify updated name appears
-    await expect(page.locator(`text=${newLastName}`)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(newLastName)).toBeVisible({ timeout: 5000 });
   });
 
   test('should delete a student', async ({ page }) => {
@@ -140,7 +140,7 @@ test.describe('Student Management - Critical Flows', () => {
     await page.click('button:has-text("Confirm"), button:has-text("Delete"):visible');
     
     // Verify student no longer appears
-    await expect(page.locator(`text=${student.firstName}`)).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(student.firstName)).not.toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -162,7 +162,7 @@ test.describe('Course Management', () => {
     
     await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
     
-    await expect(page.locator(`text=${course.courseCode}`)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(course.courseCode)).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -226,7 +226,7 @@ test.describe('Grade Assignment Flow', () => {
     await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
     
     // Verify grade appears
-    await expect(page.locator(`text=85`)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/^85$/)).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -274,7 +274,7 @@ test.describe('Attendance Tracking', () => {
     await page.click('button:has-text("Save Attendance"), button[type="submit"]');
     
     // Verify success message
-    await expect(page.locator('text=/Attendance.*(saved|recorded|updated)/i')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Attendance.*(saved|recorded|updated)/i)).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -340,9 +340,9 @@ test.describe('Analytics and Reports', () => {
     await page.goto(`/analytics/student/${createdStudent.id}`);
     
     // Verify final grade calculation appears
-    await expect(page.locator('text=/Final Grade|Overall GPA|Grade Summary/i')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Final Grade|Overall GPA|Grade Summary/i)).toBeVisible({ timeout: 5000 });
     
     // Verify course appears with grade
-    await expect(page.locator(`text=${course.courseCode}`)).toBeVisible();
+    await expect(page.getByText(course.courseCode)).toBeVisible();
   });
 });

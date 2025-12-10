@@ -38,7 +38,7 @@ test.describe('Registration UI flow (smoke)', () => {
 
     // Ensure the UI shows auto-login success message when server returns access token
     // The app displays 'Registered and logged in.' on successful auto-login.
-    const success = page.locator('text=Registered and logged in.');
+    const success = page.getByText('Registered and logged in.');
     await expect(success).toHaveCount(1);
   });
 });

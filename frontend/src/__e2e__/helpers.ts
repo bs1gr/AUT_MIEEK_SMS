@@ -31,9 +31,8 @@ export async function login(
 }
 
 export async function logout(page: Page) {
-  // Click user menu or logout button
-  await page.click('[data-testid="user-menu"]');
-  await page.click('[data-testid="logout-btn"]');
+  // Click logout button using data-testid
+  await page.click('[data-testid="logout-button"]');
   
   // Wait for redirect to login
   await page.waitForURL(/\/login/, { timeout: 5000 });
