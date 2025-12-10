@@ -7,7 +7,7 @@ These endpoints provide visibility into:
 - System health metrics
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from backend.db.query_profiler import profiler
 import logging
 
