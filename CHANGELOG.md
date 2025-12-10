@@ -10,6 +10,81 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 _No unreleased changes yet._
 
+## [1.11.1] - 2025-12-10
+
+### Fixed
+
+#### CI/CD Pipeline & Type Checking (2025-12-10)
+
+- **MyPy Type Checking Fixes** 🔧
+  - Fixed Redis cache type errors in `backend/cache.py`:
+    - Added proper type casting for `json.loads()` operations
+    - Fixed `delete()` return type annotation with explicit cast
+  - Fixed query profiler type error in `backend/db/query_profiler.py`:
+    - Added `Tuple` import from typing
+    - Fixed `detect_n_plus_one()` return type annotation
+  - Added `types-redis==4.6.0.20241004` to development dependencies for Redis type stubs
+
+- **GitHub Actions Workflow Updates** ⚙️
+  - Updated E2E testing workflow (`.github/workflows/e2e-tests.yml`):
+    - Upgraded actions to latest versions: checkout@v4, setup-node@v4, setup-python@v5
+    - Removed problematic `daun/playwright-report-comment@v3` action
+  - Fixed frontend package lock consistency issues
+  - Added missing `@testing-library/dom` dependency
+
+### Documentation
+
+- Updated installer wizard images with v1.11.1 version
+- Rebuilt code-signed installer: `SMS_Installer_1.11.1.exe` (5.33 MB)
+
+## [1.11.0] - 2025-12-10
+
+### Added
+
+#### Performance & Diagnostics (2025-12-10)
+
+- **Query Profiling System** 📊
+  - Implemented comprehensive database query profiler (`backend/db/query_profiler.py`)
+  - Tracks slow queries, execution counts, and N+1 query detection
+  - New diagnostics endpoints at `/api/v1/diagnostics/queries/*`:
+    - `/slow` - List slow queries with execution times
+    - `/patterns` - Query pattern analysis with counts
+    - `/n-plus-one` - Detect potential N+1 query issues
+    - `/clear` - Clear profiling data
+  - Configurable slow query threshold via environment variable
+
+- **Redis Caching Layer** 🚀
+  - Implemented optional Redis caching with automatic fallback (`backend/cache.py`)
+  - In-memory cache fallback when Redis unavailable
+  - Pattern-based cache invalidation
+  - Environment-configurable via `REDIS_ENABLED` flag
+  - Supports TTL, namespacing, and key pattern matching
+
+#### CI/CD & Automation (2025-12-10)
+
+- **GitHub Actions Workflows** 🤖
+  - Added dependency scanning workflow (Dependabot integration)
+  - Added E2E testing workflow with Playwright
+  - Enhanced existing pipelines for better reliability
+  - Automated Docker image builds and publishing
+
+- **Monitoring Stack** 📈
+  - Added Prometheus metrics collection
+  - Added Grafana dashboards for visualization
+  - Docker Compose monitoring stack (`docker/docker-compose.monitoring.yml`)
+  - Health check endpoints for monitoring integration
+
+### Fixed
+
+- Removed unused `HTTPException` import from diagnostics router
+- Fixed pydantic_core dependency corruption in Python 3.13
+
+### Changed
+
+- Infrastructure improvements for scalability and observability
+- Enhanced testing infrastructure with E2E capabilities
+- Improved dependency management and security scanning
+
 ## [1.10.2] - 2025-12-10
 
 ### Changed
