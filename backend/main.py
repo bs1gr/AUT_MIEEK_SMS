@@ -105,7 +105,7 @@ def main() -> None:
     Configures and starts the Uvicorn server.
     """
     VERSION = get_version()
-    
+
     print("\n" + "=" * 70)
     print("STUDENT MANAGEMENT SYSTEM API")
     print("=" * 70)
@@ -120,7 +120,7 @@ def main() -> None:
     print("  Health Check: http://localhost:8000/health")
     print("\n  Press CTRL+C to stop the server\n")
     print("=" * 70 + "\n")
-    
+
     uvicorn.run(
         app,
         host="127.0.0.1",

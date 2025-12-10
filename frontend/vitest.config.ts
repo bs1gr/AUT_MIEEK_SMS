@@ -12,7 +12,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['src/setupTests.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
-    exclude: ['node_modules', 'dist'],
+    exclude: ['node_modules', 'dist', 'src/__e2e__/**'],
     pool: 'threads',
     maxThreads: 1,
     minThreads: 1,

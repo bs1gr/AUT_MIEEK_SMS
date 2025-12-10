@@ -28,7 +28,7 @@ def register_middlewares(app):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-        
+
         # Cache control for different content types
         path = request.url.path
         if path.startswith("/assets/"):
@@ -42,7 +42,7 @@ def register_middlewares(app):
         elif path.startswith(("/api/", "/docs", "/redoc", "/openapi.json", "/control", "/health", "/metrics")):
             # API endpoints - don't cache
             response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        
+
         return response
     # GZip compression
     if getattr(settings, "ENABLE_GZIP", True):

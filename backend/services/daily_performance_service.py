@@ -60,12 +60,12 @@ class DailyPerformanceService:
         """
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         record = get_by_id_or_404(db, DailyPerformance, record_id)
-        
+
         # Update fields from payload
         update_data = payload.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(record, key, value)
-        
+
         db.flush()
         db.refresh(record)
         logger.info(

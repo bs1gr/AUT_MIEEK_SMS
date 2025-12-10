@@ -32,7 +32,7 @@ def test_verify_password_with_pbkdf2():
     """Verify that password verification works with pbkdf2_sha256."""
     password = "testpassword123"
     password_hash = get_password_hash(password)
-    
+
     assert verify_password(password, password_hash) is True
     assert verify_password("wrongpassword", password_hash) is False
 
@@ -43,7 +43,7 @@ def test_bcrypt_deprecation_check():
     # pwd_context is a CryptContext with schemes=["pbkdf2_sha256", "bcrypt"]
     # and deprecated=["bcrypt"]
     assert "bcrypt" in pwd_context.schemes()
-    
+
     # Verify bcrypt is listed as deprecated in the configuration
     # We can't easily introspect the full config, but we can verify behavior:
     # A pbkdf2 hash should NOT need update, while (if we had a bcrypt hash) it would
