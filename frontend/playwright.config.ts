@@ -20,7 +20,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  projects: [
+  projects: process.env.CI ? [
+    // In CI, only test on Chromium for speed
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  ] : [
+    // Locally, test on all browsers
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
