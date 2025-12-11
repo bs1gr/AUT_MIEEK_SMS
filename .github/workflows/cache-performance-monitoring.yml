@@ -1,0 +1,38 @@
+name: Cache Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run monitoring
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/monitor_ci_cache.py \
+            --workflow e2e-tests.yml \
+            --runs 20 \
+            --output cache_metrics_monitoring.json \
+            --token $GITHUB_TOKEN
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-metrics
+          path: cache_metrics_monitoring.json
+          retention-days: 30
