@@ -8,7 +8,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+### Added
+- **Frontend hook test suites** covering `useApiWithRecovery`, `useErrorRecovery`, `useAutosave`, `usePerformanceMonitor`, `useVirtualScroll`, and `useFormValidation` to improve regression protection across retry/backoff flows, debounce handling, performance monitoring, virtualization, and form validation.
+
+### Fixed
+- **useApiWithRecovery stability**: ensured `onSuccess` fires on resolved queries, unified retry gating when recovery is disabled or strategy is `none`, and aligned retry delay/backoff defaults for predictable behavior.
+
+### Documentation
+- Added concise hook testing summary and quick reference guides for running and maintaining the new suites.
 
 ## [1.11.1] - 2025-12-10
 
