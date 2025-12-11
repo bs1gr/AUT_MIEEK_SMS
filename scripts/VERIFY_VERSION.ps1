@@ -181,14 +181,14 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "tools/installer/SMS_INSTALLER_WIZARD.ps1"
+        File = "scripts/utils/installer/SMS_INSTALLER_WIZARD.ps1"
         Pattern = 'Version\s*=\s*"\d+\.\d+\.\d+"'
         Replace = "Version             = `"$Version`""
         Description = "Installer wizard version"
         Critical = $false
     },
     @{
-        File = "tools/installer/SMS_UNINSTALLER_WIZARD.ps1"
+        File = "scripts/utils/installer/SMS_UNINSTALLER_WIZARD.ps1"
         Pattern = 'Version\s*=\s*"\d+\.\d+\.\d+"'
         Replace = "Version          = `"$Version`""
         Description = "Uninstaller wizard version"

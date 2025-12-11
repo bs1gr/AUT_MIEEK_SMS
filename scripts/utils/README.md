@@ -66,7 +66,7 @@ python scripts/utils/converters/convert_mieek_to_import.py \
   --output import_ready.json
 ```
 
-Sample inputs are provided in `converters/example_input_*.json` (old `tools/` paths keep deprecation stubs for backward compatibility).
+Sample inputs are provided in `converters/example_input_*.json`.
 
 #### convert_pdf_to_import.py
 
@@ -80,7 +80,7 @@ python scripts/utils/converters/convert_pdf_to_import.py \
 
 ### Installers
 
-Located in `installer/` subdirectory - utilities for installer creation and validation (legacy PS2EXE/GUI wizards now consolidated here). Deprecated wrappers remain in `tools/installer/` until v1.12.0.
+Located in `installer/` subdirectory - utilities for installer creation and validation (legacy PS2EXE/GUI wizards now consolidated here).
 
 ### Linting Tools
 
