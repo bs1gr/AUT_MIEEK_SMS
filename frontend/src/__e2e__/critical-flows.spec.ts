@@ -86,17 +86,17 @@ test.describe('Students Management', () => {
   });
 
   test('should display students list', async ({ page }) => {
-    // Be lenient: table may be empty in CI; just ensure the table or empty-state renders
-    const table = page.locator('table');
-    await table.waitFor({ state: 'visible', timeout: 10000 });
+    // Students view renders cards (li elements) or an empty-state message, not a table.
+    // Wait until either at least one student card appears or the empty-state message is shown.
+    await page.waitForFunction(() => {
+      const emptyMsg = Array.from(document.querySelectorAll('p')).some(p => /No students found|Δεν βρέθηκαν/i.test(p.textContent || ''));
+      const hasCards = document.querySelector('ul li') !== null || document.querySelector('li.border') !== null;
+      return emptyMsg || hasCards;
+    }, { timeout: 10000 });
 
-    const rows = page.locator('table tbody tr');
-    const count = await rows.count();
-    expect(count).toBeGreaterThanOrEqual(0);
-
-    // If an empty state component exists, allow it
-    const emptyState = page.locator('[data-testid="empty-state"], .empty-state');
-    // Don't fail if neither appears; the presence of the table is sufficient
+    // Count card items if present (>= 0 to allow empty lists in CI)
+    const items = await page.locator('li.border').count();
+    expect(items).toBeGreaterThanOrEqual(0);
   });
 
   test('should search students', async ({ page }) => {
@@ -105,26 +105,31 @@ test.describe('Students Management', () => {
     await searchInput.fill('John');
     await page.waitForLoadState('networkidle');
 
-    // Be lenient: ensure table remains visible; rows may be zero in CI data
-    const table = page.locator('table');
-    await table.waitFor({ state: 'visible', timeout: 10000 });
+    // After search, either student cards render or empty-state message appears.
+    await page.waitForFunction(() => {
+      const emptyMsg = Array.from(document.querySelectorAll('p')).some(p => /No students found|Δεν βρέθηκαν/i.test(p.textContent || ''));
+      const hasCards = document.querySelector('ul li') !== null || document.querySelector('li.border') !== null;
+      return emptyMsg || hasCards;
+    }, { timeout: 10000 });
   });
 
   test('should open student detail', async ({ page }) => {
-    // If there are no rows, skip gracefully (CI seed may be empty). Otherwise open first.
-    const rows = page.locator('table tbody tr');
-    const count = await rows.count();
+    // If there are no student cards, skip gracefully (CI seed may be empty).
+    const cards = page.locator('li.border');
+    const count = await cards.count();
     if (count === 0) {
       test.skip(true, 'No students present in CI seed; skipping detail open');
       return;
     }
 
-    const firstRow = rows.first();
-    await firstRow.waitFor({ state: 'visible', timeout: 10000 });
-    await firstRow.click();
+    // Click "View Profile" (or localized equivalent) on the first card.
+    const firstCard = cards.first();
+    const viewBtn = firstCard.locator('button').filter({ hasText: /View Profile|Full Profile|Προβολή/i }).first();
+    await expect(viewBtn).toBeVisible({ timeout: 10000 });
+    await viewBtn.click();
 
-    await page.waitForURL(/.*students\/\d+/, { timeout: 10000 });
-    await expect(page.getByRole('heading').filter({ hasText: /Student/i }).first()).toBeVisible();
+    // Assert StudentProfile rendered by checking for student ID label in EN or EL.
+    await expect(page.locator('text=/Student ID|Αριθμός Μητρώου/')).toBeVisible({ timeout: 10000 });
   });
 });
 
