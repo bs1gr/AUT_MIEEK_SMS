@@ -127,6 +127,46 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
     }
   };
 
+  // Download report in PDF/CSV format
+  const handleDownloadReport = async (format: 'pdf' | 'csv') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const reportRequest = {
+        student_id: studentId,
+        period: config.period,
+        start_date: config.startDate,
+        end_date: config.endDate,
+        course_ids: config.courseIds.length > 0 ? config.courseIds : undefined,
+        include_attendance: config.includeAttendance,
+        include_grades: config.includeGrades,
+        include_performance: config.includePerformance,
+        include_highlights: config.includeHighlights,
+        format: format
+      };
+      const response = await reportsAPI.downloadStudentReport(reportRequest);
+      
+      // Create blob from response
+      const blob = new Blob([response.data], {
+        type: format === 'pdf' ? 'application/pdf' : 'text/csv'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `student_performance_${studentId}_${config.period}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || t('reports.downloadError') || 'Download failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle configuration changes
   const handleConfigChange = (field: keyof ReportConfig, value: any) => {
     setConfig(prev => ({ ...prev, [field]: value }));
@@ -280,6 +320,24 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               >
                 {loading ? t('reports.generating') : t('reports.generate')}
               </button>
+
+              {/* Download Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDownloadReport('pdf')}
+                  disabled={loading}
+                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:bg-gray-400 transition-colors text-sm"
+                >
+                  {loading ? '...' : 'Download PDF'}
+                </button>
+                <button
+                  onClick={() => handleDownloadReport('csv')}
+                  disabled={loading}
+                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors text-sm"
+                >
+                  {loading ? '...' : 'Download CSV'}
+                </button>
+              </div>
 
               {error && (
                 <div className="mt-2 text-red-600 text-sm">{error}</div>

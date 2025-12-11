@@ -12,12 +12,14 @@ from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 from backend.db import get_session
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.services.report_exporters import generate_pdf_report, generate_csv_report
 from backend.schemas import (
     AttendanceSummary,
     CourseSummary,
@@ -385,3 +387,234 @@ async def get_available_formats():
 async def get_available_periods():
     """Get list of available report periods."""
     return [period.value for period in ReportPeriod]
+
+
+@router.post("/student-performance/download")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def download_student_performance_report(
+    request: Request,
+    report_request: PerformanceReportRequest,
+    db: Session = Depends(get_session),
+):
+    """
+    Generate and download student performance report in requested format.
+    
+    Supports:
+    - JSON: Returns JSON response (default)
+    - PDF: Returns PDF file for download
+    - CSV: Returns CSV file for download
+    
+    **Rate limit**: 10 requests per minute
+    """
+    # First generate the report data using the existing endpoint logic
+    # Validate student exists
+    student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
+
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    # Calculate date range
+    start_date, end_date = _calculate_period_dates(
+        report_request.period, report_request.start_date, report_request.end_date
+    )
+
+    logger.info(
+        f"Generating downloadable report for student {student.id} "
+        f"from {start_date} to {end_date} in format {report_request.format.value}"
+    )
+
+    # Generate report data (reuse logic from main endpoint)
+    report_data = {
+        "student_id": student.id,
+        "student_name": f"{student.first_name} {student.last_name}",
+        "student_email": student.email,
+        "report_period": report_request.period.value,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "overall_attendance": None,
+        "overall_grades": None,
+        "courses": [],
+        "highlights": [],
+        "recommendations": [],
+    }
+
+    # Get course filter
+    course_ids = report_request.course_ids if report_request.course_ids else None
+
+    # Build overall attendance summary
+    if report_request.include_attendance:
+        att_query = db.query(Attendance).filter(
+            Attendance.student_id == student.id,
+            Attendance.date >= start_date,
+            Attendance.date <= end_date,
+            Attendance.deleted_at.is_(None),
+        )
+        if course_ids:
+            att_query = att_query.filter(Attendance.course_id.in_(course_ids))
+
+        attendances = att_query.all()
+
+        if attendances:
+            total_days = len(attendances)
+            present = sum(1 for a in attendances if a.status.lower() in ["present", "late"])
+            absent = sum(1 for a in attendances if a.status.lower() in ["absent", "excused"])
+            unexcused = sum(1 for a in attendances if a.status.lower() == "absent")
+            attendance_rate = (present / total_days * 100) if total_days > 0 else 0
+
+            report_data["overall_attendance"] = {
+                "total_days": total_days,
+                "present": present,
+                "absent": absent,
+                "attendance_rate": round(attendance_rate, 1),
+                "unexcused_absences": unexcused,
+            }
+
+    # Build overall grades summary
+    if report_request.include_grades:
+        grade_query = db.query(Grade).filter(
+            Grade.student_id == student.id,
+            Grade.date_assigned >= start_date,
+            Grade.date_assigned <= end_date,
+            Grade.deleted_at.is_(None),
+        )
+        if course_ids:
+            grade_query = grade_query.filter(Grade.course_id.in_(course_ids))
+
+        grades = grade_query.all()
+
+        if grades:
+            percentages = [(g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0]
+            if percentages:
+                avg_percentage = sum(percentages) / len(percentages)
+                trend = _calculate_trend(percentages)
+
+                report_data["overall_grades"] = {
+                    "total_assignments": len(grades),
+                    "average_grade": sum(g.grade for g in grades) / len(grades),
+                    "average_percentage": round(avg_percentage, 1),
+                    "highest_grade": max(g.grade for g in grades),
+                    "lowest_grade": min(g.grade for g in grades),
+                    "grade_trend": trend,
+                }
+
+    # Get courses for breakdown
+    if course_ids:
+        courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all()
+    else:
+        # Get all courses student is enrolled in
+        from backend.models import CourseEnrollment
+
+        enrollments = (
+            db.query(CourseEnrollment)
+            .filter(CourseEnrollment.student_id == student.id, CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
+        course_ids = [e.course_id for e in enrollments]
+        courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all() if course_ids else []
+
+    # Build course summaries (simplified version)
+    for course in courses:
+        course_data = {
+            "course_code": course.code,
+            "course_title": course.title,
+            "attendance": None,
+            "grades": None,
+        }
+
+        # Course attendance
+        if report_request.include_attendance:
+            course_att = [
+                a
+                for a in db.query(Attendance)
+                .filter(
+                    Attendance.student_id == student.id,
+                    Attendance.course_id == course.id,
+                    Attendance.date >= start_date,
+                    Attendance.date <= end_date,
+                    Attendance.deleted_at.is_(None),
+                )
+                .all()
+            ]
+            if course_att:
+                total = len(course_att)
+                present = sum(1 for a in course_att if a.status.lower() in ["present", "late"])
+                course_data["attendance"] = {
+                    "total_days": total,
+                    "present": present,
+                    "absent": total - present,
+                    "attendance_rate": round((present / total * 100) if total > 0 else 0, 1),
+                }
+
+        # Course grades
+        if report_request.include_grades:
+            course_grades = [
+                g
+                for g in db.query(Grade)
+                .filter(
+                    Grade.student_id == student.id,
+                    Grade.course_id == course.id,
+                    Grade.date_assigned >= start_date,
+                    Grade.date_assigned <= end_date,
+                    Grade.deleted_at.is_(None),
+                )
+                .all()
+            ]
+            if course_grades:
+                percentages = [(g.grade / g.max_grade * 100) for g in course_grades if g.max_grade > 0]
+                if percentages:
+                    course_data["grades"] = {
+                        "total_assignments": len(course_grades),
+                        "average_percentage": round(sum(percentages) / len(percentages), 1),
+                        "grade_trend": _calculate_trend(percentages),
+                    }
+
+        report_data["courses"].append(course_data)
+
+    # Add highlights
+    if report_request.include_highlights:
+        highlights = db.query(Highlight).filter(
+            Highlight.student_id == student.id,
+            Highlight.date_created >= start_date,
+            Highlight.date_created <= end_date,
+            Highlight.deleted_at.is_(None),
+        ).all()
+
+        report_data["highlights"] = [
+            {
+                "date": str(h.date_created),
+                "category": h.category,
+                "description": h.highlight_text,
+            }
+            for h in highlights
+        ]
+
+    # Generate recommendations
+    report_data["recommendations"] = _generate_recommendations(report_data)
+
+    # Generate format-specific response
+    if report_request.format == ReportFormat.PDF:
+        try:
+            pdf_bytes = generate_pdf_report(report_data)
+            filename = f"student_performance_{student.id}_{start_date}_{end_date}.pdf"
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+        except ImportError as e:
+            raise HTTPException(
+                status_code=501,
+                detail="PDF export not available. Install reportlab: pip install reportlab",
+            ) from e
+
+    elif report_request.format == ReportFormat.CSV:
+        csv_string = generate_csv_report(report_data)
+        filename = f"student_performance_{student.id}_{start_date}_{end_date}.csv"
+        return Response(
+            content=csv_string,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+    else:  # JSON (default)
+        return report_data
