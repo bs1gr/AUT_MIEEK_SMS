@@ -251,6 +251,14 @@ Documentation is organized into four main directories:
   - Feature comparison matrix
   - Usage decision tree
   - Space savings potential
+- **[operations/CI_CACHE_OPTIMIZATION.md](operations/CI_CACHE_OPTIMIZATION.md)** - CI/CD cache performance optimization (v1.11.1+)
+  - npm dependency caching (30-45s savings)
+  - Playwright browser caching (45-60s savings)
+  - Expected 95% speedup on cache hits
+  - **Monitoring**: [`../scripts/README_MONITOR_CI_CACHE.md`](../scripts/README_MONITOR_CI_CACHE.md)
+    - GitHub Actions cache performance monitoring
+    - Empirical metrics collection and validation
+    - CLI tool for analyzing workflow runs
 
 **Reference Guides** (NEW):
 
