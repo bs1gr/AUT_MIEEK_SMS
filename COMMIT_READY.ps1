@@ -510,10 +510,12 @@ function Invoke-VersionPropagationAndDocs {
     if ($UpdateDocs -or $AutoFix -or ($Mode -in @('standard','full'))) {
         $targets = @(
             (Join-Path $SCRIPT_DIR 'README.md'),
+            (Join-Path $SCRIPT_DIR 'TODO.md'),
             (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1'),
             (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
             (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
             (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
+            (Join-Path $SCRIPT_DIR 'INSTALLER_BUILDER.ps1'),
             (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
             (Join-Path $SCRIPT_DIR 'RELEASE_SUMMARY_$11.9.7.md'),
             (Join-Path $SCRIPT_DIR 'PERFORMANCE_AUDIT_2025-12-03.md')
