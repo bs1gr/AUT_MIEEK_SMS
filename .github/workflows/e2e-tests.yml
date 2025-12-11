@@ -26,6 +26,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: backend/requirements*.txt
 
       - name: Determine Playwright version
         id: pwver
@@ -33,7 +34,6 @@ jobs:
         run: |
           echo "version=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','')\")" >> $GITHUB_OUTPUT
           echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
-          cache-dependency-path: 'backend/requirements*.txt'
       
       - name: Cache Playwright browsers
         uses: actions/cache@v4
