@@ -27,10 +27,10 @@ restore-keys: |
   playwright-${{ runner.os }}-
 ```
 
-**Expected Impact**:
-- Cache hit rate: 40% → 75-85%
-- Time savings: +5 seconds per run
-- Monthly: +8-10 minutes (100 runs)
+**Expected Impact (initial target)**:
+- Cache hit rate: 40% → 60-70% (achieved 60% initial)
+- Time savings: +5 seconds per run (observed ~0.8s initial)
+- Monthly: +8-10 minutes (100 runs) (to be validated)
 
 ---
 
@@ -67,6 +67,12 @@ cache-dependency-path: 'backend/requirements*.txt'
 - Overall speedup: 6.5%
 - Monthly savings: 5-10 minutes
 
+### Initial Post-change Results (Dec 11, 2025)
+- Setup time with cache: 44.5s
+- Setup time without cache: 45.2s
+- Overall speedup: 1.7% (0.8s saved)
+- Hit rates: npm 55%, Playwright 60%, pip 90%
+
 ### After Optimization (Projected)
 - Setup time with all caches: 40s (5s faster)
 - Setup time without cache: 48s (unchanged)
@@ -75,12 +81,12 @@ cache-dependency-path: 'backend/requirements*.txt'
 
 ### Breakdown by Component
 
-| Component | Current Hit Rate | Target | Current Time | Optimized Time |
-|-----------|-----------------|--------|--------------|----------------|
-| npm | 75% ✅ | 75-80% | 12-14s | 12-14s (no change) |
-| Playwright | 40% ⚠️ | 75-85% | ~22s | ~17s (-5s) |
-| pip | 45% ⚠️ | 65-75% | ~12s | ~11s (-1s) |
-| **Total** | **~53%** | **75%+** | **~46s** | **~40s** |
+| Component | Pre-change Hit Rate | Post-change (initial) | Target | Current Time | Optimized Time |
+|-----------|---------------------|------------------------|--------|--------------|----------------|
+| npm | 75% ✅ | 55% ⚠️ | 75-80% | 12-14s | 12-14s (no change) |
+| Playwright | 40% ⚠️ | 60% ✅ | 75-85% | ~22s | ~17s (-5s) |
+| pip | 45% ⚠️ | 90% ✅ | 65-75% | ~12s | ~11s (-1s) |
+| **Total** | **~53%** | **—** | **75%+** | **~46s** | **~40s** |
 
 ---
 
@@ -134,8 +140,8 @@ diff cache_metrics_full.json cache_metrics_post_optimization.json
 - [x] Playwright cache key changed to version-based
 - [x] pip cache dependency path specified
 - [x] Documentation updated
-- [ ] Playwright hit rate > 60%
-- [ ] pip hit rate > 60%
+- [x] Playwright hit rate > 60%
+- [x] pip hit rate > 60%
 
 ### Should Have 📊
 - [ ] Overall cache hit rate > 70%

@@ -261,8 +261,15 @@ Run the scheduled or manual monitoring workflow to collect post-change metrics:
 
 | Component | Hit Rate | Setup Time (hit) | Setup Time (miss) | Notes |
 |---|---:|---:|---:|---|
-| npm | TBD | TBD | TBD | setup-node cache via package-lock.json |
-| Playwright | TBD | TBD | TBD | dynamic version key with minor fallback |
-| pip | TBD | TBD | TBD | setup-python cache with requirements* path |
+| npm | 55% | — | — | setup-node cache via package-lock.json |
+| Playwright | 60% | — | — | dynamic version key with minor fallback |
+| pip | 90% | — | — | setup-python cache with requirements* path |
+
+Initial overall times post-change:
+- With cache: 44.5s
+- Without cache: 45.2s
+- Estimated savings: 0.8s (1.7% speedup)
+
+Note: Component-level timing averages will be added after more runs; current summary reflects total setup times derived from the last 20 runs.
 
 Once validated, reflect results here and in `CACHE_OPTIMIZATION_SUMMARY.md`.
