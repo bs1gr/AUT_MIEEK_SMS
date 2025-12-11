@@ -41,12 +41,12 @@ export function useApiQuery<TData = unknown, TError = Error>(
 ) {
   const {
     errorRecovery,
+    onSuccess,
     ...queryOptions
   } = options || {};
 
   const {
     handleError,
-    shouldRetry,
     reset
   } = useErrorRecovery({
     strategy: errorRecovery?.strategy || 'backoff',
@@ -54,12 +54,16 @@ export function useApiQuery<TData = unknown, TError = Error>(
     backoffMs: errorRecovery?.backoffMs || 1000,
   });
 
+  const maxRetries = errorRecovery?.maxRetries ?? 3;
+  const backoffMs = errorRecovery?.backoffMs ?? 1000;
+
   const query = useQuery<TData, TError>({
     queryKey,
     queryFn: async () => {
       try {
         reset(); // Reset error state on new attempt
         const result = await queryFn();
+        onSuccess?.(result);
         return result;
       } catch (error) {
         if (errorRecovery?.enabled !== false) {
@@ -69,12 +73,12 @@ export function useApiQuery<TData = unknown, TError = Error>(
       }
     },
     retry: (failureCount) => {
-      // Delegate retry logic to error recovery hook
-      if (errorRecovery?.enabled !== false && shouldRetry()) {
-        return failureCount < (errorRecovery?.maxRetries || 3);
+      if (errorRecovery?.enabled === false || errorRecovery?.strategy === 'none') {
+        return false;
       }
-      return false;
+      return failureCount < maxRetries;
     },
+    retryDelay: () => backoffMs,
     ...queryOptions,
   });
 
