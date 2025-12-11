@@ -26,15 +26,22 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+
+      - name: Determine Playwright version
+        id: pwver
+        working-directory: ./frontend
+        run: |
+          echo "version=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','')\")" >> $GITHUB_OUTPUT
+          echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
           cache-dependency-path: 'backend/requirements*.txt'
       
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-1.57.0
+          key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
           restore-keys: |
-            playwright-${{ runner.os }}-1.57
+            playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
             playwright-${{ runner.os }}-
       
       - name: Install backend dependencies
