@@ -95,7 +95,7 @@ Added three caching enhancements:
 - Playwright cache: **40%** (target: 60-70% ⚠️ needs improvement)
 - pip cache: **45%** (target: 60-70% ⚠️ needs improvement)
 
-> Note: The Playwright cache key was updated to a dynamic version-based strategy in v1.11.2. Post-change monitoring aims to raise Playwright hit rate to ≥60–70% and reduce install time variance.
+> Note: The Playwright cache key was updated to a dynamic version-based strategy in $11.11.1. Post-change monitoring aims to raise Playwright hit rate to ≥60–70% and reduce install time variance.
 
 ### Why Actual vs Theoretical Differ
 
@@ -251,7 +251,7 @@ gh actions-cache delete -R bs1gr/AUT_MIEEK_SMS --all
 
 ---
 
-## Post-change validation (v1.11.2)
+## Post-change validation ($11.11.1)
 
 Run the scheduled or manual monitoring workflow to collect post-change metrics:
 
@@ -273,3 +273,4 @@ Initial overall times post-change:
 Note: Component-level timing averages will be added after more runs; current summary reflects total setup times derived from the last 20 runs.
 
 Once validated, reflect results here and in `CACHE_OPTIMIZATION_SUMMARY.md`.
+
