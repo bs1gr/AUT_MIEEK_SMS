@@ -12,10 +12,7 @@ Provides unified validation functionality for imports, schemas, and configuratio
 
 **Consolidates:**
 
-- `tools/check_imports.py` (backend.db imports)
-- `tools/check_imports_requirements.py` (requirements coverage)
-- `tools/test_import_backend_db.py` (backend import testing)
-- `tools/test_pkg_import.py` (package structure)
+- `scripts/utils/validators/import_checker.py` - Unified import validation (backend.db, requirements, package structure)
 
 **Purpose:** Validate Python import consistency and coverage
 

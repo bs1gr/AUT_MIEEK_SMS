@@ -9,9 +9,9 @@ Release/versioning helper for Student Management System
 - Optional push
 
 Usage examples:
-  python tools/release.py --level patch
-  python tools/release.py --level minor --push
-  python tools/release.py --set-version 3.1.0 --no-tag
+  python scripts/utils/release.py --level patch
+  python scripts/utils/release.py --level minor --push
+  python scripts/utils/release.py --set-version 3.1.0 --no-tag
 
 Exit code is non-zero on error.
 """

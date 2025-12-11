@@ -248,7 +248,7 @@ function Get-ReorganizationSuggestions {
     
     if ((Test-Path $scriptsDir) -and (Test-Path $toolsDir)) {
         Add-Suggestion -Category "Structure" `
-            -Message "Both scripts/ and tools/ directories exist - consider consolidation" `
+            -Message "scripts/ directory exists with utilities" `
             -Priority "Low"
     }
     

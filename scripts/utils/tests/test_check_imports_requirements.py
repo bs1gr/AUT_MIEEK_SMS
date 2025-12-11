@@ -7,7 +7,7 @@ from pathlib import Path
 def test_checker_returns_zero(monkeypatch):
     """Test that check_imports_requirements main() returns 0 for valid imports."""
     repo_root = Path(__file__).resolve().parents[3]
-    # Tool is still in tools/ directory (original location)
+    # Tool is now in scripts/utils/validators/import_checker.py
     checker_path = repo_root / "tools" / "check_imports_requirements.py"
     
     # Change to repo root to ensure correct path resolution
