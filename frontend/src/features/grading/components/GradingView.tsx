@@ -71,6 +71,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [filteredCourses, setFilteredCourses] = useState<CourseWithEvaluationRules[]>(courses || []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
 
   // loadFinal is declared below and memoized with useCallback. Do not define a separate
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
@@ -227,6 +228,62 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     }
   }, [category]);
 
+  const handleEditGrade = (grade: Grade) => {
+    setEditingGradeId(grade.id);
+    setStudentId(grade.student_id);
+    setCourseId(grade.course_id);
+    setAssignmentName(grade.assignment_name || '');
+    setCategory(grade.category || 'Midterm');
+    setGradeValue(String(grade.grade));
+    setMaxGrade(String(grade.max_grade || 100));
+    setWeight(String(grade.weight || 1));
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingGradeId(null);
+    setAssignmentName('');
+    setCategory('Midterm');
+    setGradeValue('');
+    setMaxGrade('100');
+    setWeight('');
+  };
+
+  const handleDeleteGrade = async (gradeId: number) => {
+    if (!window.confirm(t('confirmDeleteGrade') || 'Are you sure you want to delete this grade?')) {
+      return;
+    }
+    try {
+      await gradesAPI.delete(gradeId);
+      eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
+      await loadFinal();
+      // Refresh grade list
+      try {
+        const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
+        setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
+      } catch {}
+    } catch (e: unknown) {
+      let apiMsg: string | undefined;
+      if (typeof e === 'object' && e !== null && 'response' in e) {
+        try {
+          const ev = e as { response?: { data?: unknown }; message?: string };
+          const data = ev.response?.data;
+          if (typeof data === 'string') apiMsg = data;
+          else if (typeof data === 'object' && data !== null) {
+            const detail = (data as Record<string, unknown>)['detail'];
+            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
+          } else if (typeof ev.message === 'string') apiMsg = ev.message;
+        } catch {}
+      }
+      if (!apiMsg) {
+        if (e instanceof Error) apiMsg = e.message;
+        else apiMsg = String(e);
+      }
+      setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
+    }
+  };
+
   const submitGrade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId || !courseId) { setError(t('selectStudentAndCourseError')); return; }
@@ -248,7 +305,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         date_submitted: new Date().toISOString().split('T')[0],
         // optional fields not set: date_assigned, notes
       };
-      await gradesAPI.create(payload);
+      
+      // Update existing grade or create new one
+      if (editingGradeId) {
+        await gradesAPI.update(editingGradeId, payload);
+        setEditingGradeId(null);
+      } else {
+        await gradesAPI.create(payload);
+      }
       // Emit event to notify other components that grades changed
       eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
       await loadFinal();
@@ -299,7 +363,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       </div>
 
       <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3">
-        <h3 className="text-lg font-semibold">{t('addGrade')}</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">
+            {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
+          </h3>
+          {editingGradeId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-sm text-gray-600 hover:text-gray-800 underline"
+            >
+              {t('cancel') || 'Cancel'}
+            </button>
+          )}
+        </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input className="border rounded px-3 py-2" placeholder={t('assignmentNamePlaceholder')} value={assignmentName} onChange={e=>setAssignmentName(e.target.value)} />
@@ -384,6 +461,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('weight')}</th>
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('letterGrade')}</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">{t('date')}</th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('actions') || 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -405,6 +483,24 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         <td className="px-4 py-2 text-center">×{g.weight || 1}</td>
                         <td className="px-4 py-2 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${color}`}>{letter}</span></td>
                         <td className="px-4 py-2 text-gray-600">{g.date_submitted || 'N/A'}</td>
+                        <td className="px-4 py-2 text-center">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handleEditGrade(g)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              title={t('edit') || 'Edit'}
+                            >
+                              {t('edit') || 'Edit'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteGrade(g.id)}
+                              className="text-red-600 hover:text-red-800 text-sm font-medium"
+                              title={t('delete') || 'Delete'}
+                            >
+                              {t('delete') || 'Delete'}
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}

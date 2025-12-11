@@ -402,6 +402,33 @@ export const attendanceAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Update an attendance record
+   * @param {number} attendanceId - Attendance record ID
+   * @param {Object} attendanceData - Updated attendance data
+   */
+  update: async (attendanceId, attendanceData) => {
+    try {
+      const response = await apiClient.put(`/attendance/${attendanceId}`, attendanceData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Delete an attendance record
+   * @param {number} attendanceId - Attendance record ID
+   */
+  delete: async (attendanceId) => {
+    try {
+      const response = await apiClient.delete(`/attendance/${attendanceId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
@@ -468,6 +495,33 @@ export const gradesAPI = {
       }, 0);
 
       return totalWeight > 0 ? weightedSum / totalWeight : 0;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Update a grade record
+   * @param {number} gradeId - Grade ID
+   * @param {Object} gradeData - Updated grade data
+   */
+  update: async (gradeId, gradeData) => {
+    try {
+      const response = await apiClient.put(`/grades/${gradeId}`, gradeData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a grade record
+   * @param {number} gradeId - Grade ID
+   */
+  delete: async (gradeId) => {
+    try {
+      const response = await apiClient.delete(`/grades/${gradeId}`);
+      return response.data;
     } catch (error) {
       throw error;
     }
