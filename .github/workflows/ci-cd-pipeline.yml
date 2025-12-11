@@ -408,7 +408,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner (Backend)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
           format: 'sarif'
@@ -418,7 +418,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Trivy vulnerability scanner (Frontend)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
           format: 'sarif'
@@ -428,7 +428,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Trivy filesystem scan (Source code)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -449,7 +449,7 @@ jobs:
           fi
 
       - name: Run Trivy config scan (IaC vulnerabilities)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'config'
           scan-ref: '.'
