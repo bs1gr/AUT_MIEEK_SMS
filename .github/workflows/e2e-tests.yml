@@ -32,8 +32,10 @@ jobs:
         id: pwver
         working-directory: ./frontend
         run: |
-          echo "version=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','')\")" >> $GITHUB_OUTPUT
-          echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').devDependencies['@playwright/test'].replace(/^\^/, '')")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          MINOR=$(node -p "require('./package.json').devDependencies['@playwright/test'].replace(/^\^/, '').split('.').slice(0,2).join('.')")
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
       
       - name: Cache Playwright browsers
         uses: actions/cache@v4
