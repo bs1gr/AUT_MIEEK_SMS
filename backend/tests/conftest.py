@@ -84,7 +84,12 @@ def clean_db():
         settings.AUTH_MODE = "disabled"  # type: ignore[attr-defined]
     except Exception:
         pass
-    yield
+    # Yield a database session for tests that need direct DB access
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture()

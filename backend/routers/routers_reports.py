@@ -96,7 +96,9 @@ def _generate_recommendations(report_data: dict) -> List[str]:
 
     # Check attendance
     if report_data.get("overall_attendance"):
-        attendance_rate = report_data["overall_attendance"].get("attendance_rate", 100)
+        attendance = report_data["overall_attendance"]
+        # Handle both Pydantic model and dict
+        attendance_rate = attendance.attendance_rate if hasattr(attendance, 'attendance_rate') else attendance.get("attendance_rate", 100)
         if attendance_rate < 75:
             recommendations.append("⚠️ Attendance is below 75%. Regular attendance is crucial for academic success.")
         elif attendance_rate < 85:
@@ -104,8 +106,10 @@ def _generate_recommendations(report_data: dict) -> List[str]:
 
     # Check grades
     if report_data.get("overall_grades"):
-        avg_percentage = report_data["overall_grades"].get("average_percentage", 100)
-        trend = report_data["overall_grades"].get("grade_trend", "stable")
+        grades = report_data["overall_grades"]
+        # Handle both Pydantic model and dict
+        avg_percentage = grades.average_percentage if hasattr(grades, 'average_percentage') else grades.get("average_percentage", 100)
+        trend = grades.grade_trend if hasattr(grades, 'grade_trend') else grades.get("grade_trend", "stable")
 
         if avg_percentage < 60:
             recommendations.append("⚠️ Grades are below passing threshold. Consider scheduling tutoring sessions.")
@@ -121,10 +125,17 @@ def _generate_recommendations(report_data: dict) -> List[str]:
 
     # Check course-specific issues
     courses_data = report_data.get("courses", [])
-    struggling_courses = [c for c in courses_data if c.get("grade_percentage", 100) < 60]
+    struggling_courses = []
+    for c in courses_data:
+        grade_pct = c.grade_percentage if hasattr(c, 'grade_percentage') else c.get("grade_percentage", 100)
+        if grade_pct and grade_pct < 60:
+            struggling_courses.append(c)
 
     if struggling_courses:
-        course_names = [c["course_name"] for c in struggling_courses[:3]]
+        course_names = []
+        for c in struggling_courses[:3]:
+            course_name = c.course_name if hasattr(c, 'course_name') else c.get("course_name", "Unknown")
+            course_names.append(course_name)
         recommendations.append(f"📚 Focus on: {', '.join(course_names)}. Consider extra study time or tutoring.")
 
     # If no issues found
@@ -162,8 +173,7 @@ async def generate_student_performance_report(
         str(report_request.end_date) if report_request.end_date else "none",
         str(report_request.include_attendance),
         str(report_request.include_grades),
-        str(report_request.include_courses),
-        str(report_request.include_performance),
+        str(report_request.include_daily_performance),
         str(report_request.include_highlights),
         ":".join(str(c) for c in (report_request.course_ids or [])),
     ]

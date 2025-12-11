@@ -95,7 +95,8 @@ from .reports import (
 )
 from .reports import (
     StudentPerformanceReport as StudentPerformanceReport,
-)from .performance import (
+)
+from .performance import (
     DailyPerformanceResponse as DailyPerformanceResponse,
 )
 from .students import StudentCreate as StudentCreate
