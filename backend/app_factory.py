@@ -227,7 +227,8 @@ def _register_root_endpoints(app: FastAPI, version: str):
             },
         }
 
-    @app.get("/")
+    @app.get("/", include_in_schema=True)
+    @app.head("/", include_in_schema=False)
     async def root():
         """Root endpoint - serves SPA or API metadata."""
         try:
