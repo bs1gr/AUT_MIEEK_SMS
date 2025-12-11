@@ -18,6 +18,7 @@ from fastapi.responses import Response
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
+from backend.cache import cache_key, invalidate_cache, redis_cache, CacheConfig
 from backend.db import get_session
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
@@ -149,8 +150,33 @@ async def generate_student_performance_report(
     - Performance trends
     - Highlights and recommendations
 
+    **Caching**: Reports are cached for 15 minutes
     **Rate limit**: 10 requests per minute
     """
+    # Build cache key from request parameters
+    cache_key_parts = [
+        "student_report",
+        str(report_request.student_id),
+        report_request.period.value,
+        str(report_request.start_date) if report_request.start_date else "none",
+        str(report_request.end_date) if report_request.end_date else "none",
+        str(report_request.include_attendance),
+        str(report_request.include_grades),
+        str(report_request.include_courses),
+        str(report_request.include_performance),
+        str(report_request.include_highlights),
+        ":".join(str(c) for c in (report_request.course_ids or [])),
+    ]
+    report_cache_key = cache_key(*cache_key_parts)
+
+    # Try to get from cache
+    cached_report = redis_cache.get(report_cache_key)
+    if cached_report:
+        logger.info(f"Cache HIT: Returning cached report for student {report_request.student_id}")
+        return StudentPerformanceReport(**cached_report)
+
+    logger.info(f"Cache MISS: Generating new report for student {report_request.student_id}")
+
     # Validate student exists
     student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
 
@@ -377,7 +403,14 @@ async def generate_student_performance_report(
     # Generate recommendations
     report_data["recommendations"] = _generate_recommendations(report_data)
 
-    return StudentPerformanceReport(**report_data)
+    # Create response model
+    report_response = StudentPerformanceReport(**report_data)
+
+    # Cache the result (serialize to dict for storage)
+    redis_cache.set(report_cache_key, report_response.model_dump(), CacheConfig.STUDENT_REPORT)
+    logger.info(f"Cached report for student {report_request.student_id} with key {report_cache_key}")
+
+    return report_response
 
 
 @router.get("/formats", response_model=List[str])
@@ -808,3 +841,61 @@ async def generate_bulk_student_reports(
             "reports": reports,
             "failed_students": failed_students if failed_students else None,
         }
+
+
+@router.delete("/cache/{student_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def invalidate_student_report_cache(
+    student_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """
+    Invalidate all cached reports for a specific student.
+    
+    This endpoint should be called when student data is updated
+    (grades, attendance, courses, etc.) to ensure fresh reports.
+    
+    **Rate limit**: 10 requests per minute
+    """
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    # Invalidate all cache entries for this student
+    pattern = f"student_report:{student_id}:*"
+    count = redis_cache.invalidate_pattern(pattern)
+
+    logger.info(f"Invalidated {count} cached reports for student {student_id}")
+
+    return {
+        "success": True,
+        "student_id": student_id,
+        "invalidated_count": count,
+        "message": f"Cleared {count} cached report(s) for student {student_id}",
+    }
+
+
+@router.delete("/cache")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def invalidate_all_report_caches(request: Request):
+    """
+    Invalidate all cached student reports.
+    
+    Use this when you need to force regeneration of all reports,
+    such as after bulk data imports or system-wide changes.
+    
+    **Rate limit**: 10 requests per minute
+    """
+    # Invalidate all report cache entries
+    pattern = "student_report:*"
+    count = redis_cache.invalidate_pattern(pattern)
+
+    logger.info(f"Invalidated {count} total cached reports")
+
+    return {
+        "success": True,
+        "invalidated_count": count,
+        "message": f"Cleared {count} cached report(s) from the system",
+    }
