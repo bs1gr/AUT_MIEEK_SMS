@@ -27,10 +27,28 @@ key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 Changed cache key to use **Playwright version** instead of package-lock hash:
 
 ```yaml
+# Static example
 key: playwright-${{ runner.os }}-1.57.0
 restore-keys: |
   playwright-${{ runner.os }}-1.57
   playwright-${{ runner.os }}-
+
+# Recommended: Dynamic version from package.json
+- name: Determine Playwright version
+  id: pwver
+  working-directory: ./frontend
+  run: |
+    echo "version=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','')\")" >> $GITHUB_OUTPUT
+    echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
+
+- name: Cache Playwright browsers
+  uses: actions/cache@v4
+  with:
+    path: ~/.cache/ms-playwright
+    key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
+    restore-keys: |
+      playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
+      playwright-${{ runner.os }}-
 ```
 
 ### Benefits
