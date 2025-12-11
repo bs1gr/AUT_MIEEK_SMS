@@ -48,7 +48,7 @@ jobs:
       
       - name: Start backend in background
         run: |
-          DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=disabled SERVE_FRONTEND=1 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=permissive SERVE_FRONTEND=1 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 5
           # Wait for backend to be ready
