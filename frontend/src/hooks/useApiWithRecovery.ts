@@ -2,6 +2,7 @@ import { useQuery, useMutation, type UseQueryOptions, type UseMutationOptions } 
 import { useErrorRecovery, type ErrorRetryStrategy } from './useErrorRecovery';
 
 interface UseApiQueryOptions<TData, TError = Error> extends Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'> {
+  onSuccess?: (data: TData) => void;
   errorRecovery?: {
     enabled?: boolean;
     strategy?: ErrorRetryStrategy;
