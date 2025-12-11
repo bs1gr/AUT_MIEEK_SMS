@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Greek Text Encoding Fix for Inno Setup Installer
+
+Converts authoritative UTF-8 Greek text to Windows-1253 (CP1253) encoding
+for Inno Setup compilation. This script is part of the build-time pipeline.
+
+Permanent Solution Architecture:
+- Source files in git: UTF-8 (human-readable)
+- Build-time: UTF-8 -> Windows-1253 conversion (this script)
+- Inno Setup: Reads CP1253, embeds in installer
+- Result: Correct Greek display in Windows
+
+Usage:
+    python fix_greek_encoding_permanent.py
+    
+The script:
+1. Reads authoritative UTF-8 Greek text (defined in this script)
+2. Converts to Windows-1253 (CP1253)
+3. Writes to installer/*.txt files on disk
+4. Returns 0 on success, 1 on error
+"""
+
+import os
+import sys
+from pathlib import Path
+
+# Authoritative Greek text definitions (UTF-8)
+GREEK_TEXTS = {
+    'welcome': u"""Καλώς ήρθατε στην Εγκατάσταση SMS
+=====================================
+
+Σύστημα Διαχείρισης Μαθητών v1.11.2
+
+Αυτός ο οδηγός θα σας καθοδηγήσει στην εγκατάσταση του SMS στον υπολογιστή σας.
+
+Απαιτήσεις Συστήματος:
+- Windows 10/11 (64-bit)
+- Docker Desktop εγκατεστημένο και λειτουργικό
+- 4 GB RAM ελάχιστο (8 GB συνιστώμενο)
+- 2 GB ελεύθερο χώρο δίσκου
+
+Τι θα εγκατασταθεί:
+- SMS Docker Application
+- Συντομεύσεις επιφάνειας εργασίας
+- Καταχωρήσεις μενού Έναρξης
+
+Κάντε κλικ στο Επόμενο για να συνεχίσετε.""",
+
+    'completion': u"""Συγχαρητήρια! Η Εγκατάσταση Ολοκληρώθηκε
+=============================================
+
+Το SMS είναι έτοιμο να χρησιμοποιηθεί σε λίγα λεπτά.
+
+Σημαντικές Πληροφορίες:
+
+- Το Docker Desktop πρέπει να είναι ενεργό
+- Η πρώτη εκτέλεση θα διαρκέσει 5-10 λεπτά (κατασκευή container)
+- Θα λάβετε ειδοποίηση όταν είναι έτοιμο
+
+Ευχαριστούμε που χρησιμοποιείτε το SMS!"""
+}
+
+
+def main():
+    """Main entry point: convert Greek text to Windows-1253 and write to installer files."""
+    
+    try:
+        # Determine paths
+        script_dir = Path(__file__).parent.resolve()
+        installer_dir = script_dir / "installer"
+        
+        if not installer_dir.exists():
+            print(f"ERROR: Installer directory not found: {installer_dir}")
+            return 1
+        
+        # File mappings
+        files = {
+            'welcome': installer_dir / "installer_welcome_el.txt",
+            'completion': installer_dir / "installer_complete_el.txt"
+        }
+        
+        # Convert and write each file
+        for file_key, filepath in files.items():
+            try:
+                # Get UTF-8 text
+                text_utf8 = GREEK_TEXTS.get(file_key)
+                if not text_utf8:
+                    print(f"WARNING: No Greek text definition for {file_key}")
+                    continue
+                
+                # Encode to Windows-1253
+                text_cp1253 = text_utf8.encode('cp1253', errors='replace')
+                
+                # Write to file
+                with open(filepath, 'wb') as f:
+                    f.write(text_cp1253)
+                
+                print(f"OK Converted {filepath.name} to Windows-1253")
+                
+            except Exception as e:
+                print(f"ERROR converting {file_key}: {e}")
+                return 1
+        
+        print("OK Greek text encoding conversion completed successfully")
+        return 0
+        
+    except Exception as e:
+        print(f"FATAL ERROR: {e}")
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
