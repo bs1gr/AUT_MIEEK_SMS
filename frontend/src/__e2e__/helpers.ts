@@ -6,7 +6,8 @@ export async function login(
   password: string
 ) {
   // Use relative paths - Playwright will resolve against baseURL from config
-  await page.goto('/login');
+  // Auth page is at root '/', not '/login'
+  await page.goto('/');
   
   // Wait for login form
   await page.waitForLoadState('networkidle');
@@ -34,8 +35,8 @@ export async function logout(page: Page) {
   // Click logout button using data-testid
   await page.click('[data-testid="logout-button"]');
   
-  // Wait for redirect to login
-  await page.waitForURL(/\/login/, { timeout: 5000 });
+  // Wait for redirect to root (auth page)
+  await page.waitForURL(/^\/$|^\/\?/, { timeout: 5000 });
 }
 
 export async function navigateTo(page: Page, path: string) {

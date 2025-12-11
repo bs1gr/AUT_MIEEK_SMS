@@ -16,12 +16,12 @@ test.describe('Authentication Flow', () => {
     await login(page, 'test@example.com', 'password123');
     await logout(page);
     
-    // Verify redirect to login
-    await expect(page).toHaveURL(/.*login/);
+    // Verify redirect to root (auth page)
+    await expect(page).toHaveURL(/^\/$|^\/\?/);
   });
 
   test('should handle invalid credentials', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     
     // Fill with invalid credentials
     await page.fill('input[name="email"]', 'invalid@example.com');
@@ -30,12 +30,12 @@ test.describe('Authentication Flow', () => {
     // Submit
     await page.click('button[type="submit"]');
     
-    // Should see error message or stay on login page
-    await expect(page).toHaveURL(/.*login/, { timeout: 5000 });
+    // Should see error message or stay on auth page
+    await expect(page).toHaveURL(/^\/$|^\/\?/, { timeout: 5000 });
   });
 
   test('should show validation errors for empty form', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/');
     
     // Try to submit empty form
     await page.click('button[type="submit"]');
