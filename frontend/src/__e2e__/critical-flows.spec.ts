@@ -128,8 +128,8 @@ test.describe('Students Management', () => {
     await expect(viewBtn).toBeVisible({ timeout: 10000 });
     await viewBtn.click();
 
-    // Assert StudentProfile rendered by checking for student ID label in EN or EL.
-    await expect(page.locator('text=/Student ID|Αριθμός Μητρώου/')).toBeVisible({ timeout: 10000 });
+    // Assert StudentProfile rendered by checking for student ID label in EN or EL (first occurrence only).
+    await expect(page.locator('text=/Student ID|Αριθμός Μητρώου/').first()).toBeVisible({ timeout: 10000 });
   });
 });
 
