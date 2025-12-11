@@ -770,6 +770,22 @@ export const reportsAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Download student performance report in PDF or CSV format
+   * @param {object} reportRequest - Report configuration with format
+   * @returns {Promise} - Blob response for download
+   */
+  downloadStudentReport: async (reportRequest) => {
+    try {
+      const response = await api.post('/reports/student-performance/download', reportRequest, {
+        responseType: 'blob'
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
