@@ -2,7 +2,7 @@
 
 **Version**: 1.11.2 (Empirically Validated)  
 **Date**: 2025-12-11  
-**Status**: Implemented & Validated  
+**Status**: Implemented (dynamic Playwright key) & pre-change validated  
 
 ## Overview
 
@@ -32,33 +32,42 @@ Added three caching enhancements:
 - **Typical time saved**: 30-45 seconds per run
 - **Condition**: Triggered on `package-lock.json` changes
 
-#### 2. **Python Dependencies Caching** (already present, verified)
+#### 2. **Python Dependencies Caching** (verified; expanded dependency path)
 ```yaml
 - name: Set up Python
   uses: actions/setup-python@v5
   with:
     python-version: '3.11'
     cache: 'pip'
+    cache-dependency-path: backend/requirements*.txt
 ```
 
 **Impact**: Skips pip install when `requirements.txt` unchanged
 - **Typical time saved**: 20-30 seconds per run
 
-#### 3. **Playwright Browsers Caching** (new)
+#### 3. **Playwright Browsers Caching** (updated: dynamic version-based key)
 ```yaml
+- name: Determine Playwright version
+  id: pwver
+  working-directory: ./frontend
+  run: |
+    echo "version=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','')\")" >> $GITHUB_OUTPUT
+    echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
+
 - name: Cache Playwright browsers
   uses: actions/cache@v4
   with:
     path: ~/.cache/ms-playwright
-    key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+    key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
     restore-keys: |
+      playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
       playwright-${{ runner.os }}-
 ```
 
 **Impact**: Caches pre-built Chromium browser
 - **Typical time saved**: 45-60 seconds per run
 - **Cache size**: ~300MB
-- **Invalidation**: When `package-lock.json` changes (Playwright version updates)
+- **Invalidation**: When `@playwright/test` version changes; restore keys provide minor-version fallback
 
 ---
 
@@ -81,10 +90,12 @@ Added three caching enhancements:
 - **Total overhead**: ~39-45 seconds per run
 - **Actual improvement**: **6.5% faster (~3-6 seconds saved)**
 
-#### Empirical Cache Hit Rates (20 runs)
+#### Empirical Cache Hit Rates (pre-change, 20 runs)
 - npm cache: **75%** (target: 75-80% ✅)
 - Playwright cache: **40%** (target: 60-70% ⚠️ needs improvement)
 - pip cache: **45%** (target: 60-70% ⚠️ needs improvement)
+
+> Note: The Playwright cache key was updated to a dynamic version-based strategy in v1.11.2. Post-change monitoring aims to raise Playwright hit rate to ≥60–70% and reduce install time variance.
 
 ### Why Actual vs Theoretical Differ
 
@@ -143,8 +154,8 @@ python scripts/monitor_ci_cache.py \
 
 **Expected metrics**:
 - npm cache hit rate: 75-80%
-- Playwright cache hit rate: 60-70% (currently 40%, needs improvement)
-- pip cache hit rate: 60-70% (currently 45%, needs improvement)
+- Playwright cache hit rate: 60-70% (pre-change 40%, expected to improve with version key)
+- pip cache hit rate: 60-70% (pre-change 45%, expected to improve with expanded dependency path)
 - Setup time with all caches: 39-45 seconds
 - Setup time without cache: 48-56 seconds
 
@@ -237,3 +248,21 @@ gh actions-cache delete -R bs1gr/AUT_MIEEK_SMS --all
 **Owner**: DevOps Team  
 **Last Updated**: 2025-12-11  
 **Next Review**: 2025-03-11
+
+---
+
+## Post-change validation (v1.11.2)
+
+Run the scheduled or manual monitoring workflow to collect post-change metrics:
+
+1. Navigate to Actions → “Cache Performance Monitoring” → “Run workflow”
+2. After 10–20 E2E runs complete, download `cache_metrics_monitoring.json` artifact
+3. Update the table below with validated numbers
+
+| Component | Hit Rate | Setup Time (hit) | Setup Time (miss) | Notes |
+|---|---:|---:|---:|---|
+| npm | TBD | TBD | TBD | setup-node cache via package-lock.json |
+| Playwright | TBD | TBD | TBD | dynamic version key with minor fallback |
+| pip | TBD | TBD | TBD | setup-python cache with requirements* path |
+
+Once validated, reflect results here and in `CACHE_OPTIMIZATION_SUMMARY.md`.
