@@ -1,6 +1,6 @@
 # DEPRECATED: use scripts/utils/installer/SMS_UNINSTALLER_WIZARD.ps1
 # This stub forwards all parameters to the consolidated location.
-# Version          = "1.11.1"  # keep in sync with VERSION for legacy tests
+# Version          = "1.11.2"  # keep in sync with VERSION for legacy tests
 
 param(
     [Parameter(ValueFromRemainingArguments=$true)]
