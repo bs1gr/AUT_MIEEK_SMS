@@ -56,6 +56,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
 - **Production setup?** → `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
+- **Database migration?** → `docs/operations/DATABASE_MIGRATION_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
 
