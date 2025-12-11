@@ -202,6 +202,20 @@ $versionChecks = @(
         Critical = $false
     },
     @{
+        File = "INSTALLER_BUILDER.ps1"
+        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Replace = "Version: $Version"
+        Description = "INSTALLER_BUILDER.ps1 version"
+        Critical = $false
+    },
+    @{
+        File = "TODO.md"
+        Pattern = '\*\*Current Version\*\*:\s*\d+\.\d+\.\d+'
+        Replace = "**Current Version**: $Version"
+        Description = "TODO.md current version"
+        Critical = $false
+    },
+    @{
         File = "DOCUMENTATION_INDEX.md"
         Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
         Replace = "**Version:** $Version"
