@@ -42,6 +42,7 @@ class CacheConfig:
     GRADES_STATS = timedelta(minutes=15)
     ATTENDANCE_SUMMARY = timedelta(minutes=30)
     HEALTH_CHECK = timedelta(seconds=30)
+    STUDENT_REPORT = timedelta(minutes=15)  # Student performance reports
 
 
 class TimedLRUCache:
