@@ -80,8 +80,9 @@ test.describe('Dashboard Navigation', () => {
 test.describe('Students Management', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
-    await page.click('a:has-text("Students")');
-    await page.waitForURL(/.*students/);
+    const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
+    await studentsLink.click();
+    await page.waitForURL(/.*students/, { timeout: 10000 });
   });
 
   test('should display students list', async ({ page }) => {
