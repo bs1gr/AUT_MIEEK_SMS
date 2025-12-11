@@ -7,6 +7,8 @@ Provides endpoints for:
 - Report download
 """
 
+import csv
+import io
 import logging
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
@@ -22,6 +24,7 @@ from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.services.report_exporters import generate_pdf_report, generate_csv_report
 from backend.schemas import (
     AttendanceSummary,
+    BulkReportRequest,
     CourseSummary,
     GradeSummary,
     HighlightSummary,
@@ -618,3 +621,190 @@ async def download_student_performance_report(
 
     else:  # JSON (default)
         return report_data
+
+
+@router.post("/bulk/student-performance")
+@limiter.limit(RATE_LIMIT_WRITE)
+async def generate_bulk_student_reports(
+    request: Request,
+    bulk_request: BulkReportRequest,
+    db: Session = Depends(get_session),
+):
+    """
+    Generate performance reports for multiple students at once.
+    
+    Returns a list of reports or a downloadable file depending on format.
+    
+    **Limitations**:
+    - Maximum 50 students per request
+    - Rate limit: 10 requests per minute
+    - Large requests may take time to process
+    
+    **Recommended**: Use for batches of 10-20 students
+    """
+    # Validate student count
+    if len(bulk_request.student_ids) > 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Maximum 50 students per bulk request. Please split into smaller batches."
+        )
+    
+    if len(bulk_request.student_ids) == 0:
+        raise HTTPException(status_code=400, detail="At least one student ID required")
+    
+    logger.info(f"Generating bulk reports for {len(bulk_request.student_ids)} students")
+    
+    # Calculate date range
+    start_date, end_date = _calculate_period_dates(
+        bulk_request.period, bulk_request.start_date, bulk_request.end_date
+    )
+    
+    # Generate reports for each student
+    reports = []
+    failed_students = []
+    
+    for student_id in bulk_request.student_ids:
+        try:
+            # Check if student exists
+            student = db.query(Student).filter(
+                Student.id == student_id,
+                Student.deleted_at.is_(None)
+            ).first()
+            
+            if not student:
+                failed_students.append({
+                    "student_id": student_id,
+                    "error": "Student not found"
+                })
+                continue
+            
+            # Build report data (simplified version)
+            report_data = {
+                "student_id": student.id,
+                "student_name": f"{student.first_name} {student.last_name}",
+                "student_email": student.email,
+                "report_period": bulk_request.period.value,
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "overall_attendance": None,
+                "overall_grades": None,
+            }
+            
+            # Get attendance summary
+            if bulk_request.include_attendance:
+                att_query = db.query(Attendance).filter(
+                    Attendance.student_id == student.id,
+                    Attendance.date >= start_date,
+                    Attendance.date <= end_date,
+                    Attendance.deleted_at.is_(None),
+                )
+                if bulk_request.course_ids:
+                    att_query = att_query.filter(Attendance.course_id.in_(bulk_request.course_ids))
+                
+                attendances = att_query.all()
+                if attendances:
+                    total_days = len(attendances)
+                    present = sum(1 for a in attendances if a.status.lower() in ["present", "late"])
+                    absent = sum(1 for a in attendances if a.status.lower() in ["absent", "excused"])
+                    report_data["overall_attendance"] = {
+                        "total_days": total_days,
+                        "present": present,
+                        "absent": absent,
+                        "attendance_rate": round((present / total_days * 100) if total_days > 0 else 0, 1),
+                    }
+            
+            # Get grades summary
+            if bulk_request.include_grades:
+                grade_query = db.query(Grade).filter(
+                    Grade.student_id == student.id,
+                    Grade.date_assigned >= start_date,
+                    Grade.date_assigned <= end_date,
+                    Grade.deleted_at.is_(None),
+                )
+                if bulk_request.course_ids:
+                    grade_query = grade_query.filter(Grade.course_id.in_(bulk_request.course_ids))
+                
+                grades = grade_query.all()
+                if grades:
+                    percentages = [(g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0]
+                    if percentages:
+                        report_data["overall_grades"] = {
+                            "total_assignments": len(grades),
+                            "average_percentage": round(sum(percentages) / len(percentages), 1),
+                            "grade_trend": _calculate_trend(percentages),
+                        }
+            
+            reports.append(report_data)
+            
+        except Exception as e:
+            logger.error(f"Error generating report for student {student_id}: {str(e)}")
+            failed_students.append({
+                "student_id": student_id,
+                "error": str(e)
+            })
+    
+    # Return results based on format
+    if bulk_request.format == ReportFormat.CSV:
+        # Generate combined CSV for all students
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Header
+        writer.writerow(['Bulk Student Performance Reports'])
+        writer.writerow(['Generated:', date.today().strftime('%Y-%m-%d')])
+        writer.writerow(['Period:', bulk_request.period.value])
+        writer.writerow(['Date Range:', f"{start_date} to {end_date}"])
+        writer.writerow(['Total Students:', len(reports)])
+        writer.writerow([])
+        
+        # Data headers
+        headers = ['Student ID', 'Student Name', 'Email', 'Attendance Rate', 'Present', 'Absent', 
+                   'Average Grade %', 'Total Assignments', 'Grade Trend']
+        writer.writerow(headers)
+        
+        # Student data
+        for report in reports:
+            att = report.get('overall_attendance', {})
+            grades = report.get('overall_grades', {})
+            writer.writerow([
+                report['student_id'],
+                report['student_name'],
+                report['student_email'],
+                att.get('attendance_rate', 'N/A') if att else 'N/A',
+                att.get('present', 'N/A') if att else 'N/A',
+                att.get('absent', 'N/A') if att else 'N/A',
+                grades.get('average_percentage', 'N/A') if grades else 'N/A',
+                grades.get('total_assignments', 'N/A') if grades else 'N/A',
+                grades.get('grade_trend', 'N/A') if grades else 'N/A',
+            ])
+        
+        # Failed students section
+        if failed_students:
+            writer.writerow([])
+            writer.writerow(['Failed Students'])
+            writer.writerow(['Student ID', 'Error'])
+            for failed in failed_students:
+                writer.writerow([failed['student_id'], failed['error']])
+        
+        csv_string = output.getvalue()
+        output.close()
+        
+        filename = f"bulk_performance_report_{start_date}_{end_date}.csv"
+        return Response(
+            content=csv_string,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    
+    else:  # JSON (default)
+        return {
+            "success": True,
+            "total_requested": len(bulk_request.student_ids),
+            "total_generated": len(reports),
+            "total_failed": len(failed_students),
+            "period": bulk_request.period.value,
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "reports": reports,
+            "failed_students": failed_students if failed_students else None,
+        }
