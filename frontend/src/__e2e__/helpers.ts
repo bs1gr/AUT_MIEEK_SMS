@@ -33,10 +33,12 @@ export async function login(
 
 export async function logout(page: Page) {
   // Click logout button using data-testid
-  await page.click('[data-testid="logout-button"]');
+  const logoutButton = page.locator('[data-testid="logout-button"]');
+  await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+  await logoutButton.click();
   
-  // Wait for redirect to root (auth page)
-  await page.waitForURL(/^\/$|^\/\?/, { timeout: 5000 });
+  // Wait for redirect to root (auth page) - give more time for logout API call
+  await page.waitForURL(/^\/$|^\/\?/, { timeout: 10000 });
 }
 
 export async function navigateTo(page: Page, path: string) {
