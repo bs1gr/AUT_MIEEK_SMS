@@ -1,10 +1,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
-import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award } from 'lucide-react';
+import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText } from 'lucide-react';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
+import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 
@@ -28,6 +29,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
+  const [showPerformanceReport, setShowPerformanceReport] = useState(false);
 
   // Move loadStudentData here so effects can depend on it without referencing a later declaration
   const loadStudentData = useCallback(async () => {
@@ -247,6 +249,16 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <div className="flex items-center space-x-3 text-gray-600">
                 <Calendar size={20} />
                 <span>{t('enrolled')} {student.enrollment_date}</span>
+              </div>
+              <div className="md:col-span-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPerformanceReport(true)}
+                  className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                >
+                  <FileText size={20} />
+                  <span>{t('reports.studentPerformanceReport')}</span>
+                </button>
               </div>
               {student.study_year && (
                 <div className="flex items-center space-x-3 text-gray-600">
@@ -514,6 +526,13 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             courseId={breakdownCourseId}
             courseName={coursesById[breakdownCourseId]?.course_name}
             onClose={() => { setShowBreakdown(false); setBreakdownCourseId(null); }}
+          />
+        )}
+
+        {showPerformanceReport && (
+          <StudentPerformanceReport
+            studentId={studentId}
+            onClose={() => setShowPerformanceReport(false)}
           />
         )}
       </div>
