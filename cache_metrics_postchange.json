@@ -1,0 +1,318 @@
+{
+  "workflow": "e2e-tests.yml",
+  "analyzed_runs": 20,
+  "date_range": {
+    "start": "2025-12-11T19:32:13Z",
+    "end": "2025-12-11T21:34:51Z"
+  },
+  "runs": [
+    {
+      "run_number": 53,
+      "run_id": 20148149077,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:34:51Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 52,
+      "run_id": 20148132216,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:34:15Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 51,
+      "run_id": 20148100851,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:32:58Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 50,
+      "run_id": 20148060742,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:31:22Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 49,
+      "run_id": 20147988363,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:28:39Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 48,
+      "run_id": 20147883200,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T21:24:34Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 0.0,
+        "playwright_install_time": 0.0,
+        "pip_install_time": 0.0,
+        "total_setup_time": 0.0
+      }
+    },
+    {
+      "run_number": 47,
+      "run_id": 20147841930,
+      "conclusion": "success",
+      "created_at": "2025-12-11T21:22:58Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 12.0,
+        "playwright_install_time": 19.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 43.0
+      }
+    },
+    {
+      "run_number": 46,
+      "run_id": 20147694270,
+      "conclusion": "success",
+      "created_at": "2025-12-11T21:17:02Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 11.0,
+        "playwright_install_time": 21.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 44.0
+      }
+    },
+    {
+      "run_number": 45,
+      "run_id": 20147590306,
+      "conclusion": "success",
+      "created_at": "2025-12-11T21:12:52Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 14.0,
+        "playwright_install_time": 21.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 47.0
+      }
+    },
+    {
+      "run_number": 44,
+      "run_id": 20147558312,
+      "conclusion": "success",
+      "created_at": "2025-12-11T21:11:38Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": false,
+        "npm_install_time": 13.0,
+        "playwright_install_time": 18.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 43.0
+      }
+    },
+    {
+      "run_number": 43,
+      "run_id": 20147263275,
+      "conclusion": "success",
+      "created_at": "2025-12-11T21:00:04Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 13.0,
+        "playwright_install_time": 18.0,
+        "pip_install_time": 14.0,
+        "total_setup_time": 45.0
+      }
+    },
+    {
+      "run_number": 42,
+      "run_id": 20147233961,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:58:44Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 14.0,
+        "playwright_install_time": 29.0,
+        "pip_install_time": 13.0,
+        "total_setup_time": 56.0
+      }
+    },
+    {
+      "run_number": 41,
+      "run_id": 20147189975,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:56:46Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 13.0,
+        "playwright_install_time": 18.0,
+        "pip_install_time": 13.0,
+        "total_setup_time": 44.0
+      }
+    },
+    {
+      "run_number": 40,
+      "run_id": 20146734318,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:38:48Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 12.0,
+        "playwright_install_time": 16.0,
+        "pip_install_time": 11.0,
+        "total_setup_time": 39.0
+      }
+    },
+    {
+      "run_number": 39,
+      "run_id": 20146709538,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:37:52Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 14.0,
+        "playwright_install_time": 17.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 43.0
+      }
+    },
+    {
+      "run_number": 38,
+      "run_id": 20146684780,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:36:55Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 14.0,
+        "playwright_install_time": 23.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 49.0
+      }
+    },
+    {
+      "run_number": 37,
+      "run_id": 20146209434,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:18:37Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 14.0,
+        "playwright_install_time": 26.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 52.0
+      }
+    },
+    {
+      "run_number": 36,
+      "run_id": 20145924535,
+      "conclusion": "success",
+      "created_at": "2025-12-11T20:07:49Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": true,
+        "pip_cache_hit": true,
+        "npm_install_time": 13.0,
+        "playwright_install_time": 26.0,
+        "pip_install_time": 12.0,
+        "total_setup_time": 51.0
+      }
+    },
+    {
+      "run_number": 35,
+      "run_id": 20145211033,
+      "conclusion": "success",
+      "created_at": "2025-12-11T19:39:34Z",
+      "metrics": {
+        "npm_cache_hit": true,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": false,
+        "npm_install_time": 15.0,
+        "playwright_install_time": 8.0,
+        "pip_install_time": 14.0,
+        "total_setup_time": 37.0
+      }
+    },
+    {
+      "run_number": 34,
+      "run_id": 20145025724,
+      "conclusion": "failure",
+      "created_at": "2025-12-11T19:32:13Z",
+      "metrics": {
+        "npm_cache_hit": false,
+        "playwright_cache_hit": false,
+        "pip_cache_hit": true,
+        "npm_install_time": 15.0,
+        "playwright_install_time": 8.0,
+        "pip_install_time": 13.0,
+        "total_setup_time": 36.0
+      }
+    }
+  ],
+  "summary": {
+    "npm_cache_hit_rate": "55.0%",
+    "playwright_cache_hit_rate": "60.0%",
+    "pip_cache_hit_rate": "90.0%",
+    "avg_setup_time_with_cache": "44.5s",
+    "avg_setup_time_without_cache": "45.2s",
+    "estimated_time_saved": "0.8s (1.7% speedup)"
+  }
+}
