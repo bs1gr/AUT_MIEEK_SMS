@@ -37,8 +37,8 @@ export async function logout(page: Page) {
   await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
   await logoutButton.click();
   
-  // Wait for redirect to root (auth page) - give more time for logout API call
-  await page.waitForURL(/^\/$|^\/\?/, { timeout: 10000 });
+  // Wait for redirect to root (auth page) - match full URL with protocol and host
+  await page.waitForURL(/^https?:\/\/[^/]+\/?(\?.*)?$/, { timeout: 10000 });
 }
 
 export async function navigateTo(page: Page, path: string) {
