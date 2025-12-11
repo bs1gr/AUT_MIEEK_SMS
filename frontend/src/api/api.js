@@ -726,6 +726,53 @@ export const analyticsAPI = {
   }
 };
 
+// ==================== REPORTS API ====================
+
+/**
+ * Reports API for generating student performance reports
+ */
+export const reportsAPI = {
+  /**
+   * Generate student performance report
+   * @param {object} reportRequest - Report configuration
+   * @returns {Promise} - Student performance report
+   */
+  generateStudentReport: async (reportRequest) => {
+    try {
+      const response = await api.post('/reports/student-performance', reportRequest);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get available report formats
+   * @returns {Promise<string[]>} - List of available formats
+   */
+  getAvailableFormats: async () => {
+    try {
+      const response = await api.get('/reports/formats');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get available report periods
+   * @returns {Promise<string[]>} - List of available periods
+   */
+  getAvailablePeriods: async () => {
+    try {
+      const response = await api.get('/reports/periods');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 // ==================== UTILITY FUNCTIONS ====================
 
 /**

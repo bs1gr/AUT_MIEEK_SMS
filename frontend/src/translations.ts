@@ -30,6 +30,8 @@ import exportEn from './locales/en/export';
 import exportEl from './locales/el/export';
 import helpEn from './locales/en/help';
 import helpEl from './locales/el/help';
+import reportsEn from './locales/en/reports';
+import reportsEl from './locales/el/reports';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -52,6 +54,7 @@ export const translations: Translations = {
     calendar: calendarEn,
     export: exportEn,
     help: helpEn,
+    reports: reportsEn,
     // Common (modular)
     ...commonEn,
     // Dashboard & Student Profile (modular)
@@ -89,6 +92,7 @@ export const translations: Translations = {
     calendar: calendarEl,
     export: exportEl,
     help: helpEl,
+    reports: reportsEl,
     // Κοινά (modular)
     ...commonEl,
     // Πίνακας Ελέγχου & Προφίλ Σπουδαστή (modular)
