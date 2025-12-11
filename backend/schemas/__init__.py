@@ -63,7 +63,39 @@ from .grades import GradeUpdate as GradeUpdate
 from .performance import (
     DailyPerformanceCreate as DailyPerformanceCreate,
 )
-from .performance import (
+from .reports import (
+    AttendanceSummary as AttendanceSummary,
+)
+from .reports import (
+    BulkReportRequest as BulkReportRequest,
+)
+from .reports import (
+    CourseSummary as CourseSummary,
+)
+from .reports import (
+    GradeSummary as GradeSummary,
+)
+from .reports import (
+    HighlightSummary as HighlightSummary,
+)
+from .reports import (
+    PerformanceReportRequest as PerformanceReportRequest,
+)
+from .reports import (
+    PerformanceSummary as PerformanceSummary,
+)
+from .reports import (
+    ReportFormat as ReportFormat,
+)
+from .reports import (
+    ReportJobStatus as ReportJobStatus,
+)
+from .reports import (
+    ReportPeriod as ReportPeriod,
+)
+from .reports import (
+    StudentPerformanceReport as StudentPerformanceReport,
+)from .performance import (
     DailyPerformanceResponse as DailyPerformanceResponse,
 )
 from .students import StudentCreate as StudentCreate
