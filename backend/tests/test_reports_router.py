@@ -46,8 +46,8 @@ def test_generate_student_performance_report(client: TestClient, clean_db):
     
     # Create test course
     course = Course(
-        title="Test Course",
-        code="CS101",
+        course_name="Test Course",
+        course_code="CS101",
         semester="Fall 2024"
     )
     clean_db.add(course)
@@ -67,7 +67,7 @@ def test_generate_student_performance_report(client: TestClient, clean_db):
             student_id=student.id,
             course_id=course.id,
             date=today - timedelta(days=i),
-            status="present" if i < 4 else "absent"
+            status="Present" if i < 4 else "Absent"
         )
         clean_db.add(attendance)
     
@@ -75,20 +75,20 @@ def test_generate_student_performance_report(client: TestClient, clean_db):
     grade1 = Grade(
         student_id=student.id,
         course_id=course.id,
-        assignment_title="Assignment 1",
+        assignment_name="Assignment 1",
         grade=18.0,
         max_grade=20.0,
         date_assigned=today - timedelta(days=10),
-        component_type="homework"
+        category="homework"
     )
     grade2 = Grade(
         student_id=student.id,
         course_id=course.id,
-        assignment_title="Assignment 2",
+        assignment_name="Assignment 2",
         grade=16.0,
         max_grade=20.0,
         date_assigned=today - timedelta(days=5),
-        component_type="homework"
+        category="homework"
     )
     clean_db.add_all([grade1, grade2])
     
@@ -107,10 +107,12 @@ def test_generate_student_performance_report(client: TestClient, clean_db):
     # Add highlight
     highlight = Highlight(
         student_id=student.id,
-        course_id=course.id,
-        date=today - timedelta(days=3),
+        semester="Fall 2024",
+        date_created=today - timedelta(days=3),
         category="achievement",
-        description="Excellent project presentation"
+        highlight_text="Excellent project presentation",
+        is_positive=True,
+        rating=5
     )
     clean_db.add(highlight)
     
@@ -220,8 +222,8 @@ def test_generate_report_specific_courses(client: TestClient, clean_db):
     clean_db.flush()
     
     # Create multiple courses
-    course1 = Course(title="Math", code="MATH101", semester="Fall 2024")
-    course2 = Course(title="Science", code="SCI101", semester="Fall 2024")
+    course1 = Course(course_name="Math", course_code="MATH101", semester="Fall 2024")
+    course2 = Course(course_name="Science", course_code="SCI101", semester="Fall 2024")
     clean_db.add_all([course1, course2])
     clean_db.flush()
     
