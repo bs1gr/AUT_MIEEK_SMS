@@ -61,8 +61,6 @@ from backend.schemas import (
     ImportPreviewItem,
     ImportPreviewResponse,
 )
-from backend.services.audit_service import AuditLogger
-from backend.schemas.audit import AuditAction, AuditResource
 
 
 # --- File Upload Validation ---

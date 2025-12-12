@@ -12,7 +12,6 @@ import json
 from fastapi.testclient import TestClient
 
 from backend.services.job_manager import JobManager
-from backend.schemas.audit import AuditAction
 
 
 class TestImportPreviewEndpoint:
