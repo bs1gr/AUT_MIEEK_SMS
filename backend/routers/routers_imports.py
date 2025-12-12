@@ -1634,3 +1634,186 @@ def import_students(
             context={"error": str(exc)},
         )
 
+
+@router.post("/execute")
+@limiter.limit(RATE_LIMIT_HEAVY)
+async def import_execute(
+    request: Request,
+    import_type: str = Form(...),
+    files: List[UploadFile] | None = File(None),
+    json_text: str | None = Form(None),
+    allow_updates: bool = Form(False),
+    skip_duplicates: bool = Form(True),
+    db: Session = Depends(get_db),
+    api_key: str | None = Depends(verify_api_key_optional),
+    current_user=Depends(optional_require_role("admin", "teacher")),
+):
+    """Execute an import by creating a background job.
+
+    This endpoint validates the import request and creates an async job
+    to process the actual data import. Returns job ID for tracking progress.
+
+    Args:
+        import_type: 'courses' or 'students'
+        files: uploaded CSV or JSON files
+        json_text: optional raw JSON data
+        allow_updates: whether to allow updates to existing records
+        skip_duplicates: whether to skip duplicate records in input
+        db: database session
+        current_user: authenticated user
+
+    Returns:
+        { job_id: str, status: str }
+    """
+    from backend.services.job_manager import JobManager
+    from backend.schemas.jobs import JobCreate, JobType
+
+    audit = AuditLogger(db)
+    try:
+        norm = (import_type or "").strip().lower()
+        if norm in ("course", "courses"):
+            norm = "courses"
+        elif norm in ("student", "students"):
+            norm = "students"
+        else:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "import_type must be 'courses' or 'students'",
+                request,
+                context={"import_type": import_type},
+            )
+
+        uploads: List[UploadFile] = []
+        if files:
+            uploads.extend(files)
+
+        if not uploads and not json_text:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "No files uploaded and no 'json' form field provided",
+                request,
+            )
+
+        # Validate files before creating job
+        upload_contents: dict[str, bytes] = {}
+        for up in uploads:
+            try:
+                content = await validate_uploaded_file(request, up)
+                upload_contents[up.filename or "file"] = content
+            except HTTPException:
+                raise
+            except Exception as exc:
+                raise http_error(
+                    400,
+                    ErrorCode.IMPORT_PROCESSING_FAILED,
+                    f"Failed to validate file: {str(exc)}",
+                    request,
+                    context={"filename": up.filename},
+                )
+
+        # Validate JSON text if provided
+        if json_text:
+            try:
+                text_size = len(json_text.encode("utf-8"))
+                if text_size > MAX_FILE_SIZE:
+                    size_mb = text_size / (1024 * 1024)
+                    max_mb = MAX_FILE_SIZE / (1024 * 1024)
+                    raise http_error(
+                        413,
+                        ErrorCode.IMPORT_TOO_LARGE,
+                        "JSON payload too large",
+                        request,
+                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
+                    )
+                json.loads(json_text)  # Validate JSON syntax
+            except json.JSONDecodeError as exc:
+                raise http_error(
+                    400,
+                    ErrorCode.IMPORT_INVALID_JSON,
+                    "Invalid JSON format",
+                    request,
+                    context={"error": str(exc)},
+                )
+            except HTTPException:
+                raise
+
+        # Determine job type
+        job_type_map = {
+            "students": JobType.STUDENT_IMPORT,
+            "courses": JobType.COURSE_IMPORT,
+        }
+        job_type = job_type_map.get(norm, JobType.STUDENT_IMPORT)
+
+        # Get user ID if available
+        user_id = None
+        if hasattr(current_user, "id"):
+            user_id = current_user.id
+
+        # Create background job with import parameters
+        job_create = JobCreate(
+            job_type=job_type,
+            user_id=user_id,
+            parameters={
+                "import_type": norm,
+                "allow_updates": allow_updates,
+                "skip_duplicates": skip_duplicates,
+                "file_count": len(uploads),
+                "has_json_data": bool(json_text),
+                # Note: file contents and json_text are NOT stored in job params
+                # They should be handled via a separate storage mechanism or passed through
+                # For now, we'll rely on the frontend resending them if needed for retry
+            },
+        )
+
+        job_id = JobManager.create_job(job_create)
+
+        # Audit log the job creation
+        try:
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                details={
+                    "job_id": job_id,
+                    "job_type": job_type.value,
+                    "import_type": norm,
+                    "allow_updates": allow_updates,
+                    "skip_duplicates": skip_duplicates,
+                },
+                success=True,
+            )
+        except Exception:
+            # Do not fail job creation due to audit logging
+            pass
+
+        logger.info(
+            f"Created import job {job_id} for {norm} "
+            f"(files: {len(uploads)}, json: {bool(json_text)}, allow_updates: {allow_updates})"
+        )
+
+        return {"job_id": job_id, "status": "pending"}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Import execute failed: %s", exc, exc_info=True)
+        try:
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.OTHER,
+                details={"import_type": import_type},
+                success=False,
+                error_message=str(exc),
+            )
+        except Exception:
+            pass
+        raise http_error(
+            500,
+            ErrorCode.IMPORT_PROCESSING_FAILED,
+            "Import job creation failed",
+            request,
+            context={"error": str(exc)},
+        )
