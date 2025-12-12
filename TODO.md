@@ -48,28 +48,28 @@
 - **Backend Implementation**:
   - Created `backend/schemas/reports.py` with comprehensive report models (200 lines)
   - Created `backend/routers/routers_reports.py` with 3 endpoints (388 lines)
-    * POST `/api/v1/reports/student-performance` - Generate comprehensive reports
-    * GET `/api/v1/reports/formats` - Available formats (JSON, PDF, CSV)
-    * GET `/api/v1/reports/periods` - Available periods (week, month, semester, year, custom)
+    - POST `/api/v1/reports/student-performance` - Generate comprehensive reports
+    - GET `/api/v1/reports/formats` - Available formats (JSON, PDF, CSV)
+    - GET `/api/v1/reports/periods` - Available periods (week, month, semester, year, custom)
   - Registered reports router in router_registry.py
   - Created comprehensive test suite in `backend/tests/test_reports_router.py` (290 lines)
   - Fixed syntax error in `backend/schemas/__init__.py`
 
 - **Frontend Implementation**:
   - Created `StudentPerformanceReport.tsx` component (480 lines)
-    * Interactive configuration form with period selection
-    * Rich report display with color-coded metrics
-    * Attendance summary with visual indicators
-    * Grades summary with trend analysis (↗️ improving, ↘️ declining, → stable)
-    * Course-by-course breakdown
-    * Performance categories display
-    * Automated recommendations
-    * Highlights section
-    * Print functionality
+    - Interactive configuration form with period selection
+    - Rich report display with color-coded metrics
+    - Attendance summary with visual indicators
+    - Grades summary with trend analysis (↗️ improving, ↘️ declining, → stable)
+    - Course-by-course breakdown
+    - Performance categories display
+    - Automated recommendations
+    - Highlights section
+    - Print functionality
   - Added API client methods in `frontend/src/api/api.js` (reportsAPI)
   - Created bilingual translations:
-    * `frontend/src/locales/en/reports.js` (75+ keys)
-    * `frontend/src/locales/el/reports.js` (75+ keys)
+    - `frontend/src/locales/en/reports.js` (75+ keys)
+    - `frontend/src/locales/el/reports.js` (75+ keys)
   - Updated `frontend/src/translations.ts` to import report translations
   - Integrated into StudentProfile component with "Generate Performance Report" button
 
@@ -93,23 +93,23 @@
 
 **2.1.1 PDF/CSV Export** ✅
 - Created `backend/services/report_exporters.py` (330+ lines)
-  * `generate_pdf_report()`: Professional PDF with ReportLab (tables, colors, styling)
-  * `generate_csv_report()`: Structured CSV with clear sections
+  - `generate_pdf_report()`: Professional PDF with ReportLab (tables, colors, styling)
+  - `generate_csv_report()`: Structured CSV with clear sections
 - New endpoint: POST `/reports/student-performance/download`
-  * Supports format: pdf, csv, json
-  * Proper MIME types and Content-Disposition headers
-  * Filename includes student name and date range
+  - Supports format: pdf, csv, json
+  - Proper MIME types and Content-Disposition headers
+  - Filename includes student name and date range
 - Frontend: Download buttons in StudentPerformanceReport component
-  * Red button for PDF, green button for CSV
-  * Blob API integration with automatic cleanup
+  - Red button for PDF, green button for CSV
+  - Blob API integration with automatic cleanup
 - Updated: `frontend/src/api/api.js` with `downloadStudentReport()` method
 
 **2.1.2 Bulk Report Generation** ✅
 - New endpoint: POST `/reports/bulk/student-performance`
-  * Supports up to 50 students per request
-  * Returns JSON summary or combined CSV
-  * Individual error tracking per student
-  * Rate limited (10 requests/minute)
+  - Supports up to 50 students per request
+  - Returns JSON summary or combined CSV
+  - Individual error tracking per student
+  - Rate limited (10 requests/minute)
 - BulkReportRequest schema with full configuration
 - Efficient batch processing with error handling
 - Combined CSV export for bulk data analysis
@@ -117,12 +117,12 @@
 **2.1.3 Report Caching with Redis** ✅
 - Cache configuration: `CacheConfig.STUDENT_REPORT = 15 minutes`
 - Integrated caching into main report endpoint
-  * Cache key includes all request parameters
-  * Redis support with in-memory fallback
-  * Cache hit/miss logging
+  - Cache key includes all request parameters
+  - Redis support with in-memory fallback
+  - Cache hit/miss logging
 - Cache invalidation endpoints:
-  * DELETE `/reports/cache/{student_id}` - Student-specific invalidation
-  * DELETE `/reports/cache` - Global cache clear
+  - DELETE `/reports/cache/{student_id}` - Student-specific invalidation
+  - DELETE `/reports/cache` - Global cache clear
 - Performance: 95-98% response time reduction on cache hits
 
 **Commits**:

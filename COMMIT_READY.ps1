@@ -851,42 +851,47 @@ function Invoke-CodeQualityChecks {
         if ($npxAvailable) {
             $mdConfig = Join-Path $SCRIPT_DIR "config\.markdownlint.json"
             $mdIgnore = Join-Path $SCRIPT_DIR ".markdownlintignore"
+            
+            # Always auto-fix markdown issues (safe and trivial formatting changes)
+            # First pass: try to fix issues
+            Write-Info "Running markdownlint with auto-fix..."
             if (Test-Path $mdConfig) {
-                if ($AutoFix) {
-                    if (Test-Path $mdIgnore) {
-                        $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
-                    } else {
-                        $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
-                    }
+                if (Test-Path $mdIgnore) {
+                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
                 } else {
-                    if (Test-Path $mdIgnore) {
-                        $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
-                    } else {
-                        $output = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
-                    }
+                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
                 }
             } else {
-                if ($AutoFix) {
-                    if (Test-Path $mdIgnore) {
-                        $output = npx markdownlint-cli "**/*.md" --fix --ignore-path "$mdIgnore" 2>&1
-                    } else {
-                        $output = npx markdownlint-cli "**/*.md" --fix 2>&1
-                    }
+                if (Test-Path $mdIgnore) {
+                    $output = npx markdownlint-cli "**/*.md" --fix --ignore-path "$mdIgnore" 2>&1
                 } else {
-                    if (Test-Path $mdIgnore) {
-                        $output = npx markdownlint-cli "**/*.md" --ignore-path "$mdIgnore" 2>&1
-                    } else {
-                        $output = npx markdownlint-cli "**/*.md" 2>&1
-                    }
+                    $output = npx markdownlint-cli "**/*.md" --fix 2>&1
                 }
             }
+            
+            # Second pass: check if any issues remain after auto-fix
+            if (Test-Path $mdConfig) {
+                if (Test-Path $mdIgnore) {
+                    $checkOutput = npx markdownlint-cli "**/*.md" --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
+                } else {
+                    $checkOutput = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
+                }
+            } else {
+                if (Test-Path $mdIgnore) {
+                    $checkOutput = npx markdownlint-cli "**/*.md" --ignore-path "$mdIgnore" 2>&1
+                } else {
+                    $checkOutput = npx markdownlint-cli "**/*.md" 2>&1
+                }
+            }
+            $checkExitCode = $LASTEXITCODE
         } else {
             Write-Warning-Msg "npx not available; skipping Markdown lint"
-            $LASTEXITCODE = 0
+            $checkExitCode = 0
             $output = "SKIPPED"
+            $checkOutput = "SKIPPED"
         }
 
-        if ($LASTEXITCODE -eq 0) {
+        if ($checkExitCode -eq 0) {
             Write-Success "Markdown linting passed"
             Add-Result "Linting" "Markdown Lint" $true
         } else {
@@ -894,12 +899,12 @@ function Invoke-CodeQualityChecks {
             $strictDocs = ($env:STRICT_DOCS_LINT -as [string]) -and ($env:STRICT_DOCS_LINT.ToLower() -in @('1','true','yes'))
             if ($Mode -eq 'full' -and -not $strictDocs) {
                 Write-Warning-Msg "Markdown linting reported issues (non-blocking in full mode). Review output below:"
-                Write-Host $output -ForegroundColor Gray
+                Write-Host $checkOutput -ForegroundColor Gray
                 Add-Result "Linting" "Markdown Lint (non-blocking)" $true "Issues present; non-blocking in full mode"
             } else {
-                Write-Failure "Markdown linting failed"
-                Write-Host $output -ForegroundColor Gray
-                Add-Result "Linting" "Markdown Lint" $false $output
+                Write-Failure "Markdown linting failed (auto-fix attempted but issues remain)"
+                Write-Host $checkOutput -ForegroundColor Gray
+                Add-Result "Linting" "Markdown Lint" $false $checkOutput
                 $allPassed = $false
             }
         }
