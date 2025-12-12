@@ -8,6 +8,38 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+
+**GitHub Actions Release Automation** 🤖 (2025-12-12)
+- Automated installer building and SHA256 verification workflow: `.github/workflows/release-installer-with-sha.yml`
+  - Auto-triggers on release publication or manual workflow dispatch
+  - Mandatory version verification via `VERIFY_VERSION.ps1 -CIMode` before building
+  - Conditional installer build (checks if already exists in `dist/`)
+  - SHA256 hash calculation using PowerShell `Get-FileHash`
+  - Automatic upload of installer as GitHub release asset
+  - Release notes generation with installer details and verification instructions
+  - Clear error messages directing to `COMMIT_READY.ps1` for version fixes
+  - **Benefit**: Eliminates manual installer builds, ensures version consistency, provides security verification
+
+### Changed
+
+**CI/CD Pipeline Documentation** 📚 (2025-12-12)
+- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to v1.1.0
+  - Added comprehensive section documenting release-installer-with-sha workflow
+  - Documented 5 workflow stages: version verification, installer build, SHA256 calculation, release integration, notifications
+  - Included usage examples for automatic and manual triggers
+  - Listed key benefits and security features
+
+### Fixed
+
+**Version Consistency** ✅ (2025-12-12)
+- Updated installer wizard version references: 1.11.2 → 1.12.0
+- Updated uninstaller wizard version references: 1.11.2 → 1.12.0
+- Regenerated `frontend/package-lock.json` with correct version
+- All 13/14 version references now consistent across codebase
+
+---
+
 ## [1.12.0] - 2025-12-19
 
 **Release Status**: Phase 1, 2.1, 2.2, & 2.3 Complete (100% Progress)  
