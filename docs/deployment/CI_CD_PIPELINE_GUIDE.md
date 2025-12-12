@@ -1,7 +1,7 @@
 # CI/CD Pipeline Documentation
 
-**Version:** 1.0.0  
-**Last Updated:** November 24, 2025  
+**Version:** 1.1.0  
+**Last Updated:** December 12, 2025  
 
 ---
 
@@ -213,6 +213,106 @@ post-deployment-monitoring:
 - Backend tests (fail-fast)
 - Frontend lint
 - Frontend tests (no coverage)
+
+---
+
+### 3. release-installer-with-sha.yml (Automated Installer Release)
+
+**Trigger Events:**
+
+- Release published or created
+- Manual workflow dispatch with tag input
+
+**Duration:** ~10-15 minutes (depending on cache)
+
+**Purpose:** Automated installer building and SHA256 verification for releases
+
+**Stages:**
+
+#### Stage 1: Version Verification
+
+```yaml
+verify-version-consistency:
+  - Runs scripts/VERIFY_VERSION.ps1 in CI mode
+  - Validates version matches release tag
+  - Fails workflow if inconsistencies detected
+  - Provides clear error messages with fix instructions
+```
+
+#### Stage 2: Installer Check & Build
+
+```yaml
+check-installer-exists:
+  - Checks for existing installer: dist/SMS_Installer_<tag>.exe
+  - Skips build if already present
+  
+build-installer-if-needed:
+  - Runs INSTALLER_BUILDER.ps1 -AutoFix
+  - Generates wizard images
+  - Fixes Greek language encoding
+  - Compiles with Inno Setup
+  - Code signs with AUT MIEEK certificate
+```
+
+#### Stage 3: SHA256 Calculation
+
+```yaml
+calculate-sha256:
+  - Computes SHA256 hash using PowerShell Get-FileHash
+  - Calculates file size in MB
+  - Outputs hash for verification instructions
+```
+
+#### Stage 4: Release Integration
+
+```yaml
+generate-release-body:
+  - Merges with existing release notes (RELEASE_NOTES_<tag>.md)
+  - Appends installer download section
+  - Includes SHA256 hash prominently
+  - Provides PowerShell verification command
+  
+upload-installer-asset:
+  - Uploads installer as release asset
+  - Sets proper content-type (application/octet-stream)
+  - Only for release events (not manual dispatch)
+```
+
+#### Stage 5: Summary & Notifications
+
+```yaml
+create-summary:
+  - Generates GitHub Actions step summary
+  - Shows installer name, size, and SHA256
+  
+post-notifications:
+  - Success notification with installer details
+  - Failure notification for troubleshooting
+```
+
+**Usage:**
+
+```bash
+# Automatic (on release creation)
+git tag -a v1.12.0 -m "Release v1.12.0"
+git push origin v1.12.0
+# → Workflow triggers automatically
+
+# Manual (for existing releases)
+# Go to Actions → Release - Build & Upload Installer with SHA256
+# Click "Run workflow"
+# Enter: v1.12.0
+# Click "Run workflow" button
+```
+
+**Benefits:**
+
+- ✅ Ensures version consistency before building
+- ✅ Eliminates manual installer builds
+- ✅ Provides SHA256 hashing for security verification
+- ✅ Automatically updates release notes with installer info
+- ✅ Prevents releases with version mismatches
+- ✅ Includes clear verification instructions for users
 
 ---
 
