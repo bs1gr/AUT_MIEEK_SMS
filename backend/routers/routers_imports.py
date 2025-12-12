@@ -22,6 +22,8 @@ from sqlalchemy.orm import Session
 from backend.errors import ErrorCode, http_error
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
 from backend.services.import_service import ImportService
+from backend.services.audit_service import AuditLogger
+from backend.schemas.audit import AuditAction, AuditResource
 
 from .routers_auth import optional_require_role
 from backend.security.api_keys import verify_api_key_optional
@@ -458,6 +460,7 @@ def import_courses(
       "teaching_schedule": {"Monday": {"periods": 2, "start_time": "08:00", "duration": 50}}
     }
     """
+    audit = AuditLogger(db)
     try:
         (Course,) = import_names("models", "Course")
 
@@ -746,10 +749,27 @@ def import_courses(
                 errors.append(f"{name}: {e}")
         try:
             db.commit()
+            # Log successful bulk import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE,
+                details={"created": created, "updated": updated, "source": "directory", "path": COURSES_DIR},
+                success=True,
+            )
         except Exception as exc:
             db.rollback()
             logger.error("Commit failed during course import: %s", exc, exc_info=True)
             errors.append(f"commit: {exc}")
+            # Log failed import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE,
+                details={"source": "directory", "path": COURSES_DIR},
+                success=False,
+                error_message=str(exc),
+            )
             raise http_error(
                 400,
                 ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -764,6 +784,15 @@ def import_courses(
     except Exception as exc:
         db.rollback()
         logger.error("Error importing courses: %s", exc, exc_info=True)
+        # Log import failure
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_IMPORT,
+            resource=AuditResource.COURSE,
+            details={"source": "directory", "path": COURSES_DIR},
+            success=False,
+            error_message=str(exc),
+        )
         raise http_error(
             400,
             ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -792,6 +821,7 @@ async def import_from_upload(
     - import_type: 'courses' or 'students'
     - files: one or more .json files
     """
+    audit = AuditLogger(db)
     try:
         norm = (import_type or "").strip().lower()
         if norm in ("course", "courses"):
@@ -1119,9 +1149,32 @@ async def import_from_upload(
 
         try:
             db.commit()
+            # Log successful upload import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                details={
+                    "created": created,
+                    "updated": updated,
+                    "source": "upload",
+                    "file_count": len(uploads),
+                    "type": norm,
+                },
+                success=True,
+            )
         except Exception as exc:
             db.rollback()
             errors.append(f"commit: {exc}")
+            # Log failed upload import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                details={"source": "upload", "type": norm},
+                success=False,
+                error_message=str(exc),
+            )
             raise http_error(
                 400,
                 ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -1135,6 +1188,15 @@ async def import_from_upload(
     except Exception as exc:
         db.rollback()
         logger.error("Upload import failed: %s", exc, exc_info=True)
+        # Log import failure
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_IMPORT,
+            resource=AuditResource.OTHER,
+            details={"source": "upload"},
+            success=False,
+            error_message=str(exc),
+        )
         raise http_error(
             500,
             ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -1165,6 +1227,7 @@ def import_students(
       "enrollment_date": "2025-09-01"
     }
     """
+    audit = AuditLogger(db)
     try:
         (Student,) = import_names("models", "Student")
 
@@ -1230,13 +1293,50 @@ def import_students(
             except Exception as e:
                 logger.error(f"Failed to import student from {name}: {e}")
                 errors.append(f"{name}: {e}")
-        db.commit()
+        try:
+            db.commit()
+            # Log successful bulk import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.STUDENT,
+                details={"created": created, "updated": updated, "source": "directory", "path": STUDENTS_DIR},
+                success=True,
+            )
+        except Exception as exc:
+            db.rollback()
+            logger.error("Commit failed during student import: %s", exc, exc_info=True)
+            # Log failed import
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.STUDENT,
+                details={"source": "directory", "path": STUDENTS_DIR},
+                success=False,
+                error_message=str(exc),
+            )
+            raise http_error(
+                500,
+                ErrorCode.IMPORT_PROCESSING_FAILED,
+                "Student import failed during commit",
+                request,
+                context={"error": str(exc)},
+            )
         return {"created": created, "updated": updated, "errors": errors}
     except HTTPException:
         raise
     except Exception as exc:
         db.rollback()
         logger.error("Error importing students: %s", exc, exc_info=True)
+        # Log import failure
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_IMPORT,
+            resource=AuditResource.STUDENT,
+            details={"source": "directory", "path": STUDENTS_DIR},
+            success=False,
+            error_message=str(exc),
+        )
         raise http_error(
             500,
             ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -1244,3 +1344,4 @@ def import_students(
             request,
             context={"error": str(exc)},
         )
+
