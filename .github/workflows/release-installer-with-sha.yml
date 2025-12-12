@@ -52,23 +52,7 @@ jobs:
             Write-Warning "Version verification script not found, skipping..."
           }
 
-      - name: Check if installer exists
-        id: check_installer
-        shell: pwsh
-        run: |
-          $tag = "${{ steps.release_info.outputs.tag }}"
-          $installer = "dist/SMS_Installer_${tag}.exe"
-          if (Test-Path $installer) {
-            echo "exists=true" >> $env:GITHUB_OUTPUT
-            echo "path=$installer" >> $env:GITHUB_OUTPUT
-            Write-Host "Installer found: $installer"
-          } else {
-            echo "exists=false" >> $env:GITHUB_OUTPUT
-            Write-Host "Installer not found, will build..."
-          }
-
-      - name: Build installer if not exists
-        if: steps.check_installer.outputs.exists == 'false'
+      - name: Build installer
         shell: pwsh
         run: |
           Write-Host "Building installer..."
@@ -78,16 +62,45 @@ jobs:
             exit 1
           }
 
+      - name: Verify installer exists
+        id: verify_installer
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $installers = @(
+            "dist\SMS_Installer_${tag}.exe",
+            "dist\SMS_Installer.exe",
+            "SMS_Installer_${tag}.exe",
+            "SMS_Installer.exe"
+          )
+          
+          $found = $false
+          foreach ($path in $installers) {
+            if (Test-Path $path) {
+              Write-Host "Found installer: $path"
+              echo "path=$path" >> $env:GITHUB_OUTPUT
+              $found = $true
+              break
+            }
+          }
+          
+          if (-not $found) {
+            Write-Error "Installer not found in any expected location"
+            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found: $($_.FullName)" }
+            exit 1
+          }
+
       - name: Calculate SHA256 hash
         id: hash
         shell: pwsh
         run: |
-          $tag = "${{ steps.release_info.outputs.tag }}"
-          $installer = "dist/SMS_Installer_${tag}.exe"
+          $installer = "${{ steps.verify_installer.outputs.path }}"
+          
           if (-not (Test-Path $installer)) {
-            Write-Error "Installer not found: $installer"
+            Write-Error "Installer not found at: $installer"
             exit 1
           }
+          
           $hash = (Get-FileHash $installer -Algorithm SHA256).Hash
           $fileSize = (Get-Item $installer).Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
