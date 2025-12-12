@@ -364,6 +364,91 @@ class AuditLog(Base):
         return f"<AuditLog(id={self.id}, action={self.action}, resource={self.resource}, user_id={self.user_id})>"
 
 
+# --- RBAC models: fine-grained permissions ---
+class Role(Base):
+    """Role entity for fine-grained RBAC.
+
+    Uses a unique name (e.g., 'admin', 'teacher', 'student').
+    """
+
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False, index=True)
+    description = Column(String(255))
+
+    __table_args__ = (
+        Index("idx_roles_name", "name", unique=True),
+    )
+
+    def __repr__(self):
+        return f"<Role(id={self.id}, name={self.name})>"
+
+
+class Permission(Base):
+    """Permission entity for fine-grained RBAC.
+
+    Permission names follow a 'resource.action' convention (e.g., 'students.read').
+    """
+
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), unique=True, nullable=False, index=True)
+    description = Column(String(255))
+
+    __table_args__ = (
+        Index("idx_permissions_name", "name", unique=True),
+    )
+
+    def __repr__(self):
+        return f"<Permission(id={self.id}, name={self.name})>"
+
+
+class RolePermission(Base):
+    """Association table: which permissions are granted to a role."""
+
+    __tablename__ = "role_permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),
+    )
+
+    # Lightweight relationships for convenience (optional at runtime)
+    role: ClassVar[Any] = relationship("Role")
+    permission: ClassVar[Any] = relationship("Permission")
+
+    def __repr__(self):
+        return f"<RolePermission(role_id={self.role_id}, permission_id={self.permission_id})>"
+
+
+class UserRole(Base):
+    """Association table: which roles are assigned to a user.
+
+    Backward compatible with existing User.role string – both can coexist during migration.
+    """
+
+    __tablename__ = "user_roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("idx_user_role_unique", "user_id", "role_id", unique=True),
+    )
+
+    user: ClassVar[Any] = relationship("User")
+    role: ClassVar[Any] = relationship("Role")
+
+    def __repr__(self):
+        return f"<UserRole(user_id={self.user_id}, role_id={self.role_id})>"
+
+
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     Initialize the database engine with performance optimizations.

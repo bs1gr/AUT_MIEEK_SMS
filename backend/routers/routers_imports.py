@@ -26,6 +26,7 @@ from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
 
 from .routers_auth import optional_require_role
+from backend.security.permissions import optional_require_permission
 from backend.security.api_keys import verify_api_key_optional
 
 logger = logging.getLogger(__name__)
@@ -1221,7 +1222,7 @@ async def import_preview(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(optional_require_permission("imports.preview")),
 ) -> ImportPreviewResponse:
     """Preview/validate an import without committing changes.
 
@@ -1644,7 +1645,7 @@ async def import_execute(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(optional_require_permission("imports.execute")),
 ):
     """Execute an import by creating a background job.
 

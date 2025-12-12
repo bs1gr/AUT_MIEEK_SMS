@@ -12,6 +12,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Import execution endpoint to create background jobs for bulk imports (`POST /api/v1/imports/execute`)
 - Frontend Operations view: Import Preview panel with execute flow and auto job tracking hookup
 - Comprehensive backend integration tests for import workflow (preview → execute → job tracking)
+- Fine-grained RBAC foundation:
+  - New models: `roles`, `permissions`, `role_permissions`, `user_roles` (with Alembic migration)
+  - New permission dependencies: `require_permission`, `optional_require_permission`
+  - New admin endpoints under `/api/v1/admin/rbac/*` to seed defaults, view summary, assign roles, and grant permissions
+  - Imports endpoints now enforce permissions: `imports.preview`, `imports.execute` (backward-compatible defaults for existing roles)
 
 ### Fixed
 - Translation files `frontend/src/locales/{en,el}/export.js`: add missing closing braces causing Vite syntax errors
