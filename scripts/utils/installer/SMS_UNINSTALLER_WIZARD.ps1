@@ -54,7 +54,7 @@ $ErrorActionPreference = 'Stop'
 
 $Script:Config = @{
     AppName          = "Student Management System"
-    Version          = "1.12.0"
+    Version          = "1.12.1"
     DockerImageName  = "sms-fullstack"
     DataVolumeName   = "sms_data"
     ContainerName    = "sms-fullstack"

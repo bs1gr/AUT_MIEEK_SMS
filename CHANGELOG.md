@@ -8,9 +8,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.12.1] - 2025-12-12
+
+**Release Type**: Patch Release - Automation Infrastructure  
+**Focus**: Release workflow automation and version management
+
 ### Added
 
-**GitHub Actions Release Automation** 🤖 (2025-12-12)
+**GitHub Actions Release Automation** 🤖
 - Automated installer building and SHA256 verification workflow: `.github/workflows/release-installer-with-sha.yml`
   - Auto-triggers on release publication or manual workflow dispatch
   - Mandatory version verification via `VERIFY_VERSION.ps1 -CIMode` before building
@@ -23,7 +28,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Changed
 
-**CI/CD Pipeline Documentation** 📚 (2025-12-12)
+**CI/CD Pipeline Documentation** 📚
 - Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to v1.1.0
   - Added comprehensive section documenting release-installer-with-sha workflow
   - Documented 5 workflow stages: version verification, installer build, SHA256 calculation, release integration, notifications
@@ -32,7 +37,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Fixed
 
-**Version Consistency** ✅ (2025-12-12)
+**Version Consistency** ✅
 - Updated installer wizard version references: 1.11.2 → 1.12.0
 - Updated uninstaller wizard version references: 1.11.2 → 1.12.0
 - Regenerated `frontend/package-lock.json` with correct version
