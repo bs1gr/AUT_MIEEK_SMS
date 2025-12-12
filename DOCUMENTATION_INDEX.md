@@ -2,8 +2,8 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** December 9, 2025 (v1.11.2)  
-**Version:** 1.11.2  
+**Last Updated:** December 19, 2025 (v1.12.0)  
+**Version:** 1.12.0  
 **Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start

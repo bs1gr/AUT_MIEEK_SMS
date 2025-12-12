@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
@@ -49,14 +48,14 @@ async def ensure_defaults(
         perm_names = [
             "*",
             # students
-            "students.read", "students.create", "students.update",
+            "students.read", "students.write", "students.delete",
             # courses
-            "courses.read", "courses.create", "courses.update",
+            "courses.read", "courses.write", "courses.delete",
             # attendance/grades
             "attendance.read", "attendance.write",
             "grades.read", "grades.write",
             # imports/exports
-            "imports.preview", "imports.execute", "exports.generate",
+            "imports.preview", "imports.execute", "exports.generate", "exports.download",
             # self-scoped
             "students.self.read", "grades.self.read", "attendance.self.read",
         ]
@@ -88,11 +87,11 @@ async def ensure_defaults(
 
         # Teacher default grants (mirror permissive defaults)
         for pn in [
-            "students.read", "students.create", "students.update",
-            "courses.read", "courses.create", "courses.update",
+            "students.read", "students.write",
+            "courses.read", "courses.write",
             "attendance.read", "attendance.write",
             "grades.read", "grades.write",
-            "imports.preview", "imports.execute", "exports.generate",
+            "imports.preview", "imports.execute", "exports.generate", "exports.download",
         ]:
             grant("teacher", pn)
 

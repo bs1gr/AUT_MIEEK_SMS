@@ -25,7 +25,7 @@ from backend.db import get_session as get_db
 from backend.import_resolver import (
     import_names,  # noqa: F401 - re-export for tests that monkeypatch
 )
-from backend.routers.routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 from backend.schemas.common import PaginatedResponse
 from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
 from backend.services import StudentService
@@ -39,7 +39,7 @@ def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Create a new student with duplicate protections."""
 
@@ -60,6 +60,7 @@ def get_all_students(
     is_active: Optional[bool] = None,
     q: Optional[str] = None,
     db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
 ):
     """Retrieve all students with optional filtering and pagination."""
 
@@ -75,7 +76,12 @@ def get_all_students(
 @router.get("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @cached(ttl=CacheConfig.STUDENT_DETAIL)
-def get_student(request: Request, student_id: int, db: Session = Depends(get_db)):
+def get_student(
+    request: Request,
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
+):
     """Retrieve a specific student by ID."""
 
     service = StudentService(db, request)
@@ -89,7 +95,7 @@ def update_student(
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Update a student's information."""
 
@@ -107,7 +113,7 @@ def delete_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.delete", "admin")),
 ):
     """Soft-delete a student and hide associated records."""
 
@@ -125,7 +131,7 @@ def activate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Activate a student account."""
 
@@ -139,7 +145,7 @@ def deactivate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Deactivate a student account."""
 
@@ -156,7 +162,7 @@ def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """
     Create multiple students at once.

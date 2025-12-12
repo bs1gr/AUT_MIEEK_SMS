@@ -482,10 +482,15 @@ from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
+from backend.security.permissions import optional_require_permission
 
 
 @router.get("/students/excel")
-async def export_students_excel(request: Request, db: Session = Depends(get_db)):
+async def export_students_excel(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_permission("exports.generate")),
+):
     audit = AuditLogger(db)
     try:
         (Student,) = import_names("models", "Student")

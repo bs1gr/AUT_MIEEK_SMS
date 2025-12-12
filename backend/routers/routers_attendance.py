@@ -22,8 +22,7 @@ from backend.schemas.attendance import (
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.services import AttendanceService
-
-from .routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ def create_attendance(
     request: Request,
     attendance_data: AttendanceCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
 ):
     """
     Record attendance for a student.
@@ -100,6 +99,7 @@ def get_all_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("attendance.read", "admin", "teacher")),
 ):
     """
     Retrieve attendance records with optional filtering.
@@ -247,7 +247,7 @@ def update_attendance(
     attendance_id: int,
     attendance_data: AttendanceUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
 ):
     """Update an attendance record"""
     try:
@@ -267,7 +267,7 @@ def delete_attendance(
     request: Request,
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("attendance.write", "admin")),
 ):
     """Soft delete an attendance record"""
     try:
@@ -332,10 +332,11 @@ def bulk_create_attendance(
     request: Request,
     attendance_list: List[AttendanceCreate],
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
 ):
     """
     Create multiple attendance records at once.
+
     Useful for recording attendance for an entire class.
     """
     try:
