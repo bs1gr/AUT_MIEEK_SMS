@@ -128,5 +128,8 @@ export default {
   jobMonitorError: 'Αδυναμία φόρτωσης κατάστασης εργασίας',
   jobMonitorHelper: 'Παρακολουθήστε εισαγωγές ή εξαγωγές μεγάλης διάρκειας μέσω ID εργασίας.',
   jobMonitorInputLabel: 'ID εργασίας για παρακολούθηση',
-  jobMonitorStart: 'Έναρξη παρακολούθησης'
+  jobMonitorStart: 'Έναρξη παρακολούθησης',
+  confirmAndImport: 'Επιβεβαίωση & Εισαγωγή',
+  cancel: 'Ακύρωση',
+  importError: 'Η εισαγωγή απέτυχε'
 };

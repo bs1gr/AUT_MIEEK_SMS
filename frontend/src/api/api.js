@@ -1052,6 +1052,41 @@ export const importAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Execute an import by creating a background job
+   * @param {Object} params
+   * @param {'students'|'courses'} params.type
+   * @param {File[]|File|undefined} params.files
+   * @param {string|undefined} params.jsonText
+   * @param {boolean} params.allowUpdates
+   * @param {boolean} params.skipDuplicates
+   */
+  async execute({ type, files, jsonText, allowUpdates = false, skipDuplicates = true }) {
+    try {
+      const formData = new FormData();
+      formData.append('import_type', type);
+      formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+      formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+      if (files) {
+        const list = Array.isArray(files) ? files : [files];
+        list.forEach((file) => {
+          if (file) formData.append('files', file);
+        });
+      }
+      if (jsonText) {
+        formData.append('json_text', jsonText);
+      }
+
+      const response = await apiClient.post('/imports/execute', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
