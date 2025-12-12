@@ -332,6 +332,38 @@ class RefreshToken(Base):
         return f"<RefreshToken(id={self.id}, user_id={self.user_id}, jti={self.jti}, revoked={self.revoked})>"
 
 
+class AuditLog(Base):
+    """Audit log for tracking system actions and changes."""
+
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String(50), nullable=False, index=True)  # e.g., "create", "update", "delete", "bulk_import"
+    resource = Column(String(50), nullable=False, index=True)  # e.g., "student", "grade", "course"
+    resource_id = Column(String(100), nullable=True, index=True)  # ID of the affected resource
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_email = Column(String(255), nullable=True)
+    ip_address = Column(String(45), nullable=True)  # IPv6 max length
+    user_agent = Column(String(512), nullable=True)
+    details = Column(JSON, nullable=True)  # Additional contextual information
+    success = Column(Boolean, default=True, nullable=False)
+    error_message = Column(Text, nullable=True)
+    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    # Composite indexes for common queries
+    __table_args__ = (
+        Index("idx_audit_user_action", "user_id", "action"),
+        Index("idx_audit_resource_action", "resource", "action"),
+        Index("idx_audit_timestamp_action", "timestamp", "action"),
+    )
+
+    # Relationship to user
+    user: ClassVar[Any] = relationship("User")
+
+    def __repr__(self):
+        return f"<AuditLog(id={self.id}, action={self.action}, resource={self.resource}, user_id={self.user_id})>"
+
+
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     Initialize the database engine with performance optimizations.
