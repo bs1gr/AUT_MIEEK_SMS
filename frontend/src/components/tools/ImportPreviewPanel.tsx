@@ -24,14 +24,16 @@ type PreviewResponse = {
 
 type ImportPreviewPanelProps = {
   onPreviewComplete?: (result: PreviewResponse) => void;
+  onJobCreated?: (jobId: string) => void;
 };
 
-const ImportPreviewPanel = ({ onPreviewComplete }: ImportPreviewPanelProps) => {
+const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPanelProps) => {
   const { t } = useLanguage();
   const [importType, setImportType] = useState<'students' | 'courses'>('students');
   const [allowUpdates, setAllowUpdates] = useState(false);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PreviewResponse | null>(null);
   const [jsonText, setJsonText] = useState('');
@@ -217,6 +219,55 @@ const ImportPreviewPanel = ({ onPreviewComplete }: ImportPreviewPanelProps) => {
         <div className="space-y-3">
           {renderSummary()}
           {renderTable()}
+          
+          {/* Import execution buttons */}
+          <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50"
+              onClick={async () => {
+                setIsExecuting(true);
+                setError(null);
+                try {
+                  const files = fileInputRef.current?.files;
+                  const list = files ? Array.from(files) : undefined;
+                  const response = await importAPI.execute({
+                    type: importType,
+                    files: list,
+                    jsonText: jsonText.trim() ? jsonText : undefined,
+                    allowUpdates,
+                    skipDuplicates,
+                  });
+                  const jobId = (response as { job_id?: string }).job_id;
+                  if (jobId) {
+                    onJobCreated?.(jobId);
+                  }
+                } catch (err: unknown) {
+                  const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+                  setError(msg || t('export.importError'));
+                } finally {
+                  setIsExecuting(false);
+                }
+              }}
+              disabled={isExecuting || result.rows_with_errors > 0}
+            >
+              {isExecuting ? '⏳ ' : '✓ '}{t('export.confirmAndImport')}
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              onClick={() => {
+                setResult(null);
+                setError(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+                setJsonText('');
+              }}
+            >
+              {t('export.cancel')}
+            </button>
+          </div>
         </div>
       )}
     </div>

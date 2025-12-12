@@ -128,5 +128,8 @@ export default {
   jobMonitorError: 'Unable to load job status',
   jobMonitorHelper: 'Track long-running imports or exports by job ID.',
   jobMonitorInputLabel: 'Job ID to track',
-  jobMonitorStart: 'Start monitoring'
+  jobMonitorStart: 'Start monitoring',
+  confirmAndImport: 'Confirm & Import',
+  cancel: 'Cancel',
+  importError: 'Import failed'
 };
