@@ -166,18 +166,20 @@ def require_permission(permission: str):
 
 
 def optional_require_permission(permission: str):
-    """Permission checker that respects AUTH_ENABLED.
+    """Permission checker that respects AUTH_ENABLED and AUTH_MODE.
 
     - When AUTH is disabled: returns a dummy admin-like user for tests
     - When AUTH is enabled: verifies permission via DB or defaults
     """
-    if not getattr(settings, "AUTH_ENABLED", False):
-        def _disabled():  # no-arg dependency for tests
-            from types import SimpleNamespace
-            return SimpleNamespace(id=1, email="admin@example.com", role="admin", is_active=True, full_name="Admin User")
-        return _disabled
 
     def _dep(request: Request, user: Any = Depends(get_current_user), db: Session = Depends(get_db)) -> Any:
+        # Check auth status at runtime (not definition time) to support dynamic toggling in tests
+        auth_enabled = getattr(settings, "AUTH_ENABLED", False)
+        auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+        if not auth_enabled or auth_mode == "disabled":
+            from types import SimpleNamespace
+            return SimpleNamespace(id=1, email="admin@example.com", role="admin", is_active=True, full_name="Admin User")
+        
         perms = user_permissions_from_db(db, user)
         if not _check_permission(perms, permission):
             raise http_error(
@@ -190,3 +192,48 @@ def optional_require_permission(permission: str):
         return user
 
     return _dep
+
+
+def depends_on_permission(permission: str, *fallback_roles: str):
+    """Permission checker with role fallback for backward compatibility.
+
+    - Checks for the required permission first (from RBAC tables if available)
+    - If permission check fails, falls back to checking if user has one of the fallback_roles
+    - Returns the user if check passes, raises 403 if fails
+    - When AUTH is disabled: returns a dummy admin-like user for tests
+    """
+    
+    def _dep(request: Request, user: Any = Depends(get_current_user), db: Session = Depends(get_db)) -> Any:
+        # Check auth status at runtime (not definition time) to support dynamic toggling in tests
+        auth_enabled = getattr(settings, "AUTH_ENABLED", False)
+        auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+        if not auth_enabled or auth_mode == "disabled":
+            # When AUTH is disabled, grant everyone full access (testing mode)
+            from types import SimpleNamespace
+            return SimpleNamespace(id=1, email="admin@example.com", role="admin", is_active=True, full_name="Admin User")
+        
+        # Try to check permission first
+        perms = user_permissions_from_db(db, user)
+        if _check_permission(perms, permission):
+            return user
+        
+        # Fall back to role check
+        user_role = getattr(user, "role", None)
+        if user_role and str(user_role).lower() in {r.lower() for r in fallback_roles}:
+            return user
+        
+        # Neither permission nor role matched
+        raise http_error(
+            403,
+            ErrorCode.FORBIDDEN,
+            f"Missing permission: {permission}",
+            request,
+            context={
+                "required_permission": permission,
+                "fallback_roles": list(fallback_roles),
+                "user_role": user_role,
+            },
+        )
+
+    return _dep
+

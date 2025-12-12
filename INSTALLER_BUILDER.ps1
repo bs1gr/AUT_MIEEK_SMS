@@ -75,9 +75,9 @@
     # Quick validation without modifying anything
 
 .NOTES
-    Version: 1.11.2
+Version: 1.12.0
     Created: 2025-12-04
-    Updated: 2025-12-12
+    Updated: 2025-12-19
     
     Integration Points:
     - Reads version from: VERSION file (single source of truth)
@@ -502,7 +502,7 @@ function Invoke-GitTagAndPush {
 
 Write-Result Info ""
 Write-Result Info "================================================================="
-Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE v1.9.8"
+Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE v1.12.0"
 Write-Result Info "Action: $($Action.ToUpper())"
 Write-Result Info "Version: $CurrentVersion"
 Write-Result Info "================================================================="
@@ -609,3 +609,4 @@ Write-Result Info "=============================================================
 Write-Result Info ""
 
 exit $(if ($success) { 0 } else { 1 })
+

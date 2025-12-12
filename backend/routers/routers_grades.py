@@ -44,7 +44,7 @@ class GradeAnalysis(BaseModel):
 # ========== DEPENDENCY INJECTION ==========
 from backend.config import settings
 from backend.db import get_session as get_db
-from backend.routers.routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 
 
 def _normalize_date_range(
@@ -78,7 +78,7 @@ def create_grade(
     request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
 ):
     """
     Create a new grade record.
@@ -119,6 +119,7 @@ def get_all_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("grades.read", "admin", "teacher")),
 ):
     """
     Get all grades with optional filtering.
@@ -222,7 +223,7 @@ def update_grade(
     grade_id: int,
     grade_data: GradeUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
 ):
     """
     Update a grade record.
@@ -246,7 +247,7 @@ def delete_grade(
     request: Request,
     grade_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin")),
 ):
     """Delete a grade record"""
     try:
