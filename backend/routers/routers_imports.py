@@ -57,6 +57,12 @@ router = APIRouter(prefix="/imports", tags=["Imports"], responses={404: {"descri
 
 from backend.db import get_session as get_db
 from backend.import_resolver import import_names
+from backend.schemas import (
+    ImportPreviewItem,
+    ImportPreviewResponse,
+)
+from backend.services.audit_service import AuditLogger
+from backend.schemas.audit import AuditAction, AuditResource
 
 
 # --- File Upload Validation ---
@@ -1201,6 +1207,289 @@ async def import_from_upload(
             500,
             ErrorCode.IMPORT_PROCESSING_FAILED,
             "Upload import failed",
+            request,
+            context={"error": str(exc)},
+        )
+
+
+@router.post("/preview")
+@limiter.limit(RATE_LIMIT_HEAVY)
+async def import_preview(
+    request: Request,
+    import_type: str = Form(...),
+    files: List[UploadFile] | None = File(None),
+    json_text: str | None = Form(None),
+    allow_updates: bool = Form(False),
+    skip_duplicates: bool = Form(True),
+    db: Session = Depends(get_db),
+    api_key: str | None = Depends(verify_api_key_optional),
+    current_user=Depends(optional_require_role("admin", "teacher")),
+) -> ImportPreviewResponse:
+    """Preview/validate an import without committing changes.
+
+    Accepts the same inputs as the upload import endpoint but returns
+    a validation preview with per-row status and an overall summary.
+    """
+    audit = AuditLogger(db)
+    try:
+        norm = (import_type or "").strip().lower()
+        if norm in ("course", "courses"):
+            norm = "courses"
+        elif norm in ("student", "students"):
+            norm = "students"
+        else:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "import_type must be 'courses' or 'students'",
+                request,
+                context={"import_type": import_type},
+            )
+
+        # Resolve needed models for existence checks
+        Course, Student = import_names("models", "Course", "Student")
+
+        uploads: List[UploadFile] = []
+        if files:
+            uploads.extend(files)
+        data_batches: List[List[dict]] = []
+
+        if not uploads and not json_text:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "No files uploaded and no 'json' form field provided",
+                request,
+            )
+
+        # Parse uploaded files
+        parse_errors: list[str] = []
+        for up in uploads:
+            try:
+                content = await validate_uploaded_file(request, up)
+                filename = up.filename or ""
+                if filename.lower().endswith(".csv"):
+                    if norm != "students":
+                        parse_errors.append(f"{filename}: CSV import only supported for students")
+                        continue
+                    csv_students, csv_errs = _parse_csv_students(content, filename)
+                    if csv_errs:
+                        parse_errors.extend(csv_errs)
+                    if csv_students:
+                        data_batches.append(csv_students)
+                else:
+                    data = json.loads(content.decode("utf-8"))
+                    data_batches.append(data if isinstance(data, list) else [data])
+            except HTTPException:
+                raise
+            except Exception as exc:
+                parse_errors.append(f"{up.filename}: {exc}")
+
+        # Parse optional raw JSON text
+        if json_text:
+            try:
+                text_size = len(json_text.encode("utf-8"))
+                if text_size > MAX_FILE_SIZE:
+                    size_mb = text_size / (1024 * 1024)
+                    max_mb = MAX_FILE_SIZE / (1024 * 1024)
+                    raise http_error(
+                        413,
+                        ErrorCode.IMPORT_TOO_LARGE,
+                        "JSON payload too large",
+                        request,
+                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
+                    )
+                parsed = json.loads(json_text)
+                data_batches.append(parsed if isinstance(parsed, list) else [parsed])
+            except json.JSONDecodeError as exc:
+                raise http_error(
+                    400,
+                    ErrorCode.IMPORT_INVALID_JSON,
+                    "Invalid JSON format in 'json' field",
+                    request,
+                    context={"error": str(exc)},
+                )
+            except HTTPException:
+                raise
+            except Exception as exc:
+                parse_errors.append(f"json: {exc}")
+
+        # Flatten items
+        items: list[ImportPreviewItem] = []
+        seen_keys: set[str] = set()
+        row_no = 0
+        create_count = 0
+        update_count = 0
+        skip_count = 0
+        error_count = 0
+        warning_count = 0
+
+        def add_item(action: str, data: dict, issues: list[str]):
+            nonlocal row_no, create_count, update_count, skip_count, error_count, warning_count
+            row_no += 1
+            status = "valid" if not issues else ("error" if any("error:" in (i.lower()) or i.lower().startswith("item:") for i in issues) else "warning")
+            if status == "valid":
+                if action == "create":
+                    create_count += 1
+                elif action == "update":
+                    update_count += 1
+                elif action == "skip":
+                    skip_count += 1
+            elif status == "error":
+                error_count += 1
+            else:
+                warning_count += 1
+            items.append(
+                ImportPreviewItem(
+                    row_number=row_no,
+                    action=action,
+                    data=data,
+                    validation_status=status,
+                    issues=issues,
+                )
+            )
+
+        # Iterate over all batches
+        for batch in data_batches:
+            for obj in batch:
+                if not isinstance(obj, dict):
+                    add_item("skip", {"raw": obj}, ["item: not an object"])
+                    continue
+
+                if norm == "students":
+                    sid = obj.get("student_id")
+                    email = obj.get("email")
+                    issues: list[str] = []
+                    if not sid or not email:
+                        issues.append("item: missing student_id or email")
+                    elif not _valid_email(str(email)):
+                        issues.append(f"item: invalid email '{email}'")
+
+                    # Normalize preview fields
+                    if "enrollment_date" in obj:
+                        parsed = _parse_date(obj.get("enrollment_date"))
+                        if parsed is None:
+                            issues.append("warning: invalid enrollment_date, field will be dropped")
+                        else:
+                            obj["enrollment_date"] = parsed
+                    if "is_active" in obj:
+                        b = _to_bool(obj["is_active"])
+                        if b is None:
+                            issues.append("warning: invalid is_active value, field will be dropped")
+                        else:
+                            obj["is_active"] = b
+
+                    # Determine key and duplicates within batch
+                    key = f"student:{sid or ''}|{email or ''}"
+                    if key in seen_keys and skip_duplicates:
+                        add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
+                        continue
+                    seen_keys.add(key)
+
+                    # Determine action based on existence in DB
+                    exists = False
+                    if sid:
+                        exists = (
+                            db.query(Student).filter(Student.student_id == sid, Student.deleted_at.is_(None)).first()
+                            is not None
+                        )
+                    if not exists and email:
+                        exists = (
+                            db.query(Student).filter(Student.email == email, Student.deleted_at.is_(None)).first()
+                            is not None
+                        )
+                    action = "update" if exists else "create"
+                    if exists and not allow_updates:
+                        action = "skip"
+                        issues.append("warning: would update existing record; updates not allowed")
+
+                    add_item(action, obj, issues)
+
+                else:  # courses
+                    code = obj.get("course_code") if isinstance(obj, dict) else None
+                    issues: list[str] = []
+                    if not code:
+                        issues.append("item: missing course_code")
+                    # Normalize semester default
+                    if "semester" in obj and not obj["semester"]:
+                        obj["semester"] = "Α' Εξάμηνο"
+
+                    key = f"course:{code}|{obj.get('semester','')}"
+                    if key in seen_keys and skip_duplicates:
+                        add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
+                        continue
+                    seen_keys.add(key)
+
+                    exists = False
+                    if code:
+                        q = db.query(Course).filter(Course.course_code == code, Course.deleted_at.is_(None))
+                        # If semester present, include it in existence check
+                        sem = obj.get("semester")
+                        if sem:
+                            q = q.filter(Course.semester == sem)
+                        exists = q.first() is not None
+                    action = "update" if exists else "create"
+                    if exists and not allow_updates:
+                        action = "skip"
+                        issues.append("warning: would update existing record; updates not allowed")
+
+                    add_item(action, obj, issues)
+
+        total_rows = row_no
+        can_proceed = error_count == 0
+        # Estimate: ~10ms per item
+        estimated = int(total_rows * 0.01)
+        summary = {"create": create_count, "update": update_count, "skip": skip_count}
+
+        # Audit log the preview action
+        try:
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                details={
+                    "preview": True,
+                    "type": norm,
+                    "total": total_rows,
+                    "errors": error_count,
+                    "warnings": warning_count,
+                },
+                success=True,
+            )
+        except Exception:
+            # Do not fail preview due to audit logging issue
+            pass
+
+        return ImportPreviewResponse(
+            total_rows=total_rows,
+            valid_rows=create_count + update_count + skip_count - warning_count,  # informational
+            rows_with_warnings=warning_count,
+            rows_with_errors=error_count,
+            items=items,
+            can_proceed=can_proceed,
+            estimated_duration_seconds=estimated,
+            summary=summary,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Import preview failed: %s", exc, exc_info=True)
+        # Attempt audit log
+        try:
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.OTHER,
+                details={"preview": True, "type": import_type},
+                success=False,
+                error_message=str(exc),
+            )
+        except Exception:
+            pass
+        raise http_error(
+            500,
+            ErrorCode.IMPORT_PROCESSING_FAILED,
+            "Import preview failed",
             request,
             context={"error": str(exc)},
         )
