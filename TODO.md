@@ -10,7 +10,7 @@
 
 ### Phase 2.3: Integration & Frontend Components
 
-**Async Job Queue & Audit Logging Integration** (Partial ✅)
+**Async Job Queue & Audit Logging Integration** (✅ COMPLETE)
 
 - ✅ **Audit Logging Integration into Bulk Imports** (commit 42a19ccc)
   - Integrated AuditLogger into 3 import endpoints (courses, upload, students)
@@ -18,29 +18,27 @@
   - Log failed imports with error details and request context
   - All 383 tests passing
 
-- [ ] **Audit Logging Integration into Bulk Exports**
-  - Add audit logging to `routers_exports.py` endpoints
-  - Pattern: log_from_request() with AuditAction.BULK_EXPORT
+- ✅ **Audit Logging Integration into Bulk Exports** (commit d723a792)
+  - All export endpoints log BULK_EXPORT with relevant metadata
 
-- [ ] **Import Preview/Validation Endpoint**
-  - POST `/imports/preview` - Parse file without committing
-  - Return validation errors/warnings
-  - Use ImportPreviewRequest/ImportPreviewResponse schemas
+- ✅ **Import Preview/Validation Endpoint** (commit 1e345dbe)
+  - POST `/imports/preview` parses files or JSON without committing and returns validation summary
 
-- [ ] **Frontend Job Progress Monitor**
-  - Create `JobProgressMonitor.tsx` component
-  - Real-time job status polling
-  - Integration with bulk import/export workflows
+- ✅ **Frontend Job Progress Monitor** (commit 1b6bbe81)
+  - `JobProgressMonitor` component with polling; integrated into Operations → Imports
 
-- [ ] **Frontend Import Preview UI**
-  - Create `ImportPreview.tsx` component
-  - File upload + validation display
-  - Confirm/cancel workflow
+- ✅ **Frontend Import Preview UI** (commit 1b6bbe81)
+  - `ImportPreviewPanel.tsx` with file upload, JSON paste, preview table, and execute button
 
-- [ ] **Integration Tests**
-  - `test_audit_logging.py` - Audit log creation for bulk operations
-  - `test_job_lifecycle.py` - Job creation, progress updates, completion
-  - `test_import_preview.py` - Validation logic testing
+- ✅ **Integration Tests** (commit 5509e2ec)
+  - Added `backend/tests/test_imports_integration.py` covering preview, execute, job tracking, and error cases
+
+---
+
+## ⏸️ Deferred (Phase 2.4+)
+
+- Fine-grained RBAC permissions system (roles → permissions model, admin endpoints for roles/permissions management)
+  - Design complete; implementation deferred
 
 ---
 
