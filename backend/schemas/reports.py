@@ -6,7 +6,7 @@ from datetime import date
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReportFormat(str, Enum):
@@ -108,31 +108,8 @@ class HighlightSummary(BaseModel):
 class StudentPerformanceReport(BaseModel):
     """Complete student performance report response."""
 
-    student_id: int
-    student_name: str
-    student_email: str
-    report_period: str
-    start_date: date
-    end_date: date
-    generated_at: str
-
-    # Overall summaries
-    overall_attendance: Optional[AttendanceSummary] = None
-    overall_grades: Optional[GradeSummary] = None
-
-    # Course-level breakdown
-    courses: List[CourseSummary] = []
-
-    # Highlights
-    highlights: List[HighlightSummary] = []
-
-    # Recommendations
-    recommendations: List[str] = []
-
-    class Config:
-        """Pydantic config."""
-
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "student_id": 1,
                 "student_name": "John Doe",
@@ -158,6 +135,28 @@ class StudentPerformanceReport(BaseModel):
                 ],
             }
         }
+    )
+
+    student_id: int
+    student_name: str
+    student_email: str
+    report_period: str
+    start_date: date
+    end_date: date
+    generated_at: str
+
+    # Overall summaries
+    overall_attendance: Optional[AttendanceSummary] = None
+    overall_grades: Optional[GradeSummary] = None
+
+    # Course-level breakdown
+    courses: List[CourseSummary] = []
+
+    # Highlights
+    highlights: List[HighlightSummary] = []
+
+    # Recommendations
+    recommendations: List[str] = []
 
 
 class BulkReportRequest(BaseModel):

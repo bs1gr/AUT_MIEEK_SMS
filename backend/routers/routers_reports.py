@@ -13,12 +13,12 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
-from sqlalchemy import and_, func
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from backend.cache import cache_key, invalidate_cache, redis_cache, CacheConfig
+from backend.cache import cache_key, redis_cache, CacheConfig
 from backend.db import get_session
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
@@ -249,6 +249,7 @@ async def generate_student_performance_report(
 
     # Get grades summary
     if report_request.include_grades:
+        # Use date_submitted or fallback to date_assigned for filtering
         grade_records = (
             db.query(Grade)
             .filter(
@@ -257,11 +258,17 @@ async def generate_student_performance_report(
             )
             .filter(
                 and_(
-                    Grade.date_submitted >= start_date if start_date else True,
-                    Grade.date_submitted <= end_date if end_date else True,
+                    or_(
+                        and_(Grade.date_submitted.isnot(None), Grade.date_submitted >= start_date),
+                        and_(Grade.date_submitted.is_(None), Grade.date_assigned >= start_date),
+                    ),
+                    or_(
+                        and_(Grade.date_submitted.isnot(None), Grade.date_submitted <= end_date),
+                        and_(Grade.date_submitted.is_(None), Grade.date_assigned <= end_date),
+                    ),
                 )
             )
-            .order_by(Grade.date_submitted)
+            .order_by(Grade.date_submitted.desc().nullslast())
             .all()
         )
 
@@ -304,8 +311,14 @@ async def generate_student_performance_report(
                 )
                 .filter(
                     and_(
-                        Grade.date_submitted >= start_date if start_date else True,
-                        Grade.date_submitted <= end_date if end_date else True,
+                        or_(
+                            and_(Grade.date_submitted.isnot(None), Grade.date_submitted >= start_date),
+                            and_(Grade.date_submitted.is_(None), Grade.date_assigned >= start_date),
+                        ),
+                        or_(
+                            and_(Grade.date_submitted.isnot(None), Grade.date_submitted <= end_date),
+                            and_(Grade.date_submitted.is_(None), Grade.date_assigned <= end_date),
+                        ),
                     )
                 )
                 .all()
