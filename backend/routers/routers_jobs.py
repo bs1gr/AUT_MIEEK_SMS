@@ -89,8 +89,12 @@ async def get_job_status(
 
     # Check permission: users can only view their own jobs unless admin
     if current_user and job.user_id:
-        is_admin = current_user.get("role") == "admin"
-        is_owner = current_user.get("user_id") == job.user_id
+        # Handle both dict and SimpleNamespace objects
+        role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
+        user_id = current_user.get("user_id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
+        
+        is_admin = role == "admin"
+        is_owner = user_id == job.user_id
         
         if not (is_admin or is_owner):
             raise HTTPException(status_code=403, detail="Access denied")

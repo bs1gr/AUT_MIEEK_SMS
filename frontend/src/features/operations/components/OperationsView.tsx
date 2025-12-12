@@ -124,7 +124,12 @@ const OperationsView = (_props: OperationsViewProps) => {
         {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
         {effectiveTab === 'imports' && (
           <div className="space-y-6">
-            <ImportPreviewPanel />
+            <ImportPreviewPanel 
+              onJobCreated={(jobId) => {
+                setTrackedJobId(jobId);
+                setJobIdInput(jobId);
+              }} 
+            />
 
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
