@@ -31,6 +31,27 @@ jobs:
             echo "tag=${{ github.event.inputs.tag }}" >> $env:GITHUB_OUTPUT
           }
 
+      - name: Verify version consistency
+        shell: pwsh
+        run: |
+          Write-Host "Verifying version consistency across all files..."
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $version = $tag -replace '^v', ''
+          
+          Write-Host "Expected version: $version (from tag: $tag)"
+          
+          if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
+            Write-Host "Running VERIFY_VERSION.ps1 in CI mode..."
+            & ".\scripts\VERIFY_VERSION.ps1" -CIMode -ExpectedVersion $version
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Version verification failed! Please run 'COMMIT_READY.ps1 -Quick' to fix version inconsistencies before release."
+              exit 1
+            }
+            Write-Host "Version verification passed!"
+          } else {
+            Write-Warning "Version verification script not found, skipping..."
+          }
+
       - name: Check if installer exists
         id: check_installer
         shell: pwsh
