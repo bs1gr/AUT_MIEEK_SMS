@@ -1,0 +1,156 @@
+name: Release - Build & Upload Installer with SHA256
+
+on:
+  release:
+    types: [published, created]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.12.0)'
+        required: true
+
+jobs:
+  release-installer:
+    runs-on: windows-latest
+    name: Build & Upload Installer with SHA256
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get release information
+        id: release_info
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "release") {
+            echo "tag=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+            echo "release_id=${{ github.event.release.id }}" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "tag=${{ github.event.inputs.tag }}" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Check if installer exists
+        id: check_installer
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $installer = "dist/SMS_Installer_${tag}.exe"
+          if (Test-Path $installer) {
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+            echo "path=$installer" >> $env:GITHUB_OUTPUT
+            Write-Host "Installer found: $installer"
+          } else {
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+            Write-Host "Installer not found, will build..."
+          }
+
+      - name: Build installer if not exists
+        if: steps.check_installer.outputs.exists == 'false'
+        shell: pwsh
+        run: |
+          Write-Host "Building installer..."
+          & ".\INSTALLER_BUILDER.ps1" -AutoFix
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Installer build failed"
+            exit 1
+          }
+
+      - name: Calculate SHA256 hash
+        id: hash
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $installer = "dist/SMS_Installer_${tag}.exe"
+          if (-not (Test-Path $installer)) {
+            Write-Error "Installer not found: $installer"
+            exit 1
+          }
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash
+          $fileSize = (Get-Item $installer).Length
+          $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
+          echo "sha256=$hash" >> $env:GITHUB_OUTPUT
+          echo "size=$fileSizeMB" >> $env:GITHUB_OUTPUT
+          echo "path=$installer" >> $env:GITHUB_OUTPUT
+          Write-Host "File: $installer"
+          Write-Host "Size: $fileSizeMB MB"
+          Write-Host "SHA256: $hash"
+
+      - name: Generate release body with installer info
+        id: release_body
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $sha256 = "${{ steps.hash.outputs.sha256 }}"
+          $size = "${{ steps.hash.outputs.size }} MB"
+          
+          $notesFile = "RELEASE_NOTES_${tag}.md"
+          $releaseNotes = ""
+          if (Test-Path $notesFile) {
+            $releaseNotes = Get-Content $notesFile -Raw
+          }
+          
+          $installerInfo = "## Installer Download`n`n"
+          $installerInfo += "**File**: SMS_Installer_${tag}.exe`n"
+          $installerInfo += "**Size**: ${size}`n"
+          $installerInfo += "**SHA256**: \`${sha256}\``n`n"
+          $installerInfo += "### Verify Installer Integrity`n`n"
+          $installerInfo += "PowerShell:`n"
+          $installerInfo += "``````powershell`n"
+          $installerInfo += "(Get-FileHash 'SMS_Installer_${tag}.exe' -Algorithm SHA256).Hash`n"
+          $installerInfo += "``````n"
+          $installerInfo += "`nExpected: ${sha256}`n"
+          
+          $body = $releaseNotes + "`n`n" + $installerInfo
+          $body | Out-File -FilePath "release_body.md" -Encoding UTF8
+          Write-Host "Release body generated"
+
+      - name: Upload installer to release
+        if: github.event_name == 'release' && steps.hash.outputs.path != ''
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.hash.outputs.path }}
+          asset_name: SMS_Installer_${{ steps.release_info.outputs.tag }}.exe
+          asset_content_type: application/octet-stream
+
+      - name: Create release summary
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_info.outputs.tag }}"
+          $sha256 = "${{ steps.hash.outputs.sha256 }}"
+          $size = "${{ steps.hash.outputs.size }}"
+          
+          $summary = @"
+          ## Release $tag - Installer Ready
+          
+          - Installer: SMS_Installer_${tag}.exe
+          - Size: ${size} MB
+          - SHA256: ${sha256}
+          
+          The installer is available as a release asset.
+          "@
+          
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
+
+      - name: Post success notification
+        if: success()
+        run: |
+          Write-Host "Release workflow completed successfully"
+          Write-Host "- Installer: SMS_Installer_${{ steps.release_info.outputs.tag }}.exe"
+          Write-Host "- Size: ${{ steps.hash.outputs.size }} MB"
+          Write-Host "- SHA256: ${{ steps.hash.outputs.sha256 }}"
+        shell: pwsh
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: release-installer
+    if: failure()
+    name: Release Failure Notification
+
+    steps:
+      - name: Notify failure
+        run: echo "Release workflow failed - check logs for details"
