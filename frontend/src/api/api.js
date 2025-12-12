@@ -1017,6 +1017,54 @@ export const importAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Preview/validate an import without committing
+   * @param {Object} params
+   * @param {'students'|'courses'} params.type
+   * @param {File[]|File|undefined} params.files
+   * @param {string|undefined} params.jsonText
+   * @param {boolean} params.allowUpdates
+   * @param {boolean} params.skipDuplicates
+   */
+  async preview({ type, files, jsonText, allowUpdates = false, skipDuplicates = true }) {
+    try {
+      const formData = new FormData();
+      formData.append('import_type', type);
+      formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+      formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+      if (files) {
+        const list = Array.isArray(files) ? files : [files];
+        list.forEach((file) => {
+          if (file) formData.append('files', file);
+        });
+      }
+      if (jsonText) {
+        formData.append('json_text', jsonText);
+      }
+
+      const response = await apiClient.post('/imports/preview', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// ==================== JOBS API ====================
+
+export const jobsAPI = {
+  async get(jobId) {
+    const response = await apiClient.get(`/jobs/${jobId}`);
+    return response.data;
+  },
+  async list() {
+    const response = await apiClient.get('/jobs');
+    return response.data;
   }
 };
 
