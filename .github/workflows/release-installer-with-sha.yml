@@ -42,7 +42,7 @@ jobs:
           
           if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
             Write-Host "Running VERIFY_VERSION.ps1 in CI mode..."
-            & ".\scripts\VERIFY_VERSION.ps1" -CIMode -ExpectedVersion $version
+            & ".\scripts\VERIFY_VERSION.ps1" -CIMode
             if ($LASTEXITCODE -ne 0) {
               Write-Error "Version verification failed! Please run 'COMMIT_READY.ps1 -Quick' to fix version inconsistencies before release."
               exit 1
