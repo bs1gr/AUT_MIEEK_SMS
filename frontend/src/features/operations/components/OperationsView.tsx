@@ -5,6 +5,8 @@ import { ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
+import ImportPreviewPanel from '@/components/tools/ImportPreviewPanel';
+import JobProgressMonitor from '@/components/tools/JobProgressMonitor';
 import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
 import Toast from '@/components/ui/Toast';
 import { type ToastState } from '@/features/operations/components/DevToolsPanel';
@@ -37,6 +39,8 @@ const OperationsView = (_props: OperationsViewProps) => {
     return normalizeTab(state.tab) ?? DEFAULT_TAB;
   });
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [jobIdInput, setJobIdInput] = useState('');
+  const [trackedJobId, setTrackedJobId] = useState<string | null>(null);
 
   // handleToast previously forwarded to children; not needed here
 
@@ -59,6 +63,7 @@ const OperationsView = (_props: OperationsViewProps) => {
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
     { key: 'exports', label: t('export') },
+    { key: 'imports', label: t('export.importsTab') },
     { key: 'settings', label: t('settings') },
     { key: 'help', label: t('help') },
   ];
@@ -117,6 +122,45 @@ const OperationsView = (_props: OperationsViewProps) => {
         className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm"
       >
         {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
+        {effectiveTab === 'imports' && (
+          <div className="space-y-6">
+            <ImportPreviewPanel />
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-lg font-semibold text-slate-900">{t('export.jobMonitorTitle')}</div>
+                  <p className="text-sm text-slate-600">{t('export.jobMonitorHelper')}</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <label className="text-sm text-slate-700" htmlFor="job-id-input">
+                    {t('export.jobMonitorInputLabel')}
+                  </label>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input
+                      id="job-id-input"
+                      type="text"
+                      value={jobIdInput}
+                      onChange={(e) => setJobIdInput(e.target.value)}
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:w-64"
+                    />
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      onClick={() => setTrackedJobId(jobIdInput.trim() || null)}
+                    >
+                      {t('export.jobMonitorStart')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <JobProgressMonitor jobId={trackedJobId} />
+              </div>
+            </div>
+          </div>
+        )}
         {effectiveTab === 'help' && <HelpDocumentation />}
         {effectiveTab === 'settings' && (
           <div className="space-y-6">
