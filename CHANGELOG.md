@@ -8,6 +8,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Added
+- Import execution endpoint to create background jobs for bulk imports (`POST /api/v1/imports/execute`)
+- Frontend Operations view: Import Preview panel with execute flow and auto job tracking hookup
+- Comprehensive backend integration tests for import workflow (preview → execute → job tracking)
+
+### Fixed
+- Translation files `frontend/src/locales/{en,el}/export.js`: add missing closing braces causing Vite syntax errors
+- Jobs router permission check now supports both dict and SimpleNamespace shaped users
+- Removed duplicate/unused imports to satisfy Ruff linting
+
+
 ## [1.11.2] - 2025-12-11
 
 ### Added
