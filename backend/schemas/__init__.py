@@ -132,3 +132,18 @@ from .jobs import (
 from .jobs import (
     JobType as JobType,
 )
+from .rbac import (
+    PermissionResponse as PermissionResponse,
+)
+from .rbac import (
+    RoleResponse as RoleResponse,
+)
+from .rbac import (
+    AssignRoleRequest as AssignRoleRequest,
+)
+from .rbac import (
+    GrantPermissionToRoleRequest as GrantPermissionToRoleRequest,
+)
+from .rbac import (
+    RBACSummary as RBACSummary,
+)
