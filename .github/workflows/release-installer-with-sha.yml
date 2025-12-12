@@ -47,6 +47,30 @@ jobs:
           } else {
             echo "tag=${{ github.event.inputs.tag }}" >> $env:GITHUB_OUTPUT
           }
+          $version = ("${{ github.event_name }}" -eq "release") ? "${{ github.event.release.tag_name }}" : "${{ github.event.inputs.tag }}"
+          $version = $version -replace '^v', ''
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Import code signing certificate (from secrets)
+        id: import_cert
+        shell: pwsh
+        env:
+          CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+        run: |
+          if (-not $env:CODESIGN_PFX_BASE64 -or -not $env:CODESIGN_PFX_PASSWORD) {
+            Write-Host "Code signing certificate secrets not provided. Skipping import (signing will be skipped)."
+            exit 0
+          }
+
+          $pfxPath = Join-Path $env:RUNNER_TEMP "sms_codesign.pfx"
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:CODESIGN_PFX_BASE64))
+
+          $securePassword = ConvertTo-SecureString $env:CODESIGN_PFX_PASSWORD -AsPlainText -Force
+          Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation "Cert:\CurrentUser\My" -Password $securePassword | Out-Null
+
+          "pfx_path=$pfxPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Code signing certificate imported to CurrentUser store."
 
       - name: Verify version consistency
         shell: pwsh
@@ -71,6 +95,9 @@ jobs:
 
       - name: Build installer
         shell: pwsh
+        env:
+          SMS_CODESIGN_PFX_PATH: ${{ steps.import_cert.outputs.pfx_path }}
+          SMS_CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
         run: |
           Write-Host "Building installer..."
           & ".\INSTALLER_BUILDER.ps1" -AutoFix
@@ -84,17 +111,43 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ steps.release_info.outputs.tag }}"
+          $version = "${{ steps.release_info.outputs.version }}"
+          
+          Write-Host "=== Installer Search Debug Info ==="
+          Write-Host "Tag: $tag"
+          Write-Host "Version: $version"
+          Write-Host "Current directory: $(Get-Location)"
+          Write-Host ""
+          
+          # Show what actually exists in dist/
+          Write-Host "Contents of dist/ directory:"
+          if (Test-Path "dist") {
+            Get-ChildItem "dist" -Filter "*.exe" | ForEach-Object { 
+              Write-Host "  - $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)"
+            }
+          } else {
+            Write-Host "  dist/ directory does not exist!"
+          }
+          Write-Host ""
+          
+          # Search patterns in priority order
           $installers = @(
+            "dist\SMS_Installer_${version}.exe",
             "dist\SMS_Installer_${tag}.exe",
             "dist\SMS_Installer.exe",
+            "SMS_Installer_${version}.exe",
             "SMS_Installer_${tag}.exe",
             "SMS_Installer.exe"
           )
           
+          Write-Host "Searching for installer in these locations:"
+          $installers | ForEach-Object { Write-Host "  - $_" }
+          Write-Host ""
+          
           $found = $false
           foreach ($path in $installers) {
             if (Test-Path $path) {
-              Write-Host "Found installer: $path"
+              Write-Host "✓ Found installer: $path"
               echo "path=$path" >> $env:GITHUB_OUTPUT
               $found = $true
               break
@@ -102,8 +155,12 @@ jobs:
           }
           
           if (-not $found) {
+            Write-Host ""
+            Write-Host "=== Recursive Search for SMS_Installer*.exe ==="
+            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object { 
+              Write-Host "  Found: $($_.FullName)"
+            }
             Write-Error "Installer not found in any expected location"
-            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found: $($_.FullName)" }
             exit 1
           }
 

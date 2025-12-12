@@ -20,17 +20,32 @@
 #>
 
 param(
-    [string]$InstallerPath
+    [string]$InstallerPath,
+    [string]$CertPath,
+    [string]$CertPassword
 )
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptDir
 
-# Certificate settings
-$CertPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.pfx"
-$CertPassword = "SMSCodeSign2025!"
+# Certificate settings (can be overridden via parameters or environment variables)
+$DefaultCertPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.pfx"
 $TimestampServer = "http://timestamp.digicert.com"
+
+# Prefer secure env variables provided by CI secrets
+if (-not $CertPath -and $env:SMS_CODESIGN_PFX_PATH) {
+    $CertPath = $env:SMS_CODESIGN_PFX_PATH
+}
+
+if (-not $CertPassword -and $env:SMS_CODESIGN_PFX_PASSWORD) {
+    $CertPassword = $env:SMS_CODESIGN_PFX_PASSWORD
+}
+
+# Fall back to bundled certificate path for local/offline scenarios
+if (-not $CertPath) {
+    $CertPath = $DefaultCertPath
+}
 
 # Find installer if not specified
 if (-not $InstallerPath) {
@@ -46,7 +61,12 @@ if (-not $InstallerPath) {
 
 # Verify paths
 if (-not (Test-Path $CertPath)) {
-    Write-Error "Certificate not found: $CertPath"
+    Write-Error "Certificate not found: $CertPath. Provide -CertPath or set SMS_CODESIGN_PFX_PATH."
+    exit 1
+}
+
+if (-not $CertPassword) {
+    Write-Error "Certificate password not provided. Set SMS_CODESIGN_PFX_PASSWORD or pass -CertPassword."
     exit 1
 }
 
