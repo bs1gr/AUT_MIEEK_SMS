@@ -1,4 +1,7 @@
 export default {
+  exportTabLabel: 'Εξαγωγή',
+  importsTabLabel: 'Εισαγωγές',
+  settingsTabLabel: 'Ρυθμίσεις',
   exportGradesLink: 'Εξαγωγή Βαθμών',
   exportStudentsLink: 'Εξαγωγή Σπουδαστών',
   exportCoursesLink: 'Εξαγωγή Μαθημάτων',

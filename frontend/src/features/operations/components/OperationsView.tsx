@@ -62,10 +62,10 @@ const OperationsView = (_props: OperationsViewProps) => {
   const effectiveTab = forcedTab ?? activeTab;
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
-    { key: 'exports', label: t('export') },
-    { key: 'imports', label: t('export.importsTab') },
-    { key: 'settings', label: t('settings') },
-    { key: 'help', label: t('help') },
+    { key: 'exports', label: t('export.exportTabLabel') || 'Export' },
+    { key: 'imports', label: t('export.importsTabLabel') || 'Imports' },
+    { key: 'settings', label: t('export.settingsTabLabel') || 'Settings' },
+    { key: 'help', label: t('help.helpTitle') || 'Help' },
   ];
 
   const headerTitle = t('utils.utilitiesTitle');

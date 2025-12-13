@@ -1,4 +1,7 @@
 export default {
+  exportTabLabel: 'Export',
+  importsTabLabel: 'Imports',
+  settingsTabLabel: 'Settings',
   exportGradesLink: 'Export Grades',
   exportStudentsLink: 'Export Students',
   exportCoursesLink: 'Export Courses',

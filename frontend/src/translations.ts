@@ -6,32 +6,37 @@
  * UPDATED: All missing translations added, full multi-scale grading support.
  */
 
-import controlPanelEn from './locales/en/controlPanel';
-import controlPanelEl from './locales/el/controlPanel';
-import authEn from './locales/en/auth';
-import authEl from './locales/el/auth';
-import utilsEn from './locales/en/utils';
-import utilsEl from './locales/el/utils';
-import dashboardEn from './locales/en/dashboard';
-import dashboardEl from './locales/el/dashboard';
-import commonEn from './locales/en/common';
-import commonEl from './locales/el/common';
-import studentsEn from './locales/en/students';
-import studentsEl from './locales/el/students';
-import coursesEn from './locales/en/courses';
-import coursesEl from './locales/el/courses';
-import attendanceEn from './locales/en/attendance';
-import attendanceEl from './locales/el/attendance';
-import gradesEn from './locales/en/grades';
-import gradesEl from './locales/el/grades';
-import calendarEn from './locales/en/calendar';
-import calendarEl from './locales/el/calendar';
-import exportEn from './locales/en/export';
-import exportEl from './locales/el/export';
-import helpEn from './locales/en/help';
-import helpEl from './locales/el/help';
-import reportsEn from './locales/en/reports';
-import reportsEl from './locales/el/reports';
+// Root level translations (navigation labels, common UI)
+import enRoot from './locales/en.js';
+import elRoot from './locales/el.js';
+
+// Namespaced translations (feature-specific)
+import controlPanelEn from './locales/en/controlPanel.js';
+import controlPanelEl from './locales/el/controlPanel.js';
+import authEn from './locales/en/auth.js';
+import authEl from './locales/el/auth.js';
+import utilsEn from './locales/en/utils.js';
+import utilsEl from './locales/el/utils.js';
+import dashboardEn from './locales/en/dashboard.js';
+import dashboardEl from './locales/el/dashboard.js';
+import commonEn from './locales/en/common.js';
+import commonEl from './locales/el/common.js';
+import studentsEn from './locales/en/students.js';
+import studentsEl from './locales/el/students.js';
+import coursesEn from './locales/en/courses.js';
+import coursesEl from './locales/el/courses.js';
+import attendanceEn from './locales/en/attendance.js';
+import attendanceEl from './locales/el/attendance.js';
+import gradesEn from './locales/en/grades.js';
+import gradesEl from './locales/el/grades.js';
+import calendarEn from './locales/en/calendar.js';
+import calendarEl from './locales/el/calendar.js';
+import exportEn from './locales/en/export.js';
+import exportEl from './locales/el/export.js';
+import helpEn from './locales/en/help.js';
+import helpEl from './locales/el/help.js';
+import reportsEn from './locales/en/reports.js';
+import reportsEl from './locales/el/reports.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -40,13 +45,14 @@ export interface Translations {
 
 export const translations: Translations = {
   en: {
-    // Control Panel
+    // Root keys (navigation labels, etc.)
+    ...enRoot,
+    // Namespaced access (t('namespace.key'))
     controlPanel: controlPanelEn,
-    // Authentication
     auth: authEn,
-    // Modular categories (nested access)
-    common: commonEn,
+    utils: utilsEn,
     dashboard: dashboardEn,
+    common: commonEn,
     students: studentsEn,
     courses: coursesEn,
     attendance: attendanceEn,
@@ -55,36 +61,31 @@ export const translations: Translations = {
     export: exportEn,
     help: helpEn,
     reports: reportsEn,
-    // Common (modular)
-    ...commonEn,
-    // Dashboard & Student Profile (modular)
+    // Flattened access (t('key'))
+    ...controlPanelEn,
+    ...authEn,
+    ...utilsEn,
     ...dashboardEn,
-    // Students (modular)
+    ...commonEn,
     ...studentsEn,
-    // Courses (modular)
     ...coursesEn,
-    // Attendance (modular)
     ...attendanceEn,
-    // Grades (modular)
     ...gradesEn,
-    // Calendar (modular)
     ...calendarEn,
-    // Export (modular)
     ...exportEn,
-    // Help (modular)
     ...helpEn,
-    // Utils/Operations translations
-    utils: utilsEn
+    ...reportsEn
   },
 
   el: {
-    // Control Panel
+    // Root keys (navigation labels, etc.)
+    ...elRoot,
+    // Namespaced access (t('namespace.key'))
     controlPanel: controlPanelEl,
-    // Ταυτοποίηση
     auth: authEl,
-    // Κατηγορίες (με πρόσβαση σε μορφή namespace)
-    common: commonEl,
+    utils: utilsEl,
     dashboard: dashboardEl,
+    common: commonEl,
     students: studentsEl,
     courses: coursesEl,
     attendance: attendanceEl,
@@ -93,25 +94,19 @@ export const translations: Translations = {
     export: exportEl,
     help: helpEl,
     reports: reportsEl,
-    // Κοινά (modular)
-    ...commonEl,
-    // Πίνακας Ελέγχου & Προφίλ Σπουδαστή (modular)
+    // Flattened access (t('key'))
+    ...controlPanelEl,
+    ...authEl,
+    ...utilsEl,
     ...dashboardEl,
-    // Σπουδαστές (modular)
+    ...commonEl,
     ...studentsEl,
-    // Μαθήματα (modular)
     ...coursesEl,
-    // Παρουσίες (modular)
     ...attendanceEl,
-    // Βαθμοί (modular)
     ...gradesEl,
-    // Ημερολόγιο (modular)
     ...calendarEl,
-    // Εξαγωγή (modular)
     ...exportEl,
-    // Βοήθεια (modular)
     ...helpEl,
-    // Μεταφράσεις Εργαλείων/Λειτουργιών
-    utils: utilsEl
+    ...reportsEl
   }
 };
