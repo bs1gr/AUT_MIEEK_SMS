@@ -1124,7 +1124,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {statusOrder.map((status) => (
             <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
-              <p className="text-[11px] uppercase tracking-wide font-semibold">{translateStatusLabel(status)}</p>
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-indigo-700">{translateStatusLabel(status)}</p>
               <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
             </div>
           ))}
@@ -1151,7 +1151,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {statusOrder.map((status) => (
                         <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
-                          <p className="text-[11px] text-gray-600">{translateStatusLabel(status)}</p>
+                          <p className="text-[11px] text-indigo-700">{translateStatusLabel(status)}</p>
                           <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
                         </div>
                       ))}
@@ -1334,7 +1334,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                             </div>
                             <div className="text-right">
                               <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{curr}</div>
-                              <div className="text-[11px] text-gray-600">{t('outOf10') || 'out of 10'}</div>
+                              <div className="text-[11px] text-indigo-700">{t('outOf10') || 'out of 10'}</div>
                             </div>
                           </div>
                           <input
@@ -1349,7 +1349,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                             title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
                             className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
                           />
-                          <div className="flex justify-between text-[11px] text-gray-600"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
+                          <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
                         </div>
                       );
                     })}

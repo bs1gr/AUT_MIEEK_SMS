@@ -33,11 +33,12 @@ WORKDIR /app
 # Install python dependencies first for better caching
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN python -m pip install --upgrade pip && \
-     pip install --no-cache-dir -r /app/backend/requirements.txt
+    pip install --no-cache-dir -r /app/backend/requirements.txt && \
+    rm -rf /root/.cache/pip
 
 # Copy backend source (excluding .env which has dev defaults)
 COPY backend /app/backend
-RUN rm -f /app/backend/.env
+RUN rm -f /app/backend/.env && find /app -type d -name __pycache__ -exec rm -rf {} +
 
 # Copy .github/scripts for CI validator tests
 COPY .github/scripts /app/.github/scripts

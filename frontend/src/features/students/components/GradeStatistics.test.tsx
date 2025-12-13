@@ -189,7 +189,7 @@ describe('GradeStatistics', () => {
     it('applies indigo color to average grade', () => {
       renderWithLanguage(<GradeStatistics insights={mockInsights} />);
       const avgElement = screen.getByText(/85\.5%.*17\.1\/20/);
-      expect(avgElement).toHaveClass('text-indigo-600');
+      expect(avgElement).toHaveClass('text-indigo-700');
     });
   });
 

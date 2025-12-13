@@ -58,7 +58,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
       onPreviewComplete?.(data as PreviewResponse);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(msg || t('export.importPreviewError'));
+      setError(msg || t('importPreviewError'));
     } finally {
       setIsLoading(false);
     }
@@ -69,12 +69,12 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
     const summary = result.summary || {};
     return (
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label={t('export.previewTotalRows')} value={result.total_rows} tone="neutral" />
-        <SummaryCard label={t('export.previewCreates')} value={summary.create ?? 0} tone="success" />
-        <SummaryCard label={t('export.previewUpdates')} value={summary.update ?? 0} tone="info" />
-        <SummaryCard label={t('export.previewSkips')} value={summary.skip ?? 0} tone="muted" />
-        <SummaryCard label={t('export.previewWarnings')} value={result.rows_with_warnings} tone="warning" />
-        <SummaryCard label={t('export.previewErrors')} value={result.rows_with_errors} tone="danger" />
+        <SummaryCard label={t('previewTotalRows')} value={result.total_rows} tone="neutral" />
+        <SummaryCard label={t('previewCreates')} value={summary.create ?? 0} tone="success" />
+        <SummaryCard label={t('previewUpdates')} value={summary.update ?? 0} tone="info" />
+        <SummaryCard label={t('previewSkips')} value={summary.skip ?? 0} tone="muted" />
+        <SummaryCard label={t('previewWarnings')} value={result.rows_with_warnings} tone="warning" />
+        <SummaryCard label={t('previewErrors')} value={result.rows_with_errors} tone="danger" />
       </div>
     );
   };
@@ -88,10 +88,10 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-3 py-2">#</th>
-              <th className="px-3 py-2">{t('export.previewAction')}</th>
-              <th className="px-3 py-2">{t('export.previewStatus')}</th>
-              <th className="px-3 py-2">{t('export.previewIssues')}</th>
-              <th className="px-3 py-2">{t('export.previewData')}</th>
+              <th className="px-3 py-2">{t('previewAction')}</th>
+              <th className="px-3 py-2">{t('previewStatus')}</th>
+              <th className="px-3 py-2">{t('previewIssues')}</th>
+              <th className="px-3 py-2">{t('previewData')}</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +108,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-emerald-600">{t('export.previewNoIssues')}</span>
+                    <span className="text-emerald-600">{t('previewNoIssues')}</span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-slate-700">
@@ -122,7 +122,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
         </table>
         {result.items.length > items.length && (
           <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            {t('export.previewTruncated', { count: result.items.length - items.length })}
+            {t('previewTruncated', { count: result.items.length - items.length })}
           </div>
         )}
       </div>
@@ -132,8 +132,8 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-3 text-lg font-semibold text-slate-900">{t('export.importPreviewTitle')}</div>
-        <p className="text-sm text-slate-600">{t('export.importPreviewDescription')}</p>
+        <div className="mb-3 text-lg font-semibold text-slate-900">{t('importPreviewTitle')}</div>
+        <p className="text-sm text-slate-600">{t('importPreviewDescription')}</p>
 
         <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
           <div className="flex flex-wrap gap-3">
@@ -145,7 +145,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={importType === 'students'}
                 onChange={() => setImportType('students')}
               />
-              {t('export.importTypeStudents')}
+              {t('importTypeStudents')}
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
@@ -155,7 +155,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={importType === 'courses'}
                 onChange={() => setImportType('courses')}
               />
-              {t('export.importTypeCourses')}
+              {t('importTypeCourses')}
             </label>
           </div>
 
@@ -166,7 +166,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={allowUpdates}
                 onChange={(e) => setAllowUpdates(e.target.checked)}
               />
-              {t('export.allowUpdates')}
+              {t('allowUpdates')}
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
@@ -174,33 +174,33 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={skipDuplicates}
                 onChange={(e) => setSkipDuplicates(e.target.checked)}
               />
-              {t('export.skipDuplicates')}
+              {t('skipDuplicates')}
             </label>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold text-slate-700">{t('export.uploadFiles')}</label>
+              <label className="text-sm font-semibold text-slate-700">{t('uploadFiles')}</label>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
                 accept=".json,.csv"
-                aria-label={t('export.uploadFiles')}
+                aria-label={t('uploadFiles')}
                 className="mt-1 block w-full text-sm text-slate-700"
               />
-              <p className="text-xs text-slate-500">{t('export.uploadHint')}</p>
+              <p className="text-xs text-slate-500">{t('uploadHint')}</p>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700">{t('export.pasteJson')}</label>
+              <label className="text-sm font-semibold text-slate-700">{t('pasteJson')}</label>
               <textarea
                 className="mt-1 w-full rounded border border-slate-200 p-2 text-sm text-slate-700"
                 rows={4}
                 value={jsonText}
                 onChange={(e) => setJsonText(e.target.value)}
-                placeholder={t('export.pasteJsonPlaceholder')}
+                placeholder={t('pasteJsonPlaceholder')}
               />
-              <p className="text-xs text-slate-500">{t('export.pasteJsonHint')}</p>
+              <p className="text-xs text-slate-500">{t('pasteJsonHint')}</p>
             </div>
           </div>
 
@@ -209,7 +209,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             disabled={isLoading}
           >
-            {isLoading ? t('export.previewing') : t('export.runPreview')}
+            {isLoading ? t('previewing') : t('runPreview')}
           </button>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </form>
@@ -244,7 +244,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                   }
                 } catch (err: unknown) {
                   const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-                  setError(msg || t('export.importError'));
+                  setError(msg || t('importError'));
                 } finally {
                   setIsExecuting(false);
                 }

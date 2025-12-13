@@ -101,7 +101,7 @@ const StudentManagementApp = () => {
 
       {/* Header with Title and Language Toggle */}
       <div className="flex items-center justify-between pb-4">
-        <h1 className="text-3xl font-bold text-gray-800">{t('systemTitle')}</h1>
+        <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">{t('systemTitle')}</h1>
         <div className="flex items-center space-x-4">
           <LanguageSwitcher />
         </div>
@@ -169,7 +169,7 @@ const StudentManagementApp = () => {
           renderPowerView={() => (
             <div className="space-y-6">
               <div className="bg-white border rounded-xl p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('controlPanel.title')}</h2>
+                <h2 className="text-2xl font-bold text-indigo-800 mb-4 drop-shadow-sm">{t('controlPanel.title')}</h2>
                 <ServerControl />
               </div>
               <ControlPanel />

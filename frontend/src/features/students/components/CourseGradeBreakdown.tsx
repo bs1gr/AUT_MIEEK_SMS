@@ -161,12 +161,12 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-gray-800 mb-3">
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">
         {t('gradeBreakdown') || 'Grade Breakdown'} - {t('byCourse') || 'By Course'}
       </div>
 
       {courseBreakdown.length === 0 ? (
-        <p className="text-gray-500 text-sm">{t('noGradesAvailable') || 'No grades available'}</p>
+        <p className="text-indigo-700 text-sm font-semibold drop-shadow-sm">{t('noGradesAvailable') || 'No grades available'}</p>
       ) : (
         <div className="space-y-4">
           {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory }) => (
@@ -175,17 +175,17 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
                 <div className="flex justify-between items-center gap-4">
                   <div>
-                    <div className="font-semibold text-gray-900">{courseName}</div>
-                    {courseCode && <div className="text-xs text-gray-600">{courseCode}</div>}
+                    <div className="font-semibold text-indigo-900 drop-shadow-sm">{courseName}</div>
+                    {courseCode && <div className="text-xs text-indigo-700 font-semibold drop-shadow-sm">{courseCode}</div>}
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-sm text-gray-700">
+                      <div className="text-sm text-indigo-700 font-semibold">
                         {t('average')}: <span className={`font-bold ${gradeColor}`}>
                           {avgGreek.toFixed(1)}/20
                         </span>
                       </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-xs text-indigo-700 font-semibold">
                         {t('percentageWithLetter', { percentage: avgPercentage.toFixed(1), letter: letterGrade })}
                       </div>
                     </div>

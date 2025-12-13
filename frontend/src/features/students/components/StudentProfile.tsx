@@ -204,7 +204,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   if (!student) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <p className="text-gray-600">{t('studentNotFound')}</p>
+        <p className="text-indigo-700 font-semibold drop-shadow-sm">{t('studentNotFound')}</p>
       </div>
     );
   }
@@ -219,7 +219,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         <button
           type="button"
           onClick={onBack}
-          className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-indigo-600 transition-colors"
+          className="mb-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
         >
           <ArrowLeft size={20} />
           <span>{t('backToStudents')}</span>
@@ -234,19 +234,19 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 {student.first_name[0]}{student.last_name[0]}
               </div>
               <div className="pb-4">
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">
                   {student.first_name} {student.last_name}
                 </h1>
-                <p className="text-gray-600 mt-1">{t('studentID')} {student.student_id}</p>
+                <p className="text-indigo-700 mt-1 font-semibold drop-shadow-sm">{t('studentID')} {student.student_id}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-              <div className="flex items-center space-x-3 text-gray-600">
+              <div className="flex items-center space-x-3 text-indigo-700">
                 <Mail size={20} />
                 <span>{student.email}</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-600">
+              <div className="flex items-center space-x-3 text-indigo-700">
                 <Calendar size={20} />
                 <span>{t('enrolled')} {student.enrollment_date}</span>
               </div>
@@ -261,7 +261,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 </button>
               </div>
               {student.study_year && (
-                <div className="flex items-center space-x-3 text-gray-600">
+                <div className="flex items-center space-x-3 text-indigo-700">
                   <Award size={20} className="text-indigo-600" />
                   <span className="font-semibold text-indigo-700">{t('year')} {student.study_year}</span>
                 </div>

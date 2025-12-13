@@ -12,15 +12,15 @@ const AttendanceDetails: React.FC<AttendanceDetailsProps> = ({ attendance }) => 
   if (!attendance) {
     return (
       <div className="border rounded-lg p-4 bg-white shadow-md">
-        <div className="font-semibold text-gray-800 mb-3">{t('attendanceDetails') || 'Attendance Details'}</div>
-        <p className="text-sm text-gray-500">{t('loading') || 'Loading...'}</p>
+        <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">{t('attendanceDetails') || 'Attendance Details'}</div>
+        <p className="text-sm text-indigo-700 font-semibold drop-shadow-sm">{t('loading') || 'Loading...'}</p>
       </div>
     );
   }
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-gray-800 mb-3">{t('attendanceDetails') || 'Attendance Details'}</div>
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">{t('attendanceDetails') || 'Attendance Details'}</div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between items-center py-2 border-b">
           <span className="text-gray-600">{t('totalClasses') || 'Total Classes'}:</span>

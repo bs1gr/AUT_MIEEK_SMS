@@ -4,7 +4,7 @@ export default {
   frontendStopped: 'Frontend stopped successfully',
   frontendStopFailed: 'Failed to stop frontend',
   // 'Stop All' / system shutdown keys removed — this UI widget was deleted
-  title: 'Control Panel',
+  title: 'Advanced Settings',
   subtitle: 'Manage and monitor your system',
   dashboard: 'Dashboard',
   dashboardDescription: 'System status and controls are available above. Use the tabs for advanced diagnostics, operations, logs, and environment info.',

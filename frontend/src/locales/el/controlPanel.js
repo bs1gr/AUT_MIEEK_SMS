@@ -4,7 +4,7 @@ export default {
   frontendStopped: 'Το frontend σταμάτησε επιτυχώς',
   frontendStopFailed: 'Αποτυχία διακοπής frontend',
   // 'Stop All' / system shutdown keys removed — this UI widget was deleted
-  title: 'Πίνακας Ελέγχου',
+  title: 'Προχωρημένες Ρυθμίσεις',
   subtitle: 'Διαχείριση και παρακολούθηση συστήματος',
   dashboard: 'Επισκόπηση',
   dashboardDescription: 'Η κατάσταση και τα χειριστήρια συστήματος είναι διαθέσιμα παραπάνω. Χρησιμοποιήστε τις καρτέλες για διαγνωστικά, λειτουργίες, αρχεία καταγραφής και πληροφορίες περιβάλλοντος.',

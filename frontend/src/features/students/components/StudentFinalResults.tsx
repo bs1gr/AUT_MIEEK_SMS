@@ -27,9 +27,9 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }: StatCardProps) 
     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-200">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-800 mt-2">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          <p className="text-sm font-medium text-indigo-700 drop-shadow-sm">{title}</p>
+          <p className="text-3xl font-bold text-indigo-800 mt-2 drop-shadow-sm">{value}</p>
+          {subtitle && <p className="text-sm text-indigo-600 mt-1 font-semibold drop-shadow-sm">{subtitle}</p>}
         </div>
         <div className={`bg-gradient-to-br ${colorClasses[color]} p-4 rounded-xl shadow-lg`}>
           <Icon className="text-white" size={24} />

@@ -62,10 +62,10 @@ const OperationsView = (_props: OperationsViewProps) => {
   const effectiveTab = forcedTab ?? activeTab;
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
-    { key: 'exports', label: t('export.exportTabLabel') || 'Export' },
-    { key: 'imports', label: t('export.importsTabLabel') || 'Imports' },
-    { key: 'settings', label: t('export.settingsTabLabel') || 'Settings' },
-    { key: 'help', label: t('help.helpTitle') || 'Help' },
+    { key: 'exports', label: t('exportTabLabel') || 'Export' },
+    { key: 'imports', label: t('importsTabLabel') || 'Imports' },
+    { key: 'settings', label: t('settingsTabLabel') || 'Settings' },
+    { key: 'help', label: t('helpTitle') || 'Help' },
   ];
 
   const headerTitle = t('utils.utilitiesTitle');
@@ -134,12 +134,12 @@ const OperationsView = (_props: OperationsViewProps) => {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-lg font-semibold text-slate-900">{t('export.jobMonitorTitle')}</div>
-                  <p className="text-sm text-slate-600">{t('export.jobMonitorHelper')}</p>
+                  <div className="text-lg font-semibold text-slate-900">{t('jobMonitorTitle')}</div>
+                  <p className="text-sm text-slate-600">{t('jobMonitorHelper')}</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <label className="text-sm text-slate-700" htmlFor="job-id-input">
-                    {t('export.jobMonitorInputLabel')}
+                    {t('jobMonitorInputLabel')}
                   </label>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <input
@@ -154,7 +154,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                       className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       onClick={() => setTrackedJobId(jobIdInput.trim() || null)}
                     >
-                      {t('export.jobMonitorStart')}
+                      {t('jobMonitorStart')}
                     </button>
                   </div>
                 </div>
