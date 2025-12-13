@@ -29,7 +29,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Changed
 
 **CI/CD Pipeline Documentation** 📚
-- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to v1.1.0
+- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to v1.12.1
   - Added comprehensive section documenting release-installer-with-sha workflow
   - Documented 5 workflow stages: version verification, installer build, SHA256 calculation, release integration, notifications
   - Included usage examples for automatic and manual triggers
@@ -1279,6 +1279,7 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+
 
 
 
