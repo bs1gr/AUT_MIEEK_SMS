@@ -6,7 +6,30 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
-## [Unreleased]
+
+## [1.12.3] - 2025-12-14
+
+**Release Type**: Feature & Quality Release – Accessibility, i18n, and Documentation
+**Focus**: WCAG AA color contrast, translation integrity, and best practices
+
+### Added
+
+**Accessibility & Color Contrast** ♿
+- Updated all major frontend modules to use high-contrast, vivid Tailwind color classes for text (e.g., `text-indigo-700`, `text-indigo-800`) to meet WCAG AA standards.
+- Improved font vividness and clarity with drop shadows and font weight for better readability.
+- Validated UI with automated and manual accessibility checks.
+
+**Internationalization (i18n)** 🌐
+- Enforced translation integrity: all UI strings must exist in both EN and EL translation files.
+- Tests now ensure translation completeness and prevent regressions.
+- All UI text is managed via modular TypeScript translation files; no hardcoded strings remain.
+
+**Documentation** 📚
+- Updated `README.md`, `docs/user/LOCALIZATION.md`, and `docs/development/ARCHITECTURE.md` to document accessibility, color contrast, and i18n best practices for all contributors.
+
+### Fixed
+
+- All frontend and backend tests pass after improvements; regression-free release.
 
 ### Removed
 

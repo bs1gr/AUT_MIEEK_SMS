@@ -24,6 +24,8 @@ except ImportError:
     REPORTLAB_AVAILABLE = False
 
 
+from reportlab.platypus import Flowable
+
 def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
     """
     Generate PDF report from report data.
@@ -45,7 +47,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
     
     # Container for elements
-    elements = []
+    elements: list[Flowable] = []
     
     # Styles
     styles = getSampleStyleSheet()
@@ -89,7 +91,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)  # type: ignore[arg-type]
     ]))
     elements.append(student_table)
     elements.append(Spacer(1, 0.3*inch))
@@ -116,7 +118,8 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type]
+            # type: ignore[list-item]
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F3F4F6')])
         ]))
         elements.append(att_table)
@@ -145,6 +148,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('TOPPADDING', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            # type: ignore[list-item]
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F3F4F6')])
         ]))
         elements.append(grades_table)
@@ -175,7 +179,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
                     ('FONTSIZE', (0, 0), (-1, -1), 9),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                     ('TOPPADDING', (0, 0), (-1, -1), 6),
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)  # type: ignore[arg-type]
                 ]))
                 elements.append(course_table)
             

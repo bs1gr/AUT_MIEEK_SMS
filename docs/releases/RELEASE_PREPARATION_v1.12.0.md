@@ -181,7 +181,7 @@ Database:
 - RBAC tables (roles, permissions, mappings)
 
 Backward Compatibility: 100% (zero breaking changes)
-Version: 1.12.2 → 1.12.0
+Version: 1.12.3 → 1.12.0
 ```
 
 ---
@@ -253,4 +253,5 @@ All pre-release checks completed:
 **Prepared by**: Release Automation System  
 **Validation Date**: December 19, 2025  
 **Status**: ✅ READY FOR RELEASE
+
 

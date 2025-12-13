@@ -240,7 +240,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
       {/* Student List */}
       {!loading && (filtered.length === 0) && (
-        <p className="text-gray-500 text-center py-8">{t('noStudentsFound')}</p>
+        <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-sm">{t('noStudentsFound')}</p>
       )}
 
       {/* Student List with Virtual Scrolling for large lists */}
@@ -273,6 +273,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           ) : (
             <motion.ul
               className="space-y-2"
+              role="list"
               variants={listContainerVariants}
               initial="hidden"
               animate="visible"

@@ -7,6 +7,21 @@
 3. [Automation Options](#automation-options)
 4. [Database Versioning & Migration](#database-versioning--migration)
 5. [Best Practices](#best-practices)
+6. [Accessibility, Color Contrast & i18n](#accessibility-color-contrast--i18n)
+---
+
+## Accessibility, Color Contrast & i18n
+
+### Accessibility & Color Contrast
+- All UI components must use high-contrast, vivid color classes for text (e.g., `text-indigo-700`, `text-indigo-800`).
+- Avoid low-contrast grays for primary content.
+- Validate UI with accessibility tools (Lighthouse, axe, etc.).
+- Use ARIA roles/labels for interactive elements.
+
+### Internationalization (i18n)
+- All UI strings must be translated using the modular TypeScript translation files.
+- Never hardcode UI text; always use `t('key')`.
+- Translation completeness is enforced by tests; both EN and EL must be present for all keys.
 
 ---
 

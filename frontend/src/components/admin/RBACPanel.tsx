@@ -34,8 +34,7 @@ interface RBACSummary {
 }
 
 export const RBACPanel: React.FC = () => {
-  // Translation hook is imported but we only use it if needed
-  useTranslation();
+  const { t } = useTranslation();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
@@ -109,11 +108,11 @@ export const RBACPanel: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'users', label: 'Users' },
-    { id: 'assign-role', label: 'Assign Role' },
-    { id: 'grant-permission', label: 'Grant Permission' },
-    { id: 'settings', label: 'Settings' },
+    { id: 'overview', label: t('common:overview') || 'Overview' },
+    { id: 'users', label: t('common:users') || 'Users' },
+    { id: 'assign-role', label: t('rbac.assignRole') },
+    { id: 'grant-permission', label: t('rbac.grantPermission') },
+    { id: 'settings', label: t('common:settings') || 'Settings' },
   ];
 
   if (isSummaryLoading) {
@@ -128,7 +127,7 @@ export const RBACPanel: React.FC = () => {
     <div className="w-full space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>RBAC Configuration</CardTitle>
+          <CardTitle>{t('rbac.configuration')}</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Tab Navigation */}
@@ -154,7 +153,7 @@ export const RBACPanel: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Roles ({rbacData.roles.length})</CardTitle>
+                    <CardTitle className="text-sm">{t('common:roles', { count: rbacData.roles.length }) || `Roles (${rbacData.roles.length})`}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
@@ -170,7 +169,7 @@ export const RBACPanel: React.FC = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Permissions ({rbacData.permissions.length})</CardTitle>
+                    <CardTitle className="text-sm">{t('common:permissions', { count: rbacData.permissions.length }) || `Permissions (${rbacData.permissions.length})`}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 max-h-48 overflow-y-auto">
@@ -186,7 +185,7 @@ export const RBACPanel: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Role-Permission Mappings</CardTitle>
+                  <CardTitle className="text-sm">{t('rbac.rolePermissionMappings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 max-h-64 overflow-y-auto">
@@ -240,7 +239,7 @@ export const RBACPanel: React.FC = () => {
                                 </span>
                               ))
                             ) : (
-                              <span className="text-xs text-gray-400">No RBAC roles assigned</span>
+                              <span className="text-xs text-gray-400">{t('rbac.noRolesAssigned')}</span>
                             )}
                           </div>
                         </div>
@@ -256,11 +255,11 @@ export const RBACPanel: React.FC = () => {
           {activeTab === 'assign-role' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Assign Role to User</CardTitle>
+                <CardTitle className="text-sm">{t('rbac.assignRole')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">User ID</label>
+                  <label className="text-sm font-medium">{t('rbac.userId')}</label>
                   <Input
                     type="number"
                     value={userId || ''}
@@ -269,7 +268,7 @@ export const RBACPanel: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="role-select" className="text-sm font-medium">Role Name</label>
+                  <label htmlFor="role-select" className="text-sm font-medium">{t('rbac.roleName')}</label>
                   <select
                     id="role-select"
                     value={roleName}
@@ -277,7 +276,7 @@ export const RBACPanel: React.FC = () => {
                     className="w-full p-2 border rounded"
                     aria-label="Select role"
                   >
-                    <option value="">-- Select Role --</option>
+                    <option value="">{t('rbac.selectRole')}</option>
                     {rbacData?.roles.map((role) => (
                       <option key={role.id} value={role.name}>
                         {role.name}
@@ -291,18 +290,18 @@ export const RBACPanel: React.FC = () => {
                   className="w-full"
                 >
                   {assignRoleMutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
-                  Assign Role
+                  {t('rbac.assignRole')}
                 </Button>
                 {assignRoleMutation.isSuccess && (
                   <div className="flex items-center gap-2 text-green-600 text-sm">
                     <CheckCircle className="h-4 w-4" />
-                    Role assigned successfully
+                    {t('rbac.roleAssignedSuccess')}
                   </div>
                 )}
                 {assignRoleMutation.isError && (
                   <div className="flex items-center gap-2 text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4" />
-                    Error assigning role
+                    {t('rbac.roleAssignedError')}
                   </div>
                 )}
               </CardContent>
@@ -313,11 +312,11 @@ export const RBACPanel: React.FC = () => {
           {activeTab === 'grant-permission' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Grant Permission to Role</CardTitle>
+                <CardTitle className="text-sm">{t('rbac.grantPermission')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label htmlFor="grant-role-select" className="text-sm font-medium">Role</label>
+                  <label htmlFor="grant-role-select" className="text-sm font-medium">{t('rbac.roleName')}</label>
                   <select
                     id="grant-role-select"
                     value={selectedRole || ''}
@@ -325,7 +324,7 @@ export const RBACPanel: React.FC = () => {
                     className="w-full p-2 border rounded"
                     aria-label="Select role to grant permission"
                   >
-                    <option value="">-- Select Role --</option>
+                    <option value="">{t('rbac.selectRole')}</option>
                     {rbacData?.roles.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
@@ -334,7 +333,7 @@ export const RBACPanel: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="permission-select" className="text-sm font-medium">Permission</label>
+                  <label htmlFor="permission-select" className="text-sm font-medium">{t('rbac.permission')}</label>
                   <select
                     id="permission-select"
                     value={selectedPermission || ''}
@@ -342,7 +341,7 @@ export const RBACPanel: React.FC = () => {
                     className="w-full p-2 border rounded"
                     aria-label="Select permission to grant"
                   >
-                    <option value="">-- Select Permission --</option>
+                    <option value="">{t('rbac.selectPermission')}</option>
                     {rbacData?.permissions.map((perm) => (
                       <option key={perm.id} value={perm.id}>
                         {perm.name}
@@ -356,18 +355,18 @@ export const RBACPanel: React.FC = () => {
                   className="w-full"
                 >
                   {grantPermissionMutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
-                  Grant Permission
+                  {t('rbac.grantPermission')}
                 </Button>
                 {grantPermissionMutation.isSuccess && (
                   <div className="flex items-center gap-2 text-green-600 text-sm">
                     <CheckCircle className="h-4 w-4" />
-                    Permission granted successfully
+                    {t('rbac.permissionGrantedSuccess')}
                   </div>
                 )}
                 {grantPermissionMutation.isError && (
                   <div className="flex items-center gap-2 text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4" />
-                    Error granting permission
+                    {t('rbac.permissionGrantedError')}
                   </div>
                 )}
               </CardContent>
@@ -378,27 +377,26 @@ export const RBACPanel: React.FC = () => {
           {activeTab === 'settings' && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">RBAC Initialization</CardTitle>
+                <CardTitle className="text-sm">{t('rbac.rbacInitialization')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Create default roles and permissions. This will seed the database with standard RBAC entities
-                  and backfill existing users.
+                  {t('rbac.createDefaultsDesc')}
                 </p>
                 <Button onClick={handleEnsureDefaults} disabled={ensureDefaultsMutation.isPending} className="w-full">
                   {ensureDefaultsMutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
-                  Initialize RBAC Defaults
+                  {t('rbac.initializeDefaults')}
                 </Button>
                 {ensureDefaultsMutation.isSuccess && (
                   <div className="flex items-center gap-2 text-green-600 text-sm">
                     <CheckCircle className="h-4 w-4" />
-                    RBAC defaults initialized successfully
+                    {t('rbac.defaultsInitializedSuccess')}
                   </div>
                 )}
                 {ensureDefaultsMutation.isError && (
                   <div className="flex items-center gap-2 text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4" />
-                    Error initializing RBAC defaults
+                    {t('rbac.defaultsInitializedError')}
                   </div>
                 )}
               </CardContent>

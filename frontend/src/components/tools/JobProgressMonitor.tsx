@@ -71,7 +71,7 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
       } catch (err: unknown) {
         if (!isActive) return;
         const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-        setError(msg || t('export.jobMonitorError'));
+        setError(msg || t('jobMonitorError'));
       }
     };
 
@@ -90,28 +90,37 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
     <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-sm font-semibold text-slate-900">{t('export.jobMonitorTitle')}</div>
-          <div className="text-xs text-slate-500">{t('export.jobMonitorId', { id: jobId })}</div>
+          <div className="text-sm font-semibold text-slate-900">{t('jobMonitorTitle')}</div>
+          <div className="text-xs text-slate-500">{t('jobMonitorId', { id: jobId })}</div>
         </div>
-        <div className="text-xs font-medium text-slate-600">{job?.status || t('export.jobMonitorPending')}</div>
+        <div className="text-xs font-medium text-slate-600" aria-live="polite">
+          {job?.status || t('jobMonitorPending')}
+        </div>
       </div>
 
-      <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+      <div
+        className="h-3 overflow-hidden rounded-full bg-slate-100"
+        role="progressbar"
+        aria-valuenow={Math.round(job?.progress ?? 0)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={t('jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}
+      >
         {(() => {
           const raw = Math.min(Math.max(job?.progress ?? 0, 0), 100);
           const step = Math.min(100, Math.max(0, Math.round(raw / 5) * 5));
           const widthClass = widthClassMap[step] ?? 'w-0';
-          return <div className={`h-full bg-indigo-600 transition-all ${widthClass}`} aria-hidden />;
+          return <div className={`h-full bg-indigo-600 transition-all ${widthClass}`} aria-hidden="true" />;
         })()}
       </div>
-      <div className="flex justify-between text-xs text-slate-500">
-        <span>{t('export.jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}</span>
+      <div className="flex justify-between text-xs text-slate-500" aria-live="polite">
+        <span>{t('jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}</span>
         {job?.message && <span className="text-slate-600">{job.message}</span>}
       </div>
 
-      {error && <div className="text-xs text-red-600">{error}</div>}
-      {job?.status === 'FAILED' && job.error && <div className="text-xs text-red-600">{job.error}</div>}
-      {job?.status === 'COMPLETED' && <div className="text-xs text-emerald-600">{t('export.jobMonitorCompleted')}</div>}
+      {error && <div className="text-xs text-red-600" aria-live="assertive">{error}</div>}
+      {job?.status === 'FAILED' && job.error && <div className="text-xs text-red-600" aria-live="assertive">{job.error}</div>}
+      {job?.status === 'COMPLETED' && <div className="text-xs text-emerald-600" aria-live="polite">{t('jobMonitorCompleted')}</div>}
     </div>
   );
 };

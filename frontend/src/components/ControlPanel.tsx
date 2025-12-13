@@ -20,6 +20,8 @@ import { useLanguage } from '../LanguageContext';
 import Toast from './ui/Toast';
 import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
+import { RBACPanel } from '@/components/admin/RBACPanel';
+import { useAuth } from '@/contexts/AuthContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 
 // TypeScript interfaces
@@ -132,6 +134,7 @@ interface ControlPanelProps {
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full' }) => {
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>('operations');
   const [status, setStatus] = useState<SystemStatus | null>(null);
@@ -886,6 +889,14 @@ function formatUptime(seconds: number): string {
             </div>
 
             <AdminUsersPanel onToast={handleToast} />
+
+            {/* RBACPanel: Only visible to admins */}
+            {user?.role === 'admin' && (
+              <div className="bg-white border rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4 text-indigo-700">{t('rbac.configuration')}</h3>
+                <RBACPanel />
+              </div>
+            )}
 
             <DevToolsPanel variant="embedded" onToast={handleToast} />
           </div>

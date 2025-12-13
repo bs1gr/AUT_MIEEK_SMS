@@ -13,6 +13,8 @@ import elRoot from './locales/el.js';
 // Namespaced translations (feature-specific)
 import controlPanelEn from './locales/en/controlPanel.js';
 import controlPanelEl from './locales/el/controlPanel.js';
+import rbacEn from './locales/en/rbac.js';
+import rbacEl from './locales/el/rbac.js';
 import authEn from './locales/en/auth.js';
 import authEl from './locales/el/auth.js';
 import utilsEn from './locales/en/utils.js';
@@ -49,6 +51,7 @@ export const translations: Translations = {
     ...enRoot,
     // Namespaced access (t('namespace.key'))
     controlPanel: controlPanelEn,
+    rbac: rbacEn,
     auth: authEn,
     utils: utilsEn,
     dashboard: dashboardEn,
@@ -82,6 +85,7 @@ export const translations: Translations = {
     ...elRoot,
     // Namespaced access (t('namespace.key'))
     controlPanel: controlPanelEl,
+    rbac: rbacEl,
     auth: authEl,
     utils: utilsEl,
     dashboard: dashboardEl,

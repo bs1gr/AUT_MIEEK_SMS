@@ -2,7 +2,7 @@
 
 **Last updated**: 2025-12-13 ($11.12.2 Installer & CI Reliability Release)
 **Review Score**: 10/10 (Production Ready - $11.12.2)
-**Current Version**: 1.12.2
+**Current Version**: 1.12.3
 
 ---
 

@@ -229,6 +229,33 @@ Full guides: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) · [DEPLOYMENT_GUIDE
 
 ---
 
+
+## ♿ Accessibility, Color Contrast & i18n Improvements (2025)
+
+### Accessibility & Color Contrast
+
+- All major frontend modules have been updated to meet WCAG AA color contrast standards.
+- Font color classes now use high-contrast, vivid Tailwind colors (e.g., `text-indigo-700`, `text-indigo-800`) for improved readability and accessibility.
+- Drop shadows and font weight are used to further enhance text clarity on light backgrounds.
+- All UI changes are validated with automated and manual accessibility checks.
+
+**Best Practice:**
+When adding or updating UI components, always:
+- Use high-contrast color classes for text (avoid `text-gray-500/600/700` for primary content)
+- Validate with accessibility tools (e.g., Lighthouse, axe)
+- Ensure ARIA roles/labels are present where needed
+
+### Internationalization (i18n)
+
+- All UI strings are managed via modular TypeScript translation files (`frontend/src/locales/{en,el}/*.ts`).
+- Never hardcode UI text; always use `t('key')` from the translation context.
+- Translation integrity is enforced by tests; both EN and EL must be present for all keys.
+
+**See also:**
+- [docs/user/LOCALIZATION.md](docs/user/LOCALIZATION.md) for i18n setup and translation workflow
+- [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) for frontend structure and accessibility patterns
+
+---
 ## 🗂️ Project Consolidation (v2.0)
 
 ### Scripts Consolidation ✅

@@ -1,0 +1,23 @@
+export default {
+  configuration: 'RBAC Configuration',
+  rolePermissionMappings: 'Role-Permission Mappings',
+  noRolesAssigned: 'No RBAC roles assigned',
+  assignRole: 'Assign Role to User',
+  userId: 'User ID',
+  roleName: 'Role Name',
+  selectRole: '-- Select Role --',
+  grantPermission: 'Grant Permission to Role',
+  permission: 'Permission',
+  selectPermission: '-- Select Permission --',
+  rbacInitialization: 'RBAC Initialization',
+  initializeDefaults: 'Initialize RBAC Defaults',
+  roleAssignedSuccess: 'Role assigned successfully',
+  roleAssignedError: 'Error assigning role',
+  permissionGrantedSuccess: 'Permission granted successfully',
+  permissionGrantedError: 'Error granting permission',
+  defaultsInitializedSuccess: 'RBAC defaults initialized successfully',
+  defaultsInitializedError: 'Error initializing RBAC defaults',
+  createDefaultsDesc: 'Create default roles and permissions. This will seed the database with standard RBAC entities and backfill existing users.',
+  hide: 'Hide RBAC',
+  show: 'Show RBAC'
+};

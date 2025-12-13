@@ -83,16 +83,33 @@ def create_app() -> FastAPI:
     from backend.rate_limiting import limiter
     app.state.limiter = limiter
 
+
     # Register health check endpoints
     _register_health_endpoints(app)
 
     # Register frontend logging endpoints
     _register_frontend_logging_endpoints(app)
 
+    # --- Monitoring: Prometheus Instrumentator setup ---
+    #
+    # Prometheus/Grafana Monitoring:
+    #   - HTTP, business, DB, and system metrics are collected via prometheus-fastapi-instrumentator
+    #   - Custom metrics are defined in backend/middleware/prometheus_metrics.py
+    #   - Metrics are exposed at /metrics (default: enabled)
+    #   - To disable metrics, set ENABLE_METRICS=0 in your environment or .env file
+    #   - To enable, set ENABLE_METRICS=1 (default)
+    #   - For Docker monitoring stack, use DOCKER.ps1 -WithMonitoring
+    #
+    try:
+        from backend.middleware.prometheus_metrics import setup_metrics
+        setup_metrics(app, VERSION)
+    except Exception as e:
+        logger.warning(f"Prometheus metrics setup failed: {e}")
+
     # Register root endpoints and SPA serving
     _register_root_endpoints(app, VERSION)
 
-    # Register metrics endpoint if enabled
+    # Register metrics endpoint if enabled (exposes /metrics)
     _register_metrics_endpoint(app)
 
     logger.info(f"FastAPI application created successfully (version={VERSION})")

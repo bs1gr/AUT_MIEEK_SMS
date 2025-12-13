@@ -26,15 +26,15 @@ const GradeDistribution: React.FC<GradeDistributionProps> = ({ data }) => {
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-gray-800 mb-3">{t('gradeDistribution') || 'Grade Distribution'}</div>
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">{t('gradeDistribution') || 'Grade Distribution'}</div>
       <div className="space-y-3">
         {Object.entries(data.distribution).map(([grade, count]) => {
           const percentage = data.total > 0 ? (count / data.total) * 100 : 0;
           return (
             <div key={grade}>
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-700">{t('grade')} {grade}</span>
-                <span className="text-gray-600">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
+                <span className="font-semibold text-indigo-700">{t('grade')} {grade}</span>
+                <span className="text-indigo-700 font-semibold">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
               </div>
               <div className="grade-progress-track" role="presentation">
                 <progress
