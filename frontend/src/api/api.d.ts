@@ -160,7 +160,7 @@ declare module '@/api/api' {
   };
 
   export const importAPI: {
-    uploadFile(file: File, type: 'courses' | 'students'): Promise<ImportResponse>;
+    uploadFile(file: File | File[], type: 'courses' | 'students'): Promise<ImportResponse>;
     preview(params: ImportPreviewParams): Promise<ImportPreviewResponse>;
     execute(params: ImportPreviewParams): Promise<ImportJobResponse>;
   };
