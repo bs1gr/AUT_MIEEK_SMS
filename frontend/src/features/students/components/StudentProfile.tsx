@@ -425,7 +425,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <h3 className="text-xl font-bold text-gray-800 mb-6">{t('recentGrades')}</h3>
 
           {grades.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('noGradesYet')}</p>
+            <p className="text-gray-500 text-center py-8">{t('noGradesYet') || 'No grades recorded yet'}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
