@@ -8,9 +8,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+## [1.12.2] - 2025-12-13
+
+**Release Type**: Patch Release - Installer & CI Reliability  
+**Focus**: Deterministic Greek installer assets and cross-platform lint stability
+
+### Changed
+
+**CI/CD Workflows** 🔄
+- Added a dedicated Greek installer asset regeneration step before ESLint in `.github/workflows/ci-cd-pipeline.yml`, ensuring CP1253 files are rebuilt during automated linting and preventing stale encoding artifacts.
+- Updated `commit-ready-smoke.yml` to run the encoding script with `DEV_EASE=1` during quick smoke runs, keeping local and CI pipelines aligned.
+- Removed the Windows-specific `@rollup/rollup-win32-x64-msvc` dev dependency to allow `npm ci` to succeed on Linux and macOS runners without optional binary downloads.
+
 ### Fixed
 
-- Synchronized TypeScript API client definitions with the runtime import preview/execute workflow and jobs endpoints to restore successful commit-ready validation.
+**Installer Assets (Greek Locale)** 🇬🇷
+- Regenerated the Greek welcome/completion text files and wizard imagery through `fix_greek_encoding_permanent.py` so the installer reflects the latest release metadata and renders correctly across build environments.
 
 ## [1.12.1] - 2025-12-12
 
