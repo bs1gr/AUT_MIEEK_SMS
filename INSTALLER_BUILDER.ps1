@@ -502,7 +502,7 @@ function Invoke-GitTagAndPush {
 
 Write-Result Info ""
 Write-Result Info "================================================================="
-Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE $11.12.1"
+Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE v1.12.1"
 Write-Result Info "Action: $($Action.ToUpper())"
 Write-Result Info "Version: $CurrentVersion"
 Write-Result Info "================================================================="
