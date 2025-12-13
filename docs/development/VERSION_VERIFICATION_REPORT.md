@@ -28,9 +28,6 @@
 - [INFO] Developer guide version: `docs/development/DEVELOPER_GUIDE_COMPLETE.md`
 - [INFO] Documentation index version: `docs/DOCUMENTATION_INDEX.md`
 - [INFO] QNAP deployment guide version: `docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md`
-- [INFO] Installer wizard version: `tools/installer/SMS_INSTALLER_WIZARD.ps1`
-- [INFO] Uninstaller wizard version: `tools/installer/SMS_UNINSTALLER_WIZARD.ps1`
-
 ---
 
 ## Next Steps

@@ -38,7 +38,7 @@
 3. **Run** `DOCKER.ps1 -Install` in PowerShell (as Administrator)
 4. **Follow** the prompts (~5-10 minutes first run)
 
-**📖 Complete Guide:** [docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md](docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md)
+**📖 Installer Documentation:** [installer/README.md](installer/README.md)
 
 #### Fresh Installation / First-Time Setup (PowerShell Method)
 

@@ -562,7 +562,7 @@ window.addEventListener('logout', () => {
 
 ## Questions?
 
-Refer to the main audit report: `docs/IMPROVEMENTS_AUDIT_REPORT.md`
+Refer to the main audit report: `docs/archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md`
 
 For PWA-specific issues, check the implementation in:
 

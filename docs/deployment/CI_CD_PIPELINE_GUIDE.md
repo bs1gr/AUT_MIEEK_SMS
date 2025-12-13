@@ -294,14 +294,14 @@ post-notifications:
 
 ```bash
 # Automatic (on release creation)
-git tag -a v1.12.1 -m "Release v1.12.1"
-git push origin v1.12.1
+git tag -a $11.12.2 -m "Release $11.12.2"
+git push origin $11.12.2
 # → Workflow triggers automatically
 
 # Manual (for existing releases)
 # Go to Actions → Release - Build & Upload Installer with SHA256
 # Click "Run workflow"
-# Enter: v1.12.1
+# Enter: $11.12.2
 # Click "Run workflow" button
 ```
 
@@ -690,5 +690,6 @@ Error: The operation was canceled.
 **Last Updated:** 2025-11-24  
 **Maintained By:** SMS Development Team  
 **Pipeline Version:** 1.0.0
+
 
 

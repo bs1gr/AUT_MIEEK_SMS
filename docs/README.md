@@ -8,47 +8,40 @@ Welcome to the Student Management System documentation hub.
 |------|-----------|-------------|
 | 👤 **End User** | [user/](user/) | Installation, usage guides, features |
 | 💻 **Developer** | [development/](development/) | Architecture, API, development setup |
-| 🚀 **DevOps** | [deployment/](deployment/) | Deployment, operations, troubleshooting |
+| 🛠️ **Operations** | [operations/](operations/) | Runbooks, smoke tests, monitoring |
+| 🚀 **DevOps** | [deployment/](deployment/) | Deployment, infrastructure, troubleshooting |
 | 📖 **Reference** | [reference/](reference/) | Quick guides, security, features |
-| 📦 **Releases** | [releases/](releases/) | Release notes and changelogs |
+| 📦 **Releases** | [releases/](releases/) | Release notes and audits |
 
 ## 🗂️ Directory Structure
 
 ```text
 docs/
-├── user/              # End-user documentation
-│   ├── INDEX.md      # User documentation index
-│   ├── USER_GUIDE_COMPLETE.md
-│   ├── QUICK_START_GUIDE.md
-│   └── ...
-├── development/       # Developer documentation
-│   ├── INDEX.md      # Developer documentation index
+├── DOCUMENTATION_INDEX.md   # Canonical index
+├── README.md                # This overview
+├── CONFIG_STRATEGY.md       # Environment configuration strategy
+├── development/             # Developer documentation
+│   ├── INDEX.md
 │   ├── DEVELOPER_GUIDE_COMPLETE.md
 │   ├── ARCHITECTURE.md
-│   ├── API_EXAMPLES.md
-│   └── ...
-├── deployment/        # Deployment & operations
-│   ├── INDEX.md      # Deployment documentation index
+│   └── phase-reports/
+├── deployment/              # Deployment runbooks & guides
+│   ├── INDEX.md
 │   ├── DOCKER_OPERATIONS.md
-│   ├── RUNBOOK.md
-│   └── ...
-├── operations/        # Operational guides
+│   └── PRODUCTION_DOCKER_GUIDE.md
+├── operations/              # Operations, scripts, smoke tests
 │   ├── INSTALLATION_GUIDE.md
 │   ├── SCRIPTS_GUIDE.md
-│   ├── MONITORING.md
-│   └── ...
-├── reference/         # Quick reference guides
-│   ├── SECURITY_GUIDE.md
-│   ├── V2_QUICK_REFERENCE.md
-│   ├── session-export-import.md
-│   └── ...
-├── releases/          # Release notes
-│   ├── $11.9.7.md
-│   ├── $11.9.7.md
-│   └── ...
-└── deployment/        # Deployment guides (QNAP consolidated here)
-    ├── QNAP_DEPLOYMENT_GUIDE_COMPLETE.md
-    └── ...
+│   └── SMOKE_TEST_CHECKLIST_v1.12.md
+├── reference/               # Quick reference guides
+│   ├── SECURITY_GUIDE_COMPLETE.md
+│   └── session-import-safety.md
+├── releases/                # Release notes & audits
+│   ├── RELEASE_NOTES_$11.12.2.md
+│   └── RELEASE_SUMMARY_$11.12.2.md
+└── archive/                 # Archived materials
+    ├── documentation/
+    └── pr-updates/
 ```
 
 ## 📖 Core Documents
@@ -68,7 +61,8 @@ docs/
 
 - **[development/ARCHITECTURE.md](development/ARCHITECTURE.md)** - System architecture
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker operations
-- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
+- **[reference/SECURITY_GUIDE_COMPLETE.md](reference/SECURITY_GUIDE_COMPLETE.md)** - Security best practices and audits
+- **[operations/SMOKE_TEST_CHECKLIST_v1.12.md](operations/SMOKE_TEST_CHECKLIST_v1.12.md)** - Release-ready smoke validation
 
 ## 🔍 Finding What You Need
 
@@ -109,8 +103,8 @@ For a complete catalog of all documentation, see:
 
 ## 🔄 Version
 
-**Current Version:** 1.9.7  
-**Last Updated:** 2025-12-04
+**Current Version:** 1.12.2  
+**Last Updated:** 2025-12-13
 
 ## 📝 Contributing
 
@@ -124,3 +118,4 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
+

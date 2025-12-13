@@ -43,6 +43,7 @@ Documentation is organized into four main directories:
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Production deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
+- **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
 ### Monitoring & Operations ($11.9.7+)
 
@@ -115,22 +116,22 @@ Documentation is organized into four main directories:
 
 ### Workspace Consolidation ($11.10.1 - $11.10.1)
 
-**Complete Consolidation Journey** (Dec 2025):
+- **Complete Consolidation Journey** (Dec 2025):
 
-- **[development/PHASE1_CONSOLIDATION_COMPLETE.md](development/PHASE1_CONSOLIDATION_COMPLETE.md)** - Phase 1: Code Organization (✅ COMPLETE)
+- **[development/phase-reports/PHASE1_CONSOLIDATION_COMPLETE.md](development/phase-reports/PHASE1_CONSOLIDATION_COMPLETE.md)** - Phase 1: Code Organization (✅ COMPLETE)
   - Backend database utilities consolidated → `backend/db/cli/`
   - Import validation unified → `scripts/utils/validators/import_checker.py`
   - Scripts reorganized → `scripts/utils/` (50+ files)
   - Backward compatibility fully maintained
   - Test results: 378 backend + 1033 frontend tests passing
 
-- **[development/PHASE2_CONSOLIDATION_COMPLETE.md](development/PHASE2_CONSOLIDATION_COMPLETE.md)** - Phase 2: Management Simplification (✅ COMPLETE)
+- **[development/phase-reports/PHASE2_CONSOLIDATION_COMPLETE.md](development/phase-reports/PHASE2_CONSOLIDATION_COMPLETE.md)** - Phase 2: Management Simplification (✅ COMPLETE)
   - SMS.ps1 meta-wrapper created (universal entry point)
   - Configuration strategy documented (root .env as authoritative)
   - Help system implemented and tested
   - Usage examples provided for all operations
 
-- **[development/PHASE3_CONSOLIDATION_PLAN.md](development/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - $11.10.1)
+- **[development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md](development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - $11.10.1)
   - Task 1: Documentation consolidation (establish `docs/DOCUMENTATION_INDEX.md` as source of truth)
   - Task 2: Backend scripts organization (`backend/scripts/` hierarchy)
   - Task 3: Symlink management strategy (Windows-compatible approach)
@@ -154,6 +155,19 @@ Documentation is organized into four main directories:
   - CONSOLIDATION_EXECUTIVE_SUMMARY.md - Overall plan and impact
   - WORKSPACE_CONSOLIDATION_ANALYSIS.md - Deep analysis of 6 consolidation opportunities
   - PHASE_1_MIGRATION_REPORT.md - Detailed Phase 1 execution report
+
+### Validation & Smoke Tests
+
+- **[operations/SMOKE_TEST_CHECKLIST_v1.12.md](operations/SMOKE_TEST_CHECKLIST_v1.12.md)** - Current smoke test checklist for v1.12.x
+- Legacy reference: **[archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md](../archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md)**
+
+### Historical Reports & Checklists (Archived)
+
+- **[archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md](../archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md)** - Frontend & DevOps improvements audit (1.9.7)
+- **[archive/documentation/reports/DOCUMENTATION_UPDATE_SUMMARY_v1_9_9.md](../archive/documentation/reports/DOCUMENTATION_UPDATE_SUMMARY_v1_9_9.md)** - Documentation updates summary (1.9.9)
+- **[archive/documentation/reports/PRE_RELEASE_DOCUMENTATION_AUDIT.md](../archive/documentation/reports/PRE_RELEASE_DOCUMENTATION_AUDIT.md)** - Pre-release documentation audit (1.9.7)
+- **[archive/documentation/automation/markdown_lint_report.md](../archive/documentation/automation/markdown_lint_report.md)** - Archived lint report placeholder
+- **[archive/pr-updates/](../archive/pr-updates/)** - Historical PR-specific update notes
 
 ---
 
@@ -270,11 +284,12 @@ Documentation is organized into four main directories:
 
 ### Release Automation
 
-- **[docs/releases/$11.9.7.md](releases/$11.9.7.md)** - Canonical release notes for the Control API realignment and restart UX polish
-- **[docs/releases/$11.9.7.md](releases/$11.9.7.md)** - Previous release notes covering the archive/cleanup checklist
-- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to $11.9.7 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
+- **[releases/RELEASE_NOTES_$11.12.2.md](releases/RELEASE_NOTES_$11.12.2.md)** - Latest production release notes (Dec 13, 2025)
+- **[releases/RELEASE_AUDIT_$11.12.2.md](releases/RELEASE_AUDIT_$11.12.2.md)** - QA audit and verification follow-up
+- **[releases/RELEASE_PREPARATION_$11.12.2.md](releases/RELEASE_PREPARATION_$11.12.2.md)** - Pre-release checklist and dry-run outcomes
+- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper for archiving historical tags (supports `-DryRun`; fixture: `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
-- **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
+- **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (remove or privatize legacy images; fixture: `scripts/ops/samples/package-versions.sample.json`)
 
 ---
 
@@ -506,5 +521,6 @@ Archived 20 historical documents and scripts to `archive/` for audit/reference:
 See `archive/README.md` for complete inventory and retrieval instructions.
 
 Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
+
 
 

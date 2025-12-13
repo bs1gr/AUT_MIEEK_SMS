@@ -2,7 +2,7 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** December 19, 2025 (v1.12.2)  
+**Last Updated:** December 13, 2025 (v1.12.2)  
 **Version:** 1.12.2  
 **Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
 
@@ -50,7 +50,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `RELEASE_NOTES_v1.12.2.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.12.2.md`
 
 ### For Operations
 
@@ -76,7 +76,7 @@ All documentation is organized under `docs/` into four main categories:
 | `CONTRIBUTING.md` | Contribution guidelines | Developers |
 | `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |
 | `CODEBASE_AUDIT_REPORT.md` | Detailed audit analysis | Technical leads |
-| `RELEASE_NOTES_v1.12.2.md` | v1.12.2 release notes | End users |
+| `docs/releases/` | Release documentation archive | Release managers |
 
 ### Development Documentation
 
@@ -129,6 +129,10 @@ Located in root:
 
 - `INSTALLER_BUILDER.ps1` - Consolidated installer build script
 - `fix_greek_encoding_permanent.py` - Build-time Greek encoding converter
+
+Located in `installer/`:
+
+- `README.md` - Canonical Windows installer workflow and packaging guide
 
 ### Reference Documentation
 
@@ -185,6 +189,15 @@ Located in `docs/reference/`:
 2. Check authentication: `docs/development/AUTHENTICATION.md`
 3. See archived details: `archive/security-audit-2025-12-06/`
 
+### I Need to Run Smoke Tests
+
+**Start with:** `docs/operations/SMOKE_TEST_CHECKLIST_v1.12.md`
+
+1. Execute `python fix_greek_encoding_permanent.py` to regenerate installer assets
+2. Run `.\COMMIT_READY.ps1 -Quick` for automated validation
+3. Follow manual validations in the checklist (Docker + Native parity)
+4. Reference legacy checklist in `docs/archive/documentation/checklists/` if historical comparison needed
+
 ### I Need to Migrate to PostgreSQL
 
 **Start with:** `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
@@ -209,7 +222,7 @@ Located in `docs/reference/`:
 ├── AUDIT_SUMMARY.md               (quick audit)
 ├── CODEBASE_AUDIT_REPORT.md       (detailed audit)
 ├── CONTRIBUTING.md                (contribution guide)
-└── RELEASE_NOTES_v1.12.2.md (release notes)
+└── docs/releases/                 (release documentation archive)
 ```
 
 ### Backend
@@ -246,24 +259,29 @@ frontend/
 
 ```
 docs/
+├── DOCUMENTATION_INDEX.md         (canonical index)
+├── SECURITY_GUIDE_COMPLETE.md     (security hub)
 ├── development/                   (development guides)
+│   ├── phase-reports/             (phase progress archives)
+│   └── roadmaps/                  (release roadmaps)
 ├── deployment/                    (deployment guides)
-├── user/                          (user guides)
+├── operations/                    (operations runbooks & smoke tests)
+├── releases/                      (release documentation)
 ├── reference/                     (API references)
-├── SECURITY.md                    (security guide)
-└── ARCHITECTURE.md                (system design)
+├── user/                          (user guides)
+└── archive/                       (archived materials)
 ```
 
 ### Archive
 
 ```
-archive/
-├── pre-v1.12.2/                    (legacy content)
-├── pre-v1.12.2-docker-scripts/     (old docker helpers)
-├── root_docs_cleanup_2025-12-05/  (archived root docs)
-├── sessions/                      (session artifacts)
-├── deprecated_commit_scripts_2025-11-27/
-└── README.md                      (archive guide)
+docs/archive/
+├── documentation/
+│   ├── automation/                (workflow artifacts)
+│   ├── checklists/                (legacy validation checklists)
+│   └── reports/                   (historical documentation reports)
+├── pr-updates/                    (PR-specific update notes)
+└── security-audit-2025-12-06/     (archived security artifacts)
 ```
 
 ---
@@ -275,7 +293,7 @@ archive/
 - **Total files:** 50+ guides
 - **Total pages:** Comprehensive coverage
 - **Translations:** English + Greek (select files)
-- **Updated:** December 5, 2025
+- **Updated:** December 13, 2025
 
 ### Codebase
 
@@ -286,9 +304,9 @@ archive/
 
 ### Version
 
-- **Current:** 1.9.8
+- **Current:** 1.12.2
 - **Status:** Production Ready
-- **Release Date:** December 4, 2025
+- **Release Date:** December 13, 2025
 - **Repository:** github.com/bs1gr/AUT_MIEEK_SMS
 
 ---
@@ -305,7 +323,7 @@ archive/
 ### Technical Questions
 
 1. **Architecture?** → `docs/development/ARCHITECTURE.md`
-2. **Security?** → `docs/SECURITY.md`
+2. **Security?** → `docs/SECURITY_GUIDE_COMPLETE.md`
 3. **API?** → `backend/CONTROL_API.md`
 4. **Git?** → `docs/development/GIT_WORKFLOW.md`
 
@@ -313,19 +331,19 @@ archive/
 
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
-3. **Security posture?** → `docs/SECURITY_AUDIT_REPORT.md`
-4. **Release info?** → `RELEASE_NOTES_v1.12.2.md`
+3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.12.2.md`
 
 ---
 
 ## Documentation Updates
 
-### December 5, 2025 (v1.12.2)
+### December 13, 2025 (v1.12.2)
 
-- ✅ Archived obsolete documentation (17 files)
-- ✅ Updated main documentation index
-- ✅ Created comprehensive audit reports
-- ✅ Consolidated documentation structure
+- ✅ Moved release documentation into `docs/releases/`
+- ✅ Organized roadmap and phase progress reports under `docs/development/`
+- ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
+- ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
@@ -337,7 +355,7 @@ archive/
 ## Version Information
 
 **Documentation Version:** v1.12.2  
-**Last Updated:** December 6, 2025  
+**Last Updated:** December 13, 2025  
 **Status:** Current and Complete
 
 All documentation reflects the current state of the codebase and is verified accurate as of v1.12.2.

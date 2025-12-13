@@ -132,7 +132,7 @@ The system automatically detects your browser language (English or Greek). To ch
 - ✅ Real-time installation logs
 - ✅ No PowerShell knowledge required
 
-See: [Windows Installer Wizard Guide](../WINDOWS_INSTALLER_WIZARD_GUIDE.md)
+See: [Installer Documentation](../../installer/README.md)
 
 ### Option 2: Docker Deployment (All Platforms)
 
