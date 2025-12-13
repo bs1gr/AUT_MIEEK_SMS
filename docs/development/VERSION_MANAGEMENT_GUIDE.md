@@ -53,11 +53,6 @@ Exit codes: `0` = all consistent, `1` = critical failure, `2` = inconsistent (ne
 - `docs/DOCUMENTATION_INDEX.md`
 - `docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md`
 
-**Installer Scripts:**
-
-- `tools/installer/SMS_INSTALLER_WIZARD.ps1`
-- `tools/installer/SMS_UNINSTALLER_WIZARD.ps1`
-
 ---
 
 ## 🔄 Release Workflow

@@ -1,15 +1,15 @@
-# SMS v1.12.2 Release Notes
+# SMS $11.12.2 Release Notes
 
 **Release Version**: 1.12.2  
 **Release Date**: December 13, 2025  
 **Status**: ✅ Production Ready  
-**Previous**: v1.12.1 (December 12, 2025)
+**Previous**: $11.12.2 (December 12, 2025)
 
 ---
 
 ## 🎯 Overview
 
-v1.12.2 is a focused patch release that hardens the release automation pipeline and keeps the bilingual installer assets perfectly in sync with every build. The update makes the Greek-language installer regeneration fully deterministic in CI, removes a Windows-only tooling dependency that previously broke `npm ci` on Linux/macOS runners, and refreshes the localized installer assets for this release.
+$11.12.2 is a focused patch release that hardens the release automation pipeline and keeps the bilingual installer assets perfectly in sync with every build. The update makes the Greek-language installer regeneration fully deterministic in CI, removes a Windows-only tooling dependency that previously broke `npm ci` on Linux/macOS runners, and refreshes the localized installer assets for this release.
 
 ---
 
@@ -70,3 +70,4 @@ No manual database migrations or environment changes are required. The release i
 
 **Prepared by**: GitHub Copilot Automation Team  
 **Last Updated**: 2025-12-13
+
