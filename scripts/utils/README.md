@@ -35,6 +35,10 @@ utils/
 
 **Purpose:** Validate Python import consistency across the project
 
+Legacy entry points in `tools/` are retained as lightweight wrappers that
+delegate to this consolidated script, so existing CI or local workflows calling
+`tools/check_imports_requirements.py` continue to function.
+
 **Usage:**
 
 ```bash
