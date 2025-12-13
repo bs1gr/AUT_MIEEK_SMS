@@ -65,8 +65,24 @@ jobs:
           npx -y vitest run --reporter junit > vitest-results.xml
           Pop-Location
 
+      - name: Prepare installer Greek text assets
+        shell: pwsh
+        run: |
+          Write-Host "Ensuring installer Greek text assets are regenerated"
+          $python = $null
+          try { $python = (Get-Command python -ErrorAction Stop).Source } catch {}
+          if (-not $python) {
+            try { $python = (Get-Command python3 -ErrorAction Stop).Source } catch {}
+          }
+          if (-not $python) {
+            throw "Python runtime not found in PATH"
+          }
+          & $python "fix_greek_encoding_permanent.py"
+
       - name: Run COMMIT_READY quick smoke (skip tests + cleanup for speed) & save logs
         shell: pwsh
+        env:
+          DEV_EASE: '1'
         run: |
           Write-Host "Running COMMIT_READY quick smoke (skip tests, skip cleanup for speed)"
           $outFile = "commit_ready_output_${{ matrix.os }}.txt"
