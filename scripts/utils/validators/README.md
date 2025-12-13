@@ -140,10 +140,13 @@ python scripts/utils/validators/import_checker.py --mode all
 
 ### Backward Compatibility
 
-Old tools still available at original locations but marked deprecated:
+Old tools still available at original locations but marked deprecated. A thin
+compatibility wrapper is preserved for automation that still shells out to the
+historic paths:
 
 - `tools/check_imports.py` → deprecated
-- `tools/check_imports_requirements.py` → deprecated
+- `tools/check_imports_requirements.py` → legacy wrapper delegating to
+  `scripts/utils/validators/import_checker.py`
 - `tools/test_import_backend_db.py` → deprecated
 - `tools/test_pkg_import.py` → deprecated
 
