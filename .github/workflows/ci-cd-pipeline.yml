@@ -119,6 +119,14 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
+      - name: Prepare installer Greek text assets
+        run: |
+          if command -v python3 >/dev/null 2>&1; then
+            python3 fix_greek_encoding_permanent.py
+          else
+            python fix_greek_encoding_permanent.py
+          fi
+
       - name: Run ESLint
         run: cd frontend && npm run lint || echo "::warning::ESLint issues found"
 
