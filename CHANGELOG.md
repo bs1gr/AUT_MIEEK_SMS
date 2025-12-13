@@ -33,7 +33,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Changed
 
 **CI/CD Pipeline Documentation** 📚
-- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to $11.12.1
+- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to v1.12.1
   - Added comprehensive section documenting release-installer-with-sha workflow
   - Documented 5 workflow stages: version verification, installer build, SHA256 calculation, release integration, notifications
   - Included usage examples for automatic and manual triggers
@@ -52,7 +52,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.12.0] - 2025-12-19
 
 **Release Status**: Phase 1, 2.1, 2.2, & 2.3 Complete (100% Progress)  
-**Baseline**: $11.12.1 (Release Complete, 2025-12-11)  
+**Baseline**: v1.12.1 (Release Complete, 2025-12-11)  
 **Target**: Operational Excellence, Feature Expansion, Developer Experience  
 **Test Coverage**: 1,461+ tests (272 backend + 1,189 frontend)
 
@@ -266,8 +266,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 **Phase Documentation** 📚
 - Created `PHASE_1_2.1_COMPLETION_SUMMARY.md` - Phase 1 & 2.1 deliverables and validation
 - Created `PHASE_2.1_OPTIONALS_COMPLETION.md` - Phase 2.1 optional features completion
-- Updated `ROADMAP_$11.12.1.md` with Phase 2.3 completion and upcoming phases
-- Comprehensive CHANGELOG entries for all $11.12.1 components
+- Updated `ROADMAP_v1.12.1.md` with Phase 2.3 completion and upcoming phases
+- Comprehensive CHANGELOG entries for all v1.12.1 components
 
 **Developer Guides** 🛠️
 - `docs/development/QUERY_OPTIMIZATION.md` - Index strategies and query patterns
