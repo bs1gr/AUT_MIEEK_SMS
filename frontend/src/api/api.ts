@@ -34,6 +34,57 @@ import type {
   UpdateUserPayload,
 } from '@/types';
 
+export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+
+export interface ImportPreviewItem {
+  row_number: number;
+  action: string;
+  data: Record<string, unknown>;
+  validation_status: string;
+  issues?: string[];
+}
+
+export interface ImportPreviewResponse {
+  total_rows: number;
+  valid_rows: number;
+  rows_with_warnings: number;
+  rows_with_errors: number;
+  items: ImportPreviewItem[];
+  can_proceed: boolean;
+  estimated_duration_seconds?: number;
+  summary?: Record<string, number>;
+  [key: string]: unknown;
+}
+
+export interface ImportPreviewParams {
+  type: 'students' | 'courses';
+  files?: File | File[] | null;
+  jsonText?: string;
+  allowUpdates?: boolean;
+  skipDuplicates?: boolean;
+}
+
+export interface ImportJobResponse {
+  job_id?: string;
+  status?: JobStatus;
+  message?: string;
+  result?: unknown;
+  error?: string;
+  [key: string]: unknown;
+}
+
+export interface JobDetail {
+  id: string;
+  status: JobStatus;
+  progress?: number;
+  message?: string;
+  result?: unknown;
+  error?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
 // Base API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 console.warn('[API Client] VITE_API_URL env var:', import.meta.env.VITE_API_URL);
@@ -564,13 +615,88 @@ export const importAPI = {
     return response.data;
   },
 
-  uploadFile: async (file: File, type: 'courses' | 'students'): Promise<ImportResponse> => {
+  uploadFile: async (file: File | File[], type: 'courses' | 'students'): Promise<ImportResponse> => {
     const formData = new FormData();
-    formData.append('files', file);
+    const files = Array.isArray(file) ? file : [file];
+    files.forEach((item) => {
+      if (item) formData.append('files', item);
+    });
     formData.append('import_type', type);
     const response = await apiClient.post<ImportResponse>('/imports/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+    return response.data;
+  },
+
+  preview: async ({
+    type,
+    files,
+    jsonText,
+    allowUpdates = false,
+    skipDuplicates = true,
+  }: ImportPreviewParams): Promise<ImportPreviewResponse> => {
+    const formData = new FormData();
+    formData.append('import_type', type);
+    formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+    formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+    if (files) {
+      const list = Array.isArray(files) ? files : [files];
+      list.forEach((item) => {
+        if (item) formData.append('files', item);
+      });
+    }
+
+    if (jsonText) {
+      formData.append('json_text', jsonText);
+    }
+
+    const response = await apiClient.post<ImportPreviewResponse>('/imports/preview', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  execute: async ({
+    type,
+    files,
+    jsonText,
+    allowUpdates = false,
+    skipDuplicates = true,
+  }: ImportPreviewParams): Promise<ImportJobResponse> => {
+    const formData = new FormData();
+    formData.append('import_type', type);
+    formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+    formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+    if (files) {
+      const list = Array.isArray(files) ? files : [files];
+      list.forEach((item) => {
+        if (item) formData.append('files', item);
+      });
+    }
+
+    if (jsonText) {
+      formData.append('json_text', jsonText);
+    }
+
+    const response = await apiClient.post<ImportJobResponse>('/imports/execute', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+};
+
+// ==================== JOBS API ====================
+
+export const jobsAPI = {
+  get: async (jobId: string): Promise<JobDetail> => {
+    const response = await apiClient.get<JobDetail>(`/jobs/${jobId}`);
+    return response.data;
+  },
+
+  list: async (): Promise<JobDetail[] | PaginatedResponse<JobDetail>> => {
+    const response = await apiClient.get<JobDetail[] | PaginatedResponse<JobDetail>>('/jobs');
     return response.data;
   },
 };
