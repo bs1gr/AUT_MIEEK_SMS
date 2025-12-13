@@ -2,7 +2,7 @@
 
 **Date:** December 12, 2025  
 **Status:** Phase 2.3 Frontend Complete ✅  
-**Current Version:** 1.11.3-dev  
+**Current Version:** 1.12.1  
 **Overall Progress:** ~65% (Phase 1 ✅, Phase 2.1 ✅, Phase 2.2 ✅, Phase 2.3 ✅ Frontend)
 
 ---
