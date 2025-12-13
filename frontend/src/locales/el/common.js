@@ -151,7 +151,7 @@ export default {
   totalAssignments: 'Σύνολο Εργασιών',
   highest: 'Υψηλότερος',
   lowest: 'Χαμηλότερος',
-  noGradesYet: 'Δεν υπάρχουν ακόμη βαθμοί',
+  noGradesYet: 'Δεν έχουν καταγραφεί ακόμη βαθμοί',
   // Κοινό UI
   confirm: 'Επιβεβαίωση',
   error: 'Σφάλμα',

@@ -23,7 +23,7 @@ const GradeStatistics: React.FC<GradeStatisticsProps> = ({ insights }) => {
     <div className="border rounded-lg p-4 bg-white shadow-md">
       <div className="font-semibold text-gray-800 mb-3">{t('gradeStatistics') || 'Grade Statistics'}</div>
       {!insights ? (
-        <div className="text-sm text-gray-500 text-center py-4">{t('noGradesYet') || 'No grades yet'}</div>
+        <div className="text-sm text-gray-500 text-center py-4">{t('noGradesYet') || 'No grades recorded yet'}</div>
       ) : (
         <div className="space-y-2 text-sm">
           <div className="flex justify-between items-center py-2 border-b">

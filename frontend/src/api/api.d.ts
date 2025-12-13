@@ -25,6 +25,57 @@ declare module '@/api/api' {
     UpdateUserPayload,
   } from '@/types';
 
+  export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+
+  export interface ImportPreviewItem {
+    row_number: number;
+    action: string;
+    data: Record<string, unknown>;
+    validation_status: string;
+    issues?: string[];
+  }
+
+  export interface ImportPreviewResponse {
+    total_rows: number;
+    valid_rows: number;
+    rows_with_warnings: number;
+    rows_with_errors: number;
+    items: ImportPreviewItem[];
+    can_proceed: boolean;
+    estimated_duration_seconds?: number;
+    summary?: Record<string, number>;
+    [key: string]: unknown;
+  }
+
+  export interface ImportPreviewParams {
+    type: 'students' | 'courses';
+    files?: File | File[] | null;
+    jsonText?: string;
+    allowUpdates?: boolean;
+    skipDuplicates?: boolean;
+  }
+
+  export interface ImportJobResponse {
+    job_id?: string;
+    status?: JobStatus;
+    message?: string;
+    result?: unknown;
+    error?: string;
+    [key: string]: unknown;
+  }
+
+  export interface JobDetail {
+    id: string;
+    status: JobStatus;
+    progress?: number;
+    message?: string;
+    result?: unknown;
+    error?: string;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+  }
+
   export const CONTROL_API_BASE: string;
   export const apiClient: AxiosInstance;
 
@@ -109,9 +160,14 @@ declare module '@/api/api' {
   };
 
   export const importAPI: {
-    importStudents(file: File): Promise<ImportResponse>;
-    importCourses(file: File): Promise<ImportResponse>;
     uploadFile(file: File, type: 'courses' | 'students'): Promise<ImportResponse>;
+    preview(params: ImportPreviewParams): Promise<ImportPreviewResponse>;
+    execute(params: ImportPreviewParams): Promise<ImportJobResponse>;
+  };
+
+  export const jobsAPI: {
+    get(jobId: string): Promise<JobDetail>;
+    list(): Promise<JobDetail[] | PaginatedResponse<JobDetail>>;
   };
 
   export const sessionAPI: {

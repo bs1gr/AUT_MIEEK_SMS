@@ -151,7 +151,7 @@ export default {
   totalAssignments: 'Total Assignments',
   highest: 'Highest',
   lowest: 'Lowest',
-  noGradesYet: 'No grades yet',
+  noGradesYet: 'No grades recorded yet',
   // Common UI
   confirm: 'Confirm',
   error: 'Error',
