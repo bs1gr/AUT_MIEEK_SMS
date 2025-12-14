@@ -16,8 +16,18 @@ This guide provides curl examples and response payloads for common API workflows
 4. [Grades](#4-grades)
 5. [Attendance](#5-attendance)
 6. [Analytics](#6-analytics)
-7. [Error Handling](#7-error-handling)
-8. [Rate Limiting](#8-rate-limiting)
+7. [Audit Logs](#7-audit-logs)
+8. [Jobs & Background Tasks](#8-jobs--background-tasks)
+9. [Reports](#9-reports)
+10. [Imports](#10-imports)
+11. [Exports](#11-exports)
+12. [Highlights](#12-highlights)
+13. [Performance](#13-performance)
+14. [Enrollments](#14-enrollments)
+15. [RBAC (Role-Based Access Control)](#15-rbac-role-based-access-control)
+16. [Sessions](#16-sessions)
+17. [Error Handling](#17-error-handling)
+18. [Rate Limiting](#18-rate-limiting)
 
 ---
 
@@ -706,7 +716,769 @@ curl -X GET http://localhost:8080/api/v1/analytics/dashboard \
 
 ---
 
-## 7. Error Handling
+## 7. Audit Logs
+
+### 7.1 List Audit Logs
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/audit/logs" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+**Response (200 OK):**
+```json
+{
+  "logs": [
+    {
+      "id": 1,
+      "timestamp": "2025-12-14T10:30:00Z",
+      "user_id": 1,
+      "email": "admin@example.com",
+      "action": "LOGIN",
+      "resource": "USER",
+      "resource_id": "1",
+      "ip_address": "192.168.1.100",
+      "user_agent": "Mozilla/5.0...",
+      "details": {
+        "login_method": "password"
+      },
+      "success": true
+    }
+  ],
+  "total": 1,
+  "skip": 0,
+  "limit": 100
+}
+```
+
+### 7.2 Get Specific Audit Log
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/audit/logs/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 7.3 Filter Audit Logs by User
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/audit/logs/user/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 8. Jobs & Background Tasks
+
+### 8.1 Create Background Job
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/jobs" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "BULK_IMPORT",
+    "description": "Import students from CSV",
+    "parameters": {
+      "file_path": "/uploads/students.csv",
+      "delimiter": ","
+    }
+  }'
+```
+
+**Response (202 Accepted):**
+```json
+{
+  "job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "PENDING",
+  "type": "BULK_IMPORT",
+  "created_at": "2025-12-14T10:30:00Z",
+  "description": "Import students from CSV"
+}
+```
+
+### 8.2 Check Job Status
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Response (200 OK):**
+```json
+{
+  "job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "COMPLETED",
+  "type": "BULK_IMPORT",
+  "created_at": "2025-12-14T10:30:00Z",
+  "updated_at": "2025-12-14T10:35:00Z",
+  "progress": {
+    "current": 100,
+    "total": 100,
+    "message": "Import completed successfully"
+  },
+  "result": {
+    "records_processed": 150,
+    "records_created": 145,
+    "records_failed": 5,
+    "errors": ["Invalid email format on line 23"]
+  }
+}
+```
+
+### 8.3 List All Jobs
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/jobs" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 8.4 Cancel Job
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000/cancel" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 8.5 Delete Completed Job
+
+**Request:**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 9. Reports
+
+### 9.1 Generate Student Performance Report
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/reports/student-performance" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "period": "semester",
+    "include_grades": true,
+    "include_attendance": true,
+    "include_highlights": true
+  }'
+```
+
+**Response (200 OK):**
+```json
+{
+  "student_id": 1,
+  "student_name": "John Doe",
+  "period": "semester",
+  "generated_at": "2025-12-14T10:30:00Z",
+  "attendance_summary": {
+    "total_sessions": 45,
+    "present": 42,
+    "late": 2,
+    "absent": 1,
+    "attendance_rate": 93.3
+  },
+  "grades_summary": {
+    "courses": [
+      {
+        "course_name": "Mathematics",
+        "final_grade": 16.5,
+        "components": [
+          {"name": "Midterm", "grade": 17.0, "weight": 40},
+          {"name": "Final", "grade": 16.0, "weight": 60}
+        ]
+      }
+    ],
+    "overall_average": 16.5
+  },
+  "recommendations": [
+    "Excellent performance in Mathematics",
+    "Consider improving attendance consistency"
+  ]
+}
+```
+
+### 9.2 Get Available Report Formats
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/reports/formats" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Response (200 OK):**
+```json
+["json", "pdf", "csv"]
+```
+
+### 9.3 Get Available Report Periods
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/reports/periods" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Response (200 OK):**
+```json
+["week", "month", "semester", "year", "custom"]
+```
+
+### 9.4 Download Report
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/reports/student-performance/download" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "period": "semester",
+    "format": "pdf"
+  }' \
+  --output report.pdf
+```
+
+### 9.5 Bulk Report Generation
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/reports/bulk/student-performance" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_ids": [1, 2, 3],
+    "period": "semester",
+    "format": "csv"
+  }'
+```
+
+### 9.6 Clear Report Cache
+
+**Request (Clear specific student):**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/reports/cache/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Request (Clear all cache):**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/reports/cache" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 10. Imports
+
+### 10.1 Preview Import
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/imports/preview" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "students",
+    "data": [
+      {"first_name": "John", "last_name": "Doe", "email": "john@example.com"},
+      {"first_name": "Jane", "last_name": "Smith", "email": "jane@example.com"}
+    ]
+  }'
+```
+
+**Response (200 OK):**
+```json
+{
+  "type": "students",
+  "total_records": 2,
+  "valid_records": 2,
+  "invalid_records": 0,
+  "preview": [
+    {
+      "row": 1,
+      "data": {"first_name": "John", "last_name": "Doe", "email": "john@example.com"},
+      "validation": {"valid": true}
+    },
+    {
+      "row": 2,
+      "data": {"first_name": "Jane", "last_name": "Smith", "email": "jane@example.com"},
+      "validation": {"valid": true}
+    }
+  ]
+}
+```
+
+### 10.2 Execute Import
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/imports/execute" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "job_id": "550e8400-e29b-41d4-a716-446655440000",
+    "type": "students",
+    "data": [
+      {"first_name": "John", "last_name": "Doe", "email": "john@example.com"}
+    ]
+  }'
+```
+
+### 10.3 Import Students from CSV
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/imports/students" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@students.csv"
+```
+
+### 10.4 Import Courses from CSV
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/imports/courses" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@courses.csv"
+```
+
+### 10.5 Upload File for Import
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/imports/upload" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@data.xlsx" \
+  -F "type=students"
+```
+
+### 10.6 Check Import Diagnostics
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/imports/diagnose" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 11. Exports
+
+### 11.1 Export Students to Excel
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/students/excel" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output students.xlsx
+```
+
+### 11.2 Export Student Grades to Excel
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/grades/excel/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output student_grades.xlsx
+```
+
+### 11.3 Export Students to PDF
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/students/pdf" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output students.pdf
+```
+
+### 11.4 Export Attendance to Excel
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/attendance/excel" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output attendance.xlsx
+```
+
+### 11.5 Export Course Analytics to PDF
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/analytics/course/1/pdf" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output course_analytics.pdf
+```
+
+### 11.6 Export Student Performance Report to PDF
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/export/student-report/pdf/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output performance_report.pdf
+```
+
+---
+
+## 12. Highlights
+
+### 12.1 Create Student Highlight
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/highlights" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "title": "Outstanding Performance",
+    "description": "Achieved 95% in Mathematics final exam",
+    "category": "academic",
+    "priority": "high"
+  }'
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "student_id": 1,
+  "title": "Outstanding Performance",
+  "description": "Achieved 95% in Mathematics final exam",
+  "category": "academic",
+  "priority": "high",
+  "created_at": "2025-12-14T10:30:00Z",
+  "updated_at": "2025-12-14T10:30:00Z"
+}
+```
+
+### 12.2 List All Highlights
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/highlights" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 12.3 Get Student Highlights
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/highlights/student/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 12.4 Update Highlight
+
+**Request:**
+```bash
+curl -X PUT "http://localhost:8080/api/v1/highlights/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Exceptional Performance",
+    "priority": "critical"
+  }'
+```
+
+### 12.5 Delete Highlight
+
+**Request:**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/highlights/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 13. Performance
+
+### 13.1 Record Daily Performance
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/performance" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "course_id": 1,
+    "date": "2025-12-14",
+    "engagement_score": 85,
+    "participation_level": "high",
+    "notes": "Very active in today's discussion"
+  }'
+```
+
+### 13.2 Get Performance by ID
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/performance/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 13.3 Get Student Performance History
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/performance/student/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 13.4 Get Student Performance by Course
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/performance/student/1/course/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 13.5 Get Course Performance by Date
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/performance/date/2025-12-14/course/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 13.6 Update Performance Record
+
+**Request:**
+```bash
+curl -X PUT "http://localhost:8080/api/v1/performance/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "engagement_score": 90,
+    "participation_level": "excellent"
+  }'
+```
+
+### 13.7 Ensure Default Performance Records
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/performance/ensure-defaults" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "course_id": 1,
+    "date": "2025-12-14"
+  }'
+```
+
+---
+
+## 14. Enrollments
+
+### 14.1 List Enrollments
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/enrollments" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 14.2 Get Course Enrollments
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/enrollments/course/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 14.3 Get Student Enrollments
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/enrollments/student/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 14.4 Get Enrolled Students for Course
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/enrollments/course/1/students" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 14.5 Enroll Student in Course
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/enrollments/course/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": 1,
+    "enrollment_date": "2025-12-14"
+  }'
+```
+
+### 14.6 Unenroll Student from Course
+
+**Request:**
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/enrollments/course/1/student/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 15. RBAC (Role-Based Access Control)
+
+### 15.1 Get RBAC Summary
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/rbac/summary" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Response (200 OK):**
+```json
+{
+  "roles": [
+    {"id": 1, "name": "admin", "description": "Full system access"},
+    {"id": 2, "name": "teacher", "description": "Teaching and grading access"},
+    {"id": 3, "name": "student", "description": "Limited access to own data"}
+  ],
+  "permissions": [
+    {"id": 1, "name": "read_students", "description": "View student information"},
+    {"id": 2, "name": "write_grades", "description": "Create and modify grades"}
+  ],
+  "role_permissions": [
+    {"role_id": 1, "permission_id": 1},
+    {"role_id": 1, "permission_id": 2}
+  ]
+}
+```
+
+### 15.2 Assign Role to User
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/rbac/assign-role" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": 1,
+    "role_name": "teacher"
+  }'
+```
+
+### 15.3 Grant Permission to Role
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/rbac/grant-permission" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "role_name": "teacher",
+    "permission_name": "write_grades"
+  }'
+```
+
+### 15.4 Ensure Default RBAC Setup
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/rbac/ensure-defaults" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 16. Sessions
+
+### 16.1 Get Available Semesters
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/sessions/semesters" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Response (200 OK):**
+```json
+[
+  {"id": "2025-1", "name": "Fall 2025", "start_date": "2025-09-01", "end_date": "2025-12-20"},
+  {"id": "2025-2", "name": "Spring 2026", "start_date": "2026-01-15", "end_date": "2026-05-30"}
+]
+```
+
+### 16.2 Export Session Data
+
+**Request (GET):**
+```bash
+curl -X GET "http://localhost:8080/api/v1/sessions/export" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output session_backup.json
+```
+
+**Request (POST - Legacy):**
+```bash
+curl -X POST "http://localhost:8080/api/v1/sessions/export" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  --output session_backup.json
+```
+
+### 16.3 Import Session Data
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/sessions/import" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": {
+      "semesters": [...],
+      "courses": [...],
+      "enrollments": [...]
+    }
+  }'
+```
+
+### 16.4 Rollback Session Changes
+
+**Request:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/sessions/rollback" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_date": "2025-12-13T10:00:00Z",
+    "confirm_rollback": true
+  }'
+```
+
+### 16.5 List Available Backups
+
+**Request:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/sessions/backups" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 17. Error Handling
 
 ### 7.1 Error Response Structure
 
