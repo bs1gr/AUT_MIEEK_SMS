@@ -10,7 +10,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -34,7 +34,7 @@ class LoadTestAnalyzer:
         """Find the most recent test results."""
         stats_files = list(self.results_dir.glob("*_stats.csv"))
         if not stats_files:
-            print("❌ No results files found")
+            print("ERROR: No results files found")
             return []
 
         # Sort by modification time (newest first)
@@ -51,7 +51,7 @@ class LoadTestAnalyzer:
 
             # Convert time columns to seconds
             time_columns = ['Average Response Time', 'Median Response Time',
-                          '95%ile Response Time', '99%ile Response Time']
+                          '95%', '99%']
             for col in time_columns:
                 if col in df.columns:
                     df[col] = df[col] / 1000  # Convert ms to seconds
@@ -59,7 +59,7 @@ class LoadTestAnalyzer:
             return df
 
         except Exception as e:
-            print(f"❌ Error loading results: {e}")
+            print(f"ERROR: Error loading results: {e}")
             return pd.DataFrame()
 
     def generate_summary_report(self, df: DataFrame, test_id: str) -> Dict[str, Any]:
@@ -70,13 +70,13 @@ class LoadTestAnalyzer:
         summary = {
             "test_id": test_id,
             "timestamp": datetime.now().isoformat(),
-            "total_requests": int(df["Total Request Count"].sum()),
-            "total_failures": int(df["Total Failure Count"].sum()),
-            "error_rate": float(df["Total Failure Count"].sum() / df["Total Request Count"].sum() * 100),
+            "total_requests": int(df["Request Count"].sum()),
+            "total_failures": int(df["Failure Count"].sum()),
+            "error_rate": float(df["Failure Count"].sum() / df["Request Count"].sum() * 100),
             "avg_response_time": float(df["Average Response Time"].mean()),
             "median_response_time": float(df["Median Response Time"].median()),
-            "95p_response_time": float(df["95%ile Response Time"].max()),
-            "99p_response_time": float(df["99%ile Response Time"].max()),
+            "95p_response_time": float(df["95%"].max()),
+            "99p_response_time": float(df["99%"].max()),
             "requests_per_second": float(df["Requests/s"].sum()),
             "endpoint_stats": []
         }
@@ -86,10 +86,10 @@ class LoadTestAnalyzer:
             endpoint_stat = {
                 "endpoint": row["Name"],
                 "method": row.get("Method", "GET"),
-                "requests": int(row["Total Request Count"]),
-                "failures": int(row["Total Failure Count"]),
+                "requests": int(row["Request Count"]),
+                "failures": int(row["Failure Count"]),
                 "avg_response_time": float(row["Average Response Time"]),
-                "95p_response_time": float(row["95%ile Response Time"]),
+                "95p_response_time": float(row["95%"]),
                 "rps": float(row["Requests/s"])
             }
             summary["endpoint_stats"].append(endpoint_stat)
@@ -120,7 +120,7 @@ class LoadTestAnalyzer:
                 "actual": actual,
                 "target": target,
                 "passed": passed,
-                "status": "✅ PASS" if passed else "❌ FAIL"
+                "status": "PASS" if passed else "FAIL"
             })
 
             if not passed:
@@ -137,7 +137,7 @@ class LoadTestAnalyzer:
         plt.figure(figsize=(12, 8))
 
         # Filter out endpoints with very few requests
-        df_filtered = df[df["Total Request Count"] > 10]
+        df_filtered = df[df["Request Count"] > 10]
 
         if not df_filtered.empty:
             # Response time box plot
@@ -149,7 +149,7 @@ class LoadTestAnalyzer:
                 # Create synthetic data points for box plot (approximation)
                 avg_time = row["Average Response Time"]
                 median_time = row["Median Response Time"]
-                p95_time = row["95%ile Response Time"]
+                p95_time = row["95%"]
 
                 # Approximate distribution
                 times = [avg_time * 0.5, median_time * 0.8, median_time,
@@ -170,7 +170,7 @@ class LoadTestAnalyzer:
 
             # Error rate by endpoint
             plt.subplot(2, 2, 3)
-            error_rates = (df_filtered["Total Failure Count"] / df_filtered["Total Request Count"] * 100)
+            error_rates = (df_filtered["Failure Count"] / df_filtered["Request Count"] * 100)
             error_rates = error_rates.sort_values(ascending=True)
             error_rates.plot(kind="barh", figsize=(10, 6))
             plt.title("Error Rate by Endpoint (%)")
@@ -179,7 +179,7 @@ class LoadTestAnalyzer:
             # Response time percentiles
             plt.subplot(2, 2, 4)
             percentiles = ["Average Response Time", "Median Response Time",
-                         "95%ile Response Time", "99%ile Response Time"]
+                         "95%", "99%"]
 
             percentile_data = df_filtered[percentiles].mean()
             percentile_data.plot(kind="bar")
@@ -231,7 +231,7 @@ class LoadTestAnalyzer:
             for check in target_check["checks"]:
                 f.write(f"{check['status']} {check['metric']}: {check['actual']:.3f} (target: {check['target']:.3f})\n")
 
-            f.write(f"\nOverall Result: {'✅ PASSED' if target_check['passed'] else '❌ FAILED'}\n\n")
+            f.write(f"\nOverall Result: {'PASSED' if target_check['passed'] else 'FAILED'}\n\n")
 
             f.write("TOP ENDPOINTS BY REQUESTS\n")
             f.write("-" * 25 + "\n")
@@ -248,7 +248,7 @@ class LoadTestAnalyzer:
         if test_id:
             stats_file = self.results_dir / f"results_{test_id}_stats.csv"
             if not stats_file.exists():
-                print(f"❌ Results file not found: {stats_file}")
+                print(f"ERROR: Results file not found: {stats_file}")
                 return False
             stats_files = [stats_file]
         else:
@@ -295,7 +295,7 @@ class LoadTestAnalyzer:
         print(f"Error Rate: {summary['error_rate']:.2f}%")
         print(f"95th Percentile: {summary['95p_response_time']:.3f}s")
         print(f"Requests/sec: {summary['requests_per_second']:.2f}")
-        print(f"Overall Result: {'✅ PASSED' if target_check['passed'] else '❌ FAILED'}")
+        print(f"Overall Result: {'PASSED' if target_check['passed'] else 'FAILED'}")
 
         return target_check["passed"]
 
@@ -317,7 +317,7 @@ def main():
 
     results_dir = Path(args.results_dir)
     if not results_dir.exists():
-        print(f"❌ Results directory not found: {results_dir}")
+        print(f"ERROR: Results directory not found: {results_dir}")
         sys.exit(1)
 
     targets = {
