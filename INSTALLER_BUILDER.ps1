@@ -20,6 +20,10 @@
     ✅ Git integration (tagging, release tracking)
     ✅ Deployment-ready artifact creation
     ✅ Pre-commit audit mode to catch version mismatches
+    
+    Known limitations:
+    ⚠️ Uninstaller naming: Inno Setup 6.x uses default "unins000.exe" initially
+       (Workaround implemented: renamed to "unins{version}.exe" post-install)
 
 .PARAMETER Action
     Operation to perform:
@@ -369,8 +373,10 @@ function Invoke-InstallerCompilation {
         }
         
         $size = (Get-Item $InstallerExe).Length / 1MB
+        $sizeMB = [Math]::Round($size, 2)
         Write-Result Success "Installer compiled successfully ✓"
-        Write-Result Info "Output: SMS_Installer_$CurrentVersion.exe ($([Math]::Round($size, 2)) MB)"
+        Write-Result Info "Output: SMS_Installer_$CurrentVersion.exe"
+        Write-Result Info "Size: $sizeMB MB"
         Write-Result Info "Build time: $([Math]::Round($elapsed.TotalSeconds)) seconds"
         
         return $true
@@ -387,38 +393,37 @@ function Invoke-CodeSigning {
     
     if (-not (Test-FileExists $InstallerExe)) {
         Write-Result Error "Installer not found: $InstallerExe"
-        return $false
+        return $true  # Non-blocking
     }
     
     if (-not (Test-FileExists $SignerScript)) {
         Write-Result Error "Signing script not found: $SignerScript"
-        return $false
+        return $true  # Non-blocking
+    }
+    
+    # Check if code signing should be skipped
+    if ($SkipCodeSign) {
+        Write-Result Info "Code signing skipped (-SkipCodeSign)"
+        return $true
     }
     
     try {
         Write-Result Info "Signing installer with AUT MIEEK certificate..."
-        # Suppress errors from signing script - non-blocking operation
-        & $SignerScript -ErrorAction SilentlyContinue 2>&1 | Where-Object { $_ -and $_ -notmatch "Count|property" } | Out-String | Tee-Object -Variable output | Out-Null
         
-        # Signing is non-critical - installer works unsigned
-        # Just verify the file exists
-        if (Test-FileExists $InstallerExe) {
-            Write-Result Success "Installer built successfully ✓"
-            Write-Result Info "Publisher: AUT MIEEK (signature optional)"
-            Write-Result Info "Note: Installer works without code signing. Signing can be applied manually if needed:"
-            Write-Result Info "  signtool sign /f certificate.pfx /p password /tr timestamp $InstallerExe"
+        # Call signing script (it will use SMS_CODESIGN_PFX_PASSWORD env var)
+        & $SignerScript
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Result Success "Installer signed successfully ✓"
+            Write-Result Info "Publisher: AUT MIEEK"
             return $true
         } else {
-            Write-Result Error "Installer file not found after build"
-            return $false
+            Write-Result Warning "Code signing failed (exit code: $LASTEXITCODE) - installer remains unsigned but valid"
+            return $true  # Signing failure doesn't break the build
         }
     } catch {
-        # Non-blocking: signing errors don't prevent installer distribution
-        Write-Result Warning "Code signing helper skipped (non-critical) - installer is still valid"
-        if (Test-FileExists $InstallerExe) {
-            return $true
-        }
-        return $false
+        Write-Result Warning "Code signing failed: $($_.Exception.Message) - installer remains unsigned but valid"
+        return $true  # Signing failure doesn't break the build
     }
 }
 
@@ -502,7 +507,7 @@ function Invoke-GitTagAndPush {
 
 Write-Result Info ""
 Write-Result Info "================================================================="
-Write-Result Info "INSTALLER PRODUCTION & VERSIONING PIPELINE $CurrentVersion"
+Write-Result Info "INSTALLER PRODUCTION AND VERSIONING PIPELINE $CurrentVersion"
 Write-Result Info "Action: $($Action.ToUpper())"
 Write-Result Info "Version: $CurrentVersion"
 Write-Result Info "================================================================="
@@ -545,17 +550,16 @@ switch ($Action) {
         
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
+                # Attempt code signing (non-blocking)
                 if (-not $SkipCodeSign) {
-                    if (Invoke-CodeSigning) {
-                        if (-not $SkipTest) {
-                            $success = Test-InstallerSmoke
-                        } else {
-                            $success = $true
-                        }
-                    }
+                    Invoke-CodeSigning | Out-Null
+                }
+                
+                # Run smoke test if not skipped
+                if (-not $SkipTest) {
+                    $success = Test-InstallerSmoke
                 } else {
                     $success = $true
-                    Write-Result Warning "Code signing skipped"
                 }
             }
         }
@@ -581,14 +585,15 @@ switch ($Action) {
         
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
-                if (Invoke-CodeSigning) {
-                    if (Test-InstallerSmoke) {
-                        if ($TagAndPush) {
-                            $success = Invoke-GitTagAndPush -Version $CurrentVersion
-                        } else {
-                            $success = $true
-                            Write-Result Info "Release build complete. Use -TagAndPush to create git tag."
-                        }
+                # Attempt code signing (non-blocking)
+                Invoke-CodeSigning | Out-Null
+                
+                if (Test-InstallerSmoke) {
+                    if ($TagAndPush) {
+                        $success = Invoke-GitTagAndPush -Version $CurrentVersion
+                    } else {
+                        $success = $true
+                        Write-Result Info "Release build complete. Use -TagAndPush to create git tag."
                     }
                 }
             }

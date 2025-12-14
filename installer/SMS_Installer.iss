@@ -2,6 +2,10 @@
 ; Student Management System - Inno Setup Installer Script
 ; Version: 1.9.8 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
+;
+; NOTE: Inno Setup 6.x does not support UninstallExeName directive.
+; Workaround: Uninstaller is renamed from unins000.exe to unins{version}.exe
+; after installation using Pascal script in CurStepChanged(ssPostInstall).
 ; ============================================================================
 
 #define MyAppName "Student Management System"
@@ -9,18 +13,13 @@
 #define MyAppPublisher "AUT MIEEK"
 #define MyAppURL "https://www.mieek.ac.cy/index.php/el/"
 #define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
-#define MyAppExeName "DOCKER_TOGGLE.vbs"
+#define MyAppExeName "DOCKER_TOGGLE.bat"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
 ; Read version from VERSION file
 #define VersionFile FileOpen("..\VERSION")
 #define MyAppVersion Trim(FileRead(VersionFile))
 #expr FileClose(VersionFile)
-
-; Uninstaller naming - easy to customize for future updates
-#define UninstallerBaseName "Uninstall_SMS"
-#define UninstallerExe UninstallerBaseName + "_" + MyAppVersion + ".exe"
-#define UninstallerDat UninstallerBaseName + "_" + MyAppVersion + ".dat"
 
 [Setup]
 ; Unique application ID - DO NOT CHANGE
@@ -46,7 +45,7 @@ WizardSizePercent=120
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64
 MinVersion=10.0
-UninstallDisplayIcon={app}\SMS_Toggle.ico
+UninstallDisplayIcon={app}\favicon.ico
 UninstallFilesDir={app}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
 ShowLanguageDialog=auto
@@ -108,7 +107,7 @@ english.RemoveOldVersion=Remove previous version before installing
 english.UpgradePrompt=Click YES to update/overwrite, NO for fresh install, or CANCEL to abort.
 english.KeepDataPrompt=Do you want to keep your data (database, backups, settings)?%n%nClick YES to keep data for future reinstall.%nClick NO to remove everything.
 english.ViewReadme=View README documentation
-english.DockerStatusTitle=Docker Desktop Status
+english.DockerStatusTitle=Docker Desktop Check
 english.DockerRefreshButton=Refresh
 english.InstallationType=Installation Type
 english.InstallDockerOnly=Docker Production Only (Recommended)
@@ -139,7 +138,8 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 
 ; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\DOCKER_TOGGLE.vbs"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\DOCKER_TOGGLE.bat"; DestDir: "{app}"; Flags: ignoreversion
+
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Development scripts - only for dev environment
@@ -190,19 +190,22 @@ Type: files; Name: "{app}\config\lang.txt"
 
 [Icons]
 ; Start Menu
-Name: "{group}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"
+Name: "{group}\{#MyAppName}"; Filename: "cmd.exe"; Parameters: "/c ""{app}\DOCKER_TOGGLE.bat"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut (optional)
-Name: "{autodesktop}\{#MyAppName}"; Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "cmd.exe"; Parameters: "/c ""{app}\DOCKER_TOGGLE.bat"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop SMS Docker container"; Tasks: desktopicon
+
 
 [Run]
 ; Open Docker download page if requested
 Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker
 
+; --- Docker build and install: always use the batch file, never call PowerShell directly ---
+
 ; Option to launch app after install (only if Docker is running)
-Filename: "wscript.exe"; Parameters: """{app}\DOCKER_TOGGLE.vbs"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerRunning
+Filename: "cmd.exe"; Parameters: "/c ""{app}\DOCKER_TOGGLE.bat"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -213,18 +216,22 @@ var
   DockerStatusLabel: TLabel;
   DockerInfoLabel: TLabel;
   RefreshButton: TButton;
+  DockerBuildPage: TWizardPage;
+  DockerBuildStatusLabel: TLabel;
   PreviousVersion: String;
   PreviousInstallPath: String;
   IsUpgrade: Boolean;
-  InstallTypePage: TWizardPage;
-  DockerOnlyRadio: TRadioButton;
-  DevEnvRadio: TRadioButton;
-  InstallDevEnvironment: Boolean;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
 begin
-  Result := InstallDevEnvironment;
+  Result := False; // Production installer only supports Docker-only
+end;
+
+// Function to check if this is a Docker install (always true for production)
+function IsDockerInstall: Boolean;
+begin
+  Result := True; // Always Docker install for production
 end;
 
 // Function to check if this is an upgrade (for Tasks Check)
@@ -349,7 +356,10 @@ var
 begin
   Result := True;
   IsUpgrade := False;
-  InstallDevEnvironment := False;  // Default: Docker-only installation
+  
+  // Clean up old shortcuts from previous installations
+  DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
   
   PreviousVersion := GetPreviousVersion;
   PreviousInstallPath := GetPreviousInstallPath;
@@ -447,55 +457,11 @@ var
   DockerOnlyDesc: TLabel;
   DevEnvDesc: TLabel;
 begin
-  // Create custom Installation Type page (before Tasks page)
-  InstallTypePage := CreateCustomPage(wpReady - 1, CustomMessage('InstallationType'), 
-    'Choose your installation configuration');
-  
-  DockerOnlyRadio := TRadioButton.Create(InstallTypePage);
-  DockerOnlyRadio.Parent := InstallTypePage.Surface;
-  DockerOnlyRadio.Left := 0;
-  DockerOnlyRadio.Top := 10;
-  DockerOnlyRadio.Width := InstallTypePage.SurfaceWidth;
-  DockerOnlyRadio.Height := 20;
-  DockerOnlyRadio.Caption := CustomMessage('InstallDockerOnly');
-  DockerOnlyRadio.Checked := True;
-  
-  DockerOnlyDesc := TLabel.Create(InstallTypePage);
-  DockerOnlyDesc.Parent := InstallTypePage.Surface;
-  DockerOnlyDesc.Left := 24;
-  DockerOnlyDesc.Top := 32;
-  DockerOnlyDesc.Width := InstallTypePage.SurfaceWidth - 30;
-  DockerOnlyDesc.Height := 50;
-  DockerOnlyDesc.WordWrap := True;
-  DockerOnlyDesc.AutoSize := True;
-  DockerOnlyDesc.Caption := CustomMessage('InstallDockerOnlyDesc');
-  DockerOnlyDesc.Font.Color := clGray;
-  DockerOnlyDesc.Font.Size := 8;
-  
-  DevEnvRadio := TRadioButton.Create(InstallTypePage);
-  DevEnvRadio.Parent := InstallTypePage.Surface;
-  DevEnvRadio.Left := 0;
-  DevEnvRadio.Top := 95;
-  DevEnvRadio.Width := InstallTypePage.SurfaceWidth;
-  DevEnvRadio.Height := 20;
-  DevEnvRadio.Caption := CustomMessage('InstallDevEnvironment');
-  
-  DevEnvDesc := TLabel.Create(InstallTypePage);
-  DevEnvDesc.Parent := InstallTypePage.Surface;
-  DevEnvDesc.Left := 24;
-  DevEnvDesc.Top := 117;
-  DevEnvDesc.Width := InstallTypePage.SurfaceWidth - 30;
-  DevEnvDesc.Height := 50;
-  DevEnvDesc.WordWrap := True;
-  DevEnvDesc.AutoSize := True;
-  DevEnvDesc.Caption := CustomMessage('InstallDevEnvironmentDesc');
-  DevEnvDesc.Font.Color := clGray;
-  DevEnvDesc.Font.Size := 8;
+  // Skip Installation Type page since only Docker-only is available for production
+  // Create custom Docker Prerequisites page (early in wizard)
+  DockerPage := CreateCustomPage(wpLicense, 'Prerequisites Check',
+    'Verifying Docker Desktop installation and status');
 
-  // Create custom Docker status page
-  DockerPage := CreateCustomPage(wpSelectTasks, CustomMessage('DockerRequired'), 
-    CustomMessage('DockerStatusTitle'));
-  
   DockerStatusLabel := TLabel.Create(DockerPage);
   DockerStatusLabel.Parent := DockerPage.Surface;
   DockerStatusLabel.Left := 0;
@@ -504,7 +470,7 @@ begin
   DockerStatusLabel.Height := 30;
   DockerStatusLabel.Font.Size := 14;
   DockerStatusLabel.Font.Style := [fsBold];
-  
+
   DockerInfoLabel := TLabel.Create(DockerPage);
   DockerInfoLabel.Parent := DockerPage.Surface;
   DockerInfoLabel.Left := 0;
@@ -513,7 +479,7 @@ begin
   DockerInfoLabel.Height := 150;
   DockerInfoLabel.WordWrap := True;
   DockerInfoLabel.Font.Size := 10;
-  
+
   RefreshButton := TButton.Create(DockerPage);
   RefreshButton.Parent := DockerPage.Surface;
   RefreshButton.Left := 0;
@@ -522,22 +488,67 @@ begin
   RefreshButton.Height := 30;
   RefreshButton.Caption := CustomMessage('DockerRefreshButton');
   RefreshButton.OnClick := @UpdateDockerStatus;
-  
+
   UpdateDockerStatus(nil);
+
+  // Create Docker build progress page (AFTER file copy, before finish)
+  DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
+  DockerBuildStatusLabel := TLabel.Create(DockerBuildPage);
+  DockerBuildStatusLabel.Parent := DockerBuildPage.Surface;
+  DockerBuildStatusLabel.Left := 0;
+  DockerBuildStatusLabel.Top := 10;
+  DockerBuildStatusLabel.Width := DockerBuildPage.SurfaceWidth;
+  DockerBuildStatusLabel.Height := 100;
+  DockerBuildStatusLabel.WordWrap := True;
+  DockerBuildStatusLabel.Font.Size := 10;
+  DockerBuildStatusLabel.Caption := 'Preparing Docker container build...';
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
+var
+  ResultCode: Integer;
+  Cmd: String;
 begin
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
+  if (CurPageID = DockerBuildPage.ID) then
+  begin
+    WizardForm.NextButton.Enabled := False;
+    DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
+    try
+      Cmd := ExpandConstant('{app}\run_docker_install.cmd');
+      if FileExists(Cmd) then
+      begin
+        DockerBuildStatusLabel.Caption := 'Running Docker container setup...';
+        WizardForm.StatusLabel.Caption := 'Setting up SMS Docker container (this may take several minutes)...';
+        if Exec(Cmd, '', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+        begin
+          if ResultCode = 0 then
+            DockerBuildStatusLabel.Caption := 'SMS Docker container setup completed successfully.'
+          else
+            DockerBuildStatusLabel.Caption := 'Docker container setup encountered an issue. Please check Docker Desktop and try again.';
+        end
+        else
+          DockerBuildStatusLabel.Caption := 'Failed to start Docker setup script.';
+      end
+      else
+        DockerBuildStatusLabel.Caption := 'Docker setup script not found.';
+    except
+      DockerBuildStatusLabel.Caption := 'Error occurred during Docker container setup.';
+    end;
+    WizardForm.NextButton.Enabled := True;
+  end;
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
-  // Skip Docker page if Docker is already installed
+  // Skip Docker page if Docker is already installed and running
   if PageID = DockerPage.ID then
-    Result := IsDockerInstalled;
+    Result := IsDockerInstalled and IsDockerRunning
+  // Skip Docker build page if upgrading and container already exists (no rebuild needed)
+  else if PageID = DockerBuildPage.ID then
+    Result := IsUpgrade and ContainerExists;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -545,13 +556,7 @@ var
   ErrorCode: Integer;
 begin
   Result := True;
-  
-  // Handle installation type page selection
-  if CurPageID = InstallTypePage.ID then
-  begin
-    InstallDevEnvironment := DevEnvRadio.Checked;
-  end;
-  
+
   if CurPageID = DockerPage.ID then
   begin
     if not IsDockerInstalled then
@@ -617,8 +622,7 @@ begin
       begin
         Log('Uninstaller file not found: ' + UninstallPath);
       end;
-    end
-    else if (PreviousInstallPath <> '') and DirExists(PreviousInstallPath) then
+    end else if (PreviousInstallPath <> '') and DirExists(PreviousInstallPath) then
     begin
       // No uninstaller but files exist - try to clean up manually
       Log('No uninstaller found, cleaning up manually at: ' + PreviousInstallPath);
@@ -641,12 +645,35 @@ begin
   end;
 end;
 
+
+function GetPowerShellExe: String;
+begin
+  // Try pwsh.exe (PowerShell 7+) in PATH
+  if FileExists(ExpandConstant('{cmd}\pwsh.exe')) then
+    Result := 'pwsh.exe'
+  // Try powershell.exe (Windows PowerShell) in PATH
+  else if FileExists(ExpandConstant('{cmd}\powershell.exe')) then
+    Result := 'powershell.exe'
+  // Try default install locations for PowerShell 7
+  else if FileExists('C:\\Program Files\\PowerShell\\7\\pwsh.exe') then
+    Result := 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
+  else if FileExists('C:\\Program Files (x86)\\PowerShell\\7\\pwsh.exe') then
+    Result := 'C:\\Program Files (x86)\\PowerShell\\7\\pwsh.exe'
+  // Try default install location for Windows PowerShell
+  else if FileExists('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe') then
+    Result := 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+  else
+    Result := '';
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   EnvContent: String;
   BackupPath: String;
-  ResultCode: Integer;
   NewShortcut, CommonShortcut, UserShortcut: String;
+  ResultCode: Integer;
+  PowerShellExe: String;
+  OldUninstaller, NewUninstaller: String;
 begin
   if CurStep = ssInstall then
   begin
@@ -680,84 +707,32 @@ begin
     begin
       Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     end;
-  end;
-  
-  if CurStep = ssPostInstall then
+  end
+  else if CurStep = ssPostInstall then
   begin
-    // Determine paths for the newly created correct shortcut and potential duplicates
-    NewShortcut := ExpandConstant('{autodesktop}\{#MyAppName}.lnk');
-    CommonShortcut := ExpandConstant('{commondesktop}\{#MyAppName}.lnk');
-    UserShortcut := ExpandConstant('{userdesktop}\{#MyAppName}.lnk');
-
-    // Clean up legacy shortcuts from previous versions or manual creation
-    DeleteFile(ExpandConstant('{autodesktop}\student-management-system - Shortcut.lnk'));
-    DeleteFile(ExpandConstant('{userdesktop}\student-management-system - Shortcut.lnk'));
-    DeleteFile(ExpandConstant('{autodesktop}\SMS Toggle.lnk'));
-    DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
-    DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
-    Log('Cleaned up legacy shortcuts');
+    // Rename the uninstaller to include version number
+    OldUninstaller := ExpandConstant('{app}\unins000.exe');
+    NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
     
-    // Rename uninstaller to include version and update registry
-    // Uses constants defined at top: UninstallerExe, UninstallerDat
-    if FileExists(ExpandConstant('{app}\unins000.exe')) then
+    if FileExists(OldUninstaller) and not FileExists(NewUninstaller) then
     begin
-      RenameFile(ExpandConstant('{app}\unins000.exe'), ExpandConstant('{app}\{#UninstallerExe}'));
-      RenameFile(ExpandConstant('{app}\unins000.dat'), ExpandConstant('{app}\{#UninstallerDat}'));
-      // Update registry to point to renamed uninstaller
-      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
-        'UninstallString', '"' + ExpandConstant('{app}\{#UninstallerExe}') + '"');
-      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
-        'QuietUninstallString', '"' + ExpandConstant('{app}\{#UninstallerExe}') + '" /SILENT');
-      Log('Renamed uninstaller to {#UninstallerExe}');
-    end;
-    
-    // Save language preference for VBS script
-    ForceDirectories(ExpandConstant('{app}\config'));
-    if ActiveLanguage = 'greek' then
-      SaveStringToFile(ExpandConstant('{app}\config\lang.txt'), 'el', False)
-    else
-      SaveStringToFile(ExpandConstant('{app}\config\lang.txt'), 'en', False);
-    
-    // Restore .env files from backup if upgrading
-    if IsUpgrade and WizardIsTaskSelected('keepdata') then
-    begin
-      BackupPath := ExpandConstant('{app}\backups\pre_upgrade_' + '{#MyAppVersion}');
-      
-      if FileExists(BackupPath + '\config\backend.env') then
-        FileCopy(BackupPath + '\config\backend.env', ExpandConstant('{app}\backend\.env'), False);
-      if FileExists(BackupPath + '\config\frontend.env') then
-        FileCopy(BackupPath + '\config\frontend.env', ExpandConstant('{app}\frontend\.env'), False);
-    end
-    else
-    begin
-      // Create default .env files if they don't exist (new install)
-      // Root .env (needed by DOCKER.ps1)
-      if not FileExists(ExpandConstant('{app}\.env')) then
+      Log('Renaming uninstaller from unins000.exe to unins{#MyAppVersion}.exe');
+      if RenameFile(OldUninstaller, NewUninstaller) then
       begin
-        EnvContent := 
-          '# Root Environment Configuration' + #13#10 +
-          'VERSION={#MyAppVersion}' + #13#10 +
-          'SECRET_KEY=change-me-in-production-' + IntToStr(Random(999999)) + #13#10 +
-          'DEBUG=0' + #13#10;
-        SaveStringToFile(ExpandConstant('{app}\.env'), EnvContent, False);
-      end;
-      
-      if not FileExists(ExpandConstant('{app}\backend\.env')) then
+        // Update the uninstall registry entry to point to the renamed file
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+          'UninstallString', '"' + NewUninstaller + '"');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+          'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+          'UninstallString', '"' + NewUninstaller + '"');
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+          'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
+        Log('Uninstaller renamed successfully and registry updated');
+      end
+      else
       begin
-        EnvContent := 
-          '# Backend Environment Configuration' + #13#10 +
-          'DEBUG=0' + #13#10 +
-          'SECRET_KEY=change-me-in-production' + #13#10 +
-          'AUTH_MODE=permissive' + #13#10;
-        SaveStringToFile(ExpandConstant('{app}\backend\.env'), EnvContent, False);
-      end;
-      
-      if not FileExists(ExpandConstant('{app}\frontend\.env')) then
-      begin
-        EnvContent := 
-          '# Frontend Environment Configuration' + #13#10 +
-          'VITE_API_URL=/api/v1' + #13#10;
-        SaveStringToFile(ExpandConstant('{app}\frontend\.env'), EnvContent, False);
+        Log('Failed to rename uninstaller file');
       end;
     end;
   end;
@@ -796,8 +771,8 @@ begin
     DeleteFile(ExpandConstant('{app}\.env'));
     DeleteFile(ExpandConstant('{app}\backend\.env'));
     DeleteFile(ExpandConstant('{app}\frontend\.env'));
-  end
-  else
+  end;
+
     Log('User chose to keep user data');
 end;
 
@@ -815,3 +790,4 @@ begin
     RemoveDir(ExpandConstant('{app}'));
   end;
 end;
+

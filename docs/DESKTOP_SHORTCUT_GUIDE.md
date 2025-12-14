@@ -19,11 +19,11 @@ Run this command once from PowerShell:
 .\CREATE_DESKTOP_SHORTCUT.ps1
 ```
 
-This creates a shortcut named **"SMS Toggle"** on your Desktop.
+This creates a shortcut named **"Student Management System"** on your Desktop.
 
 ### Step 2: Use the Shortcut
 
-**Double-click the "SMS Toggle" shortcut on your Desktop:**
+**Double-click the "Student Management System" shortcut on your Desktop:**
 
 - **If SMS is stopped** → It will start the application
 - **If SMS is running** → It will stop the application
@@ -157,7 +157,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### Change Shortcut Name
 
-1. Right-click "SMS Toggle" on Desktop
+1. Right-click "Student Management System" on Desktop
 2. Click "Rename"
 3. Enter new name (e.g., "Student Management")
 
