@@ -33,6 +33,11 @@
   - Windows installer rebuilt and validated for v1.12.3.
   - Greek language encoding and wizard images regenerated and verified.
   - Installer builder script typo fixed (no workflow impact).
+  - **Major installer improvements:** Versioned uninstaller naming and shortcut cleanup implemented.
+  - **Shortcut management:** Fixed "SMS Toggle" shortcut persistence issue.
+  - **Uninstaller naming:** Implemented workaround for proper versioned uninstaller (`unins{version}.exe`).
+  - **Script modernization:** Replaced VBScript with batch script for better Windows compatibility.
+  - **Documentation:** Comprehensive installer troubleshooting and changelog added.
 
 - **Documentation**
   - README, architecture, and localization docs updated for new standards and best practices.
