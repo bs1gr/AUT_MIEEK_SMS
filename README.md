@@ -77,7 +77,7 @@ Create a desktop shortcut to toggle SMS with a single click:
 .\CREATE_DESKTOP_SHORTCUT.ps1
 ```
 
-Then double-click "SMS Toggle" on your Desktop:
+Then double-click "Student Management System" on your Desktop:
 
 - **Click once** → Start SMS ✅
 - **Click again** → Stop SMS 🛑

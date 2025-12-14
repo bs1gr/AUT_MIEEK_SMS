@@ -6,7 +6,7 @@ REM Try PowerShell 7+ (pwsh)
 where pwsh >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo Using PowerShell 7+...
-    pwsh -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silent
+    pwsh -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silent -NoShortcut
     set "EXITCODE=%ERRORLEVEL%"
     goto :checkresult
 )
@@ -14,7 +14,7 @@ if %ERRORLEVEL% EQU 0 (
 REM Fallback: Windows PowerShell (PS5)
 echo PowerShell 7 not found, using Windows PowerShell...
 echo Note: Some features may require PowerShell 7+
-powershell -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silent
+powershell -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silent -NoShortcut
 set "EXITCODE=%ERRORLEVEL%"
 
 :checkresult
