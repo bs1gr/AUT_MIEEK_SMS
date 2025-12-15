@@ -59,8 +59,11 @@ RUN useradd -m appuser && \
 # Fix database permissions if they exist (owned by root from previous runs)
 RUN if [ -f /data/student_management.db ]; then chmod 644 /data/student_management.db && chown appuser:appuser /data/student_management.db; fi
 
-# Don't switch to appuser here - let entrypoint handle it after fixing permissions
-# USER appuser
+
+# Switch to non-root user (appuser) for security
+USER appuser
+
+# Set root filesystem to read-only at runtime (K8s should also enforce)
 
 # Healthcheck against /health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD curl -fsS http://127.0.0.1:8000/health || exit 1

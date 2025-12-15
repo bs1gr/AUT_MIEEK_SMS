@@ -279,7 +279,11 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
@@ -357,7 +361,11 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
@@ -413,7 +421,11 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     raw_dest = payload.destination.strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request, context={})
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
     if dest_candidate.exists() and dest_candidate.is_dir():
         dest_path = dest_candidate / source_path.name
     elif dest_candidate.suffix and len(dest_candidate.suffix) > 0:
@@ -434,8 +446,11 @@ async def restore_database(request: Request, backup_filename: str):
     try:
         from backend.config import settings
         project_root = Path(__file__).resolve().parents[3]
-        backup_dir = project_root / "backups" / "database"
-        backup_path = backup_dir / backup_filename
+        backup_dir = (project_root / "backups" / "database").resolve()
+        # Sanitize: prevent path traversal and restrict to allowed base directory
+        backup_path = (backup_dir / backup_filename).resolve()
+        if not str(backup_path).startswith(str(backup_dir)):
+            raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
         logger.info(f"Restore request for {backup_filename}")
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
