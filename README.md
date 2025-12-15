@@ -1360,34 +1360,42 @@ All workspace changes are tracked in `.github/WORKSPACE_STATE.md` for transparen
 
 ```powershell
 # Quick load test (smoke test - 1 minute)
-cd load-testing && python scripts/run_load_tests.py --scenario smoke --users 10 --duration 60
+cd load-testing && python scripts/run_load_tests.py --scenario smoke --env development --ci
 
 # Full performance baseline (development environment)
-cd load-testing && python scripts/run_load_tests.py --scenario full --users 100 --duration 300 --environment dev
+cd load-testing && python scripts/run_load_tests.py --scenario medium --env development --ci
 
 # Generate performance report
-cd load-testing && python scripts/analyze_results.py --input results/latest/ --output reports/performance_report.html
+cd load-testing && python scripts/analyze_results.py --results-dir results/
 ```
 
 **Key Features:**
 
 - ✅ **Modular Scenarios**: Authentication, CRUD operations, bulk imports/exports, concurrent users
 - ✅ **Environment Support**: Development, staging, production configurations
-- ✅ **CI/CD Integration**: Automated regression detection in pipelines
-- ✅ **Performance Baselines**: SLA definitions with response time targets and throughput goals
+- ✅ **CI/CD Integration**: Automated load testing on PRs and scheduled performance checks
+- ✅ **Performance Regression Detection**: Automatic comparison against baseline metrics
+- ✅ **Grafana Dashboards**: Real-time performance monitoring with dedicated load testing panels
 - ✅ **Comprehensive Reporting**: Automated analysis with bottleneck identification and optimization recommendations
-- ✅ **Monitoring Integration**: Prometheus metrics export compatible with existing Grafana dashboards
+
+**CI/CD Integration:**
+- **GitHub Actions**: Automated load testing workflows (`.github/workflows/load-testing.yml`)
+- **Performance Baselines**: Regression detection against `load-testing/baseline.json`
+- **Artifact Storage**: Test results and reports retained for 30-90 days
+- **Scheduled Runs**: Weekly performance validation on Sundays
 
 **Quick Start:**
 
 1. **Install Dependencies**: `pip install -r load-testing/requirements.txt`
-2. **Configure Environment**: Copy `load-testing/locust/config/environments/dev.py` and adjust settings
+2. **Configure Environment**: Update `load-testing/locust/config/environments/` for your setup
 3. **Run Tests**: Use the commands above or see [load-testing/README.md](load-testing/README.md)
-4. **View Results**: Check `load-testing/results/` and `load-testing/reports/` directories
+4. **View Results**: Check `load-testing/results/` and analysis reports
 
 **📖 Documentation:**
 - [Load Testing Guide](load-testing/README.md)
 - [Performance Targets](load-testing/docs/performance_targets.md)
+- [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
+- [Troubleshooting](load-testing/docs/troubleshooting.md)
 - [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
 - [Troubleshooting](load-testing/docs/troubleshooting.md)
 
