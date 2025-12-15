@@ -248,7 +248,33 @@ class TestPreviewAndExecuteWorkflow:
 
 
 class TestImportErrorHandling:
-    """Test error handling and edge cases."""
+
+    def test_audit_log_entry_on_failed_import(self, client, clean_db):
+        """Should create an audit log entry for failed import attempts."""
+        from backend.models import AuditLog
+        # Trigger a known failure (invalid import_type)
+        payload = [{"student_id": "STU001"}]
+        files = {
+            "files": ("students.json", json.dumps(payload).encode("utf-8"), "application/json"),
+        }
+        resp = client.post(
+            "/api/v1/imports/upload",
+            files=files,
+            data={"import_type": "invalid"}
+        )
+        assert resp.status_code == 400
+        # Query the most recent audit log
+        # Close and reopen session to ensure visibility of committed data
+        clean_db.close()
+        from backend.tests.conftest import TestingSessionLocal
+        session = TestingSessionLocal()
+        log = session.query(AuditLog).order_by(AuditLog.timestamp.desc()).first()
+        assert log is not None, "No audit log entry found for failed import"
+        assert log.action == "bulk_import"
+        assert log.success is False
+        assert log.error_message is not None and "import_type" in log.error_message.lower()
+        assert log.details is not None and log.details.get("type") == "invalid"
+        session.close()
 
     def test_unsupported_file_type(self, client: TestClient):
         """Should handle unsupported file types gracefully."""
