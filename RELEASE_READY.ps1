@@ -10,20 +10,21 @@ function Update-VersionReferences {
     # Update VERSION file
     Set-Content -Path "VERSION" -Value $NewVersion
 
+
     # Update backend/main.py docstring
-    (Get-Content "backend/main.py") -replace 'Version: \\d+\\.\\d+\\.\\d+', "Version: $NewVersion" | Set-Content "backend/main.py"
+    (Get-Content "backend/main.py") -replace 'Version: [0-9]+\.[0-9]+\.[0-9]+', "Version: $NewVersion" | Set-Content "backend/main.py"
 
     # Update frontend/package.json
-    (Get-Content "frontend/package.json") -replace '"version":\\s*"[\\d.]+"', '"version": "' + $NewVersion + '"' | Set-Content "frontend/package.json"
+    (Get-Content "frontend/package.json") -replace '"version":\s*"[0-9\.]+"', '"version": "' + $NewVersion + '"' | Set-Content "frontend/package.json"
 
     # Update TODO.md
-    (Get-Content "TODO.md") -replace '\\*\\*Current Version\\*\\*: [\\d.]+' , "**Current Version**: $NewVersion" | Set-Content "TODO.md"
+    (Get-Content "TODO.md") -replace '\*\*Current Version\*\*: [0-9\.]+', "**Current Version**: $NewVersion" | Set-Content "TODO.md"
 
     # Update DOCUMENTATION_INDEX.md
-    (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\\*\\*Version\\*\\*: [\\d.]+' , "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
+    (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Version\*\*: [0-9\.]+', "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
 
     # Optionally update README.md (if version appears)
-    (Get-Content "README.md") -replace '\\d+\\.\\d+\\.\\d+', $NewVersion | Set-Content "README.md"
+    (Get-Content "README.md") -replace '[0-9]+\.[0-9]+\.[0-9]+', $NewVersion | Set-Content "README.md"
 
     # Add new section to CHANGELOG.md
     $changelog = Get-Content "CHANGELOG.md"

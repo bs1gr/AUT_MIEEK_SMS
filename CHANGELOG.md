@@ -8,6 +8,16 @@
 - Version references updated
 - Automated release workflow improvements
 
+---## [1.12.5] - 2025-12-15
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
 ---# Changelog
 
 All notable changes to this project will be documented in this file.
