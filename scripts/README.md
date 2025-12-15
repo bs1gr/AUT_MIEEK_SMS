@@ -166,6 +166,27 @@ Notes:
 
 **Documentation:** `docs/development/VERSION_MANAGEMENT_GUIDE.md`
 
+
+### 🗄️ verify_backups.py - Backup Verification
+
+**Location:** `./scripts/verify_backups.py`
+
+**Purpose:** Scan all .db files in the backups/ directory, check SQLite integrity, and verify required tables exist.
+
++**Usage:**
+
+```bash
+python scripts/verify_backups.py
+```
+
+Reports a summary of OK/corrupt/missing-table backups. Returns nonzero exit code if any backup fails verification.
+
+**Tests:**
+
+Test suite: `scripts/tests/test_verify_backups.py` (run with `pytest scripts/tests/test_verify_backups.py`)
+
+---
+
 ### 🗄️ CHECK_VOLUME_VERSION.ps1 - Database Schema Check
 
 **Location:** `.\scripts\CHECK_VOLUME_VERSION.ps1`
