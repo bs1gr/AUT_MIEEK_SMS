@@ -834,6 +834,15 @@ async def import_from_upload(
         elif norm in ("student", "students"):
             norm = "students"
         else:
+            # Log audit entry for failed import_type
+            audit.log_from_request(
+                request=request,
+                action=AuditAction.BULK_IMPORT,
+                resource=AuditResource.SYSTEM,
+                details={"source": "upload", "import_type": import_type, "type": "invalid"},
+                success=False,
+                error_message="import_type must be 'courses' or 'students'",
+            )
             raise http_error(
                 400,
                 ErrorCode.IMPORT_INVALID_REQUEST,
@@ -1240,7 +1249,7 @@ async def import_from_upload(
         audit.log_from_request(
             request=request,
             action=AuditAction.BULK_IMPORT,
-            resource=AuditResource.OTHER,
+            resource=AuditResource.SYSTEM,
             details={"source": "upload"},
             success=False,
             error_message=str(exc),
