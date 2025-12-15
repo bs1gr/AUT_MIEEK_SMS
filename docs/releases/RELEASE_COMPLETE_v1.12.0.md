@@ -279,7 +279,7 @@ Installer:
 - Smoke test: PASSED ✅
 
 Backward Compatibility: 100% (zero breaking changes)
-Version: 1.12.3 → 1.12.0
+Version: 1.12.5 → 1.12.0
 ```
 
 ---
@@ -350,5 +350,6 @@ Version: 1.12.3 → 1.12.0
 **Status**: ✅ PRODUCTION READY
 
 The $11.12.2 release is now live and ready for production deployment!
+
 
 
