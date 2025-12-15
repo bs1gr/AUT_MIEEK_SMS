@@ -7,6 +7,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
 
+
+## [1.12.5] - 2025-12-15
+
+**Release Type**: Maintenance Release – Security, Hardening, and Path Sanitization
+**Focus**: CodeQL/Trivy security fixes, Docker/K8s hardening, path traversal protection, and pre-release cleanup
+
+### Changed
+
+- Hardened Dockerfiles and Kubernetes manifests (non-root, read-only root, drop capabilities)
+- Path sanitization for all backup/restore endpoints (prevents traversal, CodeQL high severity)
+- New tests for path traversal and endpoint security
+- Comprehensive cleanup and pre-release validation
+
+### Technical Details
+
+- All tests, lint, and translation checks passing
+- Ready for production deployment
+
+---
 ## [1.12.4] - 2025-12-14
 
 **Release Type**: Feature Release – Load Testing & Performance Infrastructure
