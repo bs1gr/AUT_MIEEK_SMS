@@ -879,11 +879,29 @@ async def import_from_upload(
                     # Handle JSON files
                     data = json.loads(content.decode("utf-8"))
                     data_batches.append(data if isinstance(data, list) else [data])
-            except HTTPException:
+            except HTTPException as http_exc:
                 # Re-raise validation errors with proper status codes
+                # Log the failed import attempt with request context
+                audit.log_from_request(
+                    request=request,
+                    action=AuditAction.BULK_IMPORT,
+                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    success=False,
+                    error_message=str(http_exc),
+                )
                 raise
             except Exception as exc:
                 errors.append(f"{up.filename}: {exc}")
+                # Log the failed import attempt with request context
+                audit.log_from_request(
+                    request=request,
+                    action=AuditAction.BULK_IMPORT,
+                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    success=False,
+                    error_message=str(exc),
+                )
 
         # Process optional raw JSON text from form field
         if json_text:
@@ -905,6 +923,15 @@ async def import_from_upload(
                 data_batches.append(parsed if isinstance(parsed, list) else [parsed])
                 logger.info(f"Raw JSON text validated and parsed ({text_size} bytes)")
             except json.JSONDecodeError as exc:
+                # Log the failed import attempt with request context
+                audit.log_from_request(
+                    request=request,
+                    action=AuditAction.BULK_IMPORT,
+                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    details={"source": "upload", "file": "json_text", "type": norm},
+                    success=False,
+                    error_message=f"Invalid JSON format in 'json' field: {exc}",
+                )
                 raise http_error(
                     400,
                     ErrorCode.IMPORT_INVALID_JSON,
@@ -912,10 +939,26 @@ async def import_from_upload(
                     request,
                     context={"error": str(exc)},
                 )
-            except HTTPException:
+            except HTTPException as http_exc:
+                audit.log_from_request(
+                    request=request,
+                    action=AuditAction.BULK_IMPORT,
+                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    details={"source": "upload", "file": "json_text", "type": norm},
+                    success=False,
+                    error_message=str(http_exc),
+                )
                 raise
             except Exception as exc:
                 errors.append(f"json: {exc}")
+                audit.log_from_request(
+                    request=request,
+                    action=AuditAction.BULK_IMPORT,
+                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    details={"source": "upload", "file": "json_text", "type": norm},
+                    success=False,
+                    error_message=str(exc),
+                )
 
         # Flatten batches into items for processing
         def iter_items():
