@@ -91,7 +91,22 @@ function formatDateTimeForICS(date: Date, time: string): string {
  * Generate a unique ID for calendar events
  */
 function generateUID(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@student-management`;
+  // Generates a cryptographically secure unique identifier for ICS events
+  // Uses window.crypto.getRandomValues for secure randomness
+  const array = new Uint32Array(4);
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    window.crypto.getRandomValues(array);
+    return (
+      Array.from(array, val => val.toString(36)).join('') +
+      Date.now().toString(36)
+    );
+  } else {
+    // Fallback: use Date.now and Math.random (should not happen in modern browsers)
+    return (
+      Math.random().toString(36).substr(2, 9) +
+      Date.now().toString(36)
+    );
+  }
 }
 
 /**

@@ -1,4 +1,4 @@
-﻿param(
+param(
     $GrafanaPort = 3000,
     [switch]$Install,
     [switch]$Start,
@@ -107,7 +107,7 @@ function Write-InstallerLog {
     # Stop cleanly
 
 .NOTES
-Version: 1.12.3 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
+Version: 1.12.5 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
     For native development mode, use: .\NATIVE.ps1
 #>
 
@@ -1335,6 +1335,7 @@ if ($WithMonitoring) {
 # Default: Start
 $code = Start-Application
 exit $code
+
 
 
 
