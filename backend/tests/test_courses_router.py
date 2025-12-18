@@ -184,17 +184,49 @@ def test_list_courses_with_semester_filter(client):
     assert len(spring_data["items"]) == 1
 
 
-def test_delete_course(client):
+def test_delete_course(client, admin_token, bootstrap_admin):
     """Test deleting a course."""
+    # Login as bootstrap admin
+    admin_email = bootstrap_admin["email"]
+    admin_password = bootstrap_admin["password"]
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": admin_email,
+        "password": admin_password
+    })
+    print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
+    admin_token_val = login_resp.json().get("access_token")
+    assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
+    headers = {"Authorization": f"Bearer {admin_token_val}"}
+
+    # Register a new admin via API using bootstrap admin token
+    new_admin_email = "admin_delete_course@example.com"
+    new_admin_password = "AdminPass123!"
+    client.post("/api/v1/auth/register", json={
+        "email": new_admin_email,
+        "password": new_admin_password,
+        "full_name": "Admin",
+        "role": "admin"
+    }, headers=headers)
+
+    # Login as the new admin
+    login_resp2 = client.post("/api/v1/auth/login", json={
+        "email": new_admin_email,
+        "password": new_admin_password
+    })
+    admin_token_val2 = login_resp2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {admin_token_val2}"}
+
+    # Create course as new admin
     payload = make_course_payload(1)
-    r_create = client.post("/api/v1/courses/", json=payload)
+    r_create = client.post("/api/v1/courses/", json=payload, headers=headers2)
     course_id = r_create.json()["id"]
 
-    r_del = client.delete(f"/api/v1/courses/{course_id}")
+    # Delete course as new admin
+    r_del = client.delete(f"/api/v1/courses/{course_id}", headers=headers2)
     assert r_del.status_code == 204
 
     # Verify 404 after delete
-    r_get = client.get(f"/api/v1/courses/{course_id}")
+    r_get = client.get(f"/api/v1/courses/{course_id}", headers=headers2)
     assert r_get.status_code == 404
 
 

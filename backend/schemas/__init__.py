@@ -30,9 +30,7 @@ from .auth import (
 from .auth import (
     UserLogin as UserLogin,
 )
-from .auth import (
-    UserResponse as UserResponse,
-)
+## Removed duplicate UserResponse import from .auth to fix Ruff F811
 from .auth import (
     UserUpdate as UserUpdate,
 )
@@ -147,3 +145,4 @@ from .rbac import (
 from .rbac import (
     RBACSummary as RBACSummary,
 )
+from .users import UserResponse as UserResponse
