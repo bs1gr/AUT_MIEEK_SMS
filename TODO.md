@@ -163,54 +163,91 @@
     - Performance categories display
     - Automated recommendations
     - Highlights section
-    - Print functionality
-  - Added API client methods in `frontend/src/api/api.js` (reportsAPI)
-  - Created bilingual translations:
-    - `frontend/src/locales/en/reports.js` (75+ keys)
-    - `frontend/src/locales/el/reports.js` (75+ keys)
-  - Updated `frontend/src/translations.ts` to import report translations
-  - Integrated into StudentProfile component with "Generate Performance Report" button
 
-- **Features Delivered**:
-  - Multiple report periods (week, month, semester, year, custom)
-  - Attendance summaries with rate calculation
-  - Grade statistics with trend analysis
-  - Course-by-course breakdown with performance categories
-  - Automated recommendation generation based on thresholds
-  - Student highlights integration
-  - Rate limiting (10 requests/minute)
-  - Color-coded UI (green: ≥90%, yellow: 75-90%, red: <75%)
-  - Print support
-  - Full bilingual support (EN/EL)
+    # Project TODO (Prioritized Backlog)
 
-**Commits**:
-- bb1d997d: "feat: Add student performance report generation (Phase 2 $11.11.2)"
-- 566f046f: "feat: Integrate performance report into student profile"
+    **Last updated**: 2025-12-18 (Prioritized & Organized)
+    **Current Version**: 1.12.5
 
-**Phase 2.1 Optional Features** ✅ **ALL COMPLETE**
+    ---
 
-**2.1.1 PDF/CSV Export** ✅
-- Created `backend/services/report_exporters.py` (330+ lines)
-  - `generate_pdf_report()`: Professional PDF with ReportLab (tables, colors, styling)
-  - `generate_csv_report()`: Structured CSV with clear sections
-- New endpoint: POST `/reports/student-performance/download`
-  - Supports format: pdf, csv, json
-  - Proper MIME types and Content-Disposition headers
-  - Filename includes student name and date range
-- Frontend: Download buttons in StudentPerformanceReport component
-  - Red button for PDF, green button for CSV
-  - Blob API integration with automatic cleanup
-- Updated: `frontend/src/api/api.js` with `downloadStudentReport()` method
+    ## 🟥 1. Critical/Blocking Tasks
 
-**2.1.2 Bulk Report Generation** ✅
-- New endpoint: POST `/reports/bulk/student-performance`
-  - Supports up to 50 students per request
-  - Returns JSON summary or combined CSV
-  - Individual error tracking per student
-  - Rate limited (10 requests/minute)
-- BulkReportRequest schema with full configuration
-- Efficient batch processing with error handling
-- Combined CSV export for bulk data analysis
+    - [ ] **Backend edge case tests**
+      - Expand `backend/tests/test_edge_cases.py` for concurrency, rollbacks, boundary values
+    - [ ] **Security & Authentication Review**
+      - Ensure all admin endpoints use `optional_require_role`
+      - Confirm all endpoints have proper rate limiting (`@limiter.limit`)
+      - Check for hardcoded secrets or missing `.env` variables
+    - [ ] **Bug Fixes/Production Issues**
+      - Address any open bugs affecting production or user data
+      - Investigate health check failures or monitoring alerts
+
+    ## 🟧 2. Core Feature Development
+
+    - [ ] **Fine-grained RBAC system** (Deferred: Phase 2.4)
+      - Roles → permissions model, admin endpoints for roles/permissions management
+    - [ ] **Feature Implementation**
+      - New models, routers, or schemas (follow modular structure)
+      - API endpoints (backend/routers/routers_*.py)
+      - Frontend features/components (React, i18n compliance)
+    - [ ] **Testing**
+      - Backend: Add/expand pytest coverage for new features
+      - Frontend: Add/expand Vitest coverage for new UI
+
+    ## 🟨 3. Quality & Compliance
+
+    - [ ] **Translations**
+      - Ensure all new/changed UI strings are in both EN and EL
+      - Run translation integrity tests
+    - [ ] **Code Quality**
+      - Run `COMMIT_READY.ps1 -Quick` for lint/format/smoke
+      - Address any lint or type errors
+    - [ ] **Documentation**
+      - Add API request/response examples (auth flow, error envelope, pagination) in dedicated guide
+      - Produce architecture & sequence diagrams (startup lifecycle, backup flow, auth refresh rotation)
+      - Update relevant docs for new features or changes
+
+    ## 🟩 4. Maintenance & Optimization
+
+    - [ ] **Performance**
+      - Review and optimize slow queries or endpoints
+      - Check logs for recurring warnings/errors
+    - [ ] **DevOps**
+      - Docker/NATIVE script updates
+      - Backup verification automation
+      - Migration scripts
+
+    ## 🟦 5. Nice-to-Have/Backlog
+
+    - [ ] **UI/UX Improvements**
+      - Non-blocking UI polish or enhancements
+    - [ ] **Refactoring**
+      - Code cleanup, modularization, or tech debt
+    - [ ] **Monitoring/Analytics**
+      - Export application metrics (Prometheus/OpenTelemetry instrumentation)
+      - Add/expand metrics, logging, or dashboards
+    - [ ] **Unit tests for CI scripts**
+      - `.github/scripts/normalize_ruff.py` & validators
+    - [ ] **Introduce load-testing suite**
+      - Locust/Gatling & baseline performance doc
+
+    ---
+
+    ## ✅ Completed & Deferred (Summary)
+
+    See previous sections for detailed achievements, completed phases, and documentation. All major quick wins, infrastructure, and documentation tasks up to 2025-12-14 are complete. For full details, refer to the summary and commit history below.
+
+    ---
+    ## 📝 Notes
+
+    - Legacy phase tracking removed (obsolete after v1.9.x consolidation)
+    - Pre-$11.11.2 documentation archived to `archive/pre-$11.11.2/`
+    - Completed work retained only as summary; document focuses on actionable backlog
+
+    ---
+    ## Completed Work (Historical Reference)
+    ...existing code...
 
 **2.1.3 Report Caching with Redis** ✅
 - Cache configuration: `CacheConfig.STUDENT_REPORT = 15 minutes`
@@ -765,6 +802,88 @@ Backend coverage goal (≥80%) achieved; focus now on frontend depth & resilienc
 - Legacy phase tracking removed (obsolete after v1.9.x consolidation)
 - Pre-$11.11.2 documentation archived to `archive/pre-$11.11.2/`
 - Completed work retained only as summary; document focuses on actionable backlog
+
+
+
+
+
+
+---
+
+## 📈 Recommendations / Next Steps (2025-12-18)
+
+Based on the deep-dive review, the following recommendations and next steps are suggested to maintain and further improve project health:
+
+### 1. Continuous Security & Compliance
+- Schedule quarterly security audits (dependency checks, RBAC review, penetration testing)
+- Monitor for new CVEs in dependencies (enable Dependabot or similar)
+- Periodically review admin endpoint access and audit logs
+
+### 2. Performance & Scalability
+- Run load tests before major releases; document baseline and regression results
+- Monitor DB query performance and add indexes as usage patterns evolve
+- Review caching strategy as user/data volume grows
+
+### 3. Code Quality & Testing
+- Maintain 80%+ backend and 90%+ frontend test coverage
+- Expand edge case and concurrency tests as new features are added
+- Enforce pre-commit quality gates (lint, type check, translation integrity)
+
+### 4. Documentation & Onboarding
+- Keep architecture diagrams and API examples up to date with major changes
+- Add onboarding guides for new contributors (link to quick reference docs)
+
+### 5. DevOps & Operations
+- Automate backup verification and restoration tests
+- Periodically review CI/CD pipeline for speed and reliability improvements
+- Monitor application metrics and set up alerting for error rates/latency
+
+### 6. Feature Roadmap (Post-Production)
+- Implement fine-grained RBAC (Phase 2.4)
+- Consider user self-service features (profile, password reset, notifications)
+- Evaluate integration with external systems (SIS, reporting tools) as needed
+
+---
+
+_These recommendations are intended to ensure the system remains secure, performant, and maintainable as it evolves. Review and update this section after each major release or audit._
+
+
+---
+
+## 🗂️ Prioritized Actionable Backlog (2025-12-18)
+
+### P1: Security, Stability, and Compliance
+- [ ] Schedule and document quarterly security audits (dependency, RBAC, penetration)
+- [ ] Enable and monitor automated CVE/dependency/license scanning (Dependabot, license check)
+- [ ] Add secret scanning to pre-commit hooks
+- [ ] Automate backup verification and restoration tests
+
+### P2: Performance, Testing, and DevOps
+- [ ] Run and document load tests before each major release
+- [ ] Add/expand performance benchmark tests (API, DB, memory)
+- [ ] Export application metrics (Prometheus/OpenTelemetry)
+- [ ] Add unit tests for CI scripts (e.g., `.github/scripts/normalize_ruff.py`)
+- [ ] Enhance release automation (changelog, staged rollout, beta/RC channels)
+
+### P3: Backend & Feature Expansion
+- [ ] Implement fine-grained RBAC (Phase 2.4)
+- [ ] Add user self-service features (profile, password reset, notifications)
+- [ ] Evaluate/integrate with external systems (SIS, reporting tools)
+- [ ] Add real-time notifications (WebSocket)
+- [ ] Implement advanced export formats (Excel, Power BI)
+
+### P4: Frontend & Developer Experience
+- [ ] Implement code splitting and bundle size optimization
+- [ ] Expand React.memo, skeleton loading, and virtual scrolling
+- [ ] Add/expand Zod validation schemas and error recovery strategies
+- [ ] Integrate performance monitoring hooks and dashboards
+- [ ] Create onboarding guides and video tutorials for new contributors
+- [ ] Expand API request/response examples and architecture diagrams
+- [ ] Add troubleshooting and performance debugging guides
+
+---
+
+_Priorities: P1 = Critical/High Impact, P2 = High, P3 = Medium, P4 = Nice-to-have/Developer Experience._
 
 
 
