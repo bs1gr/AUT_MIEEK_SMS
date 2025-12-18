@@ -47,4 +47,16 @@ repos:
       - id: mixed-line-ending
         args: ['--fix=lf']
 
+
+# Secret scanning (detect-secrets)
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.4.0
+  hooks:
+    - id: detect-secrets-hook
+      name: detect-secrets (prevent committing secrets)
+      args: ["--baseline", ".secrets.baseline"]
+      language: python
+      types: ["text"]
+      files: .*
+
 exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
