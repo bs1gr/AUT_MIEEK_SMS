@@ -156,20 +156,8 @@ function AppLayout({ children }: AppLayoutProps) {
         </div>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          <button
-            className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm"
-            onClick={() => setShowFeedback(true)}
-            type="button"
-          >
-            {t('feedback.title')}
-          </button>
         </div>
       </div>
-      <UserFeedbackModal
-        isOpen={showFeedback}
-        onClose={() => setShowFeedback(false)}
-        onSubmit={handleSubmitFeedback}
-      />
 
       {/* Top Navigation */}
       {isAuthenticated && (
@@ -187,6 +175,21 @@ function AppLayout({ children }: AppLayoutProps) {
       {/* Page Content */}
       <div className="flex-1 w-full relative">{children}</div>
 
+      {/* Feedback Button fixed at bottom right */}
+      <div className="fixed bottom-6 left-6 z-50">
+        <button
+          className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 text-sm"
+          onClick={() => setShowFeedback(true)}
+          type="button"
+        >
+          {t('feedback.title')}
+        </button>
+      </div>
+      <UserFeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        onSubmit={handleSubmitFeedback}
+      />
       <Footer />
     </div>
   );

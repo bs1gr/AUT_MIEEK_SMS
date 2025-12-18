@@ -31,7 +31,7 @@ def test_refresh_rotation_and_logout(client):
 
     # Use refresh to obtain rotated tokens
     # Call refresh without JSON body; server should read cookie and rotate it
-    r3 = client.post("/api/v1/auth/refresh")
+    r3 = client.post("/api/v1/auth/refresh", add_auth=False)
     assert r3.status_code == 200
     new = r3.json()
     assert "access_token" in new
@@ -59,18 +59,18 @@ def test_refresh_rotation_and_logout(client):
 
     # Old refresh should no longer work
     # Old refresh (previous cookie) should no longer work
-    r4 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
+    r4 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh}, add_auth=False)
     assert r4.status_code == 401
 
     # Logout the new refresh token
     # Logout should clear the refresh cookie
-    r5 = client.post("/api/v1/auth/logout")
+    r5 = client.post("/api/v1/auth/logout", add_auth=False)
     assert r5.status_code == 200
     assert r5.json().get("ok") is True
     assert client.cookies.get("refresh_token") is None
 
     # Using the logged-out refresh should fail
-    r6 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh})
+    r6 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh}, add_auth=False)
     assert r6.status_code == 401
 
     # DB: after logout all refresh tokens for the user should be revoked

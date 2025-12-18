@@ -110,9 +110,9 @@ export default defineConfig({
     },
   },
   server: {
-    host: '127.0.0.1',
-    port: 8080, // Using port 8080 to avoid permission issues
-    strictPort: false,
+    host: 'localhost',
+    port: 5173, // Use standard Vite dev port for local/E2E
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',

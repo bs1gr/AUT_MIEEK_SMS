@@ -362,6 +362,7 @@ async def get_current_user(
     - When token is provided OR AUTH_ENABLED=True: always validate the token properly.
     """
     if token is None:
+        print("DEBUG: get_current_user called for path:", getattr(request.url, 'path', ''), "AUTH_ENABLED:", getattr(settings, 'AUTH_ENABLED', False))
         # Only access headers when token not provided (avoid KeyError on minimal Request objects)
         try:
             auth_header = str(request.headers.get("Authorization", "")).strip()
@@ -386,15 +387,27 @@ async def get_current_user(
                 full_name="Test User"
             )
 
-        if not auth_header.startswith("Bearer "):
-            raise http_error(
-                status.HTTP_401_UNAUTHORIZED,
-                ErrorCode.UNAUTHORIZED,
-                "Missing bearer token",
-                request,
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        token = auth_header.split(" ", 1)[1].strip()
+        # For all /auth/ endpoints, always require a valid token
+        if is_auth_endpoint:
+            if not auth_header.startswith("Bearer "):
+                raise http_error(
+                    status.HTTP_401_UNAUTHORIZED,
+                    ErrorCode.UNAUTHORIZED,
+                    "Missing bearer token",
+                    request,
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            token = auth_header.split(" ", 1)[1].strip()
+        else:
+            if not auth_header.startswith("Bearer "):
+                raise http_error(
+                    status.HTTP_401_UNAUTHORIZED,
+                    ErrorCode.UNAUTHORIZED,
+                    "Missing bearer token",
+                    request,
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            token = auth_header.split(" ", 1)[1].strip()
 
     # If we get here, we have a token (either from parameter or header) - validate it
     credentials_exception = http_error(
@@ -644,6 +657,14 @@ async def login(
 @router.get("/auth/me", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def me(request: Request, current_user: Any = Depends(get_current_user)):
+    # Explicitly require authentication: if current_user is None or inactive, raise 401
+    if current_user is None or not bool(getattr(current_user, "is_active", False)):
+        raise http_error(
+            status.HTTP_401_UNAUTHORIZED,
+            ErrorCode.UNAUTHORIZED,
+            "Authentication required or user inactive",
+            request,
+        )
     return current_user
 
 
@@ -709,11 +730,11 @@ async def refresh(
 
         # Issue new access token and rotate refresh token (revoke old, insert new)
         user = db.query(models.User).filter(models.User.email == email).first()
-        if not user:
+        if not user or not bool(getattr(user, "is_active", False)):
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
                 ErrorCode.UNAUTHORIZED,
-                "User not found",
+                "User not found or inactive",
                 request,
             )
 
