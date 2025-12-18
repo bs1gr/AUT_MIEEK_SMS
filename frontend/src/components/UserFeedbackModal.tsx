@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
 import Modal from './ui/Modal';
-import Button from './ui/button';
-import Textarea from './ui/textarea';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 
 interface UserFeedbackModalProps {
   isOpen: boolean;
