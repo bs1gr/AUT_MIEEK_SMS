@@ -188,7 +188,7 @@ async def ensure_defaults(
     audit_logger = get_audit_logger(db)
     try:
         # Ensure roles
-        role_names = {"admin": "System administrator", "teacher": "Teacher", "student": "Student"}
+        role_names = {"admin": "System administrator", "teacher": "Teacher", "guest": "Guest (read-only)"}
         name_to_role: dict[str, models.Role] = {}
         for name, desc in role_names.items():
             r = db.query(models.Role).filter(models.Role.name == name).first()
@@ -280,15 +280,15 @@ async def ensure_defaults(
         ]:
             grant("teacher", pn)
 
-        # Student default grants
-        for pn in ["students.self.read", "grades.self.read", "attendance.self.read"]:
-            grant("student", pn)
+        # Guest default grants (read-only, no sensitive data)
+        for pn in ["students.read", "courses.read"]:
+            grant("guest", pn)
 
-        # Backfill UserRole from legacy User.role
+        # Backfill UserRole from legacy User.role (admin/teacher/guest only)
         users = db.query(models.User).all()
         for u in users:
             legacy = (getattr(u, "role", None) or "").strip().lower()
-            if legacy in name_to_role:
+            if legacy in name_to_role and legacy != "student":
                 role_obj = name_to_role[legacy]
                 exists = (
                     db.query(models.UserRole)

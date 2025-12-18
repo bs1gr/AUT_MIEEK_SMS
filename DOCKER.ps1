@@ -1146,9 +1146,10 @@ function Show-Logs {
     return $LASTEXITCODE
 }
 
+
 function Update-Application {
-    if ($Silent) { Write-InstallerLog "Update-Application called" }
     param([switch]$Clean)
+    if ($Silent) { Write-InstallerLog "Update-Application called" }
 
     Write-Header "Updating SMS Application"
 

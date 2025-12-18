@@ -277,11 +277,13 @@ export const RBACPanel: React.FC = () => {
                     aria-label="Select role"
                   >
                     <option value="">{t('rbac.selectRole')}</option>
-                    {rbacData?.roles.map((role) => (
-                      <option key={role.id} value={role.name}>
-                        {role.name}
-                      </option>
-                    ))}
+                    {rbacData?.roles
+                      .filter((role) => ["admin", "teacher", "guest"].includes(role.name))
+                      .map((role) => (
+                        <option key={role.id} value={role.name}>
+                          {role.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 <Button

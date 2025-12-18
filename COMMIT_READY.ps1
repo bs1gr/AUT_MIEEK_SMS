@@ -81,7 +81,7 @@ Version: 1.12.5
             run cleanup as a smoke test without unrelated checks failing the job.
 #>
 
-[CmdletBinding()]
+ [CmdletBinding()]
 param(
     [ValidateSet('quick', 'standard', 'full', 'cleanup')]
     [string]$Mode = 'standard',
@@ -107,9 +107,47 @@ param(
     # New: One-shot release flow: audit → optional bump → full pre-commit → commit+push+tag (if all OK)
     [switch]$ReleaseFlow,
     # Optional: run non-interactively for CI (auto-accept prompts)
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [Alias('h')][switch]$Help
 )
 
+$USAGE = @"
+USAGE: .\COMMIT_READY.ps1 [-Mode quick|standard|full|cleanup] [options]
+
+Options:
+    -Mode <mode>         Set execution mode (quick, standard, full, cleanup)
+    -Quick               Shortcut for -Mode quick
+    -Standard            Shortcut for -Mode standard
+    -Full                Shortcut for -Mode full
+    -Cleanup             Shortcut for -Mode cleanup
+    -SkipTests           Skip all test execution
+    -SkipCleanup         Skip cleanup operations
+    -SkipLint            Skip linting checks
+    -GenerateCommit      Generate commit message at the end
+    -AutoFix             Automatically fix issues where possible
+    -SyncVersion         Auto-update documentation and synchronize version
+    -UpdateDocs          Update documentation only
+    -AuditVersion        Audit version consistency only
+    -BumpToVersion <v>   Bump to specified version
+    -AutoTagAndPush      Auto-tag and push after checks
+    -ReleaseFlow         One-shot release: audit, bump, commit, push, tag
+    -NonInteractive      Run non-interactively (for CI)
+    -Help, -h            Show this help message and exit
+
+Examples:
+    .\COMMIT_READY.ps1
+    .\COMMIT_READY.ps1 -Mode quick
+    .\COMMIT_READY.ps1 -Full -AutoFix
+    .\COMMIT_READY.ps1 -Cleanup
+
+For full documentation, see the top of this script or run Get-Help .\COMMIT_READY.ps1
+"@
+
+# Show help and exit if -Help or -h is present
+if ($Help) {
+        Write-Host $USAGE -ForegroundColor Cyan
+        exit 0
+}
 $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Normalize Mode based on legacy switches if provided (supports -Quick etc.)
@@ -170,6 +208,11 @@ function Write-Header {
 
 function Write-Section {
     param([string]$Text)
+    # Show help and exit if -Help or -h is present
+    if ($Help) {
+        Write-Host $USAGE -ForegroundColor Cyan
+        exit 0
+    }
     Write-Host ""
     Write-Host "─────────────────────────────────────────────────" -ForegroundColor DarkGray
     Write-Host " $Text" -ForegroundColor White
