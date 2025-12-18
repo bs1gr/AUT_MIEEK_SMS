@@ -68,7 +68,29 @@ jobs:
           retention-days: 30
 
   # ============================================================================
-  # PHASE 2: LINTING & CODE QUALITY
+  # PHASE 2: LINTING, SECRET SCANNING & CODE QUALITY
+    secret-scan:
+      name: "🕵️ Secret Scanning (Gitleaks)"
+      runs-on: ubuntu-latest
+      needs: [lint-backend, lint-frontend]
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Run Gitleaks secret scan
+          uses: gitleaks/gitleaks-action@v2
+          with:
+            config-path: '' # Use default config, or add .gitleaks.toml for custom rules
+            fail: true
+          continue-on-error: false
+
+        - name: Upload Gitleaks report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: gitleaks-report
+            path: gitleaks-report.json
+            retention-days: 30
   # ============================================================================
 
   lint-backend:

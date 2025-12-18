@@ -1,0 +1,9 @@
+# Gitleaks config for pre-commit and CI secret scanning
+# Default config is sufficient for most repos, but you can customize rules here.
+# See: https://github.com/gitleaks/gitleaks/blob/main/config/gitleaks.toml
+
+title = "gitleaks config"
+[allowlist]
+# Add any allowed patterns here (e.g., test keys)
+# [[allowlist.regexes]]
+# regex = '''dummy-test-key-[a-z0-9]{16}'''

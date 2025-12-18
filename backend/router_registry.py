@@ -81,6 +81,7 @@ def register_routers(app: FastAPI) -> None:
             logger.debug(f"Failed to register router '{import_path}': {ex}")
 
     _try_add("backend.routers.routers_students", "Students")
+    _try_add("backend.routers.routers_admin", "Admin")
     _try_add("backend.routers.routers_courses", "Courses")
     _try_add("backend.routers.routers_grades", "Grades")
     _try_add("backend.routers.routers_attendance", "Attendance")

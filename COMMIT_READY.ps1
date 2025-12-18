@@ -1,3 +1,4 @@
+
 <#
 .SYNOPSIS
     Ultimate Pre-Commit Verification and System Cleanup - Student Management System
@@ -81,35 +82,6 @@ Version: 1.12.5
             run cleanup as a smoke test without unrelated checks failing the job.
 #>
 
- [CmdletBinding()]
-param(
-    [ValidateSet('quick', 'standard', 'full', 'cleanup')]
-    [string]$Mode = 'standard',
-
-    # Backward-compatible convenience switches used by CI workflows
-    [switch]$Quick,
-    [switch]$Standard,
-    [switch]$Full,
-    [switch]$Cleanup,
-    
-    [switch]$SkipTests,
-    [switch]$SkipCleanup,
-    [switch]$SkipLint,
-    [switch]$GenerateCommit,
-    [switch]$AutoFix,
-    # New: Auto-update documentation and synchronize version across workspace
-    [switch]$SyncVersion,
-    [switch]$UpdateDocs,
-    # New: Audit-only mode and interactive release actions
-    [switch]$AuditVersion,
-    [string]$BumpToVersion,
-    [switch]$AutoTagAndPush,
-    # New: One-shot release flow: audit → optional bump → full pre-commit → commit+push+tag (if all OK)
-    [switch]$ReleaseFlow,
-    # Optional: run non-interactively for CI (auto-accept prompts)
-    [switch]$NonInteractive,
-    [Alias('h')][switch]$Help
-)
 
 $USAGE = @"
 USAGE: .\COMMIT_READY.ps1 [-Mode quick|standard|full|cleanup] [options]
@@ -183,7 +155,129 @@ if (-not $inCI) {
     }
 }
 
-# Results tracking
+$script:Results = @{
+    Linting = @()
+    Tests = @()
+    Cleanup = @()
+    Health = @()
+    Overall = $true
+    StartTime = Get-Date
+}
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+function Write-Header {
+    param([string]$Text, [string]$Color = 'Cyan')
+    Write-Host ""
+    Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor $Color
+    Write-Host "║  $($Text.PadRight(60)) ║" -ForegroundColor $Color
+    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor $Color
+    Write-Host ""
+}
+
+function Write-Section {
+    param([string]$Text)
+    # Show help and exit if -Help or -h is present
+    if ($Help) {
+        Write-Host $USAGE -ForegroundColor Cyan
+        exit 0
+    }
+    Write-Host ""
+    Write-Host "─────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host " $Text" -ForegroundColor White
+    Write-Host "─────────────────────────────────────────────────" -ForegroundColor DarkGray
+}
+
+function Write-Success {
+    param([string]$Text)
+    Write-Host "✅ $Text" -ForegroundColor Green
+}
+
+function Write-Failure {
+    param([string]$Text)
+    Write-Host "❌ $Text" -ForegroundColor Red
+    $script:Results.Overall = $false
+}
+
+function Write-Warning-Msg {
+    param([string]$Text)
+    Write-Host "⚠️  $Text" -ForegroundColor Yellow
+}
+
+function Write-Info {
+    param([string]$Text)
+    Write-Host "ℹ️  $Text" -ForegroundColor Cyan
+}
+
+function Add-Result {
+    param(
+        [string]$Category,
+        [string]$Name,
+        [bool]$Success,
+        [string]$Message = ""
+    )
+    
+    $result = @{
+        Name = $Name
+        Success = $Success
+        Message = $Message
+        Timestamp = Get-Date -Format "HH:mm:ss"
+    }
+    
+    $script:Results[$Category] += $result
+    
+    if (-not $Success) {
+        $script:Results.Overall = $false
+    }
+}
+
+# Check if an executable/command exists in PATH (cross-platform)
+function Test-CommandAvailable {
+    param([string]$Name)
+    try {
+        $cmd = Get-Command $Name -ErrorAction Stop
+        return $null -ne $cmd
+    }
+    catch {
+        return $false
+    }
+}
+
+# ...other utility functions...
+
+# PHASE 0: PRE-COMMIT HOOK VALIDATION (must come after utility functions)
+function Invoke-PreCommitHookValidation {
+    Write-Header "Phase 0: Pre-commit Hook Validation" "DarkYellow"
+    $precommitAvailable = Test-CommandAvailable -Name "pre-commit"
+    if (-not $precommitAvailable) {
+        Write-Info "pre-commit not found. Attempting to install via pip..."
+        try {
+            pip install pre-commit | Out-Null
+            $precommitAvailable = Test-CommandAvailable -Name "pre-commit"
+        } catch {
+            Write-Warning-Msg "Failed to install pre-commit. Skipping pre-commit hook validation."
+            return
+        }
+    }
+    if ($precommitAvailable) {
+        if (Test-Path ".pre-commit-config.yaml") {
+            Write-Info "Running pre-commit hooks on staged files..."
+            try {
+                pre-commit install | Out-Null
+                pre-commit run --all-files
+                Write-Success "Pre-commit hooks passed."
+            } catch {
+                Write-Failure "Pre-commit hooks failed. Please review and fix issues."
+                exit 1
+            }
+        } else {
+            Write-Info ".pre-commit-config.yaml not found. Skipping pre-commit hook validation."
+        }
+    }
+}
+$null = Invoke-PreCommitHookValidation
 $script:Results = @{
     Linting = @()
     Tests = @()

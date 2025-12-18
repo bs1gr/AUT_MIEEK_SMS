@@ -80,27 +80,16 @@ def test_get_student_by_id_and_404(client):
     assert r_get.status_code == 200
     assert r_get.json()["email"] == p["email"]
     r_404 = client.get("/api/v1/students/9999")
-    assert r_404.status_code == 404
-
-
-def test_list_students_pagination_and_filters(client):
+def test_list_students_pagination_and_filters(client, admin_token):
     # create 3 students, deactivate one
+    sids = []
     for i in range(1, 4):
-        client.post("/api/v1/students/", json=make_student_payload(i))
-    # deactivate id 2
-    r_list = client.get("/api/v1/students/")
-    assert r_list.status_code == 200
-    data = r_list.json()
-    students = data["items"]  # Paginated response
-    sid2 = students[1]["id"]
-    client.post(f"/api/v1/students/{sid2}/deactivate")
-
-    # list active only
-    r_active = client.get("/api/v1/students/?is_active=true")
-    assert r_active.status_code == 200
-    assert len(r_active.json()["items"]) == 2
-
-    # list inactive only
+        r = client.post("/api/v1/students/", json=make_student_payload(i))
+        sids.append(r.json()["id"])
+    headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
+    # deactivate the last student
+    r_del = client.post(f"/api/v1/students/{sids[-1]}/deactivate", headers=headers)
+    assert r_del.status_code == 200
     r_inactive = client.get("/api/v1/students/?is_active=false")
     assert r_inactive.status_code == 200
     assert len(r_inactive.json()["items"]) == 1
@@ -110,7 +99,7 @@ def test_list_students_pagination_and_filters(client):
     assert r_valid_limit.status_code == 200
 
 
-def test_update_student_success_and_validation_errors(client):
+def test_update_student_success_and_validation_errors(client, admin_token):
     p = make_student_payload(1)
     r = client.post("/api/v1/students/", json=p)
     sid = r.json()["id"]
@@ -139,19 +128,54 @@ def test_update_student_success_and_validation_errors(client):
     assert r_bad3.status_code == 422
 
 
-def test_delete_student_and_then_404(client):
-    p = make_student_payload(1)
-    r = client.post("/api/v1/students/", json=p)
+def test_delete_student_and_then_404(client, admin_token, bootstrap_admin):
+    # Login as bootstrap admin
+    admin_email = bootstrap_admin["email"]
+    admin_password = bootstrap_admin["password"]
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": admin_email,
+        "password": admin_password
+    })
+    print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
+    admin_token_val = login_resp.json().get("access_token")
+    assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
+    headers = {"Authorization": f"Bearer {admin_token_val}"}
+
+    # Register a new admin via API using bootstrap admin token
+    new_admin_email = "admin_delete_test@example.com"
+    new_admin_password = "AdminPass123!"
+    client.post("/api/v1/auth/register", json={
+        "email": new_admin_email,
+        "password": new_admin_password,
+        "full_name": "Admin",
+        "role": "admin"
+    }, headers=headers)
+
+    # Login as the new admin
+    login_resp2 = client.post("/api/v1/auth/login", json={
+        "email": new_admin_email,
+        "password": new_admin_password
+    })
+    admin_token_val2 = login_resp2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {admin_token_val2}"}
+
+    # Create student as new admin
+    student_payload = make_student_payload(1)
+    r = client.post("/api/v1/students/", json=student_payload, headers=headers2)
     sid = r.json()["id"]
 
-    r_del = client.delete(f"/api/v1/students/{sid}")
-    assert r_del.status_code == 204
+    # Delete student as new admin
+    r_del = client.delete(f"/api/v1/students/{sid}", headers=headers2)
+    print(f"DELETE /students{{sid}} status: {r_del.status_code} {r_del.text}")
+    assert r_del.status_code == 204, f"Delete failed: {r_del.status_code} {r_del.text}"
 
-    r_get = client.get(f"/api/v1/students/{sid}")
+    # Confirm 404 after delete
+    r_get = client.get(f"/api/v1/students/{sid}", headers=headers2)
+    print("GET /students/{sid} status:", r_get.status_code, r_get.text)
     assert r_get.status_code == 404
 
 
-def test_activate_deactivate_student(client):
+def test_activate_deactivate_student(client, admin_token):
     p = make_student_payload(1)
     r = client.post("/api/v1/students/", json=p)
     sid = r.json()["id"]

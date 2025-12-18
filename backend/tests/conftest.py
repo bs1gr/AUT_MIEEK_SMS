@@ -1,3 +1,60 @@
+import pytest
+
+@pytest.fixture(scope="function")
+def bootstrap_admin(client):
+    """Create the first admin user using the same DB session as TestClient for test bootstrapping."""
+    admin_email = "bootstrap_admin@example.com"
+    admin_password = "AdminPass123!"
+    from backend.models import User
+    from backend.routers.routers_auth import get_password_hash
+    from backend.db import get_session as db_get_session
+    db_gen = next(client.app.dependency_overrides[db_get_session]())
+    with db_gen as db:
+        if not db.query(User).filter(User.email == admin_email).first():
+            admin_user = User(
+                email=admin_email,
+                hashed_password=get_password_hash(admin_password),
+                role="admin",
+                is_active=True,
+                full_name="Bootstrap Admin",
+                password_change_required=False,
+                failed_login_attempts=0,
+                last_failed_login_at=None,
+                lockout_until=None,
+            )
+            db.add(admin_user)
+            db.commit()
+    return {"email": admin_email, "password": admin_password}
+from backend.models import User
+from backend.routers.routers_auth import get_password_hash
+
+@pytest.fixture
+def admin_and_student(client):
+    """Create an admin user and a student in the same session before the test client is used."""
+    admin_email = "admin_fixture@example.com"
+    admin_password = "AdminPass123!"
+    student_payload = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email": "john.doe@example.com",
+        "student_id": "STD9999",
+        "enrollment_date": "2025-12-19",
+        "study_year": 1,
+    }
+    from backend.db import get_session as db_get_session
+    db_gen = next(client.app.dependency_overrides[db_get_session]())
+    with db_gen as db:
+        if not db.query(User).filter(User.email == admin_email).first():
+            admin_user = User(email=admin_email, hashed_password=get_password_hash(admin_password), role="admin", is_active=True)
+            db.add(admin_user)
+        db.commit()
+    # Create student via API to ensure proper creation
+    r = client.post("/api/v1/students/", json=student_payload)
+    sid = r.json().get("id")
+    # Obtain admin token
+    r_login = client.post("/api/v1/auth/login", json={"email": admin_email, "password": admin_password})
+    admin_token_val = r_login.json().get("access_token")
+    return {"admin_token": admin_token_val, "student_id": sid}
 import os
 
 # Ensure backend imports work regardless of current working dir
@@ -80,8 +137,8 @@ def clean_db():
     # Reset auth feature flags between tests so individual tests enabling
     # AUTH explicitly (e.g., RBAC tests) do not leak state to subsequent ones.
     try:
-        settings.AUTH_ENABLED = False  # type: ignore[attr-defined]
-        settings.AUTH_MODE = "disabled"  # type: ignore[attr-defined]
+        settings.AUTH_ENABLED = True  # type: ignore[attr-defined]
+        settings.AUTH_MODE = "strict"  # type: ignore[attr-defined]
     except Exception:
         pass
     # Yield a database session for tests that need direct DB access
@@ -94,24 +151,24 @@ def clean_db():
 
 @pytest.fixture()
 def client(admin_token):
-    """TestClient that automatically includes auth headers for all requests when auth is enabled."""
+    """TestClient that automatically includes auth headers for all requests when auth is enabled, unless add_auth=False is passed."""
     from fastapi.testclient import TestClient
 
     base_client = TestClient(app)
 
-    # If we have a token, wrap all HTTP methods to add auth headers
+    # If we have a token, wrap all HTTP methods to add auth headers unless add_auth=False
     if admin_token:
         for method_name in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
             original_method = getattr(base_client, method_name)
 
             def make_method_with_auth(orig_method):
-                def _method_with_auth(url, **kwargs):
+                def _method_with_auth(url, add_auth=True, **kwargs):
                     # Get or create headers dict
                     if "headers" not in kwargs:
                         kwargs["headers"] = {}
 
-                    # Only add auth if not already present
-                    if isinstance(kwargs["headers"], dict) and "Authorization" not in kwargs["headers"]:
+                    # Only add auth if not already present and add_auth is True
+                    if add_auth and isinstance(kwargs["headers"], dict) and "Authorization" not in kwargs["headers"]:
                         kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
 
                     return orig_method(url, **kwargs)
