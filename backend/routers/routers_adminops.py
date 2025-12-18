@@ -19,7 +19,7 @@ from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
-from .routers_auth import optional_require_role
+from backend.security.permissions import optional_require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def _get_db_file() -> str:
 
 @router.post("/backup")
 @limiter.limit(RATE_LIMIT_HEAVY)
-def backup_database(request: Request, current_user=Depends(optional_require_role("admin", "teacher"))):
+def backup_database(request: Request, current_user=Depends(optional_require_permission("adminops.backup"))):
     try:
         db_file = _get_db_file()
         if not os.path.isfile(db_file):
@@ -80,7 +80,7 @@ def backup_database(request: Request, current_user=Depends(optional_require_role
 @router.post("/restore")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def restore_database(
-    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_role("admin", "teacher"))
+    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_permission("adminops.restore"))
 ):
     """
     Restore the SQLite database from an uploaded .db file.
@@ -130,7 +130,7 @@ def clear_database(
     request: Request,
     payload: ClearPayload,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(optional_require_permission("adminops.clear")),
 ):
     if not payload.confirm:
         raise http_error(

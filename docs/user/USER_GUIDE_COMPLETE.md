@@ -34,6 +34,10 @@
 
 13. [Frequently Asked Questions](#frequently-asked-questions)
 
+14. [RBAC & Permissions](#rbac--permissions)
+
+15. [API Explorer](#api-explorer)
+
 ---
 
 ## Introduction
@@ -1432,3 +1436,45 @@ All dates use ISO 8601 format:
 **Last Updated:** November 22, 2025
 **Maintained By:** SMS Development Team
 **Feedback:** Create an issue on GitHub with label `documentation`
+
+---
+
+## RBAC & Permissions
+
+The Student Management System now supports fine-grained Role-Based Access Control (RBAC).
+
+- **Roles**: Define what groups of users can do (e.g., admin, teacher).
+- **Permissions**: Fine-grained actions (e.g., create student, export data).
+
+### Managing Roles & Permissions
+- Admins can create, update, and delete roles and permissions via the Admin → RBAC section or API endpoints.
+- Assign roles to users and grant/revoke permissions to roles using the RBAC management UI or API.
+- See the [RBAC Permission Matrix](../api/RBAC_API_MATRIX.md) for a full list of actions and required permissions.
+
+### Who Can Manage RBAC?
+- Only users with the `*` (wildcard) permission (typically admins) can assign/revoke roles and permissions.
+- All RBAC changes are logged and rate-limited for security.
+
+### API Reference
+- See the API documentation for endpoint details: [API Contract](../api/API_CONTRACT.md)
+
+---
+
+## API Explorer
+
+You can view and test all API endpoints, including RBAC, using the built-in OpenAPI/Swagger UI:
+- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
+
+These pages are available in both development and Docker modes.
+
+---
+
+## RBAC in the User Interface
+
+- The Admin → RBAC section allows you to manage roles, permissions, and assignments visually.
+- If you lack permission for an action, the UI will show a clear error message (e.g., "You do not have permission to perform this action").
+- Only users with the appropriate permissions will see RBAC management options.
+- All changes are reflected in real time and are subject to audit logging and rate limiting.
+
+---

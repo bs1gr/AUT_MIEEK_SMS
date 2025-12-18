@@ -152,6 +152,40 @@ Only admins can change user roles via:
 4. **Testing**: Use `AUTH_MODE=disabled` for automated tests
 5. **API Calls**: Always use `apiClient` from `@/api/api` for authentication
 
+## Fine-Grained RBAC & Permission Enforcement
+
+The system now uses permission-based enforcement for all protected endpoints.
+
+- Use `require_permission("permission.name")` or `optional_require_permission("permission.name")` for new endpoints.
+- Add new permissions to the database and assign them to roles as needed.
+- See `docs/api/RBAC_API_MATRIX.md` for the full permission matrix and endpoint mapping.
+
+### Example: Protecting an Endpoint
+```python
+from backend.security.permissions import require_permission
+
+@router.post("/students/")
+async def create_student(..., current_user=Depends(require_permission("students.write"))):
+    ...
+```
+
+### Adding a New Permission
+1. Add the permission to the `permissions` table (via API or migration).
+2. Assign it to the appropriate roles (via API or admin UI).
+3. Use the permission in your endpoint dependency.
+
+---
+
+## API Explorer
+
+All RBAC and protected endpoints are visible in the live OpenAPI/Swagger UI:
+- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
+
+Use these to verify endpoint registration and try out new permissions.
+
+---
+
 ## Files Changed in This Update
 
 ### Backend

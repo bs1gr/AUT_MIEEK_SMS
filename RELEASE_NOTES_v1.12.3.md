@@ -19,6 +19,15 @@
   - Control Panel module renamed to “Advanced Settings”/“Προχωρημένες Ρυθμίσεις” in all locales and UI.
   - Operations/Control Panel accessibility and i18n improved.
 
+- **RBAC (Role-Based Access Control) Overhaul**
+  - Fine-grained permission-based enforcement for all admin and protected endpoints.
+  - New CRUD API endpoints for roles and permissions (create, update, delete, list).
+  - Bulk assignment and grant/revoke endpoints for roles and permissions.
+  - All admin endpoints now require explicit permissions, not just roles.
+  - Permission matrix and API documentation generated and linked in user and developer docs.
+  - User/admin guides updated with RBAC management instructions and UI notes.
+  - All RBAC changes are fully tested, documented, and reflected in OpenAPI/Swagger UI.
+
 - **Frontend & UI**
   - Global audit and update of font vividness and color contrast.
   - Students, Attendance, Courses, Grading, Dashboard, and Operations modules all improved for accessibility and clarity.
