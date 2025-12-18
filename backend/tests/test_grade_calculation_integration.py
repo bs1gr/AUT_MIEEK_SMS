@@ -5,28 +5,6 @@ from datetime import date
 
 
 
-def _create_student(payload: dict) -> int:
-    resp = client.post("/api/v1/students/", json=payload)
-    assert resp.status_code in (200, 201), resp.text
-    return int(resp.json()["id"])  # type: ignore[index]
-
-
-def _create_course(payload: dict) -> int:
-    resp = client.post("/api/v1/courses/", json=payload)
-    assert resp.status_code in (200, 201), resp.text
-    return int(resp.json()["id"])  # type: ignore[index]
-
-
-def _create_grade(payload: dict) -> int:
-    resp = client.post("/api/v1/grades/", json=payload)
-    assert resp.status_code in (200, 201), resp.text
-    return int(resp.json()["id"])  # type: ignore[index]
-
-
-def _create_attendance(payload: dict) -> int:
-    resp = client.post("/api/v1/attendance/", json=payload)
-    assert resp.status_code in (200, 201), resp.text
-    return int(resp.json()["id"])  # type: ignore[index]
 
 
 def test_final_grade_with_absence_penalty(client, admin_token, bootstrap_admin):

@@ -175,7 +175,8 @@ def test_double_delete_student(client):
 # --- New: Large Batch Operation Edge Case ---
 @pytest.mark.usefixtures("client")
 def test_bulk_import_large_number_of_students(client):
-    import io, json
+    import io
+    import json
     students = [
         {"name": f"Bulk{i}", "email": f"bulk{i}@example.com", "student_id": f"B{i:04d}"}
         for i in range(100)

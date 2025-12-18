@@ -95,8 +95,6 @@ def test_get_current_user_invalid_token():
 
 
 def test_get_current_user_inactive_user(client):
-    from fastapi import HTTPException
-    from starlette.requests import Request
 
     # Register inactive user via API
     payload = {

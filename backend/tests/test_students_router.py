@@ -79,7 +79,6 @@ def test_get_student_by_id_and_404(client):
     r_get = client.get(f"/api/v1/students/{student['id']}")
     assert r_get.status_code == 200
     assert r_get.json()["email"] == p["email"]
-    r_404 = client.get("/api/v1/students/9999")
 def test_list_students_pagination_and_filters(client, admin_token):
     # create 3 students, deactivate one
     sids = []
