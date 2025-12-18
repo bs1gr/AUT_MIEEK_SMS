@@ -8,7 +8,7 @@ from pathlib import Path
 
 REQUIRED_TABLES = ["students", "courses", "grades", "attendance"]
 
-BACKUP_DIR = Path(__file__).resolve().parents[2] / "backups"
+BACKUP_DIR = Path(__file__).resolve().parents[1] / "backups"
 
 
 def verify_backup(db_path: Path) -> dict:
