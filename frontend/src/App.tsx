@@ -16,6 +16,7 @@ import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptModal';
 import BackendStatusBanner from './components/common/BackendStatusBanner';
+import UserFeedbackModal from './components/UserFeedbackModal';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -57,6 +58,7 @@ function AppLayout({ children }: AppLayoutProps) {
   const { user, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   
   // Show password change prompt if user has password_change_required=true
   useEffect(() => {
@@ -116,6 +118,19 @@ function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
+  const handleSubmitFeedback = async (feedback: string) => {
+    try {
+      await fetch('/api/v1/feedback/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback }),
+      });
+      setToast({ message: t('feedback.success'), type: 'success' });
+    } catch {
+      setToast({ message: t('feedback.error'), type: 'error' });
+    }
+  };
+
   return (
     <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
@@ -141,8 +156,20 @@ function AppLayout({ children }: AppLayoutProps) {
         </div>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
+          <button
+            className="ml-2 px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm"
+            onClick={() => setShowFeedback(true)}
+            type="button"
+          >
+            {t('feedback.title')}
+          </button>
         </div>
       </div>
+      <UserFeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        onSubmit={handleSubmitFeedback}
+      />
 
       {/* Top Navigation */}
       {isAuthenticated && (
