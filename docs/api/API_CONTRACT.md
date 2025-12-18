@@ -21,6 +21,7 @@
 8. [Deprecation Process](#deprecation-process)
 9. [Migration Guide](#migration-guide)
 10. [Versioning Timeline](#versioning-timeline)
+11. [RBAC API and Permission Matrix](#rbac-api-and-permission-matrix)
 
 ---
 
@@ -756,5 +757,26 @@ We commit to:
 - 💬 Slack: #api-support
 - 🐛 Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 - 📖 Docs: https://docs.example.com/api
+
+---
+
+## RBAC API and Permission Matrix
+
+See `RBAC_API_MATRIX.md` for a full list of RBAC endpoints and required permissions.
+
+- All RBAC endpoints are under `/admin/rbac/`
+- Role and Permission CRUD endpoints:
+  - `POST   /admin/rbac/roles`           — Create a new role (permission: `rbac.roles.create`)
+  - `GET    /admin/rbac/roles`           — List all roles (permission: `rbac.roles.read`)
+  - `PUT    /admin/rbac/roles/{role_id}` — Update a role (permission: `rbac.roles.update`)
+  - `DELETE /admin/rbac/roles/{role_id}` — Delete a role (permission: `rbac.roles.delete`)
+  - `POST   /admin/rbac/permissions`                — Create a new permission (permission: `rbac.permissions.create`)
+  - `GET    /admin/rbac/permissions`                — List all permissions (permission: `rbac.permissions.read`)
+  - `PUT    /admin/rbac/permissions/{permission_id}`— Update a permission (permission: `rbac.permissions.update`)
+  - `DELETE /admin/rbac/permissions/{permission_id}`— Delete a permission (permission: `rbac.permissions.delete`)
+- Assignment and grant/revoke endpoints require wildcard (`*`) permission (admin only).
+- See also: `docs/api/RBAC_API_MATRIX.md` for a permission matrix table.
+
+---
 
 

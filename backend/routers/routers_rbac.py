@@ -5,13 +5,130 @@ from sqlalchemy.orm import Session
 from backend.schemas.audit import AuditLogListResponse, AuditAction, AuditResource, AuditLogResponse
 from backend.services.audit_service import get_audit_logger
 import backend.models as models
-from backend.schemas.rbac import AssignRoleRequest, GrantPermissionToRoleRequest, RBACSummary, BulkAssignRolesRequest, BulkGrantPermissionsRequest
+from backend.schemas.rbac import AssignRoleRequest, GrantPermissionToRoleRequest, RBACSummary, BulkAssignRolesRequest, BulkGrantPermissionsRequest, RoleResponse, PermissionResponse
 from backend.routers.routers_auth import optional_require_role
 from backend.security.permissions import require_permission
+
+# --- CRUD ENDPOINTS FOR ROLES ---
 from backend.dependencies import get_db
 from backend.errors import http_error, internal_server_error, ErrorCode
 
-router = APIRouter()
+router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})
+
+@router.post("/roles", response_model=RoleResponse)
+async def create_role(
+    request: Request,
+    name: str = Body(..., embed=True),
+    description: str = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.roles.create")),
+):
+    name = name.strip().lower()
+    if db.query(models.Role).filter(models.Role.name == name).first():
+        raise http_error(status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Role already exists", request)
+    role = models.Role(name=name, description=description)
+    db.add(role)
+    db.commit()
+    db.refresh(role)
+    return RoleResponse.model_validate(role)
+
+@router.get("/roles", response_model=list[RoleResponse])
+async def list_roles(
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.roles.read")),
+):
+    roles = db.query(models.Role).all()
+    return [RoleResponse.model_validate(r) for r in roles]
+
+@router.put("/roles/{role_id}", response_model=RoleResponse)
+async def update_role(
+    role_id: int,
+    name: str = Body(None, embed=True),
+    description: str = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.roles.update")),
+):
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if not role:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+    if name:
+        role.name = name.strip().lower()
+    if description is not None:
+        role.description = description
+    db.commit()
+    db.refresh(role)
+    return RoleResponse.model_validate(role)
+
+@router.delete("/roles/{role_id}")
+async def delete_role(
+    role_id: int,
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.roles.delete")),
+):
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if not role:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+    db.delete(role)
+    db.commit()
+    return {"status": "deleted"}
+
+# --- CRUD ENDPOINTS FOR PERMISSIONS ---
+@router.post("/permissions", response_model=PermissionResponse)
+async def create_permission(
+    request: Request,
+    name: str = Body(..., embed=True),
+    description: str = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.permissions.create")),
+):
+    name = name.strip().lower()
+    if db.query(models.Permission).filter(models.Permission.name == name).first():
+        raise http_error(status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Permission already exists", request)
+    perm = models.Permission(name=name, description=description)
+    db.add(perm)
+    db.commit()
+    db.refresh(perm)
+    return PermissionResponse.model_validate(perm)
+
+@router.get("/permissions", response_model=list[PermissionResponse])
+async def list_permissions(
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.permissions.read")),
+):
+    perms = db.query(models.Permission).all()
+    return [PermissionResponse.model_validate(p) for p in perms]
+
+@router.put("/permissions/{permission_id}", response_model=PermissionResponse)
+async def update_permission(
+    permission_id: int,
+    name: str = Body(None, embed=True),
+    description: str = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.permissions.update")),
+):
+    perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    if not perm:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+    if name:
+        perm.name = name.strip().lower()
+    if description is not None:
+        perm.description = description
+    db.commit()
+    db.refresh(perm)
+    return PermissionResponse.model_validate(perm)
+
+@router.delete("/permissions/{permission_id}")
+async def delete_permission(
+    permission_id: int,
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_permission("rbac.permissions.delete")),
+):
+    perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    if not perm:
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+    db.delete(perm)
+    db.commit()
+    return {"status": "deleted"}
 
 # --- RBAC CHANGE HISTORY ENDPOINT ---
 @router.get("/change-history", response_model=AuditLogListResponse)

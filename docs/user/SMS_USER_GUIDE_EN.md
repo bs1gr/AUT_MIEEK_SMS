@@ -20,6 +20,8 @@
 10. [Reports & Analytics](#reports--analytics)
 11. [System Administration](#system-administration)
 12. [Troubleshooting](#troubleshooting)
+13. [RBAC & Permissions](#rbac--permissions)
+14. [API Explorer](#api-explorer)
 
 ---
 
@@ -641,6 +643,44 @@ Additional guides in the `docs/` directory:
 | Write (POST/PUT/DELETE) | 200 per minute | Data entry/modifications |
 | Heavy (Import/Export) | 30 per minute | Bulk operations |
 | Autosave (with debounce) | ~30 per minute | 2-second delay |
+
+---
+
+## RBAC & Permissions
+
+The Student Management System supports fine-grained Role-Based Access Control (RBAC).
+
+- **Roles**: Groups of permissions (e.g., admin, teacher)
+- **Permissions**: Specific actions (e.g., create student, export data)
+
+### Managing Roles & Permissions
+- Admins can manage roles and permissions via the Admin → RBAC section or API endpoints.
+- Assign roles to users and grant/revoke permissions to roles using the RBAC management UI or API.
+- See the [RBAC Permission Matrix](../api/RBAC_API_MATRIX.md) for a full list of actions and required permissions.
+
+### Who Can Manage RBAC?
+- Only users with the `*` (wildcard) permission (typically admins) can assign/revoke roles and permissions.
+- All RBAC changes are logged and rate-limited for security.
+
+### API Reference
+- See the API documentation for endpoint details: [API Contract](../api/API_CONTRACT.md)
+
+---
+
+## RBAC in the User Interface
+
+- The Admin → RBAC section lets you manage roles, permissions, and assignments visually.
+- If you lack permission for an action, the UI will display a clear error message (e.g., "You do not have permission to perform this action").
+- Only users with the appropriate permissions will see RBAC management options.
+- All changes are reflected in real time and are subject to audit logging and rate limiting.
+
+---
+
+## API Explorer
+
+All API endpoints, including RBAC, are documented and testable via the built-in OpenAPI/Swagger UI:
+- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
 
 ---
 
