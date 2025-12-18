@@ -39,6 +39,8 @@ import helpEn from './locales/en/help.js';
 import helpEl from './locales/el/help.js';
 import reportsEn from './locales/en/reports.js';
 import reportsEl from './locales/el/reports.js';
+import feedbackEn from './locales/en/feedback.js';
+import feedbackEl from './locales/el/feedback.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -64,6 +66,7 @@ export const translations: Translations = {
     export: exportEn,
     help: helpEn,
     reports: reportsEn,
+    feedback: feedbackEn,
     // Flattened access (t('key'))
     ...controlPanelEn,
     ...authEn,
@@ -77,7 +80,8 @@ export const translations: Translations = {
     ...calendarEn,
     ...exportEn,
     ...helpEn,
-    ...reportsEn
+    ...reportsEn,
+    ...feedbackEn
   },
 
   el: {
@@ -98,6 +102,7 @@ export const translations: Translations = {
     export: exportEl,
     help: helpEl,
     reports: reportsEl,
+    feedback: feedbackEl,
     // Flattened access (t('key'))
     ...controlPanelEl,
     ...authEl,
@@ -111,6 +116,7 @@ export const translations: Translations = {
     ...calendarEl,
     ...exportEl,
     ...helpEl,
-    ...reportsEl
+    ...reportsEl,
+    ...feedbackEl
   }
 };
