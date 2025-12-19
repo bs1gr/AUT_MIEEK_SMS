@@ -10,17 +10,17 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -36,7 +36,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           MINOR=$(node -p "require('./package.json').devDependencies['@playwright/test'].replace(/^\^/, '').split('.').slice(0,2).join('.')")
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
-      
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -45,29 +45,29 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
             playwright-${{ runner.os }}-
-      
+
       - name: Install backend dependencies
         working-directory: ./backend
         run: pip install -r requirements.txt
-      
+
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
-      
+
       - name: Install Playwright browsers
         working-directory: ./frontend
         run: npx playwright install chromium --with-deps
-      
+
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
-      
+
       - name: Prepare data directory
         run: mkdir -p ./data
-      
+
       - name: Seed test data
         run: python backend/seed_e2e_data.py
-      
+
       - name: Start backend in background
         run: |
           DISABLE_STARTUP_TASKS=1 CSRF_ENABLED=0 AUTH_MODE=permissive SERVE_FRONTEND=1 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
@@ -82,7 +82,7 @@ jobs:
             echo "Waiting for backend... ($i/30)"
             sleep 1
           done
-      
+
       - name: Run E2E tests
         working-directory: ./frontend
         env:
@@ -95,12 +95,12 @@ jobs:
           curl -I http://127.0.0.1:8000/ || true
           echo "--- Running Playwright E2E ---"
           npm run e2e
-      
+
       - name: Kill backend
         if: always()
         run: |
           if [ -f backend.pid ]; then kill $(cat backend.pid); fi || true
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -108,3 +108,4 @@ jobs:
           name: e2e-test-results
           path: frontend/playwright-report/
           retention-days: 30
+          if-no-files-found: ignore
