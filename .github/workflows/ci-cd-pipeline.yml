@@ -30,7 +30,7 @@ jobs:
   # ============================================================================
   # PHASE 1: PRE-COMMIT VALIDATION
   # ============================================================================
-  
+
   version-verification:
     name: 🔍 Version Consistency Check
     runs-on: windows-latest
@@ -43,7 +43,7 @@ jobs:
         run: |
           Write-Host "Verifying version consistency across codebase..." -ForegroundColor Cyan
           .\scripts\VERIFY_VERSION.ps1 -CheckOnly
-          
+
           if ($LASTEXITCODE -eq 1) {
             Write-Error "❌ Critical version inconsistencies found"
             exit 1
@@ -106,6 +106,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         run: |
@@ -190,8 +191,9 @@ jobs:
             --html=pytest-report.html \
             --self-contained-html \
             --json-report \
-            --json-report-file=pytest-report.json || true
+            --json-report-file=pytest-report.json
           echo "Tests completed (coverage requirement bypassed for CI/CD)"
+        continue-on-error: false
 
       - name: Upload test results
         if: always()
@@ -232,8 +234,8 @@ jobs:
         run: cd frontend && npm ci --silent
 
       - name: Run frontend tests
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html || true
-        continue-on-error: true
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html
+        continue-on-error: false
 
       - name: Upload test results
         if: always()
@@ -539,7 +541,7 @@ jobs:
           echo "**Scan Date:** $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Scans Performed:" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check which scans completed successfully
           SCANS_FOUND=0
           if [ -f "trivy-backend-results.sarif" ]; then
@@ -548,28 +550,28 @@ jobs:
           else
             echo "- ⚠️ Docker Image Scanning (Backend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "trivy-frontend-results.sarif" ]; then
             echo "- ✅ Docker Image Scanning (Frontend)" >> $GITHUB_STEP_SUMMARY
             SCANS_FOUND=1
           else
             echo "- ⚠️ Docker Image Scanning (Frontend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "trivy-filesystem-results.sarif" ]; then
             echo "- ✅ Filesystem Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
             SCANS_FOUND=1
           else
             echo "- ⚠️ Filesystem Vulnerability Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f "trivy-config-results.sarif" ]; then
             echo "- ✅ Infrastructure-as-Code (IaC) Configuration Scan" >> $GITHUB_STEP_SUMMARY
             SCANS_FOUND=1
           else
             echo "- ⚠️ Infrastructure-as-Code (IaC) Configuration Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ $SCANS_FOUND -eq 1 ]; then
             echo "Results have been uploaded to GitHub Security tab for review." >> $GITHUB_STEP_SUMMARY
@@ -637,7 +639,7 @@ jobs:
           echo "🔍 Checking documentation TODOs..."
           TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ --exclude-dir=node_modules --exclude-dir=.git | wc -l || true)
           echo "Found $TODO_COUNT TODO items in documentation"
-          
+
           if [ $TODO_COUNT -gt 50 ]; then
             echo "::warning::High number of TODO items in documentation ($TODO_COUNT)"
           fi
@@ -646,7 +648,7 @@ jobs:
         run: |
           echo "🧹 Checking for deprecated/obsolete files..."
           find . -type f -name "*.deprecated" -o -name "*.obsolete" -o -name "*.bak" | tee obsolete-files.txt
-          
+
           OBSOLETE_COUNT=$(wc -l < obsolete-files.txt)
           if [ $OBSOLETE_COUNT -gt 0 ]; then
             echo "::warning::Found $OBSOLETE_COUNT obsolete files"
@@ -701,7 +703,7 @@ jobs:
         run: |
           echo "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          
+
           # Placeholder for actual deployment commands
           # Example: kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           # Or: SSH to server and run docker-compose pull && docker-compose up -d
@@ -751,7 +753,7 @@ jobs:
         run: |
           echo "🚀 Deploying version ${{ steps.version.outputs.version }} to production..."
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-          
+
           # Placeholder for production deployment
           # kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
 
@@ -794,7 +796,7 @@ jobs:
         id: release_notes
         run: |
           echo "Generating release notes for v${{ steps.version.outputs.version }}..."
-          
+
           # Extract release notes from CHANGELOG or release_notes file
           if [ -f "release_notes_v${{ steps.version.outputs.version }}.md" ]; then
             cat "release_notes_v${{ steps.version.outputs.version }}.md" > RELEASE_NOTES.md
@@ -817,7 +819,7 @@ jobs:
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
           NOTES=$(cat RELEASE_NOTES.md 2>/dev/null || echo "Release $VERSION")
-          
+
           # Create release with gh CLI (built-in)
           gh release create "$VERSION" \
             --title "Release $VERSION" \
@@ -885,7 +887,7 @@ jobs:
           echo "Triggered by: ${{ github.event_name }}"
           echo "Branch: ${{ github.ref }}"
           echo "Commit: ${{ github.sha }}"
-          
+
           # Add notification integrations here:
           # - Slack webhook
           # - Microsoft Teams webhook
