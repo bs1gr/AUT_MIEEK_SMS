@@ -317,7 +317,7 @@ def optional_require_role(*roles: str):
     than at definition time to allow tests to toggle the flag in fixtures.
     """
 
-    def _dep(request: Request | None = None, user: Any = Depends(get_current_user)) -> Any:
+    def _dep(request: Request = None, user: Any = Depends(get_current_user)) -> Any:
         # Evaluate runtime flags so test fixtures can toggle AUTH_ENABLED/AUTH_MODE
         auth_enabled = getattr(settings, "AUTH_ENABLED", False)
         auth_mode = getattr(settings, "AUTH_MODE", "disabled")
@@ -724,8 +724,8 @@ async def logout(
 @router.get("/admin/users")
 async def admin_list_users(
     request: Request,
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = request  # placeholder to avoid unused warnings until logging is added
     _ = current_admin
@@ -737,8 +737,8 @@ async def admin_list_users(
 async def admin_create_user(
     request: Request,
     payload: UserCreate = Body(...),
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
     normalized_email = payload.email.lower().strip()
@@ -775,8 +775,8 @@ async def admin_update_user(
     request: Request,
     user_id: int,
     payload: UserUpdate = Body(...),
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
     user = db.query(User).filter(User.id == user_id).first()
@@ -836,8 +836,8 @@ async def admin_update_user(
 async def admin_delete_user(
     request: Request,
     user_id: int,
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -891,8 +891,8 @@ async def admin_reset_password(
     request: Request,
     user_id: int,
     payload: PasswordResetRequest = Body(...),
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -922,8 +922,8 @@ async def admin_reset_password(
 async def admin_unlock_account(
     request: Request,
     user_id: int,
-    db=Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     """Admin endpoint to unlock a locked user account.
 
@@ -962,8 +962,8 @@ async def admin_unlock_account(
 async def change_password(
     request: Request,
     payload: PasswordChangeRequest = Body(...),
-    db=Depends(get_db),
-    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
 ):
     """Allow an authenticated user to change their own password.
 
