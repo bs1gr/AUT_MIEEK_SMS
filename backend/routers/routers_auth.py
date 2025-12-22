@@ -28,8 +28,8 @@ from backend import models
 from backend.security.csrf import issue_csrf_cookie, clear_csrf_cookie
 from backend.config import settings
 
-from jose import jwt
-from jose.exceptions import JWTError as InvalidTokenError
+import jwt
+from jwt.exceptions import InvalidTokenError
 
 from backend.security.password_hash import (
     get_password_hash,
