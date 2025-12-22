@@ -425,6 +425,13 @@ class AuthUser(BaseSMSUser):
     weight = 1 if not SKIP_AUTH else 0
 
 
+# If we're skipping auth in CI remove auth-related classes from module globals so
+# Locust does not discover or spawn them.
+if SKIP_AUTH:
+    globals().pop("AuthUser", None)
+    globals().pop("AuthTasks", None)
+
+
 class SmokeUser(FastHttpUser):
     """User for smoke tests - only health checks."""
 
