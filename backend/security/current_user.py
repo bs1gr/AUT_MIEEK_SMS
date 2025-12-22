@@ -1,14 +1,14 @@
 from fastapi import Request, Depends, status
 from sqlalchemy.orm import Session
 from typing import Any
-from jose.exceptions import JWTError as InvalidTokenError
+from jwt.exceptions import InvalidTokenError
 from backend.errors import ErrorCode, http_error
 
 # password hashing helpers are available in backend.security.password_hash if needed
 from backend.db import get_session as get_db
 from backend.config import settings
 import backend.models as models
-from jose import jwt
+import jwt
 
 
 def decode_token(token: str) -> dict:
