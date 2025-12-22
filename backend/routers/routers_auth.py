@@ -317,7 +317,7 @@ def optional_require_role(*roles: str):
     than at definition time to allow tests to toggle the flag in fixtures.
     """
 
-    def _dep(request: Request, user: Any = Depends(get_current_user)) -> Any:
+    def _dep(request: Request | None = None, user: Any = Depends(get_current_user)) -> Any:
         # Evaluate runtime flags so test fixtures can toggle AUTH_ENABLED/AUTH_MODE
         auth_enabled = getattr(settings, "AUTH_ENABLED", False)
         auth_mode = getattr(settings, "AUTH_MODE", "disabled")
