@@ -27,7 +27,7 @@ class LoadTestAnalyzer:
         self.plots_dir.mkdir(exist_ok=True)
 
         # Set up matplotlib
-        plt.style.use('seaborn-v0_8')
+        plt.style.use("seaborn-v0_8")
         sns.set_palette("husl")
 
     def find_latest_results(self) -> List[Path]:
@@ -50,8 +50,12 @@ class LoadTestAnalyzer:
             df.columns = df.columns.str.strip()
 
             # Convert time columns to seconds
-            time_columns = ['Average Response Time', 'Median Response Time',
-                          '95%', '99%']
+            time_columns = [
+                "Average Response Time",
+                "Median Response Time",
+                "95%",
+                "99%",
+            ]
             for col in time_columns:
                 if col in df.columns:
                     df[col] = df[col] / 1000  # Convert ms to seconds
@@ -72,13 +76,15 @@ class LoadTestAnalyzer:
             "timestamp": datetime.now().isoformat(),
             "total_requests": int(df["Request Count"].sum()),
             "total_failures": int(df["Failure Count"].sum()),
-            "error_rate": float(df["Failure Count"].sum() / df["Request Count"].sum() * 100),
+            "error_rate": float(
+                df["Failure Count"].sum() / df["Request Count"].sum() * 100
+            ),
             "avg_response_time": float(df["Average Response Time"].mean()),
             "median_response_time": float(df["Median Response Time"].median()),
             "95p_response_time": float(df["95%"].max()),
             "99p_response_time": float(df["99%"].max()),
             "requests_per_second": float(df["Requests/s"].sum()),
-            "endpoint_stats": []
+            "endpoint_stats": [],
         }
 
         # Per-endpoint statistics
@@ -90,7 +96,7 @@ class LoadTestAnalyzer:
                 "failures": int(row["Failure Count"]),
                 "avg_response_time": float(row["Average Response Time"]),
                 "95p_response_time": float(row["95%"]),
-                "rps": float(row["Requests/s"])
+                "rps": float(row["Requests/s"]),
             }
             summary["endpoint_stats"].append(endpoint_stat)
 
@@ -99,29 +105,38 @@ class LoadTestAnalyzer:
 
         return summary
 
-    def check_performance_targets(self, summary: Dict[str, Any], targets: Dict[str, Any]) -> Dict[str, Any]:
+    def check_performance_targets(
+        self, summary: Dict[str, Any], targets: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Check results against performance targets."""
-        results = {
-            "passed": True,
-            "checks": []
-        }
+        results = {"passed": True, "checks": []}
 
         # Response time checks
         checks = [
-            ("95th Percentile Response Time", summary["95p_response_time"], targets["response_time_95p"]),
-            ("99th Percentile Response Time", summary["99p_response_time"], targets["response_time_99p"]),
-            ("Error Rate", summary["error_rate"], targets["error_rate_max"] * 100)
+            (
+                "95th Percentile Response Time",
+                summary["95p_response_time"],
+                targets["response_time_95p"],
+            ),
+            (
+                "99th Percentile Response Time",
+                summary["99p_response_time"],
+                targets["response_time_99p"],
+            ),
+            ("Error Rate", summary["error_rate"], targets["error_rate_max"] * 100),
         ]
 
         for name, actual, target in checks:
             passed = actual <= target
-            results["checks"].append({
-                "metric": name,
-                "actual": actual,
-                "target": target,
-                "passed": passed,
-                "status": "PASS" if passed else "FAIL"
-            })
+            results["checks"].append(
+                {
+                    "metric": name,
+                    "actual": actual,
+                    "target": target,
+                    "passed": passed,
+                    "status": "PASS" if passed else "FAIL",
+                }
+            )
 
             if not passed:
                 results["passed"] = False
@@ -152,10 +167,17 @@ class LoadTestAnalyzer:
                 p95_time = row["95%"]
 
                 # Approximate distribution
-                times = [avg_time * 0.5, median_time * 0.8, median_time,
-                        median_time * 1.2, p95_time * 0.8]
+                times = [
+                    avg_time * 0.5,
+                    median_time * 0.8,
+                    median_time,
+                    median_time * 1.2,
+                    p95_time * 0.8,
+                ]
                 response_times.append(times)
-                labels.append(row["Name"][:30] + "..." if len(row["Name"]) > 30 else row["Name"])
+                labels.append(
+                    row["Name"][:30] + "..." if len(row["Name"]) > 30 else row["Name"]
+                )
 
             plt.boxplot(response_times, labels=labels, vert=False)
             plt.title("Response Time Distribution by Endpoint")
@@ -163,14 +185,18 @@ class LoadTestAnalyzer:
 
             # RPS by endpoint
             plt.subplot(2, 2, 2)
-            rps_data = df_filtered.set_index("Name")["Requests/s"].sort_values(ascending=True)
+            rps_data = df_filtered.set_index("Name")["Requests/s"].sort_values(
+                ascending=True
+            )
             rps_data.plot(kind="barh", figsize=(10, 6))
             plt.title("Requests per Second by Endpoint")
             plt.xlabel("RPS")
 
             # Error rate by endpoint
             plt.subplot(2, 2, 3)
-            error_rates = (df_filtered["Failure Count"] / df_filtered["Request Count"] * 100)
+            error_rates = (
+                df_filtered["Failure Count"] / df_filtered["Request Count"] * 100
+            )
             error_rates = error_rates.sort_values(ascending=True)
             error_rates.plot(kind="barh", figsize=(10, 6))
             plt.title("Error Rate by Endpoint (%)")
@@ -178,8 +204,12 @@ class LoadTestAnalyzer:
 
             # Response time percentiles
             plt.subplot(2, 2, 4)
-            percentiles = ["Average Response Time", "Median Response Time",
-                         "95%", "99%"]
+            percentiles = [
+                "Average Response Time",
+                "Median Response Time",
+                "95%",
+                "99%",
+            ]
 
             percentile_data = df_filtered[percentiles].mean()
             percentile_data.plot(kind="bar")
@@ -188,29 +218,35 @@ class LoadTestAnalyzer:
             plt.xticks(rotation=45)
 
             plt.tight_layout()
-            plt.savefig(self.plots_dir / f"{test_id}_analysis.png", dpi=300, bbox_inches="tight")
+            plt.savefig(
+                self.plots_dir / f"{test_id}_analysis.png", dpi=300, bbox_inches="tight"
+            )
             plt.close()
 
-            print(f"📊 Generated analysis plots: {self.plots_dir / f'{test_id}_analysis.png'}")
+            print(
+                f"📊 Generated analysis plots: {self.plots_dir / f'{test_id}_analysis.png'}"
+            )
 
-    def save_report(self, summary: Dict[str, Any], target_check: Dict[str, Any], test_id: str):
+    def save_report(
+        self, summary: Dict[str, Any], target_check: Dict[str, Any], test_id: str
+    ):
         """Save comprehensive report to JSON."""
         report = {
             "summary": summary,
             "target_analysis": target_check,
             "generated_at": datetime.now().isoformat(),
-            "test_id": test_id
+            "test_id": test_id,
         }
 
         report_file = self.results_dir / f"analysis_{test_id}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"💾 Saved analysis report: {report_file}")
 
         # Also save human-readable summary
         summary_file = self.results_dir / f"summary_{test_id}.txt"
-        with open(summary_file, 'w') as f:
+        with open(summary_file, "w") as f:
             f.write("SMS Load Test Analysis Report\n")
             f.write("=" * 50 + "\n\n")
             f.write(f"Test ID: {test_id}\n")
@@ -229,18 +265,26 @@ class LoadTestAnalyzer:
             f.write("TARGET ANALYSIS\n")
             f.write("-" * 15 + "\n")
             for check in target_check["checks"]:
-                f.write(f"{check['status']} {check['metric']}: {check['actual']:.3f} (target: {check['target']:.3f})\n")
+                f.write(
+                    f"{check['status']} {check['metric']}: {check['actual']:.3f} (target: {check['target']:.3f})\n"
+                )
 
-            f.write(f"\nOverall Result: {'PASSED' if target_check['passed'] else 'FAILED'}\n\n")
+            f.write(
+                f"\nOverall Result: {'PASSED' if target_check['passed'] else 'FAILED'}\n\n"
+            )
 
             f.write("TOP ENDPOINTS BY REQUESTS\n")
             f.write("-" * 25 + "\n")
             for stat in summary["endpoint_stats"][:10]:  # Top 10
-                f.write(f"{stat['requests']:>6,} req | {stat['avg_response_time']:>6.3f}s | {stat['endpoint']}\n")
+                f.write(
+                    f"{stat['requests']:>6,} req | {stat['avg_response_time']:>6.3f}s | {stat['endpoint']}\n"
+                )
 
         print(f"📄 Saved summary report: {summary_file}")
 
-    def analyze(self, test_id: Optional[str] = None, targets: Optional[Dict[str, Any]] = None) -> bool:
+    def analyze(
+        self, test_id: Optional[str] = None, targets: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """Main analysis method."""
         print("🔍 Analyzing load test results...")
 
@@ -257,7 +301,9 @@ class LoadTestAnalyzer:
                 return False
 
         stats_file = stats_files[0]
-        test_id = test_id or stats_file.stem.replace("results_", "").replace("_stats", "")
+        test_id = test_id or stats_file.stem.replace("results_", "").replace(
+            "_stats", ""
+        )
 
         print(f"📂 Analyzing results: {stats_file}")
 
@@ -277,7 +323,7 @@ class LoadTestAnalyzer:
             default_targets = {
                 "response_time_95p": 2.0,
                 "response_time_99p": 5.0,
-                "error_rate_max": 0.05
+                "error_rate_max": 0.05,
             }
             target_check = self.check_performance_targets(summary, default_targets)
 
@@ -304,14 +350,18 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Load Test Results Analyzer")
     parser.add_argument("--test-id", help="Specific test ID to analyze")
-    parser.add_argument("--results-dir", default="load-testing/results",
-                       help="Results directory path")
-    parser.add_argument("--target-95p", type=float, default=2.0,
-                       help="95th percentile target (seconds)")
-    parser.add_argument("--target-99p", type=float, default=5.0,
-                       help="99th percentile target (seconds)")
-    parser.add_argument("--max-error-rate", type=float, default=0.05,
-                       help="Maximum error rate (0-1)")
+    parser.add_argument(
+        "--results-dir", default="load-testing/results", help="Results directory path"
+    )
+    parser.add_argument(
+        "--target-95p", type=float, default=2.0, help="95th percentile target (seconds)"
+    )
+    parser.add_argument(
+        "--target-99p", type=float, default=5.0, help="99th percentile target (seconds)"
+    )
+    parser.add_argument(
+        "--max-error-rate", type=float, default=0.05, help="Maximum error rate (0-1)"
+    )
 
     args = parser.parse_args()
 
@@ -323,7 +373,7 @@ def main():
     targets = {
         "response_time_95p": args.target_95p,
         "response_time_99p": args.target_99p,
-        "error_rate_max": args.max_error_rate
+        "error_rate_max": args.max_error_rate,
     }
 
     analyzer = LoadTestAnalyzer(results_dir)

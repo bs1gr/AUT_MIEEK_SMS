@@ -29,7 +29,9 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
     ) -> None:
         super().__init__(app)
         self.cache = TimedLRUCache(maxsize=maxsize, ttl_seconds=ttl_seconds)
-        self.include_headers = tuple(h.lower() for h in (include_headers or ("accept-language", "accept")))
+        self.include_headers = tuple(
+            h.lower() for h in (include_headers or ("accept-language", "accept"))
+        )
         default_excludes = ("/control", "/health", "/health/live", "/health/ready")
         self.excluded_paths = {
             self._normalize_path_value(path)
@@ -97,7 +99,9 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
         path = request.url.path.rstrip("/") or "/"
         if path in self.excluded_paths:
             return False
-        if self.include_prefixes and not any(path.startswith(prefix) for prefix in self.include_prefixes):
+        if self.include_prefixes and not any(
+            path.startswith(prefix) for prefix in self.include_prefixes
+        ):
             return False
         if self.require_opt_in and not self._has_opt_in(request):
             return False
@@ -110,7 +114,9 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
         if response.status_code != 200:
             return False
         cache_control = response.headers.get("Cache-Control", "").lower()
-        if any(flag in cache_control for flag in ("no-store", "private", "authorization")):
+        if any(
+            flag in cache_control for flag in ("no-store", "private", "authorization")
+        ):
             return False
         if response.background is not None:
             return False

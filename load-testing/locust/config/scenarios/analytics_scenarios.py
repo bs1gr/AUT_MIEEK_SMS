@@ -59,7 +59,13 @@ class AnalyticsScenarios(TaskSet):
     @task(2)
     def department_analytics(self):
         """Get department-level analytics."""
-        departments = ["Computer Science", "Mathematics", "Physics", "Chemistry", "Biology"]
+        departments = [
+            "Computer Science",
+            "Mathematics",
+            "Physics",
+            "Chemistry",
+            "Biology",
+        ]
         department = random.choice(departments)
         self.client.get(f"/api/v1/analytics/department/{department}")
 
@@ -108,7 +114,7 @@ class AnalyticsScenarios(TaskSet):
                 "include_attendance": random.choice([True, False]),
                 "include_highlights": random.choice([True, False]),
                 "include_participation": random.choice([True, False]),
-                "format": random.choice(["json", "pdf", "csv"])
+                "format": random.choice(["json", "pdf", "csv"]),
             }
             self.client.post("/api/v1/reports/student-performance", json=report_config)
 
@@ -123,7 +129,7 @@ class AnalyticsScenarios(TaskSet):
                 "include_grades": True,
                 "include_attendance": True,
                 "include_participation": random.choice([True, False]),
-                "format": random.choice(["json", "pdf", "csv"])
+                "format": random.choice(["json", "pdf", "csv"]),
             }
             self.client.post("/api/v1/reports/course-performance", json=report_config)
 
@@ -135,7 +141,7 @@ class AnalyticsScenarios(TaskSet):
             "/api/v1/export/courses/excel",
             "/api/v1/export/attendance/excel",
             f"/api/v1/export/grades/excel/{self.get_random_student_id() or 1}",
-            f"/api/v1/export/analytics/course/{self.get_random_course_id() or 1}/pdf"
+            f"/api/v1/export/analytics/course/{self.get_random_course_id() or 1}/pdf",
         ]
 
         export_url = random.choice(export_types)
@@ -149,7 +155,7 @@ class AnalyticsScenarios(TaskSet):
             "/api/v1/analytics/dashboard",
             "/api/v1/analytics/performance",
             "/api/v1/analytics/attendance",
-            "/api/v1/analytics/grades"
+            "/api/v1/analytics/grades",
         ]
 
         for query in random.sample(queries, k=random.randint(2, 4)):
@@ -163,6 +169,7 @@ class AnalyticsScenarios(TaskSet):
             self.client.get("/api/v1/analytics/dashboard")
             # Small delay to simulate polling interval
             import time
+
             time.sleep(random.uniform(0.5, 2.0))
 
     @task(1)

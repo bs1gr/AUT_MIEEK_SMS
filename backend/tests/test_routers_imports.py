@@ -3,11 +3,12 @@
 import asyncio
 from io import BytesIO
 from typing import Any, cast
-
 import pytest
 from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 from starlette.requests import Request
+from backend.errors import ErrorCode
+from backend.routers.routers_imports import validate_uploaded_file
 
 
 def _make_upload(filename: str, data: bytes, content_type: str | None) -> UploadFile:
@@ -15,10 +16,6 @@ def _make_upload(filename: str, data: bytes, content_type: str | None) -> Upload
 
     headers = Headers({"content-type": content_type}) if content_type else None
     return UploadFile(BytesIO(data), filename=filename, headers=headers)
-
-
-from backend.errors import ErrorCode
-from backend.routers.routers_imports import validate_uploaded_file
 
 
 def test_validate_uploaded_file_accepts_valid_json():
@@ -107,4 +104,6 @@ def test_validate_uploaded_file_rejects_invalid_encoding():
     assert exc.value.status_code == 400
     detail = cast(dict[str, Any], exc.value.detail)
     assert detail["error_id"] == ErrorCode.IMPORT_INVALID_ENCODING.value
-    assert detail["message"] == "Invalid file encoding. JSON files must be UTF-8 encoded"
+    assert (
+        detail["message"] == "Invalid file encoding. JSON files must be UTF-8 encoded"
+    )

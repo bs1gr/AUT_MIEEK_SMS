@@ -83,7 +83,7 @@ apiClient.interceptors.request.use(
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config) {
   if (!config) return config;
-  
+
   try {
     const token = authService.getAccessToken && authService.getAccessToken();
     if (token && config && config.headers) {
@@ -1145,9 +1145,9 @@ export const sessionAPI = {
       const formData = new FormData();
       formData.append('file', file);
       const response = await apiClient.post('/sessions/import', formData, {
-        params: { 
+        params: {
           merge_strategy: mergeStrategy,
-          dry_run: dryRun 
+          dry_run: dryRun
         },
         headers: { 'Content-Type': 'multipart/form-data' }
       });

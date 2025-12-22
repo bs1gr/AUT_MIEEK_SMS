@@ -5,10 +5,10 @@ Configuration:
     REDIS_ENABLED=true (in .env for Redis mode)
     REDIS_HOST=redis
     REDIS_PORT=6379
-    
+
 Usage:
     from backend.cache import cached, invalidate_cache, CacheConfig
-    
+
     @router.get("/students")
     @cached(ttl=CacheConfig.STUDENTS_LIST)
     async def list_students():
@@ -26,6 +26,7 @@ from datetime import timedelta
 
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -35,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class CacheConfig:
     """Cache TTL configuration by endpoint"""
+
     STUDENTS_LIST = timedelta(minutes=5)
     STUDENT_DETAIL = timedelta(minutes=10)
     COURSES_LIST = timedelta(minutes=5)
@@ -170,8 +172,7 @@ class RedisCache:
 
     def __init__(self):
         self.enabled = (
-            os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
-            and REDIS_AVAILABLE
+            os.getenv("REDIS_ENABLED", "false").lower() == "true" and REDIS_AVAILABLE
         )
         self.client: Optional[redis.Redis] = None
         self.fallback_cache = TimedLRUCache(maxsize=256, ttl_seconds=300)
@@ -179,8 +180,8 @@ class RedisCache:
         if self.enabled:
             try:
                 self.client = redis.Redis(
-                    host=os.getenv('REDIS_HOST', 'localhost'),
-                    port=int(os.getenv('REDIS_PORT', 6379)),
+                    host=os.getenv("REDIS_HOST", "localhost"),
+                    port=int(os.getenv("REDIS_PORT", 6379)),
                     db=0,
                     decode_responses=True,
                     socket_connect_timeout=5,
@@ -199,7 +200,11 @@ class RedisCache:
                 if value:
                     logger.debug(f"Cache HIT: {key}")
                     # Type cast to satisfy mypy - Redis get() returns bytes|None
-                    return json.loads(str(value.decode('utf-8') if isinstance(value, bytes) else value))
+                    return json.loads(
+                        str(
+                            value.decode("utf-8") if isinstance(value, bytes) else value
+                        )
+                    )
             else:
                 return self.fallback_cache.get(key)
         except Exception as e:
@@ -270,10 +275,10 @@ def cache_key(*parts) -> str:
 
 
 def cached_async(
-    ttl: timedelta = timedelta(minutes=5),
-    key_builder: Optional[Callable] = None
+    ttl: timedelta = timedelta(minutes=5), key_builder: Optional[Callable] = None
 ):
     """Decorator for caching async function results"""
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -293,14 +298,16 @@ def cached_async(
             return result
 
         return wrapper
+
     return decorator
 
 
 def cached(ttl: timedelta = timedelta(minutes=5)):
     """Decorator for caching sync function results (FastAPI endpoints)
-    
+
     Works with both Redis (if enabled) and in-memory fallback
     """
+
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -323,6 +330,7 @@ def cached(ttl: timedelta = timedelta(minutes=5)):
             return result
 
         return wrapper
+
     return decorator
 
 

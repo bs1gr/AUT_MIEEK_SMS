@@ -1,3 +1,7 @@
+import subprocess
+
+# Expose subprocess for test monkeypatching
+subprocess = subprocess
 """
 Student Management System - Main Entry Point
 Version: 1.12.5
@@ -17,36 +21,27 @@ RECOMMENDED STARTUP:
 """
 
 import sys
-import io
-import os
 from pathlib import Path
-from backend.import_resolver import ensure_backend_importable
+from fastapi import FastAPI
+from .app_factory import create_app
 
-# UTF-8 encoding fix for Windows console
-if sys.platform == "win32" and os.environ.get("PYTEST_CURRENT_TEST") is None:
-    try:
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-        try:
-            sys.stderr.reconfigure(encoding="utf-8")
-        except Exception:
-            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
-    except Exception:
-        pass
+"""
+Student Management System — FastAPI backend
 
-# Ensure project root is on sys.path for absolute imports via centralized resolver
-ensure_backend_importable()
+Entry point for the backend application. This file is used by Uvicorn/Gunicorn.
+"""
+# Patch sys.path for local dev (if run directly)
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).parent))
+# Entrypoint for Uvicorn/Gunicorn
+app: FastAPI = create_app()
+# For local dev: run with `python backend/main.py`
+if __name__ == "__main__":
+    import uvicorn
 
-from backend.app_factory import create_app
-from backend.db import get_session as get_db  # Export for backward compatibility  # noqa: F401
-import uvicorn
-import subprocess  # Export for tests  # noqa: F401
-
-
-# Create the FastAPI application
-app = create_app()
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+# NOTE: `app` is created above. Do NOT recreate it here to avoid multiple
+# FastAPI instances which break test dependency overrides.
 
 
 # Backward compatibility stubs for tests that monkeypatch main module
@@ -74,6 +69,7 @@ def _find_pids_on_port(port):
 def _safe_run(cmd_args, timeout=5):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     from types import SimpleNamespace
+
     return SimpleNamespace(returncode=0, stdout="", stderr="")
 
 
@@ -101,7 +97,7 @@ def get_version() -> str:
 def main() -> None:
     """
     Main entry point for running the application directly.
-    
+
     Configures and starts the Uvicorn server.
     """
     VERSION = get_version()

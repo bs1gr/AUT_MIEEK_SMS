@@ -56,7 +56,9 @@ class StudentService:
             query = query.filter(self.Student.is_active == is_active)
         return paginate(query, skip, limit)
 
-    def search_students(self, q: str, skip: int, limit: int, is_active: Optional[bool] = None):
+    def search_students(
+        self, q: str, skip: int, limit: int, is_active: Optional[bool] = None
+    ):
         """Full-text like search on first_name + last_name with Postgres optimization.
 
         Fallback to ILIKE on non-Postgres dialects.
@@ -76,13 +78,17 @@ class StudentService:
 
         if dialect == "postgresql":
             # Use to_tsvector match
-            vector = func.to_tsvector('simple', func.concat_ws(' ', self.Student.first_name, self.Student.last_name))
-            ts_query = func.plainto_tsquery('simple', q)
-            query = query.filter(vector.op('@@')(ts_query))
+            vector = func.to_tsvector(
+                "simple",
+                func.concat_ws(" ", self.Student.first_name, self.Student.last_name),
+            )
+            ts_query = func.plainto_tsquery("simple", q)
+            query = query.filter(vector.op("@@")(ts_query))
         else:
             like = f"%{q}%"
             query = query.filter(
-                (self.Student.first_name.ilike(like)) | (self.Student.last_name.ilike(like))
+                (self.Student.first_name.ilike(like))
+                | (self.Student.last_name.ilike(like))
             )
 
         return paginate(query, skip, limit)
@@ -110,6 +116,10 @@ class StudentService:
         with transaction(self.db):
             db_student.mark_deleted()
             db_student.is_active = False  # type: ignore[assignment]
+            # Debug log for test: print deleted_at and is_active
+            logger.info(
+                f"DEBUG: After delete, student.id={db_student.id}, deleted_at={db_student.deleted_at}, is_active={db_student.is_active}"
+            )
         logger.info("Soft-deleted student: %s", student_id)
 
     def activate_student(self, student_id: int) -> Dict[str, Any]:
@@ -126,7 +136,9 @@ class StudentService:
         logger.info("Deactivated student: %s", student_id)
         return {"message": "Student deactivated successfully", "student_id": student_id}
 
-    def bulk_create_students(self, students_data: List[StudentCreate]) -> Dict[str, Any]:
+    def bulk_create_students(
+        self, students_data: List[StudentCreate]
+    ) -> Dict[str, Any]:
         created: List[str] = []
         errors: List[Dict[str, Any]] = []
 
@@ -137,7 +149,9 @@ class StudentService:
                 errors.append(
                     {
                         "index": idx,
-                        "error": build_error_detail(code, message, request=self.request, context=context),
+                        "error": build_error_detail(
+                            code, message, request=self.request, context=context
+                        ),
                     }
                 )
                 continue
@@ -148,7 +162,9 @@ class StudentService:
                 errors.append(
                     {
                         "index": idx,
-                        "error": build_error_detail(code, message, request=self.request, context=context),
+                        "error": build_error_detail(
+                            code, message, request=self.request, context=context
+                        ),
                     }
                 )
                 continue
@@ -185,7 +201,9 @@ class StudentService:
                     }
                 )
 
-        logger.info("Bulk created %s students with %s errors", len(created), len(errors))
+        logger.info(
+            "Bulk created %s students with %s errors", len(created), len(errors)
+        )
         return {
             "created": len(created),
             "failed": len(errors),
@@ -226,16 +244,33 @@ class StudentService:
             status_code, code, message, context = duplicate
             raise http_error(status_code, code, message, self.request, context=context)
 
-    def _duplicate_error(self, field_name: str, value: str) -> Optional[DuplicateCheckResult]:
+    def _duplicate_error(
+        self, field_name: str, value: str
+    ) -> Optional[DuplicateCheckResult]:
         attribute = getattr(self.Student, field_name)
-        existing = self.db.query(self.Student).filter(attribute == value).with_for_update().first()
+        existing = (
+            self.db.query(self.Student)
+            .filter(attribute == value)
+            .with_for_update()
+            .first()
+        )
         if not existing:
             return None
 
         if existing.deleted_at is None:
             if field_name == "email":
-                return (400, ErrorCode.STUDENT_DUPLICATE_EMAIL, "Email already registered", None)
-            return (400, ErrorCode.STUDENT_DUPLICATE_ID, "Student ID already exists", None)
+                return (
+                    400,
+                    ErrorCode.STUDENT_DUPLICATE_EMAIL,
+                    "Email already registered",
+                    None,
+                )
+            return (
+                400,
+                ErrorCode.STUDENT_DUPLICATE_ID,
+                "Student ID already exists",
+                None,
+            )
 
         if field_name == "email":
             message = "Student email is archived; contact support to restore"

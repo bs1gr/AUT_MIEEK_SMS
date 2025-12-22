@@ -2,7 +2,7 @@
 Backup Verification Script
 Scans all .db files in the backups/ directory and checks for SQLite integrity and required tables.
 """
-import os
+
 import sqlite3
 from pathlib import Path
 

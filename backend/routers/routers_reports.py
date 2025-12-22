@@ -20,7 +20,14 @@ from sqlalchemy.orm import Session
 
 from backend.cache import cache_key, redis_cache, CacheConfig
 from backend.db import get_session
-from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
+from backend.models import (
+    Attendance,
+    Course,
+    DailyPerformance,
+    Grade,
+    Highlight,
+    Student,
+)
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.services.report_exporters import generate_pdf_report, generate_csv_report
 from backend.schemas import (
@@ -40,13 +47,18 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 logger = logging.getLogger(__name__)
 
 
-def _calculate_period_dates(period: ReportPeriod, start_date: Optional[date], end_date: Optional[date]) -> tuple[date, date]:
+def _calculate_period_dates(
+    period: ReportPeriod, start_date: Optional[date], end_date: Optional[date]
+) -> tuple[date, date]:
     """Calculate start and end dates based on period type."""
     today = date.today()
 
     if period == ReportPeriod.CUSTOM:
         if not start_date or not end_date:
-            raise HTTPException(status_code=400, detail="start_date and end_date required for custom period")
+            raise HTTPException(
+                status_code=400,
+                detail="start_date and end_date required for custom period",
+            )
         return start_date, end_date
 
     elif period == ReportPeriod.WEEK:
@@ -78,7 +90,9 @@ def _calculate_trend(values: List[float]) -> str:
     # Split into first half and second half
     mid = len(values) // 2
     first_half_avg = sum(values[:mid]) / len(values[:mid]) if mid > 0 else 0
-    second_half_avg = sum(values[mid:]) / len(values[mid:]) if len(values[mid:]) > 0 else 0
+    second_half_avg = (
+        sum(values[mid:]) / len(values[mid:]) if len(values[mid:]) > 0 else 0
+    )
 
     diff = second_half_avg - first_half_avg
 
@@ -98,49 +112,87 @@ def _generate_recommendations(report_data: dict) -> List[str]:
     if report_data.get("overall_attendance"):
         attendance = report_data["overall_attendance"]
         # Handle both Pydantic model and dict
-        attendance_rate = attendance.attendance_rate if hasattr(attendance, 'attendance_rate') else attendance.get("attendance_rate", 100)
+        attendance_rate = (
+            attendance.attendance_rate
+            if hasattr(attendance, "attendance_rate")
+            else attendance.get("attendance_rate", 100)
+        )
         if attendance_rate < 75:
-            recommendations.append("⚠️ Attendance is below 75%. Regular attendance is crucial for academic success.")
+            recommendations.append(
+                "⚠️ Attendance is below 75%. Regular attendance is crucial for academic success."
+            )
         elif attendance_rate < 85:
-            recommendations.append("✓ Attendance could be improved. Aim for 90%+ attendance rate.")
+            recommendations.append(
+                "✓ Attendance could be improved. Aim for 90%+ attendance rate."
+            )
 
     # Check grades
     if report_data.get("overall_grades"):
         grades = report_data["overall_grades"]
         # Handle both Pydantic model and dict
-        avg_percentage = grades.average_percentage if hasattr(grades, 'average_percentage') else grades.get("average_percentage", 100)
-        trend = grades.grade_trend if hasattr(grades, 'grade_trend') else grades.get("grade_trend", "stable")
+        avg_percentage = (
+            grades.average_percentage
+            if hasattr(grades, "average_percentage")
+            else grades.get("average_percentage", 100)
+        )
+        trend = (
+            grades.grade_trend
+            if hasattr(grades, "grade_trend")
+            else grades.get("grade_trend", "stable")
+        )
 
         if avg_percentage < 60:
-            recommendations.append("⚠️ Grades are below passing threshold. Consider scheduling tutoring sessions.")
+            recommendations.append(
+                "⚠️ Grades are below passing threshold. Consider scheduling tutoring sessions."
+            )
         elif avg_percentage < 70:
-            recommendations.append("✓ Grades need improvement. Review study habits and seek help in challenging subjects.")
+            recommendations.append(
+                "✓ Grades need improvement. Review study habits and seek help in challenging subjects."
+            )
         elif avg_percentage >= 90:
-            recommendations.append("🌟 Excellent academic performance! Keep up the great work.")
+            recommendations.append(
+                "🌟 Excellent academic performance! Keep up the great work."
+            )
 
         if trend == "declining":
-            recommendations.append("⚠️ Grade trend is declining. Review recent assignments and identify areas needing improvement.")
+            recommendations.append(
+                "⚠️ Grade trend is declining. Review recent assignments and identify areas needing improvement."
+            )
         elif trend == "improving":
-            recommendations.append("✓ Grade trend is improving. Continue the positive momentum!")
+            recommendations.append(
+                "✓ Grade trend is improving. Continue the positive momentum!"
+            )
 
     # Check course-specific issues
     courses_data = report_data.get("courses", [])
     struggling_courses = []
     for c in courses_data:
-        grade_pct = c.grade_percentage if hasattr(c, 'grade_percentage') else c.get("grade_percentage", 100)
+        grade_pct = (
+            c.grade_percentage
+            if hasattr(c, "grade_percentage")
+            else c.get("grade_percentage", 100)
+        )
         if grade_pct and grade_pct < 60:
             struggling_courses.append(c)
 
     if struggling_courses:
         course_names = []
         for c in struggling_courses[:3]:
-            course_name = c.course_name if hasattr(c, 'course_name') else c.get("course_name", "Unknown")
+            course_name = (
+                c.course_name
+                if hasattr(c, "course_name")
+                else c.get("course_name", "Unknown")
+            )
             course_names.append(course_name)
-        recommendations.append(f"📚 Focus on: {', '.join(course_names)}. Consider extra study time or tutoring.")
+        recommendations.append(
+            f"📚 Focus on: {', '.join(course_names)}. Consider extra study time or tutoring."
+        )
 
     # If no issues found
     if not recommendations:
-        recommendations.append("✓ Overall performance is satisfactory. Continue maintaining good study habits.")
+        recommendations.append(
+            "✓ Overall performance is satisfactory. Continue maintaining good study habits."
+        )
 
     return recommendations
 
@@ -182,13 +234,21 @@ async def generate_student_performance_report(
     # Try to get from cache
     cached_report = redis_cache.get(report_cache_key)
     if cached_report:
-        logger.info(f"Cache HIT: Returning cached report for student {report_request.student_id}")
+        logger.info(
+            f"Cache HIT: Returning cached report for student {report_request.student_id}"
+        )
         return StudentPerformanceReport(**cached_report)
 
-    logger.info(f"Cache MISS: Generating new report for student {report_request.student_id}")
+    logger.info(
+        f"Cache MISS: Generating new report for student {report_request.student_id}"
+    )
 
     # Validate student exists
-    student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
+    student = (
+        db.query(Student)
+        .filter(Student.id == report_request.student_id, Student.deleted_at.is_(None))
+        .first()
+    )
 
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -243,7 +303,9 @@ async def generate_student_performance_report(
                 absent=absent,
                 late=late,
                 excused=excused,
-                attendance_rate=round((present / total_days) * 100, 1) if total_days > 0 else 0,
+                attendance_rate=round((present / total_days) * 100, 1)
+                if total_days > 0
+                else 0,
                 unexcused_absences=max(0, unexcused),
             )
 
@@ -259,12 +321,24 @@ async def generate_student_performance_report(
             .filter(
                 and_(
                     or_(
-                        and_(Grade.date_submitted.isnot(None), Grade.date_submitted >= start_date),
-                        and_(Grade.date_submitted.is_(None), Grade.date_assigned >= start_date),
+                        and_(
+                            Grade.date_submitted.isnot(None),
+                            Grade.date_submitted >= start_date,
+                        ),
+                        and_(
+                            Grade.date_submitted.is_(None),
+                            Grade.date_assigned >= start_date,
+                        ),
                     ),
                     or_(
-                        and_(Grade.date_submitted.isnot(None), Grade.date_submitted <= end_date),
-                        and_(Grade.date_submitted.is_(None), Grade.date_assigned <= end_date),
+                        and_(
+                            Grade.date_submitted.isnot(None),
+                            Grade.date_submitted <= end_date,
+                        ),
+                        and_(
+                            Grade.date_submitted.is_(None),
+                            Grade.date_assigned <= end_date,
+                        ),
                     ),
                 )
             )
@@ -276,7 +350,9 @@ async def generate_student_performance_report(
             percentages = [g.percentage for g in grade_records]
             report_data["overall_grades"] = GradeSummary(
                 total_assignments=len(grade_records),
-                average_grade=round(sum(g.grade for g in grade_records) / len(grade_records), 2),
+                average_grade=round(
+                    sum(g.grade for g in grade_records) / len(grade_records), 2
+                ),
                 average_percentage=round(sum(percentages) / len(percentages), 1),
                 highest_grade=max(g.grade for g in grade_records),
                 lowest_grade=min(g.grade for g in grade_records),
@@ -312,12 +388,24 @@ async def generate_student_performance_report(
                 .filter(
                     and_(
                         or_(
-                            and_(Grade.date_submitted.isnot(None), Grade.date_submitted >= start_date),
-                            and_(Grade.date_submitted.is_(None), Grade.date_assigned >= start_date),
+                            and_(
+                                Grade.date_submitted.isnot(None),
+                                Grade.date_submitted >= start_date,
+                            ),
+                            and_(
+                                Grade.date_submitted.is_(None),
+                                Grade.date_assigned >= start_date,
+                            ),
                         ),
                         or_(
-                            and_(Grade.date_submitted.isnot(None), Grade.date_submitted <= end_date),
-                            and_(Grade.date_submitted.is_(None), Grade.date_assigned <= end_date),
+                            and_(
+                                Grade.date_submitted.isnot(None),
+                                Grade.date_submitted <= end_date,
+                            ),
+                            and_(
+                                Grade.date_submitted.is_(None),
+                                Grade.date_assigned <= end_date,
+                            ),
                         ),
                     )
                 )
@@ -325,11 +413,15 @@ async def generate_student_performance_report(
             )
 
             if course_grades:
-                course_summary["grade_average"] = round(sum(g.grade for g in course_grades) / len(course_grades), 2)
+                course_summary["grade_average"] = round(
+                    sum(g.grade for g in course_grades) / len(course_grades), 2
+                )
                 course_summary["grade_percentage"] = round(
                     sum(g.percentage for g in course_grades) / len(course_grades), 1
                 )
-                course_summary["latest_grade"] = course_grades[-1].grade if course_grades else None
+                course_summary["latest_grade"] = (
+                    course_grades[-1].grade if course_grades else None
+                )
 
         # Course attendance
         if report_request.include_attendance:
@@ -347,8 +439,12 @@ async def generate_student_performance_report(
 
             if course_attendance:
                 total = len(course_attendance)
-                present_count = len([a for a in course_attendance if a.status == "Present"])
-                course_summary["attendance_rate"] = round((present_count / total) * 100, 1) if total > 0 else 0
+                present_count = len(
+                    [a for a in course_attendance if a.status == "Present"]
+                )
+                course_summary["attendance_rate"] = (
+                    round((present_count / total) * 100, 1) if total > 0 else 0
+                )
                 course_summary["total_absences"] = total - present_count
 
         # Daily performance
@@ -430,8 +526,12 @@ async def generate_student_performance_report(
     report_response = StudentPerformanceReport(**report_data)
 
     # Cache the result (serialize to dict for storage)
-    redis_cache.set(report_cache_key, report_response.model_dump(), CacheConfig.STUDENT_REPORT)
-    logger.info(f"Cached report for student {report_request.student_id} with key {report_cache_key}")
+    redis_cache.set(
+        report_cache_key, report_response.model_dump(), CacheConfig.STUDENT_REPORT
+    )
+    logger.info(
+        f"Cached report for student {report_request.student_id} with key {report_cache_key}"
+    )
 
     return report_response
 
@@ -457,17 +557,21 @@ async def download_student_performance_report(
 ):
     """
     Generate and download student performance report in requested format.
-    
+
     Supports:
     - JSON: Returns JSON response (default)
     - PDF: Returns PDF file for download
     - CSV: Returns CSV file for download
-    
+
     **Rate limit**: 10 requests per minute
     """
     # First generate the report data using the existing endpoint logic
     # Validate student exists
-    student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
+    student = (
+        db.query(Student)
+        .filter(Student.id == report_request.student_id, Student.deleted_at.is_(None))
+        .first()
+    )
 
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -515,8 +619,12 @@ async def download_student_performance_report(
 
         if attendances:
             total_days = len(attendances)
-            present = sum(1 for a in attendances if a.status.lower() in ["present", "late"])
-            absent = sum(1 for a in attendances if a.status.lower() in ["absent", "excused"])
+            present = sum(
+                1 for a in attendances if a.status.lower() in ["present", "late"]
+            )
+            absent = sum(
+                1 for a in attendances if a.status.lower() in ["absent", "excused"]
+            )
             unexcused = sum(1 for a in attendances if a.status.lower() == "absent")
             attendance_rate = (present / total_days * 100) if total_days > 0 else 0
 
@@ -542,7 +650,9 @@ async def download_student_performance_report(
         grades = grade_query.all()
 
         if grades:
-            percentages = [(g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0]
+            percentages = [
+                (g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0
+            ]
             if percentages:
                 avg_percentage = sum(percentages) / len(percentages)
                 trend = _calculate_trend(percentages)
@@ -558,18 +668,31 @@ async def download_student_performance_report(
 
     # Get courses for breakdown
     if course_ids:
-        courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all()
+        courses = (
+            db.query(Course)
+            .filter(Course.id.in_(course_ids), Course.deleted_at.is_(None))
+            .all()
+        )
     else:
         # Get all courses student is enrolled in
         from backend.models import CourseEnrollment
 
         enrollments = (
             db.query(CourseEnrollment)
-            .filter(CourseEnrollment.student_id == student.id, CourseEnrollment.deleted_at.is_(None))
+            .filter(
+                CourseEnrollment.student_id == student.id,
+                CourseEnrollment.deleted_at.is_(None),
+            )
             .all()
         )
         course_ids = [e.course_id for e in enrollments]
-        courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all() if course_ids else []
+        courses = (
+            db.query(Course)
+            .filter(Course.id.in_(course_ids), Course.deleted_at.is_(None))
+            .all()
+            if course_ids
+            else []
+        )
 
     # Build course summaries (simplified version)
     for course in courses:
@@ -596,12 +719,16 @@ async def download_student_performance_report(
             ]
             if course_att:
                 total = len(course_att)
-                present = sum(1 for a in course_att if a.status.lower() in ["present", "late"])
+                present = sum(
+                    1 for a in course_att if a.status.lower() in ["present", "late"]
+                )
                 course_data["attendance"] = {
                     "total_days": total,
                     "present": present,
                     "absent": total - present,
-                    "attendance_rate": round((present / total * 100) if total > 0 else 0, 1),
+                    "attendance_rate": round(
+                        (present / total * 100) if total > 0 else 0, 1
+                    ),
                 }
 
         # Course grades
@@ -619,11 +746,17 @@ async def download_student_performance_report(
                 .all()
             ]
             if course_grades:
-                percentages = [(g.grade / g.max_grade * 100) for g in course_grades if g.max_grade > 0]
+                percentages = [
+                    (g.grade / g.max_grade * 100)
+                    for g in course_grades
+                    if g.max_grade > 0
+                ]
                 if percentages:
                     course_data["grades"] = {
                         "total_assignments": len(course_grades),
-                        "average_percentage": round(sum(percentages) / len(percentages), 1),
+                        "average_percentage": round(
+                            sum(percentages) / len(percentages), 1
+                        ),
                         "grade_trend": _calculate_trend(percentages),
                     }
 
@@ -631,12 +764,16 @@ async def download_student_performance_report(
 
     # Add highlights
     if report_request.include_highlights:
-        highlights = db.query(Highlight).filter(
-            Highlight.student_id == student.id,
-            Highlight.date_created >= start_date,
-            Highlight.date_created <= end_date,
-            Highlight.deleted_at.is_(None),
-        ).all()
+        highlights = (
+            db.query(Highlight)
+            .filter(
+                Highlight.student_id == student.id,
+                Highlight.date_created >= start_date,
+                Highlight.date_created <= end_date,
+                Highlight.deleted_at.is_(None),
+            )
+            .all()
+        )
 
         report_data["highlights"] = [
             {
@@ -688,52 +825,52 @@ async def generate_bulk_student_reports(
 ):
     """
     Generate performance reports for multiple students at once.
-    
+
     Returns a list of reports or a downloadable file depending on format.
-    
+
     **Limitations**:
     - Maximum 50 students per request
     - Rate limit: 10 requests per minute
     - Large requests may take time to process
-    
+
     **Recommended**: Use for batches of 10-20 students
     """
     # Validate student count
     if len(bulk_request.student_ids) > 50:
         raise HTTPException(
             status_code=400,
-            detail="Maximum 50 students per bulk request. Please split into smaller batches."
+            detail="Maximum 50 students per bulk request. Please split into smaller batches.",
         )
-    
+
     if len(bulk_request.student_ids) == 0:
         raise HTTPException(status_code=400, detail="At least one student ID required")
-    
+
     logger.info(f"Generating bulk reports for {len(bulk_request.student_ids)} students")
-    
+
     # Calculate date range
     start_date, end_date = _calculate_period_dates(
         bulk_request.period, bulk_request.start_date, bulk_request.end_date
     )
-    
+
     # Generate reports for each student
     reports = []
     failed_students = []
-    
+
     for student_id in bulk_request.student_ids:
         try:
             # Check if student exists
-            student = db.query(Student).filter(
-                Student.id == student_id,
-                Student.deleted_at.is_(None)
-            ).first()
-            
+            student = (
+                db.query(Student)
+                .filter(Student.id == student_id, Student.deleted_at.is_(None))
+                .first()
+            )
+
             if not student:
-                failed_students.append({
-                    "student_id": student_id,
-                    "error": "Student not found"
-                })
+                failed_students.append(
+                    {"student_id": student_id, "error": "Student not found"}
+                )
                 continue
-            
+
             # Build report data (simplified version)
             report_data = {
                 "student_id": student.id,
@@ -745,7 +882,7 @@ async def generate_bulk_student_reports(
                 "overall_attendance": None,
                 "overall_grades": None,
             }
-            
+
             # Get attendance summary
             if bulk_request.include_attendance:
                 att_query = db.query(Attendance).filter(
@@ -755,20 +892,32 @@ async def generate_bulk_student_reports(
                     Attendance.deleted_at.is_(None),
                 )
                 if bulk_request.course_ids:
-                    att_query = att_query.filter(Attendance.course_id.in_(bulk_request.course_ids))
-                
+                    att_query = att_query.filter(
+                        Attendance.course_id.in_(bulk_request.course_ids)
+                    )
+
                 attendances = att_query.all()
                 if attendances:
                     total_days = len(attendances)
-                    present = sum(1 for a in attendances if a.status.lower() in ["present", "late"])
-                    absent = sum(1 for a in attendances if a.status.lower() in ["absent", "excused"])
+                    present = sum(
+                        1
+                        for a in attendances
+                        if a.status.lower() in ["present", "late"]
+                    )
+                    absent = sum(
+                        1
+                        for a in attendances
+                        if a.status.lower() in ["absent", "excused"]
+                    )
                     report_data["overall_attendance"] = {
                         "total_days": total_days,
                         "present": present,
                         "absent": absent,
-                        "attendance_rate": round((present / total_days * 100) if total_days > 0 else 0, 1),
+                        "attendance_rate": round(
+                            (present / total_days * 100) if total_days > 0 else 0, 1
+                        ),
                     }
-            
+
             # Get grades summary
             if bulk_request.include_grades:
                 grade_query = db.query(Grade).filter(
@@ -778,80 +927,94 @@ async def generate_bulk_student_reports(
                     Grade.deleted_at.is_(None),
                 )
                 if bulk_request.course_ids:
-                    grade_query = grade_query.filter(Grade.course_id.in_(bulk_request.course_ids))
-                
+                    grade_query = grade_query.filter(
+                        Grade.course_id.in_(bulk_request.course_ids)
+                    )
+
                 grades = grade_query.all()
                 if grades:
-                    percentages = [(g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0]
+                    percentages = [
+                        (g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0
+                    ]
                     if percentages:
                         report_data["overall_grades"] = {
                             "total_assignments": len(grades),
-                            "average_percentage": round(sum(percentages) / len(percentages), 1),
+                            "average_percentage": round(
+                                sum(percentages) / len(percentages), 1
+                            ),
                             "grade_trend": _calculate_trend(percentages),
                         }
-            
+
             reports.append(report_data)
-            
+
         except Exception as e:
             logger.error(f"Error generating report for student {student_id}: {str(e)}")
-            failed_students.append({
-                "student_id": student_id,
-                "error": str(e)
-            })
-    
+            failed_students.append({"student_id": student_id, "error": str(e)})
+
     # Return results based on format
     if bulk_request.format == ReportFormat.CSV:
         # Generate combined CSV for all students
         output = io.StringIO()
         writer = csv.writer(output)
-        
+
         # Header
-        writer.writerow(['Bulk Student Performance Reports'])
-        writer.writerow(['Generated:', date.today().strftime('%Y-%m-%d')])
-        writer.writerow(['Period:', bulk_request.period.value])
-        writer.writerow(['Date Range:', f"{start_date} to {end_date}"])
-        writer.writerow(['Total Students:', len(reports)])
+        writer.writerow(["Bulk Student Performance Reports"])
+        writer.writerow(["Generated:", date.today().strftime("%Y-%m-%d")])
+        writer.writerow(["Period:", bulk_request.period.value])
+        writer.writerow(["Date Range:", f"{start_date} to {end_date}"])
+        writer.writerow(["Total Students:", len(reports)])
         writer.writerow([])
-        
+
         # Data headers
-        headers = ['Student ID', 'Student Name', 'Email', 'Attendance Rate', 'Present', 'Absent', 
-                   'Average Grade %', 'Total Assignments', 'Grade Trend']
+        headers = [
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Attendance Rate",
+            "Present",
+            "Absent",
+            "Average Grade %",
+            "Total Assignments",
+            "Grade Trend",
+        ]
         writer.writerow(headers)
-        
+
         # Student data
         for report in reports:
-            att = report.get('overall_attendance', {})
-            grades = report.get('overall_grades', {})
-            writer.writerow([
-                report['student_id'],
-                report['student_name'],
-                report['student_email'],
-                att.get('attendance_rate', 'N/A') if att else 'N/A',
-                att.get('present', 'N/A') if att else 'N/A',
-                att.get('absent', 'N/A') if att else 'N/A',
-                grades.get('average_percentage', 'N/A') if grades else 'N/A',
-                grades.get('total_assignments', 'N/A') if grades else 'N/A',
-                grades.get('grade_trend', 'N/A') if grades else 'N/A',
-            ])
-        
+            att = report.get("overall_attendance", {})
+            grades = report.get("overall_grades", {})
+            writer.writerow(
+                [
+                    report["student_id"],
+                    report["student_name"],
+                    report["student_email"],
+                    att.get("attendance_rate", "N/A") if att else "N/A",
+                    att.get("present", "N/A") if att else "N/A",
+                    att.get("absent", "N/A") if att else "N/A",
+                    grades.get("average_percentage", "N/A") if grades else "N/A",
+                    grades.get("total_assignments", "N/A") if grades else "N/A",
+                    grades.get("grade_trend", "N/A") if grades else "N/A",
+                ]
+            )
+
         # Failed students section
         if failed_students:
             writer.writerow([])
-            writer.writerow(['Failed Students'])
-            writer.writerow(['Student ID', 'Error'])
+            writer.writerow(["Failed Students"])
+            writer.writerow(["Student ID", "Error"])
             for failed in failed_students:
-                writer.writerow([failed['student_id'], failed['error']])
-        
+                writer.writerow([failed["student_id"], failed["error"]])
+
         csv_string = output.getvalue()
         output.close()
-        
+
         filename = f"bulk_performance_report_{start_date}_{end_date}.csv"
         return Response(
             content=csv_string,
             media_type="text/csv",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    
+
     else:  # JSON (default)
         return {
             "success": True,
@@ -875,14 +1038,18 @@ async def invalidate_student_report_cache(
 ):
     """
     Invalidate all cached reports for a specific student.
-    
+
     This endpoint should be called when student data is updated
     (grades, attendance, courses, etc.) to ensure fresh reports.
-    
+
     **Rate limit**: 10 requests per minute
     """
     # Verify student exists
-    student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
+    student = (
+        db.query(Student)
+        .filter(Student.id == student_id, Student.deleted_at.is_(None))
+        .first()
+    )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
@@ -905,10 +1072,10 @@ async def invalidate_student_report_cache(
 async def invalidate_all_report_caches(request: Request):
     """
     Invalidate all cached student reports.
-    
+
     Use this when you need to force regeneration of all reports,
     such as after bulk data imports or system-wide changes.
-    
+
     **Rate limit**: 10 requests per minute
     """
     # Invalidate all report cache entries

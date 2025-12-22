@@ -1,16 +1,19 @@
-
 from __future__ import annotations
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from pydantic import ConfigDict
+
 
 # Bulk assignment schemas
 class BulkAssignRolesRequest(BaseModel):
     user_ids: List[int] = Field(..., description="List of user IDs to assign role to")
     role_name: str = Field(..., description="Role name to assign")
 
+
 class BulkGrantPermissionsRequest(BaseModel):
-    role_names: List[str] = Field(..., description="List of role names to grant permission to")
+    role_names: List[str] = Field(
+        ..., description="List of role names to grant permission to"
+    )
     permission_name: str = Field(..., description="Permission name to grant")
 
 

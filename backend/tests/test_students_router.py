@@ -1,7 +1,7 @@
 from __future__ import annotations
-
 from datetime import date, timedelta
 from typing import Dict
+import pytest
 
 # Uses the TestClient fixture from conftest
 
@@ -19,9 +19,15 @@ def make_student_payload(i: int = 1, **overrides) -> Dict:
     return base
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_student_success(client):
     payload = make_student_payload(1)
-    r = client.post("/api/v1/students/", json=payload)
+    r = client.post(
+        "/api/v1/students/",
+        json=payload,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r.status_code == 201, r.text
     data = r.json()
     assert data["id"] > 0
@@ -30,12 +36,25 @@ def test_create_student_success(client):
     assert data["is_active"] is True
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_student_allows_empty_optional_strings(client):
     # Optional fields provided as empty strings should be treated as null/None
     payload = make_student_payload(
-        2, father_name="", mobile_phone="", phone="", health_issue="", note="", enrollment_date="", study_year=""
+        2,
+        father_name="",
+        mobile_phone="",
+        phone="",
+        health_issue="",
+        note="",
+        enrollment_date="",
+        study_year="",
     )
-    r = client.post("/api/v1/students/", json=payload)
+    r = client.post(
+        "/api/v1/students/",
+        json=payload,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r.status_code == 201, r.text
     data = r.json()
     # Optional fields should come back as null
@@ -48,156 +67,320 @@ def test_create_student_allows_empty_optional_strings(client):
     assert data["study_year"] is None
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_student_duplicate_email(client):
     p1 = make_student_payload(1)
-    p2 = make_student_payload(2, email=p1["email"])  # duplicate email, different student_id
-    r1 = client.post("/api/v1/students/", json=p1)
+    p2 = make_student_payload(
+        2, email=p1["email"]
+    )  # duplicate email, different student_id
+    r1 = client.post(
+        "/api/v1/students/",
+        json=p1,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r1.status_code == 201
-    r2 = client.post("/api/v1/students/", json=p2)
+    r2 = client.post(
+        "/api/v1/students/",
+        json=p2,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r2.status_code == 400
     payload = r2.json()["detail"]
     assert payload["message"] == "Email already registered"
     assert payload["error_id"] == "STD_DUP_EMAIL"
 
 
+import pytest
+
+
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_student_duplicate_student_id(client):
     p1 = make_student_payload(1)
-    p2 = make_student_payload(2, student_id=p1["student_id"])  # duplicate id, different email
-    r1 = client.post("/api/v1/students/", json=p1)
+    p2 = make_student_payload(
+        2, student_id=p1["student_id"]
+    )  # duplicate id, different email
+    r1 = client.post(
+        "/api/v1/students/",
+        json=p1,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r1.status_code == 201
-    r2 = client.post("/api/v1/students/", json=p2)
+    r2 = client.post(
+        "/api/v1/students/",
+        json=p2,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r2.status_code == 400
     payload = r2.json()["detail"]
     assert payload["message"] == "Student ID already exists"
     assert payload["error_id"] == "STD_DUP_ID"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_student_by_id_and_404(client):
     p = make_student_payload(1)
-    r1 = client.post("/api/v1/students/", json=p)
+    r1 = client.post(
+        "/api/v1/students/",
+        json=p,
+        params={"a": "dummy", "k": "dummy"},
+    )
     student = r1.json()
-    r_get = client.get(f"/api/v1/students/{student['id']}")
+    r_get = client.get(
+        f"/api/v1/students/{student['id']}", params={"a": "dummy", "k": "dummy"}
+    )
     assert r_get.status_code == 200
     assert r_get.json()["email"] == p["email"]
+
+
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_list_students_pagination_and_filters(client, admin_token):
     # create 3 students, deactivate one
     sids = []
     for i in range(1, 4):
-        r = client.post("/api/v1/students/", json=make_student_payload(i))
+        r = client.post(
+            "/api/v1/students/",
+            json=make_student_payload(i),
+            params={"a": "dummy", "k": "dummy"},
+        )
+        assert r.status_code == 201, r.text
         sids.append(r.json()["id"])
     headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
     # deactivate the last student
-    r_del = client.post(f"/api/v1/students/{sids[-1]}/deactivate", headers=headers)
-    assert r_del.status_code == 200
-    r_inactive = client.get("/api/v1/students/?is_active=false")
-    assert r_inactive.status_code == 200
+    r_del = client.post(
+        f"/api/v1/students/{sids[-1]}/deactivate",
+        headers=headers,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r_del.status_code == 200, r_del.text
+    r_inactive = client.get(
+        "/api/v1/students/",
+        params={"is_active": "false", "a": "dummy", "k": "dummy"},
+    )
+    assert r_inactive.status_code == 200, r_inactive.text
     assert len(r_inactive.json()["items"]) == 1
 
     # pagination bounds - now handled by paginate() helper
-    r_valid_limit = client.get("/api/v1/students/?limit=10")
-    assert r_valid_limit.status_code == 200
+    r_valid_limit = client.get(
+        "/api/v1/students/",
+        params={"limit": 10, "a": "dummy", "k": "dummy"},
+    )
+    assert r_valid_limit.status_code == 200, r_valid_limit.text
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_update_student_success_and_validation_errors(client, admin_token):
     p = make_student_payload(1)
-    r = client.post("/api/v1/students/", json=p)
+    r = client.post(
+        "/api/v1/students/",
+        json=p,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r.status_code == 201, r.text
     sid = r.json()["id"]
 
     # Successful partial update
     upd = {"study_year": 3, "phone": "+1234567890"}
-    r_upd = client.put(f"/api/v1/students/{sid}", json=upd)
-    assert r_upd.status_code == 200
+    r_upd = client.put(
+        f"/api/v1/students/{sid}",
+        json=upd,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r_upd.status_code == 200, r_upd.text
     assert r_upd.json()["study_year"] == 3
     assert r_upd.json()["phone"] == "+1234567890"
 
     # Validation error: study_year out of range
     upd_bad_year = {"study_year": 5}
-    r_bad = client.put(f"/api/v1/students/{sid}", json=upd_bad_year)
-    assert r_bad.status_code == 422
+    r_bad = client.put(
+        f"/api/v1/students/{sid}",
+        json=upd_bad_year,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r_bad.status_code == 422, r_bad.text
 
     # Validation error: bad phone format
     upd_bad_phone = {"phone": "abc-123"}
-    r_bad2 = client.put(f"/api/v1/students/{sid}", json=upd_bad_phone)
-    assert r_bad2.status_code == 422
+    r_bad2 = client.put(
+        f"/api/v1/students/{sid}",
+        json=upd_bad_phone,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r_bad2.status_code == 422, r_bad2.text
 
     # Validation error: enrollment_date in the future
     future_date = (date.today() + timedelta(days=1)).isoformat()
     upd_future = {"enrollment_date": future_date}
-    r_bad3 = client.put(f"/api/v1/students/{sid}", json=upd_future)
-    assert r_bad3.status_code == 422
+    r_bad3 = client.put(
+        f"/api/v1/students/{sid}",
+        json=upd_future,
+        params={"a": "dummy", "k": "dummy"},
+    )
+    assert r_bad3.status_code == 422, r_bad3.text
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_delete_student_and_then_404(client, admin_token, bootstrap_admin):
-    # Login as bootstrap admin
-    admin_email = bootstrap_admin["email"]
+    # Enable authentication for this test and create bootstrap admin user
+    import backend.config as config
+    from backend.models import User
+    from backend.tests.conftest import SessionLocal
+    from backend.security.password_hash import get_password_hash
+
+    # After user creation, print all users in the DB
+    session2 = SessionLocal()
+    users = session2.query(User).all()
+    print(
+        "[DEBUG] Users in DB before login:",
+        [(u.email, u.role, u.is_active) for u in users],
+    )
+    session2.close()
+
+    settings = config.settings
+    settings.AUTH_ENABLED = True
+    # Normalize email to match app logic
+    admin_email = bootstrap_admin["email"].lower().strip()
     admin_password = bootstrap_admin["password"]
-    login_resp = client.post("/api/v1/auth/login", json={
-        "email": admin_email,
-        "password": admin_password
-    })
+    print("[DEBUG] Creating bootstrap admin:", admin_email, admin_password)
+    session = SessionLocal()
+    try:
+        # Always ensure bootstrap admin user has correct role and password
+        user = session.query(User).filter_by(email=admin_email).first()
+        if user:
+            user.role = "admin"
+            user.hashed_password = get_password_hash(admin_password)
+            user.is_active = True
+            session.commit()
+        else:
+            user = User(
+                email=admin_email,
+                hashed_password=get_password_hash(admin_password),
+                is_active=True,
+                role="admin",
+            )
+            session.add(user)
+            session.commit()
+    finally:
+        session.close()
+    print("[DEBUG] Logging in as bootstrap admin:", admin_email, admin_password)
+    # Use normalized email for login
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": admin_email, "password": admin_password}
+    )
     print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
     admin_token_val = login_resp.json().get("access_token")
-    assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
+    assert (
+        admin_token_val
+    ), f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
+    headers = {"Authorization": f"Bearer {admin_token_val}"}
+    # Login as bootstrap admin
+    admin_email = bootstrap_admin["email"]
+    # Use the password that matches the hardcoded bcrypt hash
+    admin_password = "YourSecurePassword123!"
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": admin_email, "password": admin_password}
+    )
+    print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
+    admin_token_val = login_resp.json().get("access_token")
+    assert (
+        admin_token_val
+    ), f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
     headers = {"Authorization": f"Bearer {admin_token_val}"}
 
     # Register a new admin via API using bootstrap admin token
-    new_admin_email = "admin_delete_test@example.com"
-    new_admin_password = "AdminPass123!"
-    client.post("/api/v1/auth/register", json={
-        "email": new_admin_email,
-        "password": new_admin_password,
-        "full_name": "Admin",
-        "role": "admin"
-    }, headers=headers)
+    new_admin_email = "admin_delete_test@example.com"  # pragma: allowlist secret
+    new_admin_password = "AdminPass123!"  # pragma: allowlist secret
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": new_admin_email,
+            "password": new_admin_password,
+            "full_name": "Admin",
+            "role": "admin",
+        },
+        headers=headers,
+    )
 
     # Login as the new admin
-    login_resp2 = client.post("/api/v1/auth/login", json={
-        "email": new_admin_email,
-        "password": new_admin_password
-    })
+    login_resp2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": new_admin_email, "password": new_admin_password},
+    )
     admin_token_val2 = login_resp2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {admin_token_val2}"}
 
     # Create student as new admin
     student_payload = make_student_payload(1)
-    r = client.post("/api/v1/students/", json=student_payload, headers=headers2)
+    r = client.post(
+        "/api/v1/students/",
+        json=student_payload,
+        headers=headers2,
+        params={"a": "dummy", "k": "dummy"},
+    )
     sid = r.json()["id"]
 
     # Delete student as new admin
-    r_del = client.delete(f"/api/v1/students/{sid}", headers=headers2)
+    r_del = client.delete(
+        f"/api/v1/students/{sid}", headers=headers2, params={"a": "dummy", "k": "dummy"}
+    )
     print(f"DELETE /students{{sid}} status: {r_del.status_code} {r_del.text}")
     assert r_del.status_code == 204, f"Delete failed: {r_del.status_code} {r_del.text}"
 
     # Confirm 404 after delete
-    r_get = client.get(f"/api/v1/students/{sid}", headers=headers2)
+    r_get = client.get(
+        f"/api/v1/students/{sid}", headers=headers2, params={"a": "dummy", "k": "dummy"}
+    )
     print("GET /students/{sid} status:", r_get.status_code, r_get.text)
     assert r_get.status_code == 404
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_activate_deactivate_student(client, admin_token):
     p = make_student_payload(1)
-    r = client.post("/api/v1/students/", json=p)
-    sid = r.json()["id"]
+    r = client.post("/api/v1/students/", json=p, params={"a": "dummy", "k": "dummy"})
+    print("DEBUG: POST /api/v1/students/ response:", r.status_code, r.text)
+    if r.status_code != 201:
+        print("DEBUG BODY:", r.json())
+    data = r.json()
+    sid = data["id"]
 
-    r_deact = client.post(f"/api/v1/students/{sid}/deactivate")
+    r_deact = client.post(
+        f"/api/v1/students/{sid}/deactivate", params={"a": "dummy", "k": "dummy"}
+    )
     assert r_deact.status_code == 200
-    r_get = client.get(f"/api/v1/students/{sid}")
+    r_get = client.get(f"/api/v1/students/{sid}", params={"a": "dummy", "k": "dummy"})
     assert r_get.json()["is_active"] is False
 
-    r_act = client.post(f"/api/v1/students/{sid}/activate")
+    r_act = client.post(
+        f"/api/v1/students/{sid}/activate", params={"a": "dummy", "k": "dummy"}
+    )
     assert r_act.status_code == 200
-    r_get2 = client.get(f"/api/v1/students/{sid}")
+    r_get2 = client.get(f"/api/v1/students/{sid}", params={"a": "dummy", "k": "dummy"})
     assert r_get2.json()["is_active"] is True
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_bulk_create_students_with_duplicates(client):
     students = [
         make_student_payload(1),
         make_student_payload(2),
-        make_student_payload(3, email="john1.doe1@example.com"),  # duplicate email of #1
+        make_student_payload(
+            3, email="john1.doe1@example.com"
+        ),  # duplicate email of #1
         make_student_payload(4, student_id="STD0001"),  # duplicate student ID of #1
     ]
-    r = client.post("/api/v1/students/bulk/create", json=students)
+    r = client.post(
+        "/api/v1/students/bulk/create",
+        json=students,
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r.status_code == 200
     data = r.json()
     assert data["created"] == 2
@@ -208,6 +391,8 @@ def test_bulk_create_students_with_duplicates(client):
     assert "STD_DUP_ID" in error_ids
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_student_handles_internal_error(client, monkeypatch):
     from backend.routers import routers_students
 
@@ -216,7 +401,11 @@ def test_create_student_handles_internal_error(client, monkeypatch):
 
     monkeypatch.setattr(routers_students, "import_names", broken_import)
 
-    r = client.post("/api/v1/students/", json=make_student_payload(10))
+    r = client.post(
+        "/api/v1/students/",
+        json=make_student_payload(10),
+        params={"a": "dummy", "k": "dummy"},
+    )
     assert r.status_code == 500
     payload = r.json()["detail"]
     # internal_server_error returns structured error

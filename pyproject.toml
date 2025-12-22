@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "auth_required: marks tests that require authentication",
+    "requires_params: marks tests that require query params",
+    "no_rate_limit: marks tests that should bypass rate limiting",
+    "usefixtures: marks tests that use fixtures",
+    "skipif: marks tests that are conditionally skipped",
+    "parametrize: parameterize a test function",
+    "xfail: mark test as expected to fail",
+    "filterwarnings: filter warnings for test runs"
+]

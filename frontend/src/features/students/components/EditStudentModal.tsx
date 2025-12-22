@@ -101,7 +101,13 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('firstNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('firstNamePlaceholder')} {...field} value={field.value || ''} />
+                      <Input
+                        placeholder={t('firstNamePlaceholder')}
+                        aria-label="first name"
+                        data-testid="first-name-input"
+                        {...field}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,7 +120,13 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('lastNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('lastNamePlaceholder')} {...field} value={field.value || ''} />
+                      <Input
+                        placeholder={t('lastNamePlaceholder')}
+                        aria-label="last name"
+                        data-testid="last-name-input"
+                        {...field}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +141,14 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 <FormItem>
                   <FormLabel>{t('emailPlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} value={field.value || ''} />
+                    <Input
+                      type="email"
+                      placeholder={t('emailPlaceholder')}
+                      aria-label="email"
+                      data-testid="email-input"
+                      {...field}
+                      value={field.value || ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,7 +162,14 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 <FormItem>
                   <FormLabel>{t('phonePlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder={t('phonePlaceholder')} {...field} value={field.value || ''} />
+                    <Input
+                      type="tel"
+                      placeholder={t('phonePlaceholder')}
+                      aria-label="phone"
+                      data-testid="phone-input"
+                      {...field}
+                      value={field.value || ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +183,13 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 <FormItem>
                   <FormLabel>{t('addressPlaceholder') || 'Address'}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder={t('addressPlaceholder') || 'Address'} {...field} value={field.value || ''} />
+                    <Textarea
+                      placeholder={t('addressPlaceholder') || 'Address'}
+                      aria-label="address"
+                      data-testid="address-input"
+                      {...field}
+                      value={field.value || ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +204,13 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('dateOfBirth') || 'Date of Birth'}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} value={field.value || ''} />
+                      <Input
+                        type="date"
+                        aria-label="date of birth"
+                        data-testid="date-of-birth-input"
+                        {...field}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -185,7 +223,12 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('enrollmentDate') || 'Enrollment Date'}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input
+                        type="date"
+                        aria-label="enrollment date"
+                        data-testid="enrollment-date-input"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

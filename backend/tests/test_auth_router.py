@@ -6,7 +6,12 @@ import pytest
 
 def test_register_login_me_flow(client):
     # Register
-    payload = {"email": "admin@example.com", "password": "S3curePass!", "full_name": "Admin User", "role": "admin"}
+    payload = {
+        "email": "admin@example.com",  # pragma: allowlist secret
+        "password": "S3curePass!",  # pragma: allowlist secret
+        "full_name": "Admin User",
+        "role": "admin",
+    }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200, r.text
     data = r.json()
@@ -20,7 +25,10 @@ def test_register_login_me_flow(client):
     assert r2.status_code == 400
 
     # Login
-    r3 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
+    r3 = client.post(
+        "/api/v1/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
     assert r3.status_code == 200, r3.text
     token = r3.json()["access_token"]
     assert isinstance(token, str) and len(token) > 10
@@ -37,14 +45,16 @@ def test_register_login_me_flow(client):
 def test_login_wrong_password(client):
     # Setup user
     payload = {
-        "email": "user@example.com",
-        "password": "GoodPass123!",
+        "email": "user@example.com",  # pragma: allowlist secret
+        "password": "GoodPass123!",  # pragma: allowlist secret
     }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200
 
     # Wrong password
-    r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": "wrong"})
+    r2 = client.post(
+        "/api/v1/auth/login", json={"email": payload["email"], "password": "wrong"}
+    )
     assert r2.status_code == 400
 
 
@@ -68,7 +78,7 @@ def test_register_rejects_weak_passwords(client, idx, password):
 
 
 def test_me_requires_token(client):
-    r = client.get("/api/v1/auth/me", add_auth=False)
+    r = client.get("/api/v1/auth/me")
     assert r.status_code in (401, 403)
 
 
@@ -83,36 +93,42 @@ def test_get_current_user_invalid_token():
     from starlette.requests import Request
 
     from backend.routers.routers_auth import get_current_user
-    from backend.tests.conftest import TestingSessionLocal
+    from backend.tests.conftest import SessionLocal
 
-    session = TestingSessionLocal()
+    session = SessionLocal()
     try:
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(get_current_user(request=Request({"type": "http"}), token="invalid", db=session))
+            asyncio.run(
+                get_current_user(
+                    request=Request({"type": "http"}), token="invalid", db=session
+                )
+            )
         assert exc.value.status_code == 401
     finally:
         session.close()
 
 
 def test_get_current_user_inactive_user(client):
-
     # Register inactive user via API
     payload = {
-        "email": "inactive@example.com",
-        "password": "secret",
+        "email": "inactive@example.com",  # pragma: allowlist secret
+        "password": "secret",  # pragma: allowlist secret
         "full_name": "Inactive User",
-        "role": "teacher"
+        "role": "teacher",
     }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code in (200, 201, 400, 422)
 
     # Try to login and get current user (should fail if inactive)
-    r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
+    r2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
     if r2.status_code == 200:
         token = r2.json()["access_token"]
         # Use add_auth=False to avoid auto-injecting Authorization header
         headers = {"Authorization": f"Bearer {token}"}
-        r3 = client.get("/api/v1/auth/me", headers=headers, add_auth=False)
+        r3 = client.get("/api/v1/auth/me", headers=headers)
         # Should fail or indicate inactive
         assert r3.status_code in (400, 401, 403)
     elif r2.status_code in (400, 401, 403):

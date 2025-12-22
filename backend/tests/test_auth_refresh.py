@@ -19,11 +19,18 @@ def _get_test_db_session():
 
 def test_refresh_rotation_and_logout(client):
     # Register and login to obtain initial refresh token
-    payload = {"email": "carol@example.com", "password": "Passw0rd!", "full_name": "Carol"}
+    payload = {
+        "email": "carol@example.com",  # pragma: allowlist secret
+        "password": "Passw0rd!",  # pragma: allowlist secret
+        "full_name": "Carol",
+    }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200
 
-    r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
+    r2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
     assert r2.status_code == 200
     # Test client stores cookies; login should set HttpOnly refresh_token cookie
     assert "refresh_token" in client.cookies and client.cookies.get("refresh_token")
@@ -31,7 +38,7 @@ def test_refresh_rotation_and_logout(client):
 
     # Use refresh to obtain rotated tokens
     # Call refresh without JSON body; server should read cookie and rotate it
-    r3 = client.post("/api/v1/auth/refresh", add_auth=False)
+    r3 = client.post("/api/v1/auth/refresh")
     assert r3.status_code == 200
     new = r3.json()
     assert "access_token" in new
@@ -46,7 +53,11 @@ def test_refresh_rotation_and_logout(client):
     gen, db = _get_test_db_session()
     try:
         user = db.query(models.User).filter(models.User.email == payload["email"]).one()
-        tokens = list(db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).all())
+        tokens = list(
+            db.query(models.RefreshToken)
+            .filter(models.RefreshToken.user_id == user.id)
+            .all()
+        )
         assert len(tokens) >= 2
         revoked_count = sum(1 for t in tokens if t.revoked)
         active_count = sum(1 for t in tokens if not t.revoked)
@@ -59,25 +70,29 @@ def test_refresh_rotation_and_logout(client):
 
     # Old refresh should no longer work
     # Old refresh (previous cookie) should no longer work
-    r4 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh}, add_auth=False)
+    r4 = client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
     assert r4.status_code == 401
 
     # Logout the new refresh token
     # Logout should clear the refresh cookie
-    r5 = client.post("/api/v1/auth/logout", add_auth=False)
+    r5 = client.post("/api/v1/auth/logout")
     assert r5.status_code == 200
     assert r5.json().get("ok") is True
     assert client.cookies.get("refresh_token") is None
 
     # Using the logged-out refresh should fail
-    r6 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh}, add_auth=False)
+    r6 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_refresh})
     assert r6.status_code == 401
 
     # DB: after logout all refresh tokens for the user should be revoked
     gen, db = _get_test_db_session()
     try:
         user = db.query(models.User).filter(models.User.email == payload["email"]).one()
-        tokens = list(db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).all())
+        tokens = list(
+            db.query(models.RefreshToken)
+            .filter(models.RefreshToken.user_id == user.id)
+            .all()
+        )
         assert len(tokens) >= 2
         assert all(t.revoked for t in tokens)
     finally:
@@ -95,26 +110,43 @@ def test_refresh_expiry(client):
     try:
         SettingsClass.REFRESH_TOKEN_EXPIRE_DAYS = -1
 
-        payload = {"email": "dave@example.com", "password": "Expiry1!", "full_name": "Dave"}
+        payload = {
+            "email": "dave@example.com",  # pragma: allowlist secret
+            "password": "Expiry1!",  # pragma: allowlist secret
+            "full_name": "Dave",
+        }
         r = client.post("/api/v1/auth/register", json=payload)
         assert r.status_code == 200
 
-        r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
+        r2 = client.post(
+            "/api/v1/auth/login",
+            json={"email": payload["email"], "password": payload["password"]},
+        )
         assert r2.status_code == 200
         # Login should set the refresh_token cookie
         assert "refresh_token" in client.cookies and client.cookies.get("refresh_token")
         expired_refresh = client.cookies.get("refresh_token")
 
         # Immediately attempting to refresh should fail due to expiry
-        r3 = client.post("/api/v1/auth/refresh", json={"refresh_token": expired_refresh})
+        r3 = client.post(
+            "/api/v1/auth/refresh", json={"refresh_token": expired_refresh}
+        )
         assert r3.status_code == 401
         # DB: the token record should exist and have an expires_at in the past
         from backend import models
 
         gen, db = _get_test_db_session()
         try:
-            user = db.query(models.User).filter(models.User.email == payload["email"]).one()
-            tokens = list(db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).all())
+            user = (
+                db.query(models.User)
+                .filter(models.User.email == payload["email"])
+                .one()
+            )
+            tokens = list(
+                db.query(models.RefreshToken)
+                .filter(models.RefreshToken.user_id == user.id)
+                .all()
+            )
             assert len(tokens) >= 1
             # The stored expires_at should be in the past (or at least <= now).
             # Normalize naive datetimes to UTC before comparing to avoid tz errors.

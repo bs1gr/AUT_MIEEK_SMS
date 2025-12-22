@@ -1,8 +1,8 @@
 # Database Migration Guide: SQLite to PostgreSQL
 
-**Version**: 1.11.1  
-**Date**: 2025-12-11  
-**Status**: Complete Reference Guide  
+**Version**: 1.11.1
+**Date**: 2025-12-11
+**Status**: Complete Reference Guide
 
 This guide provides step-by-step instructions for migrating the Student Management System database from SQLite (development/small deployments) to PostgreSQL (production scale).
 
@@ -92,7 +92,8 @@ docker run --name sms-postgres \
 psql -U postgres
 
 # Create user and database
-CREATE USER sms_user WITH PASSWORD 'secure_password_here';
+CREATE USER sms_user WITH PASSWORD 'secure_password_here'; # pragma: allowlist secret
+export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db" # pragma: allowlist secret
 CREATE DATABASE sms_db OWNER sms_user;
 GRANT ALL PRIVILEGES ON DATABASE sms_db TO sms_user;
 
@@ -135,7 +136,7 @@ docker run --rm -it dimitreOliveira/pgloader pgloader --version
 cat > sqlite_to_postgres.load << 'EOF'
 LOAD DATABASE
   FROM sqlite:///absolute/path/to/data/student_management.db
-  INTO postgresql://sms_user:sms_password@localhost:5432/sms_db
+  INTO postgresql://sms_user:sms_password@localhost:5432/sms_db # pragma: allowlist secret
   WITH include drop, create tables, create indexes, reset sequences
 EXCLUDING TABLE NAMES MATCHING 'alembic_version'
 ;
@@ -175,7 +176,7 @@ ls -la backend/migrations/versions/
 ```bash
 # Update config to use PostgreSQL
 # In .env or environment:
-export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db"
+export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db" # pragma: allowlist secret
 
 # Run migrations on empty PostgreSQL DB
 cd backend
@@ -232,7 +233,7 @@ SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses) + 1);
 # DATABASE_URL=sqlite:///./data/student_management.db
 
 # New PostgreSQL:
-DATABASE_URL=postgresql://sms_user:sms_password@postgres.example.com:5432/sms_db
+DATABASE_URL=postgresql://sms_user:sms_password@postgres.example.com:5432/sms_db  # pragma: allowlist secret
 
 # Optional: Connection pooling tuning
 DB_POOL_SIZE=20
@@ -290,7 +291,7 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: postgresql://sms_user:sms_password@postgres:5432/sms_db
+      DATABASE_URL: postgresql://sms_user:sms_password@postgres:5432/sms_db  # pragma: allowlist secret
       DB_POOL_SIZE: 20
       DB_MAX_OVERFLOW: 10
     depends_on:
@@ -586,6 +587,6 @@ tar czf sms_backups_archive_$(date +%Y%m).tar.gz sms_db_backup_*.dump
 
 ---
 
-**Last Updated**: 2025-12-11  
-**Maintained By**: DevOps Team  
+**Last Updated**: 2025-12-11
+**Maintained By**: DevOps Team
 **Next Review**: 2025-12-25

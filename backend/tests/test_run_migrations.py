@@ -45,7 +45,12 @@ def test_run_migrations_creates_tables(monkeypatch):
 
     con = sqlite3.connect(str(dbfile))
     cur = con.cursor()
-    tables = [row[0] for row in cur.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
+    tables = [
+        row[0]
+        for row in cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table';"
+        ).fetchall()
+    ]
     assert "alembic_version" in tables or "courses" in tables
 
 
@@ -85,6 +90,8 @@ def test_run_migrations_handles_failure(monkeypatch):
 
 def test_check_migration_status_returns_string(monkeypatch):
     run_migrations = _reload_modules()
-    monkeypatch.setattr(run_migrations.command, "current", lambda cfg, verbose=False: "abc123")
+    monkeypatch.setattr(
+        run_migrations.command, "current", lambda cfg, verbose=False: "abc123"
+    )
     status = run_migrations.check_migration_status(verbose=True)
     assert status == "abc123"

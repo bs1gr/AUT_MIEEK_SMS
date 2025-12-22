@@ -1,7 +1,5 @@
-import shutil
 import sqlite3
 from pathlib import Path
-import pytest
 import sys
 
 # Import the script as a module
@@ -32,10 +30,12 @@ def create_test_db(path: Path, tables=None, corrupt=False):
 def test_verify_backup_ok(tmp_path):
     db = tmp_path / "ok.db"
     create_test_db(db, tables=verify_backups.REQUIRED_TABLES)
+
     result = verify_backups.verify_backup(db)
     assert result["ok"]
     assert not result["missing_tables"]
     assert result["error"] is None
+
 
 def test_verify_backup_missing_tables(tmp_path):
     db = tmp_path / "missing.db"
@@ -45,6 +45,7 @@ def test_verify_backup_missing_tables(tmp_path):
     assert set(result["missing_tables"]) == {"grades", "attendance"}
     assert result["error"] is None
 
+
 def test_verify_backup_corrupt(tmp_path):
     db = tmp_path / "corrupt.db"
     create_test_db(db, corrupt=True)
@@ -52,9 +53,11 @@ def test_verify_backup_corrupt(tmp_path):
     assert not result["ok"]
     assert result["error"] is not None
 
+
 def test_main_summary(tmp_path, monkeypatch):
     # Create several DBs
     db1 = tmp_path / "ok.db"
+
     db2 = tmp_path / "bad.db"
     db3 = tmp_path / "partial.db"
     create_test_db(db1, tables=verify_backups.REQUIRED_TABLES)
@@ -65,6 +68,7 @@ def test_main_summary(tmp_path, monkeypatch):
     # Capture output
     import io
     import contextlib
+
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = verify_backups.main()

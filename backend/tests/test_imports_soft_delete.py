@@ -2,11 +2,11 @@ import json
 from datetime import date
 
 from backend import models
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.conftest import SessionLocal
 
 
 def test_import_students_reactivates_soft_deleted_record(client, tmp_path, monkeypatch):
-    session = TestingSessionLocal()
+    session = SessionLocal()
     student = models.Student(
         first_name="Archived",  # type: ignore[arg-type]
         last_name="Student",  # type: ignore[arg-type]
@@ -38,7 +38,7 @@ def test_import_students_reactivates_soft_deleted_record(client, tmp_path, monke
     data = response.json()
     assert data["updated"] == 1
 
-    session = TestingSessionLocal()
+    session = SessionLocal()
     restored = session.query(models.Student).filter_by(student_id="S123").one()
     assert restored.deleted_at is None
     assert restored.first_name == "Restored"
@@ -46,7 +46,7 @@ def test_import_students_reactivates_soft_deleted_record(client, tmp_path, monke
 
 
 def test_import_courses_reactivates_soft_deleted_record(client, tmp_path, monkeypatch):
-    session = TestingSessionLocal()
+    session = SessionLocal()
     course = models.Course(
         course_code="CS101",  # type: ignore[arg-type]
         course_name="Archived Course",  # type: ignore[arg-type]
@@ -77,7 +77,7 @@ def test_import_courses_reactivates_soft_deleted_record(client, tmp_path, monkey
     data = response.json()
     assert data["updated"] == 1
 
-    session = TestingSessionLocal()
+    session = SessionLocal()
     restored = session.query(models.Course).filter_by(course_code="CS101").one()
     assert restored.deleted_at is None
     assert restored.course_name == "Restored Course"

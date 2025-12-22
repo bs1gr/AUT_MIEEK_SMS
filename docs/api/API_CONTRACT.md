@@ -1,10 +1,10 @@
 # API Contract Documentation
 
-**Version**: 1.0  
-**Date**: 2025-12-12  
-**Status**: Production Ready  
-**Base URL**: `/api/v1`  
-**API Version**: v1  
+**Version**: 1.0
+**Date**: 2025-12-12
+**Status**: Production Ready
+**Base URL**: `/api/v1`
+**API Version**: v1
 **Target Release**: $11.11.2
 
 ---
@@ -778,5 +778,3 @@ See `RBAC_API_MATRIX.md` for a full list of RBAC endpoints and required permissi
 - See also: `docs/api/RBAC_API_MATRIX.md` for a permission matrix table.
 
 ---
-
-

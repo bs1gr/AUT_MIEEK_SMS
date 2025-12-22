@@ -70,6 +70,7 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
           data-testid="auth-login-email"
           type="email"
           autoComplete="email"
+          aria-label="email"
           value={email}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
           required
@@ -83,6 +84,7 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
           data-testid="auth-login-password"
           type="password"
           autoComplete="current-password"
+          aria-label="password"
           value={password}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
           required

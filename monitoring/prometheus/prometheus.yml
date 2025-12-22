@@ -38,7 +38,7 @@ scrape_configs:
   # STUDENT MANAGEMENT SYSTEM - BACKEND API
   # ============================================================================
   # IMPORTANT: This configuration is for DOCKER MODE ONLY
-  # 
+  #
   # Docker Mode:
   #   - Monitoring stack runs in containers
   #   - Backend runs in sms-app container (port 8000)
@@ -118,4 +118,3 @@ scrape_configs:
         labels:
           service: 'alertmanager'
           tier: 'monitoring'
-

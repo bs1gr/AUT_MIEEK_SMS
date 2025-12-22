@@ -1,109 +1,58 @@
-import pytest
+"""Pytest fixtures for backend tests (clean, single-definition version).
 
-@pytest.fixture(scope="function")
-def bootstrap_admin(client):
-    """Create the first admin user using the same DB session as TestClient for test bootstrapping."""
-    admin_email = "bootstrap_admin@example.com"
-    admin_password = "AdminPass123!"
-    from backend.models import User
-    from backend.routers.routers_auth import get_password_hash
-    from backend.db import get_session as db_get_session
-    db_gen = next(client.app.dependency_overrides[db_get_session]())
-    with db_gen as db:
-        if not db.query(User).filter(User.email == admin_email).first():
-            admin_user = User(
-                email=admin_email,
-                hashed_password=get_password_hash(admin_password),
-                role="admin",
-                is_active=True,
-                full_name="Bootstrap Admin",
-                password_change_required=False,
-                failed_login_attempts=0,
-                last_failed_login_at=None,
-                lockout_until=None,
-            )
-            db.add(admin_user)
-            db.commit()
-    return {"email": admin_email, "password": admin_password}
-from backend.models import User
-from backend.routers.routers_auth import get_password_hash
+This file prepares an in-memory SQLite DB, creates the FastAPI app used by
+tests and provides fixtures for admin token, bootstrap admin and a TestClient
+that auto-injects auth headers when available.
+"""
 
-@pytest.fixture
-def admin_and_student(client):
-    """Create an admin user and a student in the same session before the test client is used."""
-    admin_email = "admin_fixture@example.com"
-    admin_password = "AdminPass123!"
-    student_payload = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": "john.doe@example.com",
-        "student_id": "STD9999",
-        "enrollment_date": "2025-12-19",
-        "study_year": 1,
-    }
-    from backend.db import get_session as db_get_session
-    db_gen = next(client.app.dependency_overrides[db_get_session]())
-    with db_gen as db:
-        if not db.query(User).filter(User.email == admin_email).first():
-            admin_user = User(email=admin_email, hashed_password=get_password_hash(admin_password), role="admin", is_active=True)
-            db.add(admin_user)
-        db.commit()
-    # Create student via API to ensure proper creation
-    r = client.post("/api/v1/students/", json=student_payload)
-    sid = r.json().get("id")
-    # Obtain admin token
-    r_login = client.post("/api/v1/auth/login", json={"email": admin_email, "password": admin_password})
-    admin_token_val = r_login.json().get("access_token")
-    return {"admin_token": admin_token_val, "student_id": sid}
 import os
-
-# Ensure backend imports work regardless of current working dir
-import sys
 from pathlib import Path
-
+import sys
 import pytest
+from sqlalchemy.pool import StaticPool
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT.parent))
-
-# Ensure control API is enabled in tests. Tests should opt in explicitly.
+# Ensure test-time environment variables are set before importing app code
+os.environ.setdefault("DISABLE_STARTUP_TASKS", "0")
+os.environ.setdefault("DEFAULT_ADMIN_EMAIL", "admin@test.example.com")
+os.environ.setdefault("DEFAULT_ADMIN_PASSWORD", "YourSecurePassword123!")
 os.environ.setdefault("ENABLE_CONTROL_API", "1")
 os.environ.setdefault("ALLOW_REMOTE_SHUTDOWN", "0")
-# Prevent heavy startup tasks (migrations, external HTTP calls, subprocesses)
-# during unit tests which run the ASGI app in-process via TestClient. This
-# environment variable is checked by `backend.main` to skip long-running
-# or external operations during test runs.
-os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
-# Disable CSRF in tests since TestClient doesn't handle CSRF token cookies easily
 os.environ.setdefault("CSRF_ENABLED", "0")
 os.environ.setdefault("CSRF_ENFORCE_IN_TESTS", "0")
-# Disable frontend serving in tests to ensure API metadata is returned at root endpoint
 os.environ.setdefault("SERVE_FRONTEND", "0")
 
+# Application imports (after env prepared)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from backend import models
 from backend.config import settings
 from backend.db import get_session as db_get_session
-from backend.main import app
-from backend.main import get_db as main_get_db
+from backend.app_factory import create_app
 from backend.rate_limiting import limiter
 from backend.security.login_throttle import login_throttle
 
-# Create an in-memory SQLite database shared across connections
+# Force-enable auth mode for tests by default
+settings.AUTH_ENABLED = True
+settings.AUTH_MODE = "strict"
+
+# In-memory DB shared across connections for tests
 engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
-    echo=False,
 )
-
-# Create all tables once per test session
 models.Base.metadata.create_all(bind=engine)
-
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = TestingSessionLocal
+
+# Create or obtain app instance
+try:
+    from backend.main import app as _main_app
+
+    app = _main_app
+except Exception:
+    app = create_app()
 
 
 def override_get_db(_=None):
@@ -114,11 +63,9 @@ def override_get_db(_=None):
         db.close()
 
 
-# Apply the dependency override for all tests
-app.dependency_overrides[main_get_db] = override_get_db
 app.dependency_overrides[db_get_session] = override_get_db
 
-# Disable rate limiting in tests to avoid 429s from SlowAPI
+# Disable rate limiting during tests
 try:
     limiter.enabled = False
     if hasattr(app.state, "limiter"):
@@ -129,19 +76,10 @@ except Exception:
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_db():
-    """Clean tables before each test function for isolation."""
-    # Truncate all tables by dropping and recreating schema
+    """Reset DB before each test to ensure isolation."""
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
     login_throttle.clear()
-    # Reset auth feature flags between tests so individual tests enabling
-    # AUTH explicitly (e.g., RBAC tests) do not leak state to subsequent ones.
-    try:
-        settings.AUTH_ENABLED = True  # type: ignore[attr-defined]
-        settings.AUTH_MODE = "strict"  # type: ignore[attr-defined]
-    except Exception:
-        pass
-    # Yield a database session for tests that need direct DB access
     session = TestingSessionLocal()
     try:
         yield session
@@ -150,70 +88,140 @@ def clean_db():
 
 
 @pytest.fixture()
-def client(admin_token):
-    """TestClient that automatically includes auth headers for all requests when auth is enabled, unless add_auth=False is passed."""
-    from fastapi.testclient import TestClient
+def bootstrap_admin():
+    """Ensure a default admin user exists in the test DB."""
+    from backend.security.password_hash import get_password_hash
+    from backend.models import User
 
-    base_client = TestClient(app)
+    admin_email = os.environ.get("DEFAULT_ADMIN_EMAIL", "admin@test.example.com")
+    password = os.environ.get("DEFAULT_ADMIN_PASSWORD", "YourSecurePassword123!")
 
-    # If we have a token, wrap all HTTP methods to add auth headers unless add_auth=False
-    if admin_token:
-        for method_name in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
-            original_method = getattr(base_client, method_name)
+    session = TestingSessionLocal()
+    try:
+        user = session.query(User).filter_by(email=admin_email).first()
+        if user:
+            user.role = "admin"
+            user.hashed_password = get_password_hash(password)
+            user.is_active = True
+            session.add(user)
+            session.commit()
+        else:
+            user = User(
+                email=admin_email,
+                hashed_password=get_password_hash(password),
+                is_active=True,
+                role="admin",
+            )
+            session.add(user)
+            session.commit()
+    finally:
+        session.close()
 
-            def make_method_with_auth(orig_method):
-                def _method_with_auth(url, add_auth=True, **kwargs):
-                    # Get or create headers dict
-                    if "headers" not in kwargs:
-                        kwargs["headers"] = {}
-
-                    # Only add auth if not already present and add_auth is True
-                    if add_auth and isinstance(kwargs["headers"], dict) and "Authorization" not in kwargs["headers"]:
-                        kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
-
-                    return orig_method(url, **kwargs)
-                return _method_with_auth
-
-            setattr(base_client, method_name, make_method_with_auth(original_method))
-
-    return base_client
+    return {"email": admin_email, "password": password}
 
 
 @pytest.fixture()
 def admin_token():
-    """Generate an admin JWT token for authenticated test requests."""
+    """Create a CI admin and return an access token (or None if auth disabled)."""
     from backend.config import settings
+
     if not settings.AUTH_ENABLED:
         return None
-
-    # Create a temporary test client without auth to register
     from fastapi.testclient import TestClient
-    temp_client = TestClient(app)
 
+    temp_client = TestClient(app)
     try:
-        # Try to register a test admin user
         temp_client.post(
             "/api/v1/auth/register",
             json={
-                "email": "admin@test.example.com",
+                "email": "ci-admin@example.com",
                 "password": "TestAdmin123!",
-                "full_name": "Test Admin",
-                "role": "admin"
-            }
+                "full_name": "CI Test Admin",
+                "role": "admin",
+            },
         )
-
-        # Whether registration succeeded or user already exists, try to login
         login_resp = temp_client.post(
             "/api/v1/auth/login",
-            json={
-                "email": "admin@test.example.com",
-                "password": "TestAdmin123!"
-            }
+            json={"email": "ci-admin@example.com", "password": "TestAdmin123!"},
         )
-
         if login_resp.status_code == 200:
             return login_resp.json().get("access_token")
     except Exception:
         pass
-
     return None
+
+
+_AUTO_AUTH_DEFAULT = True
+
+
+@pytest.fixture(autouse=True)
+def auth_default_control(request):
+    """Per-test control for automatic auth injection in `client` fixture."""
+    global _AUTO_AUTH_DEFAULT
+    marker = request.node.get_closest_marker("auth_required")
+    _AUTO_AUTH_DEFAULT = True if marker is None else bool(marker)
+    try:
+        yield
+    finally:
+        _AUTO_AUTH_DEFAULT = False
+
+
+@pytest.fixture()
+def client(admin_token):
+    """TestClient that auto-injects Authorization header when available."""
+    from fastapi.testclient import TestClient
+
+    base_client = TestClient(app)
+    if admin_token:
+        for method_name in ["get", "post", "put", "patch", "delete", "head", "options"]:
+            original_method = getattr(base_client, method_name)
+
+            def make_method_with_auth(orig_method):
+                def _method_with_auth(url, add_auth=None, **kwargs):
+                    if "headers" not in kwargs:
+                        kwargs["headers"] = {}
+                    if add_auth is None:
+                        try:
+                            path = url if isinstance(url, str) else str(url)
+                        except Exception:
+                            path = ""
+                        if path.startswith("/api/v1/auth"):
+                            add_auth = False
+                        else:
+                            add_auth = _AUTO_AUTH_DEFAULT
+
+                    if (
+                        add_auth
+                        and isinstance(kwargs["headers"], dict)
+                        and "Authorization" not in kwargs["headers"]
+                    ):
+                        kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
+                    return orig_method(url, **kwargs)
+
+                return _method_with_auth
+
+            setattr(base_client, method_name, make_method_with_auth(original_method))
+    return base_client
+
+
+@pytest.fixture()
+def get_auth_headers(admin_token):
+    """Return authorization headers dict for authenticated requests in tests."""
+    if admin_token:
+        return {"Authorization": f"Bearer {admin_token}"}
+    return {}
+
+
+@pytest.fixture()
+def mock_db_engine():
+    """Provide a minimal mock DB engine compatible with HealthChecker constructor."""
+
+    class DummyEngine:
+        def connect(self):
+            class DummyConn:
+                def close(self):
+                    pass
+
+            return DummyConn()
+
+    return DummyEngine()

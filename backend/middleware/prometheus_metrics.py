@@ -159,7 +159,9 @@ def collect_business_metrics(db: Session) -> None:
 
         # Student metrics
         active_students = db.query(Student).filter(Student.is_active.is_(True)).count()
-        inactive_students = db.query(Student).filter(Student.is_active.is_(False)).count()
+        inactive_students = (
+            db.query(Student).filter(Student.is_active.is_(False)).count()
+        )
         students_total.labels(status="active").set(active_students)
         students_total.labels(status="inactive").set(inactive_students)
 
@@ -181,7 +183,11 @@ def collect_business_metrics(db: Session) -> None:
         try:
             # Prefer filtering out soft-deleted records when attribute exists
             if hasattr(CourseEnrollment, "deleted_at"):
-                active_enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).count()
+                active_enrollments = (
+                    db.query(CourseEnrollment)
+                    .filter(CourseEnrollment.deleted_at.is_(None))
+                    .count()
+                )
             else:
                 active_enrollments = db.query(CourseEnrollment).count()
         except Exception:
@@ -209,6 +215,7 @@ def track_database_query(operation: str) -> Callable:
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
             start_time = time.time()
@@ -220,7 +227,9 @@ def track_database_query(operation: str) -> Callable:
             except Exception as e:
                 db_errors_total.labels(error_type=type(e).__name__).inc()
                 raise
+
         return wrapper
+
     return decorator
 
 
@@ -245,11 +254,13 @@ def setup_metrics(app: FastAPI, version: str = "unknown") -> None:
     """
     try:
         # Set application info
-        app_info.info({
-            "version": version,
-            "application": "student-management-system",
-            "framework": "fastapi",
-        })
+        app_info.info(
+            {
+                "version": version,
+                "application": "student-management-system",
+                "framework": "fastapi",
+            }
+        )
 
         # Configure instrumentator with custom settings
         instrumentator = Instrumentator(
@@ -330,7 +341,9 @@ def setup_metrics(app: FastAPI, version: str = "unknown") -> None:
         instrumentator.instrument(app)
 
         logger.info("Prometheus metrics instrumentation completed")
-        logger.info("Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)")
+        logger.info(
+            "Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)"
+        )
 
     except Exception as e:
         logger.error(f"Failed to setup Prometheus metrics: {e}")

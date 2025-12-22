@@ -39,7 +39,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 }) => {
   // Performance monitoring for component renders
   usePerformanceMonitor('StudentsView', 150);
-  
+
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [internalSearch, setInternalSearch] = useState<string>('');
@@ -226,10 +226,14 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           onChange={(e) => setResolvedSearch(e.target.value)}
           placeholder={t('searchStudents')}
           className="border px-4 py-2 rounded w-full max-w-md"
+          aria-label="student search"
+          data-testid="student-search-input"
         />
         <button
           onClick={() => setShowAddModal(true)}
           className="ml-4 bg-indigo-600 text-white px-4 py-2 rounded"
+          aria-label="add student"
+          data-testid="add-student-btn"
         >
           {t('addStudent')}
         </button>
@@ -252,20 +256,21 @@ const StudentsView: React.FC<StudentsViewProps> = ({
               items={filtered}
               estimateSize={150}
               renderItem={(student) => (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  stats={statsById[student.id]}
-                  isExpanded={expandedId === student.id}
-                  noteValue={notesById[student.id] || ''}
-                  onNoteChange={(value) => updateNote(student.id, value)}
-                  onToggleExpand={toggleExpand}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  coursesMap={coursesMap}
-                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-                  onViewProfile={onViewProfile}
-                />
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    stats={statsById[student.id]}
+                    isExpanded={expandedId === student.id}
+                    noteValue={notesById[student.id] || ''}
+                    onNoteChange={(value) => updateNote(student.id, value)}
+                    onToggleExpand={toggleExpand}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    coursesMap={coursesMap}
+                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    onViewProfile={onViewProfile}
+                    data-testid={`student-card-${student.id}`}
+                  />
               )}
               emptyMessage={t('noStudentsFound')}
               className="space-y-2"

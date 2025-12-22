@@ -1,7 +1,7 @@
 # QNAP Deployment Guide (Consolidated)
 
-**Version:** 1.9.9  
-**Last Updated:** 2025-12-06  
+**Version:** 1.9.9
+**Last Updated:** 2025-12-06
 **Scope:** All QNAP Container Station deployments (basic, ARM/TS-431P3, virtual host)
 
 ---

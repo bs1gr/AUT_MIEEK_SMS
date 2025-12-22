@@ -76,7 +76,10 @@ def get_active_query(db: Session, model: Any) -> Query:
 
 
 def get_active(
-    db: Session, model: Any, filters: Optional[Dict[str, Any]] = None, order_by: Optional[Any] = None
+    db: Session,
+    model: Any,
+    filters: Optional[Dict[str, Any]] = None,
+    order_by: Optional[Any] = None,
 ) -> list[Any]:
     """
     Get all non-deleted records matching filters.
@@ -107,7 +110,9 @@ def get_active(
     return query.all()
 
 
-def get_by_id(db: Session, model: Any, id: int, include_deleted: bool = False) -> Optional[Any]:
+def get_by_id(
+    db: Session, model: Any, id: int, include_deleted: bool = False
+) -> Optional[Any]:
     """
     Get record by ID.
 
@@ -161,9 +166,16 @@ def get_by_id_or_404(
         # Allow callers to provide a stable error code and the request for
         # richer structured error payloads (used throughout the services).
         if error_code is not None:
-            raise http_error(status_code=404, code=error_code, message=f"{model.__name__} with id {id} not found", request=request)
+            raise http_error(
+                status_code=404,
+                code=error_code,
+                message=f"{model.__name__} with id {id} not found",
+                request=request,
+            )
 
-        raise HTTPException(status_code=404, detail=f"{model.__name__} with id {id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"{model.__name__} with id {id} not found"
+        )
 
     return obj
 
@@ -235,7 +247,9 @@ class PaginatedResult:
         }
 
 
-def paginate(query: Query, skip: int = 0, limit: int = 100, max_limit: int = 1000) -> PaginatedResult:
+def paginate(
+    query: Query, skip: int = 0, limit: int = 100, max_limit: int = 1000
+) -> PaginatedResult:
     """
     Add pagination to query and return results with metadata.
 
@@ -339,7 +353,9 @@ def validate_date_range(start_date: Optional[Any], end_date: Optional[Any]) -> N
         HTTPException: 400 if start_date > end_date
     """
     if start_date and end_date and start_date > end_date:
-        raise HTTPException(status_code=400, detail="start_date must be before or equal to end_date")
+        raise HTTPException(
+            status_code=400, detail="start_date must be before or equal to end_date"
+        )
 
 
 def validate_unique_constraint(
@@ -381,7 +397,9 @@ def validate_unique_constraint(
 # ============================================================================
 
 
-def bulk_create(db: Session, model: Any, data_list: list[Dict[str, Any]], commit: bool = True) -> list[Any]:
+def bulk_create(
+    db: Session, model: Any, data_list: list[Dict[str, Any]], commit: bool = True
+) -> list[Any]:
     """
     Bulk create records efficiently.
 
@@ -411,7 +429,9 @@ def bulk_create(db: Session, model: Any, data_list: list[Dict[str, Any]], commit
     return instances
 
 
-def bulk_update(db: Session, model: Any, updates: list[Dict[str, Any]], commit: bool = True) -> int:
+def bulk_update(
+    db: Session, model: Any, updates: list[Dict[str, Any]], commit: bool = True
+) -> int:
     """
     Bulk update records efficiently.
 

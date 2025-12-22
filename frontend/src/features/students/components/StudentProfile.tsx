@@ -137,7 +137,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
-  
+
 
   const calculateStats = () => {
     // Attendance stats

@@ -66,11 +66,11 @@ function Remove-SafePath {
         [string]$Path,
         [string]$Description
     )
-    
+
     $result = Remove-SafeItem -Path $Path -Description $Description -DryRun:$DryRun `
                                -SpaceFreedRef ([ref]$script:SpaceFreed) `
                                -CleanupCountRef ([ref]$script:CleanupCount)
-    
+
     if (-not $result -and (Test-Path $Path)) {
         $script:Errors += "Failed to remove: $Description"
     }
@@ -81,7 +81,7 @@ function Remove-SafePath {
 # Main execution
 try {
     Write-Header "PRE-RELEASE CLEANUP SCRIPT v1.0.0"
-    
+
     if ($DryRun) {
         Write-Host "`n⚠️  DRY RUN MODE - No files will be deleted" -ForegroundColor Yellow
     } else {
@@ -91,13 +91,13 @@ try {
 
     # 1. PYTHON CACHE CLEANUP
     Write-Section "Python Cache & Bytecode"
-    
-    Get-ChildItem -Path $rootDir -Filter "__pycache__" -Recurse -Directory -Force -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Filter "__pycache__" -Recurse -Directory -Force -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Python bytecode cache"
         }
-    
-    Get-ChildItem -Path $rootDir -Include "*.pyc", "*.pyo", "*.pyd" -Recurse -File -Force -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Include "*.pyc", "*.pyo", "*.pyd" -Recurse -File -Force -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Python compiled file"
         }
@@ -111,104 +111,104 @@ try {
 
     # 2. NODE/FRONTEND CACHE CLEANUP
     Write-Section "Node & Frontend Cache"
-    
+
     Remove-SafePath -Path "$rootDir\.cache" -Description "Cache directory"
     Remove-SafePath -Path "$rootDir\frontend\node_modules\.cache" -Description "Node modules cache"
-    
+
     # Keep node_modules, but report size
     if (Test-Path "$rootDir\frontend\node_modules") {
-        $nodeSize = (Get-ChildItem -Path "$rootDir\frontend\node_modules" -Recurse -Force -ErrorAction SilentlyContinue | 
+        $nodeSize = (Get-ChildItem -Path "$rootDir\frontend\node_modules" -Recurse -Force -ErrorAction SilentlyContinue |
                      Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
         Write-Host "  ℹ️  Keeping node_modules ($(Format-FileSize $nodeSize))" -ForegroundColor Cyan
     }
 
     # 3. TEMPORARY TEST ARTIFACTS
     Write-Section "Temporary Test Files"
-    
+
     Remove-SafePath -Path "$rootDir\tmp_test_migrations" -Description "Temporary test migrations"
     Remove-SafePath -Path "$rootDir\backend\tests\__pycache__" -Description "Test cache"
-    
+
     # CI/Test artifacts
-    Get-ChildItem -Path $rootDir -Filter "tmp_artifacts*" -Directory -ErrorAction SilentlyContinue | 
+    Get-ChildItem -Path $rootDir -Filter "tmp_artifacts*" -Directory -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Temporary CI artifacts"
         }
-    
-    Get-ChildItem -Path $rootDir -Filter "artifacts_run_*" -Directory -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Filter "artifacts_run_*" -Directory -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Temporary run artifacts"
         }
 
     # 4. BUILD ARTIFACTS
     Write-Section "Build Artifacts"
-    
+
     Remove-SafePath -Path "$rootDir\frontend\dist" -Description "Frontend build output"
-    
+
     # Keep installer but report
     if (Test-Path "$rootDir\dist") {
-        $distSize = (Get-ChildItem -Path "$rootDir\dist" -Recurse -Force -ErrorAction SilentlyContinue | 
+        $distSize = (Get-ChildItem -Path "$rootDir\dist" -Recurse -Force -ErrorAction SilentlyContinue |
                     Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
         Write-Host "  ℹ️  Keeping dist/ directory (installers) - $(Format-FileSize $distSize)" -ForegroundColor Cyan
     }
 
     # 5. LOG FILES (keep directory structure)
     Write-Section "Log Files"
-    
+
     if (Test-Path "$rootDir\backend\logs") {
-        Get-ChildItem -Path "$rootDir\backend\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue | 
+        Get-ChildItem -Path "$rootDir\backend\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Remove-SafePath -Path $_.FullName -Description "Backend log file"
             }
     }
-    
+
     if (Test-Path "$rootDir\logs") {
-        Get-ChildItem -Path "$rootDir\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue | 
+        Get-ChildItem -Path "$rootDir\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Remove-SafePath -Path $_.FullName -Description "Root log file"
             }
     }
-    
+
     # Remove root-level dev logs
-    Get-ChildItem -Path $rootDir -Filter "*dev_*.log" -File -ErrorAction SilentlyContinue | 
+    Get-ChildItem -Path $rootDir -Filter "*dev_*.log" -File -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Development log"
         }
-    
-    Get-ChildItem -Path $rootDir -Filter "run*.log" -File -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Filter "run*.log" -File -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Run log"
         }
 
     # 6. TEMPORARY SCRIPTS
     Write-Section "Temporary Scripts"
-    
-    Get-ChildItem -Path $rootDir -Filter "tmp_*.ps1" -File -Recurse -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Filter "tmp_*.ps1" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Temporary PowerShell script"
         }
-    
-    Get-ChildItem -Path $rootDir -Filter "tmp_*.sh" -File -Recurse -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Filter "tmp_*.sh" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Temporary shell script"
         }
-    
+
     Remove-SafePath -Path "$rootDir\watch_run.ps1" -Description "Temporary watch script"
     Remove-SafePath -Path "$rootDir\commit_msg.txt" -Description "Temporary commit message"
     Remove-SafePath -Path "$rootDir\cleanup_msg.txt" -Description "Temporary cleanup message"
 
     # 7. TEST DATABASES (not in data/ or backups/)
     Write-Section "Test Databases"
-    
-    Get-ChildItem -Path $rootDir -Filter "*.db" -File -Recurse -ErrorAction SilentlyContinue | 
-        Where-Object { 
-            $_.FullName -notmatch "\\data\\" -and 
-            $_.FullName -notmatch "\\backups\\" 
+
+    Get-ChildItem -Path $rootDir -Filter "*.db" -File -Recurse -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.FullName -notmatch "\\data\\" -and
+            $_.FullName -notmatch "\\backups\\"
         } | ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Test database"
         }
 
     # Remove WAL and SHM files
-    Get-ChildItem -Path $rootDir -Include "*.db-wal", "*.db-shm" -File -Recurse -ErrorAction SilentlyContinue | 
+    Get-ChildItem -Path $rootDir -Include "*.db-wal", "*.db-shm" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Database journal file"
         }
@@ -217,48 +217,48 @@ try {
     if ($IncludeBackups) {
         Write-Section "Old Backups (CAUTION)"
         Write-Host "  ⚠️  Backup cleanup requested" -ForegroundColor Yellow
-        
+
         if (Test-Path "$rootDir\backups\pip-audit-report*.json") {
-            Get-ChildItem -Path "$rootDir\backups" -Filter "pip-audit-report*.json" -File | 
+            Get-ChildItem -Path "$rootDir\backups" -Filter "pip-audit-report*.json" -File |
                 ForEach-Object {
                     Remove-SafePath -Path $_.FullName -Description "Old audit report backup"
                 }
         }
-        
+
         # Keep database backups
         Write-Host "  ℹ️  Database backups preserved in backups/" -ForegroundColor Cyan
     }
 
     # 9. IDE/EDITOR ARTIFACTS
     Write-Section "Editor Artifacts"
-    
-    Get-ChildItem -Path $rootDir -Include "*.swp", "*.swo", "*~" -File -Recurse -ErrorAction SilentlyContinue | 
+
+    Get-ChildItem -Path $rootDir -Include "*.swp", "*.swo", "*~" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Editor swap file"
         }
 
     # 10. PROCESS ID FILES
     Write-Section "Process ID Files"
-    
+
     Remove-SafePath -Path "$rootDir\.backend.pid" -Description "Backend process ID"
     Remove-SafePath -Path "$rootDir\.frontend.pid" -Description "Frontend process ID"
-    Get-ChildItem -Path $rootDir -Filter "*.pid" -File -ErrorAction SilentlyContinue | 
+    Get-ChildItem -Path $rootDir -Filter "*.pid" -File -ErrorAction SilentlyContinue |
         ForEach-Object {
             Remove-SafePath -Path $_.FullName -Description "Process ID file"
         }
 
     # SUMMARY
     Write-Header "CLEANUP SUMMARY"
-    
+
     Write-Host "`nItems processed: $script:CleanupCount" -ForegroundColor Cyan
     Write-Host "Space freed: $(Format-FileSize $script:SpaceFreed)" -ForegroundColor Green
-    
+
     if ($DryRun) {
         Write-Host "`n✅ Dry run complete. Run without -DryRun to execute cleanup." -ForegroundColor Yellow
     } else {
         Write-Host "`n✅ Cleanup complete!" -ForegroundColor Green
     }
-    
+
     # PRESERVED ITEMS
     Write-Host "`n📁 Preserved directories:" -ForegroundColor Cyan
     Write-Host "  • data/ (production database)" -ForegroundColor Gray
@@ -267,7 +267,7 @@ try {
     Write-Host "  • dist/ (installers)" -ForegroundColor Gray
     Write-Host "  • frontend/node_modules/ (dependencies)" -ForegroundColor Gray
     Write-Host "  • backend/.venv/ (Python environment)" -ForegroundColor Gray
-    
+
 }
 catch {
     Write-Host "`n❌ ERROR: $($_.Exception.Message)" -ForegroundColor Red

@@ -22,7 +22,7 @@ def test_get_session_closes_on_cleanup(monkeypatch: pytest.MonkeyPatch):
         session_holder.append(session)
         return session
 
-    monkeypatch.setattr('backend.db.connection.SessionLocal', fake_sessionmaker)
+    monkeypatch.setattr("backend.db.connection.SessionLocal", fake_sessionmaker)
 
     generator = get_session()
     session = next(generator)

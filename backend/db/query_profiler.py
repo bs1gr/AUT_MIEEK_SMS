@@ -4,7 +4,7 @@ Database Query Profiler for identifying N+1 queries and performance issues.
 Usage:
     from backend.db.query_profiler import profiler
     profiler.register(engine)  # Call in lifespan
-    
+
     # Access query stats
     print(f"Total queries: {len(profiler.queries)}")
     print(f"Total time: {profiler.total_time:.3f}s")
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class QueryStats:
     """Statistics for a single query"""
+
     statement: str
     duration: float
     is_slow: bool
@@ -57,16 +58,16 @@ class QueryProfiler:
         def before_cursor_execute(
             conn, cursor, statement, parameters, context, executemany
         ):
-            conn.info.setdefault('query_start_time', []).append(time.time())
+            conn.info.setdefault("query_start_time", []).append(time.time())
 
         @event.listens_for(engine, "after_cursor_execute")
         def after_cursor_execute(
             conn, cursor, statement, parameters, context, executemany
         ):
-            if 'query_start_time' not in conn.info or not conn.info['query_start_time']:
+            if "query_start_time" not in conn.info or not conn.info["query_start_time"]:
                 return
 
-            start_time = conn.info['query_start_time'].pop(-1)
+            start_time = conn.info["query_start_time"].pop(-1)
             duration = time.time() - start_time
 
             self._record_query(statement, duration)
@@ -80,10 +81,10 @@ class QueryProfiler:
             logger.warning(
                 f"Slow query ({duration:.3f}s): {statement[:100]}...",
                 extra={
-                    'query_time': duration,
-                    'query_sample': statement[:200],
-                    'slow': True
-                }
+                    "query_time": duration,
+                    "query_sample": statement[:200],
+                    "slow": True,
+                },
             )
 
         # Extract table name
@@ -95,7 +96,7 @@ class QueryProfiler:
             statement=statement,
             duration=duration,
             is_slow=is_slow,
-            table_name=table_name
+            table_name=table_name,
         )
         self.queries.append(stats)
         self.total_time += duration
@@ -119,7 +120,7 @@ class QueryProfiler:
 
     def detect_n_plus_one(self, threshold: int = 5) -> List[Tuple[str, int]]:
         """Detect potential N+1 query patterns
-        
+
         Returns:
             List of (table_name, count) tuples for tables with excessive queries
         """
@@ -132,7 +133,7 @@ class QueryProfiler:
         for table, count in n_plus_one_patterns:
             logger.warning(
                 f"Possible N+1 detected: table '{table}' queried {count} times",
-                extra={'n_plus_one': True, 'table': table, 'count': count}
+                extra={"n_plus_one": True, "table": table, "count": count},
             )
 
         return n_plus_one_patterns
@@ -140,12 +141,12 @@ class QueryProfiler:
     def get_summary(self) -> Dict:
         """Get summary statistics"""
         return {
-            'total_queries': len(self.queries),
-            'total_time': self.total_time,
-            'slow_queries': self.slow_query_count,
-            'average_time': self.total_time / len(self.queries) if self.queries else 0,
-            'table_patterns': dict(self.query_patterns),
-            'n_plus_one_patterns': self.detect_n_plus_one()
+            "total_queries": len(self.queries),
+            "total_time": self.total_time,
+            "slow_queries": self.slow_query_count,
+            "average_time": self.total_time / len(self.queries) if self.queries else 0,
+            "table_patterns": dict(self.query_patterns),
+            "n_plus_one_patterns": self.detect_n_plus_one(),
         }
 
     def reset(self) -> None:

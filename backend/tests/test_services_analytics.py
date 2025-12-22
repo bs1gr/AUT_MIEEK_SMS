@@ -6,19 +6,21 @@ import pytest
 
 from backend import models
 from backend.services import AnalyticsService
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.conftest import SessionLocal
 
 
 @pytest.fixture()
 def session():
-    db = TestingSessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
 
-def _setup_student_course(session, rules=None, absence_penalty: float = 0.0, credits: int = 3):
+def _setup_student_course(
+    session, rules=None, absence_penalty: float = 0.0, credits: int = 3
+):
     student = models.Student(
         first_name="Test",
         last_name="Student",

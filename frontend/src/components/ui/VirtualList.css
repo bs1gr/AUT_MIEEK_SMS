@@ -1,0 +1,20 @@
+.virtual-list-container {
+  height: 600px;
+}
+.virtual-list-outer {
+  width: 100%;
+  position: relative;
+}
+.virtual-list-outer[data-virtual-list-outer-size] {
+  height: attr(data-virtual-list-outer-size px);
+}
+.virtual-list-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.virtual-list-item[data-virtual-list-item-size][data-virtual-list-item-start] {
+  height: attr(data-virtual-list-item-size px);
+  transform: translateY(attr(data-virtual-list-item-start px));
+}

@@ -74,7 +74,7 @@ scripts/
 ```powershell
 .\NATIVE.ps1 -Setup           # Install/update dependencies
 .\NATIVE.ps1 -Start           # Start both backend + frontend
- 
+
 
 .\NATIVE.ps1 -Backend         # Backend only (uvicorn --reload)
 .\NATIVE.ps1 -Frontend        # Frontend only (Vite HMR)
@@ -492,8 +492,8 @@ If you need lower-level control during development, use the Docker Compose helpe
 
 ---
 
-**Last Updated:** November 25, 2025  
-**Version:** 2.0  
+**Last Updated:** November 25, 2025
+**Version:** 2.0
 **Maintained By:** Development Team
 
 **Need Help?** Run `.\DOCKER.ps1 -Help` or `.\NATIVE.ps1 -Help`, or see `README.md`.

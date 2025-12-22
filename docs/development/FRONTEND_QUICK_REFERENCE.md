@@ -79,8 +79,8 @@ Pydantic validators always run
 ```tsx
 // ✅ After mutation, always invalidate
 onSuccess: () => {
-  queryClient.invalidateQueries({ 
-    queryKey: ['students'] 
+  queryClient.invalidateQueries({
+    queryKey: ['students']
   });
 }
 
@@ -233,8 +233,8 @@ When creating a new component:
 
    ```tsx
    {error && (
-     <ErrorNotification 
-       message={error.message} 
+     <ErrorNotification
+       message={error.message}
        action="Retry"
        onAction={refetch}
      />
@@ -311,7 +311,7 @@ import StudentForm from '@/components/StudentForm';
 describe('StudentForm', () => {
   it('should submit form with valid data', async () => {
     const handleSubmit = vi.fn();
-    
+
     render(
       <QueryClientProvider client={new QueryClient()}>
         <StudentForm onSubmit={handleSubmit} />
@@ -493,5 +493,5 @@ Print or bookmark this reference for quick lookup during development.
 
 ---
 
-*Last Updated: December 4, 2025*  
+*Last Updated: December 4, 2025*
 *Frontend $11.9.7 - Modern React Architecture*

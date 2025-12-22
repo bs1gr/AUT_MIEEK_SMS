@@ -298,7 +298,7 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
 
   const handleError = useCallback((err: Error) => {
     setError(err);
-    
+
     if (strategy === 'backoff' && retryCount < maxRetries) {
       const delay = backoffMs * Math.pow(2, retryCount); // Exponential backoff
       timeoutRef.current = setTimeout(() => {
@@ -444,8 +444,8 @@ function StudentForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         disabled={isRateLimited || mutation.isPending}
       >
         {isRateLimited ? 'Please wait...' : 'Save'}
@@ -796,7 +796,7 @@ npm run build -- --visualizer
     // ❌ AVOID: date-fns (80KB)
     // ✅ PREFER: day.js (2KB) for date formatting
     "date-fns": "replace-with-dayjs",
-    
+
     // ❌ AVOID: lodash (69KB)
     // ✅ PREFER: Native JS for 80% of use cases
     "lodash": "remove-if-unused"
@@ -958,7 +958,7 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
 // Extract to custom hook
 function useToast() {
   const [toast, setToast] = useState<ToastState | null>(null);
-  
+
   const show = useCallback((message: string, type: ToastType['type'] = 'info') => {
     setToast({ message, type });
     const timeout = setTimeout(() => setToast(null), 3000);
@@ -1013,12 +1013,12 @@ interface FrontendMetrics {
   firstContentfulPaint: number;      // Target: < 1.5s
   largestContentfulPaint: number;    // Target: < 2.5s
   timeToInteractive: number;         // Target: < 3.5s
-  
+
   // User Experience
   cumulativeLayoutShift: number;     // Target: < 0.1
   pageLoadErrors: number;            // Target: 0
   apiErrorRate: number;              // Target: < 1%
-  
+
   // Business
   sessionDuration: number;           // minutes
   bounceRate: number;                // %
@@ -1163,6 +1163,6 @@ Your frontend architecture is **modern and well-structured**. These improvements
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** December 4, 2025  
+**Document Version:** 1.0
+**Last Updated:** December 4, 2025
 **Maintainer:** Development Team

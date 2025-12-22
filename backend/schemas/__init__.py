@@ -1,5 +1,5 @@
 # Aggregated exports for easy imports
-# Using explicit re-exports to satisfy F401 linter
+## Using explicit re-exports to satisfy F401 linter
 from .attendance import (
     AttendanceCreate as AttendanceCreate,
 )
@@ -30,6 +30,7 @@ from .auth import (
 from .auth import (
     UserLogin as UserLogin,
 )
+
 ## Removed duplicate UserResponse import from .auth to fix Ruff F811
 from .auth import (
     UserUpdate as UserUpdate,

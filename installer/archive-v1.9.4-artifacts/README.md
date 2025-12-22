@@ -1,6 +1,6 @@
 # Installer Artifacts - v1.9.4 and Earlier
 
-**Archive Date:** December 4, 2025  
+**Archive Date:** December 4, 2025
 **Purpose:** Preserve outdated installer documentation and executables
 
 ## Contents

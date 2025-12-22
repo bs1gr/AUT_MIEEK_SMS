@@ -103,7 +103,7 @@ For a complete catalog of all documentation, see:
 
 ## 🔄 Version
 
-**Current Version:** 1.12.2  
+**Current Version:** 1.12.2
 **Last Updated:** 2025-12-13
 
 ## 📝 Contributing
@@ -118,4 +118,3 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
-

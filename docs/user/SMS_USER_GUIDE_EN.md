@@ -1,7 +1,7 @@
 # Student Management System - User Guide (English)
 
-**Version:** 1.9.7  
-**Date:** December 4, 2025  
+**Version:** 1.9.7
+**Date:** December 4, 2025
 **Developed by:** Vasileios Samaras
 
 ---

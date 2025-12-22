@@ -51,11 +51,17 @@ class Student(SoftDeleteMixin, Base):
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String(100), nullable=False, index=False)
     last_name = Column(String(100), nullable=False, index=False)
-    email = Column(String(255), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
-    student_id = Column(String(50), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
+    email = Column(
+        String(255), unique=True, nullable=False, index=True
+    )  # ✅ ADDED INDEX
+    student_id = Column(
+        String(50), unique=True, nullable=False, index=True
+    )  # ✅ ADDED INDEX
     # Remove Python-side default so that None stays None when not provided
     enrollment_date = Column(Date, index=True)  # ✅ ADDED INDEX
-    is_active = Column(Boolean, default=True, index=True)  # ✅ ADDED INDEX for filtering
+    is_active = Column(
+        Boolean, default=True, index=True
+    )  # ✅ ADDED INDEX for filtering
 
     # Extended profile fields
     father_name = Column(String(100))
@@ -71,11 +77,21 @@ class Student(SoftDeleteMixin, Base):
     # annotations as mapping hints; use SQLAlchemy's Mapped[] generics if stronger
     # typing is desired in future (requires sqlalchemy2-stubs). Keeping plain
     # assignments preserves runtime behavior and avoids mapper errors.
-    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
-    grades = relationship("Grade", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
-    highlights = relationship("Highlight", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
-    daily_performances = relationship("DailyPerformance", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
-    enrollments = relationship("CourseEnrollment", back_populates="student", cascade="all, delete-orphan")  # type: ignore[var-annotated]
+    attendances = relationship(
+        "Attendance", back_populates="student", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
+    grades = relationship(
+        "Grade", back_populates="student", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
+    highlights = relationship(
+        "Highlight", back_populates="student", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
+    daily_performances = relationship(
+        "DailyPerformance", back_populates="student", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
+    enrollments = relationship(
+        "CourseEnrollment", back_populates="student", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
 
     # Composite index for active students
     __table_args__ = (Index("idx_student_active_email", "is_active", "email"),)
@@ -90,7 +106,9 @@ class Course(SoftDeleteMixin, Base):
     __tablename__ = "courses"
 
     id = Column(Integer, primary_key=True, index=True)
-    course_code = Column(String(20), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
+    course_code = Column(
+        String(20), unique=True, nullable=False, index=True
+    )  # ✅ ADDED INDEX
     course_name = Column(String(200), nullable=False, index=False)
     semester = Column(String(50), nullable=False, index=True)  # ✅ ADDED INDEX
     credits = Column(Integer, default=3)
@@ -107,8 +125,12 @@ class Course(SoftDeleteMixin, Base):
     attendances = relationship("Attendance", back_populates="course")  # type: ignore[var-annotated]
     grades = relationship("Grade", back_populates="course")  # type: ignore[var-annotated]
     daily_performances = relationship("DailyPerformance", back_populates="course")  # type: ignore[var-annotated]
-    enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")  # type: ignore[var-annotated]
-    enrolled_students = relationship("Student", secondary="course_enrollments", viewonly=True)  # type: ignore[var-annotated]
+    enrollments = relationship(
+        "CourseEnrollment", back_populates="course", cascade="all, delete-orphan"
+    )  # type: ignore[var-annotated]
+    enrolled_students = relationship(
+        "Student", secondary="course_enrollments", viewonly=True
+    )  # type: ignore[var-annotated]
 
     def __repr__(self):
         return f"<Course(code={self.course_code}, name={self.course_name}, hours={self.hours_per_week}h/week)>"
@@ -140,9 +162,7 @@ class Attendance(SoftDeleteMixin, Base):
     )
 
     def __repr__(self):
-        return (
-            f"<Attendance(student={self.student_id}, course={self.course_id}, date={self.date}, status={self.status})>"
-        )
+        return f"<Attendance(student={self.student_id}, course={self.course_id}, date={self.date}, status={self.status})>"
 
 
 class CourseEnrollment(SoftDeleteMixin, Base):
@@ -159,7 +179,9 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]
     course = relationship("Course", back_populates="enrollments")  # type: ignore[var-annotated]
 
-    __table_args__ = (Index("idx_enrollment_student_course", "student_id", "course_id", unique=True),)
+    __table_args__ = (
+        Index("idx_enrollment_student_course", "student_id", "course_id", unique=True),
+    )
 
     def __repr__(self):
         return f"<Enrollment(student={self.student_id}, course={self.course_id})>"
@@ -269,7 +291,9 @@ class Highlight(SoftDeleteMixin, Base):
     student = relationship("Student", back_populates="highlights")  # type: ignore[var-annotated]
 
     # Composite index for common queries
-    __table_args__ = (Index("idx_highlight_student_semester", "student_id", "semester"),)
+    __table_args__ = (
+        Index("idx_highlight_student_semester", "student_id", "semester"),
+    )
 
     def __repr__(self):
         return f"<Highlight(student={self.student_id}, category={self.category}, semester={self.semester})>"
@@ -289,11 +313,18 @@ class User(Base):
     full_name = Column(String(200))
     role = Column(String(50), nullable=False, index=True, default="teacher")
     is_active = Column(Boolean, default=True, index=True)
-    password_change_required = Column(Boolean, default=False, nullable=False, index=True)
+    password_change_required = Column(
+        Boolean, default=False, nullable=False, index=True
+    )
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     last_failed_login_at = Column(DateTime(timezone=True), nullable=True, index=True)
     lockout_until = Column(DateTime(timezone=True), nullable=True, index=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
     updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -302,9 +333,7 @@ class User(Base):
         index=True,
     )
 
-    __table_args__ = (
-        Index("idx_users_email_role", "email", "role"),
-    )
+    __table_args__ = (Index("idx_users_email_role", "email", "role"),)
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
@@ -321,7 +350,12 @@ class RefreshToken(Base):
     token_hash = Column(String(128), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
     revoked = Column(Boolean, default=False, index=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
 
     # Relationship back to user (optional)
     # Annotate as ClassVar[Any] so mypy is satisfied but SQLAlchemy's declarative
@@ -338,9 +372,15 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    action = Column(String(50), nullable=False, index=True)  # e.g., "create", "update", "delete", "bulk_import"
-    resource = Column(String(50), nullable=False, index=True)  # e.g., "student", "grade", "course"
-    resource_id = Column(String(100), nullable=True, index=True)  # ID of the affected resource
+    action = Column(
+        String(50), nullable=False, index=True
+    )  # e.g., "create", "update", "delete", "bulk_import"
+    resource = Column(
+        String(50), nullable=False, index=True
+    )  # e.g., "student", "grade", "course"
+    resource_id = Column(
+        String(100), nullable=True, index=True
+    )  # ID of the affected resource
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     user_email = Column(String(255), nullable=True)
     ip_address = Column(String(45), nullable=True)  # IPv6 max length
@@ -348,7 +388,12 @@ class AuditLog(Base):
     details = Column(JSON, nullable=True)  # Additional contextual information
     success = Column(Boolean, default=True, nullable=False)
     error_message = Column(Text, nullable=True)
-    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    timestamp = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
 
     # Composite indexes for common queries
     __table_args__ = (
@@ -377,9 +422,7 @@ class Role(Base):
     name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
-    __table_args__ = (
-        Index("idx_roles_name", "name", unique=True),
-    )
+    __table_args__ = (Index("idx_roles_name", "name", unique=True),)
 
     def __repr__(self):
         return f"<Role(id={self.id}, name={self.name})>"
@@ -397,9 +440,7 @@ class Permission(Base):
     name = Column(String(150), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
-    __table_args__ = (
-        Index("idx_permissions_name", "name", unique=True),
-    )
+    __table_args__ = (Index("idx_permissions_name", "name", unique=True),)
 
     def __repr__(self):
         return f"<Permission(id={self.id}, name={self.name})>"
@@ -411,8 +452,15 @@ class RolePermission(Base):
     __tablename__ = "role_permissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
-    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+    role_id = Column(
+        Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    permission_id = Column(
+        Integer,
+        ForeignKey("permissions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     __table_args__ = (
         Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),
@@ -435,12 +483,14 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
-
-    __table_args__ = (
-        Index("idx_user_role_unique", "user_id", "role_id", unique=True),
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    role_id = Column(
+        Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    __table_args__ = (Index("idx_user_role_unique", "user_id", "role_id", unique=True),)
 
     user: ClassVar[Any] = relationship("User")
     role: ClassVar[Any] = relationship("Role")
@@ -483,9 +533,12 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
 
         # Determine if this is a production environment
         from backend.environment import get_runtime_context
+
         runtime_context = get_runtime_context()
         is_production = runtime_context.is_production
-        is_postgresql = db_url.startswith("postgresql://") or db_url.startswith("postgresql+psycopg://")
+        is_postgresql = db_url.startswith("postgresql://") or db_url.startswith(
+            "postgresql+psycopg://"
+        )
         is_sqlite = db_url.startswith("sqlite:///")
 
         # Production SQLite warning
@@ -506,12 +559,14 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
 
         if is_postgresql:
             # PostgreSQL-specific pooling configuration
-            engine_kwargs.update({
-                "pool_size": 20,           # Connections in pool (default: 5)
-                "max_overflow": 10,        # Extra connections beyond pool_size (default: 10)
-                "pool_pre_ping": True,     # Test connections before use (detect stale connections)
-                "pool_recycle": 3600,      # Recycle connections after 1 hour (prevent stale connections)
-            })
+            engine_kwargs.update(
+                {
+                    "pool_size": 20,  # Connections in pool (default: 5)
+                    "max_overflow": 10,  # Extra connections beyond pool_size (default: 10)
+                    "pool_pre_ping": True,  # Test connections before use (detect stale connections)
+                    "pool_recycle": 3600,  # Recycle connections after 1 hour (prevent stale connections)
+                }
+            )
             logger.info(
                 "PostgreSQL connection pooling configured: "
                 "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s"
@@ -521,6 +576,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             # Use NullPool for SQLite to avoid "database is locked" errors in multi-threaded scenarios
             # Note: For single-threaded dev, default pool is fine; this is defensive for FastAPI workers
             from sqlalchemy.pool import NullPool
+
             engine_kwargs["poolclass"] = NullPool
             logger.info("SQLite NullPool configured to avoid locking issues")
 

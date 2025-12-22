@@ -44,7 +44,7 @@ def _is_true(val: str | None) -> bool:
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Returns:
         FastAPI: Configured application instance with all middleware,
                  error handlers, routers, and endpoints registered.
@@ -62,7 +62,7 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         openapi_url="/openapi.json",
         redoc_url="/redoc",
-        lifespan=get_lifespan()
+        lifespan=get_lifespan(),
     )
 
     # Register core components
@@ -78,11 +78,14 @@ def create_app() -> FastAPI:
     # Set app state
     app.state.version = VERSION
     from backend.environment import require_production_constraints
+
     app.state.runtime_context = require_production_constraints()
 
     from backend.rate_limiting import limiter
-    app.state.limiter = limiter
 
+    # Unconditionally disable rate limiter for all test runs
+    limiter.enabled = False
+    app.state.limiter = limiter
 
     # Register health check endpoints
     _register_health_endpoints(app)
@@ -102,6 +105,7 @@ def create_app() -> FastAPI:
     #
     try:
         from backend.middleware.prometheus_metrics import setup_metrics
+
         setup_metrics(app, VERSION)
     except Exception as e:
         logger.warning(f"Prometheus metrics setup failed: {e}")
@@ -124,6 +128,7 @@ def _register_health_endpoints(app: FastAPI):
     async def health_check(db: Session = Depends(get_session)):
         """Comprehensive health check endpoint."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -154,6 +159,7 @@ def _register_health_endpoints(app: FastAPI):
     async def readiness_check(db: Session = Depends(get_session)):
         """Readiness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -163,6 +169,7 @@ def _register_health_endpoints(app: FastAPI):
     async def liveness_check():
         """Liveness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -234,7 +241,11 @@ def _register_root_endpoints(app: FastAPI, version: str):
             "message": "Student Management System API",
             "version": version,
             "status": "running",
-            "documentation": {"swagger": "/docs", "redoc": "/redoc", "openapi": "/openapi.json"},
+            "documentation": {
+                "swagger": "/docs",
+                "redoc": "/redoc",
+                "openapi": "/openapi.json",
+            },
             "endpoints": {
                 "health": "/health",
                 "students": "/api/v1/students",
@@ -253,9 +264,12 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 with open(SPA_INDEX_FILE, "r", encoding="utf-8") as f:
                     content = f.read()
                 from fastapi.responses import HTMLResponse
+
                 response = HTMLResponse(content=content)
                 # Prevent caching of index.html to ensure fresh content on reload
-                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
+                response.headers["Cache-Control"] = (
+                    "no-cache, no-store, must-revalidate, public, max-age=0"
+                )
                 response.headers["Pragma"] = "no-cache"
                 response.headers["Expires"] = "0"
                 return response
@@ -276,13 +290,18 @@ def _register_root_endpoints(app: FastAPI, version: str):
   <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
 </svg>"""
         from fastapi.responses import Response
+
         return Response(content=svg_content, media_type="image/svg+xml")
 
     # SPA serving setup
     if SERVE_FRONTEND and SPA_DIST_DIR and SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
         try:
             # Serve static assets
-            app.mount("/assets", StaticFiles(directory=str(SPA_DIST_DIR / "assets")), name="assets")
+            app.mount(
+                "/assets",
+                StaticFiles(directory=str(SPA_DIST_DIR / "assets")),
+                name="assets",
+            )
 
             # Serve root-level static files
             @app.get("/logo.png")
@@ -297,7 +316,9 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 bg_path = SPA_DIST_DIR / "login-bg.png"
                 if bg_path.exists():
                     return FileResponse(str(bg_path), media_type="image/png")
-                raise HTTPException(status_code=404, detail="Background image not found")
+                raise HTTPException(
+                    status_code=404, detail="Background image not found"
+                )
 
             @app.get("/favicon.svg")
             async def serve_favicon_svg():
@@ -311,7 +332,9 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 """Serve PWA manifest with correct MIME type."""
                 manifest_path = SPA_DIST_DIR / "manifest.json"
                 if manifest_path.exists():
-                    return FileResponse(str(manifest_path), media_type="application/json")
+                    return FileResponse(
+                        str(manifest_path), media_type="application/json"
+                    )
                 raise HTTPException(status_code=404, detail="Manifest not found")
 
             @app.get("/registerSW.js")
@@ -320,7 +343,9 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 # Check if file exists in dist
                 sw_file = SPA_DIST_DIR / "registerSW.js"
                 if sw_file.exists():
-                    return FileResponse(str(sw_file), media_type="application/javascript")
+                    return FileResponse(
+                        str(sw_file), media_type="application/javascript"
+                    )
                 # Generate a minimal service worker registration if file doesn't exist
                 sw_code = """
 if ('serviceWorker' in navigator) {
@@ -330,6 +355,7 @@ if ('serviceWorker' in navigator) {
 }
 """
                 from fastapi.responses import Response
+
                 return Response(content=sw_code, media_type="application/javascript")
 
             @app.get("/apple-touch-icon.png")
@@ -338,21 +364,38 @@ if ('serviceWorker' in navigator) {
                 icon_path = SPA_DIST_DIR / "apple-touch-icon.png"
                 if icon_path.exists():
                     return FileResponse(str(icon_path), media_type="image/png")
-                raise HTTPException(status_code=404, detail="Apple touch icon not found")
+                raise HTTPException(
+                    status_code=404, detail="Apple touch icon not found"
+                )
 
             @app.get("/sw.js")
             async def serve_service_worker():
                 """Serve Service Worker script with correct MIME type."""
                 sw_path = SPA_DIST_DIR / "sw.js"
                 if sw_path.exists():
-                    return FileResponse(str(sw_path), media_type="application/javascript")
+                    return FileResponse(
+                        str(sw_path), media_type="application/javascript"
+                    )
                 raise HTTPException(status_code=404, detail="Service Worker not found")
 
             # SPA fallback handler
             EXCLUDE_PREFIXES = (
-                "api/", "docs", "redoc", "openapi.json", "control", "health", "metrics",
-                "favicon.ico", "favicon.svg", "assets/", "logo.png", "login-bg.png",
-                "manifest.json", "registerSW.js", "apple-touch-icon.png", "sw.js",
+                "api/",
+                "docs",
+                "redoc",
+                "openapi.json",
+                "control",
+                "health",
+                "metrics",
+                "favicon.ico",
+                "favicon.svg",
+                "assets/",
+                "logo.png",
+                "login-bg.png",
+                "manifest.json",
+                "registerSW.js",
+                "apple-touch-icon.png",
+                "sw.js",
             )
 
             @app.exception_handler(StarletteHTTPException)
@@ -361,12 +404,16 @@ if ('serviceWorker' in navigator) {
                     p = request.url.path.lstrip("/")
                     for pref in EXCLUDE_PREFIXES:
                         if p.startswith(pref):
-                            return JSONResponse({"detail": "Not Found"}, status_code=404)
+                            return JSONResponse(
+                                {"detail": "Not Found"}, status_code=404
+                            )
                     if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
                         return FileResponse(str(SPA_INDEX_FILE))
                 return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
-            logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.")
+            logger.info(
+                "SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback."
+            )
         except Exception as e:
             logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
 

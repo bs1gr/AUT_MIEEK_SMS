@@ -6,7 +6,7 @@
     Generates the required BMP images for the installer wizard:
     - wizard_image.bmp (164x314 pixels) - Left panel image with modern gradient
     - wizard_small.bmp (55x55 pixels) - Small icon in header with rounded corners
-    
+
     Automatically reads version from VERSION file and updates wizard images.
     Includes version caching and validation.
 
@@ -72,10 +72,10 @@ function Test-VersionCacheValid {
     if (-not (Test-Path $VersionCacheFile)) {
         return $false
     }
-    
+
     $cachedVersion = Get-Content $VersionCacheFile -Raw -ErrorAction SilentlyContinue
     $currentVersion = Get-ProjectVersion
-    
+
     return ($cachedVersion.Trim() -eq $currentVersion)
 }
 
@@ -96,7 +96,7 @@ function Test-ImageFiles {
     #>
     $largeImage = Join-Path $scriptDir "wizard_image.bmp"
     $smallImage = Join-Path $scriptDir "wizard_small.bmp"
-    
+
     if ((Test-Path $largeImage) -and (Test-Path $smallImage)) {
         return $true
     }
@@ -139,8 +139,8 @@ $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAlias
 # Modern gradient background - vertical gradient with depth
 $rect = New-Object System.Drawing.Rectangle(0, 0, $width, $height)
 $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-    $rect, 
-    $primaryColor, 
+    $rect,
+    $primaryColor,
     $primaryDark,
     [System.Drawing.Drawing2D.LinearGradientMode]::Vertical
 )
@@ -244,8 +244,8 @@ $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAlias
 # Background with gradient (modern icon style)
 $rect = New-Object System.Drawing.Rectangle(0, 0, $width, $height)
 $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-    $rect, 
-    $primaryLight, 
+    $rect,
+    $primaryLight,
     $primaryColor,
     [System.Drawing.Drawing2D.LinearGradientMode]::Vertical
 )

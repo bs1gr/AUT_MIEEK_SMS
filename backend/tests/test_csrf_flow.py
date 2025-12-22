@@ -21,10 +21,10 @@ def csrf_client():
         poolclass=StaticPool,
         echo=False,
     )
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     def override_get_db(_=None):
-        db = TestingSessionLocal()
+        db = SessionLocal()
         try:
             yield db
         finally:
@@ -69,14 +69,21 @@ def _csrf_headers(client: TestClient) -> dict[str, str]:
     return {data["header_name"]: data["csrf_token"]}
 
 
-def _auth_header(client: TestClient, *, email: str = "alice@example.com", password: str = "S3curePass!") -> dict[str, str]:
+def _auth_header(
+    client: TestClient,
+    *,
+    email: str = "alice@example.com",
+    password: str = "S3curePass!",
+) -> dict[str, str]:
     payload = {"email": email, "password": password, "full_name": "Alice"}
     csrf = _csrf_headers(client)
     r = client.post("/api/v1/auth/register", json=payload, headers=csrf)
     assert r.status_code in (200, 400)
 
     csrf = _csrf_headers(client)
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": password}, headers=csrf)
+    login = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}, headers=csrf
+    )
     assert login.status_code == 200
     access_token = login.json()["access_token"]
     return {"Authorization": f"Bearer {access_token}"}
@@ -93,7 +100,9 @@ def _course_payload(code: str = "CSRF101") -> dict:
 
 def test_state_change_rejected_without_csrf(csrf_client):
     auth_headers = _auth_header(csrf_client)
-    resp = csrf_client.post("/api/v1/courses", json=_course_payload("CSRF101"), headers=auth_headers)
+    resp = csrf_client.post(
+        "/api/v1/courses", json=_course_payload("CSRF101"), headers=auth_headers
+    )
     assert resp.status_code == 403
     body = resp.json()
     assert body["error"] == "csrf_validation_failed"
@@ -113,7 +122,11 @@ def test_state_change_allowed_with_csrf(csrf_client):
 
 
 def test_csrf_token_rotation_on_refresh(csrf_client):
-    _auth_header(csrf_client, email="refresh@example.com", password="StrongP@ss1")
+    _auth_header(
+        csrf_client,
+        email="refresh@example.com",
+        password="StrongP@ss1",  # pragma: allowlist secret
+    )
     csrf_headers = _csrf_headers(csrf_client)
     cookie_before = csrf_client.cookies.get(settings.CSRF_COOKIE_NAME)
     refresh_resp = csrf_client.post("/api/v1/auth/refresh", headers=csrf_headers)

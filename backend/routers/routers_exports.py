@@ -1,8 +1,38 @@
+import logging
 import os
+from datetime import datetime
+from io import BytesIO
+from typing import cast
 
+import openpyxl
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from sqlalchemy.orm import Session
+
+from backend.db import get_session as get_db
+from backend.errors import ErrorCode, http_error
+from backend.import_resolver import import_names
+from backend.services.audit_service import AuditLogger
+from backend.schemas.audit import AuditAction, AuditResource
+from backend.security.permissions import optional_require_permission
+
+"""
+Export Routes
+Provides endpoints to export data to Excel/PDF.
+"""
+
+HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+
 
 # Simple i18n dict for EN/EL (expand as needed)
 TRANSLATIONS = {
@@ -402,25 +432,6 @@ Export Routes
 Provides endpoints to export data to Excel/PDF.
 """
 
-import logging
-from datetime import datetime
-from io import BytesIO
-from typing import cast
-
-import openpyxl
-from fastapi.responses import StreamingResponse
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.worksheet import Worksheet
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from sqlalchemy.orm import Session
-
-HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-
 
 def _init_status_counts():
     return {status: 0 for status in ATTENDANCE_STATUSES}
@@ -477,14 +488,6 @@ router = APIRouter(
 )
 
 
-from backend.db import get_session as get_db
-from backend.errors import ErrorCode, http_error
-from backend.import_resolver import import_names
-from backend.services.audit_service import AuditLogger
-from backend.schemas.audit import AuditAction, AuditResource
-from backend.security.permissions import optional_require_permission
-
-
 @router.get("/students/excel")
 async def export_students_excel(
     request: Request,
@@ -505,7 +508,9 @@ async def export_students_excel(
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
         for row, s in enumerate(students, 2):
             ws.cell(row=row, column=1, value=s.id)
@@ -514,7 +519,13 @@ async def export_students_excel(
             ws.cell(row=row, column=4, value=s.email)
             ws.cell(row=row, column=5, value=s.student_id)
             ws.cell(row=row, column=6, value=str(s.enrollment_date))
-            ws.cell(row=row, column=7, value=t("status_active", lang) if s.is_active else t("status_inactive", lang))
+            ws.cell(
+                row=row,
+                column=7,
+                value=t("status_active", lang)
+                if s.is_active
+                else t("status_inactive", lang),
+            )
         for col in range(1, len(headers) + 1):
             ws.column_dimensions[get_column_letter(col)].width = 18
         output = BytesIO()
@@ -548,12 +559,18 @@ async def export_students_excel(
 
 
 @router.get("/grades/excel/{student_id}")
-async def export_student_grades_excel(student_id: int, request: Request, db: Session = Depends(get_db)):
+async def export_student_grades_excel(
+    student_id: int, request: Request, db: Session = Depends(get_db)
+):
     try:
         Student, Grade = import_names("models", "Student", "Grade")
         lang = get_lang(request)
 
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise http_error(
                 404,
@@ -562,7 +579,11 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
                 request,
                 context={"student_id": student_id},
             )
-        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
+        grades = (
+            db.query(Grade)
+            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
+            .all()
+        )
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -577,7 +598,9 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=3, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
         total_percentage = 0
         for row, g in enumerate(grades, 4):
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
@@ -589,13 +612,21 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
             ws.cell(row=row, column=5, value=f"{pct:.2f}%")
             ws.cell(row=row, column=6, value=g.weight)
             ws.cell(row=row, column=7, value=_letter_grade(pct))
-            ws.cell(row=row, column=8, value=str(g.date_submitted) if g.date_submitted else not_available(lang))
+            ws.cell(
+                row=row,
+                column=8,
+                value=str(g.date_submitted)
+                if g.date_submitted
+                else not_available(lang),
+            )
         for col in range(1, 9):
             ws.column_dimensions[get_column_letter(col)].width = 18
         output = BytesIO()
         wb.save(output)
         output.seek(0)
-        filename = f"grades_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        filename = (
+            f"grades_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -688,10 +719,22 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
                     s.student_id,
                     s.email,
                     str(s.enrollment_date),
-                    t("status_active", lang) if s.is_active else t("status_inactive", lang),
+                    t("status_active", lang)
+                    if s.is_active
+                    else t("status_inactive", lang),
                 ]
             )
-        table = Table(data, colWidths=[0.5 * inch, 1.5 * inch, 1 * inch, 2 * inch, 1 * inch, 0.8 * inch])
+        table = Table(
+            data,
+            colWidths=[
+                0.5 * inch,
+                1.5 * inch,
+                1 * inch,
+                2 * inch,
+                1 * inch,
+                0.8 * inch,
+            ],
+        )
         table.setStyle(
             TableStyle(
                 [
@@ -741,7 +784,9 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
         for row, r in enumerate(records, 2):
             ws.cell(row=row, column=1, value=r.id)
             ws.cell(row=row, column=2, value=r.student_id)
@@ -789,9 +834,13 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/attendance/analytics/excel")
-async def export_attendance_analytics_excel(request: Request, db: Session = Depends(get_db)):
+async def export_attendance_analytics_excel(
+    request: Request, db: Session = Depends(get_db)
+):
     try:
-        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
+        Attendance, Student, Course = import_names(
+            "models", "Attendance", "Student", "Course"
+        )
         lang = get_lang(request)
         na_value = not_available(lang)
 
@@ -840,7 +889,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         ) in rows:
             safe_status = _normalize_status(status)
             period = period_number or 1
-            student_label = (f"{first_name or ''} {last_name or ''}").strip() or na_value
+            student_label = (
+                f"{first_name or ''} {last_name or ''}"
+            ).strip() or na_value
             course_label = course_code or na_value
             course_title = course_name or na_value
 
@@ -852,7 +903,12 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
 
             course_entry = course_summary.setdefault(
                 course_id,
-                {"course_code": course_label, "course_name": course_title, "counts": _init_status_counts(), "total": 0},
+                {
+                    "course_code": course_label,
+                    "course_name": course_title,
+                    "counts": _init_status_counts(),
+                    "total": 0,
+                },
             )
             course_entry["counts"][safe_status] += 1
             course_entry["total"] += 1
@@ -890,16 +946,22 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
             student_entry["total"] += 1
 
             if att_date:
-                daily_entry = daily_summary.setdefault(att_date, {"counts": _init_status_counts(), "total": 0})
+                daily_entry = daily_summary.setdefault(
+                    att_date, {"counts": _init_status_counts(), "total": 0}
+                )
                 daily_entry["counts"][safe_status] += 1
                 daily_entry["total"] += 1
 
         total_records = sum(overall_counts.values())
-        present_share = (overall_counts["Present"] / total_records * 100) if total_records else 0
+        present_share = (
+            (overall_counts["Present"] / total_records * 100) if total_records else 0
+        )
         date_range = na_value
         if date_values:
             sorted_dates = sorted(date_values)
-            date_range = f"{sorted_dates[0].isoformat()} → {sorted_dates[-1].isoformat()}"
+            date_range = (
+                f"{sorted_dates[0].isoformat()} → {sorted_dates[-1].isoformat()}"
+            )
 
         wb = openpyxl.Workbook()
         overview_ws = cast(Worksheet, wb.active)
@@ -912,20 +974,30 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         overview_ws.append([t("label_unique_courses", lang), len(unique_courses)])
         overview_ws.append([t("label_date_range", lang), date_range])
         overview_ws.append([t("label_present_share", lang), f"{present_share:.1f}%"])
-        overview_ws.append([t("label_generated_on_table", lang), datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        overview_ws.append(
+            [
+                t("label_generated_on_table", lang),
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            ]
+        )
         overview_ws.append([])
         overview_ws.append(get_header_row("status_counts", lang))
         for status in ATTENDANCE_STATUSES:
             overview_ws.append([t(status.lower(), lang), overall_counts[status]])
         if total_records == 0:
             overview_ws.append([])
-            overview_ws.append([t("label_notice", lang), t("label_no_attendance", lang)])
+            overview_ws.append(
+                [t("label_notice", lang), t("label_no_attendance", lang)]
+            )
         _auto_fit_columns(overview_ws)
 
         course_ws = wb.create_sheet(t("sheet_course_summary", lang))
         course_headers = get_header_row("course_summary", lang)
         _apply_table_header(course_ws, course_headers)
-        for row_idx, data in enumerate(sorted(course_summary.values(), key=lambda item: item["course_code"]), start=2):
+        for row_idx, data in enumerate(
+            sorted(course_summary.values(), key=lambda item: item["course_code"]),
+            start=2,
+        ):
             counts = data["counts"]
             total = data["total"]
             rate = (counts["Present"] / total * 100) if total else 0
@@ -967,7 +1039,10 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         course_period_headers = get_header_row("course_periods", lang)
         _apply_table_header(course_period_ws, course_period_headers)
         for row_idx, key in enumerate(
-            sorted(course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])),
+            sorted(
+                course_period_summary.keys(),
+                key=lambda item: (course_period_summary[item]["course_code"], item[1]),
+            ),
             start=2,
         ):
             data = course_period_summary[key]
@@ -992,7 +1067,10 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         student_ws = wb.create_sheet(t("sheet_student_summary", lang))
         student_headers = get_header_row("student_summary", lang)
         _apply_table_header(student_ws, student_headers)
-        for row_idx, data in enumerate(sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2):
+        for row_idx, data in enumerate(
+            sorted(student_summary.values(), key=lambda item: item["student_name"]),
+            start=2,
+        ):
             counts = data["counts"]
             most_common = _dominant_status(counts)
             values = [
@@ -1029,7 +1107,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         output = BytesIO()
         wb.save(output)
         output.seek(0)
-        filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        filename = (
+            f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1063,7 +1143,9 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
 
         for row, c in enumerate(courses, 2):
@@ -1119,11 +1201,17 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
     """Export all course enrollments to Excel"""
     audit = AuditLogger(db)
     try:
-        CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
+        CourseEnrollment, Student, Course = import_names(
+            "models", "CourseEnrollment", "Student", "Course"
+        )
         lang = get_lang(request)
         na_value = not_available(lang)
 
-        enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
+        enrollments = (
+            db.query(CourseEnrollment)
+            .filter(CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -1132,16 +1220,32 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
 
         for row, e in enumerate(enrollments, 2):
-            student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
+            student = (
+                db.query(Student)
+                .filter(Student.id == e.student_id, Student.deleted_at.is_(None))
+                .first()
+            )
+            course = (
+                db.query(Course)
+                .filter(Course.id == e.course_id, Course.deleted_at.is_(None))
+                .first()
+            )
 
             ws.cell(row=row, column=1, value=e.id)
             ws.cell(row=row, column=2, value=e.student_id)
-            ws.cell(row=row, column=3, value=f"{student.first_name} {student.last_name}" if student else na_value)
+            ws.cell(
+                row=row,
+                column=3,
+                value=f"{student.first_name} {student.last_name}"
+                if student
+                else na_value,
+            )
             ws.cell(row=row, column=4, value=e.course_id)
             ws.cell(row=row, column=5, value=course.course_code if course else na_value)
             ws.cell(row=row, column=6, value=course.course_name if course else na_value)
@@ -1159,7 +1263,11 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
             request=request,
             action=AuditAction.BULK_EXPORT,
             resource=AuditResource.ENROLLMENT,
-            details={"count": len(enrollments), "format": "excel", "filename": filename},
+            details={
+                "count": len(enrollments),
+                "format": "excel",
+                "filename": filename,
+            },
             success=True,
         )
         return StreamingResponse(
@@ -1204,17 +1312,33 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
 
         for row, g in enumerate(grades, 2):
-            student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
+            student = (
+                db.query(Student)
+                .filter(Student.id == g.student_id, Student.deleted_at.is_(None))
+                .first()
+            )
+            course = (
+                db.query(Course)
+                .filter(Course.id == g.course_id, Course.deleted_at.is_(None))
+                .first()
+            )
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
 
             ws.cell(row=row, column=1, value=g.id)
             ws.cell(row=row, column=2, value=g.student_id)
-            ws.cell(row=row, column=3, value=f"{student.first_name} {student.last_name}" if student else na_value)
+            ws.cell(
+                row=row,
+                column=3,
+                value=f"{student.first_name} {student.last_name}"
+                if student
+                else na_value,
+            )
             ws.cell(row=row, column=4, value=g.course_id)
             ws.cell(row=row, column=5, value=course.course_name if course else na_value)
             ws.cell(row=row, column=6, value=g.assignment_name)
@@ -1223,7 +1347,11 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
             ws.cell(row=row, column=9, value=g.max_grade)
             ws.cell(row=row, column=10, value=f"{pct:.2f}%")
             ws.cell(row=row, column=11, value=g.weight)
-            ws.cell(row=row, column=12, value=str(g.date_submitted) if g.date_submitted else na_value)
+            ws.cell(
+                row=row,
+                column=12,
+                value=str(g.date_submitted) if g.date_submitted else na_value,
+            )
 
         for col in range(1, 13):
             ws.column_dimensions[get_column_letter(col)].width = 15
@@ -1265,15 +1393,23 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/performance/excel")
-async def export_daily_performance_excel(request: Request, db: Session = Depends(get_db)):
+async def export_daily_performance_excel(
+    request: Request, db: Session = Depends(get_db)
+):
     """Export all daily performance records to Excel"""
     audit = AuditLogger(db)
     try:
-        DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
+        DailyPerformance, Student, Course = import_names(
+            "models", "DailyPerformance", "Student", "Course"
+        )
         lang = get_lang(request)
         na_value = not_available(lang)
 
-        performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
+        performances = (
+            db.query(DailyPerformance)
+            .filter(DailyPerformance.deleted_at.is_(None))
+            .all()
+        )
 
         wb = openpyxl.Workbook()
         ws = cast(Worksheet, wb.active)
@@ -1282,16 +1418,32 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
 
         for row, p in enumerate(performances, 2):
-            student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
+            student = (
+                db.query(Student)
+                .filter(Student.id == p.student_id, Student.deleted_at.is_(None))
+                .first()
+            )
+            course = (
+                db.query(Course)
+                .filter(Course.id == p.course_id, Course.deleted_at.is_(None))
+                .first()
+            )
 
             ws.cell(row=row, column=1, value=p.id)
             ws.cell(row=row, column=2, value=p.student_id)
-            ws.cell(row=row, column=3, value=f"{student.first_name} {student.last_name}" if student else na_value)
+            ws.cell(
+                row=row,
+                column=3,
+                value=f"{student.first_name} {student.last_name}"
+                if student
+                else na_value,
+            )
             ws.cell(row=row, column=4, value=p.course_id)
             ws.cell(row=row, column=5, value=course.course_name if course else na_value)
             ws.cell(row=row, column=6, value=str(p.date))
@@ -1307,13 +1459,19 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         output = BytesIO()
         wb.save(output)
         output.seek(0)
-        filename = f"daily_performance_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        filename = (
+            f"daily_performance_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
         # Log successful export
         audit.log_from_request(
             request=request,
             action=AuditAction.BULK_EXPORT,
             resource=AuditResource.PERFORMANCE,
-            details={"count": len(performances), "format": "excel", "filename": filename},
+            details={
+                "count": len(performances),
+                "format": "excel",
+                "filename": filename,
+            },
             success=True,
         )
         return StreamingResponse(
@@ -1358,15 +1516,27 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+            cell.fill = PatternFill(
+                start_color="4F46E5", end_color="4F46E5", fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal="center")
 
         for row, h in enumerate(highlights, 2):
-            student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
+            student = (
+                db.query(Student)
+                .filter(Student.id == h.student_id, Student.deleted_at.is_(None))
+                .first()
+            )
 
             ws.cell(row=row, column=1, value=h.id)
             ws.cell(row=row, column=2, value=h.student_id)
-            ws.cell(row=row, column=3, value=f"{student.first_name} {student.last_name}" if student else na_value)
+            ws.cell(
+                row=row,
+                column=3,
+                value=f"{student.first_name} {student.last_name}"
+                if student
+                else na_value,
+            )
             ws.cell(row=row, column=4, value=h.semester)
             ws.cell(row=row, column=5, value=h.category or na_value)
             ws.cell(row=row, column=6, value=h.rating or na_value)
@@ -1414,7 +1584,9 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/student-report/pdf/{student_id}")
-async def export_student_report_pdf(student_id: int, request: Request, db: Session = Depends(get_db)):
+async def export_student_report_pdf(
+    student_id: int, request: Request, db: Session = Depends(get_db)
+):
     """Generate comprehensive student report PDF with grades, attendance, and analytics"""
     try:
         Student, Grade, Attendance, Course, DailyPerformance = import_names(
@@ -1425,7 +1597,9 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         font_path = os.path.join(os.path.dirname(__file__), "../fonts/DejaVuSans.ttf")
         pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
+        doc = SimpleDocTemplate(
+            buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
+        )
         elements = []
         styles = getSampleStyleSheet()
         # Title
@@ -1438,7 +1612,11 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             spaceAfter=10,
             alignment=1,
         )
-        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
+        student = (
+            db.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .first()
+        )
         if not student:
             raise http_error(
                 404,
@@ -1475,7 +1653,11 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         )
         elements.append(Paragraph(t("attendance_summary", lang), subtitle_style))
         attendance_records = (
-            db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).all()
+            db.query(Attendance)
+            .filter(
+                Attendance.student_id == student_id, Attendance.deleted_at.is_(None)
+            )
+            .all()
         )
         total_att = len(attendance_records)
         present = len([a for a in attendance_records if a.status == "Present"])
@@ -1492,9 +1674,26 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                 t("excused", lang),
                 t("attendance_rate", lang),
             ],
-            [str(total_att), str(present), str(absent), str(late), str(excused), f"{att_rate:.1f}%"],
+            [
+                str(total_att),
+                str(present),
+                str(absent),
+                str(late),
+                str(excused),
+                f"{att_rate:.1f}%",
+            ],
         ]
-        att_table = Table(att_data, colWidths=[1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.2 * inch, 1.3 * inch])
+        att_table = Table(
+            att_data,
+            colWidths=[
+                1.2 * inch,
+                1.2 * inch,
+                1.2 * inch,
+                1.2 * inch,
+                1.2 * inch,
+                1.3 * inch,
+            ],
+        )
         att_table.setStyle(
             TableStyle(
                 [
@@ -1513,20 +1712,30 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         elements.append(Spacer(1, 0.3 * inch))
         # Grades by Course
         elements.append(Paragraph(t("grades_by_course", lang), subtitle_style))
-        grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
+        grades = (
+            db.query(Grade)
+            .filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
+            .all()
+        )
         course_grades = {}
         for g in grades:
             if g.course_id not in course_grades:
                 course_grades[g.course_id] = []
             course_grades[g.course_id].append(g)
         for course_id, course_grade_list in course_grades.items():
-            course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
+            course = (
+                db.query(Course)
+                .filter(Course.id == course_id, Course.deleted_at.is_(None))
+                .first()
+            )
             if not course:
                 continue
             elements.append(
                 Paragraph(
                     f"<b>{course.course_code} - {course.course_name}</b>",
-                    ParagraphStyle("CourseTitle", parent=styles["Normal"], fontName="DejaVuSans"),
+                    ParagraphStyle(
+                        "CourseTitle", parent=styles["Normal"], fontName="DejaVuSans"
+                    ),
                 )
             )
             elements.append(Spacer(1, 0.1 * inch))
@@ -1555,9 +1764,26 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
                     ]
                 )
             avg_pct = total_pct / len(course_grade_list) if course_grade_list else 0
-            grade_data.append(["", "", "", t("average", lang), f"{avg_pct:.1f}%", _letter_grade(avg_pct)])
+            grade_data.append(
+                [
+                    "",
+                    "",
+                    "",
+                    t("average", lang),
+                    f"{avg_pct:.1f}%",
+                    _letter_grade(avg_pct),
+                ]
+            )
             grade_table = Table(
-                grade_data, colWidths=[2 * inch, 1.2 * inch, 0.8 * inch, 1 * inch, 1 * inch, 0.8 * inch]
+                grade_data,
+                colWidths=[
+                    2 * inch,
+                    1.2 * inch,
+                    0.8 * inch,
+                    1 * inch,
+                    1 * inch,
+                    0.8 * inch,
+                ],
             )
             grade_table.setStyle(
                 TableStyle(
@@ -1587,13 +1813,18 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             .all()
         )
         if daily_perf:
-            elements.append(Paragraph(t("daily_performance_summary", lang), subtitle_style))
-            avg_perf = sum(dp.percentage for dp in daily_perf) / len(daily_perf)
-            perf_text = (
-                f"{t('total_daily_entries', lang)}: {len(daily_perf)}<br/>{t('avg_performance', lang)}: {avg_perf:.1f}%"
-            )
             elements.append(
-                Paragraph(perf_text, ParagraphStyle("PerfText", parent=styles["Normal"], fontName="DejaVuSans"))
+                Paragraph(t("daily_performance_summary", lang), subtitle_style)
+            )
+            avg_perf = sum(dp.percentage for dp in daily_perf) / len(daily_perf)
+            perf_text = f"{t('total_daily_entries', lang)}: {len(daily_perf)}<br/>{t('avg_performance', lang)}: {avg_perf:.1f}%"
+            elements.append(
+                Paragraph(
+                    perf_text,
+                    ParagraphStyle(
+                        "PerfText", parent=styles["Normal"], fontName="DejaVuSans"
+                    ),
+                )
             )
             elements.append(Spacer(1, 0.2 * inch))
         # Footer
@@ -1681,7 +1912,9 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
                 ]
             )
 
-        table = Table(data, colWidths=[1 * inch, 2.5 * inch, 1.3 * inch, 0.8 * inch, 1 * inch])
+        table = Table(
+            data, colWidths=[1 * inch, 2.5 * inch, 1.3 * inch, 0.8 * inch, 1 * inch]
+        )
         table.setStyle(
             TableStyle(
                 [
@@ -1718,15 +1951,23 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/analytics/course/{course_id}/pdf")
-async def export_course_analytics_pdf(course_id: int, request: Request, db: Session = Depends(get_db)):
+async def export_course_analytics_pdf(
+    course_id: int, request: Request, db: Session = Depends(get_db)
+):
     """Export course analytics report to PDF"""
     try:
-        Course, Grade, CourseEnrollment = import_names("models", "Course", "Grade", "CourseEnrollment")
+        Course, Grade, CourseEnrollment = import_names(
+            "models", "Course", "Grade", "CourseEnrollment"
+        )
         lang = get_lang(request)
         font_path = os.path.join(os.path.dirname(__file__), "../fonts/DejaVuSans.ttf")
         pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
 
-        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
+        course = (
+            db.query(Course)
+            .filter(Course.id == course_id, Course.deleted_at.is_(None))
+            .first()
+        )
         if not course:
             raise http_error(
                 404,
@@ -1781,7 +2022,11 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
         )
 
         # Get all grades for this course
-        grades = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None)).all()
+        grades = (
+            db.query(Grade)
+            .filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
+            .all()
+        )
 
         # Calculate statistics
         student_ids = set([e.student_id for e in enrollments])
@@ -1790,7 +2035,9 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
 
         percentages: list[float] = []
         if grades:
-            percentages = [(g.grade / g.max_grade * 100) if g.max_grade else 0 for g in grades]
+            percentages = [
+                (g.grade / g.max_grade * 100) if g.max_grade else 0 for g in grades
+            ]
             avg_grade = sum(percentages) / len(percentages)
             highest = max(percentages)
             lowest = min(percentages)
@@ -1837,7 +2084,9 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
 
         # Grade Distribution
         if grades:
-            elements.append(Paragraph(t("title_grade_distribution", lang), subtitle_style))
+            elements.append(
+                Paragraph(t("title_grade_distribution", lang), subtitle_style)
+            )
 
             # Count letter grades
             a_count = sum(1 for p in percentages if p >= 90)
@@ -1847,12 +2096,36 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
             f_count = sum(1 for p in percentages if p < 60)
 
             dist_data = [
-                [t("label_letter_grade", lang), t("label_count", lang), t("label_percentage", lang)],
-                [t("distribution_a", lang), str(a_count), f"{a_count / len(grades) * 100:.1f}%"],
-                [t("distribution_b", lang), str(b_count), f"{b_count / len(grades) * 100:.1f}%"],
-                [t("distribution_c", lang), str(c_count), f"{c_count / len(grades) * 100:.1f}%"],
-                [t("distribution_d", lang), str(d_count), f"{d_count / len(grades) * 100:.1f}%"],
-                [t("distribution_f", lang), str(f_count), f"{f_count / len(grades) * 100:.1f}%"],
+                [
+                    t("label_letter_grade", lang),
+                    t("label_count", lang),
+                    t("label_percentage", lang),
+                ],
+                [
+                    t("distribution_a", lang),
+                    str(a_count),
+                    f"{a_count / len(grades) * 100:.1f}%",
+                ],
+                [
+                    t("distribution_b", lang),
+                    str(b_count),
+                    f"{b_count / len(grades) * 100:.1f}%",
+                ],
+                [
+                    t("distribution_c", lang),
+                    str(c_count),
+                    f"{c_count / len(grades) * 100:.1f}%",
+                ],
+                [
+                    t("distribution_d", lang),
+                    str(d_count),
+                    f"{d_count / len(grades) * 100:.1f}%",
+                ],
+                [
+                    t("distribution_f", lang),
+                    str(f_count),
+                    f"{f_count / len(grades) * 100:.1f}%",
+                ],
             ]
 
             dist_table = Table(dist_data, colWidths=[2 * inch, 1.5 * inch, 1.5 * inch])

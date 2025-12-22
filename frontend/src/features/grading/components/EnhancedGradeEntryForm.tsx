@@ -16,7 +16,7 @@ const FormField = ({ label, value, onChange, type = 'text', ...props }: FormFiel
       value={value}
       onChange={onChange}
       aria-label={label}
-      
+
       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
       {...props}
     />

@@ -51,9 +51,13 @@ class ImportService:
         students_files = []
 
         if courses_exists:
-            courses_files = [f for f in os.listdir(courses_dir) if f.lower().endswith(".json")]
+            courses_files = [
+                f for f in os.listdir(courses_dir) if f.lower().endswith(".json")
+            ]
         if students_exists:
-            students_files = [f for f in os.listdir(students_dir) if f.lower().endswith(".json")]
+            students_files = [
+                f for f in os.listdir(students_dir) if f.lower().endswith(".json")
+            ]
 
         return {
             "courses_dir": courses_dir,
@@ -91,7 +95,9 @@ class ImportService:
         db_course = db.query(Course).filter(Course.course_code == code).first()
 
         if db_course:
-            ImportService.reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
+            ImportService.reactivate_if_soft_deleted(
+                db_course, entity="course", identifier=str(code)
+            )
 
             # Update fields
             for field in [
@@ -110,7 +116,11 @@ class ImportService:
                 new_rules = course_data["evaluation_rules"]
                 existing_rules = getattr(db_course, "evaluation_rules", None)
 
-                if isinstance(new_rules, list) and len(new_rules) == 0 and existing_rules:
+                if (
+                    isinstance(new_rules, list)
+                    and len(new_rules) == 0
+                    and existing_rules
+                ):
                     # Skip clearing; keep existing rules
                     pass
                 else:
@@ -129,7 +139,9 @@ class ImportService:
                 "hours_per_week",
                 "teaching_schedule",
             ]
-            filtered_data = {k: v for k, v in course_data.items() if k in allowed_fields}
+            filtered_data = {
+                k: v for k, v in course_data.items() if k in allowed_fields
+            }
             db_course = Course(**filtered_data)
             db.add(db_course)
             return True, None  # Created
@@ -177,7 +189,11 @@ class ImportService:
         ]
         cleaned = {k: v for k, v in student_data.items() if k in allowed}
 
-        db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
+        db_student = (
+            db.query(Student)
+            .filter((Student.student_id == sid) | (Student.email == email))
+            .first()
+        )
 
         if db_student:
             ImportService.reactivate_if_soft_deleted(

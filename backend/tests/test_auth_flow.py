@@ -17,7 +17,11 @@ def _post_with_csrf(client, url: str, payload: dict):
 
 def test_register_login_me_success(client):
     # Register a new user
-    payload = {"email": "alice@example.com", "password": "S3curePass!", "full_name": "Alice"}
+    payload = {
+        "email": "alice@example.com",  # pragma: allowlist secret
+        "password": "S3curePass!",  # pragma: allowlist secret
+        "full_name": "Alice",
+    }
     r = _post_with_csrf(client, "/api/v1/auth/register", payload)
     assert r.status_code == 200
     data = r.json()
@@ -26,7 +30,14 @@ def test_register_login_me_success(client):
     assert "id" in data
 
     # Login with the new user
-    r2 = _post_with_csrf(client, "/api/v1/auth/login", {"email": "alice@example.com", "password": "S3curePass!"})
+    r2 = _post_with_csrf(
+        client,
+        "/api/v1/auth/login",
+        {
+            "email": "alice@example.com",
+            "password": "S3curePass!",  # pragma: allowlist secret
+        },  # pragma: allowlist secret
+    )
     assert r2.status_code == 200
     token_data = r2.json()
     assert "access_token" in token_data
@@ -41,7 +52,11 @@ def test_register_login_me_success(client):
 
 
 def test_register_duplicate_and_bad_login(client):
-    payload = {"email": "bob@example.com", "password": "AnotherPass1!", "full_name": "Bob"}
+    payload = {
+        "email": "bob@example.com",  # pragma: allowlist secret
+        "password": "AnotherPass1!",  # pragma: allowlist secret
+        "full_name": "Bob",
+    }
     r = _post_with_csrf(client, "/api/v1/auth/register", payload)
     assert r.status_code == 200
 
@@ -50,19 +65,35 @@ def test_register_duplicate_and_bad_login(client):
     assert r2.status_code == 400
 
     # Wrong password login should fail
-    r3 = _post_with_csrf(client, "/api/v1/auth/login", {"email": "bob@example.com", "password": "wrong"})
+    r3 = _post_with_csrf(
+        client,
+        "/api/v1/auth/login",
+        {"email": "bob@example.com", "password": "wrong"},  # pragma: allowlist secret
+    )
     assert r3.status_code == 400
 
 
 def test_login_lockout_after_failed_attempts(client):
-    payload = {"email": "lock@example.com", "password": "LockPass1!", "full_name": "Lock User"}
+    payload = {
+        "email": "lock@example.com",  # pragma: allowlist secret
+        "password": "LockPass1!",  # pragma: allowlist secret
+        "full_name": "Lock User",
+    }
     assert _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
 
     for _ in range(4):
-        resp = _post_with_csrf(client, "/api/v1/auth/login", {"email": payload["email"], "password": "badPass!1"})
+        resp = _post_with_csrf(
+            client,
+            "/api/v1/auth/login",
+            {"email": payload["email"], "password": "badPass!1"},
+        )
         assert resp.status_code == 400
 
-    resp = _post_with_csrf(client, "/api/v1/auth/login", {"email": payload["email"], "password": "badPass!1"})
+    resp = _post_with_csrf(
+        client,
+        "/api/v1/auth/login",
+        {"email": payload["email"], "password": "badPass!1"},
+    )
     assert resp.status_code == 429
     body = resp.json()
     assert body["detail"]["error_id"] == ErrorCode.AUTH_ACCOUNT_LOCKED.value
@@ -77,15 +108,29 @@ def test_login_recovers_after_lockout_window(client):
     settings.AUTH_LOGIN_LOCKOUT_SECONDS = 1
     settings.AUTH_LOGIN_TRACKING_WINDOW_SECONDS = 1
 
-    payload = {"email": "recover@example.com", "password": "RecoverPass1!", "full_name": "Recovery"}
+    payload = {
+        "email": "recover@example.com",  # pragma: allowlist secret
+        "password": "RecoverPass1!",  # pragma: allowlist secret
+        "full_name": "Recovery",
+    }
     try:
-        assert _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
+        assert (
+            _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
+        )
 
         for _ in range(3):
-            resp = _post_with_csrf(client, "/api/v1/auth/login", {"email": payload["email"], "password": "Wrong123!"})
+            resp = _post_with_csrf(
+                client,
+                "/api/v1/auth/login",
+                {"email": payload["email"], "password": "Wrong123!"},
+            )
             assert resp.status_code in (400, 429)
 
-        resp = _post_with_csrf(client, "/api/v1/auth/login", {"email": payload["email"], "password": "Wrong123!"})
+        resp = _post_with_csrf(
+            client,
+            "/api/v1/auth/login",
+            {"email": payload["email"], "password": "Wrong123!"},
+        )
         assert resp.status_code == 429
 
         time.sleep(1.2)

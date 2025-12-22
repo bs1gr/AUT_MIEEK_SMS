@@ -20,10 +20,10 @@ function Remove-SafeItem-Wrapper {
         [string]$Path,
         [string]$Description
     )
-    
+
     $result = Remove-SafeItem -Path $Path -Description $Description `
                                -SpaceFreedRef ([ref]$script:totalSize)
-    
+
     if ($result) {
         $script:cleaned += $Description
     } else {

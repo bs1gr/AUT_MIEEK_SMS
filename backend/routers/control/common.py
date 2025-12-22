@@ -3,6 +3,7 @@ Shared utilities and configuration for Control Panel routers.
 This module centralizes helpers, constants, and rate limiter access
 so subrouters can remain lightweight and focused.
 """
+
 from __future__ import annotations
 
 import logging
@@ -51,6 +52,7 @@ LOKI_PORT = 3100
 # -----------------------------
 # Environment helpers
 # -----------------------------
+
 
 def in_docker_container() -> bool:
     """Detect if running inside a Docker container (best-effort, cross-platform safe)."""
@@ -105,10 +107,16 @@ def get_process_on_port(port: int) -> Optional[Dict[str, Any]]:
                         "cmdline": " ".join(proc.cmdline()),
                     }
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    return {"pid": conn.pid, "name": "Unknown", "exe": None, "cmdline": None}
+                    return {
+                        "pid": conn.pid,
+                        "name": "Unknown",
+                        "exe": None,
+                        "cmdline": None,
+                    }
     except Exception as e:
         logger.warning(f"Error checking port {port}: {e}")
     return None
+
 
 # -----------------------------
 # Frontend dev server helpers
@@ -130,14 +138,19 @@ def safe_run(cmd_args: List[str], timeout: int = 5):
                     cmd0 = str(cmd_args[0]).lower()
                     full = " ".join(map(str, cmd_args)).lower()
                     if "taskkill" in cmd0 or ("/im" in full and "node.exe" in full):
-                        logger.info("CONTROL_API_ALLOW_TASKKILL not set: skipping destructive command: %s", cmd_args)
+                        logger.info(
+                            "CONTROL_API_ALLOW_TASKKILL not set: skipping destructive command: %s",
+                            cmd_args,
+                        )
                         from types import SimpleNamespace
 
                         return SimpleNamespace(returncode=0, stdout="", stderr="")
             except Exception:
                 pass
 
-        return subprocess.run(cmd_args, check=False, capture_output=True, text=True, timeout=timeout)
+        return subprocess.run(
+            cmd_args, check=False, capture_output=True, text=True, timeout=timeout
+        )
     except Exception as e:
         logger.warning(f"Safe run failed for {cmd_args}: {e}")
         from types import SimpleNamespace
@@ -153,10 +166,25 @@ def resolve_npm_command() -> Optional[str]:
     nvm_home = os.environ.get("NVM_HOME", "")
     nvm_symlink = os.environ.get("NVM_SYMLINK", "")
     candidates = [
-        os.path.join(os.environ.get("ProgramFiles", r"C:\\Program Files"), "nodejs", "npm.cmd"),
-        os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)"), "nodejs", "npm.cmd"),
-        os.path.join(os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")), "Programs", "nodejs", "npm.cmd"),
-        os.path.join(os.environ.get("APPDATA", os.path.expandvars(r"%APPDATA%")), "npm", "npm.cmd"),
+        os.path.join(
+            os.environ.get("ProgramFiles", r"C:\\Program Files"), "nodejs", "npm.cmd"
+        ),
+        os.path.join(
+            os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)"),
+            "nodejs",
+            "npm.cmd",
+        ),
+        os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")),
+            "Programs",
+            "nodejs",
+            "npm.cmd",
+        ),
+        os.path.join(
+            os.environ.get("APPDATA", os.path.expandvars(r"%APPDATA%")),
+            "npm",
+            "npm.cmd",
+        ),
         os.path.join(nvm_home, "nodejs", "npm.cmd") if nvm_home else "",
         os.path.join(nvm_symlink, "npm.cmd") if nvm_symlink else "",
     ]
@@ -210,7 +238,14 @@ def find_pids_on_port(port: int) -> List[int]:
 
 def run_command(cmd: List[str], timeout: int = 30) -> Tuple[bool, str, str]:
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="replace",
+        )
         return res.returncode == 0, res.stdout, res.stderr
     except subprocess.TimeoutExpired:
         return False, "", f"Command timed out after {timeout}s"
@@ -223,7 +258,9 @@ def check_docker_running() -> bool:
     return ok
 
 
-def docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[bool, str, str]:
+def docker_compose(
+    cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60
+) -> Tuple[bool, str, str]:
     args = ["docker", "compose"] + cmd
     try:
         result = subprocess.run(
@@ -237,7 +274,9 @@ def docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60
         )
         success = result.returncode == 0
         if not success and result.stderr:
-            logger.warning(f"Docker compose {' '.join(cmd)} failed: {result.stderr[:200]}")
+            logger.warning(
+                f"Docker compose {' '.join(cmd)} failed: {result.stderr[:200]}"
+            )
         return success, result.stdout, result.stderr
     except subprocess.TimeoutExpired:
         err = f"docker compose {' '.join(cmd)} timed out after {timeout}s"
@@ -303,6 +342,7 @@ def infer_restart_command() -> Optional[List[str]]:
     if env_cmd:
         try:
             import shlex
+
             parsed = shlex.split(env_cmd)
             if parsed:
                 return parsed

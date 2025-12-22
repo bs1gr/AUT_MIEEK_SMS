@@ -194,7 +194,7 @@ See individual script help for more options.
 
 function Invoke-Docker {
     $scriptPath = Join-Path $RootPath "DOCKER.ps1"
-    
+
     $args = @()
     if ($Install) { $args += "-Install" }
     if ($Start) { $args += "-Start" }
@@ -205,19 +205,19 @@ function Invoke-Docker {
     if ($Status) { $args += "-Status" }
     if ($Prune) { $args += "-Prune" }
     if ($DeepClean) { $args += "-DeepClean" }
-    
+
     if ($args.Count -eq 0) {
         Write-Warning "No Docker operation specified. Use -Help for options."
         return
     }
-    
+
     Write-Info "Running: DOCKER.ps1 $($args -join ' ')"
     & $scriptPath @args
 }
 
 function Invoke-Native {
     $scriptPath = Join-Path $RootPath "NATIVE.ps1"
-    
+
     $args = @()
     if ($Setup) { $args += "-Setup" }
     if ($Start) { $args += "-Start" }
@@ -225,49 +225,49 @@ function Invoke-Native {
     if ($Backend) { $args += "-Backend" }
     if ($Frontend) { $args += "-Frontend" }
     if ($Status) { $args += "-Status" }
-    
+
     if ($args.Count -eq 0) {
         Write-Warning "No Native operation specified. Use -Help for options."
         return
     }
-    
+
     Write-Info "Running: NATIVE.ps1 $($args -join ' ')"
     & $scriptPath @args
 }
 
 function Invoke-CommitReady {
     $scriptPath = Join-Path $RootPath "COMMIT_READY.ps1"
-    
+
     $args = @()
     if ($Quick) { $args += "-Quick" }
     if ($Standard) { $args += "-Standard" }
     if ($Full) { $args += "-Full" }
     if ($Cleanup) { $args += "-Cleanup" }
-    
+
     if ($args.Count -eq 0) {
         Write-Warning "No validation level specified. Use -Help for options."
         return
     }
-    
+
     Write-Info "Running: COMMIT_READY.ps1 $($args -join ' ')"
     & $scriptPath @args
 }
 
 function Invoke-Installer {
     $scriptPath = Join-Path $RootPath "INSTALLER_BUILDER.ps1"
-    
+
     if (-not $Build) {
         Write-Warning "No Installer operation specified. Use -Build to build installer."
         return
     }
-    
+
     Write-Info "Running: INSTALLER_BUILDER.ps1"
     & $scriptPath
 }
 
 function Invoke-Version {
     $versionScript = Join-Path $RootPath "scripts" "VERIFY_VERSION.ps1"
-    
+
     if ($Version_Update -and $VersionNumber) {
         Write-Info "Updating version to $VersionNumber"
         & $versionScript -UpdateVersion $VersionNumber
@@ -320,7 +320,7 @@ try {
     else {
         Show-Help
     }
-    
+
     Write-Success "`nOperation completed successfully!"
 }
 catch {

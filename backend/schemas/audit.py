@@ -1,11 +1,8 @@
-"""
-Audit logging schemas for tracking system actions.
-"""
+"""Audit logging schemas for tracking system actions."""
 
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -13,22 +10,19 @@ class AuditAction(str, Enum):
     """Types of auditable actions."""
 
     # Authentication
-    LOGIN = "login"
+    LOGIN = "login"  # pragma: allowlist secret
     LOGOUT = "logout"
-    PASSWORD_CHANGE = "password_change"
-    
+    PASSWORD_CHANGE = "password_change"  # pragma: allowlist secret
     # Data Operations
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
     BULK_IMPORT = "bulk_import"
     BULK_EXPORT = "bulk_export"
-    
     # Admin Operations
     ROLE_CHANGE = "role_change"
     PERMISSION_GRANT = "permission_grant"
     PERMISSION_REVOKE = "permission_revoke"
-    
     # System Operations
     BACKUP_CREATE = "backup_create"
     BACKUP_RESTORE = "backup_restore"
