@@ -77,7 +77,7 @@ jobs:
         python scripts/analyze_results.py --results-dir results/
 
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: load-test-results-${{ inputs.environment || 'development' }}-${{ github.run_number }}
@@ -107,7 +107,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download test results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: load-test-results-${{ inputs.environment || 'development' }}-${{ github.run_number }}
 
@@ -117,7 +117,7 @@ jobs:
         python scripts/generate_report.py --input results/ --output performance-report.html
 
     - name: Upload performance report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-report-${{ inputs.environment || 'development' }}-${{ github.run_number }}
         path: load-testing/performance-report.html
