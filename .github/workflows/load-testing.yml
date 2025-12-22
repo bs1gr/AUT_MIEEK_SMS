@@ -81,14 +81,16 @@ jobs:
     - name: Run smoke test
       run: |
         cd load-testing
-        python scripts/run_load_tests.py --scenario smoke --env ${{ inputs.environment || 'development' }} --ci
+        # Prefer SMS_ENV (set above when we start a local backend); fall back to the input/environment if not set
+        python scripts/run_load_tests.py --scenario smoke --env "${SMS_ENV:-${{ inputs.environment || 'development' }}}" --ci
 
     - name: Run load test
       run: |
         cd load-testing
+        # Prefer SMS_ENV when running against the local backend; otherwise use the input environment
         python scripts/run_load_tests.py \
           --scenario ${{ inputs.environment == 'production' && 'medium' || 'light' }} \
-          --env ${{ inputs.environment || 'development' }} \
+          --env "${SMS_ENV:-${{ inputs.environment || 'development' }}}" \
           --ci
 
     - name: Analyze results
