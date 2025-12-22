@@ -44,7 +44,7 @@ def _is_true(val: str | None) -> bool:
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Returns:
         FastAPI: Configured application instance with all middleware,
                  error handlers, routers, and endpoints registered.
@@ -62,7 +62,7 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         openapi_url="/openapi.json",
         redoc_url="/redoc",
-        lifespan=get_lifespan()
+        lifespan=get_lifespan(),
     )
 
     # Register core components
@@ -78,11 +78,12 @@ def create_app() -> FastAPI:
     # Set app state
     app.state.version = VERSION
     from backend.environment import require_production_constraints
+
     app.state.runtime_context = require_production_constraints()
 
     from backend.rate_limiting import limiter
-    app.state.limiter = limiter
 
+    app.state.limiter = limiter
 
     # Register health check endpoints
     _register_health_endpoints(app)
@@ -102,6 +103,7 @@ def create_app() -> FastAPI:
     #
     try:
         from backend.middleware.prometheus_metrics import setup_metrics
+
         setup_metrics(app, VERSION)
     except Exception as e:
         logger.warning(f"Prometheus metrics setup failed: {e}")
@@ -124,6 +126,7 @@ def _register_health_endpoints(app: FastAPI):
     async def health_check(db: Session = Depends(get_session)):
         """Comprehensive health check endpoint."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -154,6 +157,7 @@ def _register_health_endpoints(app: FastAPI):
     async def readiness_check(db: Session = Depends(get_session)):
         """Readiness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -163,6 +167,7 @@ def _register_health_endpoints(app: FastAPI):
     async def liveness_check():
         """Liveness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
+
         (HealthChecker,) = import_names("health_checks", "HealthChecker")
 
         checker = HealthChecker(app.state, engine)
@@ -253,6 +258,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 with open(SPA_INDEX_FILE, "r", encoding="utf-8") as f:
                     content = f.read()
                 from fastapi.responses import HTMLResponse
+
                 response = HTMLResponse(content=content)
                 # Prevent caching of index.html to ensure fresh content on reload
                 response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -276,6 +282,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
   <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
 </svg>"""
         from fastapi.responses import Response
+
         return Response(content=svg_content, media_type="image/svg+xml")
 
     # SPA serving setup
@@ -330,6 +337,7 @@ if ('serviceWorker' in navigator) {
 }
 """
                 from fastapi.responses import Response
+
                 return Response(content=sw_code, media_type="application/javascript")
 
             @app.get("/apple-touch-icon.png")
@@ -350,9 +358,22 @@ if ('serviceWorker' in navigator) {
 
             # SPA fallback handler
             EXCLUDE_PREFIXES = (
-                "api/", "docs", "redoc", "openapi.json", "control", "health", "metrics",
-                "favicon.ico", "favicon.svg", "assets/", "logo.png", "login-bg.png",
-                "manifest.json", "registerSW.js", "apple-touch-icon.png", "sw.js",
+                "api/",
+                "docs",
+                "redoc",
+                "openapi.json",
+                "control",
+                "health",
+                "metrics",
+                "favicon.ico",
+                "favicon.svg",
+                "assets/",
+                "logo.png",
+                "login-bg.png",
+                "manifest.json",
+                "registerSW.js",
+                "apple-touch-icon.png",
+                "sw.js",
             )
 
             @app.exception_handler(StarletteHTTPException)

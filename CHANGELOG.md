@@ -123,7 +123,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.12.2] - 2025-12-13
 
-**Release Type**: Patch Release - Installer & CI Reliability  
+**Release Type**: Patch Release - Installer & CI Reliability
 **Focus**: Deterministic Greek installer assets and cross-platform lint stability
 
 ### Changed
@@ -140,7 +140,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.12.1] - 2025-12-12
 
-**Release Type**: Patch Release - Automation Infrastructure  
+**Release Type**: Patch Release - Automation Infrastructure
 **Focus**: Release workflow automation and version management
 
 ### Added
@@ -177,9 +177,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.12.0] - 2025-12-19
 
-**Release Status**: Phase 1, 2.1, 2.2, & 2.3 Complete (100% Progress)  
-**Baseline**: $11.12.2 (Release Complete, 2025-12-11)  
-**Target**: Operational Excellence, Feature Expansion, Developer Experience  
+**Release Status**: Phase 1, 2.1, 2.2, & 2.3 Complete (100% Progress)
+**Baseline**: $11.12.2 (Release Complete, 2025-12-11)
+**Target**: Operational Excellence, Feature Expansion, Developer Experience
 **Test Coverage**: 1,461+ tests (272 backend + 1,189 frontend)
 
 ### Added
@@ -1123,7 +1123,7 @@ None. Full backward compatibility maintained.
   - `backend/error_handlers.py` - Exception handler registration
   - `backend/router_registry.py` - Router registration logic
   - `backend/main.py` - Minimal entry point (~100 lines)
-  
+
 - **Benefits**:
   - ✅ Better testability (mock individual components)
   - ✅ Faster startup (less code parsing)
@@ -1409,9 +1409,3 @@ For detailed changelog entries from versions prior to $11.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
-
-
-
-
-
-

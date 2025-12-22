@@ -1,7 +1,7 @@
 # Authentication Settings Management - Control Panel
 
-**Feature:** Maintenance Suite - AUTH_MODE Configuration  
-**Added:** $11.9.7.4  
+**Feature:** Maintenance Suite - AUTH_MODE Configuration
+**Added:** $11.9.7.4
 **Access:** `/control` → Maintenance Tab
 
 ## Overview
@@ -72,9 +72,9 @@ Returns comprehensive documentation on all AUTH_MODE options and settings.
 
 ### 🔓 Disabled
 
-**Use Case:** Development, testing, or fully public systems  
-**Behavior:** All endpoints accessible without login  
-**Security:** None  
+**Use Case:** Development, testing, or fully public systems
+**Behavior:** All endpoints accessible without login
+**Security:** None
 
 **When to use:**
 
@@ -84,9 +84,9 @@ Returns comprehensive documentation on all AUTH_MODE options and settings.
 
 ### 🔐 Permissive (Recommended)
 
-**Use Case:** Production systems where all users are trusted  
-**Behavior:** Users must login, but can access all endpoints regardless of role  
-**Security:** Medium  
+**Use Case:** Production systems where all users are trusted
+**Behavior:** Users must login, but can access all endpoints regardless of role
+**Security:** Medium
 
 **When to use:**
 
@@ -97,9 +97,9 @@ Returns comprehensive documentation on all AUTH_MODE options and settings.
 
 ### 🔒 Strict
 
-**Use Case:** High-security environments with distinct roles  
-**Behavior:** Endpoints check user roles, deny access if role doesn't match  
-**Security:** High  
+**Use Case:** High-security environments with distinct roles
+**Behavior:** Endpoints check user roles, deny access if role doesn't match
+**Security:** High
 
 **When to use:**
 

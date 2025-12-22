@@ -65,7 +65,7 @@ describe('GradeDistribution', () => {
     it('sets correct percentage values on progress elements', () => {
       const { container } = renderWithLanguage(<GradeDistribution data={mockData} />);
       const progressElements = container.querySelectorAll('progress');
-      
+
       expect(progressElements).toHaveLength(5);
       expect(progressElements[0]).toHaveAttribute('value', '25'); // A: 25%
       expect(progressElements[1]).toHaveAttribute('value', '40'); // B: 40%
@@ -77,7 +77,7 @@ describe('GradeDistribution', () => {
     it('sets max attribute to 100 for all progress bars', () => {
       const { container } = renderWithLanguage(<GradeDistribution data={mockData} />);
       const progressElements = container.querySelectorAll('progress');
-      
+
       progressElements.forEach(progress => {
         expect(progress).toHaveAttribute('max', '100');
       });
@@ -187,7 +187,7 @@ describe('GradeDistribution', () => {
     it('provides aria-label for each progress bar', () => {
       const { container } = renderWithLanguage(<GradeDistribution data={mockData} />);
       const progressElements = container.querySelectorAll('progress');
-      
+
       progressElements.forEach((progress) => {
         const ariaLabel = progress.getAttribute('aria-label');
         expect(ariaLabel).toBeTruthy();
@@ -216,7 +216,7 @@ describe('GradeDistribution', () => {
         total: 20
       };
       renderWithLanguage(<GradeDistribution data={unevenData} />);
-      
+
       expect(screen.getByText(/3.*assignments.*15%/)).toBeInTheDocument(); // A: 3/20 = 15%
       expect(screen.getByText(/7.*assignments.*35%/)).toBeInTheDocument(); // B: 7/20 = 35%
       expect(screen.getByText(/5.*assignments.*25%/)).toBeInTheDocument(); // C: 5/20 = 25%

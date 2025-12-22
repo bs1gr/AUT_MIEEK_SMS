@@ -11,8 +11,7 @@ Migration path:
 import warnings
 
 warnings.warn(
-    "backend.auto_import_courses is deprecated. "
-    "Use backend.scripts.import_.courses instead.",
+    "backend.auto_import_courses is deprecated. " "Use backend.scripts.import_.courses instead.",
     DeprecationWarning,
     stacklevel=2,
 )
@@ -21,4 +20,3 @@ warnings.warn(
 from backend.scripts.import_.courses import check_and_import_courses, wait_for_server
 
 __all__ = ["check_and_import_courses", "wait_for_server"]
-

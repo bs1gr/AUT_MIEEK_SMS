@@ -105,7 +105,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     typeof e === 'object' && e !== null && 'response' in e
   );
 
-  
+
   const getScheduleEntriesForDate = useCallback((course: Course, dateObj: Date): TeachingScheduleEntry[] => {
     const matchesScheduleDay = (value: unknown, dateObjInner: Date) => {
       if (value === undefined || value === null) return false;
@@ -438,7 +438,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       if (!selectedCourse) return;
       const courseId = selectedCourse as number;
       if (courseDetailsFetchedRef.current.has(courseId)) return;
-      
+
       try {
         const resp = await fetch(`${API_BASE_URL}/courses/${courseId}`);
         if (!resp.ok) throw new Error(`Failed to fetch course: ${resp.status} ${resp.statusText}`);
@@ -771,7 +771,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
       console.warn('[Attendance] Saving - attendanceRecords:', attendanceRecords);
       console.warn('[Attendance] Saving - recordIds:', attendanceRecordIds);
-      
+
       const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
         const recordId = attendanceRecordIds[key];
         const tokens = key.includes('|') ? key.split('|') : key.split('-');
@@ -822,7 +822,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           });
         }
       });
-      
+
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
         const recordId = dailyPerformanceIds[key];
         const [studentIdStr, category] = key.split('-');
@@ -887,22 +887,22 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           });
         }
       });
-      
+
       // Process requests in chunks to avoid overwhelming the server
       // With 200/min limit, we can safely process 30 concurrent requests
       const allPromises = [...attendancePromises, ...performancePromises];
       const CHUNK_SIZE = 30; // Process 30 at a time for faster saves
-      
+
       for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
         const chunk = allPromises.slice(i, i + CHUNK_SIZE);
         await Promise.all(chunk);
-        
+
         // Small delay only if there are more chunks to prevent server overload
         if (i + CHUNK_SIZE < allPromises.length) {
           await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
-      
+
       // Emit events to notify other components that attendance/performance changed
       // Extract unique student IDs from the records
       const affectedStudentIds = new Set<number>();
@@ -915,7 +915,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         const studentId = parseInt(key.split('-')[0], 10);
         if (studentId) affectedStudentIds.add(studentId);
       });
-      
+
       affectedStudentIds.forEach(studentId => {
         eventBus.emit(EVENTS.ATTENDANCE_BULK_ADDED, { studentId, courseId: selectedCourse });
         eventBus.emit(EVENTS.DAILY_PERFORMANCE_ADDED, { studentId, courseId: selectedCourse });
@@ -925,7 +925,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       // autosave banner from sticking if a post-save refresh fails intermittently.
       setPersistedAttendanceRecords(attendanceRecords);
       setPersistedDailyPerformance(dailyPerformance);
-      
+
       await refreshAttendancePrefill();
       // After refreshAttendancePrefill, state is synced with backend.
       // Keep the fetched values so dirty detection sees a clean state.

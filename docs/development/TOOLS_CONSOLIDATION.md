@@ -210,8 +210,8 @@ For questions or issues with the migration:
 
 ---
 
-**Last Updated:** December 9, 2025  
-**Version:** 2.0  
+**Last Updated:** December 9, 2025
+**Version:** 2.0
 **Status:** ✅ Stable
 
 ## Files Changed
@@ -247,6 +247,6 @@ For questions or issues with the migration:
 
 ---
 
-**Last Updated:** December 9, 2025  
-**Version:** 2.0  
+**Last Updated:** December 9, 2025
+**Version:** 2.0
 **Status:** ✅ Stable

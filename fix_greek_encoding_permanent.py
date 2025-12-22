@@ -14,7 +14,7 @@ Permanent Solution Architecture:
 
 Usage:
     python fix_greek_encoding_permanent.py
-    
+
 The script:
 1. Reads version from VERSION file (dynamic version)
 2. Reads authoritative UTF-8 Greek text (defined in this script)
@@ -26,7 +26,6 @@ The script:
 This ensures every release automatically gets correct version number in Greek text.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -35,9 +34,9 @@ def get_version():
     """Read version from VERSION file."""
     script_dir = Path(__file__).parent.resolve()
     version_file = script_dir / "VERSION"
-    
+
     try:
-        version = version_file.read_text(encoding='utf-8').strip()
+        version = version_file.read_text(encoding="utf-8").strip()
         return version
     except Exception as e:
         print(f"WARNING: Could not read VERSION file: {e}")
@@ -46,11 +45,11 @@ def get_version():
 
 def get_greek_texts(version):
     """Generate Greek text with current version. Dynamic version support for future releases."""
-    
+
     # Authoritative Greek text definitions (UTF-8)
     # Version is injected dynamically so each release gets correct version number
     greek_texts = {
-        'welcome': u"""Καλώς ήρθατε στην Εγκατάσταση SMS
+        "welcome": """Καλώς ήρθατε στην Εγκατάσταση SMS
 =====================================
 
 Σύστημα Διαχείρισης Μαθητών v{version}
@@ -69,8 +68,7 @@ def get_greek_texts(version):
 - Καταχωρήσεις μενού Έναρξης
 
 Κάντε κλικ στο Επόμενο για να συνεχίσετε.""".format(version=version),
-
-        'completion': u"""Συγχαρητήρια! Η Εγκατάσταση Ολοκληρώθηκε
+        "completion": """Συγχαρητήρια! Η Εγκατάσταση Ολοκληρώθηκε
 =============================================
 
 Το SMS v{version} είναι έτοιμο να χρησιμοποιηθεί σε λίγα λεπτά.
@@ -81,37 +79,37 @@ def get_greek_texts(version):
 - Η πρώτη εκτέλεση θα διαρκέσει 5-10 λεπτά (κατασκευή container)
 - Θα λάβετε ειδοποίηση όταν είναι έτοιμο
 
-Ευχαριστούμε που χρησιμοποιείτε το SMS!""".format(version=version)
+Ευχαριστούμε που χρησιμοποιείτε το SMS!""".format(version=version),
     }
-    
+
     return greek_texts
 
 
 def main():
     """Main entry point: convert Greek text to Windows-1253 and write to installer files."""
-    
+
     try:
         # Determine paths
         script_dir = Path(__file__).parent.resolve()
         installer_dir = script_dir / "installer"
-        
+
         if not installer_dir.exists():
             print(f"ERROR: Installer directory not found: {installer_dir}")
             return 1
-        
+
         # Get current version from VERSION file (ensures next release has correct version)
         version = get_version()
         print(f"OK Reading Greek text template for version {version}")
-        
+
         # Get Greek texts with current version injected
         greek_texts = get_greek_texts(version)
-        
+
         # File mappings
         files = {
-            'welcome': installer_dir / "installer_welcome_el.txt",
-            'completion': installer_dir / "installer_complete_el.txt"
+            "welcome": installer_dir / "installer_welcome_el.txt",
+            "completion": installer_dir / "installer_complete_el.txt",
         }
-        
+
         # Convert and write each file
         for file_key, filepath in files.items():
             try:
@@ -120,27 +118,27 @@ def main():
                 if not text_utf8:
                     print(f"WARNING: No Greek text definition for {file_key}")
                     continue
-                
+
                 # Encode to Windows-1253
-                text_cp1253 = text_utf8.encode('cp1253', errors='replace')
-                
+                text_cp1253 = text_utf8.encode("cp1253", errors="replace")
+
                 # Write to file
-                with open(filepath, 'wb') as f:
+                with open(filepath, "wb") as f:
                     f.write(text_cp1253)
-                
+
                 print(f"OK Converted {filepath.name} to Windows-1253 (v{version})")
-                
+
             except Exception as e:
                 print(f"ERROR converting {file_key}: {e}")
                 return 1
-        
+
         print(f"OK Greek text encoding conversion completed successfully (v{version})")
         return 0
-        
+
     except Exception as e:
         print(f"FATAL ERROR: {e}")
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

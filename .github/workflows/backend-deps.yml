@@ -13,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Run pip-audit
         run: |
           pip install pip-audit
           pip-audit --desc --format json > backend-audit.json || true
-      
+
       - name: Check for critical vulnerabilities
         run: |
           if pip-audit --desc | grep -i "critical"; then
@@ -32,7 +32,7 @@ jobs:
           else
             echo "✅ No critical vulnerabilities"
           fi
-      
+
       - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,12 +45,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Check for outdated packages
         run: |
           pip install pip-audit

@@ -56,14 +56,11 @@ async def create_job(
 
     # Return initial job status
     job = job_manager.get_job(job_id)
-    
+
     if not job:
         raise HTTPException(status_code=500, detail="Failed to create job")
 
-    logger.info(
-        f"Job {job_id} created: type={job_create.job_type.value}, "
-        f"user={job_create.user_id}"
-    )
+    logger.info(f"Job {job_id} created: type={job_create.job_type.value}, " f"user={job_create.user_id}")
 
     return job
 
@@ -92,10 +89,10 @@ async def get_job_status(
         # Handle both dict and SimpleNamespace objects
         role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, "role", None)
         user_id = current_user.get("user_id") if isinstance(current_user, dict) else getattr(current_user, "id", None)
-        
+
         is_admin = role == "admin"
         is_owner = user_id == job.user_id
-        
+
         if not (is_admin or is_owner):
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -120,7 +117,7 @@ async def list_jobs(
     **Rate limit**: 1000 requests per minute
     """
     user_id = None
-    
+
     # Non-admins can only see their own jobs
     if current_user:
         is_admin = current_user.get("role") == "admin"
@@ -177,7 +174,7 @@ async def cancel_job(
     if current_user and job.user_id:
         is_admin = current_user.get("role") == "admin"
         is_owner = current_user.get("user_id") == job.user_id
-        
+
         if not (is_admin or is_owner):
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -185,10 +182,7 @@ async def cancel_job(
     cancelled = job_manager.cancel_job(job_id)
 
     if not cancelled:
-        raise HTTPException(
-            status_code=400,
-            detail="Job cannot be cancelled (already completed or failed)"
-        )
+        raise HTTPException(status_code=400, detail="Job cannot be cancelled (already completed or failed)")
 
     logger.info(f"Job {job_id} cancelled by user {current_user.get('user_id')}")
 

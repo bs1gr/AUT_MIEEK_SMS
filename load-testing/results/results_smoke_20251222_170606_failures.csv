@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+POST,/api/v1/auth/login,LocustBadStatusCode(code=429),2
+GET,/api/v1/students/search?q=student69,LocustBadStatusCode(code=422),1
+POST,/api/v1/students,LocustBadStatusCode(code=422),1
+POST,/api/v1/auth/login,LocustBadStatusCode(code=400),4

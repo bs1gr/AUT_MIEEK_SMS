@@ -4,20 +4,18 @@ This test shows that grades are now normalized when only some evaluation
 categories have been completed.
 """
 
+
 def test_partial_work_normalization():
     """
     Test Case: Student has completed Midterm (40% weight) with 90% score,
     but Final Exam (60% weight) is not yet taken.
-    
+
     Expected Result: Grade should be normalized to show 90% (current performance)
     instead of 36% (weighted with missing work as 0%).
     """
 
     # Simulate evaluation rules
-    evaluation_rules = [
-        {"category": "Midterm Exam", "weight": 40},
-        {"category": "Final Exam", "weight": 60}
-    ]
+    evaluation_rules = [{"category": "Midterm Exam", "weight": 40}, {"category": "Final Exam", "weight": 60}]
 
     # Simulate completed work
     category_scores = {
@@ -78,19 +76,13 @@ def test_partial_work_normalization():
 def test_complete_work_no_normalization():
     """
     Test Case: Student has completed all work (Midterm 40% = 85%, Final 60% = 90%)
-    
+
     Expected Result: No normalization should occur (total_weight_used = 100%)
     """
 
-    evaluation_rules = [
-        {"category": "Midterm Exam", "weight": 40},
-        {"category": "Final Exam", "weight": 60}
-    ]
+    evaluation_rules = [{"category": "Midterm Exam", "weight": 40}, {"category": "Final Exam", "weight": 60}]
 
-    category_scores = {
-        "Midterm Exam": 85.0,
-        "Final Exam": 90.0
-    }
+    category_scores = {"Midterm Exam": 85.0, "Final Exam": 90.0}
 
     final_grade = 0.0
     total_weight_used = 0.0
@@ -127,7 +119,7 @@ def test_multiple_partial_categories():
     - Midterm (30%): 80%
     - Project (20%): Not started
     - Final (30%): Not yet taken
-    
+
     Expected Result: Normalized grade based on 50% completed work
     """
 
@@ -135,12 +127,12 @@ def test_multiple_partial_categories():
         {"category": "Homework", "weight": 20},
         {"category": "Midterm Exam", "weight": 30},
         {"category": "Project", "weight": 20},
-        {"category": "Final Exam", "weight": 30}
+        {"category": "Final Exam", "weight": 30},
     ]
 
     category_scores = {
         "Homework": 95.0,
-        "Midterm Exam": 80.0
+        "Midterm Exam": 80.0,
         # Project and Final not yet done
     }
 

@@ -25,34 +25,22 @@ class DevelopmentConfig(LoadTestConfig):
     TARGETS = {
         "response_time_95p": 3.0,  # 95th percentile - more lenient
         "response_time_99p": 8.0,  # 99th percentile
-        "error_rate_max": 0.10,   # 10% max error rate (development may have issues)
+        "error_rate_max": 0.10,  # 10% max error rate (development may have issues)
         "requests_per_second": {
             "smoke": 5,
             "light": 25,
             "medium": 100,
             "heavy": 250,
-            "stress": 500
-        }
+            "stress": 500,
+        },
     }
 
     # Test scenarios (focus on basic functionality)
     SCENARIOS = {
-        "auth": {
-            "weight": 2,
-            "description": "Authentication operations"
-        },
-        "students": {
-            "weight": 4,
-            "description": "Student management operations"
-        },
-        "courses": {
-            "weight": 3,
-            "description": "Course management operations"
-        },
-        "analytics": {
-            "weight": 1,
-            "description": "Analytics and reporting"
-        }
+        "auth": {"weight": 2, "description": "Authentication operations"},
+        "students": {"weight": 4, "description": "Student management operations"},
+        "courses": {"weight": 3, "description": "Course management operations"},
+        "analytics": {"weight": 1, "description": "Analytics and reporting"},
     }
 
     # Monitoring (disabled by default in development)

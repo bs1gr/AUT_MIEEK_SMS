@@ -145,7 +145,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
   }, [user]);
 
   const theme = themeStyles[selectedTheme];
-  
+
   // cardClass removed - layout uses more granular classes and subtleCardClass below
 
   const subtleCardClass = `${theme.subtleCard} flex flex-col gap-1`;
@@ -290,11 +290,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         },
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error(`Backup failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setResult(withTimestamp('backup', { data }));
       onToast({ message: data.message || t('utils.backupSuccess'), type: 'success' });
@@ -443,24 +443,24 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     try {
       const formData = new FormData();
       formData.append('file', restoreFile);
-      
+
       const response = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const uploadResult = await response.json();
       const filename = uploadResult.details?.filename;
-      
+
       if (!filename) {
         throw new Error('Failed to get uploaded filename');
       }
-      
+
       // Now restore from the uploaded backup
       const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
         method: 'POST',
@@ -469,11 +469,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
         },
         credentials: 'include',
       });
-      
+
       if (!restoreResponse.ok) {
         throw new Error(`Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`);
       }
-      
+
       const data = await restoreResponse.json();
       setResult(withTimestamp('restore', { data }));
       onToast({ message: data.message || t('utils.restoreSuccess'), type: 'success' });
@@ -889,7 +889,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
         <div className={`${theme.card} md:col-span-2`}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
-          
+
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
               {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}

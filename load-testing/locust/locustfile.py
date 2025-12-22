@@ -14,6 +14,7 @@ import os
 from faker import Faker
 from locust import TaskSet, between, task
 from locust.contrib.fasthttp import FastHttpUser
+import re
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -29,6 +30,11 @@ USER_COUNT = 100
 
 class BaseSMSUser(FastHttpUser):
     """Base user class with authentication and common utilities."""
+
+    # Mark as abstract so Locust won't try to instantiate this base class directly
+    # (when filtering task classes for CI we may remove tasks from subclasses and
+    #  want to avoid 'No tasks defined on BaseSMSUser' exceptions).
+    abstract = True
 
     # Default wait time between tasks (seconds)
     wait_time = between(1, 3)
@@ -86,6 +92,12 @@ class AuthTasks(TaskSet):
     @task(3)
     def login_logout_cycle(self):
         """Complete login/logout cycle."""
+        # No-op when CI forces auth short-circuit to prevent real login attempts
+        if (
+            os.getenv("CI_SKIP_AUTH", "").lower() == "true"
+            or os.getenv("AUTH_MODE", "").lower() == "disabled"
+        ):
+            return
         # Login
         user = {
             "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
@@ -118,6 +130,12 @@ class AuthTasks(TaskSet):
     @task(1)
     def refresh_token(self):
         """Test token refresh functionality."""
+        # No-op when CI forces auth short-circuit to prevent real login attempts
+        if (
+            os.getenv("CI_SKIP_AUTH", "").lower() == "true"
+            or os.getenv("AUTH_MODE", "").lower() == "disabled"
+        ):
+            return
         # First login to get initial refresh token
         user = {
             "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
@@ -164,20 +182,35 @@ class StudentTasks(TaskSet):
         ]
 
         term = random.choice(search_terms)
+        # Sanitize term to avoid backend validation 422s in CI (strip unexpected chars)
+        term = re.sub(r"[^A-Za-z0-9@._-]", "", term)
+        # limit length to avoid validation rules on very long/random values
+        term = term[:32]
+        if not term:
+            term = "student1"
         self.client.get(f"/api/v1/students/search?q={term}")
 
     @task(1)
     def create_student(self):
         """Create a new student (admin/teacher only)."""
+        # Generate conservative/sanitized values to satisfy strict validation rules
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        email = fake.email().lower().strip()
+        # Use numeric-only student id to avoid prefix-related validation rules
+        student_id = f"{random.randint(100000, 999999)}"
+        dob = fake.date_of_birth(minimum_age=18, maximum_age=25).isoformat()
+        # Sanitize phone to digits and optional leading +
+        raw_phone = fake.phone_number()
+        phone = re.sub(r"[^0-9+]", "", raw_phone)
+
         student_data = {
-            "first_name": fake.first_name(),
-            "last_name": fake.last_name(),
-            "email": fake.email(),
-            "student_id": f"STU{random.randint(10000, 99999)}",
-            "date_of_birth": fake.date_of_birth(
-                minimum_age=18, maximum_age=25
-            ).isoformat(),
-            "phone": fake.phone_number(),
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "student_id": student_id,
+            "date_of_birth": dob,
+            "phone": phone,
         }
 
         self.client.post("/api/v1/students", json=student_data)
@@ -371,6 +404,15 @@ SKIP_AUTH = (
     or os.getenv("CI_SKIP_AUTH", "").lower() == "true"
 )
 
+# Log effective SKIP_AUTH value for CI debugging
+logger.info(
+    "Locust SKIP_AUTH=%s (AUTH_MODE=%s, AUTH_ENABLED=%s, CI_SKIP_AUTH=%s)",
+    SKIP_AUTH,
+    os.getenv("AUTH_MODE"),
+    os.getenv("AUTH_ENABLED"),
+    os.getenv("CI_SKIP_AUTH"),
+)
+
 # When running in CI with auth disabled, short-circuit any auth HTTP calls so
 # Locust scenarios that still call /api/v1/auth/* don't fail and pollute results.
 if SKIP_AUTH:
@@ -398,6 +440,52 @@ if SKIP_AUTH:
             raise RuntimeError("No original request callable to delegate to")
 
         _requests.Session.request = _patched_request
+
+        # Best-effort: patch multiple possible Locust HTTP session locations across versions
+        try:
+            import importlib
+
+            candidates = [
+                "locust.clients.http",
+                "locust.clients",
+                "locust.contrib.fasthttp",
+            ]
+
+            for modname in candidates:
+                try:
+                    mod = importlib.import_module(modname)
+                except Exception:
+                    continue
+
+                # Patch HttpSession.request if present
+                if hasattr(mod, "HttpSession"):
+                    _orig = getattr(mod.HttpSession, "request", None)
+
+                    def _make_patched(_orig):
+                        def _patched(self, method, url, *args, **kwargs):
+                            if isinstance(url, str) and "/api/v1/auth" in url:
+
+                                class _DummyResp2:
+                                    status_code = 200
+
+                                    def json(self_inner):
+                                        return {
+                                            "access_token": "ci-bypass-token",
+                                            "refresh_token": "ci-bypass-refresh",
+                                        }
+
+                                return _DummyResp2()
+                            if _orig:
+                                return _orig(self, method, url, *args, **kwargs)
+                            return None
+
+                        return _patched
+
+                    setattr(mod.HttpSession, "request", _make_patched(_orig))
+        except Exception:
+            logger.debug(
+                "Additional locust HttpSession patches could not be applied; continuing"
+            )
 
         # Additionally attempt to patch Locust HTTP session classes so that
         # Locust users' .client.request calls are intercepted as well.

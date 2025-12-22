@@ -1,5 +1,6 @@
 from locust import HttpUser, task, between
 
+
 class WebsiteUser(HttpUser):
     wait_time = between(1, 3)
 
@@ -11,7 +12,7 @@ class WebsiteUser(HttpUser):
     def login(self):
         self.client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@example.com", "password": "securepassword123"}
+            json={"email": "admin@example.com", "password": "securepassword123"},
         )
 
     @task(1)

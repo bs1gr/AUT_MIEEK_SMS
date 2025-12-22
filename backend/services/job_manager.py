@@ -253,7 +253,7 @@ class JobManager:
         job_list = redis_cache.get(key) or []
 
         # Apply offset and limit
-        paginated_list = job_list[offset:offset + limit]
+        paginated_list = job_list[offset : offset + limit]
 
         jobs = []
         for job_entry in paginated_list:
@@ -307,7 +307,7 @@ class JobManager:
         """
         job_key = f"{JOB_KEY_PREFIX}{job_id}"
         job = redis_cache.get(job_key)
-        
+
         if not job:
             return False
 
@@ -319,7 +319,7 @@ class JobManager:
             job_list = redis_cache.get(JOB_LIST_KEY) or []
             job_list = [j for j in job_list if j.get("id") != job_id]
             redis_cache.set(JOB_LIST_KEY, job_list, JOB_TTL)
-            
+
             logger.info(f"Deleted job {job_id}")
 
         return deleted

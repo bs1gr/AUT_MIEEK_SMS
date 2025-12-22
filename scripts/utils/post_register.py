@@ -10,7 +10,9 @@ payload = {
 }
 
 data = json.dumps(payload).encode("utf-8")
-req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+req = urllib.request.Request(
+    url, data=data, headers={"Content-Type": "application/json"}
+)
 try:
     resp = urllib.request.urlopen(req, timeout=5)
     body = resp.read().decode("utf-8")

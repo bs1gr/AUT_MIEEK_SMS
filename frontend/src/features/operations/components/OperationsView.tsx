@@ -124,11 +124,11 @@ const OperationsView = (_props: OperationsViewProps) => {
         {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
         {effectiveTab === 'imports' && (
           <div className="space-y-6">
-            <ImportPreviewPanel 
+            <ImportPreviewPanel
               onJobCreated={(jobId) => {
                 setTrackedJobId(jobId);
                 setJobIdInput(jobId);
-              }} 
+              }}
             />
 
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -178,4 +178,3 @@ const OperationsView = (_props: OperationsViewProps) => {
 };
 
 export default OperationsView;
-

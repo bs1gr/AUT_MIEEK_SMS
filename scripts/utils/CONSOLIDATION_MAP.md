@@ -32,8 +32,8 @@ scripts/
 This structure consolidates former root-level tools/ directory into
 \scripts/utils/\ for unified utility organization.
 
-**Current:** Both scripts/ and tools/ directories exist  
-**Target:** All utilities under scripts/utils/  
+**Current:** Both scripts/ and tools/ directories exist
+**Target:** All utilities under scripts/utils/
 **Backward Compat:** Old tools/ path still valid (imports aliased)
 
 ## Files to Migrate (Phase 1)

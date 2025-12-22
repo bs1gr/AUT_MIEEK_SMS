@@ -165,4 +165,3 @@ This release represents a significant improvement in code organization and maint
 ---
 
 **Full Changelog**: <https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.7.0...v1.8.0>
-

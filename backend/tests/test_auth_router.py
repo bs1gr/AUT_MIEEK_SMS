@@ -95,14 +95,8 @@ def test_get_current_user_invalid_token():
 
 
 def test_get_current_user_inactive_user(client):
-
     # Register inactive user via API
-    payload = {
-        "email": "inactive@example.com",
-        "password": "secret",
-        "full_name": "Inactive User",
-        "role": "teacher"
-    }
+    payload = {"email": "inactive@example.com", "password": "secret", "full_name": "Inactive User", "role": "teacher"}
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code in (200, 201, 400, 422)
 

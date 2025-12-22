@@ -7,14 +7,13 @@ against the SMS application using Locust.
 """
 
 import argparse
-import json
 import os
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict
 
 # Add the load-testing directory to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -42,12 +41,15 @@ class LoadTestRunner:
         try:
             if env == "development":
                 from config.environments.development import DevelopmentConfig
+
                 return DevelopmentConfig()
             elif env == "staging":
                 from config.environments.staging import StagingConfig
+
                 return StagingConfig()
             elif env == "production":
                 from config.environments.production import ProductionConfig
+
                 return ProductionConfig()
             else:
                 raise ValueError(f"Unknown environment: {env}")
@@ -80,15 +82,23 @@ class LoadTestRunner:
 
         scenario_config = self.config.get_scenario_config("smoke")
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--users", str(scenario_config["users"]),
-            "--spawn-rate", str(scenario_config["spawn_rate"]),
-            "--run-time", scenario_config["run_time"],
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--users",
+            str(scenario_config["users"]),
+            "--spawn-rate",
+            str(scenario_config["spawn_rate"]),
+            "--run-time",
+            scenario_config["run_time"],
             "--headless",
             "--only-summary",
-            "--class", "SmokeUser"  # Only use SmokeUser for smoke tests
+            "--class",
+            "SmokeUser",  # Only use SmokeUser for smoke tests
         ]
 
         if self.args.verbose:
@@ -96,7 +106,15 @@ class LoadTestRunner:
             cmd.append("INFO")
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            # Propagate environment flags to the Locust subprocess so locustfile can
+            # detect CI mode and skip auth users when requested.
+            proc_env = os.environ.copy()
+            if self.args.ci or proc_env.get("CI_SKIP_AUTH", "").lower() == "true":
+                proc_env["CI_SKIP_AUTH"] = "true"
+
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300, env=proc_env
+            )
             if result.returncode == 0:
                 print("✅ Smoke test passed")
                 return True
@@ -125,15 +143,24 @@ class LoadTestRunner:
         test_id = f"{scenario}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--users", str(scenario_config["users"]),
-            "--spawn-rate", str(scenario_config["spawn_rate"]),
-            "--run-time", scenario_config["run_time"],
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--users",
+            str(scenario_config["users"]),
+            "--spawn-rate",
+            str(scenario_config["spawn_rate"]),
+            "--run-time",
+            scenario_config["run_time"],
             "--headless",
-            "--csv", str(self.results_dir / f"results_{test_id}"),
-            "--html", str(self.results_dir / f"report_{test_id}.html")
+            "--csv",
+            str(self.results_dir / f"results_{test_id}"),
+            "--html",
+            str(self.results_dir / f"report_{test_id}.html"),
         ]
 
         if self.args.verbose:
@@ -143,7 +170,16 @@ class LoadTestRunner:
             print("⏳ Running load test...")
             start_time = time.time()
 
-            result = subprocess.run(cmd, timeout=self.config.CI_TIMEOUT if self.config.CI_MODE else None)
+            # Ensure CI flags are visible to the Locust process so it excludes auth users
+            proc_env = os.environ.copy()
+            if self.args.ci or proc_env.get("CI_SKIP_AUTH", "").lower() == "true":
+                proc_env["CI_SKIP_AUTH"] = "true"
+
+            result = subprocess.run(
+                cmd,
+                timeout=self.config.CI_TIMEOUT if self.config.CI_MODE else None,
+                env=proc_env,
+            )
 
             end_time = time.time()
             duration = end_time - start_time
@@ -171,19 +207,63 @@ class LoadTestRunner:
                 import pandas as pd
 
                 df = pd.read_csv(csv_file)
+
+                # Helper to find a suitable column name from a list of candidates
+                def _find_col(df, candidates):
+                    for c in candidates:
+                        if c in df.columns:
+                            return c
+                    # try case-insensitive fuzzy match
+                    lowcols = [c.lower() for c in df.columns]
+                    for cand in candidates:
+                        cand_low = cand.lower()
+                        for idx, col in enumerate(lowcols):
+                            if all(tok in col for tok in cand_low.split()):
+                                return df.columns[idx]
+                    return None
+
+                total_req_col = _find_col(
+                    df,
+                    [
+                        "Total Request Count",
+                        "Total Requests",
+                        "Request Count",
+                        "Requests",
+                    ],
+                )
+
+                avg_rt_col = _find_col(
+                    df, ["Average Response Time", "Avg Response Time", "Average"]
+                )
+                median_rt_col = _find_col(df, ["Median Response Time", "Median"])
+                p95_col = _find_col(df, ["95%ile Response Time", "95%ile"])
+                p99_col = _find_col(df, ["99%ile Response Time", "99%ile"])
+                total_fail_col = _find_col(
+                    df, ["Total Failure Count", "Total Failures", "Failures"]
+                )
+
+                total_requests = df[total_req_col].sum() if total_req_col else 0
+                total_failures = df[total_fail_col].sum() if total_fail_col else 0
+
                 summary = {
-                    "total_requests": df["Total Request Count"].sum(),
-                    "avg_response_time": df["Average Response Time"].mean(),
-                    "median_response_time": df["Median Response Time"].median(),
-                    "95p_response_time": df["95%ile Response Time"].max(),
-                    "99p_response_time": df["99%ile Response Time"].max(),
-                    "error_rate": df["Total Failure Count"].sum() / df["Total Request Count"].sum() * 100
+                    "total_requests": int(total_requests),
+                    "avg_response_time": df[avg_rt_col].mean() if avg_rt_col else 0.0,
+                    "median_response_time": df[median_rt_col].median()
+                    if median_rt_col
+                    else 0.0,
+                    "95p_response_time": df[p95_col].max() if p95_col else 0.0,
+                    "99p_response_time": df[p99_col].max() if p99_col else 0.0,
+                    "error_rate": (total_failures / total_requests * 100)
+                    if total_requests > 0
+                    else 0.0,
                 }
 
                 print("📈 Performance Summary:")
                 print(f"  Total Requests: {summary['total_requests']}")
                 print(f"  Average Response Time: {summary['avg_response_time']:.2f}ms")
-                print(f"  Median Response Time: {summary['median_response_time']:.2f}ms")
+                print(
+                    f"  Median Response Time: {summary['median_response_time']:.2f}ms"
+                )
                 print(f"  95th Percentile: {summary['95p_response_time']:.2f}ms")
                 print(f"  99th Percentile: {summary['99p_response_time']:.2f}ms")
                 print(f"  Error Rate: {summary['error_rate']:.2f}%")
@@ -204,32 +284,51 @@ class LoadTestRunner:
 
         # Response time checks
         if results["95p_response_time"] <= targets["response_time_95p"]:
-            print(f"  ✅ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)")
+            print(
+                f"  ✅ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)"
+            )
         else:
-            print(f"  ❌ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)")
+            print(
+                f"  ❌ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)"
+            )
 
         if results["99p_response_time"] <= targets["response_time_99p"]:
-            print(f"  ✅ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)")
+            print(
+                f"  ✅ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)"
+            )
         else:
-            print(f"  ❌ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)")
+            print(
+                f"  ❌ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)"
+            )
 
         # Error rate check
         if results["error_rate"] <= targets["error_rate_max"] * 100:
-            print(f"  ✅ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)")
+            print(
+                f"  ✅ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)"
+            )
         else:
-            print(f"  ❌ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)")
+            print(
+                f"  ❌ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)"
+            )
+
     def run_interactive(self):
         """Run Locust in interactive web UI mode."""
         print("🌐 Starting Locust web interface...")
-        print(f"   Open http://localhost:8089 to access the web UI")
+        print("   Open http://localhost:8089 to access the web UI")
         print(f"   Target: {self.config.HOST}")
 
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--web-host", "0.0.0.0",
-            "--web-port", "8089"
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--web-host",
+            "0.0.0.0",
+            "--web-port",
+            "8089",
         ]
 
         try:
@@ -285,45 +384,42 @@ Examples:
 
   # Skip smoke test
   python run_load_tests.py --skip-smoke --scenario heavy
-        """
+        """,
     )
 
     parser.add_argument(
-        "--env", "-e",
+        "--env",
+        "-e",
         choices=["development", "staging", "production"],
         default="development",
-        help="Target environment (default: development)"
+        help="Target environment (default: development)",
     )
 
     parser.add_argument(
-        "--scenario", "-s",
+        "--scenario",
+        "-s",
         choices=["smoke", "light", "medium", "heavy", "stress"],
         default="medium",
-        help="Test scenario (default: medium)"
+        help="Test scenario (default: medium)",
     )
 
     parser.add_argument(
-        "--interactive", "-i",
+        "--interactive",
+        "-i",
         action="store_true",
-        help="Run in interactive web UI mode"
+        help="Run in interactive web UI mode",
     )
 
     parser.add_argument(
-        "--skip-smoke",
-        action="store_true",
-        help="Skip smoke test before main test"
+        "--skip-smoke", action="store_true", help="Skip smoke test before main test"
     )
 
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
     )
 
     parser.add_argument(
-        "--ci",
-        action="store_true",
-        help="Run in CI mode (non-interactive)"
+        "--ci", action="store_true", help="Run in CI mode (non-interactive)"
     )
 
     args = parser.parse_args()
@@ -344,6 +440,7 @@ Examples:
         print(f"❌ Unexpected error: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

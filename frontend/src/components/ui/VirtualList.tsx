@@ -13,10 +13,10 @@ interface VirtualListProps<T> {
 
 /**
  * VirtualList - High-performance list rendering using @tanstack/react-virtual
- * 
+ *
  * Only renders visible items in the viewport, dramatically improving performance
  * for large lists (100+ items).
- * 
+ *
  * @example
  * ```tsx
  * <VirtualList

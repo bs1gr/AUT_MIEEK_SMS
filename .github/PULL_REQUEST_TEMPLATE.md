@@ -39,7 +39,7 @@ Any special steps for deployment (DB migration, volume update, environment varia
 
 - [ ] Code follows project style & constraints
 - [ ] i18n keys added for new UI strings (EN + EL)
-- [ ] Rate limiting applied to new write endpoints (`@limiter.limit(RATE_LIMIT_WRITE)`) 
+- [ ] Rate limiting applied to new write endpoints (`@limiter.limit(RATE_LIMIT_WRITE)`)
 - [ ] Alembic migration created/applied for schema changes (no direct DB edits)
 - [ ] Updated or added tests cover new logic & edge cases
 - [ ] Documentation updated (README / guides / index)

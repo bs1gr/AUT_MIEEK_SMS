@@ -69,7 +69,9 @@ def _csrf_headers(client: TestClient) -> dict[str, str]:
     return {data["header_name"]: data["csrf_token"]}
 
 
-def _auth_header(client: TestClient, *, email: str = "alice@example.com", password: str = "S3curePass!") -> dict[str, str]:
+def _auth_header(
+    client: TestClient, *, email: str = "alice@example.com", password: str = "S3curePass!"
+) -> dict[str, str]:
     payload = {"email": email, "password": password, "full_name": "Alice"}
     csrf = _csrf_headers(client)
     r = client.post("/api/v1/auth/register", json=payload, headers=csrf)
