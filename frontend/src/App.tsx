@@ -59,7 +59,7 @@ function AppLayout({ children }: AppLayoutProps) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  
+
   // Show password change prompt if user has password_change_required=true
   useEffect(() => {
     if (user && typeof user === 'object' && 'password_change_required' in user && user.password_change_required) {
@@ -70,14 +70,14 @@ function AppLayout({ children }: AppLayoutProps) {
     }
     return undefined;
   }, [user]);
-  
+
   const handleOpenPasswordForm = () => {
     // Navigate to the power/control panel page and open the embedded control panel
     // Add a query flag so PowerPage can auto-expand the control panel UI
     navigate('/power?showControl=1');
     setShowPasswordPrompt(false);
   };
-  
+
   const navigationTabs = useMemo<NavigationTab[]>(
     () =>
       NAV_TAB_CONFIG.map(({ labelKey, ...tab }) => ({
@@ -135,11 +135,11 @@ function AppLayout({ children }: AppLayoutProps) {
     <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
       <BackendStatusBanner />
-      
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Password Change Prompt Modal */}
-      <ChangePasswordPromptModal 
+      <ChangePasswordPromptModal
         isOpen={showPasswordPrompt}
         onOpenPasswordForm={handleOpenPasswordForm}
       />

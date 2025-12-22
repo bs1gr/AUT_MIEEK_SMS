@@ -45,7 +45,7 @@ type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 const CourseManagement = ({ courses: externalCourses, loading: externalLoading = false, onAddCourse, onEdit, onDelete }: { courses?: CourseType[]; loading?: boolean; onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
   // Performance monitoring for component renders
   usePerformanceMonitor('CoursesView', 200);
-  
+
   const { t } = useLanguage();
   const [courses, setCourses] = useState<CourseType[]>(externalCourses || []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -500,7 +500,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
-  
+
 
   const getTotalWeight = () => {
     return evaluationRules.reduce((sum, rule) => {
@@ -568,10 +568,10 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="course-select">{t('selectCourseForRules')}</label>
-        
+
         {/* Loading State */}
         {(externalLoading || isLoading) && <ListSkeleton count={1} itemComponent={CourseCardSkeleton} />}
-        
+
         {/* Course Selection */}
         {!externalLoading && !isLoading && (
           <select

@@ -144,9 +144,7 @@ class EnrollmentService:
         return students
 
     @staticmethod
-    def enroll_students(
-        db: Session, course_id: int, payload: EnrollmentCreate, request=None
-    ) -> Dict[str, int]:
+    def enroll_students(db: Session, course_id: int, payload: EnrollmentCreate, request=None) -> Dict[str, int]:
         """
         Enroll multiple students in a course.
 

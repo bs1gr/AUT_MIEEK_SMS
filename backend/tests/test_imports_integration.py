@@ -3,7 +3,7 @@ Integration tests for import system: preview → execute → job tracking.
 
 Tests complete import workflow including:
 - Preview endpoint validation
-- Job creation via execute endpoint  
+- Job creation via execute endpoint
 - Job tracking and status monitoring
 - Audit logging
 """
@@ -33,7 +33,7 @@ class TestImportPreviewEndpoint:
                 "last_name": "Smith",
                 "email": "jane@example.com",
                 "phone_number": "2109876543",
-            }
+            },
         ]
 
         files = {
@@ -88,11 +88,7 @@ class TestImportPreviewEndpoint:
         files = {
             "files": ("students.json", json.dumps(payload).encode("utf-8"), "application/json"),
         }
-        resp = client.post(
-            "/api/v1/imports/preview",
-            files=files,
-            data={"import_type": "invalid"}
-        )
+        resp = client.post("/api/v1/imports/preview", files=files, data={"import_type": "invalid"})
         assert resp.status_code == 400
 
 
@@ -248,25 +244,22 @@ class TestPreviewAndExecuteWorkflow:
 
 
 class TestImportErrorHandling:
-
     def test_audit_log_entry_on_failed_import(self, client, clean_db):
         """Should create an audit log entry for failed import attempts."""
         from backend.models import AuditLog
+
         # Trigger a known failure (invalid import_type)
         payload = [{"student_id": "STU001"}]
         files = {
             "files": ("students.json", json.dumps(payload).encode("utf-8"), "application/json"),
         }
-        resp = client.post(
-            "/api/v1/imports/upload",
-            files=files,
-            data={"import_type": "invalid"}
-        )
+        resp = client.post("/api/v1/imports/upload", files=files, data={"import_type": "invalid"})
         assert resp.status_code == 400
         # Query the most recent audit log
         # Close and reopen session to ensure visibility of committed data
         clean_db.close()
         from backend.tests.conftest import TestingSessionLocal
+
         session = TestingSessionLocal()
         log = session.query(AuditLog).order_by(AuditLog.timestamp.desc()).first()
         assert log is not None, "No audit log entry found for failed import"
@@ -281,11 +274,7 @@ class TestImportErrorHandling:
         files = {
             "files": ("data.pdf", b"PDF content", "application/pdf"),
         }
-        resp = client.post(
-            "/api/v1/imports/preview",
-            files=files,
-            data={"import_type": "students"}
-        )
+        resp = client.post("/api/v1/imports/preview", files=files, data={"import_type": "students"})
         # May succeed or fail, but should not crash
         assert resp.status_code in [200, 400, 422]
 
@@ -293,7 +282,7 @@ class TestImportErrorHandling:
         """Should reject JSON text exceeding size limit."""
         # Create JSON larger than 10MB
         large_array = [{"student_id": f"STU{i}", "first_name": "X" * 1000} for i in range(100000)]
-        
+
         data = {
             "import_type": "students",
             "json_text": json.dumps(large_array),

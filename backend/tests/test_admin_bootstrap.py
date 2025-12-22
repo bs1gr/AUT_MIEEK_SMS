@@ -154,7 +154,7 @@ def test_bootstrap_creates_user_and_allows_login(clean_db):
     ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
 
     # Try to login using the created credentials
-    client = TestClient(__import__('backend.main').main.app)
+    client = TestClient(__import__("backend.main").main.app)
     resp = client.post("/api/v1/auth/login", json={"email": "bootstrap-login@example.com", "password": "Bootstrap1!"})
     assert resp.status_code == 200, resp.text
     data = resp.json()
@@ -187,7 +187,11 @@ def test_bootstrap_auto_resets_when_enabled(clean_db):
     finally:
         session.close()
 
-    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-reset@example.com", DEFAULT_ADMIN_PASSWORD="NewAuto987!", DEFAULT_ADMIN_AUTO_RESET=True)
+    settings = _make_settings(
+        DEFAULT_ADMIN_EMAIL="auto-reset@example.com",
+        DEFAULT_ADMIN_PASSWORD="NewAuto987!",
+        DEFAULT_ADMIN_AUTO_RESET=True,
+    )
     ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
 
     session = TestingSessionLocal()
@@ -231,7 +235,11 @@ def test_bootstrap_auto_does_not_reset_if_password_matches(clean_db):
     finally:
         session.close()
 
-    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-match@example.com", DEFAULT_ADMIN_PASSWORD="MatchMe123!", DEFAULT_ADMIN_AUTO_RESET=True)
+    settings = _make_settings(
+        DEFAULT_ADMIN_EMAIL="auto-match@example.com",
+        DEFAULT_ADMIN_PASSWORD="MatchMe123!",
+        DEFAULT_ADMIN_AUTO_RESET=True,
+    )
     ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
 
     session = TestingSessionLocal()
@@ -276,7 +284,11 @@ def test_bootstrap_auto_resets_on_verification_error(clean_db):
     finally:
         session.close()
 
-    settings = _make_settings(DEFAULT_ADMIN_EMAIL="auto-error@example.com", DEFAULT_ADMIN_PASSWORD="Recover123!", DEFAULT_ADMIN_AUTO_RESET=True)
+    settings = _make_settings(
+        DEFAULT_ADMIN_EMAIL="auto-error@example.com",
+        DEFAULT_ADMIN_PASSWORD="Recover123!",
+        DEFAULT_ADMIN_AUTO_RESET=True,
+    )
     ensure_default_admin_account(settings=settings, session_factory=TestingSessionLocal)
 
     session = TestingSessionLocal()

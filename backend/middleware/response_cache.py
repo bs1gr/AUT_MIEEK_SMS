@@ -31,14 +31,8 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
         self.cache = TimedLRUCache(maxsize=maxsize, ttl_seconds=ttl_seconds)
         self.include_headers = tuple(h.lower() for h in (include_headers or ("accept-language", "accept")))
         default_excludes = ("/control", "/health", "/health/live", "/health/ready")
-        self.excluded_paths = {
-            self._normalize_path_value(path)
-            for path in (excluded_paths or default_excludes)
-        }
-        self.include_prefixes = tuple(
-            self._normalize_path_value(prefix)
-            for prefix in (include_prefixes or tuple())
-        )
+        self.excluded_paths = {self._normalize_path_value(path) for path in (excluded_paths or default_excludes)}
+        self.include_prefixes = tuple(self._normalize_path_value(prefix) for prefix in (include_prefixes or tuple()))
         self.require_opt_in = require_opt_in
         self.opt_in_header = (opt_in_header or "").lower().strip()
 

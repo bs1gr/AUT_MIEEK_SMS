@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture(scope="function")
 def bootstrap_admin(client):
     """Create the first admin user using the same DB session as TestClient for test bootstrapping."""
@@ -8,6 +9,7 @@ def bootstrap_admin(client):
     from backend.models import User
     from backend.routers.routers_auth import get_password_hash
     from backend.db import get_session as db_get_session
+
     db_gen = next(client.app.dependency_overrides[db_get_session]())
     with db_gen as db:
         if not db.query(User).filter(User.email == admin_email).first():
@@ -25,8 +27,11 @@ def bootstrap_admin(client):
             db.add(admin_user)
             db.commit()
     return {"email": admin_email, "password": admin_password}
+
+
 from backend.models import User
 from backend.routers.routers_auth import get_password_hash
+
 
 @pytest.fixture
 def admin_and_student(client):
@@ -42,10 +47,13 @@ def admin_and_student(client):
         "study_year": 1,
     }
     from backend.db import get_session as db_get_session
+
     db_gen = next(client.app.dependency_overrides[db_get_session]())
     with db_gen as db:
         if not db.query(User).filter(User.email == admin_email).first():
-            admin_user = User(email=admin_email, hashed_password=get_password_hash(admin_password), role="admin", is_active=True)
+            admin_user = User(
+                email=admin_email, hashed_password=get_password_hash(admin_password), role="admin", is_active=True
+            )
             db.add(admin_user)
         db.commit()
     # Create student via API to ensure proper creation
@@ -55,6 +63,8 @@ def admin_and_student(client):
     r_login = client.post("/api/v1/auth/login", json={"email": admin_email, "password": admin_password})
     admin_token_val = r_login.json().get("access_token")
     return {"admin_token": admin_token_val, "student_id": sid}
+
+
 import os
 
 # Ensure backend imports work regardless of current working dir
@@ -158,7 +168,7 @@ def client(admin_token):
 
     # If we have a token, wrap all HTTP methods to add auth headers unless add_auth=False
     if admin_token:
-        for method_name in ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']:
+        for method_name in ["get", "post", "put", "patch", "delete", "head", "options"]:
             original_method = getattr(base_client, method_name)
 
             def make_method_with_auth(orig_method):
@@ -172,6 +182,7 @@ def client(admin_token):
                         kwargs["headers"]["Authorization"] = f"Bearer {admin_token}"
 
                     return orig_method(url, **kwargs)
+
                 return _method_with_auth
 
             setattr(base_client, method_name, make_method_with_auth(original_method))
@@ -183,11 +194,13 @@ def client(admin_token):
 def admin_token():
     """Generate an admin JWT token for authenticated test requests."""
     from backend.config import settings
+
     if not settings.AUTH_ENABLED:
         return None
 
     # Create a temporary test client without auth to register
     from fastapi.testclient import TestClient
+
     temp_client = TestClient(app)
 
     try:
@@ -198,17 +211,13 @@ def admin_token():
                 "email": "admin@test.example.com",
                 "password": "TestAdmin123!",
                 "full_name": "Test Admin",
-                "role": "admin"
-            }
+                "role": "admin",
+            },
         )
 
         # Whether registration succeeded or user already exists, try to login
         login_resp = temp_client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "admin@test.example.com",
-                "password": "TestAdmin123!"
-            }
+            "/api/v1/auth/login", json={"email": "admin@test.example.com", "password": "TestAdmin123!"}
         )
 
         if login_resp.status_code == 200:

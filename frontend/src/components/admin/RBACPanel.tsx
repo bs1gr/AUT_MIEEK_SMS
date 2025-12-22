@@ -35,7 +35,7 @@ interface RBACSummary {
 
 export const RBACPanel: React.FC = () => {
   const { t } = useTranslation();
-  
+
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [selectedPermission, setSelectedPermission] = useState<number | null>(null);
@@ -219,7 +219,7 @@ export const RBACPanel: React.FC = () => {
                       .filter((ur) => ur.user_id === user.id)
                       .map((ur) => rbacData.roles.find((r) => r.id === ur.role_id))
                       .filter(Boolean);
-                    
+
                     return (
                       <div key={user.id} className="p-3 bg-gray-50 rounded border">
                         <div className="flex justify-between items-start">

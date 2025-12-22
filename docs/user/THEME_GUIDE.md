@@ -145,7 +145,7 @@ shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
 Located at: `frontend/src/features/operations/components/ThemeSelector.tsx`
 
 ```tsx
-export type ThemeVariant = 
+export type ThemeVariant =
   | 'default'
   | 'glassmorphism'
   | 'neumorphism'
@@ -252,5 +252,5 @@ Potential additions:
 
 ---
 
-**Last Updated:** November 13, 2025  
+**Last Updated:** November 13, 2025
 **Version:** 1.6.0+

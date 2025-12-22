@@ -1,8 +1,8 @@
 # Error Recovery & Resilience Patterns
 
-**Version**: 1.0  
-**Date**: 2025-12-12  
-**Status**: Production Ready  
+**Version**: 1.0
+**Date**: 2025-12-12
+**Status**: Production Ready
 **Target Release**: $11.11.2
 
 ---
@@ -132,7 +132,7 @@ async def handle_server_error(error: Exception, request_id: str):
             "traceback": traceback.format_exc()
         }
     )
-    
+
     # Alert ops team for critical errors
     if isinstance(error, DatabaseError):
         send_alert("Database error detected", severity="critical")
@@ -158,33 +158,33 @@ async def retry_with_backoff(
 ):
     """Retry with exponential backoff."""
     last_error = None
-    
+
     for attempt in range(1, max_retries + 1):
         try:
             return await func()
         except TransientError as e:
             last_error = e
-            
+
             if attempt >= max_retries:
                 break
-            
+
             # Calculate wait time: base * 2^(attempt-1), capped at max_wait
             wait_time = min(
                 base_wait * (2 ** (attempt - 1)),
                 max_wait
             )
-            
+
             # Add jitter to prevent thundering herd
             jitter = wait_time * 0.1 * (1 - 2 * random.random())
             actual_wait = wait_time + jitter
-            
+
             logger.warning(
                 f"Attempt {attempt} failed, retrying in {actual_wait:.1f}s",
                 extra={"error": str(e)}
             )
-            
+
             await asyncio.sleep(actual_wait)
-    
+
     raise last_error
 ```
 
@@ -229,7 +229,7 @@ class CircuitState(Enum):
 
 class CircuitBreaker:
     """Simple circuit breaker implementation."""
-    
+
     def __init__(
         self,
         failure_threshold: int = 5,
@@ -239,15 +239,15 @@ class CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.name = name
-        
+
         self.state = CircuitState.CLOSED
         self.failure_count = 0
         self.last_failure_time = None
         self.success_count = 0
-    
+
     async def call(self, func, *args, **kwargs):
         """Execute function through circuit breaker."""
-        
+
         # Check if we should attempt recovery
         if self.state == CircuitState.OPEN:
             if self._should_attempt_recovery():
@@ -257,7 +257,7 @@ class CircuitBreaker:
                 raise CircuitBreakerOpen(
                     f"Circuit breaker '{self.name}' is open"
                 )
-        
+
         try:
             result = await func(*args, **kwargs)
             self._on_success()
@@ -265,34 +265,34 @@ class CircuitBreaker:
         except Exception as e:
             self._on_failure()
             raise
-    
+
     def _on_success(self):
         """Handle successful call."""
         self.failure_count = 0
-        
+
         if self.state == CircuitState.HALF_OPEN:
             self.success_count += 1
             if self.success_count >= 2:
                 self.state = CircuitState.CLOSED
                 logger.info(f"Circuit breaker '{self.name}' closed (recovered)")
-    
+
     def _on_failure(self):
         """Handle failed call."""
         self.failure_count += 1
         self.last_failure_time = datetime.now()
-        
+
         if self.failure_count >= self.failure_threshold:
             self.state = CircuitState.OPEN
             logger.error(
                 f"Circuit breaker '{self.name}' opened "
                 f"({self.failure_count} failures)"
             )
-    
+
     def _should_attempt_recovery(self) -> bool:
         """Check if recovery timeout has elapsed."""
         if not self.last_failure_time:
             return True
-        
+
         elapsed = (
             datetime.now() - self.last_failure_time
         ).total_seconds()
@@ -341,22 +341,22 @@ from context import request_context
 async def add_request_id(request: Request, call_next):
     """Middleware to add request ID to all requests."""
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
-    
+
     # Store in context for use throughout request lifecycle
     request_context.id = request_id
     request_context.start_time = time.time()
-    
+
     # Add to response headers
     response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
-    
+
     # Log request completion
     duration = time.time() - request_context.start_time
     logger.info(
         f"Request completed in {duration:.2f}s",
         extra={"request_id": request_id}
     )
-    
+
     return response
 ```
 
@@ -368,9 +368,9 @@ Reduce functionality rather than fail completely:
 @app.get("/dashboard")
 async def get_dashboard(db: Session = Depends(get_db)):
     """Get dashboard with graceful degradation."""
-    
+
     dashboard = {}
-    
+
     # Try to load primary data
     try:
         dashboard["students"] = get_student_stats(db)
@@ -378,7 +378,7 @@ async def get_dashboard(db: Session = Depends(get_db)):
         logger.warning(f"Failed to load student stats: {e}")
         dashboard["students"] = None
         dashboard["students_error"] = "Student data temporarily unavailable"
-    
+
     # Try to load secondary data
     try:
         dashboard["analytics"] = get_analytics(db)
@@ -386,7 +386,7 @@ async def get_dashboard(db: Session = Depends(get_db)):
         logger.warning(f"Failed to load analytics: {e}")
         dashboard["analytics"] = None
         dashboard["analytics_error"] = "Analytics temporarily unavailable"
-    
+
     # Always return partial data with error indicators
     return {
         "status": "partial" if None in dashboard.values() else "ok",
@@ -404,14 +404,14 @@ import asyncio
 
 class BulkheadExecutor:
     """Isolate work to prevent cascading failures."""
-    
+
     def __init__(self, name: str, max_workers: int = 5):
         self.name = name
         self.executor = ThreadPoolExecutor(
             max_workers=max_workers,
             thread_name_prefix=name
         )
-    
+
     async def execute(self, func, *args, **kwargs):
         """Execute in isolated thread pool."""
         loop = asyncio.get_event_loop()
@@ -506,11 +506,11 @@ from datetime import datetime, timedelta
 
 class CachedDataStore:
     """Store data with timestamp for fallback use."""
-    
+
     def __init__(self):
         self.cache = {}
         self.timestamps = {}
-    
+
     def get_with_fallback(self, key: str, primary_func, max_age_seconds: int = 300):
         """Get data from primary, fall back to cache if needed."""
         try:
@@ -562,22 +562,22 @@ Return sensible defaults when data unavailable:
 @app.get("/analytics/student/{student_id}")
 async def get_student_analytics(student_id: int, db: Session = Depends(get_db)):
     """Get analytics with safe defaults."""
-    
+
     try:
         student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             raise HTTPException(status_code=404)
-        
+
         # Try to calculate metrics
         attendance_rate = calculate_attendance(db, student_id)
         grade_average = calculate_grade_average(db, student_id)
-        
+
     except Exception as e:
         logger.warning(f"Analytics calculation failed: {e}")
         # Return safe defaults
         attendance_rate = None
         grade_average = None
-    
+
     return {
         "student_id": student_id,
         "attendance_rate": attendance_rate,
@@ -597,7 +597,7 @@ from background_tasks import bg_tasks
 @app.post("/reports/generate")
 async def generate_report_async(report_type: str):
     """Generate report asynchronously."""
-    
+
     # Try to generate synchronously first
     try:
         result = generate_report_sync(report_type)
@@ -605,10 +605,10 @@ async def generate_report_async(report_type: str):
     except TimeoutError:
         # Fall back to async generation
         logger.info("Report generation timing out, queuing for background processing")
-        
+
         task_id = str(uuid.uuid4())
         bg_tasks.add_task(generate_report_background, task_id, report_type)
-        
+
         return {
             "status": "processing",
             "task_id": task_id,
@@ -629,10 +629,10 @@ import logging
 
 class StructuredLogger:
     """Log errors in structured format for easy parsing."""
-    
+
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-    
+
     def error(self, message: str, error: Exception, context: dict = None):
         """Log error with structured context."""
         log_data = {
@@ -642,7 +642,7 @@ class StructuredLogger:
             "error_message": str(error),
             "context": context or {}
         }
-        
+
         self.logger.error(json.dumps(log_data))
 
 # Usage
@@ -690,10 +690,10 @@ async def error_tracking_middleware(request, call_next):
             error_type=type(e).__name__,
             endpoint=request.url.path
         ).inc()
-        
+
         duration = time.time() - start_time
         error_duration.labels(error_type=type(e).__name__).observe(duration)
-        
+
         raise
 ```
 
@@ -808,13 +808,13 @@ logger = logging.getLogger(__name__)
 
 async def error_handler_middleware(request: Request, call_next):
     """Comprehensive error handling middleware."""
-    
+
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     start_time = datetime.now()
-    
+
     try:
         response = await call_next(request)
-        
+
         # Log successful requests
         duration = (datetime.now() - start_time).total_seconds()
         if duration > 1.0:  # Log slow requests
@@ -826,9 +826,9 @@ async def error_handler_middleware(request: Request, call_next):
                     "status_code": response.status_code
                 }
             )
-        
+
         return response
-        
+
     except HTTPException as e:
         # Client errors - return as-is
         return JSONResponse(
@@ -841,7 +841,7 @@ async def error_handler_middleware(request: Request, call_next):
                 "timestamp": datetime.now().isoformat()
             }
         )
-        
+
     except ValidationError as e:
         # Validation errors
         return JSONResponse(
@@ -854,7 +854,7 @@ async def error_handler_middleware(request: Request, call_next):
                 "timestamp": datetime.now().isoformat()
             }
         )
-        
+
     except DatabaseError as e:
         # Database errors - log and return generic message
         logger.error(
@@ -865,7 +865,7 @@ async def error_handler_middleware(request: Request, call_next):
                 "traceback": traceback.format_exc()
             }
         )
-        
+
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={
@@ -876,7 +876,7 @@ async def error_handler_middleware(request: Request, call_next):
                 "suggestion": "Please try again later"
             }
         )
-        
+
     except Exception as e:
         # Unhandled exceptions - log with full context
         logger.error(
@@ -890,7 +890,7 @@ async def error_handler_middleware(request: Request, call_next):
                 "traceback": traceback.format_exc()
             }
         )
-        
+
         # Return generic error to client
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -927,5 +927,3 @@ async def error_handler_middleware(request: Request, call_next):
 - [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [Graceful Degradation](https://www.w3.org/wiki/Graceful_degradation_versus_progressive_enhancement)
 - [Resilience4j Documentation](https://resilience4j.readme.io/)
-
-

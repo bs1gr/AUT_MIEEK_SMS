@@ -1,7 +1,7 @@
 # API Request/Response Examples
 
-**Version**: 1.11.1  
-**Last Updated**: 2025-12-11  
+**Version**: 1.11.1
+**Last Updated**: 2025-12-11
 **Base URL**: `http://localhost:8080/api/v1` (Docker) or `http://localhost:8000/api/v1` (native)
 
 This guide provides curl examples and response payloads for common API workflows.
@@ -1671,6 +1671,6 @@ Access interactive API documentation:
 
 ---
 
-**Last Updated**: 2025-12-11  
-**Maintained By**: Development Team  
+**Last Updated**: 2025-12-11
+**Maintained By**: Development Team
 **Next Review**: 2025-12-25

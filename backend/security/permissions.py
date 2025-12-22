@@ -90,9 +90,7 @@ def user_permissions_from_db(db: Session, user: Any) -> set[str]:
     try:
         # Check if RBAC tables exist in metadata (tests may create schema on the fly)
         tables = set(models.Base.metadata.tables.keys())
-        if not {"roles", "permissions", "role_permissions", "user_roles"}.issubset(
-            tables
-        ):
+        if not {"roles", "permissions", "role_permissions", "user_roles"}.issubset(tables):
             raise RuntimeError("RBAC tables not present")
 
         # Collect roles for user
@@ -126,9 +124,7 @@ def user_permissions_from_db(db: Session, user: Any) -> set[str]:
             # using the role names assigned.
             inherited = set()
             for r in roles:
-                inherited.update(
-                    _default_role_permissions().get(str(r.name).lower(), set())
-                )
+                inherited.update(_default_role_permissions().get(str(r.name).lower(), set()))
             perms = inherited
     except Exception:
         # Any DB errors -> default mapping

@@ -127,7 +127,7 @@ def get_all_grades(
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         result = service.list_grades(
             skip=pagination.skip,
             limit=pagination.limit,
@@ -164,8 +164,10 @@ def get_student_grades(
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
-        grades = service.list_student_grades(student_id, course_id=course_id, start_date=s, end_date=e, use_submitted=use_submitted)
+        s, e = rng if rng else (None, None)
+        grades = service.list_student_grades(
+            student_id, course_id=course_id, start_date=s, end_date=e, use_submitted=use_submitted
+        )
         return grades
     except HTTPException:
         raise
@@ -188,7 +190,7 @@ def get_course_grades(
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         grades = service.list_course_grades(course_id, start_date=s, end_date=e, use_submitted=use_submitted)
         return grades
     except HTTPException:

@@ -8,15 +8,15 @@
     Generates a self-signed code signing certificate for an application built for:
     ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
     Website: https://www.mieek.ac.cy/index.php/el/
-    
+
     This certificate is for a Student Management System developed by a teacher at ΜΙΕΕΚ.
-    
+
     Certificate Details / Λεπτομέρειες Πιστοποιητικού:
     - Common Name (CN): AUT MIEEK
     - Organization (O): AUT MIEEK
     - Locality (L): Limassol / Λεμεσός
     - Country (C): Cyprus / Κύπρος (CY)
-    
+
     Valid for 3 years from creation date.
     Ισχύει για 3 χρόνια από την ημερομηνία δημιουργίας.
 
@@ -212,4 +212,3 @@ Write-Host ""
 
 # Clean up from certificate store (optional - keeping it there is fine)
 # Remove-Item -Path "Cert:\CurrentUser\My\$($cert.Thumbprint)" -Force
-

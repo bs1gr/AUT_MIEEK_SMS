@@ -252,10 +252,7 @@ def test_student_all_courses_summary_limits_queries(client):
     student = _create_student(client, 7)
 
     rules = [{"category": "Homework", "weight": 100.0}]
-    courses = [
-        _create_course(client, f"OPT{i}", rules=rules, absence_penalty=0.0, credits=3)
-        for i in range(4)
-    ]
+    courses = [_create_course(client, f"OPT{i}", rules=rules, absence_penalty=0.0, credits=3) for i in range(4)]
 
     for idx, course in enumerate(courses):
         assert _create_grade(client, student["id"], course["id"], f"HW{idx}", "Homework", 80 + idx).status_code == 201

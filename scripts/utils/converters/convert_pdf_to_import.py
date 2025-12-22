@@ -124,7 +124,13 @@ class PDFToSMSConverter:
                 try:
                     weight = float(weight_str)
                     # Skip metadata entries
-                    if cat not in ["Γλώσσα", "Ελληνική", "Αγγλική", "Κωδικός", "Μαθήματος"]:
+                    if cat not in [
+                        "Γλώσσα",
+                        "Ελληνική",
+                        "Αγγλική",
+                        "Κωδικός",
+                        "Μαθήματος",
+                    ]:
                         result.append({"category": cat, "weight": weight})
                 except ValueError:
                     pass
@@ -163,7 +169,9 @@ class PDFToSMSConverter:
                     result.append(item)
                 elif isinstance(item, str):
                     # Check if it's a complete entry like "Midterm: 30%"
-                    pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                    pattern = re.compile(
+                        r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$"
+                    )
                     match = pattern.match(item.strip())
                     if match:
                         cat = match.group("cat").strip()
@@ -253,7 +261,9 @@ class PDFToSMSConverter:
             # Build normalized course object
             course = {
                 "course_code": course_code,
-                "course_name": self.normalize_course_name(course_data.get("course_name", "Unnamed Course")),
+                "course_name": self.normalize_course_name(
+                    course_data.get("course_name", "Unnamed Course")
+                ),
                 "semester": self.normalize_semester(course_data.get("semester")),
             }
 
@@ -262,23 +272,31 @@ class PDFToSMSConverter:
                 try:
                     course["credits"] = int(course_data["credits"])
                 except (ValueError, TypeError):
-                    self.warnings.append(f"Invalid credits for {course_code}, using default")
+                    self.warnings.append(
+                        f"Invalid credits for {course_code}, using default"
+                    )
 
             if "hours_per_week" in course_data:
                 try:
                     course["hours_per_week"] = float(course_data["hours_per_week"])
                 except (ValueError, TypeError):
-                    self.warnings.append(f"Invalid hours_per_week for {course_code}, using default")
+                    self.warnings.append(
+                        f"Invalid hours_per_week for {course_code}, using default"
+                    )
 
             if "absence_penalty" in course_data:
                 try:
                     course["absence_penalty"] = float(course_data["absence_penalty"])
                 except (ValueError, TypeError):
-                    self.warnings.append(f"Invalid absence_penalty for {course_code}, using default")
+                    self.warnings.append(
+                        f"Invalid absence_penalty for {course_code}, using default"
+                    )
 
             # Optional text fields
             if "description" in course_data:
-                course["description"] = self.normalize_description(course_data["description"])
+                course["description"] = self.normalize_description(
+                    course_data["description"]
+                )
 
             # Complex fields
             if "evaluation_rules" in course_data:
@@ -287,14 +305,18 @@ class PDFToSMSConverter:
                     course["evaluation_rules"] = rules
 
             if "teaching_schedule" in course_data:
-                schedule = self.parse_teaching_schedule(course_data["teaching_schedule"])
+                schedule = self.parse_teaching_schedule(
+                    course_data["teaching_schedule"]
+                )
                 if schedule:
                     course["teaching_schedule"] = schedule
 
             return course
 
         except Exception as e:
-            self.errors.append(f"Failed to convert course {course_data.get('course_code', 'unknown')}: {e}")
+            self.errors.append(
+                f"Failed to convert course {course_data.get('course_code', 'unknown')}: {e}"
+            )
             return None
 
     def convert_student(self, student_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -305,7 +327,9 @@ class PDFToSMSConverter:
             email = student_data.get("email")
 
             if not student_id or not email:
-                self.errors.append(f"Missing student_id or email in record: {student_data}")
+                self.errors.append(
+                    f"Missing student_id or email in record: {student_data}"
+                )
                 return None
 
             # Build normalized student object
@@ -330,7 +354,9 @@ class PDFToSMSConverter:
                             parsed = datetime.strptime(date_val, "%d/%m/%Y")
                             student["enrollment_date"] = parsed.date().isoformat()
                         except ValueError:
-                            self.warnings.append(f"Invalid date format for {student_id}, skipping enrollment_date")
+                            self.warnings.append(
+                                f"Invalid date format for {student_id}, skipping enrollment_date"
+                            )
                 elif isinstance(date_val, date):
                     student["enrollment_date"] = date_val.isoformat()
 
@@ -338,14 +364,23 @@ class PDFToSMSConverter:
                 student["is_active"] = bool(student_data["is_active"])
 
             # Extended profile fields
-            for field in ["father_name", "mobile_phone", "phone", "health_issue", "note", "study_year"]:
+            for field in [
+                "father_name",
+                "mobile_phone",
+                "phone",
+                "health_issue",
+                "note",
+                "study_year",
+            ]:
                 if field in student_data:
                     student[field] = student_data[field]
 
             return student
 
         except Exception as e:
-            self.errors.append(f"Failed to convert student {student_data.get('student_id', 'unknown')}: {e}")
+            self.errors.append(
+                f"Failed to convert student {student_data.get('student_id', 'unknown')}: {e}"
+            )
             return None
 
     def convert_and_save(self):
@@ -367,7 +402,9 @@ class PDFToSMSConverter:
         elif isinstance(input_data, list):
             items = input_data
         else:
-            print(f"✗ Invalid input format. Expected dict or list, got {type(input_data)}")
+            print(
+                f"✗ Invalid input format. Expected dict or list, got {type(input_data)}"
+            )
             sys.exit(1)
 
         print(f"Found {len(items)} records to convert\n")
@@ -385,7 +422,9 @@ class PDFToSMSConverter:
                 if student:
                     converted.append(student)
         else:
-            print(f"✗ Invalid data type: {self.data_type}. Must be 'courses' or 'students'")
+            print(
+                f"✗ Invalid data type: {self.data_type}. Must be 'courses' or 'students'"
+            )
             sys.exit(1)
 
         # Save converted data
@@ -488,9 +527,16 @@ Students:
         """,
     )
 
-    parser.add_argument("--input", "-i", required=True, help="Input JSON file with PDF-extracted data")
+    parser.add_argument(
+        "--input", "-i", required=True, help="Input JSON file with PDF-extracted data"
+    )
 
-    parser.add_argument("--output", "-o", required=True, help="Output directory for converted JSON files")
+    parser.add_argument(
+        "--output",
+        "-o",
+        required=True,
+        help="Output directory for converted JSON files",
+    )
 
     parser.add_argument(
         "--type",
@@ -503,7 +549,9 @@ Students:
     args = parser.parse_args()
 
     # Create converter and run
-    converter = PDFToSMSConverter(input_file=args.input, output_dir=args.output, data_type=args.type)
+    converter = PDFToSMSConverter(
+        input_file=args.input, output_dir=args.output, data_type=args.type
+    )
 
     success = converter.convert_and_save()
     sys.exit(0 if success else 1)

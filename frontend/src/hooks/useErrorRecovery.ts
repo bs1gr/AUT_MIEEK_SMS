@@ -45,7 +45,7 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
     if (strategy === 'backoff' && retryCount < maxRetries) {
       const delay = getBackoffDelay(retryCount);
       console.debug(`[ErrorRecovery] Scheduling retry ${retryCount + 1}/${maxRetries} in ${delay}ms`);
-      
+
       timeoutRef.current = setTimeout(() => {
         setRetryCount(prev => prev + 1);
       }, delay);

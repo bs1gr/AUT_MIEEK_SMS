@@ -967,7 +967,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         course_period_headers = get_header_row("course_periods", lang)
         _apply_table_header(course_period_ws, course_period_headers)
         for row_idx, key in enumerate(
-            sorted(course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])),
+            sorted(
+                course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])
+            ),
             start=2,
         ):
             data = course_period_summary[key]
@@ -992,7 +994,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         student_ws = wb.create_sheet(t("sheet_student_summary", lang))
         student_headers = get_header_row("student_summary", lang)
         _apply_table_header(student_ws, student_headers)
-        for row_idx, data in enumerate(sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2):
+        for row_idx, data in enumerate(
+            sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2
+        ):
             counts = data["counts"]
             most_common = _dominant_status(counts)
             values = [

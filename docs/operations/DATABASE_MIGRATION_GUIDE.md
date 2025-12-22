@@ -1,8 +1,8 @@
 # Database Migration Guide: SQLite to PostgreSQL
 
-**Version**: 1.11.1  
-**Date**: 2025-12-11  
-**Status**: Complete Reference Guide  
+**Version**: 1.11.1
+**Date**: 2025-12-11
+**Status**: Complete Reference Guide
 
 This guide provides step-by-step instructions for migrating the Student Management System database from SQLite (development/small deployments) to PostgreSQL (production scale).
 
@@ -586,6 +586,6 @@ tar czf sms_backups_archive_$(date +%Y%m).tar.gz sms_db_backup_*.dump
 
 ---
 
-**Last Updated**: 2025-12-11  
-**Maintained By**: DevOps Team  
+**Last Updated**: 2025-12-11
+**Maintained By**: DevOps Team
 **Next Review**: 2025-12-25

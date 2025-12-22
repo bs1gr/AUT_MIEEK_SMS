@@ -79,12 +79,32 @@ jobs:
         sleep 3
 
     - name: Run smoke test
+      env:
+        # Ensure locust and test runner see CI-local overrides (so SKIP_AUTH works)
+        SMS_ENV: ${{ inputs.environment || 'development' }}
+        AUTH_MODE: disabled
+        AUTH_ENABLED: 'false'
+        CI_SKIP_AUTH: 'true'
+        RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
+        RATE_LIMIT_READ_PER_MINUTE: '1000000'
+        RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
+        RATE_LIMIT_HEAVY_PER_MINUTE: '1000000'
       run: |
         cd load-testing
         # Prefer SMS_ENV (set above when we start a local backend); fall back to the input/environment if not set
         python scripts/run_load_tests.py --scenario smoke --env "${SMS_ENV:-${{ inputs.environment || 'development' }}}" --ci
 
     - name: Run load test
+      env:
+        # Ensure locust and test runner see CI-local overrides (so SKIP_AUTH works)
+        SMS_ENV: ${{ inputs.environment || 'development' }}
+        AUTH_MODE: disabled
+        AUTH_ENABLED: 'false'
+        CI_SKIP_AUTH: 'true'
+        RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
+        RATE_LIMIT_READ_PER_MINUTE: '1000000'
+        RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
+        RATE_LIMIT_HEAVY_PER_MINUTE: '1000000'
       run: |
         cd load-testing
         # Prefer SMS_ENV when running against the local backend; otherwise use the input environment

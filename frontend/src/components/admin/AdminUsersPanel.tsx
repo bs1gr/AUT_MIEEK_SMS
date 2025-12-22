@@ -160,13 +160,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     setChangingOwnPassword(true);
     try {
       const response = await adminUsersAPI.changeOwnPassword(currentPassword, newPassword);
-      
+
       // If backend returned a new access token, the axios interceptor will handle it
       // because we set it in the attachAuthHeader function which is called on every request
       if (response && 'access_token' in response && response.access_token) {
         console.warn('[Password Change] New access token received from backend');
       }
-      
+
       // Refresh user profile to update password_change_required flag
       try {
         const updatedUser = await adminUsersAPI.getCurrentUser();
@@ -178,7 +178,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       } catch (err) {
         console.warn('[Password Change] Failed to refresh user profile:', err);
       }
-      
+
       onToast({ message: t('controlPanel.changeOwnPasswordSuccess'), type: 'success' });
       setCurrentPassword('');
       setNewPassword('');
@@ -193,7 +193,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     } catch (err: unknown) {
       console.error('Failed to change own password', err);
       let errorMessage = t('controlPanel.changeOwnPasswordFailed');
-      
+
       // Extract detailed error message
       if (err && typeof err === 'object' && err !== null) {
         const axiosError = err as { response?: { data?: { detail?: string; message?: string } }; message?: string };
@@ -205,7 +205,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           errorMessage = axiosError.message;
         }
       }
-      
+
       onToast({ message: errorMessage, type: 'error' });
     } finally {
       setChangingOwnPassword(false);
@@ -387,7 +387,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               <XCircle size={14} /> {t('controlPanel.cancel')}
             </button>
           </div>
-          
+
           {/* Validation feedback */}
           <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
             {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('controlPanel.currentPassword') })}</p>}

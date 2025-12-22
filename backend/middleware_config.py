@@ -6,6 +6,7 @@ from backend.config import settings
 import logging
 import os
 
+
 def register_middlewares(app):
     # Request ID tracking middleware
     try:
@@ -20,6 +21,7 @@ def register_middlewares(app):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
     # Security headers middleware with cache control
     @app.middleware("http")
     async def add_security_headers(request, call_next):
@@ -44,6 +46,7 @@ def register_middlewares(app):
             response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
 
         return response
+
     # GZip compression
     if getattr(settings, "ENABLE_GZIP", True):
         app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)

@@ -189,10 +189,7 @@ def test_delete_course(client, admin_token, bootstrap_admin):
     # Login as bootstrap admin
     admin_email = bootstrap_admin["email"]
     admin_password = bootstrap_admin["password"]
-    login_resp = client.post("/api/v1/auth/login", json={
-        "email": admin_email,
-        "password": admin_password
-    })
+    login_resp = client.post("/api/v1/auth/login", json={"email": admin_email, "password": admin_password})
     print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
     admin_token_val = login_resp.json().get("access_token")
     assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
@@ -201,18 +198,14 @@ def test_delete_course(client, admin_token, bootstrap_admin):
     # Register a new admin via API using bootstrap admin token
     new_admin_email = "admin_delete_course@example.com"
     new_admin_password = "AdminPass123!"
-    client.post("/api/v1/auth/register", json={
-        "email": new_admin_email,
-        "password": new_admin_password,
-        "full_name": "Admin",
-        "role": "admin"
-    }, headers=headers)
+    client.post(
+        "/api/v1/auth/register",
+        json={"email": new_admin_email, "password": new_admin_password, "full_name": "Admin", "role": "admin"},
+        headers=headers,
+    )
 
     # Login as the new admin
-    login_resp2 = client.post("/api/v1/auth/login", json={
-        "email": new_admin_email,
-        "password": new_admin_password
-    })
+    login_resp2 = client.post("/api/v1/auth/login", json={"email": new_admin_email, "password": new_admin_password})
     admin_token_val2 = login_resp2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {admin_token_val2}"}
 

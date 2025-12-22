@@ -12,8 +12,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 
-import pandas as pd
-
 
 class LoadTestReportGenerator:
     """Load test report generator."""
@@ -29,7 +27,7 @@ class LoadTestReportGenerator:
 
     def load_analysis(self, analysis_file: Path) -> Dict[str, Any]:
         """Load analysis data from JSON file."""
-        with open(analysis_file, 'r') as f:
+        with open(analysis_file, "r") as f:
             return json.load(f)
 
     def generate_html_report(self, analyses: List[Dict[str, Any]]) -> str:
@@ -340,7 +338,11 @@ class LoadTestReportGenerator:
         """
 
         for endpoint in endpoints:
-            error_rate = (endpoint["failures"] / endpoint["requests"] * 100) if endpoint["requests"] > 0 else 0
+            error_rate = (
+                (endpoint["failures"] / endpoint["requests"] * 100)
+                if endpoint["requests"] > 0
+                else 0
+            )
 
             html += f"""
                     <tr>
@@ -440,8 +442,11 @@ class LoadTestReportGenerator:
         html_content = self.generate_html_report(analyses)
 
         # Save report
-        report_file = self.output_dir / f"load_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-        with open(report_file, 'w', encoding='utf-8') as f:
+        report_file = (
+            self.output_dir
+            / f"load_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+        )
+        with open(report_file, "w", encoding="utf-8") as f:
             f.write(html_content)
 
         print(f"✅ Report generated: {report_file}")
@@ -454,10 +459,14 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Load Test Report Generator")
     parser.add_argument("--test-id", help="Specific test ID to generate report for")
-    parser.add_argument("--results-dir", default="load-testing/results",
-                       help="Results directory path")
-    parser.add_argument("--output-dir", default="load-testing/reports",
-                       help="Output directory for reports")
+    parser.add_argument(
+        "--results-dir", default="load-testing/results", help="Results directory path"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="load-testing/reports",
+        help="Output directory for reports",
+    )
 
     args = parser.parse_args()
 

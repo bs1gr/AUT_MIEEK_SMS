@@ -375,12 +375,12 @@ def validate_course_data(course_data):
     # Check required fields
     if not course_data.get('course_code'):
         return False, "Missing course_code"
-    
+
     # Validate credits (0-100)
     if 'credits' in course_data:
         if not 0 <= course_data['credits'] <= 100:
             return False, "Invalid credits range"
-    
+
     # ... more checks
     return True, None
 ```

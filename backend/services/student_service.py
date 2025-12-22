@@ -76,14 +76,12 @@ class StudentService:
 
         if dialect == "postgresql":
             # Use to_tsvector match
-            vector = func.to_tsvector('simple', func.concat_ws(' ', self.Student.first_name, self.Student.last_name))
-            ts_query = func.plainto_tsquery('simple', q)
-            query = query.filter(vector.op('@@')(ts_query))
+            vector = func.to_tsvector("simple", func.concat_ws(" ", self.Student.first_name, self.Student.last_name))
+            ts_query = func.plainto_tsquery("simple", q)
+            query = query.filter(vector.op("@@")(ts_query))
         else:
             like = f"%{q}%"
-            query = query.filter(
-                (self.Student.first_name.ilike(like)) | (self.Student.last_name.ilike(like))
-            )
+            query = query.filter((self.Student.first_name.ilike(like)) | (self.Student.last_name.ilike(like)))
 
         return paginate(query, skip, limit)
 

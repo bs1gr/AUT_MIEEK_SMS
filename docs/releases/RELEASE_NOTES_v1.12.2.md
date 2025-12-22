@@ -1,8 +1,8 @@
 # SMS $11.12.2 Release Notes
 
-**Release Version**: 1.12.2  
-**Release Date**: December 13, 2025  
-**Status**: ✅ Production Ready  
+**Release Version**: 1.12.2
+**Release Date**: December 13, 2025
+**Status**: ✅ Production Ready
 **Previous**: $11.12.2 (December 12, 2025)
 
 ---
@@ -68,6 +68,5 @@ No manual database migrations or environment changes are required. The release i
 
 ---
 
-**Prepared by**: GitHub Copilot Automation Team  
+**Prepared by**: GitHub Copilot Automation Team
 **Last Updated**: 2025-12-13
-

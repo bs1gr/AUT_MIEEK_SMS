@@ -31,11 +31,7 @@ async def get_current_user(
         except Exception:
             path = ""
         is_auth_endpoint = "/auth/" in path
-        if (
-            not getattr(settings, "AUTH_ENABLED", False)
-            and not auth_header
-            and not is_auth_endpoint
-        ):
+        if not getattr(settings, "AUTH_ENABLED", False) and not auth_header and not is_auth_endpoint:
             from types import SimpleNamespace
 
             return SimpleNamespace(

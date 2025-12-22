@@ -13,6 +13,7 @@ Security notes:
 - Consider hashing keys at rest if stored in a DB
 - Rate-limit endpoints protected by keys
 """
+
 from __future__ import annotations
 
 import os

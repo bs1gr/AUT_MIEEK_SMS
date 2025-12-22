@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     # - If a local `backend/.env` exists (native/dev), prefer it
     # - Otherwise fall back to the container path used in Docker deployments
     try:
-        _candidate_local = (Path(__file__).resolve().parents[1] / ".env")
+        _candidate_local = Path(__file__).resolve().parents[1] / ".env"
         if _candidate_local.exists():
             _env_file_path = str(_candidate_local)
         else:
@@ -149,10 +149,7 @@ class Settings(BaseSettings):
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
     # Include common local dev origins (localhost and 127.0.0.1 on common dev ports).
     # Operators can override via CORS_ORIGINS env var when running in different environments.
-    CORS_ORIGINS: str = (
-        "http://localhost:5173, http://127.0.0.1:5173,"
-        " http://localhost:5174, http://127.0.0.1:5174"
-    )
+    CORS_ORIGINS: str = "http://localhost:5173, http://127.0.0.1:5173," " http://localhost:5174, http://127.0.0.1:5174"
 
     # Security / JWT
     # Names aligned with .env.example
@@ -375,7 +372,7 @@ class Settings(BaseSettings):
     def check_secret_key(self) -> "Settings":
         """
         Validate SECRET_KEY strength with warnings or errors based on enforcement level.
-        
+
         Behavior:
         - STRICT_ENFORCEMENT or AUTH_ENABLED: Raises error for weak keys (except CI/test)
         - WARNING mode (default): Logs warnings but allows weak keys
@@ -453,7 +450,7 @@ class Settings(BaseSettings):
             error_msg = (
                 f"🔐 SECRET_KEY SECURITY ISSUE: {reason}\n"
                 f"   Environment: {self.SMS_ENV} ({self.SMS_EXECUTION_MODE} mode)\n"
-                f"   Generate strong key: python -c \"import secrets; print(secrets.token_urlsafe(48))\"\n"
+                f'   Generate strong key: python -c "import secrets; print(secrets.token_urlsafe(48))"\n'
                 f"   Set in backend/.env: SECRET_KEY=<generated_key>"
             )
 

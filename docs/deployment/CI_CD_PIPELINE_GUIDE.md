@@ -1,7 +1,7 @@
 # CI/CD Pipeline Documentation
 
-**Version:** 1.1.0  
-**Last Updated:** December 12, 2025  
+**Version:** 1.1.0
+**Last Updated:** December 12, 2025
 
 ---
 
@@ -78,7 +78,7 @@ lint-backend:
   - Ruff linter (PEP 8 compliance)
   - MyPy type checker (static analysis)
   - Flake8 (code style)
-  
+
 lint-frontend:
   - ESLint (JavaScript/TypeScript)
   - TypeScript compiler (type checking)
@@ -92,11 +92,11 @@ test-backend:
   - 263 backend tests
   - HTML + XML coverage reports
   - Codecov integration
-  
+
 test-frontend:
   - Vitest unit tests
   - Coverage reports
-  
+
 smoke-tests:
   - Integration testing
   - SMOKE_TEST.ps1 script
@@ -111,7 +111,7 @@ build-frontend:
   - Vite bundling
   - Asset optimization
   - Upload dist/ artifact
-  
+
 build-docker-images:
   - Multi-platform Docker build
   - GitHub Container Registry push
@@ -132,10 +132,10 @@ build-docker-images:
 security-scan-backend:
   - Safety (dependency vulnerabilities)
   - Bandit (code security issues)
-  
+
 security-scan-frontend:
   - npm audit (dependency vulnerabilities)
-  
+
 security-scan-docker:
   - Trivy (container scanning)
   - SARIF upload to GitHub Security tab
@@ -245,7 +245,7 @@ verify-version-consistency:
 check-installer-exists:
   - Checks for existing installer: dist/SMS_Installer_<tag>.exe
   - Skips build if already present
-  
+
 build-installer-if-needed:
   - Runs INSTALLER_BUILDER.ps1 -AutoFix
   - Generates wizard images
@@ -271,7 +271,7 @@ generate-release-body:
   - Appends installer download section
   - Includes SHA256 hash prominently
   - Provides PowerShell verification command
-  
+
 upload-installer-asset:
   - Uploads installer as release asset
   - Sets proper content-type (application/octet-stream)
@@ -284,7 +284,7 @@ upload-installer-asset:
 create-summary:
   - Generates GitHub Actions step summary
   - Shows installer name, size, and SHA256
-  
+
 post-notifications:
   - Success notification with installer details
   - Failure notification for troubleshooting
@@ -537,7 +537,7 @@ Replace placeholder deployment commands:
       docker-compose up -d
       docker system prune -f
     EOF
-    
+
     # Or Kubernetes deployment
     kubectl set image deployment/sms-app \
       sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
@@ -687,9 +687,6 @@ Error: The operation was canceled.
 
 ---
 
-**Last Updated:** 2025-11-24  
-**Maintained By:** SMS Development Team  
+**Last Updated:** 2025-11-24
+**Maintained By:** SMS Development Team
 **Pipeline Version:** 1.0.0
-
-
-

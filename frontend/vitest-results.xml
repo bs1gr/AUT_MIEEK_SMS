@@ -432,14 +432,14 @@
         </testcase>
         <testcase classname="src/ThemeContext.test.tsx" name="ThemeContext &gt; localStorage edge cases &gt; handles empty string in localStorage" time="0.0019672">
             <system-err>
-[ThemeProvider] Initializing with theme: light from localStorage: 
+[ThemeProvider] Initializing with theme: light from localStorage:
 [ThemeProvider] Applying theme: light | Resolved to: light
 
             </system-err>
         </testcase>
         <testcase classname="src/ThemeContext.test.tsx" name="ThemeContext &gt; localStorage edge cases &gt; handles whitespace-only string in localStorage" time="0.0007437">
             <system-err>
-[ThemeProvider] Initializing with theme: light from localStorage:    
+[ThemeProvider] Initializing with theme: light from localStorage:
 [ThemeProvider] Applying theme: light | Resolved to: light
 
             </system-err>

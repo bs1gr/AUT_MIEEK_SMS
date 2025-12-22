@@ -111,7 +111,7 @@ def get_all_attendance(
     try:
         service = AttendanceService(db, request)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         result = service.list_attendance(
             skip=pagination.skip,
             limit=pagination.limit,
@@ -147,12 +147,15 @@ def get_student_attendance(
         service = AttendanceService(db, request)
         # Ensure student exists (404)
         from backend.import_resolver import import_names
+
         (Student,) = import_names("models", "Student")
         get_by_id_or_404(db, Student, student_id)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         # Use list_attendance to keep logic in one place
-        result = service.list_attendance(skip=0, limit=10**9, student_id=student_id, course_id=course_id, start_date=s, end_date=e)
+        result = service.list_attendance(
+            skip=0, limit=10**9, student_id=student_id, course_id=course_id, start_date=s, end_date=e
+        )
         return result.items
     except HTTPException:
         raise
@@ -175,10 +178,11 @@ def get_course_attendance(
         service = AttendanceService(db, request)
         # Ensure course exists (404)
         from backend.import_resolver import import_names
+
         (Course,) = import_names("models", "Course")
         get_by_id_or_404(db, Course, course_id)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         result = service.list_attendance(skip=0, limit=10**9, course_id=course_id, start_date=s, end_date=e)
         return result.items
     except HTTPException:

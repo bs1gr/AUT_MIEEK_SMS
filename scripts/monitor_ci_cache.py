@@ -14,7 +14,7 @@ Usage:
 import argparse
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -72,7 +72,9 @@ class CacheMetricsCollector:
             params["created"] = f">={since}"
 
         try:
-            response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            response = requests.get(
+                url, headers=self.headers, params=params, timeout=30
+            )
             response.raise_for_status()
             data = response.json()
             return data.get("workflow_runs", [])
@@ -101,9 +103,7 @@ class CacheMetricsCollector:
             print(f"Error fetching job details for run {run_id}: {e}")
             return []
 
-    def analyze_cache_performance(
-        self, jobs: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def analyze_cache_performance(self, jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Analyze cache performance from job step timings.
 
@@ -148,9 +148,19 @@ class CacheMetricsCollector:
                     elif "pip" in step_name or "python" in step_name:
                         metrics["pip_cache_hit"] = conclusion == "success"
                 # Also detect cache hits from setup-node/setup-python with cache enabled
-                elif "set up node" in step_name and conclusion == "success" and duration and duration < 5:
+                elif (
+                    "set up node" in step_name
+                    and conclusion == "success"
+                    and duration
+                    and duration < 5
+                ):
                     metrics["npm_cache_hit"] = True
-                elif "set up python" in step_name and conclusion == "success" and duration and duration < 5:
+                elif (
+                    "set up python" in step_name
+                    and conclusion == "success"
+                    and duration
+                    and duration < 5
+                ):
                     metrics["pip_cache_hit"] = True
 
                 # Capture installation timings

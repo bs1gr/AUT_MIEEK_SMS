@@ -118,7 +118,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
       </div>
 
       {isExpanded && (
-        <div className="mt-4 space-y-6" role="region" aria-labelledby={`student-details-${student.id}`}> 
+        <div className="mt-4 space-y-6" role="region" aria-labelledby={`student-details-${student.id}`}>
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg" id={`student-details-${student.id}`}>
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center text-3xl font-bold border-2 border-white/30" aria-hidden="true">

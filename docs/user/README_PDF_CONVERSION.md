@@ -50,12 +50,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install Pandoc
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xelatex texlive-fonts-recommended
-          
+
       - name: Convert English to PDF
         run: |
           pandoc docs/user/SMS_USER_GUIDE_EN.md \
@@ -63,7 +63,7 @@ jobs:
             --pdf-engine=xelatex \
             -V geometry:margin=1in \
             --toc
-            
+
       - name: Convert Greek to PDF
         run: |
           pandoc docs/user/SMS_USER_GUIDE_EL.md \
@@ -72,7 +72,7 @@ jobs:
             -V geometry:margin=1in \
             -V mainfont="DejaVu Sans" \
             --toc
-            
+
       - name: Commit PDFs
         run: |
           git config --local user.email "action@github.com"

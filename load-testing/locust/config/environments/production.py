@@ -26,42 +26,24 @@ class ProductionConfig(LoadTestConfig):
     TARGETS = {
         "response_time_95p": 2.0,  # 95th percentile - strict SLA
         "response_time_99p": 5.0,  # 99th percentile
-        "error_rate_max": 0.02,   # 2% max error rate (99.8% uptime)
+        "error_rate_max": 0.02,  # 2% max error rate (99.8% uptime)
         "requests_per_second": {
             "smoke": 10,
             "light": 50,
             "medium": 200,
             "heavy": 500,
-            "stress": 1000
-        }
+            "stress": 1000,
+        },
     }
 
     # Test scenarios (comprehensive production testing)
     SCENARIOS = {
-        "auth": {
-            "weight": 1,
-            "description": "Authentication operations"
-        },
-        "students": {
-            "weight": 4,
-            "description": "Student management operations"
-        },
-        "courses": {
-            "weight": 3,
-            "description": "Course management operations"
-        },
-        "analytics": {
-            "weight": 2,
-            "description": "Analytics and reporting"
-        },
-        "attendance": {
-            "weight": 2,
-            "description": "Attendance management"
-        },
-        "grades": {
-            "weight": 2,
-            "description": "Grade management"
-        }
+        "auth": {"weight": 1, "description": "Authentication operations"},
+        "students": {"weight": 4, "description": "Student management operations"},
+        "courses": {"weight": 3, "description": "Course management operations"},
+        "analytics": {"weight": 2, "description": "Analytics and reporting"},
+        "attendance": {"weight": 2, "description": "Attendance management"},
+        "grades": {"weight": 2, "description": "Grade management"},
     }
 
     # Monitoring (required for production)

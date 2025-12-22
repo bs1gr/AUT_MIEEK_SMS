@@ -6,7 +6,7 @@
     Ensures all Greek-language files in the installer use proper encoding:
     - Greek.isl: Official Inno translation, LanguageCodePage=1253 (Windows-1253)
     - *.txt files: UTF-8 with BOM
-    
+
     Inno Setup 6 requires proper encoding declarations to render Greek text correctly.
     Current approach uses UTF-8 with BOM for all Greek content files.
 
@@ -30,7 +30,7 @@
 .NOTES
     Version: 1.0
     Created: 2025-12-04
-    
+
         Greek Encoding Strategy:
         - Greek.isl: Windows-1253 code page declaration (official Inno Setup Greek)
         - Greek text files: UTF-8 with BOM
@@ -92,35 +92,35 @@ function Write-Status {
         [string]$Status,
         [string]$Message
     )
-    
+
     $colors = @{
         'OK'      = 'Green'
         'Warning' = 'Yellow'
         'Error'   = 'Red'
         'Info'    = 'Cyan'
     }
-    
+
     $symbols = @{
         'OK'      = '✓'
         'Warning' = '⚠'
         'Error'   = '✗'
         'Info'    = 'ℹ'
     }
-    
+
     Write-Host "$($symbols[$Status]) $Message" -ForegroundColor $colors[$Status]
 }
 
 function Get-FileEncoding {
     param([string]$Path)
-    
+
     if (-not (Test-Path $Path)) {
         return "NOT_FOUND"
     }
-    
+
     # Read first 4 bytes to check for BOM
     try {
         $bytes = [System.IO.File]::ReadAllBytes($Path) | Select-Object -First 4
-        
+
         # Check for BOM signatures
         if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
             return "UTF-8-BOM"
@@ -133,7 +133,7 @@ function Get-FileEncoding {
         }
     }
     catch { }
-    
+
     # Try to detect based on content pattern
     try {
         $content = Get-Content $Path -Encoding UTF8 -ErrorAction SilentlyContinue
@@ -143,38 +143,38 @@ function Get-FileEncoding {
         }
     }
     catch { }
-    
+
     return "Unknown (likely Windows-1253)"
 }
 
 function Validate-GreekISL {
     param([string]$Path)
-    
+
     Write-Status Info "Validating Greek.isl language file..."
-    
+
     if (-not (Test-Path $Path)) {
         Write-Status Error "Greek.isl not found at: $Path"
         return $false
     }
-    
+
     $content = Get-Content $Path -Raw
     $issues = @()
-    
+
     # Check CodePage declaration
     if ($content -notmatch 'LanguageCodePage\s*=\s*1253') {
         $issues += "Missing or incorrect LanguageCodePage declaration (must be 1253)"
     }
-    
+
     # Check LangOptions section
     if ($content -notmatch '\[LangOptions\]') {
         $issues += "Missing [LangOptions] section"
     }
-    
+
     # Check for Greek text
     if ($content -notmatch '[α-ωΑ-Ω]') {
         Write-Status Warning "No Greek characters detected in Greek.isl"
     }
-    
+
     if ($issues.Count -eq 0) {
         Write-Status OK "Greek.isl encoding validation passed ✓"
         return $true
@@ -187,19 +187,19 @@ function Validate-GreekISL {
 
 function Validate-GreekTextFile {
     param([string]$Path, [string]$Description)
-    
+
     if (-not (Test-Path $Path)) {
         Write-Status Error "$Description not found at: $Path"
         return $false
     }
-    
+
     $encoding = Get-FileEncoding $Path
     Write-Status Info "  $Description encoding: $encoding"
-    
+
     # Try to read the file
     try {
         $content = Get-Content $Path -Raw -Encoding Default -ErrorAction Stop
-        
+
         # Check for Greek characters
         if ($content -match '[α-ωΑ-Ω]') {
             Write-Status OK "Greek characters detected ✓"
@@ -217,26 +217,26 @@ function Validate-GreekTextFile {
 
 function Fix-GreekISL {
     param([string]$Path)
-    
+
     Write-Status Info "Fixing Greek.isl encoding..."
-    
+
     if (-not (Test-Path $Path)) {
         Write-Status Error "File not found: $Path"
         return $false
     }
-    
+
     try {
         # Read content
         $content = Get-Content $Path -Raw -Encoding Default
-        
+
         # Ensure CodePage declaration
         if ($content -notmatch 'LanguageCodePage\s*=\s*1253') {
             $content = $content -replace '\[LangOptions\]', "[LangOptions]`nLanguageCodePage=1253"
         }
-        
+
         # Write back with Windows-1253 encoding
         Set-Content -Path $Path -Value $content -Encoding Default -Force
-        
+
         Write-Status OK "Greek.isl encoding fixed ✓"
         return $true
     }
@@ -249,22 +249,22 @@ function Fix-GreekISL {
 
 function Fix-GreekTextFile {
     param([string]$Path, [string]$Description)
-    
+
     Write-Status Info "Fixing $Description..."
-    
+
     if (-not (Test-Path $Path)) {
         Write-Status Error "File not found: $Path"
         return $false
     }
-    
+
     try {
         # Read as UTF-8 (current encoding)
         $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
-        
+
         # Write back with UTF-8 with BOM (required by Inno Setup when LanguageCodePage=65001)
         $utf8bom = New-Object System.Text.UTF8Encoding($true)
         [System.IO.File]::WriteAllText($Path, $content, $utf8bom)
-        
+
         Write-Status OK "$Description encoding fixed ✓"
         return $true
     }
@@ -318,7 +318,7 @@ if ($Fix -and -not $allPassed) {
     Write-Status Info "FIX PHASE - Correcting Greek file encodings"
     Write-Status Info "═══════════════════════════════════════════════════════════════"
     Write-Host ""
-    
+
     # Fix Greek.isl
     if ((Validate-GreekISL $GreekFiles[0].Path) -eq $false) {
         if (Fix-GreekISL $GreekFiles[0].Path) {
@@ -326,7 +326,7 @@ if ($Fix -and -not $allPassed) {
         }
     }
     Write-Host ""
-    
+
     # Fix text files
     for ($i = 1; $i -lt $GreekFiles.Count; $i++) {
         $file = $GreekFiles[$i]
@@ -336,7 +336,7 @@ if ($Fix -and -not $allPassed) {
             }
         }
     }
-    
+
     Write-Host ""
     Write-Status Info "Fixed $fixedCount files - re-run audit to verify:"
     Write-Host "  .\GREEK_ENCODING_AUDIT.ps1 -Audit" -ForegroundColor Cyan

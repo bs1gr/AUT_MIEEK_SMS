@@ -6,6 +6,7 @@ from backend.main import app
 
 client = TestClient(app)
 
+
 def get_auth_headers(email="testuser@example.com", password="TestPass123!", role="teacher"):
     # Register user (role is ignored unless admin token is used, so always teacher)
     client.post("/api/v1/auth/register", json={"email": email, "password": password, "role": role})
@@ -65,7 +66,7 @@ def test_sessions_import_dry_run_valid_empty():
         "grades": [],
         "attendance": [],
         "daily_performance": [],
-        "highlights": []
+        "highlights": [],
     }
     content = json.dumps(payload).encode("utf-8")
     files = {"file": ("session.json", content, "application/json")}
@@ -97,7 +98,7 @@ def test_sessions_export_success_with_data():
             "email": "export.tester@example.com",
             "student_id": "EXP001",
         },
-        headers=headers
+        headers=headers,
     ).json()
 
     # Create course in target semester
@@ -109,11 +110,13 @@ def test_sessions_export_success_with_data():
             "semester": "2025-Fall",
             "credits": 3,
         },
-        headers=headers
+        headers=headers,
     ).json()
 
     # Enroll student in course
-    enroll_resp = client.post(f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers)
+    enroll_resp = client.post(
+        f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers
+    )
     # Enrollment creation returns 200 OK (not 201) in current API implementation
     assert enroll_resp.status_code == 200
 
@@ -174,28 +177,17 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
     semester = "2025-Fall-Ü"
     import_payload = {
         "metadata": {"semester": semester},
-        "courses": [
-            {
-                "course_code": "ÜEXP101",
-                "course_name": "Unicode Export",
-                "semester": semester,
-                "credits": 2
-            }
-        ],
+        "courses": [{"course_code": "ÜEXP101", "course_name": "Unicode Export", "semester": semester, "credits": 2}],
         "students": [
             {
                 "student_id": "ÜSTU001",
                 "first_name": "Αλέξης",
                 "last_name": "Παπαδόπουλος",
-                "email": "unicode.student@example.com"
+                "email": "unicode.student@example.com",
             }
         ],
         "enrollments": [
-            {
-                "student_id_ref": "ÜSTU001",
-                "course_code_ref": "ÜEXP101",
-                "enrolled_at": "2025-09-01T00:00:00"
-            }
+            {"student_id_ref": "ÜSTU001", "course_code_ref": "ÜEXP101", "enrolled_at": "2025-09-01T00:00:00"}
         ],
         "grades": [
             {
@@ -207,12 +199,12 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
                 "max_grade": 100,
                 "weight": 1.0,
                 "date_assigned": "2025-09-10",
-                "date_submitted": "2025-09-11"
+                "date_submitted": "2025-09-11",
             }
         ],
         "attendance": [],
         "daily_performance": [],
-        "highlights": []
+        "highlights": [],
     }
     content = json.dumps(import_payload).encode("utf-8")
     files = {"file": ("session_unicode.json", content, "application/json")}
@@ -247,11 +239,14 @@ def test_sessions_export_unicode_semester_filename_sanitized():
     if resp.status_code == 404:
         import_payload = {
             "metadata": {"semester": semester},
-            "courses": [
-                {"course_code": "ÜTMP101", "course_name": "Temp Unicode", "semester": semester, "credits": 1}
-            ],
+            "courses": [{"course_code": "ÜTMP101", "course_name": "Temp Unicode", "semester": semester, "credits": 1}],
             "students": [
-                {"student_id": "ÜTMPSTU1", "first_name": "Νίκη", "last_name": "Δοκιμή", "email": "tmp.unicode@example.com"}
+                {
+                    "student_id": "ÜTMPSTU1",
+                    "first_name": "Νίκη",
+                    "last_name": "Δοκιμή",
+                    "email": "tmp.unicode@example.com",
+                }
             ],
             "enrollments": [
                 {"student_id_ref": "ÜTMPSTU1", "course_code_ref": "ÜTMP101", "enrolled_at": "2025-09-01T00:00:00"}
@@ -259,7 +254,7 @@ def test_sessions_export_unicode_semester_filename_sanitized():
             "grades": [],
             "attendance": [],
             "daily_performance": [],
-            "highlights": []
+            "highlights": [],
         }
         content = json.dumps(import_payload).encode("utf-8")
         files = {"file": ("session_unicode.json", content, "application/json")}
@@ -282,7 +277,7 @@ def test_sessions_rollback_invalid_backup():
             "email": "export.tester@example.com",
             "student_id": "EXP001",
         },
-        headers=headers
+        headers=headers,
     ).json()
 
     # Create course in target semester
@@ -294,11 +289,13 @@ def test_sessions_rollback_invalid_backup():
             "semester": "2025-Fall",
             "credits": 3,
         },
-        headers=headers
+        headers=headers,
     ).json()
 
     # Enroll student in course
-    enroll_resp = client.post(f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers)
+    enroll_resp = client.post(
+        f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers
+    )
     assert enroll_resp.status_code == 200
 
     # Create a grade record

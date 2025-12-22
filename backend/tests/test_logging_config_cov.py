@@ -26,7 +26,8 @@ def test_initialize_logging_fallback_import(tmp_path, monkeypatch):
     expected_log_file = Path(log_dir) / "app.log"
     root_logger = logging.getLogger()
     file_handlers = [
-        h for h in root_logger.handlers
+        h
+        for h in root_logger.handlers
         if isinstance(h, logging.handlers.RotatingFileHandler)
         and getattr(h, "baseFilename", None) == str(expected_log_file)
     ]

@@ -65,14 +65,14 @@ confirm() {
 select_backup() {
     print_info "Available backups:"
     echo ""
-    
+
     local backups=($(ls -t "$BACKUP_DIR"/*.sql.gz 2>/dev/null))
-    
+
     if [ ${#backups[@]} -eq 0 ]; then
         print_error "No backups found in $BACKUP_DIR"
         exit 1
     fi
-    
+
     local i=1
     for backup in "${backups[@]}"; do
         local filename=$(basename "$backup")
@@ -82,30 +82,30 @@ select_backup() {
         echo "     Size: $size | Date: $date"
         i=$((i + 1))
     done
-    
+
     echo ""
     read -p "Select backup number (or 0 to cancel): " selection
-    
+
     if [ "$selection" = "0" ] || [ "$selection" -gt "${#backups[@]}" ]; then
         print_info "Rollback cancelled"
         exit 0
     fi
-    
+
     TARGET_BACKUP="${backups[$((selection - 1))]}"
 }
 
 create_safety_backup() {
     print_info "Creating safety backup of current state..."
-    
+
     local safety_backup="$BACKUP_DIR/rollback_safety_$(date +%Y%m%d_%H%M%S).sql.gz"
-    
+
     source "$PROJECT_ROOT/.env.qnap" 2>/dev/null || {
         print_warning "Could not load environment file"
         return 1
     }
-    
+
     cd "$PROJECT_ROOT"
-    
+
     if docker compose -f docker-compose.qnap.yml ps postgres 2>/dev/null | grep -q "Up"; then
         docker compose -f docker-compose.qnap.yml exec -T postgres \
             pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" 2>/dev/null \
@@ -113,7 +113,7 @@ create_safety_backup() {
             print_warning "Could not create safety backup"
             return 1
         }
-        
+
         print_success "Safety backup created: $safety_backup"
         return 0
     else
@@ -124,62 +124,62 @@ create_safety_backup() {
 
 restore_backup() {
     print_info "Restoring backup: $(basename "$TARGET_BACKUP")"
-    
+
     source "$PROJECT_ROOT/.env.qnap"
     cd "$PROJECT_ROOT"
-    
+
     # Stop backend to prevent database access
     print_info "Stopping backend service..."
     docker compose -f docker-compose.qnap.yml stop backend
-    
+
     # Restore database
     print_info "Restoring database..."
     gunzip -c "$TARGET_BACKUP" | \
         docker compose -f docker-compose.qnap.yml exec -T postgres \
         psql -U "$POSTGRES_USER" "$POSTGRES_DB" 2>&1 | grep -v "^ERROR:" || true
-    
+
     print_success "Database restored"
 }
 
 restart_services() {
     print_info "Restarting services..."
-    
+
     cd "$PROJECT_ROOT"
     docker compose -f docker-compose.qnap.yml restart
-    
+
     # Wait for health checks
     print_info "Waiting for services to become healthy..."
     sleep 10
-    
+
     local max_attempts=30
     local attempt=0
-    
+
     while [ $attempt -lt $max_attempts ]; do
         if curl -f -s http://localhost:8080/health > /dev/null 2>&1; then
             print_success "Services are healthy!"
             return 0
         fi
-        
+
         attempt=$((attempt + 1))
         echo -n "."
         sleep 2
     done
-    
+
     print_warning "Health check timeout. Check logs manually."
     return 1
 }
 
 verify_rollback() {
     print_info "Verifying rollback..."
-    
+
     # Check container status
     local running=$(docker compose -f "$PROJECT_ROOT/docker-compose.qnap.yml" ps --format json 2>/dev/null | grep -c '"State":"running"' || echo "0")
-    
+
     if [ "$running" -lt 3 ]; then
         print_error "Not all containers are running"
         return 1
     fi
-    
+
     # Check health endpoint
     if curl -f -s http://localhost:8080/health > /dev/null 2>&1; then
         print_success "Health check passed"
@@ -187,7 +187,7 @@ verify_rollback() {
         print_error "Health check failed"
         return 1
     fi
-    
+
     # Check database connection
     source "$PROJECT_ROOT/.env.qnap"
     if docker compose -f "$PROJECT_ROOT/docker-compose.qnap.yml" exec -T postgres \
@@ -197,7 +197,7 @@ verify_rollback() {
         print_error "Database connection failed"
         return 1
     fi
-    
+
     print_success "Rollback verification complete"
     return 0
 }
@@ -260,9 +260,9 @@ parse_args() {
 
 main() {
     parse_args "$@"
-    
+
     print_header
-    
+
     print_warning "⚠️  ROLLBACK OPERATION"
     echo ""
     echo "This will:"
@@ -270,7 +270,7 @@ main() {
     echo "  2. Restore database from selected backup"
     echo "  3. Restart all services"
     echo ""
-    
+
     # Select backup if not specified
     if [ -z "$TARGET_BACKUP" ]; then
         select_backup
@@ -280,28 +280,28 @@ main() {
             exit 1
         fi
     fi
-    
+
     echo ""
     print_info "Target backup: $(basename "$TARGET_BACKUP")"
     echo ""
-    
+
     if ! confirm "Continue with rollback?"; then
         print_info "Rollback cancelled"
         exit 0
     fi
-    
+
     echo ""
-    
+
     # Rollback procedure
     create_safety_backup || print_warning "Continuing without safety backup"
-    
+
     echo ""
-    
+
     restore_backup
     restart_services
-    
+
     echo ""
-    
+
     if verify_rollback; then
         show_summary
         exit 0

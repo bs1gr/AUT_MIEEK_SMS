@@ -113,7 +113,7 @@ apiClient.interceptors.request.use(
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
   if (!config) return config;
-  
+
   try {
     // Skip auth header for login/refresh endpoints (they don't need it)
     const url = config.url || '';
@@ -121,7 +121,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
       console.warn('[API] Skipping auth header for:', url);
       return config;
     }
-    
+
     const token = authService.getAccessToken();
     if (token) {
       console.warn('[API] Attaching auth header for:', url);

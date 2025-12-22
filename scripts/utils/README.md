@@ -164,9 +164,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--option', help='Option description')
     args = parser.parse_args()
-    
+
     # Implementation
-    
+
 if __name__ == '__main__':
     main()
 ```
@@ -179,6 +179,6 @@ if __name__ == '__main__':
 
 ---
 
-**Created:** December 9, 2025  
-**Status:** Structure established, migrations complete for Phase 1  
+**Created:** December 9, 2025
+**Status:** Structure established, migrations complete for Phase 1
 **Consolidation Phase:** v1.10.1 (planning), v1.11.0 (implementation)

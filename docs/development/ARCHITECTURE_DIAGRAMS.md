@@ -1,8 +1,8 @@
 # Architecture Diagrams
 
-**Version**: 1.11.1  
-**Last Updated**: 2025-12-11  
-**Status**: Production Reference  
+**Version**: 1.11.1
+**Last Updated**: 2025-12-11
+**Status**: Production Reference
 **Applies To**: $11.11.1+
 
 Comprehensive Mermaid diagrams illustrating key system flows, deployment modes, and component relationships.
@@ -17,11 +17,11 @@ graph TB
         Browser["Browser (React SPA)"]
         Mobile["Mobile Client (API only)"]
     end
-    
+
     subgraph API["🔌 API Gateway"]
         FastAPI["FastAPI Server<br/>(8000 or 8080)"]
     end
-    
+
     subgraph Services["🔧 Service Layer"]
         Auth["Authentication<br/>(JWT, Sessions)"]
         Student["Student Service"]
@@ -30,12 +30,12 @@ graph TB
         Attendance["Attendance Service"]
         Analytics["Analytics Service"]
     end
-    
+
     subgraph Data["💾 Data Layer"]
         SQLite["SQLite DB<br/>(Development)"]
         PostgreSQL["PostgreSQL<br/>(Production)"]
     end
-    
+
     Browser -->|HTTP| FastAPI
     Mobile -->|API| FastAPI
     FastAPI --> Auth
@@ -44,7 +44,7 @@ graph TB
     FastAPI --> Grade
     FastAPI --> Attendance
     FastAPI --> Analytics
-    
+
     Auth --> SQLite
     Auth --> PostgreSQL
     Student --> SQLite
@@ -64,7 +64,7 @@ graph LR
     DDB["SQLite/PostgreSQL<br/>Volume: sms_data"]
     DApp -->|Query| DDB
   end
-  
+
   subgraph Native["💻 Native (Development)"]
     Backend["Uvicorn Backend<br/>Port: 8000<br/>--reload"]
     Frontend["Vite Frontend<br/>Port: 5173<br/>HMR"]
@@ -72,7 +72,7 @@ graph LR
     Backend -->|Query| NDB
     Frontend -->|API| Backend
   end
-  
+
   Browser["Browser"]
   Browser -->|8080| Docker
   Browser -->|5173| Native
@@ -113,13 +113,13 @@ sequenceDiagram
   participant API as FastAPI Auth Router
   participant DB as Database
   participant Auth as Auth Service
-  
+
   Client->>API: POST /auth/login<br/>(username, password)
   API->>Auth: verify_credentials()
   Auth->>DB: SELECT user WHERE email
   DB-->>Auth: User record
   Auth->>Auth: verify_password()
-  
+
   alt Valid Credentials
     Auth->>Auth: Generate JWT<br/>(exp, role, sub)
     Auth-->>API: {access_token, refresh_token}
@@ -129,10 +129,10 @@ sequenceDiagram
     Auth-->>API: HTTPException(401)
     API-->>Client: {detail: "Invalid"}
   end
-  
+
   Client->>API: GET /students<br/>Header: Bearer {token}
   API->>API: JWTBearer.verify()
-  
+
   alt Token Valid & Not Expired
     API->>DB: Query students
     DB-->>API: [students]
@@ -156,11 +156,11 @@ erDiagram
     STUDENTS ||--o{ GRADES : receives
     STUDENTS ||--o{ ATTENDANCE : has
     STUDENTS ||--o{ DAILY_PERFORMANCE : records
-    
+
     COURSES ||--o{ COURSE_ENROLLMENTS : offered
     COURSES ||--o{ GRADES : contains
     COURSES ||--o{ ATTENDANCE : tracks
-    
+
     STUDENTS {
         int id PK
         string student_id UK
@@ -171,7 +171,7 @@ erDiagram
         datetime created_at
         datetime deleted_at "soft_delete"
     }
-    
+
     COURSES {
         int id PK
         string course_code UK
@@ -180,7 +180,7 @@ erDiagram
         float absence_penalty
         datetime created_at
     }
-    
+
     COURSE_ENROLLMENTS {
         int id PK
         int student_id FK
@@ -188,7 +188,7 @@ erDiagram
         datetime enrollment_date
         string status
     }
-    
+
     GRADES {
         int id PK
         int student_id FK
@@ -198,7 +198,7 @@ erDiagram
         float weight
         datetime date_submitted
     }
-    
+
     ATTENDANCE {
         int id PK
         int student_id FK
@@ -215,25 +215,25 @@ erDiagram
 ```mermaid
 graph TB
     Request["📨 Incoming Request<br/>HTTP/HTTPS"]
-    
+
     CorsCheck["✅ CORS Middleware"]
     RateLimit["⏱️ Rate Limiting"]
     RequestID["🔖 Request ID<br/>(Tracking)"]
     Auth["🔐 JWT Validation"]
-    
+
     Router["🚦 Router Selection"]
     Validation["✔️ Pydantic Schema"]
     Business["💼 Service Logic"]
     Database["💾 SQL Query"]
-    
+
     ErrorCheck{Error?}
     ErrorHandler["🚨 Error Handler"]
-    
+
     Response["📤 Response Builder<br/>(JSON + Status)"]
     Logging["📝 Structured Logging"]
-    
+
     Return["✨ Return"]
-    
+
     Request --> CorsCheck
     CorsCheck --> RateLimit
     RateLimit --> RequestID
@@ -257,26 +257,26 @@ graph TB
 ```mermaid
 graph LR
     Request["📊 Analytics Request<br/>(student performance)"]
-    
+
     Enroll["📋 Get Enrollments<br/>(eager load)"]
     Grades["📈 Load Grades<br/>(joinedload)"]
     Attend["📅 Load Attendance<br/>(joinedload)"]
     Perf["💪 Load Daily Performance<br/>(joinedload)"]
-    
+
     Compute["🔢 Compute Metrics<br/>(weighted avg, rate)"]
     Cache["💾 Cache 5 min"]
     Format["📦 Format JSON"]
     Return["✨ Return Response"]
-    
+
     Request --> Enroll
     Enroll --> Grades
     Enroll --> Attend
     Enroll --> Perf
-    
+
     Grades --> Compute
     Attend --> Compute
     Perf --> Compute
-    
+
     Compute --> Cache
     Cache --> Format
     Format --> Return
@@ -289,27 +289,27 @@ graph LR
 ```mermaid
 graph TB
     Main["main.py<br/>(Entry Point)"]
-    
+
     Factory["app_factory.py<br/>(Create FastAPI)"]
     Lifespan["lifespan.py<br/>(Startup/Shutdown)"]
     Middleware["middleware_config.py<br/>(Register MW)"]
     ErrorHandlers["error_handlers.py<br/>(Exception Handlers)"]
     RouterRegistry["router_registry.py<br/>(Register Routes)"]
-    
+
     Routers["routers/<br/>(API Endpoints)"]
     Schemas["schemas/<br/>(Pydantic)"]
     Models["models.py<br/>(SQLAlchemy ORM)"]
     Services["services/<br/>(Business Logic)"]
-    
+
     DB["Database<br/>(SQLAlchemy)"]
-    
+
     Main --> Factory
     Main --> Lifespan
-    
+
     Factory --> Middleware
     Factory --> ErrorHandlers
     Factory --> RouterRegistry
-    
+
     RouterRegistry --> Routers
     Routers --> Schemas
     Routers --> Services
@@ -324,42 +324,42 @@ graph TB
 ```mermaid
 graph LR
     Push["📤 Push to main"]
-    
+
     Trigger["🔔 GitHub Actions"]
-    
+
     subgraph Tests["🧪 Tests"]
         Backend["pytest<br/>(379 tests)"]
         Frontend["vitest<br/>(1189 tests)"]
         E2E["Playwright<br/>(12+ tests)"]
     end
-    
+
     subgraph Quality["📊 Quality"]
         Ruff["Ruff"]
         ESLint["ESLint"]
         TypeScript["TypeScript"]
         Markdown["Markdown Lint"]
     end
-    
+
     subgraph Cache["⚡ Cache"]
         NPMCache["npm Deps<br/>(30-45s)"]
         PlaywrightCache["Playwright<br/>(45-60s)"]
         PipCache["pip<br/>(20-30s)"]
     end
-    
+
     AllPass{"All Pass?"}
-    
+
     Deploy["🚀 Deploy"]
     Success["✅ Success"]
     Fail["❌ Failed"]
-    
+
     Push --> Trigger
     Trigger --> Tests
     Trigger --> Quality
     Trigger --> Cache
-    
+
     Tests --> AllPass
     Quality --> AllPass
-    
+
     AllPass -->|Yes| Success
     AllPass -->|No| Fail
     Success --> Deploy
@@ -372,41 +372,41 @@ graph LR
 ```mermaid
 graph TB
     App["App.tsx<br/>(Root)"]
-    
+
     Providers["Providers<br/>(Auth, i18n, Theme)"]
     Router["React Router<br/>(v6)"]
-    
+
     Pages["Pages"]
     Login["LoginPage"]
     Students["StudentListPage"]
     Profile["StudentProfilePage"]
     Dashboard["DashboardPage"]
-    
+
     Components["UI Components"]
     Card["StudentCard"]
     Table["GradeTable"]
     Modal["Modals"]
-    
+
     Hooks["Custom Hooks"]
     UseAuth["useAuth()"]
     UseStudents["useStudents()"]
     UseGrades["useGrades()"]
-    
+
     API["API Client<br/>(axios)"]
-    
+
     App --> Providers
     Providers --> Router
     Router --> Pages
-    
+
     Pages --> Login
     Pages --> Students
     Pages --> Profile
     Pages --> Dashboard
-    
+
     Students --> Card
     Profile --> Table
     Profile --> Modal
-    
+
     Card --> UseAuth
     Card --> UseStudents
     Table --> API
@@ -419,14 +419,14 @@ graph TB
 ```mermaid
 graph TB
     Running["🏃 Application Running"]
-    
+
     AutoBackup["⏲️ Every 15 min"]
     Snapshot["📸 Database Snapshot"]
     Store["💾 Store Backup"]
     Verify["✅ Verify Checksum"]
-    
+
     Incident["🚨 Incident Detected"]
-    
+
     Recovery["🔄 Initiate Recovery"]
     List["📋 List Backups"]
     Select["👆 Select Backup"]
@@ -434,12 +434,12 @@ graph TB
     Verify2["✅ Verify Data"]
     Restart["🔄 Restart App"]
     Online["✨ Back Online"]
-    
+
     Running --> AutoBackup
     AutoBackup --> Snapshot
     Snapshot --> Store
     Store --> Verify
-    
+
     Incident --> Recovery
     Recovery --> List
     List --> Select
@@ -456,21 +456,21 @@ graph TB
 ```mermaid
 graph LR
     Request["📨 Incoming Request"]
-    
+
     Check["Check Quota<br/>(Redis/Memory)"]
-    
+
     Within{Within Limit?}
-    
+
     Allow["✅ Allow<br/>(Proceed)"]
     Reject["❌ Reject<br/>(429)"]
-    
+
     Response["📤 Response<br/>+ RateLimit Headers"]
-    
+
     Request --> Check
     Check --> Within
     Within -->|Yes| Allow
     Within -->|No| Reject
-    
+
     Allow --> Response
     Reject --> Response
 ```
@@ -482,21 +482,21 @@ graph LR
 ```mermaid
 graph LR
     Start["Running on SQLite"]
-    
+
     Plan["📋 Plan Migration<br/>(See DATABASE_MIGRATION_GUIDE.md)"]
     Backup["📸 Backup SQLite"]
-    
+
     Setup["⚙️ Setup PostgreSQL<br/>(Docker/native)"]
     Schema["📐 Create Schema<br/>(Alembic)"]
-    
+
     Migrate["🔄 Migrate Data<br/>(pgloader or manual)"]
     Verify["✅ Verify Data<br/>(Count, samples)"]
-    
+
     Switch["🔀 Switch Connection<br/>(Update DATABASE_URL)"]
     Test["🧪 Run Tests"]
-    
+
     Live["🚀 Live on PostgreSQL"]
-    
+
     Start --> Plan
     Plan --> Backup
     Backup --> Setup
@@ -553,7 +553,7 @@ graph LR
 
 ---
 
-**Last Updated**: 2025-12-11  
+**Last Updated**: 2025-12-11
 **Status**: Production-Ready
   participant DB as Database
   participant JWT as Token Signer
@@ -622,4 +622,3 @@ flowchart LR
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
-
