@@ -377,7 +377,8 @@ if SKIP_AUTH:
     try:
         import requests as _requests
 
-        _orig_request = _requests.Session.request
+        # Patch requests.Session.request as a fallback (covers some clients)
+        _orig_request = getattr(_requests.Session, "request", None)
 
         def _patched_request(self, method, url, *args, **kwargs):
             if isinstance(url, str) and "/api/v1/auth" in url:
@@ -392,9 +393,43 @@ if SKIP_AUTH:
                         }
 
                 return _DummyResp()
-            return _orig_request(self, method, url, *args, **kwargs)
+            if _orig_request:
+                return _orig_request(self, method, url, *args, **kwargs)
+            raise RuntimeError("No original request callable to delegate to")
 
         _requests.Session.request = _patched_request
+
+        # Additionally attempt to patch Locust HTTP session classes so that
+        # Locust users' .client.request calls are intercepted as well.
+        try:
+            # locust 2.x/3.x: HttpSession in locust.clients.http
+            import locust.clients.http as _lc_http
+
+            if hasattr(_lc_http, "HttpSession"):
+                _orig_lc = getattr(_lc_http.HttpSession, "request", None)
+
+                def _patched_lc_request(self, method, url, *args, **kwargs):
+                    # url may be path-only when using FastHttpUser, join not needed here
+                    if isinstance(url, str) and "/api/v1/auth" in url:
+
+                        class _DummyResp2:
+                            status_code = 200
+
+                            def json(self_inner):
+                                return {
+                                    "access_token": "ci-bypass-token",
+                                    "refresh_token": "ci-bypass-refresh",
+                                }
+
+                        return _DummyResp2()
+                    if _orig_lc:
+                        return _orig_lc(self, method, url, *args, **kwargs)
+                    return None
+
+                _lc_http.HttpSession.request = _patched_lc_request
+        except Exception:
+            # best-effort: don't fail the test runner if locust internals differ
+            logger.debug("locust HttpSession patch not applied; continuing")
     except Exception:
         # Don't fail test runner if monkeypatching is not possible
         logger.exception("Failed to apply auth short-circuit for CI")
