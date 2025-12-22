@@ -71,14 +71,10 @@ def _normalize_datetime(value: Optional[datetime]) -> Optional[datetime]:
     return value
 
 
-def _build_lockout_exception(
-    request: Request, lockout_until: datetime
-) -> HTTPException:
+def _build_lockout_exception(request: Request, lockout_until: datetime) -> HTTPException:
     lockout_ts = _normalize_datetime(lockout_until) or datetime.now(timezone.utc)
     now = datetime.now(timezone.utc)
-    retry_after_seconds = (
-        max(1, int((lockout_ts - now).total_seconds())) if lockout_ts > now else 1
-    )
+    retry_after_seconds = max(1, int((lockout_ts - now).total_seconds())) if lockout_ts > now else 1
     headers = {"Retry-After": str(retry_after_seconds)}
     context = {"lockout_until": lockout_ts.isoformat()}
     return http_error(
@@ -147,9 +143,7 @@ def _register_user_failed_attempt(user: Any, db: Session) -> Optional[datetime]:
 
     now = datetime.now(timezone.utc)
     max_attempts = max(1, int(getattr(settings, "AUTH_LOGIN_MAX_ATTEMPTS", 5)))
-    window_seconds = max(
-        1, int(getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300))
-    )
+    window_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300)))
     lockout_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_LOCKOUT_SECONDS", 300)))
     window_delta = timedelta(seconds=window_seconds)
 
@@ -216,9 +210,7 @@ async def fetch_csrf_token(request: Request, response: Response):
 
 
 def create_access_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = {"sub": subject, "exp": expire}
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -228,14 +220,11 @@ def _hash_token(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def create_refresh_token_for_user(
-    db: Session, user, expires_delta: Optional[timedelta] = None
-) -> str:
+def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[timedelta] = None) -> str:
     # Create a JWT refresh token with a jti claim and longer expiry
     jti = uuid.uuid4().hex
     expire = datetime.now(timezone.utc) + (
-        expires_delta
-        or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7))
+        expires_delta or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7))
     )
     to_encode = {
         "sub": str(getattr(user, "email", "")),
@@ -291,15 +280,10 @@ def require_role(*roles: str):
         endpoint_path = "unknown"
         try:
             # Prefer scope path to avoid KeyError when minimal scope provided
-            endpoint_path = (
-                getattr(request, "scope", {}).get("path", "unknown") or "unknown"
-            )
+            endpoint_path = getattr(request, "scope", {}).get("path", "unknown") or "unknown"
         except Exception:
             try:
-                endpoint_path = (
-                    getattr(getattr(request, "url", None), "path", "unknown")
-                    or "unknown"
-                )
+                endpoint_path = getattr(getattr(request, "url", None), "path", "unknown") or "unknown"
             except Exception:
                 endpoint_path = "unknown"
 
@@ -326,18 +310,19 @@ def optional_require_role(*roles: str):
     """Role checker that respects AUTH_ENABLED.
 
     Behavior:
-    - When AUTH_ENABLED is False: return a zero-argument dependency that yields a dummy admin user.
-      This allows calling the dependency directly in tests (dependency()) and keeps endpoints
-      working without auth in disabled mode.
+    - When AUTH_ENABLED is False at runtime: yields a dummy admin user (for tests/disabled mode).
     - When AUTH_ENABLED is True: enforces that the resolved user has one of the allowed roles.
+
+    Important: This checks `settings.AUTH_ENABLED` at runtime (inside the dependency) rather
+    than at definition time to allow tests to toggle the flag in fixtures.
     """
 
-    # If auth is globally disabled, return a very lenient dependency that requires no parameters
-    # and simply returns a dummy admin user. Accepts zero args to satisfy unit tests that invoke it
-    # directly without a Request object.
-    if not getattr(settings, "AUTH_ENABLED", False):
+    def _dep(request: Request, user: Any = Depends(get_current_user)) -> Any:
+        # Evaluate runtime flags so test fixtures can toggle AUTH_ENABLED/AUTH_MODE
+        auth_enabled = getattr(settings, "AUTH_ENABLED", False)
+        auth_mode = getattr(settings, "AUTH_MODE", "disabled")
 
-        def _dep_disabled():
+        if not auth_enabled or auth_mode == "disabled":
             from types import SimpleNamespace
 
             return SimpleNamespace(
@@ -348,10 +333,7 @@ def optional_require_role(*roles: str):
                 full_name="Admin User",
             )
 
-        return _dep_disabled
-
-    # Auth enabled: enforce roles using the real current user dependency
-    def _dep(request: Request, user: Any = Depends(get_current_user)) -> Any:
+        # Auth is enabled — enforce role checks
         if roles:
             role = getattr(user, "role", None)
             if role not in roles:
@@ -370,9 +352,7 @@ def optional_require_role(*roles: str):
 
 @router.post("/auth/register", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def register_user(
-    request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)
-):
+async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
     try:
         existing = db.query(User).filter(User.email == payload.email).first()
         if existing:
@@ -438,9 +418,7 @@ async def login(
         logger.info(f"Login attempt for email: {payload.email}")
         normalized_email = payload.email.lower().strip()
         client_identifier = _get_client_identifier(request)
-        throttle_keys: list[str | None] = [
-            f"email:{normalized_email}" if normalized_email else None
-        ]
+        throttle_keys: list[str | None] = [f"email:{normalized_email}" if normalized_email else None]
         if client_identifier:
             throttle_keys.append(f"ip:{client_identifier}")
 
@@ -459,22 +437,14 @@ async def login(
                 f"Password verification error for {normalized_email}: {exc}",
                 exc_info=True,
             )
-            raise internal_server_error(
-                "Password verification failed", request
-            ) from exc
+            raise internal_server_error("Password verification failed", request) from exc
         if not password_valid:
-            logger.info(
-                f"Invalid login for {normalized_email} (user exists: {bool(user)})"
-            )
-            user_lockout_until = (
-                _register_user_failed_attempt(user, db) if user else None
-            )
+            logger.info(f"Invalid login for {normalized_email} (user exists: {bool(user)})")
+            user_lockout_until = _register_user_failed_attempt(user, db) if user else None
             throttle_lockout_until = _register_throttle_failure(throttle_keys)
             lockout_until = user_lockout_until or throttle_lockout_until
             if lockout_until:
-                logger.warning(
-                    f"Lockout triggered for {normalized_email} until {lockout_until}"
-                )
+                logger.warning(f"Lockout triggered for {normalized_email} until {lockout_until}")
                 raise _build_lockout_exception(request, lockout_until)
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -493,9 +463,7 @@ async def login(
                 user.hashed_password = get_password_hash(payload.password)
                 db.add(user)
                 db.commit()
-                logger.info(
-                    f"Auto-rehashed password for user {normalized_email} from deprecated scheme"
-                )
+                logger.info(f"Auto-rehashed password for user {normalized_email} from deprecated scheme")
         except Exception as rehash_error:
             # Non-critical: log and continue with login even if rehash fails
             db.rollback()
@@ -528,9 +496,7 @@ async def login(
                     max_age=max_age_val,
                 )
         except Exception as cookie_exc:
-            logger.warning(
-                f"Failed to set refresh token cookie: {cookie_exc}", exc_info=True
-            )
+            logger.warning(f"Failed to set refresh token cookie: {cookie_exc}", exc_info=True)
 
         issue_csrf_cookie(response, include_header=True)
         # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
@@ -567,9 +533,7 @@ async def refresh(
 ):
     db.expire_all()  # Force session to see latest DB state (important for tests)
     try:
-        raw = (
-            payload.refresh_token if payload is not None else None
-        ) or request.cookies.get("refresh_token")
+        raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
         if not raw:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -733,11 +697,7 @@ async def logout(
 
         if user:
             # Revoke ALL refresh tokens for this user
-            tokens = (
-                db.query(RefreshToken)
-                .filter(RefreshToken.user_id == getattr(user, "id", None))
-                .all()
-            )
+            tokens = db.query(RefreshToken).filter(RefreshToken.user_id == getattr(user, "id", None)).all()
             for t in tokens:
                 t.revoked = True
                 db.add(t)
@@ -745,9 +705,7 @@ async def logout(
             db.expire_all()  # Ensure all objects are refreshed from DB (important for tests)
             db.refresh(user)
             db.close()  # Force session close so next request sees changes
-            logger.info(
-                f"User {getattr(user, 'email', 'unknown')} logged out successfully"
-            )
+            logger.info(f"User {getattr(user, 'email', 'unknown')} logged out successfully")
         else:
             logger.info("Logout invoked without resolvable user; clearing cookies only")
 
@@ -917,9 +875,7 @@ async def admin_delete_user(
             )
 
     try:
-        db.query(models.RefreshToken).filter(
-            models.RefreshToken.user_id == user.id
-        ).delete(synchronize_session=False)
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).delete(synchronize_session=False)
         db.delete(user)
         db.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -953,9 +909,7 @@ async def admin_reset_password(
         user.failed_login_attempts = 0
         user.lockout_until = None
         user.last_failed_login_at = None
-        db.query(models.RefreshToken).filter(
-            models.RefreshToken.user_id == user.id
-        ).update({"revoked": True})
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
         db.add(user)
         db.commit()
         return {"status": "password_reset"}
@@ -991,9 +945,7 @@ async def admin_unlock_account(
         user.last_failed_login_at = None
         db.add(user)
         db.commit()
-        logger.info(
-            f"Admin {getattr(current_admin, 'email', 'unknown')} unlocked account for user {user.email}"
-        )
+        logger.info(f"Admin {getattr(current_admin, 'email', 'unknown')} unlocked account for user {user.email}")
         return {
             "status": "unlocked",
             "user_id": user.id,
@@ -1021,11 +973,7 @@ async def change_password(
     - Issues a fresh access token; client should discard the old one.
     """
     try:
-        user = (
-            db.query(models.User)
-            .filter(models.User.id == getattr(current_user, "id", None))
-            .first()
-        )
+        user = db.query(models.User).filter(models.User.id == getattr(current_user, "id", None)).first()
         if not user:
             raise http_error(
                 status.HTTP_404_NOT_FOUND,
@@ -1035,9 +983,7 @@ async def change_password(
             )
 
         # Verify current password
-        if not verify_password(
-            payload.current_password, getattr(user, "hashed_password", "")
-        ):
+        if not verify_password(payload.current_password, getattr(user, "hashed_password", "")):
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
                 ErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -1060,9 +1006,7 @@ async def change_password(
         user.failed_login_attempts = 0
         user.lockout_until = None
         user.last_failed_login_at = None
-        db.query(models.RefreshToken).filter(
-            models.RefreshToken.user_id == user.id
-        ).update({"revoked": True})
+        db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
         db.add(user)
         db.commit()
 
