@@ -5,14 +5,14 @@ This module contains Locust-based load testing scenarios for the SMS application
 Supports authentication, student management, course operations, and analytics testing.
 """
 
-import json
 import logging
 import random
 import time
-from typing import Dict, List, Optional
+from typing import List, Optional
 
+import os
 from faker import Faker
-from locust import HttpUser, TaskSet, between, constant, task
+from locust import TaskSet, between, task
 from locust.contrib.fasthttp import FastHttpUser
 
 # Initialize logger
@@ -49,7 +49,9 @@ class BaseSMSUser(FastHttpUser):
         # For load testing, skip authentication to avoid rate limiting and credential issues
         # Assume the backend is running with AUTH_MODE=disabled for testing
         self.token = None
-        logger.info("Skipping authentication for load testing (assuming AUTH_MODE=disabled)")
+        logger.info(
+            "Skipping authentication for load testing (assuming AUTH_MODE=disabled)"
+        )
 
     def get_random_student_id(self) -> Optional[int]:
         """Get a random student ID from cached list."""
@@ -85,15 +87,19 @@ class AuthTasks(TaskSet):
     def login_logout_cycle(self):
         """Complete login/logout cycle."""
         # Login
-        user = {"email": "student@example.com", "password": "student123"}
+        user = {
+            "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
+            "password": os.getenv("LOCUST_TEST_USER_PASSWORD", "student123"),
+        }
         response = self.client.post("/api/v1/auth/login", json=user)
 
         if response.status_code == 200:
             data = response.json()
-            token = data.get("access_token")
+            access_token = data.get("access_token")
 
             # Set token for next request
-            self.client.headers.update({"Authorization": f"Bearer {token}"})
+            if access_token:
+                self.client.headers.update({"Authorization": f"Bearer {access_token}"})
 
             # Small delay
             time.sleep(random.uniform(0.5, 2.0))
@@ -112,13 +118,15 @@ class AuthTasks(TaskSet):
     @task(1)
     def refresh_token(self):
         """Test token refresh functionality."""
-        # First login to get initial token
-        user = {"email": "student@example.com", "password": "student123"}
+        # First login to get initial refresh token
+        user = {
+            "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
+            "password": os.getenv("LOCUST_TEST_USER_PASSWORD", "student123"),
+        }
         response = self.client.post("/api/v1/auth/login", json=user)
 
         if response.status_code == 200:
             data = response.json()
-            token = data.get("access_token")
             refresh_token = data.get("refresh_token")
 
             if refresh_token:
@@ -152,7 +160,7 @@ class StudentTasks(TaskSet):
             fake.first_name(),
             fake.last_name(),
             fake.email(),
-            f"student{random.randint(1, 100)}"
+            f"student{random.randint(1, 100)}",
         ]
 
         term = random.choice(search_terms)
@@ -166,8 +174,10 @@ class StudentTasks(TaskSet):
             "last_name": fake.last_name(),
             "email": fake.email(),
             "student_id": f"STU{random.randint(10000, 99999)}",
-            "date_of_birth": fake.date_of_birth(minimum_age=18, maximum_age=25).isoformat(),
-            "phone": fake.phone_number()
+            "date_of_birth": fake.date_of_birth(
+                minimum_age=18, maximum_age=25
+            ).isoformat(),
+            "phone": fake.phone_number(),
         }
 
         self.client.post("/api/v1/students", json=student_data)
@@ -179,7 +189,7 @@ class StudentTasks(TaskSet):
         if student_id:
             update_data = {
                 "phone": fake.phone_number(),
-                "address": fake.address().replace('\n', ', ')
+                "address": fake.address().replace("\n", ", "),
             }
             self.client.put(f"/api/v1/students/{student_id}", json=update_data)
 
@@ -218,9 +228,11 @@ class CourseTasks(TaskSet):
         if student_id and course_id:
             enrollment_data = {
                 "student_id": student_id,
-                "enrollment_date": fake.date_this_year().isoformat()
+                "enrollment_date": fake.date_this_year().isoformat(),
             }
-            self.client.post(f"/api/v1/enrollments/course/{course_id}", json=enrollment_data)
+            self.client.post(
+                f"/api/v1/enrollments/course/{course_id}", json=enrollment_data
+            )
 
 
 class AnalyticsTasks(TaskSet):
@@ -248,7 +260,7 @@ class AnalyticsTasks(TaskSet):
                 "period": random.choice(["semester", "month", "week"]),
                 "include_grades": random.choice([True, False]),
                 "include_attendance": random.choice([True, False]),
-                "include_highlights": random.choice([True, False])
+                "include_highlights": random.choice([True, False]),
             }
             self.client.post("/api/v1/reports/student-performance", json=report_data)
 
@@ -288,9 +300,10 @@ class AttendanceTasks(TaskSet):
                     {
                         "student_id": self.user.get_random_student_id(),
                         "status": random.choice(["present", "absent", "late"]),
-                        "notes": fake.sentence() if random.random() > 0.7 else None
-                    } for _ in range(random.randint(5, 20))
-                ]
+                        "notes": fake.sentence() if random.random() > 0.7 else None,
+                    }
+                    for _ in range(random.randint(5, 20))
+                ],
             }
             self.client.post("/api/v1/attendance", json=attendance_data)
 
@@ -324,11 +337,15 @@ class GradeTasks(TaskSet):
                 "course_id": course_id,
                 "grade": round(random.uniform(0, 20), 1),  # Greek grading scale
                 "max_grade": 20.0,
-                "component_type": random.choice(["exam", "assignment", "project", "participation"]),
+                "component_type": random.choice(
+                    ["exam", "assignment", "project", "participation"]
+                ),
                 "component_name": fake.sentence(nb_words=3),
                 "weight": random.randint(10, 50),
                 "date_assigned": fake.date_this_year().isoformat(),
-                "date_submitted": fake.date_this_year().isoformat() if random.random() > 0.3 else None
+                "date_submitted": fake.date_this_year().isoformat()
+                if random.random() > 0.3
+                else None,
             }
             self.client.post("/api/v1/grades", json=grade_data)
 
@@ -336,19 +353,33 @@ class GradeTasks(TaskSet):
 # User classes combining different task sets
 class LightUser(BaseSMSUser):
     """Light user - mostly read operations."""
+
     tasks = [StudentTasks, CourseTasks, AnalyticsTasks]
     weight = 7  # 70% of users
 
 
 class MediumUser(BaseSMSUser):
     """Medium user - mix of read/write operations."""
+
     tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
     weight = 2  # 20% of users
 
 
+SKIP_AUTH = (
+    os.getenv("AUTH_MODE", "").lower() == "disabled"
+    or os.getenv("AUTH_ENABLED", "").lower() in ("false", "0")
+    or os.getenv("CI_SKIP_AUTH", "").lower() == "true"
+)
+
+
 class HeavyUser(BaseSMSUser):
     """Heavy user - intensive operations (admin/teacher)."""
-    tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks, AuthTasks]
+
+    # Include AuthTasks only when authentication is enabled. In CI we often disable auth
+    # to avoid flaky login failures and rate-limiting during smoke tests.
+    tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
+    if not SKIP_AUTH:
+        tasks.append(AuthTasks)
     weight = 1  # 10% of users
 
     # Shorter wait times for heavy users
@@ -356,13 +387,19 @@ class HeavyUser(BaseSMSUser):
 
 
 class AuthUser(BaseSMSUser):
-    """User focused on authentication operations."""
-    tasks = [AuthTasks]
-    weight = 1  # 10% of users
+    """User focused on authentication operations.
+
+    When AUTH is disabled (e.g. CI smoke runs) this class will have no tasks and zero
+    weight so Locust won't schedule auth-heavy users.
+    """
+
+    tasks = [AuthTasks] if not SKIP_AUTH else []
+    weight = 1 if not SKIP_AUTH else 0
 
 
 class SmokeUser(FastHttpUser):
     """User for smoke tests - only health checks."""
+
     wait_time = between(1, 3)
 
     @task(1)
@@ -377,30 +414,30 @@ TEST_CONFIGS = {
         "users": 5,
         "spawn_rate": 1,
         "run_time": "30s",
-        "description": "Basic smoke test"
+        "description": "Basic smoke test",
     },
     "light": {
         "users": 50,
         "spawn_rate": 5,
         "run_time": "2m",
-        "description": "Light load test"
+        "description": "Light load test",
     },
     "medium": {
         "users": 200,
         "spawn_rate": 10,
         "run_time": "5m",
-        "description": "Medium load test"
+        "description": "Medium load test",
     },
     "heavy": {
         "users": 500,
         "spawn_rate": 20,
         "run_time": "10m",
-        "description": "Heavy load test"
+        "description": "Heavy load test",
     },
     "stress": {
         "users": 1000,
         "spawn_rate": 50,
         "run_time": "15m",
-        "description": "Stress test"
-    }
+        "description": "Stress test",
+    },
 }
