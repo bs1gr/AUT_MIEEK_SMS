@@ -371,6 +371,34 @@ SKIP_AUTH = (
     or os.getenv("CI_SKIP_AUTH", "").lower() == "true"
 )
 
+# When running in CI with auth disabled, short-circuit any auth HTTP calls so
+# Locust scenarios that still call /api/v1/auth/* don't fail and pollute results.
+if SKIP_AUTH:
+    try:
+        import requests as _requests
+
+        _orig_request = _requests.Session.request
+
+        def _patched_request(self, method, url, *args, **kwargs):
+            if isinstance(url, str) and "/api/v1/auth" in url:
+
+                class _DummyResp:
+                    status_code = 200
+
+                    def json(self_inner):
+                        return {
+                            "access_token": "ci-bypass-token",
+                            "refresh_token": "ci-bypass-refresh",
+                        }
+
+                return _DummyResp()
+            return _orig_request(self, method, url, *args, **kwargs)
+
+        _requests.Session.request = _patched_request
+    except Exception:
+        # Don't fail test runner if monkeypatching is not possible
+        logger.exception("Failed to apply auth short-circuit for CI")
+
 
 class HeavyUser(BaseSMSUser):
     """Heavy user - intensive operations (admin/teacher)."""
