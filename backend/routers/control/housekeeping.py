@@ -42,19 +42,29 @@ class RestartDiagnostics(BaseModel):
 
 def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostics:
     environment = "docker" if in_docker_container() else "native"
-    execution_mode = os.environ.get("SMS_EXECUTION_MODE", "native").strip().lower() or "native"
+    execution_mode = (
+        os.environ.get("SMS_EXECUTION_MODE", "native").strip().lower() or "native"
+    )
     control_api_enabled_flag = control_api_enabled()
     requires_admin_token = bool(os.environ.get("ADMIN_SHUTDOWN_TOKEN"))
 
-    restart_supported = control_api_enabled_flag and environment != "docker" and execution_mode != "docker"
+    restart_supported = (
+        control_api_enabled_flag
+        and environment != "docker"
+        and execution_mode != "docker"
+    )
     hints: List[str] = []
 
     if not control_api_enabled_flag:
         message = "Control API disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart the backend service."
-        hints.append("Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1, then restart the backend.")
+        hints.append(
+            "Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1, then restart the backend."
+        )
     elif environment == "docker" or execution_mode == "docker":
         message = "In-container restart is disabled. Run DOCKER.ps1 -Stop then DOCKER.ps1 -Start from the host."
-        hints.append("Use host-level scripts such as DOCKER.ps1 -Stop; DOCKER.ps1 -Start or restart the Docker stack from the host shell.")
+        hints.append(
+            "Use host-level scripts such as DOCKER.ps1 -Stop; DOCKER.ps1 -Start or restart the Docker stack from the host shell."
+        )
     else:
         message = "Restart endpoint ready."
 
@@ -77,19 +87,36 @@ async def exit_all(down: bool = False):
     if not in_docker_container() and check_docker_running():
         project_root = Path(__file__).resolve().parents[3]
         ok_s, out_s, err_s = docker_compose(["stop"], cwd=project_root, timeout=120)
-        details.update({"docker_stop_ok": ok_s, "docker_stop_stdout": out_s[-800:], "docker_stop_stderr": err_s[-800:]})
+        details.update(
+            {
+                "docker_stop_ok": ok_s,
+                "docker_stop_stdout": out_s[-800:],
+                "docker_stop_stderr": err_s[-800:],
+            }
+        )
         docker_performed = True
         if down:
             ok_d, out_d, err_d = docker_compose(["down"], cwd=project_root, timeout=180)
-            details.update({"docker_down_ok": ok_d, "docker_down_stdout": out_d[-800:], "docker_down_stderr": err_d[-800:]})
+            details.update(
+                {
+                    "docker_down_ok": ok_d,
+                    "docker_down_stdout": out_d[-800:],
+                    "docker_down_stderr": err_d[-800:],
+                }
+            )
     try:
         from backend.import_resolver import import_names
+
         (control_stop_all,) = import_names("main", "control_stop_all")
         shutdown_info = control_stop_all()
         details["shutdown"] = shutdown_info
     except Exception as e:
         details["shutdown_error"] = str(e)
-        return OperationResult(success=False, message="Failed to initiate backend shutdown", details=details)
+        return OperationResult(
+            success=False,
+            message="Failed to initiate backend shutdown",
+            details=details,
+        )
     msg_parts = []
     if docker_performed:
         msg_parts.append("Docker containers stopped" + (" and removed" if down else ""))
@@ -111,6 +138,7 @@ async def restart_backend(request: Request):
     # Backward-compat: use legacy helpers in backend.main if present for tests
     try:
         from importlib import import_module
+
         _main = import_module("backend.main")
         command = getattr(_main, "_infer_restart_command", infer_restart_command)()
         spawn_fn = getattr(_main, "_spawn_restart_thread", spawn_restart_thread)
@@ -118,6 +146,15 @@ async def restart_backend(request: Request):
         command = infer_restart_command()
         spawn_fn = spawn_restart_thread
     if not command:
-        raise http_error(500, ErrorCode.INTERNAL_SERVER_ERROR, "Unable to infer restart command for current process.", request)
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unable to infer restart command for current process.",
+            request,
+        )
     spawn_fn(command)
-    return OperationResult(success=True, message="Backend restart scheduled", details={"command": " ".join(command), "timestamp": datetime.now().isoformat()})
+    return OperationResult(
+        success=True,
+        message="Backend restart scheduled",
+        details={"command": " ".join(command), "timestamp": datetime.now().isoformat()},
+    )

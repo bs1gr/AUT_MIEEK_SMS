@@ -1,9 +1,6 @@
 from __future__ import annotations
-
 from datetime import date
-
 from sqlalchemy import event
-
 from backend.tests.conftest import engine
 
 
@@ -32,11 +29,18 @@ def _create_student(client, i: int = 1):
             "student_id": f"SID{i:04d}",
         },
     )
-    assert response.status_code == 201, response.text
+    if response.status_code != 201:
+        raise AssertionError(f"Failed to create student: {response.text}")
     return response.json()
 
 
-def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0, credits: int = 3):
+import pytest
+
+
+# Helper functions for analytics router tests
+def _create_course(
+    client, code: str, rules=None, absence_penalty: float = 0.0, credits: int = 3
+):
     payload = {
         "course_code": code,
         "course_name": f"Course {code}",
@@ -52,7 +56,13 @@ def _create_course(client, code: str, rules=None, absence_penalty: float = 0.0, 
 
 
 def _create_grade(
-    client, student_id: int, course_id: int, name: str, category: str, grade: float, max_grade: float = 100.0
+    client,
+    student_id: int,
+    course_id: int,
+    name: str,
+    category: str,
+    grade: float,
+    max_grade: float = 100.0,
 ):
     return _post_with_csrf(
         client,
@@ -71,7 +81,14 @@ def _create_grade(
     )
 
 
-def _create_dp(client, student_id: int, course_id: int, category: str, score: float, max_score: float = 10.0):
+def _create_dp(
+    client,
+    student_id: int,
+    course_id: int,
+    category: str,
+    score: float,
+    max_score: float = 10.0,
+):
     return _post_with_csrf(
         client,
         "/api/v1/daily-performance/",
@@ -100,28 +117,48 @@ def _create_att(client, student_id: int, course_id: int, status: str, period: in
     )
 
 
+@pytest.mark.auth_required
 def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     """End-to-end check of final grade with: rules, grades, daily perf (multiplier), and absence penalty."""
     s = _create_student(client)
     rules = [
-        {"category": "Homework", "weight": 30.0, "includeDailyPerformance": True, "dailyPerformanceMultiplier": 1.0},
+        {
+            "category": "Homework",
+            "weight": 30.0,
+            "includeDailyPerformance": True,
+            "dailyPerformanceMultiplier": 1.0,
+        },
         {"category": "Midterm", "weight": 30.0},
         {"category": "Final Exam", "weight": 40.0},
     ]
     c = _create_course(client, "CS101", rules=rules, absence_penalty=2.0)
 
     # Grades: Homework (80/100, 90/100), Midterm (70/100), Final (85/100)
-    assert _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code == 201
-    assert _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code == 201
-    assert _create_grade(client, s["id"], c["id"], "Midterm", "Midterm", 70).status_code == 201
-    assert _create_grade(client, s["id"], c["id"], "Final", "Final Exam", 85).status_code == 201
+    assert (
+        _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code
+        == 201
+    )
+    assert (
+        _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code
+        == 201
+    )
+    assert (
+        _create_grade(client, s["id"], c["id"], "Midterm", "Midterm", 70).status_code
+        == 201
+    )
+    assert (
+        _create_grade(client, s["id"], c["id"], "Final", "Final Exam", 85).status_code
+        == 201
+    )
 
     # Daily performance for Homework (included, multiplier=1.0): 9/10 (90%), 7/10 (70%)
     assert _create_dp(client, s["id"], c["id"], "Homework", 9, 10).status_code == 200
     assert _create_dp(client, s["id"], c["id"], "Homework", 7, 10).status_code == 200
 
     # Attendance: 4 Present, 1 Absent (absence penalty applies: 1 * 2 = 2 points deduction)
-    for i, st in enumerate(("Present", "Present", "Present", "Present", "Absent"), start=1):
+    for i, st in enumerate(
+        ("Present", "Present", "Present", "Present", "Absent"), start=1
+    ):
         assert _create_att(client, s["id"], c["id"], st, period=i).status_code == 201
 
     r = client.get(f"/api/v1/analytics/student/{s['id']}/course/{c['id']}/final-grade")
@@ -145,6 +182,7 @@ def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     assert round(breakdown["Homework"]["average"], 2) == 82.5
 
 
+@pytest.mark.auth_required
 def test_final_grade_without_rules_returns_error(client):
     s = _create_student(client, 2)
     c = _create_course(client, "C0", rules=[], absence_penalty=0.0)
@@ -156,6 +194,7 @@ def test_final_grade_without_rules_returns_error(client):
     assert "rules" in data["error"].lower()
 
 
+@pytest.mark.auth_required
 def test_final_grade_with_attendance_category(client):
     """When Attendance is a category, it contributes Present/Total percentage to that category."""
     s = _create_student(client, 3)
@@ -163,10 +202,14 @@ def test_final_grade_with_attendance_category(client):
         {"category": "Attendance", "weight": 20.0},
         {"category": "Homework", "weight": 80.0, "includeDailyPerformance": False},
     ]
+
     c = _create_course(client, "CATT", rules=rules, absence_penalty=0.0)
 
     # Homework perfect score -> 100% average in Homework
-    assert _create_grade(client, s["id"], c["id"], "HW1", "Homework", 100).status_code == 201
+    assert (
+        _create_grade(client, s["id"], c["id"], "HW1", "Homework", 100).status_code
+        == 201
+    )
 
     # Attendance: 2 present, 1 absent => 66.67% attendance category
     for i, st in enumerate(("Present", "Present", "Absent"), start=1):
@@ -184,6 +227,7 @@ def test_final_grade_with_attendance_category(client):
     assert data["unexcused_absences"] == 0
 
 
+@pytest.mark.auth_required
 def test_final_grade_course_not_found(client):
     s = _create_student(client, 4)
     r = client.get(f"/api/v1/analytics/student/{s['id']}/course/99999/final-grade")
@@ -192,6 +236,8 @@ def test_final_grade_course_not_found(client):
     assert "not found" in detail.lower()
 
 
+@pytest.mark.auth_required
+@pytest.mark.auth_required
 def test_student_all_courses_summary_with_mixed_courses(client):
     s = _create_student(client, 5)
 
@@ -204,20 +250,49 @@ def test_student_all_courses_summary_with_mixed_courses(client):
         },
         {"category": "Final", "weight": 50.0},
     ]
-    rules_valid_b = [{"category": "Project", "weight": 100.0, "includeDailyPerformance": False}]
+    rules_valid_b = [
+        {"category": "Project", "weight": 100.0, "includeDailyPerformance": False}
+    ]
 
-    course_a = _create_course(client, "MIX1", rules=rules_valid_a, absence_penalty=0.0, credits=3)
-    course_b = _create_course(client, "MIX2", rules=rules_valid_b, absence_penalty=0.0, credits=2)
-    course_invalid = _create_course(client, "MIX0", rules=[], absence_penalty=0.0, credits=4)
+    course_a = _create_course(
+        client, "MIX1", rules=rules_valid_a, absence_penalty=0.0, credits=3
+    )
+    course_b = _create_course(
+        client, "MIX2", rules=rules_valid_b, absence_penalty=0.0, credits=2
+    )
+    course_invalid = _create_course(
+        client, "MIX0", rules=[], absence_penalty=0.0, credits=4
+    )
 
-    assert _create_grade(client, s["id"], course_a["id"], "HW1", "Homework", 80).status_code == 201
-    assert _create_dp(client, s["id"], course_a["id"], "Homework", 8, 10).status_code == 200
-    assert _create_grade(client, s["id"], course_a["id"], "Final", "Final", 90).status_code == 201
+    assert (
+        _create_grade(
+            client, s["id"], course_a["id"], "HW1", "Homework", 80
+        ).status_code
+        == 201
+    )
+    assert (
+        _create_dp(client, s["id"], course_a["id"], "Homework", 8, 10).status_code
+        == 200
+    )
+    assert (
+        _create_grade(client, s["id"], course_a["id"], "Final", "Final", 90).status_code
+        == 201
+    )
 
-    assert _create_grade(client, s["id"], course_b["id"], "Project", "Project", 95).status_code == 201
+    assert (
+        _create_grade(
+            client, s["id"], course_b["id"], "Project", "Project", 95
+        ).status_code
+        == 201
+    )
 
     # Ensure the invalid course is considered when gathering course IDs but skipped due to missing rules
-    assert _create_grade(client, s["id"], course_invalid["id"], "Quiz", "Quiz", 100).status_code == 201
+    assert (
+        _create_grade(
+            client, s["id"], course_invalid["id"], "Quiz", "Quiz", 100
+        ).status_code
+        == 201
+    )
 
     r = client.get(f"/api/v1/analytics/student/{s['id']}/all-courses-summary")
     assert r.status_code == 200
@@ -241,6 +316,7 @@ def test_student_all_courses_summary_with_mixed_courses(client):
     assert round(data["overall_gpa"], 2) == 3.56
 
 
+@pytest.mark.auth_required
 def test_student_all_courses_summary_student_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/all-courses-summary")
     assert r.status_code == 404
@@ -248,6 +324,8 @@ def test_student_all_courses_summary_student_not_found(client):
     assert "not found" in detail.lower()
 
 
+@pytest.mark.auth_required
+@pytest.mark.auth_required
 def test_student_all_courses_summary_limits_queries(client):
     student = _create_student(client, 7)
 
@@ -258,21 +336,42 @@ def test_student_all_courses_summary_limits_queries(client):
     ]
 
     for idx, course in enumerate(courses):
-        assert _create_grade(client, student["id"], course["id"], f"HW{idx}", "Homework", 80 + idx).status_code == 201
-        assert _create_dp(client, student["id"], course["id"], "Homework", 8, 10).status_code == 200
-        assert _create_att(client, student["id"], course["id"], "Present", period=idx + 1).status_code == 201
+        assert (
+            _create_grade(
+                client, student["id"], course["id"], f"HW{idx}", "Homework", 80 + idx
+            ).status_code
+            == 201
+        )
+        assert (
+            _create_dp(
+                client, student["id"], course["id"], "Homework", 8, 10
+            ).status_code
+            == 200
+        )
+        assert (
+            _create_att(
+                client, student["id"], course["id"], "Present", period=idx + 1
+            ).status_code
+            == 201
+        )
 
     executed_statements = []
 
-    def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    def _before_cursor_execute(
+        conn, cursor, statement, parameters, context, executemany
+    ):
         normalized = statement.strip().upper()
-        if normalized.startswith(("PRAGMA", "SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN")):
+        if normalized.startswith(
+            ("PRAGMA", "SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN")
+        ):
             return
         executed_statements.append(normalized)
 
     event.listen(engine, "before_cursor_execute", _before_cursor_execute)
     try:
-        response = client.get(f"/api/v1/analytics/student/{student['id']}/all-courses-summary")
+        response = client.get(
+            f"/api/v1/analytics/student/{student['id']}/all-courses-summary"
+        )
         assert response.status_code == 200
     finally:
         event.remove(engine, "before_cursor_execute", _before_cursor_execute)
@@ -282,6 +381,8 @@ def test_student_all_courses_summary_limits_queries(client):
     assert len(select_queries) <= 12
 
 
+@pytest.mark.auth_required
+@pytest.mark.auth_required
 def test_student_summary_success(client):
     s = _create_student(client, 6)
     c = _create_course(
@@ -292,10 +393,18 @@ def test_student_summary_success(client):
     )
 
     for idx, status in enumerate(("Present", "Present", "Absent"), start=1):
-        assert _create_att(client, s["id"], c["id"], status, period=idx).status_code == 201
+        assert (
+            _create_att(client, s["id"], c["id"], status, period=idx).status_code == 201
+        )
 
-    assert _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code == 201
-    assert _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code == 201
+    assert (
+        _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code
+        == 201
+    )
+    assert (
+        _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code
+        == 201
+    )
 
     r = client.get(f"/api/v1/analytics/student/{s['id']}/summary")
     assert r.status_code == 200
@@ -308,6 +417,7 @@ def test_student_summary_success(client):
     assert data["total_assignments"] == 2
 
 
+@pytest.mark.auth_required
 def test_student_summary_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/summary")
     assert r.status_code == 404

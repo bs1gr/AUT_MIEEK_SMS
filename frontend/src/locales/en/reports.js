@@ -3,7 +3,7 @@ export default {
   // Report types
   studentPerformanceReport: 'Student Performance Report',
   bulkReport: 'Bulk Report',
-  
+
   // Actions
   generate: 'Generate Report',
   generating: 'Generating Report...',
@@ -11,7 +11,7 @@ export default {
   print: 'Print Report',
   download: 'Download',
   export: 'Export',
-  
+
   // Configuration
   period: 'Report Period',
   lastWeek: 'Last Week',
@@ -19,13 +19,13 @@ export default {
   semester: 'Semester',
   year: 'Academic Year',
   custom: 'Custom Period',
-  
+
   // Include options
   includeGrades: 'Include Grades',
   includeAttendance: 'Include Attendance',
   includePerformance: 'Include Performance',
   includeHighlights: 'Include Highlights',
-  
+
   // Summaries
   attendanceSummary: 'Attendance Summary',
   gradesSummary: 'Grades Summary',
@@ -33,7 +33,7 @@ export default {
   courseBreakdown: 'Course Breakdown',
   recommendations: 'Recommendations',
   highlights: 'Highlights',
-  
+
   // Attendance metrics
   attendanceRate: 'Attendance Rate',
   totalDays: 'Total Days',
@@ -42,7 +42,7 @@ export default {
   late: 'Late',
   excused: 'Excused',
   unexcusedAbsences: 'Unexcused Absences',
-  
+
   // Grade metrics
   average: 'Average',
   totalAssignments: 'Total Assignments',
@@ -52,22 +52,22 @@ export default {
   grade: 'Grade',
   attendance: 'Attendance',
   absences: 'Absences',
-  
+
   // Trends
   trend_improving: 'Improving',
   trend_declining: 'Declining',
   trend_stable: 'Stable',
-  
+
   // Performance
   performanceCategories: 'Performance by Category',
   category: 'Category',
   averageScore: 'Average Score',
-  
+
   // Messages
   error: 'Error generating report. Please try again.',
   noData: 'No data available for the selected period.',
   reportGenerated: 'Report generated successfully',
-  
+
   // Status
   pending: 'Pending',
   processing: 'Processing',

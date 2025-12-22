@@ -74,7 +74,7 @@ interface StudentPerformanceReportProps {
 
 /**
  * StudentPerformanceReport Component
- * 
+ *
  * Generates comprehensive performance reports for students including:
  * - Attendance summary
  * - Grade statistics
@@ -145,12 +145,12 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         format: format
       };
       const response = await reportsAPI.downloadStudentReport(reportRequest);
-      
+
       // Create blob from response
       const blob = new Blob([response.data], {
         type: format === 'pdf' ? 'application/pdf' : 'text/csv'
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -220,7 +220,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
           {!report && (
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-semibold mb-3">{t('reports.configuration')}</h3>
-              
+
               {/* Period Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -230,6 +230,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   value={config.period}
                   onChange={(e) => handleConfigChange('period', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title={t('reports.period')}
                 >
                   <option value="week">{t('reports.period_week')}</option>
                   <option value="month">{t('reports.period_month')}</option>
@@ -251,6 +252,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       value={config.startDate || ''}
                       onChange={(e) => handleConfigChange('startDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title={t('reports.startDate')}
                     />
                   </div>
                   <div>
@@ -262,6 +264,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       value={config.endDate || ''}
                       onChange={(e) => handleConfigChange('endDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title={t('reports.endDate')}
                     />
                   </div>
                 </div>
@@ -445,7 +448,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       <h4 className="font-semibold mb-2">
                         {course.course_code}: {course.course_title}
                       </h4>
-                      
+
                       {/* Course Attendance */}
                       {course.attendance && (
                         <div className="mb-2">
@@ -455,7 +458,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                           </p>
                         </div>
                       )}
-                      
+
                       {/* Course Grades */}
                       {course.grades && (
                         <div className="mb-2">

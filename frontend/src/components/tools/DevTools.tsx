@@ -1,4 +1,4 @@
-// DevTools - typed (keep linting enabled) 
+// DevTools - typed (keep linting enabled)
 import { useLanguage } from '../../LanguageContext';
 import { useState } from 'react';
 import { Settings, Database, Download, Upload, Trash2, RefreshCw, CheckCircle, Power, AlertTriangle } from 'lucide-react';

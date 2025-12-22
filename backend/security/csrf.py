@@ -81,7 +81,9 @@ def _load_csrf_config() -> Sequence[tuple[str, Any]]:
 
 
 _csrf_instance: CsrfProtect | None = None
-_EXACT_EXEMPT_PATHS, _PREFIX_EXEMPT_PATHS = _split_exempt_paths(settings.CSRF_EXEMPT_PATHS_LIST)
+_EXACT_EXEMPT_PATHS, _PREFIX_EXEMPT_PATHS = _split_exempt_paths(
+    settings.CSRF_EXEMPT_PATHS_LIST
+)
 
 
 def _in_test_context() -> bool:
@@ -103,8 +105,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     ) -> None:
         super().__init__(app)
         self._csrf = csrf
-        self._exempt_exact = { _normalize_path(p) for p in (exempt_exact or ()) }
-        self._exempt_prefixes = tuple(_normalize_path(p) for p in (exempt_prefixes or ()))
+        self._exempt_exact = {_normalize_path(p) for p in (exempt_exact or ())}
+        self._exempt_prefixes = tuple(
+            _normalize_path(p) for p in (exempt_prefixes or ())
+        )
         self._enforce_in_tests = enforce_in_tests
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
@@ -112,16 +116,23 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             try:
                 await self._csrf.validate_csrf(request)
             except CsrfProtectError as exc:
-                logger.warning("CSRF validation failed for %s: %s", request.url.path, exc.message)
+                logger.warning(
+                    "CSRF validation failed for %s: %s", request.url.path, exc.message
+                )
                 return JSONResponse(
                     status_code=403,
                     content={"detail": exc.message, "error": "csrf_validation_failed"},
                 )
             except Exception as exc:  # pragma: no cover - defensive guard
-                logger.warning("Unexpected CSRF validation error for %s: %s", request.url.path, exc)
+                logger.warning(
+                    "Unexpected CSRF validation error for %s: %s", request.url.path, exc
+                )
                 return JSONResponse(
                     status_code=403,
-                    content={"detail": "Invalid CSRF token", "error": "csrf_validation_failed"},
+                    content={
+                        "detail": "Invalid CSRF token",
+                        "error": "csrf_validation_failed",
+                    },
                 )
         response = await call_next(request)
         return response
@@ -210,7 +221,9 @@ def install_csrf_protection(app: FastAPI) -> None:
 
     @app.exception_handler(CsrfProtectError)
     async def _csrf_exception_handler(request: Request, exc: CsrfProtectError):
-        logger.warning("CSRF validation failed for %s: %s", request.url.path, exc.message)
+        logger.warning(
+            "CSRF validation failed for %s: %s", request.url.path, exc.message
+        )
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.message, "error": "csrf_validation_failed"},
@@ -235,6 +248,7 @@ def install_csrf_protection(app: FastAPI) -> None:
         len(_EXACT_EXEMPT_PATHS) + len(_PREFIX_EXEMPT_PATHS),
     )
 
+
 __all__ = [
     "CSRFMiddleware",
     "get_csrf_protect",
@@ -247,4 +261,6 @@ __all__ = [
 
 
 class _SupportsAddMiddleware(Protocol):
-    def add_middleware(self, middleware_class: type[BaseHTTPMiddleware], **options: Any) -> None: ...
+    def add_middleware(
+        self, middleware_class: type[BaseHTTPMiddleware], **options: Any
+    ) -> None: ...

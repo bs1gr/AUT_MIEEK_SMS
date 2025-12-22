@@ -67,24 +67,24 @@ function Write-Info { param($msg) Write-Host "ℹ️  $msg" -ForegroundColor Cya
 if ($CIMode) {
     $VERSION_FILE = Join-Path $PROJECT_ROOT 'VERSION'
     $FRONTEND_PKG = Join-Path $PROJECT_ROOT 'frontend\package.json'
-    
+
     if (-not (Test-Path $VERSION_FILE) -or -not (Test-Path $FRONTEND_PKG)) {
         Write-Error-Message "Missing VERSION or frontend/package.json"
         exit 1
     }
-    
+
     $versionFile = (Get-Content $VERSION_FILE -Raw).Trim()
     $pkg = Get-Content $FRONTEND_PKG -Raw | ConvertFrom-Json
     $versionPkg = $pkg.version
-    
+
     Write-Host "VERSION file: $versionFile"
     Write-Host "package.json: $versionPkg"
-    
+
     if ($versionFile -ne $versionPkg) {
         Write-Error-Message "Version mismatch: VERSION ($versionFile) != package.json ($versionPkg)"
         exit 1
     }
-    
+
     Write-Success "Version consistency OK (CI mode)"
     exit 0
 }
@@ -227,7 +227,7 @@ Write-Host ("=" * 70) -ForegroundColor Cyan
 foreach ($check in $versionChecks) {
     $results.Total++
     $filePath = Join-Path $PROJECT_ROOT $check.File
-    
+
     if (-not (Test-Path $filePath)) {
         Write-Warning "$($check.Description): File not found - $($check.File)"
         if ($check.Critical) {
@@ -239,7 +239,7 @@ foreach ($check in $versionChecks) {
 
     try {
         $content = Get-Content $filePath -Raw
-        
+
         # Special handling for VERSION file (exact match)
         if ($check.ExactMatch) {
             $currentVersion = $content.Trim()
@@ -258,15 +258,15 @@ foreach ($check in $versionChecks) {
             }
             continue
         }
-        
+
         # Check if version matches
         if ($content -match $check.Pattern) {
             $currentMatch = $matches[0]
-            
+
             # Extract version number from match
             if ($currentMatch -match '\d+\.\d+\.\d+') {
                 $currentVersion = $matches[0]
-                
+
                 if ($currentVersion -eq $Version) {
                     Write-Success "$($check.Description): $currentVersion (correct)"
                     $results.Consistent++
@@ -312,15 +312,15 @@ if ($Update) {
         try {
             $lockContent = Get-Content $packageLockPath -Raw
             $lockJson = $lockContent | ConvertFrom-Json -Depth 100
-            
+
             # Update only the root-level version
             $lockJson.version = $Version
-            
+
             # Update the packages."" version (represents the project itself)
             if ($lockJson.packages -and $lockJson.packages.PSObject.Properties['']) {
                 $lockJson.packages.''.version = $Version
             }
-            
+
             # Convert back to JSON with proper formatting
             $updatedContent = $lockJson | ConvertTo-Json -Depth 100
             Set-Content -Path $packageLockPath -Value $updatedContent -Encoding UTF8
@@ -356,16 +356,16 @@ if ($Report) {
     Write-Host "`n" + ("=" * 70) -ForegroundColor Cyan
     Write-Host "Generating Verification Report" -ForegroundColor Cyan
     Write-Host ("=" * 70) -ForegroundColor Cyan
-    
+
     $reportPath = Join-Path $PROJECT_ROOT "VERSION_VERIFICATION_REPORT.md"
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    
+
     $reportContent = @"
 # Version Verification Report
 
-**Date:** $timestamp  
-**Target Version:** $Version  
-**Mode:** $(if($Update) {'UPDATE'} else {'CHECK ONLY'})  
+**Date:** $timestamp
+**Target Version:** $Version
+**Mode:** $(if($Update) {'UPDATE'} else {'CHECK ONLY'})
 **Status:** $(if($results.Failed -eq 0 -and $results.Inconsistent -eq 0) {'✅ VERIFIED'} else {'⚠️ ISSUES FOUND'})
 
 ---
@@ -397,7 +397,7 @@ if ($Report) {
     }
 
     $reportContent += "`n`n---`n`n## Next Steps`n`n"
-    
+
     if ($results.Inconsistent -gt 0 -and -not $Update) {
         $reportContent += "Run with ``-Update`` flag to automatically fix inconsistencies:`n``````powershell`n.\scripts\VERIFY_VERSION.ps1 -Version `"$Version`" -Update`n```````n"
     } elseif ($results.Updated -gt 0) {

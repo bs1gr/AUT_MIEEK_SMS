@@ -127,7 +127,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     setImportingSession(true);
     try {
       const result = await sessionAPI.importSession(selectedFile, mergeStrategy);
-      
+
       // Show summary
         const summary = (result as { summary?: Record<string, { created?: number; updated?: number; errors?: unknown[] }> }).summary || {};
       const totalCreated = Object.values(summary).reduce((sum: number, item: { created?: number }) => sum + (item.created || 0), 0);
@@ -139,13 +139,13 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
       } else {
         showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated})`, 'success');
       }
-      
+
       // Reset file input
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      
+
       // Reload semesters in case new ones were added
       loadSemesters();
     } catch (error: unknown) {
@@ -175,10 +175,10 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      
+
       const response = await sessionAPI.importSession(selectedFile, mergeStrategy, true); // dry_run=true
       setValidationResult(response as ImportValidationResult);
-      
+
       if (response.validation_passed) {
         showToast(t('validationPassed'), 'success');
       }
@@ -488,7 +488,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     }
   }, [t, showToast]);
 
-  
+
   useEffect(() => {
     void loadData();
   }, [loadData]);

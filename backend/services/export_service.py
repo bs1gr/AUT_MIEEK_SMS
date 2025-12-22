@@ -86,7 +86,9 @@ class ExportService:
         records = (
             db.query(Attendance)
             .filter(Attendance.deleted_at.is_(None))
-            .order_by(Attendance.student_id, Attendance.course_id, Attendance.date.desc())
+            .order_by(
+                Attendance.student_id, Attendance.course_id, Attendance.date.desc()
+            )
             .all()
         )
 
@@ -129,7 +131,12 @@ class ExportService:
     def get_all_courses(db: Session):
         """Get all courses for export."""
         (Course,) = import_names("models", "Course")
-        return db.query(Course).filter(Course.deleted_at.is_(None)).order_by(Course.course_code).all()
+        return (
+            db.query(Course)
+            .filter(Course.deleted_at.is_(None))
+            .order_by(Course.course_code)
+            .all()
+        )
 
     @staticmethod
     def get_all_enrollments(db: Session):
@@ -139,7 +146,10 @@ class ExportService:
 
         return (
             db.query(CourseEnrollment)
-            .options(joinedload(CourseEnrollment.student), joinedload(CourseEnrollment.course))
+            .options(
+                joinedload(CourseEnrollment.student),
+                joinedload(CourseEnrollment.course),
+            )
             .order_by(CourseEnrollment.course_id, CourseEnrollment.student_id)
             .all()
         )
@@ -166,7 +176,10 @@ class ExportService:
 
         return (
             db.query(DailyPerformance)
-            .options(joinedload(DailyPerformance.student), joinedload(DailyPerformance.course))
+            .options(
+                joinedload(DailyPerformance.student),
+                joinedload(DailyPerformance.course),
+            )
             .order_by(DailyPerformance.date.desc(), DailyPerformance.student_id)
             .all()
         )
@@ -217,7 +230,9 @@ class ExportService:
         attendance = (
             db.query(Attendance)
             .options(joinedload(Attendance.course))
-            .filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None))
+            .filter(
+                Attendance.student_id == student_id, Attendance.deleted_at.is_(None)
+            )
             .order_by(Attendance.date.desc())
             .all()
         )
@@ -275,7 +290,9 @@ class ExportService:
 
         # Calculate statistics
         if grades:
-            grade_values = [(g.grade / g.max_grade * 100) if g.max_grade > 0 else 0 for g in grades]
+            grade_values = [
+                (g.grade / g.max_grade * 100) if g.max_grade > 0 else 0 for g in grades
+            ]
             avg_grade = sum(grade_values) / len(grade_values) if grade_values else 0
             highest = max(grade_values) if grade_values else 0
             lowest = min(grade_values) if grade_values else 0

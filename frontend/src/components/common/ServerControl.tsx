@@ -110,7 +110,7 @@ const ServerControl: React.FC = () => {
     }
   }, [status.backend]);
 
-  
+
   const checkStatus = React.useCallback(async () => {
     try {
       const data = await getHealthStatus();

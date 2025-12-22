@@ -9,7 +9,9 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-def wait_for_server(url: str = "http://localhost:8000/health", timeout: int = 60, interval: int = 2):
+def wait_for_server(
+    url: str = "http://localhost:8000/health", timeout: int = 60, interval: int = 2
+):
     """Wait for the backend server to be ready."""
     start_time = time.time()
     while time.time() - start_time < timeout:
@@ -45,10 +47,14 @@ def check_and_import_courses(api_url: str = "http://localhost:8000/api/v1"):
                     )
                     return True
                 else:
-                    print(f"⚠ Auto-import failed with status {import_response.status_code}")
+                    print(
+                        f"⚠ Auto-import failed with status {import_response.status_code}"
+                    )
                     return False
             else:
-                print(f"Courses already exist in database ({len(courses)} courses) - skipping auto-import")
+                print(
+                    f"Courses already exist in database ({len(courses)} courses) - skipping auto-import"
+                )
                 return True
     except Exception as e:
         print(f"⚠ Auto-import check failed: {e}")

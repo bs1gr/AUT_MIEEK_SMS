@@ -1,0 +1,542 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.1, pluggy-1.6.0 -- C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\SMS\student-management-system
+plugins: anyio-4.11.0, Faker-38.2.0, langsmith-0.4.30, locust-2.42.6, cov-7.0.0
+collecting ... collected 11 items
+
+backend/tests/test_students_router.py::test_create_student_success [run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+FAILED [  9%]
+backend/tests/test_students_router.py::test_create_student_allows_empty_optional_strings FAILED [ 18%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_create_student_duplicate_email FAILED [ 27%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_create_student_duplicate_student_id FAILED [ 36%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_get_student_by_id_and_404 FAILED [ 45%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_list_students_pagination_and_filters FAILED [ 54%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_update_student_success_and_validation_errors FAILED [ 63%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_delete_student_and_then_404 [run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] upgrade(head) failed: 'script'
+[run_migrations] Attempting upgrade to 'heads'
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+FAILED [ 72%]
+backend/tests/test_students_router.py::test_activate_deactivate_student FAILED [ 81%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_bulk_create_students_with_duplicates FAILED [ 90%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_students_router.py::test_create_student_handles_internal_error FAILED [100%]
+
+================================== FAILURES ===================================
+_________________________ test_create_student_success _________________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A68D70>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_create_student_success(client):
+        payload = make_student_payload(1)
+        r = client.post(
+            "/api/v1/students/",
+            json=payload,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+>       assert r.status_code == 201, r.text
+E       AssertionError: {"type":"https://httpstatuses.com/401","title":"HTTP Exception","status":401,"detail":{"error_id":"AUTH_UNAUTHORIZED","error_code":"UNAUTHORIZED","message":"Could not validate credentials","request_id":"f586a3d5-dfeb-4530-a4a7-15e7987105d5"},"instance":"http://testserver/api/v1/students/?a=dummy&k=dummy","errors":null}
+E       assert 401 == 201
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:35: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stderr setup ----------------------------
+2025-12-20 11:01:11,445 - backend.lifespan - INFO - [-] - \u2705 Query profiler registered\n2025-12-20 11:01:11,459 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
+----------------------------- Captured log setup ------------------------------
+INFO     backend.lifespan:lifespan.py:29 \u2705 Query profiler registered\nINFO     backend.scripts.migrate.runner:runner.py:56 [run_migrations] ENTER
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+---------------------------- Captured stderr call -----------------------------
+2025-12-20 11:01:11,471 - backend.request_id_middleware - INFO - [f586a3d5-dfeb-4530-a4a7-15e7987105d5] - Request started: POST /api/v1/students/
+2025-12-20 11:01:11,475 - backend.request_id_middleware - INFO - [f586a3d5-dfeb-4530-a4a7-15e7987105d5] - Request completed: POST /api/v1/students/ - Status: 401
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+------------------------------ Captured log call ------------------------------
+INFO     backend.request_id_middleware:request_id_middleware.py:56 Request started: POST /api/v1/students/
+INFO     backend.request_id_middleware:request_id_middleware.py:69 Request completed: POST /api/v1/students/ - Status: 401
+______________ test_create_student_allows_empty_optional_strings ______________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A69160>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_create_student_allows_empty_optional_strings(client):
+        # Optional fields provided as empty strings should be treated as null/None
+        payload = make_student_payload(
+            2,
+            father_name="",
+            mobile_phone="",
+            phone="",
+            health_issue="",
+            note="",
+            enrollment_date="",
+            study_year="",
+        )
+        r = client.post(
+            "/api/v1/students/",
+            json=payload,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+>       assert r.status_code == 201, r.text
+E       AssertionError: {"type":"https://httpstatuses.com/401","title":"HTTP Exception","status":401,"detail":{"error_id":"AUTH_UNAUTHORIZED","error_code":"UNAUTHORIZED","message":"Could not validate credentials","request_id":"3a87ee2f-80d5-44d0-8e9a-392ede426bea"},"instance":"http://testserver/api/v1/students/?a=dummy&k=dummy","errors":null}
+E       assert 401 == 201
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:63: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+---------------------------- Captured stderr call -----------------------------
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+_____________________ test_create_student_duplicate_email _____________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A696A0>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_create_student_duplicate_email(client):
+        p1 = make_student_payload(1)
+        p2 = make_student_payload(
+            2, email=p1["email"]
+        )  # duplicate email, different student_id
+        r1 = client.post(
+            "/api/v1/students/",
+            json=p1,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+>       assert r1.status_code == 201
+E       assert 401 == 201
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:88: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+__________________ test_create_student_duplicate_student_id ___________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A6BB60>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_create_student_duplicate_student_id(client):
+        p1 = make_student_payload(1)
+        p2 = make_student_payload(
+            2, student_id=p1["student_id"]
+        )  # duplicate id, different email
+        r1 = client.post(
+            "/api/v1/students/",
+            json=p1,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+>       assert r1.status_code == 201
+E       assert 401 == 201
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:117: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+_______________________ test_get_student_by_id_and_404 ________________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8BBFA10>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_get_student_by_id_and_404(client):
+        p = make_student_payload(1)
+        r1 = client.post(
+            "/api/v1/students/",
+            json=p,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+        student = r1.json()
+        r_get = client.get(
+>           f"/api/v1/students/{student['id']}", params={"a": "dummy", "k": "dummy"}
+                                ^^^^^^^^^^^^^
+        )
+E       KeyError: 'id'
+
+backend\tests\test_students_router.py:142: KeyError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTERLogger name: backend.lifespan
+
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+__________________ test_list_students_pagination_and_filters __________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8BBECF0>
+admin_token = '<JWT_TOKEN_REDACTED>'  # pragma: allowlist secret
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_list_students_pagination_and_filters(client, admin_token):
+        # create 3 students, deactivate one
+        sids = []
+        for i in range(1, 4):
+            r = client.post(
+                "/api/v1/students/",
+                json=make_student_payload(i),
+                params={"a": "dummy", "k": "dummy"},
+                jwt_subject="admin@example.com",
+            )
+>           assert r.status_code == 201, r.text
+E           AssertionError: {"type":"https://httpstatuses.com/401","title":"HTTP Exception","status":401,"detail":{"error_id":"AUTH_UNAUTHORIZED","error_code":"UNAUTHORIZED","message":"Could not validate credentials","request_id":"bd28c9d6-ade6-4f1f-ac5a-5acba1a2bea6"},"instance":"http://testserver/api/v1/students/?a=dummy&k=dummy","errors":null}
+E           assert 401 == 201
+E            +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:160: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+______________ test_update_student_success_and_validation_errors ______________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8BBE900>
+admin_token = '<JWT_TOKEN_REDACTED>'  # pragma: allowlist secret
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_update_student_success_and_validation_errors(client, admin_token):
+        p = make_student_payload(1)
+        r = client.post(
+            "/api/v1/students/",
+            json=p,
+            params={"a": "dummy", "k": "dummy"},
+            jwt_subject="admin@example.com",
+        )
+>       assert r.status_code == 201, r.text
+E       AssertionError: {"type":"https://httpstatuses.com/401","title":"HTTP Exception","status":401,"detail":{"error_id":"AUTH_UNAUTHORIZED","error_code":"UNAUTHORIZED","message":"Could not validate credentials","request_id":"25d7c1d8-05b9-45b7-835a-16e11079cdbd"},"instance":"http://testserver/api/v1/students/?a=dummy&k=dummy","errors":null}
+E       assert 401 == 201
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:198: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+______________________ test_delete_student_and_then_404 _______________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8BBEA50>
+admin_token = '<JWT_TOKEN_REDACTED>'  # pragma: allowlist secret
+bootstrap_admin = {'email': 'admin@example.com', 'password': 'YourSecurePassword123!'}  # pragma: allowlist secret
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_delete_student_and_then_404(client, admin_token, bootstrap_admin):
+        # Enable authentication for this test and create bootstrap admin user
+        import backend.config as config
+        from backend.models import User
+        from backend.tests.conftest import SessionLocal
+        settings = config.settings
+        settings.AUTH_ENABLED = True
+        session = SessionLocal()
+        try:
+            # Create bootstrap admin user if not exists
+            if not session.query(User).filter_by(email=bootstrap_admin["email"]).first():
+>               user = User(
+                    email=bootstrap_admin["email"],
+                    hashed_password='$2b$12$KIXQ4Qh8QJQ1QwQwQwQwQOQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw',  # bcrypt for 'YourSecurePassword123!'
+                    is_active=True,
+                    is_superuser=True,
+                    role="admin"
+                )
+
+backend\tests\test_students_router.py:258:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:4: in __init__
+    ???
+C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\state.py:571: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\util\langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\state.py:569: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <User(id=None, email=admin@example.com, role=None)>
+kwargs = {'email': 'admin@example.com', 'hashed_password': '$2b$12$KIXQ4Qh8QJQ1QwQwQwQwQOQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 'is_active': True, 'is_superuser': True, ...}
+cls_ = <class 'backend.models.User'>, k = 'is_superuser'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'is_superuser' is an invalid keyword argument for User
+
+C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\decl_base.py:2179: TypeError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+______________________ test_activate_deactivate_student _______________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A696A0>
+admin_token = '***MASKED_FOR_TEST_OUTPUT***'  # pragma: allowlist secret
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_activate_deactivate_student(client, admin_token):
+        p = make_student_payload(1)
+        r = client.post("/api/v1/students/", json=p, params={"a": "dummy", "k": "dummy"})
+        print("DEBUG: POST /api/v1/students/ response:", r.status_code, r.text)
+        if r.status_code != 201:
+            print("DEBUG BODY:", r.json())[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+
+        data = r.json()
+>       sid = data["id"]
+              ^^^^^^^^^^
+E       KeyError: 'id'
+
+backend\tests\test_students_router.py:338: KeyError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+DEBUG: POST /api/v1/students/ response: 401 {"type":"https://httpstatuses.com/401","title":"HTTP Exception","status":401,"detail":{"error_id":"AUTH_UNAUTHORIZED","error_code":"UNAUTHORIZED","message":"Could not validate credentials","request_id":"121a7348-00fd-4262-9749-6899a1fca6f8"},"instance":"http://testserver/api/v1/students/?a=dummy&k=dummy","errors":null}
+DEBUG BODY: {'type': 'https://httpstatuses.com/401', 'title': 'HTTP Exception', 'status': 401, 'detail': {'error_id': 'AUTH_UNAUTHORIZED', 'error_code': 'UNAUTHORIZED', 'message': 'Could not validate credentials', 'request_id': '121a7348-00fd-4262-9749-6899a1fca6f8'}, 'instance': 'http://testserver/api/v1/students/?a=dummy&k=dummy', 'errors': None}
+---------------------------- Captured stderr call -----------------------------
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+__________________ test_bulk_create_students_with_duplicates __________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A69160>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_bulk_create_students_with_duplicates(client):
+        students = [
+            make_student_payload(1),
+            make_student_payload(2),
+            make_student_payload(
+                3, email="john1.doe1@example.com"
+            ),  # duplicate email of #1
+            make_student_payload(4, student_id="STD0001"),  # duplicate student ID of #1
+        ]
+        r = client.post(
+            "/api/v1/students/bulk/create",
+            json=students,
+            params={"a": "dummy", "k": "dummy"},
+        )
+>       assert r.status_code == 200
+E       assert 401 == 200
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:371: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/bulk/create AUTH_ENABLED: False
+_________________ test_create_student_handles_internal_error __________________
+
+client = <backend.tests.conftest.client.<locals>.CustomClient object at 0x0000013BF8A6BA10>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000013BF8DB7BD0>
+
+    @pytest.mark.auth_required
+    @pytest.mark.requires_params(["a", "k"])
+    def test_create_student_handles_internal_error(client, monkeypatch):
+        from backend.routers import routers_students
+
+        def broken_import(*_args, **_kwargs):
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(routers_students, "import_names", broken_import)
+
+        r = client.post(
+            "/api/v1/students/",
+            json=make_student_payload(10),
+            params={"a": "dummy", "k": "dummy"},
+        )
+>       assert r.status_code == 500
+E       assert 401 == 500
+E        +  where 401 = <Response [401 Unauthorized]>.status_code
+
+backend\tests\test_students_router.py:396: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTERLogger name: backend.lifespan
+
+---------------------------- Captured stdout call -----------------------------
+DEBUG: get_current_user called for path: /api/v1/students/ AUTH_ENABLED: False
+============================== warnings summary ===============================
+backend\tests\test_students_router.py:25
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:25: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:26
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:26: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:43
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:43: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:44
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:44: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:75
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:75: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:76
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:76: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:104
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:104: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:105
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:105: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:130
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:130: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:131
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:131: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:148
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:148: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required[run_migrations] EXIT OK
+
+
+backend\tests\test_students_router.py:149
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:149: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:188
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:188: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:189
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:189: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:245
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:245: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:246
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:246: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:329
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:329: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:330
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:330: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:355
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:355: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:356
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:356: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend\tests\test_students_router.py:381
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:381: PytestUnknownMarkWarning: Unknown pytest.mark.auth_required - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.auth_required
+
+backend\tests\test_students_router.py:382
+  D:\SMS\student-management-system\backend\tests\test_students_router.py:382: PytestUnknownMarkWarning: Unknown pytest.mark.requires_params - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.requires_params(["a", "k"])
+
+backend/tests/test_students_router.py: 11 warnings
+  D:\SMS\student-management-system\backend\tests\conftest.py:66: UserWarning: [pytest] 'requires_params' marker detected, but client.params is immutable. Please add required query params explicitly in each test request, e.g. client.get(url, params={...})
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend/tests/test_students_router.py::test_create_student_success - A...
+FAILED backend/tests/test_students_router.py::test_create_student_allows_empty_optional_strings
+FAILED backend/tests/test_students_router.py::test_create_student_duplicate_email
+FAILED backend/tests/test_students_router.py::test_create_student_duplicate_student_id
+FAILED backend/tests/test_students_router.py::test_get_student_by_id_and_404
+FAILED backend/tests/test_students_router.py::test_list_students_pagination_and_filters
+FAILED backend/tests/test_students_router.py::test_update_student_success_and_validation_errors
+FAILED backend/tests/test_students_router.py::test_delete_student_and_then_404
+FAILED backend/tests/test_students_router.py::test_activate_deactivate_student
+FAILED backend/tests/test_students_router.py::test_bulk_create_students_with_duplicates
+FAILED backend/tests/test_students_router.py::test_create_student_handles_internal_error
+======================= 11 failed, 33 warnings in 1.11s =======================

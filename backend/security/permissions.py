@@ -4,6 +4,7 @@ Provides helpers similar to routers_auth.require_role/optional_require_role but
 for arbitrary permissions, backed by DB tables when available and falling back
 to default role->permission mappings when not configured.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,10 +26,7 @@ except Exception:  # pragma: no cover - fallback when running directly
     import models  # type: ignore
 
 # Reuse existing auth dependency for current user resolution
-try:
-    from backend.routers.routers_auth import get_current_user
-except Exception:  # pragma: no cover
-    from routers.routers_auth import get_current_user  # type: ignore
+from backend.security.current_user import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +86,9 @@ def user_permissions_from_db(db: Session, user: Any) -> set[str]:
     try:
         # Check if RBAC tables exist in metadata (tests may create schema on the fly)
         tables = set(models.Base.metadata.tables.keys())
-        if not {"roles", "permissions", "role_permissions", "user_roles"}.issubset(tables):
+        if not {"roles", "permissions", "role_permissions", "user_roles"}.issubset(
+            tables
+        ):
             raise RuntimeError("RBAC tables not present")
 
         # Collect roles for user
@@ -109,7 +109,10 @@ def user_permissions_from_db(db: Session, user: Any) -> set[str]:
         # Collect permission names
         rows = (
             db.query(models.Permission.name)
-            .join(models.RolePermission, models.RolePermission.permission_id == models.Permission.id)
+            .join(
+                models.RolePermission,
+                models.RolePermission.permission_id == models.Permission.id,
+            )
             .filter(models.RolePermission.role_id.in_(role_ids))
             .all()
         )
@@ -119,7 +122,9 @@ def user_permissions_from_db(db: Session, user: Any) -> set[str]:
             # using the role names assigned.
             inherited = set()
             for r in roles:
-                inherited.update(_default_role_permissions().get(str(r.name).lower(), set()))
+                inherited.update(
+                    _default_role_permissions().get(str(r.name).lower(), set())
+                )
             perms = inherited
     except Exception:
         # Any DB errors -> default mapping
@@ -149,8 +154,13 @@ def _check_permission(perms: set[str], required: str) -> bool:
 
 # Dependency factories
 
+
 def require_permission(permission: str):
-    def _dep(request: Request, user: Any = Depends(get_current_user), db: Session = Depends(get_db)) -> Any:
+    def _dep(
+        request: Request,
+        user: Any = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> Any:
         perms = user_permissions_from_db(db, user)
         if not _check_permission(perms, permission):
             raise http_error(
@@ -158,7 +168,10 @@ def require_permission(permission: str):
                 ErrorCode.FORBIDDEN,
                 f"Missing permission: {permission}",
                 request,
-                context={"required_permission": permission, "user_email": getattr(user, "email", None)},
+                context={
+                    "required_permission": permission,
+                    "user_email": getattr(user, "email", None),
+                },
             )
         return user
 
@@ -172,14 +185,25 @@ def optional_require_permission(permission: str):
     - When AUTH is enabled: verifies permission via DB or defaults
     """
 
-    def _dep(request: Request, user: Any = Depends(get_current_user), db: Session = Depends(get_db)) -> Any:
+    def _dep(
+        request: Request,
+        user: Any = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> Any:
         # Check auth status at runtime (not definition time) to support dynamic toggling in tests
         auth_enabled = getattr(settings, "AUTH_ENABLED", False)
         auth_mode = getattr(settings, "AUTH_MODE", "disabled")
         if not auth_enabled or auth_mode == "disabled":
             from types import SimpleNamespace
-            return SimpleNamespace(id=1, email="admin@example.com", role="admin", is_active=True, full_name="Admin User")
-        
+
+            return SimpleNamespace(
+                id=1,
+                email="admin@example.com",
+                role="admin",
+                is_active=True,
+                full_name="Admin User",
+            )
+
         perms = user_permissions_from_db(db, user)
         if not _check_permission(perms, permission):
             raise http_error(
@@ -187,7 +211,10 @@ def optional_require_permission(permission: str):
                 ErrorCode.FORBIDDEN,
                 f"Missing permission: {permission}",
                 request,
-                context={"required_permission": permission, "current_role": getattr(user, "role", None)},
+                context={
+                    "required_permission": permission,
+                    "current_role": getattr(user, "role", None),
+                },
             )
         return user
 
@@ -202,26 +229,37 @@ def depends_on_permission(permission: str, *fallback_roles: str):
     - Returns the user if check passes, raises 403 if fails
     - When AUTH is disabled: returns a dummy admin-like user for tests
     """
-    
-    def _dep(request: Request, user: Any = Depends(get_current_user), db: Session = Depends(get_db)) -> Any:
+
+    def _dep(
+        request: Request,
+        user: Any = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> Any:
         # Check auth status at runtime (not definition time) to support dynamic toggling in tests
         auth_enabled = getattr(settings, "AUTH_ENABLED", False)
         auth_mode = getattr(settings, "AUTH_MODE", "disabled")
         if not auth_enabled or auth_mode == "disabled":
             # When AUTH is disabled, grant everyone full access (testing mode)
             from types import SimpleNamespace
-            return SimpleNamespace(id=1, email="admin@example.com", role="admin", is_active=True, full_name="Admin User")
-        
+
+            return SimpleNamespace(
+                id=1,
+                email="admin@example.com",
+                role="admin",
+                is_active=True,
+                full_name="Admin User",
+            )
+
         # Try to check permission first
         perms = user_permissions_from_db(db, user)
         if _check_permission(perms, permission):
             return user
-        
+
         # Fall back to role check
         user_role = getattr(user, "role", None)
         if user_role and str(user_role).lower() in {r.lower() for r in fallback_roles}:
             return user
-        
+
         # Neither permission nor role matched
         raise http_error(
             403,
@@ -236,4 +274,3 @@ def depends_on_permission(permission: str, *fallback_roles: str):
         )
 
     return _dep
-

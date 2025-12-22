@@ -23,7 +23,9 @@ from backend.security.permissions import optional_require_permission
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}}
+)
 
 _THIS_FILE = Path(__file__).resolve()
 _BACKEND_DIR = _THIS_FILE.parents[1]
@@ -32,7 +34,6 @@ _PROJECT_ROOT = _THIS_FILE.parents[2]
 BACKUPS_DIR = str((_PROJECT_ROOT / "backups").resolve())
 COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
 STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
-
 
 
 class ClearPayload(BaseModel):
@@ -53,7 +54,10 @@ def _get_db_file() -> str:
 
 @router.post("/backup")
 @limiter.limit(RATE_LIMIT_HEAVY)
-def backup_database(request: Request, current_user=Depends(optional_require_permission("adminops.backup"))):
+def backup_database(
+    request: Request,
+    current_user=Depends(optional_require_permission("adminops.backup")),
+):
     try:
         db_file = _get_db_file()
         if not os.path.isfile(db_file):
@@ -74,13 +78,17 @@ def backup_database(request: Request, current_user=Depends(optional_require_perm
         raise
     except Exception as exc:
         logger.error("Backup failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.ADMINOPS_BACKUP_FAILED, "Backup failed", request)
+        raise http_error(
+            500, ErrorCode.ADMINOPS_BACKUP_FAILED, "Backup failed", request
+        )
 
 
 @router.post("/restore")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def restore_database(
-    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_permission("adminops.restore"))
+    request: Request,
+    file: UploadFile = File(...),
+    current_user=Depends(optional_require_permission("adminops.restore")),
 ):
     """
     Restore the SQLite database from an uploaded .db file.
@@ -93,7 +101,9 @@ def restore_database(
     try:
         os.makedirs(BACKUPS_DIR, exist_ok=True)
         # Save upload to temp
-        temp_target = os.path.join(BACKUPS_DIR, f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
+        temp_target = os.path.join(
+            BACKUPS_DIR, f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        )
         with open(temp_target, "wb") as out:
             chunk = file.file.read(1024 * 1024)
             while chunk:
@@ -121,7 +131,9 @@ def restore_database(
         raise
     except Exception as exc:
         logger.error("Restore failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.ADMINOPS_RESTORE_FAILED, "Restore failed", request)
+        raise http_error(
+            500, ErrorCode.ADMINOPS_RESTORE_FAILED, "Restore failed", request
+        )
 
 
 @router.post("/clear")
@@ -140,7 +152,15 @@ def clear_database(
             request,
         )
     try:
-        Attendance, DailyPerformance, Grade, Highlight, CourseEnrollment, Course, Student = import_names(
+        (
+            Attendance,
+            DailyPerformance,
+            Grade,
+            Highlight,
+            CourseEnrollment,
+            Course,
+            Student,
+        ) = import_names(
             "models",
             "Attendance",
             "DailyPerformance",

@@ -1,10 +1,3 @@
-r"""
-Imports Router
-Bulk-import courses and students from JSON files in templates directories.
-- Courses dir: D:\SMS\student-management-system\templates\courses\
-- Students dir: D:\SMS\student-management-system\templates\students\
-"""
-
 import csv
 import io
 import json
@@ -15,23 +8,22 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import List
-
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
-
+from .routers_auth import optional_require_role
+from backend.security.permissions import optional_require_permission
+from backend.security.api_keys import verify_api_key_optional
 from backend.errors import ErrorCode, http_error
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
 from backend.services.import_service import ImportService
 from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
-
-from .routers_auth import optional_require_role
-from backend.security.permissions import optional_require_permission
-from backend.security.api_keys import verify_api_key_optional
+from backend.db import get_session as get_db
+from backend.import_resolver import import_names
+from backend.schemas import ImportPreviewItem, ImportPreviewResponse
 
 logger = logging.getLogger(__name__)
 
-# File upload security constraints
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_MIME_TYPES = {
     "application/json",
@@ -45,22 +37,29 @@ ALLOWED_MIME_TYPES = {
 }
 ALLOWED_EXTENSIONS = {".json", ".xlsx", ".xls", ".csv"}
 
+"""
+Imports Router
+Bulk-import courses and students from JSON files in templates directories.
+- Courses dir: D:\SMS\student-management-system\templates\courses\
+- Students dir: D:\SMS\student-management-system\templates\students\
+"""
+
+
 # Default templates directories. In development these may be absolute paths on the
 # host (e.g. Windows paths). When running inside Docker the project is located
 # at the project root in the container image; prefer an environment override
 # or fall back to a project-relative `templates/` directory so imports work in
 # both local and containerized environments.
 project_root = Path(__file__).resolve().parents[2]
-COURSES_DIR = os.environ.get("IMPORT_COURSES_DIR") or str((project_root / "templates" / "courses").as_posix())
-STUDENTS_DIR = os.environ.get("IMPORT_STUDENTS_DIR") or str((project_root / "templates" / "students").as_posix())
+COURSES_DIR = os.environ.get("IMPORT_COURSES_DIR") or str(
+    (project_root / "templates" / "courses").as_posix()
+)
+STUDENTS_DIR = os.environ.get("IMPORT_STUDENTS_DIR") or str(
+    (project_root / "templates" / "students").as_posix()
+)
 
-router = APIRouter(prefix="/imports", tags=["Imports"], responses={404: {"description": "Not found"}})
-
-from backend.db import get_session as get_db
-from backend.import_resolver import import_names
-from backend.schemas import (
-    ImportPreviewItem,
-    ImportPreviewResponse,
+router = APIRouter(
+    prefix="/imports", tags=["Imports"], responses={404: {"description": "Not found"}}
 )
 
 
@@ -87,19 +86,30 @@ async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
                 ErrorCode.IMPORT_INVALID_EXTENSION,
                 f"Invalid file extension '{ext}'.",
                 request,
-                context={"extension": ext, "allowed_extensions": sorted(ALLOWED_EXTENSIONS)},
+                context={
+                    "extension": ext,
+                    "allowed_extensions": sorted(ALLOWED_EXTENSIONS),
+                },
             )
 
     # Check MIME type
     # Normalize content type (strip charset parameters) and allow common variations
-    content_type = (file.content_type or "application/octet-stream").split(";", 1)[0].strip().lower()
+    content_type = (
+        (file.content_type or "application/octet-stream")
+        .split(";", 1)[0]
+        .strip()
+        .lower()
+    )
     if content_type not in ALLOWED_MIME_TYPES:
         raise http_error(
             400,
             ErrorCode.IMPORT_INVALID_MIME,
             f"Invalid content type '{content_type}'.",
             request,
-            context={"content_type": content_type, "allowed_types": sorted(ALLOWED_MIME_TYPES)},
+            context={
+                "content_type": content_type,
+                "allowed_types": sorted(ALLOWED_MIME_TYPES),
+            },
         )
 
     # Read file content and check size
@@ -107,7 +117,9 @@ async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
     content_size = len(content)
 
     if content_size == 0:
-        raise http_error(400, ErrorCode.IMPORT_EMPTY_FILE, "Uploaded file is empty", request)
+        raise http_error(
+            400, ErrorCode.IMPORT_EMPTY_FILE, "Uploaded file is empty", request
+        )
 
     if content_size > MAX_FILE_SIZE:
         size_mb = content_size / (1024 * 1024)
@@ -219,7 +231,11 @@ def _strip_accents(s: str) -> str:
         String with accents removed (normalized to ASCII-compatible form)
     """
     try:
-        return "".join(ch for ch in unicodedata.normalize("NFD", s) if unicodedata.category(ch) != "Mn")
+        return "".join(
+            ch
+            for ch in unicodedata.normalize("NFD", s)
+            if unicodedata.category(ch) != "Mn"
+        )
     except Exception:
         return s
 
@@ -338,11 +354,92 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
             except UnicodeDecodeError:
                 continue
         else:
-            errors.append(f"{filename}: Could not decode CSV with any supported encoding")
+            errors.append(
+                f"{filename}: Could not decode CSV with any supported encoding"
+            )
             return students, errors
 
         # Parse CSV with semicolon delimiter (common in Greek/European CSVs)
         reader = csv.DictReader(io.StringIO(text), delimiter=";")
+
+        # If the CSV appears to be header-less (first row contains data, not expected Greek headers),
+        # fall back to positional parsing. This makes the importer tolerant of simple CSV exports
+        # that do not include column headers (tests rely on this behaviour).
+        fieldnames = [fn or "" for fn in (reader.fieldnames or [])]
+        expected_headers = set(
+            [
+                "Επώνυμο:",
+                "Όνομα:",
+                "Όνομα Πατέρα:",
+                "Ηλ. Ταχυδρομείο:",
+                "Αρ. Κινητού Τηλεφώνου:",
+                "Αρ. Σταθερού Τηλεφώνου:",
+                "Έτος Σπουδών:",
+                "Αριθμός Δελτίου Ταυτότητας:",
+            ]
+        )
+        looks_like_header = any(fn in expected_headers for fn in fieldnames)
+        if not looks_like_header:
+            logger.debug(
+                "Import: detected header-less CSV, using positional parser for %s",
+                filename,
+            )
+            # Re-parse using simple positional CSV reader
+            pos_reader = csv.reader(io.StringIO(text), delimiter=";")
+
+            # If the first row looks like a header (non-numeric text), keep it; else assume no header
+            rows = list(pos_reader)
+            # If there are no rows, return empty
+            if not rows:
+                return students, errors
+
+            # Determine if the file includes a header by checking whether the first row contains any known Greek header tokens
+            first_row = [c.strip() for c in rows[0]]
+            header_tokens = {"Επώνυμο", "Όνομα", "Ηλ.", "Αριθμός"}
+            has_header = any(
+                any(tok in cell for tok in header_tokens) for cell in first_row
+            )
+
+            data_rows = rows[1:] if has_header else rows
+
+            row_num = 1 if has_header else 0
+            for row in data_rows:
+                row_num += 1
+                try:
+                    # Expected positional format: id, last_name, first_name, email, study_year, [optional fields]
+                    cols = [c.strip() for c in row]
+                    student = {}
+                    if len(cols) >= 1 and cols[0]:
+                        student["student_id"] = f"S{cols[0]}"
+                    if len(cols) >= 2 and cols[1]:
+                        student["last_name"] = cols[1]
+                    if len(cols) >= 3 and cols[2]:
+                        student["first_name"] = cols[2]
+                    if len(cols) >= 4 and cols[3]:
+                        student["email"] = cols[3]
+                    if len(cols) >= 5 and cols[4]:
+                        student["study_year"] = cols[4]
+                    # Defaults
+                    student.setdefault("is_active", True)
+                    student.setdefault("enrollment_date", datetime.now().date())
+
+                    # Basic validation
+                    if not student.get("first_name") or not student.get("last_name"):
+                        errors.append(
+                            f"{filename} row {row_num}: Missing first_name or last_name"
+                        )
+                        continue
+                    if not student.get("email"):
+                        errors.append(f"{filename} row {row_num}: Missing email")
+                        continue
+
+                    # Convert study year placeholder -> numeric handled later in common flow
+                    students.append(student)
+                except Exception as e:
+                    errors.append(f"{filename} row {row_num}: {e!s}")
+                    continue
+
+            return students, errors
 
         # Map of CSV column names to Student model fields
         # Note: CSV column names have trailing colons
@@ -382,7 +479,9 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
 
                 # Validate required fields
                 if not student.get("first_name") or not student.get("last_name"):
-                    errors.append(f"{filename} row {row_num}: Missing first_name or last_name")
+                    errors.append(
+                        f"{filename} row {row_num}: Missing first_name or last_name"
+                    )
                     continue
 
                 if not student.get("email"):
@@ -438,7 +537,9 @@ def diagnose_import_environment(request: Request):
         return ImportService.diagnose_environment(COURSES_DIR, STUDENTS_DIR)
     except Exception as exc:
         logger.error("Diagnose failed: %s", exc)
-        raise http_error(500, ErrorCode.IMPORT_DIAGNOSE_FAILED, "Diagnose failed", request)
+        raise http_error(
+            500, ErrorCode.IMPORT_DIAGNOSE_FAILED, "Diagnose failed", request
+        )
 
 
 @router.post("/courses")
@@ -485,7 +586,11 @@ def import_courses(
         # --- Helper: normalize/translate evaluation rule categories ---
         def _strip_accents(s: str) -> str:
             try:
-                return "".join(ch for ch in unicodedata.normalize("NFD", s) if unicodedata.category(ch) != "Mn")
+                return "".join(
+                    ch
+                    for ch in unicodedata.normalize("NFD", s)
+                    if unicodedata.category(ch) != "Mn"
+                )
             except Exception:
                 return s
 
@@ -546,7 +651,9 @@ def import_courses(
                     continue
                 cat = _map_category(r.get("category", ""))
                 try:
-                    w = float(str(r.get("weight", 0)).replace("%", "").replace(",", "."))
+                    w = float(
+                        str(r.get("weight", 0)).replace("%", "").replace(",", ".")
+                    )
                 except Exception:
                     w = 0.0
                 seen[cat] = w  # last one wins
@@ -572,7 +679,9 @@ def import_courses(
                         try:
                             obj["credits"] = int(obj["credits"])
                         except Exception:
-                            errors.append(f"{name}: invalid credits '{obj.get('credits')}', using default")
+                            errors.append(
+                                f"{name}: invalid credits '{obj.get('credits')}', using default"
+                            )
                             obj.pop("credits", None)
                     if "hours_per_week" in obj:
                         try:
@@ -584,18 +693,34 @@ def import_courses(
                             obj.pop("hours_per_week", None)
                     # Normalize simple string fields
                     if "course_code" in obj and isinstance(obj["course_code"], list):
-                        obj["course_code"] = " ".join([str(x).strip() for x in obj["course_code"] if str(x).strip()])
+                        obj["course_code"] = " ".join(
+                            [
+                                str(x).strip()
+                                for x in obj["course_code"]
+                                if str(x).strip()
+                            ]
+                        )
                     if "course_name" in obj and isinstance(obj["course_name"], list):
-                        obj["course_name"] = " ".join([str(x).strip() for x in obj["course_name"] if str(x).strip()])
+                        obj["course_name"] = " ".join(
+                            [
+                                str(x).strip()
+                                for x in obj["course_name"]
+                                if str(x).strip()
+                            ]
+                        )
                     if "semester" in obj and isinstance(obj["semester"], list):
-                        obj["semester"] = " ".join([str(x).strip() for x in obj["semester"] if str(x).strip()])
+                        obj["semester"] = " ".join(
+                            [str(x).strip() for x in obj["semester"] if str(x).strip()]
+                        )
                     # Set default semester if empty
                     if "semester" in obj and not obj["semester"]:
                         obj["semester"] = "Α' Εξάμηνο"  # Default to 1st semester
                     # Normalize description: must be a string
                     if "description" in obj and isinstance(obj["description"], list):
                         try:
-                            obj["description"] = "\n".join(map(lambda x: str(x), obj["description"]))
+                            obj["description"] = "\n".join(
+                                map(lambda x: str(x), obj["description"])
+                            )
                         except Exception:
                             obj["description"] = str(obj["description"])
                     if "evaluation_rules" in obj:
@@ -605,7 +730,9 @@ def import_courses(
                             try:
                                 obj["evaluation_rules"] = json.loads(er)
                             except Exception:
-                                errors.append(f"{name}: evaluation_rules JSON parse failed, dropping field")
+                                errors.append(
+                                    f"{name}: evaluation_rules JSON parse failed, dropping field"
+                                )
                                 obj.pop("evaluation_rules", None)
                         elif isinstance(er, list):
                             if all(isinstance(x, dict) for x in er):
@@ -643,7 +770,9 @@ def import_courses(
                                     ]:
                                         continue
                                     # If we have a current entry and this line has a percentage, it's a continuation
-                                    if current_entry and re.search(r"\d+%?\s*$", x_stripped):
+                                    if current_entry and re.search(
+                                        r"\d+%?\s*$", x_stripped
+                                    ):
                                         current_entry += " " + x_stripped
                                         joined_entries.append(current_entry)
                                         current_entry = ""
@@ -659,7 +788,9 @@ def import_courses(
                                     ):
                                         current_entry = x_stripped
                                     # If it has both colon and percentage, it's a complete entry
-                                    elif ":" in x_stripped and re.search(r"\d+%?\s*$", x_stripped):
+                                    elif ":" in x_stripped and re.search(
+                                        r"\d+%?\s*$", x_stripped
+                                    ):
                                         joined_entries.append(x_stripped)
                                     # Otherwise, it's a continuation of current entry
                                     elif current_entry:
@@ -681,7 +812,11 @@ def import_courses(
                                             cat = str(buf[0]).strip()
                                             w_raw = buf[1]
                                             if isinstance(w_raw, str):
-                                                w_s = w_raw.replace("%", "").strip().replace(",", ".")
+                                                w_s = (
+                                                    w_raw.replace("%", "")
+                                                    .strip()
+                                                    .replace(",", ".")
+                                                )
                                                 try:
                                                     weight = float(w_s)
                                                 except Exception:
@@ -691,11 +826,15 @@ def import_courses(
                                                     weight = float(w_raw)
                                                 except Exception:
                                                     weight = 0.0
-                                            rules.append({"category": cat, "weight": weight})
+                                            rules.append(
+                                                {"category": cat, "weight": weight}
+                                            )
                                             buf = []
                                 if not rules:
                                     # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                    pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                    pattern = re.compile(
+                                        r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$"
+                                    )
                                     for x in er:
                                         if isinstance(x, str):
                                             m = pattern.match(x.strip())
@@ -706,14 +845,18 @@ def import_courses(
                                                     weight = float(w_s)
                                                 except Exception:
                                                     weight = 0.0
-                                                rules.append({"category": cat, "weight": weight})
+                                                rules.append(
+                                                    {"category": cat, "weight": weight}
+                                                )
                                 # Only use parsed rules that have valid percentages, ignore metadata entries
                                 obj["evaluation_rules"] = rules if rules else []
                             # Translate/localize categories if we have rules
                             if isinstance(obj.get("evaluation_rules"), list):
                                 # Keep empty list silently; translate when non-empty
                                 if obj["evaluation_rules"]:
-                                    obj["evaluation_rules"] = _translate_rules(obj["evaluation_rules"])
+                                    obj["evaluation_rules"] = _translate_rules(
+                                        obj["evaluation_rules"]
+                                    )
                             elif isinstance(er, dict):
                                 obj["evaluation_rules"] = _translate_rules([er])
                             else:
@@ -730,7 +873,9 @@ def import_courses(
                             try:
                                 obj["teaching_schedule"] = json.loads(ts)
                             except Exception:
-                                errors.append(f"{name}: teaching_schedule JSON parse failed, dropping field")
+                                errors.append(
+                                    f"{name}: teaching_schedule JSON parse failed, dropping field"
+                                )
                                 obj.pop("teaching_schedule", None)
                         elif isinstance(ts, dict):
                             pass
@@ -738,10 +883,14 @@ def import_courses(
                             # allow empty schedule
                             obj["teaching_schedule"] = []
                         else:
-                            errors.append(f"{name}: teaching_schedule unsupported type {type(ts)}, dropping field")
+                            errors.append(
+                                f"{name}: teaching_schedule unsupported type {type(ts)}, dropping field"
+                            )
                             obj.pop("teaching_schedule", None)
                     # Use service to create/update
-                    was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+                    was_created, err = ImportService.create_or_update_course(
+                        db, obj, translate_rules_fn=_translate_rules
+                    )
                     if err:
                         errors.append(f"{name}: {err}")
                         continue
@@ -759,7 +908,12 @@ def import_courses(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
                 resource=AuditResource.COURSE,
-                details={"created": created, "updated": updated, "source": "directory", "path": COURSES_DIR},
+                details={
+                    "created": created,
+                    "updated": updated,
+                    "source": "directory",
+                    "path": COURSES_DIR,
+                },
                 success=True,
             )
         except Exception as exc:
@@ -814,7 +968,9 @@ async def import_from_upload(
     import_type: str = Form(...),
     files: List[UploadFile] | None = File(None),
     file: str | None = Form(None),  # absorb stray text field named 'file'
-    json_text: str | None = Form(None),  # optional raw JSON text when file picker is unavailable
+    json_text: str | None = Form(
+        None
+    ),  # optional raw JSON text when file picker is unavailable
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
     current_user=Depends(optional_require_role("admin", "teacher")),
@@ -839,7 +995,11 @@ async def import_from_upload(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
                 resource=AuditResource.SYSTEM,
-                details={"source": "upload", "import_type": import_type, "type": "invalid"},
+                details={
+                    "source": "upload",
+                    "import_type": import_type,
+                    "type": "invalid",
+                },
                 success=False,
                 error_message="import_type must be 'courses' or 'students'",
             )
@@ -877,7 +1037,9 @@ async def import_from_upload(
                 if filename.lower().endswith(".csv"):
                     # Handle CSV files (only for students)
                     if norm != "students":
-                        errors.append(f"{filename}: CSV import only supported for students")
+                        errors.append(
+                            f"{filename}: CSV import only supported for students"
+                        )
                         continue
                     csv_students, csv_errors = _parse_csv_students(content, filename)
                     if csv_errors:
@@ -894,8 +1056,14 @@ async def import_from_upload(
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
-                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
-                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    resource=AuditResource.COURSE
+                    if norm == "courses"
+                    else AuditResource.STUDENT,
+                    details={
+                        "source": "upload",
+                        "file": getattr(up, "filename", None),
+                        "type": norm,
+                    },
                     success=False,
                     error_message=str(http_exc),
                 )
@@ -906,8 +1074,14 @@ async def import_from_upload(
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
-                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
-                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    resource=AuditResource.COURSE
+                    if norm == "courses"
+                    else AuditResource.STUDENT,
+                    details={
+                        "source": "upload",
+                        "file": getattr(up, "filename", None),
+                        "type": norm,
+                    },
                     success=False,
                     error_message=str(exc),
                 )
@@ -925,7 +1099,10 @@ async def import_from_upload(
                         ErrorCode.IMPORT_TOO_LARGE,
                         "JSON payload too large",
                         request,
-                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
+                        context={
+                            "size_mb": round(size_mb, 2),
+                            "max_mb": round(max_mb, 2),
+                        },
                     )
 
                 parsed = json.loads(json_text)
@@ -936,7 +1113,9 @@ async def import_from_upload(
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
-                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    resource=AuditResource.COURSE
+                    if norm == "courses"
+                    else AuditResource.STUDENT,
                     details={"source": "upload", "file": "json_text", "type": norm},
                     success=False,
                     error_message=f"Invalid JSON format in 'json' field: {exc}",
@@ -952,7 +1131,9 @@ async def import_from_upload(
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
-                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    resource=AuditResource.COURSE
+                    if norm == "courses"
+                    else AuditResource.STUDENT,
                     details={"source": "upload", "file": "json_text", "type": norm},
                     success=False,
                     error_message=str(http_exc),
@@ -963,7 +1144,9 @@ async def import_from_upload(
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
-                    resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                    resource=AuditResource.COURSE
+                    if norm == "courses"
+                    else AuditResource.STUDENT,
                     details={"source": "upload", "file": "json_text", "type": norm},
                     success=False,
                     error_message=str(exc),
@@ -987,27 +1170,39 @@ async def import_from_upload(
                     try:
                         obj["credits"] = int(obj["credits"])
                     except Exception:
-                        errors.append(f"item: invalid credits '{obj.get('credits')}', using default")
+                        errors.append(
+                            f"item: invalid credits '{obj.get('credits')}', using default"
+                        )
                         obj.pop("credits", None)
                 if "hours_per_week" in obj:
                     try:
                         obj["hours_per_week"] = float(obj["hours_per_week"])
                     except Exception:
-                        errors.append(f"item: invalid hours_per_week '{obj.get('hours_per_week')}', using default")
+                        errors.append(
+                            f"item: invalid hours_per_week '{obj.get('hours_per_week')}', using default"
+                        )
                         obj.pop("hours_per_week", None)
                 # Normalize simple string fields
                 if "course_code" in obj and isinstance(obj["course_code"], list):
-                    obj["course_code"] = " ".join([str(x).strip() for x in obj["course_code"] if str(x).strip()])
+                    obj["course_code"] = " ".join(
+                        [str(x).strip() for x in obj["course_code"] if str(x).strip()]
+                    )
                 if "course_name" in obj and isinstance(obj["course_name"], list):
-                    obj["course_name"] = " ".join([str(x).strip() for x in obj["course_name"] if str(x).strip()])
+                    obj["course_name"] = " ".join(
+                        [str(x).strip() for x in obj["course_name"] if str(x).strip()]
+                    )
                 if "semester" in obj and isinstance(obj["semester"], list):
-                    obj["semester"] = " ".join([str(x).strip() for x in obj["semester"] if str(x).strip()])
+                    obj["semester"] = " ".join(
+                        [str(x).strip() for x in obj["semester"] if str(x).strip()]
+                    )
                 # Set default semester if empty
                 if "semester" in obj and not obj["semester"]:
                     obj["semester"] = "Α' Εξάμηνο"  # Default to 1st semester
                 if "description" in obj and isinstance(obj["description"], list):
                     try:
-                        obj["description"] = "\n".join(map(lambda x: str(x), obj["description"]))
+                        obj["description"] = "\n".join(
+                            map(lambda x: str(x), obj["description"])
+                        )
                     except Exception:
                         obj["description"] = str(obj["description"])
                 if "evaluation_rules" in obj:
@@ -1017,7 +1212,9 @@ async def import_from_upload(
                         try:
                             obj["evaluation_rules"] = json.loads(er)
                         except Exception:
-                            errors.append("item: evaluation_rules JSON parse failed, dropping field")
+                            errors.append(
+                                "item: evaluation_rules JSON parse failed, dropping field"
+                            )
                             obj.pop("evaluation_rules", None)
                     elif isinstance(er, list):
                         if all(isinstance(x, dict) for x in er):
@@ -1034,7 +1231,7 @@ async def import_from_upload(
                                 x_stripped = x.strip()
                                 if not x_stripped:
                                     continue
-                                # Skip metadata entries like "Γλώσσα", "Ελληνική", "Αγγλική", etc.
+                                # Skip metadata entries like "Γλώσσα", "Ελληνική", "Αγγλική", κλπ.
                                 if x_stripped in [
                                     "Γλώσσα",
                                     "Ελληνική",
@@ -1055,7 +1252,9 @@ async def import_from_upload(
                                 ]:
                                     continue
                                 # If we have a current entry and this line has a percentage, it's a continuation
-                                if current_entry and re.search(r"\d+%?\s*$", x_stripped):
+                                if current_entry and re.search(
+                                    r"\d+%?\s*$", x_stripped
+                                ):
                                     current_entry += " " + x_stripped
                                     joined_entries.append(current_entry)
                                     current_entry = ""
@@ -1063,13 +1262,17 @@ async def import_from_upload(
                                 elif current_entry and ":" in x_stripped:
                                     joined_entries.append(current_entry)
                                     current_entry = x_stripped
-                                # If no current entry and this has a colon but no percentage, it's the start of a multi-line
+                                # If no current entry and this has a colon αλλά no percentage, it's the start of a multi-line
                                 elif (
-                                    not current_entry and ":" in x_stripped and not re.search(r"\d+%?\s*$", x_stripped)
+                                    not current_entry
+                                    and ":" in x_stripped
+                                    and not re.search(r"\d+%?\s*$", x_stripped)
                                 ):
                                     current_entry = x_stripped
                                 # If it has both colon and percentage, it's a complete entry
-                                elif ":" in x_stripped and re.search(r"\d+%?\s*$", x_stripped):
+                                elif ":" in x_stripped and re.search(
+                                    r"\d+%?\s*$", x_stripped
+                                ):
                                     joined_entries.append(x_stripped)
                                 # Otherwise, it's a continuation of current entry
                                 elif current_entry:
@@ -1091,7 +1294,11 @@ async def import_from_upload(
                                         cat = str(buf[0]).strip()
                                         w_raw = buf[1]
                                         if isinstance(w_raw, str):
-                                            w_s = w_raw.replace("%", "").strip().replace(",", ".")
+                                            w_s = (
+                                                w_raw.replace("%", "")
+                                                .strip()
+                                                .replace(",", ".")
+                                            )
                                             try:
                                                 weight = float(w_s)
                                             except Exception:
@@ -1101,11 +1308,15 @@ async def import_from_upload(
                                                 weight = float(w_raw)
                                             except Exception:
                                                 weight = 0.0
-                                        rules.append({"category": cat, "weight": weight})
+                                        rules.append(
+                                            {"category": cat, "weight": weight}
+                                        )
                                         buf = []
                             if not rules:
                                 # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                pattern = re.compile(
+                                    r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$"
+                                )
                                 for x in er:
                                     if isinstance(x, str):
                                         m = pattern.match(x.strip())
@@ -1116,14 +1327,18 @@ async def import_from_upload(
                                                 weight = float(w_s)
                                             except Exception:
                                                 weight = 0.0
-                                            rules.append({"category": cat, "weight": weight})
+                                            rules.append(
+                                                {"category": cat, "weight": weight}
+                                            )
                             # Only use parsed rules that have valid percentages, ignore metadata entries
                             obj["evaluation_rules"] = rules if rules else []
                     # Translate/localize categories if we have rules
                     if isinstance(obj.get("evaluation_rules"), list):
                         if obj["evaluation_rules"]:
                             try:
-                                obj["evaluation_rules"] = _translate_rules(obj["evaluation_rules"])
+                                obj["evaluation_rules"] = _translate_rules(
+                                    obj["evaluation_rules"]
+                                )
                             except Exception:
                                 pass
                         # else: keep empty list silently
@@ -1135,7 +1350,9 @@ async def import_from_upload(
                     else:
                         # Only report/drop if the original payload wasn't a list either
                         if not isinstance(er, list):
-                            errors.append(f"item: evaluation_rules unsupported type {type(er)}, dropping field")
+                            errors.append(
+                                f"item: evaluation_rules unsupported type {type(er)}, dropping field"
+                            )
                         obj.pop("evaluation_rules", None)
                 if "teaching_schedule" in obj:
                     ts = obj["teaching_schedule"]
@@ -1143,18 +1360,24 @@ async def import_from_upload(
                         try:
                             obj["teaching_schedule"] = json.loads(ts)
                         except Exception:
-                            errors.append("item: teaching_schedule JSON parse failed, dropping field")
+                            errors.append(
+                                "item: teaching_schedule JSON parse failed, dropping field"
+                            )
                             obj.pop("teaching_schedule", None)
                     elif isinstance(ts, dict):
                         pass
                     elif isinstance(ts, list) and len(ts) == 0:
                         obj["teaching_schedule"] = []
                     else:
-                        errors.append(f"item: teaching_schedule unsupported type {type(ts)}, dropping field")
+                        errors.append(
+                            f"item: teaching_schedule unsupported type {type(ts)}, dropping field"
+                        )
                         obj.pop("teaching_schedule", None)
 
                 # Use service to create/update
-                was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+                was_created, err = ImportService.create_or_update_course(
+                    db, obj, translate_rules_fn=_translate_rules
+                )
                 if err:
                     errors.append(f"item: {err}")
                     continue
@@ -1210,7 +1433,9 @@ async def import_from_upload(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                resource=AuditResource.COURSE
+                if norm == "courses"
+                else AuditResource.STUDENT,
                 details={
                     "created": created,
                     "updated": updated,
@@ -1227,7 +1452,9 @@ async def import_from_upload(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                resource=AuditResource.COURSE
+                if norm == "courses"
+                else AuditResource.STUDENT,
                 details={"source": "upload", "type": norm},
                 success=False,
                 error_message=str(exc),
@@ -1321,7 +1548,9 @@ async def import_preview(
                 filename = up.filename or ""
                 if filename.lower().endswith(".csv"):
                     if norm != "students":
-                        parse_errors.append(f"{filename}: CSV import only supported for students")
+                        parse_errors.append(
+                            f"{filename}: CSV import only supported for students"
+                        )
                         continue
                     csv_students, csv_errs = _parse_csv_students(content, filename)
                     if csv_errs:
@@ -1348,7 +1577,10 @@ async def import_preview(
                         ErrorCode.IMPORT_TOO_LARGE,
                         "JSON payload too large",
                         request,
-                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
+                        context={
+                            "size_mb": round(size_mb, 2),
+                            "max_mb": round(max_mb, 2),
+                        },
                     )
                 parsed = json.loads(json_text)
                 data_batches.append(parsed if isinstance(parsed, list) else [parsed])
@@ -1376,9 +1608,26 @@ async def import_preview(
         warning_count = 0
 
         def add_item(action: str, data: dict, issues: list[str]):
-            nonlocal row_no, create_count, update_count, skip_count, error_count, warning_count
+            nonlocal \
+                row_no, \
+                create_count, \
+                update_count, \
+                skip_count, \
+                error_count, \
+                warning_count
             row_no += 1
-            status = "valid" if not issues else ("error" if any("error:" in (i.lower()) or i.lower().startswith("item:") for i in issues) else "warning")
+            status = (
+                "valid"
+                if not issues
+                else (
+                    "error"
+                    if any(
+                        "error:" in (i.lower()) or i.lower().startswith("item:")
+                        for i in issues
+                    )
+                    else "warning"
+                )
+            )
             if status == "valid":
                 if action == "create":
                     create_count += 1
@@ -1420,20 +1669,29 @@ async def import_preview(
                     if "enrollment_date" in obj:
                         parsed = _parse_date(obj.get("enrollment_date"))
                         if parsed is None:
-                            issues.append("warning: invalid enrollment_date, field will be dropped")
+                            issues.append(
+                                "warning: invalid enrollment_date, field will be dropped"
+                            )
                         else:
                             obj["enrollment_date"] = parsed
                     if "is_active" in obj:
                         b = _to_bool(obj["is_active"])
                         if b is None:
-                            issues.append("warning: invalid is_active value, field will be dropped")
+                            issues.append(
+                                "warning: invalid is_active value, field will be dropped"
+                            )
                         else:
                             obj["is_active"] = b
 
                     # Determine key and duplicates within batch
                     key = f"student:{sid or ''}|{email or ''}"
                     if key in seen_keys and skip_duplicates:
-                        add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
+                        add_item(
+                            "skip",
+                            obj,
+                            issues
+                            + ["warning: duplicate in uploaded data, will be skipped"],
+                        )
                         continue
                     seen_keys.add(key)
 
@@ -1441,18 +1699,28 @@ async def import_preview(
                     exists = False
                     if sid:
                         exists = (
-                            db.query(Student).filter(Student.student_id == sid, Student.deleted_at.is_(None)).first()
+                            db.query(Student)
+                            .filter(
+                                Student.student_id == sid, Student.deleted_at.is_(None)
+                            )
+                            .first()
                             is not None
                         )
                     if not exists and email:
                         exists = (
-                            db.query(Student).filter(Student.email == email, Student.deleted_at.is_(None)).first()
+                            db.query(Student)
+                            .filter(
+                                Student.email == email, Student.deleted_at.is_(None)
+                            )
+                            .first()
                             is not None
                         )
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"
-                        issues.append("warning: would update existing record; updates not allowed")
+                        issues.append(
+                            "warning: would update existing record; updates not allowed"
+                        )
 
                     add_item(action, obj, issues)
 
@@ -1467,13 +1735,20 @@ async def import_preview(
 
                     key = f"course:{code}|{obj.get('semester','')}"
                     if key in seen_keys and skip_duplicates:
-                        add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
+                        add_item(
+                            "skip",
+                            obj,
+                            issues
+                            + ["warning: duplicate in uploaded data, will be skipped"],
+                        )
                         continue
                     seen_keys.add(key)
 
                     exists = False
                     if code:
-                        q = db.query(Course).filter(Course.course_code == code, Course.deleted_at.is_(None))
+                        q = db.query(Course).filter(
+                            Course.course_code == code, Course.deleted_at.is_(None)
+                        )
                         # If semester present, include it in existence check
                         sem = obj.get("semester")
                         if sem:
@@ -1482,7 +1757,9 @@ async def import_preview(
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"
-                        issues.append("warning: would update existing record; updates not allowed")
+                        issues.append(
+                            "warning: would update existing record; updates not allowed"
+                        )
 
                     add_item(action, obj, issues)
 
@@ -1497,7 +1774,9 @@ async def import_preview(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                resource=AuditResource.COURSE
+                if norm == "courses"
+                else AuditResource.STUDENT,
                 details={
                     "preview": True,
                     "type": norm,
@@ -1513,7 +1792,10 @@ async def import_preview(
 
         return ImportPreviewResponse(
             total_rows=total_rows,
-            valid_rows=create_count + update_count + skip_count - warning_count,  # informational
+            valid_rows=create_count
+            + update_count
+            + skip_count
+            - warning_count,  # informational
             rows_with_warnings=warning_count,
             rows_with_errors=error_count,
             items=items,
@@ -1610,7 +1892,9 @@ def import_students(
                     if "enrollment_date" in obj:
                         parsed = _parse_date(obj.get("enrollment_date"))
                         if parsed is None:
-                            errors.append(f"{name}: invalid enrollment_date, dropping field")
+                            errors.append(
+                                f"{name}: invalid enrollment_date, dropping field"
+                            )
                             obj.pop("enrollment_date", None)
                         else:
                             obj["enrollment_date"] = parsed
@@ -1640,7 +1924,12 @@ def import_students(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
                 resource=AuditResource.STUDENT,
-                details={"created": created, "updated": updated, "source": "directory", "path": STUDENTS_DIR},
+                details={
+                    "created": created,
+                    "updated": updated,
+                    "source": "directory",
+                    "path": STUDENTS_DIR,
+                },
                 success=True,
             )
         except Exception as exc:
@@ -1776,7 +2065,10 @@ async def import_execute(
                         ErrorCode.IMPORT_TOO_LARGE,
                         "JSON payload too large",
                         request,
-                        context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
+                        context={
+                            "size_mb": round(size_mb, 2),
+                            "max_mb": round(max_mb, 2),
+                        },
                     )
                 json.loads(json_text)  # Validate JSON syntax
             except json.JSONDecodeError as exc:
@@ -1825,7 +2117,9 @@ async def import_execute(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
+                resource=AuditResource.COURSE
+                if norm == "courses"
+                else AuditResource.STUDENT,
                 details={
                     "job_id": job_id,
                     "job_type": job_type.value,

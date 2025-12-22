@@ -34,7 +34,9 @@ def setup_logging(log_file: str = "logs/sms.log") -> logging.Logger:
     logger.setLevel(logging.DEBUG)
 
     # Create formatters
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+    )
 
     # Console handler
     console_handler = logging.StreamHandler()
@@ -181,7 +183,9 @@ class ValidationMixin(BaseModel):
             raise
 
 
-def validate_string(value: str, field_name: str, min_length: int = 1, max_length: int = 255) -> str:
+def validate_string(
+    value: str, field_name: str, min_length: int = 1, max_length: int = 255
+) -> str:
     """
     Validate string field.
 
@@ -294,7 +298,9 @@ class ErrorResponse(BaseModel):
     detail: Optional[str] = None
 
 
-def create_error_response(status_code: int, message: str, detail: Optional[str] = None) -> ErrorResponse:
+def create_error_response(
+    status_code: int, message: str, detail: Optional[str] = None
+) -> ErrorResponse:
     """
     Create standardized error response.
 

@@ -335,4 +335,3 @@ export default {
   updateInstructions: 'Οδηγίες Ενημέρωσης',
   checkingForUpdates: 'Έλεγχος ενημερώσεων...',
 };
-

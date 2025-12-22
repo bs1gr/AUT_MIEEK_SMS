@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { login, logout, waitForTable } from './helpers';
+import { login, logout, waitForTable, ensureTestUserExists } from './helpers';
 
 test.describe('Authentication Flow', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
+
+  // ...existing code...
   test('should login successfully', async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
-    
+
     // Verify we're on dashboard by URL only
     await expect(page).toHaveURL(/.*dashboard/);
   });
@@ -12,7 +17,7 @@ test.describe('Authentication Flow', () => {
   test('should logout successfully', async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
     await logout(page);
-    
+
     // Verify redirect to root (auth page) - full URL
     await expect(page).toHaveURL(/^https?:\/\/[^/]+\/?(\?.*)?$/);
   });
@@ -20,15 +25,15 @@ test.describe('Authentication Flow', () => {
   test('should handle invalid credentials', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    
+
     // Fill with invalid credentials
     await page.fill('input[name="email"]', 'invalid@example.com');
     await page.fill('input[name="password"]', 'wrongpassword');
-    
+
     // Submit and wait for response
     await page.click('button[type="submit"]');
     await page.waitForTimeout(2000); // Wait for error to appear
-    
+
     // Should stay on auth page (root) or show error
     const url = page.url();
     expect(url.endsWith('/') || url.includes('?')).toBeTruthy();
@@ -37,16 +42,19 @@ test.describe('Authentication Flow', () => {
   test.skip('should show validation errors for empty form', async ({ page }) => {
     // Skipped: Form validation may be handled differently or disabled in test mode
     await page.goto('/');
-    
+
     // Try to submit empty form
     await page.click('button[type="submit"]');
-    
+
     // Should see validation errors - check for error message
     await expect(page.locator('[role="alert"]').first()).toBeVisible({ timeout: 5000 });
   });
 });
 
 test.describe('Dashboard Navigation', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
   });
@@ -78,6 +86,9 @@ test.describe('Dashboard Navigation', () => {
 });
 
 test.describe('Students Management', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
@@ -134,12 +145,15 @@ test.describe('Students Management', () => {
 });
 
 test.describe('Responsive Design', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test('should be mobile responsive', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     await login(page, 'test@example.com', 'password123');
-    
+
     // Dashboard should still be accessible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
@@ -147,9 +161,9 @@ test.describe('Responsive Design', () => {
   test('should be tablet responsive', async ({ page }) => {
     // Set tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
-    
+
     await login(page, 'test@example.com', 'password123');
-    
+
     // Dashboard should be accessible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
@@ -157,9 +171,9 @@ test.describe('Responsive Design', () => {
   test('should be desktop responsive', async ({ page }) => {
     // Set desktop viewport (default)
     await page.setViewportSize({ width: 1920, height: 1080 });
-    
+
     await login(page, 'test@example.com', 'password123');
-    
+
     // Dashboard should be visible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });

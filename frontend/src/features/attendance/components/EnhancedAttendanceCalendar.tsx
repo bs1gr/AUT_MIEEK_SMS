@@ -448,7 +448,7 @@ const EnhancedAttendanceCalendar = () => {
                             {day}
                           </span>
                         ))}
-                    
+
                   </div>
                   <p className="text-xs text-gray-600 mt-1">
                     {t('onlyTeachingDaysSelectable')}

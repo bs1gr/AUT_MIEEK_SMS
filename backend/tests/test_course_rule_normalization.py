@@ -10,7 +10,10 @@ from backend.routers import routers_courses
     [
         (None, None),
         ([], []),
-        ({"category": "Project", "weight": 30}, [{"category": "Project", "weight": 30}]),
+        (
+            {"category": "Project", "weight": 30},
+            [{"category": "Project", "weight": 30}],
+        ),
     ],
 )
 def test_normalize_evaluation_rules_simple_cases(input_rules, expected):

@@ -1,3 +1,6 @@
+import warnings
+from backend.scripts.admin.bootstrap import ensure_default_admin_account
+
 """DEPRECATED: Use backend.scripts.admin.bootstrap instead.
 
 This module is deprecated and maintained for backward compatibility only.
@@ -8,8 +11,6 @@ Migration path:
     NEW: from backend.scripts.admin import ensure_default_admin_account
 """
 
-import warnings
-
 warnings.warn(
     "backend.admin_bootstrap is deprecated. "
     "Use backend.scripts.admin.bootstrap instead.",
@@ -18,7 +19,4 @@ warnings.warn(
 )
 
 # Re-export for backward compatibility
-from backend.scripts.admin.bootstrap import ensure_default_admin_account
-
 __all__ = ["ensure_default_admin_account"]
-

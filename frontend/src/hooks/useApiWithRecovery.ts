@@ -11,7 +11,7 @@ interface UseApiQueryOptions<TData, TError = Error> extends Omit<UseQueryOptions
   };
 }
 
-interface UseApiMutationOptions<TData, TError = Error, TVariables = unknown> 
+interface UseApiMutationOptions<TData, TError = Error, TVariables = unknown>
   extends Omit<UseMutationOptions<TData, TError, TVariables>, 'mutationFn'> {
   errorRecovery?: {
     enabled?: boolean;
@@ -23,9 +23,9 @@ interface UseApiMutationOptions<TData, TError = Error, TVariables = unknown>
 
 /**
  * Enhanced useQuery wrapper with error recovery
- * 
+ *
  * Automatically retries failed queries using exponential backoff strategy
- * 
+ *
  * @example
  * ```tsx
  * const { data, error } = useApiQuery(
@@ -88,9 +88,9 @@ export function useApiQuery<TData = unknown, TError = Error>(
 
 /**
  * Enhanced useMutation wrapper with error recovery
- * 
+ *
  * Automatically retries failed mutations using exponential backoff strategy
- * 
+ *
  * @example
  * ```tsx
  * const createStudent = useApiMutation(
@@ -124,7 +124,7 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = unk
   const mutation = useMutation<TData, TError, TVariables>({
     mutationFn: async (variables: TVariables) => {
       let lastError: Error | null = null;
-      
+
       for (let attempt = 0; attempt <= (errorRecovery?.maxRetries || 2); attempt++) {
         try {
           reset(); // Reset error state on new attempt
@@ -132,10 +132,10 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = unk
           return result;
         } catch (error) {
           lastError = error as Error;
-          
+
           if (errorRecovery?.enabled !== false) {
             handleError(lastError);
-            
+
             // Try to retry if not the last attempt
             if (attempt < (errorRecovery?.maxRetries || 2)) {
               await retry();
@@ -145,7 +145,7 @@ export function useApiMutation<TData = unknown, TError = Error, TVariables = unk
           }
         }
       }
-      
+
       // If we exhausted all retries, throw the last error
       throw lastError;
     },

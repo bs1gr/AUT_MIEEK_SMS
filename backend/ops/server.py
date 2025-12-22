@@ -113,7 +113,11 @@ class BackendServer(Operation):
             self.log_warning(f"Failed to save PID: {e}")
 
     def start(
-        self, host: str = "127.0.0.1", port: int = 8000, reload: bool = False, background: bool = True
+        self,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+        reload: bool = False,
+        background: bool = True,
     ) -> OperationResult:
         """
         Start backend server.
@@ -138,7 +142,16 @@ class BackendServer(Operation):
             python_path = self.get_python_path()
 
             # Build uvicorn command
-            cmd = [python_path, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port)]
+            cmd = [
+                python_path,
+                "-m",
+                "uvicorn",
+                "backend.main:app",
+                "--host",
+                host,
+                "--port",
+                str(port),
+            ]
 
             if reload:
                 cmd.append("--reload")
@@ -178,11 +191,17 @@ class BackendServer(Operation):
                     self.log_success(f"Backend started (PID: {process.pid})")
                     return OperationResult.success_result(
                         f"Backend started on {host}:{port}",
-                        data={"pid": process.pid, "host": host, "port": port, "url": f"http://{host}:{port}"},
+                        data={
+                            "pid": process.pid,
+                            "host": host,
+                            "port": port,
+                            "url": f"http://{host}:{port}",
+                        },
                     )
                 else:
                     return OperationResult.failure_result(
-                        "Backend failed to start (process died)", data={"pid": process.pid}
+                        "Backend failed to start (process died)",
+                        data={"pid": process.pid},
                     )
             else:
                 # Foreground mode (blocking)
@@ -190,7 +209,9 @@ class BackendServer(Operation):
                 return OperationResult.success_result("Backend stopped")
 
         except FileNotFoundError:
-            return OperationResult.failure_result("Python or uvicorn not found - ensure dependencies are installed")
+            return OperationResult.failure_result(
+                "Python or uvicorn not found - ensure dependencies are installed"
+            )
         except Exception as e:
             return OperationResult.failure_result("Failed to start backend", e)
 
@@ -206,7 +227,9 @@ class BackendServer(Operation):
             OperationResult indicating success or failure
         """
         if not psutil:
-            return OperationResult.failure_result("psutil not installed - cannot stop server")
+            return OperationResult.failure_result(
+                "psutil not installed - cannot stop server"
+            )
 
         # Auto-detect PID if not provided
         if pid is None:
@@ -223,7 +246,9 @@ class BackendServer(Operation):
                 # Clean up stale PID file
                 if self.pid_file.exists():
                     self.pid_file.unlink()
-                return OperationResult.warning_result(f"Process {pid} not found (stale PID)")
+                return OperationResult.warning_result(
+                    f"Process {pid} not found (stale PID)"
+                )
 
             self.log_info(f"Stopping backend server (PID: {pid})")
 
@@ -240,7 +265,9 @@ class BackendServer(Operation):
                         self.log_warning("Graceful shutdown timed out, force killing")
                         process.kill()
                     else:
-                        return OperationResult.failure_result("Graceful shutdown timed out (use force=True to kill)")
+                        return OperationResult.failure_result(
+                            "Graceful shutdown timed out (use force=True to kill)"
+                        )
             else:
                 # Unix: SIGTERM
                 process.terminate()
@@ -252,7 +279,9 @@ class BackendServer(Operation):
                         self.log_warning("Graceful shutdown timed out, force killing")
                         process.kill()
                     else:
-                        return OperationResult.failure_result("Graceful shutdown timed out (use force=True to kill)")
+                        return OperationResult.failure_result(
+                            "Graceful shutdown timed out (use force=True to kill)"
+                        )
 
             # Clean up PID file
             if self.pid_file.exists():
@@ -261,11 +290,15 @@ class BackendServer(Operation):
             return OperationResult.success_result(f"Backend stopped (PID: {pid})")
 
         except psutil.AccessDenied:
-            return OperationResult.failure_result(f"Access denied - cannot stop process {pid}")
+            return OperationResult.failure_result(
+                f"Access denied - cannot stop process {pid}"
+            )
         except Exception as e:
             return OperationResult.failure_result("Failed to stop backend", e)
 
-    def restart(self, host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> OperationResult:
+    def restart(
+        self, host: str = "127.0.0.1", port: int = 8000, reload: bool = False
+    ) -> OperationResult:
         """
         Restart backend server.
 
@@ -284,7 +317,8 @@ class BackendServer(Operation):
             stop_result = self.stop(force=True)
             if not stop_result.success:
                 return OperationResult.failure_result(
-                    "Failed to stop server for restart", data={"stop_result": stop_result.__dict__}
+                    "Failed to stop server for restart",
+                    data={"stop_result": stop_result.__dict__},
                 )
             # Wait a moment
             time.sleep(1)
@@ -336,7 +370,8 @@ class BackendServer(Operation):
             is_running = self.is_running()
             pid = self.get_pid() if is_running else None
             return OperationResult.success_result(
-                f"Backend {'running' if is_running else 'not running'}", data={"running": is_running, "pid": pid}
+                f"Backend {'running' if is_running else 'not running'}",
+                data={"running": is_running, "pid": pid},
             )
         else:
             return OperationResult.failure_result(f"Unknown action: {action}")
@@ -364,10 +399,14 @@ class ProcessManager(Operation):
         """
         # Validate port range
         if not (0 <= port <= 65535):
-            return OperationResult.failure_result(f"Invalid port number: {port} (must be between 0 and 65535)")
+            return OperationResult.failure_result(
+                f"Invalid port number: {port} (must be between 0 and 65535)"
+            )
 
         if not psutil:
-            return OperationResult.failure_result("psutil not installed - cannot manage processes")
+            return OperationResult.failure_result(
+                "psutil not installed - cannot manage processes"
+            )
 
         checker = SystemStatusChecker(Path.cwd())
         proc_info = checker.get_process_on_port(port)
@@ -381,7 +420,8 @@ class ProcessManager(Operation):
             if force:
                 process.kill()
                 return OperationResult.success_result(
-                    f"Killed process {proc_info.pid} on port {port}", data={"pid": proc_info.pid, "port": port}
+                    f"Killed process {proc_info.pid} on port {port}",
+                    data={"pid": proc_info.pid, "port": port},
                 )
             else:
                 # Graceful termination
@@ -393,15 +433,22 @@ class ProcessManager(Operation):
                 # Wait for termination
                 process.wait(timeout=OperationTimeouts.PROCESS_SHUTDOWN_WAIT)
                 return OperationResult.success_result(
-                    f"Terminated process {proc_info.pid} on port {port}", data={"pid": proc_info.pid, "port": port}
+                    f"Terminated process {proc_info.pid} on port {port}",
+                    data={"pid": proc_info.pid, "port": port},
                 )
 
         except psutil.TimeoutExpired:
-            return OperationResult.failure_result(f"Process {proc_info.pid} did not terminate (use force=True)")
+            return OperationResult.failure_result(
+                f"Process {proc_info.pid} did not terminate (use force=True)"
+            )
         except psutil.AccessDenied:
-            return OperationResult.failure_result(f"Access denied - cannot kill process {proc_info.pid}")
+            return OperationResult.failure_result(
+                f"Access denied - cannot kill process {proc_info.pid}"
+            )
         except Exception as e:
-            return OperationResult.failure_result(f"Failed to kill process on port {port}", e)
+            return OperationResult.failure_result(
+                f"Failed to kill process on port {port}", e
+            )
 
     @staticmethod
     def kill_all_on_ports(ports: List[int], force: bool = False) -> OperationResult:
@@ -421,7 +468,11 @@ class ProcessManager(Operation):
             results[port] = result
 
         killed = [p for p, r in results.items() if r.success]
-        failed = [p for p, r in results.items() if not r.success and r.status.value != "warning"]
+        failed = [
+            p
+            for p, r in results.items()
+            if not r.success and r.status.value != "warning"
+        ]
 
         if failed:
             return OperationResult.failure_result(
@@ -441,14 +492,20 @@ class ProcessManager(Operation):
             port = kwargs.get("port")
             force = bool(kwargs.get("force", False))
             if not isinstance(port, int):
-                return OperationResult.failure_result("Missing or invalid 'port' parameter")
+                return OperationResult.failure_result(
+                    "Missing or invalid 'port' parameter"
+                )
             return self.kill_process_on_port(port, force)
 
         elif action == "kill_all":
             ports = kwargs.get("ports", [])
             force = bool(kwargs.get("force", False))
-            if not isinstance(ports, list) or not all(isinstance(p, int) for p in ports):
-                return OperationResult.failure_result("Missing or invalid 'ports' parameter")
+            if not isinstance(ports, list) or not all(
+                isinstance(p, int) for p in ports
+            ):
+                return OperationResult.failure_result(
+                    "Missing or invalid 'ports' parameter"
+                )
             return self.kill_all_on_ports(ports, force)
 
         else:

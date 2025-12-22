@@ -15,7 +15,7 @@ Developers actively working on the codebase.
 # Backend only
 ..\..\NATIVE.ps1 -Backend
 
-# Frontend only  
+# Frontend only
 ..\..\NATIVE.ps1 -Frontend
 
 # Stop all

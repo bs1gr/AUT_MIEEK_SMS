@@ -26,10 +26,16 @@ from backend.security.permissions import depends_on_permission
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/attendance", tags=["Attendance"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/attendance",
+    tags=["Attendance"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) -> Optional[Tuple[date, date]]:
+def _normalize_date_range(
+    start_date: Optional[date], end_date: Optional[date]
+) -> Optional[Tuple[date, date]]:
     """Normalize and validate a date range.
 
     - If both are None: return None (no filtering)
@@ -111,7 +117,7 @@ def get_all_attendance(
     try:
         service = AttendanceService(db, request)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         result = service.list_attendance(
             skip=pagination.skip,
             limit=pagination.limit,
@@ -147,12 +153,20 @@ def get_student_attendance(
         service = AttendanceService(db, request)
         # Ensure student exists (404)
         from backend.import_resolver import import_names
+
         (Student,) = import_names("models", "Student")
         get_by_id_or_404(db, Student, student_id)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
         # Use list_attendance to keep logic in one place
-        result = service.list_attendance(skip=0, limit=10**9, student_id=student_id, course_id=course_id, start_date=s, end_date=e)
+        result = service.list_attendance(
+            skip=0,
+            limit=10**9,
+            student_id=student_id,
+            course_id=course_id,
+            start_date=s,
+            end_date=e,
+        )
         return result.items
     except HTTPException:
         raise
@@ -175,11 +189,14 @@ def get_course_attendance(
         service = AttendanceService(db, request)
         # Ensure course exists (404)
         from backend.import_resolver import import_names
+
         (Course,) = import_names("models", "Course")
         get_by_id_or_404(db, Course, course_id)
         rng = _normalize_date_range(start_date, end_date)
-        s, e = (rng if rng else (None, None))
-        result = service.list_attendance(skip=0, limit=10**9, course_id=course_id, start_date=s, end_date=e)
+        s, e = rng if rng else (None, None)
+        result = service.list_attendance(
+            skip=0, limit=10**9, course_id=course_id, start_date=s, end_date=e
+        )
         return result.items
     except HTTPException:
         raise
@@ -188,7 +205,10 @@ def get_course_attendance(
         raise internal_server_error(request=request)
 
 
-@router.get("/date/{attendance_date}/course/{course_id}", response_model=List[AttendanceResponse])
+@router.get(
+    "/date/{attendance_date}/course/{course_id}",
+    response_model=List[AttendanceResponse],
+)
 @limiter.limit(RATE_LIMIT_READ)
 def get_attendance_by_date_and_course(
     request: Request,
@@ -217,7 +237,9 @@ def get_attendance_by_date_and_course(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving attendance by date/course: {e!s}", exc_info=True)
+        logger.error(
+            f"Error retrieving attendance by date/course: {e!s}", exc_info=True
+        )
         raise internal_server_error(request=request)
 
 
@@ -284,7 +306,9 @@ def delete_attendance(
 
 @router.get("/stats/student/{student_id}/course/{course_id}")
 @limiter.limit(RATE_LIMIT_READ)
-def get_attendance_stats(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
+def get_attendance_stats(
+    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)
+):
     """Get attendance statistics for a student in a course"""
     try:
         from backend.import_resolver import import_names
@@ -343,7 +367,9 @@ def bulk_create_attendance(
         from backend.import_resolver import import_names
         from backend.db_utils import transaction
 
-        Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
+        Attendance, Student, Course = import_names(
+            "models", "Attendance", "Student", "Course"
+        )
 
         created = []
         errors = []
@@ -366,7 +392,9 @@ def bulk_create_attendance(
                         .first()
                     )
                     if existing:
-                        raise ValueError("Attendance record already exists for this student, course, date, and period")
+                        raise ValueError(
+                            "Attendance record already exists for this student, course, date, and period"
+                        )
 
                     db_attendance = Attendance(**attendance_data.model_dump())
                     db.add(db_attendance)
@@ -379,7 +407,9 @@ def bulk_create_attendance(
 
             db.flush()
 
-        logger.info(f"Bulk created {len(created)} attendance records, {len(errors)} errors")
+        logger.info(
+            f"Bulk created {len(created)} attendance records, {len(errors)} errors"
+        )
 
         return {"created": len(created), "failed": len(errors), "errors": errors}
 

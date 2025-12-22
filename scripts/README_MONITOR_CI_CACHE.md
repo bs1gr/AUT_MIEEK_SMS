@@ -151,10 +151,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: pip install requests
-      
+
       - name: Run monitoring
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,7 +164,7 @@ jobs:
             --since $(date -d '7 days ago' +%Y-%m-%d) \
             --output cache_metrics.json \
             --token $GITHUB_TOKEN
-      
+
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:

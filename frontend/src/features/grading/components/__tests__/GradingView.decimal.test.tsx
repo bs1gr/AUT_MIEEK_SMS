@@ -36,11 +36,11 @@ vi.mock('../../../../LanguageContext', () => ({
 }));
 
 const mockStudents = [
-  { 
-    id: 1, 
-    first_name: 'John', 
-    last_name: 'Doe', 
-    email: 'john@example.com', 
+  {
+    id: 1,
+    first_name: 'John',
+    last_name: 'Doe',
+    email: 'john@example.com',
     student_id: 'S001',
     enrollment_date: '2024-01-01',
     is_active: true,
@@ -48,10 +48,10 @@ const mockStudents = [
 ];
 
 const mockCourses = [
-  { 
-    id: 1, 
-    course_name: 'Math 101', 
-    course_code: 'MATH101', 
+  {
+    id: 1,
+    course_name: 'Math 101',
+    course_code: 'MATH101',
     semester: 'Fall 2024',
     credits: 3,
     is_active: true,
@@ -175,7 +175,7 @@ describe('GradingView - Decimal Input', () => {
     // Verify they're stored as strings and preserved exactly
     expect(gradeInput.value).toBe('18.75');
     expect(maxGradeInput.value).toBe('20.5');
-    
+
     // Type partial decimal (just the dot)
     fireEvent.change(gradeInput, { target: { value: '4.' } });
     expect(gradeInput.value).toBe('4.');

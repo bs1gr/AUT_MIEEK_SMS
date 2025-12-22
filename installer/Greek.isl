@@ -14,7 +14,7 @@
 ;
 
 [LangOptions]
-; The following three entries are very important. Be sure to read and 
+; The following three entries are very important. Be sure to read and
 ; understand the '[LangOptions] section' topic in the help file.
 LanguageName=Ελληνικά
 LanguageID=$0408
@@ -438,9 +438,8 @@ CreateQuickLaunchIcon=Δημιουργία συντόμευσης στη &Γρή
 ProgramOnTheWeb=Το %1 στο Internet
 UninstallProgram=Απεγκατάσταση του %1
 LaunchProgram=Εκκίνηση του %1
-AssocFileExtension=&Συσχέτιση του %1 με την επέκταση αρχείου %2 
+AssocFileExtension=&Συσχέτιση του %1 με την επέκταση αρχείου %2
 AssocingFileExtension=Γίνεται συσχέτιση του %1 με την επέκταση αρχείου "%2"...
 AutoStartProgramGroupDescription=Εκκίνηση:
 AutoStartProgram=Αυτόματη εκκίνηση του %1
 AddonHostProgramNotFound=Το %1 δε βρέθηκε στο φάκελο που επιλέξατε.%n%nΘέλετε να συνεχίσετε παρόλα αυτά;
-

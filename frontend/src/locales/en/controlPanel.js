@@ -335,4 +335,3 @@ export default {
   updateInstructions: 'Update Instructions',
   checkingForUpdates: 'Checking for updates...',
 };
-

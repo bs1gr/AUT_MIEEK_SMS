@@ -19,10 +19,10 @@ const LogoutButton: React.FC = () => {
   };
 
   return (
-    <Button 
-      onClick={handleLogout} 
-      size="sm" 
-      variant="outline" 
+    <Button
+      onClick={handleLogout}
+      size="sm"
+      variant="outline"
       disabled={loading}
       data-testid="logout-button"
     >

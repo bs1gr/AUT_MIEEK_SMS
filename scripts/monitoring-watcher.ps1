@@ -34,7 +34,7 @@ function Write-Log {
 
 function Start-Watcher {
     Write-Log "Starting monitoring watcher service..."
-    
+
     # Check if already running
     if (Test-Path $PID_FILE) {
         $existingPid = Get-Content $PID_FILE
@@ -43,20 +43,20 @@ function Start-Watcher {
             return
         }
     }
-    
+
     # Start watcher in background
     $job = Start-Job -ScriptBlock {
         param($TriggerFile, $ProjectRoot, $LogFile, $Interval)
-        
+
         function Write-JobLog {
             param([string]$Message, [string]$Level = "INFO")
             $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
             $logMessage = "[$timestamp] [$Level] $Message"
             Add-Content -Path $LogFile -Value $logMessage -ErrorAction SilentlyContinue
         }
-        
+
         Write-JobLog "Watcher started, monitoring: $TriggerFile"
-        
+
         while ($true) {
             try {
                 if (Test-Path $TriggerFile) {
@@ -75,7 +75,7 @@ function Start-Watcher {
                     } catch {
                         Write-JobLog "Failed to ensure network '$networkName': $_" 'ERROR'
                     }
-                    
+
                     # Execute the monitoring start
                     Push-Location $ProjectRoot
                     try {
@@ -113,7 +113,7 @@ function Start-Watcher {
                         Pop-Location
                     }
                 }
-                
+
                 Start-Sleep -Seconds $Interval
             } catch {
                 Write-JobLog "Error in watcher loop: $_" "ERROR"
@@ -121,26 +121,26 @@ function Start-Watcher {
             }
         }
     } -ArgumentList $TRIGGER_FILE, $PROJECT_ROOT, $LOG_FILE, $PollInterval
-    
+
     # Save PID
     $job.Id | Set-Content $PID_FILE
     Write-Log "Watcher started (Job ID: $($job.Id))"
     Write-Log "Logs: $LOG_FILE"
-    
+
     return $job
 }
 
 function Stop-Watcher {
     Write-Log "Stopping monitoring watcher service..."
-    
+
     if (-not (Test-Path $PID_FILE)) {
         Write-Log "Watcher not running (no PID file)" "WARN"
         return
     }
-    
+
     $jobId = Get-Content $PID_FILE
     $job = Get-Job -Id $jobId -ErrorAction SilentlyContinue
-    
+
     if ($job) {
         Stop-Job -Job $job
         Remove-Job -Job $job -Force
@@ -148,7 +148,7 @@ function Stop-Watcher {
     } else {
         Write-Log "Watcher job not found (ID: $jobId)" "WARN"
     }
-    
+
     Remove-Item $PID_FILE -Force -ErrorAction SilentlyContinue
 }
 
@@ -157,10 +157,10 @@ function Get-WatcherStatus {
         Write-Host "❌ Watcher: Not running" -ForegroundColor Red
         return $false
     }
-    
+
     $jobId = Get-Content $PID_FILE
     $job = Get-Job -Id $jobId -ErrorAction SilentlyContinue
-    
+
     if ($job -and $job.State -eq 'Running') {
         Write-Host "✅ Watcher: Running (Job ID: $jobId)" -ForegroundColor Green
         Write-Host "   Monitoring: $TRIGGER_DIR"

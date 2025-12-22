@@ -81,7 +81,10 @@ class DailyPerformanceService:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         return (
             db.query(DailyPerformance)
-            .filter(DailyPerformance.student_id == student_id, DailyPerformance.deleted_at.is_(None))
+            .filter(
+                DailyPerformance.student_id == student_id,
+                DailyPerformance.deleted_at.is_(None),
+            )
             .all()
         )
 
@@ -99,7 +102,9 @@ class DailyPerformanceService:
         )
 
     @staticmethod
-    def list_for_course_by_date(db: Session, course_id: int, date_str: str, request=None) -> List:
+    def list_for_course_by_date(
+        db: Session, course_id: int, date_str: str, request=None
+    ) -> List:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         try:
             target_date = datetime.strptime(date_str, "%Y-%m-%d").date()

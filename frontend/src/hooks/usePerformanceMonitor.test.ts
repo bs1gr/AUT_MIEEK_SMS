@@ -82,7 +82,7 @@ describe('usePerformanceMonitor hook', () => {
       vi.spyOn(performance, 'now').mockImplementation(mockNow);
 
       const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
-      
+
       // Warning is logged in cleanup, so we need to unmount
       unmount();
 
@@ -568,8 +568,3 @@ describe('usePerformanceMonitor hook', () => {
     });
   });
 });
-
-
-
-
-

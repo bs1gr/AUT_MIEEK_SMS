@@ -11,13 +11,15 @@ from backend.models import (
     Highlight,
     Student,
 )
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.conftest import SessionLocal
 
 
 def test_deleting_student_cascades_related_records():
-    session = TestingSessionLocal()
+    session = SessionLocal()
     try:
-        course = Course(course_code="MTH101", course_name="Mathematics", semester="Fall")
+        course = Course(
+            course_code="MTH101", course_name="Mathematics", semester="Fall"
+        )
         student = Student(
             first_name="Ada",
             last_name="Lovelace",
@@ -28,7 +30,9 @@ def test_deleting_student_cascades_related_records():
         session.add_all([course, student])
         session.commit()
 
-        attendance = Attendance(student=student, course=course, date=date.today(), status="present")
+        attendance = Attendance(
+            student=student, course=course, date=date.today(), status="present"
+        )
         grade = Grade(
             student=student,
             course=course,
@@ -71,7 +75,7 @@ def test_deleting_student_cascades_related_records():
 
 
 def test_deleting_course_cascades_enrollments_only():
-    session = TestingSessionLocal()
+    session = SessionLocal()
     try:
         course = Course(course_code="PHY101", course_name="Physics", semester="Spring")
         student = Student(

@@ -294,16 +294,16 @@ describe('useStudentsStore', () => {
   describe('Complex scenarios', () => {
     it('handles full CRUD lifecycle', () => {
       const { setStudents, addStudent, updateStudent, deleteStudent } = useStudentsStore.getState();
-      
+
       setStudents([sampleStudent1]);
       expect(useStudentsStore.getState().students).toHaveLength(1);
-      
+
       addStudent(sampleStudent2);
       expect(useStudentsStore.getState().students).toHaveLength(2);
-      
+
       updateStudent(1, { is_active: false });
       expect(useStudentsStore.getState().students[0].is_active).toBe(false);
-      
+
       deleteStudent(2);
       expect(useStudentsStore.getState().students).toHaveLength(1);
       expect(useStudentsStore.getState().students[0].id).toBe(1);

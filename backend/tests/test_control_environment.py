@@ -1,16 +1,8 @@
 import re
 from typing import Any, Dict
 
-from fastapi.testclient import TestClient
 
-from backend.import_resolver import import_names
-
-(app,) = import_names("main", "app")
-
-client = TestClient(app)
-
-
-def test_environment_basic_shape():
+def test_environment_basic_shape(client):
     resp = client.get("/control/api/environment")
     assert resp.status_code == 200
     data: Dict[str, Any] = resp.json()
@@ -23,14 +15,20 @@ def test_environment_basic_shape():
     assert isinstance(data.get("venv_active"), bool)
 
     # Application info fields may be None or str
-    for key in ("app_version", "api_version", "frontend_version", "git_revision", "environment_mode"):
+    for key in (
+        "app_version",
+        "api_version",
+        "frontend_version",
+        "git_revision",
+        "environment_mode",
+    ):
         assert key in data
 
     # python_version follows major.minor.patch
     assert re.match(r"^\d+\.\d+\.\d+$", data["python_version"]) is not None
 
 
-def test_environment_includes_python_packages():
+def test_environment_includes_python_packages(client):
     resp = client.get("/control/api/environment?include_packages=true")
     assert resp.status_code == 200
     data: Dict[str, Any] = resp.json()

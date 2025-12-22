@@ -62,7 +62,9 @@ def validate_first_run() -> int:
         print("TABLES_COUNT:", len(tables))
         print("TABLES_SAMPLE:", tables[:10])
 
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';")
+        cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';"
+        )
         has_version = cur.fetchone() is not None
         print("HAS_ALEMBIC_VERSION:", has_version)
 
@@ -90,7 +92,9 @@ def check_secret(block_on_fail: bool = False) -> int:
     problems = []
 
     if not secret:
-        problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
+        problems.append(
+            "SECRET_KEY is not set. Set SECRET_KEY in environment for production builds."
+        )
 
     if secret == PLACEHOLDER_SECRET:
         problems.append(

@@ -29,6 +29,10 @@ describe('AuthContext', () => {
     localStorage.clear();
     vi.clearAllMocks();
     mockAuthService.getAccessToken.mockReturnValue(null);
+    mockApiClient.get.mockClear();
+    mockApiClient.post.mockClear();
+    mockApiClient.get.mockResolvedValue({ data: {} });
+    mockApiClient.post.mockResolvedValue({ data: {} });
   });
 
   afterEach(() => {
@@ -81,13 +85,17 @@ describe('AuthContext', () => {
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
+
+      // pragma: allowlist secret
       await act(async () => {
         await result.current.login('user@test.com', 'password123');
       });
 
+      // pragma: allowlist secret
+      // pragma: allowlist secret
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/auth/login',
-        { email: 'user@test.com', password: 'password123' },
+        '/api/v1/auth/login', // pragma: allowlist secret
+        { email: 'user@test.com', password: 'password123' }, // pragma: allowlist secret
         expect.objectContaining({ withCredentials: true })
       );
       expect(result.current.user).toEqual({ id: 1, email: 'user@test.com', role: 'student' });
@@ -156,7 +164,7 @@ describe('AuthContext', () => {
         await result.current.login('user@test.com', 'password');
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me', { withCredentials: true });
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/v1/auth/me', { withCredentials: true });
       expect(result.current.accessToken).toBe('token-123');
       expect(result.current.user).toEqual({ id: 1, email: 'user@test.com', role: 'student' });
     });
@@ -178,7 +186,7 @@ describe('AuthContext', () => {
         await result.current.logout();
       });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/logout', {}, { withCredentials: true });
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/v1/auth/logout', {}, { withCredentials: true });
       expect(mockAuthService.clearAccessToken).toHaveBeenCalled();
       expect(result.current.user).toBeNull();
       expect(result.current.accessToken).toBeNull();

@@ -305,7 +305,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         date_submitted: new Date().toISOString().split('T')[0],
         // optional fields not set: date_assigned, notes
       };
-      
+
       // Update existing grade or create new one
       if (editingGradeId) {
         await gradesAPI.update(editingGradeId, payload);

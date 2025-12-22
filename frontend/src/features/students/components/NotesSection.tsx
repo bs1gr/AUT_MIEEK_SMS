@@ -35,9 +35,9 @@ const NotesSection: React.FC<NotesSectionProps> = ({ value, onChange }) => {
         <div className="font-semibold text-indigo-800 drop-shadow-sm">{t('notes')}</div>
         {(isAutosaving || autosavePending) && (
           <div className="flex items-center gap-1 text-xs text-indigo-700">
-            <CloudUpload 
-              className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} 
-              size={14} 
+            <CloudUpload
+              className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'}
+              size={14}
             />
             <span>{isAutosaving ? t('saving') : t('autosavePending')}</span>
           </div>

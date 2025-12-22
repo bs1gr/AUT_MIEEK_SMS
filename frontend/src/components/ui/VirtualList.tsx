@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import './VirtualList.css';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface VirtualListProps<T> {
@@ -13,10 +14,10 @@ interface VirtualListProps<T> {
 
 /**
  * VirtualList - High-performance list rendering using @tanstack/react-virtual
- * 
+ *
  * Only renders visible items in the viewport, dramatically improving performance
  * for large lists (100+ items).
- * 
+ *
  * @example
  * ```tsx
  * <VirtualList
@@ -55,28 +56,18 @@ export function VirtualList<T>({
   return (
     <div
       ref={parentRef}
-      className={`overflow-auto ${className}`}
-      style={{ height: '600px' }}
+      className={`overflow-auto virtual-list-container ${className}`}
     >
       <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        className="virtual-list-outer"
+        data-virtual-list-outer-size={virtualizer.getTotalSize()}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => (
           <div
             key={virtualItem.key}
-            className={itemClassName}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: `${virtualItem.size}px`,
-              transform: `translateY(${virtualItem.start}px)`,
-            }}
+            className={`virtual-list-item ${itemClassName}`}
+            data-virtual-list-item-size={virtualItem.size}
+            data-virtual-list-item-start={virtualItem.start}
           >
             {renderItem(items[virtualItem.index], virtualItem.index)}
           </div>

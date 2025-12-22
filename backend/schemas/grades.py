@@ -22,7 +22,9 @@ class GradeCreate(BaseModel):
     def validate_grade_not_exceeds_max(self):
         """Validate that grade does not exceed max_grade"""
         if self.grade > self.max_grade:
-            raise ValueError(f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})")
+            raise ValueError(
+                f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})"
+            )
         return self
 
     @field_validator("category")
@@ -54,7 +56,9 @@ class GradeUpdate(BaseModel):
         """Validate that grade does not exceed max_grade if both are provided"""
         if self.grade is not None and self.max_grade is not None:
             if self.grade > self.max_grade:
-                raise ValueError(f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})")
+                raise ValueError(
+                    f"Grade ({self.grade}) cannot exceed max_grade ({self.max_grade})"
+                )
         return self
 
     @model_validator(mode="after")

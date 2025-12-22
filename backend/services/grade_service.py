@@ -27,7 +27,9 @@ class GradeService:
         self.db = db
         self.request = request
         try:
-            self.Grade, self.Student, self.Course = import_names("models", "Grade", "Student", "Course")
+            self.Grade, self.Student, self.Course = import_names(
+                "models", "Grade", "Student", "Course"
+            )
         except Exception as exc:  # pragma: no cover
             logger.error("Failed to import models: %s", exc, exc_info=True)
             raise internal_server_error(request=self.request)
@@ -95,10 +97,14 @@ class GradeService:
             query = query.filter(self.Grade.category.ilike(f"%{category}%"))
 
         if start_date is not None:
-            date_col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            date_col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(date_col >= start_date)
         if end_date is not None:
-            date_col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            date_col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(date_col <= end_date)
 
         query = query.order_by(self.Grade.date_assigned.desc())
@@ -211,10 +217,14 @@ class GradeService:
         if course_id is not None:
             query = query.filter(self.Grade.course_id == course_id)
         if start_date is not None:
-            col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(col >= start_date)
         if end_date is not None:
-            col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(col <= end_date)
         return query.all()
 
@@ -231,10 +241,14 @@ class GradeService:
             self.Grade.deleted_at.is_(None),
         )
         if start_date is not None:
-            col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(col >= start_date)
         if end_date is not None:
-            col = self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            col = (
+                self.Grade.date_submitted if use_submitted else self.Grade.date_assigned
+            )
             query = query.filter(col <= end_date)
         return query.all()
 
@@ -242,7 +256,10 @@ class GradeService:
     def _track_grade_submission(self, course_id: int, category: Optional[str]) -> None:
         try:
             from backend.middleware.prometheus_metrics import track_grade_submission
-            course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
+
+            course = (
+                self.db.query(self.Course).filter(self.Course.id == course_id).first()
+            )
             code = getattr(course, "course_code", "unknown") if course else "unknown"
             track_grade_submission(str(code), str(category or "unknown"))
         except Exception:
@@ -257,13 +274,19 @@ class GradeService:
         """
         try:
             (Highlight,) = import_names("models", "Highlight")
-            course = self.db.query(self.Course).filter(self.Course.id == db_grade.course_id).first()
+            course = (
+                self.db.query(self.Course)
+                .filter(self.Course.id == db_grade.course_id)
+                .first()
+            )
             if not course:
                 return
 
             percentage = 0.0
             try:
-                percentage = float(db_grade.grade) / float(db_grade.max_grade or 1) * 100.0
+                percentage = (
+                    float(db_grade.grade) / float(db_grade.max_grade or 1) * 100.0
+                )
             except Exception:
                 percentage = 0.0
 
@@ -271,9 +294,7 @@ class GradeService:
             if letter not in ("A", "A+"):
                 return
 
-            highlight_text = (
-                f"Excellence: {db_grade.assignment_name} ({letter}, {percentage:.1f}%) in {getattr(course, 'course_code', 'Course')}"
-            )
+            highlight_text = f"Excellence: {db_grade.assignment_name} ({letter}, {percentage:.1f}%) in {getattr(course, 'course_code', 'Course')}"
 
             existing = (
                 self.db.query(Highlight)

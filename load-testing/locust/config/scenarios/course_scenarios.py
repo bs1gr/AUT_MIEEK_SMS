@@ -39,7 +39,9 @@ class CourseScenarios(TaskSet):
         ]
 
         params = random.choice(pagination_patterns)
-        self.client.get(f"/api/v1/courses?skip={params['skip']}&limit={params['limit']}")
+        self.client.get(
+            f"/api/v1/courses?skip={params['skip']}&limit={params['limit']}"
+        )
 
     @task(3)
     def get_course_detail(self):
@@ -63,7 +65,9 @@ class CourseScenarios(TaskSet):
             f"CS{random.randint(100, 500)}",
             f"MATH{random.randint(100, 500)}",
             fake.sentence(nb_words=2),
-            random.choice(["Computer Science", "Mathematics", "Physics", "Chemistry", "Biology"]),
+            random.choice(
+                ["Computer Science", "Mathematics", "Physics", "Chemistry", "Biology"]
+            ),
         ]
 
         search_term = random.choice(search_scenarios)
@@ -99,12 +103,17 @@ class CourseScenarios(TaskSet):
             "instructor_id": random.randint(1, 10),
             "max_students": random.randint(20, 100),
             "schedule": {
-                "days": random.sample(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], k=random.randint(2, 3)),
+                "days": random.sample(
+                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                    k=random.randint(2, 3),
+                ),
                 "start_time": f"{random.randint(8, 16):02d}:00",
                 "end_time": f"{random.randint(9, 17):02d}:00",
-                "room": f"{random.choice(['A', 'B', 'C'])}{random.randint(100, 999)}"
+                "room": f"{random.choice(['A', 'B', 'C'])}{random.randint(100, 999)}",
             },
-            "prerequisites": [f"CS{random.randint(100, 200)}" for _ in range(random.randint(0, 2))]
+            "prerequisites": [
+                f"CS{random.randint(100, 200)}" for _ in range(random.randint(0, 2))
+            ],
         }
 
         self.client.post("/api/v1/courses", json=course_data)
@@ -119,7 +128,7 @@ class CourseScenarios(TaskSet):
                 "max_students": random.randint(20, 100),
                 "schedule": {
                     "room": f"{random.choice(['A', 'B', 'C'])}{random.randint(100, 999)}"
-                }
+                },
             }
             self.client.put(f"/api/v1/courses/{course_id}", json=update_data)
 
@@ -160,8 +169,9 @@ class CourseScenarios(TaskSet):
                 "department": "Test",
                 "semester": "Fall",
                 "year": 2024,
-                "max_students": 30
-            } for i in range(random.randint(3, 10))
+                "max_students": 30,
+            }
+            for i in range(random.randint(3, 10))
         ]
 
         self.client.post("/api/v1/courses/bulk", json={"courses": bulk_courses})
@@ -176,6 +186,6 @@ class CourseScenarios(TaskSet):
                 "period": random.choice(["semester", "month", "week"]),
                 "include_grades": True,
                 "include_attendance": True,
-                "include_participation": random.choice([True, False])
+                "include_participation": random.choice([True, False]),
             }
             self.client.post("/api/v1/reports/course-performance", json=report_data)

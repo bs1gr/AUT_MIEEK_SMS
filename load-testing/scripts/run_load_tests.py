@@ -7,14 +7,13 @@ against the SMS application using Locust.
 """
 
 import argparse
-import json
 import os
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict
 
 # Add the load-testing directory to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -42,12 +41,15 @@ class LoadTestRunner:
         try:
             if env == "development":
                 from config.environments.development import DevelopmentConfig
+
                 return DevelopmentConfig()
             elif env == "staging":
                 from config.environments.staging import StagingConfig
+
                 return StagingConfig()
             elif env == "production":
                 from config.environments.production import ProductionConfig
+
                 return ProductionConfig()
             else:
                 raise ValueError(f"Unknown environment: {env}")
@@ -80,15 +82,23 @@ class LoadTestRunner:
 
         scenario_config = self.config.get_scenario_config("smoke")
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--users", str(scenario_config["users"]),
-            "--spawn-rate", str(scenario_config["spawn_rate"]),
-            "--run-time", scenario_config["run_time"],
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--users",
+            str(scenario_config["users"]),
+            "--spawn-rate",
+            str(scenario_config["spawn_rate"]),
+            "--run-time",
+            scenario_config["run_time"],
             "--headless",
             "--only-summary",
-            "--class", "SmokeUser"  # Only use SmokeUser for smoke tests
+            "--class",
+            "SmokeUser",  # Only use SmokeUser for smoke tests
         ]
 
         if self.args.verbose:
@@ -125,15 +135,24 @@ class LoadTestRunner:
         test_id = f"{scenario}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--users", str(scenario_config["users"]),
-            "--spawn-rate", str(scenario_config["spawn_rate"]),
-            "--run-time", scenario_config["run_time"],
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--users",
+            str(scenario_config["users"]),
+            "--spawn-rate",
+            str(scenario_config["spawn_rate"]),
+            "--run-time",
+            scenario_config["run_time"],
             "--headless",
-            "--csv", str(self.results_dir / f"results_{test_id}"),
-            "--html", str(self.results_dir / f"report_{test_id}.html")
+            "--csv",
+            str(self.results_dir / f"results_{test_id}"),
+            "--html",
+            str(self.results_dir / f"report_{test_id}.html"),
         ]
 
         if self.args.verbose:
@@ -143,7 +162,9 @@ class LoadTestRunner:
             print("⏳ Running load test...")
             start_time = time.time()
 
-            result = subprocess.run(cmd, timeout=self.config.CI_TIMEOUT if self.config.CI_MODE else None)
+            result = subprocess.run(
+                cmd, timeout=self.config.CI_TIMEOUT if self.config.CI_MODE else None
+            )
 
             end_time = time.time()
             duration = end_time - start_time
@@ -177,13 +198,17 @@ class LoadTestRunner:
                     "median_response_time": df["Median Response Time"].median(),
                     "95p_response_time": df["95%ile Response Time"].max(),
                     "99p_response_time": df["99%ile Response Time"].max(),
-                    "error_rate": df["Total Failure Count"].sum() / df["Total Request Count"].sum() * 100
+                    "error_rate": df["Total Failure Count"].sum()
+                    / df["Total Request Count"].sum()
+                    * 100,
                 }
 
                 print("📈 Performance Summary:")
                 print(f"  Total Requests: {summary['total_requests']}")
                 print(f"  Average Response Time: {summary['avg_response_time']:.2f}ms")
-                print(f"  Median Response Time: {summary['median_response_time']:.2f}ms")
+                print(
+                    f"  Median Response Time: {summary['median_response_time']:.2f}ms"
+                )
                 print(f"  95th Percentile: {summary['95p_response_time']:.2f}ms")
                 print(f"  99th Percentile: {summary['99p_response_time']:.2f}ms")
                 print(f"  Error Rate: {summary['error_rate']:.2f}%")
@@ -204,32 +229,51 @@ class LoadTestRunner:
 
         # Response time checks
         if results["95p_response_time"] <= targets["response_time_95p"]:
-            print(f"  ✅ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)")
+            print(
+                f"  ✅ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)"
+            )
         else:
-            print(f"  ❌ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)")
+            print(
+                f"  ❌ 95th percentile response time: {results['95p_response_time']:.2f}ms (target: ≤{targets['response_time_95p']}ms)"
+            )
 
         if results["99p_response_time"] <= targets["response_time_99p"]:
-            print(f"  ✅ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)")
+            print(
+                f"  ✅ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)"
+            )
         else:
-            print(f"  ❌ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)")
+            print(
+                f"  ❌ 99th percentile response time: {results['99p_response_time']:.2f}ms (target: ≤{targets['response_time_99p']}ms)"
+            )
 
         # Error rate check
         if results["error_rate"] <= targets["error_rate_max"] * 100:
-            print(f"  ✅ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)")
+            print(
+                f"  ✅ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)"
+            )
         else:
-            print(f"  ❌ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)")
+            print(
+                f"  ❌ Error rate: {results['error_rate']:.2f}% (target: ≤{targets['error_rate_max'] * 100:.1f}%)"
+            )
+
     def run_interactive(self):
         """Run Locust in interactive web UI mode."""
         print("🌐 Starting Locust web interface...")
-        print(f"   Open http://localhost:8089 to access the web UI")
+        print("   Open http://localhost:8089 to access the web UI")
         print(f"   Target: {self.config.HOST}")
 
         cmd = [
-            "python", "-m", "locust",
-            "-f", "locust/locustfile.py",
-            "--host", self.config.HOST,
-            "--web-host", "0.0.0.0",
-            "--web-port", "8089"
+            "python",
+            "-m",
+            "locust",
+            "-f",
+            "locust/locustfile.py",
+            "--host",
+            self.config.HOST,
+            "--web-host",
+            "0.0.0.0",
+            "--web-port",
+            "8089",
         ]
 
         try:
@@ -285,45 +329,42 @@ Examples:
 
   # Skip smoke test
   python run_load_tests.py --skip-smoke --scenario heavy
-        """
+        """,
     )
 
     parser.add_argument(
-        "--env", "-e",
+        "--env",
+        "-e",
         choices=["development", "staging", "production"],
         default="development",
-        help="Target environment (default: development)"
+        help="Target environment (default: development)",
     )
 
     parser.add_argument(
-        "--scenario", "-s",
+        "--scenario",
+        "-s",
         choices=["smoke", "light", "medium", "heavy", "stress"],
         default="medium",
-        help="Test scenario (default: medium)"
+        help="Test scenario (default: medium)",
     )
 
     parser.add_argument(
-        "--interactive", "-i",
+        "--interactive",
+        "-i",
         action="store_true",
-        help="Run in interactive web UI mode"
+        help="Run in interactive web UI mode",
     )
 
     parser.add_argument(
-        "--skip-smoke",
-        action="store_true",
-        help="Skip smoke test before main test"
+        "--skip-smoke", action="store_true", help="Skip smoke test before main test"
     )
 
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
     )
 
     parser.add_argument(
-        "--ci",
-        action="store_true",
-        help="Run in CI mode (non-interactive)"
+        "--ci", action="store_true", help="Run in CI mode (non-interactive)"
     )
 
     args = parser.parse_args()
@@ -344,6 +385,7 @@ Examples:
         print(f"❌ Unexpected error: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

@@ -46,7 +46,13 @@ class AnalyticsService:
             self.Attendance,
             self.CourseEnrollment,
         ) = import_names(
-            "models", "Student", "Course", "Grade", "DailyPerformance", "Attendance", "CourseEnrollment"
+            "models",
+            "Student",
+            "Course",
+            "Grade",
+            "DailyPerformance",
+            "Attendance",
+            "CourseEnrollment",
         )
 
     # ----------------------------- Public API ---------------------------------
@@ -56,31 +62,46 @@ class AnalyticsService:
 
         # Use separate, simpler queries instead of complex joinedload to avoid lock contention
         grades = [
-            g for g in self.db.query(self.Grade)
-            .filter(self.Grade.student_id == student_id, self.Grade.course_id == course_id, self.Grade.deleted_at.is_(None))
+            g
+            for g in self.db.query(self.Grade)
+            .filter(
+                self.Grade.student_id == student_id,
+                self.Grade.course_id == course_id,
+                self.Grade.deleted_at.is_(None),
+            )
             .all()
         ]
 
         daily = [
-            d for d in self.db.query(self.DailyPerformance)
-            .filter(self.DailyPerformance.student_id == student_id, self.DailyPerformance.course_id == course_id, self.DailyPerformance.deleted_at.is_(None))
+            d
+            for d in self.db.query(self.DailyPerformance)
+            .filter(
+                self.DailyPerformance.student_id == student_id,
+                self.DailyPerformance.course_id == course_id,
+                self.DailyPerformance.deleted_at.is_(None),
+            )
             .all()
         ]
 
         attendance = [
-            a for a in self.db.query(self.Attendance)
-            .filter(self.Attendance.student_id == student_id, self.Attendance.course_id == course_id, self.Attendance.deleted_at.is_(None))
+            a
+            for a in self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.student_id == student_id,
+                self.Attendance.course_id == course_id,
+                self.Attendance.deleted_at.is_(None),
+            )
             .all()
         ]
 
-        return self._calculate_final_grade_from_records(student_id, course, grades, daily, attendance)
+        return self._calculate_final_grade_from_records(
+            student_id, course, grades, daily, attendance
+        )
 
     def get_student_all_courses_summary(self, student_id: int) -> Dict[str, Any]:
         # Fetch student without expensive joinedloads
         student = (
-            self.db.query(self.Student)
-            .filter(self.Student.id == student_id)
-            .first()
+            self.db.query(self.Student).filter(self.Student.id == student_id).first()
         )
 
         if not student:
@@ -92,7 +113,7 @@ class AnalyticsService:
             self.db.query(self.CourseEnrollment)
             .filter(
                 self.CourseEnrollment.student_id == student_id,
-                self.CourseEnrollment.deleted_at.is_(None)
+                self.CourseEnrollment.deleted_at.is_(None),
             )
             .all()
         )
@@ -102,18 +123,33 @@ class AnalyticsService:
         # If no enrollments exist, fall back to finding courses from grades/attendance/daily performance
         if not course_ids:
             course_ids = {
-                *(g.course_id for g in self.db.query(self.Grade.course_id).filter(
-                    self.Grade.student_id == student_id,
-                    self.Grade.deleted_at.is_(None)
-                ).distinct()),
-                *(d.course_id for d in self.db.query(self.DailyPerformance.course_id).filter(
-                    self.DailyPerformance.student_id == student_id,
-                    self.DailyPerformance.deleted_at.is_(None)
-                ).distinct()),
-                *(a.course_id for a in self.db.query(self.Attendance.course_id).filter(
-                    self.Attendance.student_id == student_id,
-                    self.Attendance.deleted_at.is_(None)
-                ).distinct()),
+                *(
+                    g.course_id
+                    for g in self.db.query(self.Grade.course_id)
+                    .filter(
+                        self.Grade.student_id == student_id,
+                        self.Grade.deleted_at.is_(None),
+                    )
+                    .distinct()
+                ),
+                *(
+                    d.course_id
+                    for d in self.db.query(self.DailyPerformance.course_id)
+                    .filter(
+                        self.DailyPerformance.student_id == student_id,
+                        self.DailyPerformance.deleted_at.is_(None),
+                    )
+                    .distinct()
+                ),
+                *(
+                    a.course_id
+                    for a in self.db.query(self.Attendance.course_id)
+                    .filter(
+                        self.Attendance.student_id == student_id,
+                        self.Attendance.deleted_at.is_(None),
+                    )
+                    .distinct()
+                ),
             }
 
         if not course_ids:
@@ -133,10 +169,7 @@ class AnalyticsService:
         courses_dict: Dict[int, Any] = {
             c.id: c
             for c in self.db.query(self.Course)
-            .filter(
-                self.Course.id.in_(course_ids),
-                self.Course.deleted_at.is_(None)
-            )
+            .filter(self.Course.id.in_(course_ids), self.Course.deleted_at.is_(None))
             .all()
         }
 
@@ -147,7 +180,7 @@ class AnalyticsService:
             .filter(
                 self.Grade.student_id == student_id,
                 self.Grade.course_id.in_(course_ids),
-                self.Grade.deleted_at.is_(None)
+                self.Grade.deleted_at.is_(None),
             )
             .all()
         ):
@@ -159,7 +192,7 @@ class AnalyticsService:
             .filter(
                 self.DailyPerformance.student_id == student_id,
                 self.DailyPerformance.course_id.in_(course_ids),
-                self.DailyPerformance.deleted_at.is_(None)
+                self.DailyPerformance.deleted_at.is_(None),
             )
             .all()
         ):
@@ -171,7 +204,7 @@ class AnalyticsService:
             .filter(
                 self.Attendance.student_id == student_id,
                 self.Attendance.course_id.in_(course_ids),
-                self.Attendance.deleted_at.is_(None)
+                self.Attendance.deleted_at.is_(None),
             )
             .all()
         ):
@@ -244,7 +277,11 @@ class AnalyticsService:
         attendance_rate = (present / total_att * 100) if total_att > 0 else 0
 
         grades = [g for g in student.grades if g.deleted_at is None]
-        avg_grade = sum((g.grade / g.max_grade * 100) for g in grades) / len(grades) if grades else 0
+        avg_grade = (
+            sum((g.grade / g.max_grade * 100) for g in grades) / len(grades)
+            if grades
+            else 0
+        )
 
         return {
             "student": {
@@ -264,7 +301,7 @@ class AnalyticsService:
     @staticmethod
     def get_letter_grade(percentage: float) -> str:
         """Convert percentage to letter grade using standard academic scale.
-        
+
         Scale: A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86),
                B- (80-82), C+ (77-79), C (70-76), D (60-69), F (0-59)
         """
@@ -419,7 +456,9 @@ class AnalyticsService:
 
             if include_daily:
                 for perf in (
-                    p for p in daily_performance if _normalize_category(getattr(p, "category", None)) == rule_norm
+                    p
+                    for p in daily_performance
+                    if _normalize_category(getattr(p, "category", None)) == rule_norm
                 ):
                     if getattr(perf, "max_score", 0):
                         daily_pct = (perf.score / perf.max_score) * 100
@@ -429,7 +468,9 @@ class AnalyticsService:
             if category_lower in {"attendance", "παρουσία"}:
                 if attendance:
                     total = len(attendance)
-                    present = len([a for a in attendance if str(a.status).lower() == "present"])
+                    present = len(
+                        [a for a in attendance if str(a.status).lower() == "present"]
+                    )
                     att_pct = (present / total * 100) if total > 0 else 0
                     weighted_sum += att_pct
                     total_item_weight += 1.0
@@ -465,7 +506,9 @@ class AnalyticsService:
         absence_deduction = 0.0
 
         if penalty_per_absence > 0:
-            unexcused_absences = len([a for a in attendance if str(a.status).lower() == "absent"])
+            unexcused_absences = len(
+                [a for a in attendance if str(a.status).lower() == "absent"]
+            )
             absence_deduction = penalty_per_absence * unexcused_absences
             final_grade = max(0.0, final_grade - absence_deduction)
 

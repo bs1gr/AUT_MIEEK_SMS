@@ -82,6 +82,7 @@ class AttendanceService:
         # Metrics
         try:
             from backend.middleware.prometheus_metrics import track_attendance
+
             track_attendance(str(attendance.status).lower())
         except Exception:
             pass
@@ -106,7 +107,9 @@ class AttendanceService:
         status: Optional[str] = None,
     ):
         """List attendance records with optional filters."""
-        query = self.db.query(self.Attendance).filter(self.Attendance.deleted_at.is_(None))
+        query = self.db.query(self.Attendance).filter(
+            self.Attendance.deleted_at.is_(None)
+        )
 
         if student_id is not None:
             query = query.filter(self.Attendance.student_id == student_id)
@@ -131,7 +134,9 @@ class AttendanceService:
             request=self.request,
         )
 
-    def update_attendance(self, attendance_id: int, attendance_update: AttendanceUpdate):
+    def update_attendance(
+        self, attendance_id: int, attendance_update: AttendanceUpdate
+    ):
         """Update an existing attendance record."""
         db_attendance = self.get_attendance(attendance_id)
 
@@ -159,7 +164,9 @@ class AttendanceService:
         new_student_id = update_dict.get("student_id", db_attendance.student_id)
         new_course_id = update_dict.get("course_id", db_attendance.course_id)
         new_date = update_dict.get("date", db_attendance.date)
-        new_period_number = update_dict.get("period_number", db_attendance.period_number)
+        new_period_number = update_dict.get(
+            "period_number", db_attendance.period_number
+        )
 
         if (
             new_student_id != db_attendance.student_id
@@ -168,7 +175,11 @@ class AttendanceService:
             or new_period_number != db_attendance.period_number
         ):
             self._assert_unique_attendance(
-                new_student_id, new_course_id, new_date, new_period_number, exclude_id=attendance_id
+                new_student_id,
+                new_course_id,
+                new_date,
+                new_period_number,
+                exclude_id=attendance_id,
             )
 
         with transaction(self.db):
@@ -186,6 +197,7 @@ class AttendanceService:
 
         with transaction(self.db):
             from datetime import timezone
+
             db_attendance.deleted_at = datetime.now(timezone.utc)
             self.db.flush()
 

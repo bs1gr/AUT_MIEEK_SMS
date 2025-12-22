@@ -1,7 +1,7 @@
 # Phase 2.3 - Import Preview & Job Monitoring UI Completion
 
-**Date:** December 12, 2025  
-**Status:** ✅ Complete  
+**Date:** December 12, 2025
+**Status:** ✅ Complete
 **Commits:** 2 (1 backend endpoint, 1 frontend UI)
 
 ## Overview
@@ -125,6 +125,6 @@ feat(frontend): add imports tab with preview & job monitoring
 - **Accessibility:** ARIA labels, semantic HTML, keyboard navigation
 
 ---
-**Version:** 1.11.3 (post-import-preview-ui)  
-**Related PRs/Issues:** Phase 2.3 import preview implementation  
+**Version:** 1.11.3 (post-import-preview-ui)
+**Related PRs/Issues:** Phase 2.3 import preview implementation
 **Reviewed by:** Code review recommended for production deployment

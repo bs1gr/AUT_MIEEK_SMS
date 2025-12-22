@@ -1,62 +1,68 @@
 import json
 
 
-from fastapi.testclient import TestClient
-from backend.main import app
-
-client = TestClient(app)
-
-def get_auth_headers(email="testuser@example.com", password="TestPass123!", role="teacher"):
-    # Register user (role is ignored unless admin token is used, so always teacher)
-    client.post("/api/v1/auth/register", json={"email": email, "password": password, "role": role})
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
-    token = login.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+import pytest
 
 
-def test_sessions_semesters_empty():
-    headers = get_auth_headers()
-    resp = client.get("/api/v1/sessions/semesters", headers=headers)
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+def test_sessions_semesters_empty(client):
+    resp = client.get("/api/v1/sessions/semesters", params={"a": "dummy", "k": "dummy"})
     assert resp.status_code == 200
     data = resp.json()
     assert data["count"] == 0
     assert data["semesters"] == []
 
 
-def test_sessions_export_missing_semester():
-    headers = get_auth_headers()
-    resp = client.get("/api/v1/sessions/export", params={"semester": "NON_EXISTENT"}, headers=headers)
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+def test_sessions_export_missing_semester(client):
+    resp = client.get(
+        "/api/v1/sessions/export",
+        params={"semester": "NON_EXISTENT", "a": "dummy", "k": "dummy"},
+    )
     assert resp.status_code == 404
     data = resp.json()
     # Generic shape check; error code presence depends on http_error implementation
     assert "detail" in data
 
 
-def test_sessions_import_dry_run_missing_metadata():
-    headers = get_auth_headers()
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+def test_sessions_import_dry_run_missing_metadata(client):
     # Missing metadata entirely
     payload = {"courses": []}
     content = json.dumps(payload).encode("utf-8")
     files = {"file": ("session.json", content, "application/json")}
-    resp = client.post("/api/v1/sessions/import", params={"dry_run": "true"}, files=files, headers=headers)
+    resp = client.post(
+        "/api/v1/sessions/import",
+        params={"dry_run": "true", "a": "dummy", "k": "dummy"},
+        files=files,
+    )
     assert resp.status_code == 400
     data = resp.json()
     assert "detail" in data
 
 
-def test_sessions_import_dry_run_missing_semester():
-    headers = get_auth_headers()
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+def test_sessions_import_dry_run_missing_semester(client):
     payload = {"metadata": {}, "courses": []}
     content = json.dumps(payload).encode("utf-8")
     files = {"file": ("session.json", content, "application/json")}
-    resp = client.post("/api/v1/sessions/import", params={"dry_run": "true"}, files=files, headers=headers)
+    resp = client.post(
+        "/api/v1/sessions/import",
+        params={"dry_run": "true", "a": "dummy", "k": "dummy"},
+        files=files,
+    )
     assert resp.status_code == 400
     data = resp.json()
     assert "detail" in data
 
 
-def test_sessions_import_dry_run_valid_empty():
-    headers = get_auth_headers()
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+def test_sessions_import_dry_run_valid_empty(client):
     payload = {
         "metadata": {"semester": "2025-Fall"},
         "courses": [],
@@ -65,11 +71,15 @@ def test_sessions_import_dry_run_valid_empty():
         "grades": [],
         "attendance": [],
         "daily_performance": [],
-        "highlights": []
+        "highlights": [],
     }
     content = json.dumps(payload).encode("utf-8")
     files = {"file": ("session.json", content, "application/json")}
-    resp = client.post("/api/v1/sessions/import", params={"dry_run": "true"}, files=files, headers=headers)
+    resp = client.post(
+        "/api/v1/sessions/import",
+        params={"dry_run": "true", "a": "dummy", "k": "dummy"},
+        files=files,
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data.get("dry_run") is True
@@ -85,9 +95,8 @@ def test_sessions_import_dry_run_valid_empty():
     }
 
 
-def test_sessions_export_success_with_data():
+def test_sessions_export_success_with_data(client, get_auth_headers):
     """End-to-end export: create course, student, enrollment, grade then export semester JSON."""
-    headers = get_auth_headers()
     # Create student
     student = client.post(
         "/api/v1/students/",
@@ -97,9 +106,8 @@ def test_sessions_export_success_with_data():
             "email": "export.tester@example.com",
             "student_id": "EXP001",
         },
-        headers=headers
+        headers=get_auth_headers,
     ).json()
-
     # Create course in target semester
     course = client.post(
         "/api/v1/courses/",
@@ -109,14 +117,14 @@ def test_sessions_export_success_with_data():
             "semester": "2025-Fall",
             "credits": 3,
         },
-        headers=headers
+        headers=get_auth_headers,
     ).json()
-
     # Enroll student in course
-    enroll_resp = client.post(f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers)
-    # Enrollment creation returns 200 OK (not 201) in current API implementation
+    enroll_resp = client.post(
+        f"/api/v1/enrollments/course/{course['id']}",
+        json={"student_ids": [student["id"]]},
+    )
     assert enroll_resp.status_code == 200
-
     # Create a grade record
     grade_payload = {
         "student_id": student["id"],
@@ -129,14 +137,12 @@ def test_sessions_export_success_with_data():
         "date_assigned": "2025-09-01",
         "date_submitted": "2025-09-01",
     }
-    grade_resp = client.post("/api/v1/grades/", json=grade_payload, headers=headers)
+    grade_resp = client.post("/api/v1/grades/", json=grade_payload)
     assert grade_resp.status_code == 201
-
     # Perform export
-    resp = client.get("/api/v1/sessions/export", params={"semester": "2025-Fall"}, headers=headers)
+    resp = client.get("/api/v1/sessions/export", params={"semester": "2025-Fall"})
     assert resp.status_code == 200, resp.text
     exported = json.loads(resp.content.decode("utf-8"))
-
     # Validate metadata and counts
     assert exported["metadata"]["semester"] == "2025-Fall"
     counts = exported["metadata"]["counts"]
@@ -149,7 +155,6 @@ def test_sessions_export_success_with_data():
     assert counts["attendance"] == 0
     assert counts["daily_performance"] == 0
     assert counts["highlights"] == 0
-
     # Basic shape checks
     assert len(exported["courses"]) == 1
     assert len(exported["students"]) == 1
@@ -157,19 +162,19 @@ def test_sessions_export_success_with_data():
     assert len(exported["grades"]) == 1
 
 
-def test_sessions_list_backups():
+def test_sessions_list_backups(client, get_auth_headers):
     """List backups endpoint should respond with a JSON structure (may be empty)."""
-    headers = get_auth_headers()
-    resp = client.get("/api/v1/sessions/backups", headers=headers)
+    resp = client.get("/api/v1/sessions/backups", headers=get_auth_headers)
     assert resp.status_code == 200
     data = resp.json()
     assert "backups" in data
     assert "count" in data
 
 
-def test_sessions_import_non_dry_run_creates_backup_and_persists():
+def test_sessions_import_non_dry_run_creates_backup_and_persists(
+    client, get_auth_headers
+):
     """Perform a real (non-dry-run) import and verify backup creation + subsequent export counts."""
-    headers = get_auth_headers()
     # Build import payload with Unicode semester to exercise filename/backup behavior
     semester = "2025-Fall-Ü"
     import_payload = {
@@ -179,7 +184,7 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
                 "course_code": "ÜEXP101",
                 "course_name": "Unicode Export",
                 "semester": semester,
-                "credits": 2
+                "credits": 2,
             }
         ],
         "students": [
@@ -187,14 +192,14 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
                 "student_id": "ÜSTU001",
                 "first_name": "Αλέξης",
                 "last_name": "Παπαδόπουλος",
-                "email": "unicode.student@example.com"
+                "email": "unicode.student@example.com",
             }
         ],
         "enrollments": [
             {
                 "student_id_ref": "ÜSTU001",
                 "course_code_ref": "ÜEXP101",
-                "enrolled_at": "2025-09-01T00:00:00"
+                "enrolled_at": "2025-09-01T00:00:00",
             }
         ],
         "grades": [
@@ -207,16 +212,16 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
                 "max_grade": 100,
                 "weight": 1.0,
                 "date_assigned": "2025-09-10",
-                "date_submitted": "2025-09-11"
+                "date_submitted": "2025-09-11",
             }
         ],
         "attendance": [],
         "daily_performance": [],
-        "highlights": []
+        "highlights": [],
     }
     content = json.dumps(import_payload).encode("utf-8")
     files = {"file": ("session_unicode.json", content, "application/json")}
-    resp = client.post("/api/v1/sessions/import", files=files, headers=headers)
+    resp = client.post("/api/v1/sessions/import", files=files, headers=get_auth_headers)
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data.get("success") is True
@@ -224,7 +229,11 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
     assert data.get("backup_created") is True
     assert "pre_import_backup_" in (data.get("backup_path") or "")
     # Export newly imported semester
-    export_resp = client.get("/api/v1/sessions/export", params={"semester": semester}, headers=headers)
+    export_resp = client.get(
+        "/api/v1/sessions/export",
+        params={"semester": semester},
+        headers=get_auth_headers,
+    )
     assert export_resp.status_code == 200, export_resp.text
     exported = json.loads(export_resp.content.decode("utf-8"))
     counts = exported["metadata"]["counts"]
@@ -233,47 +242,67 @@ def test_sessions_import_non_dry_run_creates_backup_and_persists():
     assert counts["enrollments"] == 1
     assert counts["grades"] == 1
     # Verify backups listing includes at least one pre-import backup (Unicode name allowed)
-    backups_list = client.get("/api/v1/sessions/backups", headers=headers).json()
+    backups_list = client.get(
+        "/api/v1/sessions/backups", headers=get_auth_headers
+    ).json()
     assert backups_list["count"] >= 1
     assert any("pre_import_backup_" in b["filename"] for b in backups_list["backups"])
 
 
-def test_sessions_export_unicode_semester_filename_sanitized():
+def test_sessions_export_unicode_semester_filename_sanitized(client, get_auth_headers):
     """Export with non-ASCII semester should produce sanitized ASCII filename ("semester" fallback)."""
     semester = "2025-Fall-Ü"
     # Ensure data exists for this semester; perform a minimal import if export would 404
-    headers = get_auth_headers()
-    resp = client.get("/api/v1/sessions/export", params={"semester": semester}, headers=headers)
+    resp = client.get(
+        "/api/v1/sessions/export",
+        params={"semester": semester},
+        headers=get_auth_headers,
+    )
     if resp.status_code == 404:
         import_payload = {
             "metadata": {"semester": semester},
             "courses": [
-                {"course_code": "ÜTMP101", "course_name": "Temp Unicode", "semester": semester, "credits": 1}
+                {
+                    "course_code": "ÜTMP101",
+                    "course_name": "Temp Unicode",
+                    "semester": semester,
+                    "credits": 1,
+                }
             ],
             "students": [
-                {"student_id": "ÜTMPSTU1", "first_name": "Νίκη", "last_name": "Δοκιμή", "email": "tmp.unicode@example.com"}
+                {
+                    "student_id": "ÜTMPSTU1",
+                    "first_name": "Νίκη",
+                    "last_name": "Δοκιμή",
+                    "email": "tmp.unicode@example.com",
+                }
             ],
             "enrollments": [
-                {"student_id_ref": "ÜTMPSTU1", "course_code_ref": "ÜTMP101", "enrolled_at": "2025-09-01T00:00:00"}
+                {
+                    "student_id_ref": "ÜTMPSTU1",
+                    "course_code_ref": "ÜTMP101",
+                    "enrolled_at": "2025-09-01T00:00:00",
+                }
             ],
             "grades": [],
             "attendance": [],
             "daily_performance": [],
-            "highlights": []
+            "highlights": [],
         }
         content = json.dumps(import_payload).encode("utf-8")
         files = {"file": ("session_unicode.json", content, "application/json")}
-        import_resp = client.post("/api/v1/sessions/import", files=files, headers=headers)
+        import_resp = client.post(
+            "/api/v1/sessions/import", files=files, headers=get_auth_headers
+        )
         assert import_resp.status_code == 200, import_resp.text
-        resp = client.get("/api/v1/sessions/export", params={"semester": semester}, headers=headers)
+        resp = client.get("/api/v1/sessions/export", params={"semester": semester})
     assert resp.status_code == 200, resp.text
     cd = resp.headers.get("content-disposition", "")
     # Expect sanitized segment 'session_export_semester_' due to non-ASCII character presence
     assert "session_export_semester_" in cd, cd
 
 
-def test_sessions_rollback_invalid_backup():
-    headers = get_auth_headers()
+def test_sessions_rollback_invalid_backup(client, get_auth_headers):
     student = client.post(
         "/api/v1/students/",
         json={
@@ -282,9 +311,8 @@ def test_sessions_rollback_invalid_backup():
             "email": "export.tester@example.com",
             "student_id": "EXP001",
         },
-        headers=headers
+        headers=get_auth_headers,
     ).json()
-
     # Create course in target semester
     course = client.post(
         "/api/v1/courses/",
@@ -294,11 +322,14 @@ def test_sessions_rollback_invalid_backup():
             "semester": "2025-Fall",
             "credits": 3,
         },
-        headers=headers
+        headers=get_auth_headers,
     ).json()
 
-    # Enroll student in course
-    enroll_resp = client.post(f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}, headers=headers)
+    enroll_resp = client.post(
+        f"/api/v1/enrollments/course/{course['id']}",
+        json={"student_ids": [student["id"]]},
+        headers=get_auth_headers,
+    )
     assert enroll_resp.status_code == 200
 
     # Create a grade record
@@ -313,11 +344,12 @@ def test_sessions_rollback_invalid_backup():
         "date_assigned": "2025-09-01",
         "date_submitted": "2025-09-01",
     }
-    grade_resp = client.post("/api/v1/grades/", json=grade_payload, headers=headers)
-    assert grade_resp.status_code == 201
-
-    # Perform export
-    resp = client.get("/api/v1/sessions/export", params={"semester": "2025-Fall"}, headers=headers)
+    client.post("/api/v1/grades/", json=grade_payload, headers=get_auth_headers)
+    resp = client.get(
+        "/api/v1/sessions/export",
+        params={"semester": "2025-Fall"},
+        headers=get_auth_headers,
+    )
     assert resp.status_code == 200, resp.text
     exported = json.loads(resp.content.decode("utf-8"))
 

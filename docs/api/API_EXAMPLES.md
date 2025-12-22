@@ -1,7 +1,7 @@
 # API Request/Response Examples
 
-**Version**: 1.11.1  
-**Last Updated**: 2025-12-11  
+**Version**: 1.11.1
+**Last Updated**: 2025-12-11
 **Base URL**: `http://localhost:8080/api/v1` (Docker) or `http://localhost:8000/api/v1` (native)
 
 This guide provides curl examples and response payloads for common API workflows.
@@ -41,7 +41,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com",
-    "password": "securepassword123"
+    "password": "securepassword123" # pragma: allowlist secret
   }'
 ```
 
@@ -1619,7 +1619,7 @@ X-RateLimit-Reset: 1702320060
 # Store token in secure cookie or memory (never localStorage for sensitive systems)
 TOKEN=$(curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "pass"}' \
+  -d '{"email": "user@example.com", "password": "pass"}' \ # pragma: allowlist secret
   | jq -r '.access_token')
 
 # Use Bearer scheme
@@ -1671,6 +1671,6 @@ Access interactive API documentation:
 
 ---
 
-**Last Updated**: 2025-12-11  
-**Maintained By**: Development Team  
+**Last Updated**: 2025-12-11
+**Maintained By**: Development Team
 **Next Review**: 2025-12-25

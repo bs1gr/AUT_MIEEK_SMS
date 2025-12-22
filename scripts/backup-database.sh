@@ -3,7 +3,7 @@ set -e
 
 # Database Backup Script for Student Management System
 # Automated daily PostgreSQL backups with retention management
-# 
+#
 # Environment Variables (from docker-compose):
 #   POSTGRES_HOST - Database host (default: postgres)
 #   POSTGRES_PORT - Database port (default: 5432)
@@ -54,7 +54,7 @@ verify_connection() {
 # Function: Perform backup
 perform_backup() {
     log_message "💾 Starting backup of database: ${BACKUP_DB}"
-    
+
     PGPASSWORD="${BACKUP_PASSWORD}" pg_dump \
         -h "${BACKUP_HOST}" \
         -p "${BACKUP_PORT}" \
@@ -64,9 +64,9 @@ perform_backup() {
         --no-password \
         | gzip > "${BACKUP_FILE}" \
         || handle_error "pg_dump failed"
-    
+
     log_message "✅ Backup created: ${BACKUP_FILE}"
-    
+
     # Get file size
     SIZE=$(du -h "${BACKUP_FILE}" | cut -f1)
     log_message "📦 Backup size: ${SIZE}"
@@ -75,31 +75,31 @@ perform_backup() {
 # Function: Verify backup integrity
 verify_backup() {
     log_message "🔍 Verifying backup integrity..."
-    
+
     # Check if file exists and has content
     if [ ! -f "${BACKUP_FILE}" ] || [ ! -s "${BACKUP_FILE}" ]; then
         handle_error "Backup file is empty or missing"
     fi
-    
+
     # Test gzip integrity
     if ! gzip -t "${BACKUP_FILE}" 2>/dev/null; then
         handle_error "Backup file is corrupted (gzip test failed)"
     fi
-    
+
     log_message "✅ Backup integrity verified"
 }
 
 # Function: Clean up old backups
 cleanup_old_backups() {
     log_message "🧹 Cleaning up backups older than ${RETENTION_DAYS} days..."
-    
+
     DELETED_COUNT=0
     while IFS= read -r -d '' file; do
         log_message "Deleting old backup: $(basename "$file")"
         rm -f "$file"
         ((DELETED_COUNT++))
     done < <(find "${BACKUP_DIR}" -name "backup_*.sql.gz" -type f -mtime "+${RETENTION_DAYS}" -print0)
-    
+
     if [ ${DELETED_COUNT} -gt 0 ]; then
         log_message "✅ Deleted ${DELETED_COUNT} old backup(s)"
     else
@@ -143,7 +143,7 @@ send_notification() {
                 }
             ]
         }"
-        
+
         curl -X POST -H 'Content-type: application/json' \
             --data "${SLACK_MESSAGE}" \
             "${SLACK_WEBHOOK_URL}" \
@@ -155,17 +155,17 @@ send_notification() {
 main() {
     log_message "🚀 Starting database backup process..."
     log_message "Database: ${BACKUP_DB} @ ${BACKUP_HOST}:${BACKUP_PORT}"
-    
+
     verify_connection
     perform_backup
     verify_backup
     create_metadata
     cleanup_old_backups
     send_notification
-    
+
     # Clear error flag if everything succeeded
     rm -f "${BACKUP_DIR}/.backup_error"
-    
+
     log_message "✅ Backup process completed successfully"
     log_message "========================================"
 }

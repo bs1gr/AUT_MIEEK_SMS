@@ -57,12 +57,12 @@ The `fix_greek_encoding_permanent.py` script:
 
 ### Why This Approach Works
 
-**✅ Permanent**: Fix embedded in build pipeline  
-**✅ Automatic**: No manual intervention required  
-**✅ Survives Rebuilds**: Applied every time installer is built  
-**✅ Git-Friendly**: UTF-8 source is human-readable  
-**✅ Self-Documenting**: Python script contains Greek text definitions  
-**✅ Simple**: Clear separation: storage (UTF-8) vs. compilation (CP1253)  
+**✅ Permanent**: Fix embedded in build pipeline
+**✅ Automatic**: No manual intervention required
+**✅ Survives Rebuilds**: Applied every time installer is built
+**✅ Git-Friendly**: UTF-8 source is human-readable
+**✅ Self-Documenting**: Python script contains Greek text definitions
+**✅ Simple**: Clear separation: storage (UTF-8) vs. compilation (CP1253)
 
 ### Understanding PowerShell Display
 
@@ -91,7 +91,7 @@ To change Greek installer text:
    ```python
    content_welcome = """Καλώς ήρθατε στην Εγκατάσταση SMS
    =====================================
-   
+
    [Your updated Greek text here]
    """
    ```
@@ -172,7 +172,7 @@ To confirm Greek text displays correctly:
 - Required manual intervention
 - Didn't survive git pulls
 
-### Problem with Previous UTF-8 Approach  
+### Problem with Previous UTF-8 Approach
 
 - Complex: switching between code pages
 - Fragile: required manual validation

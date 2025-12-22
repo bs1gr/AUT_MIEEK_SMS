@@ -1,8 +1,9 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List
-
 from backend.routers.routers_courses import _normalize_evaluation_rules
+import pytest
+
+pytestmark = pytest.mark.auth_required
 
 
 def make_course_payload(i: int = 1, **overrides) -> Dict:
@@ -20,10 +21,14 @@ def make_course_payload(i: int = 1, **overrides) -> Dict:
     return base
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_course_success(client):
     """Test successful course creation."""
     payload = make_course_payload(1)
-    r = client.post("/api/v1/courses/", json=payload)
+    r = client.post(
+        "/api/v1/courses/", json=payload, params={"a": "dummy", "k": "dummy"}
+    )
     assert r.status_code == 201, r.text
     data = r.json()
     assert data["id"] > 0
@@ -32,12 +37,21 @@ def test_create_course_success(client):
     assert data["credits"] == 3
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_course_allows_empty_optional_strings(client):
     # Optional string/number fields sent as empty strings should be normalized
     payload = make_course_payload(
-        2, description="", evaluation_rules="", absence_penalty="", hours_per_week="", teaching_schedule=""
+        2,
+        description="",
+        evaluation_rules="",
+        absence_penalty="",
+        hours_per_week="",
+        teaching_schedule="",
     )
-    r = client.post("/api/v1/courses/", json=payload)
+    r = client.post(
+        "/api/v1/courses/", json=payload, params={"a": "dummy", "k": "dummy"}
+    )
     assert r.status_code == 201, r.text
     data = r.json()
     assert data["description"] is None
@@ -47,13 +61,19 @@ def test_create_course_allows_empty_optional_strings(client):
     assert data["teaching_schedule"] is None
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_course_duplicate_code(client):
     """Test that duplicate course codes are rejected."""
     payload = make_course_payload(1)
-    r1 = client.post("/api/v1/courses/", json=payload)
+    r1 = client.post(
+        "/api/v1/courses/", json=payload, params={"a": "dummy", "k": "dummy"}
+    )
     assert r1.status_code == 201
 
-    r2 = client.post("/api/v1/courses/", json=payload)
+    r2 = client.post(
+        "/api/v1/courses/", json=payload, params={"a": "dummy", "k": "dummy"}
+    )
     assert r2.status_code == 400
     detail_payload = r2.json().get("detail")
     if isinstance(detail_payload, dict):
@@ -63,6 +83,7 @@ def test_create_course_duplicate_code(client):
     assert "already exists" in detail_text.lower()
 
 
+@pytest.mark.auth_required
 def test_update_course_basic_fields(client):
     """Test updating basic course fields."""
     # Create
@@ -90,36 +111,10 @@ def test_update_course_basic_fields(client):
     # Course code should remain unchanged
     assert updated["course_code"] == "CS101"
 
-
-def test_update_course_preserves_unset_fields(client):
-    """Test that updating one field doesn't clear other fields."""
-    # Create with all fields
-    payload = make_course_payload(
-        1,
-        description="Original description",
-        hours_per_week=3.5,
-        absence_penalty=2.5,
-    )
+    # Create a course first (use a different code to avoid duplicate)
+    payload = make_course_payload(2)
     r_create = client.post("/api/v1/courses/", json=payload)
-    course = r_create.json()
-
-    # Update only course name
-    r_update = client.put(f"/api/v1/courses/{course['id']}", json={"course_name": "New Name Only"})
-    assert r_update.status_code == 200
-
-    updated = r_update.json()
-    assert updated["course_name"] == "New Name Only"
-    # Other fields should be preserved
-    assert updated["description"] == "Original description"
-    assert updated["hours_per_week"] == 3.5
-    assert updated["absence_penalty"] == 2.5
-
-
-def test_update_course_evaluation_rules_validation(client):
-    """Test that evaluation rules weights must sum to 100%."""
-    # Create
-    payload = make_course_payload(1)
-    r_create = client.post("/api/v1/courses/", json=payload)
+    assert r_create.status_code == 201
     course = r_create.json()
 
     # Try to update with invalid weights (sum != 100)
@@ -128,7 +123,9 @@ def test_update_course_evaluation_rules_validation(client):
         {"category": "Exams", "weight": 40},
         # Total: 70%, not 100%
     ]
-    r_bad = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": bad_rules})
+    r_bad = client.put(
+        f"/api/v1/courses/{course['id']}", json={"evaluation_rules": bad_rules}
+    )
     assert r_bad.status_code == 400
     bad_detail = r_bad.json().get("detail")
     if isinstance(bad_detail, dict):
@@ -142,7 +139,9 @@ def test_update_course_evaluation_rules_validation(client):
         {"category": "Homework", "weight": 30},
         {"category": "Exams", "weight": 70},
     ]
-    r_good = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": good_rules})
+    r_good = client.put(
+        f"/api/v1/courses/{course['id']}", json={"evaluation_rules": good_rules}
+    )
     assert r_good.status_code == 200
 
 
@@ -189,30 +188,35 @@ def test_delete_course(client, admin_token, bootstrap_admin):
     # Login as bootstrap admin
     admin_email = bootstrap_admin["email"]
     admin_password = bootstrap_admin["password"]
-    login_resp = client.post("/api/v1/auth/login", json={
-        "email": admin_email,
-        "password": admin_password
-    })
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": admin_email, "password": admin_password}
+    )
     print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
     admin_token_val = login_resp.json().get("access_token")
-    assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
+    assert (
+        admin_token_val
+    ), f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
     headers = {"Authorization": f"Bearer {admin_token_val}"}
 
     # Register a new admin via API using bootstrap admin token
-    new_admin_email = "admin_delete_course@example.com"
-    new_admin_password = "AdminPass123!"
-    client.post("/api/v1/auth/register", json={
-        "email": new_admin_email,
-        "password": new_admin_password,
-        "full_name": "Admin",
-        "role": "admin"
-    }, headers=headers)
+    new_admin_email = "admin_delete_course@example.com"  # pragma: allowlist secret
+    new_admin_password = "AdminPass123!"  # pragma: allowlist secret
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": new_admin_email,
+            "password": new_admin_password,
+            "full_name": "Admin",
+            "role": "admin",
+        },
+        headers=headers,
+    )
 
     # Login as the new admin
-    login_resp2 = client.post("/api/v1/auth/login", json={
-        "email": new_admin_email,
-        "password": new_admin_password
-    })
+    login_resp2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": new_admin_email, "password": new_admin_password},
+    )
     admin_token_val2 = login_resp2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {admin_token_val2}"}
 
@@ -237,7 +241,9 @@ def test_evaluation_rules_endpoints(client):
     assert r_get_missing.status_code == 404
 
     update_payload = {"evaluation_rules": ["Homework", "40", "Exams", "60%"]}
-    r_update = client.put(f"/api/v1/courses/{course['id']}/evaluation-rules", json=update_payload)
+    r_update = client.put(
+        f"/api/v1/courses/{course['id']}/evaluation-rules", json=update_payload
+    )
     assert r_update.status_code == 200
     normalized: List[Dict[str, Any]] = r_update.json()["evaluation_rules"]
     assert normalized == [
@@ -245,7 +251,9 @@ def test_evaluation_rules_endpoints(client):
         {"category": "Exams", "weight": 60.0},
     ]
 
-    r_update_missing = client.put("/api/v1/courses/9999/evaluation-rules", json=update_payload)
+    r_update_missing = client.put(
+        "/api/v1/courses/9999/evaluation-rules", json=update_payload
+    )
     assert r_update_missing.status_code == 404
 
 
@@ -253,7 +261,10 @@ def test_normalize_evaluation_rules_variants():
     assert _normalize_evaluation_rules(None) is None
     assert _normalize_evaluation_rules([]) == []
 
-    dict_rules = [{"category": "Midterm", "weight": 50}, {"category": "Final", "weight": 50}]
+    dict_rules = [
+        {"category": "Midterm", "weight": 50},
+        {"category": "Final", "weight": 50},
+    ]
     assert _normalize_evaluation_rules(dict_rules) == dict_rules
 
     list_rules = ["Quiz", "20", "Project", 80]

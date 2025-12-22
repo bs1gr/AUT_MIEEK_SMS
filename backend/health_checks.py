@@ -98,8 +98,14 @@ class HealthChecker:
             db_check = self._check_database(db)
             checks = {
                 "database": db_check,
-                "disk_space": {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"},
-                "memory": {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"},
+                "disk_space": {
+                    "status": HealthCheckStatus.HEALTHY,
+                    "message": "skipped in test mode",
+                },
+                "memory": {
+                    "status": HealthCheckStatus.HEALTHY,
+                    "message": "skipped in test mode",
+                },
             }
         else:
             checks = {
@@ -109,15 +115,25 @@ class HealthChecker:
             }
 
         # If any critical check fails, we're not ready
-        all_healthy = all(check["status"] == HealthCheckStatus.HEALTHY for check in checks.values())
+        all_healthy = all(
+            check["status"] == HealthCheckStatus.HEALTHY for check in checks.values()
+        )
 
         if not all_healthy:
             raise HTTPException(
                 status_code=503,
-                detail={"status": "not_ready", "timestamp": datetime.now().isoformat(), "checks": checks},
+                detail={
+                    "status": "not_ready",
+                    "timestamp": datetime.now().isoformat(),
+                    "checks": checks,
+                },
             )
 
-        return {"status": "ready", "timestamp": datetime.now().isoformat(), "checks": checks}
+        return {
+            "status": "ready",
+            "timestamp": datetime.now().isoformat(),
+            "checks": checks,
+        }
 
     def check_health(self, db: Session) -> Dict[str, Any]:
         """
@@ -146,17 +162,31 @@ class HealthChecker:
         # env markers and skip the short-circuit in that case.
         disable_startup = os.getenv("DISABLE_STARTUP_TASKS") == "1"
         running_under_pytest = bool(
-            os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING") or os.getenv("TESTING") == "true"
+            os.getenv("PYTEST_CURRENT_TEST")
+            or os.getenv("PYTEST_RUNNING")
+            or os.getenv("TESTING") == "true"
         )
 
         if disable_startup and not running_under_pytest:
             db_check = self._check_database(db)
-            disk_check = {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"}
-            memory_check = {"status": HealthCheckStatus.HEALTHY, "message": "skipped in test mode"}
-            migration_check = {"status": HealthCheckStatus.DEGRADED, "message": "skipped in test mode"}
+            disk_check = {
+                "status": HealthCheckStatus.HEALTHY,
+                "message": "skipped in test mode",
+            }
+            memory_check = {
+                "status": HealthCheckStatus.HEALTHY,
+                "message": "skipped in test mode",
+            }
+            migration_check = {
+                "status": HealthCheckStatus.DEGRADED,
+                "message": "skipped in test mode",
+            }
             stats_check = {}
             system_check = {"note": "skipped in test mode"}
-            frontend_check = {"status": HealthCheckStatus.DEGRADED, "message": "optional; skipped in test mode"}
+            frontend_check = {
+                "status": HealthCheckStatus.DEGRADED,
+                "message": "optional; skipped in test mode",
+            }
         else:
             # Perform all health checks
             db_check = self._check_database(db)
@@ -180,8 +210,16 @@ class HealthChecker:
         critical_keys = ["database", "disk_space", "memory"]
         critical_checks = {k: v for k, v in checks.items() if k in critical_keys}
 
-        unhealthy_count = sum(1 for c in critical_checks.values() if c["status"] == HealthCheckStatus.UNHEALTHY)
-        degraded_count = sum(1 for c in critical_checks.values() if c["status"] == HealthCheckStatus.DEGRADED)
+        unhealthy_count = sum(
+            1
+            for c in critical_checks.values()
+            if c["status"] == HealthCheckStatus.UNHEALTHY
+        )
+        degraded_count = sum(
+            1
+            for c in critical_checks.values()
+            if c["status"] == HealthCheckStatus.DEGRADED
+        )
 
         # Determine overall status based on critical checks only
         if unhealthy_count > 0:
@@ -242,13 +280,21 @@ class HealthChecker:
             # In that case we don't want to spam CI logs with full tracebacks. Detect
             # common mock signatures and downgrade the log level for mocked/test runs.
             try:
-                is_mocked_execute = hasattr(db.execute, "mock_calls") or "Mock" in type(db.execute).__name__
+                is_mocked_execute = (
+                    hasattr(db.execute, "mock_calls")
+                    or "Mock" in type(db.execute).__name__
+                )
             except Exception:
                 is_mocked_execute = False
 
             # Quiet health-check logging when running tests or in CI testing mode.
             testing_env = os.getenv("TESTING") == "true"
-            if is_mocked_execute or os.getenv("PYTEST_CURRENT_TEST") or os.getenv("PYTEST_RUNNING") or testing_env:
+            if (
+                is_mocked_execute
+                or os.getenv("PYTEST_CURRENT_TEST")
+                or os.getenv("PYTEST_RUNNING")
+                or testing_env
+            ):
                 # During tests or when TESTING=true, log at DEBUG to avoid noisy CI output
                 logger.debug(f"Database health check failed (test/mocked): {e}")
             else:
@@ -359,7 +405,13 @@ class HealthChecker:
 
             # Use the directory where this file resides (backend/) as working directory
             backend_dir = str(Path(__file__).resolve().parent)
-            result = subprocess.run(["alembic", "current"], cwd=backend_dir, capture_output=True, text=True, timeout=5)
+            result = subprocess.run(
+                ["alembic", "current"],
+                cwd=backend_dir,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
 
             if result.returncode == 0:
                 # Parse output to get current version
@@ -391,7 +443,11 @@ class HealthChecker:
                 }
         except Exception as e:
             logger.warning(f"Migration status check failed: {e}")
-            return {"status": HealthCheckStatus.DEGRADED, "message": "Migration check unavailable", "details": {}}
+            return {
+                "status": HealthCheckStatus.DEGRADED,
+                "message": "Migration check unavailable",
+                "details": {},
+            }
 
     def _get_database_stats(self, db: Session) -> Dict[str, int]:
         """

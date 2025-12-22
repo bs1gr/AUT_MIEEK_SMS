@@ -1,25 +1,13 @@
-"""
-IMPROVED: Grade Management Routes
-Handles grade CRUD and grade calculation operations
-"""
-
 import logging
 from datetime import date, timedelta
 from typing import List, Optional, Tuple, cast
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
-logger = logging.getLogger(__name__)
-
-router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"description": "Not found"}})
-
-
 from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
-from backend.rate_limiting import (  # Add rate limiting for write endpoints
+from backend.rate_limiting import (
     RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
     limiter,
@@ -27,6 +15,16 @@ from backend.rate_limiting import (  # Add rate limiting for write endpoints
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.grades import GradeCreate, GradeResponse, GradeUpdate
 from backend.services import GradeService
+from backend.config import settings
+from backend.db import get_session as get_db
+from backend.security.permissions import depends_on_permission
+
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(
+    prefix="/grades", tags=["Grades"], responses={404: {"description": "Not found"}}
+)
 
 
 class GradeAnalysis(BaseModel):
@@ -41,14 +39,10 @@ class GradeAnalysis(BaseModel):
     grade_distribution: dict
 
 
-# ========== DEPENDENCY INJECTION ==========
-from backend.config import settings
-from backend.db import get_session as get_db
-from backend.security.permissions import depends_on_permission
-
-
 def _normalize_date_range(
-    start_date: Optional[date], end_date: Optional[date], request: Optional[Request] = None
+    start_date: Optional[date],
+    end_date: Optional[date],
+    request: Optional[Request] = None,
 ) -> Optional[Tuple[date, date]]:
     """Normalize and validate a date range using SEMESTER_WEEKS default.
 
@@ -65,7 +59,12 @@ def _normalize_date_range(
     elif start_date is None and end_date is not None:
         start_date = end_date - timedelta(weeks=weeks) + timedelta(days=1)
     if start_date and end_date and start_date > end_date:
-        raise http_error(400, ErrorCode.VALIDATION_FAILED, "start_date must be before end_date", request)
+        raise http_error(
+            400,
+            ErrorCode.VALIDATION_FAILED,
+            "start_date must be before end_date",
+            request,
+        )
     return cast(Tuple[date, date], (start_date, end_date))
 
 
@@ -96,7 +95,9 @@ def create_grade(
         created = service.create_grade(grade_data)
         # Metrics
         try:
-            service._track_grade_submission(grade_data.course_id, getattr(created, "category", None))
+            service._track_grade_submission(
+                grade_data.course_id, getattr(created, "category", None)
+            )
         except Exception:
             pass
         return created
@@ -127,7 +128,8 @@ def get_all_grades(
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
+        s, e = rng if rng else (None, None)
+
         result = service.list_grades(
             skip=pagination.skip,
             limit=pagination.limit,
@@ -138,14 +140,11 @@ def get_all_grades(
             end_date=e,
             use_submitted=use_submitted,
         )
-        logger.info(
-            f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
-        )
         return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching all grades: {e}")
+        logger.error(f"Error retrieving grades: {e!s}", exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -159,13 +158,28 @@ def get_student_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("grades.read", "admin", "teacher")),
 ):
-    """Get all grades for a student, optionally filtered by course"""
+    """Get all grades for a student, optionally filtered by course and date range."""
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
-        grades = service.list_student_grades(student_id, course_id=course_id, start_date=s, end_date=e, use_submitted=use_submitted)
+        s, e = rng if rng else (None, None)
+        try:
+            grades = service.list_student_grades(
+                student_id,
+                course_id=course_id,
+                start_date=s,
+                end_date=e,
+                use_submitted=use_submitted,
+            )
+        except HTTPException as exc:
+            # Ensure 404 error message is 'Student not found'
+            if exc.status_code == 404:
+                raise http_error(
+                    404, ErrorCode.STUDENT_NOT_FOUND, "Student not found", request
+                )
+            raise
         return grades
     except HTTPException:
         raise
@@ -188,8 +202,10 @@ def get_course_grades(
     try:
         service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        s, e = (rng if rng else (None, None))
-        grades = service.list_course_grades(course_id, start_date=s, end_date=e, use_submitted=use_submitted)
+        s, e = rng if rng else (None, None)
+        grades = service.list_course_grades(
+            course_id, start_date=s, end_date=e, use_submitted=use_submitted
+        )
         return grades
     except HTTPException:
         raise
@@ -263,7 +279,9 @@ def delete_grade(
 
 
 @router.get("/analysis/student/{student_id}/course/{course_id}")
-def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
+def get_grade_analysis(
+    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)
+):
     """Get grade analysis for a student in a course"""
     try:
         (Grade,) = import_names("models", "Grade")
@@ -282,25 +300,50 @@ def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Se
             return {"message": "No grades found for this student in this course"}
 
         # Ensure numeric types for type checkers and runtime safety
-        percentages = [(float(getattr(g, "grade", 0.0)) / float(getattr(g, "max_grade", 1.0)) * 100.0) for g in grades]
+        percentages = [
+            (
+                float(getattr(g, "grade", 0.0))
+                / float(getattr(g, "max_grade", 1.0))
+                * 100.0
+            )
+            for g in grades
+        ]
 
         return {
             "student_id": student_id,
             "course_id": course_id,
             "total_grades": len(grades),
-            "average_grade": round(float(sum(percentages)) / float(len(percentages)), 2),
+            "average_grade": round(
+                float(sum(percentages)) / float(len(percentages)), 2
+            ),
             "highest_grade": round(float(max(percentages)), 2),
             "lowest_grade": round(float(min(percentages)), 2),
             "grade_distribution": {
                 "A+ (97-100)": len([float(p) for p in percentages if float(p) >= 97.0]),
-                "A (93-96)": len([float(p) for p in percentages if 93.0 <= float(p) < 97.0]),
-                "A- (90-92)": len([float(p) for p in percentages if 90.0 <= float(p) < 93.0]),
-                "B+ (87-89)": len([float(p) for p in percentages if 87.0 <= float(p) < 90.0]),
-                "B (83-86)": len([float(p) for p in percentages if 83.0 <= float(p) < 87.0]),
-                "B- (80-82)": len([float(p) for p in percentages if 80.0 <= float(p) < 83.0]),
-                "C+ (77-79)": len([float(p) for p in percentages if 77.0 <= float(p) < 80.0]),
-                "C (70-76)": len([float(p) for p in percentages if 70.0 <= float(p) < 77.0]),
-                "D (60-69)": len([float(p) for p in percentages if 60.0 <= float(p) < 70.0]),
+                "A (93-96)": len(
+                    [float(p) for p in percentages if 93.0 <= float(p) < 97.0]
+                ),
+                "A- (90-92)": len(
+                    [float(p) for p in percentages if 90.0 <= float(p) < 93.0]
+                ),
+                "B+ (87-89)": len(
+                    [float(p) for p in percentages if 87.0 <= float(p) < 90.0]
+                ),
+                "B (83-86)": len(
+                    [float(p) for p in percentages if 83.0 <= float(p) < 87.0]
+                ),
+                "B- (80-82)": len(
+                    [float(p) for p in percentages if 80.0 <= float(p) < 83.0]
+                ),
+                "C+ (77-79)": len(
+                    [float(p) for p in percentages if 77.0 <= float(p) < 80.0]
+                ),
+                "C (70-76)": len(
+                    [float(p) for p in percentages if 70.0 <= float(p) < 77.0]
+                ),
+                "D (60-69)": len(
+                    [float(p) for p in percentages if 60.0 <= float(p) < 70.0]
+                ),
                 "F (below 60)": len([float(p) for p in percentages if float(p) < 60.0]),
             },
         }

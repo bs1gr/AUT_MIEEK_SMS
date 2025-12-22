@@ -8,12 +8,20 @@ def test_jwt_admin_can_call_control_stop(client, monkeypatch):
     subprocess calls so no real processes are terminated.
     """
     # Register admin
-    payload = {"email": "jwtadmin@example.com", "password": "S3curePass!", "full_name": "JWT Admin", "role": "admin"}
+    payload = {
+        "email": "jwtadmin@example.com",  # pragma: allowlist secret
+        "password": "S3curePass!",  # pragma: allowlist secret
+        "full_name": "JWT Admin",
+        "role": "admin",
+    }
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200, r.text
 
     # Login to get token
-    r2 = client.post("/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]})
+    r2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
     assert r2.status_code == 200, r2.text
     token = r2.json().get("access_token")
     assert isinstance(token, str) and token
