@@ -58,6 +58,17 @@ jobs:
         cd load-testing
         pip install -r requirements.txt
 
+    - name: Install backend dependencies (for local test server)
+      run: |
+        pip install -r backend/requirements.txt
+
+    - name: Start backend server (background)
+      run: |
+        # Start uvicorn in background so load tests can target localhost:8080
+        nohup python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080 &>/dev/null &
+        # Wait briefly for server to become ready
+        sleep 3
+
     - name: Run smoke test
       run: |
         cd load-testing
