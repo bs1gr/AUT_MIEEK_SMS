@@ -158,3 +158,6 @@ AUT_MIEEK_CodeSign.pfx
 frontend/test-results/
 frontend/playwright-report/
 .last-run.json
+
+# Load-testing results (generated locally)
+load-testing/results/
