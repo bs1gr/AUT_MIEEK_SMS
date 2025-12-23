@@ -19,10 +19,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Get tag name
+        id: get_tag
+        run: |
+          TAG_NAME=""
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG_NAME="${{ inputs.tag }}"
+          else
+            TAG_NAME="${{ github.ref_name }}"
+          fi
+          TRIMMED_TAG=$(echo "$TAG_NAME" | xargs)
+          echo "tag_name=$TRIMMED_TAG" >> $GITHUB_OUTPUT
+
       - name: Prepare release body
         id: prepare
         run: |
-          TAG=${{ inputs.tag }}
+          TAG=${{ steps.get_tag.outputs.tag_name }}
           NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
           if [ -f "$NOTES_FILE" ]; then
             echo "body<<EOF" >> $GITHUB_OUTPUT
@@ -37,7 +49,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tag = '${{ inputs.tag }}';
+            const tag = '${{ steps.get_tag.outputs.tag_name }}';
             const body = `${{ steps.prepare.outputs.body }}`;
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
