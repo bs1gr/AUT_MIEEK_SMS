@@ -329,7 +329,7 @@ function Invoke-GreekEncodingFix {
         }
 
         Write-Result Info "Running Greek text encoding conversion..."
-        & python3 $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+        & python $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
 
         if ($LASTEXITCODE -eq 0) {
             Write-Result Success "Greek text files encoded properly for Inno Setup ✓"

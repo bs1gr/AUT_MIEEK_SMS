@@ -83,6 +83,28 @@ Version: 1.12.5
 #>
 
 
+param(
+    [string]$Mode = 'standard',
+    [switch]$SkipTests,
+    [switch]$SkipCleanup,
+    [switch]$SkipLint,
+    [switch]$GenerateCommit,
+    [switch]$AutoFix,
+    [switch]$SyncVersion,
+    [switch]$UpdateDocs,
+    [switch]$AuditVersion,
+    [string]$BumpToVersion,
+    [switch]$AutoTagAndPush,
+    [switch]$ReleaseFlow,
+    [switch]$NonInteractive,
+    [switch]$Help,
+    # Legacy switches for backward compatibility
+    [switch]$Quick,
+    [switch]$Standard,
+    [switch]$Full,
+    [switch]$Cleanup
+)
+
 $USAGE = @"
 USAGE: .\COMMIT_READY.ps1 [-Mode quick|standard|full|cleanup] [options]
 
@@ -252,7 +274,13 @@ function Invoke-PreCommitHookValidation {
     if (-not $precommitAvailable) {
         Write-Info "pre-commit not found. Attempting to install via pip..."
         try {
-            pip install pre-commit | Out-Null
+            if (Test-CommandAvailable -Name "pip") {
+                pip install pre-commit | Out-Null
+            } elseif (Test-CommandAvailable -Name "python") {
+                python -m pip install pre-commit | Out-Null
+            } else {
+                throw "Neither pip nor python found"
+            }
             $precommitAvailable = Test-CommandAvailable -Name "pre-commit"
         } catch {
             Write-Warning-Msg "Failed to install pre-commit. Skipping pre-commit hook validation."
