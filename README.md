@@ -1116,7 +1116,7 @@ student-management-system/
 - [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) – Platform-specific installation walkthrough
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) – Production deployment steps
 - [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) – Final verification before going live
-- [docs/deployment/POSTGRES_MIGRATION_GUIDE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE.md) – SQLite → PostgreSQL migration workflow
+- [docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md) – SQLite → PostgreSQL migration workflow
 - [docs/operations/MONITORING.md](docs/operations/MONITORING.md) – Monitoring & alerting guide (canonical)
 - [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) – Supported automation scripts and entry points
 - [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
@@ -1292,140 +1292,30 @@ If the frontend isn't loading, try rebuilding:
 .\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
 ```
 
-## Development
+---
 
-### Backend Development
+### 🧪 End-to-End (E2E) Testing: Local & CI Alignment
 
-The backend is built with:
-
-- **FastAPI** - Modern web framework
-- **SQLAlchemy** - ORM for database
-- **Pydantic** - Data validation
-- **Alembic** - Database migrations
-
-### Frontend Development
-
-The frontend uses:
-
-- **React** - UI library
-- **JavaScript (JSX)** - Application code
-- **Tailwind CSS** - Styling
-- **Vite** - Build tool
-
-### Workspace Maintenance Tools 🆕
-
-**Automated workspace consistency verification and consolidation tools:**
+To run E2E tests locally in a way that matches CI (backend serves frontend, permissive auth, seeded test user):
 
 ```powershell
-# Verify workspace consistency (file locations, references, version sync)
-.\scripts\VERIFY_WORKSPACE.ps1
-
-# Consolidate .bat wrapper files (reduces 13 files)
-.\scripts\CONSOLIDATE_BAT_WRAPPERS.ps1 -Execute
-
-# Update frontend script references to v2.0 consolidated scripts
-.\scripts\UPDATE_FRONTEND_REFS.ps1 -Execute -RunTests
+# From project root
+.\e2e-local.ps1
 ```
 
-**What these tools do:**
+This script will:
+- Seed E2E test data (user: test@example.com / password123)
+- Start the backend with `SERVE_FRONTEND=1`, `AUTH_MODE=permissive`, `CSRF_ENABLED=0`
+- Run Playwright E2E tests with `PLAYWRIGHT_BASE_URL=http://127.0.0.1:8000`
+- Clean up the backend process after tests
 
-- **VERIFY_WORKSPACE.ps1** - Automated checks for:
-  - File locations (config/, docker/, .github/ organization)
-  - Documentation references (script names, paths)
-  - Root directory cleanliness targets
-  - Version consistency (VERSION ↔ CHANGELOG)
-  - Provides reorganization suggestions
+**Troubleshooting:**
+- If tests fail with login or navigation timeouts, ensure no other backend/frontend is running on ports 8000/5173.
+- The backend must serve the built frontend for E2E to work (not Vite dev server).
+- For CI, see `.github/workflows/e2e-tests.yml` for the authoritative setup.
 
-- **CONSOLIDATE_BAT_WRAPPERS.ps1** - Removes redundant .bat wrappers:
-  - Archives 13 .bat files to `archive/deprecated_bat_wrappers/`
-  - Adds `#!/usr/bin/env pwsh` shebang to .ps1 files
-  - Updates documentation references
-  - Reduces maintenance burden (8% fewer scripts)
+**Test user credentials:**
+- Email: `test@example.com`
+- Password: `password123`
 
-- **UPDATE_FRONTEND_REFS.ps1** - Aligns UI with v2.0 scripts:
-  - Updates translation files (help.js, controlPanel.js)
-  - Updates React components (HelpDocumentation.tsx, ControlPanel.tsx)
-  - Replaces deprecated script references (CLEANUP_OBSOLETE_FILES.ps1 → DOCKER.ps1 -DeepClean)
-  - Optionally runs frontend tests for validation
-
-**Change tracking:**
-
-All workspace changes are tracked in `.github/WORKSPACE_STATE.md` for transparency and maintenance history.
-
-📖 **Complete guide:** [.github/MAINTENANCE_QUICK_REFERENCE.md](.github/MAINTENANCE_QUICK_REFERENCE.md)
-
-### Load Testing & Performance Monitoring 🚀
-
-**Comprehensive load testing suite with Locust framework:**
-
-```powershell
-# Quick load test (smoke test - 1 minute)
-cd load-testing && python scripts/run_load_tests.py --scenario smoke --env development --ci
-
-# Full performance baseline (development environment)
-cd load-testing && python scripts/run_load_tests.py --scenario medium --env development --ci
-
-# Generate performance report
-cd load-testing && python scripts/analyze_results.py --results-dir results/
-```
-
-**Key Features:**
-
-- ✅ **Modular Scenarios**: Authentication, CRUD operations, bulk imports/exports, concurrent users
-- ✅ **Environment Support**: Development, staging, production configurations
-- ✅ **CI/CD Integration**: Automated load testing on PRs and scheduled performance checks
-- ✅ **Performance Regression Detection**: Automatic comparison against baseline metrics
-- ✅ **Grafana Dashboards**: Real-time performance monitoring with dedicated load testing panels
-- ✅ **Comprehensive Reporting**: Automated analysis with bottleneck identification and optimization recommendations
-
-**CI/CD Integration:**
-- **GitHub Actions**: Automated load testing workflows (`.github/workflows/load-testing.yml`)
-- **Performance Baselines**: Regression detection against `load-testing/baseline.json`
-- **Artifact Storage**: Test results and reports retained for 30-90 days
-- **Scheduled Runs**: Weekly performance validation on Sundays
-
-**Quick Start:**
-
-1. **Install Dependencies**: `pip install -r load-testing/requirements.txt`
-2. **Configure Environment**: Update `load-testing/locust/config/environments/` for your setup
-3. **Run Tests**: Use the commands above or see [load-testing/README.md](load-testing/README.md)
-4. **View Results**: Check `load-testing/results/` and analysis reports
-
-**📖 Documentation:**
-- [Load Testing Guide](load-testing/README.md)
-- [Performance Targets](load-testing/docs/performance_targets.md)
-- [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
-- [Troubleshooting](load-testing/docs/troubleshooting.md)
-- [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
-- [Troubleshooting](load-testing/docs/troubleshooting.md)
-
-## Support
-
-Need help?
-
-1. Check the in-app Help section (Utils → Help Documentation)
-2. Review the documentation files in this repository
-3. Access the Control Panel at <http://localhost:8080/control> for system management
-
-## License
-
-See [LICENSE](LICENSE) file for details.
-
-## Version
-
-Current version: 1.12.5 (see [VERSION](VERSION) file)
-
-**Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
-
-## Developer note: `NATIVE.ps1` - auto-install & resiliency
-
-We added extra safety and convenience features to `NATIVE.ps1` to make first-time setup and recoveries easier on Windows:
-
-- Automatic install on start: if `frontend/node_modules` is missing when you run `.\NATIVE.ps1 -Start` or `.\NATIVE.ps1 -Frontend`, the script will attempt a non-interactive install (prefers `npm ci` when `package-lock.json` is present).
-- Robust retry and cleanup: installs use a helper that retries after removing known problematic native binaries (for example `@esbuild` on Windows) and will remove `node_modules` and retry a clean install if an initial `npm ci` fails due to locked files.
-- Peer-dependency guard: the script validates essential dev packages that Vite expects (for example `@babel/core`) and attempts to install them if missing to avoid runtime plugin errors.
-- Non-destructive setup: `.\NATIVE.ps1 -Setup` is safe to run in CI or developer environments; it creates/updates the Python virtualenv and installs frontend dependencies reproducibly.
-
-If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
-
-These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
+---
