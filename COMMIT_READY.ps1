@@ -1725,10 +1725,20 @@ function Invoke-MainWorkflow {
         if ($proceed.ToLower() -eq 'y') {
             try {
                 git add .
-                git commit -m "chore: release v$finalVersion"
+                if ($(git status --porcelain)) {
+                    git commit -m "chore: release v$finalVersion"
+                } else {
+                    Write-Info "No changes to commit, proceeding to tag..."
+                }
+
+                if (git tag -l "v$finalVersion") {
+                    Write-Warning-Msg "Tag v$finalVersion already exists locally. Overwriting..."
+                    git tag -d "v$finalVersion" | Out-Null
+                }
+
                 git tag "v$finalVersion"
                 git push
-                git push origin "v$finalVersion"
+                git push origin "v$finalVersion" --force
                 Write-Success "Release push & tag complete"
             }
             catch {
