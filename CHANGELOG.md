@@ -6,6 +6,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.12.7] - 2025-12-24
+
+**Release Type**: Patch Release
+**Focus**: CI/CD Workflow Cleanup & Pre-commit Hook Fixes
+
+### Added
+- New `cleanup-workflow-runs.yml` workflow to manage GitHub Actions history and reduce storage usage.
+
+### Fixed
+- Prevented pre-commit hooks from running unconditionally in `COMMIT_READY.ps1` (fixes local dev friction).
+- Enhanced safety checks in reset scripts.
+
 ## [1.12.6] - 2025-12-24
 
 **Release Type**: Maintenance Release

@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Fetch full history isn't strictly required for empty commit, 
+          # Fetch full history isn't strictly required for empty commit,
           # but ensures we have the current HEAD reference.
           fetch-depth: 0
 

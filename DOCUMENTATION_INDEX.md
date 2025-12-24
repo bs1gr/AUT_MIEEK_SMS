@@ -2,8 +2,8 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** December 24, 2025 (v1.12.6)
-**Version:** 1.12.6
+**Last Updated:** December 24, 2025 (v1.12.7)
+**Version:** 1.12.7
 **Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start
@@ -338,7 +338,7 @@ docs/archive/
 
 ## Documentation Updates
 
-### December 13, 2025 (v1.12.6)
+### December 24, 2025 (v1.12.7)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
@@ -354,8 +354,8 @@ docs/archive/
 
 ## Version Information
 
-**Documentation Version:** v1.12.6
+**Documentation Version:** v1.12.7
 **Last Updated:** December 24, 2025
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.12.6.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.12.7.
