@@ -149,7 +149,6 @@ class RegressionChecker:
             print("ERROR: No analysis results found")
             return False
 
-        latest_results = max(results_files, key=lambda x: x.stat().st_mtime)
         current = self.load_current_results()
         if not current:
             print("ERROR: Could not load current results")

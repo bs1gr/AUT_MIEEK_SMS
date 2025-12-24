@@ -300,6 +300,7 @@ function Invoke-PreCommitHookValidation {
                 Write-Success "Pre-commit hooks passed."
             } catch {
                 Write-Failure "Pre-commit hooks failed. Please review and fix issues."
+                Write-Info "To bypass these checks (e.g. for false positives), run with -SkipLint"
                 exit 1
             }
         } else {
