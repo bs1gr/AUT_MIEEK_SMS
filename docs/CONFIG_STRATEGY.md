@@ -1,7 +1,7 @@
 # Environment Configuration Strategy
 
-**Date:** December 9, 2025  
-**Version:** $11.10.1  
+**Date:** December 9, 2025
+**Version:** $11.10.1
 **Status:** Phase 2 - Configuration Clarification
 
 ---
@@ -98,9 +98,9 @@ uvicorn backend.main:app --reload
 
 ### `.env` (Active - Root Level)
 
-**Location:** `/.env` (root of repository)  
-**Purpose:** Authoritative configuration for all environments  
-**Created from:** `.env.example`  
+**Location:** `/.env` (root of repository)
+**Purpose:** Authoritative configuration for all environments
+**Created from:** `.env.example`
 **Deployed to:** Docker container, native processes
 
 **Typical contents:**
@@ -126,32 +126,32 @@ GRAFANA_ENABLED=false
 
 ### `.env.example` (Template - Root Level)
 
-**Location:** `/.env.example`  
-**Purpose:** Template for creating `.env`  
-**Updated by:** Developers when adding new settings  
+**Location:** `/.env.example`
+**Purpose:** Template for creating `.env`
+**Updated by:** Developers when adding new settings
 **Never committed:** `.env` itself (only `.env.example`)
 
 **Should contain:** All possible configuration keys with safe defaults
 
 ### `.env.production.example` (Template - Production)
 
-**Location:** `/.env.production.example`  
-**Purpose:** Template for production deployment  
-**Used for:** QNAP production instances  
+**Location:** `/.env.production.example`
+**Purpose:** Template for production deployment
+**Used for:** QNAP production instances
 **Notes:** Database credentials and secrets must be updated
 
 ### `.env.qnap` (QNAP-Specific - Archived)
 
-**Location:** `/`  
-**Status:** Legacy (can be archived)  
-**Was for:** QNAP ARM-based deployment  
+**Location:** `/`
+**Status:** Legacy (can be archived)
+**Was for:** QNAP ARM-based deployment
 **Current:** Use `.env.production.example` template instead
 
 ### `backend/.env` (Legacy - Deprecated)
 
-**Location:** `/backend/.env`  
-**Status:** Deprecated (kept for reference only)  
-**Used by:** Old deployment methods (no longer used)  
+**Location:** `/backend/.env`
+**Status:** Deprecated (kept for reference only)
+**Used by:** Old deployment methods (no longer used)
 **Current behavior:** Ignored by DOCKER.ps1 and NATIVE.ps1
 
 **Recommendation:**
@@ -161,9 +161,9 @@ GRAFANA_ENABLED=false
 
 ### `frontend/.env` (Legacy - Deprecated)
 
-**Location:** `/frontend/.env`  
-**Status:** Deprecated (kept for reference only)  
-**Used by:** Old Vite setup (no longer used)  
+**Location:** `/frontend/.env`
+**Status:** Deprecated (kept for reference only)
+**Used by:** Old Vite setup (no longer used)
 **Current behavior:** Ignored by DOCKER.ps1 and NATIVE.ps1
 
 **Recommendation:**
@@ -180,13 +180,13 @@ GRAFANA_ENABLED=false
 ```powershell
 1. Check root .env exists
    └─ If not found: Try .env.example as fallback
-   
+
 2. Load .env into PowerShell environment
    └─ $env:DATABASE_URL = value from .env
-   
+
 3. Pass environment to docker run command
    └─ docker run -e DATABASE_URL="$env:DATABASE_URL" ...
-   
+
 4. Container receives environment variables
    └─ Backend code reads $env:DATABASE_URL
 ```
@@ -196,13 +196,13 @@ GRAFANA_ENABLED=false
 ```powershell
 1. Check root .env exists
    └─ If not found: Show error
-   
+
 2. Load .env into PowerShell environment
    └─ $env:DATABASE_URL = value from .env
-   
+
 3. Start backend with environment
    └─ uvicorn backend.main:app (inherits $env:*)
-   
+
 4. Start frontend with environment
    └─ npm run dev (inherits $env:VITE_*)
 ```
@@ -356,4 +356,3 @@ When adding a new environment variable:
 - `NATIVE.ps1` - Reads root .env during native deployment
 - `backend/config.py` - Python config loading
 - `.env.example` - Template for all environments
-

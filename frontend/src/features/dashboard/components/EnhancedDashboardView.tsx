@@ -152,7 +152,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
   const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
   const [rankingType, setRankingType] = useState<'gpa' | 'attendance' | 'exams' | 'overall'>('gpa');
-  
+
   // Compute ranked students based on selected ranking type
   const rankedStudents = useMemo(() => {
     const students = [...topPerformers];
@@ -169,7 +169,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         return students.slice(0, 5);
     }
   }, [topPerformers, rankingType]);
-  
+
   const analyticsRef = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -406,9 +406,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     <div className="space-y-6 bg-slate-100 pb-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img 
-            src="/logo.png" 
-            alt="MIEEK Logo" 
+          <img
+            src="/logo.png"
+            alt="MIEEK Logo"
             className="h-10 w-auto object-contain"
           />
           <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
@@ -506,7 +506,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                   {t('exportGradesLink') || 'Export Grades'}
                 </button>
               </div>
-              
+
               {/* Ranking Type Tabs */}
               <div className="mb-4 flex gap-2 border-b border-slate-200">
                 <button
@@ -550,7 +550,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                   {t('overall') || 'Overall'}
                 </button>
               </div>
-              
+
               {loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-10">
                   <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
@@ -570,12 +570,12 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                     const pct = gpaToPercentage(gpa);
                     const letter = getLetterGrade(pct);
                     const failedCount = student.failedCourses || 0;
-                    
+
                     // Determine primary metric based on ranking type
                     let primaryValue = '';
                     let primaryLabel = '';
                     let secondaryInfo = '';
-                    
+
                     if (rankingType === 'gpa') {
                       primaryValue = `${formatted.percentage}%`;
                       primaryLabel = `GPA ${formatted.gpa}`;
@@ -593,7 +593,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                       primaryLabel = t('overallScore') || 'Overall Score';
                       secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${student.attendanceRate}% ${t('attendance')}`;
                     }
-                    
+
                     const accentPalette = [
                       'border-amber-400 bg-amber-50',
                       'border-slate-300 bg-slate-50',

@@ -3,8 +3,8 @@
 ![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
 ![CI/CD Pipeline](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg?branch=main)
 
-**Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)  
-**Location:** Limassol, Cyprus  
+**Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
+**Location:** Limassol, Cyprus
 **Developer:** Teacher at ΜΙΕΕΚ
 
 ## 📦 Quick Start
@@ -66,7 +66,7 @@ We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 
-See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.5/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.6/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
 
 ##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
 
@@ -188,7 +188,7 @@ Deploy to QNAP Container Station with PostgreSQL database:
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
-**Monitoring UI deprecation ($1.12.5):**
+**Monitoring UI deprecation ($1.12.6):**
 
 - The embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) has been removed from the app.
 - The Power page now focuses on System Health and the Control Panel only.
@@ -275,9 +275,9 @@ All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native
 - ✅ 100% feature parity maintained
 - ✅ Better error handling and diagnostics
 
-**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.5/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.6/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
 
-**Archived:** Legacy scripts preserved in `archive/pre-$1.12.5/deprecated/scripts_consolidation_2025-11-21/`
+**Archived:** Legacy scripts preserved in `archive/pre-$1.12.6/deprecated/scripts_consolidation_2025-11-21/`
 
 ### Documentation Consolidation ✅
 
@@ -318,7 +318,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 TODO.md                   # Active task tracking
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.12.5)
+├── 📄 VERSION                   # Current version (1.12.6)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -426,21 +426,21 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 - Consolidated structure (`docs/user`, `docs/deployment`, `docs/development`) & master index updated.
 
-Full release notes: `CHANGELOG.md` (sections 1.12.5.0–1.12.5.4).
+Full release notes: `CHANGELOG.md` (sections 1.12.6.0–1.12.6.4).
 
 ---
 
 ## Historical Highlights (Selected)
 
-### $1.12.5 – Control API Re-base Path & Restart UX
+### $1.12.6 – Control API Re-base Path & Restart UX
 
 Canonical `/control/api/*` path, shared `CONTROL_API_BASE`, restart UX improvements.
 
-### $1.12.5 – Repository Cleanup
+### $1.12.6 – Repository Cleanup
 
 Systematic cleanup & maintainability upgrades.
 
-### $1.12.5 – Release Archive Pipeline
+### $1.12.6 – Release Archive Pipeline
 
 Legacy release archival & GHCR retirement guidance.
 
@@ -449,7 +449,7 @@ Legacy release archival & GHCR retirement guidance.
 - 🚪 **Canonical Control API path:** Operational endpoints now sit under `/control/api/*`, decoupling them from the public REST surface and matching the FastAPI lifespan design.
 - 🔗 **Shared Control API base helper:** Frontend utilities export `CONTROL_API_BASE`, so Control Panel components, backups, and restart workflows all target the same origin with zero string duplication.
 - ♻️ **Restart UX polish:** Buttons render backend hints (Docker vs. native), localized fallbacks, and instructions for configuring shutdown tokens so operators always know why a restart is blocked.
-- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$1.12.5.md`.
+- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$1.12.6.md`.
 
 ---
 
@@ -465,28 +465,28 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in $1.12.5
+## 📦 What's New in $1.12.6
 
-- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $1.12.5 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
+- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $1.12.6 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
 - 📦 **GitHub Packages retirement playbook:** Added guidance in the docs and management scripts for deleting or privatizing the three obsolete packages so downstream deployments don’t accidentally pull stale artifacts.
-- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $1.12.5 as the active release and explain how the archive flow works for operators.
-- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$1.12.5.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
+- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $1.12.6 as the active release and explain how the archive flow works for operators.
+- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$1.12.6.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
 - 🧰 **Operator visibility:** Control Panel + RUN/SMS scripts reference the new archive path in their troubleshooting copy, keeping previously removed helpers discoverable but isolated from day-to-day workflows.
-- 🔒 **Compliance follow-up:** Documented the Starlette 1.12.5 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
+- 🔒 **Compliance follow-up:** Documented the Starlette 1.12.6 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
 - 📣 **Upgrade messaging:** Added explicit instructions for tagging/publishing the new release and for consumers who need to migrate automation off the deprecated assets.
 
 ## 📦 Releases
 
-- Latest: [$1.12.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.5) – Canonical Control API base path, shared frontend helper, and restart UX improvements
-- Previous: [$1.12.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.5) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
-- Archive: [$1.12.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.5) – Release archive pipeline, GHCR retirement guidance, and automation hooks
+- Latest: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Canonical Control API base path, shared frontend helper, and restart UX improvements
+- Previous: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
+- Archive: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Release archive pipeline, GHCR retirement guidance, and automation hooks
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/$1.12.5.md` using `gh release create $1.12.5 --notes-file docs/releases/$1.12.5.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/$1.12.6.md` using `gh release create $1.12.6 --notes-file docs/releases/$1.12.6.md`.
 
 ---
 
-## 📦 What's New in $1.12.5
+## 📦 What's New in $1.12.6
 
 - 🟢 **Canonical entry points:** Consolidated to `DOCKER.ps1` (Docker deployment) and `NATIVE.ps1` (native development). All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) were archived in v2.0.
 - 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
@@ -496,7 +496,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in $1.12.5
+## 📦 What's New in $1.12.6
 
 - 🚀 **One-click deployment** with `DOCKER.ps1` (formerly `RUN.ps1`)
 - 💾 **Automatic backups** before updates
@@ -518,7 +518,7 @@ Legacy release archival & GHCR retirement guidance.
 .\SETUP_AFTER_GITHUB_ZIP.ps1
 ```
 
-This automatically installs everything! Or use the classic method: ($1.12.5)
+This automatically installs everything! Or use the classic method: ($1.12.6)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -592,7 +592,7 @@ The runtime enforces a clear separation between release and development workflow
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
 - `DOCKER.ps1` and helper scripts respect these guards to prevent configuration drift.
 
-### PostgreSQL Support & Migration ($1.12.5)
+### PostgreSQL Support & Migration ($1.12.6)
 
 - `RUN.ps1` and all Docker helpers now read `DATABASE_URL`,
   `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
@@ -744,7 +744,7 @@ Troubleshooting:
 
 ---
 
-## 🎯 What's New in $1.12.5
+## 🎯 What's New in $1.12.6
 
 ### Testing & Quality Improvements Release
 
@@ -770,7 +770,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ---
 
-## 🎯 What's New in $1.12.5
+## 🎯 What's New in $1.12.6
 
 ### Under the Hood
 
@@ -911,7 +911,7 @@ For Docker operations:
 
 Once the stack is running you have two management surfaces:
 
-- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $1.12.5, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $1.12.6, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
 - **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
@@ -1019,7 +1019,7 @@ Reverting: edit or delete docker-compose.override.yml and restart compose. Old v
 
 ### Quick Maintenance Scripts (Windows)
 
-> **Note:** As of $1.12.5, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
+> **Note:** As of $1.12.6, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
 
 - `CLEANUP.bat` — Non-destructive cleanup: stops Docker services, clears caches/logs, preserves data and Docker volumes, backs up native DB.
 - `CLEANUP_COMPREHENSIVE.ps1` — Deep cleanup of all artifacts, logs, and build files.
@@ -1116,7 +1116,7 @@ student-management-system/
 - [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) – Platform-specific installation walkthrough
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) – Production deployment steps
 - [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) – Final verification before going live
-- [docs/deployment/POSTGRES_MIGRATION_GUIDE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE.md) – SQLite → PostgreSQL migration workflow
+- [docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md) – SQLite → PostgreSQL migration workflow
 - [docs/operations/MONITORING.md](docs/operations/MONITORING.md) – Monitoring & alerting guide (canonical)
 - [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) – Supported automation scripts and entry points
 - [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
@@ -1292,140 +1292,30 @@ If the frontend isn't loading, try rebuilding:
 .\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
 ```
 
-## Development
+---
 
-### Backend Development
+### 🧪 End-to-End (E2E) Testing: Local & CI Alignment
 
-The backend is built with:
-
-- **FastAPI** - Modern web framework
-- **SQLAlchemy** - ORM for database
-- **Pydantic** - Data validation
-- **Alembic** - Database migrations
-
-### Frontend Development
-
-The frontend uses:
-
-- **React** - UI library
-- **JavaScript (JSX)** - Application code
-- **Tailwind CSS** - Styling
-- **Vite** - Build tool
-
-### Workspace Maintenance Tools 🆕
-
-**Automated workspace consistency verification and consolidation tools:**
+To run E2E tests locally in a way that matches CI (backend serves frontend, permissive auth, seeded test user):
 
 ```powershell
-# Verify workspace consistency (file locations, references, version sync)
-.\scripts\VERIFY_WORKSPACE.ps1
-
-# Consolidate .bat wrapper files (reduces 13 files)
-.\scripts\CONSOLIDATE_BAT_WRAPPERS.ps1 -Execute
-
-# Update frontend script references to v2.0 consolidated scripts
-.\scripts\UPDATE_FRONTEND_REFS.ps1 -Execute -RunTests
+# From project root
+.\e2e-local.ps1
 ```
 
-**What these tools do:**
+This script will:
+- Seed E2E test data (user: test@example.com / password123)
+- Start the backend with `SERVE_FRONTEND=1`, `AUTH_MODE=permissive`, `CSRF_ENABLED=0`
+- Run Playwright E2E tests with `PLAYWRIGHT_BASE_URL=http://1.12.6.1:8000`
+- Clean up the backend process after tests
 
-- **VERIFY_WORKSPACE.ps1** - Automated checks for:
-  - File locations (config/, docker/, .github/ organization)
-  - Documentation references (script names, paths)
-  - Root directory cleanliness targets
-  - Version consistency (VERSION ↔ CHANGELOG)
-  - Provides reorganization suggestions
+**Troubleshooting:**
+- If tests fail with login or navigation timeouts, ensure no other backend/frontend is running on ports 8000/5173.
+- The backend must serve the built frontend for E2E to work (not Vite dev server).
+- For CI, see `.github/workflows/e2e-tests.yml` for the authoritative setup.
 
-- **CONSOLIDATE_BAT_WRAPPERS.ps1** - Removes redundant .bat wrappers:
-  - Archives 13 .bat files to `archive/deprecated_bat_wrappers/`
-  - Adds `#!/usr/bin/env pwsh` shebang to .ps1 files
-  - Updates documentation references
-  - Reduces maintenance burden (8% fewer scripts)
+**Test user credentials:**
+- Email: `test@example.com`
+- Password: `password123`
 
-- **UPDATE_FRONTEND_REFS.ps1** - Aligns UI with v2.0 scripts:
-  - Updates translation files (help.js, controlPanel.js)
-  - Updates React components (HelpDocumentation.tsx, ControlPanel.tsx)
-  - Replaces deprecated script references (CLEANUP_OBSOLETE_FILES.ps1 → DOCKER.ps1 -DeepClean)
-  - Optionally runs frontend tests for validation
-
-**Change tracking:**
-
-All workspace changes are tracked in `.github/WORKSPACE_STATE.md` for transparency and maintenance history.
-
-📖 **Complete guide:** [.github/MAINTENANCE_QUICK_REFERENCE.md](.github/MAINTENANCE_QUICK_REFERENCE.md)
-
-### Load Testing & Performance Monitoring 🚀
-
-**Comprehensive load testing suite with Locust framework:**
-
-```powershell
-# Quick load test (smoke test - 1 minute)
-cd load-testing && python scripts/run_load_tests.py --scenario smoke --env development --ci
-
-# Full performance baseline (development environment)
-cd load-testing && python scripts/run_load_tests.py --scenario medium --env development --ci
-
-# Generate performance report
-cd load-testing && python scripts/analyze_results.py --results-dir results/
-```
-
-**Key Features:**
-
-- ✅ **Modular Scenarios**: Authentication, CRUD operations, bulk imports/exports, concurrent users
-- ✅ **Environment Support**: Development, staging, production configurations
-- ✅ **CI/CD Integration**: Automated load testing on PRs and scheduled performance checks
-- ✅ **Performance Regression Detection**: Automatic comparison against baseline metrics
-- ✅ **Grafana Dashboards**: Real-time performance monitoring with dedicated load testing panels
-- ✅ **Comprehensive Reporting**: Automated analysis with bottleneck identification and optimization recommendations
-
-**CI/CD Integration:**
-- **GitHub Actions**: Automated load testing workflows (`.github/workflows/load-testing.yml`)
-- **Performance Baselines**: Regression detection against `load-testing/baseline.json`
-- **Artifact Storage**: Test results and reports retained for 30-90 days
-- **Scheduled Runs**: Weekly performance validation on Sundays
-
-**Quick Start:**
-
-1. **Install Dependencies**: `pip install -r load-testing/requirements.txt`
-2. **Configure Environment**: Update `load-testing/locust/config/environments/` for your setup
-3. **Run Tests**: Use the commands above or see [load-testing/README.md](load-testing/README.md)
-4. **View Results**: Check `load-testing/results/` and analysis reports
-
-**📖 Documentation:**
-- [Load Testing Guide](load-testing/README.md)
-- [Performance Targets](load-testing/docs/performance_targets.md)
-- [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
-- [Troubleshooting](load-testing/docs/troubleshooting.md)
-- [CI/CD Integration](load-testing/docs/ci_cd_integration.md)
-- [Troubleshooting](load-testing/docs/troubleshooting.md)
-
-## Support
-
-Need help?
-
-1. Check the in-app Help section (Utils → Help Documentation)
-2. Review the documentation files in this repository
-3. Access the Control Panel at <http://localhost:8080/control> for system management
-
-## License
-
-See [LICENSE](LICENSE) file for details.
-
-## Version
-
-Current version: 1.12.5 (see [VERSION](VERSION) file)
-
-**Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
-
-## Developer note: `NATIVE.ps1` - auto-install & resiliency
-
-We added extra safety and convenience features to `NATIVE.ps1` to make first-time setup and recoveries easier on Windows:
-
-- Automatic install on start: if `frontend/node_modules` is missing when you run `.\NATIVE.ps1 -Start` or `.\NATIVE.ps1 -Frontend`, the script will attempt a non-interactive install (prefers `npm ci` when `package-lock.json` is present).
-- Robust retry and cleanup: installs use a helper that retries after removing known problematic native binaries (for example `@esbuild` on Windows) and will remove `node_modules` and retry a clean install if an initial `npm ci` fails due to locked files.
-- Peer-dependency guard: the script validates essential dev packages that Vite expects (for example `@babel/core`) and attempts to install them if missing to avoid runtime plugin errors.
-- Non-destructive setup: `.\NATIVE.ps1 -Setup` is safe to run in CI or developer environments; it creates/updates the Python virtualenv and installs frontend dependencies reproducibly.
-
-If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
-
-These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
+---

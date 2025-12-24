@@ -42,7 +42,10 @@ def main(argv: list[str]) -> int:
     else:
         cmd = []
     if not cmd:
-        print("Usage: run_in_venv.py [--install-deps] -- <command> [args...]", file=sys.stderr)
+        print(
+            "Usage: run_in_venv.py [--install-deps] -- <command> [args...]",
+            file=sys.stderr,
+        )
         return 2
     py = ensure_venv(VENV_DIR)
     if install_deps:

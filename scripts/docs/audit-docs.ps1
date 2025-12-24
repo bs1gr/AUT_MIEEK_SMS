@@ -57,7 +57,7 @@ foreach ($f in $all) {
 
   $flags = @()
   if ($ageDays -ne $null -and $ageDays -gt $MaxAgeDays) { $flags += "STALE:$ageDays" }
-  if (-not $statusLine -and ($f.Name -match 'RUNBOOK|API_EXAMPLES|ARCHITECTURE_DIAGRAMS|LOAD_TEST_PLAYBOOK')) { $flags += 'MISSING_STATUS' }
+  if (-not $statusLine -and ($f.Name -match 'RUNBOOK|ARCHITECTURE_DIAGRAMS|LOAD_TEST_PLAYBOOK')) { $flags += 'MISSING_STATUS' }
 
   if ($flags.Count -gt 0) {
     $result += [PSCustomObject]@{ File = $f.FullName; Flags = ($flags -join ', ') }
@@ -69,6 +69,7 @@ if ($result.Count -eq 0) {
 } else {
   Write-Host "[audit] Issues:" -ForegroundColor Yellow
   $result | Format-Table -AutoSize
+  exit 1
 }
 
 Write-Host "[audit] Completed." -ForegroundColor Cyan

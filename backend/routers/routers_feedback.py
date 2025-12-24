@@ -2,6 +2,7 @@
 Feedback API Router
 Allows users to submit feedback or suggestions (anonymous or authenticated).
 """
+
 from fastapi import APIRouter, Request, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -14,6 +15,7 @@ import logging
 
 router = APIRouter(prefix="/api/v1/feedback", tags=["Feedback"])
 logger = logging.getLogger(__name__)
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 @limiter.limit(RATE_LIMIT_WRITE)

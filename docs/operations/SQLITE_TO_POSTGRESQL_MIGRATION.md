@@ -152,7 +152,7 @@ pg_cur = pg_conn.cursor()
 
 # Get all tables
 sqlite_cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-tables = [row[0] for row in sqlite_cur.fetchall() 
+tables = [row[0] for row in sqlite_cur.fetchall()
           if not row[0].startswith('sqlite_') and row[0] != 'alembic_version']
 
 print(f"Found {len(tables)} tables to migrate: {', '.join(tables)}")
@@ -160,23 +160,23 @@ print(f"Found {len(tables)} tables to migrate: {', '.join(tables)}")
 # Migrate each table
 for table in tables:
     print(f"Migrating table: {table}")
-    
+
     # Get column names
     sqlite_cur.execute(f"PRAGMA table_info({table})")
     columns = [col[1] for col in sqlite_cur.fetchall()]
-    
+
     # Fetch all rows
     sqlite_cur.execute(f"SELECT * FROM {table}")
     rows = sqlite_cur.fetchall()
-    
+
     if not rows:
         print(f"  → No data in {table}")
         continue
-    
+
     # Insert into PostgreSQL
     placeholders = ','.join(['%s'] * len(columns))
     insert_sql = f"INSERT INTO {table} ({','.join(columns)}) VALUES ({placeholders})"
-    
+
     for row in rows:
         try:
             pg_cur.execute(insert_sql, tuple(row))
@@ -185,7 +185,7 @@ for table in tables:
             pg_conn.rollback()
         else:
             pg_conn.commit()
-    
+
     print(f"  ✓ Migrated {len(rows)} rows")
 
 # Update sequences for auto-increment columns
@@ -297,8 +297,8 @@ psql -U sms_user -d sms_db
 ANALYZE;
 
 -- Check indexes
-SELECT tablename, indexname, indexdef 
-FROM pg_indexes 
+SELECT tablename, indexname, indexdef
+FROM pg_indexes
 WHERE schemaname = 'public';
 
 -- Vacuum to reclaim space
@@ -320,8 +320,8 @@ If migration fails:
 .\DOCKER.ps1 -Stop
 
 # Restore SQLite from backup
-$backupFile = Get-ChildItem "backups\database\student_management_*.db" | 
-              Sort-Object LastWriteTime -Descending | 
+$backupFile = Get-ChildItem "backups\database\student_management_*.db" |
+              Sort-Object LastWriteTime -Descending |
               Select-Object -First 1
 
 Copy-Item $backupFile.FullName "data\student_management.db" -Force
@@ -373,7 +373,7 @@ echo "Backup completed: ${BACKUP_FILE}"
 SELECT pg_size_pretty(pg_database_size('sms_db'));
 
 -- Check table sizes
-SELECT 
+SELECT
     schemaname,
     tablename,
     pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size

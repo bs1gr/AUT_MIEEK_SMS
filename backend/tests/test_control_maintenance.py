@@ -4,7 +4,6 @@ Tests authentication settings management via /control/api/maintenance/*.
 """
 
 
-
 def test_get_auth_settings(client):
     """Test retrieving current auth settings."""
     resp = client.get("/control/api/maintenance/auth-settings")
@@ -49,19 +48,18 @@ def test_update_auth_settings_with_auth_mode(client, tmp_path, monkeypatch):
 
     # Monkeypatch to use our temp env file
     from pathlib import Path
+
     def mock_resolve(*args, **kwargs):
         class MockPath:
             def parents(self):
                 return [tmp_path, tmp_path, tmp_path, tmp_path]
+
         return MockPath()
 
     monkeypatch.setattr(Path, "resolve", mock_resolve)
 
     # Update to permissive mode
-    resp = client.post(
-        "/control/api/maintenance/auth-settings",
-        json={"auth_mode": "permissive"}
-    )
+    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "permissive"})
 
     # Note: This will fail in the actual test because we can't easily mock Path.resolve
     # But the endpoint structure is correct
@@ -72,11 +70,7 @@ def test_update_auth_settings_multiple_values(client):
     """Test updating multiple auth settings at once."""
     resp = client.post(
         "/control/api/maintenance/auth-settings",
-        json={
-            "auth_enabled": True,
-            "auth_mode": "permissive",
-            "auth_login_max_attempts": 10
-        }
+        json={"auth_enabled": True, "auth_mode": "permissive", "auth_login_max_attempts": 10},
     )
 
     # Should succeed (or fail gracefully with proper error message)
@@ -89,17 +83,11 @@ def test_update_auth_settings_multiple_values(client):
 def test_update_auth_settings_validation(client):
     """Test validation of auth settings."""
     # Invalid auth_mode
-    resp = client.post(
-        "/control/api/maintenance/auth-settings",
-        json={"auth_mode": "invalid_mode"}
-    )
+    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "invalid_mode"})
     assert resp.status_code == 422  # Validation error
 
     # Invalid auth_login_max_attempts (too high)
-    resp = client.post(
-        "/control/api/maintenance/auth-settings",
-        json={"auth_login_max_attempts": 999}
-    )
+    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_login_max_attempts": 999})
     assert resp.status_code == 422  # Validation error
 
 

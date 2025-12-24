@@ -18,6 +18,8 @@ jobs:
   archive:
     name: Run archive helper
     runs-on: windows-latest
+    permissions:
+      contents: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -34,7 +34,6 @@ COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
 STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
 
 
-
 class ClearPayload(BaseModel):
     confirm: bool = False
     scope: Optional[str] = "all"  # 'all' | 'data_only'
@@ -80,7 +79,9 @@ def backup_database(request: Request, current_user=Depends(optional_require_perm
 @router.post("/restore")
 @limiter.limit(RATE_LIMIT_HEAVY)
 def restore_database(
-    request: Request, file: UploadFile = File(...), current_user=Depends(optional_require_permission("adminops.restore"))
+    request: Request,
+    file: UploadFile = File(...),
+    current_user=Depends(optional_require_permission("adminops.restore")),
 ):
     """
     Restore the SQLite database from an uploaded .db file.

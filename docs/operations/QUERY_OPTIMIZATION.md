@@ -1,8 +1,8 @@
 # Query Optimization Guide
 
-**Version**: 1.0  
-**Date**: 2025-12-12  
-**Status**: Production Ready  
+**Version**: 1.0
+**Date**: 2025-12-12
+**Status**: Production Ready
 **Target Release**: $11.11.2
 
 ---
@@ -470,14 +470,14 @@ records = db.query(Attendance).filter(
 async def dashboard(db: Session = Depends(get_db)):
     # Fetch once, use multiple times
     student = db.query(Student).filter(Student.id == 5).first()
-    
+
     # Use cached student object multiple times
     info = {
         "name": student.first_name,
         "email": student.email,
         "active": student.is_active
     }
-    
+
     return info
 ```
 
@@ -594,5 +594,3 @@ curl -X POST http://localhost:8000/api/v1/diagnostics/queries/reset
 - [Database Indexing Best Practices](https://use-the-index-luke.com/)
 - [N+1 Query Prevention](https://docs.sqlalchemy.org/en/20/orm/loading_relationships.html)
 - [SQLite Query Optimization](https://sqlite.org/queryplanner.html)
-
-

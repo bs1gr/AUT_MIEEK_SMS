@@ -16,19 +16,19 @@ class AuditAction(str, Enum):
     LOGIN = "login"
     LOGOUT = "logout"
     PASSWORD_CHANGE = "password_change"
-    
+
     # Data Operations
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
     BULK_IMPORT = "bulk_import"
     BULK_EXPORT = "bulk_export"
-    
+
     # Admin Operations
     ROLE_CHANGE = "role_change"
     PERMISSION_GRANT = "permission_grant"
     PERMISSION_REVOKE = "permission_revoke"
-    
+
     # System Operations
     BACKUP_CREATE = "backup_create"
     BACKUP_RESTORE = "backup_restore"

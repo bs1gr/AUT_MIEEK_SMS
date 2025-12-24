@@ -293,19 +293,19 @@ describe('useCoursesStore', () => {
   describe('Complex scenarios', () => {
     it('handles full CRUD lifecycle', () => {
       const { setCourses, addCourse, updateCourse, deleteCourse } = useCoursesStore.getState();
-      
+
       // Set initial
       setCourses([sampleCourse1]);
       expect(useCoursesStore.getState().courses).toHaveLength(1);
-      
+
       // Add
       addCourse(sampleCourse2);
       expect(useCoursesStore.getState().courses).toHaveLength(2);
-      
+
       // Update
       updateCourse(1, { credits: 5 });
       expect(useCoursesStore.getState().courses[0].credits).toBe(5);
-      
+
       // Delete
       deleteCourse(2);
       expect(useCoursesStore.getState().courses).toHaveLength(1);

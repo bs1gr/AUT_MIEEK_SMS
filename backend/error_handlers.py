@@ -22,6 +22,7 @@ def register_error_handlers(app):
         det = exc.detail
         try:
             import json
+
             json.dumps(det)
         except Exception:
             det = str(det)
@@ -37,6 +38,7 @@ def register_error_handlers(app):
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
         raw_errs = exc.errors() if hasattr(exc, "errors") else None
+
         def _sanitize_error(e):
             e = dict(e)
             ctx = e.get("ctx")
@@ -47,6 +49,7 @@ def register_error_handlers(app):
                     ctx["error"] = str(err_obj)
                     e["ctx"] = ctx
             return e
+
         errs = [_sanitize_error(e) for e in (raw_errs or [])]
         body = _problem_details(
             status_code=422,

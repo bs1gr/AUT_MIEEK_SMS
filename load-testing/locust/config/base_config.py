@@ -32,42 +32,24 @@ class LoadTestConfig:
     TARGETS = {
         "response_time_95p": 2.0,  # 95th percentile
         "response_time_99p": 5.0,  # 99th percentile
-        "error_rate_max": 0.05,   # 5% max error rate
+        "error_rate_max": 0.05,  # 5% max error rate
         "requests_per_second": {
             "smoke": 10,
             "light": 50,
             "medium": 200,
             "heavy": 500,
-            "stress": 1000
-        }
+            "stress": 1000,
+        },
     }
 
     # Test scenarios configuration
     SCENARIOS = {
-        "auth": {
-            "weight": 1,
-            "description": "Authentication operations"
-        },
-        "students": {
-            "weight": 4,
-            "description": "Student management operations"
-        },
-        "courses": {
-            "weight": 3,
-            "description": "Course management operations"
-        },
-        "analytics": {
-            "weight": 2,
-            "description": "Analytics and reporting"
-        },
-        "attendance": {
-            "weight": 2,
-            "description": "Attendance management"
-        },
-        "grades": {
-            "weight": 2,
-            "description": "Grade management"
-        }
+        "auth": {"weight": 1, "description": "Authentication operations"},
+        "students": {"weight": 4, "description": "Student management operations"},
+        "courses": {"weight": 3, "description": "Course management operations"},
+        "analytics": {"weight": 2, "description": "Analytics and reporting"},
+        "attendance": {"weight": 2, "description": "Attendance management"},
+        "grades": {"weight": 2, "description": "Grade management"},
     }
 
     # Monitoring and metrics
@@ -92,32 +74,32 @@ class LoadTestConfig:
                 "users": 5,
                 "spawn_rate": 1,
                 "run_time": "30s",
-                "description": "Basic smoke test"
+                "description": "Basic smoke test",
             },
             "light": {
                 "users": 50,
                 "spawn_rate": 5,
                 "run_time": "2m",
-                "description": "Light load test"
+                "description": "Light load test",
             },
             "medium": {
                 "users": 200,
                 "spawn_rate": 10,
                 "run_time": "5m",
-                "description": "Medium load test"
+                "description": "Medium load test",
             },
             "heavy": {
                 "users": 500,
                 "spawn_rate": 20,
                 "run_time": "10m",
-                "description": "Heavy load test"
+                "description": "Heavy load test",
             },
             "stress": {
                 "users": 1000,
                 "spawn_rate": 50,
                 "run_time": "15m",
-                "description": "Stress test"
-            }
+                "description": "Stress test",
+            },
         }
         return base_config.get(scenario, base_config["smoke"])
 

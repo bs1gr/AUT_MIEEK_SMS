@@ -1,0 +1,34 @@
+name: Reset Workflows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  reset-and-retrigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history isn't strictly required for empty commit,
+          # but ensures we have the current HEAD reference.
+          fetch-depth: 0
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Switch to Branch
+        # Ensure we are on the branch, not in detached HEAD state, so we can push back
+        run: git checkout ${{ github.ref_name }}
+
+      - name: Run Reset Script
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/ops/reset-workflows.ps1

@@ -27,7 +27,7 @@ def _normalize_statement(statement: str, limit: int = 500) -> str:
 def _serialize_params(parameters: Any, limit: int = 500) -> str:
     """
     Safely serialize SQL parameters for logging.
-    
+
     Security: Uses repr() for all values, which escapes special characters
     and prevents SQL injection in logs. Parameters are never executed as SQL,
     only logged for debugging slow queries.

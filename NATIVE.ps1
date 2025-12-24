@@ -62,7 +62,7 @@
     # Stop all processes
 
 .NOTES
-Version: 1.12.5 (Consolidated from SMS.ps1, run-native.ps1)
+Version: 1.12.6 (Consolidated from SMS.ps1, run-native.ps1)
     For production deployment, use: .\DOCKER.ps1
 #>
 
@@ -80,7 +80,7 @@ param(
     [switch]$Force,
     [switch]$Help,
     [switch]$NoReload  # Optional: start backend without --reload (stability workaround)
-    
+
 )
 
 # ============================================================================
@@ -218,7 +218,7 @@ function Try-Install-NodeDeps {
             }
         }
 
-        # Retry install using npm install (safer fallback) 
+        # Retry install using npm install (safer fallback)
         npm install --silent
         return $LASTEXITCODE
     } finally {
@@ -899,7 +899,7 @@ if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Front
 
 if ($DeepClean) {
     Write-Header "Deep Clean - Removing ALL Development Artifacts"
-    
+
     Write-Warning "This will remove:"
     Write-Host "  • Python virtual environments (.venv, .venv_*)" -ForegroundColor Yellow
     Write-Host "  • Node.js dependencies (node_modules)" -ForegroundColor Yellow
@@ -912,7 +912,7 @@ if ($DeepClean) {
     Write-Host ""
     Write-Warning "Your data/ and backups/ directories will be PRESERVED"
     Write-Host ""
-    
+
     # If this is a dry-run, list matching items and exit without deleting
     # Support both our -DryRun switch and PowerShell's built-in -WhatIf common parameter
     if ($DryRun -or $PSBoundParameters.ContainsKey('WhatIf')) {
@@ -967,12 +967,12 @@ if ($DeepClean) {
     } else {
         Write-Info "Force flag provided: skipping interactive confirmation."
     }
-    
+
     # Stop processes first
     Write-Info "Stopping all native processes..."
     Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend" | Out-Null
     Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend" | Out-Null
-    
+
     $itemsToRemove = @(
         ".venv", ".venv_*", ".venv_backend_tests", ".venv_audit",
         "frontend/node_modules", "node_modules", "frontend/dist", "dist",
@@ -984,17 +984,17 @@ if ($DeepClean) {
         "backend_dev_*.log", "frontend_dev_*.log",
         ".backend.pid", ".frontend.pid", "temp_export_*"
     )
-    
+
     $removedCount = 0
-    
+
     foreach ($pattern in $itemsToRemove) {
         $fullPattern = Join-Path $SCRIPT_DIR $pattern
-        
+
         if ($pattern -like "*`*") {
             # Wildcard pattern
             $parent = Split-Path $fullPattern -Parent
             $leaf = Split-Path $fullPattern -Leaf
-            
+
             if (Test-Path $parent) {
                 Get-ChildItem -Path $parent -Filter $leaf -ErrorAction SilentlyContinue | ForEach-Object {
                     $item = $_
@@ -1037,7 +1037,7 @@ if ($DeepClean) {
             }
         }
     }
-    
+
     # Remove nested __pycache__ directories
     Get-ChildItem -Path $BACKEND_DIR -Recurse -Filter "__pycache__" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
         try {
@@ -1049,28 +1049,16 @@ if ($DeepClean) {
             Write-Warning "Failed to remove: $($_.FullName)"
         }
     }
-    
+
     Write-Host ""
     Write-Header "Deep Clean Complete"
     Write-Success "Removed $removedCount item(s)"
     Write-Host ""
     Write-Info "To reinstall dependencies, run: .\NATIVE.ps1 -Setup"
-    
+
     exit 0
 }
 
 # If no command specified, show help
 Show-Help
 exit 0
-
-
-
-
-
-
-
-
-
-
-
-

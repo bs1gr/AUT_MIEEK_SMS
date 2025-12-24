@@ -1,14 +1,14 @@
 /**
  * useAutosave - Universal autosave hook with debouncing
- * 
+ *
  * Automatically saves data after a debounce delay when dependencies change.
  * Prevents unnecessary saves and shows user feedback.
- * 
+ *
  * @param saveFunction - Async function to call for saving
  * @param dependencies - Values to watch for changes
  * @param options - Configuration options
  * @returns Object with autosave status and manual save trigger
- * 
+ *
  * @example
  * ```tsx
  * const { isSaving, saveNow } = useAutosave(
@@ -61,7 +61,7 @@ export const useAutosave = (
   const [isSaving, setIsSaving] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  
+
   const timeoutRef = useRef<number | null>(null);
   const initialRenderRef = useRef(true);
   const saveInProgressRef = useRef(false);
@@ -75,9 +75,9 @@ export const useAutosave = (
       saveInProgressRef.current = true;
       setIsSaving(true);
       setIsPending(false);
-      
+
       await saveFunction();
-      
+
       setLastSaved(new Date());
       onSuccess?.();
     } catch (error) {

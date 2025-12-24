@@ -1,6 +1,6 @@
 """
 Student Management System - Main Entry Point
-Version: 1.12.5
+Version: 1.12.6
 
 Minimal entry point that creates and runs the FastAPI application.
 All application logic has been modularized into:
@@ -74,6 +74,7 @@ def _find_pids_on_port(port):
 def _safe_run(cmd_args, timeout=5):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     from types import SimpleNamespace
+
     return SimpleNamespace(returncode=0, stdout="", stderr="")
 
 
@@ -101,7 +102,7 @@ def get_version() -> str:
 def main() -> None:
     """
     Main entry point for running the application directly.
-    
+
     Configures and starts the Uvicorn server.
     """
     VERSION = get_version()

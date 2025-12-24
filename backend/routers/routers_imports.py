@@ -741,7 +741,9 @@ def import_courses(
                             errors.append(f"{name}: teaching_schedule unsupported type {type(ts)}, dropping field")
                             obj.pop("teaching_schedule", None)
                     # Use service to create/update
-                    was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+                    was_created, err = ImportService.create_or_update_course(
+                        db, obj, translate_rules_fn=_translate_rules
+                    )
                     if err:
                         errors.append(f"{name}: {err}")
                         continue
@@ -895,7 +897,7 @@ async def import_from_upload(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
                     resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
-                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    details={"source": "upload", "file": getattr(up, "filename", None), "type": norm},
                     success=False,
                     error_message=str(http_exc),
                 )
@@ -907,7 +909,7 @@ async def import_from_upload(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
                     resource=AuditResource.COURSE if norm == "courses" else AuditResource.STUDENT,
-                    details={"source": "upload", "file": getattr(up, 'filename', None), "type": norm},
+                    details={"source": "upload", "file": getattr(up, "filename", None), "type": norm},
                     success=False,
                     error_message=str(exc),
                 )
@@ -1378,7 +1380,15 @@ async def import_preview(
         def add_item(action: str, data: dict, issues: list[str]):
             nonlocal row_no, create_count, update_count, skip_count, error_count, warning_count
             row_no += 1
-            status = "valid" if not issues else ("error" if any("error:" in (i.lower()) or i.lower().startswith("item:") for i in issues) else "warning")
+            status = (
+                "valid"
+                if not issues
+                else (
+                    "error"
+                    if any("error:" in (i.lower()) or i.lower().startswith("item:") for i in issues)
+                    else "warning"
+                )
+            )
             if status == "valid":
                 if action == "create":
                     create_count += 1

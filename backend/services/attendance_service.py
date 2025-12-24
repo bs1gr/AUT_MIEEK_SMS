@@ -24,9 +24,7 @@ class AttendanceService:
         self.db = db
         self.request = request
         try:
-            self.Attendance, self.Student, self.Course = import_names(
-                "models", "Attendance", "Student", "Course"
-            )
+            self.Attendance, self.Student, self.Course = import_names("models", "Attendance", "Student", "Course")
         except Exception as exc:  # pragma: no cover
             logger.error("Failed to import models: %s", exc, exc_info=True)
             raise internal_server_error(request=self.request)
@@ -82,6 +80,7 @@ class AttendanceService:
         # Metrics
         try:
             from backend.middleware.prometheus_metrics import track_attendance
+
             track_attendance(str(attendance.status).lower())
         except Exception:
             pass
@@ -186,6 +185,7 @@ class AttendanceService:
 
         with transaction(self.db):
             from datetime import timezone
+
             db_attendance.deleted_at = datetime.now(timezone.utc)
             self.db.flush()
 

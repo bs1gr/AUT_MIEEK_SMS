@@ -92,8 +92,7 @@ def sample_job_with_cache_hits():
                 {
                     "name": "Install backend dependencies",
                     "conclusion": "success",
-                    "started_at": (base_time + timedelta(seconds=17)).isoformat()
-                    + "Z",
+                    "started_at": (base_time + timedelta(seconds=17)).isoformat() + "Z",
                     "completed_at": (base_time + timedelta(seconds=22)).isoformat()
                     + "Z",  # 5s with cache
                 },
@@ -128,8 +127,7 @@ def sample_job_without_cache():
                 {
                     "name": "Install Playwright browsers",
                     "conclusion": "success",
-                    "started_at": (base_time + timedelta(seconds=50)).isoformat()
-                    + "Z",
+                    "started_at": (base_time + timedelta(seconds=50)).isoformat() + "Z",
                     "completed_at": (base_time + timedelta(seconds=110)).isoformat()
                     + "Z",  # 60s without cache
                 },

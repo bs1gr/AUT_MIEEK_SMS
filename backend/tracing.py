@@ -7,6 +7,7 @@ Environment variables:
 - ENABLE_TRACING=1
 - OTLP_ENDPOINT=http://localhost:4318 (default if not specified)
 """
+
 from __future__ import annotations
 
 import os

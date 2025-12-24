@@ -2,11 +2,11 @@
 Backup Verification Script
 Scans all .db files in the backups/ directory and checks for SQLite integrity and required tables.
 """
-import os
+
 import sqlite3
 from pathlib import Path
 
-REQUIRED_TABLES = ["students", "courses", "grades", "attendances"]
+REQUIRED_TABLES = ["students", "courses", "grades", "attendance"]
 
 BACKUP_DIR = Path(__file__).resolve().parents[1] / "backups"
 

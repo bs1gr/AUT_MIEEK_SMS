@@ -42,7 +42,7 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 
 **Configuration Files (Moved to dedicated directories):**
 - `config/mypy.ini` - Type checking configuration
-- `config/pytest.ini` - Test runner configuration  
+- `config/pytest.ini` - Test runner configuration
 - `config/ruff.toml` - Linting configuration
 - `docker/docker-compose.yml` - Main Docker compose file
 - `docker/docker-compose.prod.yml` - Production overlay
@@ -91,7 +91,7 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
     - `backend/error_handlers.py` - Exception handler registration
     - `backend/router_registry.py` - Router registration logic
 - Frontend: `frontend/src/App.tsx` → Main layout with navigation, auth, and error boundaries
-- Scripts: 
+- Scripts:
   - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
   - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
   - **Quality Gate:** `COMMIT_READY.ps1` (v1.9.3+)
@@ -136,7 +136,7 @@ async def create_item(item: ItemCreate, request: Request, db: Session = Depends(
 async def list_users(current_admin: Any = Depends(require_role("admin"))):
     pass
 
-# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)  
+# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)
 @router.get("/admin/users")
 async def list_users(current_admin: Any = Depends(optional_require_role("admin"))):
     pass

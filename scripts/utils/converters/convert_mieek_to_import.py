@@ -151,7 +151,11 @@ class MIEEKToSMSConverter:
 
         def _strip_accents(s: str) -> str:
             try:
-                return "".join(ch for ch in unicodedata.normalize("NFD", s) if unicodedata.category(ch) != "Mn")
+                return "".join(
+                    ch
+                    for ch in unicodedata.normalize("NFD", s)
+                    if unicodedata.category(ch) != "Mn"
+                )
             except Exception:
                 return s
 
@@ -216,7 +220,11 @@ class MIEEKToSMSConverter:
         rules: List[Dict[str, Any]] = []
 
         # Convert to list if needed
-        items = evaluation_field if isinstance(evaluation_field, list) else [evaluation_field]
+        items = (
+            evaluation_field
+            if isinstance(evaluation_field, list)
+            else [evaluation_field]
+        )
 
         # Join multi-line entries that likely belong together (colon without percent on first line)
         joined: List[str] = []
@@ -304,22 +312,34 @@ class MIEEKToSMSConverter:
                 parts.append(f"**Στόχος:** {objective}")
 
         # Add learning outcomes
-        if "Μαθησιακά\nΑποτελέσματα" in course_data or "Μαθησιακά Αποτελέσματα" in course_data:
-            outcomes = course_data.get("Μαθησιακά\nΑποτελέσματα") or course_data.get("Μαθησιακά Αποτελέσματα")
+        if (
+            "Μαθησιακά\nΑποτελέσματα" in course_data
+            or "Μαθησιακά Αποτελέσματα" in course_data
+        ):
+            outcomes = course_data.get("Μαθησιακά\nΑποτελέσματα") or course_data.get(
+                "Μαθησιακά Αποτελέσματα"
+            )
             if isinstance(outcomes, list):
                 outcomes = " ".join(str(x) for x in outcomes if str(x).strip())
             if outcomes:
                 parts.append(f"\n**Μαθησιακά Αποτελέσματα:** {outcomes}")
 
         # Add course content
-        if "Περιεχόμενο\nΜαθήματος" in course_data or "Περιεχόμενο Μαθήματος" in course_data:
-            content = course_data.get("Περιεχόμενο\nΜαθήματος") or course_data.get("Περιεχόμενο Μαθήματος")
+        if (
+            "Περιεχόμενο\nΜαθήματος" in course_data
+            or "Περιεχόμενο Μαθήματος" in course_data
+        ):
+            content = course_data.get("Περιεχόμενο\nΜαθήματος") or course_data.get(
+                "Περιεχόμενο Μαθήματος"
+            )
             if isinstance(content, list):
                 # Filter out metadata
                 content = " ".join(
                     str(x)
                     for x in content
-                    if str(x).strip() and x not in ["Μεθοδολογία", "Διδασκαλίας", "Βιβλιογραφία", "Βασική:"]
+                    if str(x).strip()
+                    and x
+                    not in ["Μεθοδολογία", "Διδασκαλίας", "Βιβλιογραφία", "Βασική:"]
                 )
             if content:
                 parts.append(f"\n**Περιεχόμενο:** {content}")
@@ -438,7 +458,9 @@ class MIEEKToSMSConverter:
             return course
 
         except Exception as e:
-            self.errors.append(f"Failed to convert course {course_data.get('course_name', 'unknown')}: {e}")
+            self.errors.append(
+                f"Failed to convert course {course_data.get('course_name', 'unknown')}: {e}"
+            )
             return None
 
     def convert_and_save(self):
@@ -530,9 +552,19 @@ The MIEEK format has these characteristics:
         """,
     )
 
-    parser.add_argument("--input", "-i", required=True, help="Input JSON file with MIEEK PDF-extracted data")
+    parser.add_argument(
+        "--input",
+        "-i",
+        required=True,
+        help="Input JSON file with MIEEK PDF-extracted data",
+    )
 
-    parser.add_argument("--output", "-o", required=True, help="Output directory for converted JSON files")
+    parser.add_argument(
+        "--output",
+        "-o",
+        required=True,
+        help="Output directory for converted JSON files",
+    )
 
     args = parser.parse_args()
 

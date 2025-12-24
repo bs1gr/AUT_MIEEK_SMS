@@ -155,7 +155,7 @@ export default defineConfig({
             if (id.includes('/features/calendar/')) return 'features-calendar';
             return undefined;
           }
-          
+
           // Vendor chunk splitting for optimal caching
           if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
             return 'react-vendors';

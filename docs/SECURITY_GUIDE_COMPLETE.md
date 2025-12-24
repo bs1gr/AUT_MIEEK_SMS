@@ -1,7 +1,7 @@
 # Security Guide - Student Management System
 
-**Version:** 1.9.9  
-**Last Updated:** December 6, 2025  
+**Version:** 1.9.9
+**Last Updated:** December 6, 2025
 **Status:** ✅ All Critical Vulnerabilities Mitigated
 
 ## 📋 Table of Contents
@@ -626,7 +626,6 @@ npm run test -- src/**/*auth*.test.*
 
 ---
 
-**Maintainer:** Security Team  
-**Contact:** See CONTRIBUTING.md for security disclosure policy  
+**Maintainer:** Security Team
+**Contact:** See CONTRIBUTING.md for security disclosure policy
 **Review Frequency:** Quarterly (next review: March 2026)
-

@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     autoLoginAttemptedRef.current = true;
-    
+
     // If user exists but no token, preserve user. Token restoration is handled by manual login.
     if (initialUserRef.current && !initialAccessTokenRef.current) {
       console.warn('[Auth] User exists without token; preserving user (no auto-login)');
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.warn('[Auth] Attempting auto-login');
     let timeoutId: number | undefined;
     let mounted = true;
-    
+
     const attemptAutoLogin = async () => {
       try {
         console.warn('[Auth] Starting auto-login attempt');
@@ -102,26 +102,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('[Auth] Auto-login timeout triggered (10s)');
           controller.abort();
         }, 10000);
-        
+
         console.warn('[Auth] Posting to /auth/login (auto-login)');
         const resp = await apiClient.post('/auth/login', {
           email: DEFAULT_LOGIN_EMAIL,
           password: DEFAULT_LOGIN_PASSWORD,
         }, { withCredentials: true, signal: controller.signal });
-        
+
         if (!mounted) {
           console.warn('[Auth] Component unmounted, discarding response');
           return;
         }
-        
+
         console.warn('[Auth] Login response received:', resp.status);
         const data = resp.data || {};
-        
+
         if (data.access_token) {
           console.warn('[Auth] Token received, setting state');
           setAccessTokenState(data.access_token);
           authService.setAccessToken(data.access_token);
-          
+
           // Get user data - either from response or fetch separately
           let userPayload = data.user;
           if (!userPayload) {
@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Continue anyway - we have the token
             }
           }
-          
+
           if (userPayload) {
             console.warn('[Auth] Setting user state:', userPayload.email);
             setUser(userPayload);
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const errMsg = err instanceof Error ? err.message : String(err);
         const isTimeout = errMsg.includes('AbortError') || errMsg.includes('timeout');
         const isNetworkError = errMsg.includes('Network') || errMsg.includes('fetch');
-        
+
         if (isTimeout) {
           console.warn('[Auth] Auto-login timeout - backend may be slow to start', errMsg);
         } else if (isNetworkError) {
@@ -170,9 +170,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     };
-    
+
     attemptAutoLogin();
-    
+
     return () => {
       console.warn('[Auth] Cleanup - mounted = false');
       mounted = false;

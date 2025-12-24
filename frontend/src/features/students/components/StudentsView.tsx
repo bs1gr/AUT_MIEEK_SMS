@@ -39,7 +39,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 }) => {
   // Performance monitoring for component renders
   usePerformanceMonitor('StudentsView', 150);
-  
+
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [internalSearch, setInternalSearch] = useState<string>('');

@@ -6,7 +6,7 @@ repos:
         # Use the repo-local venv wrapper for consistent environments across
         # developer machines and CI runners. The wrapper will create `.venv-tools`
         # if missing and then run the provided command with that venv's python.
-        entry: python scripts/run_in_venv.py -- python tools/check_imports_requirements.py
+        entry: python scripts/run_in_venv.py -- python scripts/utils/validators/import_checker.py --mode static
         language: system
         files: ^backend/.*\.py$
         pass_filenames: false
@@ -41,11 +41,14 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
+        # Exclude jsonc (JSON with comments) and CI temp files
+        exclude: (^.vscode/|.*tsconfig\.json$|.*\.jsonc$|scripts/utils/ci/.*)
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: ['--fix=lf']
+        exclude: '\.(bat|cmd|vbs|iss|isl)$'
 
 
 
@@ -59,5 +62,6 @@ repos:
         language: python
         types: ["text"]
         files: .*
+        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini)
 
 exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'

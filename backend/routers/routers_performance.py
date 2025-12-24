@@ -39,6 +39,7 @@ class DailyPerformanceCreate(BaseModel):
 
 class DailyPerformanceUpdate(BaseModel):
     """Schema for updating daily performance records. All fields optional."""
+
     score: Optional[float] = None
     max_score: Optional[float] = None
     notes: Optional[str] = None

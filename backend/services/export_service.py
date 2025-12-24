@@ -283,9 +283,7 @@ class ExportService:
             avg_grade = highest = lowest = 0
 
         attendance_records = (
-            db.query(Attendance)
-            .filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
-            .all()
+            db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None)).all()
         )
 
         return {

@@ -35,13 +35,13 @@ export const EVENTS = {
   GRADE_UPDATED: 'grade:updated',
   GRADE_DELETED: 'grade:deleted',
   GRADES_BULK_ADDED: 'grades:bulk_added',
-  
+
   // Attendance events
   ATTENDANCE_ADDED: 'attendance:added',
   ATTENDANCE_UPDATED: 'attendance:updated',
   ATTENDANCE_DELETED: 'attendance:deleted',
   ATTENDANCE_BULK_ADDED: 'attendance:bulk_added',
-  
+
   // Daily Performance events
   DAILY_PERFORMANCE_ADDED: 'daily_performance:added'
 } as const;
@@ -59,9 +59,9 @@ Emits `GRADE_ADDED` event after successful individual grade creation:
 
 ```typescript
 await gradesAPI.create(payload);
-eventBus.emit(EVENTS.GRADE_ADDED, { 
-  studentId: Number(studentId), 
-  courseId: Number(courseId) 
+eventBus.emit(EVENTS.GRADE_ADDED, {
+  studentId: Number(studentId),
+  courseId: Number(courseId)
 });
 ```
 
@@ -316,6 +316,6 @@ When adding new data modification operations:
 
 ---
 
-**Last Updated**: 2025-01-XX  
-**Status**: ✅ Implemented and tested  
+**Last Updated**: 2025-01-XX
+**Status**: ✅ Implemented and tested
 **Breaking Changes**: None (backward compatible)

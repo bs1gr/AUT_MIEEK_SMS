@@ -78,9 +78,9 @@ jobs:
           Write-Host "Verifying version consistency across all files..."
           $tag = "${{ steps.release_info.outputs.tag }}"
           $version = $tag -replace '^v', ''
-          
+
           Write-Host "Expected version: $version (from tag: $tag)"
-          
+
           if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
             Write-Host "Running VERIFY_VERSION.ps1 in CI mode..."
             & ".\scripts\VERIFY_VERSION.ps1" -CIMode
@@ -112,24 +112,24 @@ jobs:
         run: |
           $tag = "${{ steps.release_info.outputs.tag }}"
           $version = "${{ steps.release_info.outputs.version }}"
-          
+
           Write-Host "=== Installer Search Debug Info ==="
           Write-Host "Tag: $tag"
           Write-Host "Version: $version"
           Write-Host "Current directory: $(Get-Location)"
           Write-Host ""
-          
+
           # Show what actually exists in dist/
           Write-Host "Contents of dist/ directory:"
           if (Test-Path "dist") {
-            Get-ChildItem "dist" -Filter "*.exe" | ForEach-Object { 
+            Get-ChildItem "dist" -Filter "*.exe" | ForEach-Object {
               Write-Host "  - $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)"
             }
           } else {
             Write-Host "  dist/ directory does not exist!"
           }
           Write-Host ""
-          
+
           # Search patterns in priority order
           $installers = @(
             "dist\SMS_Installer_${version}.exe",
@@ -139,11 +139,11 @@ jobs:
             "SMS_Installer_${tag}.exe",
             "SMS_Installer.exe"
           )
-          
+
           Write-Host "Searching for installer in these locations:"
           $installers | ForEach-Object { Write-Host "  - $_" }
           Write-Host ""
-          
+
           $found = $false
           foreach ($path in $installers) {
             if (Test-Path $path) {
@@ -153,11 +153,11 @@ jobs:
               break
             }
           }
-          
+
           if (-not $found) {
             Write-Host ""
             Write-Host "=== Recursive Search for SMS_Installer*.exe ==="
-            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object { 
+            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object {
               Write-Host "  Found: $($_.FullName)"
             }
             Write-Error "Installer not found in any expected location"
@@ -169,12 +169,12 @@ jobs:
         shell: pwsh
         run: |
           $installer = "${{ steps.verify_installer.outputs.path }}"
-          
+
           if (-not (Test-Path $installer)) {
             Write-Error "Installer not found at: $installer"
             exit 1
           }
-          
+
           $hash = (Get-FileHash $installer -Algorithm SHA256).Hash
           $fileSize = (Get-Item $installer).Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
@@ -192,13 +192,13 @@ jobs:
           $tag = "${{ steps.release_info.outputs.tag }}"
           $sha256 = "${{ steps.hash.outputs.sha256 }}"
           $size = "${{ steps.hash.outputs.size }} MB"
-          
+
           $notesFile = "RELEASE_NOTES_${tag}.md"
           $releaseNotes = ""
           if (Test-Path $notesFile) {
             $releaseNotes = Get-Content $notesFile -Raw
           }
-          
+
           $installerInfo = "## Installer Download`n`n"
           $installerInfo += "**File**: SMS_Installer_${tag}.exe`n"
           $installerInfo += "**Size**: ${size}`n"
@@ -209,7 +209,7 @@ jobs:
           $installerInfo += "(Get-FileHash 'SMS_Installer_${tag}.exe' -Algorithm SHA256).Hash`n"
           $installerInfo += "``````n"
           $installerInfo += "`nExpected: ${sha256}`n"
-          
+
           $body = $releaseNotes + "`n`n" + $installerInfo
           $body | Out-File -FilePath "release_body.md" -Encoding UTF8
           Write-Host "Release body generated"
@@ -231,17 +231,17 @@ jobs:
           $tag = "${{ steps.release_info.outputs.tag }}"
           $sha256 = "${{ steps.hash.outputs.sha256 }}"
           $size = "${{ steps.hash.outputs.size }}"
-          
+
           $summary = @"
           ## Release $tag - Installer Ready
-          
+
           - Installer: SMS_Installer_${tag}.exe
           - Size: ${size} MB
           - SHA256: ${sha256}
-          
+
           The installer is available as a release asset.
           "@
-          
+
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
 
       - name: Post success notification

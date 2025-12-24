@@ -242,6 +242,7 @@ class GradeService:
     def _track_grade_submission(self, course_id: int, category: Optional[str]) -> None:
         try:
             from backend.middleware.prometheus_metrics import track_grade_submission
+
             course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
             code = getattr(course, "course_code", "unknown") if course else "unknown"
             track_grade_submission(str(code), str(category or "unknown"))
@@ -271,9 +272,7 @@ class GradeService:
             if letter not in ("A", "A+"):
                 return
 
-            highlight_text = (
-                f"Excellence: {db_grade.assignment_name} ({letter}, {percentage:.1f}%) in {getattr(course, 'course_code', 'Course')}"
-            )
+            highlight_text = f"Excellence: {db_grade.assignment_name} ({letter}, {percentage:.1f}%) in {getattr(course, 'course_code', 'Course')}"
 
             existing = (
                 self.db.query(Highlight)

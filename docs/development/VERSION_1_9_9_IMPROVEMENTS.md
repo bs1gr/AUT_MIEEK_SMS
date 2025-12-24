@@ -1,6 +1,6 @@
 # Version 1.9.9 Improvements Summary
 
-**Release Date**: 2025-12-06  
+**Release Date**: 2025-12-06
 **Status**: ✅ Released and deployed
 
 This document summarizes all improvements, fixes, and enhancements in version 1.9.9.
@@ -85,7 +85,7 @@ const { id } = useParams<StudentProfileParams>();
 
 ```typescript
 // Weight input
-<input 
+<input
   value={weight}
   onChange={(e) => {
     const value = parseFloat(e.target.value.replace(',', '.'));
@@ -94,7 +94,7 @@ const { id } = useParams<StudentProfileParams>();
 />
 
 // Grade input
-<input 
+<input
   value={grade}
   onChange={(e) => {
     const value = parseFloat(e.target.value.replace(',', '.'));
@@ -103,7 +103,7 @@ const { id } = useParams<StudentProfileParams>();
 />
 
 // Max grade input
-<input 
+<input
   value={maxGrade}
   onChange={(e) => {
     const value = parseFloat(e.target.value.replace(',', '.'));
@@ -318,9 +318,9 @@ After:  375 passed, 0 failed, 1 skipped
 
 ## 🚀 Deployment
 
-**Commit Hash**: `a930231d`  
-**Pushed to**: `https://github.com/bs1gr/AUT_MIEEK_SMS`  
-**Branch**: `main`  
+**Commit Hash**: `a930231d`
+**Pushed to**: `https://github.com/bs1gr/AUT_MIEEK_SMS`
+**Branch**: `main`
 **Status**: Successfully deployed to remote
 
 ---

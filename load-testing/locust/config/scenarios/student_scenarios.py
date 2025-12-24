@@ -39,7 +39,9 @@ class StudentScenarios(TaskSet):
         ]
 
         params = random.choice(pagination_patterns)
-        self.client.get(f"/api/v1/students?skip={params['skip']}&limit={params['limit']}")
+        self.client.get(
+            f"/api/v1/students?skip={params['skip']}&limit={params['limit']}"
+        )
 
     @task(4)
     def get_student_detail(self):
@@ -86,10 +88,12 @@ class StudentScenarios(TaskSet):
             "last_name": fake.last_name(),
             "email": fake.unique.email(),
             "student_id": f"STU{random.randint(100000, 999999)}",
-            "date_of_birth": fake.date_of_birth(minimum_age=18, maximum_age=25).isoformat(),
+            "date_of_birth": fake.date_of_birth(
+                minimum_age=18, maximum_age=25
+            ).isoformat(),
             "phone": fake.phone_number(),
-            "address": fake.address().replace('\n', ', '),
-            "enrollment_date": fake.date_this_year().isoformat()
+            "address": fake.address().replace("\n", ", "),
+            "enrollment_date": fake.date_this_year().isoformat(),
         }
 
         self.client.post("/api/v1/students", json=student_data)
@@ -101,12 +105,14 @@ class StudentScenarios(TaskSet):
         if student_id:
             update_data = {
                 "phone": fake.phone_number(),
-                "address": fake.address().replace('\n', ', '),
+                "address": fake.address().replace("\n", ", "),
                 "emergency_contact": {
                     "name": fake.name(),
                     "phone": fake.phone_number(),
-                    "relationship": random.choice(["parent", "guardian", "sibling", "friend"])
-                }
+                    "relationship": random.choice(
+                        ["parent", "guardian", "sibling", "friend"]
+                    ),
+                },
             }
             self.client.put(f"/api/v1/students/{student_id}", json=update_data)
 
@@ -120,8 +126,11 @@ class StudentScenarios(TaskSet):
                 "last_name": fake.last_name(),
                 "email": fake.unique.email(),
                 "student_id": f"STU{random.randint(100000, 999999)}",
-                "date_of_birth": fake.date_of_birth(minimum_age=18, maximum_age=25).isoformat(),
-            } for _ in range(random.randint(5, 20))
+                "date_of_birth": fake.date_of_birth(
+                    minimum_age=18, maximum_age=25
+                ).isoformat(),
+            }
+            for _ in range(random.randint(5, 20))
         ]
 
         self.client.post("/api/v1/students/bulk", json={"students": bulk_students})
