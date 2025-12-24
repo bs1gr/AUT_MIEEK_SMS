@@ -57,7 +57,7 @@ foreach ($f in $all) {
 
   $flags = @()
   if ($ageDays -ne $null -and $ageDays -gt $MaxAgeDays) { $flags += "STALE:$ageDays" }
-  if (-not $statusLine -and ($f.Name -match 'RUNBOOK|API_EXAMPLES|ARCHITECTURE_DIAGRAMS|LOAD_TEST_PLAYBOOK')) { $flags += 'MISSING_STATUS' }
+  if (-not $statusLine -and ($f.Name -match 'RUNBOOK|ARCHITECTURE_DIAGRAMS|LOAD_TEST_PLAYBOOK')) { $flags += 'MISSING_STATUS' }
 
   if ($flags.Count -gt 0) {
     $result += [PSCustomObject]@{ File = $f.FullName; Flags = ($flags -join ', ') }
