@@ -1,0 +1,50 @@
+name: Cleanup Workflow Runs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log only, do not delete)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  cleanup:
+    name: Delete Old Runs
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    
+    steps:
+      - name: Delete workflow runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          echo "Fetching workflow runs..."
+          CURRENT_ID="${{ github.run_id }}"
+          
+          # Fetch IDs (limit 1000) excluding current run
+          RUN_IDS=$(gh run list --limit 1000 --json databaseId --jq ".[].databaseId | select(. != $CURRENT_ID)")
+          
+          if [ -z "$RUN_IDS" ]; then
+            echo "No other workflow runs found."
+            exit 0
+          fi
+          
+          COUNT=$(echo "$RUN_IDS" | wc -w)
+          echo "Found $COUNT runs to delete."
+          
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run enabled. Would delete IDs:"
+            echo "$RUN_IDS"
+            exit 0
+          fi
+          
+          echo "Deleting runs in batches..."
+          echo "$RUN_IDS" | xargs -n 50 gh run delete
+          
+          echo "Cleanup complete."
