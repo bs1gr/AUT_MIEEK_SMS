@@ -69,6 +69,7 @@ if ($result.Count -eq 0) {
 } else {
   Write-Host "[audit] Issues:" -ForegroundColor Yellow
   $result | Format-Table -AutoSize
+  exit 1
 }
 
 Write-Host "[audit] Completed." -ForegroundColor Cyan

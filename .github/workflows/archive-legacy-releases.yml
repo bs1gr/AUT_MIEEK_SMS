@@ -1,23 +1,25 @@
-name: Archive legacy releases
-
-on:
-  workflow_dispatch:
-    inputs:
-      threshold_tag:
-        description: "Highest tag (inclusive) to archive"
-        required: true
-        default: "v1.6.2"
-        type: string
-      dry_run:
-        description: "Preview changes without editing releases"
-        required: true
-        default: true
-        type: boolean
+# name: Archive legacy releases
+#
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       threshold_tag:
+#         description: "Highest tag (inclusive) to archive"
+#         required: true
+#         default: "v1.6.2"
+#         type: string
+#       dry_run:
+#         description: "Preview changes without editing releases"
+#         required: true
+#         default: true
+#         type: boolean
 
 jobs:
   archive:
     name: Run archive helper
     runs-on: windows-latest
+    permissions:
+      contents: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

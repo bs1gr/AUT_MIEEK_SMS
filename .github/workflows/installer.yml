@@ -17,13 +17,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Inno Setup
+      - name: Cache Inno Setup
+        uses: actions/cache@v3
+        with:
+          path: C:\ProgramData\chocolatey\lib\innosetup
+          key: ${{ runner.os }}-innosetup-1
+
+      - name: Install Inno. Setup
         run: choco install innosetup --no-progress
 
       - name: Build Installer
         shell: pwsh
         run: |
-          ./INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose
+          ./INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose -AutoFix
         env:
           CI: 'true'
 

@@ -34,83 +34,63 @@ on:
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'development' }}
+    environment: ${{ github.event.inputs.environment || 'development' }}
+    env:
+      SMS_ENV: ${{ github.event.inputs.environment || 'development' }}
+      AUTH_MODE: disabled
+      AUTH_ENABLED: 'false'
+      CI_SKIP_AUTH: 'true'
+      RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
+      RATE_LIMIT_READ_PER_MINUTE: '1000000'
+      RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
+      RATE_LIMIT_HEAVY_PER_MINUTE: '1000000'
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'
+        cache-dependency-path: |
+          load-testing/requirements.txt
+          backend/requirements.txt
 
     - name: Install dependencies
       run: |
-        cd load-testing
-        pip install -r requirements.txt
-
-    - name: Install backend dependencies (for local test server)
-      run: |
+        pip install -r load-testing/requirements.txt
         pip install -r backend/requirements.txt
 
     - name: Start backend server (background)
       run: |
-        # Export generous rate limit and env overrides so CI load tests don't hit auth/rate-limit guards
-        export SMS_ENV=development
-        # Disable auth for CI-run backend instance so locust auth tasks do not fail
-        export AUTH_MODE=disabled
-        export AUTH_ENABLED=false
-        export RATE_LIMIT_AUTH_PER_MINUTE=1000000
-        export RATE_LIMIT_READ_PER_MINUTE=1000000
-        export RATE_LIMIT_WRITE_PER_MINUTE=1000000
-        export RATE_LIMIT_HEAVY_PER_MINUTE=1000000
         # Start uvicorn in background so load tests can target localhost:8080
         nohup python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080 &>/dev/null &
-        # Wait briefly for server to become ready
-        sleep 3
+        # Wait for backend to be ready
+        for i in {1..30};
+        do
+          if curl -s http://127.0.0.1:8080/health > /dev/null; then
+            echo "Backend is ready"
+            break
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 1
+        done
+        # Final check
+        curl -f http://127.0.0.1:8080/health
 
     - name: Run smoke test
-      env:
-        # Ensure locust and test runner see CI-local overrides (so SKIP_AUTH works)
-        SMS_ENV: ${{ inputs.environment || 'development' }}
-        AUTH_MODE: disabled
-        AUTH_ENABLED: 'false'
-        CI_SKIP_AUTH: 'true'
-        RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
-        RATE_LIMIT_READ_PER_MINUTE: '1000000'
-        RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
-        RATE_LIMIT_HEAVY_PER_MINUTE: '1000000'
       run: |
         cd load-testing
-        # Prefer SMS_ENV (set above when we start a local backend); fall back to the input/environment if not set
-        python scripts/run_load_tests.py --scenario smoke --env "${SMS_ENV:-${{ inputs.environment || 'development' }}}" --ci
+        python scripts/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
 
     - name: Run load test
-      env:
-        # Ensure locust and test runner see CI-local overrides (so SKIP_AUTH works)
-        SMS_ENV: ${{ inputs.environment || 'development' }}
-        AUTH_MODE: disabled
-        AUTH_ENABLED: 'false'
-        CI_SKIP_AUTH: 'true'
-        RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
-        RATE_LIMIT_READ_PER_MINUTE: '1000000'
-        RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
-        RATE_LIMIT_HEAVY_PER_MINUTE: '1000000'
       run: |
         cd load-testing
-        # Prefer SMS_ENV when running against the local backend; otherwise use the input environment
         python scripts/run_load_tests.py \
-          --scenario ${{ inputs.environment == 'production' && 'medium' || 'light' }} \
-          --env "${SMS_ENV:-${{ inputs.environment || 'development' }}}" \
+          --scenario ${{ github.event.inputs.environment == 'production' && 'medium' || 'light' }} \
+          --env "${{ env.SMS_ENV }}" \
           --ci
 
     - name: Analyze results
@@ -122,7 +102,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: load-test-results-${{ inputs.environment || 'development' }}-${{ github.run_number }}
+        name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
         path: |
           load-testing/results/
           load-testing/reports/
@@ -151,16 +131,17 @@ jobs:
     - name: Download test results
       uses: actions/download-artifact@v4
       with:
-        name: load-test-results-${{ inputs.environment || 'development' }}-${{ github.run_number }}
+        name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
+        path: load-test-results
 
     - name: Generate performance report
       run: |
         cd load-testing
-        python scripts/generate_report.py --input results/ --output performance-report.html
+        python scripts/generate_report.py --input ../load-test-results/results/ --output performance-report.html
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4
       with:
-        name: performance-report-${{ inputs.environment || 'development' }}-${{ github.run_number }}
+        name: performance-report-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
         path: load-testing/performance-report.html
         retention-days: 90

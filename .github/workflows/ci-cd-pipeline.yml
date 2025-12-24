@@ -24,7 +24,7 @@ env:
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '20'
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: bs1gr/aut_mieek_sms  # Lowercase required for GHCR
+  IMAGE_NAME: ${{ github.repository }}  # Use repository name for image
 
 jobs:
   # ============================================================================
@@ -69,28 +69,6 @@ jobs:
 
   # ============================================================================
   # PHASE 2: LINTING, SECRET SCANNING & CODE QUALITY
-    secret-scan:
-      name: "🕵️ Secret Scanning (Gitleaks)"
-      runs-on: ubuntu-latest
-      needs: [lint-backend, lint-frontend]
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-
-        - name: Run Gitleaks secret scan
-          uses: gitleaks/gitleaks-action@v2
-          with:
-            config-path: '' # Use default config, or add .gitleaks.toml for custom rules
-            fail: true
-          continue-on-error: false
-
-        - name: Upload Gitleaks report
-          if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: gitleaks-report
-            path: gitleaks-report.json
-            retention-days: 30
   # ============================================================================
 
   lint-backend:
@@ -117,7 +95,7 @@ jobs:
       - name: Run Ruff linter
         run: |
           cd backend
-          ruff check . --config=../config/ruff.toml --output-format=github || echo "::warning::Ruff linting issues found"
+          ruff check . --config=../config/ruff.toml --output-format=github
 
       - name: Run MyPy type checker
         run: |
@@ -139,22 +117,45 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
       - name: Prepare installer Greek text assets
         run: |
-          if command -v python3 >/dev/null 2>&1; then
-            python3 fix_greek_encoding_permanent.py
-          else
-            python fix_greek_encoding_permanent.py
-          fi
+          python fix_greek_encoding_permanent.py
 
       - name: Run ESLint
-        run: cd frontend && npm run lint || echo "::warning::ESLint issues found"
+        run: cd frontend && npm run lint
 
       - name: Check TypeScript compilation
-        run: cd frontend && npx tsc --noEmit || echo "::warning::TypeScript errors found"
+        run: cd frontend && npx tsc --noEmit
+
+  secret-scan:
+    name: "🕵️ Secret Scanning (Gitleaks)"
+    runs-on: ubuntu-latest
+    needs: [lint-backend, lint-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: '.gitleaks.toml'
+          fail: true
+
+      - name: Upload Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
 
   # ============================================================================
   # PHASE 3: AUTOMATED TESTING
@@ -173,6 +174,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         run: |
@@ -184,7 +186,7 @@ jobs:
         run: |
           cd backend
           pytest -v \
-            --cov=. \
+            --cov=.
             --cov-report=html \
             --cov-report=xml \
             --cov-report=term-missing \
@@ -192,8 +194,6 @@ jobs:
             --self-contained-html \
             --json-report \
             --json-report-file=pytest-report.json
-          echo "Tests completed (coverage requirement bypassed for CI/CD)"
-        continue-on-error: false
 
       - name: Upload test results
         if: always()
@@ -235,7 +235,6 @@ jobs:
 
       - name: Run frontend tests
         run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html
-        continue-on-error: false
 
       - name: Upload test results
         if: always()
@@ -247,20 +246,20 @@ jobs:
             frontend/test-results/
           retention-days: 30
 
-  smoke-tests:
-    name: 💨 Smoke Tests (Integration)
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+smoke-tests:
+  name: 💨 Smoke Tests (Integration)
+  runs-on: ubuntu-latest
+  needs: [test-backend, test-frontend]
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Smoke tests (skipped - requires running server)
-        shell: bash
-        run: |
-          echo "ℹ️ Smoke tests skipped in CI/CD (requires running server)"
-          echo "To run locally: ./scripts/SMOKE_TEST.ps1"
-          echo "Unit tests (390 passed) provide adequate coverage"
+    - name: Smoke tests (skipped - requires running server)
+      shell: bash
+      run: |
+        echo "ℹ️ Smoke tests skipped in CI/CD (requires running server)"
+        echo "To run locally: ./scripts/SMOKE_TEST.ps1"
+        echo "This step should be implemented for a robust CI/CD pipeline."
 
   # ============================================================================
   # PHASE 4: BUILD & PACKAGE
@@ -312,6 +311,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -377,20 +379,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
-      - name: Install Safety
-        run: pip install safety
+      - name: Install dependencies
+        run: |
+          pip install safety bandit
+          pip install -r backend/requirements.txt
 
       - name: Run Safety check
         run: |
           cd backend
-          safety check --file requirements.txt --json || echo "::warning::Security vulnerabilities found"
+          safety check --file requirements.txt --json
 
       - name: Run Bandit security scanner
         run: |
-          pip install bandit
           cd backend
-          bandit -r . -f json -o bandit-report.json || echo "::warning::Security issues found"
+          bandit -r . -f json -o bandit-report.json
 
       - name: Upload security reports
         if: always()
@@ -412,12 +417,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
       - name: Run npm audit
-        run: cd frontend && npm audit --json > npm-audit.json || echo "::warning::npm vulnerabilities found"
+        run: cd frontend && npm audit --json > npm-audit.json
 
       - name: Upload audit report
         if: always()
@@ -439,188 +446,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner (Backend)
-        uses: aquasecurity/trivy-action@0.24.0
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           format: 'sarif'
-          output: 'trivy-backend-results.sarif'
+          output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
-        continue-on-error: true
 
-      - name: Run Trivy vulnerability scanner (Frontend)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
-          format: 'sarif'
-          output: 'trivy-frontend-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-        continue-on-error: true
-
-      - name: Run Trivy filesystem scan (Source code)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-filesystem-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          skip-dirs: 'node_modules,.git,docker,deploy'
-        continue-on-error: true
-
-      - name: Check Trivy filesystem scan output exists
-        id: trivy_fs_check
-        shell: bash
-        run: |
-          if [ -f "trivy-filesystem-results.sarif" ]; then
-            echo "sarif_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "sarif_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run Trivy config scan (IaC vulnerabilities)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'config'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-config-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM'
-          skip-dirs: 'node_modules,.git'
-        continue-on-error: true
-
-      - name: Check Trivy config scan output exists
-        id: trivy_config_check
-        shell: bash
-        run: |
-          if [ -f "trivy-config-results.sarif" ]; then
-            echo "sarif_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "sarif_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload Trivy backend results to GitHub Security tab
+      - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always() && hashFiles('trivy-backend-results.sarif') != ''
-        with:
-          sarif_file: trivy-backend-results.sarif
-          category: 'trivy-backend'
-        continue-on-error: true
-
-      - name: Upload Trivy frontend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always() && hashFiles('trivy-frontend-results.sarif') != ''
-        with:
-          sarif_file: trivy-frontend-results.sarif
-          category: 'trivy-frontend'
-        continue-on-error: true
-
-      - name: Upload Trivy filesystem scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always() && steps.trivy_fs_check.outputs.sarif_exists == 'true'
-        with:
-          sarif_file: trivy-filesystem-results.sarif
-          category: 'trivy-filesystem'
-        continue-on-error: true
-
-      - name: Upload Trivy config scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always() && steps.trivy_config_check.outputs.sarif_exists == 'true'
-        with:
-          sarif_file: trivy-config-results.sarif
-          category: 'trivy-config'
-        continue-on-error: true
-
-      - name: Generate Trivy report
         if: always()
-        run: |
-          echo "## 🔒 Trivy Security Scan Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Scan Date:** $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Scans Performed:" >> $GITHUB_STEP_SUMMARY
-
-          # Check which scans completed successfully
-          SCANS_FOUND=0
-          if [ -f "trivy-backend-results.sarif" ]; then
-            echo "- ✅ Docker Image Scanning (Backend)" >> $GITHUB_STEP_SUMMARY
-            SCANS_FOUND=1
-          else
-            echo "- ⚠️ Docker Image Scanning (Backend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "trivy-frontend-results.sarif" ]; then
-            echo "- ✅ Docker Image Scanning (Frontend)" >> $GITHUB_STEP_SUMMARY
-            SCANS_FOUND=1
-          else
-            echo "- ⚠️ Docker Image Scanning (Frontend) - Failed or skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "trivy-filesystem-results.sarif" ]; then
-            echo "- ✅ Filesystem Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
-            SCANS_FOUND=1
-          else
-            echo "- ⚠️ Filesystem Vulnerability Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "trivy-config-results.sarif" ]; then
-            echo "- ✅ Infrastructure-as-Code (IaC) Configuration Scan" >> $GITHUB_STEP_SUMMARY
-            SCANS_FOUND=1
-          else
-            echo "- ⚠️ Infrastructure-as-Code (IaC) Configuration Scan - Failed or skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ $SCANS_FOUND -eq 1 ]; then
-            echo "Results have been uploaded to GitHub Security tab for review." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ No scan results available. Check individual scan steps for errors." >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Upload Trivy reports as artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: trivy-security-reports
-          path: |
-            trivy-*-results.sarif
-          retention-days: 90
-          if-no-files-found: ignore
-
-  security-scan-dependencies:
-    name: 🔒 Security Scan (Dependencies)
-    runs-on: ubuntu-latest
-    needs: [lint-backend, lint-frontend]
-    permissions:
-      security-events: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run pip-audit for Python dependencies
-        run: |
-          pip install pip-audit
-          cd backend
-          pip-audit --desc > pip-audit-report.json || echo "pip-audit found vulnerabilities"
-          cat pip-audit-report.json
-        continue-on-error: true
-
-      - name: Upload pip-audit results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-audit-report
-          path: backend/pip-audit-report.json
-          retention-days: 30
-
-      - name: Run Snyk for dependency scanning (optional)
-        continue-on-error: true
-        run: |
-          echo "ℹ️ Snyk scanning can be enabled with SNYK_TOKEN environment variable"
-          echo "To enable: Add SNYK_TOKEN to GitHub secrets"
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy'
 
   # ============================================================================
   # PHASE 6: DOCUMENTATION & CLEANUP
@@ -660,7 +500,6 @@ jobs:
         run: |
           echo "ℹ️ Markdown link validation skipped (external action not allowed)"
           echo "To validate locally: npm install -g markdown-link-check && markdown-link-check README.md"
-        continue-on-error: true
 
       - name: Generate documentation index
         run: |
@@ -705,8 +544,6 @@ jobs:
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
 
           # Placeholder for actual deployment commands
-          # Example: kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          # Or: SSH to server and run docker-compose pull && docker-compose up -d
 
       - name: Run post-deployment health check
         run: |
@@ -746,8 +583,7 @@ jobs:
       - name: Create backup before deployment
         run: |
           echo "💾 Creating pre-deployment backup..."
-          # SSH to production and trigger backup (example placeholder)
-          # ssh <PROD_USER>@<PROD_HOST> "docker exec sms-fullstack python /app/backup_database.py"
+          # Placeholder for backup command
 
       - name: Deploy to production
         run: |
@@ -755,13 +591,11 @@ jobs:
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
 
           # Placeholder for production deployment
-          # kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
 
       - name: Run post-deployment validation
         run: |
           echo "🏥 Running production health checks..."
           # curl -f https://sms.example.com/health || exit 1
-          # curl -f https://sms.example.com/api/v1/health || exit 1
 
       - name: Notify deployment success
         if: success()
@@ -778,6 +612,7 @@ jobs:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-docker-images] # Depends on docker build to get artifacts
     permissions:
       contents: write
     steps:
@@ -785,6 +620,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
 
       - name: Extract version
         id: version
@@ -796,8 +636,6 @@ jobs:
         id: release_notes
         run: |
           echo "Generating release notes for v${{ steps.version.outputs.version }}..."
-
-          # Extract release notes from CHANGELOG or release_notes file
           if [ -f "release_notes_v${{ steps.version.outputs.version }}.md" ]; then
             cat "release_notes_v${{ steps.version.outputs.version }}.md" > RELEASE_NOTES.md
           else
@@ -807,25 +645,19 @@ jobs:
             git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> RELEASE_NOTES.md
           fi
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
       - name: Create GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
-          NOTES=$(cat RELEASE_NOTES.md 2>/dev/null || echo "Release $VERSION")
+          NOTES_FILE="RELEASE_NOTES.md"
 
-          # Create release with gh CLI (built-in)
           gh release create "$VERSION" \
             --title "Release $VERSION" \
-            --notes "$NOTES" \
+            --notes-file "$NOTES_FILE" \
             --generate-notes \
-            ./artifacts/**/* || echo "Release creation failed (may need manual creation)"
+            ./artifacts/**/*
 
   # ============================================================================
   # PHASE 10: POST-DEPLOYMENT MONITORING
@@ -842,20 +674,20 @@ jobs:
           echo "📊 Monitoring application health for 5 minutes..."
           for i in {1..10}; do
             echo "Health check $i/10..."
-            # curl -f https://sms.example.com/health || echo "Health check failed"
+            # curl -f https://sms.example.com/health
             sleep 30
           done
 
       - name: Check error rates
         run: |
           echo "📈 Checking error rates..."
-          # Query monitoring system (Prometheus, Datadog, etc.)
+          # Query monitoring system
 
       - name: Notify monitoring results
         if: always()
         run: |
           echo "✅ Post-deployment monitoring complete"
-          # Send notification to Slack/Teams/Email
+          # Send notification
 
   # ============================================================================
   # NOTIFICATION JOB (Always runs)

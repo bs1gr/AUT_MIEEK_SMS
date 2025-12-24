@@ -1,79 +1,99 @@
 #!/usr/bin/env python3
-"""Markdown lint & auto-fix utility for the Student Management System.
+"""
+Markdown lint & auto-fix utility for the Student Management System.
 
 Features:
  1. Scan all .md files for:
-    - Unlabeled fenced code blocks (``` without language)
-    - Missing blank lines around headings (MD022)
-    - Missing blank lines around lists (MD032) (heuristic)
-    - Missing blank lines around fenced code blocks (MD031)
+        - Unlabeled fenced code blocks (``` without language)
+        - Missing blank lines around headings (MD022)
+        - Missing blank lines around lists (MD032) (heuristic)
+        - Missing blank lines around fenced code blocks (MD031)
  2. Produce a report summarizing issues.
  3. Optional --fix mode to auto-insert language tags and blank lines.
 
 Heuristics for language tagging:
-  - If first non-empty line inside fence starts with '#!' or contains 'python' import: python
-  - Lines starting with 'docker', 'pwsh', 'Invoke-', '.\\', './', 'netstat', 'copy', 'curl', 'ipconfig' -> powershell
-  - Presence of '{' and ':' and appears JSON -> json
-  - Presence of 'version:' and 'services:' -> yaml
-  - Presence of '<' and '>' typical HTML tags -> html
-  - Otherwise: text
+    - If first non-empty line inside fence starts with '#!' or contains 'python' import: python
+    - Lines starting with 'docker', 'pwsh', 'Invoke-', '.\\', './', 'netstat', 'copy', 'curl', 'ipconfig' -> powershell
+    - Presence of '{' and ':' and appears JSON -> json
+    - Presence of 'version:' and 'services:' -> yaml
+    - Presence of '<' and '>' typical HTML tags -> html
+    - Otherwise: text
 
 Usage:
-  python tools/lint/markdown_lint.py              # scan only (report)
-  python tools/lint/markdown_lint.py --fix        # apply automatic fixes
-  python tools/lint/markdown_lint.py --include docs/user --fix
+    python scripts/utils/lint/markdown_lint.py              # scan only (report)
+    python scripts/utils/lint/markdown_lint.py --fix        # apply automatic fixes
+    python scripts/utils/lint/markdown_lint.py --include docs/user --fix
 
 Writes report to: docs/markdown_lint_report.md
 
 Limitations:
-  - Does not implement full markdown spec parsing; relies on simple state machine.
-  - Auto-fixes are conservative; existing language tags are preserved.
-  - Does NOT re-flow paragraphs or alter content order.
+    - Does not implement full markdown spec parsing; relies on simple state machine.
+    - Auto-fixes are conservative; existing language tags are preserved.
+    - Does NOT re-flow paragraphs or alter content order.
 """
 
 from __future__ import annotations
 import argparse
 import re
+import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 from dataclasses import dataclass
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 REPORT_PATH = ROOT / "docs" / "markdown_lint_report.md"
 FENCE_PATTERN = re.compile(r"^```(.*)$")
 HEADING_PATTERN = re.compile(r"^(#{1,6})\s+.+")
 LIST_PATTERN = re.compile(r"^\s*[-*+]\s+")
 
+# Language detection heuristics for code fences
 LANG_DETECTORS = [
     (
         "python",
         lambda lines: any(
-            re.search(r"\bimport\s+\w+", l) or "def " in l for l in lines[:5]
+            re.search(r"^#!.*python|\bimport\s+\w+|def ", line_) for line_ in lines[:5]
+        ),
+    ),
+    (
+        "powershell",
+        lambda lines: any(
+            line_.strip().startswith(
+                (
+                    "docker",
+                    "pwsh",
+                    "Invoke-",
+                    ".\\",
+                    "./",
+                    "netstat",
+                    "copy",
+                    "curl",
+                    "ipconfig",
+                )
+            )
+            for line_ in lines[:3]
         ),
     ),
     (
         "json",
         lambda lines: all(
-            (l.strip().startswith("{") or l.strip().startswith("}") or ":" in l)
-            for l in lines
-            if l.strip()
-        )
-        and "{" in "".join(lines)
-        and "}" in "".join(lines),
+            (
+                line_.strip().startswith("{")
+                or line_.strip().startswith("}")
+                or ":" in line_
+            )
+            for line_ in lines
+            if line_.strip()
+        ),
     ),
     (
         "yaml",
         lambda lines: any(
-            "version:" in l and "services:" in "".join(lines) for l in lines
+            "version:" in line_ and "services:" in line_ for line_ in lines
         ),
     ),
-    ("html", lambda lines: any(re.search(r"<\w+.*?>", l) for l in lines)),
     (
-        "powershell",
-        lambda lines: any(
-            re.match(r"(\.\\|\./|docker |Invoke-|ipconfig|netstat|copy )", l.strip())
-            for l in lines[:3]
-        ),
+        "html",
+        lambda lines: any("<" in line_ and ">" in line_ for line_ in lines),
     ),
 ]
 
@@ -97,17 +117,13 @@ class Issue:
 
 
 def scan_file(path: Path, apply_fixes: bool = False) -> dict:
-    issues: List[Issue] = []
-    with path.open("r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    new_lines: List[str] = []
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    issues = []
+    new_lines = []
     in_fence = False
-    fence_lang: Optional[str] = None
-    fence_start_new_index: Optional[int] = None
-    buffer: List[str] = []
-    in_list_block = False
-    prev_was_heading = False
+    fence_lang = None
+    buffer = []
+    fence_start_new_index = None
 
     total_lines = len(lines)
     for i, line in enumerate(lines):
@@ -226,7 +242,7 @@ def scan_file(path: Path, apply_fixes: bool = False) -> dict:
     }
 
 
-def write_report(results: List[dict]):
+def write_report(results: List[dict]) -> int:  # Changed return type
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     total = sum(len(r["issues"]) for r in results)
     with REPORT_PATH.open("w", encoding="utf-8") as f:
@@ -241,6 +257,7 @@ def write_report(results: List[dict]):
             for issue in issues:
                 f.write(f"- Line {issue.line}: {issue.code} - {issue.message}\n")
             f.write("\n")
+    return total  # Return total issues
 
 
 def main():
@@ -288,12 +305,15 @@ def main():
             if updated != original:
                 path.write_text(updated, encoding="utf-8")
 
-    write_report(results)
+    total_issues = write_report(results)  # Store total issues
     print(f"Report written to {REPORT_PATH}")
     if args.fix:
         print(
             "Auto-fix applied where possible (language tags + blank lines for headings/lists/fences)"
         )
+
+    if total_issues > 0:
+        sys.exit(1)  # Exit with non-zero if issues found
 
 
 if __name__ == "__main__":

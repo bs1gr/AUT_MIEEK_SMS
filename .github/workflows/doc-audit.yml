@@ -25,16 +25,7 @@ jobs:
       - name: Run documentation audit
         shell: pwsh
         run: |
-          Write-Host 'Running audit-docs.ps1'
-          $script = 'scripts/docs/audit-docs.ps1'
-          if (!(Test-Path $script)) { Write-Error 'audit-docs.ps1 not found'; exit 1 }
-          $result = & $script -MaxAgeDays 180 | Out-String
-          Write-Host $result
-          # Simple failure condition: look for the word 'Issues:' in output
-          if ($result -match '\[audit\] Issues:') {
-            Write-Error 'Documentation audit found issues. Please update affected files.'
-            exit 1
-          }
+          ./scripts/docs/audit-docs.ps1 -MaxAgeDays 180
 
       - name: Success notice
         if: success()

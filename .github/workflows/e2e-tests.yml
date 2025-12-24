@@ -90,9 +90,9 @@ jobs:
         # Quick sanity check that frontend is being served
         run: |
           echo "--- Sanity check: curl /login ---"
-          curl -I http://127.0.0.1:8000/login || true
+          curl -I http://127.0.0.1:8000/login
           echo "--- Sanity check: curl / ---"
-          curl -I http://127.0.0.1:8000/ || true
+          curl -I http://127.0.0.1:8000/
           echo "--- Running Playwright E2E ---"
           npm run e2e
 

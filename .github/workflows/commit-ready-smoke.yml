@@ -61,8 +61,8 @@ jobs:
         run: |
           Write-Host "Running frontend fast tests and writing vitest-results.xml"
           Push-Location frontend
-          # Use npx to run vitest and redirect JUnit output into a file
-          npx -y vitest run --reporter junit > vitest-results.xml
+          # Use npx to run vitest and output JUnit to a file
+          npx -y vitest run --reporter=junit --outputFile=vitest-results.xml
           Pop-Location
 
       - name: Prepare installer Greek text assets
