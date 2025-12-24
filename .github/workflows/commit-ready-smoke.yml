@@ -50,6 +50,8 @@ jobs:
 
       - name: Run backend fast tests (pytest) and produce JUnit
         shell: pwsh
+        env:
+          AUTH_MODE: strict
         run: |
           Write-Host "Running backend fast tests and writing pytest-results.xml"
           Push-Location backend

@@ -34,11 +34,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           CURRENT_ID="${{ github.run_id }}"
+          REPO="${{ github.repository }}"
 
           while true; do
             echo "Fetching workflow runs..."
             # Fetch IDs (limit 1000) excluding current run, keeping top N
-            RUN_IDS=$(gh run list --limit 1000 --json databaseId --jq "map(.databaseId) | map(select(. != $CURRENT_ID)) | .[$KEEP_COUNT:][] | .")
+            RUN_IDS=$(gh run list --repo "$REPO" --limit 1000 --json databaseId --jq "map(.databaseId) | map(select(. != $CURRENT_ID)) | .[$KEEP_COUNT:][] | .")
 
             if [ -z "$RUN_IDS" ]; then
               echo "No more runs found to delete (keeping last $KEEP_COUNT)."
@@ -55,7 +56,7 @@ jobs:
             fi
 
             echo "Deleting runs in batches..."
-            echo "$RUN_IDS" | xargs -n 50 gh run delete
+            echo "$RUN_IDS" | xargs -n 50 gh run delete --repo "$REPO"
           done
 
           echo "Cleanup complete."
