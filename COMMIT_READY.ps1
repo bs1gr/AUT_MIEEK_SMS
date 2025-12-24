@@ -275,9 +275,11 @@ function Invoke-PreCommitHookValidation {
         Write-Info "pre-commit not found. Attempting to install via pip..."
         try {
             if (Test-CommandAvailable -Name "pip") {
-                pip install pre-commit | Out-Null
+                $out = pip install pre-commit 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install pre-commit failed" }
             } elseif (Test-CommandAvailable -Name "python") {
-                python -m pip install pre-commit | Out-Null
+                $out = python -m pip install pre-commit 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install pre-commit failed" }
             } else {
                 throw "Neither pip nor python found"
             }
@@ -291,8 +293,10 @@ function Invoke-PreCommitHookValidation {
         if (Test-Path ".pre-commit-config.yaml") {
             Write-Info "Running pre-commit hooks on staged files..."
             try {
-                pre-commit install | Out-Null
+                $out = pre-commit install 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pre-commit install failed" }
                 pre-commit run --all-files
+                if ($LASTEXITCODE -ne 0) { throw "Pre-commit hooks failed" }
                 Write-Success "Pre-commit hooks passed."
             } catch {
                 Write-Failure "Pre-commit hooks failed. Please review and fix issues."
@@ -303,7 +307,6 @@ function Invoke-PreCommitHookValidation {
         }
     }
 }
-$null = Invoke-PreCommitHookValidation
 
 # Ensure Python backend dependencies are installed (CI-safe)
 function Install-BackendDependencies {
@@ -317,19 +320,23 @@ function Install-BackendDependencies {
         # Prefer pip if available, else python -m pip
         if ($pipAvailable) {
             Write-Info "Installing runtime requirements (pip)"
-            pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $out = pip install -r requirements-runtime.txt 2>&1
+            if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (pip)"
-                pip install -r requirements-dev.txt 2>&1 | Out-Null
+                $out = pip install -r requirements-dev.txt 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install dev failed" }
             }
         } elseif ($pythonAvailable) {
             Write-Info "Installing runtime requirements (python -m pip)"
-            python -m pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $out = python -m pip install -r requirements-runtime.txt 2>&1
+            if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (python -m pip)"
-                python -m pip install -r requirements-dev.txt 2>&1 | Out-Null
+                $out = python -m pip install -r requirements-dev.txt 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install dev failed" }
             }
         } else {
             Write-Warning-Msg "Neither pip nor python found; cannot install dependencies"
@@ -1699,9 +1706,15 @@ function Invoke-MainWorkflow {
     if ($Mode -eq 'cleanup') {
         Invoke-AutomatedCleanup
     } else {
-        # Phase 1: Code Quality
+        # Phase 0 & 1: Pre-commit Hooks & Code Quality
         if (-not $SkipLint) {
-            Invoke-CodeQualityChecks | Out-Null
+            if ($AutoFix) {
+                Invoke-CodeQualityChecks | Out-Null
+                Invoke-PreCommitHookValidation
+            } else {
+                Invoke-PreCommitHookValidation
+                Invoke-CodeQualityChecks | Out-Null
+            }
         }
 
         # Phase 2: Tests
@@ -1788,11 +1801,6 @@ function Invoke-MainWorkflow {
 # ============================================================================
 try {
     $exitCode = Invoke-MainWorkflow
-    # Relaxed exit policy in quick mode unless STRICT_CI=1
-    $strictCI = ($env:STRICT_CI -as [string]) -and ($env:STRICT_CI.ToLower() -in @('1','true','yes'))
-    if ($Mode -eq 'quick' -and -not $strictCI) {
-        exit 0
-    }
     exit $exitCode
 }
 catch {

@@ -41,6 +41,8 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
+        # Exclude jsonc (JSON with comments) and CI temp files
+        exclude: (^.vscode/|.*tsconfig\.json$|.*\.jsonc$|scripts/utils/ci/.*)
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: check-merge-conflict
@@ -60,5 +62,6 @@ repos:
         language: python
         types: ["text"]
         files: .*
+        exclude: (backend/migrations/|backend/tests/|.*\.md)
 
 exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
