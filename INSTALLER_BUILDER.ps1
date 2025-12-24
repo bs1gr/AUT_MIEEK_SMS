@@ -79,9 +79,9 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.12.5
+Version: 1.12.6
     Created: 2025-12-04
-    Updated: 2025-12-19
+    Updated: 2025-12-24
 
     Integration Points:
     - Reads version from: VERSION file (single source of truth)
@@ -97,7 +97,7 @@ Version: 1.12.5
 
 [CmdletBinding()]
 param(
-    [ValidateSet('audit', 'build', 'validate', 'sign', 'test', 'release')]
+    [ValidateSet('audit', 'build', 'validate', 'sign', 'test', 'release', 'update-images')]
     [string]$Action = 'build',
 
     [string]$Version,

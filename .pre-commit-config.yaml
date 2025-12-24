@@ -6,7 +6,7 @@ repos:
         # Use the repo-local venv wrapper for consistent environments across
         # developer machines and CI runners. The wrapper will create `.venv-tools`
         # if missing and then run the provided command with that venv's python.
-        entry: python scripts/run_in_venv.py -- python tools/check_imports_requirements.py
+        entry: python scripts/run_in_venv.py -- python scripts/utils/validators/import_checker.py --mode static
         language: system
         files: ^backend/.*\.py$
         pass_filenames: false

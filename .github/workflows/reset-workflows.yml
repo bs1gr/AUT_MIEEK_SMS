@@ -1,0 +1,52 @@
+name: Reset Workflows (Ops)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup-and-retrigger:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Delete all workflow runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          echo "Fetching workflow runs..."
+          CURRENT_ID="${{ github.run_id }}"
+
+          while true; do
+            # Fetch IDs. Limit 100 per batch to avoid timeouts/rate limits
+            ids=$(gh run list --limit 100 --json databaseId -q ".[].databaseId")
+
+            if [ -z "$ids" ]; then
+              echo "No workflow runs found."
+              break
+            fi
+
+            # If the only ID returned is the current one, we are done
+            if [ "$ids" = "$CURRENT_ID" ]; then
+               echo "Only the current run remains. Cleanup complete."
+               break
+            fi
+
+            for id in $ids; do
+              if [ "$id" != "$CURRENT_ID" ]; then
+                echo "Deleting run $id..."
+                gh run delete "$id" || echo "Failed to delete $id"
+              fi
+            done
+          done
+
+      - name: Retrigger workflows via empty commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: retrigger workflows"
+          git push
