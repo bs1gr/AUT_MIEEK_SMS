@@ -22,11 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - language: javascript-typescript
-            build-mode: none
-          - language: python
-            build-mode: none
+        language: [ 'javascript-typescript', 'python' ]
 
     steps:
       - name: Checkout repository
@@ -36,7 +32,6 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
           # Use default queries plus security-extended
           queries: security-extended,security-and-quality
 

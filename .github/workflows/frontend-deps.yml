@@ -27,7 +27,7 @@ jobs:
       - name: Check for critical vulnerabilities
         working-directory: ./frontend
         run: |
-          if npm audit | grep -i "critical"; then
+          if [[ $(jq '.metadata.vulnerabilities.critical' audit-report.json) -gt 0 ]]; then
             echo "❌ Critical vulnerabilities found!"
             exit 1
           else
