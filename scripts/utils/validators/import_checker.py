@@ -280,6 +280,7 @@ class ImportValidator:
             "copy",
             "zoneinfo",
             "graphlib",
+            "tomllib",
         }
 
         # Whitelist for common tooling modules

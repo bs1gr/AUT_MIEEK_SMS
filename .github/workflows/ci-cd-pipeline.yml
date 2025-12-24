@@ -634,7 +634,13 @@ smoke-tests:
             echo "# Release v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
             echo "" >> RELEASE_NOTES.md
             echo "## Changes" >> RELEASE_NOTES.md
-            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> RELEASE_NOTES.md
+            # Safely get previous tag, fallback to all history if none
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [ -z "$PREV_TAG" ]; then
+              git log --pretty=format:"- %s" >> RELEASE_NOTES.md
+            else
+              git log --pretty=format:"- %s" ${PREV_TAG}..HEAD >> RELEASE_NOTES.md
+            fi
           fi
 
       - name: Create GitHub Release
@@ -645,11 +651,21 @@ smoke-tests:
           VERSION="v${{ steps.version.outputs.version }}"
           NOTES_FILE="RELEASE_NOTES.md"
 
-          gh release create "$VERSION" \
-            --title "Release $VERSION" \
-            --notes-file "$NOTES_FILE" \
-            --generate-notes \
-            ./artifacts/**/*
+          # Check if release exists to handle re-runs idempotently
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION already exists. Updating notes and assets..."
+            gh release edit "$VERSION" --notes-file "$NOTES_FILE"
+            # Upload artifacts if they exist, using clobber to overwrite
+            if [ -d "./artifacts" ]; then
+              gh release upload "$VERSION" ./artifacts/**/* --clobber || echo "Asset upload failed or no assets found"
+            fi
+          else
+            gh release create "$VERSION" \
+              --title "Release $VERSION" \
+              --notes-file "$NOTES_FILE" \
+              --generate-notes \
+              ./artifacts/**/*
+          fi
 
   # ============================================================================
   # PHASE 10: POST-DEPLOYMENT MONITORING
