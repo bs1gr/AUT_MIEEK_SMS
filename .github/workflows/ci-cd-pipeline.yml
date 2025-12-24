@@ -651,20 +651,17 @@ smoke-tests:
           VERSION="v${{ steps.version.outputs.version }}"
           NOTES_FILE="RELEASE_NOTES.md"
 
-          # Check if release exists to handle re-runs idempotently
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "Release $VERSION already exists. Updating notes and assets..."
+          # Attempt to create release. If it fails (e.g. already exists), fall back to edit/upload.
+          if ! gh release create "$VERSION" \
+            --title "Release $VERSION" \
+            --notes-file "$NOTES_FILE" \
+            --generate-notes \
+            ./artifacts/**/*; then
+            echo "Release creation failed (likely already exists). Updating existing release..."
             gh release edit "$VERSION" --notes-file "$NOTES_FILE"
-            # Upload artifacts if they exist, using clobber to overwrite
             if [ -d "./artifacts" ]; then
               gh release upload "$VERSION" ./artifacts/**/* --clobber || echo "Asset upload failed or no assets found"
             fi
-          else
-            gh release create "$VERSION" \
-              --title "Release $VERSION" \
-              --notes-file "$NOTES_FILE" \
-              --generate-notes \
-              ./artifacts/**/*
           fi
 
   # ============================================================================
