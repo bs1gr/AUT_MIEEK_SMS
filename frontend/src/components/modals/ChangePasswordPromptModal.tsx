@@ -10,7 +10,7 @@ interface ChangePasswordPromptModalProps {
 /**
  * Modal component that forces users to change their password on first login.
  * This is displayed when password_change_required=true in the user profile.
- * 
+ *
  * Features:
  * - Cannot be dismissed without changing password
  * - Clear warning message in multiple languages

@@ -30,6 +30,7 @@ from .auth import (
 from .auth import (
     UserLogin as UserLogin,
 )
+
 ## Removed duplicate UserResponse import from .auth to fix Ruff F811
 from .auth import (
     UserUpdate as UserUpdate,

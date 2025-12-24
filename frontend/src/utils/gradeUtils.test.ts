@@ -155,7 +155,7 @@ describe('gradeUtils - Core Conversions', () => {
       const gpa = 3.5;
       const percentage = gpaToPercentage(gpa);
       const greek = percentageToGreekScale(percentage);
-      
+
       expect(percentage).toBe(87.5);
       expect(greek).toBe(17.5);
     });
@@ -164,7 +164,7 @@ describe('gradeUtils - Core Conversions', () => {
       const greek = 16;
       const gpa = greekScaleToGPA(greek);
       const percentage = gpaToPercentage(gpa);
-      
+
       expect(gpa).toBe(3.2);
       expect(percentage).toBe(80);
     });

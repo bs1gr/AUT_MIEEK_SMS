@@ -106,9 +106,7 @@ def test_calculate_final_grade_handles_rules_and_penalties(session):
 
 
 def test_get_student_all_courses_summary_skips_courses_without_rules(session):
-    valid_rules = [
-        {"category": "Project", "weight": 100.0, "includeDailyPerformance": False}
-    ]
+    valid_rules = [{"category": "Project", "weight": 100.0, "includeDailyPerformance": False}]
     student, valid_course = _setup_student_course(session, rules=valid_rules, credits=4)
     invalid_course = models.Course(
         course_code="SERV102",

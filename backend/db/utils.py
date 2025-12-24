@@ -161,7 +161,9 @@ def get_by_id_or_404(
         # Allow callers to provide a stable error code and the request for
         # richer structured error payloads (used throughout the services).
         if error_code is not None:
-            raise http_error(status_code=404, code=error_code, message=f"{model.__name__} with id {id} not found", request=request)
+            raise http_error(
+                status_code=404, code=error_code, message=f"{model.__name__} with id {id} not found", request=request
+            )
 
         raise HTTPException(status_code=404, detail=f"{model.__name__} with id {id} not found")
 

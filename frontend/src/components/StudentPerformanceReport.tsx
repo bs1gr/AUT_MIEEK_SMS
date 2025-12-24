@@ -74,7 +74,7 @@ interface StudentPerformanceReportProps {
 
 /**
  * StudentPerformanceReport Component
- * 
+ *
  * Generates comprehensive performance reports for students including:
  * - Attendance summary
  * - Grade statistics
@@ -145,12 +145,12 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         format: format
       };
       const response = await reportsAPI.downloadStudentReport(reportRequest);
-      
+
       // Create blob from response
       const blob = new Blob([response.data], {
         type: format === 'pdf' ? 'application/pdf' : 'text/csv'
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -220,7 +220,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
           {!report && (
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-semibold mb-3">{t('reports.configuration')}</h3>
-              
+
               {/* Period Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -445,7 +445,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       <h4 className="font-semibold mb-2">
                         {course.course_code}: {course.course_title}
                       </h4>
-                      
+
                       {/* Course Attendance */}
                       {course.attendance && (
                         <div className="mb-2">
@@ -455,7 +455,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                           </p>
                         </div>
                       )}
-                      
+
                       {/* Course Grades */}
                       {course.grades && (
                         <div className="mb-2">

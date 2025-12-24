@@ -20,8 +20,8 @@ backend/db/
 
 ## Consolidation Status
 
-__Phase:__ Planned for v1.11.0  
-__Current:__ Files scattered across backend/db.py, db_utils.py, tools/  
+__Phase:__ Planned for v1.11.0
+__Current:__ Files scattered across backend/db.py, db_utils.py, tools/
 __Target:__ All DB code under backend/db/ hierarchy
 
 ## File Mapping

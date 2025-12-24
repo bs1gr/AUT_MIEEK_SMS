@@ -1,7 +1,7 @@
 # Pre-Commit Guide (Unified)
 
-**Version:** 2.1.0  
-**Last Updated:** 2025-12-06  
+**Version:** 2.1.0
+**Last Updated:** 2025-12-06
 **Scope:** Local dev + CI pre-commit automation
 
 ## 📌 Purpose
@@ -55,7 +55,7 @@ pre-commit run --all-files   # optional first sweep
 
 **Hooks Provided:** `.pre-commit-config.yaml` (backend import checker). Uses your active Python env; for isolation, run inside a venv with `backend/requirements.txt` installed.
 
-**Sample Git Hook:** `.githooks/commit-ready-precommit.sample`  
+**Sample Git Hook:** `.githooks/commit-ready-precommit.sample`
 **Install Helpers:** `scripts/install-git-hooks.ps1` (Windows), `scripts/install-git-hooks.sh` (POSIX)
 
 ## 🧭 Recommended Workflows

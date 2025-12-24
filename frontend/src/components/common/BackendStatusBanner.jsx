@@ -4,11 +4,11 @@ import { preflightAPI } from '../../api/api';
 
 /**
  * BackendStatusBanner - Lightweight connectivity monitor
- * 
+ *
  * Periodically checks backend availability using preflightAPI() and displays
  * a dismissible banner when the backend is unreachable. Automatically hides
  * on successful reconnection.
- * 
+ *
  * Features:
  * - Auto-check every 30s when connected, 10s when disconnected
  * - User dismissible (hides until next failure)

@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Last Updated**: 2025-12-19
-**Version**: 1.12.5
+**Version**: 1.12.6
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -339,7 +339,7 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 ### Key Archived Documents
 
 - `SESSION_2025-11-22_AUTH_FIX.md` - Comprehensive auth fix documentation
-- `OPERATIONAL_STATUS.md` - System operational status report  
+- `OPERATIONAL_STATUS.md` - System operational status report
 - `COMMIT_SUMMARY.md` - Commit preparation documentation
 - `PERFORMANCE_OPTIMIZATIONS_2025-01-10.md` - Performance improvements
 - `QNAP_DEPLOYMENT_REPORT.md` - QNAP deployment completion
@@ -521,6 +521,3 @@ Archived 20 historical documents and scripts to `archive/` for audit/reference:
 See `archive/README.md` for complete inventory and retrieval instructions.
 
 Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
-
-
-

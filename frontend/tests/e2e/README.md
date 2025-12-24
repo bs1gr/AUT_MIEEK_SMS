@@ -110,10 +110,10 @@ import { loginAsTeacher, createStudentViaAPI, generateStudentData } from './help
 
 test('my test', async ({ page }) => {
   await loginAsTeacher(page);
-  
+
   const student = generateStudentData();
   const created = await createStudentViaAPI(page, student);
-  
+
   // ... rest of test
 });
 ```
@@ -162,9 +162,9 @@ Each test should be independent and clean up after itself:
 ```typescript
 test('my test', async ({ page }) => {
   const student = await createStudentViaAPI(page, generateStudentData());
-  
+
   // Test logic...
-  
+
   // Cleanup (optional, depends on test DB strategy)
   await cleanupTestData(page, 'students', student.id);
 });
@@ -189,7 +189,7 @@ await page.click('.btn-primary.ml-4');
 
 ```typescript
 // Wait for API response
-await page.waitForResponse(resp => 
+await page.waitForResponse(resp =>
   resp.url().includes('/api/v1/students') && resp.status() === 200
 );
 

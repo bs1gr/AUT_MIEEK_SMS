@@ -174,7 +174,7 @@ These stubs emit `DeprecationWarning` when imported, guiding users to the new lo
 ### Example Warning
 
 ```text
-DeprecationWarning: backend.admin_bootstrap is deprecated. 
+DeprecationWarning: backend.admin_bootstrap is deprecated.
 Use backend.scripts.admin.bootstrap instead.
 ```
 
@@ -295,4 +295,3 @@ sys.path.insert(0, str(PROJECT_ROOT))
 - [Architecture Documentation](ARCHITECTURE.md) - Overall system design
 - [Development Guide](DEVELOPMENT.md) - Development workflow
 - [Git Workflow](GIT_WORKFLOW.md) - Commit and branching standards
-

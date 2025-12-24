@@ -266,10 +266,10 @@ var
   UninstallStr: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'UninstallString', UninstallStr) then
     Result := UninstallStr
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'UninstallString', UninstallStr) then
     Result := UninstallStr;
 end;
@@ -287,7 +287,7 @@ begin
     // Remove quotes from the uninstall string
     UninstallPath := RemoveQuotes(UninstallStr);
     Log('Attempting to run uninstaller: ' + UninstallPath);
-    
+
     if FileExists(UninstallPath) then
     begin
       // Run uninstaller silently - use SW_SHOWNORMAL so we can see it working
@@ -319,10 +319,10 @@ var
   Version: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'DisplayVersion', Version) then
     Result := Version
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'DisplayVersion', Version) then
     Result := Version;
 end;
@@ -332,10 +332,10 @@ var
   Path: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'InstallLocation', Path) then
     Result := Path
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
      'InstallLocation', Path) then
     Result := Path;
 end;
@@ -356,23 +356,23 @@ var
 begin
   Result := True;
   IsUpgrade := False;
-  
+
   // Clean up old shortcuts from previous installations
   DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
   DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
-  
+
   PreviousVersion := GetPreviousVersion;
   PreviousInstallPath := GetPreviousInstallPath;
-  
+
   // Check if app exists either via registry or on disk at default location
   if PreviousInstallPath = '' then
     ExistingPath := ExpandConstant('{autopf}\SMS')
   else
     ExistingPath := PreviousInstallPath;
-  
+
   // Determine if app exists
   AppExists := (PreviousVersion <> '') or AppExistsOnDisk(ExistingPath);
-  
+
   if not AppExists then
   begin
     // No existing installation - proceed with fresh install
@@ -380,16 +380,16 @@ begin
     Result := True;
     Exit;
   end;
-  
+
   // App exists - determine version info
   if PreviousVersion = '' then
     PreviousVersion := 'Unknown';
   if PreviousInstallPath = '' then
     PreviousInstallPath := ExistingPath;
-  
+
   // Check if same version
   IsSameVersion := (PreviousVersion = '{#MyAppVersion}');
-  
+
   // Build message
   if IsSameVersion then
     Msg := CustomMessage('SameVersionFound')
@@ -397,16 +397,16 @@ begin
     Msg := CustomMessage('ExistingVersionFound');
   StringChangeEx(Msg, '%1', PreviousVersion, True);
   StringChangeEx(Msg, '%2', PreviousInstallPath, True);
-  
+
   // Show upgrade/overwrite options dialog
-  Choice := MsgBox(Msg + #13#10#13#10 + 
+  Choice := MsgBox(Msg + #13#10#13#10 +
     CustomMessage('UpgradeOption') + #13#10 +
     CustomMessage('CleanInstallOption') + #13#10#13#10 +
     CustomMessage('UpgradePrompt'),
     mbConfirmation, MB_YESNOCANCEL);
-  
+
   case Choice of
-    IDYES: 
+    IDYES:
       begin
         // Update/Overwrite - keep data, install over existing
         IsUpgrade := True;
@@ -433,7 +433,7 @@ begin
   begin
     StatusText := '✓ ' + CustomMessage('DockerInstalled');
     DockerStatusLabel.Font.Color := clGreen;
-    
+
     if IsDockerRunning then
       InfoText := '✓ ' + CustomMessage('DockerRunning')
     else
@@ -445,9 +445,9 @@ begin
     InfoText := CustomMessage('DockerNotFound');
     DockerStatusLabel.Font.Color := $000080FF; // Orange
   end;
-  
+
   InfoText := InfoText + #13#10#13#10 + CustomMessage('FirstRunNote');
-  
+
   DockerStatusLabel.Caption := StatusText;
   DockerInfoLabel.Caption := InfoText;
 end;
@@ -579,29 +579,29 @@ var
 begin
   Result := '';
   NeedsRestart := False;
-  
+
   if IsUpgrade then UpgradeStr := 'True' else UpgradeStr := 'False';
   Log('PrepareToInstall: IsUpgrade = ' + UpgradeStr);
   Log('PrepareToInstall: PreviousInstallPath = ' + PreviousInstallPath);
-  
+
   // Stop Docker container first (always, for both upgrade and fresh install)
   if ContainerExists then
   begin
     Log('Stopping Docker container...');
     Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
-  
+
   // For Fresh Install (not upgrade), remove previous installation
   if not IsUpgrade then
   begin
     Log('Fresh install requested - checking for previous installation to remove');
     UninstallStr := GetUninstallString;
-    
+
     if UninstallStr <> '' then
     begin
       UninstallPath := RemoveQuotes(UninstallStr);
       Log('Found uninstall string: ' + UninstallPath);
-      
+
       if FileExists(UninstallPath) then
       begin
         Log('Running uninstaller for fresh install...');
@@ -614,7 +614,7 @@ begin
         begin
           Log('Uninstaller completed successfully');
         end;
-        
+
         // Wait a moment for file system to settle
         Sleep(1000);
       end
@@ -681,15 +681,15 @@ begin
     if IsUpgrade and WizardIsTaskSelected('keepdata') then
     begin
       BackupPath := ExpandConstant('{app}\backups\pre_upgrade_' + '{#MyAppVersion}');
-      
+
       // Backup data directory if it exists
       if DirExists(ExpandConstant('{app}\data')) then
       begin
         ForceDirectories(BackupPath);
-        Exec('cmd', '/c xcopy /E /I /Y "' + ExpandConstant('{app}\data') + '" "' + BackupPath + '\data"', 
+        Exec('cmd', '/c xcopy /E /I /Y "' + ExpandConstant('{app}\data') + '" "' + BackupPath + '\data"',
              '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
       end;
-      
+
       // Backup .env files if they exist
       if FileExists(ExpandConstant('{app}\backend\.env')) then
       begin
@@ -701,7 +701,7 @@ begin
         FileCopy(ExpandConstant('{app}\frontend\.env'), BackupPath + '\config\frontend.env', False);
       end;
     end;
-    
+
     // Stop Docker container before updating files
     if ContainerExists then
     begin
@@ -713,20 +713,20 @@ begin
     // Rename the uninstaller to include version number
     OldUninstaller := ExpandConstant('{app}\unins000.exe');
     NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
-    
+
     if FileExists(OldUninstaller) and not FileExists(NewUninstaller) then
     begin
       Log('Renaming uninstaller from unins000.exe to unins{#MyAppVersion}.exe');
       if RenameFile(OldUninstaller, NewUninstaller) then
       begin
         // Update the uninstall registry entry to point to the renamed file
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'UninstallString', '"' + NewUninstaller + '"');
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
-        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'UninstallString', '"' + NewUninstaller + '"');
-        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
         Log('Uninstaller renamed successfully and registry updated');
       end
@@ -744,11 +744,11 @@ var
   DeleteUserData: Integer;
 begin
   Result := True;
-  
+
   // Stop container before uninstall
   Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  
+
   // Ask user if they want to delete user data
   DeleteUserData := MsgBox(
     'Do you want to delete all user data?' + #13#10 + #13#10 +
@@ -760,7 +760,7 @@ begin
     'Click YES to delete everything.' + #13#10 +
     'Click NO to keep your data for reinstallation.',
     mbConfirmation, MB_YESNO);
-    
+
   if DeleteUserData = IDYES then
   begin
     Log('User chose to delete all user data');
@@ -790,4 +790,3 @@ begin
     RemoveDir(ExpandConstant('{app}'));
   end;
 end;
-

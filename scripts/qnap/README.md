@@ -289,5 +289,5 @@ Improvements to these scripts are welcome! Please:
 
 ---
 
-**Last Updated**: November 19, 2025  
+**Last Updated**: November 19, 2025
 **Branch**: `feature/qnap-deployment`

@@ -27,9 +27,7 @@ class DailyPerformanceService:
         Returns:
             Created ORM object
         """
-        DailyPerformance, Student, Course = import_names(
-            "models", "DailyPerformance", "Student", "Course"
-        )
+        DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
         # Validate foreign keys
         _student = get_by_id_or_404(db, Student, payload.student_id)
         _course = get_by_id_or_404(db, Course, payload.course_id)

@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     This script installs the public certificate to the Root and TrustedPublisher
-    certificate stores, which allows the SMS Installer to show "AUT MIEEK" as 
+    certificate stores, which allows the SMS Installer to show "AUT MIEEK" as
     the verified publisher without security warnings.
 
     Must be run as Administrator.

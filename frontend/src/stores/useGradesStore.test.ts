@@ -290,16 +290,16 @@ describe('useGradesStore', () => {
   describe('Complex scenarios', () => {
     it('handles full CRUD lifecycle', () => {
       const { setGrades, addGrade, updateGrade, deleteGrade } = useGradesStore.getState();
-      
+
       setGrades([sampleGrade1]);
       expect(useGradesStore.getState().grades).toHaveLength(1);
-      
+
       addGrade(sampleGrade2);
       expect(useGradesStore.getState().grades).toHaveLength(2);
-      
+
       updateGrade(1, { grade: 87.5 });
       expect(useGradesStore.getState().grades[0].grade).toBe(87.5);
-      
+
       deleteGrade(2);
       expect(useGradesStore.getState().grades).toHaveLength(1);
       expect(useGradesStore.getState().grades[0].id).toBe(1);
@@ -307,10 +307,10 @@ describe('useGradesStore', () => {
 
     it('combines individual and bulk operations', () => {
       const { addGrade, bulkAddGrades } = useGradesStore.getState();
-      
+
       addGrade(sampleGrade1);
       expect(useGradesStore.getState().grades).toHaveLength(1);
-      
+
       bulkAddGrades([sampleGrade2, sampleGrade3]);
       expect(useGradesStore.getState().grades).toHaveLength(3);
     });
@@ -326,14 +326,14 @@ describe('useGradesStore', () => {
     it('handles grade updates for specific student/course', () => {
       const { setGrades, updateGrade } = useGradesStore.getState();
       setGrades([sampleGrade1, sampleGrade2, sampleGrade3]);
-      
+
       // Update only grades for student 1, course 1
       const toUpdate = useGradesStore.getState().grades
         .filter(g => g.student_id === 1 && g.course_id === 1);
-      
+
       expect(toUpdate).toHaveLength(2);
       updateGrade(toUpdate[0].id, { grade: 90 });
-      
+
       const updated = useGradesStore.getState().grades.find(g => g.id === toUpdate[0].id);
       expect(updated?.grade).toBe(90);
     });

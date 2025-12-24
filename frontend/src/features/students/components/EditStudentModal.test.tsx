@@ -162,7 +162,7 @@ describe('EditStudentModal', () => {
 
       const addressField = screen.getByRole('textbox', { name: 'Address' });
       await user.type(addressField, '456 Oak Ave');
-      
+
       expect(addressField).toHaveValue('456 Oak Ave');
     });
   });
@@ -360,13 +360,13 @@ describe('EditStudentModal', () => {
 
       await user.clear(screen.getByPlaceholderText(/first name/i));
       await user.type(screen.getByPlaceholderText(/first name/i), 'Alice');
-      
+
       await user.clear(screen.getByPlaceholderText(/last name/i));
       await user.type(screen.getByPlaceholderText(/last name/i), 'Johnson');
-      
+
       await user.clear(screen.getByPlaceholderText(/email/i));
       await user.type(screen.getByPlaceholderText(/email/i), 'alice.j@test.com');
-      
+
       await user.clear(screen.getByPlaceholderText(/phone/i));
       await user.type(screen.getByPlaceholderText(/phone/i), '1112223333');
 
@@ -455,7 +455,7 @@ describe('EditStudentModal', () => {
 
       await user.clear(screen.getByPlaceholderText(/first name/i));
       await user.type(screen.getByPlaceholderText(/first name/i), "O'Brien");
-      
+
       await user.clear(screen.getByPlaceholderText(/last name/i));
       await user.type(screen.getByPlaceholderText(/last name/i), 'Müller-Schmidt');
 

@@ -351,7 +351,7 @@ docker rmi 789ghi012jkl
    ```yaml
    - name: Build
      run: docker build -t ${{ env.IMAGE_TAG }} .
-   
+
    - name: Push
      run: docker push ${{ env.IMAGE_TAG }}
    ```

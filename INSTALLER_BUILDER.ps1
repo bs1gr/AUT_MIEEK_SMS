@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Single-source-of-truth for installer building, versioning, and deployment updates.
-    
+
     Integrates with:
     - COMMIT_READY.ps1 (pre-commit validation)
     - BUILD_DISTRIBUTION.ps1 (ZIP + installer creation)
@@ -20,7 +20,7 @@
     ✅ Git integration (tagging, release tracking)
     ✅ Deployment-ready artifact creation
     ✅ Pre-commit audit mode to catch version mismatches
-    
+
     Known limitations:
     ⚠️ Uninstaller naming: Inno Setup 6.x uses default "unins000.exe" initially
        (Workaround implemented: renamed to "unins{version}.exe" post-install)
@@ -79,17 +79,17 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.12.5
+Version: 1.12.6
     Created: 2025-12-04
-    Updated: 2025-12-19
-    
+    Updated: 2025-12-24
+
     Integration Points:
     - Reads version from: VERSION file (single source of truth)
     - Uses: installer/create_wizard_images.ps1 (version-aware image generation)
     - Signs with: installer/AUT_MIEEK_CodeSign.pfx
     - Compiles with: Inno Setup 6 (installer/SMS_Installer.iss)
     - Validates via: installer/SMS_Installer.iss preprocessor
-    
+
     Pre-commit Integration:
     Include in COMMIT_READY.ps1 -Full mode to catch version inconsistencies
     before commits.
@@ -97,7 +97,7 @@ Version: 1.12.5
 
 [CmdletBinding()]
 param(
-    [ValidateSet('audit', 'build', 'validate', 'sign', 'test', 'release')]
+    [ValidateSet('audit', 'build', 'validate', 'sign', 'test', 'release', 'update-images')]
     [string]$Action = 'build',
 
     [string]$Version,
@@ -154,25 +154,25 @@ function Write-Result {
         [Parameter(Position = 0)]
         [ValidateSet('Success', 'Warning', 'Error', 'Info')]
         [string]$Type = 'Info',
-        
+
         [Parameter(Position = 1, ValueFromPipeline)]
         [string]$Message
     )
-    
+
     $colors = @{
         'Success' = $ColorSuccess
         'Warning' = $ColorWarning
         'Error'   = $ColorError
         'Info'    = $ColorInfo
     }
-    
+
     $symbols = @{
         'Success' = '✓'
         'Warning' = '⚠'
         'Error'   = '✗'
         'Info'    = 'ℹ'
     }
-    
+
     Write-Host "$($symbols[$Type]) $Message" -ForegroundColor $colors[$Type]
 }
 
@@ -200,14 +200,14 @@ function Test-VersionConsistency {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "VERSION CONSISTENCY AUDIT"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     $issues = @()
-    
+
     # Check VERSION file
     if (-not (Test-FileExists $VersionFile)) { return $false }
     $fileVersion = (Get-Content $VersionFile -Raw).Trim()
     Write-Result Info "VERSION file: $fileVersion"
-    
+
     # Check SMS_Installer.iss reads VERSION dynamically
     if (Test-FileExists $IssuSetupScript) {
         $issContent = Get-Content $IssuSetupScript -Raw
@@ -218,17 +218,17 @@ function Test-VersionConsistency {
             $issues += "SMS_Installer.iss version reading"
         }
     }
-    
+
     # Check wizard images
     $wizardLarge = Join-Path $InstallerDir "wizard_image.bmp"
     $wizardSmall = Join-Path $InstallerDir "wizard_small.bmp"
-    
+
     if ((Test-Path $wizardLarge) -and (Test-Path $wizardSmall)) {
         $largeTime = (Get-Item $wizardLarge).LastWriteTime
         $smallTime = (Get-Item $wizardSmall).LastWriteTime
         $lastModified = [Math]::Max($largeTime.Ticks, $smallTime.Ticks) | Get-Date
         Write-Result Info "Wizard images last updated: $lastModified"
-        
+
         $timeSinceUpdate = (Get-Date) - $lastModified
         if ($timeSinceUpdate.TotalMinutes -gt 60) {
             $hoursOld = [Math]::Round($timeSinceUpdate.TotalHours)
@@ -236,7 +236,7 @@ function Test-VersionConsistency {
             $issues += "Wizard images potentially outdated"
         }
     }
-    
+
     # Summary
     Write-Result Info "───────────────────────────────────────────────────────────────"
     if ($issues.Count -eq 0) {
@@ -253,20 +253,20 @@ function Invoke-GreekEncodingAudit {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "GREEK LANGUAGE FILE ENCODING AUDIT"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     $greekAuditScript = Join-Path $InstallerDir "GREEK_ENCODING_AUDIT.ps1"
-    
+
     if (-not (Test-FileExists $greekAuditScript)) {
         Write-Result Warning "Greek encoding audit script not found: $greekAuditScript"
         return $true  # Non-critical, continue
     }
-    
+
     try {
         Write-Result Info "Auditing Greek language file encodings (Windows-1253)..."
         & $greekAuditScript -Fix -ErrorAction Stop | Out-String | ForEach-Object {
             if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { Write-Host $_ }
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Result Success "Greek file encodings verified and corrected ✓"
             return $true
@@ -284,23 +284,23 @@ function Invoke-WizardImageRegeneration {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "WIZARD IMAGE REGENERATION (v2.0 Modern Design)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     if (-not (Test-FileExists $WizardImageScript)) {
         Write-Result Error "Wizard image script not found: $WizardImageScript"
         return $false
     }
-    
+
     try {
         Write-Result Info "Regenerating wizard images with version v$CurrentVersion..."
         Write-Result Info "Design: Modern v2.0 with enhanced visuals"
-        
+
         # Always regenerate with -Force to ensure latest version
         & $WizardImageScript -Force -ErrorAction Stop
-        
+
         Write-Result Success "Wizard images regenerated ✓"
         Write-Result Info "Large Image: wizard_image.bmp (164x314)"
         Write-Result Info "Small Image: wizard_small.bmp (55x55)"
-        
+
         return $true
     } catch {
         Write-Result Error "Failed to regenerate wizard images: $_"
@@ -320,17 +320,17 @@ function Invoke-GreekEncodingFix {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "GREEK TEXT ENCODING FIX (for Inno Setup)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     try {
         $pythonScript = Join-Path $PSScriptRoot "fix_greek_encoding_permanent.py"
         if (-not (Test-Path $pythonScript)) {
             Write-Result Warning "Greek encoding fix script not found, skipping Greek text conversion"
             return $true
         }
-        
+
         Write-Result Info "Running Greek text encoding conversion..."
-        & python3 $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
-        
+        & python $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+
         if ($LASTEXITCODE -eq 0) {
             Write-Result Success "Greek text files encoded properly for Inno Setup ✓"
             return $true
@@ -348,37 +348,37 @@ function Invoke-InstallerCompilation {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "INSTALLER COMPILATION (Inno Setup)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     $iscc = Find-InnoSetup
     if (-not $iscc) { return $false }
-    
+
     try {
         Write-Result Info "Compiling SMS_Installer_$CurrentVersion.exe..."
         $startTime = Get-Date
-        
+
         Push-Location $InstallerDir
         & $iscc "SMS_Installer.iss" | Out-String | Tee-Object -Variable output
         Pop-Location
-        
+
         $elapsed = (Get-Date) - $startTime
-        
+
         if ($LASTEXITCODE -ne 0) {
             Write-Result Error "Inno Setup compilation failed (exit code: $LASTEXITCODE)"
             return $false
         }
-        
+
         if (-not (Test-Path $InstallerExe)) {
             Write-Result Error "Installer executable not created at: $InstallerExe"
             return $false
         }
-        
+
         $size = (Get-Item $InstallerExe).Length / 1MB
         $sizeMB = [Math]::Round($size, 2)
         Write-Result Success "Installer compiled successfully ✓"
         Write-Result Info "Output: SMS_Installer_$CurrentVersion.exe"
         Write-Result Info "Size: $sizeMB MB"
         Write-Result Info "Build time: $([Math]::Round($elapsed.TotalSeconds)) seconds"
-        
+
         return $true
     } catch {
         Write-Result Error "Installer compilation failed: $_"
@@ -390,29 +390,29 @@ function Invoke-CodeSigning {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "CODE SIGNING (Authenticode - AUT MIEEK Certificate)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     if (-not (Test-FileExists $InstallerExe)) {
         Write-Result Error "Installer not found: $InstallerExe"
         return $true  # Non-blocking
     }
-    
+
     if (-not (Test-FileExists $SignerScript)) {
         Write-Result Error "Signing script not found: $SignerScript"
         return $true  # Non-blocking
     }
-    
+
     # Check if code signing should be skipped
     if ($SkipCodeSign) {
         Write-Result Info "Code signing skipped (-SkipCodeSign)"
         return $true
     }
-    
+
     try {
         Write-Result Info "Signing installer with AUT MIEEK certificate..."
-        
+
         # Call signing script (it will use SMS_CODESIGN_PFX_PASSWORD env var)
         & $SignerScript
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Result Success "Installer signed successfully ✓"
             Write-Result Info "Publisher: AUT MIEEK"
@@ -431,21 +431,21 @@ function Test-InstallerSmoke {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "INSTALLER SMOKE TEST"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     if (-not (Test-FileExists $InstallerExe)) {
         Write-Result Error "Installer not found: $InstallerExe"
         return $false
     }
-    
+
     try {
         Write-Result Info "Running installer validity checks..."
-        
+
         # Check file properties
         $exeInfo = Get-Item $InstallerExe
         Write-Result Info "Size: $([Math]::Round($exeInfo.Length / 1MB, 2)) MB"
         Write-Result Info "Created: $($exeInfo.CreationTime)"
         Write-Result Info "Modified: $($exeInfo.LastWriteTime)"
-        
+
         # Check authenticode signature
         $sig = Get-AuthenticodeSignature $InstallerExe
         if ($sig.Status -ne 'Valid') {
@@ -453,12 +453,12 @@ function Test-InstallerSmoke {
         } else {
             Write-Result Success "Authenticode signature valid ✓"
         }
-        
+
         # Check version resource
         $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($InstallerExe)
         Write-Result Info "File version: $($version.FileVersion)"
         Write-Result Info "Product version: $($version.ProductVersion)"
-        
+
         Write-Result Success "Installer smoke test passed ✓"
         return $true
     } catch {
@@ -469,14 +469,14 @@ function Test-InstallerSmoke {
 
 function Invoke-GitTagAndPush {
     param([string]$Version)
-    
+
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "GIT TAGGING AND PUSH"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    
+
     try {
         $tagName = "v$Version"
-        
+
         # Check if tag already exists
         $existingTag = & git tag -l $tagName 2>$null
         if ($existingTag) {
@@ -484,15 +484,15 @@ function Invoke-GitTagAndPush {
             Write-Result Info "Deleting local tag and re-creating..."
             & git tag -d $tagName
         }
-        
+
         # Create annotated tag
         Write-Result Info "Creating tag: $tagName..."
         & git tag -a $tagName -m "Release v$Version - Production Ready" | Out-String | Tee-Object -Variable output
-        
+
         # Push tag to origin
         Write-Result Info "Pushing tag to origin..."
         & git push origin $tagName --force | Out-String | Tee-Object -Variable output
-        
+
         Write-Result Success "Git tag created and pushed successfully ✓"
         return $true
     } catch {
@@ -519,14 +519,14 @@ switch ($Action) {
     'audit' {
         $success = Test-VersionConsistency
     }
-    
+
     'validate' {
         $success = Test-VersionConsistency
         if ($success) {
             Write-Result Success "Validation passed - ready for build"
         }
     }
-    
+
     'build' {
         # Full build pipeline
         if (-not (Test-VersionConsistency)) {
@@ -539,22 +539,22 @@ switch ($Action) {
                 Write-Result Warning "Version consistency issues detected. Use -AutoFix to regenerate images."
             }
         }
-        
+
         # Greek encoding audit (before wizard regeneration)
         Invoke-GreekEncodingAudit | Out-Null
-        
+
         # Fix Greek text encoding (build-time transformation)
         if (-not (Invoke-GreekEncodingFix)) {
             exit 1
         }
-        
+
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
                 # Attempt code signing (non-blocking)
                 if (-not $SkipCodeSign) {
                     Invoke-CodeSigning | Out-Null
                 }
-                
+
                 # Run smoke test if not skipped
                 if (-not $SkipTest) {
                     $success = Test-InstallerSmoke
@@ -564,30 +564,30 @@ switch ($Action) {
             }
         }
     }
-    
+
     'sign' {
         $success = Invoke-CodeSigning
     }
-    
+
     'test' {
         $success = Test-InstallerSmoke
     }
-    
+
     'update-images' {
         # Update wizard images to latest version only
         $success = Invoke-WizardImageRegeneration
     }
-    
+
     'release' {
         # Complete release flow
         # Greek encoding audit (critical for release)
         Invoke-GreekEncodingAudit | Out-Null
-        
+
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
                 # Attempt code signing (non-blocking)
                 Invoke-CodeSigning | Out-Null
-                
+
                 if (Test-InstallerSmoke) {
                     if ($TagAndPush) {
                         $success = Invoke-GitTagAndPush -Version $CurrentVersion
@@ -614,8 +614,3 @@ Write-Result Info "=============================================================
 Write-Result Info ""
 
 exit $(if ($success) { 0 } else { 1 })
-
-
-
-
-

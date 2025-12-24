@@ -75,3 +75,19 @@ def get_student_summary(
     except Exception as exc:
         logger.error("Student summary failed: %s", exc, exc_info=True)
         raise internal_server_error("Student summary failed", request)
+
+
+@router.get("/dashboard")
+@limiter.limit(RATE_LIMIT_READ)
+def get_dashboard(
+    request: Request,
+    service: AnalyticsService = Depends(get_analytics_service),
+):
+    """Lightweight dashboard summary used by the frontend and load tests."""
+    try:
+        return service.get_dashboard_summary()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Dashboard summary failed: %s", exc, exc_info=True)
+        raise internal_server_error("Dashboard summary failed", request)

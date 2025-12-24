@@ -172,7 +172,7 @@ Run these checks after any rollback to ensure consistency:
 ```bash
 # Count core entities
 docker exec sms-fullstack sqlite3 /data/student_management.db "
-  SELECT 
+  SELECT
     (SELECT COUNT(*) FROM students WHERE is_active=1) AS active_students,
     (SELECT COUNT(*) FROM courses WHERE is_active=1) AS active_courses,
     (SELECT COUNT(*) FROM grades) AS total_grades,
@@ -295,7 +295,7 @@ docker exec sms-fullstack alembic current  # Check if migrations are stuck
 ```
 
 **Response**:
-- If **migration error**: 
+- If **migration error**:
   ```bash
   docker exec sms-fullstack alembic upgrade head --sql  # dry-run
   docker exec sms-fullstack alembic upgrade head  # execute
@@ -345,7 +345,7 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "PRAGMA integrity_
 - Check if SECRET_KEY changed between deployments
 
 **Response**:
-- If **SECRET_KEY mismatch**: 
+- If **SECRET_KEY mismatch**:
   - Update `.env` to correct value
   - Restart: `./DOCKER.ps1 -Stop && ./DOCKER.ps1 -Start`
   - Users may need to re-login (clear localStorage)
@@ -572,4 +572,3 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ---
 
 **Maintain this file:** Update "Last Updated" and verification steps whenever deployment tooling changes. Add new incidents to section 5.3 for organizational learning.
-

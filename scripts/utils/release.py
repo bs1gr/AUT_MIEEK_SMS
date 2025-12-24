@@ -137,7 +137,9 @@ def update_versions(new_version: str) -> list[Path]:
         if isinstance(package_data, dict):
             if package_data.get("version") != new_version:
                 package_data["version"] = new_version
-                write_file_text(FRONTEND_PACKAGE, json.dumps(package_data, indent=2) + "\n")
+                write_file_text(
+                    FRONTEND_PACKAGE, json.dumps(package_data, indent=2) + "\n"
+                )
                 updated.append(FRONTEND_PACKAGE)
     if FRONTEND_LOCK.exists():
         try:
@@ -152,7 +154,10 @@ def update_versions(new_version: str) -> list[Path]:
             packages = lock_data.get("packages")
             if isinstance(packages, dict):
                 root_pkg = packages.get("")
-                if isinstance(root_pkg, dict) and root_pkg.get("version") != new_version:
+                if (
+                    isinstance(root_pkg, dict)
+                    and root_pkg.get("version") != new_version
+                ):
                     root_pkg["version"] = new_version
                     changed = True
             if changed:
@@ -161,13 +166,20 @@ def update_versions(new_version: str) -> list[Path]:
     return updated
 
 
-def run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess:
+def run(
+    cmd: list[str], cwd: Path | None = None, check: bool = True
+) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, check=check)
 
 
 def git_available() -> bool:
     try:
-        subprocess.run(["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        subprocess.run(
+            ["git", "--version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
         return True
     except Exception:
         return False
@@ -214,8 +226,12 @@ def git_commit_and_tag(version: str, do_tag: bool, push: bool) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Release/versioning helper")
     g = ap.add_mutually_exclusive_group(required=False)
-    g.add_argument("--level", choices=["patch", "minor", "major"], help="SemVer bump level")
-    g.add_argument("--set-version", dest="set_version", help="Explicit version to set, e.g., 3.2.0")
+    g.add_argument(
+        "--level", choices=["patch", "minor", "major"], help="SemVer bump level"
+    )
+    g.add_argument(
+        "--set-version", dest="set_version", help="Explicit version to set, e.g., 3.2.0"
+    )
     ap.add_argument("--no-tag", action="store_true", help="Do not create a git tag")
     ap.add_argument("--push", action="store_true", help="Also push the commit and tags")
     args = ap.parse_args()

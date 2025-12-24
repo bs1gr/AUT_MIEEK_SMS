@@ -33,7 +33,7 @@ def get_session(_: object | None = None) -> Generator[Session, None, None]:
     """
     FastAPI dependency for database session.
     Yields a session and ensures it's closed after use.
-    
+
     Usage:
         @app.get("/items")
         async def list_items(db: Session = Depends(get_session)):

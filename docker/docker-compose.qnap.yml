@@ -3,7 +3,7 @@
 # Optimized for QNAP NAS with Container Station
 #
 # Documentation: docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md
-# 
+#
 # Quick Start:
 #   1. Copy .env.qnap.example to .env.qnap and configure
 #   2. Run: docker compose -f docker-compose.qnap.yml --env-file .env.qnap up -d
@@ -74,28 +74,28 @@ services:
     environment:
       # Database Configuration
       - DATABASE_URL=postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}
-      
+
       # Security
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env.qnap}
       - SECRET_KEY_STRICT_ENFORCEMENT=1
-      
+
       # Environment
       - SMS_ENV=production
       - SMS_EXECUTION_MODE=docker
       - QNAP_DEPLOYMENT=1
-      
+
       # CORS - Update with your QNAP IP
       - CORS_ORIGINS=http://${QNAP_IP:-localhost}:${SMS_PORT:-8080},http://localhost:${SMS_PORT:-8080}
-      
+
       # Control API
       - ENABLE_CONTROL_API=${ENABLE_CONTROL_API:-1}
       - ADMIN_SHUTDOWN_TOKEN=${ADMIN_SHUTDOWN_TOKEN:-}
-      
+
       # Performance Tuning (QNAP-optimized)
       - WORKERS=${WORKERS:-2}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - SEMESTER_WEEKS=${SEMESTER_WEEKS:-14}
-      
+
       # Monitoring
       - ENABLE_METRICS=${ENABLE_METRICS:-0}
     volumes:
@@ -103,17 +103,17 @@ services:
       - type: bind
         source: ${QNAP_DATA_PATH:-/share/Container/sms-data}
         target: /data
-      
+
       # Backups directory (accessible from QNAP)
       - type: bind
         source: ${QNAP_BACKUP_PATH:-/share/Container/sms-backups}
         target: /app/backups
-      
+
       # Logs directory
       - type: bind
         source: ${QNAP_LOG_PATH:-/share/Container/sms-logs}
         target: /app/backend/logs
-      
+
       # Templates for imports (read-only)
       - type: bind
         source: ./templates

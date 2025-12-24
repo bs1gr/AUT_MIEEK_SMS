@@ -103,7 +103,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     ) -> None:
         super().__init__(app)
         self._csrf = csrf
-        self._exempt_exact = { _normalize_path(p) for p in (exempt_exact or ()) }
+        self._exempt_exact = {_normalize_path(p) for p in (exempt_exact or ())}
         self._exempt_prefixes = tuple(_normalize_path(p) for p in (exempt_prefixes or ()))
         self._enforce_in_tests = enforce_in_tests
 
@@ -234,6 +234,7 @@ def install_csrf_protection(app: FastAPI) -> None:
         settings.CSRF_HEADER_NAME,
         len(_EXACT_EXEMPT_PATHS) + len(_PREFIX_EXEMPT_PATHS),
     )
+
 
 __all__ = [
     "CSRFMiddleware",

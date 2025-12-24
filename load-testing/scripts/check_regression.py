@@ -27,7 +27,7 @@ class RegressionChecker:
             return None
 
         try:
-            with open(self.baseline_file, 'r') as f:
+            with open(self.baseline_file, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading baseline: {e}")
@@ -40,34 +40,31 @@ class RegressionChecker:
             return None
 
         try:
-            with open(self.current_results, 'r') as f:
+            with open(self.current_results, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading current results: {e}")
             return None
 
-    def check_regression(self, baseline: Dict[str, Any], current: Dict[str, Any]) -> Dict[str, Any]:
+    def check_regression(
+        self, baseline: Dict[str, Any], current: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Check for performance regressions."""
-        results = {
-            "passed": True,
-            "regressions": [],
-            "improvements": [],
-            "checks": []
-        }
+        results = {"passed": True, "regressions": [], "improvements": [], "checks": []}
 
         # Define regression thresholds (percentage changes)
         thresholds = {
             "avg_response_time": 1.20,  # 20% increase allowed
             "95p_response_time": 1.25,  # 25% increase allowed
-            "error_rate": 1.50,         # 50% increase in error rate allowed
-            "requests_per_second": 0.80 # 20% decrease allowed
+            "error_rate": 1.50,  # 50% increase in error rate allowed
+            "requests_per_second": 0.80,  # 20% decrease allowed
         }
 
         metrics_to_check = [
             ("avg_response_time", "Average Response Time", "lower"),
             ("95p_response_time", "95th Percentile Response Time", "lower"),
             ("error_rate", "Error Rate", "lower"),
-            ("requests_per_second", "Requests per Second", "higher")
+            ("requests_per_second", "Requests per Second", "higher"),
         ]
 
         for metric_key, display_name, direction in metrics_to_check:
@@ -84,46 +81,56 @@ class RegressionChecker:
                     # Lower is better (response time, error rate)
                     if ratio > thresholds[metric_key]:
                         results["passed"] = False
-                        results["regressions"].append({
-                            "metric": display_name,
-                            "baseline": baseline_value,
-                            "current": current_value,
-                            "change_percent": (ratio - 1) * 100,
-                            "threshold_percent": (thresholds[metric_key] - 1) * 100
-                        })
+                        results["regressions"].append(
+                            {
+                                "metric": display_name,
+                                "baseline": baseline_value,
+                                "current": current_value,
+                                "change_percent": (ratio - 1) * 100,
+                                "threshold_percent": (thresholds[metric_key] - 1) * 100,
+                            }
+                        )
                     elif ratio < 1.0:
-                        results["improvements"].append({
-                            "metric": display_name,
-                            "baseline": baseline_value,
-                            "current": current_value,
-                            "change_percent": (ratio - 1) * 100
-                        })
+                        results["improvements"].append(
+                            {
+                                "metric": display_name,
+                                "baseline": baseline_value,
+                                "current": current_value,
+                                "change_percent": (ratio - 1) * 100,
+                            }
+                        )
                 else:
                     # Higher is better (requests per second)
                     if ratio < thresholds[metric_key]:
                         results["passed"] = False
-                        results["regressions"].append({
-                            "metric": display_name,
-                            "baseline": baseline_value,
-                            "current": current_value,
-                            "change_percent": (ratio - 1) * 100,
-                            "threshold_percent": (thresholds[metric_key] - 1) * 100
-                        })
+                        results["regressions"].append(
+                            {
+                                "metric": display_name,
+                                "baseline": baseline_value,
+                                "current": current_value,
+                                "change_percent": (ratio - 1) * 100,
+                                "threshold_percent": (thresholds[metric_key] - 1) * 100,
+                            }
+                        )
                     elif ratio > 1.0:
-                        results["improvements"].append({
-                            "metric": display_name,
-                            "baseline": baseline_value,
-                            "current": current_value,
-                            "change_percent": (ratio - 1) * 100
-                        })
+                        results["improvements"].append(
+                            {
+                                "metric": display_name,
+                                "baseline": baseline_value,
+                                "current": current_value,
+                                "change_percent": (ratio - 1) * 100,
+                            }
+                        )
 
-                results["checks"].append({
-                    "metric": display_name,
-                    "baseline": baseline_value,
-                    "current": current_value,
-                    "ratio": ratio,
-                    "status": "PASS" if results["passed"] else "FAIL"
-                })
+                results["checks"].append(
+                    {
+                        "metric": display_name,
+                        "baseline": baseline_value,
+                        "current": current_value,
+                        "ratio": ratio,
+                        "status": "PASS" if results["passed"] else "FAIL",
+                    }
+                )
 
         return results
 
@@ -142,7 +149,6 @@ class RegressionChecker:
             print("ERROR: No analysis results found")
             return False
 
-        latest_results = max(results_files, key=lambda x: x.stat().st_mtime)
         current = self.load_current_results()
         if not current:
             print("ERROR: Could not load current results")
@@ -150,7 +156,7 @@ class RegressionChecker:
 
         regression_results = self.check_regression(baseline, current)
 
-        print(f"\n📊 Regression Check Results")
+        print("\n📊 Regression Check Results")
         print("=" * 40)
 
         if regression_results["passed"]:
@@ -160,17 +166,21 @@ class RegressionChecker:
 
         print(f"\nRegressions ({len(regression_results['regressions'])}):")
         for reg in regression_results["regressions"]:
-            print(f"  - {reg['metric']}: {reg['change_percent']:+.1f}% "
-                  f"(threshold: {reg['threshold_percent']:+.1f}%)")
+            print(
+                f"  - {reg['metric']}: {reg['change_percent']:+.1f}% "
+                f"(threshold: {reg['threshold_percent']:+.1f}%)"
+            )
 
         print(f"\nImprovements ({len(regression_results['improvements'])}):")
         for imp in regression_results["improvements"]:
             print(f"  - {imp['metric']}: {imp['change_percent']:+.1f}%")
 
-        print(f"\nDetailed Metrics:")
+        print("\nDetailed Metrics:")
         for check in regression_results["checks"]:
-            print(f"  - {check['metric']}: {check['baseline']:.3f} → {check['current']:.3f} "
-                  f"({check['ratio']:.2f}x) [{check['status']}]")
+            print(
+                f"  - {check['metric']}: {check['baseline']:.3f} → {check['current']:.3f} "
+                f"({check['ratio']:.2f}x) [{check['status']}]"
+            )
 
         return regression_results["passed"]
 

@@ -1,7 +1,5 @@
-import shutil
 import sqlite3
 from pathlib import Path
-import pytest
 import sys
 
 # Import the script as a module
@@ -37,6 +35,7 @@ def test_verify_backup_ok(tmp_path):
     assert not result["missing_tables"]
     assert result["error"] is None
 
+
 def test_verify_backup_missing_tables(tmp_path):
     db = tmp_path / "missing.db"
     create_test_db(db, tables=["students", "courses"])
@@ -45,12 +44,14 @@ def test_verify_backup_missing_tables(tmp_path):
     assert set(result["missing_tables"]) == {"grades", "attendance"}
     assert result["error"] is None
 
+
 def test_verify_backup_corrupt(tmp_path):
     db = tmp_path / "corrupt.db"
     create_test_db(db, corrupt=True)
     result = verify_backups.verify_backup(db)
     assert not result["ok"]
     assert result["error"] is not None
+
 
 def test_main_summary(tmp_path, monkeypatch):
     # Create several DBs
@@ -65,6 +66,7 @@ def test_main_summary(tmp_path, monkeypatch):
     # Capture output
     import io
     import contextlib
+
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = verify_backups.main()

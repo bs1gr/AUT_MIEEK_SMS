@@ -302,9 +302,7 @@ class User(Base):
         index=True,
     )
 
-    __table_args__ = (
-        Index("idx_users_email_role", "email", "role"),
-    )
+    __table_args__ = (Index("idx_users_email_role", "email", "role"),)
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
@@ -377,9 +375,7 @@ class Role(Base):
     name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
-    __table_args__ = (
-        Index("idx_roles_name", "name", unique=True),
-    )
+    __table_args__ = (Index("idx_roles_name", "name", unique=True),)
 
     def __repr__(self):
         return f"<Role(id={self.id}, name={self.name})>"
@@ -397,9 +393,7 @@ class Permission(Base):
     name = Column(String(150), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
-    __table_args__ = (
-        Index("idx_permissions_name", "name", unique=True),
-    )
+    __table_args__ = (Index("idx_permissions_name", "name", unique=True),)
 
     def __repr__(self):
         return f"<Permission(id={self.id}, name={self.name})>"
@@ -414,9 +408,7 @@ class RolePermission(Base):
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    __table_args__ = (
-        Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),
-    )
+    __table_args__ = (Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),)
 
     # Lightweight relationships for convenience (optional at runtime)
     role: ClassVar[Any] = relationship("Role")
@@ -438,9 +430,7 @@ class UserRole(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    __table_args__ = (
-        Index("idx_user_role_unique", "user_id", "role_id", unique=True),
-    )
+    __table_args__ = (Index("idx_user_role_unique", "user_id", "role_id", unique=True),)
 
     user: ClassVar[Any] = relationship("User")
     role: ClassVar[Any] = relationship("Role")
@@ -483,6 +473,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
 
         # Determine if this is a production environment
         from backend.environment import get_runtime_context
+
         runtime_context = get_runtime_context()
         is_production = runtime_context.is_production
         is_postgresql = db_url.startswith("postgresql://") or db_url.startswith("postgresql+psycopg://")
@@ -506,12 +497,14 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
 
         if is_postgresql:
             # PostgreSQL-specific pooling configuration
-            engine_kwargs.update({
-                "pool_size": 20,           # Connections in pool (default: 5)
-                "max_overflow": 10,        # Extra connections beyond pool_size (default: 10)
-                "pool_pre_ping": True,     # Test connections before use (detect stale connections)
-                "pool_recycle": 3600,      # Recycle connections after 1 hour (prevent stale connections)
-            })
+            engine_kwargs.update(
+                {
+                    "pool_size": 20,  # Connections in pool (default: 5)
+                    "max_overflow": 10,  # Extra connections beyond pool_size (default: 10)
+                    "pool_pre_ping": True,  # Test connections before use (detect stale connections)
+                    "pool_recycle": 3600,  # Recycle connections after 1 hour (prevent stale connections)
+                }
+            )
             logger.info(
                 "PostgreSQL connection pooling configured: "
                 "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s"
@@ -521,6 +514,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             # Use NullPool for SQLite to avoid "database is locked" errors in multi-threaded scenarios
             # Note: For single-threaded dev, default pool is fine; this is defensive for FastAPI workers
             from sqlalchemy.pool import NullPool
+
             engine_kwargs["poolclass"] = NullPool
             logger.info("SQLite NullPool configured to avoid locking issues")
 

@@ -7,6 +7,7 @@ Ensures that:
 3. Generic Exception returns 500 with RFC 7807 shape.
 4. Headers from HTTPException are preserved.
 """
+
 from __future__ import annotations
 
 
@@ -43,7 +44,7 @@ def test_validation_error_handler_returns_rfc7807_with_errors(client):
     # Create student with invalid data (missing required fields)
     response = client.post(
         "/api/v1/students/",
-        json={"first_name": "Test"}  # Missing required fields
+        json={"first_name": "Test"},  # Missing required fields
     )
     assert response.status_code == 422
 
@@ -123,7 +124,7 @@ def test_validation_error_grade_weight_exceeds_limit(client):
 
 def test_generic_exception_handler_returns_500_rfc7807(client):
     """Verify that unhandled exceptions would return 500 with RFC 7807 shape.
-    
+
     Note: In the current architecture, most exceptions are caught and handled
     appropriately (health checks gracefully degrade, etc.). This test verifies
     the RFC 7807 response structure is correct when errors do occur, rather than
@@ -196,5 +197,6 @@ def test_error_response_is_json_serializable(client):
 
         # Ensure no non-serializable objects in response
         import json
+
         json_str = json.dumps(body)
         assert len(json_str) > 0

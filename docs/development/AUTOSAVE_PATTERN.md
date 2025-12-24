@@ -48,7 +48,7 @@ import { useAutosave } from '@/hooks/useAutosave';
 
 const MyComponent = () => {
   const [data, setData] = useState({});
-  
+
   const { isSaving, isPending, saveNow } = useAutosave(
     async () => {
       await apiClient.post('/save', data);
@@ -85,12 +85,12 @@ const AttendanceView = ({ courses, students }) => {
     const attendancePromises = Object.entries(attendanceRecords).map(/*...*/);
     const performancePromises = Object.entries(dailyPerformance).map(/*...*/);
     await Promise.all([...attendancePromises, ...performancePromises]);
-    
+
     showToast('Saved successfully', 'success');
   }, [attendanceRecords, dailyPerformance]);
 
-  const hasChanges = 
-    Object.keys(attendanceRecords).length > 0 || 
+  const hasChanges =
+    Object.keys(attendanceRecords).length > 0 ||
     Object.keys(dailyPerformance).length > 0;
 
   const { isSaving, isPending } = useAutosave(
@@ -112,7 +112,7 @@ const AttendanceView = ({ courses, students }) => {
           <span>{isSaving ? 'Saving...' : 'Changes pending...'}</span>
         </div>
       )}
-      
+
       {/* No manual save button needed! */}
       <StudentsList onMarkAttendance={setAttendance} />
     </div>
@@ -227,13 +227,13 @@ Provide clear feedback to users about autosave status:
 ```tsx
 {(isAutosaving || autosavePending) && (
   <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-2 rounded-lg">
-    <CloudUpload 
-      size={16} 
-      className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} 
+    <CloudUpload
+      size={16}
+      className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'}
     />
     <span>
-      {isAutosaving 
-        ? t('saving') || 'Saving...' 
+      {isAutosaving
+        ? t('saving') || 'Saving...'
         : t('autosavePending') || 'Changes pending...'
       }
     </span>
@@ -295,11 +295,11 @@ The autosave hook uses:
 const performSave = useCallback(async () => {
   const allPromises = [...attendancePromises, ...performancePromises];
   const CHUNK_SIZE = 30; // Process 30 at a time
-  
+
   for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
     const chunk = allPromises.slice(i, i + CHUNK_SIZE);
     await Promise.all(chunk);
-    
+
     if (i + CHUNK_SIZE < allPromises.length) {
       await new Promise(resolve => setTimeout(resolve, 200)); // Small delay between chunks
     }
@@ -340,9 +340,9 @@ describe('useAutosave', () => {
     );
 
     expect(result.current.isPending).toBe(false);
-    
+
     rerender({ data: 'changed' });
-    
+
     expect(result.current.isPending).toBe(true);
   });
 });

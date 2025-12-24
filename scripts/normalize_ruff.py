@@ -26,7 +26,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -42,7 +42,9 @@ class RuffRule:
 # Standard SMS Ruff Rules
 STANDARD_RULES = {
     "E": RuffRule("E", "PEP 8 Errors", "error", auto_fixable=True),
-    "F": RuffRule("F", "Pyflakes (undefined names, unused imports)", "error", auto_fixable=True),
+    "F": RuffRule(
+        "F", "Pyflakes (undefined names, unused imports)", "error", auto_fixable=True
+    ),
     "W": RuffRule("W", "PEP 8 Warnings", "warning", auto_fixable=True),
     "I": RuffRule("I", "isort imports", "style", auto_fixable=True),
     "N": RuffRule("N", "pep8-naming", "style", auto_fixable=False),
@@ -98,7 +100,7 @@ class RuffConfigValidator:
                 print("⚠️  No 'select' rules defined in [lint]")
                 return False
 
-            print(f"✅ Configuration syntax valid")
+            print("✅ Configuration syntax valid")
             print(f"   Rules selected: {config['lint']['select']}")
             if "ignore" in config["lint"]:
                 print(f"   Rules ignored: {config['lint']['ignore']}")
@@ -203,7 +205,13 @@ class RuffConfigValidator:
         for file_path in python_files:
             try:
                 result = subprocess.run(
-                    ["ruff", "format", str(file_path), "--config", str(self.config_path)],
+                    [
+                        "ruff",
+                        "format",
+                        str(file_path),
+                        "--config",
+                        str(self.config_path),
+                    ],
                     capture_output=True,
                     text=True,
                     timeout=10,
@@ -213,7 +221,9 @@ class RuffConfigValidator:
                     fixed += 1
                     print(f"  🔧 Fixed: {file_path.relative_to(self.project_root)}")
                 else:
-                    print(f"  ⚠️  Could not fix: {file_path.relative_to(self.project_root)}")
+                    print(
+                        f"  ⚠️  Could not fix: {file_path.relative_to(self.project_root)}"
+                    )
 
             except Exception as e:
                 print(f"  ❌ Error fixing {file_path}: {e}")
@@ -259,10 +269,12 @@ class RuffConfigValidator:
 
             # Check that E and F are selected (minimum standard)
             if "E" not in selected and "F" not in selected:
-                print("⚠️  Warning: Standard rules E (errors) and/or F (pyflakes) not selected")
+                print(
+                    "⚠️  Warning: Standard rules E (errors) and/or F (pyflakes) not selected"
+                )
                 return False
 
-            print(f"✅ Standard rules configured correctly")
+            print("✅ Standard rules configured correctly")
             return True
 
         except Exception as e:
@@ -282,7 +294,9 @@ class RuffReportGenerator:
         report_data = {
             "summary": {
                 "total_files_checked": len(self.validator.get_python_files()),
-                "total_violations": sum(len(v) for v in self.validator.violations.values()),
+                "total_violations": sum(
+                    len(v) for v in self.validator.violations.values()
+                ),
                 "files_with_violations": len(self.validator.violations),
             },
             "violations": {

@@ -8,7 +8,7 @@ export async function login(
   // Use relative paths - Playwright will resolve against baseURL from config
   // Auth page is at root '/', not '/login'
   await page.goto('/');
-  
+
   // Wait for login form
   await page.waitForLoadState('networkidle');
 
@@ -18,14 +18,14 @@ export async function login(
 
   await emailInput.waitFor({ state: 'visible', timeout: 10_000 });
   await passwordInput.waitFor({ state: 'visible', timeout: 10_000 });
-  
+
   // Fill credentials
   await emailInput.fill(email);
   await passwordInput.fill(password);
-  
+
   // Submit form
   await page.click('button[type="submit"]');
-  
+
   // Wait for redirect
   await page.waitForURL(/\/dashboard/, { timeout: 10000 });
   await page.waitForLoadState('networkidle');
@@ -36,7 +36,7 @@ export async function logout(page: Page) {
   const logoutButton = page.locator('[data-testid="logout-button"]');
   await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
   await logoutButton.click();
-  
+
   // Wait for redirect to root (auth page) - match full URL with protocol and host
   await page.waitForURL(/^https?:\/\/[^/]+\/?(\?.*)?$/, { timeout: 10000 });
 }
@@ -57,19 +57,19 @@ export async function createStudent(
 ) {
   // Click add student button
   await page.click('button:has-text("Add Student")');
-  
+
   // Wait for modal
   await page.waitForSelector('[data-testid="student-form"]');
-  
+
   // Fill form
   await page.fill('input[name="firstName"]', data.firstName);
   await page.fill('input[name="lastName"]', data.lastName);
   await page.fill('input[name="email"]', data.email);
   await page.fill('input[name="studentId"]', data.studentId);
-  
+
   // Submit
   await page.click('button:has-text("Save")');
-  
+
   // Wait for success message
   await page.waitForSelector('text=Student created successfully', { timeout: 5000 });
 }
@@ -101,6 +101,6 @@ export async function waitForNotification(
       : type === 'error'
         ? 'text=error'
         : 'text=warning';
-  
+
   await page.waitForSelector(selector, { timeout });
 }

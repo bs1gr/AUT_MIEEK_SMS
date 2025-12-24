@@ -12,16 +12,16 @@
     - Manual cleanup scripts
 
     Performs comprehensive system verification and preparation:
-    ✅ Code quality checks (linting, type checking)
-    ✅ Translation integrity validation
-    ✅ Backend test suite (unit + integration)
-    ✅ Frontend test suite (components, utilities, API)
-    ✅ Native mode health checks (optional)
-    ✅ Docker mode health checks (optional)
-    ✅ Automated cleanup (cache, build artifacts, obsolete files)
-    ✅ Documentation consistency checks
-    ✅ Git status validation
-    ✅ Commit message generation
+    [OK] Code quality checks (linting, type checking)
+    [OK] Translation integrity validation
+    [OK] Backend test suite (unit + integration)
+    [OK] Frontend test suite (components, utilities, API)
+    [OK] Native mode health checks (optional)
+    [OK] Docker mode health checks (optional)
+    [OK] Automated cleanup (cache, build artifacts, obsolete files)
+    [OK] Documentation consistency checks
+    [OK] Git status validation
+    [OK] Commit message generation
 
 .PARAMETER Mode
     Execution mode:
@@ -67,7 +67,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.12.5
+Version: 1.12.6
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -82,6 +82,28 @@ Version: 1.12.5
             run cleanup as a smoke test without unrelated checks failing the job.
 #>
 
+
+param(
+    [string]$Mode = 'standard',
+    [switch]$SkipTests,
+    [switch]$SkipCleanup,
+    [switch]$SkipLint,
+    [switch]$GenerateCommit,
+    [switch]$AutoFix,
+    [switch]$SyncVersion,
+    [switch]$UpdateDocs,
+    [switch]$AuditVersion,
+    [string]$BumpToVersion,
+    [switch]$AutoTagAndPush,
+    [switch]$ReleaseFlow,
+    [switch]$NonInteractive,
+    [switch]$Help,
+    # Legacy switches for backward compatibility
+    [switch]$Quick,
+    [switch]$Standard,
+    [switch]$Full,
+    [switch]$Cleanup
+)
 
 $USAGE = @"
 USAGE: .\COMMIT_READY.ps1 [-Mode quick|standard|full|cleanup] [options]
@@ -148,7 +170,7 @@ if (-not $inCI) {
     if ($SkipTests.IsPresent -or $SkipCleanup.IsPresent -or $AutoFix.IsPresent) {
         $devEase = ($env:DEV_EASE -as [string]) -and ($env:DEV_EASE.ToLower() -in @('1','true','yes'))
         if (-not $devEase) {
-            Write-Host "❌ Security: DEV_EASE must be enabled to use SkipTests, SkipCleanup, or AutoFix during local pre-commit runs." -ForegroundColor Red
+            Write-Host "[FAIL] Security: DEV_EASE must be enabled to use SkipTests, SkipCleanup, or AutoFix during local pre-commit runs." -ForegroundColor Red
             Write-Host "   To allow this locally set (PowerShell): `$env:DEV_EASE = 'true'` and re-run the command." -ForegroundColor Yellow
             exit 1
         }
@@ -218,16 +240,16 @@ function Add-Result {
         [bool]$Success,
         [string]$Message = ""
     )
-    
+
     $result = @{
         Name = $Name
         Success = $Success
         Message = $Message
         Timestamp = Get-Date -Format "HH:mm:ss"
     }
-    
+
     $script:Results[$Category] += $result
-    
+
     if (-not $Success) {
         $script:Results.Overall = $false
     }
@@ -245,8 +267,6 @@ function Test-CommandAvailable {
     }
 }
 
-# ...other utility functions...
-
 # PHASE 0: PRE-COMMIT HOOK VALIDATION (must come after utility functions)
 function Invoke-PreCommitHookValidation {
     Write-Header "Phase 0: Pre-commit Hook Validation" "DarkYellow"
@@ -254,7 +274,15 @@ function Invoke-PreCommitHookValidation {
     if (-not $precommitAvailable) {
         Write-Info "pre-commit not found. Attempting to install via pip..."
         try {
-            pip install pre-commit | Out-Null
+            if (Test-CommandAvailable -Name "pip") {
+                $out = pip install pre-commit 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install pre-commit failed" }
+            } elseif (Test-CommandAvailable -Name "python") {
+                $out = python -m pip install pre-commit 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install pre-commit failed" }
+            } else {
+                throw "Neither pip nor python found"
+            }
             $precommitAvailable = Test-CommandAvailable -Name "pre-commit"
         } catch {
             Write-Warning-Msg "Failed to install pre-commit. Skipping pre-commit hook validation."
@@ -265,106 +293,19 @@ function Invoke-PreCommitHookValidation {
         if (Test-Path ".pre-commit-config.yaml") {
             Write-Info "Running pre-commit hooks on staged files..."
             try {
-                pre-commit install | Out-Null
+                $out = pre-commit install 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pre-commit install failed" }
                 pre-commit run --all-files
+                if ($LASTEXITCODE -ne 0) { throw "Pre-commit hooks failed" }
                 Write-Success "Pre-commit hooks passed."
             } catch {
                 Write-Failure "Pre-commit hooks failed. Please review and fix issues."
+                Write-Info "To bypass these checks (e.g. for false positives), run with -SkipLint"
                 exit 1
             }
         } else {
             Write-Info ".pre-commit-config.yaml not found. Skipping pre-commit hook validation."
         }
-    }
-}
-$null = Invoke-PreCommitHookValidation
-$script:Results = @{
-    Linting = @()
-    Tests = @()
-    Cleanup = @()
-    Health = @()
-    Overall = $true
-    StartTime = Get-Date
-}
-
-# ============================================================================
-# UTILITY FUNCTIONS
-# ============================================================================
-
-function Write-Header {
-    param([string]$Text, [string]$Color = 'Cyan')
-    Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor $Color
-    Write-Host "║  $($Text.PadRight(60)) ║" -ForegroundColor $Color
-    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor $Color
-    Write-Host ""
-}
-
-function Write-Section {
-    param([string]$Text)
-    # Show help and exit if -Help or -h is present
-    if ($Help) {
-        Write-Host $USAGE -ForegroundColor Cyan
-        exit 0
-    }
-    Write-Host ""
-    Write-Host "─────────────────────────────────────────────────" -ForegroundColor DarkGray
-    Write-Host " $Text" -ForegroundColor White
-    Write-Host "─────────────────────────────────────────────────" -ForegroundColor DarkGray
-}
-
-function Write-Success {
-    param([string]$Text)
-    Write-Host "✅ $Text" -ForegroundColor Green
-}
-
-function Write-Failure {
-    param([string]$Text)
-    Write-Host "❌ $Text" -ForegroundColor Red
-    $script:Results.Overall = $false
-}
-
-function Write-Warning-Msg {
-    param([string]$Text)
-    Write-Host "⚠️  $Text" -ForegroundColor Yellow
-}
-
-function Write-Info {
-    param([string]$Text)
-    Write-Host "ℹ️  $Text" -ForegroundColor Cyan
-}
-
-function Add-Result {
-    param(
-        [string]$Category,
-        [string]$Name,
-        [bool]$Success,
-        [string]$Message = ""
-    )
-    
-    $result = @{
-        Name = $Name
-        Success = $Success
-        Message = $Message
-        Timestamp = Get-Date -Format "HH:mm:ss"
-    }
-    
-    $script:Results[$Category] += $result
-    
-    if (-not $Success) {
-        $script:Results.Overall = $false
-    }
-}
-
-# Check if an executable/command exists in PATH (cross-platform)
-function Test-CommandAvailable {
-    param([string]$Name)
-    try {
-        $cmd = Get-Command $Name -ErrorAction Stop
-        return $null -ne $cmd
-    }
-    catch {
-        return $false
     }
 }
 
@@ -380,19 +321,23 @@ function Install-BackendDependencies {
         # Prefer pip if available, else python -m pip
         if ($pipAvailable) {
             Write-Info "Installing runtime requirements (pip)"
-            pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $out = pip install -r requirements-runtime.txt 2>&1
+            if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (pip)"
-                pip install -r requirements-dev.txt 2>&1 | Out-Null
+                $out = pip install -r requirements-dev.txt 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install dev failed" }
             }
         } elseif ($pythonAvailable) {
             Write-Info "Installing runtime requirements (python -m pip)"
-            python -m pip install -r requirements-runtime.txt 2>&1 | Out-Null
+            $out = python -m pip install -r requirements-runtime.txt 2>&1
+            if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (python -m pip)"
-                python -m pip install -r requirements-dev.txt 2>&1 | Out-Null
+                $out = python -m pip install -r requirements-dev.txt 2>&1
+                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install dev failed" }
             }
         } else {
             Write-Warning-Msg "Neither pip nor python found; cannot install dependencies"
@@ -441,7 +386,7 @@ function Get-PrunedPyCacheTargets {
     while ($stack.Count -gt 0) {
         $elapsed = (Get-Date) - $StartTime
         if ($elapsed.TotalSeconds -gt $MaxSeconds) {
-            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting search for pycache targets."
+            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s - aborting search for pycache targets."
             break
         }
 
@@ -511,7 +456,7 @@ function Get-PrunedTempFiles {
     while ($stack.Count -gt 0) {
         $elapsed = (Get-Date) - $StartTime
         if ($elapsed.TotalSeconds -gt $MaxSeconds) {
-            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting search for temp files."
+            Write-Warning-Msg "Traversal timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s - aborting search for temp files."
             break
         }
 
@@ -572,6 +517,22 @@ function Set-PackageJsonVersion {
             $json.version = $Version
             ($json | ConvertTo-Json -Depth 10) | Set-Content -Path $Path -Encoding UTF8
             Write-Success "Updated package.json version -> $Version"
+
+            # Attempt to regenerate package-lock.json to keep it in sync
+            $lockPath = Join-Path (Split-Path $Path) "package-lock.json"
+            if (Test-Path $lockPath) {
+                if (Test-CommandAvailable "npm") {
+                    Write-Info "Regenerating package-lock.json..."
+                    Push-Location (Split-Path $Path)
+                    try {
+                        npm install --package-lock-only --ignore-scripts --no-audit | Out-Null
+                    } catch {
+                        Write-Warning-Msg "Failed to regenerate package-lock.json: $_"
+                    } finally {
+                        Pop-Location
+                    }
+                }
+            }
             return $true
         }
         return $true
@@ -599,7 +560,7 @@ function Update-TextFileVersionLines {
         # Replace standalone banner versions vX.Y.Z within known headers
         $newContent2 = $newContent -replace '(?m)(v)\d+\.\d+\.\d+', "`$1$Version"
         if ($newContent2 -ne $newContent) { $updated = $true }
-        
+
         # Inno Setup script header comments ("; Version: X.Y.Z")
         $newContent3 = $newContent2 -replace '(?m)^;\s*Version:\s*\d+\.\d+\.\d+', "; Version: $Version"
         if ($newContent3 -ne $newContent2) { $updated = $true }
@@ -837,7 +798,7 @@ function Invoke-VersionConsistencyCheck {
 
     # Run comprehensive version verification using VERIFY_VERSION.ps1
     $verifyScript = Join-Path $SCRIPT_DIR "scripts\VERIFY_VERSION.ps1"
-    
+
     if (-not (Test-Path $verifyScript)) {
         Write-Warning-Msg "VERIFY_VERSION.ps1 not found, falling back to basic check"
         $version = Get-Version
@@ -847,7 +808,7 @@ function Invoke-VersionConsistencyCheck {
     }
 
     Write-Info "Running comprehensive version verification..."
-    
+
     # Check if AutoFix is enabled and apply updates if inconsistencies found
     if ($AutoFix) {
         Write-Info "AutoFix enabled - will update inconsistent version references"
@@ -857,16 +818,16 @@ function Invoke-VersionConsistencyCheck {
         $result = & $verifyScript -CheckOnly 2>&1
         $exitCode = $LASTEXITCODE
     }
-    
+
     # Display output
     $result | ForEach-Object { Write-Host $_ }
-    
+
     # Exit codes: 0=success, 1=critical failure, 2=inconsistencies found
     if ($exitCode -eq 0) {
         Write-Success "All version references consistent across codebase"
         Add-Result "Linting" "Version Consistency" $true "All 9 version checks passed"
         return $true
-    } 
+    }
     elseif ($exitCode -eq 2 -and -not $AutoFix) {
         Write-Warning-Msg "Version inconsistencies detected. Run with -AutoFix to update automatically."
         Write-Info "Manual fix: .\scripts\VERIFY_VERSION.ps1 -Update"
@@ -886,14 +847,14 @@ function Invoke-VersionConsistencyCheck {
 
 function Invoke-CodeQualityChecks {
     Write-Header "Phase 1: Code Quality & Linting" "Cyan"
-    
+
     if ($SkipLint) {
         Write-Warning-Msg "Linting checks skipped by user"
         return $true
     }
-    
+
     $allPassed = $true
-    
+
     # Backend: Ruff linting
     Write-Section "Backend: Ruff Linting"
     try {
@@ -923,7 +884,7 @@ function Invoke-CodeQualityChecks {
                 $output = "SKIPPED"
             }
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Backend linting passed"
             Add-Result "Linting" "Backend Ruff" $true
@@ -942,7 +903,7 @@ function Invoke-CodeQualityChecks {
     finally {
         Pop-Location
     }
-    
+
     # Frontend: ESLint
     Write-Section "Frontend: ESLint"
     try {
@@ -960,7 +921,7 @@ function Invoke-CodeQualityChecks {
             $LASTEXITCODE = 0
             $output = "SKIPPED"
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Frontend linting passed"
             Add-Result "Linting" "Frontend ESLint" $true
@@ -988,7 +949,7 @@ function Invoke-CodeQualityChecks {
         if ($npxAvailable) {
             $mdConfig = Join-Path $SCRIPT_DIR "config\.markdownlint.json"
             $mdIgnore = Join-Path $SCRIPT_DIR ".markdownlintignore"
-            
+
             # Always auto-fix markdown issues (safe and trivial formatting changes)
             # First pass: try to fix issues
             Write-Info "Running markdownlint with auto-fix..."
@@ -1005,7 +966,7 @@ function Invoke-CodeQualityChecks {
                     $output = npx markdownlint-cli "**/*.md" --fix 2>&1
                 }
             }
-            
+
             # Second pass: check if any issues remain after auto-fix
             if (Test-Path $mdConfig) {
                 if (Test-Path $mdIgnore) {
@@ -1054,7 +1015,7 @@ function Invoke-CodeQualityChecks {
     finally {
         Pop-Location
     }
-    
+
     # Frontend: TypeScript type checking
     Write-Section "Frontend: TypeScript Type Checking"
     try {
@@ -1075,7 +1036,7 @@ function Invoke-CodeQualityChecks {
                 $output = "SKIPPED"
             }
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "TypeScript type checking passed"
             Add-Result "Linting" "TypeScript" $true
@@ -1094,7 +1055,7 @@ function Invoke-CodeQualityChecks {
     finally {
         Pop-Location
     }
-    
+
     # Translation integrity
     Write-Section "Translation Integrity Check"
     try {
@@ -1108,7 +1069,7 @@ function Invoke-CodeQualityChecks {
             $LASTEXITCODE = 0
             $output = "SKIPPED"
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Translation integrity verified"
             Add-Result "Linting" "Translation Integrity" $true
@@ -1127,7 +1088,7 @@ function Invoke-CodeQualityChecks {
     finally {
         Pop-Location
     }
-    
+
     return $allPassed
 }
 
@@ -1137,14 +1098,14 @@ function Invoke-CodeQualityChecks {
 
 function Invoke-TestSuite {
     Write-Header "Phase 2: Test Suite Execution" "Magenta"
-    
+
     if ($SkipTests) {
         Write-Warning-Msg "Tests skipped by user"
         return $true
     }
-    
+
     $allPassed = $true
-    
+
     # Ensure backend deps (help CI runners without preinstalled packages)
     Install-BackendDependencies | Out-Null
 
@@ -1152,7 +1113,7 @@ function Invoke-TestSuite {
     Write-Section "Backend: pytest"
     try {
         Push-Location $BACKEND_DIR
-        
+
         if ($Mode -eq 'quick') {
             Write-Info "Running fast backend tests only..."
             $output = python -m pytest tests/ -m "not slow" -q --tb=short 2>&1
@@ -1160,7 +1121,7 @@ function Invoke-TestSuite {
             Write-Info "Running full backend test suite..."
             $output = python -m pytest -v --tb=short -q 2>&1
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Backend tests passed"
             Add-Result "Tests" "Backend pytest" $true
@@ -1179,12 +1140,12 @@ function Invoke-TestSuite {
     finally {
         Pop-Location
     }
-    
+
     # Frontend tests
     Write-Section "Frontend: Vitest"
     try {
         Push-Location $FRONTEND_DIR
-        
+
         if ($Mode -eq 'quick') {
             Write-Info "Running fast frontend tests only..."
             $output = npm run test -- run --reporter=basic 2>&1
@@ -1192,7 +1153,7 @@ function Invoke-TestSuite {
             Write-Info "Running full frontend test suite..."
             $output = npm run test -- run 2>&1
         }
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Frontend tests passed"
             Add-Result "Tests" "Frontend Vitest" $true
@@ -1211,7 +1172,7 @@ function Invoke-TestSuite {
     finally {
         Pop-Location
     }
-    
+
     return $allPassed
 }
 
@@ -1221,18 +1182,18 @@ function Invoke-TestSuite {
 
 function Invoke-HealthChecks {
     Write-Header "Phase 3: Deployment Health Checks" "Blue"
-    
+
     if ($Mode -ne 'full') {
         Write-Info "Health checks skipped (use -Mode full to enable)"
         return $true
     }
-    
+
     $allPassed = $true
-    
+
     # Check if NATIVE.ps1 and DOCKER.ps1 exist
     $nativeScript = Join-Path $SCRIPT_DIR "NATIVE.ps1"
     $dockerScript = Join-Path $SCRIPT_DIR "DOCKER.ps1"
-    
+
     if (-not (Test-Path $nativeScript)) {
         Write-Warning-Msg "NATIVE.ps1 not found, skipping native health check"
     } else {
@@ -1242,9 +1203,9 @@ function Invoke-HealthChecks {
             # Start, wait for health, stop
             & $nativeScript -Start > $null 2>&1
             Start-Sleep -Seconds 10
-            
+
             try {
-                # Wait for the backend to become available (retry loop) — uvicorn may take a moment to bind
+                # Wait for the backend to become available (retry loop) - uvicorn may take a moment to bind
                 $healthUrl = "http://127.0.0.1:8000/health"
                 $maxAttempts = 12
                 $attempt = 0
@@ -1257,7 +1218,7 @@ function Invoke-HealthChecks {
                         if ($response.StatusCode -eq 200) { $ok = $true; break }
                     }
                     catch {
-                        Write-Info "Native health check attempt $attempt/$maxAttempts failed — retrying in 2s..."
+                        Write-Info "Native health check attempt $attempt/$maxAttempts failed - retrying in 2s..."
                         Start-Sleep -Seconds 2
                     }
                 }
@@ -1286,7 +1247,7 @@ function Invoke-HealthChecks {
             $allPassed = $false
         }
     }
-    
+
     if (-not (Test-Path $dockerScript)) {
         Write-Warning-Msg "DOCKER.ps1 not found, skipping Docker health check"
     } else {
@@ -1296,7 +1257,7 @@ function Invoke-HealthChecks {
             # Start, wait for health, stop
             & $dockerScript -Start > $null 2>&1
             Start-Sleep -Seconds 15
-            
+
             try {
                 $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5
                 if ($response.StatusCode -eq 200) {
@@ -1323,7 +1284,7 @@ function Invoke-HealthChecks {
             $allPassed = $false
         }
     }
-    
+
     return $allPassed
 }
 
@@ -1335,21 +1296,21 @@ function Invoke-InstallerAudit {
     if ($Mode -ne 'full') {
         return $true
     }
-    
+
     Write-Section "Installer Production Audit"
-    
+
     try {
         Write-Info "Auditing installer versioning and components..."
         $installerBuilder = Join-Path $SCRIPT_DIR "INSTALLER_BUILDER.ps1"
-        
+
         if (-not (Test-Path $installerBuilder)) {
             Write-Info "INSTALLER_BUILDER.ps1 not found, skipping installer audit"
             return $true
         }
-        
+
         $auditOutput = & $installerBuilder -Action audit -Verbose:$Verbose -ErrorAction Stop 2>&1
         $auditOutput | ForEach-Object { Write-Info $_ }
-        
+
         Write-Success "Installer audit passed ✓"
         Add-Result "Health" "Installer Audit" $true
         return $true
@@ -1367,12 +1328,12 @@ function Invoke-InstallerAudit {
 
 function Invoke-AutomatedCleanup {
     Write-Header "Phase 4: Automated Cleanup" "Yellow"
-    
+
     if ($SkipCleanup -and $Mode -ne 'cleanup') {
         Write-Warning-Msg "Cleanup skipped by user"
         return $true
     }
-    
+
     # Safety: do not scan the entire workspace forever. Set a sensible timeout
     # so a misconfigured mount or very large folder won't block cleanup.
     $maxCleanupSeconds = 120
@@ -1395,7 +1356,7 @@ function Invoke-AutomatedCleanup {
 
     $totalRemoved = 0
     $totalSize = 0
-    
+
     # Python cache cleanup
     Write-Section "Python Cache Cleanup"
     try {
@@ -1410,7 +1371,7 @@ function Invoke-AutomatedCleanup {
             # Safety: bail out if we've been cleaning for too long
             $elapsed = (Get-Date) - $cleanupStart
             if ($elapsed.TotalSeconds -gt $maxCleanupSeconds) {
-                Write-Warning-Msg "Cleanup timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s — aborting remaining automated cleanup to avoid long-running operation."
+                Write-Warning-Msg "Cleanup timeout reached after $([math]::Round($elapsed.TotalSeconds,1))s - aborting remaining automated cleanup to avoid long-running operation."
                 Add-Result "Cleanup" "Python Cache" $false "Timeout after $([math]::Round($elapsed.TotalSeconds,1))s"
                 break
             }
@@ -1432,7 +1393,7 @@ function Invoke-AutomatedCleanup {
         Write-Failure "Python cache cleanup error: $_"
         Add-Result "Cleanup" "Python Cache" $false $_
     }
-    
+
     # Node modules cache cleanup
     Write-Section "Node.js Cache Cleanup"
     try {
@@ -1452,7 +1413,7 @@ function Invoke-AutomatedCleanup {
         Write-Failure "Node cache cleanup error: $_"
         Add-Result "Cleanup" "Node Cache" $false $_
     }
-    
+
     # Build artifacts cleanup
     Write-Section "Build Artifacts Cleanup"
     try {
@@ -1460,7 +1421,7 @@ function Invoke-AutomatedCleanup {
             (Join-Path $FRONTEND_DIR "dist"),
             (Join-Path $FRONTEND_DIR "build")
         )
-        
+
         foreach ($dir in $buildDirs) {
             if (Test-Path $dir) {
                 $size = (Get-ChildItem $dir -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
@@ -1475,7 +1436,7 @@ function Invoke-AutomatedCleanup {
         Write-Failure "Build artifacts cleanup error: $_"
         Add-Result "Cleanup" "Build Artifacts" $false $_
     }
-    
+
     # Temporary files cleanup
     Write-Section "Temporary Files Cleanup"
     try {
@@ -1488,7 +1449,7 @@ function Invoke-AutomatedCleanup {
                 # safety: don't run indefinitely cleaning temp files
                 $elapsed = (Get-Date) - $cleanupStart
                 if ($elapsed.TotalSeconds -gt $maxCleanupSeconds) {
-                    Write-Warning-Msg "Cleanup timeout reached during temp files removal after $([math]::Round($elapsed.TotalSeconds,1))s — stopping further deletes."
+                    Write-Warning-Msg "Cleanup timeout reached during temp files removal after $([math]::Round($elapsed.TotalSeconds,1))s - stopping further deletes."
                     Add-Result "Cleanup" "Temp Files" $false "Timeout after $([math]::Round($elapsed.TotalSeconds,1))s"
                     break
                 }
@@ -1508,7 +1469,7 @@ function Invoke-AutomatedCleanup {
             Write-Success "Removed $totalRemoved temporary files"
         } else {
             if ($tempFound -gt 0) {
-                Write-Warning-Msg "Found $tempFound temporary files but none could be removed. They may be in-use by other processes (e.g., editor/VSCode plugin testing) and will need the process terminated to be cleaned up." 
+                Write-Warning-Msg "Found $tempFound temporary files but none could be removed. They may be in-use by other processes (for example, editor or VSCode plugin testing) and will need the process terminated to be cleaned up."
             } else {
                 Write-Info "No temporary files found"
             }
@@ -1526,11 +1487,11 @@ function Invoke-AutomatedCleanup {
         Write-Failure "Temp files cleanup error: $_"
         Add-Result "Cleanup" "Temp Files" $false $_
     }
-    
+
     # Summary
     $totalSizeMB = [math]::Round($totalSize / 1MB, 2)
     Write-Info "Total space freed: $totalSizeMB MB"
-    
+
     return $true
 }
 
@@ -1539,8 +1500,8 @@ function Invoke-AutomatedCleanup {
 # ============================================================================
 
 function Invoke-DocumentationCheck {
-    Write-Header "Phase 5: Documentation & Git Status" "Green"
-    
+    Write-Header "Phase 5: Documentation and Git Status" "Green"
+
     # Check key documentation
     Write-Section "Key Documentation Check"
     $keyDocs = @(
@@ -1549,7 +1510,7 @@ function Invoke-DocumentationCheck {
         "TODO.md",
         "docs/DOCUMENTATION_INDEX.md"
     )
-    
+
     $allExist = $true
     foreach ($doc in $keyDocs) {
         $docPath = Join-Path $SCRIPT_DIR $doc
@@ -1560,12 +1521,12 @@ function Invoke-DocumentationCheck {
             $allExist = $false
         }
     }
-    
+
     # Git status
     Write-Section "Git Status"
     try {
         $gitStatus = git status --short 2>&1
-        
+
         if ([string]::IsNullOrWhiteSpace($gitStatus)) {
             Write-Success "Working directory is clean"
         } else {
@@ -1576,7 +1537,7 @@ function Invoke-DocumentationCheck {
     catch {
         Write-Warning-Msg "Git not available or not a git repository"
     }
-    
+
     return $allExist
 }
 
@@ -1586,55 +1547,50 @@ function Invoke-DocumentationCheck {
 
 function New-CommitMessage {
     Write-Header "Commit Message Generation" "Cyan"
-    
+
     $version = Get-Version
     $duration = ((Get-Date) - $script:Results.StartTime).TotalSeconds
     $durationStr = [math]::Round($duration, 1)
-    
+
     # Count results
     $lintPassed = ($script:Results.Linting | Where-Object { $_.Success }).Count
     $lintTotal = $script:Results.Linting.Count
     $testsPassed = ($script:Results.Tests | Where-Object { $_.Success }).Count
     $testsTotal = $script:Results.Tests.Count
-    
+
     $status = if ($script:Results.Overall) { "✅ PASSED" } else { "❌ FAILED" }
-    
-    $finalNote = if ($script:Results.Overall) { "All systems verified and ready for commit." } else { "Some checks failed — review the failures above and address them before committing." }
 
-    $message = @"
-chore: pre-commit validation complete
+    $finalNote = if ($script:Results.Overall) { "All systems verified and ready for commit." } else { "Some checks failed - review the failures above and address them before committing." }
 
-Status: $status
-Version: $version
-Duration: ${durationStr}s
-Mode: $Mode
-
-Code Quality:
-- Linting: $lintPassed/$lintTotal checks passed
-- Tests: $testsPassed/$testsTotal suites passed
-
-$(if ($script:Results.Cleanup.Count -gt 0) {
-"Cleanup: $($script:Results.Cleanup.Count) operations completed
-"})
-$finalNote
-"@
+    $message = "chore: pre-commit validation complete`n`n" +
+        "Status: $status`n" +
+        "Version: $version`n" +
+        "Duration: ${durationStr}s`n" +
+        "Mode: $Mode`n`n" +
+        "Code Quality:`n" +
+        "   • Linting: $lintPassed/$lintTotal checks passed`n" +
+        "   • Tests: $testsPassed/$testsTotal suites passed`n"
+    if ($script:Results.Cleanup.Count -gt 0) {
+        $message += "   • Cleanup: $($script:Results.Cleanup.Count) operations completed`n"
+    }
+    $message += "$finalNote"
 
     Write-Host $message -ForegroundColor White
-    
-    Write-Host "`n" + "═" * 60 -ForegroundColor Cyan
+
+    Write-Host "`n" + "=" * 60 -ForegroundColor Cyan
     Write-Host "NEXT STEPS:" -ForegroundColor Cyan
-    Write-Host "═" * 60 -ForegroundColor Cyan
-    
+    Write-Host "=" * 60 -ForegroundColor Cyan
+
     if ($script:Results.Overall) {
         Write-Host "1. Review the changes: git status" -ForegroundColor White
         Write-Host "2. Stage your changes: git add ." -ForegroundColor White
         Write-Host "3. Commit with message above" -ForegroundColor White
         Write-Host "4. Push: git push origin main" -ForegroundColor White
     } else {
-        Write-Host "⚠️  Fix the failed checks before committing" -ForegroundColor Yellow
+        Write-Host "[WARN] Fix the failed checks before committing" -ForegroundColor Yellow
         Write-Host "Review the failures above and address them" -ForegroundColor White
     }
-    
+
     return $message
 }
 
@@ -1644,13 +1600,13 @@ $finalNote
 
 function Show-Summary {
     Write-Header "Execution Summary" "Green"
-    
+
     $duration = ((Get-Date) - $script:Results.StartTime).TotalSeconds
-    
+
     Write-Host "Mode: $Mode" -ForegroundColor Cyan
     Write-Host "Duration: $([math]::Round($duration, 1))s" -ForegroundColor Cyan
     Write-Host ""
-    
+
     # Linting results
     if ($script:Results.Linting.Count -gt 0) {
         Write-Host "Code Quality:" -ForegroundColor Yellow
@@ -1660,7 +1616,7 @@ function Show-Summary {
         }
         Write-Host ""
     }
-    
+
     # Test results
     if ($script:Results.Tests.Count -gt 0) {
         Write-Host "Tests:" -ForegroundColor Yellow
@@ -1670,7 +1626,7 @@ function Show-Summary {
         }
         Write-Host ""
     }
-    
+
     # Health checks
     if ($script:Results.Health.Count -gt 0) {
         Write-Host "Health Checks:" -ForegroundColor Yellow
@@ -1680,7 +1636,7 @@ function Show-Summary {
         }
         Write-Host ""
     }
-    
+
     # Cleanup results
     if ($script:Results.Cleanup.Count -gt 0) {
         Write-Host "Cleanup:" -ForegroundColor Yellow
@@ -1691,15 +1647,15 @@ function Show-Summary {
         }
         Write-Host ""
     }
-    
+
     # Overall result
-    Write-Host "═" * 60 -ForegroundColor Cyan
+    Write-Host "=" * 60 -ForegroundColor Cyan
     if ($script:Results.Overall) {
-        Write-Host "✅ ALL CHECKS PASSED - READY TO COMMIT" -ForegroundColor Green
+        Write-Host "[OK] ALL CHECKS PASSED - READY TO COMMIT" -ForegroundColor Green
     } else {
-        Write-Host "❌ SOME CHECKS FAILED - REVIEW AND FIX" -ForegroundColor Red
+        Write-Host "[FAIL] SOME CHECKS FAILED - REVIEW AND FIX" -ForegroundColor Red
     }
-    Write-Host "═" * 60 -ForegroundColor Cyan
+    Write-Host "=" * 60 -ForegroundColor Cyan
 }
 
 # ============================================================================
@@ -1707,21 +1663,13 @@ function Show-Summary {
 # ============================================================================
 
 function Invoke-MainWorkflow {
-    $startBanner = @"
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║          COMMIT READY - Pre-Commit Verification              ║
-║          Student Management System v$(Get-Version)                   ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-"@
-    
+    $startBanner = "--------------------------------------------------------------`n COMMIT READY - Pre-Commit Verification`n Student Management System v$(Get-Version)`n--------------------------------------------------------------"
     Write-Host $startBanner -ForegroundColor Green
     Write-Host ""
     Write-Host "Mode: $Mode" -ForegroundColor Cyan
     Write-Host "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
     Write-Host ""
-    
+
     # Optional: Version audit only
     if ($AuditVersion) {
         $mismatchCount = Invoke-VersionAuditReport
@@ -1759,39 +1707,45 @@ function Invoke-MainWorkflow {
     if ($Mode -eq 'cleanup') {
         Invoke-AutomatedCleanup
     } else {
-        # Phase 1: Code Quality
+        # Phase 0 & 1: Pre-commit Hooks & Code Quality
         if (-not $SkipLint) {
-            Invoke-CodeQualityChecks | Out-Null
+            if ($AutoFix) {
+                Invoke-CodeQualityChecks | Out-Null
+                Invoke-PreCommitHookValidation
+            } else {
+                Invoke-PreCommitHookValidation
+                Invoke-CodeQualityChecks | Out-Null
+            }
         }
-        
+
         # Phase 2: Tests
         if (-not $SkipTests) {
             Invoke-TestSuite | Out-Null
         }
-        
+
         # Phase 3: Health Checks (only in full mode)
         if ($Mode -eq 'full') {
             Invoke-HealthChecks | Out-Null
             Invoke-InstallerAudit | Out-Null
         }
-        
+
         # Phase 4: Cleanup
         if (-not $SkipCleanup) {
             Invoke-AutomatedCleanup | Out-Null
         }
-        
+
         # Phase 5: Documentation
         Invoke-DocumentationCheck
     }
-    
+
     # Show summary
     Show-Summary
-    
+
     # Generate commit message if requested or if all passed
     if ($GenerateCommit -or ($script:Results.Overall -and $Mode -ne 'cleanup')) {
         New-CommitMessage
     }
-    
+
     # One-shot release flow: if enabled and all checks passed, perform commit/push/tag automatically
     if ($ReleaseFlow -and $script:Results.Overall) {
         $finalVersion = Get-Version
@@ -1801,10 +1755,20 @@ function Invoke-MainWorkflow {
         if ($proceed.ToLower() -eq 'y') {
             try {
                 git add .
-                git commit -m "chore: release v$finalVersion"
+                if ($(git status --porcelain)) {
+                    git commit -m "chore: release v$finalVersion"
+                } else {
+                    Write-Info "No changes to commit, proceeding to tag..."
+                }
+
+                if (git tag -l "v$finalVersion") {
+                    Write-Warning-Msg "Tag v$finalVersion already exists locally. Overwriting..."
+                    git tag -d "v$finalVersion" | Out-Null
+                }
+
                 git tag "v$finalVersion"
                 git push
-                git push origin "v$finalVersion"
+                git push origin "v$finalVersion" --force
                 Write-Success "Release push & tag complete"
             }
             catch {
@@ -1836,29 +1800,20 @@ function Invoke-MainWorkflow {
 # ============================================================================
 # ENTRY POINT
 # ============================================================================
-
 try {
     $exitCode = Invoke-MainWorkflow
-    # Relaxed exit policy in quick mode unless STRICT_CI=1
-    $strictCI = ($env:STRICT_CI -as [string]) -and ($env:STRICT_CI.ToLower() -in @('1','true','yes'))
-    if ($Mode -eq 'quick' -and -not $strictCI) {
-        exit 0
-    }
     exit $exitCode
 }
 catch {
     Write-Host ""
-    Write-Host "═" * 60 -ForegroundColor Red
+    Write-Host "=" * 60 -ForegroundColor Red
     Write-Host "FATAL ERROR" -ForegroundColor Red
-    Write-Host "═" * 60 -ForegroundColor Red
+    Write-Host "=" * 60 -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     Write-Host ""
     Write-Host $_.ScriptStackTrace -ForegroundColor Gray
     exit 1
 }
-
-
-
-
-
-
+finally {
+    # No-op, required for parser compliance
+}

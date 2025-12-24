@@ -50,10 +50,10 @@ describe('NotesSection', () => {
     it('calls onChange when user types', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'Test note');
-      
+
       expect(mockOnChange).toHaveBeenCalled();
       // Should be called for each character typed
       expect(mockOnChange).toHaveBeenCalledTimes(9); // 'Test note' = 9 characters
@@ -62,41 +62,41 @@ describe('NotesSection', () => {
     it('calls onChange with correct value', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'A');
-      
+
       expect(mockOnChange).toHaveBeenCalledWith('A');
     });
 
     it('calls onChange when user clears text', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="Some text" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.clear(textarea);
-      
+
       expect(mockOnChange).toHaveBeenCalledWith('');
     });
 
     it('handles paste events', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.click(textarea);
       await user.paste('Pasted content');
-      
+
       expect(mockOnChange).toHaveBeenCalled();
     });
 
     it('handles multi-line text input', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'Line 1{Enter}Line 2');
-      
+
       expect(mockOnChange).toHaveBeenCalled();
       // Check that Enter was processed
       const calls = mockOnChange.mock.calls;
@@ -122,21 +122,21 @@ describe('NotesSection', () => {
     it('handles special characters', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       const specialText = '!@#$%^&*()_+-=';
       await user.type(textarea, specialText);
-      
+
       expect(mockOnChange).toHaveBeenCalled();
     });
 
     it('handles unicode characters (Greek, emoji)', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'Καλός μαθητής 🎓');
-      
+
       expect(mockOnChange).toHaveBeenCalled();
     });
 
@@ -152,7 +152,7 @@ describe('NotesSection', () => {
     it('applies correct CSS classes to textarea', () => {
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
       const textarea = screen.getByRole('textbox');
-      
+
       expect(textarea).toHaveClass('w-full');
       expect(textarea).toHaveClass('border');
       expect(textarea).toHaveClass('rounded');
@@ -171,7 +171,7 @@ describe('NotesSection', () => {
     it('textarea is keyboard accessible', () => {
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
       const textarea = screen.getByRole('textbox');
-      
+
       textarea.focus();
       expect(textarea).toHaveFocus();
     });
@@ -185,10 +185,10 @@ describe('NotesSection', () => {
     it('textarea can receive focus', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.click(textarea);
-      
+
       expect(textarea).toHaveFocus();
     });
   });
@@ -198,16 +198,16 @@ describe('NotesSection', () => {
       const { rerender } = renderWithLanguage(
         <NotesSection value="Initial value" onChange={mockOnChange} />
       );
-      
+
       let textarea = screen.getByRole('textbox');
       expect(textarea).toHaveValue('Initial value');
-      
+
       rerender(
         <LanguageProvider>
           <NotesSection value="Updated value" onChange={mockOnChange} />
         </LanguageProvider>
       );
-      
+
       textarea = screen.getByRole('textbox');
       expect(textarea).toHaveValue('Updated value');
     });
@@ -216,14 +216,14 @@ describe('NotesSection', () => {
       const { rerender } = renderWithLanguage(
         <NotesSection value="" onChange={mockOnChange} />
       );
-      
+
       for (let i = 1; i <= 5; i++) {
         rerender(
           <LanguageProvider>
             <NotesSection value={`Value ${i}`} onChange={mockOnChange} />
           </LanguageProvider>
         );
-        
+
         const textarea = screen.getByRole('textbox');
         expect(textarea).toHaveValue(`Value ${i}`);
       }
@@ -240,25 +240,25 @@ describe('NotesSection', () => {
       const { rerender } = renderWithLanguage(
         <NotesSection value="Value 1" onChange={mockOnChange} />
       );
-      
+
       mockOnChange.mockClear();
-      
+
       rerender(
         <LanguageProvider>
           <NotesSection value="Value 2" onChange={mockOnChange} />
         </LanguageProvider>
       );
-      
+
       expect(mockOnChange).not.toHaveBeenCalled();
     });
 
     it('passes event target value to onChange', async () => {
       const user = userEvent.setup();
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      
+
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'X');
-      
+
       // Last call should have 'X' as the value
       const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1];
       expect(lastCall[0]).toBe('X');

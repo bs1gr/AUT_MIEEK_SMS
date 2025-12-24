@@ -280,16 +280,16 @@ describe('useAttendanceStore', () => {
   describe('Complex scenarios', () => {
     it('handles full CRUD lifecycle', () => {
       const { setAttendance, addAttendance, updateAttendance, deleteAttendance } = useAttendanceStore.getState();
-      
+
       setAttendance([sampleAttendance1]);
       expect(useAttendanceStore.getState().attendanceRecords).toHaveLength(1);
-      
+
       addAttendance(sampleAttendance2);
       expect(useAttendanceStore.getState().attendanceRecords).toHaveLength(2);
-      
+
       updateAttendance(1, { status: 'Absent' });
       expect(useAttendanceStore.getState().attendanceRecords[0].status).toBe('Absent');
-      
+
       deleteAttendance(2);
       expect(useAttendanceStore.getState().attendanceRecords).toHaveLength(1);
       expect(useAttendanceStore.getState().attendanceRecords[0].id).toBe(1);
@@ -297,10 +297,10 @@ describe('useAttendanceStore', () => {
 
     it('combines individual and bulk operations', () => {
       const { addAttendance, bulkAddAttendance } = useAttendanceStore.getState();
-      
+
       addAttendance(sampleAttendance1);
       expect(useAttendanceStore.getState().attendanceRecords).toHaveLength(1);
-      
+
       bulkAddAttendance([sampleAttendance2, sampleAttendance3]);
       expect(useAttendanceStore.getState().attendanceRecords).toHaveLength(3);
     });
@@ -316,10 +316,10 @@ describe('useAttendanceStore', () => {
     it('handles filtering attendance by student and course', () => {
       const { setAttendance } = useAttendanceStore.getState();
       setAttendance([sampleAttendance1, sampleAttendance2, sampleAttendance3]);
-      
+
       const studentRecords = useAttendanceStore.getState().attendanceRecords
         .filter(a => a.student_id === 1);
-      
+
       expect(studentRecords).toHaveLength(2);
       expect(studentRecords.every(a => a.student_id === 1)).toBe(true);
     });
@@ -327,10 +327,10 @@ describe('useAttendanceStore', () => {
     it('handles status transitions', () => {
       const { setAttendance, updateAttendance } = useAttendanceStore.getState();
       setAttendance([sampleAttendance1]);
-      
+
       updateAttendance(1, { status: 'Late' });
       expect(useAttendanceStore.getState().attendanceRecords[0].status).toBe('Late');
-      
+
       updateAttendance(1, { status: 'Excused', notes: 'Approved by admin' });
       const record = useAttendanceStore.getState().attendanceRecords[0];
       expect(record.status).toBe('Excused');

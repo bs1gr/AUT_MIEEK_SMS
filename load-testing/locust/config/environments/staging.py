@@ -25,42 +25,24 @@ class StagingConfig(LoadTestConfig):
     TARGETS = {
         "response_time_95p": 2.5,  # 95th percentile
         "response_time_99p": 6.0,  # 99th percentile
-        "error_rate_max": 0.05,   # 5% max error rate
+        "error_rate_max": 0.05,  # 5% max error rate
         "requests_per_second": {
             "smoke": 8,
             "light": 40,
             "medium": 150,
             "heavy": 400,
-            "stress": 800
-        }
+            "stress": 800,
+        },
     }
 
     # Test scenarios (balanced testing)
     SCENARIOS = {
-        "auth": {
-            "weight": 1,
-            "description": "Authentication operations"
-        },
-        "students": {
-            "weight": 4,
-            "description": "Student management operations"
-        },
-        "courses": {
-            "weight": 3,
-            "description": "Course management operations"
-        },
-        "analytics": {
-            "weight": 2,
-            "description": "Analytics and reporting"
-        },
-        "attendance": {
-            "weight": 2,
-            "description": "Attendance management"
-        },
-        "grades": {
-            "weight": 2,
-            "description": "Grade management"
-        }
+        "auth": {"weight": 1, "description": "Authentication operations"},
+        "students": {"weight": 4, "description": "Student management operations"},
+        "courses": {"weight": 3, "description": "Course management operations"},
+        "analytics": {"weight": 2, "description": "Analytics and reporting"},
+        "attendance": {"weight": 2, "description": "Attendance management"},
+        "grades": {"weight": 2, "description": "Grade management"},
     }
 
     # Monitoring (enabled for staging)
