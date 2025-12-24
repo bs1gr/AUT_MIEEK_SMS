@@ -2,7 +2,7 @@ name: Require operator approval for operator scripts
 
 on:
   pull_request_target:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
     paths:
       - 'scripts/operator/**'
 

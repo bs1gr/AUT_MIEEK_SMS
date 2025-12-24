@@ -56,7 +56,7 @@ jobs:
             fi
 
             echo "Deleting runs in batches..."
-            echo "$RUN_IDS" | xargs -n 50 gh run delete --repo "$REPO"
+            echo "$RUN_IDS" | xargs -n 1 -P 5 gh run delete --repo "$REPO"
           done
 
           echo "Cleanup complete."
