@@ -1,0 +1,59 @@
+name: Cleanup Workflow Runs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log only, do not delete)'
+        required: false
+        type: boolean
+        default: false
+      keep_count:
+        description: 'Number of recent runs to keep'
+        required: false
+        type: number
+        default: 5
+
+jobs:
+  cleanup:
+    name: Delete Old Runs
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Delete workflow runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          KEEP_COUNT: ${{ inputs.keep_count }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          CURRENT_ID="${{ github.run_id }}"
+
+          while true; do
+            echo "Fetching workflow runs..."
+            # Fetch IDs (limit 1000) excluding current run, keeping top N
+            RUN_IDS=$(gh run list --limit 1000 --json databaseId --jq "map(.databaseId) | map(select(. != $CURRENT_ID)) | .[$KEEP_COUNT:][] | .")
+
+            if [ -z "$RUN_IDS" ]; then
+              echo "No more runs found to delete (keeping last $KEEP_COUNT)."
+              break
+            fi
+
+            COUNT=$(echo "$RUN_IDS" | wc -w)
+            echo "Found $COUNT runs to delete in this batch."
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "Dry run enabled. Would delete IDs:"
+              echo "$RUN_IDS"
+              break
+            fi
+
+            echo "Deleting runs in batches..."
+            echo "$RUN_IDS" | xargs -n 50 gh run delete
+          done
+
+          echo "Cleanup complete."
