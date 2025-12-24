@@ -112,7 +112,7 @@ class PDFToSMSConverter:
                 parsed = json.loads(rules)
                 if isinstance(parsed, list):
                     return self.parse_evaluation_rules(parsed)
-            except:
+            except Exception:
                 pass
 
             # Pattern matching for "Category: Weight%" format
@@ -234,7 +234,7 @@ class PDFToSMSConverter:
         if isinstance(schedule, str):
             try:
                 return json.loads(schedule)
-            except:
+            except Exception:
                 return {}
 
         # Already a dict
