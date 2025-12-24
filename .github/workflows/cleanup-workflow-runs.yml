@@ -13,6 +13,8 @@ on:
         required: false
         type: number
         default: 5
+  schedule:
+    - cron: '0 0 * * 0' # Run every Sunday at midnight UTC
 
 jobs:
   cleanup:
