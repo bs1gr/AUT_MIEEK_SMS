@@ -67,7 +67,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.12.5
+Version: 1.12.6
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -509,6 +509,22 @@ function Set-PackageJsonVersion {
             $json.version = $Version
             ($json | ConvertTo-Json -Depth 10) | Set-Content -Path $Path -Encoding UTF8
             Write-Success "Updated package.json version -> $Version"
+
+            # Attempt to regenerate package-lock.json to keep it in sync
+            $lockPath = Join-Path (Split-Path $Path) "package-lock.json"
+            if (Test-Path $lockPath) {
+                if (Test-CommandAvailable "npm") {
+                    Write-Info "Regenerating package-lock.json..."
+                    Push-Location (Split-Path $Path)
+                    try {
+                        npm install --package-lock-only --ignore-scripts --no-audit | Out-Null
+                    } catch {
+                        Write-Warning-Msg "Failed to regenerate package-lock.json: $_"
+                    } finally {
+                        Pop-Location
+                    }
+                }
+            }
             return $true
         }
         return $true

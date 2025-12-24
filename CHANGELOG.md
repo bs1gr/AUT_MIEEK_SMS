@@ -1,40 +1,22 @@
-## [1.12.5] - 2025-12-15
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----## [1.12.5] - 2025-12-15
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----## [1.12.5] - 2025-12-15
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
+
+## [1.12.6] - 2025-12-24
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 
 
 

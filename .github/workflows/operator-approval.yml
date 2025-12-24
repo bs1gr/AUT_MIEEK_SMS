@@ -14,11 +14,12 @@ jobs:
       contents: read
     steps:
       - name: Check PR for operator script changes and labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const core = require('@actions/core');
-            const pr = github.context.payload.pull_request;
+            const pr = context.payload.pull_request;
             if (!pr) {
               core.info('No pull request context; skipping operator approval check.');
               return;

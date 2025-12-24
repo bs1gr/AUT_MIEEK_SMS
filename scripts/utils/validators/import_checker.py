@@ -10,12 +10,14 @@ Purpose:
     - backend: Check backend.db module imports
     - package: Validate package import structure
     - all: Run all validation modes (default)
+    - static: Run only static analysis (requirements + package) - safe for pre-commit
 
 Usage:
     python scripts/utils/validators/import_checker.py
     python scripts/utils/validators/import_checker.py --mode requirements
     python scripts/utils/validators/import_checker.py --mode backend
     python scripts/utils/validators/import_checker.py --mode package
+    python scripts/utils/validators/import_checker.py --mode static
     python scripts/utils/validators/import_checker.py --mode all
 
 Exit Codes:
@@ -37,10 +39,25 @@ class ImportValidator:
 
     def __init__(self, root_path: str = "."):
         self.root = Path(root_path).resolve()
+        # Add root to sys.path to allow importing backend modules
+        if str(self.root) not in sys.path:
+            sys.path.insert(0, str(self.root))
+
         self.backend_dir = self.root / "backend"
         self.requirements_file = self.backend_dir / "requirements.txt"
         self.errors: List[str] = []
         self.warnings: List[str] = []
+
+        # Pre-scan local modules to avoid flagging them as missing requirements
+        self.local_modules = {p.stem for p in self.backend_dir.rglob("*.py")}
+        # Add package directories (e.g. routers, schemas)
+        self.local_modules.update(
+            {
+                p.name
+                for p in self.backend_dir.rglob("*")
+                if p.is_dir() and (p / "__init__.py").exists()
+            }
+        )
 
     def validate_requirements(self) -> bool:
         """Validate all backend imports are in requirements.txt."""
@@ -69,7 +86,10 @@ class ImportValidator:
             imports = self._find_imports_in_file(py_file)
             external_imports = self._filter_external_imports(imports)
 
-            missing = external_imports - required_modules
+            # Normalize imports (replace _ with -) to match requirements.txt style
+            normalized_external = {i.replace("_", "-") for i in external_imports}
+
+            missing = normalized_external - required_modules
             if missing:
                 found_issues = True
                 rel_path = py_file.relative_to(self.root)
@@ -240,6 +260,26 @@ class ImportValidator:
             "abc",
             "atexit",
             "tracemalloc",
+            "importlib",
+            "signal",
+            "types",
+            "__future__",
+            "sqlite3",
+            "zipfile",
+            "unicodedata",
+            "ast",
+            "unittest",
+            "concurrent",
+            "secrets",
+            "getpass",
+            "shlex",
+            "contextvars",
+            "hmac",
+            "mimetypes",
+            "platform",
+            "copy",
+            "zoneinfo",
+            "graphlib",
         }
 
         # Whitelist for common tooling modules
@@ -256,6 +296,11 @@ class ImportValidator:
             "pylint",
             "mypy",
             "bandit",
+            "prometheus_client",
+            "prometheus_fastapi_instrumentator",
+            "pydantic_settings",
+            "fastapi_csrf_protect",
+            "opentelemetry",
         }
 
         external = set()
@@ -264,7 +309,7 @@ class ImportValidator:
 
             # Skip standard library, backend-local, and whitelisted
             if imp not in stdlib_modules and not imp.startswith("backend"):
-                if lower_imp not in whitelist:
+                if lower_imp not in whitelist and imp not in self.local_modules:
                     external.add(imp)
 
         return external
@@ -275,15 +320,17 @@ class ImportValidator:
         print(f"Working Directory: {self.root}\n")
 
         results = {}
+        run_all = mode == "all"
+        run_static = mode == "static"
 
-        if mode in ("all", "requirements"):
+        if run_all or run_static or mode == "requirements":
             results["requirements"] = self.validate_requirements()
 
-        if mode in ("all", "backend"):
-            results["backend"] = self.validate_backend_imports()
-
-        if mode in ("all", "package"):
+        if run_all or run_static or mode == "package":
             results["package"] = self.validate_package_structure()
+
+        if run_all or mode == "backend":
+            results["backend"] = self.validate_backend_imports()
 
         # Summary
         print("\n" + "=" * 70)
@@ -321,7 +368,7 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["requirements", "backend", "package", "all"],
+        choices=["requirements", "backend", "package", "all", "static"],
         default="all",
         help="Validation mode (default: all)",
     )
