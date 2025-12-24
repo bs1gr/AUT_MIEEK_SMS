@@ -27,9 +27,11 @@ jobs:
           github-token: ${{ secrets.ADMIN_GH_PAT }}
           script: |
             const core = require('@actions/core');
-            const inputs = core.getInput('contexts') || '';
+            // Access workflow inputs from context payload
+            const payloadInputs = context.payload.inputs || {};
+            const inputs = payloadInputs.contexts || '';
             const contexts = inputs.split(',').map(s => s.trim()).filter(Boolean);
-            const branch = core.getInput('branch') || context.ref.replace('refs/heads/', '') || 'main';
+            const branch = payloadInputs.branch || context.ref.replace('refs/heads/', '') || 'main';
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
