@@ -15,7 +15,7 @@ class AuditAction(str, Enum):
     # Authentication
     LOGIN = "login"
     LOGOUT = "logout"
-    PASSWORD_CHANGE = "password_change"
+    PASSWORD_CHANGE = "password_change"  # pragma: allowlist secret
 
     # Data Operations
     CREATE = "create"

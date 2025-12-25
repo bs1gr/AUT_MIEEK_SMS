@@ -4,7 +4,7 @@ import urllib.request
 url = "http://127.0.0.1:8000/api/v1/auth/register"
 payload = {
     "email": "e2e-test@example.test",
-    "password": "E2E-Password-1!",
+    "password": "E2E-Password-1!",  # pragma: allowlist secret
     "full_name": "E2E User",
     "role": "teacher",
 }
