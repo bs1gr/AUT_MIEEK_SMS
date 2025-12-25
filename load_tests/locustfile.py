@@ -12,7 +12,10 @@ class WebsiteUser(HttpUser):
     def login(self):
         self.client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@example.com", "password": "securepassword123"},
+            json={  # pragma: allowlist secret
+                "email": "admin@example.com",
+                "password": "securepassword123",  # pragma: allowlist secret
+            },
         )
 
     @task(1)

@@ -224,8 +224,8 @@ describe('useFormValidation hook', () => {
       const { result } = renderHook(() => useFormValidation(customSchema));
 
       const data = {
-        password: 'password123',
-        confirmPassword: 'password456',
+        password: 'password123', // pragma: allowlist secret
+        confirmPassword: 'password456', // pragma: allowlist secret
       };
 
       await act(async () => {
