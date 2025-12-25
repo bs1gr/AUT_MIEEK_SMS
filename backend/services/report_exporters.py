@@ -20,12 +20,12 @@ try:
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.enums import TA_CENTER
 
+    from reportlab.platypus import Flowable
+
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
-
-
-from reportlab.platypus import Flowable
+    Flowable = Any  # type: ignore
 
 
 def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
@@ -95,7 +95,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
                 ("FONTSIZE", (0, 0), (-1, -1), 10),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type]
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type, list-item]
             ]
         )
     )
@@ -126,8 +126,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
                     ("FONTSIZE", (0, 0), (-1, -1), 10),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                     ("TOPPADDING", (0, 0), (-1, -1), 8),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type]
-                    # type: ignore[list-item]
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type, list-item]
                     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
                 ]
             )
@@ -159,8 +158,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
                     ("FONTSIZE", (0, 0), (-1, -1), 10),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                     ("TOPPADDING", (0, 0), (-1, -1), 8),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    # type: ignore[list-item]
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type, list-item]
                     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
                 ]
             )
@@ -195,7 +193,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
                             ("FONTSIZE", (0, 0), (-1, -1), 9),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
                             ("TOPPADDING", (0, 0), (-1, -1), 6),
-                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type]
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[arg-type, list-item]
                         ]
                     )
                 )
