@@ -6,7 +6,7 @@ import pytest
 
 from backend import models
 from backend.services import AnalyticsService
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.db_setup import TestingSessionLocal
 
 
 @pytest.fixture()

@@ -11,7 +11,7 @@ from backend.models import (
     Highlight,
     Student,
 )
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.db_setup import TestingSessionLocal
 
 
 def test_deleting_student_cascades_related_records():

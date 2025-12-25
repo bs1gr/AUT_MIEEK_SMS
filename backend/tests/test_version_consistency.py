@@ -13,6 +13,9 @@ from pathlib import Path
 
 import pytest
 
+# Mark all tests in this file to skip fixtures that require app context.
+pytestmark = pytest.mark.no_app_context
+
 
 # ============================================================================
 # Fixtures and Helpers

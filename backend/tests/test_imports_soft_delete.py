@@ -2,7 +2,7 @@ import json
 from datetime import date
 
 from backend import models
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.db_setup import TestingSessionLocal
 
 
 def test_import_students_reactivates_soft_deleted_record(client, tmp_path, monkeypatch):

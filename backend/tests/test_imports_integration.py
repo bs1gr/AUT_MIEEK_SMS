@@ -258,7 +258,7 @@ class TestImportErrorHandling:
         # Query the most recent audit log
         # Close and reopen session to ensure visibility of committed data
         clean_db.close()
-        from backend.tests.conftest import TestingSessionLocal
+        from backend.tests.db_setup import TestingSessionLocal
 
         session = TestingSessionLocal()
         log = session.query(AuditLog).order_by(AuditLog.timestamp.desc()).first()
