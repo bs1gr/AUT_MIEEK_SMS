@@ -17,6 +17,7 @@
     [OK] Backend test suite (unit + integration)
     [OK] Frontend test suite (components, utilities, API)
     [OK] Native mode health checks (optional)
+    [OK] Git remote synchronization & health
     [OK] Docker mode health checks (optional)
     [OK] Automated cleanup (cache, build artifacts, obsolete files)
     [OK] Documentation consistency checks
@@ -306,6 +307,38 @@ function Invoke-PreCommitHookValidation {
         } else {
             Write-Info ".pre-commit-config.yaml not found. Skipping pre-commit hook validation."
         }
+    }
+}
+
+# PHASE 1: SMOKE TEST - CONFTEST CONFIGURATION
+function Test-ConftestConfig {
+    Write-Header "Phase 1: Smoke Test - Conftest Config" "DarkYellow"
+
+    # Attempt to locate conftest.py in standard locations
+    $conftestPath = Join-Path $BACKEND_DIR "tests\conftest.py"
+    if (-not (Test-Path $conftestPath)) {
+        $found = Get-ChildItem -Path $BACKEND_DIR -Filter "conftest.py" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) { $conftestPath = $found.FullName }
+    }
+
+    if (-not (Test-Path $conftestPath)) {
+        Write-Warning-Msg "conftest.py not found. Skipping specific config check."
+        return $true
+    }
+
+    Write-Info "Checking $conftestPath for secure test settings..."
+    $content = Get-Content $conftestPath -Raw
+
+    # Check for AUTH_ENABLED=False specifically in the file (context-aware check)
+    # We look for the setting to ensure tests run in a mocked/safe environment
+    if ($content -match '(settings\.)?AUTH_ENABLED\s*=\s*False') {
+        Write-Success "conftest.py: AUTH_ENABLED=False verified"
+        Add-Result "Tests" "Conftest Config" $true
+        return $true
+    } else {
+        Write-Failure "conftest.py: AUTH_ENABLED=False NOT FOUND. Tests may be unsafe."
+        Add-Result "Tests" "Conftest Config" $false "AUTH_ENABLED != False"
+        return $false
     }
 }
 
@@ -1351,7 +1384,8 @@ function Invoke-AutomatedCleanup {
         '\\backups\\',
         '\\data\\',
         '\\logs\\',
-        '\\docker\\'
+        '\\docker\\',
+        '\\dockspace\\'
     )
 
     $totalRemoved = 0
@@ -1488,11 +1522,55 @@ function Invoke-AutomatedCleanup {
         Add-Result "Cleanup" "Temp Files" $false $_
     }
 
+    # Legacy dockspace cleanup
+    Write-Section "Legacy Artifacts Cleanup"
+    $dockspace = Join-Path $SCRIPT_DIR "dockspace"
+    if (Test-Path $dockspace) {
+        try {
+            Remove-Item $dockspace -Recurse -Force -ErrorAction Stop
+            Write-Success "Removed legacy 'dockspace' directory"
+            Add-Result "Cleanup" "Legacy Dockspace" $true
+        } catch {
+            Write-Warning-Msg "Failed to remove dockspace: $_"
+        }
+    }
+
     # Summary
     $totalSizeMB = [math]::Round($totalSize / 1MB, 2)
     Write-Info "Total space freed: $totalSizeMB MB"
 
     return $true
+}
+
+# ============================================================================
+# PHASE 4: GIT REMOTE SYNCHRONIZATION & HEALTH
+# ============================================================================
+
+function Invoke-GitRemoteHealth {
+    Write-Header "Phase 4: Git Remote Synchronization" "Blue"
+
+    if (-not (Test-CommandAvailable "git")) {
+        Write-Warning-Msg "Git not available."
+        return $true
+    }
+
+    Write-Info "Updating remote references..."
+    try {
+        git remote update | Out-Null
+        $status = git status -uno
+        if ($status -match "Your branch is behind" -or $status -match "have diverged") {
+            Write-Failure "Remote branch is ahead or diverged. Pull or Rebase required."
+            Add-Result "Health" "Git Remote" $false "Branch behind/diverged"
+            return $false
+        }
+        Write-Success "Git remote is synchronized (or local is ahead)"
+        Add-Result "Health" "Git Remote" $true
+        return $true
+    } catch {
+        Write-Warning-Msg "Git remote update failed (offline?): $_"
+        Add-Result "Health" "Git Remote" $true "Offline/Failed"
+        return $true
+    }
 }
 
 # ============================================================================
@@ -1703,6 +1781,14 @@ function Invoke-MainWorkflow {
     # Phase 0: Version Consistency (always)
     Invoke-VersionConsistencyCheck | Out-Null
 
+    # Phase 1: Smoke Tests (Conftest Check)
+    if (-not $SkipTests) {
+        if (-not (Test-ConftestConfig)) {
+            Write-Failure "Critical Smoke Test Failed. Halting pipeline."
+            exit 1
+        }
+    }
+
     # Execute workflow based on mode
     if ($Mode -eq 'cleanup') {
         Invoke-AutomatedCleanup
@@ -1727,6 +1813,14 @@ function Invoke-MainWorkflow {
         if ($Mode -eq 'full') {
             Invoke-HealthChecks | Out-Null
             Invoke-InstallerAudit | Out-Null
+        }
+
+        # Phase 4: Git Remote Health
+        if (-not (Invoke-GitRemoteHealth)) {
+            if (-not $NonInteractive) {
+                $cont = Read-Host "Remote synchronization issues detected. Continue? (y/N)"
+                if ($cont.ToLower() -ne 'y') { exit 1 }
+            }
         }
 
         # Phase 4: Cleanup

@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.12.6
+Version: 1.12.7
     Created: 2025-12-04
     Updated: 2025-12-24
 
@@ -128,7 +128,7 @@ if (-not $Version) {
 $CurrentVersion = $Version
 $WizardImageScript = Join-Path $InstallerDir "create_wizard_images.ps1"
 $SignerScript = Join-Path $InstallerDir "SIGN_INSTALLER.ps1"
-$IssuSetupScript = Join-Path $InstallerDir "SMS_Installer.iss"
+$InnoSetupScript = Join-Path $InstallerDir "SMS_Installer.iss"
 $InstallerExe = Join-Path $DistDir "SMS_Installer_$CurrentVersion.exe"
 $Certificate = Join-Path $InstallerDir "AUT_MIEEK_CodeSign.pfx"
 
@@ -209,8 +209,8 @@ function Test-VersionConsistency {
     Write-Result Info "VERSION file: $fileVersion"
 
     # Check SMS_Installer.iss reads VERSION dynamically
-    if (Test-FileExists $IssuSetupScript) {
-        $issContent = Get-Content $IssuSetupScript -Raw
+    if (Test-FileExists $InnoSetupScript) {
+        $issContent = Get-Content $InnoSetupScript -Raw
         if ($issContent -match '#define VersionFile FileOpen') {
             Write-Result Success "SMS_Installer.iss reads VERSION file dynamically ✓"
         } else {
