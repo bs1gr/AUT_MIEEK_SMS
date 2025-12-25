@@ -4,7 +4,7 @@ from datetime import date
 
 from sqlalchemy import event
 
-from backend.tests.conftest import engine
+from backend.tests.db_setup import engine
 
 
 def _csrf_headers(client):

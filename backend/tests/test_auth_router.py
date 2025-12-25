@@ -78,20 +78,15 @@ def test_verify_password_invalid_hash():
     assert verify_password("password", "not-a-hash") is False
 
 
-def test_get_current_user_invalid_token():
+def test_get_current_user_invalid_token(db):
     from fastapi import HTTPException
     from starlette.requests import Request
 
     from backend.routers.routers_auth import get_current_user
-    from backend.tests.conftest import TestingSessionLocal
 
-    session = TestingSessionLocal()
-    try:
-        with pytest.raises(HTTPException) as exc:
-            asyncio.run(get_current_user(request=Request({"type": "http"}), token="invalid", db=session))
-        assert exc.value.status_code == 401
-    finally:
-        session.close()
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(get_current_user(request=Request({"type": "http"}), token="invalid", db=db))
+    assert exc.value.status_code == 401
 
 
 def test_get_current_user_inactive_user(client):
@@ -133,7 +128,10 @@ def test_optional_require_role_returns_dummy_when_disabled(monkeypatch):
     from backend.routers import routers_auth
     from backend.routers.routers_auth import optional_require_role
 
-    monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", False)
+    try:
+        monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", False, raising=False)
+    except Exception:
+        object.__setattr__(routers_auth.settings, "AUTH_ENABLED", False)
     dependency = optional_require_role("admin")
     dummy = dependency()  # type: ignore[call-arg]
     assert dummy.role == "admin"
@@ -146,7 +144,10 @@ def test_optional_require_role_enforces_when_enabled(monkeypatch):
     from backend.routers import routers_auth
     from backend.routers.routers_auth import optional_require_role
 
-    monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", True)
+    try:
+        monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", True, raising=False)
+    except Exception:
+        object.__setattr__(routers_auth.settings, "AUTH_ENABLED", True)
     dependency = optional_require_role("admin")
     admin = SimpleNamespace(role="admin")
     assert dependency(Request({"type": "http"}), admin) is admin  # type: ignore[misc]
