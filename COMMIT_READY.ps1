@@ -185,6 +185,7 @@ $script:Results = @{
     Health = @()
     Overall = $true
     StartTime = Get-Date
+    BackendDepsInstalled = $false
 }
 
 # ============================================================================
@@ -302,6 +303,9 @@ function Invoke-PreCommitHookValidation {
             } catch {
                 Write-Failure "Pre-commit hooks failed. Please review and fix issues."
                 Write-Info "To bypass these checks (e.g. for false positives), run with -SkipLint"
+                Write-Info "If detect-secrets failed, try updating the baseline:"
+                Write-Info "    detect-secrets scan --update .secrets.baseline"
+                Write-Info "    (Requires detect-secrets >= 1.5.0)"
                 exit 1
             }
         } else {
@@ -345,31 +349,42 @@ function Test-ConftestConfig {
 # Ensure Python backend dependencies are installed (CI-safe)
 function Install-BackendDependencies {
     Write-Section "Backend: Ensure Python Dependencies"
+    if ($script:Results.BackendDepsInstalled) {
+        Write-Info "Backend dependencies already checked this session."
+        return $true
+    }
+
     try {
         Push-Location $BACKEND_DIR
         $pipAvailable = Test-CommandAvailable -Name "pip"
         $pythonAvailable = Test-CommandAvailable -Name "python"
         $installed = $false
 
+        # Determine requirements file (support both runtime split and standard)
+        $reqFile = "requirements-runtime.txt"
+        if (-not (Test-Path $reqFile)) {
+            $reqFile = "requirements.txt"
+        }
+
         # Prefer pip if available, else python -m pip
         if ($pipAvailable) {
-            Write-Info "Installing runtime requirements (pip)"
-            $out = pip install -r requirements-runtime.txt 2>&1
+            Write-Info "Installing runtime requirements (pip) from $reqFile"
+            $out = pip install --upgrade -r $reqFile 2>&1
             if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (pip)"
-                $out = pip install -r requirements-dev.txt 2>&1
+                $out = pip install --upgrade -r requirements-dev.txt 2>&1
                 if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pip install dev failed" }
             }
         } elseif ($pythonAvailable) {
-            Write-Info "Installing runtime requirements (python -m pip)"
-            $out = python -m pip install -r requirements-runtime.txt 2>&1
+            Write-Info "Installing runtime requirements (python -m pip) from $reqFile"
+            $out = python -m pip install --upgrade -r $reqFile 2>&1
             if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install runtime failed" }
             $installed = $true
             if (Test-Path "requirements-dev.txt") {
                 Write-Info "Installing dev requirements (python -m pip)"
-                $out = python -m pip install -r requirements-dev.txt 2>&1
+                $out = python -m pip install --upgrade -r requirements-dev.txt 2>&1
                 if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "python pip install dev failed" }
             }
         } else {
@@ -379,6 +394,7 @@ function Install-BackendDependencies {
         if ($installed) {
             Write-Success "Backend dependencies ensured"
             Add-Result "Tests" "Backend Dependencies" $true
+            $script:Results.BackendDepsInstalled = $true
             return $true
         } else {
             Add-Result "Tests" "Backend Dependencies" $false "pip/python not available"
@@ -937,6 +953,67 @@ function Invoke-CodeQualityChecks {
         Pop-Location
     }
 
+    # Backend: MyPy Type Checking
+    Write-Section "Backend: MyPy Type Checking"
+
+    try {
+        Push-Location $SCRIPT_DIR
+        Write-Info "Running mypy..."
+        $mypyAvailable = Test-CommandAvailable -Name "mypy"
+
+        if ($mypyAvailable) {
+            # Check if config exists, otherwise run without specific config
+            $mypyConfig = Join-Path (Join-Path $SCRIPT_DIR "config") "mypy.ini"
+            if (Test-Path $mypyConfig) {
+                $output = mypy --config-file "$mypyConfig" backend --namespace-packages 2>&1
+            } else {
+                $output = mypy backend --namespace-packages 2>&1
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Backend type checking passed"
+                Add-Result "Linting" "Backend MyPy" $true
+            } else {
+                Write-Failure "Backend type checking failed"
+                Write-Host $output -ForegroundColor Gray
+                Add-Result "Linting" "Backend MyPy" $false $output
+                $allPassed = $false
+            }
+        } else {
+            # Try python -m mypy
+            $pythonAvailable = Test-CommandAvailable -Name "python"
+            if ($pythonAvailable) {
+                $mypyConfig = Join-Path (Join-Path $SCRIPT_DIR "config") "mypy.ini"
+                if (Test-Path $mypyConfig) {
+                    $output = python -m mypy --config-file "$mypyConfig" backend --namespace-packages 2>&1
+                } else {
+                    $output = python -m mypy backend --namespace-packages 2>&1
+                }
+
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Backend type checking passed"
+                    Add-Result "Linting" "Backend MyPy" $true
+                } else {
+                    Write-Failure "Backend type checking failed"
+                    Write-Host $output -ForegroundColor Gray
+                    Add-Result "Linting" "Backend MyPy" $false $output
+                    $allPassed = $false
+                }
+            } else {
+                Write-Warning-Msg "MyPy is not available; skipping backend type check"
+                Add-Result "Linting" "Backend MyPy" $true "Skipped"
+            }
+        }
+    }
+    catch {
+        Write-Failure "Backend type checking error: $_"
+        Add-Result "Linting" "Backend MyPy" $false $_
+        $allPassed = $false
+    }
+    finally {
+        Pop-Location
+    }
+
     # Frontend: ESLint
     Write-Section "Frontend: ESLint"
     try {
@@ -980,7 +1057,7 @@ function Invoke-CodeQualityChecks {
         Push-Location $SCRIPT_DIR
         $npxAvailable = Test-CommandAvailable -Name "npx"
         if ($npxAvailable) {
-            $mdConfig = Join-Path $SCRIPT_DIR "config\.markdownlint.json"
+            $mdConfig = Join-Path (Join-Path $SCRIPT_DIR "config") ".markdownlint.json"
             $mdIgnore = Join-Path $SCRIPT_DIR ".markdownlintignore"
 
             # Always auto-fix markdown issues (safe and trivial formatting changes)
@@ -1139,13 +1216,16 @@ function Invoke-TestSuite {
 
     $allPassed = $true
 
-    # Ensure backend deps (help CI runners without preinstalled packages)
-    Install-BackendDependencies | Out-Null
-
     # Backend tests
     Write-Section "Backend: pytest"
     try {
         Push-Location $BACKEND_DIR
+
+        # Set default DB for local tests if not present (prevents connection errors)
+        if (-not $env:DATABASE_URL) {
+            $env:DATABASE_URL = "sqlite:///:memory:"
+            Write-Info "Using in-memory SQLite for local tests (DATABASE_URL not set)"
+        }
 
         if ($Mode -eq 'quick') {
             Write-Info "Running fast backend tests only..."
@@ -1373,19 +1453,20 @@ function Invoke-AutomatedCleanup {
     $cleanupStart = Get-Date
 
     # Exclude very large folders from a full recursive sweep
+    $sep = [System.IO.Path]::DirectorySeparatorChar
     $excludePatterns = @(
-        '\.git\',
-        '\\node_modules\\',
-        '\\frontend\\node_modules\\',
-        '\\.venv\\',
-        '\\backend\\.venv\\',
-        '\\backend\\venv\\',
-        '\\venv\\',
-        '\\backups\\',
-        '\\data\\',
-        '\\logs\\',
-        '\\docker\\',
-        '\\dockspace\\'
+        "${sep}.git${sep}",
+        "${sep}node_modules${sep}",
+        "${sep}frontend${sep}node_modules${sep}",
+        "${sep}.venv${sep}",
+        "${sep}backend${sep}.venv${sep}",
+        "${sep}backend${sep}venv${sep}",
+        "${sep}venv${sep}",
+        "${sep}backups${sep}",
+        "${sep}data${sep}",
+        "${sep}logs${sep}",
+        "${sep}docker${sep}",
+        "${sep}dockspace${sep}"
     )
 
     $totalRemoved = 0
@@ -1780,6 +1861,12 @@ function Invoke-MainWorkflow {
 
     # Phase 0: Version Consistency (always)
     Invoke-VersionConsistencyCheck | Out-Null
+
+    # Phase 0.5: Ensure Dependencies (Before hooks or tests run)
+    if ($Mode -ne 'cleanup') {
+        # We ignore the result here; if it fails, subsequent steps will report specific errors
+        Install-BackendDependencies | Out-Null
+    }
 
     # Phase 1: Smoke Tests (Conftest Check)
     if (-not $SkipTests) {

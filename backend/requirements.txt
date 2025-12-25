@@ -18,7 +18,7 @@ slowapi==0.1.9  # Rate limiting for API endpoints
 fastapi-csrf-protect==1.0.7  # CSRF protection for state-changing operations
 passlib[bcrypt]==1.7.4  # Password hashing
 PyJWT==2.9.0            # JWT tokens (replaces python-jose)
-docker
+docker==7.1.0
 prometheus-client==0.21.0  # Prometheus metrics
 prometheus-fastapi-instrumentator==7.0.0  # FastAPI Prometheus integration
 opentelemetry-api==1.27.0
@@ -26,3 +26,4 @@ opentelemetry-sdk==1.27.0
 opentelemetry-exporter-otlp==1.27.0
 opentelemetry-instrumentation-fastapi==0.48b0
 redis==5.0.1  # Redis caching support (optional, enable via REDIS_ENABLED=true)
+psycopg2-binary==2.9.9  # Fallback driver for postgresql:// connection strings
