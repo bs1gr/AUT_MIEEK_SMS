@@ -150,6 +150,9 @@ templates/students/*.csv
 temp_export_*/
 SMS-Docker-Image-*.tar
 
+# Deprecated/Legacy Artifacts
+dockspace/
+
 # Code signing private key
 *.pfx
 AUT_MIEEK_CodeSign.pfx
