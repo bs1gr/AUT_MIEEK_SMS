@@ -39,8 +39,7 @@ def get_version():
         version = version_file.read_text(encoding="utf-8").strip()
         return version
     except Exception as e:
-        print(f"WARNING: Could not read VERSION file: {e}")
-        return "1.11.2"  # Fallback version
+        raise RuntimeError(f"Could not read VERSION file: {e}")
 
 
 def get_greek_texts(version):
