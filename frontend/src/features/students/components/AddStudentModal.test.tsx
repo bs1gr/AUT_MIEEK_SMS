@@ -112,7 +112,7 @@ describe('AddStudentModal', () => {
       const user = userEvent.setup();
       renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
 
-      const addressField = screen.getByRole('textbox', { name: 'Address' });
+      const addressField = screen.getAllByLabelText(/address/i)[0];
       await user.type(addressField, '123 Main St, City');
 
       expect(addressField).toHaveValue('123 Main St, City');

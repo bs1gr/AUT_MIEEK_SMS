@@ -94,8 +94,12 @@ def test_attendance_analytics_export_contains_period_breakdown(client):
     assert period_two[3] == 1  # absent count in period 2
 
     student_summary = workbook["Student Summary"]
-    student_one_row = _find_row_by_first_cell(student_summary, student_one["student_id"])
-    student_two_row = _find_row_by_first_cell(student_summary, student_two["student_id"])
+    student_one_row = _find_row_by_first_cell(
+        student_summary, student_one["student_id"]
+    )
+    student_two_row = _find_row_by_first_cell(
+        student_summary, student_two["student_id"]
+    )
     # Row schema: student_id, name, total, present, absent, late, excused, dominant
     assert student_one_row[2] == 2
     assert student_one_row[3] == 1

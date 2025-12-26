@@ -48,7 +48,9 @@ def scan_file(path: Path) -> List[Tuple[str, int]]:
     missing: List[Tuple[str, int]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            if _is_write_endpoint(node.decorator_list) and not _function_has_limit(node.decorator_list):
+            if _is_write_endpoint(node.decorator_list) and not _function_has_limit(
+                node.decorator_list
+            ):
                 missing.append((node.name, node.lineno))
     return missing
 

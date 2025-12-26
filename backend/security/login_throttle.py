@@ -28,9 +28,17 @@ class LoginThrottle:
 
     def _limits(self) -> tuple[int, timedelta, timedelta]:
         max_attempts = max(1, int(getattr(settings, "AUTH_LOGIN_MAX_ATTEMPTS", 5)))
-        window_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300)))
-        lockout_seconds = max(1, int(getattr(settings, "AUTH_LOGIN_LOCKOUT_SECONDS", 300)))
-        return max_attempts, timedelta(seconds=window_seconds), timedelta(seconds=lockout_seconds)
+        window_seconds = max(
+            1, int(getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300))
+        )
+        lockout_seconds = max(
+            1, int(getattr(settings, "AUTH_LOGIN_LOCKOUT_SECONDS", 300))
+        )
+        return (
+            max_attempts,
+            timedelta(seconds=window_seconds),
+            timedelta(seconds=lockout_seconds),
+        )
 
     def get_lockout_until(self, key: str) -> Optional[datetime]:
         now = _now()

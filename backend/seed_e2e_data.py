@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from backend.models import User, Student, Course, Base
+from backend.security.password_hash import get_password_hash
+
 """Seed test data for E2E tests.
 
 This script creates test users, students, courses, and other entities
@@ -6,17 +13,9 @@ needed for end-to-end testing.
 Run from project root: python backend/seed_e2e_data.py
 """
 
-import sys
-from pathlib import Path
-
 # Ensure we can import backend modules
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from backend.models import User, Student, Course, Base
-from backend.routers.routers_auth import get_password_hash
 
 
 def seed_e2e_data():
@@ -53,10 +52,30 @@ def seed_e2e_data():
 
         # Create test students
         students_data = [
-            {"first_name": "John", "last_name": "Doe", "email": "john.doe@example.com", "student_id": "S001"},
-            {"first_name": "Jane", "last_name": "Smith", "email": "jane.smith@example.com", "student_id": "S002"},
-            {"first_name": "Alice", "last_name": "Johnson", "email": "alice.j@example.com", "student_id": "S003"},
-            {"first_name": "Bob", "last_name": "Williams", "email": "bob.w@example.com", "student_id": "S004"},
+            {
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john.doe@example.com",
+                "student_id": "S001",
+            },
+            {
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "email": "jane.smith@example.com",
+                "student_id": "S002",
+            },
+            {
+                "first_name": "Alice",
+                "last_name": "Johnson",
+                "email": "alice.j@example.com",
+                "student_id": "S003",
+            },
+            {
+                "first_name": "Bob",
+                "last_name": "Williams",
+                "email": "bob.w@example.com",
+                "student_id": "S004",
+            },
         ]
 
         for student_data in students_data:
@@ -65,8 +84,16 @@ def seed_e2e_data():
 
         # Create test courses
         courses_data = [
-            {"course_code": "CS101", "course_name": "Introduction to Computer Science", "semester": "Fall 2024"},
-            {"course_code": "MATH201", "course_name": "Calculus II", "semester": "Fall 2024"},
+            {
+                "course_code": "CS101",
+                "course_name": "Introduction to Computer Science",
+                "semester": "Fall 2024",
+            },
+            {
+                "course_code": "MATH201",
+                "course_name": "Calculus II",
+                "semester": "Fall 2024",
+            },
         ]
 
         for course_data in courses_data:

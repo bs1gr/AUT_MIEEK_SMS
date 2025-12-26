@@ -1,18 +1,17 @@
-# Ensure project root is on sys.path so 'backend' package is importable when CWD is backend/
 import os
 import sys
 from logging.config import fileConfig
-
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from backend.config import settings
+from backend.models import Base
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+)
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Import backend settings and models
-from backend.config import settings  # noqa: E402
-from backend.models import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

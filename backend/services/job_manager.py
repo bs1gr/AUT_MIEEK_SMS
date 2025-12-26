@@ -116,7 +116,9 @@ class JobManager:
         return JobResponse(**job_data)
 
     @staticmethod
-    def update_status(job_id: str, status: JobStatus, error_message: Optional[str] = None) -> None:
+    def update_status(
+        job_id: str, status: JobStatus, error_message: Optional[str] = None
+    ) -> None:
         """
         Update job status.
 
@@ -214,7 +216,9 @@ class JobManager:
             return
 
         job_data["result"] = result.model_dump()
-        job_data["status"] = JobStatus.COMPLETED.value if result.success else JobStatus.FAILED.value
+        job_data["status"] = (
+            JobStatus.COMPLETED.value if result.success else JobStatus.FAILED.value
+        )
         job_data["completed_at"] = datetime.now(timezone.utc).isoformat()
 
         if not result.success and result.errors:

@@ -68,7 +68,10 @@ class EnrollmentService:
 
         enrollments = (
             db.query(CourseEnrollment)
-            .filter(CourseEnrollment.course_id == course_id, CourseEnrollment.deleted_at.is_(None))
+            .filter(
+                CourseEnrollment.course_id == course_id,
+                CourseEnrollment.deleted_at.is_(None),
+            )
             .all()
         )
 
@@ -99,7 +102,10 @@ class EnrollmentService:
 
         enrollments = (
             db.query(CourseEnrollment)
-            .filter(CourseEnrollment.student_id == student_id, CourseEnrollment.deleted_at.is_(None))
+            .filter(
+                CourseEnrollment.student_id == student_id,
+                CourseEnrollment.deleted_at.is_(None),
+            )
             .all()
         )
 
@@ -189,7 +195,10 @@ class EnrollmentService:
             # Use locking to prevent race conditions
             existing = (
                 db.query(CourseEnrollment)
-                .filter(CourseEnrollment.student_id == sid, CourseEnrollment.course_id == course_id)
+                .filter(
+                    CourseEnrollment.student_id == sid,
+                    CourseEnrollment.course_id == course_id,
+                )
                 .with_for_update()
                 .first()
             )

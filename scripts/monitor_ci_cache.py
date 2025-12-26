@@ -237,6 +237,7 @@ class CacheMetricsCollector:
             print(f"Analyzing run #{run_number} (ID: {run_id})...")
             jobs = self.get_job_details(run_id)
             metrics = self.analyze_cache_performance(jobs)
+            print(f"DEBUG: run {run_number} metrics: {metrics}")
 
             run_data = {
                 "run_number": run_number,

@@ -160,7 +160,7 @@ describe('EditStudentModal', () => {
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
       );
 
-      const addressField = screen.getByRole('textbox', { name: 'Address' });
+      const addressField = screen.getByTestId('address-input');
       await user.type(addressField, '456 Oak Ave');
 
       expect(addressField).toHaveValue('456 Oak Ave');

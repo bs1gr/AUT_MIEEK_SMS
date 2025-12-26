@@ -12,7 +12,9 @@ def test_import_from_possible_locations_prefers_backend():
     assert module.__name__ in {"backend.config", "config"}
 
 
-def test_import_from_possible_locations_raises_when_missing(monkeypatch: pytest.MonkeyPatch):
+def test_import_from_possible_locations_raises_when_missing(
+    monkeypatch: pytest.MonkeyPatch,
+):
     def fake_find_spec(name):
         return None
 
@@ -26,7 +28,9 @@ def test_import_names_raises_for_missing_attribute(monkeypatch: pytest.MonkeyPat
     class DummyModule:
         __name__ = "dummy"
 
-    monkeypatch.setattr(import_resolver, "import_from_possible_locations", lambda module: DummyModule())
+    monkeypatch.setattr(
+        import_resolver, "import_from_possible_locations", lambda module: DummyModule()
+    )
 
     with pytest.raises(ImportError):
         import_resolver.import_names("models", "MissingThing")
@@ -34,7 +38,9 @@ def test_import_names_raises_for_missing_attribute(monkeypatch: pytest.MonkeyPat
 
 def test_import_from_possible_locations_not_found():
     with pytest.raises(ImportError):
-        import_resolver.import_from_possible_locations("this_module_does_not_exist_abc123")
+        import_resolver.import_from_possible_locations(
+            "this_module_does_not_exist_abc123"
+        )
 
 
 def test_import_names_attribute_missing():

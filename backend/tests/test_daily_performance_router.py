@@ -39,7 +39,9 @@ def _create_course(client, idx: int = 1) -> Dict[str, Any]:
     return cast(Dict[str, Any], response.json())
 
 
-def _create_daily_performance(client, student_id: int, course_id: int, **overrides) -> Dict[str, Any]:
+def _create_daily_performance(
+    client, student_id: int, course_id: int, **overrides
+) -> Dict[str, Any]:
     payload: Dict[str, object] = {
         "student_id": student_id,
         "course_id": course_id,
@@ -59,7 +61,9 @@ def test_create_daily_performance_success(client):
     student = _create_student(client, 1)
     course = _create_course(client, 1)
 
-    created = _create_daily_performance(client, student["id"], course["id"], notes="Showing improvement")
+    created = _create_daily_performance(
+        client, student["id"], course["id"], notes="Showing improvement"
+    )
 
     assert created["student_id"] == student["id"]
     assert created["course_id"] == course["id"]
@@ -89,10 +93,16 @@ def test_get_student_course_daily_performance_filters_by_course(client):
     course_a = _create_course(client, 1)
     course_b = _create_course(client, 2)
 
-    _create_daily_performance(client, student["id"], course_a["id"], category="Presentation")
-    _create_daily_performance(client, student["id"], course_b["id"], category="Homework")
+    _create_daily_performance(
+        client, student["id"], course_a["id"], category="Presentation"
+    )
+    _create_daily_performance(
+        client, student["id"], course_b["id"], category="Homework"
+    )
 
-    response = client.get(f"/api/v1/daily-performance/student/{student['id']}/course/{course_a['id']}")
+    response = client.get(
+        f"/api/v1/daily-performance/student/{student['id']}/course/{course_a['id']}"
+    )
     assert response.status_code == 200
     items = response.json()
     assert len(items) == 1
@@ -102,7 +112,9 @@ def test_get_student_course_daily_performance_filters_by_course(client):
 
 def test_get_course_daily_performance_by_date_requires_iso_format(client):
     course = _create_course(client, 1)
-    response = client.get(f"/api/v1/daily-performance/date/not-a-date/course/{course['id']}")
+    response = client.get(
+        f"/api/v1/daily-performance/date/not-a-date/course/{course['id']}"
+    )
     assert response.status_code == 400
     assert get_error_message(response.json()) == "Invalid date format. Use YYYY-MM-DD"
 
@@ -112,10 +124,16 @@ def test_get_course_daily_performance_by_date_filters_results(client):
     course = _create_course(client, 1)
 
     target_date = date(2025, 1, 15)
-    _create_daily_performance(client, student["id"], course["id"], date=target_date.isoformat())
-    _create_daily_performance(client, student["id"], course["id"], date=date(2025, 1, 16).isoformat())
+    _create_daily_performance(
+        client, student["id"], course["id"], date=target_date.isoformat()
+    )
+    _create_daily_performance(
+        client, student["id"], course["id"], date=date(2025, 1, 16).isoformat()
+    )
 
-    response = client.get(f"/api/v1/daily-performance/date/{target_date.isoformat()}/course/{course['id']}")
+    response = client.get(
+        f"/api/v1/daily-performance/date/{target_date.isoformat()}/course/{course['id']}"
+    )
     assert response.status_code == 200
     items = response.json()
     assert len(items) == 1
@@ -129,7 +147,9 @@ def test_create_daily_performance_handles_internal_errors(client, monkeypatch):
     def _raise_import_error(*_args, **_kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("backend.routers.routers_performance.import_names", _raise_import_error)
+    monkeypatch.setattr(
+        "backend.routers.routers_performance.import_names", _raise_import_error
+    )
 
     response = client.post(
         "/api/v1/daily-performance/",
@@ -150,7 +170,9 @@ def test_get_student_daily_performance_handles_unexpected_errors(client, monkeyp
     def _raise_import_error(*_args, **_kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("backend.routers.routers_performance.import_names", _raise_import_error)
+    monkeypatch.setattr(
+        "backend.routers.routers_performance.import_names", _raise_import_error
+    )
 
     response = client.get("/api/v1/daily-performance/student/1")
 
@@ -164,7 +186,9 @@ def test_update_daily_performance_success(client):
     course = _create_course(client, 1)
 
     # Create a record
-    created = _create_daily_performance(client, student["id"], course["id"], score=7.5, notes="Initial")
+    created = _create_daily_performance(
+        client, student["id"], course["id"], score=7.5, notes="Initial"
+    )
     record_id = created["id"]
 
     # Update the record

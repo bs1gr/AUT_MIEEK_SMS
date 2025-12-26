@@ -25,4 +25,8 @@ class BaseService(Generic[T]):
         return query.offset(skip).limit(limit).all()
 
     def get_by_id(self, entity_id: int):
-        return self.db.query(self.model).filter(getattr(self.model, "id") == entity_id).first()
+        return (
+            self.db.query(self.model)
+            .filter(getattr(self.model, "id") == entity_id)
+            .first()
+        )

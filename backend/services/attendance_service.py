@@ -167,7 +167,11 @@ class AttendanceService:
             or new_period_number != db_attendance.period_number
         ):
             self._assert_unique_attendance(
-                new_student_id, new_course_id, new_date, new_period_number, exclude_id=attendance_id
+                new_student_id,
+                new_course_id,
+                new_date,
+                new_period_number,
+                exclude_id=attendance_id,
             )
 
         with transaction(self.db):

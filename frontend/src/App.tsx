@@ -132,7 +132,7 @@ function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
+    <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col relative z-10">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
       <BackendStatusBanner />
 
@@ -146,8 +146,8 @@ function AppLayout({ children }: AppLayoutProps) {
 
       {/* Header with Title and Language Toggle */}
       <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('systemTitle')}</h1>
+        <div className="space-y-1 pointer-events-none z-0">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 pointer-events-none z-0">{t('systemTitle')}</h1>
           {!isAuthenticated && (
             <p className="max-w-xl text-sm text-gray-600 dark:text-gray-300">
               {t('auth.loginDescription')}

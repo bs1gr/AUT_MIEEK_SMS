@@ -57,7 +57,7 @@ export const generateTeacherUser = (): TestUser => {
   const rnd = generateRandomString();
   return {
     email: `teacher-${rnd}@test.edu`,
-    password: 'Teacher-Pass-1!',
+    password: 'Teacher-Pass-1!', // pragma: allowlist secret
     fullName: `E2E Teacher ${rnd}`,
     role: 'teacher',
   };

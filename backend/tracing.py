@@ -18,7 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 def setup_tracing(app: FastAPI) -> None:
-    if (os.environ.get("ENABLE_TRACING") or "").strip().lower() not in {"1", "true", "yes", "on"}:
+    if (os.environ.get("ENABLE_TRACING") or "").strip().lower() not in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
         return
 
     try:
@@ -26,7 +31,9 @@ def setup_tracing(app: FastAPI) -> None:
         from opentelemetry.sdk.resources import Resource
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter,
+        )
 
         resource = Resource.create({"service.name": "student-management-system"})
         provider = TracerProvider(resource=resource)

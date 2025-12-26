@@ -41,7 +41,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com",
-    "password": "securepassword123"
+    "password": "securepassword123" # pragma: allowlist secret
   }'
 ```
 
@@ -1619,7 +1619,7 @@ X-RateLimit-Reset: 1702320060
 # Store token in secure cookie or memory (never localStorage for sensitive systems)
 TOKEN=$(curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "pass"}' \
+  -d '{"email": "user@example.com", "password": "pass"}' \ # pragma: allowlist secret
   | jq -r '.access_token')
 
 # Use Bearer scheme

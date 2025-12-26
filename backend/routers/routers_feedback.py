@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from backend.db import get_session
 from backend.models import AuditLog
-from backend.schemas import User
-from backend.dependencies import get_current_user_optional
+from backend.schemas.users import UserResponse
+from backend.routers.routers_auth import optional_require_role
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 import logging
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 async def submit_feedback(
     request: Request,
     db: Session = Depends(get_session),
-    user: User = Depends(get_current_user_optional),
+    user: UserResponse = Depends(optional_require_role()),
 ):
     data = await request.json()
     feedback = data.get("feedback", "").strip()
@@ -43,5 +43,8 @@ async def submit_feedback(
     )
     db.add(audit)
     db.commit()
-    logger.info(f"Feedback submitted: {feedback[:100]}...", extra={"user_id": getattr(user, "id", None)})
+    logger.info(
+        f"Feedback submitted: {feedback[:100]}...",
+        extra={"user_id": getattr(user, "id", None)},
+    )
     return {"status": "ok"}

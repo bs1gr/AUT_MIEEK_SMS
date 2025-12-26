@@ -32,7 +32,9 @@ if __name__ == "__main__":
 
     print("Starting test server on http://127.0.0.1:8001")
     if Instrumentator is None:
-        print("prometheus-fastapi-instrumentator not installed; /metrics will not be exposed.")
+        print(
+            "prometheus-fastapi-instrumentator not installed; /metrics will not be exposed."
+        )
     else:
         print("Test /metrics at: http://127.0.0.1:8001/metrics")
     uvicorn.run(app, host="127.0.0.1", port=8001)

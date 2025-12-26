@@ -32,15 +32,24 @@ class PerformanceReportRequest(BaseModel):
 
     student_id: int = Field(..., description="Student ID")
     course_ids: Optional[List[int]] = Field(
-        None, description="Optional list of course IDs to include (all courses if empty)"
+        None,
+        description="Optional list of course IDs to include (all courses if empty)",
     )
-    start_date: Optional[date] = Field(None, description="Report start date (for custom period)")
-    end_date: Optional[date] = Field(None, description="Report end date (for custom period)")
-    period: ReportPeriod = Field(ReportPeriod.SEMESTER, description="Report time period")
+    start_date: Optional[date] = Field(
+        None, description="Report start date (for custom period)"
+    )
+    end_date: Optional[date] = Field(
+        None, description="Report end date (for custom period)"
+    )
+    period: ReportPeriod = Field(
+        ReportPeriod.SEMESTER, description="Report time period"
+    )
     format: ReportFormat = Field(ReportFormat.JSON, description="Output format")
     include_grades: bool = Field(True, description="Include grade information")
     include_attendance: bool = Field(True, description="Include attendance information")
-    include_daily_performance: bool = Field(True, description="Include daily performance scores")
+    include_daily_performance: bool = Field(
+        True, description="Include daily performance scores"
+    )
     include_highlights: bool = Field(True, description="Include semester highlights")
 
 

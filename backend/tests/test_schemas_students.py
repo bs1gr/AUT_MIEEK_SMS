@@ -87,4 +87,6 @@ def test_student_update_validators(field: str, value):
 
 def test_student_update_rejects_future_enrollment():
     with pytest.raises(ValidationError):
-        StudentUpdate.model_validate({"enrollment_date": date.today() + timedelta(days=2)})
+        StudentUpdate.model_validate(
+            {"enrollment_date": date.today() + timedelta(days=2)}
+        )

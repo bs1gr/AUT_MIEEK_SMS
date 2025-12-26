@@ -97,6 +97,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               onClick={() => onViewProfile(student.id)}
               className="text-blue-600 hover:underline"
               aria-label={t('viewProfile') || t('fullProfile') || 'View Profile'}
+              data-testid={`student-view-profile-btn-${student.id}`}
             >
               {t('viewProfile') || t('fullProfile') || 'View Profile'}
             </button>
@@ -105,13 +106,24 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
             onClick={() => onToggleExpand(student.id)}
             className="text-indigo-600 hover:underline font-medium"
             aria-label={isExpanded ? t('close') : t('viewPerformance') || t('view')}
+            data-testid={`student-expand-btn-${student.id}`}
           >
             {isExpanded ? t('close') : t('viewPerformance') || t('view')}
           </button>
-          <button onClick={() => onEdit(student)} className="text-green-600 hover:underline" aria-label={t('edit')}>
+          <button
+            onClick={() => onEdit(student)}
+            className="text-green-600 hover:underline"
+            aria-label={t('edit')}
+            data-testid={`student-edit-btn-${student.id}`}
+          >
             {t('edit')}
           </button>
-          <button onClick={() => onDelete(student.id)} className="text-red-600 hover:underline" aria-label={t('delete')}>
+          <button
+            onClick={() => onDelete(student.id)}
+            className="text-red-600 hover:underline"
+            aria-label={t('delete')}
+            data-testid={`student-delete-btn-${student.id}`}
+          >
             {t('delete')}
           </button>
         </div>

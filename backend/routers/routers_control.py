@@ -12,23 +12,17 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-# Import the combined router from the modular control package and expose it
+
 from backend.routers.control import router as _combined_router
-
-router = _combined_router
-
-# Re-export selected handler(s) for direct invocation in tests
 from backend.routers.control.common import (
     check_docker_running as _real_check_docker_running,
-)
-
-# Backward-compat monkeypatch hooks used by tests
-from backend.routers.control.common import (
     check_npm_installed as _real_check_npm_installed,
 )
 from backend.routers.control.operations import (
     download_database_backup as download_database_backup,
 )
+
+router = _combined_router
 
 
 def _check_npm_installed() -> Tuple[bool, Optional[str]]:

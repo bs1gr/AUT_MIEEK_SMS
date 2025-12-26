@@ -13,7 +13,11 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/users", response_model=list[UserResponse])
-def list_users(request: Request, db: Session = Depends(get_db), current_admin=Depends(require_role("admin"))):
+def list_users(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin=Depends(require_role("admin")),
+):
     """List all users (admin only)."""
     users = db.query(User).all()
     return [UserResponse.model_validate(u) for u in users]

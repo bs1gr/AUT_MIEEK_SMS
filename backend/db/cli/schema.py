@@ -2,21 +2,20 @@
 Database schema management utilities - verify, inspect, and maintain schema integrity.
 
 Usage:
-  python -m backend.db.cli.schema verify
-  python -m backend.db.cli.schema inspect
-  python -m backend.db.cli.schema check-drift
+    python -m backend.db.cli.schema verify
+    python -m backend.db.cli.schema inspect
+    python -m backend.db.cli.schema check-drift
 """
 
 import sys
 from pathlib import Path
-
 from sqlalchemy import inspect, text
+from backend.db import engine, ensure_schema
 
 # Ensure repository root is on sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from backend.db import engine, ensure_schema
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def verify_schema() -> bool:

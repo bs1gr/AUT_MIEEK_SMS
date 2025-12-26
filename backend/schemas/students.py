@@ -68,7 +68,9 @@ class StudentCreate(BaseModel):
         # Allow alphanumerics plus '-' and '_' and must start with alphanumeric
         vv = v.strip()
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\-_]{0,49}", vv):
-            raise ValueError("Student ID must be alphanumeric and may include '-' or '_' (max 50 chars)")
+            raise ValueError(
+                "Student ID must be alphanumeric and may include '-' or '_' (max 50 chars)"
+            )
         return vv
 
     @field_validator("mobile_phone", "phone")
@@ -79,7 +81,9 @@ class StudentCreate(BaseModel):
         vv = v.strip()
         # Basic international format: optional + and 7-15 digits
         if not re.fullmatch(r"\+?\d{7,15}", vv):
-            raise ValueError("Phone must be digits with optional leading + (7-15 digits)")
+            raise ValueError(
+                "Phone must be digits with optional leading + (7-15 digits)"
+            )
         return vv
 
     @field_validator("study_year")
@@ -158,7 +162,9 @@ class StudentUpdate(BaseModel):
             return v
         vv = v.strip()
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\-_]{0,49}", vv):
-            raise ValueError("Student ID must be alphanumeric and may include '-' or '_' (max 50 chars)")
+            raise ValueError(
+                "Student ID must be alphanumeric and may include '-' or '_' (max 50 chars)"
+            )
         return vv
 
     @field_validator("mobile_phone", "phone")
@@ -168,7 +174,9 @@ class StudentUpdate(BaseModel):
             return v
         vv = v.strip()
         if not re.fullmatch(r"\+?\d{7,15}", vv):
-            raise ValueError("Phone must be digits with optional leading + (7-15 digits)")
+            raise ValueError(
+                "Phone must be digits with optional leading + (7-15 digits)"
+            )
         return vv
 
     @field_validator("study_year")

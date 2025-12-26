@@ -99,7 +99,8 @@ class RuntimeContext:
         """Return a human readable summary of the detected context."""
 
         return (
-            f"environment={self.environment.value} (source={self.source}), " f"docker={self.is_docker}, ci={self.is_ci}"
+            f"environment={self.environment.value} (source={self.source}), "
+            f"docker={self.is_docker}, ci={self.is_ci}"
         )
 
 

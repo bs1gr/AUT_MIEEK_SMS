@@ -1,0 +1,132 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run backend tests (pytest)",
+      "type": "shell",
+      "command": "python -m pytest -q",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Run frontend tests (vitest)",
+      "type": "shell",
+      "command": "npm run test -- --run",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Run all tests",
+      "dependsOn": [
+        "Run backend tests (pytest)",
+        "Run frontend tests (vitest)"
+      ],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run vitest API tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"frontend",
+				"run",
+				"-s",
+				"test",
+				"--",
+				"--run",
+				"src/api/__tests__/api.request.interceptor.test.ts",
+				"src/api/__tests__/api.client.test.ts"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run vitest API tests (frontend)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"frontend",
+				"run",
+				"-s",
+				"test",
+				"--",
+				"src/api/__tests__/api.request.interceptor.test.ts",
+				"src/api/__tests__/api.client.test.ts"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run vitest API tests (run mode)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"frontend",
+				"exec",
+				"-y",
+				"vitest",
+				"--root",
+				"frontend",
+				"run",
+				"src/api/__tests__/api.request.interceptor.test.ts",
+				"src/api/__tests__/api.client.test.ts"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run vitest API tests (npx)",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-Command",
+				"Push-Location 'd:/SMS/student-management-system/frontend'; npx -y vitest run src/api/__tests__/api.request.interceptor.test.ts src/api/__tests__/api.client.test.ts; Pop-Location"
+			],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run vitest API tests",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"-s",
+				"test",
+				"--",
+				"frontend/src/api/__tests__/api.request.interceptor.test.ts",
+				"frontend/src/api/__tests__/api.client.test.ts"
+			],
+			"group": "build"
+		}
+	]
+}

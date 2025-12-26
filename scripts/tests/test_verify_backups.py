@@ -30,6 +30,7 @@ def create_test_db(path: Path, tables=None, corrupt=False):
 def test_verify_backup_ok(tmp_path):
     db = tmp_path / "ok.db"
     create_test_db(db, tables=verify_backups.REQUIRED_TABLES)
+
     result = verify_backups.verify_backup(db)
     assert result["ok"]
     assert not result["missing_tables"]
@@ -56,6 +57,7 @@ def test_verify_backup_corrupt(tmp_path):
 def test_main_summary(tmp_path, monkeypatch):
     # Create several DBs
     db1 = tmp_path / "ok.db"
+
     db2 = tmp_path / "bad.db"
     db3 = tmp_path / "partial.db"
     create_test_db(db1, tables=verify_backups.REQUIRED_TABLES)

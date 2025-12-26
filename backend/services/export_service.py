@@ -139,7 +139,10 @@ class ExportService:
 
         return (
             db.query(CourseEnrollment)
-            .options(joinedload(CourseEnrollment.student), joinedload(CourseEnrollment.course))
+            .options(
+                joinedload(CourseEnrollment.student),
+                joinedload(CourseEnrollment.course),
+            )
             .order_by(CourseEnrollment.course_id, CourseEnrollment.student_id)
             .all()
         )
@@ -166,7 +169,10 @@ class ExportService:
 
         return (
             db.query(DailyPerformance)
-            .options(joinedload(DailyPerformance.student), joinedload(DailyPerformance.course))
+            .options(
+                joinedload(DailyPerformance.student),
+                joinedload(DailyPerformance.course),
+            )
             .order_by(DailyPerformance.date.desc(), DailyPerformance.student_id)
             .all()
         )

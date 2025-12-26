@@ -93,15 +93,20 @@ class DatabaseOperations(Operation):
                 version=version,
             )
 
-            self.log_success(f"Backup created: {backup_filename} ({format_size(size_bytes)})")
+            self.log_success(
+                f"Backup created: {backup_filename} ({format_size(size_bytes)})"
+            )
             return OperationResult.success_result(
-                "Backup created successfully", data={"backup": backup_info.__dict__, "path": str(backup_path)}
+                "Backup created successfully",
+                data={"backup": backup_info.__dict__, "path": str(backup_path)},
             )
 
         except Exception as e:
             return OperationResult.failure_result("Failed to create backup", e)
 
-    def backup_database_docker(self, volume_name: str, version: str = "unknown") -> OperationResult:
+    def backup_database_docker(
+        self, volume_name: str, version: str = "unknown"
+    ) -> OperationResult:
         """
         Backup database from Docker volume.
 
@@ -152,7 +157,8 @@ class DatabaseOperations(Operation):
 
             if result.returncode != 0:
                 return OperationResult.failure_result(
-                    f"Docker backup failed (exit code {result.returncode})", data={"stderr": result.stderr}
+                    f"Docker backup failed (exit code {result.returncode})",
+                    data={"stderr": result.stderr},
                 )
 
             # Verify backup was created
@@ -169,9 +175,12 @@ class DatabaseOperations(Operation):
                 version=version,
             )
 
-            self.log_success(f"Docker backup created: {backup_filename} ({format_size(size_bytes)})")
+            self.log_success(
+                f"Docker backup created: {backup_filename} ({format_size(size_bytes)})"
+            )
             return OperationResult.success_result(
-                "Docker backup created successfully", data={"backup": backup_info.__dict__, "path": str(backup_path)}
+                "Docker backup created successfully",
+                data={"backup": backup_info.__dict__, "path": str(backup_path)},
             )
 
         except subprocess.TimeoutExpired:
@@ -190,7 +199,9 @@ class DatabaseOperations(Operation):
             OperationResult indicating success or failure
         """
         if not backup_path.exists():
-            return OperationResult.failure_result(f"Backup file not found: {backup_path}")
+            return OperationResult.failure_result(
+                f"Backup file not found: {backup_path}"
+            )
 
         db_path = self.data_dir / self.db_name
 
@@ -204,13 +215,16 @@ class DatabaseOperations(Operation):
 
             self.log_success("Database restored successfully")
             return OperationResult.success_result(
-                "Database restored", data={"backup": str(backup_path), "target": str(db_path)}
+                "Database restored",
+                data={"backup": str(backup_path), "target": str(db_path)},
             )
 
         except Exception as e:
             return OperationResult.failure_result("Failed to restore database", e)
 
-    def restore_database_docker(self, backup_path: Path, volume_name: str) -> OperationResult:
+    def restore_database_docker(
+        self, backup_path: Path, volume_name: str
+    ) -> OperationResult:
         """
         Restore database to Docker volume.
 
@@ -222,7 +236,9 @@ class DatabaseOperations(Operation):
             OperationResult indicating success or failure
         """
         if not backup_path.exists():
-            return OperationResult.failure_result(f"Backup file not found: {backup_path}")
+            return OperationResult.failure_result(
+                f"Backup file not found: {backup_path}"
+            )
 
         try:
             # Convert paths for Docker
@@ -254,20 +270,26 @@ class DatabaseOperations(Operation):
 
             if result.returncode != 0:
                 return OperationResult.failure_result(
-                    f"Docker restore failed (exit code {result.returncode})", data={"stderr": result.stderr}
+                    f"Docker restore failed (exit code {result.returncode})",
+                    data={"stderr": result.stderr},
                 )
 
             self.log_success("Database restored to Docker volume")
             return OperationResult.success_result(
-                "Database restored to Docker volume", data={"backup": str(backup_path), "volume": volume_name}
+                "Database restored to Docker volume",
+                data={"backup": str(backup_path), "volume": volume_name},
             )
 
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("Docker restore timed out")
         except Exception as e:
-            return OperationResult.failure_result("Failed to restore to Docker volume", e)
+            return OperationResult.failure_result(
+                "Failed to restore to Docker volume", e
+            )
 
-    def list_backups(self, limit: Optional[int] = None, offset: int = 0) -> List[BackupInfo]:
+    def list_backups(
+        self, limit: Optional[int] = None, offset: int = 0
+    ) -> List[BackupInfo]:
         """
         List all available backups with optional pagination.
 
@@ -357,18 +379,24 @@ class DatabaseOperations(Operation):
 
         # Verify it's a file (not a directory)
         if not backup_path.is_file():
-            return OperationResult.failure_result(f"Not a file: {backup_path} (cannot delete directories)")
+            return OperationResult.failure_result(
+                f"Not a file: {backup_path} (cannot delete directories)"
+            )
 
         # Verify it's a .db file
         if backup_path.suffix != ".db":
-            return OperationResult.failure_result(f"Invalid backup file: {backup_path.name} (must be .db file)")
+            return OperationResult.failure_result(
+                f"Invalid backup file: {backup_path.name} (must be .db file)"
+            )
 
         try:
             backup_path.unlink()
             self.log_success(f"Deleted backup: {backup_path.name}")
             return OperationResult.success_result(f"Backup deleted: {backup_path.name}")
         except PermissionError as e:
-            return OperationResult.failure_result(f"Permission denied: Cannot delete {backup_path.name}", e)
+            return OperationResult.failure_result(
+                f"Permission denied: Cannot delete {backup_path.name}", e
+            )
         except Exception as e:
             return OperationResult.failure_result("Failed to delete backup", e)
 
@@ -389,12 +417,16 @@ class DatabaseOperations(Operation):
             )
 
         if keep_count < 1:
-            return OperationResult.failure_result(f"keep_count must be at least 1 (got: {keep_count})")
+            return OperationResult.failure_result(
+                f"keep_count must be at least 1 (got: {keep_count})"
+            )
 
         backups = self.list_backups()
 
         if len(backups) <= keep_count:
-            return OperationResult.success_result(f"Only {len(backups)} backup(s) exist - nothing to clean")
+            return OperationResult.success_result(
+                f"Only {len(backups)} backup(s) exist - nothing to clean"
+            )
 
         to_delete = backups[keep_count:]
         deleted_count = 0
@@ -408,7 +440,9 @@ class DatabaseOperations(Operation):
                 failed_count += 1
 
         if failed_count > 0:
-            return OperationResult.warning_result(f"Deleted {deleted_count} backup(s), {failed_count} failed")
+            return OperationResult.warning_result(
+                f"Deleted {deleted_count} backup(s), {failed_count} failed"
+            )
         else:
             return OperationResult.success_result(
                 f"Deleted {deleted_count} old backup(s), kept {keep_count} most recent"
@@ -447,10 +481,13 @@ class DatabaseOperations(Operation):
             if result.returncode == 0:
                 current_version = result.stdout.strip()
                 return OperationResult.success_result(
-                    f"Schema version: {current_version}", data={"version": current_version, "output": result.stdout}
+                    f"Schema version: {current_version}",
+                    data={"version": current_version, "output": result.stdout},
                 )
             else:
-                return OperationResult.failure_result("Failed to get schema version", data={"stderr": result.stderr})
+                return OperationResult.failure_result(
+                    "Failed to get schema version", data={"stderr": result.stderr}
+                )
 
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("Schema version check timed out")
@@ -491,7 +528,8 @@ class DatabaseOperations(Operation):
         if operation == "list_backups":
             backups = self.list_backups()
             return OperationResult.success_result(
-                f"Found {len(backups)} backup(s)", data={"backups": [b.__dict__ for b in backups]}
+                f"Found {len(backups)} backup(s)",
+                data={"backups": [b.__dict__ for b in backups]},
             )
         elif operation == "backup_native":
             return self.backup_database_native(**kwargs)

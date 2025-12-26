@@ -65,10 +65,10 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
 
     engine = create_inmemory_db()
     models.Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     def override_get_db(_=None):
-        db = TestingSessionLocal()
+        db = SessionLocal()
         try:
             yield db
         finally:
@@ -98,7 +98,9 @@ def rbac_client() -> Generator[TestClient, None, None]:
     yield client
 
 
-def _register_user(client: TestClient, email: str, password: str, role: str = "teacher") -> None:
+def _register_user(
+    client: TestClient, email: str, password: str, role: str = "teacher"
+) -> None:
     # Tests run against the API, but creating an admin account via the
     # public /register endpoint is disallowed by design. For tests that
     # need an admin user, insert directly into the test DB instead of
@@ -107,12 +109,15 @@ def _register_user(client: TestClient, email: str, password: str, role: str = "t
         # Use the test DB session override to create an admin user directly
         from backend import models
         from backend.db import get_session as db_get_session
-        from backend.routers.routers_auth import get_password_hash
+        from backend.security.password_hash import get_password_hash
 
         db_gen = next(client.app.dependency_overrides[db_get_session]())
         with db_gen as db:
             u = models.User(
-                email=email.lower(), hashed_password=get_password_hash(password), role="admin", is_active=True
+                email=email.lower(),
+                hashed_password=get_password_hash(password),
+                role="admin",
+                is_active=True,
             )
             db.add(u)
             db.commit()
@@ -135,7 +140,12 @@ def test_rbac_blocks_anonymous_on_write(rbac_client: TestClient):
     # No token → should be 401 due to OAuth2 scheme when AUTH is enabled
     r = client.post(
         "/api/v1/attendance/",
-        json={"student_id": 1, "course_id": 1, "status": "present", "date": "2025-10-10"},
+        json={
+            "student_id": 1,
+            "course_id": 1,
+            "status": "present",
+            "date": "2025-10-10",
+        },
     )
     assert r.status_code in (401, 403), r.text
 
@@ -143,7 +153,7 @@ def test_rbac_blocks_anonymous_on_write(rbac_client: TestClient):
 def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     client = rbac_client
 
-    strong_password = "Str0ngPass!123"
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
 
     # Register users
     _register_user(client, "teacher@example.com", strong_password, role="teacher")
@@ -156,15 +166,24 @@ def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     r = client.post(
         "/api/v1/attendance/",
         headers={"Authorization": f"Bearer {teacher_token}"},
-        json={"student_id": 1, "course_id": 1, "status": "present", "date": "2025-10-10"},
+        json={
+            "student_id": 1,
+            "course_id": 1,
+            "status": "present",
+            "date": "2025-10-10",
+        },
     )
     # Could be 404 due to missing student/course; but must not be 401/403
     assert r.status_code not in (401, 403), r.text
 
     # Teacher should be forbidden from backup (RBAC enforced)
-    r2 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {teacher_token}"})
+    r2 = client.post(
+        "/api/v1/adminops/backup", headers={"Authorization": f"Bearer {teacher_token}"}
+    )
     assert r2.status_code == 403, r2.text  # Teachers forbidden
 
     # Admin can perform admin-only operation
-    r3 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"})
+    r3 = client.post(
+        "/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"}
+    )
     assert r3.status_code in (200, 201), r3.text

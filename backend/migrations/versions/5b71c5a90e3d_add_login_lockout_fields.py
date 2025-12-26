@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "5b71c5a90e3d"
-down_revision = "18865e982265"
+revision = "5b71c5a90e3d"  # pragma: allowlist secret
+down_revision = "18865e982265"  # pragma: allowlist secret
 branch_labels = None
 depends_on = None
 
@@ -32,14 +32,21 @@ def upgrade() -> None:
     if "failed_login_attempts" not in existing_cols:
         op.add_column(
             "users",
-            sa.Column("failed_login_attempts", sa.Integer(), nullable=False, server_default="0"),
+            sa.Column(
+                "failed_login_attempts",
+                sa.Integer(),
+                nullable=False,
+                server_default="0",
+            ),
         )
         added_failed_col = True
 
     if "last_failed_login_at" not in existing_cols:
         op.add_column(
             "users",
-            sa.Column("last_failed_login_at", sa.DateTime(timezone=True), nullable=True),
+            sa.Column(
+                "last_failed_login_at", sa.DateTime(timezone=True), nullable=True
+            ),
         )
 
     if "lockout_until" not in existing_cols:
@@ -49,10 +56,17 @@ def upgrade() -> None:
         )
 
     if "ix_users_last_failed_login_at" not in existing_indexes:
-        op.create_index("ix_users_last_failed_login_at", "users", ["last_failed_login_at"], unique=False)
+        op.create_index(
+            "ix_users_last_failed_login_at",
+            "users",
+            ["last_failed_login_at"],
+            unique=False,
+        )
 
     if "ix_users_lockout_until" not in existing_indexes:
-        op.create_index("ix_users_lockout_until", "users", ["lockout_until"], unique=False)
+        op.create_index(
+            "ix_users_lockout_until", "users", ["lockout_until"], unique=False
+        )
 
     # Best-effort removal of server_default set above when we just created the column.
     # On SQLite, altering defaults is limited; wrap in try/except for safety.

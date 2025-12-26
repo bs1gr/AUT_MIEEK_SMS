@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+import logging
+import os
+import sys
+import traceback
+from pathlib import Path
+from backend.environment import get_runtime_context
+
 """Container entrypoint (Python) — runs migrations then starts the app server.
 
 This script replaces the previous shell entrypoint to provide structured
@@ -9,19 +17,10 @@ On success it execs Uvicorn. On failure it prints diagnostics and exits with
 non-zero code so orchestrators detect the failure.
 """
 
-from __future__ import annotations
-
-import logging
-import os
-import sys
-import traceback
-from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-
-from backend.environment import get_runtime_context  # noqa: E402
 
 # Fix database file permissions if running in Docker
 # (database may be owned by root from volumes on some systems)
@@ -38,8 +37,14 @@ if os.environ.get("SMS_EXECUTION_MODE") == "docker":
             import subprocess
 
             try:
-                subprocess.run(["sudo", "chmod", "0666", str(db_path)], check=False, timeout=2)
-                subprocess.run(["sudo", "chmod", "0777", str(db_path.parent)], check=False, timeout=2)
+                subprocess.run(
+                    ["sudo", "chmod", "0666", str(db_path)], check=False, timeout=2
+                )
+                subprocess.run(
+                    ["sudo", "chmod", "0777", str(db_path.parent)],
+                    check=False,
+                    timeout=2,
+                )
             except Exception:
                 pass
         except Exception:
@@ -157,7 +162,18 @@ def main() -> int:
 
         # exec into uvicorn so signals are delivered to it
         os.execvp(
-            "python", ["python", "-u", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+            "python",
+            [
+                "python",
+                "-u",
+                "-m",
+                "uvicorn",
+                "backend.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000",
+            ],
         )
 
     except Exception as exc:  # pragma: no cover - operational code path

@@ -26,23 +26,25 @@ const UserFeedbackModal = ({ isOpen, onClose, onSubmit }: UserFeedbackModalProps
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('feedback.title')}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label={t('feedback.title')}>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="user-feedback-textarea">
           {t('feedback.prompt')}
-          <Textarea
-            value={feedback}
-            onChange={e => setFeedback(e.target.value)}
-            rows={4}
-            required
-            className="mt-2 w-full"
-            placeholder={t('feedback.placeholder')}
-          />
         </label>
-        <div className="flex justify-end gap-2">
+        <Textarea
+          id="user-feedback-textarea"
+          value={feedback}
+          onChange={e => setFeedback(e.target.value)}
+          rows={4}
+          required
+          className="w-full mt-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y"
+          placeholder={t('feedback.placeholder')}
+          aria-required="true"
+        />
+        <div className="flex justify-end gap-2 mt-4">
           <Button type="button" onClick={onClose} variant="secondary">
             {t('common.cancel')}
           </Button>
-          <Button type="submit" disabled={submitting || !feedback.trim()}>
+          <Button type="submit" disabled={submitting || !feedback.trim()} aria-busy={submitting}>
             {submitting ? t('common.sending') : t('feedback.submit')}
           </Button>
         </div>

@@ -1,6 +1,7 @@
-"""Test CSV import functionality for students."""
-
+import pytest
 from fastapi.testclient import TestClient
+
+pytestmark = pytest.mark.auth_required
 
 
 def test_csv_import_students_with_greek_columns(client: TestClient):
@@ -25,7 +26,6 @@ def test_csv_import_students_with_greek_columns(client: TestClient):
     assert body.get("updated", 0) == 0
     assert len(body.get("errors", [])) == 0
 
-    # Verify first student has all fields
     resp2 = client.get("/api/v1/students/")
     assert resp2.status_code == 200
     data2 = resp2.json()
@@ -73,10 +73,8 @@ def test_csv_import_handles_missing_required_fields(client: TestClient):
     """Test that CSV import handles missing required fields gracefully."""
 
     # Missing email in second row
-    csv_content = """Αριθμός Δελτίου Ταυτότητας:;Επώνυμο:;Όνομα:;Ηλ. Ταχυδρομείο:;Έτος Σπουδών:
-111111;Valid;Student;valid@example.com;Α'
-222222;Invalid;Student;;Α'
-"""
+    csv_content = """111111;Valid;Student;valid@example.com;Α'
+222222;Invalid;Student;;Α'"""
 
     files = {
         "files": ("test_invalid.csv", csv_content.encode("utf-8"), "text/csv"),

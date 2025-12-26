@@ -990,25 +990,46 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                   <div className="bg-gray-50 rounded-lg p-4 border">
                     <h4 className="font-semibold mb-2">{t('allStudents') || 'All Students'}</h4>
                     <div className="mb-2">
-                      <input type="text" placeholder={t('search') || 'Search'} className="w-full px-3 py-2 border rounded" onChange={(e) => {
-                        const q = e.target.value.toLowerCase();
-                        allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
-                        // simple filter display only; keep original in allStudents
-                        // For simplicity, not persisting filtered state; just show all with CSS if needed
-                      }} />
+                      <input
+                        type="text"
+                        aria-label="student search"
+                        data-testid="student-search-input"
+                        placeholder={t('search') || 'Search'}
+                        className="w-full px-3 py-2 border rounded"
+                        onChange={(e) => {
+                          const q = e.target.value.toLowerCase();
+                          allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
+                          // simple filter display only; keep original in allStudents
+                          // For simplicity, not persisting filtered state; just show all with CSS if needed
+                        }}
+                      />
                     </div>
                     <div className="max-h-72 overflow-auto space-y-2">
                       {allStudents.map((s) => {
                         const enrolled = enrolledStudents.some((e) => e.id === s.id);
                         return (
-                          <label key={s.id} htmlFor={`enroll-${s.id}`} aria-label={`${s.first_name} ${s.last_name}`} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
+                          <label
+                            key={s.id}
+                            htmlFor={`enroll-${s.id}`}
+                            aria-label={`${s.first_name} ${s.last_name}`}
+                            className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}
+                            data-testid={`student-enroll-label-${s.id}`}
+                          >
                             <div>
                               <div className="font-medium">{s.first_name} {s.last_name}</div>
                               <div className="text-xs text-gray-500">{s.student_id}</div>
                             </div>
-                            <input id={`enroll-${s.id}`} type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
-                              setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
-                            }} />
+                            <input
+                              id={`enroll-${s.id}`}
+                              type="checkbox"
+                              disabled={enrolled}
+                              checked={selectedToEnroll.includes(s.id)}
+                              onChange={(e) => {
+                                setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
+                              }}
+                              aria-label={`enroll ${s.first_name} ${s.last_name}`}
+                              data-testid={`enroll-checkbox-${s.id}`}
+                            />
                           </label>
                         );
                       })}
@@ -1023,12 +1044,19 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                     <div className="max-h-96 overflow-auto space-y-2">
                       {enrolledStudents.length === 0 && <div className="text-sm text-gray-500">{t('noStudentsEnrolled') || 'No students enrolled yet'}</div>}
                       {enrolledStudents.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between bg-white rounded p-2 border">
+                        <div key={s.id} className="flex items-center justify-between bg-white rounded p-2 border" data-testid={`enrolled-student-row-${s.id}`}>
                           <div>
                             <div className="font-medium">{s.first_name} {s.last_name}</div>
                             <div className="text-xs text-gray-500">{s.student_id}</div>
                           </div>
-                          <button onClick={() => unenroll(s.id)} className="px-3 py-1 text-red-600 border border-red-300 rounded">{t('unenroll') || 'Unenroll'}</button>
+                          <button
+                            onClick={() => unenroll(s.id)}
+                            className="px-3 py-1 text-red-600 border border-red-300 rounded"
+                            aria-label={`unenroll ${s.first_name} ${s.last_name}`}
+                            data-testid={`unenroll-btn-${s.id}`}
+                          >
+                            {t('unenroll') || 'Unenroll'}
+                          </button>
                         </div>
                       ))}
                     </div>

@@ -95,7 +95,9 @@ def run_migrations(verbose: bool = False) -> bool:
 
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
-                    if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
+                    if (p / ".git").exists() or (
+                        (p / "backend").exists() and (p / "backend").is_dir()
+                    ):
                         return p
                 fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
                 return fallback
@@ -111,9 +113,9 @@ def run_migrations(verbose: bool = False) -> bool:
             existing = False
             for h in root_logger.handlers:
                 try:
-                    if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == str(
-                        (logs_dir / "migrations.log")
-                    ):
+                    if isinstance(h, logging.FileHandler) and getattr(
+                        h, "baseFilename", None
+                    ) == str((logs_dir / "migrations.log")):
                         existing = True
                         break
                 except Exception:
@@ -135,9 +137,17 @@ def run_migrations(verbose: bool = False) -> bool:
             msg = str(e).lower()
             if any(
                 substr in msg
-                for substr in ("already exists", "duplicate column", "index already exists", "table already exists")
+                for substr in (
+                    "already exists",
+                    "duplicate column",
+                    "index already exists",
+                    "table already exists",
+                )
             ):
-                logger.warning("Alembic upgrade raised benign duplicate-DDL error; treating as success: %s", e)
+                logger.warning(
+                    "Alembic upgrade raised benign duplicate-DDL error; treating as success: %s",
+                    e,
+                )
                 if verbose:
                     print(f"WARNING: Migration raised benign error: {e}", flush=True)
                 print(f"[run_migrations] benign error: {e}", flush=True)
@@ -153,25 +163,45 @@ def run_migrations(verbose: bool = False) -> bool:
                 msg2 = str(e2).lower()
                 if any(
                     substr in msg2
-                    for substr in ("already exists", "duplicate column", "index already exists", "table already exists")
+                    for substr in (
+                        "already exists",
+                        "duplicate column",
+                        "index already exists",
+                        "table already exists",
+                    )
                 ):
                     logger.warning(
-                        "Alembic fallback upgrade raised benign duplicate-DDL error; treating as success: %s", e2
+                        "Alembic fallback upgrade raised benign duplicate-DDL error; treating as success: %s",
+                        e2,
                     )
                     if verbose:
-                        print(f"WARNING: Migration raised benign error on fallback: {e2}", flush=True)
-                    print(f"[run_migrations] benign error on fallback: {e2}", flush=True)
+                        print(
+                            f"WARNING: Migration raised benign error on fallback: {e2}",
+                            flush=True,
+                        )
+                    print(
+                        f"[run_migrations] benign error on fallback: {e2}", flush=True
+                    )
                     return True
                 logger.exception("Fallback upgrade to 'heads' also failed: %s", e2)
-                print(f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}", flush=True)
+                print(
+                    f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}",
+                    flush=True,
+                )
                 raise
 
         if verbose:
             print("\nOK: Database migrations applied successfully", flush=True)
             print("=" * 60, flush=True)
-        print("[run_migrations] DEBUG: About to log Alembic migrations applied successfully", flush=True)
+        print(
+            "[run_migrations] DEBUG: About to log Alembic migrations applied successfully",
+            flush=True,
+        )
         logger.info("Alembic migrations applied successfully")
-        print("[run_migrations] DEBUG: Logged Alembic migrations applied successfully", flush=True)
+        print(
+            "[run_migrations] DEBUG: Logged Alembic migrations applied successfully",
+            flush=True,
+        )
         print("[run_migrations] EXIT OK", flush=True)
         return True
     except Exception as e:
@@ -214,7 +244,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run database migrations")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
-    parser.add_argument("--check", action="store_true", help="Check migration status only")
+    parser.add_argument(
+        "--check", action="store_true", help="Check migration status only"
+    )
     args = parser.parse_args()
 
     if args.check:

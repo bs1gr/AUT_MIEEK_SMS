@@ -23,7 +23,11 @@ from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/highlights", tags=["Highlights"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/highlights",
+    tags=["Highlights"],
+    responses={404: {"description": "Not found"}},
+)
 
 
 @router.post("/", response_model=HighlightResponse, status_code=201)
@@ -76,7 +80,9 @@ def list_highlights(
     student_id: Optional[int] = Query(None, description="Filter by student ID"),
     semester: Optional[str] = Query(None, description="Filter by semester"),
     category: Optional[str] = Query(None, description="Filter by category"),
-    is_positive: Optional[bool] = Query(None, description="Filter by positive/negative"),
+    is_positive: Optional[bool] = Query(
+        None, description="Filter by positive/negative"
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -140,7 +146,9 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error retrieving highlight %s: %s", highlight_id, exc, exc_info=True)
+        logger.error(
+            "Error retrieving highlight %s: %s", highlight_id, exc, exc_info=True
+        )
         raise internal_server_error(request=request)
 
 
@@ -169,12 +177,19 @@ def get_student_highlights(
     try:
         import_names("models", "Highlight", "Student")
         highlights = HighlightService.list_for_student(db, student_id, semester)
-        logger.info("Retrieved %s highlights for student %s", len(highlights), student_id)
+        logger.info(
+            "Retrieved %s highlights for student %s", len(highlights), student_id
+        )
         return highlights
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error retrieving highlights for student %s: %s", student_id, exc, exc_info=True)
+        logger.error(
+            "Error retrieving highlights for student %s: %s",
+            student_id,
+            exc,
+            exc_info=True,
+        )
         raise internal_server_error(request=request)
 
 
@@ -211,7 +226,9 @@ def update_highlight(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error updating highlight %s: %s", highlight_id, exc, exc_info=True)
+        logger.error(
+            "Error updating highlight %s: %s", highlight_id, exc, exc_info=True
+        )
         raise internal_server_error(request=request)
 
 
@@ -243,5 +260,7 @@ def delete_highlight(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error deleting highlight %s: %s", highlight_id, exc, exc_info=True)
+        logger.error(
+            "Error deleting highlight %s: %s", highlight_id, exc, exc_info=True
+        )
         raise internal_server_error(request=request)

@@ -556,7 +556,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         <div className="flex items-center space-x-2">
           <button
             onClick={() => onAddCourse && onAddCourse()}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label={t('addCourse')}
           >
             <Plus size={18} />
             <span>{t('addCourse')}</span>
@@ -565,14 +566,16 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
             <>
               <button
                 onClick={() => currentCourse && onEdit && onEdit(currentCourse)}
-                className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                aria-label={t('editCourse')}
               >
                 <Settings size={16} />
                 <span>{t('editCourse')}</span>
               </button>
               <button
                 onClick={() => selectedCourse && onDelete && onDelete(selectedCourse)}
-                className="inline-flex items-center space-x-2 px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                className="inline-flex items-center space-x-2 px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                aria-label={t('delete')}
               >
                 <Trash2 size={16} />
                 <span>{t('delete')}</span>
@@ -588,7 +591,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
           id="course-select"
           value={selectedCourse || ''}
           onChange={(e) => setSelectedCourse(parseInt(e.target.value) || null)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           title={t('selectCourseForRules')}
         >
           <option value="">{t('chooseCourse')}</option>
@@ -665,7 +668,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                   <h3 className="text-xl font-bold text-gray-800">{t('gradingComponents')}</h3>
                   <button
                     onClick={addRule}
-                    className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
                     <Plus size={18} />
                     <span>{t('addRule')}</span>
@@ -692,7 +695,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                               type="text"
                               value={rule.category}
                               onChange={(e) => updateRule(index, 'category', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
                               placeholder={`${t('exampleLabel')}: ${t('midtermExam')}`}
                               list={`categories-${index}`}
                             />
@@ -715,7 +718,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                               step="0.1"
                               value={rule.weight}
                               onChange={(e) => updateRule(index, 'weight', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
                               placeholder="20"
                             />
                           </div>
@@ -729,7 +732,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                               type="text"
                               value={rule.description || ''}
                               onChange={(e) => updateRule(index, 'description', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
                               placeholder={t('optional')}
                             />
                           </div>
@@ -737,7 +740,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                           <div className="md:col-span-1 flex items-end">
                             <button
                               onClick={() => removeRule(index)}
-                              className="w-full p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="w-full p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                               title={t('remove')}
                             >
                               <Trash2 size={18} />
@@ -1002,31 +1005,51 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                   <div className="bg-gray-50 rounded-lg p-4 border">
                     <h4 className="font-semibold mb-2">{t('allStudents') || 'All Students'}</h4>
                     <div className="mb-2">
-                      <input type="text" placeholder={t('search')} className="w-full px-3 py-2 border rounded" onChange={(e) => {
-                        const q = e.target.value.toLowerCase();
-                        allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
-                        // simple filter display only; keep original in allStudents
-                        // For simplicity, not persisting filtered state; just show all with CSS if needed
-                      }} />
+                      <input
+                        type="text"
+                        aria-label="student search"
+                        data-testid="student-search-input"
+                        placeholder={t('search')}
+                        className="w-full px-3 py-2 border rounded"
+                        onChange={(e) => {
+                          const q = e.target.value.toLowerCase();
+                          allStudents.filter((s) => `${s.first_name} ${s.last_name} ${s.student_id}`.toLowerCase().includes(q));
+                          // simple filter display only; keep original in allStudents
+                          // For simplicity, not persisting filtered state; just show all with CSS if needed
+                        }}
+                      />
                     </div>
                     <div className="max-h-72 overflow-auto space-y-2">
                       {allStudents.map((s) => {
                         const enrolled = enrolledStudents.some((e) => e.id === s.id);
                         return (
-                          <label key={s.id} htmlFor={`enroll-${s.id}`} aria-label={`${s.first_name} ${s.last_name}`} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
+                          <label
+                            key={s.id}
+                            htmlFor={`enroll-${s.id}`}
+                            aria-label={`enroll ${s.first_name} ${s.last_name}`}
+                            className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}
+                          >
                             <div>
                               <div className="font-medium">{s.first_name} {s.last_name}</div>
                               <div className="text-xs text-gray-500">{s.student_id}</div>
                             </div>
-                            <input id={`enroll-${s.id}`} type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
-                              setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
-                            }} />
+                            <input
+                              id={`enroll-${s.id}`}
+                              type="checkbox"
+                              aria-label={`enroll ${s.first_name} ${s.last_name}`}
+                              data-testid={`enroll-checkbox-${s.id}`}
+                              disabled={enrolled}
+                              checked={selectedToEnroll.includes(s.id)}
+                              onChange={(e) => {
+                                setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
+                              }}
+                            />
                           </label>
                         );
                       })}
                     </div>
                     <div className="mt-3 text-right">
-                      <button onClick={enrollSelected} disabled={selectedToEnroll.length === 0} className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50">{t('enrollSelected') || 'Enroll Selected'}</button>
+                      <button onClick={enrollSelected} disabled={selectedToEnroll.length === 0} className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">{t('enrollSelected') || 'Enroll Selected'}</button>
                     </div>
                   </div>
 
@@ -1040,7 +1063,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                             <div className="font-medium">{s.first_name} {s.last_name}</div>
                             <div className="text-xs text-gray-500">{s.student_id}</div>
                           </div>
-                          <button onClick={() => unenroll(s.id)} className="px-3 py-1 text-red-600 border border-red-300 rounded">{t('unenroll')}</button>
+                          <button onClick={() => unenroll(s.id)} className="px-3 py-1 text-red-600 border border-red-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">{t('unenroll')}</button>
                         </div>
                       ))}
                     </div>
@@ -1088,14 +1111,14 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                   }, 100);
                 }
               }}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               {t('clearAll')}
             </button>
             <button
               onClick={saveCourseData}
               disabled={loading || (activeTab === 'evaluation' && !isValidTotal) || (activeTab === 'schedule' && !hoursOk)}
-              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2"
+              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <Save size={20} />
               <span>{loading ? t('saving') : t('saveChanges')}</span>

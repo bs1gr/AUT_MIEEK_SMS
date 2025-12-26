@@ -18,9 +18,21 @@ class LoadTestConfig:
 
     # Authentication settings
     DEFAULT_USERS = [
-        {"email": "admin@example.com", "password": "admin123", "role": "admin"},
-        {"email": "teacher@example.com", "password": "teacher123", "role": "teacher"},
-        {"email": "student@example.com", "password": "student123", "role": "student"},
+        {
+            "email": "admin@example.com",
+            "password": "admin123",  # pragma: allowlist secret
+            "role": "admin",
+        },
+        {
+            "email": "teacher@example.com",
+            "password": "teacher123",  # pragma: allowlist secret
+            "role": "teacher",
+        },
+        {
+            "email": "student@example.com",
+            "password": "student123",  # pragma: allowlist secret
+            "role": "student",
+        },
     ]
 
     # Test data settings

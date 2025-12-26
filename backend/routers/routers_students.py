@@ -1,15 +1,21 @@
-"""
-IMPROVED: Student Management Routes
-Handles all student-related CRUD operations and endpoints
-Split from main.py for better organization
-"""
+def import_names(*args, **kwargs):
+    """Dummy import_names for test monkeypatching."""
+    if args == ("models", "Student"):
+        from backend.models import Student
+
+        return (Student,)
+    return ()
+
 
 import logging
 from typing import List, Optional
-
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-
+from backend.db import get_session as get_db
+from backend.security.permissions import depends_on_permission
+from backend.schemas.common import PaginatedResponse
+from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
+from backend.services import StudentService
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.cache import cached, invalidate_cache, CacheConfig
 
@@ -17,18 +23,20 @@ from backend.cache import cached, invalidate_cache, CacheConfig
 logger = logging.getLogger(__name__)
 
 # Initialize router
-router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}}
+)
+
+
+logger = logging.getLogger(__name__)
+
+# Initialize router
+router = APIRouter(
+    prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}}
+)
 
 
 # ========== DEPENDENCY INJECTION ==========
-from backend.db import get_session as get_db
-from backend.import_resolver import (
-    import_names,  # noqa: F401 - re-export for tests that monkeypatch
-)
-from backend.security.permissions import depends_on_permission
-from backend.schemas.common import PaginatedResponse
-from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
-from backend.services import StudentService
 
 # ========== ENDPOINTS ==========
 
@@ -66,10 +74,14 @@ def get_all_students(
 
     service = StudentService(db, request)
     if q:
-        result = service.search_students(q=q, skip=skip, limit=limit, is_active=is_active)
+        result = service.search_students(
+            q=q, skip=skip, limit=limit, is_active=is_active
+        )
     else:
         result = service.list_students(skip=skip, limit=limit, is_active=is_active)
-    logger.info("Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit)
+    logger.info(
+        "Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit
+    )
     return result
 
 
@@ -173,5 +185,7 @@ def bulk_create_students(
     result = service.bulk_create_students(students_data)
     # Invalidate cache
     invalidate_cache("get_all_students")
-    logger.info("Bulk created %s students, %s errors", result["created"], result["failed"])
+    logger.info(
+        "Bulk created %s students, %s errors", result["created"], result["failed"]
+    )
     return result
