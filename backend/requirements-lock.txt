@@ -47,7 +47,7 @@ distro==1.9.0
 dnspython==2.8.0
 docker==7.1.0
 EbookLib==0.19
-ecdsa==0.19.2
+ecdsa==0.19.1
 email-validator==2.3.0
 et_xmlfile==2.0.0
 etelemetry==0.3.1
