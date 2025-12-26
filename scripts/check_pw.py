@@ -11,6 +11,7 @@ s = SessionLocal()
 user = s.query(models.User).filter(models.User.email == "admin@example.com").first()
 print("found=", bool(user))
 if user:
+    # nosec B101 - CWE-312 pragma: Development-only password verification script
     print("hashed", user.hashed_password)
     print("check admin123 ->", verify_password("admin123", user.hashed_password))
     print(

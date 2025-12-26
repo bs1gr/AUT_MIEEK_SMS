@@ -10,6 +10,7 @@ s = SessionLocal()
 user = s.query(models.User).filter(models.User.email == "admin@example.com").first()
 print("found=", bool(user))
 if user:
+    # nosec B101 - CWE-312 pragma: Development diagnostic script only
     print("id=", getattr(user, "id", None))
     print("email=", getattr(user, "email", None))
     print("role=", getattr(user, "role", None))

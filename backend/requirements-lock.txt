@@ -47,7 +47,7 @@ distro==1.9.0
 dnspython==2.8.0
 docker==7.1.0
 EbookLib==0.19
-ecdsa==0.19.1
+ecdsa==0.19.2
 email-validator==2.3.0
 et_xmlfile==2.0.0
 etelemetry==0.3.1
@@ -128,7 +128,7 @@ pandas==2.3.3
 passlib==1.7.4
 pathlib==1.0.1
 pathspec==0.12.1
-pdfminer.six==20251107
+pdfminer.six==20231228
 pefile==2023.2.7
 pillow==12.0.0
 pip-api==0.0.34

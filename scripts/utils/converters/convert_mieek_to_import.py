@@ -261,7 +261,10 @@ class MIEEKToSMSConverter:
             joined.append(buf)
 
         # Parsing patterns: "Name: 40%" or "Name - 40" or "Name 40%"
-        pat = re.compile(r"^(?P<cat>.+?)\s*[\:\-–—]?\s*(?P<w>\d+(?:[\.,]\d+)?)%?$")
+        # Avoid polynomial redos: use negated character class instead of .+? (CWE-1333)
+        pat = re.compile(
+            r"^(?P<cat>[^:\-–—]+)\s*[\:\-–—]?\s*(?P<w>\d+(?:[\.,]\d+)?)%?$"
+        )
 
         # First pass: direct pattern matches
         for line in joined:
