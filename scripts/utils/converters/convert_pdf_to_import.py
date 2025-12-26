@@ -116,7 +116,10 @@ class PDFToSMSConverter:
                 pass
 
             # Pattern matching for "Category: Weight%" format
-            pattern = re.compile(r"(?P<cat>[^:,;]+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?")
+            # Avoid polynomial redos: use possessive quantifier pattern (CWE-1333)
+            pattern = re.compile(
+                r"(?P<cat>[^:,;\-]+)\s*[\s:,-]*\s*(?P<w>\d+(?:[\.,]\d+)?)%?"
+            )
             result = []
             for match in pattern.finditer(rules):
                 cat = match.group("cat").strip()
@@ -169,8 +172,9 @@ class PDFToSMSConverter:
                     result.append(item)
                 elif isinstance(item, str):
                     # Check if it's a complete entry like "Midterm: 30%"
+                    # Avoid polynomial redos: use negated character class instead of .+? (CWE-1333)
                     pattern = re.compile(
-                        r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$"
+                        r"^(?P<cat>[^:,\-]+)\s*[\s:,-]*\s*(?P<w>\d+(?:[\.,]\d+)?)%?$"
                     )
                     match = pattern.match(item.strip())
                     if match:

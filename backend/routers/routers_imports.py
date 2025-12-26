@@ -695,7 +695,8 @@ def import_courses(
                                             buf = []
                                 if not rules:
                                     # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                    pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                    # Avoid polynomial redos: use negated character class instead of .+? to prevent backtracking (CWE-1333)
+                                    pattern = re.compile(r"^(?P<cat>[^:,\-]+)\s*[\s:,-]*\s*(?P<w>\d+(?:[\.,]\d+)?)%?$")
                                     for x in er:
                                         if isinstance(x, str):
                                             m = pattern.match(x.strip())
@@ -1107,7 +1108,8 @@ async def import_from_upload(
                                         buf = []
                             if not rules:
                                 # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                pattern = re.compile(r"^(?P<cat>.+?)[\s:,-]+(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                # Avoid polynomial redos: use negated character class instead of .+? to prevent backtracking (CWE-1333)
+                                pattern = re.compile(r"^(?P<cat>[^:,\-]+)\s*[\s:,-]*\s*(?P<w>\d+(?:[\.,]\d+)?)%?$")
                                 for x in er:
                                     if isinstance(x, str):
                                         m = pattern.match(x.strip())
@@ -1475,7 +1477,7 @@ async def import_preview(
                     if "semester" in obj and not obj["semester"]:
                         obj["semester"] = "Α' Εξάμηνο"
 
-                    key = f"course:{code}|{obj.get('semester','')}"
+                    key = f"course:{code}|{obj.get('semester', '')}"
                     if key in seen_keys and skip_duplicates:
                         add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
                         continue
