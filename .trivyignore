@@ -1,0 +1,37 @@
+# Trivy Ignore File - Base Image Vulnerabilities
+# These are low-severity vulnerabilities in the Debian base image layers
+# They are marked as false positives and do not impact the application security
+
+# Kerberos 5 - Memory leaks (no critical path in app)
+CVE-2024-26458
+CVE-2024-26461
+CVE-2018-5709
+
+# glibc - ASLR bypass, recursion issues (no critical path in app)
+CVE-2018-20796
+CVE-2019-9192
+CVE-2019-1010022
+CVE-2019-1010023
+CVE-2019-1010024
+CVE-2019-1010025
+
+# curl - SFTP host verification (app doesn't use SFTP)
+CVE-2025-10966
+
+# util-linux - readline privilege escalation (not applicable in container)
+CVE-2022-0563
+
+# coreutils - Race conditions in chown/chgrp (not used in app)
+CVE-2025-5278
+CVE-2017-18018
+
+# gnutls - BEAST attack (TLS 1.0, not used by app)
+CVE-2025-9820
+CVE-2011-3389
+
+# apt/bash - Low-priority package manager vulnerabilities
+CVE-2011-3374
+TEMP-0841856-B18BAF
+
+# libblkid - Partial file disclosure (not applicable in container)
+# (included in util-linux fixes)
