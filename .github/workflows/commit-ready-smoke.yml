@@ -44,7 +44,7 @@ jobs:
       - name: Install frontend deps
         run: |
           cd frontend
-          npm install --no-audit --legacy-peer-deps
+          npm install --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Run backend fast tests (pytest) and produce JUnit
         shell: pwsh
