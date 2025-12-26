@@ -28,6 +28,7 @@ jobs:
         uses: actions/github-script@v6
         id: filter
         with:
+          github-token: `${{ secrets.GITHUB_TOKEN }}
           script: |
             try {
               const pr = context.payload.pull_request;
@@ -62,7 +63,6 @@ jobs:
         with:
           github-token: `${{ secrets.GITHUB_TOKEN }}
           script: |
-            const core = require('@actions/core');
             const pr = context.payload.pull_request;
             if (!pr) {
               core.info('No pull request context; skipping operator approval check.');
