@@ -50,7 +50,7 @@ jobs:
       - name: Install frontend deps
         run: |
           cd frontend
-          npm ci --silent
+          npm install --silent
 
       - name: Run backend fast tests (pytest) and produce JUnit
         shell: pwsh
@@ -84,7 +84,11 @@ jobs:
           if (-not $python) {
             throw "Python runtime not found in PATH"
           }
-          & $python "fix_greek_encoding_permanent.py"
+          if (Test-Path "fix_greek_encoding_permanent.py") {
+            & $python "fix_greek_encoding_permanent.py"
+          } else {
+            Write-Host "Skipping fix_greek_encoding_permanent.py (file not found)"
+          }
 
       - name: Run COMMIT_READY quick smoke (skip tests + cleanup for speed) & save logs
         shell: pwsh

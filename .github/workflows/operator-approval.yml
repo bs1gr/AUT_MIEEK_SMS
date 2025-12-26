@@ -1,7 +1,7 @@
 name: Require operator approval for operator scripts
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
@@ -10,12 +10,23 @@ jobs:
     outputs:
       operator: ${{ steps.filter.outputs.operator }}
     steps:
-      - uses: dorny/paths-filter@v2
+      - name: Detect operator script changes
+        uses: actions/github-script@v6
         id: filter
         with:
-          filters: |
-            operator:
-              - 'scripts/operator/**'
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.setOutput('operator', 'false');
+              return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+            const changed = files.some(f => f.filename.startsWith('scripts/operator/'));
+            core.setOutput('operator', changed ? 'true' : 'false');
 
   require-operator-approval:
     needs: changes
