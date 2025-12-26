@@ -217,6 +217,8 @@ function Test-VersionConsistency {
             Write-Result Warning "SMS_Installer.iss may not read VERSION file properly"
             $issues += "SMS_Installer.iss version reading"
         }
+    } else {
+        $issues += "SMS_Installer.iss missing"
     }
 
     # Check wizard images
@@ -235,6 +237,9 @@ function Test-VersionConsistency {
             Write-Result Warning "Wizard images may be outdated - last modified $hoursOld hrs ago"
             $issues += "Wizard images potentially outdated"
         }
+    } else {
+        if (-not (Test-Path $wizardLarge)) { $issues += "wizard_image.bmp missing" }
+        if (-not (Test-Path $wizardSmall)) { $issues += "wizard_small.bmp missing" }
     }
 
     # Summary

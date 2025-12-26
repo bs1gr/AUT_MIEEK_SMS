@@ -1227,12 +1227,18 @@ function Invoke-TestSuite {
             Write-Info "Using in-memory SQLite for local tests (DATABASE_URL not set)"
         }
 
+        # Set default Auth Mode for local tests if not present (matches CI strictness)
+        if (-not $env:AUTH_MODE) {
+            $env:AUTH_MODE = "strict"
+            Write-Info "Using strict auth mode for local tests (AUTH_MODE not set)"
+        }
+
         if ($Mode -eq 'quick') {
             Write-Info "Running fast backend tests only..."
-            $output = python -m pytest tests/ -m "not slow" -q --tb=short 2>&1
+            $output = python -m pytest tests/ -x -m "not slow" -q --tb=short 2>&1
         } else {
             Write-Info "Running full backend test suite..."
-            $output = python -m pytest -v --tb=short -q 2>&1
+            $output = python -m pytest tests/ -v --tb=short -q 2>&1
         }
 
         if ($LASTEXITCODE -eq 0) {
@@ -1261,7 +1267,7 @@ function Invoke-TestSuite {
 
         if ($Mode -eq 'quick') {
             Write-Info "Running fast frontend tests only..."
-            $output = npm run test -- run --reporter=basic 2>&1
+            $output = npm run test -- run --reporter=dot --bail 1 2>&1
         } else {
             Write-Info "Running full frontend test suite..."
             $output = npm run test -- run 2>&1
@@ -1423,6 +1429,10 @@ function Invoke-InstallerAudit {
 
         $auditOutput = & $installerBuilder -Action audit -Verbose:$Verbose -ErrorAction Stop 2>&1
         $auditOutput | ForEach-Object { Write-Info $_ }
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Installer audit failed with exit code $LASTEXITCODE"
+        }
 
         Write-Success "Installer audit passed ✓"
         Add-Result "Health" "Installer Audit" $true

@@ -20,6 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install Inno Setup 6
         shell: pwsh
         run: |
@@ -58,6 +63,7 @@ jobs:
           CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
           CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
         run: |
+          $ErrorActionPreference = 'Stop'
           if (-not $env:CODESIGN_PFX_BASE64 -or -not $env:CODESIGN_PFX_PASSWORD) {
             Write-Host "Code signing certificate secrets not provided. Skipping import (signing will be skipped)."
             exit 0
@@ -75,6 +81,7 @@ jobs:
       - name: Verify version consistency
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           Write-Host "Verifying version consistency across all files..."
           $tag = "${{ steps.release_info.outputs.tag }}"
           $version = $tag -replace '^v', ''
@@ -99,6 +106,7 @@ jobs:
           SMS_CODESIGN_PFX_PATH: ${{ steps.import_cert.outputs.pfx_path }}
           SMS_CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
         run: |
+          $ErrorActionPreference = 'Stop'
           Write-Host "Building installer..."
           & ".\INSTALLER_BUILDER.ps1" -AutoFix
           if ($LASTEXITCODE -ne 0) {
@@ -110,6 +118,7 @@ jobs:
         id: verify_installer
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $tag = "${{ steps.release_info.outputs.tag }}"
           $version = "${{ steps.release_info.outputs.version }}"
 
@@ -168,6 +177,7 @@ jobs:
         id: hash
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $installer = "${{ steps.verify_installer.outputs.path }}"
 
           if (-not (Test-Path $installer)) {
