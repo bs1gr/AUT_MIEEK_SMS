@@ -1,3 +1,29 @@
+// --- Playwright global setup for E2E test user ---
+import axios from 'axios';
+
+export async function ensureTestUserExists() {
+  // Use relative API path so Playwright uses Vite proxy in dev
+  const email = 'test@example.com'; // pragma: allowlist secret
+  const password = 'password123'; // pragma: allowlist secret
+  try {
+    // Try to login first
+    await axios.post('/api/v1/auth/login', { email, password });
+    // If login succeeds, user exists
+    return;
+  } catch (err) {
+    // If login fails, try to register as teacher (default role)
+    try {
+      await axios.post('/api/v1/auth/register', {
+        email,
+        password,
+        full_name: 'Test User',
+        // Do not set role: backend will default to 'teacher' for anonymous registration
+      });
+    } catch (regErr) {
+      // Ignore if already exists or registration fails
+    }
+  }
+}
 import { Page } from '@playwright/test';
 
 export async function login(

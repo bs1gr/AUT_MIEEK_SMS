@@ -99,6 +99,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           id="auth-register-email"
           type="email"
           autoComplete="email"
+          aria-label="email"
           value={email}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
           required
@@ -110,6 +111,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           id="auth-register-password"
           type="password"
           autoComplete="new-password"
+          aria-label="password"
           value={password}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
           required
@@ -121,6 +123,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           id="auth-register-full-name"
           type="text"
           autoComplete="name"
+          aria-label="full name"
           value={fullName}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setFullName(event.target.value)}
         />

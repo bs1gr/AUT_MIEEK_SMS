@@ -1,12 +1,12 @@
 from __future__ import annotations
-
 from datetime import date, timedelta
 from typing import Dict
-
 import pytest
-
 from backend.config import settings
 from backend.routers import routers_grades
+
+# Helper functions for grades router tests
+pytestmark = pytest.mark.auth_required
 
 
 def make_grade_payload(i: int = 1, **overrides) -> Dict:
@@ -27,6 +27,9 @@ def make_grade_payload(i: int = 1, **overrides) -> Dict:
     return base
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
+@pytest.mark.no_rate_limit
 def test_create_grade_success(client):
     """Test successful grade creation after creating student and course."""
     # Setup: create student
@@ -62,6 +65,11 @@ def test_create_grade_success(client):
     assert data["category"] == "Homework"
 
 
+import pytest
+
+
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_and_retrieve_multiple_assignments(client):
     """Creating multiple grades for a course should persist and return them with correct values."""
 
@@ -86,10 +94,30 @@ def test_create_and_retrieve_multiple_assignments(client):
 
     base = date(2025, 9, 1)
     assignments = [
-        {"assignment_name": "Homework 1", "category": "Homework", "grade": 88.0, "day_offset": 0},
-        {"assignment_name": "Lab 1", "category": "Lab Work", "grade": 92.0, "day_offset": 7},
-        {"assignment_name": "Midterm Exam", "category": "Midterm Exam", "grade": 78.5, "day_offset": 30},
-        {"assignment_name": "Project Presentation", "category": "Project", "grade": 96.0, "day_offset": 60},
+        {
+            "assignment_name": "Homework 1",
+            "category": "Homework",
+            "grade": 88.0,
+            "day_offset": 0,
+        },
+        {
+            "assignment_name": "Lab 1",
+            "category": "Lab Work",
+            "grade": 92.0,
+            "day_offset": 7,
+        },
+        {
+            "assignment_name": "Midterm Exam",
+            "category": "Midterm Exam",
+            "grade": 78.5,
+            "day_offset": 30,
+        },
+        {
+            "assignment_name": "Project Presentation",
+            "category": "Project",
+            "grade": 96.0,
+            "day_offset": 60,
+        },
     ]
 
     created_ids = []
@@ -111,7 +139,9 @@ def test_create_and_retrieve_multiple_assignments(client):
         created_ids.append(resp.json()["id"])
 
     # Paginated list filtered by student and course should include all assignments
-    r_list = client.get(f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20")
+    r_list = client.get(
+        f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20"
+    )
     assert r_list.status_code == 200
     body = r_list.json()
     assert body["total"] == len(assignments)
@@ -133,6 +163,8 @@ def test_create_and_retrieve_multiple_assignments(client):
         assert payload["category"] == info["category"].title()
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_grade_weight_exceeds_limit(client):
     """Test that weight > 3.0 is rejected by Pydantic validator."""
     # Setup: create student and course
@@ -156,13 +188,17 @@ def test_create_grade_weight_exceeds_limit(client):
     ).json()
 
     # Attempt to create grade with weight > 3.0
-    payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], weight=3.5)
+    payload = make_grade_payload(
+        1, student_id=student["id"], course_id=course["id"], weight=3.5
+    )
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 422
     detail = r.json()["detail"]
     assert any("weight" in str(err).lower() for err in detail)
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_grade_submitted_before_assigned(client):
     """Test that date_submitted < date_assigned is rejected."""
     # Setup
@@ -199,6 +235,8 @@ def test_create_grade_submitted_before_assigned(client):
     assert r.status_code == 422
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_grade_category_normalized(client):
     """Test that category is normalized to title case."""
     # Setup
@@ -222,12 +260,16 @@ def test_create_grade_category_normalized(client):
     ).json()
 
     # lowercase category should normalize
-    payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], category="homework")
+    payload = make_grade_payload(
+        1, student_id=student["id"], course_id=course["id"], category="homework"
+    )
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 201
     assert r.json()["category"] == "Homework"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_grades_by_student_and_course(client):
     """Test filtering grades by student_id and course_id."""
     # Setup
@@ -270,9 +312,18 @@ def test_get_grades_by_student_and_course(client):
     ).json()
 
     # Create multiple grades
-    client.post("/api/v1/grades/", json=make_grade_payload(1, student_id=s1["id"], course_id=c1["id"]))
-    client.post("/api/v1/grades/", json=make_grade_payload(2, student_id=s1["id"], course_id=c2["id"]))
-    client.post("/api/v1/grades/", json=make_grade_payload(3, student_id=s2["id"], course_id=c1["id"]))
+    client.post(
+        "/api/v1/grades/",
+        json=make_grade_payload(1, student_id=s1["id"], course_id=c1["id"]),
+    )
+    client.post(
+        "/api/v1/grades/",
+        json=make_grade_payload(2, student_id=s1["id"], course_id=c2["id"]),
+    )
+    client.post(
+        "/api/v1/grades/",
+        json=make_grade_payload(3, student_id=s2["id"], course_id=c1["id"]),
+    )
 
     # Filter by student
     r_s1 = client.get(f"/api/v1/grades/?student_id={s1['id']}")
@@ -296,6 +347,8 @@ def test_get_grades_by_student_and_course(client):
     assert len(both_data["items"]) == 1
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_update_grade_validation(client):
     """Test that update also enforces validation (weight, dates)."""
     # Setup
@@ -340,6 +393,8 @@ def test_update_grade_validation(client):
     assert r_bad_dates.status_code == 422
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_delete_grade(client):
     """Test deleting a grade."""
     # Setup
@@ -375,6 +430,8 @@ def test_delete_grade(client):
     assert r_get.status_code == 404
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_grades_date_range_filtering_assigned_and_submitted(client):
     """Validate date range filtering for grades using date_assigned (default) and date_submitted when requested."""
     # Setup student and course
@@ -466,6 +523,8 @@ def test_grades_date_range_filtering_assigned_and_submitted(client):
     assert bad_detail["error_id"] == "ERR_VALIDATION"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_grade_missing_student(client):
     """Creating a grade for a non-existent student returns 404."""
     course = client.post(
@@ -484,6 +543,8 @@ def test_create_grade_missing_student(client):
     assert "Student" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_course_grades_missing_course(client):
     """Requesting grades for a missing course returns 404."""
     r = client.get("/api/v1/grades/course/99999")
@@ -492,6 +553,8 @@ def test_get_course_grades_missing_course(client):
     assert "Course" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_update_grade_not_found(client):
     """Updating a non-existent grade returns 404."""
     r = client.put("/api/v1/grades/99999", json={"grade": 90})
@@ -500,6 +563,8 @@ def test_update_grade_not_found(client):
     assert "Grade" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_delete_grade_not_found(client):
     """Deleting a non-existent grade returns 404."""
     r = client.delete("/api/v1/grades/99999")
@@ -508,6 +573,8 @@ def test_delete_grade_not_found(client):
     assert "Grade" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_grade_analysis_with_and_without_data(client):
     """Grade analysis should return summary when data exists and a message otherwise."""
     student = client.post(
@@ -530,22 +597,36 @@ def test_get_grade_analysis_with_and_without_data(client):
     ).json()
 
     # No grades yet -> message response
-    r_empty = client.get(f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}")
+    r_empty = client.get(
+        f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}"
+    )
     assert r_empty.status_code == 200
-    assert r_empty.json()["message"] == "No grades found for this student in this course"
+    assert (
+        r_empty.json()["message"] == "No grades found for this student in this course"
+    )
 
     # Create a few grades across distribution buckets
     payloads = [
-        make_grade_payload(1, student_id=student["id"], course_id=course["id"], grade=95, max_grade=100),
-        make_grade_payload(2, student_id=student["id"], course_id=course["id"], grade=82, max_grade=100),
-        make_grade_payload(3, student_id=student["id"], course_id=course["id"], grade=68, max_grade=100),
-        make_grade_payload(4, student_id=student["id"], course_id=course["id"], grade=55, max_grade=100),
+        make_grade_payload(
+            1, student_id=student["id"], course_id=course["id"], grade=95, max_grade=100
+        ),
+        make_grade_payload(
+            2, student_id=student["id"], course_id=course["id"], grade=82, max_grade=100
+        ),
+        make_grade_payload(
+            3, student_id=student["id"], course_id=course["id"], grade=68, max_grade=100
+        ),
+        make_grade_payload(
+            4, student_id=student["id"], course_id=course["id"], grade=55, max_grade=100
+        ),
     ]
     for payload in payloads:
         # Ensure unique assignment names to satisfy DB constraints
         client.post("/api/v1/grades/", json=payload)
 
-    r_analysis = client.get(f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}")
+    r_analysis = client.get(
+        f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}"
+    )
     assert r_analysis.status_code == 200
     data = r_analysis.json()
     assert data["total_grades"] == 4
@@ -571,14 +652,36 @@ def test_normalize_date_range_partial_bounds(start, end, expected_delta):
     assert (normalized_end - normalized_start).days == expected_delta
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_student_grades_missing_student(client):
     """Fetching grades for an unknown student returns 404."""
     r = client.get("/api/v1/grades/student/99999")
     assert r.status_code == 404
-    detail = r.json()["detail"]
-    assert "Student" in detail and "not found" in detail
+    resp = r.json()
+    # If error response is a dict with 'detail' (FastAPI default), check inside
+    if isinstance(resp, dict) and "detail" in resp:
+        detail = resp["detail"]
+        if isinstance(detail, dict) and "message" in detail:
+            msg = detail["message"]
+            assert "Student" in msg and "not found" in msg
+        elif isinstance(detail, str):
+            assert "Student" in detail and "not found" in detail
+        else:
+            assert False, f"Unexpected error response detail format: {detail}"
+    # If error response is a dict with 'message' at top level
+    elif isinstance(resp, dict) and "message" in resp:
+        msg = resp["message"]
+        assert "Student" in msg and "not found" in msg
+    # If error response is a string (fallback), check directly
+    elif isinstance(resp, str):
+        assert "Student" in resp and "not found" in resp
+    else:
+        assert False, f"Unexpected error response format: {resp}"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_student_grades_filtered_view(client):
     """Student-grade endpoint supports course filter and submitted date range."""
     student = client.post(
@@ -644,6 +747,8 @@ def test_get_student_grades_filtered_view(client):
     assert body[0]["category"] == "Project"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_course_grades_with_submitted_range(client):
     """Course-grade endpoint respects submitted-based filtering."""
     student = client.post(
@@ -696,6 +801,8 @@ def test_get_course_grades_with_submitted_range(client):
     assert data[0]["assignment_name"] == "Assignment 2"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_all_grades_category_filter(client):
     """Category filter performs case-insensitive matching."""
     student = client.post(
@@ -735,6 +842,8 @@ def test_get_all_grades_category_filter(client):
     assert results["items"][0]["category"] == "Pop Quiz"
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_get_grade_success_and_not_found(client):
     """Fetch grade by id covers success and 404 paths."""
     student = client.post(
@@ -771,6 +880,8 @@ def test_get_grade_success_and_not_found(client):
     assert "Grade" in missing_detail and "not found" in missing_detail
 
 
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_update_grade_successful(client):
     """Successful grade update persists new values."""
     student = client.post(

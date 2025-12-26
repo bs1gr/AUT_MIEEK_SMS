@@ -1,0 +1,71 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.1, pluggy-1.6.0 -- C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\SMS\student-management-system
+plugins: anyio-4.11.0, Faker-38.2.0, langsmith-0.4.30, locust-2.42.6, cov-7.0.0
+collecting ... collected 9 items
+
+backend/tests/test_admin_bootstrap.py::test_bootstrap_skips_without_credentials PASSED [ 11%]
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+backend/tests/test_admin_bootstrap.py::test_bootstrap_warns_when_auth_enabled_without_credentials [run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] upgrade(head) failed: 'config'
+[run_migrations] Attempting upgrade to 'heads'
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+FAILED [ 22%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_creates_admin_user PASSED [ 33%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_updates_existing_user_with_force_reset PASSED [ 44%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_updates_existing_user_without_force_reset PASSED [ 55%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_creates_user_and_allows_login PASSED [ 66%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_auto_resets_when_enabled PASSED [ 77%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_auto_does_not_reset_if_password_matches PASSED [ 88%]
+backend/tests/test_admin_bootstrap.py::test_bootstrap_auto_resets_on_verification_error PASSED [100%]
+
+================================== FAILURES ===================================
+_________ test_bootstrap_warns_when_auth_enabled_without_credentials __________
+
+clean_db = None
+caplog = <_pytest.logging.LogCaptureFixture object at 0x0000019230D5F8C0>
+
+    def test_bootstrap_warns_when_auth_enabled_without_credentials(clean_db, caplog):
+        settings = _make_settings(
+            DEFAULT_ADMIN_EMAIL=None, DEFAULT_ADMIN_PASSWORD=None, AUTH_ENABLED=True
+        )
+        with caplog.at_level("WARNING"):
+            ensure_default_admin_account(settings=settings, session_factory=SessionLocal)
+
+        session = SessionLocal()
+        try:
+            assert _count_users(session) == 0
+        finally:
+            session.close()
+
+        print("caplog.records:", caplog.records)
+        print("caplog.text:", caplog.text)
+>       assert "Bootstrap: AUTH_ENABLED is True" in caplog.text
+E       AssertionError: assert 'Bootstrap: AUTH_ENABLED is True' in ''
+E        +  where '' = <_pytest.logging.LogCaptureFixture object at 0x0000019230D5F8C0>.text
+
+backend\tests\test_admin_bootstrap.py:61: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[run_migrations] ENTER
+---------------------------- Captured stderr setup ----------------------------
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+
+----------------------------- Captured log setup ------------------------------
+INFO     alembic.runtime.migration:migration.py:211 Context impl SQLiteImpl.
+INFO     alembic.runtime.migration:migration.py:214 Will assume non-transactional DDL.
+---------------------------- Captured stdout call -----------------------------
+caplog.records: []
+caplog.text:
+=========================== short test summary info ===========================
+FAILED backend/tests/test_admin_bootstrap.py::test_bootstrap_warns_when_auth_enabled_without_credentials
+========================= 1 failed, 8 passed in 1.51s =========================

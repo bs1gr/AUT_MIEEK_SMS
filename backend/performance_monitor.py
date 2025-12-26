@@ -35,7 +35,9 @@ def _serialize_params(parameters: Any, limit: int = 500) -> str:
     try:
         if isinstance(parameters, Mapping):
             items = [f"{k}={parameters[k]!r}" for k in parameters]
-        elif isinstance(parameters, Iterable) and not isinstance(parameters, (str, bytes)):
+        elif isinstance(parameters, Iterable) and not isinstance(
+            parameters, (str, bytes)
+        ):
             items = [repr(p) for p in parameters]
         else:
             items = [repr(parameters)]
@@ -84,17 +86,23 @@ class SlowQueryMonitor:
             )
 
         @event.listens_for(engine, "before_cursor_execute", retval=False)
-        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        def before_cursor_execute(
+            conn, cursor, statement, parameters, context, executemany
+        ):
             context._slow_query_start = time.perf_counter()
 
         @event.listens_for(engine, "after_cursor_execute", retval=False)
-        def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        def after_cursor_execute(
+            conn, cursor, statement, parameters, context, executemany
+        ):
             start = getattr(context, "_slow_query_start", None)
             if start is None:
                 return
             duration_ms = (time.perf_counter() - start) * 1000.0
             if duration_ms >= self.threshold_ms:
-                params_repr = _serialize_params(parameters) if self.include_params else None
+                params_repr = (
+                    _serialize_params(parameters) if self.include_params else None
+                )
                 self.record(
                     statement=_normalize_statement(statement),
                     duration_ms=duration_ms,
@@ -108,7 +116,9 @@ class SlowQueryMonitor:
             if start is None:
                 return
             duration_ms = (time.perf_counter() - start) * 1000.0
-            params_repr = _serialize_params(context.parameters) if self.include_params else None
+            params_repr = (
+                _serialize_params(context.parameters) if self.include_params else None
+            )
             self.record(
                 statement=_normalize_statement(context.statement or "<unknown>"),
                 duration_ms=duration_ms,
@@ -116,7 +126,13 @@ class SlowQueryMonitor:
                 rowcount=None,
             )
 
-    def record(self, statement: str, duration_ms: float, parameters: Optional[str], rowcount: Optional[int]) -> None:
+    def record(
+        self,
+        statement: str,
+        duration_ms: float,
+        parameters: Optional[str],
+        rowcount: Optional[int],
+    ) -> None:
         entry = QueryRecord(
             timestamp=datetime.now(timezone.utc).isoformat(),
             duration_ms=round(duration_ms, 3),
@@ -124,7 +140,9 @@ class SlowQueryMonitor:
             parameters=parameters,
             rowcount=rowcount,
         )
-        logger.warning("Slow query detected (%.3f ms): %s", entry.duration_ms, statement)
+        logger.warning(
+            "Slow query detected (%.3f ms): %s", entry.duration_ms, statement
+        )
 
         with self._lock:
             self._records.append(entry)
@@ -159,7 +177,9 @@ class SlowQueryMonitor:
             self._records.clear()
 
 
-def setup_sqlalchemy_query_monitoring(engine: Engine, settings: Any) -> SlowQueryMonitor | None:
+def setup_sqlalchemy_query_monitoring(
+    engine: Engine, settings: Any
+) -> SlowQueryMonitor | None:
     """Configure slow query monitoring for the provided engine."""
 
     enabled = getattr(settings, "SQLALCHEMY_SLOW_QUERY_ENABLED", True)

@@ -230,6 +230,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   value={config.period}
                   onChange={(e) => handleConfigChange('period', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title={t('reports.period')}
                 >
                   <option value="week">{t('reports.period_week')}</option>
                   <option value="month">{t('reports.period_month')}</option>
@@ -251,6 +252,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       value={config.startDate || ''}
                       onChange={(e) => handleConfigChange('startDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title={t('reports.startDate')}
                     />
                   </div>
                   <div>
@@ -262,6 +264,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       value={config.endDate || ''}
                       onChange={(e) => handleConfigChange('endDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title={t('reports.endDate')}
                     />
                   </div>
                 </div>

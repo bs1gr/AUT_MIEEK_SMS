@@ -1,13 +1,10 @@
 import os
 from types import SimpleNamespace
-
 import pytest
-from fastapi.testclient import TestClient
-
-import backend.main as main
 from backend import environment
+import backend.main as main
 
-client = TestClient(main.app)
+# The 'client' fixture will be provided by conftest.py
 
 # Control panel tests are only relevant in native/development mode
 # In Docker, the frontend is served as static files, not via npm dev server
@@ -17,8 +14,10 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_control_start_success(monkeypatch):
+def test_control_start_success(monkeypatch, client):
     # Ensure frontend not already running
+    import backend.main as main
+
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
     # Make frontend dir exist and node_modules present
@@ -27,7 +26,8 @@ def test_control_start_success(monkeypatch):
         os.path,
         "isdir",
         lambda p: True
-        if ("frontend" in str(p) and "node_modules" not in str(p)) or "node_modules" in str(p)
+        if ("frontend" in str(p) and "node_modules" not in str(p))
+        or "node_modules" in str(p)
         else orig_isdir(p),
     )
 
@@ -35,7 +35,16 @@ def test_control_start_success(monkeypatch):
     monkeypatch.setattr(main, "_resolve_npm_command", lambda: "npm")
 
     # Simulate npm -v success
-    def fake_run_version(args, cwd=None, stdout=None, stderr=None, shell=False, check=False, timeout=None, text=None):
+    def fake_run_version(
+        args,
+        cwd=None,
+        stdout=None,
+        stderr=None,
+        shell=False,
+        check=False,
+        timeout=None,
+        text=None,
+    ):
         if args and args[1] == "-v":
             return SimpleNamespace(returncode=0, stdout="9.0.0\n", stderr="")
         return SimpleNamespace(returncode=0, stdout="", stderr="")
@@ -52,7 +61,9 @@ def test_control_start_success(monkeypatch):
         def poll(self):
             return None
 
-    def fake_popen(args, cwd=None, shell=False, stdout=None, stderr=None, text=None, **kwargs):
+    def fake_popen(
+        args, cwd=None, shell=False, stdout=None, stderr=None, text=None, **kwargs
+    ):
         created["started"] = True
         # after starting, simulate that port is open
         monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: True)
@@ -67,20 +78,33 @@ def test_control_start_success(monkeypatch):
     assert "port" in data
 
 
-def test_control_start_install_failure(monkeypatch, tmp_path):
+def test_control_start_install_failure(monkeypatch, tmp_path, client):
     # Ensure frontend not already running
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
     # Frontend dir exists but node_modules missing
     monkeypatch.setattr(
-        os.path, "isdir", lambda p: True if ("frontend" in str(p) and "node_modules" not in str(p)) else False
+        os.path,
+        "isdir",
+        lambda p: True
+        if ("frontend" in str(p) and "node_modules" not in str(p))
+        else False,
     )
 
     # npm found
     monkeypatch.setattr(main, "_resolve_npm_command", lambda: "npm")
 
     # Version check succeeds
-    def fake_run(args, cwd=None, stdout=None, stderr=None, shell=False, check=False, timeout=None, text=None):
+    def fake_run(
+        args,
+        cwd=None,
+        stdout=None,
+        stderr=None,
+        shell=False,
+        check=False,
+        timeout=None,
+        text=None,
+    ):
         # npm -v
         if args and args == ["npm", "-v"]:
             return SimpleNamespace(returncode=0, stdout="9.0.0\n", stderr="")
@@ -101,7 +125,7 @@ def test_control_start_install_failure(monkeypatch, tmp_path):
     assert data.get("message") == "Failed to install frontend dependencies"
 
 
-def test_control_start_process_terminated(monkeypatch):
+def test_control_start_process_terminated(monkeypatch, client):
     # Ensure frontend not already running
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
@@ -111,7 +135,11 @@ def test_control_start_process_terminated(monkeypatch):
     monkeypatch.setattr(main, "_resolve_npm_command", lambda: "npm")
 
     # version_check ok
-    monkeypatch.setattr(main.subprocess, "run", lambda *a, **k: SimpleNamespace(returncode=0, stdout="9.0.0\n"))
+    monkeypatch.setattr(
+        main.subprocess,
+        "run",
+        lambda *a, **k: SimpleNamespace(returncode=0, stdout="9.0.0\n"),
+    )
 
     # Popen that has already terminated
     class DeadProc:

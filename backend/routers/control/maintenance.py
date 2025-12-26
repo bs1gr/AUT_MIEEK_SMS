@@ -74,16 +74,15 @@ def _get_policy_description(enabled: bool, mode: str) -> str:
 
     if mode == "disabled":
         return "🔓 No authentication required (all endpoints public)"
-    elif mode == "permissive":
+    if mode == "permissive":
         return "🔐 Authentication required, but all authenticated users have full access (recommended)"
-    elif mode == "strict":
+    if mode == "strict":
         return "🔒 Full role-based access control (admin/teacher roles strictly enforced)"
-    else:
-        return f"⚠️ Unknown mode: {mode}"
+    return f"⚠️ Unknown mode: {mode}"
 
 
 @router.get("/maintenance/auth-settings", response_model=AuthSettingsResponse)
-async def get_auth_settings(request: Request):
+async def get_auth_settings(_request: Request):
     """Get current authentication and authorization settings.
 
     Returns the effective configuration including AUTH_ENABLED and AUTH_MODE.
@@ -92,8 +91,9 @@ async def get_auth_settings(request: Request):
 
     # Determine source
     source = "defaults"
-    backend_env = Path(__file__).resolve().parents[3] / "backend" / ".env"
-    root_env = Path(__file__).resolve().parents[3] / ".env"
+    project_root = Path(__file__).resolve().parents[3]
+    backend_env = project_root / "backend" / ".env"
+    root_env = project_root / ".env"
 
     if backend_env.exists():
         source = "backend/.env"
@@ -117,7 +117,7 @@ async def get_auth_settings(request: Request):
 
 
 @router.post("/maintenance/auth-settings", response_model=OperationResult)
-async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
+async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
     """Update authentication settings by modifying .env file.
 
     ⚠️ Requires application restart to take effect.
@@ -129,7 +129,6 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
     - AUTH_LOGIN_LOCKOUT_SECONDS: Lockout duration
     """
     try:
-        # Find .env file (prefer backend/.env, fallback to root .env)
         project_root = Path(__file__).resolve().parents[3]
         backend_env = project_root / "backend" / ".env"
         root_env = project_root / ".env"
@@ -148,53 +147,38 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                     details={"expected_path": str(env_file)},
                 )
 
-        # Read current .env
         lines = env_file.read_text(encoding="utf-8").splitlines()
-        updated_lines = []
-        updated_keys = set()
+        updated_lines: list[str] = []
+        updated_keys: set[str] = set()
 
-        # Update existing keys
         for line in lines:
             stripped = line.strip()
 
-            # Update AUTH_ENABLED
             if payload.auth_enabled is not None and stripped.startswith("AUTH_ENABLED="):
                 updated_lines.append(f"AUTH_ENABLED={str(payload.auth_enabled).lower()}")
                 updated_keys.add("AUTH_ENABLED")
-
-            # Update AUTH_MODE
             elif payload.auth_mode is not None and stripped.startswith("AUTH_MODE="):
                 updated_lines.append(f"AUTH_MODE={payload.auth_mode}")
                 updated_keys.add("AUTH_MODE")
-
-            # Update AUTH_LOGIN_MAX_ATTEMPTS
             elif payload.auth_login_max_attempts is not None and stripped.startswith("AUTH_LOGIN_MAX_ATTEMPTS="):
                 updated_lines.append(f"AUTH_LOGIN_MAX_ATTEMPTS={payload.auth_login_max_attempts}")
                 updated_keys.add("AUTH_LOGIN_MAX_ATTEMPTS")
-
-            # Update AUTH_LOGIN_LOCKOUT_SECONDS
             elif payload.auth_login_lockout_seconds is not None and stripped.startswith("AUTH_LOGIN_LOCKOUT_SECONDS="):
                 updated_lines.append(f"AUTH_LOGIN_LOCKOUT_SECONDS={payload.auth_login_lockout_seconds}")
                 updated_keys.add("AUTH_LOGIN_LOCKOUT_SECONDS")
-
             else:
                 updated_lines.append(line)
 
-        # Append missing keys at the end (after AUTH section if present)
-        new_keys = []
+        new_keys: list[str] = []
         if payload.auth_enabled is not None and "AUTH_ENABLED" not in updated_keys:
             new_keys.append(f"AUTH_ENABLED={str(payload.auth_enabled).lower()}")
-
         if payload.auth_mode is not None and "AUTH_MODE" not in updated_keys:
             new_keys.append(f"AUTH_MODE={payload.auth_mode}")
-
         if payload.auth_login_max_attempts is not None and "AUTH_LOGIN_MAX_ATTEMPTS" not in updated_keys:
             new_keys.append(f"AUTH_LOGIN_MAX_ATTEMPTS={payload.auth_login_max_attempts}")
-
         if payload.auth_login_lockout_seconds is not None and "AUTH_LOGIN_LOCKOUT_SECONDS" not in updated_keys:
             new_keys.append(f"AUTH_LOGIN_LOCKOUT_SECONDS={payload.auth_login_lockout_seconds}")
 
-        # Find AUTH section and insert new keys there
         if new_keys:
             auth_section_idx = -1
             for i, line in enumerate(updated_lines):
@@ -203,30 +187,26 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                     break
 
             if auth_section_idx >= 0:
-                # Find end of auth section (next section or EOF)
                 insert_idx = auth_section_idx + 1
-                for i in range(auth_section_idx + 1, len(updated_lines)):
-                    if updated_lines[i].strip().startswith("# ==="):
-                        insert_idx = i
+                for j in range(auth_section_idx + 1, len(updated_lines)):
+                    if updated_lines[j].strip().startswith("# ==="):
+                        insert_idx = j
                         break
                 else:
                     insert_idx = len(updated_lines)
 
-                # Insert new keys
                 for key in reversed(new_keys):
                     updated_lines.insert(insert_idx, key)
             else:
-                # No AUTH section found, append at end
                 if updated_lines and not updated_lines[-1].strip():
                     updated_lines.extend(new_keys)
                 else:
                     updated_lines.append("")
                     updated_lines.extend(new_keys)
 
-        # Write updated .env
         env_file.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
 
-        # Get new effective policy
+        # Recompute effective policy (best-effort)
         from backend.config import get_settings
 
         settings = get_settings()
@@ -237,7 +217,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
             payload.auth_mode if payload.auth_mode is not None else getattr(settings, "AUTH_MODE", "disabled")
         )
 
-        updated_values = {}
+        updated_values: Dict[str, Any] = {}
         if payload.auth_enabled is not None:
             updated_values["AUTH_ENABLED"] = payload.auth_enabled
         if payload.auth_mode is not None:
@@ -257,7 +237,6 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
                 "requires_restart": True,
             },
         )
-
     except Exception as e:
         return OperationResult(
             success=False,
@@ -268,10 +247,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, request: Request):
 
 @router.get("/maintenance/auth-policy-guide")
 async def get_auth_policy_guide():
-    """Get detailed guide on authentication policies.
-
-    Returns comprehensive documentation on AUTH_MODE options.
-    """
+    """Get detailed guide on authentication policies."""
     return {
         "policies": {
             "disabled": {
@@ -343,20 +319,14 @@ async def get_auth_policy_guide():
 
 
 @router.get("/maintenance/updates/check", response_model=UpdateCheckResponse)
-async def check_for_updates(request: Request):
-    """Check for available updates from GitHub releases.
-
-    Compares current version with latest GitHub release and provides
-    update instructions for Docker deployments.
-    """
+async def check_for_updates(_request: Request):
+    """Check for available updates from GitHub releases."""
     from backend.environment import get_runtime_context
 
     current_version = _get_version()
 
     try:
-        # Fetch latest release from GitHub
         latest_release = _fetch_github_latest_release()
-
         if not latest_release:
             return UpdateCheckResponse(
                 current_version=current_version,
@@ -365,21 +335,24 @@ async def check_for_updates(request: Request):
                 update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
             )
 
-        latest_version = latest_release.get("tag_name", "").lstrip("v")
+        latest_version = str(latest_release.get("tag_name", "")).lstrip("v")
         update_available = _version_is_newer(latest_version, current_version)
 
-        # Extract assets (installer, hash, etc.)
-        assets = latest_release.get("assets", [])
-        installer_url = None
-        installer_hash = None
+        assets = latest_release.get("assets", []) or []
+        installer_url: Optional[str] = None
+        installer_hash: Optional[str] = None
 
         for asset in assets:
-            if asset["name"].endswith(".exe"):
-                installer_url = asset["browser_download_url"]
-            elif asset["name"].endswith(".sha256"):
-                installer_hash = _fetch_github_file_content(asset["url"])
+            name = asset.get("name", "")
+            url = asset.get("browser_download_url")
+            if not name or not url:
+                continue
 
-        # Determine instructions based on deployment type
+            if name.endswith(".exe") and not installer_url:
+                installer_url = url
+            elif name.endswith(".sha256") and not installer_hash:
+                installer_hash = _download_text(url)
+
         context = get_runtime_context()
         if context.is_docker:
             instructions = (
@@ -407,7 +380,7 @@ async def check_for_updates(request: Request):
 
         return UpdateCheckResponse(
             current_version=current_version,
-            latest_version=latest_version,
+            latest_version=latest_version or None,
             update_available=update_available,
             release_url=latest_release.get("html_url"),
             release_name=latest_release.get("name"),
@@ -417,7 +390,6 @@ async def check_for_updates(request: Request):
             docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
             update_instructions=instructions,
         )
-
     except Exception as exc:
         logger.error("Error checking for updates: %s", exc, exc_info=True)
         return UpdateCheckResponse(
@@ -436,10 +408,59 @@ def _get_version() -> str:
     return "1.0.0"
 
 
-def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
-    """Fetch latest release info from GitHub API."""
+def _download_text(url: str) -> Optional[str]:
     try:
-        # Use gh CLI if available
+        import urllib.request
+
+        with urllib.request.urlopen(url, timeout=10) as response:
+            return response.read().decode("utf-8", errors="replace").strip()
+    except Exception:
+        return None
+
+
+def _normalize_release(raw: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize 'gh release view' JSON or GitHub REST API JSON into a common shape."""
+    tag = raw.get("tag_name") or raw.get("tagName") or ""
+    html = raw.get("html_url") or raw.get("htmlUrl") or raw.get("url")
+    name = raw.get("name")
+    body = raw.get("body")
+
+    assets_in = raw.get("assets") or []
+    assets_out = []
+
+    # If gh CLI output: craft download URLs (they follow releases/download/<tag>/<asset>)
+    if "tagName" in raw and isinstance(assets_in, list):
+        for a in assets_in:
+            aname = a.get("name")
+            if not aname:
+                continue
+            assets_out.append(
+                {
+                    "name": aname,
+                    "browser_download_url": f"https://github.com/bs1gr/AUT_MIEEK_SMS/releases/download/{tag}/{aname}",
+                }
+            )
+    else:
+        # REST API output already contains browser_download_url
+        for a in assets_in if isinstance(assets_in, list) else []:
+            aname = a.get("name")
+            dl = a.get("browser_download_url")
+            if aname and dl:
+                assets_out.append({"name": aname, "browser_download_url": dl})
+
+    return {
+        "tag_name": tag,
+        "html_url": html,
+        "name": name,
+        "body": body,
+        "assets": assets_out,
+    }
+
+
+def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
+    """Fetch latest release info from GitHub (gh CLI if available, otherwise REST)."""
+    # 1) Try gh CLI (fast + supports auth automatically if configured)
+    try:
         result = subprocess.run(
             ["gh", "release", "view", "--json", "tagName,name,body,htmlUrl,assets"],
             capture_output=True,
@@ -447,30 +468,19 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
             timeout=10,
         )
         if result.returncode == 0:
-            return json.loads(result.stdout)
+            raw = json.loads(result.stdout)
+            return _normalize_release(raw)
     except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
         pass
 
-    # Fallback to direct API call
+    # 2) Fallback to GitHub REST API
     try:
         import urllib.request
 
         url = "https://api.github.com/repos/bs1gr/AUT_MIEEK_SMS/releases/latest"
         with urllib.request.urlopen(url, timeout=10) as response:
-            return json.loads(response.read().decode())
-    except Exception:
-        return None
-
-
-def _fetch_github_file_content(asset_url: str) -> Optional[str]:
-    """Fetch file content from GitHub release asset."""
-    try:
-        import urllib.request
-
-        headers = {"Accept": "application/octet-stream"}
-        req = urllib.request.Request(asset_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as response:
-            return response.read().decode().strip()
+            raw = json.loads(response.read().decode("utf-8", errors="replace"))
+            return _normalize_release(raw)
     except Exception:
         return None
 
@@ -479,11 +489,10 @@ def _version_is_newer(latest: str, current: str) -> bool:
     """Compare semantic versions. Returns True if latest > current."""
     try:
 
-        def parse_version(v: str) -> tuple:
-            """Parse version string into tuple of ints."""
+        def parse_version(v: str) -> tuple[int, int, int]:
             parts = v.lstrip("v").split(".")
-            return tuple(int(p) for p in parts[:3])  # Compare major.minor.patch
+            return (int(parts[0]), int(parts[1]), int(parts[2]))
 
         return parse_version(latest) > parse_version(current)
-    except (ValueError, IndexError):
+    except Exception:
         return False

@@ -7,7 +7,6 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 from starlette.requests import Request
 
 import backend.main as main
@@ -15,7 +14,6 @@ import backend.routers.routers_control as control
 from backend import environment
 from backend.errors import ErrorCode
 
-client = TestClient(main.app)
 
 # Control panel tests require frontend source directory (package.json, etc)
 # Skip in Docker where only built static files are present
@@ -25,7 +23,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_control_status_monkeypatched(monkeypatch):
+def test_control_status_monkeypatched(monkeypatch, client):
     # No frontend running
     monkeypatch.setattr(main, "_detect_frontend_port", lambda: None)
     resp = client.get("/control/api/status")
@@ -34,7 +32,7 @@ def test_control_status_monkeypatched(monkeypatch):
     assert "backend" in data and "frontend" in data
 
 
-def test_control_start_npm_missing(monkeypatch):
+def test_control_start_npm_missing(monkeypatch, client):
     # Ensure port not open so start path proceeds
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
@@ -54,16 +52,21 @@ def test_control_start_npm_missing(monkeypatch):
     resp = client.post("/control/api/start")
     assert resp.status_code in (400, 500)
     data = resp.json()
-    assert data.get("message") == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
+    assert (
+        data.get("message")
+        == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
+    )
 
 
-def test_control_stop_kills_pids(monkeypatch):
+def test_control_stop_kills_pids(monkeypatch, client):
     # Ensure no tracked FRONTEND_PROCESS
     main.FRONTEND_PROCESS = None
 
     # Return a PID for the frontend port scan
     monkeypatch.setattr(
-        main, "_find_pids_on_port", lambda port: [12345] if port == main.FRONTEND_PORT_PREFERRED else []
+        main,
+        "_find_pids_on_port",
+        lambda port: [12345] if port == main.FRONTEND_PORT_PREFERRED else [],
     )
 
     # Fake subprocess.run to always succeed for taskkill
@@ -78,7 +81,7 @@ def test_control_stop_kills_pids(monkeypatch):
     assert data.get("success") is True
 
 
-def test_control_restart_schedules_thread(monkeypatch):
+def test_control_restart_schedules_thread(monkeypatch, client):
     monkeypatch.delenv("SMS_EXECUTION_MODE", raising=False)
 
     called = {}
@@ -97,7 +100,7 @@ def test_control_restart_schedules_thread(monkeypatch):
     assert called["cmd"] == [sys.executable, "-m", "uvicorn", "backend.main:app"]
 
 
-def test_control_restart_blocked_in_docker(monkeypatch):
+def test_control_restart_blocked_in_docker(monkeypatch, client):
     monkeypatch.setenv("SMS_EXECUTION_MODE", "docker")
     resp = client.post("/control/api/restart")
     assert resp.status_code == 400
@@ -107,7 +110,7 @@ def test_control_restart_blocked_in_docker(monkeypatch):
     assert data["execution_mode"] == "docker"
 
 
-def test_restart_diagnostics_reports_native(monkeypatch):
+def test_restart_diagnostics_reports_native(monkeypatch, client):
     monkeypatch.delenv("ENABLE_CONTROL_API", raising=False)
     monkeypatch.delenv("SMS_EXECUTION_MODE", raising=False)
     monkeypatch.delenv("SMS_ENV", raising=False)  # Ensure not in production mode
@@ -119,7 +122,7 @@ def test_restart_diagnostics_reports_native(monkeypatch):
     assert data["control_api_enabled"] is True
 
 
-def test_restart_disabled_when_control_api_off(monkeypatch):
+def test_restart_disabled_when_control_api_off(monkeypatch, client):
     monkeypatch.setenv("ENABLE_CONTROL_API", "0")
     diag = client.get("/control/api/restart")
     assert diag.status_code == 200
@@ -134,8 +137,10 @@ def test_restart_disabled_when_control_api_off(monkeypatch):
     assert payload["message"].lower().startswith("control api disabled")
 
 
-def test_install_frontend_deps_missing_package_json(monkeypatch):
-    package_path = str((Path(control.__file__).resolve().parents[2] / "frontend" / "package.json"))
+def test_install_frontend_deps_missing_package_json(monkeypatch, client):
+    package_path = str(
+        (Path(control.__file__).resolve().parents[2] / "frontend" / "package.json")
+    )
     original_exists = Path.exists
 
     def fake_exists(self):
@@ -152,7 +157,7 @@ def test_install_frontend_deps_missing_package_json(monkeypatch):
     assert Path(detail["context"]["path"]).name == "package.json"
 
 
-def test_install_frontend_deps_npm_missing(monkeypatch):
+def test_install_frontend_deps_npm_missing(monkeypatch, client):
     monkeypatch.setattr(control, "_check_npm_installed", lambda: (False, None))
 
     resp = client.post("/control/api/operations/install-frontend-deps")
@@ -162,8 +167,10 @@ def test_install_frontend_deps_npm_missing(monkeypatch):
     assert detail["context"]["command"] == "npm --version"
 
 
-def test_install_backend_deps_missing_requirements(monkeypatch):
-    requirements_path = str((Path(control.__file__).resolve().parents[2] / "backend" / "requirements.txt"))
+def test_install_backend_deps_missing_requirements(monkeypatch, client):
+    requirements_path = str(
+        (Path(control.__file__).resolve().parents[2] / "backend" / "requirements.txt")
+    )
     original_exists = Path.exists
 
     def fake_exists(self):
@@ -180,7 +187,7 @@ def test_install_backend_deps_missing_requirements(monkeypatch):
     assert Path(detail["context"]["path"]).name == "requirements.txt"
 
 
-def test_docker_build_when_docker_not_running(monkeypatch):
+def test_docker_build_when_docker_not_running(monkeypatch, client):
     monkeypatch.setattr(control, "_check_docker_running", lambda: False)
 
     resp = client.post("/control/api/operations/docker-build")
@@ -189,7 +196,7 @@ def test_docker_build_when_docker_not_running(monkeypatch):
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
 
 
-def test_docker_update_volume_when_docker_not_running(monkeypatch):
+def test_docker_update_volume_when_docker_not_running(monkeypatch, client):
     monkeypatch.setattr(control, "_check_docker_running", lambda: False)
 
     resp = client.post("/control/api/operations/docker-update-volume")
@@ -198,7 +205,7 @@ def test_docker_update_volume_when_docker_not_running(monkeypatch):
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
 
 
-def test_download_database_backup_success(tmp_path):
+def test_download_database_backup_success(tmp_path, client):
     backup_dir = Path(control.__file__).resolve().parents[2] / "backups" / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -207,7 +214,9 @@ def test_download_database_backup_success(tmp_path):
     backup_path.write_bytes(b"fake-backup")
 
     try:
-        resp = client.get(f"/control/api/operations/database-backups/{filename}/download")
+        resp = client.get(
+            f"/control/api/operations/database-backups/{filename}/download"
+        )
         assert resp.status_code == 200
         assert resp.content == b"fake-backup"
         assert resp.headers["content-type"] == "application/octet-stream"
@@ -216,7 +225,7 @@ def test_download_database_backup_success(tmp_path):
         backup_path.unlink(missing_ok=True)
 
 
-def test_download_database_backup_not_found():
+def test_download_database_backup_not_found(client):
     missing = f"missing_backup_{uuid.uuid4().hex}.db"
     resp = client.get(f"/control/api/operations/database-backups/{missing}/download")
     assert resp.status_code == 404

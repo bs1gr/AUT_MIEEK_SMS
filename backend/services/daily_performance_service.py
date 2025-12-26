@@ -79,7 +79,10 @@ class DailyPerformanceService:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         return (
             db.query(DailyPerformance)
-            .filter(DailyPerformance.student_id == student_id, DailyPerformance.deleted_at.is_(None))
+            .filter(
+                DailyPerformance.student_id == student_id,
+                DailyPerformance.deleted_at.is_(None),
+            )
             .all()
         )
 

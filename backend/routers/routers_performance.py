@@ -73,7 +73,9 @@ def get_daily_performance_by_id(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Error fetching daily performance by id {id}: {exc}", exc_info=True)
+        logger.error(
+            f"Error fetching daily performance by id {id}: {exc}", exc_info=True
+        )
         raise internal_server_error(request=request) from exc
 
 
@@ -118,23 +120,35 @@ def update_daily_performance(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error updating daily performance id=%s: %s", id, exc, exc_info=True)
+        logger.error(
+            "Error updating daily performance id=%s: %s", id, exc, exc_info=True
+        )
         raise internal_server_error(request=request) from exc
 
 
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db)):
+def get_student_daily_performance(
+    student_id: int, request: Request, db: Session = Depends(get_db)
+):
     try:
         # Preserve error injection point used by tests
         import_names("models", "DailyPerformance")
         return DailyPerformanceService.list_for_student(db, student_id)
     except Exception as exc:
-        logger.error("Error fetching daily performance for student %s: %s", student_id, exc, exc_info=True)
+        logger.error(
+            "Error fetching daily performance for student %s: %s",
+            student_id,
+            exc,
+            exc_info=True,
+        )
         raise internal_server_error(request=request) from exc
 
 
-@router.get("/student/{student_id}/course/{course_id}", response_model=List[DailyPerformanceResponse])
+@router.get(
+    "/student/{student_id}/course/{course_id}",
+    response_model=List[DailyPerformanceResponse],
+)
 @limiter.limit(RATE_LIMIT_READ)
 def get_student_course_daily_performance(
     student_id: int,
@@ -145,7 +159,9 @@ def get_student_course_daily_performance(
     try:
         # Preserve error injection point used by tests
         import_names("models", "DailyPerformance")
-        return DailyPerformanceService.list_for_student_course(db, student_id, course_id)
+        return DailyPerformanceService.list_for_student_course(
+            db, student_id, course_id
+        )
     except Exception as exc:
         logger.error(
             "Error fetching daily performance for student %s course %s: %s",
@@ -157,7 +173,9 @@ def get_student_course_daily_performance(
         raise internal_server_error(request=request) from exc
 
 
-@router.get("/date/{date_str}/course/{course_id}", response_model=List[DailyPerformanceResponse])
+@router.get(
+    "/date/{date_str}/course/{course_id}", response_model=List[DailyPerformanceResponse]
+)
 def get_course_daily_performance_by_date(
     date_str: str,
     course_id: int,
@@ -167,7 +185,9 @@ def get_course_daily_performance_by_date(
     try:
         # Preserve error injection point used by tests
         import_names("models", "DailyPerformance")
-        return DailyPerformanceService.list_for_course_by_date(db, course_id, date_str, request)
+        return DailyPerformanceService.list_for_course_by_date(
+            db, course_id, date_str, request
+        )
     except HTTPException:
         raise
     except Exception as exc:

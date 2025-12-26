@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from fastapi import APIRouter, Depends, Query
 
-from backend.dependencies import get_db, optional_require_role
+from backend.db import get_session as get_db
+from backend.routers.routers_auth import optional_require_role
 from backend.models import AuditLog
 from backend.schemas.audit import AuditLogResponse, AuditLogListResponse
 

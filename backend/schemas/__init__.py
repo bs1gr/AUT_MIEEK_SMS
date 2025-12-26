@@ -1,5 +1,5 @@
 # Aggregated exports for easy imports
-# Using explicit re-exports to satisfy F401 linter
+## Using explicit re-exports to satisfy F401 linter
 from .attendance import (
     AttendanceCreate as AttendanceCreate,
 )

@@ -15,7 +15,9 @@ from slowapi.util import get_remote_address
 # flakiness and artificial 429s in unit tests.
 _testing = bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
-limiter = Limiter(key_func=get_remote_address, enabled=(not _testing), storage_uri="memory://")
+limiter = Limiter(
+    key_func=get_remote_address, enabled=(not _testing), storage_uri="memory://"
+)
 
 # Default constants: set higher for high-throughput environments.
 # These can be overridden via environment variables so deployments can
@@ -27,7 +29,9 @@ _DEFAULT_WRITE = int(os.environ.get("RATE_LIMIT_WRITE_PER_MINUTE", 50000))
 _DEFAULT_HEAVY = int(os.environ.get("RATE_LIMIT_HEAVY_PER_MINUTE", 20000))
 _DEFAULT_AUTH = int(os.environ.get("RATE_LIMIT_AUTH_PER_MINUTE", 5000))
 # Teacher imports: very high limits to allow uninterrupted bulk operations (student lists, grade imports)
-_DEFAULT_TEACHER_IMPORT = int(os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 100000))
+_DEFAULT_TEACHER_IMPORT = int(
+    os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 100000)
+)
 
 # Exported strings expected across the codebase/tests
 RATE_LIMIT_READ = f"{_DEFAULT_READ}/minute"

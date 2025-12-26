@@ -95,8 +95,14 @@ def _format_diff_item(item: Any) -> str:
 
 
 def main(argv: List[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Check for schema drift against Alembic models.")
-    parser.add_argument("--fail-on-drift", action="store_true", help="Return non-zero exit code if drift detected.")
+    parser = argparse.ArgumentParser(
+        description="Check for schema drift against Alembic models."
+    )
+    parser.add_argument(
+        "--fail-on-drift",
+        action="store_true",
+        help="Return non-zero exit code if drift detected.",
+    )
     args = parser.parse_args(argv)
 
     diffs = detect_drift()

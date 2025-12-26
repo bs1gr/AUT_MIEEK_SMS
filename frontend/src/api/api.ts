@@ -1,4 +1,21 @@
 /**
+ * Fetch current user with retry logic (for AuthContext auto-login)
+ */
+export async function fetchMeWithRetry(retries = 2, delayMs = 500): Promise<UserAccount> {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await adminUsersAPI.getCurrentUser();
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) {
+        await new Promise(res => setTimeout(res, delayMs));
+      }
+    }
+  }
+  throw lastErr;
+}
+/**
  * API Integration Client for Student Management System
  * Connects React Frontend to FastAPI Backend
  * TypeScript version with full type safety
@@ -117,7 +134,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
   try {
     // Skip auth header for login/refresh endpoints (they don't need it)
     const url = config.url || '';
-    if (url.includes('/auth/login') || url.includes('/auth/refresh')) {
+    if (url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh')) {
       console.warn('[API] Skipping auth header for:', url);
       return config;
     }

@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { login, logout, waitForTable } from './helpers';
+import { login, logout, waitForTable, ensureTestUserExists } from './helpers';
 
 test.describe('Authentication Flow', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
+
+  // ...existing code...
   test('should login successfully', async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
 
@@ -47,6 +52,9 @@ test.describe('Authentication Flow', () => {
 });
 
 test.describe('Dashboard Navigation', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
   });
@@ -78,6 +86,9 @@ test.describe('Dashboard Navigation', () => {
 });
 
 test.describe('Students Management', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
@@ -134,6 +145,9 @@ test.describe('Students Management', () => {
 });
 
 test.describe('Responsive Design', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists();
+  });
   test('should be mobile responsive', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });

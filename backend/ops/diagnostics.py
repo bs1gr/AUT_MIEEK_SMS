@@ -68,13 +68,22 @@ class SystemStatusChecker:
                             pid=conn.pid,
                             name=proc.name(),
                             exe=proc.exe() if hasattr(proc, "exe") else None,
-                            cmdline=(" ".join(proc.cmdline()) if hasattr(proc, "cmdline") else None),
+                            cmdline=(
+                                " ".join(proc.cmdline())
+                                if hasattr(proc, "cmdline")
+                                else None
+                            ),
                         )
                     except Exception:
-                        return SimpleNamespace(pid=conn.pid, name="Unknown", exe=None, cmdline=None)
+                        return SimpleNamespace(
+                            pid=conn.pid, name="Unknown", exe=None, cmdline=None
+                        )
         except Exception:
             # psutil not available — fall back to a conservative (False/None) result
-            logger.debug("psutil not available when checking ports; returning no process info", exc_info=True)
+            logger.debug(
+                "psutil not available when checking ports; returning no process info",
+                exc_info=True,
+            )
             return None
 
         return None
@@ -118,6 +127,10 @@ class DependencyChecker:
 
         # If python is missing or node is missing, treat as failure. Otherwise success.
         if not py_ok or not node_ok:
-            return OperationResult.failure_result("Dependencies missing", data={"status": status})
+            return OperationResult.failure_result(
+                "Dependencies missing", data={"status": status}
+            )
 
-        return OperationResult.success_result("Dependencies OK", data={"status": status})
+        return OperationResult.success_result(
+            "Dependencies OK", data={"status": status}
+        )

@@ -20,7 +20,9 @@ class PaginationParams(BaseModel):
     """
 
     skip: int = Field(0, ge=0, description="Number of records to skip")
-    limit: int = Field(100, ge=1, le=1000, description="Maximum records to return (max 1000)")
+    limit: int = Field(
+        100, ge=1, le=1000, description="Maximum records to return (max 1000)"
+    )
 
 
 class PaginatedResponse(BaseModel, Generic[T]):

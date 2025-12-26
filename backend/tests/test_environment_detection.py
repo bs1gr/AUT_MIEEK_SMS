@@ -49,7 +49,10 @@ def _reset_environment_cache(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SMS_EXECUTION_MODE", raising=False)
 
 
-@pytest.mark.skipif(_RUNNING_IN_ACTUAL_DOCKER, reason="Cannot fully mock Docker detection when running in container")
+@pytest.mark.skipif(
+    _RUNNING_IN_ACTUAL_DOCKER,
+    reason="Cannot fully mock Docker detection when running in container",
+)
 def test_default_environment_is_development(monkeypatch: pytest.MonkeyPatch) -> None:
     # Clear CI environment variables to ensure we get DEVELOPMENT default
     for flag in ("CI", "GITHUB_ACTIONS", "TESTING", "PYTEST_CURRENT_TEST"):
@@ -61,7 +64,10 @@ def test_default_environment_is_development(monkeypatch: pytest.MonkeyPatch) -> 
     ctx.assert_valid()
 
 
-@pytest.mark.skipif(_RUNNING_IN_ACTUAL_DOCKER, reason="Cannot test non-Docker production blocking from inside Docker")
+@pytest.mark.skipif(
+    _RUNNING_IN_ACTUAL_DOCKER,
+    reason="Cannot test non-Docker production blocking from inside Docker",
+)
 def test_production_without_docker_is_blocked(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SMS_ENV", "production")
     ctx = environment.get_runtime_context()
@@ -70,7 +76,9 @@ def test_production_without_docker_is_blocked(monkeypatch: pytest.MonkeyPatch) -
         ctx.assert_valid()
 
 
-def test_production_inside_docker_allowed(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+def test_production_inside_docker_allowed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
     monkeypatch.setenv("SMS_ENV", "production")
     monkeypatch.setattr(environment, "_is_docker", lambda: True, raising=False)
 

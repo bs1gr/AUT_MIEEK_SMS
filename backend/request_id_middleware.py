@@ -53,7 +53,10 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         request_id_context.set(request_id)
 
         # Log the incoming request with request ID
-        logger.info(f"Request started: {request.method} {request.url.path}", extra={"request_id": request_id})
+        logger.info(
+            f"Request started: {request.method} {request.url.path}",
+            extra={"request_id": request_id},
+        )
 
         # Process the request
         try:

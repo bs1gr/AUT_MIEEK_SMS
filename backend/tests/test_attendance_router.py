@@ -16,12 +16,25 @@ Coverage:
 from datetime import date, timedelta
 
 
+import pytest
+
+pytestmark = pytest.mark.auth_required
+
+
+@pytest.mark.auth_required
+@pytest.mark.requires_params(["a", "k"])
 def test_create_attendance_success(client):
     """Create attendance record successfully"""
     # Create test student
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT001", "email": "att001@test.com", "first_name": "Test", "last_name": "Student"},
+        json={
+            "student_id": "ATT001",
+            "email": "att001@test.com",
+            "first_name": "Test",
+            "last_name": "Student",
+        },
+        params={"a": "dummy", "k": "dummy"},
     )
     assert student_resp.status_code == 201
     student_id = student_resp.json()["id"]
@@ -29,7 +42,13 @@ def test_create_attendance_success(client):
     # Create test course
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS101", "course_name": "Test Course", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS101",
+            "course_name": "Test Course",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
+        params={"a": "dummy", "k": "dummy"},
     )
     assert course_resp.status_code == 201
     course_id = course_resp.json()["id"]
@@ -44,6 +63,7 @@ def test_create_attendance_success(client):
             "status": "Present",
             "period_number": 1,
         },
+        params={"a": "dummy", "k": "dummy"},
     )
 
     assert response.status_code == 201
@@ -54,18 +74,30 @@ def test_create_attendance_success(client):
     assert "id" in data
 
 
+@pytest.mark.auth_required
 def test_create_attendance_invalid_student(client):
     """Create attendance with non-existent student should fail"""
     # Create test course first
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS102", "course_name": "Test Course 2", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS102",
+            "course_name": "Test Course 2",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     response = client.post(
         "/api/v1/attendance/",
-        json={"student_id": 99999, "course_id": course_id, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": 99999,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
 
     assert response.status_code == 404
@@ -74,18 +106,30 @@ def test_create_attendance_invalid_student(client):
     assert "Student" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
 def test_create_attendance_invalid_course(client):
     """Create attendance with non-existent course should fail"""
     # Create test student first
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT002", "email": "att002@test.com", "first_name": "Test", "last_name": "Student2"},
+        json={
+            "student_id": "ATT002",
+            "email": "att002@test.com",
+            "first_name": "Test",
+            "last_name": "Student2",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     response = client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": 99999, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": student_id,
+            "course_id": 99999,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
 
     assert response.status_code == 404
@@ -94,19 +138,32 @@ def test_create_attendance_invalid_course(client):
     assert "Course" in detail and "not found" in detail
 
 
+@pytest.mark.auth_required
 def test_create_attendance_upserts_existing_record(client):
     """Posting the same attendance twice updates the original record"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT003", "email": "att003@test.com", "first_name": "Test", "last_name": "Student3"},
+        json={
+            "student_id": "ATT003",
+            "email": "att003@test.com",
+            "first_name": "Test",
+            "last_name": "Student3",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS103", "course_name": "Test Course 3", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS103",
+            "course_name": "Test Course 3",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     attendance_data = {
@@ -132,19 +189,32 @@ def test_create_attendance_upserts_existing_record(client):
     assert second_payload["status"] == "Late"
 
 
+@pytest.mark.auth_required
 def test_get_all_attendance(client):
     """Get all attendance records"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT004", "email": "att004@test.com", "first_name": "Test", "last_name": "Student4"},
+        json={
+            "student_id": "ATT004",
+            "email": "att004@test.com",
+            "first_name": "Test",
+            "last_name": "Student4",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS104", "course_name": "Test Course 4", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS104",
+            "course_name": "Test Course 4",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     # Create multiple attendance records
@@ -166,36 +236,65 @@ def test_get_all_attendance(client):
     assert len(data) >= 3
 
 
+@pytest.mark.auth_required
 def test_filter_attendance_by_student(client):
     """Filter attendance by student_id"""
     # Create two students
     student1_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT005", "email": "att005@test.com", "first_name": "Test", "last_name": "Student5"},
+        json={
+            "student_id": "ATT005",
+            "email": "att005@test.com",
+            "first_name": "Test",
+            "last_name": "Student5",
+        },
     )
+    assert student1_resp.status_code == 201, student1_resp.text
     student1_id = student1_resp.json()["id"]
 
     student2_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT006", "email": "att006@test.com", "first_name": "Test", "last_name": "Student6"},
+        json={
+            "student_id": "ATT006",
+            "email": "att006@test.com",
+            "first_name": "Test",
+            "last_name": "Student6",
+        },
     )
+    assert student2_resp.status_code == 201, student2_resp.text
     student2_id = student2_resp.json()["id"]
 
     # Create course
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS105", "course_name": "Test Course 5", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS105",
+            "course_name": "Test Course 5",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     # Create attendance for both students
     client.post(
         "/api/v1/attendance/",
-        json={"student_id": student1_id, "course_id": course_id, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": student1_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
     client.post(
         "/api/v1/attendance/",
-        json={"student_id": student2_id, "course_id": course_id, "date": str(date.today()), "status": "Absent"},
+        json={
+            "student_id": student2_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Absent",
+        },
     )
 
     # Filter by student1
@@ -206,19 +305,32 @@ def test_filter_attendance_by_student(client):
     assert all(a["student_id"] == student1_id for a in data["items"])
 
 
+@pytest.mark.auth_required
 def test_filter_attendance_by_status(client):
     """Filter attendance by status"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT007", "email": "att007@test.com", "first_name": "Test", "last_name": "Student7"},
+        json={
+            "student_id": "ATT007",
+            "email": "att007@test.com",
+            "first_name": "Test",
+            "last_name": "Student7",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS106", "course_name": "Test Course 6", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS106",
+            "course_name": "Test Course 6",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     # Create attendance with different statuses
@@ -243,25 +355,43 @@ def test_filter_attendance_by_status(client):
     assert all(a["status"] == "Absent" for a in data["items"])
 
 
+@pytest.mark.auth_required
 def test_get_student_attendance(client):
     """Get all attendance for a specific student"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT008", "email": "att008@test.com", "first_name": "Test", "last_name": "Student8"},
+        json={
+            "student_id": "ATT008",
+            "email": "att008@test.com",
+            "first_name": "Test",
+            "last_name": "Student8",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS107", "course_name": "Test Course 7", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS107",
+            "course_name": "Test Course 7",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     # Create attendance
     client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": course_id, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
 
     response = client.get(f"/api/v1/attendance/student/{student_id}")
@@ -271,25 +401,43 @@ def test_get_student_attendance(client):
     assert all(a["student_id"] == student_id for a in data)
 
 
+@pytest.mark.auth_required
 def test_get_course_attendance(client):
     """Get all attendance for a specific course"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT009", "email": "att009@test.com", "first_name": "Test", "last_name": "Student9"},
+        json={
+            "student_id": "ATT009",
+            "email": "att009@test.com",
+            "first_name": "Test",
+            "last_name": "Student9",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS108", "course_name": "Test Course 8", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS108",
+            "course_name": "Test Course 8",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     # Create attendance
     client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": course_id, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
 
     response = client.get(f"/api/v1/attendance/course/{course_id}")
@@ -299,26 +447,44 @@ def test_get_course_attendance(client):
     assert all(a["course_id"] == course_id for a in data)
 
 
+@pytest.mark.auth_required
 def test_get_attendance_by_date_and_course(client):
     """Get attendance for a specific course on a specific date"""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT010", "email": "att010@test.com", "first_name": "Test", "last_name": "Student10"},
+        json={
+            "student_id": "ATT010",
+            "email": "att010@test.com",
+            "first_name": "Test",
+            "last_name": "Student10",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS109", "course_name": "Test Course 9", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS109",
+            "course_name": "Test Course 9",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     today = date.today()
     # Create attendance for today
     client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": course_id, "date": str(today), "status": "Present"},
+        json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(today),
+            "status": "Present",
+        },
     )
 
     response = client.get(f"/api/v1/attendance/date/{today}/course/{course_id}")
@@ -328,19 +494,32 @@ def test_get_attendance_by_date_and_course(client):
     assert all(a["course_id"] == course_id for a in data)
 
 
+@pytest.mark.auth_required
 def test_attendance_date_range_filtering(client):
     """Filter attendance records by explicit start_date/end_date and validate defaults."""
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT014", "email": "att014@test.com", "first_name": "Test", "last_name": "Student14"},
+        json={
+            "student_id": "ATT014",
+            "email": "att014@test.com",
+            "first_name": "Test",
+            "last_name": "Student14",
+        },
     )
+    assert student_resp.status_code == 201, student_resp.text
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS114", "course_name": "Test Course 14", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS114",
+            "course_name": "Test Course 14",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
+    assert course_resp.status_code == 201, course_resp.text
     course_id = course_resp.json()["id"]
 
     today = date.today()
@@ -396,25 +575,47 @@ def test_update_attendance(client):
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT011", "email": "att011@test.com", "first_name": "Test", "last_name": "Student11"},
+        json={
+            "student_id": "ATT011",
+            "email": "att011@test.com",
+            "first_name": "Test",
+            "last_name": "Student11",
+        },
+        # jwt_subject removed: not supported by TestClient
     )
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS110", "course_name": "Test Course 10", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS110",
+            "course_name": "Test Course 10",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
+        # jwt_subject removed: not supported by TestClient
     )
     course_id = course_resp.json()["id"]
 
     # Create attendance
     create_resp = client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": course_id, "date": str(date.today()), "status": "Absent"},
+        json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Absent",
+        },
+        # jwt_subject removed: not supported by TestClient
     )
     attendance_id = create_resp.json()["id"]
 
     # Update to Present
-    response = client.put(f"/api/v1/attendance/{attendance_id}", json={"status": "Present"})
+    response = client.put(
+        f"/api/v1/attendance/{attendance_id}",
+        json={"status": "Present"},
+        # jwt_subject removed: not supported by TestClient
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -426,20 +627,35 @@ def test_delete_attendance(client):
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT012", "email": "att012@test.com", "first_name": "Test", "last_name": "Student12"},
+        json={
+            "student_id": "ATT012",
+            "email": "att012@test.com",
+            "first_name": "Test",
+            "last_name": "Student12",
+        },
     )
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS111", "course_name": "Test Course 11", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS111",
+            "course_name": "Test Course 11",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
     course_id = course_resp.json()["id"]
 
     # Create attendance
     create_resp = client.post(
         "/api/v1/attendance/",
-        json={"student_id": student_id, "course_id": course_id, "date": str(date.today()), "status": "Present"},
+        json={
+            "student_id": student_id,
+            "course_id": course_id,
+            "date": str(date.today()),
+            "status": "Present",
+        },
     )
     attendance_id = create_resp.json()["id"]
 
@@ -460,13 +676,23 @@ def test_attendance_stats(client):
     # Create test data
     student_resp = client.post(
         "/api/v1/students/",
-        json={"student_id": "ATT013", "email": "att013@test.com", "first_name": "Test", "last_name": "Student13"},
+        json={
+            "student_id": "ATT013",
+            "email": "att013@test.com",
+            "first_name": "Test",
+            "last_name": "Student13",
+        },
     )
     student_id = student_resp.json()["id"]
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS112", "course_name": "Test Course 12", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS112",
+            "course_name": "Test Course 12",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
     course_id = course_resp.json()["id"]
 
@@ -485,7 +711,9 @@ def test_attendance_stats(client):
         )
 
     # Get stats
-    response = client.get(f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}")
+    response = client.get(
+        f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}"
+    )
     assert response.status_code == 200
     data = response.json()
 
@@ -510,11 +738,18 @@ def test_attendance_stats_no_records_returns_message(client):
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS115", "course_name": "Test Course 15", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS115",
+            "course_name": "Test Course 15",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
     course_id = course_resp.json()["id"]
 
-    response = client.get(f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}")
+    response = client.get(
+        f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}"
+    )
     assert response.status_code == 200
     assert response.json() == {"message": "No attendance records found"}
 
@@ -537,7 +772,12 @@ def test_bulk_create_attendance(client):
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS113", "course_name": "Test Course Bulk", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS113",
+            "course_name": "Test Course Bulk",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
     course_id = course_resp.json()["id"]
 
@@ -574,7 +814,12 @@ def test_attendance_date_range_with_only_end_date(client):
 
     course_resp = client.post(
         "/api/v1/courses/",
-        json={"course_code": "CS116", "course_name": "Test Course 16", "semester": "Fall 2025", "credits": 3},
+        json={
+            "course_code": "CS116",
+            "course_name": "Test Course 16",
+            "semester": "Fall 2025",
+            "credits": 3,
+        },
     )
     course_id = course_resp.json()["id"]
 

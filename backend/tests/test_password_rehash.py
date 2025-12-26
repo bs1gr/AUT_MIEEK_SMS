@@ -5,7 +5,11 @@ Verifies that the password context is correctly configured to support
 both pbkdf2_sha256 and bcrypt, with auto-migration capability.
 """
 
-from backend.routers.routers_auth import get_password_hash, verify_password, pwd_context
+from backend.security.password_hash import (
+    get_password_hash,
+    verify_password,
+    pwd_context,
+)
 
 
 def test_pwd_context_supports_both_schemes():

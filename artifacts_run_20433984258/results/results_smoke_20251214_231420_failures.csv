@@ -1,0 +1,13 @@
+Method,Name,Error,Occurrences
+GET,/api/v1/analytics/dashboard,LocustBadStatusCode(code=404),1
+GET,/api/v1/courses?skip=23&limit=13,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=7&limit=20,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=26&limit=12,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=14&limit=7,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=5&limit=14,LocustBadStatusCode(code=401),1
+POST,/api/v1/auth/login,LocustBadStatusCode(code=429),5
+GET,/api/v1/courses?skip=0&limit=1000,LocustBadStatusCode(code=401),14
+GET,/api/v1/students?skip=0&limit=1000,LocustBadStatusCode(code=401),5
+GET,/api/v1/courses?skip=0&limit=20,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=28&limit=19,LocustBadStatusCode(code=401),1
+GET,/api/v1/courses?skip=8&limit=17,LocustBadStatusCode(code=401),1

@@ -51,11 +51,15 @@ async def verify_api_key(api_key: str = Security(api_key_header)) -> str:
     Raises 403 when header missing or invalid.
     """
     if not is_valid_api_key(api_key):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid API key")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid API key"
+        )
     return api_key
 
 
-async def verify_api_key_optional(api_key: Optional[str] = Security(api_key_header)) -> Optional[str]:
+async def verify_api_key_optional(
+    api_key: Optional[str] = Security(api_key_header),
+) -> Optional[str]:
     """Optional API key validator.
 
     - If header missing: return None (no error)
@@ -65,5 +69,7 @@ async def verify_api_key_optional(api_key: Optional[str] = Security(api_key_head
     if api_key is None:
         return None
     if not is_valid_api_key(api_key):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid API key")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid API key"
+        )
     return api_key

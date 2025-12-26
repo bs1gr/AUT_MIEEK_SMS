@@ -96,7 +96,13 @@ def test_request_id_filter():
 
     # Create a mock log record
     record = logging.LogRecord(
-        name="test", level=logging.INFO, pathname="", lineno=0, msg="test message", args=(), exc_info=None
+        name="test",
+        level=logging.INFO,
+        pathname="",
+        lineno=0,
+        msg="test message",
+        args=(),
+        exc_info=None,
     )
 
     # Filter should add request_id attribute
@@ -113,7 +119,13 @@ def test_request_id_filter_with_existing_id():
 
     # Create a log record with existing request_id
     record = logging.LogRecord(
-        name="test", level=logging.INFO, pathname="", lineno=0, msg="test message", args=(), exc_info=None
+        name="test",
+        level=logging.INFO,
+        pathname="",
+        lineno=0,
+        msg="test message",
+        args=(),
+        exc_info=None,
     )
     # Set attribute using setattr to avoid static type errors in tests
     setattr(record, "request_id", "existing-id-123")
@@ -149,7 +161,13 @@ def test_request_id_filter_uses_context_value():
     token = request_id_context.set("ctx-123")
     try:
         record = logging.LogRecord(
-            name="test", level=logging.INFO, pathname="", lineno=0, msg="message", args=(), exc_info=None
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="message",
+            args=(),
+            exc_info=None,
         )
         RequestIDFilter().filter(record)
         assert getattr(record, "request_id", None) == "ctx-123"

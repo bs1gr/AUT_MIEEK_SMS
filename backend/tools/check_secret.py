@@ -22,12 +22,18 @@ PLACEHOLDER = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # prag
 
 def main() -> int:
     secret = os.environ.get("SECRET_KEY", "")
-    block_on_fail = os.environ.get("BLOCK_ON_FAIL", "false").lower() in ("1", "true", "yes")
+    block_on_fail = os.environ.get("BLOCK_ON_FAIL", "false").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     problems = []
 
     if not secret:
-        problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
+        problems.append(
+            "SECRET_KEY is not set. Set SECRET_KEY in environment for production builds."
+        )
 
     if secret == PLACEHOLDER or "placeholder" in secret.lower():
         problems.append(

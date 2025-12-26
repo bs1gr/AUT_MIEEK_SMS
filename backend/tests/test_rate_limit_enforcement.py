@@ -1,4 +1,6 @@
 from __future__ import annotations
+import ast
+from pathlib import Path
 
 """Test ensuring all write endpoints are protected by rate limiting.
 
@@ -7,8 +9,6 @@ If a legitimate exception is required, decorate that endpoint with a comment
 `# rate limit exemption` so future automation can detect intentional skips.
 """
 
-import ast
-from pathlib import Path
 
 WRITE_METHODS = {"post", "put", "delete", "patch"}
 ROUTERS_DIR = Path(__file__).resolve().parent.parent / "routers"
@@ -55,7 +55,13 @@ def test_write_endpoints_rate_limited():
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 decs = _decorators(node)
-                if _is_write(decs) and not _has_limit(decs) and not _is_exempt(node, lines):
+                if (
+                    _is_write(decs)
+                    and not _has_limit(decs)
+                    and not _is_exempt(node, lines)
+                ):
                     problems.append(f"{router_file.name}:{node.lineno}:{node.name}")
 
-    assert not problems, "Missing @limiter.limit on write endpoints: " + ", ".join(problems)
+    assert not problems, "Missing @limiter.limit on write endpoints: " + ", ".join(
+        problems
+    )

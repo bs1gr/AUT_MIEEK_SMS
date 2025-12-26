@@ -1,0 +1,16 @@
+ImportError while loading conftest 'D:\SMS\student-management-system\backend\tests\conftest.py'.
+backend\tests\conftest.py:142: in <module>
+    from backend.main import app
+backend\main.py:43: in <module>
+    from backend.app_factory import create_app
+backend\app_factory.py:16: in <module>
+    from backend.lifespan import get_lifespan
+backend\lifespan.py:6: in <module>
+    from backend.scripts.migrate.runner import run_migrations
+backend\scripts\__init__.py:4: in <module>
+    from backend.scripts.admin import ensure_default_admin_account
+backend\scripts\admin\__init__.py:3: in <module>
+    from backend.scripts.admin.bootstrap import ensure_default_admin_account
+E     File "D:\SMS\student-management-system\backend\scripts\admin\bootstrap.py", line 41
+E       log.debug(f"Logger name: {log.name}")
+E   IndentationError: unexpected indent

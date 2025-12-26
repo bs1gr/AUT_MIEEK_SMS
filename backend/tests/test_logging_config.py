@@ -27,7 +27,8 @@ def test_initialize_logging_fallback_import(tmp_path, monkeypatch):
     file_handlers = [
         h
         for h in root_logger.handlers
-        if isinstance(h, RotatingFileHandler) and getattr(h, "baseFilename", None) == str(expected_log_file)
+        if isinstance(h, RotatingFileHandler)
+        and getattr(h, "baseFilename", None) == str(expected_log_file)
     ]
     assert file_handlers, "RotatingFileHandler for expected log file was not attached"
     for h in file_handlers:
@@ -49,14 +50,18 @@ def test_initialize_logging_adds_rotating_file_handler(tmp_path):
     logger = logging_config.initialize_logging(str(log_dir), log_level="DEBUG")
     assert logger.name == "backend.logging_config"
 
-    rotating_handlers = [h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)]
+    rotating_handlers = [
+        h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)
+    ]
     assert len(rotating_handlers) == 1
     file_handler = rotating_handlers[0]
     assert Path(file_handler.baseFilename).parent == log_dir
 
     # Second call should not add duplicate handlers
     logging_config.initialize_logging(str(log_dir), log_level="DEBUG")
-    rotating_handlers_after = [h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)]
+    rotating_handlers_after = [
+        h for h in root_logger.handlers if isinstance(h, RotatingFileHandler)
+    ]
     assert len(rotating_handlers_after) == 1
 
     for handler in rotating_handlers_after:

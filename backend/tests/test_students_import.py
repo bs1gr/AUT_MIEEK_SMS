@@ -35,7 +35,11 @@ def test_upload_students_preserves_all_fields(client: TestClient):
     ]
 
     files = {
-        "files": ("test_students.json", json.dumps(payload).encode("utf-8"), "application/json"),
+        "files": (
+            "test_students.json",
+            json.dumps(payload).encode("utf-8"),
+            "application/json",
+        ),
     }
     data = {"import_type": "students"}
 
@@ -50,7 +54,14 @@ def test_upload_students_preserves_all_fields(client: TestClient):
     resp2 = client.get("/api/v1/students/")
     assert resp2.status_code == 200
     data2 = resp2.json()
-    found = next((item for item in data2.get("items", []) if item.get("student_id") == "S2025TEST001"), None)
+    found = next(
+        (
+            item
+            for item in data2.get("items", [])
+            if item.get("student_id") == "S2025TEST001"
+        ),
+        None,
+    )
     assert found is not None
 
     # Check all extended fields
@@ -62,7 +73,14 @@ def test_upload_students_preserves_all_fields(client: TestClient):
     assert found.get("study_year") == 1
 
     # Verify second student exists and has basic fields
-    found2 = next((item for item in data2.get("items", []) if item.get("student_id") == "S2025TEST002"), None)
+    found2 = next(
+        (
+            item
+            for item in data2.get("items", [])
+            if item.get("student_id") == "S2025TEST002"
+        ),
+        None,
+    )
     assert found2 is not None
     assert found2.get("study_year") == 2
     # Optional fields should be null when not provided
@@ -83,7 +101,11 @@ def test_upload_students_accepts_octet_stream(client: TestClient):
     }
 
     files = {
-        "files": ("test_student_mime.json", json.dumps(payload).encode("utf-8"), "application/octet-stream"),
+        "files": (
+            "test_student_mime.json",
+            json.dumps(payload).encode("utf-8"),
+            "application/octet-stream",
+        ),
     }
     data = {"import_type": "students"}
 

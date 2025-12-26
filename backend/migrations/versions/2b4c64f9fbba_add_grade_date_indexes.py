@@ -23,7 +23,12 @@ depends_on: Union[str, Sequence[str], None] = None
 _INDEX_DEFINITIONS = (
     ("grades", "idx_grade_date_assigned", ["date_assigned"], False),
     ("grades", "idx_grade_date_submitted", ["date_submitted"], False),
-    ("attendances", "idx_attendance_student_course_date", ["student_id", "course_id", "date"], False),
+    (
+        "attendances",
+        "idx_attendance_student_course_date",
+        ["student_id", "course_id", "date"],
+        False,
+    ),
 )
 
 
