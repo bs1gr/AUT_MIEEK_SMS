@@ -41,6 +41,10 @@ jobs:
           # Install full backend requirements to avoid missing optional deps (slowapi, email-validator, etc.)
           pip install -r backend/requirements.txt
 
+      - name: Install backend dev dependencies
+        if: hashFiles('backend/requirements-dev.txt') != ''
+        run: pip install -r backend/requirements-dev.txt
+
       - name: Install frontend deps
         run: |
           cd frontend
@@ -50,6 +54,7 @@ jobs:
         shell: pwsh
         env:
           AUTH_MODE: strict
+          DATABASE_URL: "sqlite:///:memory:"
         run: |
           Write-Host "Running backend fast tests and writing pytest-results.xml"
           Push-Location backend
