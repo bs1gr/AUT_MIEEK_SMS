@@ -50,7 +50,7 @@ jobs:
       - name: Install frontend deps
         run: |
           cd frontend
-          npm install --silent
+          npm install --no-audit
 
       - name: Run backend fast tests (pytest) and produce JUnit
         shell: pwsh
