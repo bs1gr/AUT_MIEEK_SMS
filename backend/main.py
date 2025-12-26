@@ -1,7 +1,3 @@
-import subprocess
-
-# Expose subprocess for test monkeypatching
-subprocess = subprocess
 """
 Student Management System - Main Entry Point
 Version: 1.12.7

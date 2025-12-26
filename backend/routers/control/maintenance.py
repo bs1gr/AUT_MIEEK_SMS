@@ -187,7 +187,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
                     break
 
             if auth_section_idx >= 0:
-                insert_idx = auth_section_idx + 1
+                insert_idx = -1  # Initialize as invalid
                 for j in range(auth_section_idx + 1, len(updated_lines)):
                     if updated_lines[j].strip().startswith("# ==="):
                         insert_idx = j

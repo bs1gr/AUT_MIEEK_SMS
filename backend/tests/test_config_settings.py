@@ -30,8 +30,7 @@ def test_secret_key_placeholder_generates_random_key_when_enforced(
         SECRET_KEY_STRICT_ENFORCEMENT=True,
     )
     assert (
-        settings.SECRET_KEY
-        != "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
+        settings.SECRET_KEY != "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
     )
     assert len(settings.SECRET_KEY) >= 32
 
@@ -46,8 +45,7 @@ def test_secret_key_placeholder_allowed_when_not_enforced(
         SECRET_KEY_STRICT_ENFORCEMENT=False,
     )
     assert (
-        settings.SECRET_KEY
-        == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
+        settings.SECRET_KEY == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
     )
 
 
@@ -159,8 +157,7 @@ def test_auth_enabled_accepts_custom_secret_key(monkeypatch: pytest.MonkeyPatch)
         SECRET_KEY_STRICT_ENFORCEMENT=True,
     )
     assert (
-        settings.SECRET_KEY
-        == "my-custom-secret-key-1234567890abcdef"  # pragma: allowlist secret
+        settings.SECRET_KEY == "my-custom-secret-key-1234567890abcdef"  # pragma: allowlist secret
     )  # pragma: allowlist secret
 
 
@@ -173,8 +170,7 @@ def test_auth_disabled_allows_placeholder_secret_key(monkeypatch: pytest.MonkeyP
         SECRET_KEY_STRICT_ENFORCEMENT=True,
     )
     assert (
-        settings.SECRET_KEY
-        == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
+        settings.SECRET_KEY == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
     )
 
 
@@ -201,9 +197,6 @@ def test_secret_key_auto_generation_on_short_key(monkeypatch: pytest.MonkeyPatch
     )
     assert len(settings.SECRET_KEY) >= 32
     assert settings.SECRET_KEY != "short-key"  # pragma: allowlist secret
-
-
-SECRET = "test-key-158"  # pragma: allowlist secret
 
 
 SECRET = "test-key-185"  # pragma: allowlist secret

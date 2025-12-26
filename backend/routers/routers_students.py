@@ -23,17 +23,7 @@ from backend.cache import cached, invalidate_cache, CacheConfig
 logger = logging.getLogger(__name__)
 
 # Initialize router
-router = APIRouter(
-    prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}}
-)
-
-
-logger = logging.getLogger(__name__)
-
-# Initialize router
-router = APIRouter(
-    prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}}
-)
+router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"description": "Not found"}})
 
 
 # ========== DEPENDENCY INJECTION ==========
@@ -74,14 +64,10 @@ def get_all_students(
 
     service = StudentService(db, request)
     if q:
-        result = service.search_students(
-            q=q, skip=skip, limit=limit, is_active=is_active
-        )
+        result = service.search_students(q=q, skip=skip, limit=limit, is_active=is_active)
     else:
         result = service.list_students(skip=skip, limit=limit, is_active=is_active)
-    logger.info(
-        "Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit
-    )
+    logger.info("Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit)
     return result
 
 
@@ -185,7 +171,5 @@ def bulk_create_students(
     result = service.bulk_create_students(students_data)
     # Invalidate cache
     invalidate_cache("get_all_students")
-    logger.info(
-        "Bulk created %s students, %s errors", result["created"], result["failed"]
-    )
+    logger.info("Bulk created %s students, %s errors", result["created"], result["failed"])
     return result

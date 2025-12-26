@@ -28,13 +28,6 @@ router = APIRouter(
 )
 
 
-router = APIRouter(
-    prefix="/enrollments",
-    tags=["Enrollments"],
-    responses={404: {"description": "Not found"}},
-)
-
-
 # ===== Endpoints =====
 @router.get("/", response_model=PaginatedResponse[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
@@ -53,25 +46,19 @@ def get_all_enrollments(
 
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def list_course_enrollments(
-    course_id: int, request: Request, db: Session = Depends(get_db)
-):
+def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_course_enrollments(db, course_id, request)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(
-            "Error listing enrollments for course %s: %s", course_id, exc, exc_info=True
-        )
+        logger.error("Error listing enrollments for course %s: %s", course_id, exc, exc_info=True)
         raise internal_server_error(request=request)
 
 
 @router.get("/student/{student_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def list_student_enrollments(
-    student_id: int, request: Request, db: Session = Depends(get_db)
-):
+def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
         return EnrollmentService.list_student_enrollments(db, student_id, request)
@@ -89,17 +76,13 @@ def list_student_enrollments(
 
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
 @limiter.limit(RATE_LIMIT_READ)
-def list_enrolled_students(
-    course_id: int, request: Request, db: Session = Depends(get_db)
-):
+def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_enrolled_students(db, course_id, request)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(
-            "Error listing students for course %s: %s", course_id, exc, exc_info=True
-        )
+        logger.error("Error listing students for course %s: %s", course_id, exc, exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -124,9 +107,7 @@ def enroll_students(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(
-            "Error enrolling students in course %s: %s", course_id, exc, exc_info=True
-        )
+        logger.error("Error enrolling students in course %s: %s", course_id, exc, exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -141,9 +122,7 @@ def unenroll_student(
 ):
     try:
         with transaction(db):
-            result = EnrollmentService.unenroll_student(
-                db, course_id, student_id, request
-            )
+            result = EnrollmentService.unenroll_student(db, course_id, student_id, request)
             db.flush()
         return result
     except HTTPException:
