@@ -18,15 +18,35 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       operator: `${{ steps.filter.outputs.operator }}
     steps:
-      - uses: dorny/paths-filter@v2
+      - name: Detect operator script changes
+        uses: actions/github-script@v6
         id: filter
         with:
-          filters: |
-            operator:
-              - 'scripts/operator/**'
+          script: |
+            try {
+              const pr = context.payload.pull_request;
+              if (!pr) {
+                core.info("Not a pull request event.");
+                core.setOutput('operator', 'false');
+                return;
+              }
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              const changed = files.some(f => f.filename.startsWith('scripts/operator/'));
+              core.info('Operator scripts changed: ' + changed);
+              core.setOutput('operator', changed ? 'true' : 'false');
+            } catch (error) {
+              core.setFailed('Failed to check file changes: ' + error.message);
+            }
 
   require-operator-approval:
     needs: changes
