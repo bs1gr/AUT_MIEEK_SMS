@@ -17,8 +17,8 @@ describe('authService', () => {
   });
 
   it('refreshAccessToken stores tokens and returns access token on success', async () => {
-    // Arrange: axios.post should return access and refresh tokens
-  (axios.post as unknown as any) = vi.fn().mockResolvedValue({ data: { access_token: 'A1' } });
+      // Arrange: axios.post should return access and refresh tokens
+      vi.spyOn(axios, 'post').mockResolvedValue({ data: { access_token: 'A1' } } as unknown as { data: { access_token: string } });
 
     // Act
     const token = await refreshAccessToken();
@@ -29,7 +29,7 @@ describe('authService', () => {
   });
 
   it('refreshAccessToken clears tokens on failure', async () => {
-    (axios.post as unknown as any) = vi.fn().mockRejectedValue(new Error('network'));
+    vi.spyOn(axios, 'post').mockRejectedValue(new Error('network'));
     const token = await refreshAccessToken();
 
     expect(token).toBeNull();

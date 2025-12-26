@@ -18,9 +18,16 @@
 .PARAMETER CheckOnly
     Only check for inconsistencies without updating (default behavior).
 
+.PARAMETER CIMode
+    Fast CI mode - only check VERSION vs frontend package.json (exit code 0=OK, 1=mismatch).
+
 .EXAMPLE
     .\scripts\VERIFY_VERSION.ps1
     Check if all version references match the VERSION file.
+
+.EXAMPLE
+    .\scripts\VERIFY_VERSION.ps1 -CIMode
+    Quick check for CI pipelines (VERSION vs package.json only).
 
 .EXAMPLE
     .\scripts\VERIFY_VERSION.ps1 -Version "1.8.9" -Update
@@ -40,7 +47,8 @@ param(
     [Parameter()][string]$Version,
     [Parameter()][switch]$Update,
     [Parameter()][switch]$Report,
-    [Parameter()][switch]$CheckOnly
+    [Parameter()][switch]$CheckOnly,
+    [Parameter()][switch]$CIMode
 )
 
 $ErrorActionPreference = 'Stop'
@@ -52,6 +60,38 @@ function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Gree
 function Write-Warning { param($msg) Write-Host "⚠️  $msg" -ForegroundColor Yellow }
 function Write-Error-Message { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }
 function Write-Info { param($msg) Write-Host "ℹ️  $msg" -ForegroundColor Cyan }
+
+# ============================================================================
+# CI MODE - Fast VERSION ↔ package.json validation only
+# ============================================================================
+if ($CIMode) {
+    $VERSION_FILE = Join-Path $PROJECT_ROOT 'VERSION'
+    $FRONTEND_PKG = Join-Path $PROJECT_ROOT 'frontend\package.json'
+
+    if (-not (Test-Path $VERSION_FILE) -or -not (Test-Path $FRONTEND_PKG)) {
+        Write-Error-Message "Missing VERSION or frontend/package.json"
+        exit 1
+    }
+
+    $versionFile = (Get-Content $VERSION_FILE -Raw).Trim()
+    $pkg = Get-Content $FRONTEND_PKG -Raw | ConvertFrom-Json
+    $versionPkg = $pkg.version
+
+    Write-Host "VERSION file: $versionFile"
+    Write-Host "package.json: $versionPkg"
+
+    if ($versionFile -ne $versionPkg) {
+        Write-Error-Message "Version mismatch: VERSION ($versionFile) != package.json ($versionPkg)"
+        exit 1
+    }
+
+    Write-Success "Version consistency OK (CI mode)"
+    exit 0
+}
+
+# ============================================================================
+# FULL MODE - Comprehensive version verification
+# ============================================================================
 
 # Banner
 Write-Host "`n" + ("=" * 70) -ForegroundColor Cyan
@@ -127,24 +167,45 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "docs/qnap/QNAP_INSTALLATION_GUIDE.md"
+        File = "DOCUMENTATION_INDEX.md"
+        Pattern = 'v\d+\.\d+\.\d+'
+        Replace = "v$Version"
+        Description = "Root documentation index version footer"
+        Critical = $false
+    },
+    @{
+        File = "docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md"
         Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
         Replace = "**Version**: $Version"
-        Description = "QNAP installation guide version"
+        Description = "QNAP deployment guide version"
         Critical = $false
     },
     @{
-        File = "tools/installer/SMS_INSTALLER_WIZARD.ps1"
-        Pattern = 'Version\s*=\s*"\d+\.\d+\.\d+"'
-        Replace = "Version             = `"$Version`""
-        Description = "Installer wizard version"
+        File = "COMMIT_READY.ps1"
+        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Replace = "Version: $Version"
+        Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
     @{
-        File = "tools/installer/SMS_UNINSTALLER_WIZARD.ps1"
-        Pattern = 'Version\s*=\s*"\d+\.\d+\.\d+"'
-        Replace = "Version          = `"$Version`""
-        Description = "Uninstaller wizard version"
+        File = "INSTALLER_BUILDER.ps1"
+        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Replace = "Version: $Version"
+        Description = "INSTALLER_BUILDER.ps1 version"
+        Critical = $false
+    },
+    @{
+        File = "TODO.md"
+        Pattern = '\*\*Current Version\*\*:\s*\d+\.\d+\.\d+'
+        Replace = "**Current Version**: $Version"
+        Description = "TODO.md current version"
+        Critical = $false
+    },
+    @{
+        File = "DOCUMENTATION_INDEX.md"
+        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
+        Replace = "**Version:** $Version"
+        Description = "Root DOCUMENTATION_INDEX.md version"
         Critical = $false
     }
 )
@@ -166,7 +227,7 @@ Write-Host ("=" * 70) -ForegroundColor Cyan
 foreach ($check in $versionChecks) {
     $results.Total++
     $filePath = Join-Path $PROJECT_ROOT $check.File
-    
+
     if (-not (Test-Path $filePath)) {
         Write-Warning "$($check.Description): File not found - $($check.File)"
         if ($check.Critical) {
@@ -178,7 +239,7 @@ foreach ($check in $versionChecks) {
 
     try {
         $content = Get-Content $filePath -Raw
-        
+
         # Special handling for VERSION file (exact match)
         if ($check.ExactMatch) {
             $currentVersion = $content.Trim()
@@ -197,15 +258,15 @@ foreach ($check in $versionChecks) {
             }
             continue
         }
-        
+
         # Check if version matches
         if ($content -match $check.Pattern) {
             $currentMatch = $matches[0]
-            
+
             # Extract version number from match
             if ($currentMatch -match '\d+\.\d+\.\d+') {
                 $currentVersion = $matches[0]
-                
+
                 if ($currentVersion -eq $Version) {
                     Write-Success "$($check.Description): $currentVersion (correct)"
                     $results.Consistent++
@@ -251,15 +312,15 @@ if ($Update) {
         try {
             $lockContent = Get-Content $packageLockPath -Raw
             $lockJson = $lockContent | ConvertFrom-Json -Depth 100
-            
+
             # Update only the root-level version
             $lockJson.version = $Version
-            
+
             # Update the packages."" version (represents the project itself)
             if ($lockJson.packages -and $lockJson.packages.PSObject.Properties['']) {
                 $lockJson.packages.''.version = $Version
             }
-            
+
             # Convert back to JSON with proper formatting
             $updatedContent = $lockJson | ConvertTo-Json -Depth 100
             Set-Content -Path $packageLockPath -Value $updatedContent -Encoding UTF8
@@ -295,16 +356,16 @@ if ($Report) {
     Write-Host "`n" + ("=" * 70) -ForegroundColor Cyan
     Write-Host "Generating Verification Report" -ForegroundColor Cyan
     Write-Host ("=" * 70) -ForegroundColor Cyan
-    
+
     $reportPath = Join-Path $PROJECT_ROOT "VERSION_VERIFICATION_REPORT.md"
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    
+
     $reportContent = @"
 # Version Verification Report
 
-**Date:** $timestamp  
-**Target Version:** $Version  
-**Mode:** $(if($Update) {'UPDATE'} else {'CHECK ONLY'})  
+**Date:** $timestamp
+**Target Version:** $Version
+**Mode:** $(if($Update) {'UPDATE'} else {'CHECK ONLY'})
 **Status:** $(if($results.Failed -eq 0 -and $results.Inconsistent -eq 0) {'✅ VERIFIED'} else {'⚠️ ISSUES FOUND'})
 
 ---
@@ -336,7 +397,7 @@ if ($Report) {
     }
 
     $reportContent += "`n`n---`n`n## Next Steps`n`n"
-    
+
     if ($results.Inconsistent -gt 0 -and -not $Update) {
         $reportContent += "Run with ``-Update`` flag to automatically fix inconsistencies:`n``````powershell`n.\scripts\VERIFY_VERSION.ps1 -Version `"$Version`" -Update`n```````n"
     } elseif ($results.Updated -gt 0) {

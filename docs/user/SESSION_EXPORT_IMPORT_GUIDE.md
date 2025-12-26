@@ -82,6 +82,7 @@ This is perfect for:
 **Problem**: You add data on your laptop, but need it on your desktop too.
 
 **Solution**:
+
 1. On laptop: Export the session you've been working on
 2. Transfer the JSON file (USB, email, cloud)
 3. On desktop: Import the session with "Update Existing" mode
@@ -92,6 +93,7 @@ This is perfect for:
 **Problem**: You want to archive all data for Fall 2024 semester.
 
 **Solution**:
+
 1. Export "Fall 2024" session
 2. Save the JSON file to your backup folder (e.g., `Backups/Fall_2024_Final.json`)
 3. If you ever need to restore: Import that file with "Update Existing"
@@ -101,6 +103,7 @@ This is perfect for:
 **Problem**: Your colleague needs all student data for a specific semester to review.
 
 **Solution**:
+
 1. Export the session
 2. Send them the JSON file
 3. They import it into their system
@@ -111,6 +114,7 @@ This is perfect for:
 **Problem**: You installed SMS on a new PC and want to transfer everything.
 
 **Solution**:
+
 1. On old PC: Export each semester you want to transfer
 2. On new PC: Install SMS, then import each session file
 3. Use "Update Existing" mode (since the new DB is empty, everything will be "created")
@@ -193,6 +197,7 @@ This is perfect for:
 ### Import Order
 
 Data is imported in this order to maintain referential integrity:
+
 1. Courses (must exist before enrollments)
 2. Students (must exist before enrollments)
 3. Enrollments (links students to courses)
@@ -209,6 +214,7 @@ Data is imported in this order to maintain referential integrity:
 ## Support
 
 If you encounter issues not covered here:
+
 1. Check `backend/logs/app.log` for detailed error messages
 2. Review the import summary for specific failures
 3. Consult the full documentation: `SESSION_EXPORT_IMPORT_FEATURE.md`

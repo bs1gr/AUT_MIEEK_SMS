@@ -78,7 +78,7 @@ cd ..
 
 ## Issue 2: PowerShell Script Issues
 
-**Current Scripts (v1.9.3+):**
+**Current Scripts ($11.9.7+):**
 
 - `DOCKER.ps1` - Docker deployment operations
 - `NATIVE.ps1` - Native development mode
@@ -271,7 +271,7 @@ If you're still stuck:
    ```powershell
    # Docker logs
    docker logs sms-fullstack
-   
+
    # Or check backend log files
    Get-Content backend\logs\app.log -Tail 50
    ```
@@ -281,7 +281,7 @@ If you're still stuck:
    ```powershell
    # Via scripts
    .\scripts\DIAGNOSE_STATE.ps1
-   
+
    # Or via Control Panel
    # Navigate to http://localhost:8080/control and click "Run Diagnostics"
    ```

@@ -1,30 +1,34 @@
-"""Schema drift detection utility.
+"""
+DEPRECATED: Use backend.db.cli.schema instead.
 
-Run this script to compare the current database schema against the SQLAlchemy
-models defined in `backend.models`. It performs an autogenerate diff similar
-to `alembic revision --autogenerate` but without creating a migration file.
+This module is kept for backward compatibility only. All functionality has been
+moved to backend.db.cli.schema.
 
-Usage (from repository root or backend directory):
-
-    python -m backend.tools.check_schema_drift
-    python -m backend.tools.check_schema_drift --fail-on-drift
-
-Exit codes:
-  0 = No drift detected
-  1 = Drift detected (and --fail-on-drift supplied) or unexpected error
-
-Designed for CI integration so that inadvertent direct DB changes or missing
-Alembic revisions are caught early.
+Migration guide:
+  OLD: from backend.tools import check_schema_drift
+  NEW: from backend.db.cli import check_schema_drift
 """
 
-from __future__ import annotations
-
-import argparse
+import warnings
 import sys
-from typing import Any, List
+import os
+from typing import List, Any
+import argparse
 
-from alembic.migration import MigrationContext
-from sqlalchemy import create_engine
+# Ensure repository root on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+# Import from new location
+from backend.db.cli.schema import check_schema_drift
+
+# Show deprecation warning
+warnings.warn(
+    "backend.tools.check_schema_drift is deprecated. Use backend.db.cli.schema instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+__all__ = ["check_schema_drift"]
 
 
 def _load_db_url() -> str:
@@ -35,7 +39,8 @@ def _load_db_url() -> str:
     try:
         from backend.config import settings  # type: ignore
 
-        return settings.database_url
+        # Settings exposes DATABASE_URL (uppercase) via pydantic settings model
+        return getattr(settings, "DATABASE_URL", "")
     except Exception:
         # Fallback consistent with models.init_db default
         return "sqlite:///student_management.db"
@@ -54,6 +59,9 @@ def detect_drift() -> List[Any]:
     Each element in the returned list is an Alembic diff directive describing
     a schema change that would be generated (e.g., AddTable, AddColumn).
     """
+    from sqlalchemy import create_engine
+    from alembic.migration import MigrationContext
+
     db_url = _load_db_url()
     engine = create_engine(db_url)
     metadata = _load_metadata()

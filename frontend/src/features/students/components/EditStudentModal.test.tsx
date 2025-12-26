@@ -5,12 +5,15 @@ import EditStudentModal from './EditStudentModal';
 import { LanguageProvider } from '@/LanguageContext';
 import type { Student } from '@/types';
 
-// Mock framer-motion
+// Mock framer-motion with typed props to avoid `any`
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, onClick, ...props }: any) => <div onClick={onClick} {...props}>{children}</div>,
+    div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+      <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>); }} tabIndex={-1} {...props}>{children}</div>
+    ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) => {
@@ -159,7 +162,7 @@ describe('EditStudentModal', () => {
 
       const addressField = screen.getByRole('textbox', { name: 'Address' });
       await user.type(addressField, '456 Oak Ave');
-      
+
       expect(addressField).toHaveValue('456 Oak Ave');
     });
   });
@@ -182,8 +185,22 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('shows validation error for invalid email format', async () => {
-      // Skipping: browser native validation on type="email"
+    it('shows validation error for invalid email format (schema validation)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+
+      const emailInput = screen.getByPlaceholderText(/email/i);
+      await user.clear(emailInput);
+      await user.type(emailInput, 'invalid-email');
+
+      const submitButton = screen.getByRole('button', { name: /save changes/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+      });
     });
 
     it('validates phone number max length', async () => {
@@ -204,7 +221,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('converts email to lowercase on submission', async () => {
+    it('converts email to lowercase on submission', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -228,7 +245,7 @@ describe('EditStudentModal', () => {
   });
 
   describe('Form Submission', () => {
-    it.skip('calls onUpdate with modified student data', async () => {
+    it('calls onUpdate with modified student data', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -258,7 +275,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('preserves original student properties not in form', async () => {
+    it('preserves original student properties not in form', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -283,7 +300,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('calls onClose after successful update', async () => {
+    it('calls onClose after successful update', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -302,7 +319,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('updates phone and mobile_phone together', async () => {
+    it('updates phone and mobile_phone together', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -330,7 +347,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('handles submission with all fields modified', async () => {
+    it('handles submission with all fields modified', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -343,13 +360,13 @@ describe('EditStudentModal', () => {
 
       await user.clear(screen.getByPlaceholderText(/first name/i));
       await user.type(screen.getByPlaceholderText(/first name/i), 'Alice');
-      
+
       await user.clear(screen.getByPlaceholderText(/last name/i));
       await user.type(screen.getByPlaceholderText(/last name/i), 'Johnson');
-      
+
       await user.clear(screen.getByPlaceholderText(/email/i));
       await user.type(screen.getByPlaceholderText(/email/i), 'alice.j@test.com');
-      
+
       await user.clear(screen.getByPlaceholderText(/phone/i));
       await user.type(screen.getByPlaceholderText(/phone/i), '1112223333');
 
@@ -425,7 +442,7 @@ describe('EditStudentModal', () => {
       expect(screen.getByPlaceholderText(/phone/i)).toHaveValue('');
     });
 
-    it.skip('handles special characters in name fields', async () => {
+    it('handles special characters in name fields', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />
@@ -438,7 +455,7 @@ describe('EditStudentModal', () => {
 
       await user.clear(screen.getByPlaceholderText(/first name/i));
       await user.type(screen.getByPlaceholderText(/first name/i), "O'Brien");
-      
+
       await user.clear(screen.getByPlaceholderText(/last name/i));
       await user.type(screen.getByPlaceholderText(/last name/i), 'Müller-Schmidt');
 
@@ -455,7 +472,7 @@ describe('EditStudentModal', () => {
       });
     });
 
-    it.skip('handles empty optional fields correctly', async () => {
+    it('handles empty optional fields correctly', async () => {
       const user = userEvent.setup();
       renderWithProviders(
         <EditStudentModal student={mockStudent} onClose={mockOnClose} onUpdate={mockOnUpdate} />

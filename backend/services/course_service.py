@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import (
     ErrorCode,
-    build_error_detail,
     http_error,
     internal_server_error,
 )
@@ -103,9 +102,9 @@ class CourseService:
         db_course = self.get_course(course_id)
 
         with transaction(self.db):
-            from datetime import datetime
+            from datetime import datetime, timezone
 
-            db_course.deleted_at = datetime.utcnow()
+            db_course.deleted_at = datetime.now(timezone.utc)
             self.db.flush()
 
         logger.info("Deleted course: %s - %s", db_course.id, db_course.course_code)
@@ -137,12 +136,12 @@ class CourseService:
 
         existing = query.first()
         if existing:
+            # Provide a structured error via http_error: message is a string and
+            # context contains helpful details for debugging/user-facing messages.
             raise http_error(
                 409,
                 ErrorCode.COURSE_CODE_CONFLICT,
-                build_error_detail(
-                    "Course code already exists",
-                    {"course_code": course_code, "existing_id": existing.id},
-                ),
+                "Course code already exists",
                 request=self.request,
+                context={"course_code": course_code, "existing_id": existing.id},
             )

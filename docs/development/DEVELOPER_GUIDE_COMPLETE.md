@@ -1,8 +1,8 @@
 # Complete Developer Guide - Student Management System
 
-**Version:** 1.9.3
-**Last Updated:** November 23, 2025  
-**Status:** ✅ Active  
+**Version:** 1.12.7
+**Last Updated:** December 19, 2025
+**Status:** ✅ Active
 
 ---
 
@@ -296,7 +296,7 @@ class ExampleResponse(BaseModel):
     id: int
     name: str
     value: int
-    
+
     class Config:
         from_attributes = True  # SQLAlchemy 2.0 compatibility
 ```
@@ -400,15 +400,15 @@ from backend.database import Base
 
 class Example(Base):
     __tablename__ = "examples"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     value = Column(Integer, nullable=False, default=0)
-    
+
     # Foreign key relationship
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="examples")
-    
+
     # Index for frequent queries
     __table_args__ = (
         Index("idx_example_name", "name"),
@@ -439,15 +439,15 @@ import { apiClient } from '../../api/api';
 
 export const ExampleList = () => {
   const { t } = useTranslation();
-  
+
   const { data: examples, isLoading, error } = useQuery({
     queryKey: ['examples'],
     queryFn: () => apiClient.get('/examples').then(res => res.data),
   });
-  
+
   if (isLoading) return <div>{t('common.loading')}</div>;
   if (error) return <div>{t('common.error')}: {error.message}</div>;
-  
+
   return (
     <div className="example-list">
       <h2 className="text-2xl font-bold mb-4">{t('example.title')}</h2>
@@ -519,7 +519,7 @@ import { create } from 'zustand';
 export const useExampleStore = create((set) => ({
   examples: [],
   selectedExample: null,
-  
+
   setExamples: (examples) => set({ examples }),
   selectExample: (example) => set({ selectedExample: example }),
   clearSelection: () => set({ selectedExample: null }),
@@ -535,19 +535,19 @@ import { apiClient } from '../api/api';
 
 export const useExamples = () => {
   const queryClient = useQueryClient();
-  
+
   const { data: examples, isLoading } = useQuery({
     queryKey: ['examples'],
     queryFn: () => apiClient.get('/examples').then(res => res.data),
   });
-  
+
   const createMutation = useMutation({
     mutationFn: (newExample) => apiClient.post('/examples', newExample),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['examples'] });
     },
   });
-  
+
   return {
     examples,
     isLoading,
@@ -592,10 +592,10 @@ alembic downgrade -1
 def upgrade():
     # Add column
     op.add_column('students', sa.Column('middle_name', sa.String(50)))
-    
+
     # Create index
     op.create_index('idx_student_middle_name', 'students', ['middle_name'])
-    
+
     # Data migration
     connection = op.get_bind()
     connection.execute(
@@ -765,8 +765,8 @@ async def list_students(
 
 ### API Documentation
 
-**Access Swagger UI:** http://localhost:8000/docs  
-**Access ReDoc:** http://localhost:8000/redoc
+**Access Swagger UI:** [Swagger UI](http://localhost:8000/docs)
+**Access ReDoc:** [ReDoc](http://localhost:8000/redoc)
 
 **Document Endpoint:**
 
@@ -786,7 +786,7 @@ async def list_students(
 async def create_student(student: StudentCreate, ...):
     """
     Create a new student with the following information:
-    
+
     - **first_name**: Student's first name (required)
     - **last_name**: Student's last name (required)
     - **email**: Unique email address (required)
@@ -883,20 +883,20 @@ import { test, expect } from '@playwright/test';
 test('create example item', async ({ page }) => {
   // Navigate to page
   await page.goto('http://localhost:5173/examples');
-  
+
   // Click create button
   await page.click('button:has-text("Create Example")');
-  
+
   // Fill form
   await page.fill('input[name="name"]', 'Test Example');
   await page.fill('input[name="value"]', '42');
-  
+
   // Submit
   await page.click('button:has-text("Save")');
-  
+
   // Verify success message
   await expect(page.locator('.success-message')).toContainText('Created successfully');
-  
+
   // Verify item appears in list
   await expect(page.locator('.example-list')).toContainText('Test Example');
 });
@@ -912,7 +912,7 @@ test('create example item', async ({ page }) => {
 
 ## Performance Optimization
 
-### Recent Optimizations (v1.8.6+)
+### Recent Optimizations ($11.9.7+)
 
 **Database Indexing (+40% query speed):**
 
@@ -998,18 +998,22 @@ See: [Performance Optimizations Guide](../../PERFORMANCE_OPTIMIZATIONS_2025-01-1
 
 1. **Fork repository** (external contributors)
 2. **Create feature branch** from `main`
+
    ```bash
    git checkout -b feature/my-new-feature
    ```
+
 3. **Make changes** with descriptive commits
 4. **Run tests** locally
-   ```bash
-   # Backend
-   cd backend && pytest
-   
-   # Frontend
-   cd frontend && npm run test:e2e
-   ```
+
+    ```bash
+    # Backend
+    cd backend && pytest
+
+    # Frontend
+    cd frontend && npm run test:e2e
+    ```
+
 5. **Push and create Pull Request**
 6. **CI runs automated tests**
 7. **Code review and merge**
@@ -1180,7 +1184,7 @@ docker-compose up -d --build
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** November 22, 2025  
-**Maintained By:** SMS Development Team  
+**Document Version:** 1.0
+**Last Updated:** November 22, 2025
+**Maintained By:** SMS Development Team
 **Feedback:** Create issue with label `documentation`

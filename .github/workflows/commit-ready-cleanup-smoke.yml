@@ -1,0 +1,61 @@
+name: 'COMMIT_READY cleanup smoke test'
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke_cleanup:
+    name: 'Cleanup Smoke Test'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare cleanup fixtures
+        shell: pwsh
+        run: |
+          # create fixtures in locations the cleanup script is designed to clean
+          $pycacheDir = Join-Path $env:GITHUB_WORKSPACE 'backend' '__pycache__'
+          if (Test-Path $pycacheDir) { Remove-Item $pycacheDir -Recurse -Force -ErrorAction SilentlyContinue }
+          New-Item -ItemType Directory -Path $pycacheDir -Force | Out-Null
+          New-Item -ItemType File -Path (Join-Path $pycacheDir 'sample.cpython-313.pyc') -Value 'x' -Force | Out-Null
+
+          # create a temp file at the repo root
+          $tmpFile = Join-Path $env:GITHUB_WORKSPACE 'tempfile.tmp'
+          if (Test-Path $tmpFile) { Remove-Item $tmpFile -Force -ErrorAction SilentlyContinue }
+          New-Item -ItemType File -Path $tmpFile -Value 't' -Force | Out-Null
+
+          # create frontend dist in the expected frontend path (not a temp dir) so cleanup removes it
+          $frontendDist = Join-Path $env:GITHUB_WORKSPACE 'frontend' 'dist'
+          if (Test-Path $frontendDist) { Remove-Item $frontendDist -Recurse -Force -ErrorAction SilentlyContinue }
+          New-Item -ItemType Directory -Path $frontendDist -Force | Out-Null
+          New-Item -ItemType File -Path (Join-Path $frontendDist 'index.html') -Value '<html></html>' -Force | Out-Null
+
+          Write-Host 'Listing fixtures:'
+          Get-ChildItem -Path $pycacheDir, $tmpFile, $frontendDist -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Run COMMIT_READY cleanup
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode cleanup -Verbose
+
+      - name: Verify fixtures removed
+        shell: pwsh
+        run: |
+          $err = $false
+          $pycacheDir = Join-Path $env:GITHUB_WORKSPACE 'backend' '__pycache__'
+          $tmpFile = Join-Path $env:GITHUB_WORKSPACE 'tempfile.tmp'
+          $frontendDist = Join-Path $env:GITHUB_WORKSPACE 'frontend' 'dist'
+
+          if (Test-Path $pycacheDir) { Write-Error 'backend/__pycache__ should be removed'; $err = $true }
+          if (Test-Path $tmpFile) { Write-Error 'tempfile.tmp should be removed'; $err = $true }
+          if (Test-Path $frontendDist) { Write-Error 'frontend/dist should be removed'; $err = $true }
+          if ($err) { exit 1 } else { Write-Host 'Smoke test fixtures removed — cleanup OK' }

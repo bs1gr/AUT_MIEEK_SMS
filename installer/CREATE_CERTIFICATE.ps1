@@ -8,15 +8,15 @@
     Generates a self-signed code signing certificate for an application built for:
     ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης
     Website: https://www.mieek.ac.cy/index.php/el/
-    
+
     This certificate is for a Student Management System developed by a teacher at ΜΙΕΕΚ.
-    
+
     Certificate Details / Λεπτομέρειες Πιστοποιητικού:
     - Common Name (CN): AUT MIEEK
     - Organization (O): AUT MIEEK
     - Locality (L): Limassol / Λεμεσός
     - Country (C): Cyprus / Κύπρος (CY)
-    
+
     Valid for 3 years from creation date.
     Ισχύει για 3 χρόνια από την ημερομηνία δημιουργίας.
 
@@ -205,11 +205,10 @@ Write-Host "`n$($Msg.NextSteps)" -ForegroundColor Yellow
 Write-Host "  1. $($Msg.InstallCert)" -ForegroundColor White
 Write-Host "     .\INSTALL_CERTIFICATE.ps1" -ForegroundColor Cyan
 Write-Host "  2. $($Msg.ReSign)" -ForegroundColor White
-Write-Host "     .\SIGN_INSTALLER.ps1 -InstallerPath ..\dist\SMS_Installer_1.9.3.exe" -ForegroundColor Cyan
+Write-Host "     .\SIGN_INSTALLER.ps1 -InstallerPath ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
 Write-Host "  3. $($Msg.Verify)" -ForegroundColor White
-Write-Host "     Get-AuthenticodeSignature ..\dist\SMS_Installer_1.9.3.exe" -ForegroundColor Cyan
+Write-Host "     Get-AuthenticodeSignature ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean up from certificate store (optional - keeping it there is fine)
 # Remove-Item -Path "Cert:\CurrentUser\My\$($cert.Thumbprint)" -Force
-

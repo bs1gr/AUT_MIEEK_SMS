@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award } from 'lucide-react';
+
+import { useState, useEffect, useCallback } from 'react';
+/* eslint-disable testing-library/no-await-sync-queries */
+import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText } from 'lucide-react';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
+import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 
@@ -26,45 +29,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
+  const [showPerformanceReport, setShowPerformanceReport] = useState(false);
 
-  useEffect(() => {
-    if (studentId) {
-      loadStudentData();
-    }
-  }, [studentId]);
-
-  // Listen for data changes and reload if it affects this student
-  useEffect(() => {
-    const handleDataChange = ({ studentId: updatedStudentId }: { studentId: number }) => {
-      if (updatedStudentId === studentId) {
-        loadStudentData();
-      }
-    };
-
-    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, handleDataChange);
-    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, handleDataChange);
-    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, handleDataChange);
-    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, handleDataChange);
-    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, handleDataChange);
-    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, handleDataChange);
-    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, handleDataChange);
-    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, handleDataChange);
-    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, handleDataChange);
-
-    return () => {
-      unsubscribeGradeAdded();
-      unsubscribeGradeUpdated();
-      unsubscribeGradeDeleted();
-      unsubscribeGradesBulk();
-      unsubscribeAttendanceAdded();
-      unsubscribeAttendanceBulk();
-      unsubscribeAttendanceUpdated();
-      unsubscribeAttendanceDeleted();
-      unsubscribeDailyPerformance();
-    };
-  }, [studentId]);
-
-  const loadStudentData = async () => {
+  // Move loadStudentData here so effects can depend on it without referencing a later declaration
+  const loadStudentData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -107,7 +75,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           } catch {}
         }));
         setCoursesById(dict);
-      } catch (e) {
+      } catch {
         setEnrollments([]);
         setCoursesById({});
       }
@@ -123,7 +91,53 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId, t]);
+
+  useEffect(() => {
+    if (studentId) {
+      loadStudentData();
+    }
+    // Do not include loadStudentData in deps to avoid loops
+    // Callback itself depends on studentId and will be recreated when needed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
+
+  // Listen for data changes and reload if it affects this student
+  useEffect(() => {
+    const handleDataChange = (args: unknown) => {
+      if (typeof args === 'object' && args && 'studentId' in (args as Record<string, unknown>)) {
+        const updatedStudentId = (args as Record<string, unknown>)['studentId'];
+        if (typeof updatedStudentId === 'number' && updatedStudentId === studentId) {
+          loadStudentData();
+        }
+      }
+    };
+
+    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, (...a: unknown[]) => handleDataChange(a[0]));
+    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, (...a: unknown[]) => handleDataChange(a[0]));
+
+    return () => {
+      unsubscribeGradeAdded();
+      unsubscribeGradeUpdated();
+      unsubscribeGradeDeleted();
+      unsubscribeGradesBulk();
+      unsubscribeAttendanceAdded();
+      unsubscribeAttendanceBulk();
+      unsubscribeAttendanceUpdated();
+      unsubscribeAttendanceDeleted();
+      unsubscribeDailyPerformance();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
+
+
 
   const calculateStats = () => {
     // Attendance stats
@@ -190,7 +204,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   if (!student) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <p className="text-gray-600">{t('studentNotFound')}</p>
+        <p className="text-indigo-700 font-semibold drop-shadow-sm">{t('studentNotFound')}</p>
       </div>
     );
   }
@@ -205,7 +219,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         <button
           type="button"
           onClick={onBack}
-          className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-indigo-600 transition-colors"
+          className="mb-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
         >
           <ArrowLeft size={20} />
           <span>{t('backToStudents')}</span>
@@ -220,24 +234,34 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 {student.first_name[0]}{student.last_name[0]}
               </div>
               <div className="pb-4">
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">
                   {student.first_name} {student.last_name}
                 </h1>
-                <p className="text-gray-600 mt-1">{t('studentID')} {student.student_id}</p>
+                <p className="text-indigo-700 mt-1 font-semibold drop-shadow-sm">{t('studentID')} {student.student_id}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-              <div className="flex items-center space-x-3 text-gray-600">
+              <div className="flex items-center space-x-3 text-indigo-700">
                 <Mail size={20} />
                 <span>{student.email}</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-600">
+              <div className="flex items-center space-x-3 text-indigo-700">
                 <Calendar size={20} />
                 <span>{t('enrolled')} {student.enrollment_date}</span>
               </div>
+              <div className="md:col-span-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPerformanceReport(true)}
+                  className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                >
+                  <FileText size={20} />
+                  <span>{t('reports.studentPerformanceReport')}</span>
+                </button>
+              </div>
               {student.study_year && (
-                <div className="flex items-center space-x-3 text-gray-600">
+                <div className="flex items-center space-x-3 text-indigo-700">
                   <Award size={20} className="text-indigo-600" />
                   <span className="font-semibold text-indigo-700">{t('year')} {student.study_year}</span>
                 </div>
@@ -401,7 +425,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <h3 className="text-xl font-bold text-gray-800 mb-6">{t('recentGrades')}</h3>
 
           {grades.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('noGradesYet')}</p>
+            <p className="text-gray-500 text-center py-8">{t('noGradesYet') || 'No grades recorded yet'}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -502,6 +526,13 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             courseId={breakdownCourseId}
             courseName={coursesById[breakdownCourseId]?.course_name}
             onClose={() => { setShowBreakdown(false); setBreakdownCourseId(null); }}
+          />
+        )}
+
+        {showPerformanceReport && (
+          <StudentPerformanceReport
+            studentId={studentId}
+            onClose={() => setShowPerformanceReport(false)}
           />
         )}
       </div>

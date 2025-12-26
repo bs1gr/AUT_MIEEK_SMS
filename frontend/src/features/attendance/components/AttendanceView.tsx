@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
-import type { Course, Student } from '@/types';
+import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -20,19 +20,12 @@ import { useAutosave } from '@/hooks/useAutosave';
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
 // Version marker to verify code reload
-console.log('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
+console.warn('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
 
 type Props = { courses: Course[]; students?: Student[] };
 
 // Teaching schedule can arrive either as an array of entries or an object keyed by day.
-type TeachingScheduleEntry = {
-  day: string;
-  periods?: number; // canonical
-  period_count?: number; // alternative naming from older schema
-  count?: number; // fallback naming
-  start_time?: string;
-  duration?: number;
-};
+
 
 type EvaluationRule = { category: string; weight?: number };
 type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
@@ -42,6 +35,18 @@ const ATTENDANCE_STATES = ['Present', 'Absent', 'Late', 'Excused'] as const;
 type AttendanceState = typeof ATTENDANCE_STATES[number];
 const isTrackedStatus = (status?: string): status is AttendanceState =>
   Boolean(status && ATTENDANCE_STATES.includes(status as AttendanceState));
+
+const shallowEqualStringMap = (a: Record<string, string>, b: Record<string, string>) => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
+};
+
+const shallowEqualNumberMap = (a: Record<string, number>, b: Record<string, number>) => {
+  const aKeys = Object.keys(a);
+  if (aKeys.length !== Object.keys(b).length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
+};
 
 const AttendanceView: React.FC<Props> = ({ courses }) => {
 
@@ -58,6 +63,11 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const [attendanceRecordIds, setAttendanceRecordIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
   const [dailyPerformanceIds, setDailyPerformanceIds] = useState<Record<string, number>>({}); // Track API record IDs
+
+  // Persisted state from backend (used to detect dirty/pending changes)
+  const [persistedAttendanceRecords, setPersistedAttendanceRecords] = useState<Record<string, string>>({});
+  const [persistedDailyPerformance, setPersistedDailyPerformance] = useState<Record<string, number>>({});
+
   const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [, setLoading] = useState(false);
@@ -70,6 +80,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
+  const courseDetailsFetchedRef = useRef<Set<number>>(new Set());
   // debounce timer (currently unused in this refactor)
   // const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -82,25 +93,32 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     [dayNamesShort, language]
   );
   const selectedDateStr = useMemo(() => selectedDate ? formatLocalDate(selectedDate) : '', [selectedDate]);
-  const fullDayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const fullDayNames = useMemo(() => ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], []);
 
   const getWeekdayIndex = (d: Date) => {
     const weekday = d.getDay();
     return weekday === 0 ? 6 : weekday - 1;
   };
 
-  const matchesScheduleDay = (value: unknown, dateObj: Date) => {
-    if (value === undefined || value === null) return false;
-    const normalized = String(value).trim().toLowerCase();
-    const weekdayIndex = getWeekdayIndex(dateObj);
-    const dayName = fullDayNames[dateObj.getDay()];
-    return (
-      normalized === dayName.toLowerCase() ||
-      normalized === dayName.slice(0, 3).toLowerCase() ||
-      normalized === String(weekdayIndex)
-    );
-  };
-  const getScheduleEntriesForDate = (course: Course, dateObj: Date): TeachingScheduleEntry[] => {
+  // Narrow unknown thrown values to objects with optional response.status
+  const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
+    typeof e === 'object' && e !== null && 'response' in e
+  );
+
+
+  const getScheduleEntriesForDate = useCallback((course: Course, dateObj: Date): TeachingScheduleEntry[] => {
+    const matchesScheduleDay = (value: unknown, dateObjInner: Date) => {
+      if (value === undefined || value === null) return false;
+      const normalized = String(value).trim().toLowerCase();
+      const weekdayIndex = getWeekdayIndex(dateObjInner);
+      const dayName = fullDayNames[dateObjInner.getDay()];
+      return (
+        normalized === dayName.toLowerCase() ||
+        normalized === dayName.slice(0, 3).toLowerCase() ||
+        normalized === String(weekdayIndex)
+      );
+    };
+
     if (!course?.teaching_schedule) return [];
     const schedule = course.teaching_schedule as unknown;
     const entries: TeachingScheduleEntry[] = [];
@@ -121,7 +139,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       });
     }
     return entries;
-  };
+  }, [fullDayNames]);
 
   const periodCount = useMemo(() => {
     if (!selectedCourse || !selectedDate) return 1;
@@ -137,14 +155,20 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       return sum + 1;
     }, 0);
     return total > 0 ? total : 1;
-  }, [localCourses, selectedCourse, selectedDate]);
+  }, [localCourses, selectedCourse, selectedDate, getScheduleEntriesForDate]);
 
   const activePeriods = useMemo(() => Array.from({ length: periodCount }, (_, idx) => idx + 1), [periodCount]);
   const hasMultiplePeriods = periodCount > 1;
 
+  // Attendance key generator (moved above effects to avoid use-before-declare errors)
+  const getAttendanceKey = useCallback((studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
+    `${studentId}|${periodNumber}|${dateStr}`,
+    [selectedDateStr]
+  );
+
   useEffect(() => {
     setExpandedStudents(new Set());
-  }, [selectedCourse, selectedDateStr]);
+  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
 
   useEffect(() => {
     if (!hasMultiplePeriods) {
@@ -157,8 +181,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const getAttendanceKey = (studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
-    `${studentId}|${periodNumber}|${dateStr}`;
 
   const translateStatusLabel = (status: string) => {
     switch (status) {
@@ -183,7 +205,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   };
 
   // Daily trackable categories - both EN and translated versions for matching
-  const dailyTrackableCategories = [
+  const dailyTrackableCategories = useMemo(() => [
     'Class Participation', t('classParticipation'),
     'Homework/Assignments', 'Homework', t('homework'),
     'Lab Work', t('labWork'),
@@ -191,7 +213,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     'Quizzes', t('quizzes'),
     'Project', t('project'),
     'Presentation', t('presentation')
-  ];
+  ], [t]);
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
@@ -317,43 +339,27 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     } catch {
       setEvaluationCategories([]);
     }
-  }, [selectedCourse, localCourses]);
+  }, [selectedCourse, localCourses.length, dailyTrackableCategories]);
 
-  // Sync local courses with props and fallback fetch if empty
+  // Sync local courses with props (only on initial mount or when props change)
   useEffect(() => {
-    setLocalCourses(Array.isArray(courses) ? courses : []);
-  }, [courses]);
-
-  useEffect(() => {
-    const ensureCourses = async () => {
-      if (localCourses && localCourses.length > 0) return;
-      try {
-        const resp = await fetch(`${API_BASE_URL}/courses/`);
-        if (!resp.ok) throw new Error(`Failed to fetch courses: ${resp.status} ${resp.statusText}`);
-        const data = await resp.json();
-        setLocalCourses(Array.isArray(data) ? data : []);
-      } catch {
-        setLocalCourses([]);
-      }
-    };
-    ensureCourses();
-  }, [localCourses?.length]);
+    if (Array.isArray(courses) && courses.length > 0) {
+      setLocalCourses(courses);
+    }
+  }, [courses.length]); // Use length instead of entire array to prevent loops
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)
   // const coursesLength = localCourses?.length || 0;
-  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
+  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses.length]); // Use length to prevent loops
 
   useEffect(() => {
     const fetchEnrollments = async () => {
       if (!localCourses || localCourses.length === 0) { setCoursesWithEnrollment(new Set()); return; }
 
-      // Request deduplication key
+      // Only fetch if we have a new courseIds value and haven't fetched this combo yet
       const requestKey = `enrollments-${courseIds}`;
-
-      // Prevent duplicate concurrent requests
       if (activeRequestsRef.current.has(requestKey)) {
-        console.log('[AttendanceView] Skipping duplicate enrollments request');
         return;
       }
 
@@ -374,7 +380,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                 return { id: c.id, count: 0 };
               }
               const arr = await r.json();
-              console.log(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+                  console.warn(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
               // Accept both array and object-with-items
               if (Array.isArray(arr)) {
                 return { id: c.id, count: arr.length };
@@ -398,7 +404,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
-        console.log('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
+        console.warn('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
         setCoursesWithEnrollment(ids);
       } catch (err) {
         console.error('[AttendanceView] Error in fetchEnrollments:', err);
@@ -408,7 +414,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
     };
     fetchEnrollments();
-  }, [courseIds]); // Only depend on course IDs string, not entire array
+  }, [courseIds, localCourses]); // Also include localCourses to satisfy exhaustive-deps
 
   // Ensure selectedCourse is within the filtered list
   useEffect(() => {
@@ -417,7 +423,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       const first = localCourses.find((c) => coursesWithEnrollment.has(c.id));
       setSelectedCourse(first ? first.id : '');
     }
-  }, [coursesWithEnrollment]);
+  }, [coursesWithEnrollment, localCourses, selectedCourse]);
 
   // Auto-select first course when available
   useEffect(() => {
@@ -427,27 +433,28 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
   // Keep selected course up-to-date (teaching_schedule) by fetching details
   // Only run once when course is selected, not continuously
-  const [courseDetailsFetched, setCourseDetailsFetched] = useState<Set<number>>(new Set());
-
   useEffect(() => {
     const refreshSelectedCourse = async () => {
-      if (!selectedCourse || courseDetailsFetched.has(selectedCourse as number)) return;
+      if (!selectedCourse) return;
+      const courseId = selectedCourse as number;
+      if (courseDetailsFetchedRef.current.has(courseId)) return;
+
       try {
-        const resp = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`);
+        const resp = await fetch(`${API_BASE_URL}/courses/${courseId}`);
         if (!resp.ok) throw new Error(`Failed to fetch course: ${resp.status} ${resp.statusText}`);
         const detail = await resp.json();
         setLocalCourses((prev) => {
-          const idx = prev.findIndex((c) => c.id === selectedCourse);
+          const idx = prev.findIndex((c) => c.id === courseId);
           if (idx === -1) return prev;
           const next = [...prev];
           next[idx] = { ...next[idx], ...detail };
           return next;
         });
-        setCourseDetailsFetched(prev => new Set(prev).add(selectedCourse as number));
+        courseDetailsFetchedRef.current.add(courseId);
       } catch { /* noop */ }
     };
     refreshSelectedCourse();
-  }, [selectedCourse]); // Only depend on selectedCourse, not localCourses
+  }, [selectedCourse]); // Only depend on selectedCourse and fetched set
 
   // Load enrolled students for selected course
   useEffect(() => {
@@ -474,7 +481,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Prevent duplicate concurrent requests
     if (activeRequestsRef.current.has(requestKey)) {
-      console.log('[AttendanceView] Skipping duplicate request:', requestKey);
+      console.warn('[AttendanceView] Skipping duplicate request:', requestKey);
       return;
     }
 
@@ -500,14 +507,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
       setAttendanceRecords(next);
       setAttendanceRecordIds(ids);
+      setPersistedAttendanceRecords(next);
 
-      let dpData: any[] = [];
+      let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
       try {
         const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
         dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
       } catch (error) {
         // If 404, treat as no data
-        if ((error as any)?.response?.status === 404) {
+        if (isResponseLike(error) && error.response?.status === 404) {
           dpData = [];
         } else {
           console.error('[AttendanceView] Error fetching daily performance:', error);
@@ -526,26 +534,33 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
       setDailyPerformance(dp);
       setDailyPerformanceIds(dpIds);
+      setPersistedDailyPerformance(dp);
     } catch (error) {
       console.error('[AttendanceView] Error fetching attendance:', error);
       setAttendanceRecords({});
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
     } finally {
       activeRequestsRef.current.delete(requestKey);
     }
-  }, [selectedCourse, selectedDateStr]);
+  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
 
   // Always fetch attendance and performance from backend on date/course change
   useEffect(() => {
     // Only fetch if both course and date are selected
     if (selectedCourse && selectedDate) {
-      refreshAttendancePrefill();
+      // Clear state before fetch to avoid stale data
       setAttendanceRecords({});
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
+      // Fetch new data - don't include refreshAttendancePrefill in deps to avoid infinite loop
+      refreshAttendancePrefill();
     }
   }, [selectedCourse, selectedDate]);
 
@@ -568,7 +583,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
       // Prevent duplicate concurrent requests
       if (activeRequestsRef.current.has(requestKey)) {
-        console.log('[AttendanceView] Skipping duplicate dates request:', requestKey);
+        console.warn('[AttendanceView] Skipping duplicate dates request:', requestKey);
         return;
       }
 
@@ -580,10 +595,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         if (Array.isArray(attData)) {
           // Extract unique, timezone-safe dates from attendance records
           const uniqueDates = new Set<string>();
-          attData.forEach((record: any) => {
-            if (!record?.date) return;
-            uniqueDates.add(formatLocalDate(record.date));
-          });
+          attData.forEach((record: RawAttendanceRecord & { date?: string | undefined }) => {
+              if (!record?.date) return;
+              uniqueDates.add(formatLocalDate(record.date));
+            });
           setDatesWithAttendance(uniqueDates);
         }
       } catch (error) {
@@ -639,8 +654,8 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Support both array-of-objects and map-of-days
     if (Array.isArray(sched)) {
-      if (sched.length === 0) return true; // empty schedule -> allow all weekdays
-      return sched.some((p: any) =>
+    if ((sched as TeachingScheduleEntry[]).length === 0) return true; // empty schedule -> allow all weekdays
+    return (sched as TeachingScheduleEntry[]).some((p: TeachingScheduleEntry) =>
         p.day === dayName ||
         p.day === dayName.toLowerCase() ||
         p.day === String(weekdayIndex) ||
@@ -648,12 +663,12 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       );
     }
     if (typeof sched === 'object') {
-      const keys = Object.keys(sched as Record<string, any>);
+      const keys = Object.keys(sched as Record<string, TeachingScheduleEntry | undefined>);
       if (keys.length === 0) return true; // empty map -> allow all weekdays
       return Boolean(
-        (sched as Record<string, any>)[dayName] ||
-        (sched as Record<string, any>)[dayName.toLowerCase()] ||
-        (sched as Record<string, any>)[String(weekdayIndex)]
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[dayName] ||
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[dayName.toLowerCase()] ||
+        (sched as Record<string, TeachingScheduleEntry | undefined>)[String(weekdayIndex)]
       );
     }
     return true;
@@ -736,7 +751,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     const totalSlots = studentsList.length * activePeriods.length;
 
     return { overall, perPeriod, totalSlots, recordedSlots, pendingSlots };
-  }, [attendanceRecords, enrolledStudents, activePeriods, selectedDateStr]);
+  }, [attendanceRecords, enrolledStudents, activePeriods, getAttendanceKey]);
 
   const statusOrder = [...ATTENDANCE_STATES];
   const coveragePercent = attendanceAnalytics.totalSlots
@@ -754,9 +769,9 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     setLoading(true);
     try {
       const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
-      console.log('[Attendance] Saving - attendanceRecords:', attendanceRecords);
-      console.log('[Attendance] Saving - recordIds:', attendanceRecordIds);
-      
+      console.warn('[Attendance] Saving - attendanceRecords:', attendanceRecords);
+      console.warn('[Attendance] Saving - recordIds:', attendanceRecordIds);
+
       const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
         const recordId = attendanceRecordIds[key];
         const tokens = key.includes('|') ? key.split('|') : key.split('-');
@@ -768,16 +783,16 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
         // If record has an ID from API, use PUT to update; otherwise POST to create
         if (recordId) {
-          console.log(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
+          console.warn(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
           return apiClient.put(`/attendance/${recordId}`, { status })
             .then(res => {
-              console.log(`[Attendance] PUT response: success`);
+              console.warn(`[Attendance] PUT response: success`);
               return res;
             })
-            .catch(error => {
+              .catch(error => {
               // If record doesn't exist (404), create it instead
-              if (error.response?.status === 404) {
-                console.log(`[Attendance] Record ${recordId} not found, creating new record`);
+              if (isResponseLike(error) && error.response?.status === 404) {
+                console.warn(`[Attendance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/attendance/`, {
                   student_id: studentId,
                   course_id: selectedCourse,
@@ -786,14 +801,14 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                   period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
                   notes: '',
                 }).then(res => {
-                  console.log(`[Attendance] POST response (fallback): success`);
+                  console.warn(`[Attendance] POST response (fallback): success`);
                   return res;
                 });
               }
               throw error;
             });
         } else {
-          console.log(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
+          console.warn(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
           return apiClient.post(`/attendance/`, {
             student_id: studentId,
             course_id: selectedCourse,
@@ -802,30 +817,30 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
             notes: '',
           }).then(res => {
-            console.log(`[Attendance] POST response: success`);
+            console.warn(`[Attendance] POST response: success`);
             return res;
           });
         }
       });
-      
+
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
         const recordId = dailyPerformanceIds[key];
         const [studentIdStr, category] = key.split('-');
         // Validate recordId: must be a positive integer
         const isValidId = Number.isInteger(recordId) && recordId > 0;
-        console.log(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
+        console.warn(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
         if (isValidId) {
           const url = `/daily-performance/${recordId}`;
-          console.log(`[Performance] PUT ${url} - score: ${score}`);
+          console.warn(`[Performance] PUT ${url} - score: ${score}`);
           return apiClient.put(url, { score, max_score: 10.0 })
             .then(res => {
-              console.log(`[Performance] PUT response: success`);
+              console.warn(`[Performance] PUT response: success`);
               return res;
             })
             .catch(error => {
               // If record doesn't exist (404), create it instead
-              if (error.response?.status === 404) {
-                console.log(`[Performance] Record ${recordId} not found, creating new record`);
+              if (isResponseLike(error) && error.response?.status === 404) {
+                console.warn(`[Performance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/daily-performance/`, {
                   student_id: parseInt(studentIdStr, 10),
                   course_id: selectedCourse,
@@ -835,10 +850,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                   max_score: 10.0,
                   notes: ''
                 }).then(res => {
-                  console.log(`[Performance] POST response (fallback): success`);
+                  console.warn(`[Performance] POST response (fallback): success`);
                   // Debug log: POST response data and key
-                  console.log('[DEBUG] POST fallback response data:', res?.data);
-                  console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+                  console.warn('[DEBUG] POST fallback response data:', res?.data);
+                  console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
                   // Update dailyPerformanceIds with new ID from response
                   if (res?.data?.id) {
                     setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -850,7 +865,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             });
         } else {
           // Always use POST if recordId is not valid
-          console.log(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
+          console.warn(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
           return apiClient.post(`/daily-performance/`, {
             student_id: parseInt(studentIdStr, 10),
             course_id: selectedCourse,
@@ -860,10 +875,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             max_score: 10.0,
             notes: ''
           }).then(res => {
-            console.log(`[Performance] POST response: success`);
+            console.warn(`[Performance] POST response: success`);
             // Debug log: POST response data and key
-            console.log('[DEBUG] POST direct response data:', res?.data);
-            console.log('[DEBUG] Setting dailyPerformanceIds for key:', key);
+            console.warn('[DEBUG] POST direct response data:', res?.data);
+            console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
             // Update dailyPerformanceIds with new ID from response
             if (res?.data?.id) {
               setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -872,22 +887,22 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           });
         }
       });
-      
+
       // Process requests in chunks to avoid overwhelming the server
       // With 200/min limit, we can safely process 30 concurrent requests
       const allPromises = [...attendancePromises, ...performancePromises];
       const CHUNK_SIZE = 30; // Process 30 at a time for faster saves
-      
+
       for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
         const chunk = allPromises.slice(i, i + CHUNK_SIZE);
         await Promise.all(chunk);
-        
+
         // Small delay only if there are more chunks to prevent server overload
         if (i + CHUNK_SIZE < allPromises.length) {
           await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
-      
+
       // Emit events to notify other components that attendance/performance changed
       // Extract unique student IDs from the records
       const affectedStudentIds = new Set<number>();
@@ -900,30 +915,41 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         const studentId = parseInt(key.split('-')[0], 10);
         if (studentId) affectedStudentIds.add(studentId);
       });
-      
+
       affectedStudentIds.forEach(studentId => {
         eventBus.emit(EVENTS.ATTENDANCE_BULK_ADDED, { studentId, courseId: selectedCourse });
         eventBus.emit(EVENTS.DAILY_PERFORMANCE_ADDED, { studentId, courseId: selectedCourse });
       });
-      
+
+      // Mark current state as persisted before attempting a refresh; this prevents the
+      // autosave banner from sticking if a post-save refresh fails intermittently.
+      setPersistedAttendanceRecords(attendanceRecords);
+      setPersistedDailyPerformance(dailyPerformance);
+
       await refreshAttendancePrefill();
-      // After save and backend refresh, clear local state again to ensure no pending changes
-      setAttendanceRecords({});
-      setAttendanceRecordIds({});
-      setDailyPerformance({});
-      setDailyPerformanceIds({});
+      // After refreshAttendancePrefill, state is synced with backend.
+      // Keep the fetched values so dirty detection sees a clean state.
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
       console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t]);
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t, refreshAttendancePrefill]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
   // Only show pending if there are unsaved changes after user interaction
-  const hasChanges = Boolean(selectedCourse && selectedDate && (Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0));
+  const hasDirtyAttendance = useMemo(
+    () => !shallowEqualStringMap(attendanceRecords, persistedAttendanceRecords),
+    [attendanceRecords, persistedAttendanceRecords]
+  );
+  const hasDirtyPerformance = useMemo(
+    () => !shallowEqualNumberMap(dailyPerformance, persistedDailyPerformance),
+    [dailyPerformance, persistedDailyPerformance]
+  );
+
+  const hasChanges = Boolean(selectedCourse && selectedDate && (hasDirtyAttendance || hasDirtyPerformance));
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
     [attendanceRecords, dailyPerformance],
@@ -936,7 +962,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
     // Debug log: track autosave dependencies
     useEffect(() => {
-      console.log('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
+      console.warn('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
     }, [attendanceRecords, dailyPerformance]);
 
   return (
@@ -1098,7 +1124,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {statusOrder.map((status) => (
             <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
-              <p className="text-[11px] uppercase tracking-wide font-semibold">{translateStatusLabel(status)}</p>
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-indigo-700">{translateStatusLabel(status)}</p>
               <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
             </div>
           ))}
@@ -1125,7 +1151,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {statusOrder.map((status) => (
                         <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
-                          <p className="text-[11px] text-gray-600">{translateStatusLabel(status)}</p>
+                          <p className="text-[11px] text-indigo-700">{translateStatusLabel(status)}</p>
                           <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
                         </div>
                       ))}
@@ -1308,7 +1334,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                             </div>
                             <div className="text-right">
                               <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{curr}</div>
-                              <div className="text-[11px] text-gray-600">{t('outOf10') || 'out of 10'}</div>
+                              <div className="text-[11px] text-indigo-700">{t('outOf10') || 'out of 10'}</div>
                             </div>
                           </div>
                           <input
@@ -1323,7 +1349,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                             title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
                             className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
                           />
-                          <div className="flex justify-between text-[11px] text-gray-600"><span>{t('poor') || 'Poor'} (0)</span><span>{t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
+                          <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
                         </div>
                       );
                     })}

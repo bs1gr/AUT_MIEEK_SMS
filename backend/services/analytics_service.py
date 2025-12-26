@@ -44,92 +44,145 @@ class AnalyticsService:
             self.Grade,
             self.DailyPerformance,
             self.Attendance,
-        ) = import_names(
-            "models", "Student", "Course", "Grade", "DailyPerformance", "Attendance"
-        )
+            self.CourseEnrollment,
+        ) = import_names("models", "Student", "Course", "Grade", "DailyPerformance", "Attendance", "CourseEnrollment")
 
     # ----------------------------- Public API ---------------------------------
     def calculate_final_grade(self, student_id: int, course_id: int) -> Dict[str, Any]:
         get_by_id_or_404(self.db, self.Student, student_id)
         course = get_by_id_or_404(self.db, self.Course, course_id)
 
-        # Single query with eager loading for all related data
-        student_data = (
-            self.db.query(self.Student)
-            .options(
-                joinedload(self.Student.grades).joinedload(self.Grade.course),
-                joinedload(self.Student.daily_performances).joinedload(self.DailyPerformance.course),
-                joinedload(self.Student.attendances).joinedload(self.Attendance.course),
-            )
-            .filter(self.Student.id == student_id)
-            .first()
-        )
-
-        # Filter records by course and deleted_at status
+        # Use separate, simpler queries instead of complex joinedload to avoid lock contention
         grades = [
-            g for g in student_data.grades
-            if g.course_id == course_id and g.deleted_at is None
+            g
+            for g in self.db.query(self.Grade)
+            .filter(
+                self.Grade.student_id == student_id, self.Grade.course_id == course_id, self.Grade.deleted_at.is_(None)
+            )
+            .all()
         ]
+
         daily = [
-            d for d in student_data.daily_performances
-            if d.course_id == course_id and d.deleted_at is None
+            d
+            for d in self.db.query(self.DailyPerformance)
+            .filter(
+                self.DailyPerformance.student_id == student_id,
+                self.DailyPerformance.course_id == course_id,
+                self.DailyPerformance.deleted_at.is_(None),
+            )
+            .all()
         ]
+
         attendance = [
-            a for a in student_data.attendances
-            if a.course_id == course_id and a.deleted_at is None
+            a
+            for a in self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.student_id == student_id,
+                self.Attendance.course_id == course_id,
+                self.Attendance.deleted_at.is_(None),
+            )
+            .all()
         ]
 
         return self._calculate_final_grade_from_records(student_id, course, grades, daily, attendance)
 
     def get_student_all_courses_summary(self, student_id: int) -> Dict[str, Any]:
-        # Single query with eager loading for all related data
-        student = (
-            self.db.query(self.Student)
-            .options(
-                joinedload(self.Student.grades).joinedload(self.Grade.course),
-                joinedload(self.Student.daily_performances).joinedload(self.DailyPerformance.course),
-                joinedload(self.Student.attendances).joinedload(self.Attendance.course),
-            )
-            .filter(self.Student.id == student_id)
-            .first()
-        )
+        # Fetch student without expensive joinedloads
+        student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
 
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
+        assert student is not None
 
-        # Collect all course IDs from loaded relationships
-        course_ids = {
-            *(g.course_id for g in student.grades if g.deleted_at is None),
-            *(d.course_id for d in student.daily_performances if d.deleted_at is None),
-            *(a.course_id for a in student.attendances if a.deleted_at is None),
+        # Try to fetch course enrollments first (most efficient)
+        enrollments = (
+            self.db.query(self.CourseEnrollment)
+            .filter(self.CourseEnrollment.student_id == student_id, self.CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
+
+        course_ids = {e.course_id for e in enrollments}
+
+        # If no enrollments exist, fall back to finding courses from grades/attendance/daily performance
+        if not course_ids:
+            course_ids = {
+                *(
+                    g.course_id
+                    for g in self.db.query(self.Grade.course_id)
+                    .filter(self.Grade.student_id == student_id, self.Grade.deleted_at.is_(None))
+                    .distinct()
+                ),
+                *(
+                    d.course_id
+                    for d in self.db.query(self.DailyPerformance.course_id)
+                    .filter(self.DailyPerformance.student_id == student_id, self.DailyPerformance.deleted_at.is_(None))
+                    .distinct()
+                ),
+                *(
+                    a.course_id
+                    for a in self.db.query(self.Attendance.course_id)
+                    .filter(self.Attendance.student_id == student_id, self.Attendance.deleted_at.is_(None))
+                    .distinct()
+                ),
+            }
+
+        if not course_ids:
+            # No data at all for this student
+            return {
+                "student": {
+                    "id": student.id,
+                    "name": f"{student.first_name} {student.last_name}",
+                    "student_id": student.student_id,
+                },
+                "overall_gpa": 0,
+                "total_credits": 0,
+                "courses": [],
+            }
+
+        # Fetch courses in enrolled list only
+        courses_dict: Dict[int, Any] = {
+            c.id: c
+            for c in self.db.query(self.Course)
+            .filter(self.Course.id.in_(course_ids), self.Course.deleted_at.is_(None))
+            .all()
         }
 
-        # Build dictionaries from already-loaded relationships
-        courses_dict: Dict[int, Any] = {}
+        # Fetch related data for enrolled courses only
         grades_by_course: Dict[int, List[Any]] = {}
+        for grade in (
+            self.db.query(self.Grade)
+            .filter(
+                self.Grade.student_id == student_id,
+                self.Grade.course_id.in_(course_ids),
+                self.Grade.deleted_at.is_(None),
+            )
+            .all()
+        ):
+            grades_by_course.setdefault(grade.course_id, []).append(grade)
+
         daily_by_course: Dict[int, List[Any]] = {}
+        for daily in (
+            self.db.query(self.DailyPerformance)
+            .filter(
+                self.DailyPerformance.student_id == student_id,
+                self.DailyPerformance.course_id.in_(course_ids),
+                self.DailyPerformance.deleted_at.is_(None),
+            )
+            .all()
+        ):
+            daily_by_course.setdefault(daily.course_id, []).append(daily)
+
         attendance_by_course: Dict[int, List[Any]] = {}
-
-        # Process grades (already loaded via joinedload)
-        for grade in student.grades:
-            if grade.deleted_at is None and grade.course_id in course_ids:
-                grades_by_course.setdefault(grade.course_id, []).append(grade)
-                if grade.course and grade.course.deleted_at is None:
-                    courses_dict[grade.course_id] = grade.course
-
-        # Process daily performance (already loaded)
-        for daily in student.daily_performances:
-            if daily.deleted_at is None and daily.course_id in course_ids:
-                daily_by_course.setdefault(daily.course_id, []).append(daily)
-                if daily.course and daily.course.deleted_at is None:
-                    courses_dict[daily.course_id] = daily.course
-
-        # Process attendance (already loaded)
-        for att in student.attendances:
-            if att.deleted_at is None and att.course_id in course_ids:
-                attendance_by_course.setdefault(att.course_id, []).append(att)
-                if att.course and att.course.deleted_at is None:
-                    courses_dict[att.course_id] = att.course
+        for att in (
+            self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.student_id == student_id,
+                self.Attendance.course_id.in_(course_ids),
+                self.Attendance.deleted_at.is_(None),
+            )
+            .all()
+        ):
+            attendance_by_course.setdefault(att.course_id, []).append(att)
 
         summaries: List[StudentCourseSummary] = []
         overall_gpa = 0.0
@@ -189,6 +242,7 @@ class AnalyticsService:
 
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)  # Raises 404
+        assert student is not None
 
         # Calculate from loaded relationships (no additional queries)
         attendance_records = [a for a in student.attendances if a.deleted_at is None]
@@ -213,13 +267,47 @@ class AnalyticsService:
             "total_assignments": len(grades),
         }
 
+    def get_dashboard_summary(self) -> Dict[str, Any]:
+        """Return a small system-wide summary used by the UI/dashboard.
+
+        This is intentionally lightweight for load-testing and health UIs: counts of
+        students, courses and basic totals.
+        """
+        # Use simple count queries; models were resolved in __init__ via import_names
+        student_count = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None)).count()
+        course_count = self.db.query(self.Course).filter(self.Course.deleted_at.is_(None)).count()
+        enrollment_count = (
+            self.db.query(self.CourseEnrollment).filter(self.CourseEnrollment.deleted_at.is_(None)).count()
+        )
+
+        return {
+            "students": int(student_count),
+            "courses": int(course_count),
+            "enrollments": int(enrollment_count),
+        }
+
     # ----------------------------- Helpers ------------------------------------
     @staticmethod
     def get_letter_grade(percentage: float) -> str:
-        if percentage >= 90:
+        """Convert percentage to letter grade using standard academic scale.
+
+        Scale: A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86),
+               B- (80-82), C+ (77-79), C (70-76), D (60-69), F (0-59)
+        """
+        if percentage >= 97:
+            return "A+"
+        if percentage >= 93:
             return "A"
-        if percentage >= 80:
+        if percentage >= 90:
+            return "A-"
+        if percentage >= 87:
+            return "B+"
+        if percentage >= 83:
             return "B"
+        if percentage >= 80:
+            return "B-"
+        if percentage >= 77:
+            return "C+"
         if percentage >= 70:
             return "C"
         if percentage >= 60:
@@ -336,11 +424,7 @@ class AnalyticsService:
             category_lower = (category or "").lower()
             # Match grades to this rule category using normalized names
             rule_norm = _normalize_category(category)
-            category_grades = [
-                gr
-                for gr in grades
-                if _normalize_category(getattr(gr, "category", None)) == rule_norm
-            ]
+            category_grades = [gr for gr in grades if _normalize_category(getattr(gr, "category", None)) == rule_norm]
 
             if category_lower in self.exam_categories and category_grades:
                 category_grades = sorted(

@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start for AI Agents
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.3** (see VERSION file).
+**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.8** (see VERSION file).
 
 **Most common tasks:**
 
@@ -30,9 +30,10 @@
 .\COMMIT_READY.ps1 -Full          # Full validation (15-20 min): + all frontend tests
 .\COMMIT_READY.ps1 -Cleanup       # Just cleanup (1-2 min): format + organize imports
 
-# Legacy Scripts (Deprecated - archived in archive/pre-v1.9.1/)
-# RUN.ps1, INSTALL.ps1, SMS.ps1 → Use DOCKER.ps1 instead
-# scripts\dev\run-native.ps1 → Use NATIVE.ps1 instead
+# Legacy Scripts (Deprecated & Archived)
+# archive/pre-v1.9.1/: RUN.ps1, INSTALL.ps1, SMS.ps1, run-native.ps1 → Use DOCKER.ps1/NATIVE.ps1
+# archive/pre-v1.9.7-docker-scripts/: DOCKER_UP/DOWN/REFRESH/RUN/SMOKE/UPDATE_VOLUME → Use DOCKER.ps1
+# scripts/ci/VERIFY_VERSION.ps1 → Use scripts/VERIFY_VERSION.ps1 -CIMode
 
 # Database & Testing
 cd backend && pytest -q                                             # Run tests (rate limiter auto-disabled)
@@ -41,7 +42,7 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 
 **Configuration Files (Moved to dedicated directories):**
 - `config/mypy.ini` - Type checking configuration
-- `config/pytest.ini` - Test runner configuration  
+- `config/pytest.ini` - Test runner configuration
 - `config/ruff.toml` - Linting configuration
 - `docker/docker-compose.yml` - Main Docker compose file
 - `docker/docker-compose.prod.yml` - Production overlay
@@ -82,9 +83,15 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 - **Indexing strategy**: Indexed fields include `email`, `student_id`, `course_code`, `date`, `semester`, `is_active`, `enrollment_date` for query performance
 
 **Entry points:**
-- Backend: `backend/main.py` (lifespan-managed with `@asynccontextmanager`, includes Control Panel at `/control`)
+- Backend: `backend/main.py` (minimal entry point, ~100 lines)
+  - **Modular Architecture (v1.9.5+):**
+    - `backend/app_factory.py` - FastAPI app creation and configuration
+    - `backend/lifespan.py` - Startup/shutdown lifecycle management
+    - `backend/middleware_config.py` - All middleware registration
+    - `backend/error_handlers.py` - Exception handler registration
+    - `backend/router_registry.py` - Router registration logic
 - Frontend: `frontend/src/App.tsx` → Main layout with navigation, auth, and error boundaries
-- Scripts: 
+- Scripts:
   - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
   - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
   - **Quality Gate:** `COMMIT_READY.ps1` (v1.9.3+)
@@ -129,7 +136,7 @@ async def create_item(item: ItemCreate, request: Request, db: Session = Depends(
 async def list_users(current_admin: Any = Depends(require_role("admin"))):
     pass
 
-# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)  
+# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)
 @router.get("/admin/users")
 async def list_users(current_admin: Any = Depends(optional_require_role("admin"))):
     pass

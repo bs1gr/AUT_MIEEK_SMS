@@ -1,0 +1,93 @@
+{
+  "dashboard": {
+    "title": "Student Management System - Health Dashboard",
+    "timezone": "browser",
+    "refresh": "5s",
+    "panels": [
+      {
+        "title": "API Request Rate",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{ method }} {{ path }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Error Rate (5m)",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~'5..'}[5m])",
+            "legendFormat": "{{ status }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Response Time - 95th Percentile",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{ method }} {{ path }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Database Query Performance",
+        "targets": [
+          {
+            "expr": "rate(db_query_duration_seconds_sum[5m]) / rate(db_query_duration_seconds_count[5m])",
+            "legendFormat": "{{ query_type }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Database Connection Pool",
+        "targets": [
+          {
+            "expr": "sqlalchemy_pool_size",
+            "legendFormat": "Pool Size"
+          },
+          {
+            "expr": "sqlalchemy_pool_available",
+            "legendFormat": "Available"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Requests by Endpoint (Top 10)",
+        "targets": [
+          {
+            "expr": "topk(10, rate(http_requests_total[5m]))",
+            "legendFormat": "{{ method }} {{ path }}"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "title": "Slow Queries (>100ms)",
+        "targets": [
+          {
+            "expr": "increase(slow_queries_total[5m])",
+            "legendFormat": "{{ query_type }}"
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "title": "Request Count by Status",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m])) by (status)",
+            "legendFormat": "{{ status }}"
+          }
+        ],
+        "type": "piechart"
+      }
+    ]
+  }
+}

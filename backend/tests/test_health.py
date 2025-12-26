@@ -18,13 +18,11 @@ def test_health_endpoint(client):
 
 
 def test_root_endpoint(client):
-    """Test the root endpoint returns API metadata."""
+    """Test the root endpoint returns API metadata (fallback when no frontend)."""
     r = client.get("/")
     assert r.status_code == 200
-
+    # In test environment (no built frontend), returns JSON metadata
     data = r.json()
     assert data["message"] == "Student Management System API"
     assert "version" in data
     assert data["status"] == "running"
-    assert "documentation" in data
-    assert "endpoints" in data

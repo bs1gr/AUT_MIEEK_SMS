@@ -10,7 +10,7 @@ from backend.db import get_session as get_db
 from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
-from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.schemas.highlights import (
     HighlightCreate,
     HighlightListResponse,
@@ -68,7 +68,9 @@ def create_highlight(
 
 
 @router.get("/", response_model=HighlightListResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def list_highlights(
+    request: Request,
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Max records to return"),
     student_id: Optional[int] = Query(None, description="Filter by student ID"),
@@ -114,6 +116,7 @@ def list_highlights(
 
 
 @router.get("/{highlight_id}", response_model=HighlightResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db)):
     """
     Get a single highlight by ID.
@@ -142,6 +145,7 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
 
 
 @router.get("/student/{student_id}", response_model=list[HighlightResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_highlights(
     request: Request,
     student_id: int,

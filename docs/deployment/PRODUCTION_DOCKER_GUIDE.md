@@ -41,7 +41,6 @@ CORS_ORIGINS=https://yourdomain.com
 SMS_ENV=production
 ```
 
- 
  **Security Notes:**
 
 - Use `openssl rand -hex 32` to generate strong secrets
@@ -146,6 +145,7 @@ docker compose logs --tail=100 --no-log-prefix backend | jq
 ```
 
 Logs are capped (see `docker-compose.prod.yml`):
+
 - Backend: 10MB × 5 files = 50MB max
 - Frontend: 5MB × 3 files = 15MB max
 - PostgreSQL: 10MB × 3 files = 30MB max
@@ -179,11 +179,13 @@ Current limitation: SQLite (dev) or single PostgreSQL (prod). For multi-replica 
 
 1. **Database:** PostgreSQL is multi-connection ready
 2. **Backend replicas:**
+
    ```yaml
    backend:
      deploy:
        replicas: 3
    ```
+
 3. **Load balancer:** Add nginx upstream or use Kubernetes
 4. **Sessions:** Backend is stateless (JWT tokens)
 
@@ -289,6 +291,7 @@ jobs:
 ## Support
 
 For issues:
+
 - Check `docs/deployment/RUNBOOK.md` for operational procedures
 - Review `docs/TROUBLESHOOTING.md` for common problems
 - Check `CHANGELOG.md` for version-specific notes

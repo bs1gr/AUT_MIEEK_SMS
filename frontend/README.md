@@ -22,6 +22,18 @@
 
 The development server runs at <http://localhost:5173>.
 
+### Optional: auto-login for local dev
+
+For faster local testing you can enable auto-login (disabled by default). Add the following to your local `.env` only when needed:
+
+```dotenv
+VITE_ENABLE_AUTO_LOGIN=true
+VITE_AUTO_LOGIN_EMAIL=admin@example.com
+VITE_AUTO_LOGIN_PASSWORD=YourSecurePassword123!
+```
+
+Do **not** set these in production builds—users should sign in normally.
+
 ```text
 student-management-system/
 ├── backend/

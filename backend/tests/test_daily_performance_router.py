@@ -156,3 +156,32 @@ def test_get_student_daily_performance_handles_unexpected_errors(client, monkeyp
 
     assert response.status_code == 500
     assert get_error_message(response.json()) == "Internal server error"
+
+
+def test_update_daily_performance_success(client):
+    """Test updating an existing daily performance record via PUT."""
+    student = _create_student(client, 1)
+    course = _create_course(client, 1)
+
+    # Create a record
+    created = _create_daily_performance(client, student["id"], course["id"], score=7.5, notes="Initial")
+    record_id = created["id"]
+
+    # Update the record
+    update_payload = {"score": 9.0, "notes": "Much better!"}
+    response = client.put(f"/api/v1/daily-performance/{record_id}", json=update_payload)
+    assert response.status_code == 200, response.text
+
+    updated = response.json()
+    assert updated["id"] == record_id
+    assert updated["score"] == pytest.approx(9.0)
+    assert updated["notes"] == "Much better!"
+    # Other fields should remain unchanged
+    assert updated["student_id"] == student["id"]
+    assert updated["course_id"] == course["id"]
+
+
+def test_update_daily_performance_not_found(client):
+    """Test updating a non-existent record returns 404."""
+    response = client.put("/api/v1/daily-performance/99999", json={"score": 8.0})
+    assert response.status_code == 404

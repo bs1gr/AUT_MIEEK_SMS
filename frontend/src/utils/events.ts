@@ -3,7 +3,7 @@
  * Used to notify components when data changes (e.g., grades updated)
  */
 
-type EventCallback = (...args: any[]) => void;
+type EventCallback = (...args: unknown[]) => void;
 
 class EventEmitter {
   private events: Map<string, Set<EventCallback>>;
@@ -24,7 +24,7 @@ class EventEmitter {
     };
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     const callbacks = this.events.get(event);
     if (callbacks) {
       callbacks.forEach(callback => callback(...args));

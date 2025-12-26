@@ -1,4 +1,5 @@
 import { CoursesView, AddCourseModal, EditCourseModal } from '@/features/courses';
+import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useCoursesStore } from '@/stores';
 import { useCourses, useCourseModals, useCreateCourse, useUpdateCourse, useDeleteCourse } from '@/hooks';
 import { useState } from 'react';
@@ -39,7 +40,7 @@ export default function CoursesPage() {
   };
 
   return (
-    <>
+    <SectionErrorBoundary section="CoursesPage">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <CoursesView
@@ -82,6 +83,6 @@ export default function CoursesPage() {
           }}
         />
       )}
-    </>
+    </SectionErrorBoundary>
   );
 }

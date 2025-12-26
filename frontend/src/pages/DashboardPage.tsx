@@ -12,8 +12,13 @@ export default function DashboardPage() {
   const { refetch: refetchStudents } = useStudents();
 
   useEffect(() => {
-    refetchCourses();
-    refetchStudents();
+    // Execute fetches and wait for them to complete to avoid race conditions
+    Promise.all([
+      refetchCourses(),
+      refetchStudents(),
+    ]).catch((err) => {
+      console.error('[DashboardPage] Data fetch failed:', err);
+    });
   }, [refetchCourses, refetchStudents]);
 
   const stats = {

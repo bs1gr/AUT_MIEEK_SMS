@@ -16,6 +16,7 @@ import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptModal';
 import BackendStatusBanner from './components/common/BackendStatusBanner';
+import UserFeedbackModal from './components/UserFeedbackModal';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -57,21 +58,26 @@ function AppLayout({ children }: AppLayoutProps) {
   const { user, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-  
+  const [showFeedback, setShowFeedback] = useState(false);
+
   // Show password change prompt if user has password_change_required=true
   useEffect(() => {
     if (user && typeof user === 'object' && 'password_change_required' in user && user.password_change_required) {
-      setShowPasswordPrompt(true);
+      // Avoid synchronous setState inside effect to prevent cascading renders in tests/runtime.
+      // Schedule change in a microtask so effect finishes before commit.
+      const id = setTimeout(() => setShowPasswordPrompt(true), 0);
+      return () => clearTimeout(id);
     }
+    return undefined;
   }, [user]);
-  
+
   const handleOpenPasswordForm = () => {
     // Navigate to the power/control panel page and open the embedded control panel
     // Add a query flag so PowerPage can auto-expand the control panel UI
     navigate('/power?showControl=1');
     setShowPasswordPrompt(false);
   };
-  
+
   const navigationTabs = useMemo<NavigationTab[]>(
     () =>
       NAV_TAB_CONFIG.map(({ labelKey, ...tab }) => ({
@@ -112,15 +118,28 @@ function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
+  const handleSubmitFeedback = async (feedback: string) => {
+    try {
+      await fetch('/api/v1/feedback/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback }),
+      });
+      setToast({ message: t('feedback.success'), type: 'success' });
+    } catch {
+      setToast({ message: t('feedback.error'), type: 'error' });
+    }
+  };
+
   return (
     <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
       <BackendStatusBanner />
-      
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Password Change Prompt Modal */}
-      <ChangePasswordPromptModal 
+      <ChangePasswordPromptModal
         isOpen={showPasswordPrompt}
         onOpenPasswordForm={handleOpenPasswordForm}
       />
@@ -156,6 +175,21 @@ function AppLayout({ children }: AppLayoutProps) {
       {/* Page Content */}
       <div className="flex-1 w-full relative">{children}</div>
 
+      {/* Feedback Button fixed at bottom right */}
+      <div className="fixed bottom-6 left-6 z-50">
+        <button
+          className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 text-sm"
+          onClick={() => setShowFeedback(true)}
+          type="button"
+        >
+          {t('feedback.title')}
+        </button>
+      </div>
+      <UserFeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        onSubmit={handleSubmitFeedback}
+      />
       <Footer />
     </div>
   );

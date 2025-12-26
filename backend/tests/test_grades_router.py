@@ -62,6 +62,77 @@ def test_create_grade_success(client):
     assert data["category"] == "Homework"
 
 
+def test_create_and_retrieve_multiple_assignments(client):
+    """Creating multiple grades for a course should persist and return them with correct values."""
+
+    student = client.post(
+        "/api/v1/students/",
+        json={
+            "first_name": "Multi",
+            "last_name": "Grade",
+            "email": "multi.grade@example.com",
+            "student_id": "MUL100",
+        },
+    ).json()
+
+    course = client.post(
+        "/api/v1/courses/",
+        json={
+            "course_code": "GRD200",
+            "course_name": "Grading 200",
+            "semester": "Fall 2025",
+        },
+    ).json()
+
+    base = date(2025, 9, 1)
+    assignments = [
+        {"assignment_name": "Homework 1", "category": "Homework", "grade": 88.0, "day_offset": 0},
+        {"assignment_name": "Lab 1", "category": "Lab Work", "grade": 92.0, "day_offset": 7},
+        {"assignment_name": "Midterm Exam", "category": "Midterm Exam", "grade": 78.5, "day_offset": 30},
+        {"assignment_name": "Project Presentation", "category": "Project", "grade": 96.0, "day_offset": 60},
+    ]
+
+    created_ids = []
+    for idx, info in enumerate(assignments, start=1):
+        assigned = base + timedelta(days=info["day_offset"])
+        payload = make_grade_payload(
+            idx,
+            student_id=student["id"],
+            course_id=course["id"],
+            assignment_name=info["assignment_name"],
+            category=info["category"],
+            grade=info["grade"],
+            max_grade=100.0,
+            date_assigned=assigned.isoformat(),
+            date_submitted=(assigned + timedelta(days=1)).isoformat(),
+        )
+        resp = client.post("/api/v1/grades/", json=payload)
+        assert resp.status_code == 201, resp.text
+        created_ids.append(resp.json()["id"])
+
+    # Paginated list filtered by student and course should include all assignments
+    r_list = client.get(f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20")
+    assert r_list.status_code == 200
+    body = r_list.json()
+    assert body["total"] == len(assignments)
+    names = [item["assignment_name"] for item in body["items"]]
+    expected_names = {a["assignment_name"] for a in assignments}
+    assert set(names) == expected_names
+
+    # Order should be by most recent assignment date (date_assigned desc)
+    assert names[0] == "Project Presentation"
+    assert names[-1] == "Homework 1"
+
+    # Fetch each grade individually to ensure persistence and returned fields
+    for gid, info in zip(created_ids, assignments):
+        r_get = client.get(f"/api/v1/grades/{gid}")
+        assert r_get.status_code == 200
+        payload = r_get.json()
+        assert payload["assignment_name"] == info["assignment_name"]
+        assert payload["grade"] == info["grade"]
+        assert payload["category"] == info["category"].title()
+
+
 def test_create_grade_weight_exceeds_limit(client):
     """Test that weight > 3.0 is rejected by Pydantic validator."""
     # Setup: create student and course
@@ -478,10 +549,11 @@ def test_get_grade_analysis_with_and_without_data(client):
     assert r_analysis.status_code == 200
     data = r_analysis.json()
     assert data["total_grades"] == 4
-    assert data["grade_distribution"]["A (90-100)"] == 1
-    assert data["grade_distribution"]["B (80-89)"] == 1
-    assert data["grade_distribution"]["D (60-69)"] == 1
-    assert data["grade_distribution"]["F (below 60)"] == 1
+    # Grades: 95 (A), 82 (B-), 68 (D), 55 (F)
+    assert data["grade_distribution"]["A (93-96)"] == 1  # 95%
+    assert data["grade_distribution"]["B- (80-82)"] == 1  # 82%
+    assert data["grade_distribution"]["D (60-69)"] == 1  # 68%
+    assert data["grade_distribution"]["F (below 60)"] == 1  # 55%
 
 
 @pytest.mark.parametrize(
@@ -735,3 +807,83 @@ def test_update_grade_successful(client):
     assert payload["max_grade"] == 95.0
     assert payload["category"] == grade["category"]
     assert payload["notes"] == "Improved after retake"
+
+
+def test_excellence_highlight_created_for_top_grade(client):
+    """A or A+ grade should create an Excellence highlight for the student."""
+    student = client.post(
+        "/api/v1/students/",
+        json={
+            "first_name": "Star",
+            "last_name": "Student",
+            "email": "star.student@example.com",
+            "student_id": "STAR100",
+        },
+    ).json()
+
+    course = client.post(
+        "/api/v1/courses/",
+        json={
+            "course_code": "ASTR101",
+            "course_name": "Astrophysics",
+            "semester": "Fall 2025",
+        },
+    ).json()
+
+    grade_payload = make_grade_payload(
+        1,
+        student_id=student["id"],
+        course_id=course["id"],
+        assignment_name="Galaxy Report",
+        grade=95.0,
+        max_grade=100.0,
+    )
+    r_create = client.post("/api/v1/grades/", json=grade_payload)
+    assert r_create.status_code == 201
+
+    highlights_resp = client.get(f"/api/v1/highlights/student/{student['id']}")
+    assert highlights_resp.status_code == 200
+    data = highlights_resp.json()
+    assert len(data) == 1
+    hl = data[0]
+    assert hl["category"] == "Excellence"
+    assert "Galaxy Report" in hl["highlight_text"]
+    assert hl["rating"] in (4, 5)
+
+
+def test_no_highlight_created_for_non_excellence_grade(client):
+    """Grades below A threshold should not create excellence highlights."""
+    student = client.post(
+        "/api/v1/students/",
+        json={
+            "first_name": "Average",
+            "last_name": "Student",
+            "email": "avg.student@example.com",
+            "student_id": "AVG100",
+        },
+    ).json()
+
+    course = client.post(
+        "/api/v1/courses/",
+        json={
+            "course_code": "BIO150",
+            "course_name": "Biology Basics",
+            "semester": "Fall 2025",
+        },
+    ).json()
+
+    grade_payload = make_grade_payload(
+        1,
+        student_id=student["id"],
+        course_id=course["id"],
+        assignment_name="Cell Quiz",
+        grade=85.0,
+        max_grade=100.0,
+    )
+    r_create = client.post("/api/v1/grades/", json=grade_payload)
+    assert r_create.status_code == 201
+
+    highlights_resp = client.get(f"/api/v1/highlights/student/{student['id']}")
+    assert highlights_resp.status_code == 200
+    data = highlights_resp.json()
+    assert data == []

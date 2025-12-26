@@ -10,7 +10,9 @@ export default function CalendarPage() {
   // Refetch courses when calendar view is loaded to ensure fresh data
   useEffect(() => {
     refetchCourses();
-  }, [refetchCourses]);
+    // Omit refetchCourses from deps to prevent loops on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <CalendarView courses={courses} />;
 }

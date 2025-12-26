@@ -160,25 +160,25 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     setChangingOwnPassword(true);
     try {
       const response = await adminUsersAPI.changeOwnPassword(currentPassword, newPassword);
-      
+
       // If backend returned a new access token, the axios interceptor will handle it
       // because we set it in the attachAuthHeader function which is called on every request
       if (response && 'access_token' in response && response.access_token) {
-        console.log('[Password Change] New access token received from backend');
+        console.warn('[Password Change] New access token received from backend');
       }
-      
+
       // Refresh user profile to update password_change_required flag
       try {
         const updatedUser = await adminUsersAPI.getCurrentUser();
         if (updatedUser) {
-          console.log('[Password Change] User profile refreshed, password_change_required:', updatedUser.password_change_required);
-          // Update the user in AuthContext
-          updateUser(updatedUser as any);
+          console.warn('[Password Change] User profile refreshed, password_change_required:', updatedUser.password_change_required);
+          // Update the user in AuthContext (type is UserAccount)
+          updateUser(updatedUser);
         }
       } catch (err) {
         console.warn('[Password Change] Failed to refresh user profile:', err);
       }
-      
+
       onToast({ message: t('controlPanel.changeOwnPasswordSuccess'), type: 'success' });
       setCurrentPassword('');
       setNewPassword('');
@@ -193,10 +193,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     } catch (err: unknown) {
       console.error('Failed to change own password', err);
       let errorMessage = t('controlPanel.changeOwnPasswordFailed');
-      
+
       // Extract detailed error message
-      if (err && typeof err === 'object') {
-        const axiosError = err as any;
+      if (err && typeof err === 'object' && err !== null) {
+        const axiosError = err as { response?: { data?: { detail?: string; message?: string } }; message?: string };
         if (axiosError.response?.data?.detail) {
           errorMessage = axiosError.response.data.detail;
         } else if (axiosError.response?.data?.message) {
@@ -205,7 +205,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           errorMessage = axiosError.message;
         }
       }
-      
+
       onToast({ message: errorMessage, type: 'error' });
     } finally {
       setChangingOwnPassword(false);
@@ -387,13 +387,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               <XCircle size={14} /> {t('controlPanel.cancel')}
             </button>
           </div>
-          
+
           {/* Validation feedback */}
           <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
-            {!currentPassword && <p>• {t('controlPanel.currentPassword')} is required</p>}
-            {!newPassword && <p>• {t('controlPanel.newPassword')} is required</p>}
-            {newPassword && passwordStrength < 4 && <p>• {t('controlPanel.changeOwnPasswordHint')}</p>}
-            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>• {t('controlPanel.changeOwnPasswordMismatch')}</p>}
+            {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('controlPanel.currentPassword') })}</p>}
+            {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('controlPanel.newPassword') })}</p>}
+            {newPassword && passwordStrength < 4 && <p>{t('bullet')} {t('controlPanel.changeOwnPasswordHint')}</p>}
+            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('controlPanel.changeOwnPasswordMismatch')}</p>}
             <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('controlPanel.changeOwnPasswordHint')}</p>
           </div>
         </form>
@@ -451,7 +451,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                     ) : (
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-gray-100">{user.full_name || t('controlPanel.nameNotProvided')}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">ID: {user.id}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('idLabel', { id: user.id })}</p>
                       </div>
                     )}
                   </td>

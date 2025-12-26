@@ -2,10 +2,13 @@
 // Location: frontend/src/components/views/CoursesView.tsx
 // Enhanced with teaching schedule management and hours per week
 
-import { useState, useEffect } from 'react';
+/* eslint-disable testing-library/no-await-sync-queries */
+import { useState, useEffect, useCallback } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { usePerformanceMonitor } from '@/hooks';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
+import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
 import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI } from '@/api/api';
 
@@ -36,11 +39,13 @@ type ScheduleConflict = {
   time: string;
   conflictTime: string;
 };
-type PaginatedResponse<T> = { items: T[]; total?: number; skip?: number; limit?: number };
 import type { Course as CourseType } from '@/types';
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
 const CourseManagement = ({ courses: externalCourses, loading: externalLoading = false, onAddCourse, onEdit, onDelete }: { courses?: CourseType[]; loading?: boolean; onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
+  // Performance monitoring for component renders
+  usePerformanceMonitor('CoursesView', 200);
+
   const { t } = useLanguage();
   const [courses, setCourses] = useState<CourseType[]>(externalCourses || []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -78,47 +83,25 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     { en: 'Friday', el: 'Παρασκευή', translated: t('friday') }
   ];
 
-  useEffect(() => {
-    // If consumer passed in courses via props, respect them; otherwise load from API
-    if (!externalCourses) {
-      loadCourses();
-    } else {
-      setCourses(externalCourses);
-    }
-    loadAllStudents();
-  }, [externalCourses]);
+  // We'll declare helper functions before invoking them in effects to avoid used-before-declaration errors.
 
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCourseData();
-      loadEnrolledStudents();
-    }
-  }, [selectedCourse, courses]);
-
-  // Reset pending selections when switching courses
-  useEffect(() => {
-    setSelectedToEnroll([]);
-  }, [selectedCourse]);
-
-  const showToast = (message: string, type: ToastType['type'] = 'info') => {
+  const showToast = useCallback((message: string, type: ToastType['type'] = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
-  const loadAllStudents = async () => {
+  const loadAllStudents = useCallback(async () => {
     try {
       const data = await studentsAPI.getAll();
-      // Normalize PaginatedResponse to array
-      const studentsArray: StudentLite[] = (data && (data as PaginatedResponse<StudentLite>).items)
-        ? (data as PaginatedResponse<StudentLite>).items
-        : (Array.isArray(data) ? (data as StudentLite[]) : []);
+      // studentsAPI returns a normalized array; prefer array shape
+      const studentsArray: StudentLite[] = Array.isArray(data) ? (data as StudentLite[]) : [];
       setAllStudents(studentsArray);
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [t, showToast]);
 
-  const loadEnrolledStudents = async () => {
+  const loadEnrolledStudents = useCallback(async () => {
     if (!selectedCourse) return;
     try {
       const data = await enrollmentsAPI.getEnrolledStudents(selectedCourse);
@@ -126,7 +109,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     } catch {
       setEnrolledStudents([]);
     }
-  };
+  }, [selectedCourse]);
 
   const enrollSelected = async () => {
     if (!selectedCourse || selectedToEnroll.length === 0) return;
@@ -151,19 +134,17 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
       const data = await coursesAPI.getAll(0, 1000);
-      // Backend returns PaginatedResponse { items, total, skip, limit }
-      // Normalize to array for UI
-      const coursesArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
+      const coursesArray = Array.isArray(data) ? data : [];
       setCourses(coursesArray as CourseType[]);
     } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [t, showToast]);
 
-  const loadCourseData = () => {
+  const loadCourseData = useCallback(() => {
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
       setEvaluationRules((course.evaluation_rules as Rule[]) || []);
@@ -194,7 +175,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       setWeeklySchedule({});
       setHoursPerWeek(0);
     }
-  };
+  }, [courses, selectedCourse]);
 
   // Evaluation Rules Functions
   const addRule = () => {
@@ -279,7 +260,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   };
 
   // Check for schedule conflicts with other courses (year-based)
-  const checkScheduleConflicts = async (): Promise<ScheduleConflict[]> => {
+  const checkScheduleConflicts = useCallback(async (): Promise<ScheduleConflict[]> => {
     if (!selectedCourse || Object.keys(weeklySchedule).length === 0) {
       setScheduleConflicts([]);
       return [];
@@ -388,7 +369,30 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       console.error('Error checking conflicts:', err);
       return [];
     }
-  };
+  }, [selectedCourse, weeklySchedule, courses]);
+
+  // Effects: load initial data and react to course selection
+  useEffect(() => {
+    // If consumer passed in courses via props, respect them; otherwise load from API
+    if (!externalCourses) {
+      loadCourses();
+    } else {
+      setCourses(externalCourses);
+    }
+    loadAllStudents();
+  }, [externalCourses, loadCourses, loadAllStudents]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCourseData();
+      loadEnrolledStudents();
+    }
+  }, [selectedCourse, courses, loadCourseData, loadEnrolledStudents]);
+
+  // Reset pending selections when switching courses
+  useEffect(() => {
+    setSelectedToEnroll([]);
+  }, [selectedCourse]);
 
   const saveCourseData = async () => {
     if (activeTab === 'evaluation' && !validateRules()) return;
@@ -446,9 +450,18 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
+  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMinutes = totalMinutes % 60;
+    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+  };
+
   const handleExportSchedule = () => {
+    const current = courses.find((c) => c.id === (selectedCourse as number));
     try {
-      if (!currentCourse) {
+      if (!current) {
         showToast(t('pleaseSelectCourse'), 'error');
         return;
       }
@@ -467,9 +480,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       }
 
       const courseData = {
-        course_code: currentCourse.course_code,
-        course_name: currentCourse.course_name,
-        semester: currentCourse.semester || t('currentSemester'),
+        course_code: current?.course_code || '' ,
+        course_name: current?.course_name || '' ,
+        semester: current?.semester || t('currentSemester'),
         teaching_schedule: scheduleArray,
       };
 
@@ -477,7 +490,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       const icsContent = generateCourseScheduleICS(courseData);
 
       // Download file
-      const filename = `${currentCourse.course_code}_schedule.ics`;
+      const filename = `${current?.course_code || 'course'}_schedule.ics`;
       downloadICS(icsContent, filename);
 
       showToast(t('scheduleExported'), 'success');
@@ -487,13 +500,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   };
 
-  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60) % 24;
-    const endMinutes = totalMinutes % 60;
-    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-  };
+
 
   const getTotalWeight = () => {
     return evaluationRules.reduce((sum, rule) => {
@@ -561,20 +568,27 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="course-select">{t('selectCourseForRules')}</label>
-        <select
-          id="course-select"
-          value={selectedCourse || ''}
-          onChange={(e) => setSelectedCourse(parseInt(e.target.value) || null)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          title={t('selectCourseForRules')}
-        >
-          <option value="">{t('chooseCourse')}</option>
-          {courses.map((course: CourseType) => (
-            <option key={course.id} value={course.id}>
-              {course.course_code} - {course.course_name}
-            </option>
-          ))}
-        </select>
+
+        {/* Loading State */}
+        {(externalLoading || isLoading) && <ListSkeleton count={1} itemComponent={CourseCardSkeleton} />}
+
+        {/* Course Selection */}
+        {!externalLoading && !isLoading && (
+          <select
+            id="course-select"
+            value={selectedCourse || ''}
+            onChange={(e) => setSelectedCourse(parseInt(e.target.value) || null)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            title={t('selectCourseForRules')}
+          >
+            <option value="">{t('chooseCourse')}</option>
+            {courses.map((course: CourseType) => (
+              <option key={course.id} value={course.id}>
+                {course.course_code} - {course.course_name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {selectedCourse && (
@@ -783,7 +797,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                   </div>
                   {hasSchedule && !hoursOk && (
                     <div className="mt-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded p-3">
-                      {t('hoursPerWeekTooLow') || 'Hours per week must be at least 0.5 when a schedule is set.'}
+                      {t('hoursPerWeekTooLow')}
                     </div>
                   )}
                 </div>
@@ -798,8 +812,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                         <p className="flex items-center space-x-2">
                           <span className="font-semibold">{t('intermissionInfo')}:</span>
                         </p>
-                        <p className="ml-4">• {t('intermission1')}</p>
-                        <p className="ml-4">• {t('intermission2')}</p>
+                        <p className="ml-4">{t('bullet')} {t('intermission1')}</p>
+                        <p className="ml-4">{t('bullet')} {t('intermission2')}</p>
                       </div>
                     </div>
                   </div>
@@ -947,11 +961,11 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                   title={`${t('periodDuration')} (${t('minutes')})`}
                                 >
-                                  <option value="45">45 {t('minutes')} (Default)</option>
-                                  <option value="50">50 {t('minutes')}</option>
-                                  <option value="60">60 {t('minutes')}</option>
-                                  <option value="90">90 {t('minutes')}</option>
-                                  <option value="120">120 {t('minutes')}</option>
+                                  <option value="45">{t('durationOptionDefault', { minutes: 45, minuteLabel: t('minutes'), defaultLabel: t('default') })}</option>
+                                  <option value="50">{t('durationOption', { minutes: 50, minuteLabel: t('minutes') })}</option>
+                                  <option value="60">{t('durationOption', { minutes: 60, minuteLabel: t('minutes') })}</option>
+                                  <option value="90">{t('durationOption', { minutes: 90, minuteLabel: t('minutes') })}</option>
+                                  <option value="120">{t('durationOption', { minutes: 120, minuteLabel: t('minutes') })}</option>
                                 </select>
                               </div>
                             </div>
@@ -987,12 +1001,12 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                       {allStudents.map((s) => {
                         const enrolled = enrolledStudents.some((e) => e.id === s.id);
                         return (
-                          <label key={s.id} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
+                          <label key={s.id} htmlFor={`enroll-${s.id}`} aria-label={`${s.first_name} ${s.last_name}`} className={`flex items-center justify-between bg-white rounded p-2 border ${enrolled ? 'opacity-60' : ''}`}>
                             <div>
                               <div className="font-medium">{s.first_name} {s.last_name}</div>
                               <div className="text-xs text-gray-500">{s.student_id}</div>
                             </div>
-                            <input type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
+                            <input id={`enroll-${s.id}`} type="checkbox" disabled={enrolled} checked={selectedToEnroll.includes(s.id)} onChange={(e) => {
                               setSelectedToEnroll((prev) => e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id));
                             }} />
                           </label>
@@ -1082,15 +1096,15 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('monday')}: 2 {t('periods')} (08:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('monday'), count: 2, start: '08:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('wednesday')}: 1 {t('period')} (10:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('wednesday'), count: 1, start: '10:00', minutes: 50, periodLabel: t('period'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">0.83 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-2 bg-white rounded">
-            <span>{t('friday')}: 2 {t('periods')} (14:00, 50 {t('minutes')})</span>
+            <span>{t('exampleScheduleEntry', { day: t('friday'), count: 2, start: '14:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
           <div className="flex justify-between p-3 bg-indigo-100 rounded font-bold">

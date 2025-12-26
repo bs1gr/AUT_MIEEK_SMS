@@ -6,7 +6,7 @@ import pytest
 
 from backend import models
 from backend.services import AnalyticsService
-from backend.tests.conftest import TestingSessionLocal
+from backend.tests.db_setup import TestingSessionLocal
 
 
 @pytest.fixture()
@@ -100,15 +100,13 @@ def test_calculate_final_grade_handles_rules_and_penalties(session):
     result = service.calculate_final_grade(student.id, course.id)
 
     assert result["final_grade"] < 90  # absence penalty applied
-    assert result["letter_grade"] == "B"
+    assert result["letter_grade"] == "B-"  # 80-82% = B-
     assert result["absence_penalty"] == 5.0
     assert result["unexcused_absences"] == 1
 
 
 def test_get_student_all_courses_summary_skips_courses_without_rules(session):
-    valid_rules = [
-        {"category": "Project", "weight": 100.0, "includeDailyPerformance": False}
-    ]
+    valid_rules = [{"category": "Project", "weight": 100.0, "includeDailyPerformance": False}]
     student, valid_course = _setup_student_course(session, rules=valid_rules, credits=4)
     invalid_course = models.Course(
         course_code="SERV102",

@@ -21,7 +21,29 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.environment import get_runtime_context
+from backend.environment import get_runtime_context  # noqa: E402
+
+# Fix database file permissions if running in Docker
+# (database may be owned by root from volumes on some systems)
+if os.environ.get("SMS_EXECUTION_MODE") == "docker":
+    db_path = Path("/data/student_management.db")
+    if db_path.exists():
+        try:
+            # Try to make it world-writable (ensure appuser can write)
+            os.chmod(db_path, 0o666)
+            # Also make the directory writable
+            os.chmod(db_path.parent, 0o777)
+        except PermissionError:
+            # If we can't chmod as appuser, try with subprocess/sudo
+            import subprocess
+
+            try:
+                subprocess.run(["sudo", "chmod", "0666", str(db_path)], check=False, timeout=2)
+                subprocess.run(["sudo", "chmod", "0777", str(db_path.parent)], check=False, timeout=2)
+            except Exception:
+                pass
+        except Exception:
+            pass
 
 # Set execution mode to docker, but allow SMS_ENV to be controlled externally
 # This allows tests to run properly while production deployments can set SMS_ENV=production
@@ -126,7 +148,7 @@ def main() -> int:
         try:
             logger.info("Starting auto-import script in background...")
             subprocess.Popen(
-                ["python", "-u", "-m", "backend.auto_import_courses"],
+                ["python", "-u", "-m", "backend.scripts.import_.courses"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )

@@ -4,12 +4,15 @@ import userEvent from '@testing-library/user-event';
 import AddStudentModal from './AddStudentModal';
 import { LanguageProvider } from '@/LanguageContext';
 
-// Mock framer-motion
+// Mock framer-motion with typed props to avoid using `any`
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, onClick, ...props }: any) => <div onClick={onClick} {...props}>{children}</div>,
+      div: ({ children, onClick, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+        <div onClick={onClick} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>); }} tabIndex={-1} {...props}>{children}</div>
+      ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderWithProviders = (ui: React.ReactElement) => {
@@ -46,7 +49,7 @@ describe('AddStudentModal', () => {
 
       const dobInput = screen.getByLabelText(/date of birth/i);
       const enrollInput = screen.getByLabelText(/enrollment date/i);
-      
+
       expect(dobInput).toHaveAttribute('type', 'date');
       expect(enrollInput).toHaveAttribute('type', 'date');
     });
@@ -60,7 +63,7 @@ describe('AddStudentModal', () => {
 
     it('sets default enrollment date to today', () => {
       renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
-      
+
       const enrollInput = screen.getByLabelText(/enrollment date/i) as HTMLInputElement;
       const today = new Date().toISOString().split('T')[0];
       expect(enrollInput.value).toBe(today);
@@ -111,7 +114,7 @@ describe('AddStudentModal', () => {
 
       const addressField = screen.getByRole('textbox', { name: 'Address' });
       await user.type(addressField, '123 Main St, City');
-      
+
       expect(addressField).toHaveValue('123 Main St, City');
     });
 
@@ -122,7 +125,7 @@ describe('AddStudentModal', () => {
       const dobInput = screen.getByLabelText(/date of birth/i);
       await user.clear(dobInput);
       await user.type(dobInput, '2000-05-15');
-      
+
       expect(dobInput).toHaveValue('2000-05-15');
     });
   });
@@ -140,9 +143,21 @@ describe('AddStudentModal', () => {
       });
     });
 
-    it.skip('shows validation error for invalid email (browser native validation)', async () => {
-      // Skipping: browser's native email validation on type="email" prevents form submission
-      // before zod validation runs, so error message never appears in test environment
+    it('shows validation error for invalid email (schema validation)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+
+      await user.type(screen.getByLabelText(/student id/i), 'S12345');
+      await user.type(screen.getByPlaceholderText(/first name/i), 'John');
+      await user.type(screen.getByPlaceholderText(/last name/i), 'Doe');
+      await user.type(screen.getByPlaceholderText(/email/i), 'invalid-email');
+
+      const submitButton = screen.getByRole('button', { name: /add student/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+      });
     });
 
     it('shows validation error for invalid student ID pattern', async () => {
@@ -180,9 +195,28 @@ describe('AddStudentModal', () => {
       });
     });
 
-    it.skip('trims whitespace from text inputs (schema validates before trim)', async () => {
-      // Skipping: regex pattern validation runs before .trim() in zod,
-      // so any whitespace causes validation failure
+    it('normalizes whitespace and lowercases email on submit', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+
+      await user.type(screen.getByLabelText(/student id/i), '  S12345  ');
+      await user.type(screen.getByPlaceholderText(/first name/i), '  John  ');
+      await user.type(screen.getByPlaceholderText(/last name/i), '  Doe  ');
+      await user.type(screen.getByPlaceholderText(/email/i), '  JOHN@TEST.COM  ');
+
+      const submitButton = screen.getByRole('button', { name: /add student/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockOnAdd).toHaveBeenCalledWith(
+          expect.objectContaining({
+            student_id: 'S12345',
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john@test.com',
+          })
+        );
+      });
     });
 
     it('converts email to lowercase', async () => {
@@ -310,7 +344,7 @@ describe('AddStudentModal', () => {
       await user.type(screen.getByPlaceholderText(/phone/i), '1234567890');
       const addressField = document.querySelector('textarea[name="address"]');
       if (addressField) await user.type(addressField as HTMLElement, '123 Main St');
-      
+
       const dobInput = screen.getByLabelText(/date of birth/i);
       await user.clear(dobInput);
       await user.type(dobInput, '2000-05-15');
@@ -359,7 +393,7 @@ describe('AddStudentModal', () => {
       await user.type(screen.getByPlaceholderText(/email/i), 'john@test.com');
 
       const submitButton = screen.getByRole('button', { name: /add student/i });
-      
+
       // Submit button should be enabled before submission
       expect(submitButton).not.toBeDisabled();
     });
@@ -393,7 +427,7 @@ describe('AddStudentModal', () => {
       renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
 
       const longPhone = '1'.repeat(20); // Exactly 20 chars (max allowed)
-      
+
       await user.type(screen.getByLabelText(/student id/i), 'S12345');
       await user.type(screen.getByPlaceholderText(/first name/i), 'John');
       await user.type(screen.getByPlaceholderText(/last name/i), 'Doe');
@@ -417,7 +451,7 @@ describe('AddStudentModal', () => {
       renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
 
       const tooLongPhone = '1'.repeat(21); // 21 chars (over limit)
-      
+
       await user.type(screen.getByLabelText(/student id/i), 'S12345');
       await user.type(screen.getByPlaceholderText(/first name/i), 'John');
       await user.type(screen.getByPlaceholderText(/last name/i), 'Doe');

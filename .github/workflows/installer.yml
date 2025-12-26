@@ -1,0 +1,41 @@
+name: Windows Installer Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Inno Setup
+        uses: actions/cache@v3
+        with:
+          path: C:\ProgramData\chocolatey\lib\innosetup
+          key: ${{ runner.os }}-innosetup-1
+
+      - name: Install Inno. Setup
+        run: choco install innosetup --no-progress
+
+      - name: Build Installer
+        shell: pwsh
+        run: |
+          ./INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose -AutoFix
+        env:
+          CI: 'true'
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SMS_Installer
+          path: dist/*.exe
+          if-no-files-found: error

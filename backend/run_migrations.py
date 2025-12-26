@@ -92,6 +92,7 @@ def run_migrations(verbose: bool = False) -> bool:
             print(f"Using DATABASE_URL: {url}", flush=True)
 
         try:
+
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
                     if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
@@ -177,6 +178,7 @@ def run_migrations(verbose: bool = False) -> bool:
         logger.exception("Failed to apply Alembic migrations: %s", e)
         print(f"[run_migrations] EXCEPTION: {e}", flush=True)
         import traceback
+
         traceback.print_exc()
         sys.stdout.flush()
         sys.stderr.flush()

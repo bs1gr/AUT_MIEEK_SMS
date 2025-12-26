@@ -3,6 +3,7 @@ Shared utilities and configuration for Control Panel routers.
 This module centralizes helpers, constants, and rate limiter access
 so subrouters can remain lightweight and focused.
 """
+
 from __future__ import annotations
 
 import logging
@@ -51,6 +52,7 @@ LOKI_PORT = 3100
 # -----------------------------
 # Environment helpers
 # -----------------------------
+
 
 def in_docker_container() -> bool:
     """Detect if running inside a Docker container (best-effort, cross-platform safe)."""
@@ -110,6 +112,7 @@ def get_process_on_port(port: int) -> Optional[Dict[str, Any]]:
         logger.warning(f"Error checking port {port}: {e}")
     return None
 
+
 # -----------------------------
 # Frontend dev server helpers
 # -----------------------------
@@ -155,7 +158,9 @@ def resolve_npm_command() -> Optional[str]:
     candidates = [
         os.path.join(os.environ.get("ProgramFiles", r"C:\\Program Files"), "nodejs", "npm.cmd"),
         os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)"), "nodejs", "npm.cmd"),
-        os.path.join(os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")), "Programs", "nodejs", "npm.cmd"),
+        os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expandvars(r"%LOCALAPPDATA%")), "Programs", "nodejs", "npm.cmd"
+        ),
         os.path.join(os.environ.get("APPDATA", os.path.expandvars(r"%APPDATA%")), "npm", "npm.cmd"),
         os.path.join(nvm_home, "nodejs", "npm.cmd") if nvm_home else "",
         os.path.join(nvm_symlink, "npm.cmd") if nvm_symlink else "",
@@ -303,6 +308,7 @@ def infer_restart_command() -> Optional[List[str]]:
     if env_cmd:
         try:
             import shlex
+
             parsed = shlex.split(env_cmd)
             if parsed:
                 return parsed

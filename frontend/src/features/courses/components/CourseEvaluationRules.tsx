@@ -3,18 +3,21 @@
 // Fixed: Dropdown now shows bilingual categories (EN / EL) instead of separate options
 
 import { useState, useEffect, useCallback } from 'react';
+import type { Course } from '@/types';
 import { Settings, Plus, Trash2, AlertCircle, BookOpen, Calculator, CloudUpload } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { useAutosave } from '@/hooks';
+import { coursesAPI } from '@/api/api';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
 const CourseEvaluationRules = () => {
-  const { t } = (useLanguage() as any) || { t: (k: string) => k };
-  const [courses, setCourses] = useState<any[]>([]);
+  const { t } = useLanguage();
+  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
-  const [evaluationRules, setEvaluationRules] = useState<any[]>([]);
+  type EvaluationRuleLocal = { category: string; weight: string | number; description?: string; includeDailyPerformance?: boolean; dailyPerformanceMultiplier?: number };
+  const [evaluationRules, setEvaluationRules] = useState<EvaluationRuleLocal[]>([]);
   const [absencePenalty, setAbsencePenalty] = useState<number>(0);
   // Loading state reserved for future async interactions
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
@@ -32,37 +35,31 @@ const CourseEvaluationRules = () => {
     { en: 'Presentation', translated: t('presentation') }
   ];
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadEvaluationRules();
-    }
-  }, [selectedCourse]);
-
-  const showToast = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/courses/`);
-      if (!response.ok) throw new Error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
-      const data = await response.json();
-      setCourses(data);
-    } catch (error) {
+      const coursesList = await coursesAPI.getAll();
+      setCourses(coursesList);
+    } catch {
       showToast(t('failedToLoadData'), 'error');
     }
-  };
+  }, [t, showToast]);
 
-  const loadEvaluationRules = () => {
-    const course: any = courses.find((c: any) => c.id === selectedCourse);
+  const loadEvaluationRules = useCallback(() => {
+    const course = courses.find((c: Course) => c.id === selectedCourse) as Course | undefined;
     if (course) {
       if (course.evaluation_rules) {
-        setEvaluationRules(course.evaluation_rules);
+        // Normalize incoming evaluation_rules to local shape (ensure weight is string|number)
+        const normalized = (course.evaluation_rules as Array<Record<string, unknown>>).map((r) => ({
+          category: String(r.category || ''),
+          weight: r.weight !== undefined ? r.weight : '',
+          description: r.description || ''
+        }));
+        setEvaluationRules(normalized as EvaluationRuleLocal[]);
       } else {
         setEvaluationRules([]);
       }
@@ -71,9 +68,19 @@ const CourseEvaluationRules = () => {
       setEvaluationRules([]);
       setAbsencePenalty(0);
     }
-  };
+  }, [courses, selectedCourse]);
 
-  const addRule = () => {
+  useEffect(() => {
+    loadCourses();
+  }, [loadCourses]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadEvaluationRules();
+    }
+  }, [selectedCourse, loadEvaluationRules]);
+
+  const addRule = useCallback(() => {
     setEvaluationRules([
       ...evaluationRules,
       {
@@ -82,28 +89,29 @@ const CourseEvaluationRules = () => {
         description: '',
         includeDailyPerformance: true,
         dailyPerformanceMultiplier: 1.0
-      } as any
+      } as EvaluationRuleLocal
     ]);
-  };
+  }, [evaluationRules]);
 
-  const updateRule = (index: number, field: string, value: any) => {
+  const updateRule = useCallback((index: number, field: keyof EvaluationRuleLocal, value: EvaluationRuleLocal[keyof EvaluationRuleLocal]) => {
     const newRules = [...evaluationRules];
-    newRules[index][field] = value;
+    // Use an immutable update for type safety
+    newRules[index] = { ...newRules[index], [field]: value } as EvaluationRuleLocal;
     setEvaluationRules(newRules);
-  };
+  }, [evaluationRules]);
 
-  const removeRule = (index: number) => {
+  const removeRule = useCallback((index: number) => {
     setEvaluationRules(evaluationRules.filter((_, i) => i !== index));
-  };
+  }, [evaluationRules]);
 
-  const validateRules = () => {
+  const validateRules = useCallback(() => {
     if (evaluationRules.length === 0) {
       showToast(t('pleaseAddRule'), 'error');
       return false;
     }
 
     const totalWeight = evaluationRules.reduce((sum, rule) => {
-      return sum + (parseFloat(rule.weight) || 0);
+      return sum + (parseFloat(String(rule.weight)) || 0);
     }, 0);
 
     if (Math.abs(totalWeight - 100) > 0.01) {
@@ -119,16 +127,16 @@ const CourseEvaluationRules = () => {
     }
 
     return true;
-  };
+  }, [evaluationRules, t, showToast]);
 
   const performSave = useCallback(async () => {
     if (!validateRules()) {
       throw new Error('Validation failed');
     }
 
-    const normalized = (evaluationRules || []).map((r: any) => ({
+    const normalized = (evaluationRules || []).map((r: EvaluationRuleLocal) => ({
       ...r,
-      category: getCanonicalCategory(String(r.category || ''), t as any),
+      category: getCanonicalCategory(String(r.category || ''), t),
     }));
     const response = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
       method: 'PUT',
@@ -145,10 +153,10 @@ const CourseEvaluationRules = () => {
     }
     showToast(t('evaluationRulesSaved'), 'success');
     await loadCourses();
-  }, [evaluationRules, absencePenalty, selectedCourse, t]);
+  }, [evaluationRules, absencePenalty, selectedCourse, t, validateRules, loadCourses, showToast]);
 
-  const totalWeight = evaluationRules.reduce((sum: number, rule: any) => {
-    return sum + (parseFloat(rule.weight) || 0);
+  const totalWeight = evaluationRules.reduce((sum: number, rule: EvaluationRuleLocal) => {
+    return sum + (parseFloat(String(rule.weight)) || 0);
   }, 0);
 
   const isValidTotal = Math.abs(totalWeight - 100) < 0.01;
@@ -200,7 +208,7 @@ const CourseEvaluationRules = () => {
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">{t('chooseCourse')}</option>
-          {courses.map((course: any) => (
+          {courses.map((course: Course) => (
             <option key={course.id} value={course.id}>
               {course.course_code} - {course.course_name}
             </option>

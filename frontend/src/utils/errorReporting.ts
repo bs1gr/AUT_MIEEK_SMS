@@ -77,21 +77,24 @@ export async function logErrorToBackend(
       // Use keepalive to ensure request completes even if page unloads
       keepalive: true,
     }).catch(err => {
-      // Silently fail if backend is unavailable
-      console.warn('Failed to send error to backend:', err);
+      if (import.meta.env.DEV) {
+        // Only log in development
+        console.warn('Failed to send error to backend:', err);
+      }
     });
 
     // Also log to console in development
     if (import.meta.env.DEV) {
-      console.group('🔴 Error logged to backend');
+      console.error('🔴 Error logged to backend');
       console.error('Error:', error);
       console.error('Error Info:', errorInfo);
       console.error('Context:', context);
-      console.groupEnd();
     }
   } catch {
-    // Don't let error reporting cause more errors
-    console.warn('Error reporting failed');
+    if (import.meta.env.DEV) {
+      // Only log in development
+      console.warn('Error reporting failed');
+    }
   }
 }
 
@@ -122,10 +125,16 @@ export async function logWarningToBackend(
       body: JSON.stringify(warningData),
       keepalive: true,
     }).catch(err => {
-      console.warn('Failed to send warning to backend:', err);
+      if (import.meta.env.DEV) {
+        // Only log in development
+        console.warn('Failed to send warning to backend:', err);
+      }
     });
   } catch {
-    console.warn('Warning reporting failed');
+    if (import.meta.env.DEV) {
+      // Only log in development
+      console.warn('Warning reporting failed');
+    }
   }
 }
 
@@ -135,8 +144,9 @@ export async function logWarningToBackend(
 export function setupGlobalErrorHandlers(): void {
   // Catch unhandled promise rejections
   window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-    console.error('Unhandled promise rejection:', event.reason);
-
+    if (import.meta.env.DEV) {
+      console.error('Unhandled promise rejection:', event.reason);
+    }
     logErrorToBackend(
       event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
       { componentStack: 'Global: Unhandled Promise Rejection' },
@@ -149,8 +159,9 @@ export function setupGlobalErrorHandlers(): void {
 
   // Catch global errors
   window.addEventListener('error', (event: ErrorEvent) => {
-    console.error('Global error:', event.error);
-
+    if (import.meta.env.DEV) {
+      console.error('Global error:', event.error);
+    }
     logErrorToBackend(
       event.error || new Error(event.message),
       { componentStack: 'Global: Window Error' },
@@ -176,6 +187,6 @@ export function initializeErrorReporting(): void {
   setupGlobalErrorHandlers();
 
   if (import.meta.env.DEV) {
-    console.log('✓ Error reporting initialized');
+    console.warn('✓ Error reporting initialized');
   }
 }

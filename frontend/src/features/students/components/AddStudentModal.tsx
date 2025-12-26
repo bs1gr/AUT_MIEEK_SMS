@@ -1,3 +1,4 @@
+// Note: no React hooks needed here
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,6 +41,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
     },
   });
 
+
   const onSubmit = (data: SchemaStudentFormData): void => {
     // Map schema data to existing StudentFormData type
     const studentData: StudentFormData = {
@@ -79,7 +81,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
         >
           <h2 className="text-xl font-bold mb-6">{t('addNewStudent')}</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
             <FormField
               control={form.control}
               name="student_id"
@@ -102,7 +104,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                   <FormItem>
                     <FormLabel>{t('firstNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('firstNamePlaceholder')} {...field} />
+                      <Input placeholder={t('firstNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,7 +117,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                   <FormItem>
                     <FormLabel>{t('lastNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('lastNamePlaceholder')} {...field} />
+                      <Input placeholder={t('lastNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,7 +132,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 <FormItem>
                   <FormLabel>{t('emailPlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} />
+                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

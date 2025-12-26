@@ -35,13 +35,13 @@ export const EVENTS = {
   GRADE_UPDATED: 'grade:updated',
   GRADE_DELETED: 'grade:deleted',
   GRADES_BULK_ADDED: 'grades:bulk_added',
-  
+
   // Attendance events
   ATTENDANCE_ADDED: 'attendance:added',
   ATTENDANCE_UPDATED: 'attendance:updated',
   ATTENDANCE_DELETED: 'attendance:deleted',
   ATTENDANCE_BULK_ADDED: 'attendance:bulk_added',
-  
+
   // Daily Performance events
   DAILY_PERFORMANCE_ADDED: 'daily_performance:added'
 } as const;
@@ -52,19 +52,21 @@ export const EVENTS = {
 ### 1. Event Emitters (Data Modification Points)
 
 #### GradingView.tsx
+
 **Location**: `frontend/src/features/grading/components/GradingView.tsx:213`
 
 Emits `GRADE_ADDED` event after successful individual grade creation:
 
 ```typescript
 await gradesAPI.create(payload);
-eventBus.emit(EVENTS.GRADE_ADDED, { 
-  studentId: Number(studentId), 
-  courseId: Number(courseId) 
+eventBus.emit(EVENTS.GRADE_ADDED, {
+  studentId: Number(studentId),
+  courseId: Number(courseId)
 });
 ```
 
 #### AttendanceView.tsx
+
 **Location**: `frontend/src/features/attendance/components/AttendanceView.tsx:683-702`
 
 Emits bulk events after successful attendance/performance creation:
@@ -87,6 +89,7 @@ affectedStudentIds.forEach(sid => {
 ### 2. Event Listeners (Cached Data Consumers)
 
 #### StudentsView.tsx
+
 **Location**: `frontend/src/features/students/components/StudentsView.tsx:82-119`
 
 Invalidates cached student statistics when relevant events occur:
@@ -123,6 +126,7 @@ useEffect(() => {
 **Effect**: When cache is invalidated, the expandable StudentCard will refetch fresh data on next expansion.
 
 #### StudentProfile.tsx
+
 **Location**: `frontend/src/features/students/components/StudentProfile.tsx:148-188`
 
 Reloads complete student data when relevant events occur:
@@ -233,6 +237,7 @@ on next load
 ### Automated Testing
 
 Consider adding tests for:
+
 - Event emission after API calls
 - Event listener registration/cleanup
 - Cache invalidation on events
@@ -241,12 +246,14 @@ Consider adding tests for:
 ## Performance Considerations
 
 ### Strengths
+
 - ✅ Lightweight: No external dependencies
 - ✅ Minimal overhead: Only invalidates affected student's cache
 - ✅ Lazy loading: Data refetched only when component needs it
 - ✅ Memory safe: Proper cleanup in useEffect return
 
 ### Limitations
+
 - ❌ In-memory only: Events don't persist across tabs/windows
 - ❌ No event history: Can't replay events
 - ❌ No error recovery: Failed event handlers don't retry
@@ -274,12 +281,14 @@ Consider adding tests for:
 When adding new data modification operations:
 
 1. **Emit Event** after successful API call:
+
    ```typescript
    await someAPI.create(data);
    eventBus.emit(EVENTS.SOME_EVENT, { studentId, courseId });
    ```
 
 2. **Add Event to EVENTS** constant if new type:
+
    ```typescript
    export const EVENTS = {
      // ...existing events
@@ -288,6 +297,7 @@ When adding new data modification operations:
    ```
 
 3. **Listen in Consumer Components**:
+
    ```typescript
    useEffect(() => {
      const handler = (data) => { /* refresh logic */ };
@@ -306,7 +316,6 @@ When adding new data modification operations:
 
 ---
 
-**Last Updated**: 2025-01-XX  
-**Status**: ✅ Implemented and tested  
+**Last Updated**: 2025-01-XX
+**Status**: ✅ Implemented and tested
 **Breaking Changes**: None (backward compatible)
-

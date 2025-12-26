@@ -11,16 +11,18 @@ WORKDIR /app/frontend
 
 # Dependencies
 COPY frontend/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi && npm cache clean --force;
 
 # Build
 COPY frontend/ .
 # Copy VERSION file so sync-version.cjs can find it
 COPY VERSION ../VERSION
+RUN rm -rf node_modules src test .git
 # Allow overriding API URL at build-time (default to relative /api/v1)
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
+
 
 # 2) Serve with NGINX and proxy API to backend service
 FROM nginx:alpine
@@ -40,5 +42,7 @@ COPY --from=build /app/frontend/dist /usr/share/nginx/html
 # Nginx configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Harden: use non-root user (nginx:nginx) and set root filesystem read-only
+USER nginx
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

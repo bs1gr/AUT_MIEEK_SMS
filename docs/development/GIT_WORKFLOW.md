@@ -1,7 +1,7 @@
 # Git Workflow & Commit Standards
 
-**Last Updated**: 2025-11-25
-**Version**: 2.0
+**Last Updated**: 2025-12-14
+**Version**: 2.1
 
 This document consolidates all git workflow procedures, commit standards, and automation tools for the Student Management System project.
 
@@ -74,6 +74,7 @@ git push origin main
 ### Scopes
 
 Common scopes in this project:
+
 - `auth` - Authentication/authorization
 - `api` - Backend API endpoints
 - `ui` - Frontend user interface
@@ -135,53 +136,62 @@ DOCKER.ps1 (production) and NATIVE.ps1 (development).
 
 ## Pre-Commit Automation
 
-### COMMIT_PREP.ps1 - Comprehensive Workflow
+### Pre-commit automation — COMMIT_READY.ps1 (Unified)
 
-**What it does:**
-1. Runs full smoke tests (Native + Docker)
-2. Cleans up obsolete files and Docker assets
-3. Reviews documentation and scripts
-4. Generates commit message in `commit_msg.txt`
+COMMIT_READY.ps1 is the consolidated pre-commit helper that replaced the older
+`COMMIT_PREP.ps1` / `PRE_COMMIT_CHECK.ps1` / `SMOKE_TEST_AND_COMMIT_PREP.ps1` family.
+It provides a single, consistent experience for pre-commit validation and automated cleanup.
 
-**Usage:**
+Key features:
 
-```powershell
-# Full workflow
-.\COMMIT_PREP.ps1
+- **Modes**: quick (2–3 min), standard (5–8 min), full (15–20 min), cleanup (1–2 min)
+- **Code quality**: Ruff (backend), ESLint (frontend), TypeScript checks
+- **Tests**: pytest (backend: 379 tests) and Vitest (frontend: 1189 tests)
+- **Translation integrity checks** (i18n parity across EN/EL locales)
+- **Optional native/docker health checks** (full mode)
+- **AutoFix support** (formatting, imports) and commit message generation
+- **CI/CD integration** with GitHub Actions (npm caching, parallel jobs)
 
-# Quick mode (skip Docker tests)
-.\COMMIT_PREP.ps1 -Quick
-
-# Skip specific phases
-.\COMMIT_PREP.ps1 -SkipCleanup
-.\COMMIT_PREP.ps1 -SkipDocs
-.\COMMIT_PREP.ps1 -SkipTests
-```
-
-**Output:**
-- ✅ All tests passed
-- ✅ Cleanup completed
-- ✅ Documentation reviewed
-- ✅ `commit_msg.txt` ready for commit
-
-### PRE_COMMIT_CHECK.ps1 - Smoke Tests Only
-
-**What it does:**
-- Verifies prerequisites (Python, Node.js, Docker)
-- Tests Native mode (Backend + Frontend)
-- Tests Docker mode (Container + Database)
-- Validates TypeScript/ESLint compilation
-- Checks git repository status
-
-**Usage:**
+Usage examples:
 
 ```powershell
-# Full tests
-.\PRE_COMMIT_CHECK.ps1
+# Standard validation (recommended)
+.\COMMIT_READY.ps1 -Mode standard
 
-# Quick mode (Native only)
-.\PRE_COMMIT_CHECK.ps1 -Quick
+# Fast pre-commit checks
+.\COMMIT_READY.ps1 -Mode quick
+
+# Comprehensive validation (includes health checks)
+.\COMMIT_READY.ps1 -Mode full
+
+# Cleanup-only
+.\COMMIT_READY.ps1 -Mode cleanup
+
+# Auto-fix where supported (use DEV_EASE if you intend to skip tests/cleanup locally)
+.\COMMIT_READY.ps1 -Mode standard -AutoFix
 ```
+
+### Developer note — DEV_EASE policy
+
+--------------------------------
+
+DEV_EASE is an opt-in flag that is now strictly reserved for local pre-commit operations.
+It must not be used to modify application runtime behavior or CI. To use DEV_EASE for
+local pre-commit skips (tests/cleanup) or AutoFix, set DEV_EASE in your shell before running
+COMMIT_READY — e.g., PowerShell: `$env:DEV_EASE = 'true'`.
+
+To ensure pre-commit checks run for all contributors, we provide a sample hook at
+`.githooks/commit-ready-precommit.sample` and cross-platform installers under `scripts/`.
+
+### Quality Gates Summary
+
+| Component | Tool | Coverage | Status |
+|-----------|------|----------|--------|
+| **Backend** | Ruff + MyPy | 100% | ✅ 0 issues |
+| **Frontend** | ESLint + TypeScript | 100% | ✅ 0 issues |
+| **Tests** | Pytest + Vitest | 1568 total tests | ✅ All passing |
+| **i18n** | Translation integrity | EN/EL parity | ✅ Validated |
+| **CI/CD** | GitHub Actions | Parallel jobs + caching | ✅ Optimized |
 
 ## Workflow Examples
 
@@ -195,7 +205,7 @@ git checkout -b feature/autosave-notes
 # ... edit files ...
 
 # 3. Run automated workflow
-.\COMMIT_PREP.ps1
+.\COMMIT_READY.ps1 -Mode standard
 
 # 4. Review and commit
 Get-Content .\commit_msg.txt
@@ -218,7 +228,7 @@ git checkout -b hotfix/auth-bug main
 # ... edit files ...
 
 # 3. Quick test and commit
-.\PRE_COMMIT_CHECK.ps1 -Quick
+.\COMMIT_READY.ps1 -Mode quick
 git add .
 git commit -m "fix(auth): correct token validation logic"
 
@@ -233,8 +243,9 @@ git push origin hotfix/auth-bug
 # 1. Update docs
 # ... edit *.md files ...
 
-# 2. Skip tests for doc-only changes
-.\COMMIT_PREP.ps1 -SkipTests
+# 2. Skip tests for doc-only changes (use DEV_EASE)
+$env:DEV_EASE = 'true'
+.\COMMIT_READY.ps1 -Mode quick
 
 # 3. Commit
 git add docs/
@@ -262,21 +273,21 @@ git commit -m "chore(release): bump version to 1.9.1"
 
 ```powershell
 # Create annotated tag
-git tag -a v1.9.1 -m "Release v1.9.1: Description
+git tag -a $11.9.7 -m "Release $11.9.7: Description
 
 - Feature 1
 - Feature 2
 - Bug fix 1"
 
 # Push tag
-git push origin v1.9.1
+git push origin $11.9.7
 ```
 
 ### 3. Create GitHub Release
 
 ```powershell
 # Use GitHub CLI (if available)
-gh release create v1.9.1 --notes-file docs/releases/v1.9.1.md
+gh release create $11.9.7 --notes-file docs/releases/$11.9.7.md
 
 # Or create manually on GitHub
 # Navigate to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
@@ -367,10 +378,11 @@ refactor/control-router
 
 ```powershell
 # Run tests manually to see details
-.\PRE_COMMIT_CHECK.ps1
+.\COMMIT_READY.ps1 -Mode quick
 
-# Or skip tests (not recommended)
-.\COMMIT_PREP.ps1 -SkipTests
+# Or skip tests (not recommended - use DEV_EASE)
+$env:DEV_EASE = 'true'
+.\COMMIT_READY.ps1 -Mode quick
 ```
 
 ### Error: "Git preparation failed"
@@ -395,9 +407,9 @@ Update `README.md`, `CHANGELOG.md`, or `VERSION` file before committing.
 
 ### Before Committing
 
-- [ ] Run `.\COMMIT_PREP.ps1` or `.\PRE_COMMIT_CHECK.ps1`
-- [ ] All tests passing
-- [ ] No compilation errors
+- [ ] Run `.\COMMIT_READY.ps1 -Mode standard` (comprehensive validation)
+- [ ] All tests passing (379 backend + 1189 frontend tests)
+- [ ] No compilation errors (Ruff, ESLint, TypeScript)
 - [ ] Documentation updated
 - [ ] CHANGELOG.md updated (for features/fixes)
 - [ ] Commit message follows conventions
@@ -417,6 +429,27 @@ Update `README.md`, `CHANGELOG.md`, or `VERSION` file before committing.
 - **Reference issues**: Link commits to GitHub issues
 - **Keep history clean**: Use rebase for feature branches
 
+## Current Project Status
+
+### Phase 2.3: Integration & UI (✅ COMPLETED)
+- Async job queue & audit logging integration
+- Frontend job progress monitor and import preview UI
+- Comprehensive testing infrastructure (1568 total tests)
+- Production-ready deployment runbook
+
+### Quality Infrastructure (✅ OPTIMIZED)
+- **CI/CD Pipeline**: Parallel jobs with npm caching (30-45s savings)
+- **Test Coverage**: 379 backend + 1189 frontend tests (100% passing)
+- **Code Quality**: Ruff, ESLint, TypeScript (0 issues)
+- **i18n Validation**: EN/EL translation parity checks
+- **Pre-commit Automation**: COMMIT_READY.ps1 with 4 modes
+
+### Next Priorities (Phase 2.4+)
+- Fine-grained RBAC permissions system
+- API examples & diagrams documentation
+- Metrics & load testing suite
+- Backup verification automation
+
 ## Integration with IDE
 
 ### VS Code Git Hooks
@@ -425,12 +458,13 @@ Create `.git/hooks/pre-commit` (make executable on Unix):
 
 ```bash
 #!/bin/sh
-pwsh -File ./COMMIT_PREP.ps1 -Quick
+pwsh -File ./COMMIT_READY.ps1 -Mode quick
 ```
 
 ### VS Code Extensions
 
 Recommended extensions:
+
 - GitLens - Enhanced git capabilities
 - Conventional Commits - Commit message helper
 - Git Graph - Visual git history
@@ -443,11 +477,26 @@ Recommended extensions:
 
 ## Related Documentation
 
-- [PRE_COMMIT_AUTOMATION_SUMMARY.md](../../archive/sessions_2025-11/PRE_COMMIT_AUTOMATION_SUMMARY.md) - Automation implementation details (archived)
-- [docs/development/PRECOMMIT_INSTRUCTIONS.md](PRECOMMIT_INSTRUCTIONS.md) - Additional pre-commit guidance
-- [CHANGELOG.md](../../CHANGELOG.md) - Version history
+- [docs/development/PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md) - Unified pre-commit workflow (replaces multiple docs)
+- [COMMIT_READY.ps1](../../COMMIT_READY.ps1) - Main pre-commit automation script
+- [DOCKER.ps1](../../DOCKER.ps1) - Production deployment script
+- [NATIVE.ps1](../../NATIVE.ps1) - Development environment script
+- [CHANGELOG.md](../../CHANGELOG.md) - Version history and release notes
+- [TODO.md](../../TODO.md) - Current project roadmap and priorities
 
----
+## CI/CD Integration
+
+The project uses GitHub Actions with optimized performance:
+
+- **Parallel jobs**: Backend and frontend testing run simultaneously
+- **npm caching**: 30-45s savings per CI run across all frontend jobs
+- **Comprehensive coverage**: 1568 total tests (379 backend + 1189 frontend)
+- **Quality gates**: Ruff, ESLint, TypeScript, translation integrity
+- **Deployment ready**: Automated Docker builds and health checks
+
+See [CI/CD Pipeline Guide](../deployment/CI_CD_PIPELINE_GUIDE.md) for details.
+
+--------------------------------
 
 **Maintained by**: Development Team
 **Questions?**: Create GitHub issue with `documentation` label

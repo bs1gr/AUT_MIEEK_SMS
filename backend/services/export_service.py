@@ -105,7 +105,9 @@ class ExportService:
         course_ids = {r.course_id for r in records}
         dates = [r.date for r in records if r.date]
 
-        status_counts = {}
+        from typing import Dict
+
+        status_counts: Dict[str, int] = {}
         for r in records:
             status = r.status or "unknown"
             status_counts[status] = status_counts.get(status, 0) + 1
@@ -281,9 +283,7 @@ class ExportService:
             avg_grade = highest = lowest = 0
 
         attendance_records = (
-            db.query(Attendance)
-            .filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None))
-            .all()
+            db.query(Attendance).filter(Attendance.course_id == course_id, Attendance.deleted_at.is_(None)).all()
         )
 
         return {

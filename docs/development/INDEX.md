@@ -17,6 +17,12 @@ Technical documentation for developers contributing to the Student Management Sy
   - Component diagrams
   - Data flow diagrams
 
+- **[../../ROUTING_VALIDATION_FIXES.md](../../ROUTING_VALIDATION_FIXES.md)** - React Router v7 routing (NEW - 1.9.9)
+  - Layout route pattern validation
+  - Type-safe route parameters (StudentProfileParams)
+  - Route configuration validation
+  - Frontend routing best practices
+
 ### Authentication & Security
 
 - **[AUTHENTICATION.md](AUTHENTICATION.md)** - Auth implementation guide
@@ -35,6 +41,12 @@ Technical documentation for developers contributing to the Student Management Sy
   - Running locally
   - Development workflow
   - Code style guide
+
+- **[VERSION_1_9_9_IMPROVEMENTS.md](VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
+  - Frontend routing type safety
+  - International locale support
+  - Backend test infrastructure
+  - Comprehensive documentation
 
 ## 📡 API Documentation
 

@@ -45,7 +45,9 @@ def main(argv: list[str]) -> int:
         print("Operator script header missing in the following files:")
         for f in failures:
             print(f"  - {f}")
-        print("\nEach operator script must contain an OPERATOR-ONLY header within the first 8 lines.")
+        print(
+            "\nEach operator script must contain an OPERATOR-ONLY header within the first 8 lines."
+        )
         print("Place a top-line like: OPERATOR-ONLY: DESTRUCTIVE. This script ...")
         return 1
 

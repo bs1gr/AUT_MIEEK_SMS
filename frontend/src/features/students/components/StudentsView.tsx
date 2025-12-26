@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
+import { ListSkeleton, StudentCardSkeleton, VirtualList } from '@/components/ui';
 import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
+import { usePerformanceMonitor } from '@/hooks';
 import type { Student, Attendance, Grade, Course } from '@/types';
 import { listContainerVariants } from '@/utils/animations';
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
@@ -36,6 +37,9 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   loading,
   setShowAddModal,
 }) => {
+  // Performance monitoring for component renders
+  usePerformanceMonitor('StudentsView', 150);
+
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [internalSearch, setInternalSearch] = useState<string>('');
@@ -72,7 +76,11 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       try {
         const response = await coursesAPI.getAll(0, 1000); // Fetch up to 1000 courses
         const map = new Map<number, Course>();
-        (response.items || []).forEach((course: Course) => {
+        const resp = response as unknown;
+        const list = Array.isArray(resp)
+          ? (resp as Course[])
+          : (Array.isArray((resp as { items?: unknown })?.items) ? (resp as { items?: Course[] }).items! : []);
+        (list || []).forEach((course: Course) => {
           map.set(course.id, course);
         });
         setCoursesMap(map);
@@ -85,16 +93,17 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   // Listen for data changes and invalidate affected student's stats
   useEffect(() => {
-    const invalidateStudentStats = ({ studentId }: { studentId: number }) => {
+    const invalidateStudentStats = (payload: unknown) => {
+      const { studentId } = (payload as { studentId?: number }) || {};
       // Invalidate the stats for this student so it will be reloaded on next expand
-      if (statsById[studentId]) {
+      if (typeof studentId === 'number' && statsById[studentId]) {
         setStatsById((prev) => {
           const updated = { ...prev };
           delete updated[studentId];
           return updated;
         });
         // If this student is currently expanded, reload their stats immediately
-        if (expandedId === studentId) {
+        if (typeof studentId === 'number' && expandedId === studentId) {
           loadStats(studentId);
         }
       }
@@ -140,7 +149,9 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       const [attendance, grades, finalGradeSummary] = await Promise.all([
         attendanceAPI.getByStudent(studentId),
         gradesAPI.getByStudent(studentId),
-        fetch(`${API_BASE_URL}/analytics/student/${studentId}/all-courses-summary`).then(res => res.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/analytics/student/${studentId}/all-courses-summary`)
+          .then(res => res.ok ? res.json() : null)
+          .catch(() => null),
       ]);
       const total = attendance.length;
       const present = attendance.filter((a: Attendance) => a.status === 'Present').length;
@@ -229,33 +240,63 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
       {/* Student List */}
       {!loading && (filtered.length === 0) && (
-        <p className="text-gray-500 text-center py-8">{t('noStudentsFound')}</p>
+        <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-sm">{t('noStudentsFound')}</p>
       )}
 
+      {/* Student List with Virtual Scrolling for large lists */}
       {!loading && filtered.length > 0 && (
-        <motion.ul
-          className="space-y-2"
-          variants={listContainerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {filtered.map((student) => (
-            <StudentCard
-              key={student.id}
-              student={student}
-              stats={statsById[student.id]}
-              isExpanded={expandedId === student.id}
-              noteValue={notesById[student.id] || ''}
-              onNoteChange={(value) => updateNote(student.id, value)}
-              onToggleExpand={toggleExpand}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              coursesMap={coursesMap}
-              onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-              onViewProfile={onViewProfile}
+        <>
+          {/* Use virtual scrolling for 50+ items */}
+          {filtered.length >= 50 ? (
+            <VirtualList
+              items={filtered}
+              estimateSize={150}
+              renderItem={(student) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  stats={statsById[student.id]}
+                  isExpanded={expandedId === student.id}
+                  noteValue={notesById[student.id] || ''}
+                  onNoteChange={(value) => updateNote(student.id, value)}
+                  onToggleExpand={toggleExpand}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  coursesMap={coursesMap}
+                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                  onViewProfile={onViewProfile}
+                />
+              )}
+              emptyMessage={t('noStudentsFound')}
+              className="space-y-2"
             />
-          ))}
-        </motion.ul>
+          ) : (
+            <motion.ul
+              className="space-y-2"
+              role="list"
+              variants={listContainerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {filtered.map((student) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  stats={statsById[student.id]}
+                  isExpanded={expandedId === student.id}
+                  noteValue={notesById[student.id] || ''}
+                  onNoteChange={(value) => updateNote(student.id, value)}
+                  onToggleExpand={toggleExpand}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  coursesMap={coursesMap}
+                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                  onViewProfile={onViewProfile}
+                />
+              ))}
+            </motion.ul>
+          )}
+        </>
       )}
     </div>
   );

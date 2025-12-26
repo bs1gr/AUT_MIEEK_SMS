@@ -1,6 +1,5 @@
 # Environment variables (runtime configuration)
 
-
 This document lists the important environment variables used by the backend and their recommended usage for development, CI and production.
 
 DISABLE_STARTUP_TASKS
@@ -104,6 +103,17 @@ CSRF_ENFORCE_IN_TESTS
 - Type: boolean ("1"/"0")
 - Default: `0`
 - Purpose: When `1`, enables CSRF checks even inside pytest/TestClient contexts. Useful for regression suites once tests send tokens.
+
+DEV_EASE
+
+- Type: boolean ("1"/"0")
+- Default: `False`
+- Purpose: IMPORTANT — DEV_EASE is now reserved for the pre-commit helper `COMMIT_READY.ps1` only. It must not
+  be used to change runtime application behavior (authentication, CSRF or secret enforcement) for the backend
+  or frontend. Use it only when running `COMMIT_READY.ps1` locally to opt-in to skipping tests/cleanup or
+  enabling AutoFix during a pre-commit run.
+
+Note: CI, pytest and production runs must remain strict — do not enable DEV_EASE in CI or in running services.
 
 Notes and recommendations
 

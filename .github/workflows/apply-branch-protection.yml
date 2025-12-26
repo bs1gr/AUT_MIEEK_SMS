@@ -16,8 +16,7 @@ jobs:
   apply-protection:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      issues: write
+      administration: write
     steps:
       - name: Apply branch protection via octokit
         uses: actions/github-script@v6
@@ -25,12 +24,18 @@ jobs:
           # Prefer an admin PAT if present (stored in repo secret ADMIN_GH_PAT). Fall back
           # to the runtime GITHUB_TOKEN if the secret is not set. ADMIN_GH_PAT should be
           # a classic personal access token with `repo` scope.
-          github-token: ${{ secrets.ADMIN_GH_PAT }}
+          github-token: ${{ secrets.ADMIN_GH_PAT || secrets.GITHUB_TOKEN }}
           script: |
             const core = require('@actions/core');
-            const inputs = core.getInput('contexts') || '';
+            // Access workflow inputs from context payload
+            const payloadInputs = context.payload.inputs || {};
+
+            // Defaults (ensure consistency when run via CLI/API without inputs)
+            const defaultContexts = 'Import checker,Require operator approval for operator scripts,CI';
+
+            const inputs = payloadInputs.contexts || defaultContexts;
             const contexts = inputs.split(',').map(s => s.trim()).filter(Boolean);
-            const branch = core.getInput('branch') || context.ref.replace('refs/heads/', '') || 'main';
+            const branch = payloadInputs.branch || context.ref.replace('refs/heads/', '') || 'main';
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
@@ -50,16 +55,16 @@ jobs:
                 require_code_owner_reviews: true,
                 required_approving_review_count: 1
               },
-              restrictions: {
-                users: [owner],
-                teams: []
-              }
+              restrictions: null
             };
 
             try {
               await github.rest.repos.updateBranchProtection(params);
               core.info('Branch protection applied successfully.');
-              await github.rest.issues.createComment({ owner, repo, issue_number: context.payload.issue ? context.payload.issue.number : context.payload.pull_request ? context.payload.pull_request.number : undefined, body: `Branch protection applied to ${branch} by workflow run.` }).catch(() => {});
             } catch (err) {
-              core.setFailed('Failed to apply branch protection: ' + err.message);
+              if (err.status === 403) {
+                core.setFailed('Permission denied (403). Ensure GITHUB_TOKEN has admin permissions or set ADMIN_GH_PAT secret with repo scope. Error: ' + err.message);
+              } else {
+                core.setFailed('Failed to apply branch protection: ' + err.message);
+              }
             }

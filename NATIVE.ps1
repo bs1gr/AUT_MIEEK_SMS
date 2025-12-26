@@ -35,9 +35,19 @@
 .PARAMETER Help
     Show this help message
 
+.PARAMETER DevEase
+    Optional: set DEV_EASE for services started by this script (relaxes local auth/CSRF/secret checks). Use only for development.
+    (Deprecated) Historically NATIVE allowed starting services with a DEV_EASE runtime flag.
+    DEV_EASE is now reserved for the pre-commit helper `COMMIT_READY.ps1` only and must not be
+    used to change runtime behavior. This parameter is kept here for backward compatibility in the
+    help text but does not change process environments.
+
 .EXAMPLE
     .\NATIVE.ps1 -Start
     # Start both backend and frontend
+    .EXAMPLE
+    .\NATIVE.ps1 -Backend
+    # Start backend only
 
 .EXAMPLE
     .\NATIVE.ps1 -Backend
@@ -52,7 +62,7 @@
     # Stop all processes
 
 .NOTES
-    Version: 2.0.0 (Consolidated from SMS.ps1, run-native.ps1)
+Version: 1.12.7 (Consolidated from SMS.ps1, run-native.ps1)
     For production deployment, use: .\DOCKER.ps1
 #>
 
@@ -70,6 +80,7 @@ param(
     [switch]$Force,
     [switch]$Help,
     [switch]$NoReload  # Optional: start backend without --reload (stability workaround)
+
 )
 
 # ============================================================================
@@ -85,7 +96,7 @@ $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $BACKEND_PID_FILE = Join-Path $SCRIPT_DIR ".backend.pid"
 $FRONTEND_PID_FILE = Join-Path $SCRIPT_DIR ".frontend.pid"
 $BACKEND_PORT = 8000
-$FRONTEND_PORT = 5173
+$FRONTEND_PORT = 8080  # Changed from 5173 due to Windows permission issues
 $MIN_PYTHON_VERSION = [version]"3.11"
 $MIN_NODE_VERSION = [version]"18.0"
 
@@ -207,7 +218,7 @@ function Try-Install-NodeDeps {
             }
         }
 
-        # Retry install using npm install (safer fallback) 
+        # Retry install using npm install (safer fallback)
         npm install --silent
         return $LASTEXITCODE
     } finally {
@@ -506,6 +517,7 @@ function Start-Backend {
 
     Push-Location $BACKEND_DIR
     try {
+
         # Start process in new window
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
         $uvicornScript = Join-Path $venvPath "Scripts\uvicorn.exe"
@@ -611,6 +623,7 @@ function Start-Frontend {
 
     Push-Location $FRONTEND_DIR
     try {
+
         # Start process in new window
         # Use a PowerShell process to run the npm dev script so the process stays alive
         # (Start-Process npm may spawn child processes and exit immediately).
@@ -646,7 +659,7 @@ function Start-Frontend {
 
         return 0
     }
-    catch {
+        catch {
         Write-Error-Message "Failed to start frontend: $_"
         Remove-Item $FRONTEND_PID_FILE -Force -ErrorAction SilentlyContinue
         return 1
@@ -886,7 +899,7 @@ if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Front
 
 if ($DeepClean) {
     Write-Header "Deep Clean - Removing ALL Development Artifacts"
-    
+
     Write-Warning "This will remove:"
     Write-Host "  • Python virtual environments (.venv, .venv_*)" -ForegroundColor Yellow
     Write-Host "  • Node.js dependencies (node_modules)" -ForegroundColor Yellow
@@ -899,7 +912,7 @@ if ($DeepClean) {
     Write-Host ""
     Write-Warning "Your data/ and backups/ directories will be PRESERVED"
     Write-Host ""
-    
+
     # If this is a dry-run, list matching items and exit without deleting
     # Support both our -DryRun switch and PowerShell's built-in -WhatIf common parameter
     if ($DryRun -or $PSBoundParameters.ContainsKey('WhatIf')) {
@@ -954,12 +967,12 @@ if ($DeepClean) {
     } else {
         Write-Info "Force flag provided: skipping interactive confirmation."
     }
-    
+
     # Stop processes first
     Write-Info "Stopping all native processes..."
     Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend" | Out-Null
     Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend" | Out-Null
-    
+
     $itemsToRemove = @(
         ".venv", ".venv_*", ".venv_backend_tests", ".venv_audit",
         "frontend/node_modules", "node_modules", "frontend/dist", "dist",
@@ -971,17 +984,17 @@ if ($DeepClean) {
         "backend_dev_*.log", "frontend_dev_*.log",
         ".backend.pid", ".frontend.pid", "temp_export_*"
     )
-    
+
     $removedCount = 0
-    
+
     foreach ($pattern in $itemsToRemove) {
         $fullPattern = Join-Path $SCRIPT_DIR $pattern
-        
+
         if ($pattern -like "*`*") {
             # Wildcard pattern
             $parent = Split-Path $fullPattern -Parent
             $leaf = Split-Path $fullPattern -Leaf
-            
+
             if (Test-Path $parent) {
                 Get-ChildItem -Path $parent -Filter $leaf -ErrorAction SilentlyContinue | ForEach-Object {
                     $item = $_
@@ -1024,7 +1037,7 @@ if ($DeepClean) {
             }
         }
     }
-    
+
     # Remove nested __pycache__ directories
     Get-ChildItem -Path $BACKEND_DIR -Recurse -Filter "__pycache__" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
         try {
@@ -1036,13 +1049,13 @@ if ($DeepClean) {
             Write-Warning "Failed to remove: $($_.FullName)"
         }
     }
-    
+
     Write-Host ""
     Write-Header "Deep Clean Complete"
     Write-Success "Removed $removedCount item(s)"
     Write-Host ""
     Write-Info "To reinstall dependencies, run: .\NATIVE.ps1 -Setup"
-    
+
     exit 0
 }
 

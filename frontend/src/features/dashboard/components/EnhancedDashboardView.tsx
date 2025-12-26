@@ -29,6 +29,9 @@ interface StudentWithGPA extends Student {
   totalCourses: number;
   totalCredits: number;
   failedCourses: number;
+  attendanceRate: number;
+  examAverage: number;
+  overallScore: number;
 }
 
 type StatCardProps = {
@@ -92,7 +95,7 @@ type MetricCardProps = {
   title: string;
   value: string | number;
   hint: string;
-  icon: ComponentType<{ size?: number }>;
+  icon: ComponentType<any>;
   accent?: AccentColor;
 };
 
@@ -125,13 +128,10 @@ type EnhancedDashboardProps = {
 
 const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardProps) => {
   const { t } = useLanguage();
-  const navigate = useNavigate ? useNavigate() : undefined;
+  const navigate = useNavigate();
 
   const goToExport = useCallback(
     (scrollTo: OperationsLocationState['scrollTo']) => {
-      if (!navigate) {
-        return;
-      }
       const state: OperationsLocationState = { tab: 'exports', scrollTo };
       navigate('/operations', { state });
     },
@@ -151,6 +151,25 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   }, [goToExport]);
 
   const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
+  const [rankingType, setRankingType] = useState<'gpa' | 'attendance' | 'exams' | 'overall'>('gpa');
+
+  // Compute ranked students based on selected ranking type
+  const rankedStudents = useMemo(() => {
+    const students = [...topPerformers];
+    switch (rankingType) {
+      case 'gpa':
+        return students.sort((a, b) => b.overallGPA - a.overallGPA).slice(0, 5);
+      case 'attendance':
+        return students.sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
+      case 'exams':
+        return students.sort((a, b) => b.examAverage - a.examAverage).slice(0, 5);
+      case 'overall':
+        return students.sort((a, b) => b.overallScore - a.overallScore).slice(0, 5);
+      default:
+        return students.slice(0, 5);
+    }
+  }, [topPerformers, rankingType]);
+
   const analyticsRef = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -261,50 +280,109 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       setLoading(false);
       return;
     }
+
+    const DESIRED_TOP_COUNT = 5;
+    const MIN_BUFFER = 12; // fetch a bit extra so ranking modes have data
+    const MAX_STUDENTS_FOR_ANALYTICS = 60; // cap work to avoid long loading times
+    const BATCH_SIZE = 6; // keep concurrent requests manageable
+
+    const hasPerformanceData = (student: StudentWithGPA) =>
+      (student.overallGPA ?? 0) > 0 ||
+      (student.attendanceRate ?? 0) > 0 ||
+      (student.examAverage ?? 0) > 0 ||
+      (student.overallScore ?? 0) > 0 ||
+      (student.totalCourses ?? 0) > 0 ||
+      (student.totalCredits ?? 0) > 0;
+
+    const fetchStudentSnapshot = async (student: Student): Promise<StudentWithGPA> => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const [analyticsResponse, attendanceResponse, gradesResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }),
+          fetch(`${API_BASE_URL}/attendance?student_id=${student.id}&limit=500`, { signal: controller.signal }),
+          fetch(`${API_BASE_URL}/grades?student_id=${student.id}&limit=500`, { signal: controller.signal }),
+        ]);
+
+        clearTimeout(timeoutId);
+
+        const analyticsData = analyticsResponse.ok ? await analyticsResponse.json() : null;
+        const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : null;
+        const gradesData = gradesResponse.ok ? await gradesResponse.json() : null;
+
+        const failedCourses = (analyticsData?.courses || []).filter(
+          (course: { letter_grade?: string; gpa?: string | number }) =>
+            course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
+        ).length;
+
+        const attendances = attendanceData?.items || attendanceData?.attendances || [];
+        const attendanceRate = attendances.length > 0
+          ? (attendances.filter((a: any) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
+          : 0;
+
+        const grades = gradesData?.items || gradesData?.grades || [];
+        const examGrades = grades.filter((g: any) =>
+          ['exam', 'midterm', 'final', 'εξέταση', 'ενδιάμεση', 'τελική'].includes(
+            (g.category || '').toLowerCase()
+          )
+        );
+        const examAverage = examGrades.length > 0
+          ? examGrades.reduce((sum: number, g: any) => sum + (g.grade / g.max_grade * 100), 0) / examGrades.length
+          : 0;
+
+        const overallScore = (
+          (analyticsData?.overall_gpa || 0) * 25 + // GPA weight: 25%
+          attendanceRate * 0.25 + // Attendance: 25%
+          examAverage * 0.35 + // Exams: 35%
+          ((analyticsData?.total_credits || 0) / 10) * 15 // Credits completion: 15%
+        );
+
+        return {
+          ...student,
+          overallGPA: analyticsData?.overall_gpa || 0,
+          totalCourses: analyticsData?.courses?.length || 0,
+          totalCredits: analyticsData?.total_credits || 0,
+          failedCourses,
+          attendanceRate: Math.round(attendanceRate * 10) / 10,
+          examAverage: Math.round(examAverage * 10) / 10,
+          overallScore: Math.round(overallScore * 10) / 10,
+        };
+      } catch {
+        return {
+          ...student,
+          overallGPA: 0,
+          totalCourses: 0,
+          totalCredits: 0,
+          failedCourses: 0,
+          attendanceRate: 0,
+          examAverage: 0,
+          overallScore: 0,
+        };
+      }
+    };
+
     setLoading(true);
     try {
-      const studentPromises = students.slice(0, 5).map(async (student) => {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
+      // Prioritize active students first to improve chances of meaningful analytics
+      const prioritized = [...students].sort((a, b) => Number(b.is_active !== false) - Number(a.is_active !== false));
+      const studentsForAnalytics = prioritized.slice(0, MAX_STUDENTS_FOR_ANALYTICS);
 
-          const response = await fetch(
-            `${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`,
-            { signal: controller.signal }
-          );
-          clearTimeout(timeoutId);
+      const hydrated: StudentWithGPA[] = [];
+      let withData: StudentWithGPA[] = [];
 
-          if (!response.ok) throw new Error(`Failed to fetch student summary: ${response.status}`);
-          const data = await response.json();
-          const failedCourses = (data.courses || []).filter(
-            (course: { letter_grade?: string; gpa?: string | number }) => course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
-          ).length;
+      for (let i = 0; i < studentsForAnalytics.length; i += BATCH_SIZE) {
+        const batch = studentsForAnalytics.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(batch.map(fetchStudentSnapshot));
+        hydrated.push(...batchResults);
 
-          return {
-            ...student,
-            overallGPA: data.overall_gpa || 0,
-            totalCourses: data.courses?.length || 0,
-            totalCredits: data.total_credits || 0,
-            failedCourses,
-          };
-        } catch (error) {
-          return {
-            ...student,
-            overallGPA: 0,
-            totalCourses: 0,
-            totalCredits: 0,
-            failedCourses: 0,
-          };
-        }
-      });
+        // Filter incrementally and early-exit once we have enough data to render rankings
+        withData = hydrated.filter(hasPerformanceData);
+        const enoughData = withData.length >= Math.max(DESIRED_TOP_COUNT * 2, MIN_BUFFER);
+        if (enoughData) break;
+      }
 
-      const studentsWithGPA = await Promise.all(studentPromises);
-      const sorted = studentsWithGPA
-        .filter((entry) => entry.overallGPA > 0)
-        .sort((a, b) => b.overallGPA - a.overallGPA)
-        .slice(0, 5);
-
-      setTopPerformers(sorted);
+      setTopPerformers(withData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -328,9 +406,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     <div className="space-y-6 bg-slate-100 pb-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img 
-            src="/logo.png" 
-            alt="MIEEK Logo" 
+          <img
+            src="/logo.png"
+            alt="MIEEK Logo"
             className="h-10 w-auto object-contain"
           />
           <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
@@ -428,8 +506,57 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                   {t('exportGradesLink') || 'Export Grades'}
                 </button>
               </div>
-              <p className="text-sm text-slate-500">{t('byGPA')}</p>
-              {topPerformers.length === 0 ? (
+
+              {/* Ranking Type Tabs */}
+              <div className="mb-4 flex gap-2 border-b border-slate-200">
+                <button
+                  onClick={() => setRankingType('gpa')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    rankingType === 'gpa'
+                      ? 'border-b-2 border-indigo-500 text-indigo-600'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {t('byGPA') || 'By GPA'}
+                </button>
+                <button
+                  onClick={() => setRankingType('attendance')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    rankingType === 'attendance'
+                      ? 'border-b-2 border-emerald-500 text-emerald-600'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {t('byAttendance') || 'By Attendance'}
+                </button>
+                <button
+                  onClick={() => setRankingType('exams')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    rankingType === 'exams'
+                      ? 'border-b-2 border-violet-500 text-violet-600'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {t('byExams') || 'By Exams'}
+                </button>
+                <button
+                  onClick={() => setRankingType('overall')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    rankingType === 'overall'
+                      ? 'border-b-2 border-amber-500 text-amber-600'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {t('overall') || 'Overall'}
+                </button>
+              </div>
+
+              {loading ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-10">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+                  <p className="text-sm text-slate-500">{t('loadingStudentData')}</p>
+                </div>
+              ) : rankedStudents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-10 text-slate-500">
                   <Target size={42} className="opacity-40" />
                   <p>{t('noPerformanceData')}</p>
@@ -437,19 +564,36 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  {topPerformers.map((student, index: number) => {
+                  {rankedStudents.map((student, index: number) => {
                     const gpa = Number(student.overallGPA || 0);
                     const formatted = formatAllGrades(gpa);
                     const pct = gpaToPercentage(gpa);
                     const letter = getLetterGrade(pct);
                     const failedCount = student.failedCourses || 0;
-                    const statusLabel =
-                      failedCount > 0
-                        ? t('failedCoursesCount', { count: failedCount }).replace(
-                            '{count}',
-                            String(failedCount)
-                          )
-                        : formatted.description;
+
+                    // Determine primary metric based on ranking type
+                    let primaryValue = '';
+                    let primaryLabel = '';
+                    let secondaryInfo = '';
+
+                    if (rankingType === 'gpa') {
+                      primaryValue = `${formatted.percentage}%`;
+                      primaryLabel = `GPA ${formatted.gpa}`;
+                      secondaryInfo = `${formatted.greekGrade}${t('outOf20')} ${t('bullet')} ${letter}`;
+                    } else if (rankingType === 'attendance') {
+                      primaryValue = `${student.attendanceRate}%`;
+                      primaryLabel = t('attendanceRate') || 'Attendance';
+                      secondaryInfo = `${student.totalCourses || 0} ${t('courses')}`;
+                    } else if (rankingType === 'exams') {
+                      primaryValue = `${student.examAverage}%`;
+                      primaryLabel = t('examAverage') || 'Exam Average';
+                      secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${letter}`;
+                    } else {
+                      primaryValue = `${student.overallScore}`;
+                      primaryLabel = t('overallScore') || 'Overall Score';
+                      secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${student.attendanceRate}% ${t('attendance')}`;
+                    }
+
                     const accentPalette = [
                       'border-amber-400 bg-amber-50',
                       'border-slate-300 bg-slate-50',
@@ -464,30 +608,37 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <p className="font-semibold text-slate-900">
-                              {student.first_name} {student.last_name}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {student.totalCourses || 0} {t('courses')} • {student.totalCredits || 0}{' '}
+                            <div className="flex items-center gap-2">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                                {index + 1}
+                              </span>
+                              <p className="font-semibold text-slate-900">
+                                {student.first_name} {student.last_name}
+                              </p>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-500">
+                              {student.totalCourses || 0} {t('courses')} {t('bullet')} {student.totalCredits || 0}{' '}
                               {t('credits')}
                             </p>
                             <p className={`text-xs ${failedCount > 0 ? 'text-red-600' : 'text-slate-500'}`}>
-                              {statusLabel} • {formatted.greekGrade}/20 • {letter}
+                              {secondaryInfo}
                             </p>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
                               <p className="text-2xl font-semibold text-indigo-600">
-                                {formatted.percentage}%
+                                {primaryValue}
                               </p>
-                              <p className="text-xs text-slate-500">GPA {formatted.gpa}</p>
+                              <p className="text-xs text-slate-500">{primaryLabel}</p>
                             </div>
-                            <div className="rounded-lg border border-indigo-200 bg-white px-5 py-3 text-center">
-                              <p className="text-lg font-semibold text-indigo-700">{Math.round(pct)}</p>
-                              <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600">
-                                /100
-                              </p>
-                            </div>
+                            {rankingType === 'gpa' && (
+                              <div className="rounded-lg border border-indigo-200 bg-white px-5 py-3 text-center">
+                                <p className="text-lg font-semibold text-indigo-700">{Math.round(pct)}</p>
+                                <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600">
+                                  /100
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

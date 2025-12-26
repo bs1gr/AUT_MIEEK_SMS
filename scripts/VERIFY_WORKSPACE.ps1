@@ -71,7 +71,7 @@ function Add-Suggestion {
 
 function Test-FileLocations {
     Write-Header "Checking File Locations"
-    
+
     # Check for config files in root
     $configFiles = @("*.ini", "*.toml", "ruff.toml", "mypy.ini", "pytest.ini")
     foreach ($pattern in $configFiles) {
@@ -83,7 +83,7 @@ function Test-FileLocations {
             Write-Warning2 "Found: $($file.Name) (should be in config/)"
         }
     }
-    
+
     # Check for docker-compose files in root
     $dockerFiles = Get-ChildItem -Path $PROJECT_ROOT -Filter "docker-compose*.yml" -File -ErrorAction SilentlyContinue
     foreach ($file in $dockerFiles) {
@@ -92,7 +92,7 @@ function Test-FileLocations {
             -Suggestion "Move to docker/ directory"
         Write-Warning2 "Found: $($file.Name) (should be in docker/)"
     }
-    
+
     # Check for orphaned session documents in root
     $sessionPatterns = @("*SESSION*", "*CONSOLIDATION*", "*SUMMARY*_2025-*", "*PLAN.md", "*REPORT.md")
     foreach ($pattern in $sessionPatterns) {
@@ -106,7 +106,7 @@ function Test-FileLocations {
             }
         }
     }
-    
+
     if ($script:Issues.Count -eq 0) {
         Write-Success "All files in correct locations"
     }
@@ -118,14 +118,14 @@ function Test-FileLocations {
 
 function Test-DocumentationReferences {
     Write-Header "Checking Documentation References"
-    
+
     $brokenLinks = 0
     $mdFiles = Get-ChildItem -Path $PROJECT_ROOT -Recurse -Filter "*.md" -File `
         | Where-Object { $_.FullName -notmatch "node_modules|\.venv|\.git|archive" }
-    
+
     foreach ($mdFile in $mdFiles) {
         $content = Get-Content $mdFile.FullName -Raw
-        
+
         # Check for common broken reference patterns
         if ($content -match "RUN\.ps1|INSTALL\.ps1|SMS\.ps1" -and $mdFile.Name -notmatch "CONSOLIDATION|archive") {
             Add-Issue -Type "Reference" -File $mdFile.Name `
@@ -133,7 +133,7 @@ function Test-DocumentationReferences {
                 -Suggestion "Update to DOCKER.ps1/NATIVE.ps1"
             $brokenLinks++
         }
-        
+
         # Check for old config paths
         if ($content -match "\bmypy\.ini\b" -and $content -notmatch "config/mypy\.ini") {
             Add-Issue -Type "Reference" -File $mdFile.Name `
@@ -141,14 +141,14 @@ function Test-DocumentationReferences {
                 -Suggestion "Update to config/mypy.ini"
             $brokenLinks++
         }
-        
+
         if ($content -match "\bpytest\.ini\b" -and $content -notmatch "config/pytest\.ini") {
             Add-Issue -Type "Reference" -File $mdFile.Name `
                 -Message "References pytest.ini without config/ path" `
                 -Suggestion "Update to config/pytest.ini"
             $brokenLinks++
         }
-        
+
         # Check for old docker-compose paths
         if ($content -match "\bdocker-compose\.yml\b" -and $content -notmatch "docker/docker-compose\.yml") {
             if ($mdFile.Name -notmatch "archive|CONSOLIDATION") {
@@ -159,7 +159,7 @@ function Test-DocumentationReferences {
             }
         }
     }
-    
+
     if ($brokenLinks -eq 0) {
         Write-Success "All documentation references valid"
     } else {
@@ -173,26 +173,26 @@ function Test-DocumentationReferences {
 
 function Test-RootCleanliness {
     Write-Header "Checking Root Directory Cleanliness"
-    
+
     $rootFiles = Get-ChildItem -Path $PROJECT_ROOT -File | Where-Object { $_.Name -notmatch "^\." }
     $mdFiles = ($rootFiles | Where-Object { $_.Extension -eq ".md" }).Count
     $ps1Files = ($rootFiles | Where-Object { $_.Extension -eq ".ps1" }).Count
-    
+
     Write-Info "Root markdown files: $mdFiles (target: ≤5)"
     Write-Info "Root PowerShell scripts: $ps1Files (target: ≤6)"
-    
+
     if ($mdFiles -gt 5) {
         Add-Suggestion -Category "Organization" `
             -Message "Consider archiving $($mdFiles - 5) additional markdown files" `
             -Priority "Low"
     }
-    
+
     if ($ps1Files -gt 8) {
         Add-Suggestion -Category "Organization" `
             -Message "Root has $ps1Files PowerShell scripts (consolidation opportunity)" `
             -Priority "Medium"
     }
-    
+
     # Check for non-essential files
     $nonEssential = @("*.log", "*.tmp", "*.bak", "*_old.*", "*_backup.*")
     foreach ($pattern in $nonEssential) {
@@ -204,7 +204,7 @@ function Test-RootCleanliness {
             Write-Warning2 "Found: $($file.Name)"
         }
     }
-    
+
     Write-Success "Root directory check complete"
 }
 
@@ -214,12 +214,12 @@ function Test-RootCleanliness {
 
 function Test-VersionConsistency {
     Write-Header "Checking Version Consistency"
-    
+
     $versionFile = Join-Path $PROJECT_ROOT "VERSION"
     if (Test-Path $versionFile) {
         $version = (Get-Content $versionFile -Raw).Trim()
         Write-Info "Current version: $version"
-        
+
         # Check if CHANGELOG has this version
         $changelog = Join-Path $PROJECT_ROOT "CHANGELOG.md"
         if (Test-Path $changelog) {
@@ -241,17 +241,17 @@ function Test-VersionConsistency {
 
 function Get-ReorganizationSuggestions {
     Write-Header "Reorganization Opportunities"
-    
+
     # Check for duplicate functionality
     $scriptsDir = Join-Path $PROJECT_ROOT "scripts"
     $toolsDir = Join-Path $PROJECT_ROOT "tools"
-    
+
     if ((Test-Path $scriptsDir) -and (Test-Path $toolsDir)) {
         Add-Suggestion -Category "Structure" `
-            -Message "Both scripts/ and tools/ directories exist - consider consolidation" `
+            -Message "scripts/ directory exists with utilities" `
             -Priority "Low"
     }
-    
+
     # Check for multiple backup locations
     $backupDirs = @("backups", "backup", "archives")
     $foundBackups = $backupDirs | Where-Object { Test-Path (Join-Path $PROJECT_ROOT $_) }
@@ -260,7 +260,7 @@ function Get-ReorganizationSuggestions {
             -Message "Multiple backup directories: $($foundBackups -join ', ')" `
             -Priority "Low"
     }
-    
+
     # Check for .bat wrapper prevalence
     $batFiles = Get-ChildItem -Path $scriptsDir -Recurse -Filter "*.bat" -File -ErrorAction SilentlyContinue
     if ($batFiles.Count -gt 10) {
@@ -276,17 +276,17 @@ function Get-ReorganizationSuggestions {
 
 function Write-Report {
     Write-Header "Verification Report"
-    
+
     Write-Host "`n📊 SUMMARY" -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
     Write-Host "Issues Found: $($script:Issues.Count)" -ForegroundColor $(if ($script:Issues.Count -gt 0) { "Yellow" } else { "Green" })
     Write-Host "Suggestions: $($script:Suggestions.Count)" -ForegroundColor Cyan
     Write-Host "Fixes Applied: $($script:Fixes.Count)" -ForegroundColor Green
-    
+
     if ($script:Issues.Count -gt 0) {
         Write-Host "`n⚠️  ISSUES FOUND:" -ForegroundColor Yellow
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
-        
+
         $issuesByType = $script:Issues | Group-Object -Property Type
         foreach ($group in $issuesByType) {
             Write-Host "`n  $($group.Name) Issues ($($group.Count)):" -ForegroundColor Cyan
@@ -298,11 +298,11 @@ function Write-Report {
             }
         }
     }
-    
+
     if ($script:Suggestions.Count -gt 0) {
         Write-Host "`n💡 SUGGESTIONS:" -ForegroundColor Cyan
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
-        
+
         $suggestionsByPriority = $script:Suggestions | Sort-Object -Property Priority -Descending
         foreach ($suggestion in $suggestionsByPriority) {
             $priorityColor = switch ($suggestion.Priority) {
@@ -313,7 +313,7 @@ function Write-Report {
             Write-Host "  [$($suggestion.Priority)] $($suggestion.Category): $($suggestion.Message)" -ForegroundColor $priorityColor
         }
     }
-    
+
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`n" -ForegroundColor DarkGray
 }
 

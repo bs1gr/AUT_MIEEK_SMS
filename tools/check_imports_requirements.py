@@ -1,190 +1,55 @@
 #!/usr/bin/env python3
-"""
-Simple checker: scan Python files under `backend/` for top-level imports and
-verify that third-party modules are listed in `backend/requirements.txt`.
+"""Legacy wrapper for the unified import checker.
 
-This is a heuristic check intended to catch regressions where tests or code
-import a package not declared in requirements. It is used in CI to fail PRs
-early.
+This module preserves the historical ``tools/check_imports_requirements.py`` entry
+point by delegating to the consolidated validator located at
+``scripts/utils/validators/import_checker.py``.
 
-It ignores standard library modules and local imports (modules starting with
-`backend.`). It has a small whitelist for common tooling modules.
+The wrapper keeps backwards compatibility for automation, CI, and developer
+workflows that still invoke the old path. All new tooling should import or
+execute the consolidated validator directly.
 """
 
 from __future__ import annotations
 
-import ast
-import json
-import sys
+import importlib.util
 from pathlib import Path
-from typing import Set
-
 
 ROOT = Path(__file__).resolve().parents[1]
-BACKEND_DIR = ROOT / "backend"
-REQUIREMENTS = BACKEND_DIR / "requirements.txt"
+IMPORT_CHECKER = ROOT / "scripts" / "utils" / "validators" / "import_checker.py"
 
 
-def parse_requirements(req_path: Path) -> Set[str]:
-    names: Set[str] = set()
-    if not req_path.exists():
-        return names
-    for line in req_path.read_text(encoding="utf-8").splitlines():
-        s = line.strip()
-        if not s or s.startswith("#"):
-            continue
-        # Remove extras and version specifiers
-        for sep in ("==", ">=", "<=", ">", "<", "~=", "!=", " "):
-            if sep in s:
-                s = s.split(sep, 1)[0]
-        s = s.split("[", 1)[0].strip()
-        if s:
-            names.add(s.lower())
-    return names
+def _load_import_checker():
+    """Dynamically load the consolidated import checker module."""
+    if not IMPORT_CHECKER.exists():
+        raise FileNotFoundError(
+            "Unified import checker is missing at expected location: "
+            f"{IMPORT_CHECKER}"
+        )
 
+    spec = importlib.util.spec_from_file_location("import_checker", str(IMPORT_CHECKER))
+    if spec is None or spec.loader is None:
+        raise ImportError("Unable to load consolidated import checker module")
 
-def find_imports_in_file(p: Path) -> Set[str]:
-    src = p.read_text(encoding="utf-8")
-    tree = ast.parse(src)
-    mods: Set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                top = alias.name.split(".")[0]
-                mods.add(top)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                top = node.module.split(".")[0]
-                # Skip relative imports
-                if not node.level:
-                    mods.add(top)
-    return mods
-
-
-def stdlib_names() -> Set[str]:
-    # Prefer sys.stdlib_module_names (py3.10+)
-    if hasattr(sys, "stdlib_module_names"):
-        return set(map(str, sys.stdlib_module_names))
-    # Fallback: conservative common stdlib names
-    return {
-        "os",
-        "sys",
-        "re",
-        "json",
-        "time",
-        "typing",
-        "pathlib",
-        "logging",
-        "subprocess",
-        "threading",
-        "http",
-        "functools",
-        "itertools",
-        "collections",
-        "math",
-        "datetime",
-        "inspect",
-    }
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> int:
-    reqs = parse_requirements(REQUIREMENTS)
-    stdlib = stdlib_names()
-    whitelist = {"pytest", "typing_extensions", "mypy", "click", "setuptools"}
-
-    py_files = list(BACKEND_DIR.rglob("*.py"))
-    missing = {}
-
-    import importlib.util
-
+    """Execute the consolidated import checker with current CLI arguments."""
+    module = _load_import_checker()
+    # Delegate to the new script's main() which handles argument parsing.
+    # The consolidated script terminates via SystemExit, so capture that to
+    # provide the legacy return-code behavior expected by older tooling/tests.
     try:
-        # Python 3.10+: packages_distributions maps top-level packages to distributions
-        from importlib.metadata import packages_distributions
-    except Exception:
-        packages_distributions = None
+        result = module.main()
+    except SystemExit as exc:  # pragma: no cover - handled in tests
+        code = exc.code if exc.code is not None else 0
+        return int(code)
 
-    # Load mapping exceptions from tools/import_name_mapping.json if present.
-    mapping_file = Path(__file__).with_name("import_name_mapping.json")
-    mapping_exceptions = {}
-    try:
-        if mapping_file.exists():
-            mapping_exceptions = json.loads(mapping_file.read_text(encoding="utf-8"))
-            # Normalize keys to lower-case strings -> list of distro names
-            mapping_exceptions = {k.lower(): [s.lower() for s in v] for k, v in mapping_exceptions.items()}
-    except Exception:
-        # If loading fails, fall back to a small built-in map
-        mapping_exceptions = {
-            "jwt": ["pyjwt"],
-            "yaml": ["pyyaml"],
-            "pil": ["pillow"],
-            "cv2": ["opencv-python"],
-            "crypto": ["pycryptodome"],
-        }
-
-    for p in py_files:
-        mods = find_imports_in_file(p)
-        for m in sorted(mods):
-            ml = m.lower()
-            if ml in whitelist:
-                continue
-            # Skip explicit backend package imports (e.g. "backend.models")
-            if ml.startswith("backend"):
-                continue
-            # Also skip local backend modules imported without the "backend." prefix
-            # e.g. `import control_auth` where backend/control_auth.py exists.
-            local_mod_path = BACKEND_DIR / (m + ".py")
-            local_pkg_init = BACKEND_DIR / m / "__init__.py"
-            if local_mod_path.exists() or local_pkg_init.exists():
-                continue
-            if ml in stdlib:
-                continue
-
-            # 1) If module is importable in environment, accept it (covers transitive deps)
-            try:
-                spec = importlib.util.find_spec(m)
-            except Exception:
-                spec = None
-            if spec is not None:
-                continue
-
-            # 2) Try mapping package -> distribution name(s)
-            dist_ok = False
-            try:
-                if packages_distributions is not None:
-                    mapping = packages_distributions()
-                    dists = mapping.get(m, []) or mapping.get(ml, [])
-                    for d in dists:
-                        dn = d.lower().replace("_", "-")
-                        if dn in reqs or d.lower() in reqs:
-                            dist_ok = True
-                            break
-                    # Check manual exceptions mapping
-                    if not dist_ok and ml in mapping_exceptions:
-                        for ex in mapping_exceptions[ml]:
-                            if ex.lower() in reqs:
-                                dist_ok = True
-                                break
-            except Exception:
-                dist_ok = False
-
-            if dist_ok:
-                continue
-
-            # 3) Fallback: direct requirements match (simple heuristics)
-            matched = any(req == ml or req.startswith(ml + "-") or req.startswith(ml + "_") for req in reqs)
-            if not matched and ml not in reqs:
-                missing.setdefault(ml, set()).add(str(p.relative_to(ROOT)))
-
-    if missing:
-        print("ERROR: Found imports in backend/ that are not declared in backend/requirements.txt")
-        for mod, files in sorted(missing.items()):
-            print(f" - {mod}: imported in {len(files)} file(s):")
-            for f in sorted(files):
-                print(f"    - {f}")
-        print("\nIf these imports are legitimate third-party packages, add them to backend/requirements.txt.")
-        return 2
-
-    print("OK: All third-party imports in backend/ are declared in backend/requirements.txt (or importable)")
+    if isinstance(result, int):
+        return result
     return 0
 
 

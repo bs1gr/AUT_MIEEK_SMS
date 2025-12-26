@@ -1,0 +1,23 @@
+export default {
+  configuration: 'Διαμόρφωση RBAC',
+  rolePermissionMappings: 'Αντιστοιχίσεις Ρόλων-Δικαιωμάτων',
+  noRolesAssigned: 'Δεν έχουν ανατεθεί ρόλοι RBAC',
+  assignRole: 'Ανάθεση Ρόλου σε Χρήστη',
+  userId: 'ID Χρήστη',
+  roleName: 'Όνομα Ρόλου',
+  selectRole: '-- Επιλέξτε Ρόλο --',
+  grantPermission: 'Ανάθεση Δικαιώματος σε Ρόλο',
+  permission: 'Δικαίωμα',
+  selectPermission: '-- Επιλέξτε Δικαίωμα --',
+  rbacInitialization: 'Αρχικοποίηση RBAC',
+  initializeDefaults: 'Αρχικοποίηση Προεπιλογών RBAC',
+  roleAssignedSuccess: 'Ο ρόλος ανατέθηκε με επιτυχία',
+  roleAssignedError: 'Σφάλμα κατά την ανάθεση ρόλου',
+  permissionGrantedSuccess: 'Το δικαίωμα ανατέθηκε με επιτυχία',
+  permissionGrantedError: 'Σφάλμα κατά την ανάθεση δικαιώματος',
+  defaultsInitializedSuccess: 'Οι προεπιλογές RBAC αρχικοποιήθηκαν με επιτυχία',
+  defaultsInitializedError: 'Σφάλμα κατά την αρχικοποίηση προεπιλογών RBAC',
+  createDefaultsDesc: 'Δημιουργήστε προεπιλεγμένους ρόλους και δικαιώματα. Θα προστεθούν βασικές οντότητες RBAC και θα ενημερωθούν οι υπάρχοντες χρήστες.',
+  hide: 'Απόκρυψη RBAC',
+  show: 'Εμφάνιση RBAC'
+};

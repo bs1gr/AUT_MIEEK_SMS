@@ -8,68 +8,65 @@ Welcome to the Student Management System documentation hub.
 |------|-----------|-------------|
 | 👤 **End User** | [user/](user/) | Installation, usage guides, features |
 | 💻 **Developer** | [development/](development/) | Architecture, API, development setup |
-| 🚀 **DevOps** | [deployment/](deployment/) | Deployment, operations, troubleshooting |
+| 🛠️ **Operations** | [operations/](operations/) | Runbooks, smoke tests, monitoring |
+| 🚀 **DevOps** | [deployment/](deployment/) | Deployment, infrastructure, troubleshooting |
 | 📖 **Reference** | [reference/](reference/) | Quick guides, security, features |
-| 📦 **Releases** | [releases/](releases/) | Release notes and changelogs |
+| 📦 **Releases** | [releases/](releases/) | Release notes and audits |
 
 ## 🗂️ Directory Structure
 
 ```text
 docs/
-├── user/              # End-user documentation
-│   ├── INDEX.md      # User documentation index
-│   ├── USER_GUIDE_COMPLETE.md
-│   ├── QUICK_START_GUIDE.md
-│   └── ...
-├── development/       # Developer documentation
-│   ├── INDEX.md      # Developer documentation index
+├── DOCUMENTATION_INDEX.md   # Canonical index
+├── README.md                # This overview
+├── CONFIG_STRATEGY.md       # Environment configuration strategy
+├── development/             # Developer documentation
+│   ├── INDEX.md
 │   ├── DEVELOPER_GUIDE_COMPLETE.md
 │   ├── ARCHITECTURE.md
-│   ├── API_EXAMPLES.md
-│   └── ...
-├── deployment/        # Deployment & operations
-│   ├── INDEX.md      # Deployment documentation index
+│   └── phase-reports/
+├── deployment/              # Deployment runbooks & guides
+│   ├── INDEX.md
 │   ├── DOCKER_OPERATIONS.md
-│   ├── RUNBOOK.md
-│   └── ...
-├── operations/        # Operational guides
+│   └── PRODUCTION_DOCKER_GUIDE.md
+├── operations/              # Operations, scripts, smoke tests
 │   ├── INSTALLATION_GUIDE.md
 │   ├── SCRIPTS_GUIDE.md
-│   ├── MONITORING.md
-│   └── ...
-├── reference/         # Quick reference guides
-│   ├── SECURITY_GUIDE.md
-│   ├── V2_QUICK_REFERENCE.md
-│   ├── session-export-import.md
-│   └── ...
-├── releases/          # Release notes
-│   ├── v1.9.0.md
-│   ├── v1.8.8.md
-│   └── ...
-└── qnap/             # QNAP-specific documentation
-    ├── QNAP_INSTALLATION_GUIDE.md
-    └── ...
+│   └── SMOKE_TEST_CHECKLIST_v1.12.md
+├── reference/               # Quick reference guides
+│   ├── SECURITY_GUIDE_COMPLETE.md
+│   └── session-import-safety.md
+├── releases/                # Release notes & audits
+│   ├── RELEASE_NOTES_$11.12.2.md
+│   └── RELEASE_SUMMARY_$11.12.2.md
+└── archive/                 # Archived materials
+    ├── documentation/
+    └── pr-updates/
 ```
 
 ## 📖 Core Documents
 
 ### Getting Started
+
 - **[../README.md](../README.md)** - Main project README
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - 5-minute quick start
 - **[operations/INSTALLATION_GUIDE.md](operations/INSTALLATION_GUIDE.md)** - Full installation guide
 
 ### Comprehensive Guides
+
 - **[user/USER_GUIDE_COMPLETE.md](user/USER_GUIDE_COMPLETE.md)** - Complete user manual
 - **[development/DEVELOPER_GUIDE_COMPLETE.md](development/DEVELOPER_GUIDE_COMPLETE.md)** - Complete developer guide
 
 ### System Documentation
+
 - **[development/ARCHITECTURE.md](development/ARCHITECTURE.md)** - System architecture
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker operations
-- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
+- **[reference/SECURITY_GUIDE_COMPLETE.md](reference/SECURITY_GUIDE_COMPLETE.md)** - Security best practices and audits
+- **[operations/SMOKE_TEST_CHECKLIST_v1.12.md](operations/SMOKE_TEST_CHECKLIST_v1.12.md)** - Release-ready smoke validation
 
 ## 🔍 Finding What You Need
 
-### I want to...
+### I want to
 
 **Install the system**
 → [operations/INSTALLATION_GUIDE.md](operations/INSTALLATION_GUIDE.md)
@@ -95,6 +92,7 @@ docs/
 ## 🌍 Internationalization
 
 Greek documentation is available:
+
 - **[user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start
 - **[user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user guide
 
@@ -105,12 +103,13 @@ For a complete catalog of all documentation, see:
 
 ## 🔄 Version
 
-**Current Version:** 1.9.2  
-**Last Updated:** 2025-11-24
+**Current Version:** 1.12.2
+**Last Updated:** 2025-12-13
 
 ## 📝 Contributing
 
 When contributing documentation:
+
 1. Place files in the appropriate directory
 2. Update relevant INDEX.md files
 3. Update [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)

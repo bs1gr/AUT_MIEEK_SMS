@@ -5,18 +5,21 @@ Note:
 - Import of the instrumentator is optional to avoid test collection failures
     in environments where the package isn't installed.
 """
+
 from fastapi import FastAPI
 
 try:  # Optional dependency for local manual testing only
-        from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
+    from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore
 except Exception:  # pragma: no cover - keep imports optional for CI
-        Instrumentator = None  # type: ignore
+    Instrumentator = None  # type: ignore
 
 app = FastAPI()
+
 
 @app.get("/")
 def root():
     return {"message": "Hello"}
+
 
 # Setup instrumentator only when available and script is run directly
 if Instrumentator is not None:
@@ -26,6 +29,7 @@ if Instrumentator is not None:
 
 if __name__ == "__main__":
     import uvicorn
+
     print("Starting test server on http://127.0.0.1:8001")
     if Instrumentator is None:
         print("prometheus-fastapi-instrumentator not installed; /metrics will not be exposed.")

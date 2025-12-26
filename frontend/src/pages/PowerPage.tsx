@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ServerControl from '@/components/common/ServerControl';
 import ControlPanel from '@/components/ControlPanel';
+// import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useLanguage } from '@/LanguageContext';
 // Monitoring features (Grafana/Prometheus/Raw Metrics) have been removed as per v1.8.3 decision.
 
@@ -10,6 +11,7 @@ export default function PowerPage() {
   const { t } = useLanguage();
   const location = useLocation();
   const [showSystemHealth, setShowSystemHealth] = useState(false);
+  // const [showRBACPanel, setShowRBACPanel] = useState(false);
   // Auto-open control panel when URL contains ?showControl=1
   const [showControlPanel, setShowControlPanel] = useState(() => {
     try {
@@ -30,8 +32,11 @@ export default function PowerPage() {
     // If route changes and query param exists, respect it
     try {
       const params = new URLSearchParams(location.search);
-      if (params.get('showControl') === '1') setShowControlPanel(true);
-      if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
+      const id = setTimeout(() => {
+        if (params.get('showControl') === '1') setShowControlPanel(true);
+        if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
+      }, 0);
+      return () => clearTimeout(id);
     } catch {
       // ignore
     }
@@ -46,11 +51,11 @@ export default function PowerPage() {
       )}
       <div className="bg-white border rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">{t('controlPanel.systemHealth')}</h2>
+          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('controlPanel.systemHealth')}</h2>
           <button
             type="button"
             onClick={() => setShowSystemHealth((prev) => !prev)}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
+            className="text-sm font-medium text-indigo-700 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
           >
             {showSystemHealth ? t('controlPanel.hideSystemHealth') : t('controlPanel.showSystemHealth')}
           </button>
@@ -64,11 +69,11 @@ export default function PowerPage() {
 
       <div className="border rounded-xl overflow-hidden bg-white">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">{t('controlPanel.title')}</h2>
+          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('controlPanel.title')}</h2>
           <button
             type="button"
             onClick={() => setShowControlPanel((prev) => !prev)}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
+            className="text-sm font-medium text-indigo-700 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
           >
             {showControlPanel ? t('controlPanel.hideControlPanel') : t('controlPanel.showControlPanel')}
           </button>
@@ -77,6 +82,9 @@ export default function PowerPage() {
           <ControlPanel showTitle={false} variant="embedded" />
         )}
       </div>
+
+      {/* RBACPanel moved to ControlPanel Maintenance tab, admin-only */}
     </div>
   );
+
 }

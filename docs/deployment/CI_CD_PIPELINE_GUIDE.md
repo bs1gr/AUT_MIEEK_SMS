@@ -1,7 +1,7 @@
 # CI/CD Pipeline Documentation
 
-**Version:** 1.0.0  
-**Last Updated:** November 24, 2025  
+**Version:** 1.1.0
+**Last Updated:** December 12, 2025
 
 ---
 
@@ -45,6 +45,7 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 ### 1. ci-cd-pipeline.yml (Main Pipeline)
 
 **Trigger Events:**
+
 - Push to `main` branch
 - Pull requests to `main`
 - Git tags matching `v*.*.*`
@@ -55,6 +56,7 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 **Stages:**
 
 #### Stage 1: Version Verification
+
 ```yaml
 version-verification:
   - Validates VERSION file consistency across codebase
@@ -64,34 +66,37 @@ version-verification:
 ```
 
 **Exit Codes:**
+
 - `0`: All versions consistent ✅
 - `1`: Critical failures (blocks pipeline) ❌
 - `2`: Inconsistencies found (blocks pipeline) ⚠️
 
 #### Stage 2: Linting & Code Quality
+
 ```yaml
 lint-backend:
   - Ruff linter (PEP 8 compliance)
   - MyPy type checker (static analysis)
   - Flake8 (code style)
-  
+
 lint-frontend:
   - ESLint (JavaScript/TypeScript)
   - TypeScript compiler (type checking)
 ```
 
 #### Stage 3: Automated Testing
+
 ```yaml
 test-backend:
   - Pytest with coverage
   - 263 backend tests
   - HTML + XML coverage reports
   - Codecov integration
-  
+
 test-frontend:
   - Vitest unit tests
   - Coverage reports
-  
+
 smoke-tests:
   - Integration testing
   - SMOKE_TEST.ps1 script
@@ -99,13 +104,14 @@ smoke-tests:
 ```
 
 #### Stage 4: Build & Package
+
 ```yaml
 build-frontend:
   - Production React build
   - Vite bundling
   - Asset optimization
   - Upload dist/ artifact
-  
+
 build-docker-images:
   - Multi-platform Docker build
   - GitHub Container Registry push
@@ -114,26 +120,29 @@ build-docker-images:
 ```
 
 **Docker Image Tags:**
+
 - `latest` - Latest main branch
 - `vX.Y.Z` - Semantic version from VERSION file
 - `<branch>-<sha>` - Branch-specific builds
 - `vX.Y` - Major.minor version
 
 #### Stage 5: Security Scanning
+
 ```yaml
 security-scan-backend:
   - Safety (dependency vulnerabilities)
   - Bandit (code security issues)
-  
+
 security-scan-frontend:
   - npm audit (dependency vulnerabilities)
-  
+
 security-scan-docker:
   - Trivy (container scanning)
   - SARIF upload to GitHub Security tab
 ```
 
 #### Stage 6: Documentation Validation
+
 ```yaml
 cleanup-and-docs:
   - Check for TODO/FIXME items
@@ -143,6 +152,7 @@ cleanup-and-docs:
 ```
 
 #### Stage 7: Staging Deployment
+
 ```yaml
 deploy-staging:
   - Triggers: Push to main branch
@@ -153,6 +163,7 @@ deploy-staging:
 ```
 
 #### Stage 8: Production Deployment
+
 ```yaml
 deploy-production:
   - Triggers: Git tags (v*.*.*)
@@ -164,6 +175,7 @@ deploy-production:
 ```
 
 #### Stage 9: Release Management
+
 ```yaml
 create-release:
   - Generates release notes
@@ -173,6 +185,7 @@ create-release:
 ```
 
 #### Stage 10: Monitoring
+
 ```yaml
 post-deployment-monitoring:
   - 5-minute health monitoring
@@ -185,6 +198,7 @@ post-deployment-monitoring:
 ### 2. quickstart-validation.yml (Fast Pre-Commit)
 
 **Trigger Events:**
+
 - Push to any branch except `main`
 - Pull requests to `main`
 
@@ -193,11 +207,112 @@ post-deployment-monitoring:
 **Purpose:** Rapid feedback loop for developers
 
 **Checks:**
+
 - Version consistency (non-blocking)
 - Quick backend lint (Ruff only)
 - Backend tests (fail-fast)
 - Frontend lint
 - Frontend tests (no coverage)
+
+---
+
+### 3. release-installer-with-sha.yml (Automated Installer Release)
+
+**Trigger Events:**
+
+- Release published or created
+- Manual workflow dispatch with tag input
+
+**Duration:** ~10-15 minutes (depending on cache)
+
+**Purpose:** Automated installer building and SHA256 verification for releases
+
+**Stages:**
+
+#### Stage 1: Version Verification
+
+```yaml
+verify-version-consistency:
+  - Runs scripts/VERIFY_VERSION.ps1 in CI mode
+  - Validates version matches release tag
+  - Fails workflow if inconsistencies detected
+  - Provides clear error messages with fix instructions
+```
+
+#### Stage 2: Installer Check & Build
+
+```yaml
+check-installer-exists:
+  - Checks for existing installer: dist/SMS_Installer_<tag>.exe
+  - Skips build if already present
+
+build-installer-if-needed:
+  - Runs INSTALLER_BUILDER.ps1 -AutoFix
+  - Generates wizard images
+  - Fixes Greek language encoding
+  - Compiles with Inno Setup
+  - Code signs with AUT MIEEK certificate
+```
+
+#### Stage 3: SHA256 Calculation
+
+```yaml
+calculate-sha256:
+  - Computes SHA256 hash using PowerShell Get-FileHash
+  - Calculates file size in MB
+  - Outputs hash for verification instructions
+```
+
+#### Stage 4: Release Integration
+
+```yaml
+generate-release-body:
+  - Merges with existing release notes (RELEASE_NOTES_<tag>.md)
+  - Appends installer download section
+  - Includes SHA256 hash prominently
+  - Provides PowerShell verification command
+
+upload-installer-asset:
+  - Uploads installer as release asset
+  - Sets proper content-type (application/octet-stream)
+  - Only for release events (not manual dispatch)
+```
+
+#### Stage 5: Summary & Notifications
+
+```yaml
+create-summary:
+  - Generates GitHub Actions step summary
+  - Shows installer name, size, and SHA256
+
+post-notifications:
+  - Success notification with installer details
+  - Failure notification for troubleshooting
+```
+
+**Usage:**
+
+```bash
+# Automatic (on release creation)
+git tag -a $11.12.2 -m "Release $11.12.2"
+git push origin $11.12.2
+# → Workflow triggers automatically
+
+# Manual (for existing releases)
+# Go to Actions → Release - Build & Upload Installer with SHA256
+# Click "Run workflow"
+# Enter: $11.12.2
+# Click "Run workflow" button
+```
+
+**Benefits:**
+
+- ✅ Ensures version consistency before building
+- ✅ Eliminates manual installer builds
+- ✅ Provides SHA256 hashing for security verification
+- ✅ Automatically updates release notes with installer info
+- ✅ Prevents releases with version mismatches
+- ✅ Includes clear verification instructions for users
 
 ---
 
@@ -218,6 +333,7 @@ The pipeline integrates with the automated version management system:
 ```
 
 **Automatic Version Extraction:**
+
 ```yaml
 - name: Extract version from VERSION file
   id: version
@@ -227,6 +343,7 @@ The pipeline integrates with the automated version management system:
 ```
 
 This version is used for:
+
 - Docker image tagging
 - Release creation
 - Deployment metadata
@@ -249,18 +366,21 @@ This version is used for:
 ## Artifacts Generated
 
 ### Test Results
+
 - `backend-test-results/` - Pytest HTML/JSON reports
 - `frontend-test-results/` - Vitest coverage
 - `backend-security-reports/` - Bandit findings
 - `frontend-security-reports/` - npm audit results
 
 ### Build Artifacts
+
 - `frontend-dist/` - Production React bundle
 - `frontend-build-stats/` - Vite build statistics
 - `version-verification-report/` - Version consistency analysis
 - `documentation-index/` - Generated docs index
 
 ### Release Assets
+
 All artifacts are automatically attached to GitHub Releases.
 
 ---
@@ -270,15 +390,18 @@ All artifacts are automatically attached to GitHub Releases.
 ### Required Secrets
 
 #### For Docker Registry (GitHub Container Registry)
+
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 #### For Deployments (Optional - customize based on your infrastructure)
+
 - `PROD_USER` - Production server SSH user
 - `PROD_HOST` - Production server hostname
 - `STAGING_USER` - Staging server SSH user
 - `STAGING_HOST` - Staging server hostname
 
 #### For External Integrations (Optional)
+
 - `CODECOV_TOKEN` - Codecov integration
 - `SLACK_WEBHOOK` - Slack notifications
 - `TEAMS_WEBHOOK` - Microsoft Teams notifications
@@ -288,10 +411,12 @@ All artifacts are automatically attached to GitHub Releases.
 Configure in GitHub Settings → Environments:
 
 **staging:**
+
 - Auto-deployment on main branch push
 - No manual approval required
 
 **production:**
+
 - Deployment on tags only
 - Require manual approval from team leads
 - Restrict to protected branches
@@ -320,8 +445,8 @@ gh pr merge --squash
 # 🚀 Full pipeline runs, deploys to staging
 
 # 5. Tag for production release
-git tag -a v1.9.0 -m "Release v1.9.0"
-git push origin v1.9.0
+git tag -a $11.9.7 -m "Release $11.9.7"
+git push origin $11.9.7
 # 🎯 Production deployment + GitHub Release
 ```
 
@@ -412,7 +537,7 @@ Replace placeholder deployment commands:
       docker-compose up -d
       docker system prune -f
     EOF
-    
+
     # Or Kubernetes deployment
     kubectl set image deployment/sms-app \
       sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
@@ -439,11 +564,13 @@ gh run view <run-id> --log-failed
 ### Common Issues
 
 #### Version Verification Fails
+
 ```
 ❌ Version inconsistencies detected
 ```
 
 **Solution:**
+
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Update
 git add -A
@@ -451,21 +578,25 @@ git commit -m "fix: update version references"
 ```
 
 #### Docker Build Fails
+
 ```
 ERROR: failed to solve: failed to push
 ```
 
 **Solution:**
+
 - Check GITHUB_TOKEN permissions
 - Verify repository has Packages enabled
 - Ensure GitHub Container Registry is accessible
 
 #### Tests Timeout
+
 ```
 Error: The operation was canceled.
 ```
 
 **Solution:**
+
 - Increase timeout in workflow YAML
 - Optimize slow tests
 - Check for database lock issues
@@ -477,6 +608,7 @@ Error: The operation was canceled.
 ### Pipeline Speed Improvements
 
 1. **Cache Dependencies**
+
    ```yaml
    - uses: actions/cache@v3
      with:
@@ -490,6 +622,7 @@ Error: The operation was canceled.
    - Independent stages have no `needs:` dependencies
 
 3. **Docker Layer Caching**
+
    ```yaml
    cache-from: type=gha
    cache-to: type=gha,mode=max
@@ -507,18 +640,21 @@ Error: The operation was canceled.
 ## Compliance & Audit
 
 ### Audit Trail
+
 - All deployments logged in GitHub Actions
 - Version history tracked in Git tags
 - Release notes generated automatically
 - Test results retained for 30 days
 
 ### Security Scanning
+
 - Dependency vulnerabilities (Safety, npm audit)
 - Code security issues (Bandit)
 - Container vulnerabilities (Trivy)
 - Results uploaded to GitHub Security tab
 
 ### Documentation
+
 - Version verification reports
 - Test coverage reports
 - Build statistics
@@ -543,13 +679,14 @@ Error: The operation was canceled.
 
 ## Related Documentation
 
-- **Version Automation:** `docs/VERSION_AUTOMATION_GUIDE.md`
+- **Version Management:** `docs/development/VERSION_MANAGEMENT_GUIDE.md` (canonical)
 - **Docker Deployment:** `DOCKER.ps1`, `docs/DOCKER_NAMING_CONVENTIONS.md`
-- **Pre-Commit Workflow:** `PRE_COMMIT_WORKFLOW_SUMMARY.md`
+- **Pre-Commit Workflow:** `docs/development/PRE_COMMIT_GUIDE.md`
+- **CI/CD change history:** see archive `archive/ci-cd-2025-12-06/` (implementation summary, improvements log)
 - **Architecture:** `docs/ARCHITECTURE.md`
 
 ---
 
-**Last Updated:** 2025-11-24  
-**Maintained By:** SMS Development Team  
+**Last Updated:** 2025-11-24
+**Maintained By:** SMS Development Team
 **Pipeline Version:** 1.0.0

@@ -16,15 +16,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"description": "Not found"}})
 
 
-from backend.db_utils import get_by_id_or_404, paginate, transaction
+from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import (  # Add rate limiting for write endpoints
+    RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
     limiter,
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.grades import GradeCreate, GradeResponse, GradeUpdate
+from backend.services import GradeService
 
 
 class GradeAnalysis(BaseModel):
@@ -42,7 +44,7 @@ class GradeAnalysis(BaseModel):
 # ========== DEPENDENCY INJECTION ==========
 from backend.config import settings
 from backend.db import get_session as get_db
-from backend.routers.routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 
 
 def _normalize_date_range(
@@ -76,7 +78,7 @@ def create_grade(
     request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
 ):
     """
     Create a new grade record.
@@ -90,23 +92,14 @@ def create_grade(
     Note: Validation ensures grade <= max_grade
     """
     try:
-        Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
-
-        # Validate student exists and is not soft-deleted (call kept for validation)
-        _student = get_by_id_or_404(db, Student, grade_data.student_id)
-
-        # Validate course exists and is not soft-deleted (call kept for validation)
-        _course = get_by_id_or_404(db, Course, grade_data.course_id)
-
-        with transaction(db):
-            db_grade = Grade(**grade_data.model_dump())
-            db.add(db_grade)
-            db.flush()
-            db.refresh(db_grade)
-
-        logger.info(f"Created grade: {db_grade.id} for student {grade_data.student_id}")
-        return db_grade
-
+        service = GradeService(db, request)
+        created = service.create_grade(grade_data)
+        # Metrics
+        try:
+            service._track_grade_submission(grade_data.course_id, getattr(created, "category", None))
+        except Exception:
+            pass
+        return created
     except HTTPException:
         raise
     except Exception as e:
@@ -115,6 +108,7 @@ def create_grade(
 
 
 @router.get("/", response_model=PaginatedResponse[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_all_grades(
     request: Request,
     pagination: PaginationParams = Depends(),
@@ -125,33 +119,29 @@ def get_all_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("grades.read", "admin", "teacher")),
 ):
     """
     Get all grades with optional filtering.
     """
     try:
-        (Grade,) = import_names("models", "Grade")
-
-        query = db.query(Grade).filter(Grade.deleted_at.is_(None))
-
-        if student_id is not None:
-            query = query.filter(Grade.student_id == student_id)
-        if course_id is not None:
-            query = query.filter(Grade.course_id == course_id)
-        if category is not None:
-            query = query.filter(Grade.category.ilike(f"%{category}%"))
-        # Date range filter
+        service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        if rng:
-            s, e = rng
-            date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
-            query = query.filter(date_col >= s, date_col <= e)
-
-        result = paginate(query, skip=pagination.skip, limit=pagination.limit)
+        s, e = rng if rng else (None, None)
+        result = service.list_grades(
+            skip=pagination.skip,
+            limit=pagination.limit,
+            student_id=student_id,
+            course_id=course_id,
+            category=category,
+            start_date=s,
+            end_date=e,
+            use_submitted=use_submitted,
+        )
         logger.info(
             f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
         )
-        return result.dict()
+        return result
     except HTTPException:
         raise
     except Exception as e:
@@ -160,6 +150,7 @@ def get_all_grades(
 
 
 @router.get("/student/{student_id}", response_model=List[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_grades(
     request: Request,
     student_id: int,
@@ -171,24 +162,13 @@ def get_student_grades(
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
-        Grade, Student = import_names("models", "Grade", "Student")
-
-        # Validate student exists (call kept for validation)
-        _student = get_by_id_or_404(db, Student, student_id)
-
-        query = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None))
-
-        if course_id:
-            query = query.filter(Grade.course_id == course_id)
+        service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        if rng:
-            s, e = rng
-            date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
-            query = query.filter(date_col.between(s, e))
-
-        grades = query.all()
+        s, e = rng if rng else (None, None)
+        grades = service.list_student_grades(
+            student_id, course_id=course_id, start_date=s, end_date=e, use_submitted=use_submitted
+        )
         return grades
-
     except HTTPException:
         raise
     except Exception as e:
@@ -197,6 +177,7 @@ def get_student_grades(
 
 
 @router.get("/course/{course_id}", response_model=List[GradeResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_course_grades(
     request: Request,
     course_id: int,
@@ -207,20 +188,11 @@ def get_course_grades(
 ):
     """Get all grades for a course"""
     try:
-        Grade, Course = import_names("models", "Grade", "Course")
-
-        # Validate course exists (call kept for validation)
-        _course = get_by_id_or_404(db, Course, course_id)
-
-        query = db.query(Grade).filter(Grade.course_id == course_id, Grade.deleted_at.is_(None))
+        service = GradeService(db, request)
         rng = _normalize_date_range(start_date, end_date, request)
-        if rng:
-            s, e = rng
-            date_col = Grade.date_submitted if use_submitted else Grade.date_assigned
-            query = query.filter(date_col.between(s, e))
-        grades = query.all()
+        s, e = rng if rng else (None, None)
+        grades = service.list_course_grades(course_id, start_date=s, end_date=e, use_submitted=use_submitted)
         return grades
-
     except HTTPException:
         raise
     except Exception as e:
@@ -229,6 +201,7 @@ def get_course_grades(
 
 
 @router.get("/{grade_id}", response_model=GradeResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     """
     Get a single grade by its ID.
@@ -252,7 +225,7 @@ def update_grade(
     grade_id: int,
     grade_data: GradeUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
 ):
     """
     Update a grade record.
@@ -260,21 +233,9 @@ def update_grade(
     Note: Validation ensures grade <= max_grade
     """
     try:
-        (Grade,) = import_names("models", "Grade")
-
-        db_grade = get_by_id_or_404(db, Grade, grade_id)
-
-        with transaction(db):
-            update_data = grade_data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():
-                setattr(db_grade, key, value)
-
-            db.flush()
-            db.refresh(db_grade)
-
-        logger.info(f"Updated grade: {grade_id}")
-        return db_grade
-
+        service = GradeService(db, request)
+        updated = service.update_grade(grade_id, grade_data)
+        return updated
     except HTTPException:
         raise
     except Exception as e:
@@ -288,20 +249,14 @@ def delete_grade(
     request: Request,
     grade_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("grades.write", "admin")),
 ):
     """Delete a grade record"""
     try:
-        (Grade,) = import_names("models", "Grade")
-
-        db_grade = get_by_id_or_404(db, Grade, grade_id)
-
-        with transaction(db):
-            db_grade.mark_deleted()
-
+        service = GradeService(db, request)
+        service.delete_grade(grade_id)
         logger.info(f"Deleted grade: {grade_id}")
         return None
-
     except HTTPException:
         raise
     except Exception as e:
@@ -339,9 +294,14 @@ def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Se
             "highest_grade": round(float(max(percentages)), 2),
             "lowest_grade": round(float(min(percentages)), 2),
             "grade_distribution": {
-                "A (90-100)": len([float(p) for p in percentages if float(p) >= 90.0]),
-                "B (80-89)": len([float(p) for p in percentages if 80.0 <= float(p) < 90.0]),
-                "C (70-79)": len([float(p) for p in percentages if 70.0 <= float(p) < 80.0]),
+                "A+ (97-100)": len([float(p) for p in percentages if float(p) >= 97.0]),
+                "A (93-96)": len([float(p) for p in percentages if 93.0 <= float(p) < 97.0]),
+                "A- (90-92)": len([float(p) for p in percentages if 90.0 <= float(p) < 93.0]),
+                "B+ (87-89)": len([float(p) for p in percentages if 87.0 <= float(p) < 90.0]),
+                "B (83-86)": len([float(p) for p in percentages if 83.0 <= float(p) < 87.0]),
+                "B- (80-82)": len([float(p) for p in percentages if 80.0 <= float(p) < 83.0]),
+                "C+ (77-79)": len([float(p) for p in percentages if 77.0 <= float(p) < 80.0]),
+                "C (70-76)": len([float(p) for p in percentages if 70.0 <= float(p) < 77.0]),
                 "D (60-69)": len([float(p) for p in percentages if 60.0 <= float(p) < 70.0]),
                 "F (below 60)": len([float(p) for p in percentages if float(p) < 60.0]),
             },

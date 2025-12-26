@@ -1,5 +1,17 @@
 # Internationalization (i18n) Implementation
 
+## Accessibility & Color Contrast
+
+- All translated UI text must use high-contrast, accessible color classes (see README for details).
+- Never use low-contrast grays for primary content; prefer `text-indigo-700`, `text-indigo-800`, or similar vivid colors.
+- Validate all UI changes with accessibility tools and ensure ARIA roles/labels are present where needed.
+
+## Translation Integrity
+
+- All translation keys must exist in both EN and EL files.
+- Tests enforce translation completeness and prevent regressions.
+- Never hardcode UI strings; always use `t('key')` from the translation context.
+
 ## Overview
 
 The Student Management System now supports full internationalization with bilingual support for **English (EN)** and **Greek (EL)**. This implementation uses the industry-standard `i18next` framework with automatic language detection and persistent user preferences.
@@ -397,5 +409,5 @@ For questions or issues with localization:
 ---
 
 **Last Updated**: 2025-11-15
-**Version**: 1.2 (v1.6.3 alignment)
+**Version**: 1.2 ($11.9.7 alignment)
 **Languages Supported**: English (EN), Greek (EL)

@@ -14,21 +14,28 @@ spec:
       labels:
         app: sms-fullstack
     spec:
+# Harden container: enforce non-root, read-only root, drop capabilities
       containers:
         - name: sms-fullstack
           image: ghcr.io/bs1gr/sms-fullstack@sha256:REPLACE_WITH_DIGEST
           ports:
-            - containerPort: 80
+            - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 15
             periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
 # Service for sms-fullstack moved to sms-fullstack-service.yaml

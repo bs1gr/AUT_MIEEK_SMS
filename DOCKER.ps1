@@ -1,3 +1,36 @@
+param(
+    $GrafanaPort = 3000,
+    [switch]$Install,
+    [switch]$Start,
+    [switch]$Stop,
+    [switch]$Restart,
+    [switch]$Update,
+    [switch]$UpdateClean,
+    [switch]$Status,
+    [switch]$Logs,
+    [switch]$Backup,
+    [switch]$WithMonitoring,
+    [switch]$StopMonitoring,
+    [switch]$Prune,
+    [switch]$PruneAll,
+    [switch]$DeepClean,
+    [switch]$Help,
+    [switch]$NoPause,
+    [switch]$Silent,  # Unattended mode: skip prompts (for installer integration)
+    [switch]$NoShortcut  # Skip desktop shortcut creation (for installer integration)
+)
+
+# Robustly initialize $SCRIPT_DIR and $INSTALLER_LOG at the very top
+if (-not (Get-Variable -Name SCRIPT_DIR -Scope Script -ErrorAction SilentlyContinue)) {
+    $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+$INSTALLER_LOG = Join-Path $SCRIPT_DIR "DOCKER_INSTALL.log"
+
+function Write-InstallerLog {
+    param([string]$Message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $Message")
+}
 <#
 .SYNOPSIS
     Student Management System - Docker Deployment & Management
@@ -74,30 +107,15 @@
     # Stop cleanly
 
 .NOTES
-    Version: 2.0.0 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
+Version: 1.12.7 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
     For native development mode, use: .\NATIVE.ps1
 #>
 
-param(
-    [switch]$Install,
-    [switch]$Start,
-    [switch]$Stop,
-    [switch]$Restart,
-    [switch]$Update,
-    [switch]$UpdateClean,
-    [switch]$Status,
-    [switch]$Logs,
-    [switch]$Backup,
-    [switch]$WithMonitoring,
-    [switch]$StopMonitoring,
-    [switch]$Prune,
-    [switch]$PruneAll,
-    [switch]$DeepClean,
-    [switch]$Help,
-    [switch]$NoPause,
-    [switch]$Silent,  # Unattended mode: skip prompts (for installer integration)
-    [int]$GrafanaPort = 3000
-)
+if ($Silent) {
+    Remove-Item -Path $INSTALLER_LOG -ErrorAction SilentlyContinue
+    Write-InstallerLog "--- DOCKER.ps1 started in Silent mode ---"
+    Write-InstallerLog "Args: $($MyInvocation.Line)"
+}
 
 # ============================================================================
 # CONFIGURATION
@@ -138,29 +156,34 @@ $BACKEND_ENV_EXAMPLE = Join-Path $SCRIPT_DIR "backend\.env.example"
 
 function Write-Header {
     param([string]$Message)
-    Write-Host "`n╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║  $($Message.PadRight(58))  ║" -ForegroundColor Cyan
-    Write-Host "╚══════════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
+    Write-Host "`n==================================================" -ForegroundColor Cyan
+    Write-Host "  $($Message.PadRight(48))  " -ForegroundColor Cyan
+    Write-Host "==================================================`n" -ForegroundColor Cyan
+    if ($Silent) { Write-InstallerLog $Message }
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✅ $Message" -ForegroundColor Green
+    Write-Host "✓ $Message" -ForegroundColor Green
+    if ($Silent) { Write-InstallerLog "SUCCESS: $Message" }
 }
 
 function Write-Error-Message {
     param([string]$Message)
-    Write-Host "❌ $Message" -ForegroundColor Red
+    Write-Host "✗ $Message" -ForegroundColor Red
+    if ($Silent) { Write-InstallerLog "ERROR: $Message" }
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ️  $Message" -ForegroundColor Cyan
+    Write-Host "ℹ $Message" -ForegroundColor Cyan
+    if ($Silent) { Write-InstallerLog "INFO: $Message" }
 }
 
 function Write-Warning {
     param([string]$Message)
-    Write-Host "⚠️  $Message" -ForegroundColor Yellow
+    Write-Host "⚠ $Message" -ForegroundColor Yellow
+    if ($Silent) { Write-InstallerLog "WARNING: $Message" }
 }
 
 function Test-Administrator {
@@ -220,7 +243,7 @@ function Find-AvailablePort {
         [int]$StartPort = 3000,
         [int]$MaxAttempts = 10
     )
-    
+
     for ($i = 0; $i -lt $MaxAttempts; $i++) {
         $testPort = $StartPort + $i
         if (-not (Test-PortInUse -Port $testPort)) {
@@ -228,6 +251,40 @@ function Find-AvailablePort {
         }
     }
     return $null
+}
+
+function Test-SecretKeySecure {
+    param([string]$Key, [string]$EnvType)
+
+    if ([string]::IsNullOrWhiteSpace($Key)) {
+        return $false
+    }
+
+    $key_lower = $Key.ToLower()
+    $insecure_patterns = @(
+        'change',
+        'placeholder',
+        'your-secret',
+        'example',
+        'local-dev-secret',
+        'dev-placeholder'
+    )
+
+    # Check for insecure patterns
+    foreach ($pattern in $insecure_patterns) {
+        if ($key_lower.Contains($pattern)) {
+            Write-Warning "Insecure SECRET_KEY detected: contains '$pattern'"
+            return $false
+        }
+    }
+
+    # Check length (minimum 32 characters for production)
+    if ($Key.Length -lt 32) {
+        Write-Warning "Insecure SECRET_KEY detected: too short ($($Key.Length) < 32 characters)"
+        return $false
+    }
+
+    return $true
 }
 
 function Initialize-EnvironmentFiles {
@@ -308,7 +365,7 @@ DEFAULT_ADMIN_FORCE_RESET=False
         Write-Info "Default admin credentials:"
         Write-Host "  Email:    admin@example.com" -ForegroundColor White
         Write-Host "  Password: YourSecurePassword123!" -ForegroundColor White
-        Write-Warning "Change password after first login in Control Panel → Maintenance"
+        Write-Warning "Change password after first login in Control Panel -> Maintenance"
         Write-Host ""
     }
 
@@ -376,7 +433,7 @@ function Backup-Database {
                 -v ${VOLUME_NAME}:/data:ro `
                 alpine:latest `
                 test -f /data/student_management.db 2>$null
-            
+
             if ($LASTEXITCODE -ne 0) {
                 Write-Warning "No database file in volume - skipping backup (fresh installation)"
                 return $true  # Not an error for fresh installs
@@ -469,7 +526,7 @@ function Wait-ForHealthy {
 function Get-MonitoringStatus {
     $prometheus = docker ps -q -f name=sms-prometheus 2>$null
     $grafana = docker ps -q -f name=sms-grafana 2>$null
-    
+
     return @{
         PrometheusRunning = ($null -ne $prometheus -and $prometheus.Length -gt 0)
         GrafanaRunning = ($null -ne $grafana -and $grafana.Length -gt 0)
@@ -479,39 +536,39 @@ function Get-MonitoringStatus {
 
 function Start-MonitoringStack {
     param([int]$GrafanaPortOverride = $DEFAULT_GRAFANA_PORT)
-    
+
     Write-Info "Starting monitoring stack..."
-    
+
     $actualGrafanaPort = $GrafanaPortOverride
     if (Test-PortInUse -Port $actualGrafanaPort) {
         Write-Warning "Port $actualGrafanaPort is already in use"
         $availablePort = Find-AvailablePort -StartPort $actualGrafanaPort
-        
+
         if ($null -eq $availablePort) {
             Write-Error-Message "Could not find available port for Grafana"
             return $false
         }
-        
+
         $actualGrafanaPort = $availablePort
         Write-Info "Using alternative port for Grafana: $actualGrafanaPort"
     }
-    
+
     Push-Location $SCRIPT_DIR
     try {
         $env:GRAFANA_PORT = $actualGrafanaPort
         docker compose -f $MONITORING_COMPOSE_FILE up -d 2>&1 | Out-Null
-        
+
         if ($LASTEXITCODE -ne 0) {
             Write-Error-Message "Failed to start monitoring stack"
             return $false
         }
-        
+
         Write-Success "Monitoring stack started"
         Write-Host ""
-        Write-Host "  📊 Grafana:    http://localhost:$actualGrafanaPort (admin/admin)" -ForegroundColor Cyan
-        Write-Host "  🔍 Prometheus: http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor Cyan
+        Write-Host "  π“ Grafana:    http://localhost:$actualGrafanaPort (admin/admin)" -ForegroundColor Cyan
+        Write-Host "  π” Prometheus: http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor Cyan
         Write-Host ""
-        
+
         return $true
     }
     finally {
@@ -521,7 +578,7 @@ function Start-MonitoringStack {
 
 function Stop-MonitoringStack {
     Write-Info "Stopping monitoring stack..."
-    
+
     Push-Location $SCRIPT_DIR
     try {
         docker compose -f $MONITORING_COMPOSE_FILE down 2>$null | Out-Null
@@ -658,43 +715,43 @@ function Create-DesktopShortcut {
     #>
     Write-Host ""
     Write-Info "Setting up desktop shortcut..."
-    
+
     $desktopPath = [Environment]::GetFolderPath("Desktop")
-    $toggleScript = Join-Path $SCRIPT_DIR "DOCKER_TOGGLE.vbs"
+    $toggleScript = Join-Path $SCRIPT_DIR "DOCKER_TOGGLE.bat"
     $iconPath = Join-Path $SCRIPT_DIR "SMS_Toggle.ico"
     $shortcutPath = Join-Path $desktopPath "SMS Toggle.lnk"
-    
+
     # Check if toggle script exists
     if (-not (Test-Path $toggleScript)) {
-        Write-Warning "DOCKER_TOGGLE.vbs not found - skipping shortcut creation"
+        Write-Warning "DOCKER_TOGGLE.bat not found - skipping shortcut creation"
         return $false
     }
-    
+
     try {
         $WshShell = New-Object -ComObject WScript.Shell
-        
+
         # Remove old shortcut if exists
         if (Test-Path $shortcutPath) {
             Remove-Item $shortcutPath -Force | Out-Null
         }
-        
+
         # Create new shortcut
         $shortcut = $WshShell.CreateShortcut($shortcutPath)
-        $shortcut.TargetPath = "wscript.exe"
-        $shortcut.Arguments = "`"$toggleScript`""
+        $shortcut.TargetPath = "cmd.exe"
+        $shortcut.Arguments = "/c `"$toggleScript`""
         $shortcut.WorkingDirectory = $SCRIPT_DIR
         $shortcut.Description = "Toggle SMS Docker Application (Start/Stop)"
-        
+
         # Use custom icon if available
         if (Test-Path $iconPath) {
             $shortcut.IconLocation = $iconPath
         } else {
             $shortcut.IconLocation = "shell32.dll,21"
         }
-        
+
         $shortcut.Save()
         [System.Runtime.InteropServices.Marshal]::ReleaseComObject($WshShell) | Out-Null
-        
+
         Write-Success "Desktop shortcut created: SMS Toggle"
         return $true
     }
@@ -705,6 +762,7 @@ function Create-DesktopShortcut {
 }
 
 function Start-Installation {
+    if ($Silent) { Write-InstallerLog "Start-Installation called" }
     Write-Header "SMS Docker Installation"
 
     # Check prerequisites
@@ -805,17 +863,18 @@ function Start-Installation {
     Write-Host ""
     Write-Header "Installation Complete!"
     Write-Host ""
-    
-    # Create desktop shortcut
-    Create-DesktopShortcut | Out-Null
-    
+
+    # Create desktop shortcut only if not suppressed (installer handles it)
+    if (-not $NoShortcut) {
+        Create-DesktopShortcut | Out-Null
+        Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
+    }
+
     Write-Info "Next steps:"
     Write-Host "  1. Start application:  .\DOCKER.ps1 -Start" -ForegroundColor White
     Write-Host "  2. Access web app:     http://localhost:$PORT" -ForegroundColor White
     Write-Host "  3. Login:              admin@example.com / YourSecurePassword123!" -ForegroundColor White
-    Write-Host "  4. Change password:    Control Panel → Maintenance" -ForegroundColor White
-    Write-Host ""
-    Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
+    Write-Host "  4. Change password:    Control Panel -> Maintenance" -ForegroundColor White
     Write-Host ""
 
     # In silent mode, don't prompt and don't auto-start
@@ -833,6 +892,7 @@ function Start-Installation {
 }
 
 function Start-Application {
+    if ($Silent) { Write-InstallerLog "Start-Application called" }
     Write-Header "Starting SMS Application"
 
     if (-not (Test-DockerAvailable)) {
@@ -842,15 +902,17 @@ function Start-Application {
 
     # Check if already running
     $status = Get-ContainerStatus
+    $withMonitoringBool = $false
+    if ($null -ne $WithMonitoring -and $WithMonitoring) { $withMonitoringBool = $true }
     if ($status -and $status.IsRunning) {
         if ($status.IsHealthy) {
             Write-Success "SMS is already running!"
-            Show-AccessInfo -MonitoringEnabled:$WithMonitoring
+            Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
             return 0
         } else {
             Write-Info "SMS is starting up..."
             if (Wait-ForHealthy) {
-                Show-AccessInfo -MonitoringEnabled:$WithMonitoring
+                Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
                 return 0
             } else {
                 return 1
@@ -887,6 +949,30 @@ function Start-Application {
     # Initialize env files
     Initialize-EnvironmentFiles | Out-Null
 
+    # Validate SECRET_KEY security for production deployments
+    if (Test-Path $ROOT_ENV) {
+        $envContent = Get-Content $ROOT_ENV -Raw
+        if ($envContent -match 'SECRET_KEY=(.+)') {
+            $currentKey = $matches[1].Trim()
+            $envType = if ($envContent -match 'SMS_ENV=(.+)') { $matches[1].Trim() } else { "production" }
+
+            if (-not (Test-SecretKeySecure -Key $currentKey -EnvType $envType)) {
+                Write-Host ""
+                Write-Error-Message "CRITICAL SECURITY ISSUE: Weak or default SECRET_KEY detected!"
+                Write-Warning "This allows JWT token forgery and complete authentication bypass."
+                Write-Host ""
+                Write-Info "Generate a secure key:"
+                Write-Host "  python -c `"import secrets; print(secrets.token_urlsafe(48))`"" -ForegroundColor Yellow
+                Write-Host ""
+                Write-Info "Update in .env file:"
+                Write-Host "  SECRET_KEY=<generated_key>" -ForegroundColor Yellow
+                Write-Host ""
+                return 1
+            }
+            Write-Success "SECRET_KEY security validated"
+        }
+    }
+
     # Start container
     Write-Info "Starting container..."
 
@@ -896,12 +982,12 @@ function Start-Application {
         "--name", $CONTAINER_NAME,
         "-p", "${PORT}:${INTERNAL_PORT}"
     )
-    
+
     if (Test-Path $ROOT_ENV) {
         $dockerCmd += "--env-file"
         $dockerCmd += $ROOT_ENV
     }
-    
+
     $dockerCmd += @(
         "-e", "SMS_ENV=production",
         "-e", "SMS_EXECUTION_MODE=docker",
@@ -922,12 +1008,16 @@ function Start-Application {
 
     # Wait for health check
     if (Wait-ForHealthy) {
-        if ($WithMonitoring) {
+        # Ensure $WithMonitoring is always boolean
+        $withMonitoringBool = $false
+        if ($null -ne $WithMonitoring -and $WithMonitoring) { $withMonitoringBool = $true }
+
+        if ($withMonitoringBool) {
             Write-Host ""
             Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
         }
 
-        Show-AccessInfo -MonitoringEnabled:$WithMonitoring
+        Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
         return 0
     } else {
         return 1
@@ -935,6 +1025,7 @@ function Start-Application {
 }
 
 function Stop-Application {
+    if ($Silent) { Write-InstallerLog "Stop-Application called" }
     Write-Header "Stopping SMS Application"
 
     $status = Get-ContainerStatus
@@ -974,6 +1065,7 @@ function Stop-Application {
 }
 
 function Restart-Application {
+    if ($Silent) { Write-InstallerLog "Restart-Application called" }
     Write-Header "Restarting SMS Application"
 
     $stopResult = Stop-Application
@@ -985,7 +1077,8 @@ function Restart-Application {
     return Start-Application
 }
 
-function Show-Status {
+function Get-Status {
+    if ($Silent) { Write-InstallerLog "Show-Status called" }
     Write-Header "SMS Application Status"
 
     if (-not (Test-DockerAvailable)) {
@@ -1013,7 +1106,7 @@ function Show-Status {
     if ($status.IsRunning) {
         Write-Host "Health:    " -NoNewline -ForegroundColor Cyan
         if ($status.IsHealthy) {
-            Write-Host "Healthy ✅" -ForegroundColor Green
+            Write-Host "Healthy OK" -ForegroundColor Green
         } else {
             Write-Host "Starting..." -ForegroundColor Yellow
         }
@@ -1023,14 +1116,14 @@ function Show-Status {
             Write-Host $status.Ports -ForegroundColor White
         }
 
-        Write-Host "`n📱 Web Interface: http://localhost:$PORT" -ForegroundColor Green
+        Write-Host "`nWeb Interface: http://localhost:$PORT" -ForegroundColor Green
     }
 
     # Check monitoring
     $monStatus = Get-MonitoringStatus
     if ($monStatus.IsRunning) {
         Write-Host "`nMonitoring: " -NoNewline -ForegroundColor Cyan
-        Write-Host "Running ✅" -ForegroundColor Green
+        Write-Host "Running OK" -ForegroundColor Green
         Write-Host "  Grafana:    http://localhost:$GrafanaPort" -ForegroundColor White
         Write-Host "  Prometheus: http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor White
     }
@@ -1040,6 +1133,7 @@ function Show-Status {
 }
 
 function Show-Logs {
+    if ($Silent) { Write-InstallerLog "Show-Logs called" }
     $status = Get-ContainerStatus
     if (-not $status -or -not $status.IsRunning) {
         Write-Error-Message "SMS is not running"
@@ -1052,8 +1146,10 @@ function Show-Logs {
     return $LASTEXITCODE
 }
 
+
 function Update-Application {
     param([switch]$Clean)
+    if ($Silent) { Write-InstallerLog "Update-Application called" }
 
     Write-Header "Updating SMS Application"
 
@@ -1115,33 +1211,41 @@ function Update-Application {
 
 function Show-AccessInfo {
     param([bool]$MonitoringEnabled = $false)
-    
+
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║                 🎉 SMS is now running! 🎉                    ║" -ForegroundColor Green
-    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
+    Write-Host "              SMS is now running!              " -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "  📱 Web Interface:  http://localhost:$PORT" -ForegroundColor Cyan
-    Write-Host "  📊 API Docs:       http://localhost:${PORT}/docs" -ForegroundColor Cyan
-    Write-Host "  🏥 Health Check:   http://localhost:${PORT}/health" -ForegroundColor Cyan
-    
+    Write-Host "  Web Interface:  http://localhost:$PORT" -ForegroundColor Cyan
+    Write-Host "  API Docs:       http://localhost:${PORT}/docs" -ForegroundColor Cyan
+    Write-Host "  Health Check:   http://localhost:${PORT}/health" -ForegroundColor Cyan
+
     if ($MonitoringEnabled) {
         $monStatus = Get-MonitoringStatus
         if ($monStatus.IsRunning) {
             Write-Host ""
             Write-Host "  Monitoring:" -ForegroundColor Yellow
-            Write-Host "    📊 Grafana:    http://localhost:$GrafanaPort" -ForegroundColor Cyan
-            Write-Host "    🔍 Prometheus: http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor Cyan
+            Write-Host "    Grafana:    http://localhost:$GrafanaPort" -ForegroundColor Cyan
+            Write-Host "    Prometheus: http://localhost:$DEFAULT_PROMETHEUS_PORT" -ForegroundColor Cyan
         }
     }
-    
+
     Write-Host ""
     Write-Host "  Quick Commands:" -ForegroundColor Yellow
-    Write-Host "    .\DOCKER.ps1 -Stop    → Stop application" -ForegroundColor White
-    Write-Host "    .\DOCKER.ps1 -Update  → Update application" -ForegroundColor White
-    Write-Host "    .\DOCKER.ps1 -Logs    → View logs" -ForegroundColor White
-    Write-Host "    .\DOCKER.ps1 -Status  → Check status" -ForegroundColor White
+    Write-Host "    .\DOCKER.ps1 -Stop    -> Stop application" -ForegroundColor White
+    Write-Host "    .\DOCKER.ps1 -Update  -> Update application" -ForegroundColor White
+    Write-Host "    .\DOCKER.ps1 -Logs    -> View logs" -ForegroundColor White
+    Write-Host "    .\DOCKER.ps1 -Status  -> Check status" -ForegroundColor White
     Write-Host ""
+
+    # Auto-open web interface in browser
+    try {
+        Write-Info "Opening web interface in browser..."
+        Start-Process "http://localhost:$PORT"
+    } catch {
+        Write-Warning "Could not open browser automatically. Please visit: http://localhost:$PORT"
+    }
 }
 
 # ============================================================================

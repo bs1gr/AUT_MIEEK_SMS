@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
-import apiClient, { gradesAPI } from '@/api/api';
+import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
@@ -26,7 +26,7 @@ interface GradingViewProps {
 }
 
 const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
@@ -54,16 +54,16 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   useEffect(() => {
     const storedStudent = sessionStorage.getItem('grading_filter_student');
     const storedCourse = sessionStorage.getItem('grading_filter_course');
-    if (storedStudent && !studentId) setStudentId(Number(storedStudent));
-    if (storedCourse && !courseId) setCourseId(Number(storedCourse));
+    if (storedStudent) setStudentId(prev => prev || Number(storedStudent));
+    if (storedCourse) setCourseId(prev => prev || Number(storedCourse));
     // Optionally clear after use
     sessionStorage.removeItem('grading_filter_student');
     sessionStorage.removeItem('grading_filter_course');
   }, []);
   const [category, setCategory] = useState('Midterm');
-  const [gradeValue, setGradeValue] = useState<number | ''>('');
-  const [maxGrade, setMaxGrade] = useState<number | ''>(100);
-  const [weight, setWeight] = useState<number | ''>('');
+  const [gradeValue, setGradeValue] = useState<string>('');
+  const [maxGrade, setMaxGrade] = useState<string>('100');
+  const [weight, setWeight] = useState<string>('');
   const [assignmentName, setAssignmentName] = useState('');
   const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -71,23 +71,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [filteredCourses, setFilteredCourses] = useState<CourseWithEvaluationRules[]>(courses || []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
 
-  const loadFinal = async () => {
-    setFinalSummary(null);
-    setError(null);
-    if (!studentId || !courseId) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        throw new Error(txt || 'Failed to load final grade');
-      }
-      const data: FinalGrade = await res.json();
-      setFinalSummary(data);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load final grade');
-    }
-  };
+  // loadFinal is declared below and memoized with useCallback. Do not define a separate
+  // non-memoized loadFinal here — keep the single useCallback instance to satisfy
+  // react-hooks/exhaustive-deps and avoid re-creating the function each render.
 
   // Keep filters in sync
   useEffect(() => { setFilteredStudents(students || []); }, [students]);
@@ -100,26 +88,23 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     const run = async () => {
       if (!courseId) { setFilteredStudents(students || []); return; }
       try {
-        const res = await fetch(`${API_BASE_URL}/enrollments/course/${courseId}/students`);
-        if (res.ok) {
-          const arr: Student[] = await res.json();
-          const ids = new Set(arr.map(s => s.id));
-          const list = (students || []).filter(s => ids.has(s.id));
-          setFilteredStudents(list);
-          if (studentId && !ids.has(studentId as number)) {
-            setStudentId('');
-          }
-          return;
+        const arr: Student[] = await enrollmentsAPI.getEnrolledStudents(courseId as number);
+        const ids = new Set(arr.map(s => s.id));
+        const list = (students || []).filter(s => ids.has(s.id));
+        setFilteredStudents(list);
+        if (studentId && !ids.has(studentId as number)) {
+          setStudentId('');
         }
+        return;
       } catch {}
       // Fallback: leave students unfiltered
       setFilteredStudents(students || []);
     };
     run();
-  }, [courseId, studentsString]); // Use studentsString to avoid infinite loop
+  }, [courseId, studentsString, studentId, students]); // Use studentsString to avoid infinite loop and include studentId
 
   // When student is chosen, restrict courses to those the student is enrolled in
-  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
+  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses?.length]); // Use length to prevent loops
 
   useEffect(() => {
     const run = async () => {
@@ -128,9 +113,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       try {
         const results = await Promise.all((courses || []).map(async (c) => {
           try {
-            const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
-            if (!r.ok) return { id: c.id, has: false };
-            const studs: Student[] = await r.json();
+            const studs: Student[] = await enrollmentsAPI.getEnrolledStudents(c.id);
             const has = studs.some(s => s.id === studentId);
             return { id: c.id, has };
           } catch { return { id: c.id, has: false }; }
@@ -146,9 +129,26 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       }
     };
     run();
-  }, [studentId, coursesString]); // Use coursesString to avoid infinite loop
+  }, [studentId, coursesString, courseId, courses]); // Use coursesString to avoid infinite loop and include courseId
 
-  useEffect(()=>{ loadFinal(); },[studentId, courseId]);
+  const loadFinal = useCallback(async () => {
+    setFinalSummary(null);
+    setError(null);
+    if (!studentId || !courseId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(txt || 'Failed to load final grade');
+      }
+      const data: FinalGrade = await res.json();
+      setFinalSummary(data);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load final grade');
+    }
+  }, [studentId, courseId]);
+
+  useEffect(() => { loadFinal(); }, [loadFinal]);
 
   useEffect(() => {
     const loadGrades = async () => {
@@ -156,7 +156,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       if (!studentId) return;
       try {
         const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res.data) ? res.data as Grade[] : []);
+        // API returns paginated response with items array
+        const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+        setGrades(gradesData as Grade[]);
       } catch {
         // noop; errors surfaced during submission
       }
@@ -182,15 +184,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       const attempts = grades.filter(g => normalizeCategory(g.category) === catNorm).length;
       const baseTitle = catNorm === 'midterm' ? 'Midterm Exam' : 'Final Exam';
       const suffix = attempts >= 1 ? 'B' : 'A';
+
       // Only override if empty or if previously auto-generated for the same family
-      const current = (assignmentName || '').trim().toLowerCase();
-      const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
-      if (!assignmentName || isAutoPattern) {
-        setAssignmentName(`${baseTitle} ${suffix}`);
-      }
-      if (maxGrade === '' || Number(maxGrade) <= 0) {
-        setMaxGrade(100);
-      }
+      setAssignmentName(prev => {
+        const current = (prev || '').trim().toLowerCase();
+        const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
+        if (!prev || isAutoPattern) return `${baseTitle} ${suffix}`;
+        return prev;
+      });
+
+      setMaxGrade(prev => {
+        const numeric = Number(prev || 0);
+        if (prev === '' || numeric <= 0) return '100';
+        return prev;
+      });
     }
   }, [category, grades, studentId, courseId]);
 
@@ -200,31 +207,89 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // Category options with display names
   const categoryOptions: CategoryOption[] = useMemo(() => {
     const base: CategoryOption[] = [
-      { value: 'Midterm', label: t('midterm') },
+      { value: 'Midterm Exam', label: t('midtermExam') },
       { value: 'Final Exam', label: t('finalExam') },
-      { value: 'Assignment', label: t('assignment') },
-      { value: 'Quiz', label: t('quiz') },
+      { value: 'Quizzes', label: t('quizzes') },
+      { value: 'Lab Work', label: t('labWork') },
+      { value: 'Homework', label: t('homework') },
       { value: 'Project', label: t('project') },
-      { value: 'Lab', label: t('lab') }
+      { value: 'Class Participation', label: t('classParticipation') },
+      { value: 'Continuous Assessment', label: t('continuousAssessment') }
     ];
     const rules = evaluationRules.map(r => r.category).filter(Boolean);
     const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
     return [...base, ...customRules];
-  }, [evaluationRules, t]);
+  }, [evaluationRules, t, language]);
 
   // Force Midterm/Final Exam to weight=1
   useEffect(() => {
-    if (category === 'Midterm' || category === 'Final Exam') {
-      setWeight(1);
+    if (category === 'Midterm Exam' || category === 'Final Exam') {
+      setWeight('1');
     }
   }, [category]);
+
+  const handleEditGrade = (grade: Grade) => {
+    setEditingGradeId(grade.id);
+    setStudentId(grade.student_id);
+    setCourseId(grade.course_id);
+    setAssignmentName(grade.assignment_name || '');
+    setCategory(grade.category || 'Midterm');
+    setGradeValue(String(grade.grade));
+    setMaxGrade(String(grade.max_grade || 100));
+    setWeight(String(grade.weight || 1));
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingGradeId(null);
+    setAssignmentName('');
+    setCategory('Midterm');
+    setGradeValue('');
+    setMaxGrade('100');
+    setWeight('');
+  };
+
+  const handleDeleteGrade = async (gradeId: number) => {
+    if (!window.confirm(t('confirmDeleteGrade') || 'Are you sure you want to delete this grade?')) {
+      return;
+    }
+    try {
+      await gradesAPI.delete(gradeId);
+      eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
+      await loadFinal();
+      // Refresh grade list
+      try {
+        const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
+        setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
+      } catch {}
+    } catch (e: unknown) {
+      let apiMsg: string | undefined;
+      if (typeof e === 'object' && e !== null && 'response' in e) {
+        try {
+          const ev = e as { response?: { data?: unknown }; message?: string };
+          const data = ev.response?.data;
+          if (typeof data === 'string') apiMsg = data;
+          else if (typeof data === 'object' && data !== null) {
+            const detail = (data as Record<string, unknown>)['detail'];
+            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
+          } else if (typeof ev.message === 'string') apiMsg = ev.message;
+        } catch {}
+      }
+      if (!apiMsg) {
+        if (e instanceof Error) apiMsg = e.message;
+        else apiMsg = String(e);
+      }
+      setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
+    }
+  };
 
   const submitGrade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId || !courseId) { setError(t('selectStudentAndCourseError')); return; }
     if (!assignmentName || String(assignmentName).trim().length === 0) { setError(t('assignmentNameRequired')); return; }
     if (gradeValue === '' || maxGrade === '') { setError(t('fillRequiredFields')); return; }
-    const gv = Number(gradeValue); const mg = Number(maxGrade || 100);
+    const gv = Number(gradeValue.replace(',', '.')); const mg = Number(maxGrade.replace(',', '.') || 100);
     if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
     if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
     setSubmitting(true); setError(null);
@@ -236,11 +301,18 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         category,
         grade: gv,
         max_grade: mg,
-        weight: Number(category === 'Midterm' || category === 'Final Exam' ? 1 : (weight || 1)),
+        weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
         date_submitted: new Date().toISOString().split('T')[0],
         // optional fields not set: date_assigned, notes
       };
-      await gradesAPI.create(payload);
+
+      // Update existing grade or create new one
+      if (editingGradeId) {
+        await gradesAPI.update(editingGradeId, payload);
+        setEditingGradeId(null);
+      } else {
+        await gradesAPI.create(payload);
+      }
       // Emit event to notify other components that grades changed
       eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
       await loadFinal();
@@ -249,10 +321,28 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
         setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
       } catch {}
-      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade(100); setWeight('');
+      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
     } catch (e: unknown) {
-      // Attempt to extract common API error formats
-      const apiMsg = (e as any)?.response?.data?.detail || (e as any)?.response?.data || (e as any)?.message || 'Error';
+      // Attempt to extract common API error formats without using `any`
+      let apiMsg: string | undefined;
+      if (typeof e === 'object' && e !== null && 'response' in e) {
+        try {
+          // Narrow known shapes safely
+          const ev = e as { response?: { data?: unknown }; message?: string };
+          const data = ev.response?.data;
+          if (typeof data === 'string') apiMsg = data;
+          else if (typeof data === 'object' && data !== null) {
+            const detail = (data as Record<string, unknown>)['detail'];
+            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
+          } else if (typeof ev.message === 'string') apiMsg = ev.message;
+        } catch {
+          // ignore
+        }
+      }
+      if (!apiMsg) {
+        if (e instanceof Error) apiMsg = e.message;
+        else apiMsg = String(e);
+      }
       setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
     }
     finally { setSubmitting(false); }
@@ -273,7 +363,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       </div>
 
       <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3">
-        <h3 className="text-lg font-semibold">{t('addGrade')}</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">
+            {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
+          </h3>
+          {editingGradeId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-sm text-gray-600 hover:text-gray-800 underline"
+            >
+              {t('cancel') || 'Cancel'}
+            </button>
+          )}
+        </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input className="border rounded px-3 py-2" placeholder={t('assignmentNamePlaceholder')} value={assignmentName} onChange={e=>setAssignmentName(e.target.value)} />
@@ -282,11 +385,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <input className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={String(weight)} onChange={e=>setWeight(e.target.value? Number(e.target.value): '')} disabled={category==='Midterm' || category==='Final Exam'} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={weight} onChange={e => setWeight(e.target.value)} disabled={category==='Midterm' || category==='Final Exam'} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={String(gradeValue)} onChange={e=>setGradeValue(e.target.value? Number(e.target.value): '')} />
-          <input className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={String(maxGrade)} onChange={e=>setMaxGrade(e.target.value? Number(e.target.value): '')} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
+          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
           <button disabled={submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{submitting? t('saving') : t('saveGrade')}</button>
         </div>
       </form>
@@ -303,7 +406,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             {typeof finalSummary.gpa === 'number' && (
               <>
                 <p className={`mt-1 ${getGreekGradeColor(gpaToGreekScale(finalSummary.gpa))}`}>
-                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(finalSummary.gpa).toFixed(1)}/20 • {getGreekGradeDescription(gpaToGreekScale(finalSummary.gpa))}
+                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(finalSummary.gpa).toFixed(1)}{t('outOf20')} {t('bullet')} {getGreekGradeDescription(gpaToGreekScale(finalSummary.gpa))}
                 </p>
                 <p className="text-gray-600">{gpaToPercentage(finalSummary.gpa).toFixed(1)}%</p>
               </>
@@ -313,7 +416,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                 <p className="font-semibold">{t('categoryBreakdown')}</p>
                 <ul className="list-disc ml-5">
                   {Object.keys(finalSummary.category_breakdown).map(k=> (
-                    <li key={k}>{translateCategory(k)}: {finalSummary.category_breakdown[k].average.toFixed(1)}% (w {finalSummary.category_breakdown[k].weight}%)</li>
+                    <li key={k}>{t('categoryBreakdownItem', { category: translateCategory(k), average: finalSummary.category_breakdown[k].average.toFixed(1), weight: finalSummary.category_breakdown[k].weight })}</li>
                   ))}
                 </ul>
               </div>
@@ -358,6 +461,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('weight')}</th>
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('letterGrade')}</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">{t('date')}</th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('actions') || 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -379,6 +483,24 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         <td className="px-4 py-2 text-center">×{g.weight || 1}</td>
                         <td className="px-4 py-2 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${color}`}>{letter}</span></td>
                         <td className="px-4 py-2 text-gray-600">{g.date_submitted || 'N/A'}</td>
+                        <td className="px-4 py-2 text-center">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handleEditGrade(g)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              title={t('edit') || 'Edit'}
+                            >
+                              {t('edit') || 'Edit'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteGrade(g.id)}
+                              className="text-red-600 hover:text-red-800 text-sm font-medium"
+                              title={t('delete') || 'Delete'}
+                            >
+                              {t('delete') || 'Delete'}
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}

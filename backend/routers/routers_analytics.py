@@ -9,6 +9,11 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from backend.db import get_session as get_db
+from backend.errors import internal_server_error
+from backend.rate_limiting import RATE_LIMIT_READ, limiter
+from backend.services import AnalyticsService
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -18,16 +23,12 @@ router = APIRouter(
 )
 
 
-from backend.db import get_session as get_db
-from backend.errors import internal_server_error
-from backend.services import AnalyticsService
-
-
 def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:
     return AnalyticsService(db)
 
 
 @router.get("/student/{student_id}/course/{course_id}/final-grade")
+@limiter.limit(RATE_LIMIT_READ)
 def calculate_final_grade(
     request: Request,
     student_id: int,
@@ -45,6 +46,7 @@ def calculate_final_grade(
 
 
 @router.get("/student/{student_id}/all-courses-summary")
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_all_courses_summary(
     request: Request,
     student_id: int,
@@ -60,6 +62,7 @@ def get_student_all_courses_summary(
 
 
 @router.get("/student/{student_id}/summary")
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_summary(
     request: Request,
     student_id: int,
@@ -72,3 +75,19 @@ def get_student_summary(
     except Exception as exc:
         logger.error("Student summary failed: %s", exc, exc_info=True)
         raise internal_server_error("Student summary failed", request)
+
+
+@router.get("/dashboard")
+@limiter.limit(RATE_LIMIT_READ)
+def get_dashboard(
+    request: Request,
+    service: AnalyticsService = Depends(get_analytics_service),
+):
+    """Lightweight dashboard summary used by the frontend and load tests."""
+    try:
+        return service.get_dashboard_summary()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Dashboard summary failed: %s", exc, exc_info=True)
+        raise internal_server_error("Dashboard summary failed", request)

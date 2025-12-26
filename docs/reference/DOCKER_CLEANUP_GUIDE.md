@@ -128,6 +128,14 @@ If you're installing on a fresh PC and have old Docker cache:
 
 ---
 
+## Additional Checks (carried over from legacy ops guide)
+
+- **QNAP compose detection:** Cleanup flow detects `docker-compose.qnap.yml` and asks before removal.
+- **Image/cache inspection:** Summarizes image sizes before pruning to help choose between `-Prune` and `-PruneAll`.
+- **Backups before volume removal:** `-DeepClean` creates an automatic backup of the database volume; move it off-host before restoring if needed.
+
+---
+
 ## Troubleshooting
 
 ### "Error response from daemon: conflict"

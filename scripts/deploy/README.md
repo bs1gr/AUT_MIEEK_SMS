@@ -8,16 +8,12 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 
 ## Scripts
 
-
-
 ### Primary Entry Points (v1.5.0+)
 
 - `DOCKER.ps1` (root) - Canonical one-click Docker deployment (recommended for all users)
 - `NATIVE.ps1` (root) - Native development mode
 
 > **Note:** As of v2.0, use `..\..\DOCKER.ps1` for Docker deployment. Legacy scripts were archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
-
-
 
 ### Docker Operations (Advanced)
 
@@ -36,8 +32,6 @@ End-users, system administrators, and DevOps engineers deploying and managing th
 ### Metadata & Versioning
 
 - `set-docker-metadata.ps1` - Set Docker image metadata
-
-
 
 ### Usage Patterns
 
@@ -70,7 +64,6 @@ If pwsh isn't installed, you can fall back to plain Docker:
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-
 ### Maintenance
 
 ```powershell
@@ -98,7 +91,6 @@ The system uses versioned Docker volumes to prevent data loss:
 - Volume names include version numbers (e.g., `sms_data_v1.2.3`)
 - `CHECK_VOLUME_VERSION.ps1` detects schema mismatches
 - Automatic migration available when upgrading versions
-
 
 ## Notes
 

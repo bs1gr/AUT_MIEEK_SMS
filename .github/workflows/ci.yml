@@ -1,0 +1,72 @@
+name: CI Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    name: Verify & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password # pragma: allowlist secret
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
+
+      - name: Run Commit Ready Verification
+        shell: pwsh
+        run: |
+          ./COMMIT_READY.ps1 -Mode standard -NonInteractive
+        env:
+          CI: 'true'
+          STRICT_CI: 'true'
+          DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/test_db # pragma: allowlist secret

@@ -33,10 +33,12 @@ WORKDIR /app
 # Install python dependencies first for better caching
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN python -m pip install --upgrade pip && \
-     pip install --no-cache-dir -r /app/backend/requirements.txt
+    pip install --no-cache-dir -r /app/backend/requirements.txt && \
+    rm -rf /root/.cache/pip
 
-# Copy backend source
+# Copy backend source (excluding .env which has dev defaults)
 COPY backend /app/backend
+RUN rm -f /app/backend/.env && find /app -type d -name __pycache__ -exec rm -rf {} +
 
 # Copy .github/scripts for CI validator tests
 COPY .github/scripts /app/.github/scripts
@@ -51,8 +53,17 @@ EXPOSE 8000
 RUN useradd -m appuser && \
     chown -R appuser:appuser /app && \
     mkdir -p /data && \
-    chown -R appuser:appuser /data
+    chown -R appuser:appuser /data && \
+    chmod 755 /data
+
+# Fix database permissions if they exist (owned by root from previous runs)
+RUN if [ -f /data/student_management.db ]; then chmod 644 /data/student_management.db && chown appuser:appuser /data/student_management.db; fi
+
+
+# Switch to non-root user (appuser) for security
 USER appuser
+
+# Set root filesystem to read-only at runtime (K8s should also enforce)
 
 # Healthcheck against /health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD curl -fsS http://127.0.0.1:8000/health || exit 1

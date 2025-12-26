@@ -26,16 +26,26 @@ services:
       - CORS_ORIGINS=http://localhost:8080
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
-      - SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
+      # SECRET_KEY is required - no default provided for security
+      # Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env file}
       # Authentication and admin bootstrap
-      - AUTH_ENABLED=${AUTH_ENABLED:-True}
-      - AUTH_MODE=${AUTH_MODE:-permissive}
+      - AUTH_ENABLED=False
+      - AUTH_MODE=disabled
       - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@example.com}
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-}
       - DEFAULT_ADMIN_FULL_NAME=${DEFAULT_ADMIN_FULL_NAME:-System Administrator}
       - DEFAULT_ADMIN_FORCE_RESET=${DEFAULT_ADMIN_FORCE_RESET:-False}
       # Enable Control API for operations panel
       - ENABLE_CONTROL_API=1
+      # Redis caching configuration
+      - REDIS_ENABLED=${REDIS_ENABLED:-true}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - sms_data:/data
       - ./templates:/app/templates:ro  # Mount templates directory for imports
@@ -51,6 +61,22 @@ services:
     # Optional: uncomment to access backend directly on host
     # ports:
     #   - "8000:8000"
+
+  redis:
+    image: redis:7-alpine
+    container_name: sms-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --appendfsync everysec
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      - REDIS_ENABLED=true
 
   frontend:
     image: sms-frontend:${VERSION:-latest}
@@ -72,8 +98,10 @@ services:
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
     ports:
-      - \"8080:80\"
+      - "8080:80"
 
 volumes:
   sms_data:
+    driver: local
+  redis_data:
     driver: local

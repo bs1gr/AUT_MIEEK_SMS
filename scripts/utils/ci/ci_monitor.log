@@ -1,0 +1,16 @@
+2025-12-09T12:53:29.4242172+02:00	Starting ci-failure monitor for /AUT_MIEEK_SMS (poll every 600 seconds).
+2025-12-09T12:53:29.5023403+02:00	gh CLI present but failed: gh exit code 1: expected the "[HOST/]OWNER/REPO" format, got "/AUT_MIEEK_SMS"
+2025-12-09T12:53:29.5042355+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-12-09T12:53:29.5050313+02:00	No ci-failure issues found.
+2025-12-09T13:03:29.7758339+02:00	gh CLI present but failed: gh exit code 1: expected the "[HOST/]OWNER/REPO" format, got "/AUT_MIEEK_SMS"
+2025-12-09T13:03:29.7767905+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-12-09T13:03:29.7772799+02:00	No ci-failure issues found.
+2025-12-09T13:13:29.9628155+02:00	gh CLI present but failed: gh exit code 1: expected the "[HOST/]OWNER/REPO" format, got "/AUT_MIEEK_SMS"
+2025-12-09T13:13:29.9636843+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-12-09T13:13:29.9640600+02:00	No ci-failure issues found.
+2025-12-09T13:23:30.0445868+02:00	gh CLI present but failed: gh exit code 1: expected the "[HOST/]OWNER/REPO" format, got "/AUT_MIEEK_SMS"
+2025-12-09T13:23:30.0454396+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-12-09T13:23:30.0458492+02:00	No ci-failure issues found.
+2025-12-09T13:33:30.1246033+02:00	gh CLI present but failed: gh exit code 1: expected the "[HOST/]OWNER/REPO" format, got "/AUT_MIEEK_SMS"
+2025-12-09T13:33:30.1254303+02:00	API fallback failed or not available: GITHUB_TOKEN not set; cannot use API fallback.
+2025-12-09T13:33:30.1258201+02:00	No ci-failure issues found.

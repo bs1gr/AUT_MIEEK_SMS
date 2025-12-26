@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.cache import cached, invalidate_cache, CacheConfig
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ from backend.db import get_session as get_db
 from backend.import_resolver import (
     import_names,  # noqa: F401 - re-export for tests that monkeypatch
 )
-from backend.routers.routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 from backend.schemas.common import PaginatedResponse
 from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
 from backend.services import StudentService
@@ -38,29 +39,49 @@ def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Create a new student with duplicate protections."""
 
     service = StudentService(db, request)
-    return service.create_student(student)
+    result = service.create_student(student)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    return result
 
 
 @router.get("/", response_model=PaginatedResponse[StudentResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@cached(ttl=CacheConfig.STUDENTS_LIST)
 def get_all_students(
-    request: Request, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None, db: Session = Depends(get_db)
+    request: Request,
+    skip: int = 0,
+    limit: int = 100,
+    is_active: Optional[bool] = None,
+    q: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
 ):
     """Retrieve all students with optional filtering and pagination."""
 
     service = StudentService(db, request)
-    result = service.list_students(skip=skip, limit=limit, is_active=is_active)
+    if q:
+        result = service.search_students(q=q, skip=skip, limit=limit, is_active=is_active)
+    else:
+        result = service.list_students(skip=skip, limit=limit, is_active=is_active)
     logger.info("Retrieved %s students (skip=%s, limit=%s)", len(result.items), skip, limit)
     return result
 
 
 @router.get("/{student_id}", response_model=StudentResponse)
-def get_student(request: Request, student_id: int, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_READ)
+@cached(ttl=CacheConfig.STUDENT_DETAIL)
+def get_student(
+    request: Request,
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
+):
     """Retrieve a specific student by ID."""
 
     service = StudentService(db, request)
@@ -74,12 +95,16 @@ def update_student(
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Update a student's information."""
 
     service = StudentService(db, request)
-    return service.update_student(student_id, student_data)
+    result = service.update_student(student_id, student_data)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    invalidate_cache("get_student", student_id)
+    return result
 
 
 @router.delete("/{student_id}", status_code=204)
@@ -88,12 +113,15 @@ def delete_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.delete", "admin")),
 ):
     """Soft-delete a student and hide associated records."""
 
     service = StudentService(db, request)
     service.delete_student(student_id)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
+    invalidate_cache("get_student", student_id)
     return None
 
 
@@ -103,7 +131,7 @@ def activate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Activate a student account."""
 
@@ -117,7 +145,7 @@ def deactivate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """Deactivate a student account."""
 
@@ -134,7 +162,7 @@ def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
 ):
     """
     Create multiple students at once.
@@ -143,5 +171,7 @@ def bulk_create_students(
     """
     service = StudentService(db, request)
     result = service.bulk_create_students(students_data)
+    # Invalidate cache
+    invalidate_cache("get_all_students")
     logger.info("Bulk created %s students, %s errors", result["created"], result["failed"])
     return result

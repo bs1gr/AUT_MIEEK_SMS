@@ -6,12 +6,12 @@
 FROM node:22-alpine AS fe
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi && npm cache clean --force;
 COPY frontend/ .
 COPY VERSION /app/VERSION
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
-RUN npm run build
+RUN npm run build && rm -rf node_modules src test .git
 
 # 2) Backend runtime
 FROM python:3.11-slim
@@ -31,7 +31,8 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
 # Backend deps
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN python -m pip install --upgrade pip && \
-    pip install --no-cache-dir -r /app/backend/requirements.txt
+    pip install --no-cache-dir -r /app/backend/requirements.txt && \
+    rm -rf /root/.cache/pip
 
 # Copy app code and built frontend
 COPY backend /app/backend
@@ -40,6 +41,7 @@ COPY VERSION /app/VERSION
 # Include templates (courses/students JSON) inside the image so imports work
 # in deployments where templates are not mounted from the host.
 COPY templates /app/templates
+RUN find /app -type d -name __pycache__ -exec rm -rf {} +
 
 RUN useradd -m appuser \
     && mkdir -p /app/data /data \
@@ -49,6 +51,6 @@ USER appuser
 # Healthcheck against /health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD curl -fsS http://127.0.0.1:8000/health || exit 1
 
-EXPOSE 8000
+EXPOSE 8080
 # Use the Python entrypoint which runs migrations and then execs the app server.
 ENTRYPOINT ["python", "-u", "/app/backend/entrypoint.py"]

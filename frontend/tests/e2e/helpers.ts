@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import type { Course } from '@/types';
 
 /**
  * E2E Test Helpers
@@ -65,7 +66,7 @@ export const generateTeacherUser = (): TestUser => {
 // Authentication helpers
 export async function registerUser(page: Page, user: TestUser) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   const response = await page.request.post(`${apiBase}/api/v1/auth/register`, {
     data: {
       email: user.email,
@@ -74,32 +75,32 @@ export async function registerUser(page: Page, user: TestUser) {
       ...(user.role && { role: user.role }),
     },
   });
-  
+
   if (!response.ok()) {
     const text = await response.text().catch(() => 'Unknown error');
     throw new Error(`Registration failed: ${response.status()} - ${text}`);
   }
-  
+
   return response.json();
 }
 
 export async function loginViaUI(page: Page, email: string, password: string) {
   await page.goto('/');
-  
+
   // Wait for login form
   await page.waitForSelector('input[type="email"]', { timeout: 5000 });
-  
+
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
-  
+
   // Wait for successful navigation
   await page.waitForURL(/\/dashboard|\/students|\/home/, { timeout: 10000 });
 }
 
 export async function loginAsTeacher(page: Page): Promise<TestUser> {
   const user = generateTeacherUser();
-  
+
   try {
     await registerUser(page, user);
     await loginViaUI(page, user.email, user.password);
@@ -113,7 +114,7 @@ export async function loginAsTeacher(page: Page): Promise<TestUser> {
 // API helpers for test data setup
 export async function createStudentViaAPI(page: Page, student: TestStudent) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   const response = await page.request.post(`${apiBase}/api/v1/students/`, {
     data: {
       first_name: student.firstName,
@@ -122,23 +123,23 @@ export async function createStudentViaAPI(page: Page, student: TestStudent) {
       student_id: student.studentId,
     },
   });
-  
+
   if (!response.ok()) {
     throw new Error(`Create student failed: ${response.status()}`);
   }
-  
+
   return response.json();
 }
 
-export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: any[]) {
+export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: Course['evaluation_rules']) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   const defaultRules = [
     { category: 'Homework', weight: 30, includeDailyPerformance: true },
     { category: 'Midterm', weight: 30, includeDailyPerformance: false },
     { category: 'Final', weight: 40, includeDailyPerformance: false },
   ];
-  
+
   const response = await page.request.post(`${apiBase}/api/v1/courses/`, {
     data: {
       course_code: course.courseCode,
@@ -148,11 +149,11 @@ export async function createCourseViaAPI(page: Page, course: TestCourse, evaluat
       evaluation_rules: evaluationRules || defaultRules,
     },
   });
-  
+
   if (!response.ok()) {
     throw new Error(`Create course failed: ${response.status()}`);
   }
-  
+
   return response.json();
 }
 
@@ -165,7 +166,7 @@ export async function createGradeViaAPI(
   category: string = 'Homework'
 ) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   const response = await page.request.post(`${apiBase}/api/v1/grades/`, {
     data: {
       student_id: studentId,
@@ -176,11 +177,11 @@ export async function createGradeViaAPI(
       date_assigned: new Date().toISOString().split('T')[0],
     },
   });
-  
+
   if (!response.ok()) {
     throw new Error(`Create grade failed: ${response.status()}`);
   }
-  
+
   return response.json();
 }
 
@@ -192,7 +193,7 @@ export async function createAttendanceViaAPI(
   date?: string
 ) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   const response = await page.request.post(`${apiBase}/api/v1/attendance/`, {
     data: {
       student_id: studentId,
@@ -201,11 +202,11 @@ export async function createAttendanceViaAPI(
       status,
     },
   });
-  
+
   if (!response.ok()) {
     throw new Error(`Create attendance failed: ${response.status()}`);
   }
-  
+
   return response.json();
 }
 
@@ -224,7 +225,7 @@ export async function selectFromDropdown(page: Page, name: string, optionText: s
     await nativeSelect.selectOption({ label: optionText });
     return;
   }
-  
+
   // Try custom combobox (Radix UI pattern)
   const combobox = page.locator(`[role="combobox"][name="${name}"], button[name="${name}"]`);
   if (await combobox.count() > 0) {
@@ -232,7 +233,7 @@ export async function selectFromDropdown(page: Page, name: string, optionText: s
     await page.click(`[role="option"]:has-text("${optionText}")`);
     return;
   }
-  
+
   throw new Error(`Could not find dropdown for field: ${name}`);
 }
 
@@ -250,6 +251,6 @@ export async function waitForTableRow(page: Page, rowText: string) {
 // Cleanup helpers
 export async function cleanupTestData(page: Page, resourceType: string, id: number) {
   const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
-  
+
   await page.request.delete(`${apiBase}/api/v1/${resourceType}/${id}`);
 }

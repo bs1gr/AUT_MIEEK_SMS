@@ -1,0 +1,63 @@
+name: Cache Monitor on E2E Completion
+
+on:
+  workflow_run:
+    workflows: ["E2E Tests"]
+    types:
+      - completed
+
+jobs:
+  monitor:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run monitoring for last 20 E2E runs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/monitor_ci_cache.py \
+            --workflow e2e-tests.yml \
+            --runs 20 \
+            --output cache_metrics_on_e2e.json \
+            --token $GITHUB_TOKEN
+
+      - name: Summarize results
+        run: |
+          python - << 'PY'
+          import json
+          import os
+          p = 'cache_metrics_on_e2e.json'
+          with open(p, 'r') as f:
+              report = json.load(f)
+          summary = report.get('summary', {})
+          lines = [
+              '# Cache Performance Summary (E2E-triggered)\n',
+              f"npm cache hit rate: {summary.get('npm_cache_hit_rate', 'N/A')}\n",
+              f"Playwright cache hit rate: {summary.get('playwright_cache_hit_rate', 'N/A')}\n",
+              f"pip cache hit rate: {summary.get('pip_cache_hit_rate', 'N/A')}\n",
+              f"Avg setup time (with cache): {summary.get('avg_setup_time_with_cache', 'N/A')}\n",
+              f"Avg setup time (without cache): {summary.get('avg_setup_time_without_cache', 'N/A')}\n",
+              f"Estimated time saved: {summary.get('estimated_time_saved', 'N/A')}\n",
+          ]
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as sf:
+              sf.writelines(lines)
+          PY
+
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-metrics-on-e2e
+          path: cache_metrics_on_e2e.json
+          retention-days: 30

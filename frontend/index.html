@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4F46E5" />
+    <meta name="description" content="Comprehensive student management and grading platform" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SMS" />
     <title>Student Management System</title>
     <script>
       // Apply theme early to avoid flash and ensure light/dark consistency
@@ -51,7 +58,7 @@
           var isRelaxing = (theme === 'relaxing');
           var root = document.documentElement;
 
-          console.log('[HTML Init] Stored theme:', stored, '| Resolved theme:', theme, '| System prefers dark:', prefersDark, '| Applying dark:', isDark, '| Applying relaxing:', isRelaxing);
+          console.warn('[HTML Init] Stored theme:', stored, '| Resolved theme:', theme, '| System prefers dark:', prefersDark, '| Applying dark:', isDark, '| Applying relaxing:', isRelaxing);
 
           // Remove all theme classes first on <html>
           root.classList.remove('dark', 'relaxing');
@@ -81,12 +88,12 @@
             document.addEventListener('DOMContentLoaded', function() {
               applyBodyClasses();
               // Log after DOM is loaded
-              console.log('[HTML Init] After DOMContentLoaded - html classes:', root.className, '| body classes:', document.body && document.body.className);
+              console.warn('[HTML Init] After DOMContentLoaded - html classes:', root.className, '| body classes:', document.body && document.body.className);
             }, { once: true });
           } else {
             // Log current classes
             setTimeout(function() {
-              console.log('[HTML Init] After apply - html classes:', root.className, '| body classes:', document.body.className);
+              console.warn('[HTML Init] After apply - html classes:', root.className, '| body classes:', document.body.className);
             }, 0);
           }
 

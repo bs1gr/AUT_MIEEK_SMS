@@ -89,22 +89,52 @@ describe('gradeUtils - Core Conversions', () => {
   });
 
   describe('getLetterGrade', () => {
-    it('returns A for percentage >= 90', () => {
-      expect(getLetterGrade(90)).toBe('A');
+    it('returns A+ for percentage >= 97', () => {
+      expect(getLetterGrade(97)).toBe('A+');
+      expect(getLetterGrade(99)).toBe('A+');
+      expect(getLetterGrade(100)).toBe('A+');
+    });
+
+    it('returns A for percentage 93-96', () => {
+      expect(getLetterGrade(93)).toBe('A');
       expect(getLetterGrade(95)).toBe('A');
-      expect(getLetterGrade(100)).toBe('A');
+      expect(getLetterGrade(96)).toBe('A');
     });
 
-    it('returns B for percentage 80-89', () => {
-      expect(getLetterGrade(80)).toBe('B');
+    it('returns A- for percentage 90-92', () => {
+      expect(getLetterGrade(90)).toBe('A-');
+      expect(getLetterGrade(91)).toBe('A-');
+      expect(getLetterGrade(92)).toBe('A-');
+    });
+
+    it('returns B+ for percentage 87-89', () => {
+      expect(getLetterGrade(87)).toBe('B+');
+      expect(getLetterGrade(88)).toBe('B+');
+      expect(getLetterGrade(89)).toBe('B+');
+    });
+
+    it('returns B for percentage 83-86', () => {
+      expect(getLetterGrade(83)).toBe('B');
       expect(getLetterGrade(85)).toBe('B');
-      expect(getLetterGrade(89)).toBe('B');
+      expect(getLetterGrade(86)).toBe('B');
     });
 
-    it('returns C for percentage 70-79', () => {
+    it('returns B- for percentage 80-82', () => {
+      expect(getLetterGrade(80)).toBe('B-');
+      expect(getLetterGrade(81)).toBe('B-');
+      expect(getLetterGrade(82)).toBe('B-');
+    });
+
+    it('returns C+ for percentage 77-79', () => {
+      expect(getLetterGrade(77)).toBe('C+');
+      expect(getLetterGrade(78)).toBe('C+');
+      expect(getLetterGrade(79)).toBe('C+');
+    });
+
+    it('returns C for percentage 70-76', () => {
       expect(getLetterGrade(70)).toBe('C');
-      expect(getLetterGrade(75)).toBe('C');
-      expect(getLetterGrade(79)).toBe('C');
+      expect(getLetterGrade(73)).toBe('C');
+      expect(getLetterGrade(76)).toBe('C');
     });
 
     it('returns D for percentage 60-69', () => {
@@ -125,7 +155,7 @@ describe('gradeUtils - Core Conversions', () => {
       const gpa = 3.5;
       const percentage = gpaToPercentage(gpa);
       const greek = percentageToGreekScale(percentage);
-      
+
       expect(percentage).toBe(87.5);
       expect(greek).toBe(17.5);
     });
@@ -134,7 +164,7 @@ describe('gradeUtils - Core Conversions', () => {
       const greek = 16;
       const gpa = greekScaleToGPA(greek);
       const percentage = gpaToPercentage(gpa);
-      
+
       expect(gpa).toBe(3.2);
       expect(percentage).toBe(80);
     });

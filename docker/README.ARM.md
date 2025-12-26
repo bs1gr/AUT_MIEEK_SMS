@@ -14,7 +14,7 @@
 > - Deploy on cloud VPS (DigitalOcean, AWS)
 > - Use TS-431P3 for file storage only
 
-**Version:** 1.9.3
+**Version:** 1.9.7
 **Architecture:** ARM32v7
 **Target Devices:** QNAP TS-431P3, TS-x31P series, and other ARM-based QNAP NAS
 **Deployment Status:** ❌ Non-functional on TS-431P3 due to 32KB page size
@@ -28,7 +28,7 @@ This directory contains **separate ARM-specific build files** that were created 
 ### Why Separate Files?
 
 - ✅ **Preserve main builds** - Standard x86_64 builds remain untouched
-- ✅ **Version consistency** - ARM builds track v1.9.3 release
+- ✅ **Version consistency** - ARM builds track v1.9.7 release
 - ✅ **Clear separation** - No confusion between architectures
 - ✅ **Easy maintenance** - Update ARM builds independently
 
@@ -66,12 +66,14 @@ This directory contains **separate ARM-specific build files** that were created 
 ### Check Your Model
 
 **ARM-based QNAP models (use ARM files):**
+
 - TS-431P3, TS-231P3
 - TS-x31P series
 - TS-x28A series
 - Models with ARM Cortex processors
 
 **x86_64-based QNAP models (use standard files):**
+
 - TS-453D, TS-453E
 - TS-x53D/E series
 - TS-x73A series
@@ -184,6 +186,7 @@ com.sms.architecture="arm32v7" or "x86_64"
 ```
 
 Inspect images:
+
 ```bash
 docker image inspect sms-backend-arm32v7:latest | grep -A 10 Labels
 ```
@@ -197,6 +200,7 @@ docker image inspect sms-backend-arm32v7:latest | grep -A 10 Labels
 **Cause:** Using x86_64 image on ARM device (or vice versa)
 
 **Solution:** Verify architecture and use correct Dockerfile:
+
 ```bash
 uname -m  # Check your architecture
 docker image inspect IMAGE_NAME | grep Architecture
@@ -205,11 +209,13 @@ docker image inspect IMAGE_NAME | grep Architecture
 ### Build Takes Too Long
 
 **Normal for ARM:**
+
 - Backend: 20-40 minutes
 - Frontend: 30-60 minutes
 - Total: 60-90 minutes
 
 **Speed up (optional):**
+
 - Use cross-compilation from x86_64 workstation with Docker Buildx
 - See full documentation for buildx instructions
 
@@ -218,6 +224,7 @@ docker image inspect IMAGE_NAME | grep Architecture
 If `postgres:16-alpine` fails with exit code 139:
 
 **Solution:** Use Debian-based PostgreSQL
+
 ```bash
 # Edit docker-compose.qnap.arm32v7.yml
 # Change:
@@ -243,14 +250,17 @@ image: postgres:16
 ## Documentation
 
 **For ARM deployment:**
+
 - [QNAP_TS-431P3_COMPATIBILITY.md](../docs/deployment/QNAP_TS-431P3_COMPATIBILITY.md) - Compatibility assessment
 - [QNAP_TS-431P3_ARM_BUILD_GUIDE.md](../docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md) - Step-by-step guide
 
 **For x86_64 deployment:**
+
 - [QNAP.md](../docs/deployment/QNAP.md) - Quick start
 - [QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md](../docs/deployment/QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md) - Production setup
 
 **General:**
+
 - [QNAP_DEPLOYMENT_SUMMARY.md](../docs/deployment/QNAP_DEPLOYMENT_SUMMARY.md) - Overview
 
 ---
@@ -319,11 +329,13 @@ docker compose -f docker/docker-compose.qnap.arm32v7.yml down
 ## Support
 
 **For ARM build issues:**
+
 - Check [TS-431P3 Compatibility Guide](../docs/deployment/QNAP_TS-431P3_COMPATIBILITY.md)
 - Check [TS-431P3 ARM Build Guide](../docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md)
 - Submit GitHub issue with "ARM" label
 
 **For general QNAP issues:**
+
 - Check [QNAP Deployment Summary](../docs/deployment/QNAP_DEPLOYMENT_SUMMARY.md)
 - QNAP Community Forum
 - GitHub repository issues

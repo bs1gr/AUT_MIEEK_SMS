@@ -4,7 +4,7 @@ from datetime import date
 
 from sqlalchemy import event
 
-from backend.tests.conftest import engine
+from backend.tests.db_setup import engine
 
 
 def _csrf_headers(client):
@@ -131,7 +131,7 @@ def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     # Expected computation (rounded to 2 decimals): 77.75%
     assert data["percentage"] == 77.75
     assert data["final_grade"] == 77.75
-    assert data["letter_grade"] == "C"
+    assert data["letter_grade"] == "C+"  # 77-79% = C+
     assert data["gpa"] == round(77.75 / 100 * 4, 2)
     assert data["total_weight_used"] == 100.0
     assert data["absence_penalty"] == 2.0
@@ -252,10 +252,7 @@ def test_student_all_courses_summary_limits_queries(client):
     student = _create_student(client, 7)
 
     rules = [{"category": "Homework", "weight": 100.0}]
-    courses = [
-        _create_course(client, f"OPT{i}", rules=rules, absence_penalty=0.0, credits=3)
-        for i in range(4)
-    ]
+    courses = [_create_course(client, f"OPT{i}", rules=rules, absence_penalty=0.0, credits=3) for i in range(4)]
 
     for idx, course in enumerate(courses):
         assert _create_grade(client, student["id"], course["id"], f"HW{idx}", "Homework", 80 + idx).status_code == 201

@@ -2,23 +2,57 @@ name: Require operator approval for operator scripts
 
 on:
   pull_request_target:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
-    paths:
-      - 'scripts/operator/**'
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      operator: ${{ steps.filter.outputs.operator }}
+    steps:
+      - name: Detect operator script changes
+        uses: actions/github-script@v6
+        id: filter
+        with:
+          script: |
+            try {
+              const pr = context.payload.pull_request;
+              if (!pr) {
+                core.info("Not a pull request event.");
+                core.setOutput('operator', 'false');
+                return;
+              }
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              const changed = files.some(f => f.filename.startsWith('scripts/operator/'));
+              core.info('Operator scripts changed: ' + changed);
+              core.setOutput('operator', changed ? 'true' : 'false');
+            } catch (error) {
+              core.setFailed('Failed to check file changes: ' + error.message);
+            }
+
   require-operator-approval:
+    needs: changes
+    if: ${{ needs.changes.outputs.operator == 'true' }}
+    name: Require operator approval for operator scripts
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: read
     steps:
       - name: Check PR for operator script changes and labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const core = require('@actions/core');
-            const pr = github.context.payload.pull_request;
+            const pr = context.payload.pull_request;
             if (!pr) {
               core.info('No pull request context; skipping operator approval check.');
               return;
@@ -26,13 +60,6 @@ jobs:
             const prNumber = pr.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: prNumber });
-            const changedOperator = files.some(f => f.filename.startsWith('scripts/operator/'));
-            if (!changedOperator) {
-              core.info('No operator script changes found; skipping operator-approval check.');
-              return;
-            }
 
             const labels = (pr.labels || []).map(l => l.name);
             if (labels.includes('operator-approved')) {

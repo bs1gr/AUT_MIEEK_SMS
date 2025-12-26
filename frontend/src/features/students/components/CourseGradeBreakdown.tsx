@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState, useCallback } from 'react';
 import type { Grade, Course } from '@/types';
 import { percentageToGreekScale, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
@@ -74,9 +74,9 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
     };
   }, [gradesList, coursesMap, fallbackCourses]);
 
-  const resolveCourseInfo = (courseId: number): Course | undefined => {
+  const resolveCourseInfo = useCallback((courseId: number): Course | undefined => {
     return coursesMap.get(courseId) || fallbackCourses[courseId];
-  };
+  }, [coursesMap, fallbackCourses]);
 
   // Memoize course grouping and calculations
   const courseBreakdown = useMemo(() => {
@@ -127,7 +127,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         byCategory,
       };
     });
-  }, [gradesList, coursesMap, fallbackCourses, t]);
+  }, [gradesList, resolveCourseInfo, t]);
 
   // Translate category names
   const translateCategory = (category: string): string => {
@@ -161,12 +161,12 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-gray-800 mb-3">
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">
         {t('gradeBreakdown') || 'Grade Breakdown'} - {t('byCourse') || 'By Course'}
       </div>
 
       {courseBreakdown.length === 0 ? (
-        <p className="text-gray-500 text-sm">{t('noGradesAvailable') || 'No grades available'}</p>
+        <p className="text-indigo-700 text-sm font-semibold drop-shadow-sm">{t('noGradesAvailable') || 'No grades available'}</p>
       ) : (
         <div className="space-y-4">
           {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory }) => (
@@ -175,18 +175,18 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
                 <div className="flex justify-between items-center gap-4">
                   <div>
-                    <div className="font-semibold text-gray-900">{courseName}</div>
-                    {courseCode && <div className="text-xs text-gray-600">{courseCode}</div>}
+                    <div className="font-semibold text-indigo-900 drop-shadow-sm">{courseName}</div>
+                    {courseCode && <div className="text-xs text-indigo-700 font-semibold drop-shadow-sm">{courseCode}</div>}
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-sm text-gray-700">
+                      <div className="text-sm text-indigo-700 font-semibold">
                         {t('average')}: <span className={`font-bold ${gradeColor}`}>
                           {avgGreek.toFixed(1)}/20
                         </span>
                       </div>
-                      <div className="text-xs text-gray-600">
-                        {avgPercentage.toFixed(1)}% ({letterGrade})
+                        <div className="text-xs text-indigo-700 font-semibold">
+                        {t('percentageWithLetter', { percentage: avgPercentage.toFixed(1), letter: letterGrade })}
                       </div>
                     </div>
                     {onNavigateToCourse && (
@@ -216,19 +216,28 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                         <span className="text-sm font-medium text-gray-800">
                           {translateCategory(category)}
                         </span>
-                        <span className="text-sm text-gray-700">
-                          {t('average')}: <span className="font-semibold">{catAvg.toFixed(1)}%</span>
-                        </span>
+                        {catGrades.length > 1 && (
+                          <span className="text-sm text-gray-700">
+                            {t('average')}: <span className="font-semibold">{catAvg.toFixed(1)}%</span>
+                          </span>
+                        )}
                       </div>
                       <div className="space-y-1">
-                        {catGrades.map((grade, idx) => (
-                          <div key={idx} className="flex justify-between text-xs text-gray-600">
-                            <span>{grade.assignment_name}</span>
-                            <span>
-                              {grade.grade}/{grade.max_grade} ({((grade.grade / grade.max_grade) * 100).toFixed(1)}%)
-                            </span>
-                          </div>
-                        ))}
+                        {catGrades.map((grade, idx) => {
+                          const percentage = (grade.grade / grade.max_grade) * 100;
+                          const letterGrade = getLetterGrade(percentage);
+                          return (
+                            <div key={idx} className="flex justify-between items-center text-xs text-gray-600">
+                              <span className="flex-1">{grade.assignment_name}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="font-medium text-indigo-700 min-w-[2rem] text-center">{letterGrade}</span>
+                                <span className="min-w-[6rem] text-right">
+                                  {grade.grade}/{grade.max_grade} ({percentage.toFixed(1)}%)
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );

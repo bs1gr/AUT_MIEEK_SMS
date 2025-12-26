@@ -24,13 +24,13 @@ env:
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '20'
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: bs1gr/aut_mieek_sms  # Lowercase required for GHCR
+  IMAGE_NAME: ${{ github.repository }}  # Use repository name for image
 
 jobs:
   # ============================================================================
   # PHASE 1: PRE-COMMIT VALIDATION
   # ============================================================================
-  
+
   version-verification:
     name: 🔍 Version Consistency Check
     runs-on: windows-latest
@@ -42,15 +42,19 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Verifying version consistency across codebase..." -ForegroundColor Cyan
-          .\scripts\VERIFY_VERSION.ps1 -CheckOnly
-          
-          if ($LASTEXITCODE -eq 1) {
-            Write-Error "❌ Critical version inconsistencies found"
-            exit 1
-          } elseif ($LASTEXITCODE -eq 2) {
-            Write-Warning "⚠️  Version inconsistencies detected"
-            Write-Host "Run: .\scripts\VERIFY_VERSION.ps1 -Update" -ForegroundColor Yellow
-            exit 1
+          if (Test-Path "scripts\VERIFY_VERSION.ps1") {
+            .\scripts\VERIFY_VERSION.ps1 -CheckOnly
+            if ($LASTEXITCODE -eq 1) {
+              Write-Error "❌ Critical version inconsistencies found"
+              exit 1
+            } elseif ($LASTEXITCODE -eq 2) {
+              Write-Warning "⚠️  Version inconsistencies detected"
+              Write-Host "Run: .\scripts\VERIFY_VERSION.ps1 -Update" -ForegroundColor Yellow
+              exit 1
+            }
+          } else {
+            Write-Warning "VERIFY_VERSION.ps1 not found. Running basic check via COMMIT_READY.ps1..."
+            .\COMMIT_READY.ps1 -AuditVersion -SkipTests -SkipLint -SkipCleanup -Mode quick
           }
           Write-Host "✅ All version references consistent" -ForegroundColor Green
 
@@ -68,7 +72,7 @@ jobs:
           retention-days: 30
 
   # ============================================================================
-  # PHASE 2: LINTING & CODE QUALITY
+  # PHASE 2: LINTING, SECRET SCANNING & CODE QUALITY
   # ============================================================================
 
   lint-backend:
@@ -84,22 +88,23 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy
           pip install -r backend/requirements.txt
+          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
 
       - name: Run Ruff linter
         run: |
           cd backend
-          ruff check . --config=../config/ruff.toml --output-format=github || echo "::warning::Ruff linting issues found"
+          ruff check . --config=../config/ruff.toml --output-format=github
 
       - name: Run MyPy type checker
         run: |
-          cd backend
-          mypy . --config-file=../config/mypy.ini || echo "::warning::MyPy type issues found"
+          # Run mypy from project root to avoid namespace conflicts
+          mypy --config-file=config/mypy.ini backend --namespace-packages
 
   lint-frontend:
     name: 🔍 Frontend Linting (TypeScript/React)
@@ -116,14 +121,45 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
+      - name: Prepare installer Greek text assets
+        run: |
+          python fix_greek_encoding_permanent.py
+
       - name: Run ESLint
-        run: cd frontend && npm run lint || echo "::warning::ESLint issues found"
+        run: cd frontend && npm run lint
 
       - name: Check TypeScript compilation
-        run: cd frontend && npx tsc --noEmit || echo "::warning::TypeScript errors found"
+        run: cd frontend && npx tsc --noEmit
+
+  secret-scan:
+    name: "🕵️ Secret Scanning (Gitleaks)"
+    runs-on: ubuntu-latest
+    needs: [lint-backend, lint-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: '.gitleaks.toml'
+          fail: true
+
+      - name: Upload Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
 
   # ============================================================================
   # PHASE 3: AUTOMATED TESTING
@@ -133,6 +169,20 @@ jobs:
     name: 🧪 Backend Tests (Pytest)
     runs-on: ubuntu-latest
     needs: [lint-backend]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password # pragma: allowlist secret
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -142,26 +192,22 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install pytest-cov pytest-html pytest-json-report
+          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
 
       - name: Run backend tests with coverage
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/test_db # pragma: allowlist secret
         run: |
           cd backend
-          pytest -v \
-            --cov=. \
-            --cov-report=html \
-            --cov-report=xml \
-            --cov-report=term-missing \
-            --html=pytest-report.html \
-            --self-contained-html \
-            --json-report \
-            --json-report-file=pytest-report.json || true
-          echo "Tests completed (coverage requirement bypassed for CI/CD)"
+          pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
 
       - name: Upload test results
         if: always()
@@ -202,8 +248,7 @@ jobs:
         run: cd frontend && npm ci --silent
 
       - name: Run frontend tests
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html || true
-        continue-on-error: true
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html
 
       - name: Upload test results
         if: always()
@@ -215,20 +260,20 @@ jobs:
             frontend/test-results/
           retention-days: 30
 
-  smoke-tests:
-    name: 💨 Smoke Tests (Integration)
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+smoke-tests:
+  name: 💨 Smoke Tests (Integration)
+  runs-on: ubuntu-latest
+  needs: [test-backend, test-frontend]
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Smoke tests (skipped - requires running server)
-        shell: bash
-        run: |
-          echo "ℹ️ Smoke tests skipped in CI/CD (requires running server)"
-          echo "To run locally: ./scripts/SMOKE_TEST.ps1"
-          echo "Unit tests (390 passed) provide adequate coverage"
+    - name: Smoke tests (skipped - requires running server)
+      shell: pwsh
+      run: |
+        Write-Host "ℹ️ Smoke tests skipped in CI/CD (requires running server)"
+        Write-Host "To run locally: .\COMMIT_READY.ps1 -Mode full"
+        Write-Host "This step should be implemented for a robust CI/CD pipeline."
 
   # ============================================================================
   # PHASE 4: BUILD & PACKAGE
@@ -237,7 +282,7 @@ jobs:
   build-frontend:
     name: 🏗️ Build Frontend (Production)
     runs-on: ubuntu-latest
-    needs: [test-frontend, smoke-tests]
+    needs: [smoke-tests]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -276,10 +321,13 @@ jobs:
   build-docker-images:
     name: 🐳 Build Docker Images
     runs-on: ubuntu-latest
-    needs: [build-frontend, test-backend]
+    needs: [build-frontend]
     permissions:
       contents: read
       packages: write
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -345,20 +393,25 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
-      - name: Install Safety
-        run: pip install safety
+      - name: Install dependencies
+        run: |
+          pip install safety bandit
+          pip install -r backend/requirements.txt
 
       - name: Run Safety check
         run: |
           cd backend
-          safety check --file requirements.txt --json || echo "::warning::Security vulnerabilities found"
+          safety check --file requirements.txt --json
 
       - name: Run Bandit security scanner
         run: |
-          pip install bandit
           cd backend
-          bandit -r . -f json -o bandit-report.json || echo "::warning::Security issues found"
+          bandit -r . -f json -o bandit-report.json
 
       - name: Upload security reports
         if: always()
@@ -380,12 +433,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
       - name: Run npm audit
-        run: cd frontend && npm audit --json > npm-audit.json || echo "::warning::npm vulnerabilities found"
+        run: cd frontend && npm audit --json > npm-audit.json
 
       - name: Upload audit report
         if: always()
@@ -400,19 +455,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-docker-images]
     if: github.event_name != 'pull_request'
+    permissions:
+      security-events: write
+      contents: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
-      - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+          category: 'trivy'
 
   # ============================================================================
   # PHASE 6: DOCUMENTATION & CLEANUP
@@ -431,7 +495,7 @@ jobs:
           echo "🔍 Checking documentation TODOs..."
           TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ --exclude-dir=node_modules --exclude-dir=.git | wc -l || true)
           echo "Found $TODO_COUNT TODO items in documentation"
-          
+
           if [ $TODO_COUNT -gt 50 ]; then
             echo "::warning::High number of TODO items in documentation ($TODO_COUNT)"
           fi
@@ -440,7 +504,7 @@ jobs:
         run: |
           echo "🧹 Checking for deprecated/obsolete files..."
           find . -type f -name "*.deprecated" -o -name "*.obsolete" -o -name "*.bak" | tee obsolete-files.txt
-          
+
           OBSOLETE_COUNT=$(wc -l < obsolete-files.txt)
           if [ $OBSOLETE_COUNT -gt 0 ]; then
             echo "::warning::Found $OBSOLETE_COUNT obsolete files"
@@ -452,7 +516,6 @@ jobs:
         run: |
           echo "ℹ️ Markdown link validation skipped (external action not allowed)"
           echo "To validate locally: npm install -g markdown-link-check && markdown-link-check README.md"
-        continue-on-error: true
 
       - name: Generate documentation index
         run: |
@@ -495,10 +558,8 @@ jobs:
         run: |
           echo "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          
+
           # Placeholder for actual deployment commands
-          # Example: kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          # Or: SSH to server and run docker-compose pull && docker-compose up -d
 
       - name: Run post-deployment health check
         run: |
@@ -519,7 +580,7 @@ jobs:
   deploy-production:
     name: 🎯 Deploy to Production
     runs-on: ubuntu-latest
-    needs: [deploy-staging]
+    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
     if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: production
@@ -538,22 +599,19 @@ jobs:
       - name: Create backup before deployment
         run: |
           echo "💾 Creating pre-deployment backup..."
-          # SSH to production and trigger backup
-          # ssh ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "docker exec sms-fullstack python /app/backup_database.py"
+          # Placeholder for backup command
 
       - name: Deploy to production
         run: |
           echo "🚀 Deploying version ${{ steps.version.outputs.version }} to production..."
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-          
+
           # Placeholder for production deployment
-          # kubectl set image deployment/sms-app sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
 
       - name: Run post-deployment validation
         run: |
           echo "🏥 Running production health checks..."
           # curl -f https://sms.example.com/health || exit 1
-          # curl -f https://sms.example.com/api/v1/health || exit 1
 
       - name: Notify deployment success
         if: success()
@@ -569,8 +627,8 @@ jobs:
   create-release:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [deploy-production]
     if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-docker-images] # Depends on docker build to get artifacts
     permissions:
       contents: write
     steps:
@@ -578,6 +636,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
 
       - name: Extract version
         id: version
@@ -589,21 +652,20 @@ jobs:
         id: release_notes
         run: |
           echo "Generating release notes for v${{ steps.version.outputs.version }}..."
-          
-          # Extract release notes from CHANGELOG or release_notes file
           if [ -f "release_notes_v${{ steps.version.outputs.version }}.md" ]; then
             cat "release_notes_v${{ steps.version.outputs.version }}.md" > RELEASE_NOTES.md
           else
             echo "# Release v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
             echo "" >> RELEASE_NOTES.md
             echo "## Changes" >> RELEASE_NOTES.md
-            git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> RELEASE_NOTES.md
+            # Safely get previous tag, fallback to all history if none
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [ -z "$PREV_TAG" ]; then
+              git log --pretty=format:"- %s" >> RELEASE_NOTES.md
+            else
+              git log --pretty=format:"- %s" ${PREV_TAG}..HEAD >> RELEASE_NOTES.md
+            fi
           fi
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
 
       - name: Create GitHub Release
         shell: bash
@@ -611,14 +673,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
-          NOTES=$(cat RELEASE_NOTES.md 2>/dev/null || echo "Release $VERSION")
-          
-          # Create release with gh CLI (built-in)
-          gh release create "$VERSION" \
+          NOTES_FILE="RELEASE_NOTES.md"
+
+          # Attempt to create release. If it fails (e.g. already exists), fall back to edit/upload.
+          if ! gh release create "$VERSION" \
             --title "Release $VERSION" \
-            --notes "$NOTES" \
+            --notes-file "$NOTES_FILE" \
             --generate-notes \
-            ./artifacts/**/* || echo "Release creation failed (may need manual creation)"
+            ./artifacts/**/*; then
+            echo "Release creation failed (likely already exists). Updating existing release..."
+            gh release edit "$VERSION" --notes-file "$NOTES_FILE"
+            if [ -d "./artifacts" ]; then
+              gh release upload "$VERSION" ./artifacts/**/* --clobber || echo "Asset upload failed or no assets found"
+            fi
+          fi
 
   # ============================================================================
   # PHASE 10: POST-DEPLOYMENT MONITORING
@@ -635,20 +703,20 @@ jobs:
           echo "📊 Monitoring application health for 5 minutes..."
           for i in {1..10}; do
             echo "Health check $i/10..."
-            # curl -f https://sms.example.com/health || echo "Health check failed"
+            # curl -f https://sms.example.com/health
             sleep 30
           done
 
       - name: Check error rates
         run: |
           echo "📈 Checking error rates..."
-          # Query monitoring system (Prometheus, Datadog, etc.)
+          # Query monitoring system
 
       - name: Notify monitoring results
         if: always()
         run: |
           echo "✅ Post-deployment monitoring complete"
-          # Send notification to Slack/Teams/Email
+          # Send notification
 
   # ============================================================================
   # NOTIFICATION JOB (Always runs)
@@ -680,7 +748,7 @@ jobs:
           echo "Triggered by: ${{ github.event_name }}"
           echo "Branch: ${{ github.ref }}"
           echo "Commit: ${{ github.sha }}"
-          
+
           # Add notification integrations here:
           # - Slack webhook
           # - Microsoft Teams webhook

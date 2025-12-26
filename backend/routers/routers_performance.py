@@ -12,7 +12,7 @@ from backend.db import get_session as get_db
 from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
-from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.services.daily_performance_service import DailyPerformanceService
 from backend.db_utils import get_by_id_or_404
 
@@ -37,6 +37,15 @@ class DailyPerformanceCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class DailyPerformanceUpdate(BaseModel):
+    """Schema for updating daily performance records. All fields optional."""
+
+    score: Optional[float] = None
+    max_score: Optional[float] = None
+    notes: Optional[str] = None
+    category: Optional[str] = None
+
+
 class DailyPerformanceResponse(BaseModel):
     id: int
     student_id: int
@@ -51,6 +60,7 @@ class DailyPerformanceResponse(BaseModel):
 
 
 @router.get("/{id}", response_model=DailyPerformanceResponse)
+@limiter.limit(RATE_LIMIT_READ)
 def get_daily_performance_by_id(
     id: int = Path(..., description="DailyPerformance record ID"),
     request: Request = None,
@@ -89,7 +99,31 @@ def create_daily_performance(
         raise internal_server_error(request=request) from exc
 
 
+@router.put("/{id}", response_model=DailyPerformanceResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+def update_daily_performance(
+    id: int = Path(..., description="DailyPerformance record ID"),
+    performance: DailyPerformanceUpdate = None,
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("admin", "teacher")),
+):
+    """Update an existing daily performance record."""
+    try:
+        import_names("models", "DailyPerformance")
+        with transaction(db):
+            updated = DailyPerformanceService.update(db, id, performance, request)
+            db.flush()
+        return updated
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error updating daily performance id=%s: %s", id, exc, exc_info=True)
+        raise internal_server_error(request=request) from exc
+
+
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         # Preserve error injection point used by tests
@@ -101,6 +135,7 @@ def get_student_daily_performance(student_id: int, request: Request, db: Session
 
 
 @router.get("/student/{student_id}/course/{course_id}", response_model=List[DailyPerformanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
 def get_student_course_daily_performance(
     student_id: int,
     course_id: int,

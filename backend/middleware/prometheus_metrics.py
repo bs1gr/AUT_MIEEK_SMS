@@ -165,7 +165,9 @@ def collect_business_metrics(db: Session) -> None:
 
         # Course metrics
         courses = db.query(Course.semester, Course).all()
-        semester_counts = {}
+        from typing import Dict
+
+        semester_counts: Dict[str, int] = {}
         for course in courses:
             semester = course.semester or "unknown"
             semester_counts[semester] = semester_counts.get(semester, 0) + 1
@@ -207,6 +209,7 @@ def track_database_query(operation: str) -> Callable:
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
             start_time = time.time()
@@ -218,7 +221,9 @@ def track_database_query(operation: str) -> Callable:
             except Exception as e:
                 db_errors_total.labels(error_type=type(e).__name__).inc()
                 raise
+
         return wrapper
+
     return decorator
 
 
@@ -243,11 +248,13 @@ def setup_metrics(app: FastAPI, version: str = "unknown") -> None:
     """
     try:
         # Set application info
-        app_info.info({
-            "version": version,
-            "application": "student-management-system",
-            "framework": "fastapi",
-        })
+        app_info.info(
+            {
+                "version": version,
+                "application": "student-management-system",
+                "framework": "fastapi",
+            }
+        )
 
         # Configure instrumentator with custom settings
         instrumentator = Instrumentator(

@@ -1,117 +1,63 @@
+import uuid
 import hashlib
 import logging
-import uuid
+from typing import Any, Optional
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Optional
 
-import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
-from fastapi.security import OAuth2PasswordBearer
-from jwt import InvalidTokenError
-from passlib.context import CryptContext
+from fastapi import APIRouter, status, HTTPException, Body, Depends, Request, Response
 from sqlalchemy.orm import Session
 
-from backend.errors import ErrorCode, http_error, internal_server_error
-from backend.security import clear_csrf_cookie, issue_csrf_cookie
+from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_WRITE, limiter
+from backend.security import login_throttle
+from backend.db import get_session as get_db
+from backend.schemas import (
+    UserResponse,
+    UserCreate,
+    Token,
+    UserLogin,
+    RefreshRequest,
+    LogoutRequest,
+    UserUpdate,
+    PasswordResetRequest,
+)
+from backend.schemas.auth import PasswordChangeRequest
 
+from backend.errors import http_error, internal_server_error, ErrorCode
+from backend.models import User, RefreshToken
+from backend import models
+from backend.security.csrf import issue_csrf_cookie, clear_csrf_cookie
+from backend.config import settings
+
+import jwt
+from jwt.exceptions import InvalidTokenError
+
+from backend.security.password_hash import (
+    get_password_hash,
+    verify_password,
+    pwd_context,
+)
+from backend.security.current_user import decode_token, get_current_user
+
+router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# Login / lockout helpers
-
-
-# Local imports resilient to run path - use importlib to avoid redefinition warnings
-import importlib
-import importlib.util
-
-
-def _resolve_backend_import(name: str, attr: str | None = None):
-    """Attempt to import `backend.<name>` and fall back to `<name>` when running from backend/ directly."""
-    try:
-        module = importlib.import_module(f"backend.{name}")
-    except Exception:
-        module = importlib.import_module(name)
-    return getattr(module, attr) if attr else module
-
-
-get_db: Any = _resolve_backend_import("db", "get_session")
-settings: Any = _resolve_backend_import("config", "settings")
-models = (
-    importlib.import_module("backend.models")
-    if importlib.util.find_spec("backend.models")
-    else importlib.import_module("models")
-)
-
-# For static type checking, import symbols into the TYPE_CHECKING block so mypy
-# can resolve types like models.User and schema classes while runtime still
-# uses dynamic imports to support different execution entry paths.
-if TYPE_CHECKING:
-    from backend import models as models  # type: ignore
-
-    # Advanced auth schemas used by refresh/logout endpoints
-    from backend.schemas import (
-        LogoutRequest,
-        PasswordChangeRequest,
-        PasswordResetRequest,
-        RefreshRequest,
-        RefreshResponse,
-        Token,
-        UserCreate,
-        UserLogin,
-        UserResponse,
-        UserUpdate,
-    )  # type: ignore  # type: ignore
-else:
-    schemas_mod = None
-    try:
-        schemas_mod = importlib.import_module("backend.schemas")
-    except Exception:
-        schemas_mod = importlib.import_module("schemas")
-
-    UserCreate = getattr(schemas_mod, "UserCreate")
-    UserUpdate = getattr(schemas_mod, "UserUpdate")
-    UserLogin = getattr(schemas_mod, "UserLogin")
-    UserResponse = getattr(schemas_mod, "UserResponse")
-    Token = getattr(schemas_mod, "Token")
-    PasswordResetRequest = getattr(schemas_mod, "PasswordResetRequest")
-    PasswordChangeRequest = getattr(schemas_mod, "PasswordChangeRequest", None)
-    # Advanced auth schemas
-    RefreshRequest = getattr(schemas_mod, "RefreshRequest")
-    RefreshResponse = getattr(schemas_mod, "RefreshResponse")
-    LogoutRequest = getattr(schemas_mod, "LogoutRequest")
-
-try:
-    rl_mod = importlib.import_module("backend.rate_limiting")
-except Exception:
-    rl_mod = importlib.import_module("rate_limiting")
-
-limiter = getattr(rl_mod, "limiter")
-RATE_LIMIT_AUTH = getattr(rl_mod, "RATE_LIMIT_AUTH")
-RATE_LIMIT_WRITE = getattr(rl_mod, "RATE_LIMIT_WRITE")
-login_throttle = _resolve_backend_import("security.login_throttle", "login_throttle")
-
-router = APIRouter()
-
-
-def _get_client_identifier(request: Request | None) -> Optional[str]:
-    if request is None:
-        return None
-
-    forwarded = request.headers.get("x-forwarded-for", "").strip()
-    if forwarded:
-        first = forwarded.split(",", 1)[0].strip()
-        if first:
-            return first
-
-    real_ip = request.headers.get("x-real-ip", "").strip()
-    if real_ip:
-        return real_ip
-
-    client = getattr(request, "client", None)
-    if client and getattr(client, "host", None):
-        return str(client.host)
-
+def _get_client_identifier(request: Request) -> Optional[str]:
+    """Extract a client identifier (IP address) from the request for throttling/lockout purposes."""
+    # Try to get the real client IP from X-Forwarded-For, else fallback to client.host
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        # X-Forwarded-For may contain multiple IPs, take the first one
+        ip = x_forwarded_for.split(",")[0].strip()
+        if ip:
+            return ip
+    # Fallback to request.client.host
+    if request.client and request.client.host:
+        return request.client.host
     return None
+
+
+# Duplicate imports removed — all module imports are consolidated at the top
 
 
 def _normalize_datetime(value: Optional[datetime]) -> Optional[datetime]:
@@ -240,6 +186,8 @@ def _reset_user_login_state(user: Any, db: Session) -> None:
     except Exception:
         db.rollback()
         raise
+
+
 @router.get("/security/csrf")
 @limiter.limit(RATE_LIMIT_AUTH)
 async def fetch_csrf_token(request: Request, response: Response):
@@ -255,27 +203,9 @@ async def fetch_csrf_token(request: Request, response: Response):
     }
 
 
+# Use PBKDF2-SHA256 as the default, but support bcrypt during migration.
 
-# Use PBKDF2-SHA256 to avoid platform-specific bcrypt backend issues.
-# It is widely supported, battle-tested, and avoids the 72-byte bcrypt limit.
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")  # retained for OpenAPI but not relied upon internally
-
-
-# Password hashing helpers
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        return pwd_context.verify(plain_password, hashed_password)
-    except Exception:
-        return False
-
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-
+# Password hash helpers are imported at module top
 # JWT helpers
 
 
@@ -296,12 +226,17 @@ def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[tim
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(days=getattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS", 7))
     )
-    to_encode = {"sub": str(getattr(user, "email", "")), "jti": jti, "type": "refresh", "exp": expire}
+    to_encode = {
+        "sub": str(getattr(user, "email", "")),
+        "jti": jti,
+        "type": "refresh",
+        "exp": expire,
+    }
     token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
     # Persist token fingerprint
     try:
-        rt = models.RefreshToken(
+        rt = RefreshToken(
             user_id=getattr(user, "id"),
             jti=jti,
             token_hash=_hash_token(token),
@@ -310,15 +245,19 @@ def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[tim
         )
         db.add(rt)
         db.commit()
-    except Exception:
+    except Exception as e:
         db.rollback()
-        # If DB persistence fails, do not leak details - still return token (best-effort)
+        # Log persistence failures for debugging in tests; still return token (best-effort)
+        logger.warning(
+            f"Failed to persist refresh token fingerprint for user {getattr(user, 'email', None)}: {e}",
+            exc_info=True,
+        )
     return token
 
 
 def revoke_refresh_token_by_jti(db: Session, jti: str) -> bool:
     try:
-        tok = db.query(models.RefreshToken).filter(models.RefreshToken.jti == jti).first()
+        tok = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
         if not tok:
             return False
         tok.revoked = True
@@ -330,87 +269,11 @@ def revoke_refresh_token_by_jti(db: Session, jti: str) -> bool:
         return False
 
 
-def decode_token(token: str) -> dict:
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-
-
-# Dependency: get current user (optional require)
-async def get_current_user(
-    request: Request,
-    token: str | None = None,
-    db: Session = Depends(get_db),
-) -> Any:
-    """Retrieve the current authenticated user.
-
-    Compatibility notes:
-    - Tests call this dependency directly with a positional/keyword `token` argument; preserve that API.
-    - When `token` is not provided, fall back to Authorization header parsing.
-    - When AUTH_ENABLED=False AND no auth attempted AND not auth endpoint: return dummy admin user for test compatibility.
-    - Auth endpoints (like /me) always require authentication even when AUTH_ENABLED=False.
-    - When token is provided OR AUTH_ENABLED=True: always validate the token properly.
-    """
-    if token is None:
-        # Only access headers when token not provided (avoid KeyError on minimal Request objects)
-        try:
-            auth_header = str(request.headers.get("Authorization", "")).strip()
-        except (KeyError, AttributeError):
-            auth_header = ""
-
-        # Check if we're on an auth-specific endpoint (like /me)
-        try:
-            path = str(getattr(request.url, "path", ""))
-        except:
-            path = ""
-        is_auth_endpoint = "/auth/" in path
-
-        # When auth is disabled, no auth header provided, and not an auth endpoint, return dummy user
-        if not getattr(settings, "AUTH_ENABLED", False) and not auth_header and not is_auth_endpoint:
-            from types import SimpleNamespace
-            return SimpleNamespace(
-                id=1,
-                email="test@example.com",
-                role="admin",
-                is_active=True,
-                full_name="Test User"
-            )
-
-        if not auth_header.startswith("Bearer "):
-            raise http_error(
-                status.HTTP_401_UNAUTHORIZED,
-                ErrorCode.UNAUTHORIZED,
-                "Missing bearer token",
-                request,
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        token = auth_header.split(" ", 1)[1].strip()
-
-    # If we get here, we have a token (either from parameter or header) - validate it
-    credentials_exception = http_error(
-        status.HTTP_401_UNAUTHORIZED,
-        ErrorCode.UNAUTHORIZED,
-        "Could not validate credentials",
-        request,
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = decode_token(token)
-        email_val = payload.get("sub")
-        email: str = str(email_val) if email_val is not None else ""
-        if not email:
-            raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
-    except Exception:
-        raise credentials_exception
-
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if user is None or not bool(getattr(user, "is_active", False)):
-        raise credentials_exception
-    return user
+# Reuse canonical auth helpers from centralized module (imported at top)
 
 
 def require_role(*roles: str):
-    def _dep(request: Request, user = Depends(get_current_user)) -> Any:
+    def _dep(request: Request, user=Depends(get_current_user)) -> Any:
         user_role = getattr(user, "role", None)
         user_email = getattr(user, "email", "unknown")
         # Safely derive endpoint path even for synthetic Request objects used in tests
@@ -447,18 +310,21 @@ def optional_require_role(*roles: str):
     """Role checker that respects AUTH_ENABLED.
 
     Behavior:
-    - When AUTH_ENABLED is False: return a zero-argument dependency that yields a dummy admin user.
-      This allows calling the dependency directly in tests (dependency()) and keeps endpoints
-      working without auth in disabled mode.
+    - When AUTH_ENABLED is False at runtime: yields a dummy admin user (for tests/disabled mode).
     - When AUTH_ENABLED is True: enforces that the resolved user has one of the allowed roles.
+
+    Important: This checks `settings.AUTH_ENABLED` at runtime (inside the dependency) rather
+    than at definition time to allow tests to toggle the flag in fixtures.
     """
 
-    # If auth is globally disabled, return a very lenient dependency that requires no parameters
-    # and simply returns a dummy admin user. Accepts zero args to satisfy unit tests that invoke it
-    # directly without a Request object.
-    if not getattr(settings, "AUTH_ENABLED", False):
-        def _dep_disabled():
+    def _dep(request: Request = None, user: Any = Depends(get_current_user)) -> Any:
+        # Evaluate runtime flags so test fixtures can toggle AUTH_ENABLED/AUTH_MODE
+        auth_enabled = getattr(settings, "AUTH_ENABLED", False)
+        auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+
+        if not auth_enabled or auth_mode == "disabled":
             from types import SimpleNamespace
+
             return SimpleNamespace(
                 id=1,
                 email="admin@example.com",
@@ -466,10 +332,8 @@ def optional_require_role(*roles: str):
                 is_active=True,
                 full_name="Admin User",
             )
-        return _dep_disabled
 
-    # Auth enabled: enforce roles using the real current user dependency
-    def _dep(request: Request, user: Any = Depends(get_current_user)) -> Any:
+        # Auth is enabled — enforce role checks
         if roles:
             role = getattr(user, "role", None)
             if role not in roles:
@@ -490,7 +354,7 @@ def optional_require_role(*roles: str):
 @limiter.limit(RATE_LIMIT_AUTH)
 async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
     try:
-        existing = db.query(models.User).filter(models.User.email == payload.email).first()
+        existing = db.query(User).filter(User.email == payload.email).first()
         if existing:
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -512,7 +376,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
                 payload_decoded = decode_token(token)
                 email_val = payload_decoded.get("sub")
                 if email_val:
-                    admin_user = db.query(models.User).filter(models.User.email == email_val).first()
+                    admin_user = db.query(User).filter(User.email == email_val).first()
                     if (
                         admin_user
                         and getattr(admin_user, "is_active", False)
@@ -524,7 +388,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
             # Any failure validating admin token -> treat as anonymous
             assigned_role = "teacher"
 
-        user = models.User(
+        user = User(
             email=payload.email.lower().strip(),
             full_name=(payload.full_name or "").strip() or None,
             role=assigned_role,
@@ -551,6 +415,7 @@ async def login(
     db: Session = Depends(get_db),
 ):
     try:
+        logger.info(f"Login attempt for email: {payload.email}")
         normalized_email = payload.email.lower().strip()
         client_identifier = _get_client_identifier(request)
         throttle_keys: list[str | None] = [f"email:{normalized_email}" if normalized_email else None]
@@ -559,18 +424,27 @@ async def login(
 
         _enforce_throttle_guards(throttle_keys, request)
 
-        user = db.query(models.User).filter(models.User.email == normalized_email).first()
+        user = db.query(User).filter(User.email == normalized_email).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
 
         if user:
             _enforce_user_lockout(user, request, db)
 
-        password_valid = bool(user and verify_password(payload.password, hashed_pw))
+        try:
+            password_valid = bool(user and verify_password(payload.password, hashed_pw))
+        except Exception as exc:
+            logger.error(
+                f"Password verification error for {normalized_email}: {exc}",
+                exc_info=True,
+            )
+            raise internal_server_error("Password verification failed", request) from exc
         if not password_valid:
+            logger.info(f"Invalid login for {normalized_email} (user exists: {bool(user)})")
             user_lockout_until = _register_user_failed_attempt(user, db) if user else None
             throttle_lockout_until = _register_throttle_failure(throttle_keys)
             lockout_until = user_lockout_until or throttle_lockout_until
             if lockout_until:
+                logger.warning(f"Lockout triggered for {normalized_email} until {lockout_until}")
                 raise _build_lockout_exception(request, lockout_until)
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -581,6 +455,22 @@ async def login(
 
         _reset_user_login_state(user, db)
         _reset_throttle_entries(throttle_keys)
+        logger.info(f"Login successful for {normalized_email}")
+
+        # Auto-rehash password if using deprecated scheme (bcrypt -> pbkdf2_sha256)
+        try:
+            if pwd_context.needs_update(hashed_pw):
+                user.hashed_password = get_password_hash(payload.password)
+                db.add(user)
+                db.commit()
+                logger.info(f"Auto-rehashed password for user {normalized_email} from deprecated scheme")
+        except Exception as rehash_error:
+            # Non-critical: log and continue with login even if rehash fails
+            db.rollback()
+            logger.warning(
+                f"Failed to auto-rehash password for {normalized_email}: {rehash_error}",
+                exc_info=True,
+            )
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
@@ -605,21 +495,31 @@ async def login(
                     samesite="lax",
                     max_age=max_age_val,
                 )
-        except Exception:
-            pass
+        except Exception as cookie_exc:
+            logger.warning(f"Failed to set refresh token cookie: {cookie_exc}", exc_info=True)
 
         issue_csrf_cookie(response, include_header=True)
         # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
         return Token(access_token=access_token)
-    except HTTPException:
+    except HTTPException as exc:
+        logger.error(f"HTTPException during login: {exc}", exc_info=True)
         raise
     except Exception as exc:
+        logger.error(f"Unhandled exception during login: {exc}", exc_info=True)
         raise internal_server_error("Login failed", request) from exc
 
 
 @router.get("/auth/me", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def me(request: Request, current_user: Any = Depends(get_current_user)):
+    # Explicitly require authentication: if current_user is None or inactive, raise 401
+    if current_user is None or not bool(getattr(current_user, "is_active", False)):
+        raise http_error(
+            status.HTTP_401_UNAUTHORIZED,
+            ErrorCode.UNAUTHORIZED,
+            "Authentication required or user inactive",
+            request,
+        )
     return current_user
 
 
@@ -631,6 +531,7 @@ async def refresh(
     payload: RefreshRequest = Body(None),
     db: Session = Depends(get_db),
 ):
+    db.expire_all()  # Force session to see latest DB state (important for tests)
     try:
         raw = (payload.refresh_token if payload is not None else None) or request.cookies.get("refresh_token")
         if not raw:
@@ -659,7 +560,7 @@ async def refresh(
             )
 
         # Verify stored token exists and not revoked/expired
-        stored = db.query(models.RefreshToken).filter(models.RefreshToken.jti == jti).first()
+        stored = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
         if not stored or stored.revoked:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
@@ -684,12 +585,12 @@ async def refresh(
             )
 
         # Issue new access token and rotate refresh token (revoke old, insert new)
-        user = db.query(models.User).filter(models.User.email == email).first()
-        if not user:
+        user = db.query(User).filter(User.email == email).first()
+        if not user or not bool(getattr(user, "is_active", False)):
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
                 ErrorCode.UNAUTHORIZED,
-                "User not found",
+                "User not found or inactive",
                 request,
             )
 
@@ -752,16 +653,23 @@ async def logout(
     """
     try:
         user_email: str | None = None
-        # Attempt bearer token resolution first
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            raw = auth_header.split(" ", 1)[1].strip()
+        # Prefer explicit refresh token payload (logout of a specific token)
+        rt_payload = None
+        if payload is not None and getattr(payload, "refresh_token", None):
+            rt_payload = payload.refresh_token
+
+        # Prefer refresh token (payload -> cookie) to identify which user's
+        # session should be revoked. This ensures client-side cookie based
+        # logouts (common in browsers/tests) target the correct user even
+        # when an Authorization header for a different user is present.
+        if rt_payload:
             try:
-                payload_decoded = decode_token(raw)
-                user_email = payload_decoded.get("sub") or None
+                payload_decoded = decode_token(rt_payload)
+                if payload_decoded.get("type") == "refresh":
+                    user_email = payload_decoded.get("sub") or None
             except Exception:
                 user_email = None
-        # Fallback: refresh token cookie
+
         if not user_email:
             rt_cookie = request.cookies.get("refresh_token")
             if rt_cookie:
@@ -772,18 +680,31 @@ async def logout(
                 except Exception:
                     user_email = None
 
+        # Fallback: bearer token resolution
+        if not user_email:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                raw = auth_header.split(" ", 1)[1].strip()
+                try:
+                    payload_decoded = decode_token(raw)
+                    user_email = payload_decoded.get("sub") or None
+                except Exception:
+                    user_email = None
+
         user = None
         if user_email:
-            user = db.query(models.User).filter(models.User.email == user_email).first()
+            user = db.query(User).filter(User.email == user_email).first()
 
         if user:
             # Revoke ALL refresh tokens for this user
-            tokens = db.query(models.RefreshToken).filter(models.RefreshToken.user_id == getattr(user, "id", None)).all()
+            tokens = db.query(RefreshToken).filter(RefreshToken.user_id == getattr(user, "id", None)).all()
             for t in tokens:
                 t.revoked = True
                 db.add(t)
             db.commit()
+            db.expire_all()  # Ensure all objects are refreshed from DB (important for tests)
             db.refresh(user)
+            db.close()  # Force session close so next request sees changes
             logger.info(f"User {getattr(user, 'email', 'unknown')} logged out successfully")
         else:
             logger.info("Logout invoked without resolvable user; clearing cookies only")
@@ -803,16 +724,12 @@ async def logout(
 @router.get("/admin/users")
 async def admin_list_users(
     request: Request,
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = request  # placeholder to avoid unused warnings until logging is added
     _ = current_admin
-    users = (
-        db.query(models.User)
-        .order_by(models.User.role.desc(), models.User.email.asc())
-        .all()
-    )
+    users = db.query(User).order_by(User.role.desc(), User.email.asc()).all()
     return users
 
 
@@ -820,12 +737,12 @@ async def admin_list_users(
 async def admin_create_user(
     request: Request,
     payload: UserCreate = Body(...),
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
     normalized_email = payload.email.lower().strip()
-    existing = db.query(models.User).filter(models.User.email == normalized_email).first()
+    existing = db.query(User).filter(User.email == normalized_email).first()
     if existing:
         raise http_error(
             status.HTTP_400_BAD_REQUEST,
@@ -835,7 +752,7 @@ async def admin_create_user(
             context={"email": normalized_email},
         )
 
-    user = models.User(
+    user = User(
         email=normalized_email,
         full_name=(payload.full_name or "").strip() or None,
         role=payload.role or "teacher",
@@ -858,13 +775,18 @@ async def admin_update_user(
     request: Request,
     user_id: int,
     payload: UserUpdate = Body(...),
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+        raise http_error(
+            status.HTTP_404_NOT_FOUND,
+            ErrorCode.AUTH_USER_NOT_FOUND,
+            "User not found",
+            request,
+        )
 
     original_role = user.role
     original_active = bool(user.is_active)
@@ -914,12 +836,17 @@ async def admin_update_user(
 async def admin_delete_user(
     request: Request,
     user_id: int,
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+        raise http_error(
+            status.HTTP_404_NOT_FOUND,
+            ErrorCode.AUTH_USER_NOT_FOUND,
+            "User not found",
+            request,
+        )
 
     if getattr(current_admin, "id", None) == user_id:
         raise http_error(
@@ -964,13 +891,18 @@ async def admin_reset_password(
     request: Request,
     user_id: int,
     payload: PasswordResetRequest = Body(...),
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = current_admin
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+        raise http_error(
+            status.HTTP_404_NOT_FOUND,
+            ErrorCode.AUTH_USER_NOT_FOUND,
+            "User not found",
+            request,
+        )
 
     try:
         user.hashed_password = get_password_hash(payload.new_password)
@@ -990,17 +922,22 @@ async def admin_reset_password(
 async def admin_unlock_account(
     request: Request,
     user_id: int,
-    db = Depends(get_db),
-    current_admin = Depends(optional_require_role("admin")),
+    db: Session = Depends(get_db),
+    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     """Admin endpoint to unlock a locked user account.
-    
+
     Resets failed login attempts, clears lockout timestamp.
     """
     _ = current_admin
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+        raise http_error(
+            status.HTTP_404_NOT_FOUND,
+            ErrorCode.AUTH_USER_NOT_FOUND,
+            "User not found",
+            request,
+        )
 
     try:
         user.failed_login_attempts = 0
@@ -1013,7 +950,7 @@ async def admin_unlock_account(
             "status": "unlocked",
             "user_id": user.id,
             "email": user.email,
-            "message": f"Account for {user.email} has been unlocked"
+            "message": f"Account for {user.email} has been unlocked",
         }
     except Exception as exc:
         db.rollback()
@@ -1025,8 +962,8 @@ async def admin_unlock_account(
 async def change_password(
     request: Request,
     payload: PasswordChangeRequest = Body(...),
-    db = Depends(get_db),
-    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
 ):
     """Allow an authenticated user to change their own password.
 
@@ -1038,7 +975,12 @@ async def change_password(
     try:
         user = db.query(models.User).filter(models.User.id == getattr(current_user, "id", None)).first()
         if not user:
-            raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.AUTH_USER_NOT_FOUND, "User not found", request)
+            raise http_error(
+                status.HTTP_404_NOT_FOUND,
+                ErrorCode.AUTH_USER_NOT_FOUND,
+                "User not found",
+                request,
+            )
 
         # Verify current password
         if not verify_password(payload.current_password, getattr(user, "hashed_password", "")):
@@ -1070,7 +1012,11 @@ async def change_password(
 
         # Issue new access token so client can continue without relogin
         new_access = create_access_token(subject=str(getattr(user, "email", "")))
-        return {"status": "password_changed", "access_token": new_access, "token_type": "bearer"}
+        return {
+            "status": "password_changed",
+            "access_token": new_access,
+            "token_type": "bearer",
+        }
     except HTTPException:
         raise
     except Exception as exc:

@@ -1,7 +1,7 @@
 # Authentication Settings Management - Control Panel
 
-**Feature:** Maintenance Suite - AUTH_MODE Configuration  
-**Added:** v1.8.6.4  
+**Feature:** Maintenance Suite - AUTH_MODE Configuration
+**Added:** $11.9.7.4
 **Access:** `/control` → Maintenance Tab
 
 ## Overview
@@ -11,9 +11,11 @@ Admins can now manage authentication and authorization policies directly from th
 ## New API Endpoints
 
 ### 1. Get Current Settings
+
 **GET** `/control/api/maintenance/auth-settings`
 
 Returns current authentication configuration:
+
 ```json
 {
   "auth_enabled": true,
@@ -27,9 +29,11 @@ Returns current authentication configuration:
 ```
 
 ### 2. Update Settings
+
 **POST** `/control/api/maintenance/auth-settings`
 
 Update one or more authentication settings:
+
 ```json
 {
   "auth_enabled": true,
@@ -40,6 +44,7 @@ Update one or more authentication settings:
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -58,6 +63,7 @@ Update one or more authentication settings:
 ```
 
 ### 3. Get Policy Guide
+
 **GET** `/control/api/maintenance/auth-policy-guide`
 
 Returns comprehensive documentation on all AUTH_MODE options and settings.
@@ -65,32 +71,38 @@ Returns comprehensive documentation on all AUTH_MODE options and settings.
 ## Authorization Modes
 
 ### 🔓 Disabled
-**Use Case:** Development, testing, or fully public systems  
-**Behavior:** All endpoints accessible without login  
-**Security:** None  
+
+**Use Case:** Development, testing, or fully public systems
+**Behavior:** All endpoints accessible without login
+**Security:** None
 
 **When to use:**
+
 - Local development
 - Running automated tests
 - Public demo environments
 
 ### 🔐 Permissive (Recommended)
-**Use Case:** Production systems where all users are trusted  
-**Behavior:** Users must login, but can access all endpoints regardless of role  
-**Security:** Medium  
+
+**Use Case:** Production systems where all users are trusted
+**Behavior:** Users must login, but can access all endpoints regardless of role
+**Security:** Medium
 
 **When to use:**
+
 - Production environments (default recommendation)
 - Systems where all registered users should have full access
 - When you want authentication but not role restrictions
 - **Solves the "teacher can't enroll students" issue**
 
 ### 🔒 Strict
-**Use Case:** High-security environments with distinct roles  
-**Behavior:** Endpoints check user roles, deny access if role doesn't match  
-**Security:** High  
+
+**Use Case:** High-security environments with distinct roles
+**Behavior:** Endpoints check user roles, deny access if role doesn't match
+**Security:** High
 
 **When to use:**
+
 - Strict role separation needed (admin vs teacher vs student)
 - Compliance requirements for access control
 - High-security institutional environments
@@ -108,6 +120,7 @@ Returns comprehensive documentation on all AUTH_MODE options and settings.
 ## Usage Examples
 
 ### Example 1: Enable Authentication (Production Setup)
+
 ```bash
 POST /control/api/maintenance/auth-settings
 {
@@ -119,6 +132,7 @@ POST /control/api/maintenance/auth-settings
 **Result:** Users must login, but all authenticated users have full access.
 
 ### Example 2: Switch to Strict Mode
+
 ```bash
 POST /control/api/maintenance/auth-settings
 {
@@ -129,6 +143,7 @@ POST /control/api/maintenance/auth-settings
 **Result:** Full RBAC enforcement. Teachers can't access admin endpoints.
 
 ### Example 3: Adjust Lockout Policy
+
 ```bash
 POST /control/api/maintenance/auth-settings
 {
@@ -140,6 +155,7 @@ POST /control/api/maintenance/auth-settings
 **Result:** Allow 10 attempts before 10-minute lockout (more lenient for users who forget passwords).
 
 ### Example 4: Disable Authentication (Testing)
+
 ```bash
 POST /control/api/maintenance/auth-settings
 {
@@ -152,30 +168,36 @@ POST /control/api/maintenance/auth-settings
 ## Configuration Presets
 
 ### Development Environment
+
 ```json
 {
   "auth_enabled": false,
   "auth_mode": "disabled"
 }
 ```
+
 No authentication for quick development.
 
 ### Production (Recommended)
+
 ```json
 {
   "auth_enabled": true,
   "auth_mode": "permissive"
 }
 ```
+
 Users must login but no role restrictions.
 
 ### High-Security Production
+
 ```json
 {
   "auth_enabled": true,
   "auth_mode": "strict"
 }
 ```
+
 Full RBAC with role enforcement.
 
 ## Important Notes
@@ -241,12 +263,14 @@ The Maintenance Tab in the Control Panel (`/control`) should be updated to inclu
 ## Testing
 
 Run maintenance endpoint tests:
+
 ```bash
 cd backend
 python -m pytest tests/test_control_maintenance.py -v
 ```
 
 All 6 tests should pass:
+
 - ✅ Get current auth settings
 - ✅ Get policy guide
 - ✅ Update auth settings
@@ -264,13 +288,17 @@ All 6 tests should pass:
 ## Troubleshooting
 
 ### Settings not taking effect
+
 **Solution:** Restart the application. Settings are loaded at startup.
 
 ### "No .env file found" error
+
 **Solution:** The endpoint will try to create one from `.env.example`. If that fails, manually create `backend/.env` from `backend/.env.example`.
 
 ### Changes applied to wrong .env file
+
 **Check:** Verify which .env file the endpoint reports updating in the response:
+
 ```json
 {
   "details": {
@@ -280,6 +308,7 @@ All 6 tests should pass:
 ```
 
 ### Auth policy not changing behavior
+
 1. Verify `AUTH_ENABLED=true` (must be true for AUTH_MODE to work)
 2. Check for environment variable overrides
 3. Restart application
@@ -288,6 +317,7 @@ All 6 tests should pass:
 ## API Client Examples
 
 ### cURL
+
 ```bash
 # Get current settings
 curl http://localhost:8080/control/api/maintenance/auth-settings
@@ -299,6 +329,7 @@ curl -X POST http://localhost:8080/control/api/maintenance/auth-settings \
 ```
 
 ### Python
+
 ```python
 import requests
 
@@ -318,6 +349,7 @@ print(result["message"])
 ```
 
 ### JavaScript (Frontend)
+
 ```javascript
 // Get current settings
 const response = await fetch('/control/api/maintenance/auth-settings');
@@ -339,12 +371,12 @@ alert(result.message);
 
 ## Related Documentation
 
-- [../AUTH_FIX_v1.8.6.4_IMPLEMENTED.md](../AUTH_FIX_v1.8.6.4_IMPLEMENTED.md) - Implementation details
-- [../AUTH_ISSUES_FIX_v1.8.6.4.md](../AUTH_ISSUES_FIX_v1.8.6.4.md) - Problem analysis and fixes
+- [../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md](../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md) - Implementation details
+- [../AUTH_ISSUES_FIX_$11.9.7.4.md](../AUTH_ISSUES_FIX_$11.9.7.4.md) - Problem analysis and fixes
 - [AUTHENTICATION.md](AUTHENTICATION.md) - General authentication guide (if available)
 
 ## Version History
 
-- **v1.8.6.4** - Initial implementation of maintenance suite auth settings management
-- **v1.8.6.4** - Added AUTH_MODE hybrid authorization system
-- **v1.8.6.2** - Introduced auth issues (binary AUTH_ENABLED behavior)
+- **$11.9.7.4** - Initial implementation of maintenance suite auth settings management
+- **$11.9.7.4** - Added AUTH_MODE hybrid authorization system
+- **$11.9.7.2** - Introduced auth issues (binary AUTH_ENABLED behavior)

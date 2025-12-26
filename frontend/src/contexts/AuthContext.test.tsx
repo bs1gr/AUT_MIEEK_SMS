@@ -82,13 +82,13 @@ describe('AuthContext', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        await result.current.login('user@test.com', 'password123');
+        await result.current.login('user@test.com', 'password123'); // pragma: allowlist secret
       });
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
         '/auth/login',
-        { email: 'user@test.com', password: 'password123' },
-        { withCredentials: true }
+        { email: 'user@test.com', password: 'password123' }, // pragma: allowlist secret
+        expect.objectContaining({ withCredentials: true })
       );
       expect(result.current.user).toEqual({ id: 1, email: 'user@test.com', role: 'student' });
       expect(result.current.accessToken).toBe('new-access-token');

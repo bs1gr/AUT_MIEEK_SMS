@@ -16,11 +16,13 @@ def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> loggin
         RequestIDFilter = getattr(rim_mod, "RequestIDFilter")
     except Exception:
         # Fallback: define a minimal filter locally to keep logging robust even if import path changes
-        class RequestIDFilter(logging.Filter):  # type: ignore[override]
+        class _FallbackRequestIDFilter(logging.Filter):  # type: ignore[override]
             def filter(self, record: logging.LogRecord) -> bool:  # pragma: no cover - trivial
                 if not hasattr(record, "request_id"):
                     record.request_id = "-"
                 return True
+
+        RequestIDFilter = _FallbackRequestIDFilter
 
     # Format with request ID support
     log_format = "%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] - %(message)s"

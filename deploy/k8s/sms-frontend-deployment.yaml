@@ -14,21 +14,28 @@ spec:
       labels:
         app: sms-frontend
     spec:
+# Harden container: enforce non-root, read-only root, drop capabilities
       containers:
         - name: sms-frontend
           image: ghcr.io/bs1gr/sms-frontend@sha256:REPLACE_WITH_DIGEST
           ports:
-            - containerPort: 80
+            - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
 # Service for sms-frontend moved to sms-frontend-service.yaml

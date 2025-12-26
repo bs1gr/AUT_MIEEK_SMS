@@ -1,4 +1,4 @@
-name: Build and publish Docker images
+name: Manual Docker Publish and Release
 
 on:
   workflow_dispatch:
@@ -8,179 +8,73 @@ on:
         required: true
         type: string
 
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     outputs:
-      pushed: ${{ steps.determine.outputs.push }}
-      fullstack_digest: ${{ steps.build_fullstack.outputs.digest }}
-      fullstack_ghcr_digest: ${{ steps.get_fullstack_ghcr.outputs.digest }}
-      backend_digest: ${{ steps.build_backend.outputs.digest }}
-      backend_ghcr_digest: ${{ steps.get_backend_ghcr.outputs.digest }}
-      frontend_digest: ${{ steps.build_frontend.outputs.digest }}
-      frontend_ghcr_digest: ${{ steps.get_frontend_ghcr.outputs.digest }}
+      digest: ${{ steps.build_and_push.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure docker available
-        run: |
-          docker --version || (echo 'docker not available' && exit 1)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR (docker CLI)
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine whether to push images
-        id: determine
-        run: |
-          # Prefer explicit DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets.
-          # Fallback: if a secret named VASILEIOSSAMARAS exists, treat it as a Docker Hub token
-          # and use the default username 'vasileiossamaras'.
-          if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ] || [ -n "${{ secrets.VASILEIOSSAMARAS }}" ]; then
-            echo "push=true" >> $GITHUB_OUTPUT
-            if [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
-              echo "used=DOCKERHUB_TOKEN" >> $GITHUB_OUTPUT
-            else
-              echo "used=VASILEIOSSAMARAS" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "push=false" >> $GITHUB_OUTPUT
-            echo "used=none" >> $GITHUB_OUTPUT
-          fi
+      - name: Log in to Docker Hub
+        if: secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Docker Hub
-        if: ${{ steps.determine.outputs.push == 'true' }}
-        run: |
-          USERNAME=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}
-          PASSWORD=${{ secrets.DOCKERHUB_TOKEN || secrets.VASILEIOSSAMARAS }}
-          echo "Pushing to Docker Hub as $USERNAME (secret used: ${{ steps.determine.outputs.used }})"
-          echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+          tags: |
+            type=raw,value=${{ inputs.tag }}
+            type=raw,value=latest
 
-      - name: Build & push fullstack image (docker CLI)
-        id: build_fullstack
-        run: |
-          IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms
-          IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-fullstack
-          TAG=${{ inputs.tag }}
-          # Build single-platform (amd64) image
-          docker build -f docker/Dockerfile.fullstack -t ${IMAGE_GHCR}:${TAG} -t ${IMAGE_GHCR}:latest .
-          if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker tag ${IMAGE_GHCR}:latest docker.io/${IMAGE_DOCKERIO}:latest
-            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker push docker.io/${IMAGE_DOCKERIO}:latest
-            docker push ${IMAGE_GHCR}:${TAG}
-            docker push ${IMAGE_GHCR}:latest
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
-            if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
-          else
-            echo "digest=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get GHCR digest for fullstack
-        id: get_fullstack_ghcr
-        if: ${{ steps.determine.outputs.push == 'true' }}
-        run: |
-          OWNER=${{ github.repository_owner }}
-          TAG=${{ inputs.tag }}
-          # Request manifest header to get Docker-Content-Digest
-          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-fullstack/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Build & push backend image (docker CLI)
-        id: build_backend
-        run: |
-          IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/backend
-          IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-backend
-          TAG=${{ inputs.tag }}
-          docker build -f docker/Dockerfile.backend -t ${IMAGE_GHCR}:${TAG} .
-          if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker push ${IMAGE_GHCR}:${TAG}
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
-            if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
-          else
-            echo "digest=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get GHCR digest for backend
-        id: get_backend_ghcr
-        if: ${{ steps.determine.outputs.push == 'true' }}
-        run: |
-          OWNER=${{ github.repository_owner }}
-          TAG=${{ inputs.tag }}
-          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-backend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Build & push frontend image (docker CLI)
-        id: build_frontend
-        run: |
-          IMAGE_DOCKERIO=${{ secrets.DOCKERHUB_USERNAME || 'vasileiossamaras' }}/aut_mieek_sms/frontend
-          IMAGE_GHCR=ghcr.io/${{ github.repository_owner }}/sms-frontend
-          TAG=${{ inputs.tag }}
-          docker build -f docker/Dockerfile.frontend -t ${IMAGE_GHCR}:${TAG} .
-          if [ "${{ steps.determine.outputs.push }}" = "true" ]; then
-            docker tag ${IMAGE_GHCR}:${TAG} docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker push docker.io/${IMAGE_DOCKERIO}:${TAG}
-            docker push ${IMAGE_GHCR}:${TAG}
-            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${IMAGE_GHCR}:${TAG} 2>/dev/null || true)
-            if [ -n "$DIGEST" ]; then echo "digest=${DIGEST#*@}" >> $GITHUB_OUTPUT; else echo "digest=" >> $GITHUB_OUTPUT; fi
-          else
-            echo "digest=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get GHCR digest for frontend
-        id: get_frontend_ghcr
-        if: ${{ steps.determine.outputs.push == 'true' }}
-        run: |
-          OWNER=${{ github.repository_owner }}
-          TAG=${{ inputs.tag }}
-          DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" "https://ghcr.io/v2/${OWNER}/sms-frontend/manifests/${TAG}" | awk -F': ' '/Docker-Content-Digest/ {print $2}' | tr -d '\r')
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Push image note
-        if: ${{ steps.determine.outputs.push == 'false' }}
-        run: |
-          echo "DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not set. Built images in runner but did not push. To push, add DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets in repository settings."
+      - name: Build and push Docker image
+        id: build_and_push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.fullstack
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   create-release:
     needs: build-and-publish
     runs-on: ubuntu-latest
-    if: needs.build-and-publish.outputs.pushed == 'true'
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare release notes body
-        id: read_notes
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_DIGEST: ${{ needs.build-and-publish.outputs.digest }}
         run: |
-          TAG="${{ github.ref_name }}"
-          REPO="${{ github.repository }}"
-          URL="https://github.com/${REPO}/blob/${TAG}/CHANGELOG.md"
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "Release notes are maintained in CHANGELOG.md (${URL})." >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create release (published) with image digests
-        id: create_rel
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const tag = '${{ github.ref_name }}';
-            const body = ${JSON.stringify('${{ steps.read_notes.outputs.notes }}')};
-            const release = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: tag,
-              name: `Docker images for ${tag}`,
-              body: body,
-              draft: true,
-              prerelease: false,
-            });
-            // Release notes are linked directly to CHANGELOG.md; no asset upload required.
+          gh release create ${{ inputs.tag }} \
+            --title "Release ${{ inputs.tag }}" \
+            --notes "Docker image digest: ${IMAGE_DIGEST}"

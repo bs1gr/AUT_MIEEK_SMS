@@ -1,7 +1,7 @@
 # Cleanup Scripts Guide
 
-**Last Updated**: 2025-11-28
-**Repository Version**: 1.9.3
+**Last Updated**: 2025-12-04
+**Repository Version**: 1.9.7
 **Purpose**: Comprehensive guide to all cleanup operations and maintenance scripts
 
 ---
@@ -23,9 +23,9 @@
 
 | Script Location | Status |
 |----------------|--------|
-| archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/DEEP_DOCKER_CLEANUP.ps1 | ✅ Archived (functionality in DOCKER.ps1 -DeepClean) |
-| archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/SUPER_CLEAN_AND_DEPLOY.ps1 | ✅ Archived (split into DOCKER.ps1 + COMMIT_READY.ps1) |
-| archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/scripts/CLEANUP_TEMP.ps1 | ✅ Archived (functionality in CLEANUP_COMPREHENSIVE.ps1) |
+| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/DEEP_DOCKER_CLEANUP.ps1 | ✅ Archived (functionality in DOCKER.ps1 -DeepClean) |
+| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/SUPER_CLEAN_AND_DEPLOY.ps1 | ✅ Archived (split into DOCKER.ps1 + COMMIT_READY.ps1) |
+| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/scripts/CLEANUP_TEMP.ps1 | ✅ Archived (functionality in CLEANUP_COMPREHENSIVE.ps1) |
 
 ---
 
@@ -35,7 +35,8 @@
 
 **Scope**: Part of pre-commit validation workflow
 
-#### What It Cleans:
+#### What It Cleans
+
 ```powershell
 ✅ Python cache (__pycache__/, *.pyc, *.pyo, .pytest_cache/)
 ✅ Node.js cache (node_modules/.cache/)
@@ -44,6 +45,7 @@
 ```
 
 **Features**:
+
 - Automatic (no confirmation)
 - Reports size freed (MB)
 - Tracks results
@@ -57,7 +59,8 @@
 
 **Scope**: Docker-specific cleanup operations
 
-#### -Prune (Safe Cleanup):
+#### -Prune (Safe Cleanup)
+
 ```powershell
 ✅ Dangling Docker images
 ✅ Stopped containers
@@ -65,7 +68,8 @@
 ❌ Keeps: Volumes, Active images, Running containers
 ```
 
-#### -DeepClean (Nuclear Option):
+#### -DeepClean (Nuclear Option)
+
 ```powershell
 ✅ ALL Docker images (sms*)
 ✅ ALL Docker containers (sms*)
@@ -75,12 +79,14 @@
 ```
 
 **Features**:
+
 - `-Prune`: Safe, can run anytime
 - `-DeepClean`: Requires confirmation
 - Reports space freed
 - Docker-aware (checks if Docker is running)
 
 **When to Use**:
+
 - `-Prune`: Weekly or when low on disk space
 - `-DeepClean`: Only when troubleshooting issues
 
@@ -90,9 +96,10 @@
 
 **Scope**: Everything (Files + Docker)
 
-#### What It Cleans (14 Phases):
+#### What It Cleans (14 Phases)
 
 **Files & Directories**:
+
 ```powershell
 ✅ [1] Obsolete LanguageToggle component
 ✅ [2] Entire Obsolete/ folder
@@ -107,6 +114,7 @@
 ```
 
 **Docker (Read-Only Analysis)**:
+
 ```powershell
 ○ [11] QNAP docker-compose.yml (asks before removing)
 ○ [12] Docker images/cache (reports, doesn't remove)
@@ -115,12 +123,14 @@
 ```
 
 **Optional Modes**:
+
 ```powershell
 -Docs     : Remove all .md files except READMEs
 -Obsolete : Remove specific named obsolete files
 ```
 
 **Features**:
+
 - Most comprehensive
 - Safe removal function with error handling
 - Size tracking
@@ -135,7 +145,8 @@
 
 **Scope**: Specific named obsolete markdown files
 
-#### What It Removes (16 files):
+#### What It Removes (16 files)
+
 ```
 VERSIONING_GUIDE.md
 TEACHING_SCHEDULE_GUIDE.md
@@ -156,6 +167,7 @@ CODE_IMPROVEMENTS.md
 ```
 
 **Features**:
+
 - Targeted removal
 - Requires confirmation
 - Safe (preserves essential docs)
@@ -169,6 +181,7 @@ CODE_IMPROVEMENTS.md
 **Status**: ⚠️ **Empty file** (1 line only)
 
 **Expected Functionality** (based on CLEANUP_COMPREHENSIVE.ps1):
+
 - Remove all .md files except READMEs
 - **Current State**: Does nothing
 
@@ -180,7 +193,8 @@ CODE_IMPROVEMENTS.md
 
 **Scope**: CI-specific artifacts
 
-#### What It Removes:
+#### What It Removes
+
 ```
 artifacts_run_*   (directories)
 run*.log          (files)
@@ -188,6 +202,7 @@ run_*.log         (files)
 ```
 
 **Features**:
+
 - Git status aware
 - Automatic (no confirmation)
 - CI-focused
@@ -213,6 +228,7 @@ run_*.log         (files)
 | CI artifacts | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 **Key Findings**:
+
 - ✅ **COMMIT_READY** and **CLEANUP_COMPREHENSIVE** have 50% overlap
 - ✅ **DOCKER.ps1** has unique Docker capabilities
 - ✅ **CLEANUP_COMPREHENSIVE** is most feature-rich but underutilized
@@ -374,6 +390,7 @@ Based on typical project state:
 ## ✅ Summary & Next Steps
 
 ### Current State
+
 - ✅ 6 cleanup scripts total
 - ✅ 3 are archived (correctly)
 - ✅ 3 are active and functional
@@ -383,6 +400,7 @@ Based on typical project state:
 ### Recommended Actions
 
 **Immediate** (Today):
+
 1. Update REPOSITORY_AUDIT_SUMMARY.md with CLEANUP_COMPREHENSIVE.ps1
 2. Add deprecation notice to CLEANUP_OBSOLETE_FILES.ps1
 3. Delete CLEANUP_DOCS.ps1 (empty file)
@@ -400,6 +418,7 @@ Based on typical project state:
 ## 🎯 Final Recommendation
 
 **Keep these 4 scripts**:
+
 1. ✅ COMMIT_READY.ps1 - Pre-commit automation
 2. ✅ DOCKER.ps1 - Docker operations
 3. ✅ CLEANUP_COMPREHENSIVE.ps1 - Maintenance ⭐ **PROMOTE THIS**

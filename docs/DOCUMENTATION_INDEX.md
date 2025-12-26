@@ -1,11 +1,11 @@
 # Documentation Index
 
-**Last Updated**: 2025-11-28
-**Version**: 1.9.3
+**Last Updated**: 2025-12-24
+**Version**: 1.12.7
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes (v1.9.0)**: Documentation has been reorganized into a cleaner structure with better categorization. All files are now in their proper directories.
+> **Recent Changes (1.9.9)**: Frontend routing validation, React Router v7 type safety improvements, decimal input parsing for international locales, comprehensive routing documentation added.
 
 ---
 
@@ -26,7 +26,12 @@ Documentation is organized into four main directories:
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-11-22)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
+- **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
+  - Frontend routing type safety and React Router v7 validation
+  - International locale support (European decimal separators)
+  - Backend test infrastructure improvements
+  - Test results and verification checklist
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
@@ -38,10 +43,11 @@ Documentation is organized into four main directories:
 - **[DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md)** - Production deployment guide
 - **[DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)** - Deployment verification checklist
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
+- **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
-### Monitoring & Operations (v1.8.3+)
+### Monitoring & Operations ($11.9.7+)
 
-- **[MONITORING_ARCHITECTURE.md](MONITORING_ARCHITECTURE.md)** - Comprehensive monitoring architecture guide
+- **[operations/MONITORING.md](operations/MONITORING.md)** - Canonical monitoring & alerting guide
   - On-demand vs eager activation modes
   - Docker-only deployment constraints
   - Security considerations and hardening
@@ -49,13 +55,14 @@ Documentation is organized into four main directories:
 - **[../monitoring/README.md](../monitoring/README.md)** - Monitoring quick reference
   - Configuration for Prometheus, Grafana, Loki
   - Alert rules and dashboard customization
-- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide
+- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide (canonical)
+- **[user/SESSION_EXPORT_IMPORT_GUIDE.md](user/SESSION_EXPORT_IMPORT_GUIDE.md)** - Session export/import user guide (canonical)
 - **[../backend/CONTROL_API.md](../backend/CONTROL_API.md)** - Control API documentation (Updated)
   - Monitoring lifecycle endpoints
   - Audit logging specifications
   - Security considerations for control operations
 
-### Code Architecture & Refactoring (NEW - v1.8.0)
+### Code Architecture & Refactoring (NEW - $11.9.7)
 
 - **[CONTROL_ROUTER_REFACTORING.md](CONTROL_ROUTER_REFACTORING.md)** - Control router refactoring guide
   - Modular architecture design
@@ -64,17 +71,32 @@ Documentation is organized into four main directories:
   - Testing strategy and troubleshooting
   - Module responsibilities and usage examples
 
+- **[ROUTING_VALIDATION_FIXES.md](../ROUTING_VALIDATION_FIXES.md)** - React Router v7 routing improvements (NEW - 1.9.9)
+  - React Router v7 layout route pattern validation
+  - Type-safe useParams implementation with StudentProfileParams interface
+  - Route configuration validation against navigation settings
+  - Comprehensive reference for routing architecture and maintenance
+
 ### Performance & Optimization
 
+- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - $11.9.7)
+  - Why migrate? (Concurrency, scalability, production requirements)
+  - Step-by-step migration procedure
+  - Performance tuning and monitoring
+  - Rollback procedures and troubleshooting
 - **[Archive: Performance Optimizations](../archive/sessions_2025-11/PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)** - Latest performance improvements (Archived)
   - Database indexing (+40% query speed)
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
   - React optimization (+60-70% render speed)
+- **Database Connection Pooling** (NEW - $11.9.7)
+  - PostgreSQL: pool_size=20, max_overflow=10, pool_pre_ping=True
+  - SQLite: NullPool to avoid locking issues
+  - See `backend/models.py` lines 367-411
 
 ### Scripts & Operations
 
-- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
+- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
   - **DOCKER.ps1** - All Docker deployment & management
   - **NATIVE.ps1** - Native development mode
   - Legacy script archive and migration notes
@@ -91,6 +113,61 @@ Documentation is organized into four main directories:
   - `docker/docker-compose.prod.yml` - Production overlay
   - `docker/docker-compose.monitoring.yml` - Monitoring stack
   - `docker/docker-compose.qnap.yml` - QNAP optimized
+
+### Workspace Consolidation ($11.10.1 - $11.10.1)
+
+- **Complete Consolidation Journey** (Dec 2025):
+
+- **[development/phase-reports/PHASE1_CONSOLIDATION_COMPLETE.md](development/phase-reports/PHASE1_CONSOLIDATION_COMPLETE.md)** - Phase 1: Code Organization (✅ COMPLETE)
+  - Backend database utilities consolidated → `backend/db/cli/`
+  - Import validation unified → `scripts/utils/validators/import_checker.py`
+  - Scripts reorganized → `scripts/utils/` (50+ files)
+  - Backward compatibility fully maintained
+  - Test results: 378 backend + 1033 frontend tests passing
+
+- **[development/phase-reports/PHASE2_CONSOLIDATION_COMPLETE.md](development/phase-reports/PHASE2_CONSOLIDATION_COMPLETE.md)** - Phase 2: Management Simplification (✅ COMPLETE)
+  - SMS.ps1 meta-wrapper created (universal entry point)
+  - Configuration strategy documented (root .env as authoritative)
+  - Help system implemented and tested
+  - Usage examples provided for all operations
+
+- **[development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md](development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - $11.10.1)
+  - Task 1: Documentation consolidation (establish `docs/DOCUMENTATION_INDEX.md` as source of truth)
+  - Task 2: Backend scripts organization (`backend/scripts/` hierarchy)
+  - Task 3: Symlink management strategy (Windows-compatible approach)
+  - Timeline: 13.5 hours estimated | Target: Dec 12, 2025
+
+**Related Documentation**:
+
+- **[development/TOOLS_CONSOLIDATION.md](development/TOOLS_CONSOLIDATION.md)** - Backend migration guide
+  - Why consolidate? (organization, discoverability)
+  - Deprecated import paths with timeline
+  - New import structure with examples
+  - FAQ and troubleshooting
+
+- **[CONFIG_STRATEGY.md](../CONFIG_STRATEGY.md)** - Environment configuration strategy
+  - .env file hierarchy and sourcing order
+  - Root .env as single source of truth
+  - Configuration sourcing for Docker and native modes
+  - Migration timeline ($11.10.1 → $11.10.1 → $11.10.1)
+
+- **[archive/consolidation-planning-2025-12-09/](../archive/consolidation-planning-2025-12-09/)** - Planning documents
+  - CONSOLIDATION_EXECUTIVE_SUMMARY.md - Overall plan and impact
+  - WORKSPACE_CONSOLIDATION_ANALYSIS.md - Deep analysis of 6 consolidation opportunities
+  - PHASE_1_MIGRATION_REPORT.md - Detailed Phase 1 execution report
+
+### Validation & Smoke Tests
+
+- **[operations/SMOKE_TEST_CHECKLIST_v1.12.md](operations/SMOKE_TEST_CHECKLIST_v1.12.md)** - Current smoke test checklist for v1.12.x
+- Legacy reference: **[archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md](../archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md)**
+
+### Historical Reports & Checklists (Archived)
+
+- **[archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md](../archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md)** - Frontend & DevOps improvements audit (1.9.7)
+- **[archive/documentation/reports/DOCUMENTATION_UPDATE_SUMMARY_v1_9_9.md](../archive/documentation/reports/DOCUMENTATION_UPDATE_SUMMARY_v1_9_9.md)** - Documentation updates summary (1.9.9)
+- **[archive/documentation/reports/PRE_RELEASE_DOCUMENTATION_AUDIT.md](../archive/documentation/reports/PRE_RELEASE_DOCUMENTATION_AUDIT.md)** - Pre-release documentation audit (1.9.7)
+- **[archive/documentation/automation/markdown_lint_report.md](../archive/documentation/automation/markdown_lint_report.md)** - Archived lint report placeholder
+- **[archive/pr-updates/](../archive/pr-updates/)** - Historical PR-specific update notes
 
 ---
 
@@ -151,12 +228,15 @@ Documentation is organized into four main directories:
 
 **Development Tools**:
 
-- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** - Developer quick start
-- **[development/DEVELOPMENT_SETUP_GUIDE.md](development/DEVELOPMENT_SETUP_GUIDE.md)** ⭐ NEW - Comprehensive setup & testing guide
-  - Prerequisites & dependencies
-  - Testing setup (pytest + Python 3.13 compatibility)
-  - Pre-commit validation
-  - Troubleshooting common issues
+- **[development/DEVELOPER_FAST_START.md](development/DEVELOPER_FAST_START.md)** (archived reference) - Use DEVELOPER_GUIDE_COMPLETE instead
+- **[development/DEVELOPMENT_SETUP_GUIDE.md](development/DEVELOPMENT_SETUP_GUIDE.md)** (reference) - Comprehensive setup guide (content consolidated in DEVELOPER_GUIDE_COMPLETE)
+- **[development/PRE_COMMIT_GUIDE.md](development/PRE_COMMIT_GUIDE.md)** ⭐ NEW - Unified pre-commit workflow
+  - Replaces PRE_COMMIT_AUTOMATION.md, PRECOMMIT_INSTRUCTIONS.md, pre-commit-workflow.md (archived to `archive/pre-commit-2025-12-06/`)
+  - Covers COMMIT_READY.ps1 modes, hooks installation, DEV_EASE policy, troubleshooting
+- **[development/VERSION_MANAGEMENT_GUIDE.md](development/VERSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Version automation (VERIFY_VERSION.ps1) + CI/hooks/pip note
+  - Replaces VERSION_AUTOMATION_GUIDE.md, VERSION_MANAGEMENT_QUICK_REF.md, version-automation.md, PIP_VERSION.md (archived to `archive/version-management-2025-12-06/`)
+- **[development/AUTOSAVE_PATTERN.md](development/AUTOSAVE_PATTERN.md)** - Canonical autosave pattern (coverage, auth review, troubleshooting)
+  - Supersedes autosave summaries (archived to `archive/autosave-2025-12-06/`)
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
 ### 🚀 For DevOps/Operators
@@ -170,6 +250,7 @@ Documentation is organized into four main directories:
 - **[deployment/DOCKER_OPERATIONS.md](deployment/DOCKER_OPERATIONS.md)** - Docker commands and management
 - **[deployment/DEPLOY.md](deployment/DEPLOY.md)** - Deployment procedures
 - **[deployment/RUNBOOK.md](deployment/RUNBOOK.md)** - Operational runbook
+- **[deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** ⭐ NEW - Consolidated QNAP guide (standard, ARM/TS-431P3, virtual host) with deep dives archived
 
 **Troubleshooting**:
 
@@ -184,21 +265,31 @@ Documentation is organized into four main directories:
   - Feature comparison matrix
   - Usage decision tree
   - Space savings potential
+- **[operations/CI_CACHE_OPTIMIZATION.md](operations/CI_CACHE_OPTIMIZATION.md)** - CI/CD cache performance optimization ($11.11.1+)
+  - npm dependency caching (30-45s savings)
+  - Playwright browser caching (45-60s savings)
+  - Expected 95% speedup on cache hits
+  - **Monitoring**: [`../scripts/README_MONITOR_CI_CACHE.md`](../scripts/README_MONITOR_CI_CACHE.md)
+    - GitHub Actions cache performance monitoring
+    - Empirical metrics collection and validation
+    - CLI tool for analyzing workflow runs
 
 **Reference Guides** (NEW):
 
-- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Security best practices
+- **[SECURITY_GUIDE_COMPLETE.md](SECURITY_GUIDE_COMPLETE.md)** - **NEW consolidated security guide (Dec 2025)**
+  - Replaces: SECURITY.md, SECURITY_AUDIT_REPORT.md, SECURITY_FIX_SUMMARY.md (archived to `archive/security-audit-2025-12-06/`)
+  - Includes SECRET_KEY requirements, admin hardening, SQL injection verification, audit results, emergency procedures
+- **[reference/SECURITY_GUIDE.md](reference/SECURITY_GUIDE.md)** - Legacy security quick reference (supplementary)
 - **[reference/DOCKER_CLEANUP_GUIDE.md](reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures
-
 
 ### Release Automation
 
-- **[docs/releases/v1.6.5.md](releases/v1.6.5.md)** - Canonical release notes for the Control API realignment and restart UX polish
-- **[docs/releases/v1.6.3.md](releases/v1.6.3.md)** - Previous release notes covering the archive/cleanup checklist
-- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper that archives all tags up to v1.6.2 (supports `-DryRun`, offline fixtures via `scripts/ops/samples/releases.sample.json`)
+- **[releases/RELEASE_NOTES_$11.12.2.md](releases/RELEASE_NOTES_$11.12.2.md)** - Latest production release notes (Dec 13, 2025)
+- **[releases/RELEASE_AUDIT_$11.12.2.md](releases/RELEASE_AUDIT_$11.12.2.md)** - QA audit and verification follow-up
+- **[releases/RELEASE_PREPARATION_$11.12.2.md](releases/RELEASE_PREPARATION_$11.12.2.md)** - Pre-release checklist and dry-run outcomes
+- **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper for archiving historical tags (supports `-DryRun`; fixture: `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
-- **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (delete or privatize legacy images; offline fixture at `scripts/ops/samples/package-versions.sample.json`)
-
+- **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (remove or privatize legacy images; fixture: `scripts/ops/samples/package-versions.sample.json`)
 
 ---
 
@@ -216,10 +307,9 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 **Key Documents:**
 
 - `REPOSITORY_AUDIT_SUMMARY.md` - Full repository audit (425 lines)
-- `MASTER_CONSOLIDATION_PLAN.md` - Consolidation execution plan
 - Session consolidated 4 testing guides into 1 comprehensive guide
 
-#### Earlier Sessions (Pre-v1.9.1)
+#### Earlier Sessions (Pre-$11.9.7)
 
 **Path:** `archive/sessions_2025-11/`
 **Archive Index:** [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md)
@@ -235,12 +325,21 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 | **QNAP Deployment** | 3 files | QNAP deployment documentation (Nov 19-20) |
 | **Performance** | 1 file | Performance optimizations summary (Jan 10) |
 
-**Total:** 18 files archived (~500 KB, ~15,000 lines)
+**New archives (Dec 2025):**
+
+- `archive/pre-commit-2025-12-06/` – legacy pre-commit docs
+- `archive/version-management-2025-12-06/` – version automation + pip notes
+- `archive/autosave-2025-12-06/` – autosave summaries/auth review
+- `archive/qnap-2025-12-06/` – detailed QNAP plans (ARM, virtual host, compatibility)
+- `archive/ci-cd-2025-12-06/` – CI/CD implementation summaries & change logs
+- `archive/docker-cleanup-2025-12-06/` – legacy Docker cleanup guide
+
+**Total:** 18 files archived (~500 KB, ~15,000 lines) + new December archive sets (see paths above)
 
 ### Key Archived Documents
 
 - `SESSION_2025-11-22_AUTH_FIX.md` - Comprehensive auth fix documentation
-- `OPERATIONAL_STATUS.md` - System operational status report  
+- `OPERATIONAL_STATUS.md` - System operational status report
 - `COMMIT_SUMMARY.md` - Commit preparation documentation
 - `PERFORMANCE_OPTIMIZATIONS_2025-01-10.md` - Performance improvements
 - `QNAP_DEPLOYMENT_REPORT.md` - QNAP deployment completion

@@ -14,11 +14,18 @@ spec:
       labels:
         app: sms-backend
     spec:
+# Harden container: enforce non-root, read-only root, drop capabilities
       containers:
         - name: sms-backend
           image: ghcr.io/bs1gr/sms-backend@sha256:REPLACE_WITH_DIGEST
           ports:
             - containerPort: 8000
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           livenessProbe:
             httpGet:
               path: /health

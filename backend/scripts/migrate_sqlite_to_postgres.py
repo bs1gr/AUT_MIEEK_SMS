@@ -39,7 +39,7 @@ POSTGRES_PREFIXES = ("postgresql://", "postgresql+psycopg://", "postgresql+async
 
 
 def _quote_ident(name: str) -> str:
-    escaped = name.replace("\"", "\"\"")
+    escaped = name.replace('"', '""')
     return f'"{escaped}"'
 
 

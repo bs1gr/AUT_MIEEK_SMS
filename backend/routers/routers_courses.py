@@ -12,7 +12,7 @@ from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.routers.routers_auth import optional_require_role
+from backend.security.permissions import depends_on_permission
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 
@@ -157,7 +157,7 @@ def create_course(
     request: Request,
     course: CourseCreate = Body(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -200,7 +200,7 @@ def get_all_courses(
     pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
     db: Session = Depends(get_db),
-    # No authentication required for GET /courses
+    current_user=Depends(depends_on_permission("courses.read", "admin", "teacher")),
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -230,7 +230,12 @@ def get_all_courses(
 
 @router.get("/{course_id}", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_course(request: Request, course_id: int, db: Session = Depends(get_db)):
+def get_course(
+    request: Request,
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(depends_on_permission("courses.read", "admin", "teacher")),
+):
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
@@ -250,7 +255,7 @@ def update_course(
     course_id: int,
     course_data: CourseUpdate = Body(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -293,7 +298,7 @@ def delete_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("courses.delete", "admin")),
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -334,7 +339,7 @@ def update_evaluation_rules(
     course_id: int,
     rules_data: Dict[str, Any] = Body(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
 ):
     try:
         (Course,) = import_names("models", "Course")

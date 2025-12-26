@@ -7,9 +7,11 @@ This directory contains scripts for deploying and managing the Student Managemen
 ### 🚀 Installation & Setup
 
 #### `install-qnap.sh`
+
 **Purpose**: Automated installation of SMS on QNAP NAS
 
 **Features**:
+
 - QNAP environment detection and validation
 - Pre-flight checks (Docker, resources, ports)
 - Automatic directory creation
@@ -18,6 +20,7 @@ This directory contains scripts for deploying and managing the Student Managemen
 - Health check validation
 
 **Usage**:
+
 ```bash
 # Interactive installation
 ./install-qnap.sh
@@ -33,6 +36,7 @@ This directory contains scripts for deploying and managing the Student Managemen
 ```
 
 **Pre-requisites**:
+
 - QNAP NAS with Container Station installed
 - Minimum: 4GB RAM, 10GB free disk space
 - Docker version 20.10+
@@ -42,9 +46,11 @@ This directory contains scripts for deploying and managing the Student Managemen
 ### 🔧 Management
 
 #### `manage-qnap.sh`
+
 **Purpose**: Interactive menu for managing SMS services
 
 **Features**:
+
 - Service lifecycle (start/stop/restart)
 - Log viewing
 - Status monitoring
@@ -55,11 +61,13 @@ This directory contains scripts for deploying and managing the Student Managemen
 - Configuration viewing
 
 **Usage**:
+
 ```bash
 ./manage-qnap.sh
 ```
 
 **Menu Options**:
+
 1. Start services
 2. Stop services
 3. Restart services
@@ -78,15 +86,18 @@ This directory contains scripts for deploying and managing the Student Managemen
 ### 🗑️ Uninstallation
 
 #### `uninstall-qnap.sh`
+
 **Purpose**: Safe removal of SMS from QNAP
 
 **Features**:
+
 - Pre-uninstall backup creation
 - Container and image removal
 - Optional data preservation
 - Configuration cleanup
 
 **Usage**:
+
 ```bash
 # Interactive uninstall
 ./uninstall-qnap.sh
@@ -99,12 +110,14 @@ This directory contains scripts for deploying and managing the Student Managemen
 ```
 
 **What Gets Removed**:
+
 - Docker containers
 - Docker images
 - Data directories (optional)
 - Configuration files
 
 **What's Preserved**:
+
 - Backup directory (always)
 - Data directories (with --keep-data)
 
@@ -113,9 +126,11 @@ This directory contains scripts for deploying and managing the Student Managemen
 ### 🔄 Rollback
 
 #### `rollback-qnap.sh`
+
 **Purpose**: Rollback to previous database state
 
 **Features**:
+
 - Backup selection menu
 - Safety backup before rollback
 - Database restoration
@@ -123,6 +138,7 @@ This directory contains scripts for deploying and managing the Student Managemen
 - Health verification
 
 **Usage**:
+
 ```bash
 # Interactive backup selection
 ./rollback-qnap.sh
@@ -132,6 +148,7 @@ This directory contains scripts for deploying and managing the Student Managemen
 ```
 
 **When to Use**:
+
 - After failed update
 - Data corruption
 - Accidental changes
@@ -207,10 +224,8 @@ vi .env.qnap
 
 ## 📖 Related Documentation
 
-- [QNAP Installation Guide](../../docs/qnap/QNAP_INSTALLATION_GUIDE.md)
-- [QNAP Configuration Guide](../../docs/qnap/QNAP_CONFIGURATION_GUIDE.md)
-- [QNAP Troubleshooting](../../docs/qnap/QNAP_TROUBLESHOOTING.md)
-- [Main QNAP Documentation](../../docs/QNAP.md)
+- [QNAP Deployment Guide](../../docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) (Consolidated)
+- For detailed guides, see [Deployment Index](../../docs/deployment/INDEX.md)
 
 ## 🆘 Support
 
@@ -225,7 +240,8 @@ If you encounter issues:
 ## 🔄 Version Compatibility
 
 These scripts are designed for:
-- Student Management System v1.9.0+
+
+- Student Management System v1.9.7+
 - QNAP QTS 5.0+ or QuTS hero h5.0+
 - Container Station 3.0+
 - Docker 20.10+
@@ -273,5 +289,5 @@ Improvements to these scripts are welcome! Please:
 
 ---
 
-**Last Updated**: November 19, 2025  
+**Last Updated**: November 19, 2025
 **Branch**: `feature/qnap-deployment`

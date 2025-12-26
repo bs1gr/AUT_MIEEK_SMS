@@ -90,7 +90,7 @@
 2. **Edit the root `.env` file** (in project root directory):
 
    ```dotenv
-   VERSION=1.9.3
+   VERSION=1.9.7
 
    # Add these lines:
    AUTH_ENABLED=True
@@ -225,8 +225,16 @@ Use `DOCKER.ps1` for Docker deployment or `NATIVE.ps1` for native development:
 2. Open PowerShell 7+ in the folder
 3. Run .\NATIVE.ps1 -Setup  (first time only)
 4. Run .\NATIVE.ps1 -Start
-5. Open browser to http://localhost:5173
+
+Optional: run with `-DevEase` to enable a permissive local dev mode that relaxes auth/CSRF/secret enforcement for faster iteration:
+
+```powershell
+.\NATIVE.ps1 -Start -DevEase
+```
+
+5. Open browser to <http://localhost:5173>
 6. Hot reload enabled for development
+
 ```
 
 ---

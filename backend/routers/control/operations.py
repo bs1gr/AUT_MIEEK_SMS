@@ -37,13 +37,20 @@ async def install_frontend_deps(request: Request):
     package_json = frontend_dir / "package.json"
 
     if not package_json.exists():
-        raise http_error(404, ErrorCode.CONTROL_PACKAGE_JSON_MISSING, "package.json not found", request, context={"path": str(package_json)})
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_PACKAGE_JSON_MISSING,
+            "package.json not found",
+            request,
+            context={"path": str(package_json)},
+        )
 
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     npm_ok: bool
     npm_version: Optional[str]
     try:
         import importlib
+
         ctrl = importlib.import_module("backend.routers.routers_control")
         if hasattr(ctrl, "_check_npm_installed"):
             npm_ok, npm_version = getattr(ctrl, "_check_npm_installed")()
@@ -52,12 +59,33 @@ async def install_frontend_deps(request: Request):
     except Exception:
         npm_ok, npm_version = check_npm_installed()
     if not npm_ok:
-        raise http_error(400, ErrorCode.CONTROL_NPM_NOT_FOUND, "npm not found. Please install Node.js and npm (https://nodejs.org/)", request, context={"command": "npm --version"})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_NPM_NOT_FOUND,
+            "npm not found. Please install Node.js and npm (https://nodejs.org/)",
+            request,
+            context={"command": "npm --version"},
+        )
 
     success, stdout, stderr = run_command(["npm", "install"], timeout=300)
     if success:
-        return OperationResult(success=True, message="Frontend dependencies installed successfully", details={"npm_version": npm_version, "directory": str(frontend_dir), "stdout": stdout[-500:] if len(stdout) > 500 else stdout})
-    return OperationResult(success=False, message="npm install failed", details={"stdout": stdout[-500:] if len(stdout) > 500 else stdout, "stderr": stderr[-500:] if len(stderr) > 500 else stderr})
+        return OperationResult(
+            success=True,
+            message="Frontend dependencies installed successfully",
+            details={
+                "npm_version": npm_version,
+                "directory": str(frontend_dir),
+                "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+            },
+        )
+    return OperationResult(
+        success=False,
+        message="npm install failed",
+        details={
+            "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+            "stderr": stderr[-500:] if len(stderr) > 500 else stderr,
+        },
+    )
 
 
 @router.post("/operations/install-backend-deps", response_model=OperationResult)
@@ -67,17 +95,40 @@ async def install_backend_deps(request: Request):
     requirements_file = backend_dir / "requirements.txt"
 
     if not requirements_file.exists():
-        raise http_error(404, ErrorCode.CONTROL_REQUIREMENTS_MISSING, "requirements.txt not found", request, context={"path": str(requirements_file)})
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_REQUIREMENTS_MISSING,
+            "requirements.txt not found",
+            request,
+            context={"path": str(requirements_file)},
+        )
 
     ok, stdout, _ = run_command(["pip", "--version"], timeout=5)
     if not ok:
-        raise http_error(400, ErrorCode.CONTROL_PIP_NOT_FOUND, "pip not found", request, context={"command": "pip --version"})
+        raise http_error(
+            400, ErrorCode.CONTROL_PIP_NOT_FOUND, "pip not found", request, context={"command": "pip --version"}
+        )
     pip_version = stdout.strip()
 
     success, stdout, stderr = run_command(["pip", "install", "-r", str(requirements_file)], timeout=300)
     if success:
-        return OperationResult(success=True, message="Backend dependencies installed successfully", details={"pip_version": pip_version, "requirements_file": str(requirements_file), "stdout": stdout[-500:] if len(stdout) > 500 else stdout})
-    return OperationResult(success=False, message="pip install failed", details={"stdout": stdout[-500:] if len(stdout) > 500 else stdout, "stderr": stderr[-500:] if len(stderr) > 500 else stderr})
+        return OperationResult(
+            success=True,
+            message="Backend dependencies installed successfully",
+            details={
+                "pip_version": pip_version,
+                "requirements_file": str(requirements_file),
+                "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+            },
+        )
+    return OperationResult(
+        success=False,
+        message="pip install failed",
+        details={
+            "stdout": stdout[-500:] if len(stdout) > 500 else stdout,
+            "stderr": stderr[-500:] if len(stderr) > 500 else stderr,
+        },
+    )
 
 
 @router.post("/operations/docker-build", response_model=OperationResult)
@@ -85,25 +136,49 @@ async def docker_build(request: Request):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
+
         ctrl = importlib.import_module("backend.routers.routers_control")
         check_docker = getattr(ctrl, "_check_docker_running", check_docker_running)
     except Exception:
         check_docker = check_docker_running
 
     if not check_docker():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running. Please start Docker Desktop.", request, context={"command": "docker info"})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_DOCKER_NOT_RUNNING,
+            "Docker is not running. Please start Docker Desktop.",
+            request,
+            context={"command": "docker info"},
+        )
 
     project_root = Path(__file__).resolve().parents[3]
     success, stdout, stderr = docker_compose(["build", "--no-cache"], cwd=project_root, timeout=600)
     if success:
-        return OperationResult(success=True, message="Docker images built successfully", details={"stdout": stdout[-1000:] if len(stdout) > 1000 else stdout})
-    return OperationResult(success=False, message="Docker build failed", details={"stdout": stdout[-1000:] if len(stdout) > 1000 else stdout, "stderr": stderr[-1000:] if len(stderr) > 1000 else stderr})
+        return OperationResult(
+            success=True,
+            message="Docker images built successfully",
+            details={"stdout": stdout[-1000:] if len(stdout) > 1000 else stdout},
+        )
+    return OperationResult(
+        success=False,
+        message="Docker build failed",
+        details={
+            "stdout": stdout[-1000:] if len(stdout) > 1000 else stdout,
+            "stderr": stderr[-1000:] if len(stderr) > 1000 else stderr,
+        },
+    )
 
 
 @router.post("/operations/database-upload", response_model=OperationResult)
 async def upload_database(request: Request, file: UploadFile = File(...)):
     if not file.filename or not file.filename.lower().endswith(".db"):
-        raise http_error(400, ErrorCode.CONTROL_INVALID_FILE_TYPE, "Only .db files are allowed", request, context={"filename": file.filename})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Only .db files are allowed",
+            request,
+            context={"filename": file.filename},
+        )
     backups_dir = Path(__file__).resolve().parents[3] / "backups" / "database"
     backups_dir.mkdir(parents=True, exist_ok=True)
 
@@ -112,12 +187,19 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
     dest_path = backups_dir / dest_filename
     with dest_path.open("wb") as out_file:
         import shutil as _sh
+
         _sh.copyfileobj(file.file, out_file)
     with dest_path.open("rb") as check_file:
         header = check_file.read(16)
     if not header.startswith(b"SQLite format 3"):
         dest_path.unlink(missing_ok=True)
-        raise http_error(400, ErrorCode.CONTROL_INVALID_FILE_TYPE, "Uploaded file is not a valid SQLite database", request, context={"filename": file.filename})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Uploaded file is not a valid SQLite database",
+            request,
+            context={"filename": file.filename},
+        )
     return OperationResult(success=True, message="Database uploaded successfully", details={"filename": dest_filename})
 
 
@@ -126,21 +208,38 @@ async def docker_update_volume(request: Request):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
+
         ctrl = importlib.import_module("backend.routers.routers_control")
         check_docker = getattr(ctrl, "_check_docker_running", check_docker_running)
     except Exception:
         check_docker = check_docker_running
 
     if not check_docker():
-        raise http_error(400, ErrorCode.CONTROL_DOCKER_NOT_RUNNING, "Docker is not running. Please start Docker Desktop.", request, context={"command": "docker info"})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_DOCKER_NOT_RUNNING,
+            "Docker is not running. Please start Docker Desktop.",
+            request,
+            context={"command": "docker info"},
+        )
     try:
         new_volume = create_unique_volume("sms_data")
-        return OperationResult(success=True, message=f"New Docker volume created: {new_volume}", details={"volume_name": new_volume, "note": "Update docker-compose.yml to use the new volume and restart containers"})
+        return OperationResult(
+            success=True,
+            message=f"New Docker volume created: {new_volume}",
+            details={
+                "volume_name": new_volume,
+                "note": "Update docker-compose.yml to use the new volume and restart containers",
+            },
+        )
     except Exception as exc:
-        raise http_error(500, ErrorCode.INTERNAL_SERVER_ERROR, "Failed to create Docker volume", request, context={"error": str(exc)}) from exc
+        raise http_error(
+            500, ErrorCode.INTERNAL_SERVER_ERROR, "Failed to create Docker volume", request, context={"error": str(exc)}
+        ) from exc
 
 
 # Backups suite (list/download/zip/save/delete/restore)
+
 
 class ZipSaveRequest(BaseModel):
     destination: str = Field(description="Destination path (directory or full .zip path)")
@@ -178,7 +277,13 @@ async def create_database_backup(request: Request):
         db_path = Path(path_part.lstrip("/") if os.name == "nt" else path_part)
 
         if not db_path.exists():
-            raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Database file not found", request, context={"db_path": str(db_path)})
+            raise http_error(
+                404,
+                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+                "Database file not found",
+                request,
+                context={"db_path": str(db_path)},
+            )
 
         # Create backups directory if it doesn't exist
         project_root = Path(__file__).resolve().parents[3]
@@ -192,6 +297,7 @@ async def create_database_backup(request: Request):
 
         # Copy database file
         import shutil
+
         shutil.copy2(db_path, backup_path)
 
         # Get file size for response
@@ -200,17 +306,18 @@ async def create_database_backup(request: Request):
         return OperationResult(
             success=True,
             message="Database backup created successfully",
-            details={
-                "filename": backup_filename,
-                "path": str(backup_path),
-                "size": file_size,
-                "timestamp": timestamp
-            }
+            details={"filename": backup_filename, "path": str(backup_path), "size": file_size, "timestamp": timestamp},
         )
     except HTTPException:
         raise
     except Exception as exc:
-        raise http_error(500, ErrorCode.INTERNAL_SERVER_ERROR, "Failed to create database backup", request, context={"error": str(exc)}) from exc
+        raise http_error(
+            500,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Failed to create database backup",
+            request,
+            context={"error": str(exc)},
+        ) from exc
 
 
 @router.get("/operations/database-backups")
@@ -222,7 +329,14 @@ async def list_database_backups(request: Request):
     backups = []
     for backup_file in sorted(backup_dir.glob("*.db"), reverse=True):
         stat = backup_file.stat()
-        backups.append({"filename": backup_file.name, "path": str(backup_file), "size": stat.st_size, "created": datetime.fromtimestamp(stat.st_mtime).isoformat()})
+        backups.append(
+            {
+                "filename": backup_file.name,
+                "path": str(backup_file),
+                "size": stat.st_size,
+                "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            }
+        )
     return {"backups": backups, "total": len(backups)}
 
 
@@ -232,9 +346,21 @@ async def download_database_backup(request: Request, backup_filename: str):
     backup_dir = (project_root / "backups" / "database").resolve()
     target_path = (backup_dir / backup_filename).resolve()
     if not target_path.is_relative_to(backup_dir):
-        raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request, context={"filename": backup_filename})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+            "Invalid backup filename",
+            request,
+            context={"filename": backup_filename},
+        )
     if not target_path.exists():
-        raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request, context={"filename": backup_filename})
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+            "Backup file not found",
+            request,
+            context={"filename": backup_filename},
+        )
     return FileResponse(target_path, media_type="application/octet-stream", filename=target_path.name)
 
 
@@ -242,6 +368,7 @@ async def download_database_backup(request: Request, backup_filename: str):
 async def download_backups_zip(request: Request):
     import io
     import zipfile
+
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -264,6 +391,7 @@ async def download_backups_zip(request: Request):
 async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     import io
     import zipfile
+
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -279,7 +407,11 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
@@ -291,13 +423,18 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, "wb") as out_f:
         out_f.write(buf.read())
-    return OperationResult(success=True, message="Backups ZIP saved successfully", details={"destination": str(dest_path), "size": os.path.getsize(dest_path)})
+    return OperationResult(
+        success=True,
+        message="Backups ZIP saved successfully",
+        details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
+    )
 
 
 @router.post("/operations/database-backups/archive/selected.zip")
 async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest):
     import io
     import zipfile
+
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -305,7 +442,7 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith('.db'):
+        if not isinstance(name, str) or not name.endswith(".db"):
             continue
         if name in seen:
             continue
@@ -331,6 +468,7 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
 async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest):
     import io
     import zipfile
+
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -338,7 +476,7 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith('.db'):
+        if not isinstance(name, str) or not name.endswith(".db"):
             continue
         if name in seen:
             continue
@@ -357,7 +495,11 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
@@ -369,7 +511,11 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, "wb") as out_f:
         out_f.write(buf.read())
-    return OperationResult(success=True, message="Selected backups ZIP saved successfully", details={"destination": str(dest_path), "size": os.path.getsize(dest_path)})
+    return OperationResult(
+        success=True,
+        message="Selected backups ZIP saved successfully",
+        details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
+    )
 
 
 @router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
@@ -382,7 +528,7 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
     not_found: List[str] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith('.db'):
+        if not isinstance(name, str) or not name.endswith(".db"):
             continue
         if name in seen:
             continue
@@ -397,8 +543,16 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
         except Exception:
             not_found.append(name)
     if not deleted and not_found and len(not_found) == len(seen):
-        return OperationResult(success=False, message="No valid backup files deleted", details={"deleted_count": 0, "deleted_files": deleted, "not_found": not_found})
-    return OperationResult(success=True, message=f"Deleted {len(deleted)} backup(s)", details={"deleted_count": len(deleted), "deleted_files": deleted, "not_found": not_found})
+        return OperationResult(
+            success=False,
+            message="No valid backup files deleted",
+            details={"deleted_count": 0, "deleted_files": deleted, "not_found": not_found},
+        )
+    return OperationResult(
+        success=True,
+        message=f"Deleted {len(deleted)} backup(s)",
+        details={"deleted_count": len(deleted), "deleted_files": deleted, "not_found": not_found},
+    )
 
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
@@ -407,13 +561,29 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     backup_dir = (project_root / "backups" / "database").resolve()
     source_path = (backup_dir / backup_filename).resolve()
     if not source_path.is_relative_to(backup_dir):
-        raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request, context={"filename": backup_filename})
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+            "Invalid backup filename",
+            request,
+            context={"filename": backup_filename},
+        )
     if not source_path.exists():
-        raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request, context={"filename": backup_filename})
+        raise http_error(
+            404,
+            ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+            "Backup file not found",
+            request,
+            context={"filename": backup_filename},
+        )
     raw_dest = payload.destination.strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request, context={})
-    dest_candidate = Path(raw_dest)
+    # Sanitize: prevent path traversal and restrict to allowed base directory
+    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    dest_candidate = (allowed_base / raw_dest).resolve()
+    if not str(dest_candidate).startswith(str(allowed_base)):
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
     if dest_candidate.exists() and dest_candidate.is_dir():
         dest_path = dest_candidate / source_path.name
     elif dest_candidate.suffix and len(dest_candidate.suffix) > 0:
@@ -422,41 +592,90 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
         dest_path = dest_candidate / source_path.name
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     import shutil as _sh
+
     _sh.copy2(source_path, dest_path)
-    return OperationResult(success=True, message="Backup copied successfully", details={"source": str(source_path), "destination": str(dest_path), "size": os.path.getsize(dest_path)})
+    return OperationResult(
+        success=True,
+        message="Backup copied successfully",
+        details={"source": str(source_path), "destination": str(dest_path), "size": os.path.getsize(dest_path)},
+    )
 
 
 @router.post("/operations/database-restore", response_model=OperationResult)
 async def restore_database(request: Request, backup_filename: str):
+    import shutil as _sh
+    import logging
+
+    logger = logging.getLogger(__name__)
     try:
         from backend.config import settings
+
         project_root = Path(__file__).resolve().parents[3]
-        backup_dir = project_root / "backups" / "database"
-        backup_path = backup_dir / backup_filename
+        backup_dir = (project_root / "backups" / "database").resolve()
+        # Sanitize: prevent path traversal and restrict to allowed base directory
+        backup_path = (backup_dir / backup_filename).resolve()
+        if not str(backup_path).startswith(str(backup_dir)):
+            raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
+        logger.info(f"Restore request for {backup_filename}")
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+        logger.info(f"DB path: {db_path}")
         safety_backup = None
         if db_path.exists():
-            safety_backup = db_path.with_suffix(f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}{db_path.suffix}")
-            import shutil as _sh
-            _sh.copy2(db_path, safety_backup)
+            safety_backup = db_path.with_suffix(
+                f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}{db_path.suffix}"
+            )
+            logger.info(f"Creating safety backup: {safety_backup}")
+            try:
+                _sh.copyfile(db_path, safety_backup)
+                logger.info("Safety backup created with copyfile")
+            except PermissionError as e:
+                logger.warning(f"copyfile failed ({e}), trying copy")
+                _sh.copy(db_path, safety_backup)
+                logger.info("Safety backup created with copy")
         try:
             from backend import db as db_module
+
             db_module.engine.dispose()
-        except Exception:
-            pass
+            logger.info("Engine disposed")
+        except Exception as e:
+            logger.warning(f"Engine dispose failed: {e}")
         wal_path = db_path.with_suffix(db_path.suffix + "-wal")
         shm_path = db_path.with_suffix(db_path.suffix + "-shm")
         wal_path.unlink(missing_ok=True)
         shm_path.unlink(missing_ok=True)
-        import shutil as _sh
-        _sh.copy2(backup_path, db_path)
+        logger.info("WAL/SHM files removed")
+        try:
+            logger.info(f"Attempting copyfile from {backup_path} to {db_path}")
+            _sh.copyfile(backup_path, db_path)
+            logger.info("Restore completed with copyfile")
+        except (PermissionError, OSError) as e:
+            logger.warning(f"copyfile failed ({e}), trying copy")
+            _sh.copy(backup_path, db_path)
+            logger.info("Restore completed with copy")
+        # Don't attempt chmod - may fail on Docker volumes with root-owned files
         try:
             from backend import db as db_module
+
             db_module.ensure_schema(db_module.engine)
-        except Exception:
-            pass
-        return OperationResult(success=True, message="Database restored successfully. Restart may be required.", details={"restored_from": str(backup_path), "database_path": str(db_path), "safety_backup": str(safety_backup) if safety_backup else None})
+            logger.info("Schema ensured")
+        except Exception as e:
+            logger.warning(f"Schema ensure failed: {e}")
+        logger.info("Restore completed successfully")
+        return OperationResult(
+            success=True,
+            message="Database restored successfully. Restart may be required.",
+            details={
+                "restored_from": str(backup_path),
+                "database_path": str(db_path),
+                "safety_backup": str(safety_backup) if safety_backup else None,
+            },
+        )
+    except HTTPException:
+        raise
     except Exception as exc:
-        raise http_error(500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}) from exc
+        logger.error(f"Restore failed: {exc}", exc_info=True)
+        raise http_error(
+            500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}
+        ) from exc

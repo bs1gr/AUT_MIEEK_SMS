@@ -204,9 +204,10 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
 
             {/* Semester Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{t('semester')} *</label>
+              <label htmlFor="semesterTypeSelect" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{t('semester')} *</label>
               <select
                 value={semesterType}
+                id="semesterTypeSelect"
                 onChange={(e) => handleSemesterTypeChange(e.target.value as SemesterType)}
                 className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
               >

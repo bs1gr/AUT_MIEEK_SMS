@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/LanguageContext';
 import type { Student } from '@/types';
-import { studentSchema } from '@/schemas';
-import type { StudentFormData } from '@/schemas';
+import { studentUpdateSchema } from '@/schemas';
+import type { StudentUpdateFormData } from '@/schemas';
 import {
   Form,
   FormControl,
@@ -28,9 +28,10 @@ interface EditStudentModalProps {
 const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, onUpdate }) => {
   const { t } = useLanguage();
 
-  const form = useForm<StudentFormData>({
-    resolver: zodResolver(studentSchema),
+  const form = useForm<StudentUpdateFormData>({
+    resolver: zodResolver(studentUpdateSchema),
     defaultValues: {
+      id: student.id,
       first_name: student.first_name || '',
       last_name: student.last_name || '',
       email: student.email || '',
@@ -44,6 +45,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
   useEffect(() => {
     if (student) {
       form.reset({
+        id: student.id,
         first_name: student.first_name || '',
         last_name: student.last_name || '',
         email: student.email || '',
@@ -55,16 +57,16 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
     }
   }, [student, form]);
 
-  const onSubmit = (data: StudentFormData): void => {
-    // Map schema data back to Student type
+  const onSubmit = (data: StudentUpdateFormData): void => {
+    // Map schema data back to Student type, preserving existing values when undefined
     const updatedStudent: Student = {
       ...student,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone: data.phone || '',
-      mobile_phone: data.phone || '',
-      enrollment_date: data.enrollment_date,
+      first_name: data.first_name ?? student.first_name,
+      last_name: data.last_name ?? student.last_name,
+      email: data.email ?? student.email,
+      phone: data.phone ?? student.phone ?? '',
+      mobile_phone: data.phone ?? student.mobile_phone ?? '',
+      enrollment_date: data.enrollment_date ?? student.enrollment_date,
     };
     onUpdate(updatedStudent);
     onClose();
@@ -90,7 +92,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
         >
           <h2 className="text-xl font-bold mb-6">{t('editStudent')}</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -99,7 +101,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('firstNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('firstNamePlaceholder')} {...field} />
+                      <Input placeholder={t('firstNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,7 +114,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormItem>
                     <FormLabel>{t('lastNamePlaceholder')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('lastNamePlaceholder')} {...field} />
+                      <Input placeholder={t('lastNamePlaceholder')} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -127,7 +129,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 <FormItem>
                   <FormLabel>{t('emailPlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} />
+                    <Input type="email" placeholder={t('emailPlaceholder')} {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

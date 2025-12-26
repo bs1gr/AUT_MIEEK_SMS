@@ -8,21 +8,21 @@
  * npm install axios
  */
 
+
 import axios from 'axios';
 import * as authService from '../services/authService';
 import { formatLocalDate } from '@/utils/date';
+import { API_BASE_URL } from '@/config/api';
 
-// Base API URL - change this based on your environment
-// Note: VITE_API_URL should include /api/v1 if needed (e.g., http://localhost:8000/api/v1)
-// For fullstack Docker deployment, use relative URL to work on any port
-// Track dynamic fallback state for resiliency when backend port changes or native reload dies
-let ORIGINAL_API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
-let API_BASE_URL = ORIGINAL_API_BASE_URL;
-if (!import.meta.env.VITE_API_URL) {
-  console.warn('[api] VITE_API_URL not defined. Using relative fallback /api/v1');
+
+// Use API_BASE_URL from config
+let ORIGINAL_API_BASE_URL = API_BASE_URL;
+if (!API_BASE_URL) {
+  console.warn('[api] API_BASE_URL not defined. Using relative fallback /api/v1');
+  ORIGINAL_API_BASE_URL = '/api/v1';
 }
 // If explicit absolute URL provided but ends with a trailing slash, normalize (keep /api/v1 suffix semantics)
-API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
+ORIGINAL_API_BASE_URL = ORIGINAL_API_BASE_URL.replace(/\/$/, '');
 
 // Canonical Control API base (backend mounts control router without /api/v1 prefix)
 // Derive robustly from API_BASE_URL by removing a trailing /api/v1, preserving any custom path prefix
@@ -33,7 +33,7 @@ API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 //  - 'https://host'                  => 'https://host/control/api'
 export const CONTROL_API_BASE = (() => {
   try {
-    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    const root = (ORIGINAL_API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
     if (!root || root.startsWith('/')) {
       const prefix = root.replace(/\/$/, '');
       // ensure single leading slash
@@ -48,7 +48,7 @@ export const CONTROL_API_BASE = (() => {
 
 // Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: ORIGINAL_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,16 +57,16 @@ const apiClient = axios.create({
 
 // Normalize defaults structure for environments where axios instance may lack .defaults
 if (!apiClient.defaults) {
-  apiClient.defaults = { baseURL: API_BASE_URL };
+  apiClient.defaults = { baseURL: ORIGINAL_API_BASE_URL };
 } else if (!apiClient.defaults.baseURL) {
-  apiClient.defaults.baseURL = API_BASE_URL;
+  apiClient.defaults.baseURL = ORIGINAL_API_BASE_URL;
 }
 // Convenience duplicate baseURL directly on instance for legacy test expectations
 // (Non-standard but harmless)
 // @ts-ignore
 if (!('baseURL' in apiClient)) {
   // @ts-ignore
-  apiClient.baseURL = API_BASE_URL;
+  apiClient.baseURL = ORIGINAL_API_BASE_URL;
 }
 
 // Request interceptor (for adding auth tokens in future)
@@ -83,7 +83,7 @@ apiClient.interceptors.request.use(
 // Exported helper so this behavior can be unit-tested without relying on axios internals
 export function attachAuthHeader(config) {
   if (!config) return config;
-  
+
   try {
     const token = authService.getAccessToken && authService.getAccessToken();
     if (token && config && config.headers) {
@@ -112,6 +112,19 @@ apiClient.interceptors.response.use(
       console.error('Network Error: No response from server');
     } else {
       console.error('Error:', error.message);
+    }
+
+    // Retry logic: retry up to 3 times on 5xx or network errors with exponential backoff
+    const config = error.config || {};
+    config._retryCount = config._retryCount || 0;
+    const shouldRetry =
+      config._retryCount < 3 &&
+      ((error.response && error.response.status >= 500) || !error.response);
+    // Only retry if apiClient is a function (real axios instance), not in test mocks
+    if (shouldRetry && typeof apiClient === 'function') {
+      config._retryCount++;
+      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, config._retryCount) * 1000));
+      return apiClient(config);
     }
 
     // Dynamic fallback: if we are using an absolute base URL and connectivity failed (no response)
@@ -389,6 +402,33 @@ export const attendanceAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Update an attendance record
+   * @param {number} attendanceId - Attendance record ID
+   * @param {Object} attendanceData - Updated attendance data
+   */
+  update: async (attendanceId, attendanceData) => {
+    try {
+      const response = await apiClient.put(`/attendance/${attendanceId}`, attendanceData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Delete an attendance record
+   * @param {number} attendanceId - Attendance record ID
+   */
+  delete: async (attendanceId) => {
+    try {
+      const response = await apiClient.delete(`/attendance/${attendanceId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
@@ -455,6 +495,33 @@ export const gradesAPI = {
       }, 0);
 
       return totalWeight > 0 ? weightedSum / totalWeight : 0;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Update a grade record
+   * @param {number} gradeId - Grade ID
+   * @param {Object} gradeData - Updated grade data
+   */
+  update: async (gradeId, gradeData) => {
+    try {
+      const response = await apiClient.put(`/grades/${gradeId}`, gradeData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a grade record
+   * @param {number} gradeId - Grade ID
+   */
+  delete: async (gradeId) => {
+    try {
+      const response = await apiClient.delete(`/grades/${gradeId}`);
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -713,6 +780,69 @@ export const analyticsAPI = {
   }
 };
 
+// ==================== REPORTS API ====================
+
+/**
+ * Reports API for generating student performance reports
+ */
+export const reportsAPI = {
+  /**
+   * Generate student performance report
+   * @param {object} reportRequest - Report configuration
+   * @returns {Promise} - Student performance report
+   */
+  generateStudentReport: async (reportRequest) => {
+    try {
+      const response = await api.post('/reports/student-performance', reportRequest);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get available report formats
+   * @returns {Promise<string[]>} - List of available formats
+   */
+  getAvailableFormats: async () => {
+    try {
+      const response = await api.get('/reports/formats');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get available report periods
+   * @returns {Promise<string[]>} - List of available periods
+   */
+  getAvailablePeriods: async () => {
+    try {
+      const response = await api.get('/reports/periods');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Download student performance report in PDF or CSV format
+   * @param {object} reportRequest - Report configuration with format
+   * @returns {Promise} - Blob response for download
+   */
+  downloadStudentReport: async (reportRequest) => {
+    try {
+      const response = await api.post('/reports/student-performance/download', reportRequest, {
+        responseType: 'blob'
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 // ==================== UTILITY FUNCTIONS ====================
 
 /**
@@ -887,6 +1017,89 @@ export const importAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Preview/validate an import without committing
+   * @param {Object} params
+   * @param {'students'|'courses'} params.type
+   * @param {File[]|File|undefined} params.files
+   * @param {string|undefined} params.jsonText
+   * @param {boolean} params.allowUpdates
+   * @param {boolean} params.skipDuplicates
+   */
+  async preview({ type, files, jsonText, allowUpdates = false, skipDuplicates = true }) {
+    try {
+      const formData = new FormData();
+      formData.append('import_type', type);
+      formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+      formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+      if (files) {
+        const list = Array.isArray(files) ? files : [files];
+        list.forEach((file) => {
+          if (file) formData.append('files', file);
+        });
+      }
+      if (jsonText) {
+        formData.append('json_text', jsonText);
+      }
+
+      const response = await apiClient.post('/imports/preview', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Execute an import by creating a background job
+   * @param {Object} params
+   * @param {'students'|'courses'} params.type
+   * @param {File[]|File|undefined} params.files
+   * @param {string|undefined} params.jsonText
+   * @param {boolean} params.allowUpdates
+   * @param {boolean} params.skipDuplicates
+   */
+  async execute({ type, files, jsonText, allowUpdates = false, skipDuplicates = true }) {
+    try {
+      const formData = new FormData();
+      formData.append('import_type', type);
+      formData.append('allow_updates', allowUpdates ? 'true' : 'false');
+      formData.append('skip_duplicates', skipDuplicates ? 'true' : 'false');
+
+      if (files) {
+        const list = Array.isArray(files) ? files : [files];
+        list.forEach((file) => {
+          if (file) formData.append('files', file);
+        });
+      }
+      if (jsonText) {
+        formData.append('json_text', jsonText);
+      }
+
+      const response = await apiClient.post('/imports/execute', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// ==================== JOBS API ====================
+
+export const jobsAPI = {
+  async get(jobId) {
+    const response = await apiClient.get(`/jobs/${jobId}`);
+    return response.data;
+  },
+  async list() {
+    const response = await apiClient.get('/jobs');
+    return response.data;
   }
 };
 
@@ -932,9 +1145,9 @@ export const sessionAPI = {
       const formData = new FormData();
       formData.append('file', file);
       const response = await apiClient.post('/sessions/import', formData, {
-        params: { 
+        params: {
           merge_strategy: mergeStrategy,
-          dry_run: dryRun 
+          dry_run: dryRun
         },
         headers: { 'Content-Type': 'multipart/form-data' }
       });

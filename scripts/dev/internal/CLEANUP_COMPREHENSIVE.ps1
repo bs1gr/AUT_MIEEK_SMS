@@ -1,6 +1,10 @@
 # CLEANUP_COMPREHENSIVE.ps1
 # Comprehensive cleanup script for removing obsolete files across the project
 
+# Import shared cleanup utilities
+$libPath = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "lib\cleanup_common.ps1"
+. $libPath
+
 Write-Host "================================" -ForegroundColor Cyan
 Write-Host "Comprehensive Project Cleanup" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
@@ -10,31 +14,27 @@ $cleaned = @()
 $errors = @()
 $totalSize = 0
 
-# Function to safely remove item
-function Remove-SafeItem {
+# Wrapper for Remove-SafeItem to track cleaned items and errors
+function Remove-SafeItem-Wrapper {
     param(
         [string]$Path,
         [string]$Description
     )
 
-    if (Test-Path $Path) {
-        try {
-            $size = (Get-ChildItem $Path -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
-            if ($null -eq $size) { $size = 0 }
+    $result = Remove-SafeItem -Path $Path -Description $Description `
+                               -SpaceFreedRef ([ref]$script:totalSize)
 
-            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
-            $sizeMB = [math]::Round($size / 1MB, 2)
-            $script:totalSize += $size
-            $script:cleaned += "$Description ($sizeMB MB)"
-            Write-Host "✓ Removed: $Description" -ForegroundColor Green
-        } catch {
-            $script:errors += "$Description - $($_.Exception.Message)"
-            Write-Host "✗ Failed: $Description - $($_.Exception.Message)" -ForegroundColor Red
-        }
+    if ($result) {
+        $script:cleaned += $Description
     } else {
-        Write-Host "○ Not found: $Description" -ForegroundColor Gray
+        if (Test-Path $Path) {
+            $script:errors += "$Description - Failed to remove"
+        }
     }
 }
+
+# Alias for compatibility with existing code
+Set-Alias -Name Remove-SafeItem -Value Remove-SafeItem-Wrapper -Scope Script
 
 Write-Host "Starting cleanup..." -ForegroundColor Yellow
 Write-Host ""

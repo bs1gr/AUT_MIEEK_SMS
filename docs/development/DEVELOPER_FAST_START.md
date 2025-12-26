@@ -1,6 +1,10 @@
-# Developer Fast Start — Pre-commit & tests
+# Developer Fast Start (Archived - Use DEVELOPER_GUIDE_COMPLETE.md)
 
-This short guide helps developers get up and running quickly with the repository's local tooling (Windows PowerShell and Unix shells).
+> **📖 For Complete Guide:** See **[DEVELOPER_GUIDE_COMPLETE.md](DEVELOPER_GUIDE_COMPLETE.md)** for comprehensive setup, testing, and troubleshooting.
+>
+> **Quick Start Only**: This document is kept for historical reference. All setup information is consolidated in the complete guide.
+
+## Quick Setup Steps
 
 1. Set up Python environment (Windows PowerShell)
 
@@ -20,6 +24,25 @@ pip install pre-commit
 pre-commit install
 # Run the hooks across the repo once (CI will also run pre-commit)
 pre-commit run --all-files
+
+Optional: install the repository-provided pre-commit sample hook which runs
+`COMMIT_READY.ps1 -Mode quick` before commits. This is useful if you want a
+consolidated full-check at commit time (lint + tests + i18n checks).
+
+Install the sample hook using the included installer scripts:
+
+PowerShell (Windows)
+
+```powershell
+pwsh ./scripts/install-git-hooks.ps1
+```
+
+POSIX (macOS / Linux)
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
 ```
 
 1. Run tests locally

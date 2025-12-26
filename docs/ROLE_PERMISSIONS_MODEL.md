@@ -3,12 +3,14 @@
 ## Overview
 
 The Student Management System implements a simple two-role RBAC model:
+
 - **Teacher**: Full access to all database operations (students, courses, grades, attendance, enrollments, etc.)
 - **Administrator**: Teacher permissions PLUS user account management
 
 ## Role Permission Matrix
 
 ### Teacher Role (`"teacher"`)
+
 Teachers have full access to all educational data operations:
 
 | Category | Operations | Endpoints |
@@ -24,6 +26,7 @@ Teachers have full access to all educational data operations:
 | **Reports** | Generate and export reports | `/api/v1/exports/*` |
 
 ### Administrator Role (`"admin"`)
+
 Administrators have all Teacher permissions PLUS:
 
 | Category | Operations | Endpoints |
@@ -35,6 +38,7 @@ Administrators have all Teacher permissions PLUS:
 ## Implementation Details
 
 ### Backend Authorization
+
 All protected endpoints use the `optional_require_role()` dependency:
 
 ```python
@@ -58,6 +62,7 @@ async def admin_create_user(
 ```
 
 ### AUTH_MODE Configuration
+
 The system supports three authentication modes (configured via `AUTH_MODE` in `.env`):
 
 1. **`disabled`** (default): No authentication required - all endpoints accessible
@@ -73,6 +78,7 @@ The system supports three authentication modes (configured via `AUTH_MODE` in `.
    - Security: ✅✅ Maximum security
 
 ### Frontend Integration
+
 The frontend automatically includes authentication headers when AUTH_MODE is enabled:
 
 ```typescript
@@ -86,6 +92,7 @@ await enrollmentsAPI.enrollStudents(courseId, studentIds);
 ## Common Patterns
 
 ### Checking User Role in Code
+
 ```python
 def get_current_user_role(user) -> str:
     return getattr(user, "role", None)
@@ -96,6 +103,7 @@ if get_current_user_role(current_user) == "admin":
 ```
 
 ### Frontend Role Display
+
 ```typescript
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -107,26 +115,32 @@ const isTeacher = user?.role === 'teacher';
 ## Migration from Old Model
 
 ### ❌ Old (Incorrect) Model
+
 - Admins had exclusive access to database operations
 - Teachers had limited read-only access
 
 ### ✅ New (Correct) Model
+
 - Teachers have full database operations access
 - Admins only have extra user account management permissions
 
 ## Troubleshooting
 
 ### "Access Denied" Errors
+
 1. Check user role: `GET /api/v1/auth/me`
 2. Verify AUTH_MODE in backend logs
 3. Check browser console for token issues
 
 ### Database Saving Errors
+
 - **Fixed in v2.0**: All enrollment operations now use authenticated API client
 - Ensure frontend uses `enrollmentsAPI` from `@/api/api`, not raw `fetch()`
 
 ### Role Assignment
+
 Only admins can change user roles via:
+
 - Control Panel > Users tab
 - API: `PATCH /api/v1/auth/admin/users/{user_id}`
 
@@ -138,19 +152,57 @@ Only admins can change user roles via:
 4. **Testing**: Use `AUTH_MODE=disabled` for automated tests
 5. **API Calls**: Always use `apiClient` from `@/api/api` for authentication
 
+## Fine-Grained RBAC & Permission Enforcement
+
+The system now uses permission-based enforcement for all protected endpoints.
+
+- Use `require_permission("permission.name")` or `optional_require_permission("permission.name")` for new endpoints.
+- Add new permissions to the database and assign them to roles as needed.
+- See `docs/api/RBAC_API_MATRIX.md` for the full permission matrix and endpoint mapping.
+
+### Example: Protecting an Endpoint
+```python
+from backend.security.permissions import require_permission
+
+@router.post("/students/")
+async def create_student(..., current_user=Depends(require_permission("students.write"))):
+    ...
+```
+
+### Adding a New Permission
+1. Add the permission to the `permissions` table (via API or migration).
+2. Assign it to the appropriate roles (via API or admin UI).
+3. Use the permission in your endpoint dependency.
+
+---
+
+## API Explorer
+
+All RBAC and protected endpoints are visible in the live OpenAPI/Swagger UI:
+- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
+
+Use these to verify endpoint registration and try out new permissions.
+
+---
+
 ## Files Changed in This Update
 
 ### Backend
+
 - `backend/routers/routers_sessions.py`: Changed rollback endpoint to allow teachers
 
 ### Frontend
+
 - `frontend/src/api/api.js`: Added `enrollmentsAPI` with authenticated calls
 - `frontend/src/features/courses/components/CoursesView.tsx`: Replaced raw fetch with apiClient
 
 ### Documentation
+
 - Created this file: `docs/ROLE_PERMISSIONS_MODEL.md`
 
 ## Related Documentation
+
 - [Authentication Guide](./user/AUTHENTICATION.md)
 - [API Reference](./API_REFERENCE.md)
 - [Deployment Guide](../DEPLOYMENT_GUIDE.md)

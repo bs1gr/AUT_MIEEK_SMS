@@ -4,6 +4,15 @@
 
 The Student Management System implements a **universal autosave pattern** using a custom React hook that provides automatic data persistence with debouncing, preventing data loss and reducing manual save operations.
 
+### What This Guide Covers (Consolidated)
+
+- Architecture and API reference for `useAutosave`
+- Implementation coverage across Attendance, Notes, Course Evaluation Rules (from `AUTOSAVE_SUMMARY.md` and `AUTOSAVE_EXTENSION_SESSION.md`)
+- Authentication review results for teacher/admin access (from `AUTOSAVE_AUTH_REVIEW.md`)
+- Testing and troubleshooting tips
+
+Legacy single-purpose docs have been archived to `archive/autosave-2025-12-06/`.
+
 ## Architecture
 
 ### Core Hook: `useAutosave`
@@ -11,12 +20,24 @@ The Student Management System implements a **universal autosave pattern** using 
 Location: `frontend/src/hooks/useAutosave.ts`
 
 The `useAutosave` hook provides:
+
 - ✅ **Debounced saves** - Waits for user to stop making changes
 - ✅ **Duplicate prevention** - Prevents concurrent save operations
 - ✅ **State tracking** - Shows saving/pending status to users
 - ✅ **Error handling** - Callbacks for success/error scenarios
 - ✅ **Manual override** - `saveNow()` function to bypass debounce
 - ✅ **Skip initial render** - Avoids unnecessary saves on component mount
+
+### Coverage Snapshot (Where Autosave Is Used)
+
+- **AttendanceView / EnhancedAttendanceCalendar**
+  - Removed "Save All" buttons; autosaves attendance and daily performance after 2s debounce
+  - Visual indicators via `CloudUpload` with pending/saving states
+- **NotesSection (Student Notes)**
+  - Autosaves to `localStorage` with 2s debounce; no backend dependency
+- **CourseEvaluationRules**
+  - Autosaves when rules total 100%; dependencies include rules + absence penalty
+  - Uses `enabled` guard to prevent invalid saves; visual status in header
 
 ## Usage
 
@@ -27,7 +48,7 @@ import { useAutosave } from '@/hooks/useAutosave';
 
 const MyComponent = () => {
   const [data, setData] = useState({});
-  
+
   const { isSaving, isPending, saveNow } = useAutosave(
     async () => {
       await apiClient.post('/save', data);
@@ -64,12 +85,12 @@ const AttendanceView = ({ courses, students }) => {
     const attendancePromises = Object.entries(attendanceRecords).map(/*...*/);
     const performancePromises = Object.entries(dailyPerformance).map(/*...*/);
     await Promise.all([...attendancePromises, ...performancePromises]);
-    
+
     showToast('Saved successfully', 'success');
   }, [attendanceRecords, dailyPerformance]);
 
-  const hasChanges = 
-    Object.keys(attendanceRecords).length > 0 || 
+  const hasChanges =
+    Object.keys(attendanceRecords).length > 0 ||
     Object.keys(dailyPerformance).length > 0;
 
   const { isSaving, isPending } = useAutosave(
@@ -91,13 +112,26 @@ const AttendanceView = ({ courses, students }) => {
           <span>{isSaving ? 'Saving...' : 'Changes pending...'}</span>
         </div>
       )}
-      
+
       {/* No manual save button needed! */}
       <StudentsList onMarkAttendance={setAttendance} />
     </div>
   );
 };
 ```
+
+### Authentication & Authorization Summary
+
+- All autosave-related endpoints are guarded with `optional_require_role("admin", "teacher")` where applicable, enabling Teacher access (validated in the archived auth review).
+- `NotesSection` writes to `localStorage` only—no backend auth required.
+- Rate limiting still applies (`RATE_LIMIT_WRITE`), but autosave payloads are small and infrequent.
+
+### Testing & Troubleshooting
+
+- **Dry-run saves:** wrap `performSave` with logging to verify debounce timing during development.
+- **Race conditions:** ensure dependencies array only contains stable, minimal values (use `useCallback` + `useMemo`).
+- **UI feedback:** always surface `isPending`/`isSaving` indicators to avoid duplicate clicks.
+- **Local-only data (Notes):** remind users that clearing browser storage removes notes.
 
 ## API Reference
 
@@ -193,13 +227,13 @@ Provide clear feedback to users about autosave status:
 ```tsx
 {(isAutosaving || autosavePending) && (
   <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-2 rounded-lg">
-    <CloudUpload 
-      size={16} 
-      className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} 
+    <CloudUpload
+      size={16}
+      className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'}
     />
     <span>
-      {isAutosaving 
-        ? t('saving') || 'Saving...' 
+      {isAutosaving
+        ? t('saving') || 'Saving...'
         : t('autosavePending') || 'Changes pending...'
       }
     </span>
@@ -210,6 +244,7 @@ Provide clear feedback to users about autosave status:
 ### Accessibility
 
 - Use ARIA live regions for screen readers:
+
   ```tsx
   <div role="status" aria-live="polite" aria-atomic="true">
     {isSaving ? 'Saving changes...' : isPending ? 'Changes pending' : 'All changes saved'}
@@ -243,6 +278,7 @@ Add autosave-related keys to locale files:
 ### Memory Management
 
 The autosave hook uses:
+
 - **Cleanup timers** - Clears timeouts on unmount
 - **Ref-based flags** - Prevents concurrent saves without re-renders
 - **Minimal state** - Only tracks essential saving status
@@ -259,11 +295,11 @@ The autosave hook uses:
 const performSave = useCallback(async () => {
   const allPromises = [...attendancePromises, ...performancePromises];
   const CHUNK_SIZE = 30; // Process 30 at a time
-  
+
   for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
     const chunk = allPromises.slice(i, i + CHUNK_SIZE);
     await Promise.all(chunk);
-    
+
     if (i + CHUNK_SIZE < allPromises.length) {
       await new Promise(resolve => setTimeout(resolve, 200)); // Small delay between chunks
     }
@@ -304,9 +340,9 @@ describe('useAutosave', () => {
     );
 
     expect(result.current.isPending).toBe(false);
-    
+
     rerender({ data: 'changed' });
-    
+
     expect(result.current.isPending).toBe(true);
   });
 });
@@ -317,6 +353,7 @@ describe('useAutosave', () => {
 ### Converting Manual Save to Autosave
 
 **Before:**
+
 ```tsx
 const MyForm = () => {
   const [data, setData] = useState({});
@@ -346,6 +383,7 @@ const MyForm = () => {
 ```
 
 **After:**
+
 ```tsx
 const MyForm = () => {
   const [data, setData] = useState({});

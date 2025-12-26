@@ -21,4 +21,6 @@ async def get_backend_logs(request: Request, lines: int = 100):
             recent_lines = all_lines[-lines:]
         return {"logs": [line.strip() for line in recent_lines], "total_lines": len(all_lines)}
     except Exception as exc:
-        raise http_error(500, ErrorCode.CONTROL_LOGS_ERROR, "Failed to read backend logs", request, context={"error": str(exc)}) from exc
+        raise http_error(
+            500, ErrorCode.CONTROL_LOGS_ERROR, "Failed to read backend logs", request, context={"error": str(exc)}
+        ) from exc

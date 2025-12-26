@@ -24,9 +24,7 @@ class AttendanceService:
         self.db = db
         self.request = request
         try:
-            self.Attendance, self.Student, self.Course = import_names(
-                "models", "Attendance", "Student", "Course"
-            )
+            self.Attendance, self.Student, self.Course = import_names("models", "Attendance", "Student", "Course")
         except Exception as exc:  # pragma: no cover
             logger.error("Failed to import models: %s", exc, exc_info=True)
             raise internal_server_error(request=self.request)
@@ -41,7 +39,6 @@ class AttendanceService:
             self.db,
             self.Student,
             attendance.student_id,
-            error_code=ErrorCode.STUDENT_NOT_FOUND,
             request=self.request,
         )
 
@@ -50,20 +47,43 @@ class AttendanceService:
             self.db,
             self.Course,
             attendance.course_id,
-            error_code=ErrorCode.COURSE_NOT_FOUND,
             request=self.request,
         )
 
-        # Check for duplicate attendance record
-        self._assert_unique_attendance(
-            attendance.student_id, attendance.course_id, attendance.date
+        # Upsert: if a record for same student, course, date, and period exists, update it
+        existing = (
+            self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.student_id == attendance.student_id,
+                self.Attendance.course_id == attendance.course_id,
+                self.Attendance.date == attendance.date,
+                self.Attendance.period_number == attendance.period_number,
+                self.Attendance.deleted_at.is_(None),
+            )
+            .first()
         )
 
         with transaction(self.db):
-            db_attendance = self.Attendance(**attendance.model_dump())
-            self.db.add(db_attendance)
-            self.db.flush()
-            self.db.refresh(db_attendance)
+            if existing:
+                existing.status = attendance.status
+                existing.period_number = attendance.period_number
+                existing.notes = attendance.notes
+                self.db.flush()
+                self.db.refresh(existing)
+                db_attendance = existing
+            else:
+                db_attendance = self.Attendance(**attendance.model_dump())
+                self.db.add(db_attendance)
+                self.db.flush()
+                self.db.refresh(db_attendance)
+
+        # Metrics
+        try:
+            from backend.middleware.prometheus_metrics import track_attendance
+
+            track_attendance(str(attendance.status).lower())
+        except Exception:
+            pass
 
         logger.info(
             "Created attendance: %s for student %s, course %s, date %s",
@@ -107,7 +127,6 @@ class AttendanceService:
             self.db,
             self.Attendance,
             attendance_id,
-            error_code=ErrorCode.ATTENDANCE_NOT_FOUND,
             request=self.request,
         )
 
@@ -123,7 +142,6 @@ class AttendanceService:
                 self.db,
                 self.Student,
                 update_dict["student_id"],
-                error_code=ErrorCode.STUDENT_NOT_FOUND,
                 request=self.request,
             )
 
@@ -133,7 +151,6 @@ class AttendanceService:
                 self.db,
                 self.Course,
                 update_dict["course_id"],
-                error_code=ErrorCode.COURSE_NOT_FOUND,
                 request=self.request,
             )
 
@@ -141,14 +158,16 @@ class AttendanceService:
         new_student_id = update_dict.get("student_id", db_attendance.student_id)
         new_course_id = update_dict.get("course_id", db_attendance.course_id)
         new_date = update_dict.get("date", db_attendance.date)
+        new_period_number = update_dict.get("period_number", db_attendance.period_number)
 
         if (
             new_student_id != db_attendance.student_id
             or new_course_id != db_attendance.course_id
             or new_date != db_attendance.date
+            or new_period_number != db_attendance.period_number
         ):
             self._assert_unique_attendance(
-                new_student_id, new_course_id, new_date, exclude_id=attendance_id
+                new_student_id, new_course_id, new_date, new_period_number, exclude_id=attendance_id
             )
 
         with transaction(self.db):
@@ -165,7 +184,9 @@ class AttendanceService:
         db_attendance = self.get_attendance(attendance_id)
 
         with transaction(self.db):
-            db_attendance.deleted_at = datetime.utcnow()
+            from datetime import timezone
+
+            db_attendance.deleted_at = datetime.now(timezone.utc)
             self.db.flush()
 
         logger.info("Deleted attendance: %s", db_attendance.id)
@@ -179,15 +200,18 @@ class AttendanceService:
         student_id: int,
         course_id: int,
         attendance_date: date,
+        period_number: Optional[int] = None,
         exclude_id: Optional[int] = None,
     ):
-        """Check if attendance record is unique for student, course, and date."""
+        """Check if attendance record is unique for student, course, date, and period (if provided)."""
         query = self.db.query(self.Attendance).filter(
             self.Attendance.student_id == student_id,
             self.Attendance.course_id == course_id,
             self.Attendance.date == attendance_date,
             self.Attendance.deleted_at.is_(None),
         )
+        if period_number is not None:
+            query = query.filter(self.Attendance.period_number == period_number)
 
         if exclude_id is not None:
             query = query.filter(self.Attendance.id != exclude_id)

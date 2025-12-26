@@ -19,7 +19,13 @@ const LogoutButton: React.FC = () => {
   };
 
   return (
-    <Button onClick={handleLogout} size="sm" variant="outline" disabled={loading}>
+    <Button
+      onClick={handleLogout}
+      size="sm"
+      variant="outline"
+      disabled={loading}
+      data-testid="logout-button"
+    >
       <LogOut className="h-4 w-4" aria-hidden="true" />
       <span>{loading ? t('common.loading') : t('common.logout')}</span>
     </Button>

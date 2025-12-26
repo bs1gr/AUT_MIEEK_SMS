@@ -110,6 +110,8 @@ def test_control_restart_blocked_in_docker(monkeypatch):
 def test_restart_diagnostics_reports_native(monkeypatch):
     monkeypatch.delenv("ENABLE_CONTROL_API", raising=False)
     monkeypatch.delenv("SMS_EXECUTION_MODE", raising=False)
+    monkeypatch.delenv("SMS_ENV", raising=False)  # Ensure not in production mode
+    monkeypatch.delenv("ENVIRONMENT", raising=False)  # Also clear fallback env var
     resp = client.get("/control/api/restart")
     assert resp.status_code == 200
     data = resp.json()

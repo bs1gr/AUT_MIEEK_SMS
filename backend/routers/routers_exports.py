@@ -480,10 +480,18 @@ router = APIRouter(
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
+from backend.services.audit_service import AuditLogger
+from backend.schemas.audit import AuditAction, AuditResource
+from backend.security.permissions import optional_require_permission
 
 
 @router.get("/students/excel")
-async def export_students_excel(request: Request, db: Session = Depends(get_db)):
+async def export_students_excel(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_permission("exports.generate")),
+):
+    audit = AuditLogger(db)
     try:
         (Student,) = import_names("models", "Student")
         lang = get_lang(request)
@@ -513,6 +521,14 @@ async def export_students_excel(request: Request, db: Session = Depends(get_db))
         wb.save(output)
         output.seek(0)
         filename = f"students_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.STUDENT,
+            details={"count": len(students), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -520,6 +536,14 @@ async def export_students_excel(request: Request, db: Session = Depends(get_db))
         )
     except Exception as exc:
         logger.error("Export students excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.STUDENT,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
@@ -592,18 +616,29 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
 
 def _letter_grade(percentage: float) -> str:
     """
-    Convert a percentage grade to a letter grade.
+    Convert a percentage grade to a letter grade using standard academic scale.
 
     Args:
         percentage: Numeric grade as a percentage (0-100)
 
     Returns:
-        Letter grade: A (90-100), B (80-89), C (70-79), D (60-69), F (0-59)
+        Letter grade: A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86),
+                     B- (80-82), C+ (77-79), C (70-76), D (60-69), F (0-59)
     """
-    if percentage >= 90:
+    if percentage >= 97:
+        return "A+"
+    if percentage >= 93:
         return "A"
-    if percentage >= 80:
+    if percentage >= 90:
+        return "A-"
+    if percentage >= 87:
+        return "B+"
+    if percentage >= 83:
         return "B"
+    if percentage >= 80:
+        return "B-"
+    if percentage >= 77:
+        return "C+"
     if percentage >= 70:
         return "C"
     if percentage >= 60:
@@ -693,6 +728,7 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/attendance/excel")
 async def export_attendance_excel(request: Request, db: Session = Depends(get_db)):
+    audit = AuditLogger(db)
     try:
         (Attendance,) = import_names("models", "Attendance")
         lang = get_lang(request)
@@ -720,6 +756,14 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
         wb.save(output)
         output.seek(0)
         filename = f"attendance_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.ATTENDANCE,
+            details={"count": len(records), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -727,6 +771,14 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
         )
     except Exception as exc:
         logger.error("Export attendance excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.ATTENDANCE,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
@@ -915,7 +967,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         course_period_headers = get_header_row("course_periods", lang)
         _apply_table_header(course_period_ws, course_period_headers)
         for row_idx, key in enumerate(
-            sorted(course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])),
+            sorted(
+                course_period_summary.keys(), key=lambda item: (course_period_summary[item]["course_code"], item[1])
+            ),
             start=2,
         ):
             data = course_period_summary[key]
@@ -940,7 +994,9 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         student_ws = wb.create_sheet(t("sheet_student_summary", lang))
         student_headers = get_header_row("student_summary", lang)
         _apply_table_header(student_ws, student_headers)
-        for row_idx, data in enumerate(sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2):
+        for row_idx, data in enumerate(
+            sorted(student_summary.values(), key=lambda item: item["student_name"]), start=2
+        ):
             counts = data["counts"]
             most_common = _dominant_status(counts)
             values = [
@@ -997,6 +1053,7 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
 @router.get("/courses/excel")
 async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
     """Export all courses to Excel"""
+    audit = AuditLogger(db)
     try:
         (Course,) = import_names("models", "Course")
         lang = get_lang(request)
@@ -1029,6 +1086,14 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         wb.save(output)
         output.seek(0)
         filename = f"courses_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.COURSE,
+            details={"count": len(courses), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1036,6 +1101,14 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         )
     except Exception as exc:
         logger.error("Export courses excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.COURSE,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
@@ -1048,6 +1121,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
 @router.get("/enrollments/excel")
 async def export_enrollments_excel(request: Request, db: Session = Depends(get_db)):
     """Export all course enrollments to Excel"""
+    audit = AuditLogger(db)
     try:
         CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
         lang = get_lang(request)
@@ -1084,6 +1158,14 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         wb.save(output)
         output.seek(0)
         filename = f"enrollments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.ENROLLMENT,
+            details={"count": len(enrollments), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1091,6 +1173,14 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         )
     except Exception as exc:
         logger.error("Export enrollments excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.ENROLLMENT,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
@@ -1103,6 +1193,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
 @router.get("/grades/excel")
 async def export_all_grades_excel(request: Request, db: Session = Depends(get_db)):
     """Export all grades to Excel"""
+    audit = AuditLogger(db)
     try:
         Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
         lang = get_lang(request)
@@ -1145,6 +1236,14 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         wb.save(output)
         output.seek(0)
         filename = f"all_grades_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.GRADE,
+            details={"count": len(grades), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1152,6 +1251,14 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         )
     except Exception as exc:
         logger.error("Export all grades excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.GRADE,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
@@ -1164,6 +1271,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
 @router.get("/performance/excel")
 async def export_daily_performance_excel(request: Request, db: Session = Depends(get_db)):
     """Export all daily performance records to Excel"""
+    audit = AuditLogger(db)
     try:
         DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
         lang = get_lang(request)
@@ -1204,6 +1312,14 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         wb.save(output)
         output.seek(0)
         filename = f"daily_performance_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.PERFORMANCE,
+            details={"count": len(performances), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1211,6 +1327,14 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         )
     except Exception as exc:
         logger.error("Export daily performance excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.PERFORMANCE,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,
@@ -1223,6 +1347,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
 @router.get("/highlights/excel")
 async def export_highlights_excel(request: Request, db: Session = Depends(get_db)):
     """Export all student highlights to Excel"""
+    audit = AuditLogger(db)
     try:
         Highlight, Student = import_names("models", "Highlight", "Student")
         lang = get_lang(request)
@@ -1260,6 +1385,14 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         wb.save(output)
         output.seek(0)
         filename = f"highlights_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # Log successful export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.HIGHLIGHT,
+            details={"count": len(highlights), "format": "excel", "filename": filename},
+            success=True,
+        )
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1267,6 +1400,14 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         )
     except Exception as exc:
         logger.error("Export highlights excel failed: %s", exc, exc_info=True)
+        # Log failed export
+        audit.log_from_request(
+            request=request,
+            action=AuditAction.BULK_EXPORT,
+            resource=AuditResource.HIGHLIGHT,
+            details={"error": str(exc), "format": "excel"},
+            success=False,
+        )
         raise http_error(
             500,
             ErrorCode.EXPORT_FAILED,

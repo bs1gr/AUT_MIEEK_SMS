@@ -7,6 +7,7 @@ End-to-end tests using Playwright to verify critical user workflows in the Stude
 ## Test Coverage
 
 ### Student Management (`student-management.spec.ts`)
+
 - ✅ Create new student
 - ✅ Edit existing student
 - ✅ Delete student
@@ -16,39 +17,46 @@ End-to-end tests using Playwright to verify critical user workflows in the Stude
 - ✅ View student analytics with final grade calculation
 
 ### Authentication (`register.spec.ts`, `ui-register.spec.ts`)
+
 - ✅ User registration flow
 - ✅ Login with refresh token cookie
 
 ## Running Tests
 
 ### Prerequisites
+
 ```bash
 # Install Playwright browsers (first time only)
 npx playwright install
 ```
 
 ### Run All E2E Tests
+
 ```bash
 cd frontend
 npm run e2e
 ```
 
 ### Run Specific Test File
+
 ```bash
 npx playwright test student-management.spec.ts
 ```
 
 ### Run Tests in UI Mode (interactive)
+
 ```bash
 npx playwright test --ui
 ```
 
 ### Debug Tests
+
 ```bash
 npx playwright test --debug
 ```
 
 ### View Test Report
+
 ```bash
 npx playwright show-report
 ```
@@ -56,9 +64,11 @@ npx playwright show-report
 ## Environment Configuration
 
 ### Development (Default)
+
 Tests run against `http://localhost:5173` (frontend) and `http://localhost:8000` (backend).
 
 Ensure both servers are running:
+
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -70,11 +80,13 @@ npm run dev
 ```
 
 ### Custom Backend URL
+
 ```bash
 E2E_API_BASE=http://localhost:8080 npm run e2e
 ```
 
 ### Docker Environment
+
 ```bash
 PLAYWRIGHT_BASE_URL=http://localhost:8080 E2E_API_BASE=http://localhost:8080 npm run e2e
 ```
@@ -82,23 +94,26 @@ PLAYWRIGHT_BASE_URL=http://localhost:8080 E2E_API_BASE=http://localhost:8080 npm
 ## Test Structure
 
 ### Test Helpers (`helpers.ts`)
+
 Reusable utilities for:
+
 - Data generation (students, courses, users)
 - Authentication (register, login)
 - API setup (create test data via API)
 - UI interactions (fill forms, select dropdowns, wait for toasts)
 
 ### Example Usage
+
 ```typescript
 import { test } from '@playwright/test';
 import { loginAsTeacher, createStudentViaAPI, generateStudentData } from './helpers';
 
 test('my test', async ({ page }) => {
   await loginAsTeacher(page);
-  
+
   const student = generateStudentData();
   const created = await createStudentViaAPI(page, student);
-  
+
   // ... rest of test
 });
 ```
@@ -106,6 +121,7 @@ test('my test', async ({ page }) => {
 ## Configuration
 
 ### `playwright.config.ts`
+
 ```typescript
 {
   testDir: './tests/e2e',
@@ -127,7 +143,9 @@ test('my test', async ({ page }) => {
 ## Best Practices
 
 ### 1. Use API for Test Setup
+
 Create test data via API for speed, then test UI interactions:
+
 ```typescript
 // Fast: Create via API
 const student = await createStudentViaAPI(page, generateStudentData());
@@ -138,20 +156,24 @@ await page.goto(`/students/${student.id}`);
 ```
 
 ### 2. Isolate Tests
+
 Each test should be independent and clean up after itself:
+
 ```typescript
 test('my test', async ({ page }) => {
   const student = await createStudentViaAPI(page, generateStudentData());
-  
+
   // Test logic...
-  
+
   // Cleanup (optional, depends on test DB strategy)
   await cleanupTestData(page, 'students', student.id);
 });
 ```
 
 ### 3. Use Stable Selectors
+
 Prefer data attributes over brittle CSS selectors:
+
 ```typescript
 // Good: Stable selector
 await page.click('[data-testid="create-student-btn"]');
@@ -164,9 +186,10 @@ await page.click('.btn-primary.ml-4');
 ```
 
 ### 4. Wait for Dynamic Content
+
 ```typescript
 // Wait for API response
-await page.waitForResponse(resp => 
+await page.waitForResponse(resp =>
   resp.url().includes('/api/v1/students') && resp.status() === 200
 );
 
@@ -177,10 +200,13 @@ await expect(page.locator('text=Success')).toBeVisible({ timeout: 5000 });
 ## Debugging
 
 ### Screenshots on Failure
+
 Automatic screenshots are captured on test failure in `test-results/`.
 
 ### Video Recording
+
 Enable in config:
+
 ```typescript
 use: {
   video: 'retain-on-failure',
@@ -188,7 +214,9 @@ use: {
 ```
 
 ### Trace Viewer
+
 View detailed traces with network logs, DOM snapshots:
+
 ```bash
 npx playwright show-trace trace.zip
 ```
@@ -196,6 +224,7 @@ npx playwright show-trace trace.zip
 ## CI/CD Integration
 
 ### GitHub Actions
+
 ```yaml
 - name: Install Playwright
   run: npx playwright install --with-deps
@@ -217,16 +246,19 @@ npx playwright show-trace trace.zip
 ## Troubleshooting
 
 ### Tests Timeout
+
 - Increase timeout in `playwright.config.ts`
 - Check backend is running and accessible
 - Verify no CORS issues in browser console
 
 ### Element Not Found
+
 - Add explicit waits: `await page.waitForSelector('.my-element')`
 - Check selector specificity
 - Use Playwright Inspector: `npx playwright test --debug`
 
 ### Authentication Issues
+
 - Verify registration endpoint returns success
 - Check cookies are set correctly
 - Ensure JWT tokens are valid

@@ -1,0 +1,47 @@
+# Enable Dependabot for automated dependency and security updates
+
+version: 2
+updates:
+  # Backend Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/backend/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "security"
+
+  # Frontend npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "security"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "ci"
+      - "dependencies"
+
+# Enable security updates
+security-updates:
+  enable: true

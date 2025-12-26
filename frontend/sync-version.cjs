@@ -11,9 +11,9 @@ try {
   if (pkg.version !== version) {
     pkg.version = version;
     fs.writeFileSync(packageJsonFile, JSON.stringify(pkg, null, 2) + '\n');
-    console.log(`Synced frontend/package.json version to ${version}`);
+    console.warn(`Synced frontend/package.json version to ${version}`);
   } else {
-    console.log('Version already in sync.');
+    console.warn('Version already in sync.');
   }
 } catch (err) {
   console.error('Failed to sync version:', err);

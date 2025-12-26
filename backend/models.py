@@ -302,9 +302,7 @@ class User(Base):
         index=True,
     )
 
-    __table_args__ = (
-        Index("idx_users_email_role", "email", "role"),
-    )
+    __table_args__ = (Index("idx_users_email_role", "email", "role"),)
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
@@ -330,6 +328,115 @@ class RefreshToken(Base):
 
     def __repr__(self):
         return f"<RefreshToken(id={self.id}, user_id={self.user_id}, jti={self.jti}, revoked={self.revoked})>"
+
+
+class AuditLog(Base):
+    """Audit log for tracking system actions and changes."""
+
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String(50), nullable=False, index=True)  # e.g., "create", "update", "delete", "bulk_import"
+    resource = Column(String(50), nullable=False, index=True)  # e.g., "student", "grade", "course"
+    resource_id = Column(String(100), nullable=True, index=True)  # ID of the affected resource
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_email = Column(String(255), nullable=True)
+    ip_address = Column(String(45), nullable=True)  # IPv6 max length
+    user_agent = Column(String(512), nullable=True)
+    details = Column(JSON, nullable=True)  # Additional contextual information
+    success = Column(Boolean, default=True, nullable=False)
+    error_message = Column(Text, nullable=True)
+    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    # Composite indexes for common queries
+    __table_args__ = (
+        Index("idx_audit_user_action", "user_id", "action"),
+        Index("idx_audit_resource_action", "resource", "action"),
+        Index("idx_audit_timestamp_action", "timestamp", "action"),
+    )
+
+    # Relationship to user
+    user: ClassVar[Any] = relationship("User")
+
+    def __repr__(self):
+        return f"<AuditLog(id={self.id}, action={self.action}, resource={self.resource}, user_id={self.user_id})>"
+
+
+# --- RBAC models: fine-grained permissions ---
+class Role(Base):
+    """Role entity for fine-grained RBAC.
+
+    Uses a unique name (e.g., 'admin', 'teacher', 'student').
+    """
+
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False, index=True)
+    description = Column(String(255))
+
+    __table_args__ = (Index("idx_roles_name", "name", unique=True),)
+
+    def __repr__(self):
+        return f"<Role(id={self.id}, name={self.name})>"
+
+
+class Permission(Base):
+    """Permission entity for fine-grained RBAC.
+
+    Permission names follow a 'resource.action' convention (e.g., 'students.read').
+    """
+
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), unique=True, nullable=False, index=True)
+    description = Column(String(255))
+
+    __table_args__ = (Index("idx_permissions_name", "name", unique=True),)
+
+    def __repr__(self):
+        return f"<Permission(id={self.id}, name={self.name})>"
+
+
+class RolePermission(Base):
+    """Association table: which permissions are granted to a role."""
+
+    __tablename__ = "role_permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    __table_args__ = (Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),)
+
+    # Lightweight relationships for convenience (optional at runtime)
+    role: ClassVar[Any] = relationship("Role")
+    permission: ClassVar[Any] = relationship("Permission")
+
+    def __repr__(self):
+        return f"<RolePermission(role_id={self.role_id}, permission_id={self.permission_id})>"
+
+
+class UserRole(Base):
+    """Association table: which roles are assigned to a user.
+
+    Backward compatible with existing User.role string – both can coexist during migration.
+    """
+
+    __tablename__ = "user_roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    __table_args__ = (Index("idx_user_role_unique", "user_id", "role_id", unique=True),)
+
+    user: ClassVar[Any] = relationship("User")
+    role: ClassVar[Any] = relationship("Role")
+
+    def __repr__(self):
+        return f"<UserRole(user_id={self.user_id}, role_id={self.role_id})>"
 
 
 def init_db(db_url: str = "sqlite:///student_management.db"):
@@ -364,7 +471,54 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             # Best-effort; don't fail engine creation if directory check has issues
             pass
 
-        engine = create_engine(db_url, echo=False)
+        # Determine if this is a production environment
+        from backend.environment import get_runtime_context
+
+        runtime_context = get_runtime_context()
+        is_production = runtime_context.is_production
+        is_postgresql = db_url.startswith("postgresql://") or db_url.startswith("postgresql+psycopg://")
+        is_sqlite = db_url.startswith("sqlite:///")
+
+        # Production SQLite warning
+        if is_production and is_sqlite:
+            logger.warning(
+                "⚠️  SQLite detected in production mode. SQLite limitations:\n"
+                "   • Poor concurrency (write locks entire database)\n"
+                "   • No network access (single machine only)\n"
+                "   • Limited to ~1TB database size\n"
+                "   • Not recommended for multi-user production deployments\n"
+                "   ➜ Consider PostgreSQL for production use (see docs/development/ARCHITECTURE.md)"
+            )
+
+        # Configure connection pooling (primarily for PostgreSQL, but applies to all)
+        engine_kwargs: dict[str, Any] = {
+            "echo": False,
+        }
+
+        if is_postgresql:
+            # PostgreSQL-specific pooling configuration
+            engine_kwargs.update(
+                {
+                    "pool_size": 20,  # Connections in pool (default: 5)
+                    "max_overflow": 10,  # Extra connections beyond pool_size (default: 10)
+                    "pool_pre_ping": True,  # Test connections before use (detect stale connections)
+                    "pool_recycle": 3600,  # Recycle connections after 1 hour (prevent stale connections)
+                }
+            )
+            logger.info(
+                "PostgreSQL connection pooling configured: "
+                "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s"
+            )
+        elif is_sqlite:
+            # SQLite-specific configuration
+            # Use NullPool for SQLite to avoid "database is locked" errors in multi-threaded scenarios
+            # Note: For single-threaded dev, default pool is fine; this is defensive for FastAPI workers
+            from sqlalchemy.pool import NullPool
+
+            engine_kwargs["poolclass"] = NullPool
+            logger.info("SQLite NullPool configured to avoid locking issues")
+
+        engine = create_engine(db_url, **engine_kwargs)
 
         # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
         try:

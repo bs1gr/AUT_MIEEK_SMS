@@ -12,6 +12,7 @@ This guide explains the operational architecture for the Student Management Syst
 The system follows a **clean separation of concerns** between host operations and container operations:
 
 ### **Host Layer** (PowerShell Scripts)
+
 - **Purpose:** Container lifecycle management and infrastructure control
 - **Tools:** `DOCKER.ps1`, Docker Compose
 - **Operations:**
@@ -22,6 +23,7 @@ The system follows a **clean separation of concerns** between host operations an
   - System cleanup
 
 ### **Container Layer** (Backend API)
+
 - **Purpose:** Application operations and monitoring
 - **Tools:** FastAPI endpoints, Web Control Panel
 - **Operations:**
@@ -32,8 +34,9 @@ The system follows a **clean separation of concerns** between host operations an
   - Environment information
 
 ### **UI Layer** (React Control Panel)
+
 - **Purpose:** User-friendly interface for Docker-safe operations
-- **Location:** http://localhost:8080 → Power Tab
+- **Location:** <http://localhost:8080> → Power Tab
 - **Features:**
   - Mode-aware UI (shows only Docker-compatible operations)
   - Real-time system monitoring
@@ -62,6 +65,7 @@ The system follows a **clean separation of concerns** between host operations an
 ```
 
 **Options:**
+
 - `.\DOCKER.ps1 -UpdateClean` - Force rebuild with `--no-cache`
 - `.\DOCKER.ps1 -Status` - Check container status
 - `.\DOCKER.ps1 -Help` - Show all available commands
@@ -91,6 +95,7 @@ The system follows a **clean separation of concerns** between host operations an
 ```
 
 **Interactive Mode:**
+
 ```powershell
 # Run without parameters for help display
 .\DOCKER.ps1
@@ -137,12 +142,14 @@ docker compose build
 #### Backup Database
 
 **Via Control Panel:**
-1. Navigate to http://localhost:8080 → Power Tab
+
+1. Navigate to <http://localhost:8080> → Power Tab
 2. Go to Operations tab
 3. Click "Create Database Backup"
 4. Backup saved to `backups/` directory
 
 **Via Docker command:**
+
 ```powershell
 docker compose exec backend python -c "from backend.db import backup_database; backup_database()"
 ```
@@ -150,6 +157,7 @@ docker compose exec backend python -c "from backend.db import backup_database; b
 #### Restore Database
 
 **Via Control Panel:**
+
 1. Go to Operations tab
 2. View available backups
 3. Select backup to restore
@@ -177,11 +185,13 @@ docker compose -f docker/docker-compose.yml logs -f
 #### Health Checks
 
 **Via Control Panel:**
+
 - Navigate to Diagnostics tab for comprehensive health checks
 - View system status, dependencies, configuration
 - Check database health and schema version
 
 **Via API:**
+
 ```powershell
 # Basic health check
 curl http://localhost:8080/health
@@ -234,12 +244,14 @@ netstat -ano | findstr ":8080"
 #### Database Issues
 
 **Via Control Panel:**
+
 1. Go to Diagnostics tab
 2. Check Database status
 3. View SMS Schema Version
 4. Run troubleshooting from Control Panel
 
 **Manual check:**
+
 ```powershell
 # Access backend container
 docker compose exec backend bash
@@ -280,6 +292,7 @@ These operations require **host-level access** and must be run from PowerShell:
 | Restart System | Container lifecycle control | `.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start` |
 
 **Why this separation?**
+
 - **Security:** Containers shouldn't have Docker socket access
 - **Reliability:** Prevents container self-termination issues
 - **Clarity:** Clear boundary between app and infrastructure
@@ -290,6 +303,7 @@ These operations require **host-level access** and must be run from PowerShell:
 ## 📊 Container Details
 
 ### Backend Container
+
 - **Image:** `sms-backend:1.3.8`
 - **Base:** `python:3.11-slim`
 - **Ports:** 8000 (internal only)
@@ -300,6 +314,7 @@ These operations require **host-level access** and must be run from PowerShell:
 - **Entry Point:** `entrypoint.py` (runs migrations, starts Uvicorn)
 
 ### Frontend Container
+
 - **Image:** `sms-frontend:1.3.8`
 - **Base:** `nginx:alpine`
 - **Ports:** 8080 (host) → 80 (container)

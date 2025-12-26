@@ -1,14 +1,15 @@
 # Student Management System
 
 ![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
+![CI/CD Pipeline](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg?branch=main)
 
-**Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)  
-**Location:** Limassol, Cyprus  
+**Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
+**Location:** Limassol, Cyprus
 **Developer:** Teacher at ΜΙΕΕΚ
 
 ## 📦 Quick Start
 
-### **For End Users** - One-Click Installation ⭐ NEW!
+### **For End Users** — One-Click Installation ⭐ NEW
 
 #### 🎯 Windows Installer (Easiest Method)
 
@@ -37,7 +38,7 @@
 3. **Run** `DOCKER.ps1 -Install` in PowerShell (as Administrator)
 4. **Follow** the prompts (~5-10 minutes first run)
 
-**📖 Complete Guide:** [docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md](docs/WINDOWS_INSTALLER_WIZARD_GUIDE.md)
+**📖 Installer Documentation:** [installer/README.md](installer/README.md)
 
 #### Fresh Installation / First-Time Setup (PowerShell Method)
 
@@ -65,7 +66,7 @@ We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 
-See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.6/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
 
 ##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
 
@@ -76,7 +77,8 @@ Create a desktop shortcut to toggle SMS with a single click:
 .\CREATE_DESKTOP_SHORTCUT.ps1
 ```
 
-Then double-click "SMS Toggle" on your Desktop:
+Then double-click "Student Management System" on your Desktop:
+
 - **Click once** → Start SMS ✅
 - **Click again** → Stop SMS 🛑
 
@@ -115,7 +117,7 @@ Then double-click "SMS Toggle" on your Desktop:
 .\NATIVE.ps1 -Help           # Command reference
 ```
 
-> **📖 Full Cleanup Guide:** See [DOCKER_CLEANUP_GUIDE.md](DOCKER_CLEANUP_GUIDE.md) for detailed instructions
+> **📖 Full Cleanup Guide:** See [docs/reference/DOCKER_CLEANUP_GUIDE.md](docs/reference/DOCKER_CLEANUP_GUIDE.md) for detailed instructions
 
 **Requirements:**
 
@@ -128,24 +130,32 @@ Then double-click "SMS Toggle" on your Desktop:
 
 **Good News:** Admin account is created automatically on first startup!
 
-**Default Login Credentials:**
+**⚠️ SECURITY WARNING: Default credentials below are INSECURE and must be changed!**
+
+**Default Login Credentials (CHANGE IMMEDIATELY):**
+
 - **Email:** `admin@example.com`
 - **Password:** `YourSecurePassword123!`
 
-**After First Login:**
+**❗ CRITICAL - After First Login:**
+
 1. Go to **Control Panel** → **Maintenance** tab
 2. Use the "Change Your Password" section (teal card at top)
-3. Set your own secure password
+3. Set your own secure password immediately
 
-> **⚠️ IMPORTANT:** Always change the default password after first login!
+> **🔐 PRODUCTION SECURITY:** These default credentials are intentionally weak examples.
+> **NEVER deploy to production without changing them first!**
+> Generate strong password: `python -c "import secrets; print(secrets.token_urlsafe(24))"`
 
 **Technical Details:**
 The admin account is automatically bootstrapped when the application starts because the `.env` file has these values configured:
+
 ```dotenv
 AUTH_ENABLED=True
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
+```
 
 Note about automated admin password rotation:
 
@@ -156,10 +166,10 @@ Note about automated admin password rotation:
   intended to make automated credential rotation (e.g., via CI/CD or secret
   managers) safe and predictable. The flag is intentionally off by default to
   avoid surprising changes in production.
-```
 
 **If Login Fails:**
 If you get "Invalid email or password", the admin user might not have been created. Run:
+
 ```powershell
 # For Docker:
 docker exec sms-app python /app/backend/tools/create_admin.py --email admin@example.com --password "YourSecurePassword123!"
@@ -174,11 +184,11 @@ python backend/tools/create_admin.py --email admin@example.com --password "YourS
 
 Deploy to QNAP Container Station with PostgreSQL database:
 
-- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md)
+- See [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
-**Monitoring UI deprecation (v1.8.3):**
+**Monitoring UI deprecation ($1.12.6):**
 
 - The embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) has been removed from the app.
 - The Power page now focuses on System Health and the Control Panel only.
@@ -219,6 +229,33 @@ Full guides: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) · [DEPLOYMENT_GUIDE
 
 ---
 
+
+## ♿ Accessibility, Color Contrast & i18n Improvements (2025)
+
+### Accessibility & Color Contrast
+
+- All major frontend modules have been updated to meet WCAG AA color contrast standards.
+- Font color classes now use high-contrast, vivid Tailwind colors (e.g., `text-indigo-700`, `text-indigo-800`) for improved readability and accessibility.
+- Drop shadows and font weight are used to further enhance text clarity on light backgrounds.
+- All UI changes are validated with automated and manual accessibility checks.
+
+**Best Practice:**
+When adding or updating UI components, always:
+- Use high-contrast color classes for text (avoid `text-gray-500/600/700` for primary content)
+- Validate with accessibility tools (e.g., Lighthouse, axe)
+- Ensure ARIA roles/labels are present where needed
+
+### Internationalization (i18n)
+
+- All UI strings are managed via modular TypeScript translation files (`frontend/src/locales/{en,el}/*.ts`).
+- Never hardcode UI text; always use `t('key')` from the translation context.
+- Translation integrity is enforced by tests; both EN and EL must be present for all keys.
+
+**See also:**
+- [docs/user/LOCALIZATION.md](docs/user/LOCALIZATION.md) for i18n setup and translation workflow
+- [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) for frontend structure and accessibility patterns
+
+---
 ## 🗂️ Project Consolidation (v2.0)
 
 ### Scripts Consolidation ✅
@@ -238,9 +275,9 @@ All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native
 - ✅ 100% feature parity maintained
 - ✅ Better error handling and diagnostics
 
-**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-v1.9.1/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.12.6/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
 
-**Archived:** Legacy scripts preserved in `archive/pre-v1.9.1/deprecated/scripts_consolidation_2025-11-21/`
+**Archived:** Legacy scripts preserved in `archive/pre-$1.12.6/deprecated/scripts_consolidation_2025-11-21/`
 
 ### Documentation Consolidation ✅
 
@@ -281,7 +318,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 TODO.md                   # Active task tracking
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.9.2)
+├── 📄 VERSION                   # Current version (1.12.6)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -365,7 +402,6 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 [![CI](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci.yml) [![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml) [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
-
 ## 🆕 Latest Highlights
 
 ### Security & Auth
@@ -390,21 +426,21 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 
 - Consolidated structure (`docs/user`, `docs/deployment`, `docs/development`) & master index updated.
 
-Full release notes: `CHANGELOG.md` (sections 1.8.6.0–1.8.6.4).
+Full release notes: `CHANGELOG.md` (sections 1.12.6.0–1.12.6.4).
 
 ---
 
 ## Historical Highlights (Selected)
 
-### v1.6.5 – Control API Re-base Path & Restart UX
+### $1.12.6 – Control API Re-base Path & Restart UX
 
 Canonical `/control/api/*` path, shared `CONTROL_API_BASE`, restart UX improvements.
 
-### v1.6.4 – Repository Cleanup
+### $1.12.6 – Repository Cleanup
 
 Systematic cleanup & maintainability upgrades.
 
-### v1.6.3 – Release Archive Pipeline
+### $1.12.6 – Release Archive Pipeline
 
 Legacy release archival & GHCR retirement guidance.
 
@@ -413,7 +449,7 @@ Legacy release archival & GHCR retirement guidance.
 - 🚪 **Canonical Control API path:** Operational endpoints now sit under `/control/api/*`, decoupling them from the public REST surface and matching the FastAPI lifespan design.
 - 🔗 **Shared Control API base helper:** Frontend utilities export `CONTROL_API_BASE`, so Control Panel components, backups, and restart workflows all target the same origin with zero string duplication.
 - ♻️ **Restart UX polish:** Buttons render backend hints (Docker vs. native), localized fallbacks, and instructions for configuring shutdown tokens so operators always know why a restart is blocked.
-- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/v1.6.5.md`.
+- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$1.12.6.md`.
 
 ---
 
@@ -429,28 +465,28 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in v1.6.3
+## 📦 What's New in $1.12.6
 
-- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below v1.6.2 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
+- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $1.12.6 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
 - 📦 **GitHub Packages retirement playbook:** Added guidance in the docs and management scripts for deleting or privatizing the three obsolete packages so downstream deployments don’t accidentally pull stale artifacts.
-- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out v1.6.3 as the active release and explain how the archive flow works for operators.
-- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/v1.6.3.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
+- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $1.12.6 as the active release and explain how the archive flow works for operators.
+- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$1.12.6.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
 - 🧰 **Operator visibility:** Control Panel + RUN/SMS scripts reference the new archive path in their troubleshooting copy, keeping previously removed helpers discoverable but isolated from day-to-day workflows.
-- 🔒 **Compliance follow-up:** Documented the Starlette 0.49.1 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
+- 🔒 **Compliance follow-up:** Documented the Starlette 1.12.6 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
 - 📣 **Upgrade messaging:** Added explicit instructions for tagging/publishing the new release and for consumers who need to migrate automation off the deprecated assets.
 
 ## 📦 Releases
 
-- Latest: [v1.6.5](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.5) – Canonical Control API base path, shared frontend helper, and restart UX improvements
-- Previous: [v1.6.4](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.4) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
-- Archive: [v1.6.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.6.3) – Release archive pipeline, GHCR retirement guidance, and automation hooks
+- Latest: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Canonical Control API base path, shared frontend helper, and restart UX improvements
+- Previous: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
+- Archive: [$1.12.6](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.12.6) – Release archive pipeline, GHCR retirement guidance, and automation hooks
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/v1.6.5.md` using `gh release create v1.6.5 --notes-file docs/releases/v1.6.5.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/$1.12.6.md` using `gh release create $1.12.6 --notes-file docs/releases/$1.12.6.md`.
 
 ---
 
-## 📦 What's New in v1.5.0
+## 📦 What's New in $1.12.6
 
 - 🟢 **Canonical entry points:** Consolidated to `DOCKER.ps1` (Docker deployment) and `NATIVE.ps1` (native development). All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) were archived in v2.0.
 - 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
@@ -460,7 +496,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in v1.4.0
+## 📦 What's New in $1.12.6
 
 - 🚀 **One-click deployment** with `DOCKER.ps1` (formerly `RUN.ps1`)
 - 💾 **Automatic backups** before updates
@@ -473,7 +509,6 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-
 ## 🚀 Quick Start
 
 **New to the project?** Use the automatic setup:
@@ -483,7 +518,7 @@ Legacy release archival & GHCR retirement guidance.
 .\SETUP_AFTER_GITHUB_ZIP.ps1
 ```
 
-This automatically installs everything! Or use the classic method: (v1.8.3)
+This automatically installs everything! Or use the classic method: ($1.12.6)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -542,7 +577,7 @@ The runtime enforces a clear separation between release and development workflow
 - Management menu with backup/restore/update operations
 - Monitoring stack with Grafana and Prometheus
 - Complete rollback capabilities
-- See [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) for full documentation
+- See [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) for full documentation
 
 #### 🔧 Local Development (Native)
 
@@ -557,7 +592,7 @@ The runtime enforces a clear separation between release and development workflow
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
 - `DOCKER.ps1` and helper scripts respect these guards to prevent configuration drift.
 
-### PostgreSQL Support & Migration (v1.8.3)
+### PostgreSQL Support & Migration ($1.12.6)
 
 - `RUN.ps1` and all Docker helpers now read `DATABASE_URL`,
   `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
@@ -697,7 +732,7 @@ Troubleshooting:
 **Four deployment options:**
 
 1. **Windows Docker**: Copy project → Run `DOCKER.ps1 -Start` (`pwsh -NoProfile -File .\DOCKER.ps1 -Start`)
-2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/qnap/QNAP_INSTALLATION_GUIDE.md))
+2. **QNAP NAS**: Upload to QNAP → Run `scripts/qnap/install-qnap.sh` ([QNAP Guide](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md))
 3. **Offline Package**: Run `.\scripts\internal\CREATE_DEPLOYMENT_PACKAGE.ps1`, copy ZIP to target
 4. **Manual Setup**: Follow [Complete Deployment Guide](DEPLOYMENT_GUIDE.md)
 
@@ -709,7 +744,7 @@ Troubleshooting:
 
 ---
 
-## 🎯 What's New in v1.3.8
+## 🎯 What's New in $1.12.6
 
 ### Testing & Quality Improvements Release
 
@@ -735,7 +770,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ---
 
-## 🎯 What's New in v1.2.0
+## 🎯 What's New in $1.12.6
 
 ### Under the Hood
 
@@ -816,7 +851,6 @@ For development with hot-reload:
 .\NATIVE.ps1 -Stop       # Stop all
 ```
 
-
 ### Starting the Application
 
 Start with one command:
@@ -877,7 +911,7 @@ For Docker operations:
 
 Once the stack is running you have two management surfaces:
 
-- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in v1.8.3, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $1.12.6, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
 - **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
@@ -983,10 +1017,9 @@ docker compose up -d
 
 Reverting: edit or delete docker-compose.override.yml and restart compose. Old volumes are preserved and can be listed with `docker volume ls`.
 
-
 ### Quick Maintenance Scripts (Windows)
 
-> **Note:** As of v1.5.0, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
+> **Note:** As of $1.12.6, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
 
 - `CLEANUP.bat` — Non-destructive cleanup: stops Docker services, clears caches/logs, preserves data and Docker volumes, backs up native DB.
 - `CLEANUP_COMPREHENSIVE.ps1` — Deep cleanup of all artifacts, logs, and build files.
@@ -1012,14 +1045,36 @@ docker compose up -d
 docker compose down
 ```
 
-
 ### Native Development Mode
 
 For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 
 ```powershell
-.
-\NATIVE.ps1 -Start
+# Start backend + frontend (hot-reload)
+.\NATIVE.ps1 -Start
+
+# NOTE: DEV_EASE is used by the pre-commit script `COMMIT_READY.ps1` only and should
+# not be used to alter runtime behavior. To make local pre-commit skips explicit, set
+# the environment variable `DEV_EASE=true` when running COMMIT_READY locally.
+#
+# Optional: Install the sample pre-commit hook provided at `.githooks/commit-ready-precommit.sample`.
+# You can copy it to `.git/hooks/pre-commit` and make it executable, or use the included installers:
+#
+# PowerShell (Windows):
+#
+# ```powershell
+# pwsh ./scripts/install-git-hooks.ps1
+# ```
+#
+# macOS / Linux:
+#
+# ```bash
+# ./scripts/install-git-hooks.sh
+# ```
+#
+# On Windows you can also add a PowerShell hook variant that invokes:
+# `pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick`.
+> **Note:** Use the consolidated `NATIVE.ps1`. Legacy helpers under `scripts/dev/` were archived and are no longer supported.
 ```
 
 > **Note:** Use the consolidated `NATIVE.ps1`. Legacy helpers under `scripts/dev/` were archived and are no longer supported.
@@ -1052,7 +1107,6 @@ student-management-system/
 └── tools/                    # Data import/export tools
 ```
 
-
 ## Documentation
 
 ### Available Documentation
@@ -1062,13 +1116,13 @@ student-management-system/
 - [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) – Platform-specific installation walkthrough
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) – Production deployment steps
 - [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) – Final verification before going live
-- [docs/deployment/POSTGRES_MIGRATION_GUIDE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE.md) – SQLite → PostgreSQL migration workflow
-- [docs/MONITORING_ARCHITECTURE.md](docs/MONITORING_ARCHITECTURE.md) – Monitoring stack design + troubleshooting
+- [docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md](docs/deployment/POSTGRES_MIGRATION_GUIDE_COMPLETE.md) – SQLite → PostgreSQL migration workflow
+- [docs/operations/MONITORING.md](docs/operations/MONITORING.md) – Monitoring & alerting guide (canonical)
 - [docs/SCRIPTS_GUIDE.md](docs/SCRIPTS_GUIDE.md) – Supported automation scripts and entry points
 - [docs/VERSIONING_AND_CACHING.md](docs/VERSIONING_AND_CACHING.md) – Version bump and cache busting policy
 - [docs/development/AUTHENTICATION.md](docs/development/AUTHENTICATION.md) – Authentication/authorization implementation details
 - [docs/user/QUICK_START_GUIDE.md](docs/user/QUICK_START_GUIDE.md) – Five-minute onboarding for new operators
-- [docs/qnap/QNAP_INSTALLATION_GUIDE.md](docs/qnap/QNAP_INSTALLATION_GUIDE.md) – Dedicated QNAP deployment instructions
+- [docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md) – Dedicated QNAP deployment instructions
 
 ## API Documentation
 
@@ -1078,8 +1132,33 @@ Once the backend is running, access the interactive API documentation:
 - ReDoc: <http://localhost:8080/redoc> (Docker) or <http://localhost:8000/redoc> (Native)
 - API Info: <http://localhost:8080/api> (Docker) or <http://localhost:8000/api> (Native) — JSON metadata
 
+**🔐 Security Requirements (CRITICAL):**
 
-**Security Note:** Set a strong random `SECRET_KEY` in `.env`/environment variables (generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"`). Turn on `SECRET_KEY_STRICT_ENFORCEMENT=1` when you want the backend to refuse placeholder or short secrets (recommended for staging/production); leave it at `0` for local debugging where you control the environment.
+1. **SECRET_KEY** - MUST be set with a strong random value:
+
+   ```bash
+   # Generate secure key
+   python -c "import secrets; print(secrets.token_urlsafe(48))"
+   ```
+
+   - **Minimum length:** 32 characters (48+ recommended)
+   - **Never use defaults:** System rejects placeholder/example keys
+   - **Docker deployment:** No default fallback - must be set in `.env`
+   - **Validation:** Automatic checks on startup prevent weak keys
+   - **Impact if weak:** Complete authentication bypass, JWT token forgery
+
+2. **Admin Credentials** - Change defaults immediately:
+
+   - Default `admin@example.com` / `YourSecurePassword123!` are intentionally weak
+   - **MUST change after first login** via Control Panel → Maintenance
+   - Generate secure password: `python -c "import secrets; print(secrets.token_urlsafe(24))"`
+   - For production, set unique credentials in `.env` before first deployment
+
+3. **Enforcement Modes:**
+
+   - `AUTH_ENABLED=True` (recommended): Full authentication required
+   - `SECRET_KEY_STRICT_ENFORCEMENT=True`: Rejects weak keys (auto-enabled when AUTH_ENABLED)
+   - Docker mode: Automatic security validation during startup
 
 **Note**: In fullstack mode, the root URL `/` serves the frontend SPA, while API endpoints remain at `/api/v1/*`.
 
@@ -1140,7 +1219,7 @@ Restart the application after rollback to clear caches.
 
 **Deprecation Notice:** POST export endpoint will be removed in a future release – use GET.
 
-For a full end-to-end walkthrough with scenarios and troubleshooting, see `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md`.
+For a full end-to-end walkthrough with scenarios and troubleshooting, see `docs/user/SESSION_EXPORT_IMPORT_GUIDE.md` (user guide; technical details in `docs/reference/session-export-import.md`).
 
 ### Academic settings and date range filtering
 
@@ -1205,7 +1284,6 @@ Use DOCKER.ps1 for database management:
 - Restore stops the running container (if any) and copies the selected backup back into the `sms_data` volume.
 - Migrate copies all data from the legacy compose volume `student-management-system_sms_data` into `sms_data`.
 
-
 ### Frontend Issues
 
 If the frontend isn't loading, try rebuilding:
@@ -1214,97 +1292,30 @@ If the frontend isn't loading, try rebuilding:
 .\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
 ```
 
-## Development
+---
 
-### Backend Development
+### 🧪 End-to-End (E2E) Testing: Local & CI Alignment
 
-The backend is built with:
-
-- **FastAPI** - Modern web framework
-- **SQLAlchemy** - ORM for database
-- **Pydantic** - Data validation
-- **Alembic** - Database migrations
-
-### Frontend Development
-
-The frontend uses:
-
-- **React** - UI library
-- **JavaScript (JSX)** - Application code
-- **Tailwind CSS** - Styling
-- **Vite** - Build tool
-
-### Workspace Maintenance Tools 🆕
-
-**Automated workspace consistency verification and consolidation tools:**
+To run E2E tests locally in a way that matches CI (backend serves frontend, permissive auth, seeded test user):
 
 ```powershell
-# Verify workspace consistency (file locations, references, version sync)
-.\scripts\VERIFY_WORKSPACE.ps1
-
-# Consolidate .bat wrapper files (reduces 13 files)
-.\scripts\CONSOLIDATE_BAT_WRAPPERS.ps1 -Execute
-
-# Update frontend script references to v2.0 consolidated scripts
-.\scripts\UPDATE_FRONTEND_REFS.ps1 -Execute -RunTests
+# From project root
+.\e2e-local.ps1
 ```
 
-**What these tools do:**
+This script will:
+- Seed E2E test data (user: test@example.com / password123)
+- Start the backend with `SERVE_FRONTEND=1`, `AUTH_MODE=permissive`, `CSRF_ENABLED=0`
+- Run Playwright E2E tests with `PLAYWRIGHT_BASE_URL=http://1.12.6.1:8000`
+- Clean up the backend process after tests
 
-- **VERIFY_WORKSPACE.ps1** - Automated checks for:
-  - File locations (config/, docker/, .github/ organization)
-  - Documentation references (script names, paths)
-  - Root directory cleanliness targets
-  - Version consistency (VERSION ↔ CHANGELOG)
-  - Provides reorganization suggestions
+**Troubleshooting:**
+- If tests fail with login or navigation timeouts, ensure no other backend/frontend is running on ports 8000/5173.
+- The backend must serve the built frontend for E2E to work (not Vite dev server).
+- For CI, see `.github/workflows/e2e-tests.yml` for the authoritative setup.
 
-- **CONSOLIDATE_BAT_WRAPPERS.ps1** - Removes redundant .bat wrappers:
-  - Archives 13 .bat files to `archive/deprecated_bat_wrappers/`
-  - Adds `#!/usr/bin/env pwsh` shebang to .ps1 files
-  - Updates documentation references
-  - Reduces maintenance burden (8% fewer scripts)
+**Test user credentials:**
+- Email: `test@example.com`
+- Password: `password123`
 
-- **UPDATE_FRONTEND_REFS.ps1** - Aligns UI with v2.0 scripts:
-  - Updates translation files (help.js, controlPanel.js)
-  - Updates React components (HelpDocumentation.tsx, ControlPanel.tsx)
-  - Replaces deprecated script references (CLEANUP_OBSOLETE_FILES.ps1 → DOCKER.ps1 -DeepClean)
-  - Optionally runs frontend tests for validation
-
-**Change tracking:**
-
-All workspace changes are tracked in `.github/WORKSPACE_STATE.md` for transparency and maintenance history.
-
-📖 **Complete guide:** [.github/MAINTENANCE_QUICK_REFERENCE.md](.github/MAINTENANCE_QUICK_REFERENCE.md)
-
-## Support
-
-Need help?
-
-1. Check the in-app Help section (Utils → Help Documentation)
-2. Review the documentation files in this repository
-3. Access the Control Panel at <http://localhost:8080/control> for system management
-
-## License
-
-See [LICENSE](LICENSE) file for details.
-
-
-## Version
-
-Current version: 1.9.2 (see [VERSION](VERSION) file)
-
-**Codebase Health**: 8.5/10 (Excellent) - See [archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md](archive/sessions_2025-11/CODEBASE_ANALYSIS_REPORT.md) for details
-
-## Developer note: `NATIVE.ps1` - auto-install & resiliency
-
-We added extra safety and convenience features to `NATIVE.ps1` to make first-time setup and recoveries easier on Windows:
-
-- Automatic install on start: if `frontend/node_modules` is missing when you run `.\NATIVE.ps1 -Start` or `.\NATIVE.ps1 -Frontend`, the script will attempt a non-interactive install (prefers `npm ci` when `package-lock.json` is present).
-- Robust retry and cleanup: installs use a helper that retries after removing known problematic native binaries (for example `@esbuild` on Windows) and will remove `node_modules` and retry a clean install if an initial `npm ci` fails due to locked files.
-- Peer-dependency guard: the script validates essential dev packages that Vite expects (for example `@babel/core`) and attempts to install them if missing to avoid runtime plugin errors.
-- Non-destructive setup: `.\NATIVE.ps1 -Setup` is safe to run in CI or developer environments; it creates/updates the Python virtualenv and installs frontend dependencies reproducibly.
-
-If you'd rather manage installs manually, run `.\NATIVE.ps1 -Setup` before starting. For a full clean reinstall, run `.\NATIVE.ps1 -Clean` then `.\NATIVE.ps1 -Setup`.
-
-These measures were added to reduce Windows-specific install failures and make the developer onboarding smoother.
-
+---

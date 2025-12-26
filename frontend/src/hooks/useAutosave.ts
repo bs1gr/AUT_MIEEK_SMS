@@ -1,14 +1,14 @@
 /**
  * useAutosave - Universal autosave hook with debouncing
- * 
+ *
  * Automatically saves data after a debounce delay when dependencies change.
  * Prevents unnecessary saves and shows user feedback.
- * 
+ *
  * @param saveFunction - Async function to call for saving
  * @param dependencies - Values to watch for changes
  * @param options - Configuration options
  * @returns Object with autosave status and manual save trigger
- * 
+ *
  * @example
  * ```tsx
  * const { isSaving, saveNow } = useAutosave(
@@ -61,7 +61,7 @@ export const useAutosave = (
   const [isSaving, setIsSaving] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  
+
   const timeoutRef = useRef<number | null>(null);
   const initialRenderRef = useRef(true);
   const saveInProgressRef = useRef(false);
@@ -75,9 +75,9 @@ export const useAutosave = (
       saveInProgressRef.current = true;
       setIsSaving(true);
       setIsPending(false);
-      
+
       await saveFunction();
-      
+
       setLastSaved(new Date());
       onSuccess?.();
     } catch (error) {
@@ -98,6 +98,8 @@ export const useAutosave = (
     await executeSave();
   }, [executeSave]);
 
+  const depsKey = JSON.stringify(dependencies);
+
   useEffect(() => {
     // Skip initial render if configured
     if (skipInitial && initialRenderRef.current) {
@@ -107,6 +109,13 @@ export const useAutosave = (
 
     // Don't autosave if disabled
     if (!enabled) {
+      // If autosave is disabled (e.g., user reverted changes), ensure pending state is cleared
+      // and cancel any in-flight debounce timer.
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setIsPending(false);
       return;
     }
 
@@ -130,7 +139,7 @@ export const useAutosave = (
         timeoutRef.current = null;
       }
     };
-  }, [...dependencies, enabled, delay, executeSave]);
+  }, [depsKey, enabled, delay, executeSave, skipInitial]);
 
   return {
     isSaving,

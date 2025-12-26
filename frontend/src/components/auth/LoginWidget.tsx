@@ -52,9 +52,9 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
       if (onLoginSuccess) {
         onLoginSuccess();
       }
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail ?? err?.response?.data ?? err;
-      setError(getErrorMessage(detail, t('auth.loginError')));
+    } catch (err: unknown) {
+      // Error can be many shapes (axios, Error, string) — use helper to extract a message
+      setError(getErrorMessage(err, t('auth.loginError')));
     } finally {
       setLoading(false);
     }
@@ -66,6 +66,8 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
         <Label htmlFor="auth-login-email">{t('common.email')}</Label>
         <Input
           id="auth-login-email"
+          name="email"
+          data-testid="auth-login-email"
           type="email"
           autoComplete="email"
           value={email}
@@ -77,6 +79,8 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
         <Label htmlFor="auth-login-password">{t('common.password')}</Label>
         <Input
           id="auth-login-password"
+          name="password"
+          data-testid="auth-login-password"
           type="password"
           autoComplete="current-password"
           value={password}
