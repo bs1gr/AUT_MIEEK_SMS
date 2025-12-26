@@ -92,11 +92,17 @@ jobs:
 Write-Host "Restoring $operatorWorkflowPath to production state..."
 Set-Content -Path $operatorWorkflowPath -Value $operatorWorkflowContent -Encoding UTF8
 
-# 2. Remove the temporary example file
-$exampleFile = ".github/workflows/ci-smart-skip-example.yml"
-if (Test-Path $exampleFile) {
-    Write-Host "Removing temporary file $exampleFile..."
-    Remove-Item -Path $exampleFile -Force
+# 2. Remove temporary files
+$filesToRemove = @(
+    ".github/workflows/ci-smart-skip-example.yml",
+    "scripts/internal/FINALIZE_WORKFLOWS.ps1",
+    "scripts/operator/test_verify.txt"
+)
+foreach ($file in $filesToRemove) {
+    if (Test-Path $file) {
+        Write-Host "Removing temporary file $file..."
+        Remove-Item -Path $file -Force
+    }
 }
 
 # 3. Git operations
