@@ -226,14 +226,16 @@ jobs:
 
       - name: Upload installer to release
         if: github.event_name == 'release' && steps.hash.outputs.path != ''
-        uses: actions/upload-release-asset@v1
+        shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.hash.outputs.path }}
-          asset_name: SMS_Installer_${{ steps.release_info.outputs.tag }}.exe
-          asset_content_type: application/octet-stream
+        run: |
+          $installerPath = "${{ steps.hash.outputs.path }}"
+          $assetName = "SMS_Installer_${{ steps.release_info.outputs.tag }}.exe"
+          $releaseId = "${{ github.event.release.id }}"
+
+          Write-Host "Uploading $assetName to release..."
+          gh release upload $releaseId $installerPath --clobber --repo ${{ github.repository }}
 
       - name: Create release summary
         shell: pwsh
