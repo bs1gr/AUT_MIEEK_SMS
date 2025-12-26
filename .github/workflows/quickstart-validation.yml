@@ -31,13 +31,19 @@ jobs:
         run: |
           pip install ruff pytest
           pip install -r backend/requirements.txt --quiet
+          if [ -f "backend/requirements-dev.txt" ]; then
+            pip install -r backend/requirements-dev.txt --quiet
+          fi
 
       - name: Quick backend lint (Ruff only)
-        run: cd backend && ruff check . --output-format=github
+        run: cd backend && ruff check . --config ../config/ruff.toml --output-format=github
         continue-on-error: true
 
       - name: Quick backend tests (no coverage)
-        run: cd backend && pytest -x -q --tb=short
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+          AUTH_MODE: strict
+        run: cd backend && python -m pytest tests/ -x -m "not slow" -q --tb=short
         timeout-minutes: 5
 
       # Frontend quick checks
@@ -58,7 +64,7 @@ jobs:
       - name: Quick frontend tests
         # 'basic' reporter is not available in our vitest version and causes startup errors
         # Use 'dot' for a compact reporter that is supported, or omit the flag to use default
-        run: cd frontend && npm run test -- --run --reporter=dot
+        run: cd frontend && npm run test -- --run --reporter=dot --bail 1
         timeout-minutes: 3
 
       - name: Summary

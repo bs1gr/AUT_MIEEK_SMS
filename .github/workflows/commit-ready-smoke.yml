@@ -37,11 +37,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install backend dependencies (fast)
+        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install ruff pytest
           # Install full backend requirements to avoid missing optional deps (slowapi, email-validator, etc.)
           pip install -r backend/requirements.txt
+          if (Test-Path "backend/requirements-dev.txt") {
+            pip install -r backend/requirements-dev.txt
+          }
 
       - name: Install frontend deps
         run: |
@@ -52,10 +56,11 @@ jobs:
         shell: pwsh
         env:
           AUTH_MODE: strict
+          DATABASE_URL: "sqlite:///:memory:"
         run: |
           Write-Host "Running backend fast tests and writing pytest-results.xml"
           Push-Location backend
-          python -m pytest tests/ -m "not slow" -q --tb=short --junitxml=pytest-results.xml
+          python -m pytest tests/ -x -m "not slow" -q --tb=short --junitxml=pytest-results.xml
           Pop-Location
 
       - name: Run frontend fast tests (vitest) and produce JUnit
@@ -64,7 +69,7 @@ jobs:
           Write-Host "Running frontend fast tests and writing vitest-results.xml"
           Push-Location frontend
           # Use npx to run vitest and output JUnit to a file
-          npx -y vitest run --reporter=junit --outputFile=vitest-results.xml
+          npx -y vitest run --reporter=junit --outputFile=vitest-results.xml --bail 1
           Pop-Location
 
       - name: Prepare installer Greek text assets
@@ -90,6 +95,9 @@ jobs:
           $outFile = "commit_ready_output_${{ matrix.os }}.txt"
           pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -Verbose *>&1 | Tee-Object -FilePath $outFile
           Write-Host "Wrote $outFile"
+          if ($LASTEXITCODE -ne 0) {
+            throw "COMMIT_READY.ps1 failed with exit code $LASTEXITCODE"
+          }
 
       - name: Upload smoke logs + JUnit test reports
         uses: actions/upload-artifact@v4
