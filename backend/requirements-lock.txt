@@ -55,7 +55,7 @@ faiss-cpu==1.12.0
 Faker==38.2.0
 fastapi==0.121.2
 fastapi-csrf-protect==1.0.7
-filelock==3.20.0
+filelock==3.20.1
 Flask==3.1.2
 flask-cors==6.0.1
 Flask-Login==0.6.3
