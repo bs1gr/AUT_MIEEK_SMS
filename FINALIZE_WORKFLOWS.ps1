@@ -96,7 +96,8 @@ Set-Content -Path $operatorWorkflowPath -Value $operatorWorkflowContent -Encodin
 $filesToRemove = @(
     ".github/workflows/ci-smart-skip-example.yml",
     "scripts/internal/FINALIZE_WORKFLOWS.ps1",
-    "scripts/operator/test_verify.txt"
+    "scripts/operator/test_verify.txt",
+    "scripts/workflows/FINALIZE_WORKFLOWS.ps1"
 )
 foreach ($file in $filesToRemove) {
     if (Test-Path $file) {
