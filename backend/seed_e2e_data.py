@@ -102,6 +102,7 @@ def seed_e2e_data():
 
         db.commit()
         print("✓ E2E test data seeded successfully")
+        # nosec B101 - CWE-312 pragma: E2E test data only, not production
         print("  - Created test user: test@example.com (password: password123)")
         print(f"  - Created {len(students_data)} students")
         print(f"  - Created {len(courses_data)} courses")
