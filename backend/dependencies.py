@@ -34,9 +34,7 @@ def setup_logging(log_file: str = "logs/sms.log") -> logging.Logger:
     logger.setLevel(logging.DEBUG)
 
     # Create formatters
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s")
 
     # Console handler
     console_handler = logging.StreamHandler()
@@ -120,7 +118,7 @@ def db_session_context(SessionLocal) -> Generator[Session, None, None]:
     except Exception as e:
         if db:
             db.rollback()
-        logger.error(f"Database error: {e!s}", exc_info=True)
+        logger.error("Database error: %s", e, exc_info=True)
         raise DatabaseError(f"Database operation failed: {e!s}")
     finally:
         if db:
@@ -145,10 +143,10 @@ def with_db_session(SessionLocal):
                 with db_session_context(SessionLocal) as db:
                     return func(db, *args, **kwargs)
             except StudentManagementException as e:
-                logger.warning(f"Validation error: {e!s}")
+                logger.warning("Validation error: %s", e)
                 raise HTTPException(status_code=400, detail=str(e))
             except Exception as e:
-                logger.error(f"Unexpected error: {e!s}", exc_info=True)
+                logger.error("Unexpected error: %s", e, exc_info=True)
                 raise HTTPException(status_code=500, detail="Internal server error")
 
         return wrapper
@@ -179,13 +177,11 @@ class ValidationMixin(BaseModel):
         try:
             return cls(**data)
         except ValidationError as e:
-            logger.error(f"Validation error: {e}")
+            logger.error("Validation error: %s", e)
             raise
 
 
-def validate_string(
-    value: str, field_name: str, min_length: int = 1, max_length: int = 255
-) -> str:
+def validate_string(value: str, field_name: str, min_length: int = 1, max_length: int = 255) -> str:
     """
     Validate string field.
 
@@ -298,9 +294,7 @@ class ErrorResponse(BaseModel):
     detail: Optional[str] = None
 
 
-def create_error_response(
-    status_code: int, message: str, detail: Optional[str] = None
-) -> ErrorResponse:
+def create_error_response(status_code: int, message: str, detail: Optional[str] = None) -> ErrorResponse:
     """
     Create standardized error response.
 
@@ -352,9 +346,9 @@ def log_api_call(method: str, endpoint: str, status_code: Optional[int] = None):
         status_code: Response status code
     """
     if status_code:
-        logger.info(f"{method} {endpoint} - {status_code}")
+        logger.info("API call", extra={"method": method, "endpoint": endpoint, "status_code": status_code})
     else:
-        logger.info(f"{method} {endpoint}")
+        logger.info("API call", extra={"method": method, "endpoint": endpoint})
 
 
 def log_database_operation(operation: str, model: str, record_id: Optional[int] = None):
@@ -367,9 +361,9 @@ def log_database_operation(operation: str, model: str, record_id: Optional[int] 
         record_id: Record ID (if applicable)
     """
     if record_id:
-        logger.debug(f"{operation} {model} (ID: {record_id})")
+        logger.debug("Database operation", extra={"operation": operation, "model": model, "record_id": record_id})
     else:
-        logger.debug(f"{operation} {model}")
+        logger.debug("Database operation", extra={"operation": operation, "model": model})
 
 
 if __name__ == "__main__":

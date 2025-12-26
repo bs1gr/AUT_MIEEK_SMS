@@ -106,7 +106,7 @@ def create_app() -> FastAPI:
 
         setup_metrics(app, VERSION)
     except Exception as e:
-        logger.warning(f"Prometheus metrics setup failed: {e}")
+        logger.warning("Prometheus metrics setup failed: %s", e)
 
     # Register root endpoints and SPA serving
     _register_root_endpoints(app, VERSION)
@@ -114,7 +114,7 @@ def create_app() -> FastAPI:
     # Register metrics endpoint if enabled (exposes /metrics)
     _register_metrics_endpoint(app)
 
-    logger.info(f"FastAPI application created successfully (version={VERSION})")
+    logger.info("FastAPI application created successfully (version=%s)", VERSION)
 
     return app
 
@@ -198,7 +198,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
 
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
-            logger.warning(f"Failed to log frontend error: {e}")
+            logger.warning("Failed to log frontend error: %s", e)
             return {"status": "failed", "error": str(e)}
 
     @app.post("/api/logs/frontend-warning")
@@ -219,7 +219,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
 
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
-            logger.warning(f"Failed to log frontend warning: {e}")
+            logger.warning("Failed to log frontend warning: %s", e)
             return {"status": "failed", "error": str(e)}
 
 
@@ -389,7 +389,7 @@ if ('serviceWorker' in navigator) {
 
             logger.info("SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.")
         except Exception as e:
-            logger.warning(f"Failed to enable SERVE_FRONTEND SPA serving: {e}")
+            logger.warning("Failed to enable SERVE_FRONTEND SPA serving: %s", e)
 
 
 def _register_metrics_endpoint(app: FastAPI):
@@ -409,4 +409,4 @@ def _register_metrics_endpoint(app: FastAPI):
 
             logger.info("✅ /metrics endpoint registered")
         except Exception as e:
-            logger.warning(f"Failed to register /metrics endpoint: {e}")
+            logger.warning("Failed to register /metrics endpoint: %s", e)

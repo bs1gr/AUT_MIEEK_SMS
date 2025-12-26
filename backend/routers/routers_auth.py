@@ -415,7 +415,7 @@ async def login(
     db: Session = Depends(get_db),
 ):
     try:
-        logger.info(f"Login attempt for email: {payload.email}")
+        logger.info("Login attempt")
         normalized_email = payload.email.lower().strip()
         client_identifier = _get_client_identifier(request)
         throttle_keys: list[str | None] = [f"email:{normalized_email}" if normalized_email else None]
@@ -433,18 +433,15 @@ async def login(
         try:
             password_valid = bool(user and verify_password(payload.password, hashed_pw))
         except Exception as exc:
-            logger.error(
-                f"Password verification error for {normalized_email}: {exc}",
-                exc_info=True,
-            )
+            logger.exception("Password verification error")
             raise internal_server_error("Password verification failed", request) from exc
         if not password_valid:
-            logger.info(f"Invalid login for {normalized_email} (user exists: {bool(user)})")
+            logger.info("Invalid login attempt", extra={"user_exists": bool(user)})
             user_lockout_until = _register_user_failed_attempt(user, db) if user else None
             throttle_lockout_until = _register_throttle_failure(throttle_keys)
             lockout_until = user_lockout_until or throttle_lockout_until
             if lockout_until:
-                logger.warning(f"Lockout triggered for {normalized_email} until {lockout_until}")
+                logger.warning("Account lockout triggered")
                 raise _build_lockout_exception(request, lockout_until)
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -455,7 +452,7 @@ async def login(
 
         _reset_user_login_state(user, db)
         _reset_throttle_entries(throttle_keys)
-        logger.info(f"Login successful for {normalized_email}")
+        logger.info("Login successful", extra={"user_id": user.id})
 
         # Auto-rehash password if using deprecated scheme (bcrypt -> pbkdf2_sha256)
         try:
@@ -463,14 +460,11 @@ async def login(
                 user.hashed_password = get_password_hash(payload.password)
                 db.add(user)
                 db.commit()
-                logger.info(f"Auto-rehashed password for user {normalized_email} from deprecated scheme")
-        except Exception as rehash_error:
+                logger.info("Password auto-rehashed from deprecated scheme")
+        except Exception:
             # Non-critical: log and continue with login even if rehash fails
             db.rollback()
-            logger.warning(
-                f"Failed to auto-rehash password for {normalized_email}: {rehash_error}",
-                exc_info=True,
-            )
+            logger.exception("Failed to auto-rehash password")
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
@@ -495,17 +489,17 @@ async def login(
                     samesite="lax",
                     max_age=max_age_val,
                 )
-        except Exception as cookie_exc:
-            logger.warning(f"Failed to set refresh token cookie: {cookie_exc}", exc_info=True)
+        except Exception:
+            logger.exception("Failed to set refresh token cookie")
 
         issue_csrf_cookie(response, include_header=True)
         # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
         return Token(access_token=access_token)
-    except HTTPException as exc:
-        logger.error(f"HTTPException during login: {exc}", exc_info=True)
+    except HTTPException:
+        logger.exception("HTTPException during login")
         raise
     except Exception as exc:
-        logger.error(f"Unhandled exception during login: {exc}", exc_info=True)
+        logger.exception("Unhandled exception during login")
         raise internal_server_error("Login failed", request) from exc
 
 
@@ -712,9 +706,11 @@ async def logout(
         # Clear cookies regardless of user resolution
         response.delete_cookie("refresh_token", path="/", samesite="lax")
         clear_csrf_cookie(response)
+        if user:
+            logger.info("User logged out successfully", extra={"user_id": user.id})
         return {"ok": True, "message": "Logged out successfully"}
-    except Exception as exc:
-        logger.error(f"Logout error: {exc}")
+    except Exception:
+        logger.exception("Logout error")
         db.rollback()
         response.delete_cookie("refresh_token", path="/", samesite="lax")
         clear_csrf_cookie(response)
@@ -945,7 +941,7 @@ async def admin_unlock_account(
         user.last_failed_login_at = None
         db.add(user)
         db.commit()
-        logger.info(f"Admin {getattr(current_admin, 'email', 'unknown')} unlocked account for user {user.email}")
+        logger.info("Account unlocked by admin", extra={"admin_id": current_admin.id, "user_id": user.id})
         return {
             "status": "unlocked",
             "user_id": user.id,

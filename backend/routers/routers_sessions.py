@@ -386,7 +386,8 @@ async def import_session(
             )
 
         # PRE-VALIDATION: Check entire import package before touching database
-        logger.info(f"Validating import package for semester: {import_data.get('metadata', {}).get('semester')}")
+        semester = import_data.get("metadata", {}).get("semester")
+        logger.info("Validating import package", extra={"semester": semester})
         is_valid, validation_errors = validate_import_data(import_data)
 
         if not is_valid:
@@ -457,9 +458,9 @@ async def import_session(
                     import shutil
 
                     shutil.copy2(db_path, backup_path)
-                    logger.info(f"Database backed up to: {backup_path}")
+                    logger.info("Database backed up", extra={"backup_file": backup_filename})
         except Exception as backup_error:
-            logger.warning(f"Failed to create backup (continuing anyway): {backup_error}")
+            logger.warning("Failed to create backup", extra={"error_type": type(backup_error).__name__})
 
         # Import data
         from backend.services.import_service import ImportService
@@ -487,7 +488,7 @@ async def import_session(
         critical_errors = []
 
         # Import courses first (dependencies)
-        logger.info(f"Importing {len(import_data.get('courses', []))} courses...")
+        logger.info("Importing courses", extra={"course_count": len(import_data.get("courses", []))})
         for idx, course_data in enumerate(import_data.get("courses", [])):
             try:
                 # Double-check validation (should already be validated)
@@ -518,10 +519,10 @@ async def import_session(
                     critical_errors.append(error_msg)
                 elif was_created:
                     results["summary"]["courses"]["created"] += 1
-                    logger.debug(f"Created course: {course_code}")
+                    logger.debug("Created course", extra={"course_code": course_code})
                 else:
                     results["summary"]["courses"]["updated"] += 1
-                    logger.debug(f"Updated course: {course_code}")
+                    logger.debug("Updated course", extra={"course_code": course_code})
             except Exception as e:
                 error_msg = f"Course {course_data.get('course_code', 'unknown')}: {str(e)}"
                 results["summary"]["courses"]["errors"].append(error_msg)
@@ -529,7 +530,7 @@ async def import_session(
                 logger.error(error_msg, exc_info=True)
 
         # Import students
-        logger.info(f"Importing {len(import_data.get('students', []))} students...")
+        logger.info("Importing students", extra={"student_count": len(import_data.get("students", []))})
         for idx, student_data in enumerate(import_data.get("students", [])):
             try:
                 # Double-check validation
@@ -560,10 +561,10 @@ async def import_session(
                     critical_errors.append(error_msg)
                 elif was_created:
                     results["summary"]["students"]["created"] += 1
-                    logger.debug(f"Created student: {student_id}")
+                    logger.debug("Created student", extra={"student_id": student_id})
                 else:
                     results["summary"]["students"]["updated"] += 1
-                    logger.debug(f"Updated student: {student_id}")
+                    logger.debug("Updated student", extra={"student_id": student_id})
             except Exception as e:
                 error_msg = f"Student {student_data.get('student_id', 'unknown')}: {str(e)}"
                 results["summary"]["students"]["errors"].append(error_msg)
@@ -579,7 +580,7 @@ async def import_session(
         try:
             db.flush()
         except Exception as flush_exc:
-            logger.warning(f"Flush after courses/students import failed (continuing): {flush_exc}")
+            logger.warning("Flush after courses/students import failed", extra={"error_type": type(flush_exc).__name__})
 
         # Import enrollments, grades, attendance, etc.
         _import_enrollments(db, import_data.get("enrollments", []), merge_strategy, results)
@@ -591,7 +592,7 @@ async def import_session(
         # Check for critical errors before commit
         if critical_errors:
             db.rollback()
-            logger.error(f"Session import ABORTED due to {len(critical_errors)} critical errors")
+            logger.error("Session import aborted", extra={"critical_error_count": len(critical_errors)})
             raise http_error(
                 400,
                 ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -624,7 +625,7 @@ async def import_session(
 
         except Exception as exc:
             db.rollback()
-            logger.error(f"Database commit failed, changes rolled back: {exc}", exc_info=True)
+            logger.exception("Database commit failed")
             raise http_error(
                 500,
                 ErrorCode.IMPORT_PROCESSING_FAILED,
@@ -712,7 +713,7 @@ async def rollback_import(
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             pre_rollback_backup = backup_dir / f"pre_rollback_backup_{timestamp}.db"
             shutil.copy2(db_path, pre_rollback_backup)
-            logger.info(f"Created pre-rollback backup: {pre_rollback_backup}")
+            logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
         # Perform rollback: Replace current DB with backup
         shutil.copy2(backup_path, db_path)
@@ -735,7 +736,7 @@ async def rollback_import(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Rollback failed: {exc}", exc_info=True)
+        logger.exception("Rollback failed")
         raise http_error(
             500, ErrorCode.IMPORT_PROCESSING_FAILED, "Rollback operation failed", request, context={"error": str(exc)}
         )

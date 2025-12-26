@@ -117,11 +117,7 @@ async def require_control_admin(request: Request) -> None:
                 "error": "control_api_disabled",
                 "message": "Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set.",
                 "hint": "Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1 and restart the backend service.",
-                "env": {
-                    "ENABLE_CONTROL_API": os.environ.get(
-                        "ENABLE_CONTROL_API", "<unset>"
-                    )
-                },
+                "env": {"ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")},
             },
         )
 
@@ -157,9 +153,7 @@ async def require_control_admin(request: Request) -> None:
 
     # If remote shutdown is explicitly allowed, still require a token (which is absent)
     if _allow_remote():
-        logger.warning(
-            "Remote shutdown allowed but no ADMIN_SHUTDOWN_TOKEN configured - rejecting"
-        )
+        logger.warning("Remote shutdown allowed but no ADMIN_SHUTDOWN_TOKEN configured - rejecting")
         raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden")
 
     logger.warning(
@@ -187,7 +181,7 @@ def create_control_dependency(auth_check: Callable[[Request], bool] | None = Non
                     )
                     return
             except Exception as e:
-                logger.debug(f"External auth_check raised exception: {e}")
+                logger.debug("External auth_check raised exception: %s", e)
         # Fallback to builtin logic
         return await require_control_admin(request)
 

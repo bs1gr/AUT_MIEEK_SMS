@@ -79,12 +79,12 @@ def create_attendance(
         service = AttendanceService(db, request)
         # Reuse service duplicate protection; if record exists, update path can be used
         created = service.create_attendance(attendance_data)
-        logger.info(f"Created attendance record: {created.id}")
+        logger.info("Created attendance record", extra={"record_id": created.id})
         return created
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error creating attendance: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error creating attendance")
         raise internal_server_error(request=request)
 
 
@@ -122,13 +122,19 @@ def get_all_attendance(
             status=status,
         )
         logger.info(
-            f"Retrieved {len(result.items)} attendance records (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
+            "Retrieved attendance records",
+            extra={
+                "count": len(result.items),
+                "skip": pagination.skip,
+                "limit": pagination.limit,
+                "total": result.total,
+            },
         )
         return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving attendance: {e!s}", exc_info=True)
+        logger.exception("Error retrieving attendance")
         raise internal_server_error(request=request)
 
 
@@ -160,7 +166,7 @@ def get_student_attendance(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving student attendance: {e!s}", exc_info=True)
+        logger.exception("Error retrieving student attendance")
         raise internal_server_error(request=request)
 
 
@@ -188,7 +194,7 @@ def get_course_attendance(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving course attendance: {e!s}", exc_info=True)
+        logger.exception("Error retrieving course attendance")
         raise internal_server_error(request=request)
 
 
@@ -220,8 +226,8 @@ def get_attendance_by_date_and_course(
         return records
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error retrieving attendance by date/course: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error retrieving attendance by date/course")
         raise internal_server_error(request=request)
 
 
@@ -239,8 +245,8 @@ def get_attendance(request: Request, attendance_id: int, db: Session = Depends(g
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error retrieving attendance: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error retrieving attendance")
         raise internal_server_error(request=request)
 
 
@@ -260,8 +266,8 @@ def update_attendance(
         return updated
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating attendance: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error updating attendance")
         raise internal_server_error(request=request)
 
 
@@ -277,12 +283,12 @@ def delete_attendance(
     try:
         service = AttendanceService(db, request)
         service.delete_attendance(attendance_id)
-        logger.info(f"Deleted attendance: {attendance_id}")
+        logger.info("Deleted attendance", extra={"attendance_id": attendance_id})
         return None
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error deleting attendance: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error deleting attendance")
         raise internal_server_error(request=request)
 
 
@@ -325,8 +331,8 @@ def get_attendance_stats(request: Request, student_id: int, course_id: int, db: 
             "attendance_rate": round((present / total * 100) if total > 0 else 0, 2),
         }
 
-    except Exception as e:
-        logger.error(f"Error calculating attendance stats: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error calculating attendance stats")
         raise internal_server_error(request=request)
 
 
@@ -383,12 +389,14 @@ def bulk_create_attendance(
 
             db.flush()
 
-        logger.info(f"Bulk created {len(created)} attendance records, {len(errors)} errors")
+        logger.info(
+            "Bulk created attendance records", extra={"created_count": len(created), "error_count": len(errors)}
+        )
 
         return {"created": len(created), "failed": len(errors), "errors": errors}
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error in bulk create: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error in bulk create")
         raise internal_server_error(request=request)

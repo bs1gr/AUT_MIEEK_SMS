@@ -140,7 +140,7 @@ async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
                 request,
             )
 
-    logger.info(f"File validation passed: {file.filename} ({content_size} bytes)")
+    logger.info("File validation passed", extra={"filename": file.filename, "size_bytes": content_size})
     return content
 
 
@@ -480,7 +480,7 @@ def import_courses(
         created = 0
         updated = 0
         errors: List[str] = []
-        logger.info(f"Importing courses from: {COURSES_DIR}")
+        logger.info("Importing courses from directory", extra={"directory": COURSES_DIR})
 
         # --- Helper: normalize/translate evaluation rule categories ---
         def _strip_accents(s: str) -> str:
@@ -752,7 +752,7 @@ def import_courses(
                     else:
                         updated += 1
             except Exception as e:
-                logger.error(f"Failed to import course from {name}: {e}")
+                logger.error("Failed to import course", extra={"name": name, "error_type": type(e).__name__})
                 errors.append(f"{name}: {e}")
         try:
             db.commit()
@@ -932,7 +932,7 @@ async def import_from_upload(
 
                 parsed = json.loads(json_text)
                 data_batches.append(parsed if isinstance(parsed, list) else [parsed])
-                logger.info(f"Raw JSON text validated and parsed ({text_size} bytes)")
+                logger.info("Raw JSON text validated and parsed", extra={"size_bytes": text_size})
             except json.JSONDecodeError as exc:
                 # Log the failed import attempt with request context
                 audit.log_from_request(
@@ -1641,7 +1641,7 @@ def import_students(
                     else:
                         updated += 1
             except Exception as e:
-                logger.error(f"Failed to import student from {name}: {e}")
+                logger.error("Failed to import student", extra={"name": name, "error_type": type(e).__name__})
                 errors.append(f"{name}: {e}")
         try:
             db.commit()

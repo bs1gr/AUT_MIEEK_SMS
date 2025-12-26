@@ -88,7 +88,9 @@ async def reset_profiler():
 
     profiler.reset()
 
-    logger.info(f"Query profiler reset: {count_before} queries, {total_time_before:.2f}s cleared")
+    logger.info(
+        "Query profiler reset", extra={"query_count": count_before, "total_time_sec": round(total_time_before, 2)}
+    )
 
     return {
         "status": "ok",

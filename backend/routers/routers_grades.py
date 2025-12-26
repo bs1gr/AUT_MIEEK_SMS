@@ -102,8 +102,8 @@ def create_grade(
         return created
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error creating grade: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error creating grade")
         raise internal_server_error(request=request)
 
 
@@ -139,13 +139,19 @@ def get_all_grades(
             use_submitted=use_submitted,
         )
         logger.info(
-            f"Retrieved {len(result.items)} grades (skip={pagination.skip}, limit={pagination.limit}, total={result.total})"
+            "Retrieved grades",
+            extra={
+                "count": len(result.items),
+                "skip": pagination.skip,
+                "limit": pagination.limit,
+                "total": result.total,
+            },
         )
         return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching all grades: {e}")
+        logger.exception("Error fetching all grades")
         raise internal_server_error(request=request)
 
 
@@ -172,7 +178,7 @@ def get_student_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving student grades: {e!s}", exc_info=True)
+        logger.exception("Error retrieving student grades")
         raise internal_server_error(request=request)
 
 
@@ -196,7 +202,7 @@ def get_course_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving course grades: {e!s}", exc_info=True)
+        logger.exception("Error retrieving course grades")
         raise internal_server_error(request=request)
 
 
@@ -213,8 +219,8 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
         return grade
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching grade {grade_id}: {e}")
+    except Exception:
+        logger.exception("Error fetching grade")
         raise internal_server_error(request=request)
 
 
@@ -238,8 +244,8 @@ def update_grade(
         return updated
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating grade: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error updating grade")
         raise internal_server_error(request=request)
 
 
@@ -255,12 +261,12 @@ def delete_grade(
     try:
         service = GradeService(db, request)
         service.delete_grade(grade_id)
-        logger.info(f"Deleted grade: {grade_id}")
+        logger.info("Deleted grade", extra={"grade_id": grade_id})
         return None
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error deleting grade: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error deleting grade")
         raise internal_server_error(request=request)
 
 
@@ -307,6 +313,6 @@ def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Se
             },
         }
 
-    except Exception as e:
-        logger.error(f"Error analyzing grades: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception("Error analyzing grades")
         raise internal_server_error(request=request)
