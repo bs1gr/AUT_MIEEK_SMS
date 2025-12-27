@@ -1,9 +1,8 @@
 name: Commit Ready Quick
 
 on:
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: commit-ready-${{ github.ref }}

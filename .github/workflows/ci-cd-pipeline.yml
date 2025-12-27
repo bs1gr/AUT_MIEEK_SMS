@@ -26,6 +26,10 @@ env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}  # Use repository name for image
 
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ============================================================================
   # PHASE 1: PRE-COMMIT VALIDATION
