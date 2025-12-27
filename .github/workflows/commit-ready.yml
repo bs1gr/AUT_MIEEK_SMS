@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: commit-ready-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   commit-ready:
     runs-on: ubuntu-latest
