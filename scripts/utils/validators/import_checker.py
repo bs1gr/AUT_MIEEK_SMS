@@ -304,6 +304,12 @@ class ImportValidator:
             "opentelemetry",
         }
 
+        # Mapping for imports where package name differs from import name
+        # e.g., "import jwt" comes from the "PyJWT" package
+        import_to_package = {
+            "jwt": "pyjwt",
+        }
+
         external = set()
         for imp in imports:
             lower_imp = imp.lower()
@@ -311,7 +317,9 @@ class ImportValidator:
             # Skip standard library, backend-local, and whitelisted
             if imp not in stdlib_modules and not imp.startswith("backend"):
                 if lower_imp not in whitelist and imp not in self.local_modules:
-                    external.add(imp)
+                    # Normalize: apply import_to_package mapping if exists
+                    normalized = import_to_package.get(lower_imp, lower_imp)
+                    external.add(normalized)
 
         return external
 

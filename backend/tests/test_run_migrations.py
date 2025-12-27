@@ -30,6 +30,7 @@ def reset_modules():
     # This prevents SECRET_KEY validation errors during teardown
     # We use os.environ directly because monkeypatch context has ended after yield
     import os
+
     os.environ["SMS_ENV"] = "test"
     os.environ["SMS_EXECUTION_MODE"] = "native"
     # Disable auth to prevent special PYTEST_CURRENT_TEST validation (config.py:481-487)
