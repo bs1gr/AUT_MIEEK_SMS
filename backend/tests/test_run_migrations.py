@@ -32,14 +32,15 @@ def reset_modules():
     import os
     os.environ["SMS_ENV"] = "test"
     os.environ["SMS_EXECUTION_MODE"] = "native"
+    # Disable auth to prevent special PYTEST_CURRENT_TEST validation (config.py:481-487)
+    os.environ["AUTH_ENABLED"] = "0"
     os.environ["SECRET_KEY_STRICT_ENFORCEMENT"] = "0"
-    os.environ.setdefault("PYTEST_CURRENT_TEST", "teardown")
     try:
         _ensure_default_modules()
     finally:
         # Clean up env vars we set (optional, but cleaner)
-        for key in ["SMS_ENV", "SMS_EXECUTION_MODE", "SECRET_KEY_STRICT_ENFORCEMENT"]:
-            if os.environ.get(key) is not None:
+        for key in ["SMS_ENV", "SMS_EXECUTION_MODE", "AUTH_ENABLED", "SECRET_KEY_STRICT_ENFORCEMENT"]:
+            if key in os.environ:
                 del os.environ[key]
 
 
