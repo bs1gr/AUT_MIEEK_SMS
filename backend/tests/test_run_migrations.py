@@ -23,15 +23,24 @@ def _ensure_default_modules():
 
 
 @pytest.fixture(autouse=True)
-def reset_modules(monkeypatch):
+def reset_modules():
     """Reset modules after each test, with proper environment setup to avoid validation errors."""
     yield
-    # Set test environment variables before reloading modules
+    # Set test environment variables directly in os.environ before reloading modules
     # This prevents SECRET_KEY validation errors during teardown
-    monkeypatch.setenv("SMS_ENV", "test")
-    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
-    monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
-    _ensure_default_modules()
+    # We use os.environ directly because monkeypatch context has ended after yield
+    import os
+    os.environ["SMS_ENV"] = "test"
+    os.environ["SMS_EXECUTION_MODE"] = "native"
+    os.environ["SECRET_KEY_STRICT_ENFORCEMENT"] = "0"
+    os.environ.setdefault("PYTEST_CURRENT_TEST", "teardown")
+    try:
+        _ensure_default_modules()
+    finally:
+        # Clean up env vars we set (optional, but cleaner)
+        for key in ["SMS_ENV", "SMS_EXECUTION_MODE", "SECRET_KEY_STRICT_ENFORCEMENT"]:
+            if os.environ.get(key) is not None:
+                del os.environ[key]
 
 
 def test_run_migrations_creates_tables(monkeypatch):
