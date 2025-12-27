@@ -32,6 +32,7 @@ def test_run_migrations_creates_tables(monkeypatch):
     # Ensure test environment is properly detected before reloading modules
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_creates_tables")
     monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     project_root = Path(__file__).resolve().parents[2]
@@ -58,6 +59,7 @@ def test_alembic_config_uses_application_settings(monkeypatch):
     # Ensure test environment before module reload
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_alembic_config_uses_application_settings")
     monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -71,6 +73,7 @@ def test_run_migrations_invokes_upgrade(monkeypatch):
     # Ensure test environment before module reload
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_invokes_upgrade")
     monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -90,6 +93,7 @@ def test_run_migrations_handles_failure(monkeypatch):
     # Ensure test environment before module reload
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_handles_failure")
     monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -107,6 +111,7 @@ def test_check_migration_status_returns_string(monkeypatch):
     # Ensure test environment before module reload
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_check_migration_status_returns_string")
     monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
