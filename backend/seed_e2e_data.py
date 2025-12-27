@@ -1,5 +1,10 @@
 import sys
 from pathlib import Path
+
+# Ensure we can import backend modules FIRST
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.models import User, Student, Course, Base
@@ -12,10 +17,6 @@ needed for end-to-end testing.
 
 Run from project root: python backend/seed_e2e_data.py
 """
-
-# Ensure we can import backend modules
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
 
 
 def seed_e2e_data():
