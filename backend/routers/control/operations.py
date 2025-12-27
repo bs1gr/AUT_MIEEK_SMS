@@ -599,22 +599,17 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request, context={})
     dest_path_candidate = Path(raw_dest)
-    if dest_path_candidate.is_absolute() or ".." in dest_path_candidate.parts:
+    # Only allow simple filenames (no directories, no absolute paths)
+    if dest_path_candidate.is_absolute() or ".." in dest_path_candidate.parts or dest_path_candidate.name != raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
-    # Sanitize: prevent path traversal and restrict to allowed base directory
+
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
-    dest_candidate = (allowed_base / raw_dest).resolve()
-    # Stricter path check: ensure resolved path is relative to allowed_base
+    allowed_base.mkdir(parents=True, exist_ok=True)
+    dest_path = (allowed_base / dest_path_candidate.name).resolve()
     try:
-        dest_candidate.relative_to(allowed_base)
+        dest_path.relative_to(allowed_base)
     except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
-    if dest_candidate.exists() and dest_candidate.is_dir():
-        dest_path = dest_candidate / source_path.name
-    elif dest_candidate.suffix and len(dest_candidate.suffix) > 0:
-        dest_path = dest_candidate
-    else:
-        dest_path = dest_candidate / source_path.name
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     import shutil as _sh
 
