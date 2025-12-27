@@ -11,9 +11,7 @@ from alembic.config import Config
 
 
 def main() -> int:
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     logger = logging.getLogger("migrate_job")
 
     # Determine alembic.ini location relative to repository

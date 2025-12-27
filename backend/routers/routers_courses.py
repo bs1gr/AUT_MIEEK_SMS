@@ -17,13 +17,9 @@ from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 
 logger = logging.getLogger(__name__)
-router = APIRouter(
-    prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}}
-)
+router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
 
-_WEIGHT_PATTERN = re.compile(
-    r"^(?P<category>.+?)[\s:,-]+(?P<weight>\d+(?:[\.,]\d+)?)%?$"
-)
+_WEIGHT_PATTERN = re.compile(r"^(?P<category>.+?)[\s:,-]+(?P<weight>\d+(?:[\.,]\d+)?)%?$")
 
 
 def _coerce_weight(value: Any) -> Optional[float]:
@@ -147,9 +143,7 @@ def _normalize_evaluation_rules(er: Any) -> Optional[List[Dict[str, Any]]]:
                     extracted = _extract_weight_from_text(item)
                     if extracted:
                         category, weight = extracted
-                        parsed_strings.append(
-                            {"category": category, "weight": float(weight)}
-                        )
+                        parsed_strings.append({"category": category, "weight": float(weight)})
             return parsed_strings
     except Exception:
         return []
@@ -168,9 +162,7 @@ def create_course(
     try:
         (Course,) = import_names("models", "Course")
 
-        existing = (
-            db.query(Course).filter(Course.course_code == course.course_code).first()
-        )
+        existing = db.query(Course).filter(Course.course_code == course.course_code).first()
         if existing:
             if existing.deleted_at is None:
                 raise http_error(
@@ -188,9 +180,7 @@ def create_course(
             )
 
         payload = course.model_dump()
-        payload["evaluation_rules"] = _normalize_evaluation_rules(
-            payload.get("evaluation_rules")
-        )
+        payload["evaluation_rules"] = _normalize_evaluation_rules(payload.get("evaluation_rules"))
 
         with transaction(db):
             db_course = Course(**payload)
@@ -198,9 +188,7 @@ def create_course(
             db.flush()
             db.refresh(db_course)
 
-        db_course.evaluation_rules = _normalize_evaluation_rules(
-            db_course.evaluation_rules
-        )
+        db_course.evaluation_rules = _normalize_evaluation_rules(db_course.evaluation_rules)
         return db_course
 
     except HTTPException:
@@ -230,9 +218,7 @@ def get_all_courses(
 
         # Normalize evaluation rules for all courses
         for course in result.items:
-            course.evaluation_rules = _normalize_evaluation_rules(
-                course.evaluation_rules
-            )
+            course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
 
         logger.info(
             f"Retrieved {len(result.items)} courses "
@@ -284,11 +270,7 @@ def update_course(
         if "evaluation_rules" in update_data:
             normalized = _normalize_evaluation_rules(update_data["evaluation_rules"])
             if normalized:
-                total_weight = sum(
-                    rule.get("weight", 0.0)
-                    for rule in normalized
-                    if isinstance(rule, dict)
-                )
+                total_weight = sum(rule.get("weight", 0.0) for rule in normalized if isinstance(rule, dict))
                 if abs(total_weight - 100.0) > 0.01:
                     raise http_error(
                         400,
@@ -339,9 +321,7 @@ def delete_course(
 
 @router.get("/{course_id}/evaluation-rules")
 @limiter.limit(RATE_LIMIT_READ)
-def get_evaluation_rules(
-    request: Request, course_id: int, db: Session = Depends(get_db)
-):
+def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db)):
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
@@ -353,9 +333,7 @@ def get_evaluation_rules(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.exception(
-            "Error loading evaluation rules for course %s: %s", course_id, exc
-        )
+        logger.exception("Error loading evaluation rules for course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
 
 
@@ -374,9 +352,7 @@ def update_evaluation_rules(
         normalized = _normalize_evaluation_rules(rules_data.get("evaluation_rules"))
 
         if normalized:
-            total_weight = sum(
-                rule.get("weight", 0.0) for rule in normalized if isinstance(rule, dict)
-            )
+            total_weight = sum(rule.get("weight", 0.0) for rule in normalized if isinstance(rule, dict))
             if abs(total_weight - 100.0) > 0.01:
                 raise http_error(
                     400,
@@ -397,7 +373,5 @@ def update_evaluation_rules(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.exception(
-            "Error updating evaluation rules for course %s: %s", course_id, exc
-        )
+        logger.exception("Error updating evaluation rules for course %s: %s", course_id, exc)
         raise internal_server_error(request=request)

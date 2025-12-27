@@ -11,9 +11,7 @@ class BulkAssignRolesRequest(BaseModel):
 
 
 class BulkGrantPermissionsRequest(BaseModel):
-    role_names: List[str] = Field(
-        ..., description="List of role names to grant permission to"
-    )
+    role_names: List[str] = Field(..., description="List of role names to grant permission to")
     permission_name: str = Field(..., description="Permission name to grant")
 
 

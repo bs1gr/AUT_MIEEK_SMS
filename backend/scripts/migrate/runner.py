@@ -72,9 +72,7 @@ def run_migrations(verbose: bool = False) -> bool:
 
             def _find_repo_root(start: Path) -> Path:
                 for p in (start, *start.parents):
-                    if (p / ".git").exists() or (
-                        (p / "backend").exists() and (p / "backend").is_dir()
-                    ):
+                    if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
                         return p
                 fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
                 return fallback
@@ -90,9 +88,9 @@ def run_migrations(verbose: bool = False) -> bool:
             existing = False
             for h in root_logger.handlers:
                 try:
-                    if isinstance(h, logging.FileHandler) and getattr(
-                        h, "baseFilename", None
-                    ) == str((logs_dir / "migrations.log")):
+                    if isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == str(
+                        (logs_dir / "migrations.log")
+                    ):
                         existing = True
                         break
                 except Exception:
@@ -156,9 +154,7 @@ def run_migrations(verbose: bool = False) -> bool:
                             f"WARNING: Migration raised benign error on fallback: {e2}",
                             flush=True,
                         )
-                    print(
-                        f"[run_migrations] benign error on fallback: {e2}", flush=True
-                    )
+                    print(f"[run_migrations] benign error on fallback: {e2}", flush=True)
                     return True
                 logger.exception("Fallback upgrade to 'heads' also failed: %s", e2)
                 print(
@@ -215,9 +211,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run database migrations")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
-    parser.add_argument(
-        "--check", action="store_true", help="Check migration status only"
-    )
+    parser.add_argument("--check", action="store_true", help="Check migration status only")
     args = parser.parse_args()
 
     if args.check:

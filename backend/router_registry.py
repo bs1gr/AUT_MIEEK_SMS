@@ -41,11 +41,7 @@ def register_routers(app: FastAPI) -> None:
         auth_mod_name = (
             "backend.routers.routers_auth"
             if importlib.util.find_spec("backend.routers.routers_auth")
-            else (
-                "routers.routers_auth"
-                if importlib.util.find_spec("routers.routers_auth")
-                else None
-            )
+            else ("routers.routers_auth" if importlib.util.find_spec("routers.routers_auth") else None)
         )
         if auth_mod_name:
             auth_mod = importlib.import_module(auth_mod_name)
@@ -110,9 +106,7 @@ def register_routers(app: FastAPI) -> None:
     # live under /api/v1.
     try:
         control_mod = importlib.import_module("backend.routers.routers_control")
-        app.include_router(
-            getattr(control_mod, "router"), tags=["Control"]
-        )  # no extra prefix
+        app.include_router(getattr(control_mod, "router"), tags=["Control"])  # no extra prefix
         registered.append("Control")
     except Exception as e:
         errors.append(("backend.routers.routers_control", str(e)))

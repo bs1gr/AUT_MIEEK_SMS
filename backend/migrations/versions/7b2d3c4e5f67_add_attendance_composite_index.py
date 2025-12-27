@@ -70,20 +70,14 @@ def downgrade() -> None:
         # SQLite supports DROP INDEX IF EXISTS in modern versions; use raw
         # SQL via sa.text to avoid exceptions when the index is absent.
         try:
-            bind.execute(
-                sa.text("DROP INDEX IF EXISTS idx_attendance_student_course_date")
-            )
+            bind.execute(sa.text("DROP INDEX IF EXISTS idx_attendance_student_course_date"))
         except Exception:
             try:
-                op.drop_index(
-                    "idx_attendance_student_course_date", table_name="attendances"
-                )
+                op.drop_index("idx_attendance_student_course_date", table_name="attendances")
             except Exception:
                 pass
     else:
         try:
-            op.drop_index(
-                "idx_attendance_student_course_date", table_name="attendances"
-            )
+            op.drop_index("idx_attendance_student_course_date", table_name="attendances")
         except Exception:
             pass

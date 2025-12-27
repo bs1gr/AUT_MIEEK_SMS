@@ -11,6 +11,4 @@ if str(proj) not in sys.path:
 
 engine = models.init_db(settings.DATABASE_URL)
 models.Base.metadata.create_all(bind=engine)
-print(
-    "This helper script has been removed from the repository. It was used for local debugging only."
-)
+print("This helper script has been removed from the repository. It was used for local debugging only.")

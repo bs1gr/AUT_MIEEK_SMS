@@ -139,9 +139,7 @@ def test_create_and_retrieve_multiple_assignments(client):
         created_ids.append(resp.json()["id"])
 
     # Paginated list filtered by student and course should include all assignments
-    r_list = client.get(
-        f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20"
-    )
+    r_list = client.get(f"/api/v1/grades/?student_id={student['id']}&course_id={course['id']}&limit=20")
     assert r_list.status_code == 200
     body = r_list.json()
     assert body["total"] == len(assignments)
@@ -188,9 +186,7 @@ def test_create_grade_weight_exceeds_limit(client):
     ).json()
 
     # Attempt to create grade with weight > 3.0
-    payload = make_grade_payload(
-        1, student_id=student["id"], course_id=course["id"], weight=3.5
-    )
+    payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], weight=3.5)
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 422
     detail = r.json()["detail"]
@@ -260,9 +256,7 @@ def test_create_grade_category_normalized(client):
     ).json()
 
     # lowercase category should normalize
-    payload = make_grade_payload(
-        1, student_id=student["id"], course_id=course["id"], category="homework"
-    )
+    payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], category="homework")
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 201
     assert r.json()["category"] == "Homework"
@@ -597,36 +591,22 @@ def test_get_grade_analysis_with_and_without_data(client):
     ).json()
 
     # No grades yet -> message response
-    r_empty = client.get(
-        f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}"
-    )
+    r_empty = client.get(f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}")
     assert r_empty.status_code == 200
-    assert (
-        r_empty.json()["message"] == "No grades found for this student in this course"
-    )
+    assert r_empty.json()["message"] == "No grades found for this student in this course"
 
     # Create a few grades across distribution buckets
     payloads = [
-        make_grade_payload(
-            1, student_id=student["id"], course_id=course["id"], grade=95, max_grade=100
-        ),
-        make_grade_payload(
-            2, student_id=student["id"], course_id=course["id"], grade=82, max_grade=100
-        ),
-        make_grade_payload(
-            3, student_id=student["id"], course_id=course["id"], grade=68, max_grade=100
-        ),
-        make_grade_payload(
-            4, student_id=student["id"], course_id=course["id"], grade=55, max_grade=100
-        ),
+        make_grade_payload(1, student_id=student["id"], course_id=course["id"], grade=95, max_grade=100),
+        make_grade_payload(2, student_id=student["id"], course_id=course["id"], grade=82, max_grade=100),
+        make_grade_payload(3, student_id=student["id"], course_id=course["id"], grade=68, max_grade=100),
+        make_grade_payload(4, student_id=student["id"], course_id=course["id"], grade=55, max_grade=100),
     ]
     for payload in payloads:
         # Ensure unique assignment names to satisfy DB constraints
         client.post("/api/v1/grades/", json=payload)
 
-    r_analysis = client.get(
-        f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}"
-    )
+    r_analysis = client.get(f"/api/v1/grades/analysis/student/{student['id']}/course/{course['id']}")
     assert r_analysis.status_code == 200
     data = r_analysis.json()
     assert data["total_grades"] == 4

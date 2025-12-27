@@ -3,6 +3,4 @@ def test_list_routes(client):
     assert resp.status_code == 200
     paths = resp.json()["paths"].keys()
     print("REGISTERED PATHS:", list(paths))
-    assert any(
-        "database-upload" in p for p in paths
-    ), f"database-upload endpoint not found in: {list(paths)}"
+    assert any("database-upload" in p for p in paths), f"database-upload endpoint not found in: {list(paths)}"

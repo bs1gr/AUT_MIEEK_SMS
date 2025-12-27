@@ -5,9 +5,7 @@ import pytest
 RUN_INTEGRATION = os.environ.get("RUN_INTEGRATION", "0") in ("1", "true", "yes")
 
 
-@pytest.mark.skipif(
-    not RUN_INTEGRATION, reason="Integration tests disabled (set RUN_INTEGRATION=1)"
-)
+@pytest.mark.skipif(not RUN_INTEGRATION, reason="Integration tests disabled (set RUN_INTEGRATION=1)")
 def test_health_endpoint_integration():
     """Simple integration smoke test against a running backend.
 

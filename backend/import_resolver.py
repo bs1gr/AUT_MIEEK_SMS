@@ -69,9 +69,7 @@ def import_from_possible_locations(module_basename: str):
             logger.debug("import %s failed: %s", name, exc)
 
     if last_exc:
-        raise ImportError(
-            f"Could not import '{module_basename}' from {candidates}: {last_exc}"
-        )
+        raise ImportError(f"Could not import '{module_basename}' from {candidates}: {last_exc}")
     raise ImportError(f"Could not import '{module_basename}' from {candidates}")
 
 
@@ -87,7 +85,5 @@ def import_names(module_basename: str, *names: str) -> Tuple[Any, ...]:
         try:
             result.append(getattr(module, n))
         except AttributeError as exc:  # pragma: no cover - defensive
-            raise ImportError(
-                f"Module '{module.__name__}' has no attribute '{n}'"
-            ) from exc
+            raise ImportError(f"Module '{module.__name__}' has no attribute '{n}'") from exc
     return tuple(result)

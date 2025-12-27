@@ -76,9 +76,7 @@ def test_production_without_docker_is_blocked(monkeypatch: pytest.MonkeyPatch) -
         ctx.assert_valid()
 
 
-def test_production_inside_docker_allowed(
-    monkeypatch: pytest.MonkeyPatch, tmp_path
-) -> None:
+def test_production_inside_docker_allowed(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     monkeypatch.setenv("SMS_ENV", "production")
     monkeypatch.setattr(environment, "_is_docker", lambda: True, raising=False)
 

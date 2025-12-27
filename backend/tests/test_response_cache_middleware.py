@@ -74,9 +74,7 @@ def test_query_flag_disables_cache():
 
 def test_opt_in_header_controls_caching():
     header_name = "x-cache-allow"
-    client, counter = build_cached_client(
-        require_opt_in=True, opt_in_header=header_name
-    )
+    client, counter = build_cached_client(require_opt_in=True, opt_in_header=header_name)
 
     # Without opt-in, both requests execute the endpoint
     client.get("/expensive")

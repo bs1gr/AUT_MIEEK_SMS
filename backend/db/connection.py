@@ -26,9 +26,7 @@ except Exception:
     # Fallback in case init_db changes signature
     engine = create_engine(settings.DATABASE_URL, echo=False)
 
-SessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, expire_on_commit=False, bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
 
 
 def get_session(_: object | None = None) -> Generator[Session, None, None]:
@@ -48,9 +46,7 @@ def get_session(_: object | None = None) -> Generator[Session, None, None]:
         db.close()
 
 
-def _ensure_column(
-    engine, table: str, column: str, coltype_sql: str, default_sql: str | None = None
-) -> None:
+def _ensure_column(engine, table: str, column: str, coltype_sql: str, default_sql: str | None = None) -> None:
     """Ensure a column exists; if missing, add it with optional DEFAULT.
     Works on SQLite and other SQL dialects best-effort without Alembic.
     """

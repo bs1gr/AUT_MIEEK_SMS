@@ -37,9 +37,7 @@ if os.environ.get("SMS_EXECUTION_MODE") == "docker":
             import subprocess
 
             try:
-                subprocess.run(
-                    ["sudo", "chmod", "0666", str(db_path)], check=False, timeout=2
-                )
+                subprocess.run(["sudo", "chmod", "0666", str(db_path)], check=False, timeout=2)
                 subprocess.run(
                     ["sudo", "chmod", "0777", str(db_path.parent)],
                     check=False,

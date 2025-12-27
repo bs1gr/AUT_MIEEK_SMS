@@ -104,6 +104,4 @@ def test_validate_uploaded_file_rejects_invalid_encoding():
     assert exc.value.status_code == 400
     detail = cast(dict[str, Any], exc.value.detail)
     assert detail["error_id"] == ErrorCode.IMPORT_INVALID_ENCODING.value
-    assert (
-        detail["message"] == "Invalid file encoding. JSON files must be UTF-8 encoded"
-    )
+    assert detail["message"] == "Invalid file encoding. JSON files must be UTF-8 encoded"

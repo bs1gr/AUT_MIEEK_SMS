@@ -51,9 +51,7 @@ def main() -> int:
         print("TABLES_COUNT:", len(tables))
         print("TABLES_SAMPLE:", tables[:10])
 
-        cur.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';"
-        )
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';")
         has_version = cur.fetchone() is not None
         print("HAS_ALEMBIC_VERSION:", has_version)
 

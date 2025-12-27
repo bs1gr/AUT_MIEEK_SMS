@@ -44,9 +44,7 @@ def upgrade() -> None:
     if "last_failed_login_at" not in existing_cols:
         op.add_column(
             "users",
-            sa.Column(
-                "last_failed_login_at", sa.DateTime(timezone=True), nullable=True
-            ),
+            sa.Column("last_failed_login_at", sa.DateTime(timezone=True), nullable=True),
         )
 
     if "lockout_until" not in existing_cols:
@@ -64,9 +62,7 @@ def upgrade() -> None:
         )
 
     if "ix_users_lockout_until" not in existing_indexes:
-        op.create_index(
-            "ix_users_lockout_until", "users", ["lockout_until"], unique=False
-        )
+        op.create_index("ix_users_lockout_until", "users", ["lockout_until"], unique=False)
 
     # Best-effort removal of server_default set above when we just created the column.
     # On SQLite, altering defaults is limited; wrap in try/except for safety.

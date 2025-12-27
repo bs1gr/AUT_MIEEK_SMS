@@ -55,31 +55,21 @@ def upgrade() -> None:
     op.create_table(
         "attendances",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column(
-            "student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False
-        ),
-        sa.Column(
-            "course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False
-        ),
+        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
         sa.Column("date", sa.Date(), nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("period_number", sa.Integer(), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
     )
-    op.create_index(
-        "idx_attendance_student_date", "attendances", ["student_id", "date"]
-    )
+    op.create_index("idx_attendance_student_date", "attendances", ["student_id", "date"])
     op.create_index("idx_attendance_course_date", "attendances", ["course_id", "date"])
 
     op.create_table(
         "course_enrollments",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column(
-            "student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False
-        ),
-        sa.Column(
-            "course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False
-        ),
+        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
         sa.Column("enrolled_at", sa.Date(), nullable=True),
     )
     op.create_index(
@@ -92,12 +82,8 @@ def upgrade() -> None:
     op.create_table(
         "daily_performances",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column(
-            "student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False
-        ),
-        sa.Column(
-            "course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False
-        ),
+        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
         sa.Column("date", sa.Date(), nullable=False),
         sa.Column("category", sa.String(length=100), nullable=False),
         sa.Column("score", sa.Float(), nullable=False),
@@ -109,19 +95,13 @@ def upgrade() -> None:
         "daily_performances",
         ["student_id", "course_id"],
     )
-    op.create_index(
-        "idx_performance_student_date", "daily_performances", ["student_id", "date"]
-    )
+    op.create_index("idx_performance_student_date", "daily_performances", ["student_id", "date"])
 
     op.create_table(
         "grades",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column(
-            "student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False
-        ),
-        sa.Column(
-            "course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False
-        ),
+        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
         sa.Column("assignment_name", sa.String(length=200), nullable=False),
         sa.Column("category", sa.String(length=100), nullable=True),
         sa.Column("grade", sa.Float(), nullable=False),
@@ -137,9 +117,7 @@ def upgrade() -> None:
     op.create_table(
         "highlights",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column(
-            "student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False
-        ),
+        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
         sa.Column("semester", sa.String(length=50), nullable=False),
         sa.Column("rating", sa.Integer(), nullable=True),
         sa.Column("category", sa.String(length=100), nullable=True),
@@ -147,9 +125,7 @@ def upgrade() -> None:
         sa.Column("date_created", sa.Date(), nullable=True),
         sa.Column("is_positive", sa.Boolean(), nullable=True),
     )
-    op.create_index(
-        "idx_highlight_student_semester", "highlights", ["student_id", "semester"]
-    )
+    op.create_index("idx_highlight_student_semester", "highlights", ["student_id", "semester"])
 
 
 def downgrade() -> None:

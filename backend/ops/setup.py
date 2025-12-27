@@ -50,14 +50,10 @@ class SetupOperations(Operation):
         template = directory / ".env.example"
 
         if env_file.exists():
-            return OperationResult.warning_result(
-                f".env already exists in {directory.name}"
-            )
+            return OperationResult.warning_result(f".env already exists in {directory.name}")
 
         if not template.exists():
-            return OperationResult.failure_result(
-                f"No .env.example found in {directory.name}"
-            )
+            return OperationResult.failure_result(f"No .env.example found in {directory.name}")
 
         try:
             shutil.copy2(template, env_file)
@@ -114,16 +110,12 @@ class SetupOperations(Operation):
 
         if venv_dir.exists():
             if not force:
-                return OperationResult.warning_result(
-                    "Virtual environment already exists"
-                )
+                return OperationResult.warning_result("Virtual environment already exists")
             self.log_info("Removing existing venv (force=True)")
             try:
                 shutil.rmtree(venv_dir)
             except Exception as e:
-                return OperationResult.failure_result(
-                    "Failed to remove existing venv", e
-                )
+                return OperationResult.failure_result("Failed to remove existing venv", e)
 
         try:
             self.log_info("Creating virtual environment...")
@@ -137,9 +129,7 @@ class SetupOperations(Operation):
             self.log_success("Virtual environment created")
             return OperationResult.success_result("Virtual environment created")
         except subprocess.CalledProcessError as e:
-            return OperationResult.failure_result(
-                f"Failed to create venv (exit code {e.returncode})", e
-            )
+            return OperationResult.failure_result(f"Failed to create venv (exit code {e.returncode})", e)
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("venv creation timed out")
         except Exception as e:
@@ -222,15 +212,11 @@ class SetupOperations(Operation):
             self.log_success("Backend dependencies installed")
             return OperationResult.success_result("Backend dependencies installed")
         except subprocess.CalledProcessError as e:
-            return OperationResult.failure_result(
-                f"pip install failed (exit code {e.returncode})", e
-            )
+            return OperationResult.failure_result(f"pip install failed (exit code {e.returncode})", e)
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("pip install timed out")
         except Exception as e:
-            return OperationResult.failure_result(
-                "Failed to install backend dependencies", e
-            )
+            return OperationResult.failure_result("Failed to install backend dependencies", e)
 
     def install_frontend_dependencies(self, force: bool = False) -> OperationResult:
         """
@@ -269,15 +255,11 @@ class SetupOperations(Operation):
             self.log_success("Frontend dependencies installed")
             return OperationResult.success_result("Frontend dependencies installed")
         except subprocess.CalledProcessError as e:
-            return OperationResult.failure_result(
-                f"npm install failed (exit code {e.returncode})", e
-            )
+            return OperationResult.failure_result(f"npm install failed (exit code {e.returncode})", e)
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("npm install timed out")
         except Exception as e:
-            return OperationResult.failure_result(
-                "Failed to install frontend dependencies", e
-            )
+            return OperationResult.failure_result("Failed to install frontend dependencies", e)
 
     def wait_for_http(self, url: str, timeout: int = 120) -> OperationResult:
         """
@@ -292,9 +274,7 @@ class SetupOperations(Operation):
         """
         # Validate timeout
         if timeout <= 0:
-            return OperationResult.failure_result(
-                f"Timeout must be positive (got: {timeout})"
-            )
+            return OperationResult.failure_result(f"Timeout must be positive (got: {timeout})")
 
         # Validate URL format
         from urllib.parse import urlparse
@@ -306,9 +286,7 @@ class SetupOperations(Operation):
                     f"Invalid URL format: '{url}' (must include scheme and host, e.g., http://localhost:8000)"
                 )
             if parsed.scheme not in ("http", "https"):
-                return OperationResult.failure_result(
-                    f"URL scheme must be http or https (got: {parsed.scheme})"
-                )
+                return OperationResult.failure_result(f"URL scheme must be http or https (got: {parsed.scheme})")
         except Exception as e:
             return OperationResult.failure_result(f"Invalid URL: {e}")
 
@@ -316,9 +294,7 @@ class SetupOperations(Operation):
             # Prefer httpx (already declared in backend requirements). Use httpx for HTTP checks.
             import httpx
         except ImportError:
-            return OperationResult.failure_result(
-                "httpx package not installed (required for HTTP checks)"
-            )
+            return OperationResult.failure_result("httpx package not installed (required for HTTP checks)")
 
         start_time = time.time()
         last_error = None
@@ -345,14 +321,11 @@ class SetupOperations(Operation):
             time.sleep(OperationTimeouts.PROCESS_STARTUP_WAIT)
 
         return OperationResult.failure_result(
-            f"Endpoint not available after {timeout}s"
-            + (f": {last_error}" if last_error else ""),
+            f"Endpoint not available after {timeout}s" + (f": {last_error}" if last_error else ""),
             data={"url": url, "last_error": last_error},
         )
 
-    def setup_all(
-        self, force: bool = False, skip_venv: bool = False
-    ) -> OperationResult:
+    def setup_all(self, force: bool = False, skip_venv: bool = False) -> OperationResult:
         """
         Complete setup: check dependencies, create envs, install packages.
 
@@ -415,11 +388,7 @@ class SetupOperations(Operation):
         results.append(("frontend deps", frontend_result))
 
         # Check for failures
-        failures = [
-            (name, r)
-            for name, r in results
-            if not r.success and r.status.value != "warning"
-        ]
+        failures = [(name, r) for name, r in results if not r.success and r.status.value != "warning"]
 
         if failures:
             return OperationResult.failure_result(
@@ -482,9 +451,7 @@ class MigrationRunner(Operation):
         alembic_ini = self.backend_dir / "alembic.ini"
 
         if not alembic_ini.exists():
-            return OperationResult.failure_result(
-                "alembic.ini not found in backend directory"
-            )
+            return OperationResult.failure_result("alembic.ini not found in backend directory")
 
         try:
             python_path = self.get_python_path()
@@ -502,9 +469,7 @@ class MigrationRunner(Operation):
 
             if result.returncode == 0:
                 self.log_success("Migrations completed successfully")
-                return OperationResult.success_result(
-                    "Migrations completed", data={"output": result.stdout}
-                )
+                return OperationResult.success_result("Migrations completed", data={"output": result.stdout})
             else:
                 return OperationResult.failure_result(
                     f"Migration failed (exit code {result.returncode})",
@@ -514,9 +479,7 @@ class MigrationRunner(Operation):
         except subprocess.TimeoutExpired:
             return OperationResult.failure_result("Migration timed out")
         except FileNotFoundError:
-            return OperationResult.failure_result(
-                "Python or Alembic not found - ensure dependencies are installed"
-            )
+            return OperationResult.failure_result("Python or Alembic not found - ensure dependencies are installed")
         except Exception as e:
             return OperationResult.failure_result("Failed to run migrations", e)
 

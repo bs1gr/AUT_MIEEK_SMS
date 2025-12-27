@@ -29,9 +29,7 @@ def test_admin_token_allows_setting_role(client):
     # Use the test DB session override (conftest provides dep override)
     db_gen = next(client.app.dependency_overrides[db_get_session]())
     with db_gen as db:
-        user = (
-            db.query(models.User).filter(models.User.email == creator["email"]).first()
-        )
+        user = db.query(models.User).filter(models.User.email == creator["email"]).first()
         assert user is not None
         user.role = "admin"
         db.add(user)
@@ -75,9 +73,7 @@ def test_invalid_or_expired_admin_token_is_ignored(client):
         "sub": "noone@example.com",
         "exp": datetime.now(timezone.utc) - timedelta(hours=1),
     }
-    expired_token = jwt.encode(
-        payload, config.settings.SECRET_KEY, algorithm=config.settings.ALGORITHM
-    )
+    expired_token = jwt.encode(payload, config.settings.SECRET_KEY, algorithm=config.settings.ALGORITHM)
 
     new_user = {
         "email": "shouldberegistered@example.com",  # pragma: allowlist secret

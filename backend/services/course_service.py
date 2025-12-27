@@ -66,9 +66,7 @@ class CourseService:
         if is_active is not None:
             query = query.filter(self.Course.is_active == is_active)
 
-        query = query.order_by(
-            self.Course.year.desc(), self.Course.semester, self.Course.course_code
-        )
+        query = query.order_by(self.Course.year.desc(), self.Course.semester, self.Course.course_code)
         return paginate(query, skip, limit)
 
     def get_course(self, course_id: int):
@@ -87,10 +85,7 @@ class CourseService:
 
         # Check for duplicate course_code if changing
         update_dict = course_update.model_dump(exclude_unset=True)
-        if (
-            "course_code" in update_dict
-            and update_dict["course_code"] != db_course.course_code
-        ):
+        if "course_code" in update_dict and update_dict["course_code"] != db_course.course_code:
             self._assert_unique_code(update_dict["course_code"], exclude_id=course_id)
 
         with transaction(self.db):
