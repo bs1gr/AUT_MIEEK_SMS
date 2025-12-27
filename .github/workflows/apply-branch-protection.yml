@@ -16,7 +16,7 @@ jobs:
   apply-protection:
     runs-on: ubuntu-latest
     permissions:
-      administration: write
+      contents: write
     steps:
       - name: Apply branch protection via octokit
         uses: actions/github-script@v6

@@ -18,7 +18,7 @@ from backend.routers.routers_auth import optional_require_role
 from backend.security.permissions import require_permission
 
 # --- CRUD ENDPOINTS FOR ROLES ---
-from backend.dependencies import get_db
+from backend.db import get_session as get_db
 from backend.errors import http_error, internal_server_error, ErrorCode
 
 router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})

@@ -25,6 +25,7 @@ def test_secret_key_placeholder_generates_random_key_when_enforced(
 ):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "config/test")
     settings = Settings(
+        SMS_ENV="development",
         SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345",  # pragma: allowlist secret
         AUTH_ENABLED=False,
         SECRET_KEY_STRICT_ENFORCEMENT=True,
@@ -93,6 +94,7 @@ def test_secret_key_short_generates_when_enforced(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("CI", "1")
     # With AUTH_ENABLED True, short key is auto-generated
     settings = Settings(
+        SMS_ENV="development",
         SECRET_KEY="short",  # pragma: allowlist secret
         AUTH_ENABLED=True,
         SECRET_KEY_STRICT_ENFORCEMENT=False,  # pragma: allowlist secret
@@ -101,6 +103,7 @@ def test_secret_key_short_generates_when_enforced(monkeypatch: pytest.MonkeyPatc
     assert settings.SECRET_KEY != "short"  # pragma: allowlist secret
     # With AUTH_DISABLED but strict flag enabled, still auto-generated
     settings = Settings(
+        SMS_ENV="development",
         SECRET_KEY="short",  # pragma: allowlist secret
         AUTH_ENABLED=False,  # pragma: allowlist secret
         SECRET_KEY_STRICT_ENFORCEMENT=True,  # pragma: allowlist secret
@@ -165,9 +168,10 @@ def test_auth_disabled_allows_placeholder_secret_key(monkeypatch: pytest.MonkeyP
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "config/test")
     # AUTH_ENABLED is False, placeholder secret key should be allowed
     settings = Settings(
+        SMS_ENV="development",
         SECRET_KEY="dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345",  # pragma: allowlist secret
         AUTH_ENABLED=False,
-        SECRET_KEY_STRICT_ENFORCEMENT=True,
+        SECRET_KEY_STRICT_ENFORCEMENT=False,
     )
     assert (
         settings.SECRET_KEY == "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"  # pragma: allowlist secret
@@ -178,12 +182,13 @@ def test_secret_key_can_be_explicitly_set(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "config/test")
     # Explicitly setting SECRET_KEY should work
     settings = Settings(
-        SECRET_KEY="explicitly-set-secret-key",  # pragma: allowlist secret
+        SMS_ENV="development",
+        SECRET_KEY="explicitly-set-secret-key-with-enough-length-32chars",  # pragma: allowlist secret
         AUTH_ENABLED=True,
         SECRET_KEY_STRICT_ENFORCEMENT=True,
     )
     assert (
-        settings.SECRET_KEY == "explicitly-set-secret-key"  # pragma: allowlist secret
+        settings.SECRET_KEY == "explicitly-set-secret-key-with-enough-length-32chars"  # pragma: allowlist secret
     )  # pragma: allowlist secret
 
 
@@ -191,6 +196,7 @@ def test_secret_key_auto_generation_on_short_key(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("CI", "1")
     # Short key should trigger auto-generation
     settings = Settings(
+        SMS_ENV="development",
         SECRET_KEY="short-key",  # pragma: allowlist secret
         AUTH_ENABLED=True,
         SECRET_KEY_STRICT_ENFORCEMENT=False,  # pragma: allowlist secret

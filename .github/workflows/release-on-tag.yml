@@ -15,9 +15,14 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag_name }}
+      release_created: ${{ steps.create_release.outputs.created }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get tag name
         id: get_tag
@@ -30,6 +35,7 @@ jobs:
           fi
           TRIMMED_TAG=$(echo "$TAG_NAME" | xargs)
           echo "tag_name=$TRIMMED_TAG" >> $GITHUB_OUTPUT
+          echo "Debug: tag_name=$TRIMMED_TAG"
 
       - name: Prepare release body
         id: prepare
@@ -45,19 +51,77 @@ jobs:
             echo "body=Release ${TAG}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create release
+      - name: Create release (or update if exists)
+        id: create_release
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tag = '${{ steps.get_tag.outputs.tag_name }}';
             const body = `${{ steps.prepare.outputs.body }}`;
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: tag,
-              name: tag,
-              body: body,
-              draft: false,
-              prerelease: false,
-            });
+            try {
+              // Try to fetch existing release
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag,
+              });
+              console.log(`Release ${tag} already exists (ID: ${release.data.id}). Updating body...`);
+              // Update the existing release
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                body: body,
+              });
+              core.setOutput('created', 'false');
+              core.setOutput('release_id', release.data.id);
+            } catch (error) {
+              if (error.status === 404) {
+                // Release doesn't exist, create it
+                console.log(`Release ${tag} not found. Creating...`);
+                const newRelease = await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tag,
+                  name: tag,
+                  body: body,
+                  draft: false,
+                  prerelease: false,
+                });
+                core.setOutput('created', 'true');
+                core.setOutput('release_id', newRelease.data.id);
+              } else {
+                throw error;
+              }
+            }
+
+  # Trigger the installer build workflow
+  trigger-installer-build:
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - name: Trigger Release Installer Workflow
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ needs.create-release.outputs.tag }}';
+            console.log(`Triggering installer build workflow for tag: ${tag}`);
+
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'release-installer-with-sha.yml',
+                ref: 'main',
+                inputs: {
+                  tag: tag
+                }
+              });
+              console.log(`✓ Installer build workflow dispatched for ${tag}`);
+            } catch (error) {
+              console.error(`Failed to dispatch installer workflow: ${error.message}`);
+              // Don't fail the entire job if workflow dispatch fails
+              // The user can manually trigger it if needed
+            }

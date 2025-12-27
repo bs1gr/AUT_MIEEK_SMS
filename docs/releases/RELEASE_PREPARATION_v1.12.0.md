@@ -181,7 +181,7 @@ Database:
 - RBAC tables (roles, permissions, mappings)
 
 Backward Compatibility: 100% (zero breaking changes)
-Version: 1.12.7 → 1.12.0
+Version: 1.12.8 → 1.12.0
 ```
 
 ---

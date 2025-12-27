@@ -78,11 +78,16 @@ def test_verify_password_invalid_hash():
     assert verify_password("password", "not-a-hash") is False
 
 
-def test_get_current_user_invalid_token(db):
+def test_get_current_user_invalid_token(db, monkeypatch):
     from fastapi import HTTPException
     from starlette.requests import Request
 
+    from backend.config import settings
     from backend.routers.routers_auth import get_current_user
+
+    # Enable auth for this specific test to exercise token validation
+    monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
+    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
 
     with pytest.raises(HTTPException) as exc:
         asyncio.run(get_current_user(request=Request({"type": "http"}), token="invalid", db=db))
@@ -148,6 +153,10 @@ def test_optional_require_role_enforces_when_enabled(monkeypatch):
         monkeypatch.setattr(routers_auth.settings, "AUTH_ENABLED", True, raising=False)
     except Exception:
         object.__setattr__(routers_auth.settings, "AUTH_ENABLED", True)
+    try:
+        monkeypatch.setattr(routers_auth.settings, "AUTH_MODE", "strict", raising=False)
+    except Exception:
+        object.__setattr__(routers_auth.settings, "AUTH_MODE", "strict")
     dependency = optional_require_role("admin")
     admin = SimpleNamespace(role="admin")
     assert dependency(Request({"type": "http"}), admin) is admin  # type: ignore[misc]
