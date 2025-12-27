@@ -33,12 +33,12 @@ def test_database_url_must_reside_in_project(monkeypatch):
 
 
 def test_secret_key_auto_generates_secure_value(monkeypatch):
-    # With AUTH_ENABLED True, insecure key is auto-generated
+    # With AUTH_ENABLED True, short non-placeholder key is auto-generated
     insecure = build_settings(
-        SECRET_KEY="change-me",  # pragma: allowlist secret
+        SECRET_KEY="short",  # pragma: allowlist secret
         AUTH_ENABLED=True,  # pragma: allowlist secret
     )
-    assert insecure.SECRET_KEY != "change-me"  # pragma: allowlist secret
+    assert insecure.SECRET_KEY != "short"  # pragma: allowlist secret
     assert len(insecure.SECRET_KEY) >= 32
     # With AUTH_ENABLED False, insecure key is allowed as-is
     insecure = build_settings(

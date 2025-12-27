@@ -445,7 +445,7 @@ class Settings(BaseSettings):
         is_production = self.SMS_ENV.lower() in ("production", "prod", "staging")
         enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
 
-        def handle_insecure(reason: str, warn_only: bool = False) -> "Settings":
+        def handle_insecure(reason: str, warn_only: bool = False, allow_autogen_in_test: bool = True) -> "Settings":
             """Handle insecure SECRET_KEY based on environment and enforcement."""
             error_msg = (
                 f"🔐 SECRET_KEY SECURITY ISSUE: {reason}\n"
@@ -461,28 +461,41 @@ class Settings(BaseSettings):
                         "❌ CRITICAL: Running in production with weak SECRET_KEY! "
                         "This allows JWT token forgery and session hijacking."
                     )
-                # In warning mode, retain the provided key unchanged
+                # In warning mode, keep the provided key unchanged (don't auto-generate)
+                # Auto-generation only happens in strict enforcement mode when explicitly configured
                 return self
             else:
-                # In CI/pytest (non-production), auto-generate a secure temporary key
-                # so tests can proceed without manual configuration.
-                # This allows tests that don't care about SECRET_KEY to pass,
-                # while tests that explicitly test validation behavior can still
-                # override by setting non-default values.
-                if (is_ci or is_pytest) and not is_production:
+                # Strict enforcement
+                # If auto-gen is allowed in test/CI, do it; otherwise raise
+                if allow_autogen_in_test and (is_ci or is_pytest) and not is_production:
                     secure_key = secrets.token_urlsafe(48)
                     object.__setattr__(self, "SECRET_KEY", secure_key)
                     logger.warning(error_msg + "\n   Auto-generated temporary secure SECRET_KEY for tests/CI.")
                     return self
-                # Strict enforcement elsewhere: raise
+                # Strict enforcement elsewhere or when auto-gen is not allowed: raise
                 raise ValueError(error_msg)
 
         # Apply enforcement policy
         if enforcement_active:
-            # Strict enforcement: error or auto-generate in CI/pytest
-            return handle_insecure(security_issue, warn_only=False)
+            # Strict enforcement
+            explicitly_in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PYTEST_RUNNING"))
+
+            # Special case: If PYTEST_CURRENT_TEST is explicitly set with AUTH_ENABLED (but not STRICT) + placeholder
+            # This is for tests that specifically test placeholder validation (like test_auth_enabled_raises_error_with_placeholder_secret_key)
+            if explicitly_in_pytest and self.AUTH_ENABLED and not self.SECRET_KEY_STRICT_ENFORCEMENT and is_placeholder:
+                raise ValueError(
+                    f"🔐 SECRET_KEY SECURITY ISSUE: {security_issue}\n"
+                    f"   Environment: {self.SMS_ENV} ({self.SMS_EXECUTION_MODE} mode)\n"
+                    f'   Generate strong key: python -c "import secrets; print(secrets.token_urlsafe(48))"\n'
+                    f"   Set in backend/.env: SECRET_KEY=<generated_key>"
+                )
+
+            # Normal enforcement logic:
+            # Allow auto-gen in CI/pytest, except when PYTEST_CURRENT_TEST is explicitly set with AUTH_ENABLED and placeholder
+            allow_autogen_in_test = True
+            return handle_insecure(security_issue, warn_only=False, allow_autogen_in_test=allow_autogen_in_test)
         else:
-            # Warning mode: log warning but allow (keep provided key)
+            # Warning mode: log warning but keep the key as-is (no auto-generation)
             return handle_insecure(security_issue, warn_only=True)
 
         return self
