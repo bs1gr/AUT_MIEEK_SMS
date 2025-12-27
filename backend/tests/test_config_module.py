@@ -13,6 +13,7 @@ def build_settings(**overrides):
         "DATABASE_URL": f"sqlite:///{DEFAULT_DB_PATH.as_posix()}",
         "SEMESTER_WEEKS": 14,
         "CORS_ORIGINS": "http://localhost:5173",
+        "SMS_ENV": "development",  # Avoid production mode enforcement
     }
     base.update(overrides)
     return Settings(**base)  # type: ignore[arg-type]

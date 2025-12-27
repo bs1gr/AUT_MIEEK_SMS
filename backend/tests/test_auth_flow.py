@@ -73,7 +73,11 @@ def test_register_duplicate_and_bad_login(client):
     assert r3.status_code == 400
 
 
-def test_login_lockout_after_failed_attempts(client):
+def test_login_lockout_after_failed_attempts(client, monkeypatch):
+    # Enable auth for this test so throttle logic works
+    monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
+    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
+
     payload = {
         "email": "lock@example.com",  # pragma: allowlist secret
         "password": "LockPass1!",  # pragma: allowlist secret
@@ -100,7 +104,11 @@ def test_login_lockout_after_failed_attempts(client):
     assert "Retry-After" in resp.headers
 
 
-def test_login_recovers_after_lockout_window(client):
+def test_login_recovers_after_lockout_window(client, monkeypatch):
+    # Enable auth for this test so throttle logic works
+    monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
+    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
+
     prev_attempts = settings.AUTH_LOGIN_MAX_ATTEMPTS
     prev_lockout = settings.AUTH_LOGIN_LOCKOUT_SECONDS
     prev_window = settings.AUTH_LOGIN_TRACKING_WINDOW_SECONDS

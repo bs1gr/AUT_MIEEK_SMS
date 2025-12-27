@@ -2,6 +2,7 @@ import logging
 import os
 
 import pytest
+from fastapi import Depends, Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import declarative_base
 
@@ -67,6 +68,9 @@ def patch_settings_for_tests(request, monkeypatch):
             logging.warning("Could not import 'settings' to disable auth for tests. Tests may fail.")
             return
 
+    # Ensure Control API routes are exposed during tests (some tests expect 400/200 responses)
+    os.environ["ENABLE_CONTROL_API"] = "1"
+
     # Helper to safely set attributes on Pydantic models or frozen objects
     def safe_patch(obj, attr, value):
         try:
@@ -79,6 +83,7 @@ def patch_settings_for_tests(request, monkeypatch):
 
     # 1. Disable Auth for most tests (auth-specific tests can re-enable)
     safe_patch(settings, "AUTH_ENABLED", False)
+    safe_patch(settings, "AUTH_MODE", "disabled")
 
     # 2. Ensure REFRESH_TOKEN_EXPIRE_DAYS exists
     if not hasattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS"):
@@ -179,14 +184,103 @@ def client(db):
     Get a TestClient instance that uses the test database.
     Accepts add_auth kw to align with test expectations (no-op for now).
     """
+    from types import SimpleNamespace
+
     from backend.main import app
     from backend.db import get_session
+    from backend.config import settings as cfg
+    from backend.security.current_user import get_current_user as real_get_current_user
 
     def _override_session():
         # Provide a generator to satisfy tests that call `next()` on the override
         yield db
 
     app.dependency_overrides[get_session] = _override_session
+
+    async def _override_current_user(request: Request, token: str | None = None, db=Depends(get_session)):
+        from backend.errors import ErrorCode, http_error
+
+        path = str(getattr(getattr(request, "url", None), "path", "") or "")
+        auth_endpoint = "/auth/" in path
+
+        # Try to resolve bearer token from headers when not provided directly
+        if not token:
+            try:
+                auth_header = str(request.headers.get("Authorization", ""))
+            except Exception:
+                auth_header = ""
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ", 1)[1].strip()
+
+        # If the caller supplied a token (directly or from header), always delegate to real dependency
+        if token:
+            return await real_get_current_user(request=request, token=token, db=db)
+
+        auth_enabled = getattr(cfg, "AUTH_ENABLED", False)
+        auth_mode = str(getattr(cfg, "AUTH_MODE", "disabled") or "disabled").lower()
+
+        # Enforce token requirement for auth endpoints even when auth is disabled (no dummy user)
+        if auth_endpoint:
+            raise http_error(
+                401,
+                ErrorCode.UNAUTHORIZED,
+                "Missing bearer token",
+                request,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not auth_enabled or auth_mode == "disabled":
+            return SimpleNamespace(
+                id=1,
+                email="admin@example.com",
+                role="admin",
+                is_active=True,
+                full_name="Admin User",
+            )
+
+        return await real_get_current_user(request=request, token=token, db=db)
+
+    app.dependency_overrides[real_get_current_user] = _override_current_user
     with TestClient(app) as c:
         yield _ClientProxy(c)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def bootstrap_admin():
+    """Returns bootstrap admin credentials for tests."""
+    return {"email": "admin@example.com", "password": "Admin@12345678", "role": "admin"}
+
+
+@pytest.fixture(scope="function")
+def admin_token(client, bootstrap_admin):
+    """Create admin user and return auth token."""
+    # Register admin
+    reg_resp = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": bootstrap_admin["email"],
+            "password": bootstrap_admin["password"],
+            "full_name": "Admin User",
+            "role": "admin",
+        },
+    )
+    assert reg_resp.status_code in (200, 201), f"Admin registration failed: {reg_resp.text}"
+
+    # Login to get token
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": bootstrap_admin["email"], "password": bootstrap_admin["password"]}
+    )
+    assert login_resp.status_code == 200, f"Admin login failed: {login_resp.text}"
+    token = login_resp.json().get("access_token")
+    assert token, "No access_token in login response"
+    return token
+
+
+@pytest.fixture
+def mock_db_engine(monkeypatch):
+    """Mock database engine for health check tests."""
+    from unittest.mock import MagicMock
+
+    mock_engine = MagicMock()
+    return mock_engine

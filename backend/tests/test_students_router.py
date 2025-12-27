@@ -129,24 +129,22 @@ def test_update_student_success_and_validation_errors(client, admin_token):
     assert r_bad3.status_code == 422
 
 
-def test_delete_student_and_then_404(client, admin_token, bootstrap_admin):
-    # Login as bootstrap admin
-    admin_email = bootstrap_admin["email"]
-    admin_password = bootstrap_admin["password"]
-    login_resp = client.post("/api/v1/auth/login", json={"email": admin_email, "password": admin_password})
-    print("BOOTSTRAP ADMIN LOGIN RESPONSE:", login_resp.status_code, login_resp.text)
-    admin_token_val = login_resp.json().get("access_token")
-    assert admin_token_val, f"Bootstrap admin login failed: {login_resp.status_code} {login_resp.text}"
-    headers = {"Authorization": f"Bearer {admin_token_val}"}
+def test_delete_student_and_then_404(client, admin_token, bootstrap_admin, db):
+    from backend.security.password_hash import get_password_hash
+    from backend import models
 
-    # Register a new admin via API using bootstrap admin token
+    # Create a new admin user directly in the test DB (public /register doesn't grant admin role)
     new_admin_email = "admin_delete_test@example.com"
     new_admin_password = "AdminPass123!"
-    client.post(
-        "/api/v1/auth/register",
-        json={"email": new_admin_email, "password": new_admin_password, "full_name": "Admin", "role": "admin"},
-        headers=headers,
+    admin_user = models.User(
+        email=new_admin_email,
+        hashed_password=get_password_hash(new_admin_password),
+        role="admin",
+        is_active=True,
+        full_name="Admin Delete Test",
     )
+    db.add(admin_user)
+    db.commit()
 
     # Login as the new admin
     login_resp2 = client.post("/api/v1/auth/login", json={"email": new_admin_email, "password": new_admin_password})

@@ -8,6 +8,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.12.8] - 2025-12-27
 
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.12.8] - 2025-12-27
+
 **Release Type**: Patch Release
 **Focus**: Authentication Bypass Logic & Test Infrastructure Fixes
 

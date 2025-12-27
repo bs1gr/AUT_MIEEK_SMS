@@ -52,7 +52,7 @@ def safe_log_context(**kwargs: Any) -> dict[str, Any]:
     Returns:
         Dict with sanitized values safe for logging
     """
-    result = {}
+    result: dict[str, Any] = {}
     for key, value in kwargs.items():
         if isinstance(value, (int, float, bool, type(None))):
             # These types are safe - no injection risk

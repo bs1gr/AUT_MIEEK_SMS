@@ -1,6 +1,6 @@
 """
 Student Management System - Main Entry Point
-Version: 1.12.7
+Version: 1.12.8
 
 Minimal entry point that creates and runs the FastAPI application.
 All application logic has been modularized into:
@@ -16,6 +16,7 @@ RECOMMENDED STARTUP:
 - Direct: uvicorn backend.main:app --host 127.0.0.1 --port 8000
 """
 
+import subprocess  # noqa: F401 - Required for tests to monkeypatch subprocess.run/Popen
 import sys
 from pathlib import Path
 from fastapi import FastAPI
