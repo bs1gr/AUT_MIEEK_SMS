@@ -127,6 +127,8 @@ pandas==2.3.3
 passlib==1.7.4
 pathlib==1.0.1
 pathspec==0.12.1
+# Allowlist: GHSA-f83h-ghpp-7wcc – no patched release available as of 2025-12-27.
+# Required for PDF import pipeline; pinned to latest available version until upstream fix ships.
 pdfminer.six==20251107
 pefile==2023.2.7
 pillow==12.0.0
