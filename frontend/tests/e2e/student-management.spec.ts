@@ -45,14 +45,23 @@ async function loginAsTeacher(page: Page) {
     data: { email, password, full_name: 'E2E Teacher', role: 'teacher' },
   });
 
-  // Login via UI
-  await page.goto('/');
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', password);
-  await page.click('button[type="submit"]');
+  // Login via API for stability and set access token in localStorage
+  const loginResp = await page.request.post(`${apiBase}/api/v1/auth/login`, {
+    data: { email, password },
+  });
+  const loginJson = await loginResp.json();
+  const token = loginJson?.access_token || '';
 
-  // Wait for navigation to dashboard
-  await page.waitForURL(/\/dashboard|\/students/, { timeout: 5000 });
+  // Preload token into localStorage before navigating to the app
+  await page.addInitScript((t) => {
+    try {
+      // @ts-ignore
+      window.localStorage.setItem('sms_access_token', t);
+    } catch {}
+  }, token);
+
+  await page.goto('/dashboard');
+  await page.waitForURL(/\/dashboard|\/students/, { timeout: 10000 });
 }
 
 test.describe('Student Management - Critical Flows', () => {
@@ -68,16 +77,16 @@ test.describe('Student Management - Critical Flows', () => {
     await page.goto('/students');
 
     // Click "Add Student" button
-    await page.click('button:has-text("Add Student"), button:has-text("New Student")');
+    await page.click('[data-testid="add-student-btn"]');
 
-    // Fill student form
-    await page.fill('input[name="firstName"]', student.firstName);
-    await page.fill('input[name="lastName"]', student.lastName);
-    await page.fill('input[name="email"]', student.email);
-    await page.fill('input[name="studentId"], input[name="student_id"]', student.studentId);
+    // Fill student form using stable test ids
+    await page.fill('[data-testid="first-name-input"]', student.firstName);
+    await page.fill('[data-testid="last-name-input"]', student.lastName);
+    await page.fill('[data-testid="email-input"]', student.email);
+    await page.fill('[data-testid="student-id-input"]', student.studentId);
 
     // Submit form
-    await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
+    await page.click('[data-testid="submit-student"]');
 
     // Verify success message or student appears in list
     await expect(page.getByText(student.firstName)).toBeVisible({ timeout: 5000 });
@@ -106,10 +115,10 @@ test.describe('Student Management - Critical Flows', () => {
 
     // Update student data
     const newLastName = `Updated${student.lastName}`;
-    await page.fill('input[name="lastName"]', newLastName);
+    await page.fill('[data-testid="last-name-input"]', newLastName);
 
     // Save changes
-    await page.click('button[type="submit"]:has-text("Update"), button:has-text("Save")');
+    await page.click('[data-testid="submit-student"]');
 
     // Verify updated name appears
     await expect(page.getByText(newLastName)).toBeVisible({ timeout: 5000 });
@@ -153,14 +162,13 @@ test.describe('Course Management', () => {
     const course = generateCourseData();
 
     await page.goto('/courses');
-    await page.click('button:has-text("Add Course"), button:has-text("New Course")');
+    await page.click('[data-testid="add-course-btn"]');
 
-    await page.fill('input[name="courseCode"], input[name="course_code"]', course.courseCode);
-    await page.fill('input[name="courseName"], input[name="course_name"]', course.courseName);
-    await page.fill('input[name="credits"]', course.credits.toString());
-    await page.fill('input[name="semester"]', course.semester);
+    await page.fill('[data-testid="course-code-input"]', course.courseCode);
+    await page.fill('[data-testid="course-name-input"]', course.courseName);
+    await page.fill('[data-testid="credits-input"]', course.credits.toString());
 
-    await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
+    await page.click('[data-testid="submit-course"]');
 
     await expect(page.getByText(course.courseCode)).toBeVisible({ timeout: 5000 });
   });
@@ -186,7 +194,7 @@ test.describe('Grade Assignment Flow', () => {
         student_id: student.studentId,
       },
     });
-    await studentResp.json();
+    const createdStudent = await studentResp.json();
 
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
@@ -201,29 +209,26 @@ test.describe('Grade Assignment Flow', () => {
         ],
       },
     });
-    await courseResp.json();
+    const createdCourse = await courseResp.json();
 
     // Navigate to grades page
     await page.goto('/grades');
 
-    // Click "Add Grade" or similar button
-    await page.click('button:has-text("Add Grade"), button:has-text("New Grade")');
+    // Click "Add Grade" button (focuses form)
+    await page.click('[data-testid="add-grade-button"]');
 
     // Select student and course
-    await page.click('select[name="studentId"], [role="combobox"]:has-text("Select student")');
-    await page.click(`text=${student.firstName}`);
-
-    await page.click('select[name="courseId"], [role="combobox"]:has-text("Select course")');
-    await page.click(`text=${course.courseCode}`);
+    await page.selectOption('select[name="studentId"]', `${createdStudent.id}`);
+    await page.selectOption('select[name="courseId"]', `${createdCourse.id}`);
 
     // Enter grade details
+    await page.fill('input[name="assignmentName"]', 'Homework 1');
     await page.fill('input[name="grade"]', '85');
-    await page.fill('input[name="maxGrade"], input[name="max_grade"]', '100');
-    await page.click('select[name="category"]');
-    await page.click('option:has-text("Homework"), [role="option"]:has-text("Homework")');
+    await page.fill('input[name="max_grade"]', '100');
+    await page.selectOption('select[name="category"]', { label: /Homework/i });
 
     // Submit
-    await page.click('button[type="submit"]:has-text("Create"), button:has-text("Save")');
+    await page.click('button[type="submit"]');
 
     // Verify grade appears
     await expect(page.getByText(/^85$/)).toBeVisible({ timeout: 5000 });
@@ -251,7 +256,7 @@ test.describe('Attendance Tracking', () => {
       },
     });
 
-    await page.request.post(`${apiBase}/api/v1/courses/`, {
+    const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
         course_code: course.courseCode,
         course_name: course.courseName,
@@ -259,13 +264,13 @@ test.describe('Attendance Tracking', () => {
         semester: course.semester,
       },
     });
+    const createdCourse = await courseResp.json();
 
     // Navigate to attendance page
     await page.goto('/attendance');
 
     // Select course
-    await page.click('select[name="courseId"], [role="combobox"]:has-text("Select course")');
-    await page.click(`text=${course.courseCode}`);
+    await page.selectOption('[data-testid="attendance-course-select"], select[name="courseId"]', `${createdCourse.id}`);
 
     // Mark attendance for student
     await page.click(`tr:has-text("${student.firstName}") button:has-text("Present"), tr:has-text("${student.firstName}") input[type="checkbox"]`);

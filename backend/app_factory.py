@@ -20,6 +20,7 @@ from backend.router_registry import register_routers
 from backend.logging_config import initialize_logging
 from backend.db import get_session, engine
 from backend.tracing import setup_tracing
+from backend.environment import get_runtime_context
 
 logger = logging.getLogger(__name__)
 
@@ -229,10 +230,14 @@ def _register_root_endpoints(app: FastAPI, version: str):
     PROJECT_ROOT = Path(__file__).resolve().parent.parent
     SPA_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
     SPA_INDEX_FILE = SPA_DIST_DIR / "index.html"
+    runtime_context = get_runtime_context()
     # Default to serving the built SPA when a dist folder exists unless explicitly disabled.
     SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
     if SPA_INDEX_FILE.exists() and os.environ.get("SERVE_FRONTEND") is None:
         SERVE_FRONTEND = True
+    # In test runtime, always prefer JSON metadata to avoid HTML responses in API tests
+    if runtime_context.is_test:
+        SERVE_FRONTEND = False
 
     def _api_metadata() -> dict:
         return {

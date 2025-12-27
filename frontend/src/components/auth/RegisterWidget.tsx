@@ -100,6 +100,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           type="email"
           autoComplete="email"
           aria-label="email"
+          data-testid="register-email"
           value={email}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
           required
@@ -112,6 +113,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           type="password"
           autoComplete="new-password"
           aria-label="password"
+          data-testid="register-password"
           value={password}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
           required
@@ -124,6 +126,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           type="text"
           autoComplete="name"
           aria-label="full name"
+          data-testid="register-fullname"
           value={fullName}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setFullName(event.target.value)}
         />
@@ -133,7 +136,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           {feedback.message}
         </p>
       )}
-      <Button type="submit" className="w-full" disabled={busy}>
+      <Button type="submit" className="w-full" disabled={busy} data-testid="register-submit">
         {busy ? t('common.loading') : t('common.register')}
       </Button>
     </form>
@@ -151,6 +154,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
             size="sm"
             variant={collapsed ? 'secondary' : 'ghost'}
             onClick={() => setCollapsed((prev) => !prev)}
+            data-testid="register-toggle"
           >
             {collapsed ? t('auth.openRegisterPrompt') : t('auth.hideRegisterPrompt')}
           </Button>
@@ -167,7 +171,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size="sm" data-testid="register-open">
           <UserPlus className="h-4 w-4" aria-hidden="true" />
           <span>{t('common.register')}</span>
         </Button>

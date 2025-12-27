@@ -407,6 +407,10 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
+    # Reject absolute paths or traversal attempts before resolving
+    raw_dest_path = Path(raw_dest)
+    if raw_dest_path.is_absolute() or ".." in raw_dest_path.parts:
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
@@ -498,6 +502,9 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     raw_dest = (payload.destination or "").strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request)
+    raw_dest_path = Path(raw_dest)
+    if raw_dest_path.is_absolute() or ".." in raw_dest_path.parts:
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
