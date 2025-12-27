@@ -23,8 +23,14 @@ def _ensure_default_modules():
 
 
 @pytest.fixture(autouse=True)
-def reset_modules():
+def reset_modules(monkeypatch):
+    """Reset modules after each test, with proper environment setup to avoid validation errors."""
     yield
+    # Set test environment variables before reloading modules
+    # This prevents SECRET_KEY validation errors during teardown
+    monkeypatch.setenv("SMS_ENV", "test")
+    monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
     _ensure_default_modules()
 
 
