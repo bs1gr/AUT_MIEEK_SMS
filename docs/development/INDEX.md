@@ -25,6 +25,14 @@ Technical documentation for developers contributing to the Student Management Sy
 
 ### Authentication & Security
 
+- **[AUTH_AND_TEST_INFRASTRUCTURE.md](AUTH_AND_TEST_INFRASTRUCTURE.md)** - Auth & testing guide (NEW - 1.12.8)
+  - Authentication bypass logic
+  - Test infrastructure setup
+  - SECRET_KEY validation
+  - Database configuration for tests
+  - Common testing patterns
+  - Troubleshooting guide
+
 - **[AUTHENTICATION.md](AUTHENTICATION.md)** - Auth implementation guide
   - JWT token flow
   - Refresh token mechanism
