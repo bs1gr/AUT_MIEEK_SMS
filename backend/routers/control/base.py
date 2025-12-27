@@ -6,6 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import logging
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
@@ -24,6 +25,7 @@ from .common import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class SystemStatus(BaseModel):
@@ -215,8 +217,8 @@ async def run_diagnostics():
                     row = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1")).fetchone()
                     if row:
                         schema_version = row[0]
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to retrieve alembic version", extra={"error": str(exc)})
             results.append(
                 DiagnosticResult(
                     category="Database",

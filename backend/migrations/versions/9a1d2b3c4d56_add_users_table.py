@@ -16,6 +16,14 @@ revision: str = "9a1d2b3c4d56"  # pragma: allowlist secret
 down_revision: Union[str, None] = "3f2b1a9c0d7e"  # pragma: allowlist secret
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+__all__ = [
+    "revision",
+    "down_revision",
+    "branch_labels",
+    "depends_on",
+    "upgrade",
+    "downgrade",
+]
 
 
 def upgrade() -> None:

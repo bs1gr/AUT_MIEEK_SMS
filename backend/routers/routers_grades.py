@@ -19,6 +19,7 @@ router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"descript
 from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
+from backend.logging_config import safe_log_context
 from backend.rate_limiting import (  # Add rate limiting for write endpoints
     RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
@@ -140,12 +141,12 @@ def get_all_grades(
         )
         logger.info(
             "Retrieved grades",
-            extra={
-                "count": len(result.items),
-                "skip": pagination.skip,
-                "limit": pagination.limit,
-                "total": result.total,
-            },
+            extra=safe_log_context(
+                count=len(result.items),
+                skip=pagination.skip,
+                limit=pagination.limit,
+                total=result.total,
+            ),
         )
         return result
     except HTTPException:
@@ -178,7 +179,10 @@ def get_student_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error retrieving student grades")
+        logger.exception(
+            "Error retrieving student grades",
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 
@@ -202,7 +206,10 @@ def get_course_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error retrieving course grades")
+        logger.exception(
+            "Error retrieving course grades",
+            extra=safe_log_context(course_id=course_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 
@@ -244,8 +251,8 @@ def update_grade(
         return updated
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error updating grade")
+    except Exception as e:
+        logger.exception("Error updating grade", extra=safe_log_context(grade_id=grade_id, error=str(e)))
         raise internal_server_error(request=request)
 
 
@@ -265,8 +272,8 @@ def delete_grade(
         return None
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error deleting grade")
+    except Exception as e:
+        logger.exception("Error deleting grade", extra=safe_log_context(grade_id=grade_id, error=str(e)))
         raise internal_server_error(request=request)
 
 

@@ -4,7 +4,7 @@ def import_names(*args, **kwargs):
         from backend.models import Student
 
         return (Student,)
-    return ()
+    return (None,)
 
 
 import logging

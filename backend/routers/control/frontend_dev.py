@@ -369,15 +369,17 @@ async def control_stop_backend(request: Request, _auth=Depends(require_control_a
                     for pid in {current_pid, parent_pid}:
                         try:
                             safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=3)
-                        except Exception:
-                            pass
+                        except Exception as exc:
+                            logger.warning(
+                                "Failed to taskkill during backend stop", extra={"pid": pid, "error": str(exc)}
+                            )
                 else:
                     import signal
 
                     try:
                         os.kill(current_pid, signal.SIGTERM)
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.warning("Failed to send SIGTERM during backend stop", extra={"error": str(exc)})
             finally:
                 os._exit(0)
 

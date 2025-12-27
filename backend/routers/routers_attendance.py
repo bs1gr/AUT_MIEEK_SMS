@@ -14,6 +14,7 @@ from backend.config import settings
 from backend.db import get_session as get_db
 from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.logging_config import safe_log_context
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.schemas.attendance import (
     AttendanceCreate,
@@ -123,18 +124,26 @@ def get_all_attendance(
         )
         logger.info(
             "Retrieved attendance records",
-            extra={
-                "count": len(result.items),
-                "skip": pagination.skip,
-                "limit": pagination.limit,
-                "total": result.total,
-            },
+            extra=safe_log_context(
+                count=len(result.items),
+                skip=pagination.skip,
+                limit=pagination.limit,
+                total=result.total,
+            ),
         )
         return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error retrieving attendance")
+        logger.exception(
+            "Error retrieving attendance",
+            extra=safe_log_context(
+                student_id=student_id,
+                course_id=course_id,
+                status=status,
+                error=str(e),
+            ),
+        )
         raise internal_server_error(request=request)
 
 
@@ -266,8 +275,11 @@ def update_attendance(
         return updated
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error updating attendance")
+    except Exception as e:
+        logger.exception(
+            "Error updating attendance",
+            extra=safe_log_context(attendance_id=attendance_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 
@@ -287,8 +299,11 @@ def delete_attendance(
         return None
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error deleting attendance")
+    except Exception as e:
+        logger.exception(
+            "Error deleting attendance",
+            extra=safe_log_context(attendance_id=attendance_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 

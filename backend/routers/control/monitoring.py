@@ -288,9 +288,15 @@ async def start_monitoring_stack(request: Request):
     try:
         success, stdout, stderr = docker_compose(["-f", "docker-compose.monitoring.yml", "up", "-d"], timeout=120)
         if not success:
-            raise http_error(
-                500, ErrorCode.CONTROL_OPERATION_FAILED, f"Failed to start monitoring stack: {stderr}", request
+            logger.error(
+                "Failed to start monitoring stack",
+                extra={
+                    "action": "monitoring_start_failed",
+                    "stderr": str(stderr),
+                    "request_id": getattr(request.state, "request_id", None),
+                },
             )
+            raise http_error(500, ErrorCode.CONTROL_OPERATION_FAILED, "Failed to start monitoring stack", request)
         settings = get_settings()
         logger.info(
             "Monitoring stack started",

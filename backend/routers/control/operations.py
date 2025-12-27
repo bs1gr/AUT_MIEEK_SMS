@@ -565,6 +565,15 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
 async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
     project_root = Path(__file__).parent.parent.parent
     backup_dir = (project_root / "backups" / "database").resolve()
+    # Reject any path traversal attempts outright
+    if Path(backup_filename).name != backup_filename:
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_BACKUP_NOT_FOUND,
+            "Invalid backup filename",
+            request,
+            context={"filename": backup_filename},
+        )
     source_path = (backup_dir / backup_filename).resolve()
     if not source_path.is_relative_to(backup_dir):
         raise http_error(
@@ -621,6 +630,9 @@ async def restore_database(request: Request, backup_filename: str):
 
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = (project_root / "backups" / "database").resolve()
+        # Reject traversal before resolving
+        if Path(backup_filename).name != backup_filename:
+            raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
         # Sanitize: prevent path traversal and restrict to allowed base directory
         backup_path = (backup_dir / backup_filename).resolve()
         # Stricter path check: ensure resolved path is relative to backup_dir
