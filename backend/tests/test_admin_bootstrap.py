@@ -29,14 +29,14 @@ def _count_users(session: Session) -> int:
 
 def test_bootstrap_skips_without_credentials(db: Session):
     settings = _make_settings(DEFAULT_ADMIN_EMAIL=None, DEFAULT_ADMIN_PASSWORD=None)
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
     assert _count_users(db) == 0
 
 
 def test_bootstrap_warns_when_auth_enabled_without_credentials(db: Session, caplog):
     settings = _make_settings(DEFAULT_ADMIN_EMAIL=None, DEFAULT_ADMIN_PASSWORD=None, AUTH_ENABLED=True)
     with caplog.at_level("WARNING"):
-        ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+        ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     assert _count_users(db) == 0
 
@@ -45,7 +45,7 @@ def test_bootstrap_warns_when_auth_enabled_without_credentials(db: Session, capl
 
 def test_bootstrap_creates_admin_user(db: Session):
     settings = _make_settings()
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     user = db.query(User).filter(User.email == "admin@example.com").one()
     assert user.role == "admin"
@@ -76,7 +76,7 @@ def test_bootstrap_updates_existing_user_with_force_reset(db: Session):
     db.commit()
 
     settings = _make_settings(DEFAULT_ADMIN_PASSWORD="NewPass456!", DEFAULT_ADMIN_FORCE_RESET=True)
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
     assert user.role == "admin"
@@ -101,7 +101,7 @@ def test_bootstrap_updates_existing_user_without_force_reset(db: Session):
     db.commit()
 
     settings = _make_settings(DEFAULT_ADMIN_FULL_NAME="Updated Admin")
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
     assert user.role == "admin"
@@ -125,7 +125,7 @@ def test_bootstrap_creates_user_and_allows_login(db: Session, client, monkeypatc
         object.__setattr__(settings, "DEFAULT_ADMIN_FORCE_RESET", True)
 
     # Run bootstrap
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     # Try to login using the created credentials
     resp = client.post("/api/v1/auth/login", json={"email": "bootstrap-login@example.com", "password": "Bootstrap1!"})
@@ -161,7 +161,7 @@ def test_bootstrap_auto_resets_when_enabled(db: Session):
         DEFAULT_ADMIN_PASSWORD="NewAuto987!",
         DEFAULT_ADMIN_AUTO_RESET=True,
     )
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
     assert user.role == "admin"
@@ -201,7 +201,7 @@ def test_bootstrap_auto_does_not_reset_if_password_matches(db: Session):
         DEFAULT_ADMIN_PASSWORD="MatchMe123!",
         DEFAULT_ADMIN_AUTO_RESET=True,
     )
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
     assert user.role == "admin"
@@ -242,7 +242,7 @@ def test_bootstrap_auto_resets_on_verification_error(db: Session):
         DEFAULT_ADMIN_PASSWORD="Recover123!",
         DEFAULT_ADMIN_AUTO_RESET=True,
     )
-    ensure_default_admin_account(settings=settings, session_factory=lambda: db)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
     # Password should be reset to the configured value

@@ -29,7 +29,8 @@ class StudentService:
         self.db = db
         self.request = request
         try:
-            self.Student = self._get_import_names()("models", "Student")
+            # import_names returns a tuple of requested attributes; unpack the class
+            (self.Student,) = self._get_import_names()("models", "Student")
         except Exception as exc:  # pragma: no cover - critical import failure
             logger.error("Failed to import Student model: %s", exc, exc_info=True)
             raise internal_server_error(request=self.request)

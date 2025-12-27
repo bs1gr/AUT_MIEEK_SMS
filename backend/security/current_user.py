@@ -21,27 +21,41 @@ async def get_current_user(
     db: Session = Depends(get_db),
 ) -> Any:
     """Retrieve the current authenticated user (moved from routers_auth to break circular import)."""
+    # Respect AUTH feature flags
+    try:
+        path = str(getattr(request.url, "path", ""))
+    except Exception:
+        path = ""
+    is_auth_endpoint = "/auth/" in path
+    auth_enabled = bool(getattr(settings, "AUTH_ENABLED", False))
+    auth_mode = str(getattr(settings, "AUTH_MODE", "disabled") or "disabled").lower()
+
+    # In disabled auth mode, allow anonymous access for non-auth endpoints by returning a dummy user
+    if not auth_enabled or auth_mode == "disabled":
+        if not is_auth_endpoint:
+            try:
+                auth_header_probe = str(request.headers.get("Authorization", "")).strip()
+            except Exception:
+                auth_header_probe = ""
+            if not auth_header_probe:
+                from types import SimpleNamespace
+
+                return SimpleNamespace(
+                    id=1,
+                    email="admin@example.com",
+                    role="admin",
+                    is_active=True,
+                    full_name="Admin User",
+                )
+
     if token is None:
         try:
             auth_header = str(request.headers.get("Authorization", "")).strip()
         except (KeyError, AttributeError):
             auth_header = ""
-        try:
-            path = str(getattr(request.url, "path", ""))
-        except Exception:
-            path = ""
-        is_auth_endpoint = "/auth/" in path
-        if not getattr(settings, "AUTH_ENABLED", False) and not auth_header and not is_auth_endpoint:
-            from types import SimpleNamespace
-
-            return SimpleNamespace(
-                id=1,
-                email="test@example.com",
-                role="admin",
-                is_active=True,
-                full_name="Test User",
-            )
-        if is_auth_endpoint:
+        # Require bearer token for auth endpoints always; and for non-auth when AUTH is enabled
+        require_token = is_auth_endpoint or auth_enabled
+        if require_token:
             if not auth_header.startswith("Bearer "):
                 raise http_error(
                     status.HTTP_401_UNAUTHORIZED,
@@ -52,13 +66,16 @@ async def get_current_user(
                 )
             token = auth_header.split(" ", 1)[1].strip()
         else:
+            # When AUTH is disabled and not an auth endpoint, if header is present use it; else return dummy
             if not auth_header.startswith("Bearer "):
-                raise http_error(
-                    status.HTTP_401_UNAUTHORIZED,
-                    ErrorCode.UNAUTHORIZED,
-                    "Missing bearer token",
-                    request,
-                    headers={"WWW-Authenticate": "Bearer"},
+                from types import SimpleNamespace
+
+                return SimpleNamespace(
+                    id=1,
+                    email="admin@example.com",
+                    role="admin",
+                    is_active=True,
+                    full_name="Admin User",
                 )
             token = auth_header.split(" ", 1)[1].strip()
     credentials_exception = http_error(

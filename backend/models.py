@@ -512,11 +512,14 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         elif is_sqlite:
             # SQLite-specific configuration
             # Use NullPool for SQLite to avoid "database is locked" errors in multi-threaded scenarios
-            # Note: For single-threaded dev, default pool is fine; this is defensive for FastAPI workers
+            # Also disable thread checks so dependency entry/exit across threadpool workers doesn't error.
             from sqlalchemy.pool import NullPool
 
             engine_kwargs["poolclass"] = NullPool
-            logger.info("SQLite NullPool configured to avoid locking issues")
+            engine_kwargs.setdefault("connect_args", {})
+            # Allow connections to be used across threads (safe for tests and small apps)
+            engine_kwargs["connect_args"].update({"check_same_thread": False})
+            logger.info("SQLite configured: NullPool + check_same_thread=False")
 
         engine = create_engine(db_url, **engine_kwargs)
 

@@ -27,6 +27,7 @@ def ensure_default_admin_account(
     settings: Any,
     session_factory: Callable[[], Session],
     logger: logging.Logger | None = None,
+    close_session: bool = True,
 ) -> None:
     """Ensure that a default administrator account exists.
 
@@ -155,7 +156,7 @@ def ensure_default_admin_account(
             exc_info=True,
         )
     finally:
-        if session is not None:
+        if close_session and session is not None:
             try:
                 session.close()
             except Exception:
