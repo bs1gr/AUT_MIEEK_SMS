@@ -1,6 +1,11 @@
 import logging
 import os
 
+# CRITICAL: Set DISABLE_STARTUP_TASKS *immediately* before any backend imports
+# This prevents bootstrap/migration code from running during app initialization
+# when test files import backend.main at module level
+os.environ.setdefault("DISABLE_STARTUP_TASKS", "1")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import declarative_base
@@ -31,7 +36,12 @@ settings.AUTH_ENABLED = False
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_startup_tasks_env():
-    """Prevent FastAPI lifespan startup tasks (migrations/bootstrap) during tests."""
+    """Prevent FastAPI lifespan startup tasks (migrations/bootstrap) during tests.
+    
+    Note: DISABLE_STARTUP_TASKS is also set at module level (before imports) to handle
+    the case where test files import backend.main at module level. This fixture ensures
+    proper cleanup after the test session completes.
+    """
 
     original = os.environ.get("DISABLE_STARTUP_TASKS")
     os.environ["DISABLE_STARTUP_TASKS"] = "1"
