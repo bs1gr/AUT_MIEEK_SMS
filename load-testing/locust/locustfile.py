@@ -468,7 +468,7 @@ if SKIP_AUTH:
                                 class _DummyResp2:
                                     status_code = 200
 
-                                    def json(resp_self):
+                                    def json(self):
                                         return {
                                             "access_token": "ci-bypass-token",
                                             "refresh_token": "ci-bypass-refresh",
@@ -503,7 +503,7 @@ if SKIP_AUTH:
                         class _DummyResp2:
                             status_code = 200
 
-                            def json(resp_self):
+                            def json(self):
                                 return {
                                     "access_token": "ci-bypass-token",
                                     "refresh_token": "ci-bypass-refresh",

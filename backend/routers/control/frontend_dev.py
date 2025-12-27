@@ -39,6 +39,18 @@ FRONTEND_PROCESS: subprocess.Popen | None = None
 FRONTEND_LOG_FILE: Any = None  # Track log file handle to ensure proper cleanup
 
 
+def _close_frontend_log_file(context: str) -> None:
+    """Close the frontend log file handle if open, logging any errors."""
+    global FRONTEND_LOG_FILE
+    if FRONTEND_LOG_FILE is not None:
+        try:
+            FRONTEND_LOG_FILE.close()
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning("Failed to close frontend log file", extra={"error": str(exc), "context": context})
+        finally:
+            FRONTEND_LOG_FILE = None
+
+
 def _resolve_npm_via_legacy() -> Optional[str]:
     """Use backend.main's _resolve_npm_command if available for test compatibility."""
     try:
@@ -59,8 +71,8 @@ def _is_port_open_via_legacy(port: int) -> bool:
         fn = getattr(_main, "_is_port_open", None)
         if callable(fn):
             return bool(fn("127.0.0.1", port, timeout=0.5))
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Legacy port check failed, falling back", extra={"error": str(exc), "port": port})
     return is_port_open(port)
 
 
@@ -164,75 +176,64 @@ async def control_start():
             if sys.platform == "win32":
                 try:
                     creationflags = subprocess.CREATE_NO_WINDOW  # type: ignore[attr-defined]
-                except Exception:
+                except Exception as exc:
                     creationflags = 0
+                    logger.debug("CREATE_NO_WINDOW not available, using defaults", extra={"error": str(exc)})
             close_fds = sys.platform != "win32"
             logs_dir = PROJECT_ROOT / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
-            FRONTEND_LOG_FILE = open(frontend_log_path, "a", encoding="utf-8")  # noqa: SIM115
-            FRONTEND_PROCESS = subprocess.Popen(
-                start_args,
-                cwd=frontend_dir,
-                shell=False,
-                stdout=FRONTEND_LOG_FILE,
-                stderr=FRONTEND_LOG_FILE,
-                text=True,
-                creationflags=creationflags,
-                close_fds=close_fds,
-            )
-        except Exception as exc:
-            # Ensure log file is closed on failure to start
-            if FRONTEND_LOG_FILE is not None:
+            with open(frontend_log_path, "a", encoding="utf-8") as log_file:  # noqa: SIM115
+                FRONTEND_LOG_FILE = log_file
+                FRONTEND_PROCESS = subprocess.Popen(
+                    start_args,
+                    cwd=frontend_dir,
+                    shell=False,
+                    stdout=log_file,
+                    stderr=log_file,
+                    text=True,
+                    creationflags=creationflags,
+                    close_fds=close_fds,
+                )
+
+                import time as _time
+
+                for _ in range(120):
+                    _time.sleep(0.25)
+                    if FRONTEND_PROCESS.poll() is not None:
+                        return JSONResponse(
+                            {"success": False, "message": "Frontend process terminated unexpectedly"},
+                            status_code=500,
+                        )
+                    if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
+                        return {
+                            "success": True,
+                            "message": "Frontend started successfully",
+                            "port": FRONTEND_PORT_PREFERRED,
+                            "url": f"http://localhost:{FRONTEND_PORT_PREFERRED}",
+                            "pid": FRONTEND_PROCESS.pid,
+                        }
+
                 try:
-                    FRONTEND_LOG_FILE.close()
-                except Exception:
-                    pass
-                FRONTEND_LOG_FILE = None
+                    safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to terminate frontend process after startup timeout", extra={"error": str(exc)}
+                    )
+                return JSONResponse(
+                    {
+                        "success": False,
+                        "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
+                        "hint": f"Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
+                    },
+                    status_code=500,
+                )
+        except Exception as exc:
             logger.error("Failed to start frontend process", extra={"error": str(exc)})
             return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
-        import time as _time
-
-        for _ in range(120):
-            _time.sleep(0.25)
-            if FRONTEND_PROCESS.poll() is not None:
-                if FRONTEND_LOG_FILE is not None:
-                    try:
-                        FRONTEND_LOG_FILE.close()
-                    except Exception:
-                        pass
-                    FRONTEND_LOG_FILE = None
-                return JSONResponse(
-                    {"success": False, "message": "Frontend process terminated unexpectedly"}, status_code=500
-                )
-            if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
-                return {
-                    "success": True,
-                    "message": "Frontend started successfully",
-                    "port": FRONTEND_PORT_PREFERRED,
-                    "url": f"http://localhost:{FRONTEND_PORT_PREFERRED}",
-                    "pid": FRONTEND_PROCESS.pid,
-                }
-        try:
-            safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
-        except Exception as exc:
-            logger.warning("Failed to terminate frontend process after startup timeout", extra={"error": str(exc)})
         finally:
-            if FRONTEND_LOG_FILE is not None:
-                try:
-                    FRONTEND_LOG_FILE.close()
-                except Exception:
-                    pass
-                FRONTEND_LOG_FILE = None
-        return JSONResponse(
-            {
-                "success": False,
-                "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
-                "hint": f"Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
-            },
-            status_code=500,
-        )
+            FRONTEND_LOG_FILE = None
     except Exception as e:
         return JSONResponse({"success": False, "message": f"Unexpected error: {e!s}"}, status_code=500)
 
@@ -257,6 +258,7 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
                 errors.append(f"Tracked frontend: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
+                _close_frontend_log_file("stop_all_tracked")
         ports_reported = 0
         port_processes: Dict[int, list[int]] = {}
         for port in FRONTEND_PORT_CANDIDATES:
@@ -327,13 +329,7 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 errors.append(f"Tracked process: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
-                # Close log file if open
-                if FRONTEND_LOG_FILE is not None:
-                    try:
-                        FRONTEND_LOG_FILE.close()
-                    except Exception as exc:
-                        logger.warning("Failed to close frontend log file during stop", extra={"error": str(exc)})
-                    FRONTEND_LOG_FILE = None
+                _close_frontend_log_file("stop_tracked")
         ports_cleared = 0
         for port in FRONTEND_PORT_CANDIDATES:
             pids = find_pids_on_port(port)
