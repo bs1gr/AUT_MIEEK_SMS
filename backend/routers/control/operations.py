@@ -563,13 +563,18 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
 async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
-    project_root = Path(__file__).parent.parent.parent
+    project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
-    # Reject any path traversal attempts outright
+    # Reject any path traversal attempts outright and require a simple .db filename
+    bf_path = Path(backup_filename)
     if (
-        Path(backup_filename).name != backup_filename
-        or Path(backup_filename).is_absolute()
-        or ".." in Path(backup_filename).parts
+        not backup_filename
+        or bf_path.is_absolute()
+        or ".." in bf_path.parts
+        or bf_path.name != backup_filename
+        or os.sep in backup_filename
+        or (os.altsep is not None and os.altsep in backup_filename)
+        or not backup_filename.endswith(".db")
     ):
         raise http_error(
             400,
@@ -579,7 +584,9 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
             context={"filename": backup_filename},
         )
     source_path = (backup_dir / backup_filename).resolve()
-    if not source_path.is_relative_to(backup_dir):
+    try:
+        source_path.relative_to(backup_dir)
+    except ValueError:
         raise http_error(
             400,
             ErrorCode.CONTROL_BACKUP_NOT_FOUND,
