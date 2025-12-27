@@ -36,9 +36,11 @@ class HighlightService:
         db.flush()
         db.refresh(db_highlight)
 
+        from backend.logging_config import safe_log_context
+
         logger.info(
             "Created highlight",
-            extra={"highlight_id": db_highlight.id, "student_id": payload.student_id},
+            extra=safe_log_context(highlight_id=db_highlight.id, student_id=payload.student_id),
         )
         return db_highlight
 

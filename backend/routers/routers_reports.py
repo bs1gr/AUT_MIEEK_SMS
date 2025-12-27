@@ -804,9 +804,11 @@ async def generate_bulk_student_reports(
             reports.append(report_data)
 
         except Exception as e:
+            from backend.logging_config import safe_log_context
+
             logger.error(
                 "Error generating report for student",
-                extra={"student_id": student_id, "error": str(e)},
+                extra=safe_log_context(student_id=student_id, error=str(e)),
                 exc_info=True,
             )
             failed_students.append({"student_id": student_id, "error": str(e)})

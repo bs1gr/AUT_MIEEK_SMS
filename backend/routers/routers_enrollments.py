@@ -52,9 +52,11 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
             "Error listing enrollments for course",
-            extra={"course_id": course_id, "error": str(exc)},
+            extra=safe_log_context(course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -69,9 +71,11 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
             "Error listing enrollments for student",
-            extra={"student_id": student_id, "error": str(exc)},
+            extra=safe_log_context(student_id=student_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -85,9 +89,11 @@ def list_enrolled_students(course_id: int, request: Request, db: Session = Depen
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
             "Error listing students for course",
-            extra={"course_id": course_id, "error": str(exc)},
+            extra=safe_log_context(course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -114,9 +120,11 @@ def enroll_students(
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
             "Error enrolling students in course",
-            extra={"course_id": course_id, "error": str(exc)},
+            extra=safe_log_context(course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -139,9 +147,11 @@ def unenroll_student(
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
             "Error unenrolling student from course",
-            extra={"student_id": student_id, "course_id": course_id, "error": str(exc)},
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request)

@@ -43,11 +43,13 @@ async def submit_feedback(
     )
     db.add(audit)
     db.commit()
+    from backend.logging_config import safe_log_context
+
     logger.info(
         "Feedback submitted",
-        extra={
-            "user_id": getattr(user, "id", None),
-            "feedback_length": len(feedback),
-        },
+        extra=safe_log_context(
+            user_id=getattr(user, "id", None),
+            feedback_length=len(feedback),
+        ),
     )
     return {"status": "ok"}

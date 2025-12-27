@@ -628,7 +628,9 @@ async def restore_database(request: Request, backup_filename: str):
             backup_path.relative_to(backup_dir)
         except ValueError:
             raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
-        logger.info("Restore request received", extra={"backup_filename": backup_filename})
+        from backend.logging_config import safe_log_context
+
+        logger.info("Restore request received", extra=safe_log_context(backup_filename=backup_filename))
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
