@@ -63,9 +63,8 @@ def create_highlight(
         raise
     except Exception as exc:
         logger.error(
-            "Unexpected error creating highlight for student %s: %s",
-            highlight.student_id,
-            exc,
+            "Unexpected error creating highlight",
+            extra={"student_id": highlight.student_id, "error": str(exc)},
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -80,9 +79,7 @@ def list_highlights(
     student_id: Optional[int] = Query(None, description="Filter by student ID"),
     semester: Optional[str] = Query(None, description="Filter by semester"),
     category: Optional[str] = Query(None, description="Filter by category"),
-    is_positive: Optional[bool] = Query(
-        None, description="Filter by positive/negative"
-    ),
+    is_positive: Optional[bool] = Query(None, description="Filter by positive/negative"),
     db: Session = Depends(get_db),
 ):
     """
@@ -112,11 +109,17 @@ def list_highlights(
         is_positive=is_positive,
     )
     logger.info(
-        "Retrieved %s highlights (total=%s, skip=%s, limit=%s)",
-        len(result.get("highlights", [])),
-        result.get("total", 0),
-        result.get("skip", 0),
-        result.get("limit", 0),
+        "Retrieved highlights",
+        extra={
+            "count": len(result.get("highlights", [])),
+            "total": result.get("total", 0),
+            "skip": result.get("skip", 0),
+            "limit": result.get("limit", 0),
+            "student_id": student_id,
+            "semester": semester,
+            "category": category,
+            "is_positive": is_positive,
+        },
     )
     return result
 
@@ -141,13 +144,15 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
         import_names("models", "Highlight")
         db_highlight = HighlightService.get(db, highlight_id)
 
-        logger.info("Retrieved highlight %s", highlight_id)
+        logger.info("Retrieved highlight", extra={"highlight_id": highlight_id})
         return db_highlight
     except HTTPException:
         raise
     except Exception as exc:
         logger.error(
-            "Error retrieving highlight %s: %s", highlight_id, exc, exc_info=True
+            "Error retrieving highlight",
+            extra={"highlight_id": highlight_id, "error": str(exc)},
+            exc_info=True,
         )
         raise internal_server_error(request=request)
 
@@ -178,16 +183,16 @@ def get_student_highlights(
         import_names("models", "Highlight", "Student")
         highlights = HighlightService.list_for_student(db, student_id, semester)
         logger.info(
-            "Retrieved %s highlights for student %s", len(highlights), student_id
+            "Retrieved highlights for student",
+            extra={"count": len(highlights), "student_id": student_id, "semester": semester},
         )
         return highlights
     except HTTPException:
         raise
     except Exception as exc:
         logger.error(
-            "Error retrieving highlights for student %s: %s",
-            student_id,
-            exc,
+            "Error retrieving highlights for student",
+            extra={"student_id": student_id, "error": str(exc)},
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -221,13 +226,15 @@ def update_highlight(
         with transaction(db):
             updated = HighlightService.update(db, highlight_id, highlight_update)
             db.flush()
-        logger.info("Updated highlight %s", highlight_id)
+        logger.info("Updated highlight", extra={"highlight_id": highlight_id})
         return updated
     except HTTPException:
         raise
     except Exception as exc:
         logger.error(
-            "Error updating highlight %s: %s", highlight_id, exc, exc_info=True
+            "Error updating highlight",
+            extra={"highlight_id": highlight_id, "error": str(exc)},
+            exc_info=True,
         )
         raise internal_server_error(request=request)
 
@@ -255,12 +262,14 @@ def delete_highlight(
         with transaction(db):
             HighlightService.delete(db, highlight_id)
             db.flush()
-        logger.info("Deleted highlight %s", highlight_id)
+        logger.info("Deleted highlight", extra={"highlight_id": highlight_id})
         return None
     except HTTPException:
         raise
     except Exception as exc:
         logger.error(
-            "Error deleting highlight %s: %s", highlight_id, exc, exc_info=True
+            "Error deleting highlight",
+            extra={"highlight_id": highlight_id, "error": str(exc)},
+            exc_info=True,
         )
         raise internal_server_error(request=request)

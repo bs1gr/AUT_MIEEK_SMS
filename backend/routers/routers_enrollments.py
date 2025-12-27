@@ -40,7 +40,7 @@ def get_all_enrollments(
     try:
         return EnrollmentService.get_all_enrollments(db, pagination)
     except Exception as exc:
-        logger.error("Error retrieving all enrollments: %s", exc, exc_info=True)
+        logger.error("Error retrieving all enrollments", extra={"error": str(exc)}, exc_info=True)
         raise internal_server_error(request=request)
 
 
@@ -52,7 +52,11 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error listing enrollments for course %s: %s", course_id, exc, exc_info=True)
+        logger.error(
+            "Error listing enrollments for course",
+            extra={"course_id": course_id, "error": str(exc)},
+            exc_info=True,
+        )
         raise internal_server_error(request=request)
 
 
@@ -66,9 +70,8 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
         raise
     except Exception as exc:
         logger.error(
-            "Error listing enrollments for student %s: %s",
-            student_id,
-            exc,
+            "Error listing enrollments for student",
+            extra={"student_id": student_id, "error": str(exc)},
             exc_info=True,
         )
         raise internal_server_error(request=request)
@@ -82,7 +85,11 @@ def list_enrolled_students(course_id: int, request: Request, db: Session = Depen
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error listing students for course %s: %s", course_id, exc, exc_info=True)
+        logger.error(
+            "Error listing students for course",
+            extra={"course_id": course_id, "error": str(exc)},
+            exc_info=True,
+        )
         raise internal_server_error(request=request)
 
 
@@ -107,7 +114,11 @@ def enroll_students(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error enrolling students in course %s: %s", course_id, exc, exc_info=True)
+        logger.error(
+            "Error enrolling students in course",
+            extra={"course_id": course_id, "error": str(exc)},
+            exc_info=True,
+        )
         raise internal_server_error(request=request)
 
 
@@ -129,10 +140,8 @@ def unenroll_student(
         raise
     except Exception as exc:
         logger.error(
-            "Error unenrolling student %s from course %s: %s",
-            student_id,
-            course_id,
-            exc,
+            "Error unenrolling student from course",
+            extra={"student_id": student_id, "course_id": course_id, "error": str(exc)},
             exc_info=True,
         )
         raise internal_server_error(request=request)

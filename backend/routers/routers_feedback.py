@@ -44,7 +44,10 @@ async def submit_feedback(
     db.add(audit)
     db.commit()
     logger.info(
-        f"Feedback submitted: {feedback[:100]}...",
-        extra={"user_id": getattr(user, "id", None)},
+        "Feedback submitted",
+        extra={
+            "user_id": getattr(user, "id", None),
+            "feedback_length": len(feedback),
+        },
     )
     return {"status": "ok"}

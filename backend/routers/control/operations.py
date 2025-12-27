@@ -410,7 +410,10 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
-    if not str(dest_candidate).startswith(str(allowed_base)):
+    # Stricter path check: ensure resolved path is relative to allowed_base
+    try:
+        dest_candidate.relative_to(allowed_base)
+    except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -498,7 +501,10 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
-    if not str(dest_candidate).startswith(str(allowed_base)):
+    # Stricter path check: ensure resolved path is relative to allowed_base
+    try:
+        dest_candidate.relative_to(allowed_base)
+    except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -582,7 +588,10 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
-    if not str(dest_candidate).startswith(str(allowed_base)):
+    # Stricter path check: ensure resolved path is relative to allowed_base
+    try:
+        dest_candidate.relative_to(allowed_base)
+    except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
     if dest_candidate.exists() and dest_candidate.is_dir():
         dest_path = dest_candidate / source_path.name
@@ -614,24 +623,27 @@ async def restore_database(request: Request, backup_filename: str):
         backup_dir = (project_root / "backups" / "database").resolve()
         # Sanitize: prevent path traversal and restrict to allowed base directory
         backup_path = (backup_dir / backup_filename).resolve()
-        if not str(backup_path).startswith(str(backup_dir)):
+        # Stricter path check: ensure resolved path is relative to backup_dir
+        try:
+            backup_path.relative_to(backup_dir)
+        except ValueError:
             raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
-        logger.info(f"Restore request for {backup_filename}")
+        logger.info("Restore request received", extra={"backup_filename": backup_filename})
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
-        logger.info(f"DB path: {db_path}")
+        logger.info("Database path resolved", extra={"db_path": str(db_path)})
         safety_backup = None
         if db_path.exists():
             safety_backup = db_path.with_suffix(
                 f".before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}{db_path.suffix}"
             )
-            logger.info(f"Creating safety backup: {safety_backup}")
+            logger.info("Creating safety backup", extra={"safety_backup": str(safety_backup)})
             try:
                 _sh.copyfile(db_path, safety_backup)
                 logger.info("Safety backup created with copyfile")
             except PermissionError as e:
-                logger.warning(f"copyfile failed ({e}), trying copy")
+                logger.warning("copyfile failed, trying copy", extra={"error": str(e)})
                 _sh.copy(db_path, safety_backup)
                 logger.info("Safety backup created with copy")
         try:
@@ -640,18 +652,18 @@ async def restore_database(request: Request, backup_filename: str):
             db_module.engine.dispose()
             logger.info("Engine disposed")
         except Exception as e:
-            logger.warning(f"Engine dispose failed: {e}")
+            logger.warning("Engine dispose failed", extra={"error": str(e)})
         wal_path = db_path.with_suffix(db_path.suffix + "-wal")
         shm_path = db_path.with_suffix(db_path.suffix + "-shm")
         wal_path.unlink(missing_ok=True)
         shm_path.unlink(missing_ok=True)
         logger.info("WAL/SHM files removed")
         try:
-            logger.info(f"Attempting copyfile from {backup_path} to {db_path}")
+            logger.info("Attempting restore with copyfile", extra={"source": str(backup_path), "dest": str(db_path)})
             _sh.copyfile(backup_path, db_path)
             logger.info("Restore completed with copyfile")
         except (PermissionError, OSError) as e:
-            logger.warning(f"copyfile failed ({e}), trying copy")
+            logger.warning("copyfile failed, trying copy", extra={"error": str(e)})
             _sh.copy(backup_path, db_path)
             logger.info("Restore completed with copy")
         # Don't attempt chmod - may fail on Docker volumes with root-owned files
@@ -661,7 +673,7 @@ async def restore_database(request: Request, backup_filename: str):
             db_module.ensure_schema(db_module.engine)
             logger.info("Schema ensured")
         except Exception as e:
-            logger.warning(f"Schema ensure failed: {e}")
+            logger.warning("Schema ensure failed", extra={"error": str(e)})
         logger.info("Restore completed successfully")
         return OperationResult(
             success=True,
@@ -675,7 +687,7 @@ async def restore_database(request: Request, backup_filename: str):
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Restore failed: {exc}", exc_info=True)
+        logger.error("Restore failed", extra={"error": str(exc)}, exc_info=True)
         raise http_error(
             500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}
         ) from exc
