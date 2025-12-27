@@ -36,19 +36,6 @@ except Exception:
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
-FRONTEND_LOG_FILE: Any = None  # Track log file handle to ensure proper cleanup
-
-
-def _close_frontend_log_file(context: str) -> None:
-    """Close the frontend log file handle if open, logging any errors."""
-    global FRONTEND_LOG_FILE
-    if FRONTEND_LOG_FILE is not None:
-        try:
-            FRONTEND_LOG_FILE.close()
-        except Exception as exc:  # pragma: no cover - defensive logging
-            logger.warning("Failed to close frontend log file", extra={"error": str(exc), "context": context})
-        finally:
-            FRONTEND_LOG_FILE = None
 
 
 def _resolve_npm_via_legacy() -> Optional[str]:
@@ -78,7 +65,7 @@ def _is_port_open_via_legacy(port: int) -> bool:
 
 @router.post("/start")
 async def control_start():
-    global FRONTEND_PROCESS, FRONTEND_LOG_FILE
+    global FRONTEND_PROCESS
     try:
         if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
             return {"success": True, "message": "Frontend already running", "port": FRONTEND_PORT_PREFERRED}
@@ -185,7 +172,6 @@ async def control_start():
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
             with open(frontend_log_path, "a", encoding="utf-8") as log_file:  # noqa: SIM115
-                FRONTEND_LOG_FILE = log_file
                 FRONTEND_PROCESS = subprocess.Popen(
                     start_args,
                     cwd=frontend_dir,
@@ -232,8 +218,6 @@ async def control_start():
         except Exception as exc:
             logger.error("Failed to start frontend process", extra={"error": str(exc)})
             return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
-        finally:
-            FRONTEND_LOG_FILE = None
     except Exception as e:
         return JSONResponse({"success": False, "message": f"Unexpected error: {e!s}"}, status_code=500)
 
@@ -258,7 +242,6 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
                 errors.append(f"Tracked frontend: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
-                _close_frontend_log_file("stop_all_tracked")
         ports_reported = 0
         port_processes: Dict[int, list[int]] = {}
         for port in FRONTEND_PORT_CANDIDATES:
@@ -310,7 +293,7 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
 
 @router.post("/stop")
 async def control_stop(request: Request, _auth=Depends(require_control_admin)):
-    global FRONTEND_PROCESS, FRONTEND_LOG_FILE
+    global FRONTEND_PROCESS
     try:
         stopped_any = False
         stopped_pids: list[int] = []
@@ -329,7 +312,6 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 errors.append(f"Tracked process: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
-                _close_frontend_log_file("stop_tracked")
         ports_cleared = 0
         for port in FRONTEND_PORT_CANDIDATES:
             pids = find_pids_on_port(port)
