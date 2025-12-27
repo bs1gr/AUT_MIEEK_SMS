@@ -65,7 +65,7 @@ export const generateTeacherUser = (): TestUser => {
 
 // Authentication helpers
 export async function registerUser(page: Page, user: TestUser) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   const response = await page.request.post(`${apiBase}/api/v1/auth/register`, {
     data: {
@@ -113,7 +113,7 @@ export async function loginAsTeacher(page: Page): Promise<TestUser> {
 
 // API helpers for test data setup
 export async function createStudentViaAPI(page: Page, student: TestStudent) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   const response = await page.request.post(`${apiBase}/api/v1/students/`, {
     data: {
@@ -132,7 +132,7 @@ export async function createStudentViaAPI(page: Page, student: TestStudent) {
 }
 
 export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: Course['evaluation_rules']) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   const defaultRules = [
     { category: 'Homework', weight: 30, includeDailyPerformance: true },
@@ -165,7 +165,7 @@ export async function createGradeViaAPI(
   maxGrade: number = 100,
   category: string = 'Homework'
 ) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   const response = await page.request.post(`${apiBase}/api/v1/grades/`, {
     data: {
@@ -192,7 +192,7 @@ export async function createAttendanceViaAPI(
   status: 'Present' | 'Absent' | 'Late' = 'Present',
   date?: string
 ) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   const response = await page.request.post(`${apiBase}/api/v1/attendance/`, {
     data: {
@@ -250,7 +250,7 @@ export async function waitForTableRow(page: Page, rowText: string) {
 
 // Cleanup helpers
 export async function cleanupTestData(page: Page, resourceType: string, id: number) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   await page.request.delete(`${apiBase}/api/v1/${resourceType}/${id}`);
 }

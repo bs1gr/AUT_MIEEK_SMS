@@ -82,13 +82,13 @@ npm run dev
 ### Custom Backend URL
 
 ```bash
-E2E_API_BASE=http://localhost:8080 npm run e2e
+PLAYWRIGHT_BASE_URL=http://localhost:8080 npm run e2e
 ```
 
 ### Docker Environment
 
 ```bash
-PLAYWRIGHT_BASE_URL=http://localhost:8080 E2E_API_BASE=http://localhost:8080 npm run e2e
+PLAYWRIGHT_BASE_URL=http://localhost:8080 npm run e2e
 ```
 
 ## Test Structure
@@ -233,7 +233,6 @@ npx playwright show-trace trace.zip
   run: npm run e2e
   env:
     PLAYWRIGHT_BASE_URL: ${{ secrets.E2E_BASE_URL }}
-    E2E_API_BASE: ${{ secrets.E2E_API_BASE }}
 
 - name: Upload Test Results
   if: failure()

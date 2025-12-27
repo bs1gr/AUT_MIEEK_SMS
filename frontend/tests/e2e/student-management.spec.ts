@@ -34,7 +34,7 @@ const generateCourseData = () => {
 
 // Helper to login as admin/teacher
 async function loginAsTeacher(page: Page) {
-  const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
   // Register a teacher account
   const rnd = Math.random().toString(36).slice(2, 8);
@@ -87,7 +87,7 @@ test.describe('Student Management - Critical Flows', () => {
     const student = generateStudentData();
 
     // Create student via API for faster setup
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
     const createResp = await page.request.post(`${apiBase}/api/v1/students/`, {
       data: {
         first_name: student.firstName,
@@ -119,7 +119,7 @@ test.describe('Student Management - Critical Flows', () => {
     const student = generateStudentData();
 
     // Create student via API
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
     const createResp = await page.request.post(`${apiBase}/api/v1/students/`, {
       data: {
         first_name: student.firstName,
@@ -172,7 +172,7 @@ test.describe('Grade Assignment Flow', () => {
   });
 
   test('should assign grade to student for course', async ({ page }) => {
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
     // Setup: Create student and course
     const student = generateStudentData();
@@ -236,7 +236,7 @@ test.describe('Attendance Tracking', () => {
   });
 
   test('should mark student attendance', async ({ page }) => {
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
     // Setup: Create student and course
     const student = generateStudentData();
@@ -284,7 +284,7 @@ test.describe('Analytics and Reports', () => {
   });
 
   test('should view student analytics with final grade calculation', async ({ page }) => {
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
     // Setup: Create student, course, and grades
     const student = generateStudentData();

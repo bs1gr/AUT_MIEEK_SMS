@@ -2,7 +2,7 @@ import { test, expect, request } from '@playwright/test';
 
 test.describe('Registration flow (smoke)', () => {
   test('backend /auth/register sets refresh cookie and returns access token', async ({}) => {
-    const apiBase = process.env.E2E_API_BASE || 'http://localhost:8000';
+    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
     const rnd = Math.random().toString(36).slice(2, 8);
   const email = `e2e-${rnd}@example.com`;
     const password = 'E2E-Password-1!';
