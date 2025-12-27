@@ -95,22 +95,62 @@ Update-VersionReferences -NewVersion $ReleaseVersion
 Write-Host "Running pre-commit validation..."
 & .\COMMIT_READY.ps1 -Quick
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Pre-commit validation failed. Aborting release."
+    Write-Host "Pre-commit validation failed, but attempting to stage auto-fixes and retry..."
+    git add .
+    Write-Host "Re-running pre-commit validation on staged changes..."
+    & .\COMMIT_READY.ps1 -Quick
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Pre-commit validation failed after retry. Aborting release."
+        exit 1
+    }
+}
+
+Write-Host "Staging all changes..."
+git add .
+
+Write-Host "Committing release changes..."
+git commit -m "chore(release): bump version to $ReleaseVersion and update docs"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "No changes to commit (or commit failed). Continuing with push/tag..."
+}
+
+Write-Host "Pushing main branch..."
+git push origin main
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to push main branch."
     exit 1
 }
 
-git add .
-git commit -m "chore(release): bump version to $ReleaseVersion and update docs"
-
 if ($TagRelease) {
-    if (git tag -l "v$ReleaseVersion") {
-        Write-Warning "Tag v$ReleaseVersion already exists locally. Overwriting..."
-        git tag -d "v$ReleaseVersion" | Out-Null
+    $tag = "v$ReleaseVersion"
+    Write-Host "Creating and pushing tag: $tag"
+
+    # Check if tag already exists
+    $existingTag = git tag -l $tag
+    if ($existingTag) {
+        Write-Host "Tag $tag already exists locally. Deleting and recreating..."
+        git tag -d $tag | Out-Null
+        if (git ls-remote --tags origin | Select-String "refs/tags/$tag") {
+            Write-Host "Tag exists on remote. Force-deleting..."
+            git push origin ":refs/tags/$tag"
+        }
     }
-    git tag v$ReleaseVersion
-    git push origin v$ReleaseVersion --force
+
+    # Create and push the tag
+    git tag $tag
+    git push origin $tag --force
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Tag $tag pushed successfully!"
+        Write-Host "The release workflow should now trigger automatically."
+        Write-Host ""
+        Write-Host "You can monitor the workflow at:"
+        Write-Host "  https://github.com/$env:GITHUB_REPOSITORY/actions"
+    } else {
+        Write-Error "Failed to push tag."
+        exit 1
+    }
 }
 
-git push origin main
-
-Write-Host "Release $ReleaseVersion is ready and pushed!"
+Write-Host ""
+Write-Host "✅ Release $ReleaseVersion is ready and pushed!"
