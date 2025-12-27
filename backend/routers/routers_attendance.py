@@ -295,7 +295,7 @@ def delete_attendance(
     try:
         service = AttendanceService(db, request)
         service.delete_attendance(attendance_id)
-        logger.info("Deleted attendance", extra={"attendance_id": attendance_id})
+        logger.info("Deleted attendance", extra=safe_log_context(attendance_id=attendance_id))
         return None
     except HTTPException:
         raise

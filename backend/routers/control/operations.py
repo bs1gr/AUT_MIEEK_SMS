@@ -566,7 +566,11 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     project_root = Path(__file__).parent.parent.parent
     backup_dir = (project_root / "backups" / "database").resolve()
     # Reject any path traversal attempts outright
-    if Path(backup_filename).name != backup_filename:
+    if (
+        Path(backup_filename).name != backup_filename
+        or Path(backup_filename).is_absolute()
+        or ".." in Path(backup_filename).parts
+    ):
         raise http_error(
             400,
             ErrorCode.CONTROL_BACKUP_NOT_FOUND,
@@ -594,6 +598,9 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
     raw_dest = payload.destination.strip()
     if not raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Destination path is required", request, context={})
+    dest_path_candidate = Path(raw_dest)
+    if dest_path_candidate.is_absolute() or ".." in dest_path_candidate.parts:
+        raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
@@ -631,7 +638,11 @@ async def restore_database(request: Request, backup_filename: str):
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = (project_root / "backups" / "database").resolve()
         # Reject traversal before resolving
-        if Path(backup_filename).name != backup_filename:
+        if (
+            Path(backup_filename).name != backup_filename
+            or Path(backup_filename).is_absolute()
+            or ".." in Path(backup_filename).parts
+        ):
             raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
         # Sanitize: prevent path traversal and restrict to allowed base directory
         backup_path = (backup_dir / backup_filename).resolve()

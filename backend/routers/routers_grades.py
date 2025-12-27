@@ -98,13 +98,18 @@ def create_grade(
         # Metrics
         try:
             service._track_grade_submission(grade_data.course_id, getattr(created, "category", None))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(
+                "Grade submission metric tracking failed",
+                extra=safe_log_context(
+                    course_id=grade_data.course_id, category=getattr(created, "category", None), error=str(exc)
+                ),
+            )
         return created
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error creating grade")
+    except Exception as e:
+        logger.exception("Error creating grade", extra=safe_log_context(error=str(e)))
         raise internal_server_error(request=request)
 
 
@@ -227,7 +232,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        logger.exception("Error fetching grade")
+        logger.exception("Error fetching grade", extra=safe_log_context(grade_id=grade_id))
         raise internal_server_error(request=request)
 
 
@@ -268,7 +273,7 @@ def delete_grade(
     try:
         service = GradeService(db, request)
         service.delete_grade(grade_id)
-        logger.info("Deleted grade", extra={"grade_id": grade_id})
+        logger.info("Deleted grade", extra=safe_log_context(grade_id=grade_id))
         return None
     except HTTPException:
         raise

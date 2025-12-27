@@ -13,6 +13,14 @@ revision: str = "00c146dcf611"
 down_revision: Union[str, Sequence[str], None] = ("2b4c64f9fbba", "5b71c5a90e3d", "ffedcba12345")
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+__all__ = [
+    "revision",
+    "down_revision",
+    "branch_labels",
+    "depends_on",
+    "upgrade",
+    "downgrade",
+]
 
 
 def upgrade() -> None:

@@ -313,7 +313,6 @@ async def start_monitoring_stack(request: Request):
                 "services": ["grafana", "prometheus", "loki"],
                 "grafana_url": settings.GRAFANA_URL,
                 "prometheus_url": settings.PROMETHEUS_URL,
-                "output": stdout,
             },
         }
     except HTTPException:
