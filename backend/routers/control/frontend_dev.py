@@ -182,13 +182,27 @@ async def control_start():
                 creationflags=creationflags,
                 close_fds=close_fds,
             )
-        except Exception:
+        except Exception as exc:
+            # Ensure log file is closed on failure to start
+            if FRONTEND_LOG_FILE is not None:
+                try:
+                    FRONTEND_LOG_FILE.close()
+                except Exception:
+                    pass
+                FRONTEND_LOG_FILE = None
+            logger.error("Failed to start frontend process", extra={"error": str(exc)})
             return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
         import time as _time
 
         for _ in range(120):
             _time.sleep(0.25)
             if FRONTEND_PROCESS.poll() is not None:
+                if FRONTEND_LOG_FILE is not None:
+                    try:
+                        FRONTEND_LOG_FILE.close()
+                    except Exception:
+                        pass
+                    FRONTEND_LOG_FILE = None
                 return JSONResponse(
                     {"success": False, "message": "Frontend process terminated unexpectedly"}, status_code=500
                 )
@@ -202,8 +216,15 @@ async def control_start():
                 }
         try:
             safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to terminate frontend process after startup timeout", extra={"error": str(exc)})
+        finally:
+            if FRONTEND_LOG_FILE is not None:
+                try:
+                    FRONTEND_LOG_FILE.close()
+                except Exception:
+                    pass
+                FRONTEND_LOG_FILE = None
         return JSONResponse(
             {
                 "success": False,
@@ -310,8 +331,8 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 if FRONTEND_LOG_FILE is not None:
                     try:
                         FRONTEND_LOG_FILE.close()
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.warning("Failed to close frontend log file during stop", extra={"error": str(exc)})
                     FRONTEND_LOG_FILE = None
         ports_cleared = 0
         for port in FRONTEND_PORT_CANDIDATES:
