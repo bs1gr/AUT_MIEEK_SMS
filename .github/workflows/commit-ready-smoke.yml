@@ -7,6 +7,10 @@ on:
     branches:
       - '**'
 
+concurrency:
+  group: commit-ready-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: '3.11'
   NODE_VERSION: '20'

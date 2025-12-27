@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: commit-ready-cleanup-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke_cleanup:
     name: 'Cleanup Smoke Test'
