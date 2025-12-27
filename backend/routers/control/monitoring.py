@@ -322,7 +322,11 @@ async def start_monitoring_stack(request: Request):
             },
         )
         raise http_error(
-            500, ErrorCode.INTERNAL_SERVER_ERROR, f"Unexpected error starting monitoring: {str(exc)}", request
+            500,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            "Monitoring stack start failed",
+            request,
+            context={"error": "An unexpected error occurred"},
         ) from exc
 
 

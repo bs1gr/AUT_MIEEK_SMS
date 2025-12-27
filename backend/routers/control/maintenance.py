@@ -187,13 +187,11 @@ async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
                     break
 
             if auth_section_idx >= 0:
-                insert_idx = -1  # Initialize as invalid
+                insert_idx = len(updated_lines)  # Default to end of file
                 for j in range(auth_section_idx + 1, len(updated_lines)):
                     if updated_lines[j].strip().startswith("# ==="):
                         insert_idx = j
                         break
-                else:
-                    insert_idx = len(updated_lines)
 
                 for key in reversed(new_keys):
                     updated_lines.insert(insert_idx, key)

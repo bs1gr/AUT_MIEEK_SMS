@@ -804,7 +804,11 @@ async def generate_bulk_student_reports(
             reports.append(report_data)
 
         except Exception as e:
-            logger.error(f"Error generating report for student {student_id}: {str(e)}")
+            logger.error(
+                "Error generating report for student",
+                extra={"student_id": student_id, "error": str(e)},
+                exc_info=True,
+            )
             failed_students.append({"student_id": student_id, "error": str(e)})
 
     # Return results based on format

@@ -2,7 +2,6 @@ import os
 from types import SimpleNamespace
 import pytest
 from backend import environment
-import backend.main as main
 
 # The 'client' fixture will be provided by conftest.py
 
@@ -26,8 +25,7 @@ def test_control_start_success(monkeypatch, client):
         os.path,
         "isdir",
         lambda p: True
-        if ("frontend" in str(p) and "node_modules" not in str(p))
-        or "node_modules" in str(p)
+        if ("frontend" in str(p) and "node_modules" not in str(p)) or "node_modules" in str(p)
         else orig_isdir(p),
     )
 
@@ -61,9 +59,7 @@ def test_control_start_success(monkeypatch, client):
         def poll(self):
             return None
 
-    def fake_popen(
-        args, cwd=None, shell=False, stdout=None, stderr=None, text=None, **kwargs
-    ):
+    def fake_popen(args, cwd=None, shell=False, stdout=None, stderr=None, text=None, **kwargs):
         created["started"] = True
         # after starting, simulate that port is open
         monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: True)
@@ -80,15 +76,15 @@ def test_control_start_success(monkeypatch, client):
 
 def test_control_start_install_failure(monkeypatch, tmp_path, client):
     # Ensure frontend not already running
+    import backend.main as main
+
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
     # Frontend dir exists but node_modules missing
     monkeypatch.setattr(
         os.path,
         "isdir",
-        lambda p: True
-        if ("frontend" in str(p) and "node_modules" not in str(p))
-        else False,
+        lambda p: True if ("frontend" in str(p) and "node_modules" not in str(p)) else False,
     )
 
     # npm found
@@ -127,6 +123,8 @@ def test_control_start_install_failure(monkeypatch, tmp_path, client):
 
 def test_control_start_process_terminated(monkeypatch, client):
     # Ensure frontend not already running
+    import backend.main as main
+
     monkeypatch.setattr(main, "_is_port_open", lambda host, port, timeout=0.5: False)
 
     # frontend dir and node_modules present

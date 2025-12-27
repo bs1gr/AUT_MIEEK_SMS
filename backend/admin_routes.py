@@ -38,9 +38,7 @@ except Exception:
 
 
 # Robust imports when running as a package or directly
-def _import_from_possible_locations(
-    module_basename: str, names: Iterable[str]
-) -> Tuple[Any, ...]:
+def _import_from_possible_locations(module_basename: str, names: Iterable[str]) -> Tuple[Any, ...]:
     """Try importing names from 'backend.<module_basename>' first, then fall back to '<module_basename>'.
 
     Returns a tuple with attributes in the same order as `names`.
@@ -56,17 +54,13 @@ def _import_from_possible_locations(
         except Exception:
             # try next candidate
             continue
-    raise ImportError(
-        f"Could not import {', '.join(names)} from {module_basename} or backend.{module_basename}"
-    )
+    raise ImportError(f"Could not import {', '.join(names)} from {module_basename} or backend.{module_basename}")
 
 
 # Import required names (prefer package imports when available)
 (settings,) = _import_from_possible_locations("config", ["settings"])
 get_db, engine = _import_from_possible_locations("db", ["get_session", "engine"])
-Student, Course, Grade, Base = _import_from_possible_locations(
-    "models", ["Student", "Course", "Grade", "Base"]
-)
+Student, Course, Grade, Base = _import_from_possible_locations("models", ["Student", "Course", "Grade", "Base"])
 
 # Create router
 router = APIRouter()
@@ -120,17 +114,11 @@ async def backup_database(_auth=Depends(require_control_admin)):
         db_url = settings.DATABASE_URL
         # Only support sqlite URLs for file backup
         if not db_url.startswith("sqlite"):
-            raise HTTPException(
-                status_code=400, detail="Backup supported only for SQLite DB"
-            )
+            raise HTTPException(status_code=400, detail="Backup supported only for SQLite DB")
 
         # Extract filesystem path (sqlite:///path or sqlite:////abs/path)
         # Remove url scheme
-        path_part = (
-            db_url.split("sqlite:///", 1)[-1]
-            if "sqlite:///" in db_url
-            else db_url.split("sqlite:", 1)[-1]
-        )
+        path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
         db_path = path_part.lstrip("/") if os.name == "nt" else path_part
 
         if not os.path.exists(db_path):
@@ -161,9 +149,7 @@ async def backup_database(_auth=Depends(require_control_admin)):
 
 
 @router.post("/sample-data")
-async def add_sample_data(
-    db: Session = Depends(get_db), _auth=Depends(require_control_admin)
-):
+async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_control_admin)):
     """Add sample data for testing"""
     try:
         # Check if data already exists
@@ -302,9 +288,7 @@ async def debug_processes(_auth=Depends(require_control_admin)):
                 # Log and continue
                 import logging
 
-                logging.getLogger(__name__).debug(
-                    f"Error checking frontend port 5173: {e}"
-                )
+                logging.getLogger(__name__).debug(f"Error checking frontend port 5173: {e}")
 
         # Check vite node processes
         for proc in psutil.process_iter(["pid", "name", "cmdline"]):
@@ -329,9 +313,7 @@ async def debug_processes(_auth=Depends(require_control_admin)):
             except Exception as e:
                 import logging
 
-                logging.getLogger(__name__).debug(
-                    f"Error checking vite node processes: {e}"
-                )
+                logging.getLogger(__name__).debug(f"Error checking vite node processes: {e}")
 
         # Check shell processes
         for proc in psutil.process_iter(["pid", "name", "cmdline"]):
@@ -349,9 +331,7 @@ async def debug_processes(_auth=Depends(require_control_admin)):
             except Exception as e:
                 import logging
 
-                logging.getLogger(__name__).debug(
-                    f"Error checking shell processes: {e}"
-                )
+                logging.getLogger(__name__).debug(f"Error checking shell processes: {e}")
 
         # Backend process info
         current = psutil.Process(os.getpid())
@@ -442,14 +422,9 @@ def _docker_shutdown_routine():
             except Exception as e:
                 import logging
 
-                logging.getLogger(__name__).debug(
-                    f"Error finding docker-compose command: {e}"
-                )
-                pass
+                logging.getLogger(__name__).debug(f"Error finding docker-compose command: {e}")
         if not compose_cmd:
-            print(
-                "[Docker] Warning: docker-compose not found, cannot stop containers gracefully"
-            )
+            print("[Docker] Warning: docker-compose not found, cannot stop containers gracefully")
             print("[Docker] Container will stop when process exits")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
@@ -485,15 +460,11 @@ def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
             for child in proc.children(recursive=True):
                 try:
                     child.kill()
-                    print(
-                        f"[{process_name}]   Killed child: {child.pid} - {child.name()}"
-                    )
+                    print(f"[{process_name}]   Killed child: {child.pid} - {child.name()}")
                 except Exception as e:
                     import logging
 
-                    logging.getLogger(__name__).debug(
-                        f"Error killing child process {child.pid}: {e}"
-                    )
+                    logging.getLogger(__name__).debug(f"Error killing child process {child.pid}: {e}")
                     pass
             proc.kill()
             print(f"[{process_name}] Successfully killed main process.")

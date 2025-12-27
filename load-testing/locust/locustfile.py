@@ -462,13 +462,13 @@ if SKIP_AUTH:
                     _orig = getattr(mod.HttpSession, "request", None)
 
                     def _make_patched(_orig):
-                        def _patched(self, method, url, *args, **kwargs):
+                        def _patched(http_self, method, url, *args, **kwargs):
                             if isinstance(url, str) and "/api/v1/auth" in url:
 
                                 class _DummyResp2:
                                     status_code = 200
 
-                                    def json(self_inner):
+                                    def json(resp_self):
                                         return {
                                             "access_token": "ci-bypass-token",
                                             "refresh_token": "ci-bypass-refresh",
@@ -476,7 +476,7 @@ if SKIP_AUTH:
 
                                 return _DummyResp2()
                             if _orig:
-                                return _orig(self, method, url, *args, **kwargs)
+                                return _orig(http_self, method, url, *args, **kwargs)
                             return None
 
                         return _patched
@@ -496,14 +496,14 @@ if SKIP_AUTH:
             if hasattr(_lc_http, "HttpSession"):
                 _orig_lc = getattr(_lc_http.HttpSession, "request", None)
 
-                def _patched_lc_request(self, method, url, *args, **kwargs):
+                def _patched_lc_request(http_self, method, url, *args, **kwargs):
                     # url may be path-only when using FastHttpUser, join not needed here
                     if isinstance(url, str) and "/api/v1/auth" in url:
 
                         class _DummyResp2:
                             status_code = 200
 
-                            def json(self_inner):
+                            def json(resp_self):
                                 return {
                                     "access_token": "ci-bypass-token",
                                     "refresh_token": "ci-bypass-refresh",
@@ -511,7 +511,7 @@ if SKIP_AUTH:
 
                         return _DummyResp2()
                     if _orig_lc:
-                        return _orig_lc(self, method, url, *args, **kwargs)
+                        return _orig_lc(http_self, method, url, *args, **kwargs)
                     return None
 
                 _lc_http.HttpSession.request = _patched_lc_request

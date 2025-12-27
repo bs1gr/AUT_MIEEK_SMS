@@ -36,6 +36,7 @@ except Exception:
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 FRONTEND_PROCESS: subprocess.Popen | None = None
+FRONTEND_LOG_FILE: Any = None  # Track log file handle to ensure proper cleanup
 
 
 def _resolve_npm_via_legacy() -> Optional[str]:
@@ -65,7 +66,7 @@ def _is_port_open_via_legacy(port: int) -> bool:
 
 @router.post("/start")
 async def control_start():
-    global FRONTEND_PROCESS
+    global FRONTEND_PROCESS, FRONTEND_LOG_FILE
     try:
         if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
             return {"success": True, "message": "Frontend already running", "port": FRONTEND_PORT_PREFERRED}
@@ -170,13 +171,13 @@ async def control_start():
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
-            frontend_log_file = open(frontend_log_path, "a", encoding="utf-8")
+            FRONTEND_LOG_FILE = open(frontend_log_path, "a", encoding="utf-8")  # noqa: SIM115
             FRONTEND_PROCESS = subprocess.Popen(
                 start_args,
                 cwd=frontend_dir,
                 shell=False,
-                stdout=frontend_log_file,
-                stderr=frontend_log_file,
+                stdout=FRONTEND_LOG_FILE,
+                stderr=FRONTEND_LOG_FILE,
                 text=True,
                 creationflags=creationflags,
                 close_fds=close_fds,
@@ -273,15 +274,20 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
             response_data["warnings"] = errors
         return response_data
     except Exception as e:
+        logger.error("Shutdown error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Shutdown error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Shutdown error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )
 
 
 @router.post("/stop")
 async def control_stop(request: Request, _auth=Depends(require_control_admin)):
-    global FRONTEND_PROCESS
+    global FRONTEND_PROCESS, FRONTEND_LOG_FILE
     try:
         stopped_any = False
         stopped_pids: list[int] = []
@@ -300,6 +306,13 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 errors.append(f"Tracked process: {e!s}")
             finally:
                 FRONTEND_PROCESS = None
+                # Close log file if open
+                if FRONTEND_LOG_FILE is not None:
+                    try:
+                        FRONTEND_LOG_FILE.close()
+                    except Exception:
+                        pass
+                    FRONTEND_LOG_FILE = None
         ports_cleared = 0
         for port in FRONTEND_PORT_CANDIDATES:
             pids = find_pids_on_port(port)
@@ -331,8 +344,13 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
             response_data["warnings"] = errors
         return response_data
     except Exception as e:
+        logger.error("Frontend stop error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Frontend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Frontend stop error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )
 
@@ -375,7 +393,12 @@ async def control_stop_backend(request: Request, _auth=Depends(require_control_a
             "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
+        logger.error("Backend stop error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Backend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Backend stop error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )

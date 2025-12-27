@@ -64,7 +64,7 @@ class EnrollmentService:
         CourseEnrollment, Course = import_names("models", "CourseEnrollment", "Course")
 
         # Verify course exists
-        _course = get_by_id_or_404(db, Course, course_id)
+        get_by_id_or_404(db, Course, course_id)
 
         enrollments = (
             db.query(CourseEnrollment)
@@ -98,7 +98,7 @@ class EnrollmentService:
         Student, CourseEnrollment = import_names("models", "Student", "CourseEnrollment")
 
         # Verify student exists
-        _student = get_by_id_or_404(db, Student, student_id)
+        get_by_id_or_404(db, Student, student_id)
 
         enrollments = (
             db.query(CourseEnrollment)

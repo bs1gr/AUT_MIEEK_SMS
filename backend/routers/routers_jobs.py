@@ -60,7 +60,14 @@ async def create_job(
     if not job:
         raise HTTPException(status_code=500, detail="Failed to create job")
 
-    logger.info(f"Job {job_id} created: type={job_create.job_type.value}, " f"user={job_create.user_id}")
+    logger.info(
+        "Job created",
+        extra={
+            "job_id": job_id,
+            "job_type": job_create.job_type.value,
+            "user_id": job_create.user_id,
+        },
+    )
 
     return job
 

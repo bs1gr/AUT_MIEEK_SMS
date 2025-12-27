@@ -37,7 +37,8 @@ class HighlightService:
         db.refresh(db_highlight)
 
         logger.info(
-            "Created highlight %s for student %s", db_highlight.id, payload.student_id
+            "Created highlight",
+            extra={"highlight_id": db_highlight.id, "student_id": payload.student_id},
         )
         return db_highlight
 
@@ -64,12 +65,7 @@ class HighlightService:
             query = query.filter(Highlight.is_positive == is_positive)
 
         total = query.count()
-        highlights = (
-            query.order_by(Highlight.date_created.desc())
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        highlights = query.order_by(Highlight.date_created.desc()).offset(skip).limit(limit).all()
 
         return {
             "highlights": cast(list[HighlightResponse], highlights),
@@ -86,11 +82,10 @@ class HighlightService:
     @staticmethod
     def list_for_student(db: Session, student_id: int, semester: Optional[str] = None):
         Highlight, Student = import_names("models", "Highlight", "Student")
-        _student = get_by_id_or_404(db, Student, student_id)
+        # Verify student exists
+        get_by_id_or_404(db, Student, student_id)
 
-        query = db.query(Highlight).filter(
-            Highlight.student_id == student_id, Highlight.deleted_at.is_(None)
-        )
+        query = db.query(Highlight).filter(Highlight.student_id == student_id, Highlight.deleted_at.is_(None))
         if semester:
             query = query.filter(Highlight.semester == semester)
         return query.order_by(Highlight.date_created.desc()).all()
