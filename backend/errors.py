@@ -128,9 +128,7 @@ def http_error(
     )
 
 
-def internal_server_error(
-    message: str = "Internal server error", request: Optional[Request] = None
-) -> HTTPException:
+def internal_server_error(message: str = "Internal server error", request: Optional[Request] = None) -> HTTPException:
     """Shortcut for returning a 500 error with a standard payload."""
 
     return http_error(

@@ -711,9 +711,7 @@ def test_attendance_stats(client):
         )
 
     # Get stats
-    response = client.get(
-        f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}"
-    )
+    response = client.get(f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}")
     assert response.status_code == 200
     data = response.json()
 
@@ -747,9 +745,7 @@ def test_attendance_stats_no_records_returns_message(client):
     )
     course_id = course_resp.json()["id"]
 
-    response = client.get(
-        f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}"
-    )
+    response = client.get(f"/api/v1/attendance/stats/student/{student_id}/course/{course_id}")
     assert response.status_code == 200
     assert response.json() == {"message": "No attendance records found"}
 

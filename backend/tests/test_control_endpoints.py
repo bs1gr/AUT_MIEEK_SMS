@@ -52,10 +52,7 @@ def test_control_start_npm_missing(monkeypatch, client):
     resp = client.post("/control/api/start")
     assert resp.status_code in (400, 500)
     data = resp.json()
-    assert (
-        data.get("message")
-        == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
-    )
+    assert data.get("message") == "npm not found. Please install Node.js and npm (https://nodejs.org/)"
 
 
 def test_control_stop_kills_pids(monkeypatch, client):
@@ -138,9 +135,7 @@ def test_restart_disabled_when_control_api_off(monkeypatch, client):
 
 
 def test_install_frontend_deps_missing_package_json(monkeypatch, client):
-    package_path = str(
-        (Path(control.__file__).resolve().parents[2] / "frontend" / "package.json")
-    )
+    package_path = str((Path(control.__file__).resolve().parents[2] / "frontend" / "package.json"))
     original_exists = Path.exists
 
     def fake_exists(self):
@@ -168,9 +163,7 @@ def test_install_frontend_deps_npm_missing(monkeypatch, client):
 
 
 def test_install_backend_deps_missing_requirements(monkeypatch, client):
-    requirements_path = str(
-        (Path(control.__file__).resolve().parents[2] / "backend" / "requirements.txt")
-    )
+    requirements_path = str((Path(control.__file__).resolve().parents[2] / "backend" / "requirements.txt"))
     original_exists = Path.exists
 
     def fake_exists(self):
@@ -214,9 +207,7 @@ def test_download_database_backup_success(tmp_path, client):
     backup_path.write_bytes(b"fake-backup")
 
     try:
-        resp = client.get(
-            f"/control/api/operations/database-backups/{filename}/download"
-        )
+        resp = client.get(f"/control/api/operations/database-backups/{filename}/download")
         assert resp.status_code == 200
         assert resp.content == b"fake-backup"
         assert resp.headers["content-type"] == "application/octet-stream"

@@ -72,11 +72,7 @@ def test_upload_courses_accepts_application_json(client: TestClient):
     assert resp2.status_code == 200
     data2 = resp2.json()
     found = next(
-        (
-            item
-            for item in data2.get("items", [])
-            if item.get("course_code") == "TEST102"
-        ),
+        (item for item in data2.get("items", []) if item.get("course_code") == "TEST102"),
         None,
     )
     assert found is not None
@@ -122,11 +118,7 @@ def test_upload_courses_preserves_evaluation_rules(client: TestClient):
     assert resp2.status_code == 200
     data2 = resp2.json()
     found = next(
-        (
-            item
-            for item in data2.get("items", [])
-            if item.get("course_code") == "TEST103"
-        ),
+        (item for item in data2.get("items", []) if item.get("course_code") == "TEST103"),
         None,
     )
     assert found is not None
@@ -138,9 +130,7 @@ def test_upload_courses_preserves_evaluation_rules(client: TestClient):
 
     # Verify weights sum to 100
     total_weight = sum(rule.get("weight", 0) for rule in er)
-    assert (
-        abs(total_weight - 100.0) < 0.01
-    ), f"Total weight should be 100, got {total_weight}"
+    assert abs(total_weight - 100.0) < 0.01, f"Total weight should be 100, got {total_weight}"
 
     # Verify all expected categories are present (may be translated)
     categories = [rule.get("category") for rule in er]

@@ -6,6 +6,65 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.12.8] - 2025-12-27
+
+**Release Type**: Patch Release
+**Focus**: Authentication Bypass Logic & Test Infrastructure Fixes
+
+### Fixed
+
+**Authentication & Security** 🔐
+- Simplified `get_current_user()` auth bypass logic to only bypass when `AUTH_ENABLED=False` AND no Authorization header present
+- Removed redundant CI/pytest detection that was interfering with auth endpoint token generation
+- Auth endpoints (`/api/v1/auth/login`, `/api/v1/auth/register`) now work correctly in test environments
+- Test helper functions can now properly obtain access tokens for session/import/export tests
+
+**Configuration & Validation** ⚙️
+- Fixed SECRET_KEY validation to allow config tests to properly test validation behavior
+- Removed early CI/pytest return in `check_secret_key()` model validator that was breaking explicit test cases
+- Auto-generation only happens when enforcement is active (AUTH_ENABLED or SECRET_KEY_STRICT_ENFORCEMENT)
+- Config tests can now explicitly control SECRET_KEY values for validation testing
+
+**Test Infrastructure** 🧪
+- Restored `AUTH_ENABLED=False` patch in `conftest.py` for non-auth tests
+- Fixed SQLite thread safety with `check_same_thread=False` for test database connections
+- Fixed admin bootstrap test mock expectations to align with actual bootstrap behavior
+- Fixed CSV import router docstring formatting issues
+- All changes preserve backward compatibility with existing test suite
+
+**Code Quality** ✨
+- Removed unused `allow_insecure_flag` variable from config module
+- All pre-commit hooks passing (ruff, ruff-format, secrets detection)
+- Improved code clarity and maintainability
+
+### Technical Details
+
+**Auth Bypass Flow** (backend/security/current_user.py):
+```python
+# When AUTH_ENABLED=False and no auth header:
+if not auth_enabled or auth_mode == "disabled":
+    if not is_auth_endpoint and not auth_header_probe:
+        return dummy_admin_user  # Allow anonymous access
+```
+
+**SECRET_KEY Validation** (backend/config.py):
+- CI/pytest environments auto-generate secure keys when enforcement is active
+- Tests can override by providing explicit non-default SECRET_KEY values
+- Production/staging environments require secure keys regardless
+
+**Database Configuration** (backend/models.py, backend/tests/db_setup.py):
+- SQLite connections use `check_same_thread=False` to avoid threading errors in tests
+- NullPool used for test connections to prevent connection reuse issues
+
+### Migration Notes
+
+- No breaking changes
+- Tests should run successfully with default configuration
+- Auth-specific tests work correctly with token generation
+- Config validation tests can explicitly test enforcement behavior
+
+---
+
 ## [1.12.7] - 2025-12-24
 
 **Release Type**: Patch Release

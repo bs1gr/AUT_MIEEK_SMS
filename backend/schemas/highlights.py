@@ -17,28 +17,20 @@ class HighlightBase(BaseModel):
         max_length=50,
         description="Semester identifier (e.g., 'Fall 2024')",
     )
-    rating: Optional[int] = Field(
-        None, ge=0, le=10, description="Student rating (0-10)"
-    )
+    rating: Optional[int] = Field(None, ge=0, le=10, description="Student rating (0-10)")
     category: Optional[str] = Field(
         None,
         max_length=100,
         description="Highlight category (e.g., 'Academic', 'Behavior', 'Extracurricular')",
     )
-    highlight_text: str = Field(
-        ..., min_length=1, description="Highlight description text"
-    )
-    is_positive: bool = Field(
-        default=True, description="Whether this is a positive highlight"
-    )
+    highlight_text: str = Field(..., min_length=1, description="Highlight description text")
+    is_positive: bool = Field(default=True, description="Whether this is a positive highlight")
 
 
 class HighlightCreate(HighlightBase):
     """Schema for creating a new highlight"""
 
-    student_id: int = Field(
-        ..., gt=0, description="Student ID to associate highlight with"
-    )
+    student_id: int = Field(..., gt=0, description="Student ID to associate highlight with")
 
 
 class HighlightUpdate(BaseModel):

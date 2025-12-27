@@ -58,8 +58,8 @@ def _is_port_open_via_legacy(port: int) -> bool:
         fn = getattr(_main, "_is_port_open", None)
         if callable(fn):
             return bool(fn("127.0.0.1", port, timeout=0.5))
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Legacy port check failed, falling back", extra={"error": str(exc), "port": port})
     return is_port_open(port)
 
 
@@ -163,54 +163,61 @@ async def control_start():
             if sys.platform == "win32":
                 try:
                     creationflags = subprocess.CREATE_NO_WINDOW  # type: ignore[attr-defined]
-                except Exception:
+                except Exception as exc:
                     creationflags = 0
+                    logger.debug("CREATE_NO_WINDOW not available, using defaults", extra={"error": str(exc)})
             close_fds = sys.platform != "win32"
             logs_dir = PROJECT_ROOT / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
-            frontend_log_file = open(frontend_log_path, "a", encoding="utf-8")
-            FRONTEND_PROCESS = subprocess.Popen(
-                start_args,
-                cwd=frontend_dir,
-                shell=False,
-                stdout=frontend_log_file,
-                stderr=frontend_log_file,
-                text=True,
-                creationflags=creationflags,
-                close_fds=close_fds,
-            )
-        except Exception:
-            return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
-        import time as _time
-
-        for _ in range(120):
-            _time.sleep(0.25)
-            if FRONTEND_PROCESS.poll() is not None:
-                return JSONResponse(
-                    {"success": False, "message": "Frontend process terminated unexpectedly"}, status_code=500
+            with open(frontend_log_path, "a", encoding="utf-8") as log_file:  # noqa: SIM115
+                FRONTEND_PROCESS = subprocess.Popen(
+                    start_args,
+                    cwd=frontend_dir,
+                    shell=False,
+                    stdout=log_file,
+                    stderr=log_file,
+                    text=True,
+                    creationflags=creationflags,
+                    close_fds=close_fds,
                 )
-            if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
-                return {
-                    "success": True,
-                    "message": "Frontend started successfully",
-                    "port": FRONTEND_PORT_PREFERRED,
-                    "url": f"http://localhost:{FRONTEND_PORT_PREFERRED}",
-                    "pid": FRONTEND_PROCESS.pid,
-                }
-        try:
-            safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
-        except Exception:
-            pass
-        return JSONResponse(
-            {
-                "success": False,
-                "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
-                "hint": f"Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
-            },
-            status_code=500,
-        )
+
+                import time as _time
+
+                for _ in range(120):
+                    _time.sleep(0.25)
+                    if FRONTEND_PROCESS.poll() is not None:
+                        return JSONResponse(
+                            {"success": False, "message": "Frontend process terminated unexpectedly"},
+                            status_code=500,
+                        )
+                    if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
+                        return {
+                            "success": True,
+                            "message": "Frontend started successfully",
+                            "port": FRONTEND_PORT_PREFERRED,
+                            "url": f"http://localhost:{FRONTEND_PORT_PREFERRED}",
+                            "pid": FRONTEND_PROCESS.pid,
+                        }
+
+                try:
+                    safe_run(["taskkill", "/F", "/T", "/PID", str(FRONTEND_PROCESS.pid)], timeout=3)
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to terminate frontend process after startup timeout", extra={"error": str(exc)}
+                    )
+                return JSONResponse(
+                    {
+                        "success": False,
+                        "message": f"Frontend failed to start on port {FRONTEND_PORT_PREFERRED} within 30 seconds",
+                        "hint": f"Port may be in use. Check with: netstat -ano | findstr :{FRONTEND_PORT_PREFERRED}",
+                    },
+                    status_code=500,
+                )
+        except Exception as exc:
+            logger.error("Failed to start frontend process", extra={"error": str(exc)})
+            return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
     except Exception as e:
         return JSONResponse({"success": False, "message": f"Unexpected error: {e!s}"}, status_code=500)
 
@@ -273,8 +280,13 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
             response_data["warnings"] = errors
         return response_data
     except Exception as e:
+        logger.error("Shutdown error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Shutdown error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Shutdown error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )
 
@@ -331,8 +343,13 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
             response_data["warnings"] = errors
         return response_data
     except Exception as e:
+        logger.error("Frontend stop error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Frontend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Frontend stop error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )
 
@@ -352,15 +369,17 @@ async def control_stop_backend(request: Request, _auth=Depends(require_control_a
                     for pid in {current_pid, parent_pid}:
                         try:
                             safe_run(["taskkill", "/F", "/T", "/PID", str(pid)], timeout=3)
-                        except Exception:
-                            pass
+                        except Exception as exc:
+                            logger.warning(
+                                "Failed to taskkill during backend stop", extra={"pid": pid, "error": str(exc)}
+                            )
                 else:
                     import signal
 
                     try:
                         os.kill(current_pid, signal.SIGTERM)
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.warning("Failed to send SIGTERM during backend stop", extra={"error": str(exc)})
             finally:
                 os._exit(0)
 
@@ -375,7 +394,12 @@ async def control_stop_backend(request: Request, _auth=Depends(require_control_a
             "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
+        logger.error("Backend stop error", extra={"error": str(e)}, exc_info=True)
         return JSONResponse(
-            {"success": False, "message": f"Backend stop error: {e!s}", "timestamp": datetime.now().isoformat()},
+            {
+                "success": False,
+                "message": "Backend stop error occurred",
+                "timestamp": datetime.now().isoformat(),
+            },
             status_code=500,
         )

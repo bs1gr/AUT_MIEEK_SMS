@@ -161,6 +161,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     COOKIE_SECURE: bool = False
+    # Refresh token expiry (days); used for cookie max_age and refresh token rotation
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # CSRF Protection
     CSRF_ENABLED: bool = False
@@ -286,8 +288,21 @@ class Settings(BaseSettings):
         engine = str(data.get("DATABASE_ENGINE") or "sqlite").lower()
         pg_fields = [data.get("POSTGRES_USER"), data.get("POSTGRES_PASSWORD"), data.get("POSTGRES_DB")]
         has_pg_creds = all(pg_fields)
+        # Prefer explicit Postgres config when requested
         if engine == "postgresql" or has_pg_creds:
             return _build_postgres_url_from_data(data)
+
+        # In test runtime, default to an in-memory SQLite database so tests that
+        # instantiate TestClient directly (without fixtures) still run against
+        # an isolated ephemeral DB.
+        try:
+            from backend.environment import get_runtime_context
+
+            if get_runtime_context().is_test:
+                return "sqlite:///:memory:"
+        except Exception:
+            # Fallback to regular default when environment detection is unavailable
+            pass
 
         return _DEFAULT_SQLITE_URL
 
@@ -393,11 +408,6 @@ class Settings(BaseSettings):
             or os.environ.get("PYTEST_RUNNING")
             or any("pytest" in (arg or "").lower() for arg in sys.argv)
         )
-        allow_insecure_flag = os.environ.get("CI_ALLOW_INSECURE_SECRET", "").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
 
         normalized_secret = (self.SECRET_KEY or "").strip()
         object.__setattr__(self, "SECRET_KEY", normalized_secret)
@@ -432,21 +442,11 @@ class Settings(BaseSettings):
             return self
 
         # Determine enforcement level
-        enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
         is_production = self.SMS_ENV.lower() in ("production", "prod", "staging")
+        enforcement_active = bool(self.SECRET_KEY_STRICT_ENFORCEMENT or self.AUTH_ENABLED)
 
         def handle_insecure(reason: str, warn_only: bool = False) -> "Settings":
             """Handle insecure SECRET_KEY based on environment and enforcement."""
-            if (is_ci or is_pytest or allow_insecure_flag) and not warn_only:
-                # Only auto-generate in CI/test when strict enforcement is active
-                new_key = secrets.token_urlsafe(48)
-                logger.warning(
-                    "⚠️  INSECURE SECRET_KEY (%s) detected in CI/test — auto-generating temporary key",
-                    reason,
-                )
-                object.__setattr__(self, "SECRET_KEY", new_key)
-                return self
-
             error_msg = (
                 f"🔐 SECRET_KEY SECURITY ISSUE: {reason}\n"
                 f"   Environment: {self.SMS_ENV} ({self.SMS_EXECUTION_MODE} mode)\n"
@@ -461,16 +461,28 @@ class Settings(BaseSettings):
                         "❌ CRITICAL: Running in production with weak SECRET_KEY! "
                         "This allows JWT token forgery and session hijacking."
                     )
+                # In warning mode, retain the provided key unchanged
                 return self
             else:
+                # In CI/pytest (non-production), auto-generate a secure temporary key
+                # so tests can proceed without manual configuration.
+                # This allows tests that don't care about SECRET_KEY to pass,
+                # while tests that explicitly test validation behavior can still
+                # override by setting non-default values.
+                if (is_ci or is_pytest) and not is_production:
+                    secure_key = secrets.token_urlsafe(48)
+                    object.__setattr__(self, "SECRET_KEY", secure_key)
+                    logger.warning(error_msg + "\n   Auto-generated temporary secure SECRET_KEY for tests/CI.")
+                    return self
+                # Strict enforcement elsewhere: raise
                 raise ValueError(error_msg)
 
         # Apply enforcement policy
         if enforcement_active:
-            # Strict enforcement: error unless CI/test
+            # Strict enforcement: error or auto-generate in CI/pytest
             return handle_insecure(security_issue, warn_only=False)
         else:
-            # Warning mode: log warning but allow
+            # Warning mode: log warning but allow (keep provided key)
             return handle_insecure(security_issue, warn_only=True)
 
         return self

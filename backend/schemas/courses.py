@@ -51,9 +51,7 @@ class CourseCreate(BaseModel):
     def validate_course_code(cls, v: str) -> str:
         """Ensure course code is uppercase and alphanumeric"""
         if not v.replace("-", "").replace("_", "").isalnum():
-            raise ValueError(
-                "Course code must be alphanumeric (hyphens and underscores allowed)"
-            )
+            raise ValueError("Course code must be alphanumeric (hyphens and underscores allowed)")
         return v.upper().strip()
 
     model_config = ConfigDict(from_attributes=True)

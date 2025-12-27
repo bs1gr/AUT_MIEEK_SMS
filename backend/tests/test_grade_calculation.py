@@ -45,9 +45,7 @@ def test_grade_calculation_logic():
     print("  - Regular grade: 80/100 (80%)")
     print("  - Daily performance: 9/10 (90%), multiplier = 2.0")
     print("OLD (incorrect) logic: add 90% twice → scores = [80, 90, 90] → avg = 86.67%")
-    print(
-        "NEW (correct) logic: weight daily score → scores = [80, 180] → avg = 130% (wrong!)"
-    )
+    print("NEW (correct) logic: weight daily score → scores = [80, 180] → avg = 130% (wrong!)")
     print("\n⚠️  ISSUE IDENTIFIED: Multiplier should weight within category calculation")
     print("BETTER approach: Track weighted sums separately")
     print("  - Regular grades: 80% (weight 1.0) = 80")

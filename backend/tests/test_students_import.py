@@ -55,11 +55,7 @@ def test_upload_students_preserves_all_fields(client: TestClient):
     assert resp2.status_code == 200
     data2 = resp2.json()
     found = next(
-        (
-            item
-            for item in data2.get("items", [])
-            if item.get("student_id") == "S2025TEST001"
-        ),
+        (item for item in data2.get("items", []) if item.get("student_id") == "S2025TEST001"),
         None,
     )
     assert found is not None
@@ -74,11 +70,7 @@ def test_upload_students_preserves_all_fields(client: TestClient):
 
     # Verify second student exists and has basic fields
     found2 = next(
-        (
-            item
-            for item in data2.get("items", [])
-            if item.get("student_id") == "S2025TEST002"
-        ),
+        (item for item in data2.get("items", []) if item.get("student_id") == "S2025TEST002"),
         None,
     )
     assert found2 is not None

@@ -24,9 +24,13 @@ import json
 import re
 import sys
 import argparse
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from datetime import datetime, date
+
+
+logger = logging.getLogger(__name__)
 
 
 class PDFToSMSConverter:
@@ -112,8 +116,11 @@ class PDFToSMSConverter:
                 parsed = json.loads(rules)
                 if isinstance(parsed, list):
                     return self.parse_evaluation_rules(parsed)
-            except Exception:
-                pass
+            except (json.JSONDecodeError, TypeError) as exc:
+                logger.debug(
+                    "Failed to parse evaluation rules as JSON",
+                    extra={"error": str(exc)},
+                )
 
             # Pattern matching for "Category: Weight%" format
             # Avoid polynomial redos: use possessive quantifier pattern (CWE-1333)

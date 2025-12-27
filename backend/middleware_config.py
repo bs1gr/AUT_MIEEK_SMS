@@ -29,9 +29,7 @@ def register_middlewares(app):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = (
-            "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-        )
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
 
         # Cache control for different content types
         path = request.url.path
@@ -40,9 +38,7 @@ def register_middlewares(app):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif path in ("/", "/index.html"):
             # HTML files - always revalidate to detect updates
-            response.headers["Cache-Control"] = (
-                "no-cache, no-store, must-revalidate, public, max-age=0"
-            )
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
         elif path.startswith(
@@ -65,8 +61,6 @@ def register_middlewares(app):
     if getattr(settings, "ENABLE_GZIP", True):
         app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)
     # CSRF protection
-    in_pytest = bool(
-        os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PYTEST_RUNNING")
-    )
+    in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PYTEST_RUNNING"))
     if not in_pytest:
         install_csrf_protection(app)

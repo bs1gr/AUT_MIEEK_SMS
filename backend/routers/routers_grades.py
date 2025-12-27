@@ -19,6 +19,7 @@ router = APIRouter(prefix="/grades", tags=["Grades"], responses={404: {"descript
 from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
+from backend.logging_config import safe_log_context
 from backend.rate_limiting import (  # Add rate limiting for write endpoints
     RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
@@ -97,13 +98,18 @@ def create_grade(
         # Metrics
         try:
             service._track_grade_submission(grade_data.course_id, getattr(created, "category", None))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug(
+                "Grade submission metric tracking failed",
+                extra=safe_log_context(
+                    course_id=grade_data.course_id, category=getattr(created, "category", None), error=str(exc)
+                ),
+            )
         return created
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error creating grade")
+    except Exception as e:
+        logger.exception("Error creating grade", extra=safe_log_context(error=str(e)))
         raise internal_server_error(request=request)
 
 
@@ -140,12 +146,12 @@ def get_all_grades(
         )
         logger.info(
             "Retrieved grades",
-            extra={
-                "count": len(result.items),
-                "skip": pagination.skip,
-                "limit": pagination.limit,
-                "total": result.total,
-            },
+            extra=safe_log_context(
+                count=len(result.items),
+                skip=pagination.skip,
+                limit=pagination.limit,
+                total=result.total,
+            ),
         )
         return result
     except HTTPException:
@@ -178,7 +184,10 @@ def get_student_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error retrieving student grades")
+        logger.exception(
+            "Error retrieving student grades",
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 
@@ -202,7 +211,10 @@ def get_course_grades(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error retrieving course grades")
+        logger.exception(
+            "Error retrieving course grades",
+            extra=safe_log_context(course_id=course_id, error=str(e)),
+        )
         raise internal_server_error(request=request)
 
 
@@ -220,7 +232,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        logger.exception("Error fetching grade")
+        logger.exception("Error fetching grade", extra=safe_log_context(grade_id=grade_id))
         raise internal_server_error(request=request)
 
 
@@ -244,8 +256,8 @@ def update_grade(
         return updated
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error updating grade")
+    except Exception as e:
+        logger.exception("Error updating grade", extra=safe_log_context(grade_id=grade_id, error=str(e)))
         raise internal_server_error(request=request)
 
 
@@ -261,12 +273,12 @@ def delete_grade(
     try:
         service = GradeService(db, request)
         service.delete_grade(grade_id)
-        logger.info("Deleted grade", extra={"grade_id": grade_id})
+        logger.info("Deleted grade", extra=safe_log_context(grade_id=grade_id))
         return None
     except HTTPException:
         raise
-    except Exception:
-        logger.exception("Error deleting grade")
+    except Exception as e:
+        logger.exception("Error deleting grade", extra=safe_log_context(grade_id=grade_id, error=str(e)))
         raise internal_server_error(request=request)
 
 

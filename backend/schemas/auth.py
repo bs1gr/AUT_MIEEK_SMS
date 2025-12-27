@@ -16,17 +16,13 @@ def _validate_password_strength(value: str, field_name: str = "password") -> str
         ("special character", lambda ch: not ch.isalnum()),
     ]
 
-    missing = [
-        name for name, predicate in checks if not any(predicate(ch) for ch in value)
-    ]
+    missing = [name for name, predicate in checks if not any(predicate(ch) for ch in value)]
     if missing:
         if len(missing) == 1:
             detail = missing[0]
         else:
             detail = ", ".join(missing[:-1]) + f", and {missing[-1]}"
-        raise ValueError(
-            f"{field_name.capitalize()} must contain at least one {detail}."
-        )
+        raise ValueError(f"{field_name.capitalize()} must contain at least one {detail}.")
 
     return value
 

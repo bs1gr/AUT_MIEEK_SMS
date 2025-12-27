@@ -288,9 +288,15 @@ async def start_monitoring_stack(request: Request):
     try:
         success, stdout, stderr = docker_compose(["-f", "docker-compose.monitoring.yml", "up", "-d"], timeout=120)
         if not success:
-            raise http_error(
-                500, ErrorCode.CONTROL_OPERATION_FAILED, f"Failed to start monitoring stack: {stderr}", request
+            logger.error(
+                "Failed to start monitoring stack",
+                extra={
+                    "action": "monitoring_start_failed",
+                    "stderr": str(stderr),
+                    "request_id": getattr(request.state, "request_id", None),
+                },
             )
+            raise http_error(500, ErrorCode.CONTROL_OPERATION_FAILED, "Failed to start monitoring stack", request)
         settings = get_settings()
         logger.info(
             "Monitoring stack started",
@@ -307,7 +313,6 @@ async def start_monitoring_stack(request: Request):
                 "services": ["grafana", "prometheus", "loki"],
                 "grafana_url": settings.GRAFANA_URL,
                 "prometheus_url": settings.PROMETHEUS_URL,
-                "output": stdout,
             },
         }
     except HTTPException:
@@ -322,7 +327,11 @@ async def start_monitoring_stack(request: Request):
             },
         )
         raise http_error(
-            500, ErrorCode.INTERNAL_SERVER_ERROR, f"Unexpected error starting monitoring: {str(exc)}", request
+            500,
+            ErrorCode.CONTROL_OPERATION_FAILED,
+            "Monitoring stack start failed",
+            request,
+            context={"error": "An unexpected error occurred"},
         ) from exc
 
 

@@ -130,23 +130,17 @@ def test_enroll_duplicate_prevention(client):
     course_id = course_resp.json()["id"]
 
     # First enrollment
-    response1 = client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]}
-    )
+    response1 = client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]})
     assert response1.json()["created"] == 1
 
     # Try to enroll again (should skip duplicate)
-    response2 = client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]}
-    )
+    response2 = client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]})
     assert response2.json()["created"] == 0
 
 
 def test_enroll_nonexistent_course(client):
     """Enrolling in non-existent course should fail"""
-    response = client.post(
-        "/api/v1/enrollments/course/99999", json={"student_ids": [1]}
-    )
+    response = client.post("/api/v1/enrollments/course/99999", json={"student_ids": [1]})
 
     assert response.status_code == 404
     detail = response.json()["detail"]
@@ -168,9 +162,7 @@ def test_enroll_nonexistent_student_skipped(client):
     course_id = course_resp.json()["id"]
 
     # Try to enroll non-existent students
-    response = client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [99999, 88888]}
-    )
+    response = client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [99999, 88888]})
 
     assert response.status_code == 200
     assert response.json()["created"] == 0
@@ -202,19 +194,14 @@ def test_get_all_enrollments(client):
     course_id = course_resp.json()["id"]
 
     # Enroll
-    client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]}
-    )
+    client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]})
 
     # Get all enrollments
     response = client.get("/api/v1/enrollments/")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] >= 1
-    assert any(
-        e["student_id"] == student_id and e["course_id"] == course_id
-        for e in data["items"]
-    )
+    assert any(e["student_id"] == student_id and e["course_id"] == course_id for e in data["items"])
 
 
 def test_list_course_enrollments(client):
@@ -245,9 +232,7 @@ def test_list_course_enrollments(client):
         student_ids.append(student_resp.json()["id"])
 
     # Enroll students
-    client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids}
-    )
+    client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids})
 
     # List course enrollments
     response = client.get(f"/api/v1/enrollments/course/{course_id}")
@@ -344,18 +329,14 @@ def test_list_enrolled_students(client):
         )
         student_ids.append(student_resp.json()["id"])
 
-    client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids}
-    )
+    client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids})
 
     # List enrolled students
     response = client.get(f"/api/v1/enrollments/course/{course_id}/students")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 3
-    assert all(
-        "first_name" in s and "last_name" in s and "student_id" in s for s in data
-    )
+    assert all("first_name" in s and "last_name" in s and "student_id" in s for s in data)
 
 
 def test_list_enrolled_students_not_found(client):
@@ -392,18 +373,14 @@ def test_unenroll_student_success(client):
     course_id = course_resp.json()["id"]
 
     # Enroll student
-    client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]}
-    )
+    client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": [student_id]})
 
     # Verify enrollment exists
     enrollments = client.get(f"/api/v1/enrollments/course/{course_id}").json()
     assert len(enrollments) == 1
 
     # Unenroll student
-    response = client.delete(
-        f"/api/v1/enrollments/course/{course_id}/student/{student_id}"
-    )
+    response = client.delete(f"/api/v1/enrollments/course/{course_id}/student/{student_id}")
     assert response.status_code == 200
     assert response.json()["message"] == "Unenrolled"
 
@@ -438,9 +415,7 @@ def test_unenroll_student_not_found(client):
     course_id = course_resp.json()["id"]
 
     # Try to unenroll without enrolling first
-    response = client.delete(
-        f"/api/v1/enrollments/course/{course_id}/student/{student_id}"
-    )
+    response = client.delete(f"/api/v1/enrollments/course/{course_id}/student/{student_id}")
     assert response.status_code == 404
     payload = response.json()
     assert get_error_message(payload) == "Enrollment not found"
@@ -475,9 +450,7 @@ def test_enrollment_pagination(client):
         student_ids.append(student_resp.json()["id"])
 
     # Enroll all students
-    client.post(
-        f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids}
-    )
+    client.post(f"/api/v1/enrollments/course/{course_id}", json={"student_ids": student_ids})
 
     # Test pagination
     response_page1 = client.get("/api/v1/enrollments/?skip=0&limit=3")
@@ -490,11 +463,7 @@ def test_enrollment_pagination(client):
 
     # Verify pagination works (different results)
     if len(page1_data["items"]) >= 3:
-        assert (
-            page1_data["items"][0]["id"] != page2_data["items"][0]["id"]
-            if len(page2_data["items"]) > 0
-            else True
-        )
+        assert page1_data["items"][0]["id"] != page2_data["items"][0]["id"] if len(page2_data["items"]) > 0 else True
 
 
 def test_enroll_with_custom_date(client):

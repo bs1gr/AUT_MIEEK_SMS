@@ -46,9 +46,7 @@ class OperationResult:
     duration_ms: Optional[int] = None
 
     @classmethod
-    def success_result(
-        cls, message: str, data: Optional[Dict] = None
-    ) -> "OperationResult":
+    def success_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a successful result"""
         return cls(True, message, OperationStatus.SUCCESS, data)
 
@@ -68,16 +66,12 @@ class OperationResult:
         return cls(False, message, OperationStatus.FAILURE, data, error)
 
     @classmethod
-    def warning_result(
-        cls, message: str, data: Optional[Dict] = None
-    ) -> "OperationResult":
+    def warning_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a warning result (operation succeeded but with warnings)"""
         return cls(True, message, OperationStatus.WARNING, data)
 
     @classmethod
-    def partial_result(
-        cls, message: str, data: Optional[Dict] = None
-    ) -> "OperationResult":
+    def partial_result(cls, message: str, data: Optional[Dict] = None) -> "OperationResult":
         """Create a partial success result"""
         return cls(True, message, OperationStatus.PARTIAL, data)
 
@@ -222,12 +216,7 @@ class DependencyStatus:
 
     def is_satisfied(self) -> bool:
         """Check if all required dependencies are satisfied"""
-        return (
-            self.python_installed
-            and self.python_sufficient
-            and self.node_installed
-            and self.node_sufficient
-        )
+        return self.python_installed and self.python_sufficient and self.node_installed and self.node_sufficient
 
     def get_issues(self) -> List[str]:
         """Get list of dependency issues"""
@@ -317,9 +306,7 @@ class OperationLogger:
     _configured = False
 
     @staticmethod
-    def configure(
-        log_file: Optional[Path] = None, level: str = "INFO", console: bool = True
-    ) -> None:
+    def configure(log_file: Optional[Path] = None, level: str = "INFO", console: bool = True) -> None:
         """
         Configure logging for operations.
 

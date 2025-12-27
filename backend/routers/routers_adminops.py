@@ -23,9 +23,7 @@ from backend.security.permissions import optional_require_permission
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}}
-)
+router = APIRouter(prefix="/adminops", tags=["AdminOps"], responses={404: {"description": "Not found"}})
 
 _THIS_FILE = Path(__file__).resolve()
 _BACKEND_DIR = _THIS_FILE.parents[1]
@@ -78,9 +76,7 @@ def backup_database(
         raise
     except Exception as exc:
         logger.error("Backup failed: %s", exc, exc_info=True)
-        raise http_error(
-            500, ErrorCode.ADMINOPS_BACKUP_FAILED, "Backup failed", request
-        )
+        raise http_error(500, ErrorCode.ADMINOPS_BACKUP_FAILED, "Backup failed", request)
 
 
 @router.post("/restore")
@@ -101,9 +97,7 @@ def restore_database(
     try:
         os.makedirs(BACKUPS_DIR, exist_ok=True)
         # Save upload to temp
-        temp_target = os.path.join(
-            BACKUPS_DIR, f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-        )
+        temp_target = os.path.join(BACKUPS_DIR, f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
         with open(temp_target, "wb") as out:
             chunk = file.file.read(1024 * 1024)
             while chunk:
@@ -131,9 +125,7 @@ def restore_database(
         raise
     except Exception as exc:
         logger.error("Restore failed: %s", exc, exc_info=True)
-        raise http_error(
-            500, ErrorCode.ADMINOPS_RESTORE_FAILED, "Restore failed", request
-        )
+        raise http_error(500, ErrorCode.ADMINOPS_RESTORE_FAILED, "Restore failed", request)
 
 
 @router.post("/clear")

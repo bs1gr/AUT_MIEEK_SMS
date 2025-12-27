@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, logout, waitForTable, ensureTestUserExists } from './helpers';
+import { login, logout, ensureTestUserExists } from './helpers';
 
 test.describe('Authentication Flow', () => {
   test.beforeAll(async () => {

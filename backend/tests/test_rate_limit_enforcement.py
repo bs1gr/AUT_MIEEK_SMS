@@ -55,13 +55,7 @@ def test_write_endpoints_rate_limited():
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 decs = _decorators(node)
-                if (
-                    _is_write(decs)
-                    and not _has_limit(decs)
-                    and not _is_exempt(node, lines)
-                ):
+                if _is_write(decs) and not _has_limit(decs) and not _is_exempt(node, lines):
                     problems.append(f"{router_file.name}:{node.lineno}:{node.name}")
 
-    assert not problems, "Missing @limiter.limit on write endpoints: " + ", ".join(
-        problems
-    )
+    assert not problems, "Missing @limiter.limit on write endpoints: " + ", ".join(problems)

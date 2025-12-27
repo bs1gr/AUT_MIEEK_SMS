@@ -73,7 +73,13 @@ def get_daily_performance_by_id(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error fetching daily performance by id %s: %s", id, exc, exc_info=True)
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error fetching daily performance by id",
+            extra=safe_log_context(daily_performance_id=id, error=str(exc)),
+            exc_info=True,
+        )
         raise internal_server_error(request=request) from exc
 
 
@@ -95,7 +101,13 @@ def create_daily_performance(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error creating daily performance: %s", exc, exc_info=True)
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error creating daily performance",
+            extra=safe_log_context(error=str(exc)),
+            exc_info=True,
+        )
         raise internal_server_error(request=request) from exc
 
 
@@ -118,7 +130,13 @@ def update_daily_performance(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Error updating daily performance id=%s: %s", id, exc, exc_info=True)
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error updating daily performance",
+            extra=safe_log_context(daily_performance_id=id, error=str(exc)),
+            exc_info=True,
+        )
         raise internal_server_error(request=request) from exc
 
 
@@ -130,10 +148,11 @@ def get_student_daily_performance(student_id: int, request: Request, db: Session
         import_names("models", "DailyPerformance")
         return DailyPerformanceService.list_for_student(db, student_id)
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
-            "Error fetching daily performance for student %s: %s",
-            student_id,
-            exc,
+            "Error fetching daily performance for student",
+            extra=safe_log_context(student_id=student_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request) from exc
@@ -155,11 +174,11 @@ def get_student_course_daily_performance(
         import_names("models", "DailyPerformance")
         return DailyPerformanceService.list_for_student_course(db, student_id, course_id)
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
-            "Error fetching daily performance for student %s course %s: %s",
-            student_id,
-            course_id,
-            exc,
+            "Error fetching daily performance for student course",
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request) from exc
@@ -179,10 +198,11 @@ def get_course_daily_performance_by_date(
     except HTTPException:
         raise
     except Exception as exc:
+        from backend.logging_config import safe_log_context
+
         logger.error(
-            "Error fetching daily performance by date for course %s: %s",
-            course_id,
-            exc,
+            "Error fetching daily performance by date for course",
+            extra=safe_log_context(course_id=course_id, error=str(exc)),
             exc_info=True,
         )
         raise internal_server_error(request=request) from exc

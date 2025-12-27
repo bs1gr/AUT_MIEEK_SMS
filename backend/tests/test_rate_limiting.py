@@ -67,9 +67,7 @@ def test_rate_limit_constants():
     read_val = int(RATE_LIMIT_READ.split("/")[0])
 
     # Minimum expectations for this project (high-throughput friendly)
-    assert (
-        write_val >= 500
-    ), "Write rate limit should allow 500+ requests/minute for high-throughput"  # noqa: E501
+    assert write_val >= 500, "Write rate limit should allow 500+ requests/minute for high-throughput"  # noqa: E501
     assert read_val >= write_val
     assert heavy_val < write_val
 

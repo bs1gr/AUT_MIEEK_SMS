@@ -47,9 +47,7 @@ def register_error_handlers(app):
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(
-        request: Request, exc: RequestValidationError
-    ):
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
         raw_errs = exc.errors() if hasattr(exc, "errors") else None
 
         def _sanitize_error(e):

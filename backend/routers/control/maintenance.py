@@ -187,13 +187,11 @@ async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
                     break
 
             if auth_section_idx >= 0:
-                insert_idx = -1  # Initialize as invalid
+                insert_idx = len(updated_lines)  # Default to end of file
                 for j in range(auth_section_idx + 1, len(updated_lines)):
                     if updated_lines[j].strip().startswith("# ==="):
                         insert_idx = j
                         break
-                else:
-                    insert_idx = len(updated_lines)
 
                 for key in reversed(new_keys):
                     updated_lines.insert(insert_idx, key)
@@ -470,8 +468,8 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
         if result.returncode == 0:
             raw = json.loads(result.stdout)
             return _normalize_release(raw)
-    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
-        pass
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+        logger.debug("gh CLI release fetch failed; falling back", extra={"error": str(exc)})
 
     # 2) Fallback to GitHub REST API
     try:
@@ -481,7 +479,8 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
         with urllib.request.urlopen(url, timeout=10) as response:
             raw = json.loads(response.read().decode("utf-8", errors="replace"))
             return _normalize_release(raw)
-    except Exception:
+    except Exception as exc:
+        logger.debug("GitHub REST release fetch failed", extra={"error": str(exc)})
         return None
 
 
@@ -494,5 +493,6 @@ def _version_is_newer(latest: str, current: str) -> bool:
             return (int(parts[0]), int(parts[1]), int(parts[2]))
 
         return parse_version(latest) > parse_version(current)
-    except Exception:
+    except Exception as exc:
+        logger.debug("Version comparison failed", extra={"error": str(exc), "latest": latest, "current": current})
         return False

@@ -1,0 +1,32 @@
+{
+  // Backend Python tests
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  "python.testing.autoTestDiscoverOnSaveEnabled": false,
+
+  // Testing experience
+  "testing.gutterClickBehavior": "run",
+  "testing.autoRun": "off",
+  "testing.showInlineErrorMessages": true,
+
+  // Terminals for tasks should use PowerShell on Windows
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // Python analysis
+  "python.analysis.typeCheckingMode": "standard",
+
+  // Copilot chat preferences
+  "github.copilot.chat.languageContext.typescript.includeDocumentation": true,
+  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+  "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.enabled": true,
+
+  // CodeQL: set your CLI path and default database directory here
+  // Update the executablePath to your local CodeQL CLI binary
+  "codeQL.cli.executablePath": "C:/tools/codeql/codeql.exe",
+  // Update the default database location to where you keep CodeQL DBs for this repo
+  "codeQL.defaultDatabaseLocation": "${workspaceFolder}/.codeql/databases"
+}

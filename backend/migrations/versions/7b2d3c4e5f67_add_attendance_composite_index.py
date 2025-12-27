@@ -16,6 +16,14 @@ revision: str = "7b2d3c4e5f67"  # pragma: allowlist secret
 down_revision: Union[str, None] = "9a1d2b3c4d56"  # pragma: allowlist secret
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+__all__ = [
+    "revision",
+    "down_revision",
+    "branch_labels",
+    "depends_on",
+    "upgrade",
+    "downgrade",
+]
 
 
 def upgrade() -> None:
@@ -70,20 +78,14 @@ def downgrade() -> None:
         # SQLite supports DROP INDEX IF EXISTS in modern versions; use raw
         # SQL via sa.text to avoid exceptions when the index is absent.
         try:
-            bind.execute(
-                sa.text("DROP INDEX IF EXISTS idx_attendance_student_course_date")
-            )
+            bind.execute(sa.text("DROP INDEX IF EXISTS idx_attendance_student_course_date"))
         except Exception:
             try:
-                op.drop_index(
-                    "idx_attendance_student_course_date", table_name="attendances"
-                )
+                op.drop_index("idx_attendance_student_course_date", table_name="attendances")
             except Exception:
                 pass
     else:
         try:
-            op.drop_index(
-                "idx_attendance_student_course_date", table_name="attendances"
-            )
+            op.drop_index("idx_attendance_student_course_date", table_name="attendances")
         except Exception:
             pass

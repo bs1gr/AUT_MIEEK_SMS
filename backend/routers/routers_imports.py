@@ -140,7 +140,11 @@ async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
                 request,
             )
 
-    logger.info("File validation passed", extra={"filename": file.filename, "size_bytes": content_size})
+    # Avoid reserved LogRecord attribute keys like 'filename'
+    logger.info(
+        "File validation passed",
+        extra={"file_name": file.filename, "size_bytes": content_size},
+    )
     return content
 
 
@@ -307,45 +311,32 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
     """
     Parse CSV content into student objects.
 
-    Supports Greek column names from the AUT registration CSV format.
-    Maps CSV columns to Student model fields:
-    - Επώνυμο: -> last_name
-    - Όνομα: -> first_name
-    - Όνομα Πατέρα: -> father_name
-    - Ηλ. Ταχυδρομείο: -> email
-    - Αρ. Κινητού Τηλεφώνου: -> mobile_phone
-    - Αρ. Σταθερού Τηλεφώνου: -> phone
-    - Έτος Σπουδών: -> study_year (Α'=1, Β'=2, etc.)
-    - Τυχόν σοβαρό πρόβλημα υγείας... -> health_issue
-    - Αριθμός Δελτίου Ταυτότητας: -> student_id (with S prefix)
+    Supports Greek column names from the AUT registration CSV format and headerless
+    CSVs with positional columns:
+    student_id; first_name; last_name; email; study_year; [optional fields]
 
     Args:
         content: Raw CSV file bytes
         filename: Original filename for error messages
-
-    Returns:
-        Tuple of (list of student dicts, list of error messages)
     """
-    students = []
-    errors = []
+    students: list[dict] = []
+    errors: list[str] = []
 
     try:
         # Try UTF-8 with BOM first, then UTF-8, then latin-1
+        text = None
         for encoding in ["utf-8-sig", "utf-8", "latin-1"]:
             try:
                 text = content.decode(encoding)
                 break
             except UnicodeDecodeError:
                 continue
-        else:
+        if text is None:
             errors.append(f"{filename}: Could not decode CSV with any supported encoding")
             return students, errors
 
-        # Parse CSV with semicolon delimiter (common in Greek/European CSVs)
-        reader = csv.DictReader(io.StringIO(text), delimiter=";")
-
-        # Map of CSV column names to Student model fields
-        # Note: CSV column names have trailing colons
+        # DictReader path (Greek headers)
+        dict_reader = csv.DictReader(io.StringIO(text), delimiter=";")
         column_map = {
             "Επώνυμο:": "last_name",
             "Όνομα:": "first_name",
@@ -356,92 +347,99 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
             "Έτος Σπουδών:": "study_year",
             "Αριθμός Δελτίου Ταυτότητας:": "student_id",
         }
+        fieldnames = dict_reader.fieldnames or []
+        has_known_headers = any(name in fieldnames for name in column_map.keys())
 
-        # Health issue column has a long name, find it dynamically
-        health_column = None
-        for fieldname in reader.fieldnames or []:
-            if "πρόβλημα υγείας" in fieldname or "ανεπάρκεια" in fieldname:
-                health_column = fieldname
-                break
+        # Helper to process and validate a student record
+        def _process(student: dict, row_no: int):
+            fn = student.get("first_name")
+            ln = student.get("last_name")
+            email = student.get("email")
+            sid = student.get("student_id")
+            if not fn or not ln:
+                errors.append(f"{filename} row {row_no}: Missing first_name or last_name")
+                return
+            if not email:
+                errors.append(f"{filename} row {row_no}: Missing email")
+                return
+            if not sid:
+                errors.append(f"{filename} row {row_no}: Missing student ID")
+                return
+            if not str(sid).startswith("S"):
+                student["student_id"] = f"S{sid}"
+            # Study year conversion
+            year_str = str(student.get("study_year", "")).strip().upper()
+            year_map = {"Α'": 1, "Β'": 2, "Γ'": 3, "Δ'": 4, "A'": 1, "B'": 2}
+            if year_str in year_map:
+                student["study_year"] = year_map[year_str]
+            elif year_str:
+                try:
+                    student["study_year"] = int(year_str)
+                except Exception:
+                    student["study_year"] = 1
+            else:
+                student["study_year"] = 1
+            # Defaults
+            student["is_active"] = True
+            student["enrollment_date"] = datetime.now().date()
+            students.append(student)
 
-        row_num = 1  # Start at 1 after header
-        for row in reader:
-            row_num += 1
-            try:
-                student = {}
-
-                # Map columns
-                for csv_col, model_field in column_map.items():
-                    value = row.get(csv_col, "").strip()
-                    if value:
-                        student[model_field] = value
-
-                # Add health issue if present
-                if health_column and row.get(health_column, "").strip():
-                    student["health_issue"] = row[health_column].strip()
-
-                # Validate required fields
-                if not student.get("first_name") or not student.get("last_name"):
-                    errors.append(f"{filename} row {row_num}: Missing first_name or last_name")
+        if has_known_headers:
+            row_no = 1
+            # Detect health issue column dynamically
+            health_col = None
+            for fn in fieldnames:
+                if "πρόβλημα υγείας" in fn or "ανεπάρκεια" in fn:
+                    health_col = fn
+                    break
+            for row in dict_reader:
+                row_no += 1
+                try:
+                    student: dict = {}
+                    for csv_col, model_field in column_map.items():
+                        val = str(row.get(csv_col, "")).strip()
+                        if val:
+                            student[model_field] = val
+                    if health_col and str(row.get(health_col, "")).strip():
+                        student["health_issue"] = str(row.get(health_col)).strip()
+                    _process(student, row_no)
+                except Exception as exc:
+                    errors.append(f"{filename} row {row_no}: {exc!s}")
                     continue
-
-                if not student.get("email"):
-                    errors.append(f"{filename} row {row_num}: Missing email")
-                    continue
-
-                # Generate student_id from ID number if not present
-                if not student.get("student_id"):
-                    id_num = row.get("Αριθμός Δελτίου Ταυτότητας:", "").strip()
-                    if id_num:
-                        student["student_id"] = f"S{id_num}"
-                    else:
-                        errors.append(f"{filename} row {row_num}: Missing student ID")
+        else:
+            # Headerless path: positional columns
+            raw_reader = csv.reader(io.StringIO(text), delimiter=";")
+            row_no = 0
+            for row in raw_reader:
+                row_no += 1
+                try:
+                    if not row or all(not (str(c or "").strip()) for c in row):
                         continue
-                elif not student["student_id"].startswith("S"):
-                    # Ensure student_id has S prefix
-                    student["student_id"] = f"S{student['student_id']}"
-
-                # Convert study year (Α'=1, Β'=2, Γ'=3, Δ'=4)
-                year_str = student.get("study_year", "").strip().upper()
-                year_map = {"Α'": 1, "Β'": 2, "Γ'": 3, "Δ'": 4, "A'": 1, "B'": 2}
-                if year_str in year_map:
-                    student["study_year"] = year_map[year_str]
-                elif year_str:
-                    # Try to parse as integer
-                    try:
-                        student["study_year"] = int(year_str)
-                    except ValueError:
-                        student["study_year"] = 1  # Default to first year
-                else:
-                    student["study_year"] = 1  # Default to first year
-
-                # Set defaults
-                student["is_active"] = True
-                student["enrollment_date"] = datetime.now().date()
-
-                students.append(student)
-
-            except Exception as e:
-                errors.append(f"{filename} row {row_num}: {e!s}")
-                continue
-
-    except Exception as e:
-        errors.append(f"{filename}: CSV parsing failed - {e!s}")
+                    if len(row) < 4:
+                        errors.append(f"{filename} row {row_no}: Too few columns")
+                        continue
+                    student = {
+                        "student_id": str(row[0]).strip(),
+                        "first_name": str(row[1]).strip(),
+                        "last_name": str(row[2]).strip(),
+                        "email": str(row[3]).strip(),
+                    }
+                    if len(row) >= 5:
+                        student["study_year"] = str(row[4]).strip()
+                    if len(row) >= 6 and str(row[5]).strip():
+                        student["mobile_phone"] = str(row[5]).strip()
+                    if len(row) >= 7 and str(row[6]).strip():
+                        student["phone"] = str(row[6]).strip()
+                    _process(student, row_no)
+                except Exception as exc:
+                    errors.append(f"{filename} row {row_no}: {exc!s}")
+                    continue
+    except Exception as exc:
+        errors.append(f"{filename}: CSV parsing failed - {exc!s}")
 
     return students, errors
 
 
-@router.get("/diagnose")
-def diagnose_import_environment(request: Request):
-    """Return diagnostics about import directories and files found."""
-    try:
-        return ImportService.diagnose_environment(COURSES_DIR, STUDENTS_DIR)
-    except Exception as exc:
-        logger.error("Diagnose failed: %s", exc)
-        raise http_error(500, ErrorCode.IMPORT_DIAGNOSE_FAILED, "Diagnose failed", request)
-
-
-@router.post("/courses")
 @limiter.limit(RATE_LIMIT_TEACHER_IMPORT)
 def import_courses(
     request: Request,
@@ -1711,23 +1709,7 @@ async def import_execute(
     api_key: str | None = Depends(verify_api_key_optional),
     current_user=Depends(optional_require_permission("imports.execute")),
 ):
-    """Execute an import by creating a background job.
-
-    This endpoint validates the import request and creates an async job
-    to process the actual data import. Returns job ID for tracking progress.
-
-    Args:
-        import_type: 'courses' or 'students'
-        files: uploaded CSV or JSON files
-        json_text: optional raw JSON data
-        allow_updates: whether to allow updates to existing records
-        skip_duplicates: whether to skip duplicate records in input
-        db: database session
-        current_user: authenticated user
-
-    Returns:
-        { job_id: str, status: str }
-    """
+    """Create an import job (validates inputs and returns job ID)."""
     from backend.services.job_manager import JobManager
     from backend.schemas.jobs import JobCreate, JobType
 

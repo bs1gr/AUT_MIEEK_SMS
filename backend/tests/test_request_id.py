@@ -3,9 +3,7 @@ def test_request_id_in_response(client):
     response = client.get("/health")
 
     # Check that X-Request-ID header is present in response
-    assert (
-        "X-Request-ID" in response.headers
-    ), "X-Request-ID header missing from response"
+    assert "X-Request-ID" in response.headers, "X-Request-ID header missing from response"
 
     request_id = response.headers["X-Request-ID"]
     print(f"✓ Request ID generated: {request_id}")
@@ -28,9 +26,7 @@ def test_custom_request_id(client):
     response = client.get("/health", headers={"X-Request-ID": custom_id})
 
     # Check that our custom request ID is preserved
-    assert (
-        response.headers["X-Request-ID"] == custom_id
-    ), "Custom request ID not preserved"
+    assert response.headers["X-Request-ID"] == custom_id, "Custom request ID not preserved"
     print(f"✓ Custom request ID preserved: {custom_id}")
 
 

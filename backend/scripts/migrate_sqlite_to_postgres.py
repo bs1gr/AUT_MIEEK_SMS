@@ -34,9 +34,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.schema import Table
 
 LOGGER = logging.getLogger("sqlite_to_postgres")
-DEFAULT_SQLITE_PATH = (
-    Path(__file__).resolve().parents[1] / "data" / "student_management.db"
-)
+DEFAULT_SQLITE_PATH = Path(__file__).resolve().parents[1] / "data" / "student_management.db"
 POSTGRES_PREFIXES = ("postgresql://", "postgresql+psycopg://", "postgresql+asyncpg://")
 
 
@@ -46,9 +44,7 @@ def _quote_ident(name: str) -> str:
 
 
 def _parse_arguments(argv: Sequence[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Migrate SMS data from SQLite to PostgreSQL"
-    )
+    parser = argparse.ArgumentParser(description="Migrate SMS data from SQLite to PostgreSQL")
     parser.add_argument(
         "--sqlite-path",
         dest="sqlite_path",
@@ -105,14 +101,10 @@ def _parse_arguments(argv: Sequence[str]) -> argparse.Namespace:
 def _validate_postgres_url(url: str | None) -> str:
     candidate = (url or os.environ.get("DATABASE_URL") or "").strip()
     if not candidate:
-        raise ValueError(
-            "PostgreSQL URL not provided. Use --postgres-url or set DATABASE_URL."
-        )
+        raise ValueError("PostgreSQL URL not provided. Use --postgres-url or set DATABASE_URL.")
     lowered = candidate.lower()
     if not any(lowered.startswith(prefix) for prefix in POSTGRES_PREFIXES):
-        raise ValueError(
-            "PostgreSQL URL must start with 'postgresql://' or 'postgresql+psycopg://'."
-        )
+        raise ValueError("PostgreSQL URL must start with 'postgresql://' or 'postgresql+psycopg://'.")
     return candidate
 
 
@@ -141,9 +133,7 @@ def _truncate_tables(conn: Connection, tables: Sequence[Table]) -> None:
     conn.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
 
 
-def _chunked(
-    result: sa.engine.Result, batch_size: int
-) -> Iterable[list[dict[str, object]]]:
+def _chunked(result: sa.engine.Result, batch_size: int) -> Iterable[list[dict[str, object]]]:
     while True:
         rows = result.fetchmany(batch_size)
         if not rows:
@@ -167,9 +157,7 @@ def _copy_table(
     if dry_run:
         return
 
-    result = source_conn.execution_options(stream_results=True).execute(
-        sa.select(table)
-    )
+    result = source_conn.execution_options(stream_results=True).execute(sa.select(table))
     migrated = 0
     try:
         for chunk in _chunked(result, batch_size):
@@ -197,11 +185,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         LOGGER.error(str(exc))
         return 2
 
-    tables = [
-        t
-        for t in models.Base.metadata.sorted_tables
-        if not args.tables or t.name in args.tables
-    ]
+    tables = [t for t in models.Base.metadata.sorted_tables if not args.tables or t.name in args.tables]
     if args.tables:
         missing = sorted(set(args.tables) - {t.name for t in tables})
         if missing:
@@ -238,9 +222,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not args.no_truncate:
                 _truncate_tables(dest_conn, tables)
             for table in tables:
-                _copy_table(
-                    table, source_conn, dest_conn, args.batch_size, args.dry_run
-                )
+                _copy_table(table, source_conn, dest_conn, args.batch_size, args.dry_run)
 
     LOGGER.info("Migration complete")
     return 0

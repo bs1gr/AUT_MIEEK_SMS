@@ -98,9 +98,7 @@ def rbac_client() -> Generator[TestClient, None, None]:
     yield client
 
 
-def _register_user(
-    client: TestClient, email: str, password: str, role: str = "teacher"
-) -> None:
+def _register_user(client: TestClient, email: str, password: str, role: str = "teacher") -> None:
     # Tests run against the API, but creating an admin account via the
     # public /register endpoint is disallowed by design. For tests that
     # need an admin user, insert directly into the test DB instead of
@@ -177,13 +175,9 @@ def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     assert r.status_code not in (401, 403), r.text
 
     # Teacher should be forbidden from backup (RBAC enforced)
-    r2 = client.post(
-        "/api/v1/adminops/backup", headers={"Authorization": f"Bearer {teacher_token}"}
-    )
+    r2 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {teacher_token}"})
     assert r2.status_code == 403, r2.text  # Teachers forbidden
 
     # Admin can perform admin-only operation
-    r3 = client.post(
-        "/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"}
-    )
+    r3 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"})
     assert r3.status_code in (200, 201), r3.text

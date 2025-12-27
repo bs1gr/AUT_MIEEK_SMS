@@ -31,9 +31,7 @@ def main() -> int:
     problems = []
 
     if not secret:
-        problems.append(
-            "SECRET_KEY is not set. Set SECRET_KEY in environment for production builds."
-        )
+        problems.append("SECRET_KEY is not set. Set SECRET_KEY in environment for production builds.")
 
     if secret == PLACEHOLDER or "placeholder" in secret.lower():
         problems.append(

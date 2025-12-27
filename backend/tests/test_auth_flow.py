@@ -114,9 +114,7 @@ def test_login_recovers_after_lockout_window(client):
         "full_name": "Recovery",
     }
     try:
-        assert (
-            _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
-        )
+        assert _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
 
         for _ in range(3):
             resp = _post_with_csrf(
