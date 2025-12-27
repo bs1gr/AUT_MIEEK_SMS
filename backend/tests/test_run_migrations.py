@@ -49,6 +49,7 @@ def test_run_migrations_creates_tables(monkeypatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_creates_tables")
     monkeypatch.setenv("SMS_ENV", "test")
     monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     project_root = Path(__file__).resolve().parents[2]
@@ -76,6 +77,7 @@ def test_alembic_config_uses_application_settings(monkeypatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_alembic_config_uses_application_settings")
     monkeypatch.setenv("SMS_ENV", "test")
     monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -90,6 +92,7 @@ def test_run_migrations_invokes_upgrade(monkeypatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_invokes_upgrade")
     monkeypatch.setenv("SMS_ENV", "test")
     monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -110,6 +113,7 @@ def test_run_migrations_handles_failure(monkeypatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_handles_failure")
     monkeypatch.setenv("SMS_ENV", "test")
     monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
@@ -128,6 +132,7 @@ def test_check_migration_status_returns_string(monkeypatch):
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_check_migration_status_returns_string")
     monkeypatch.setenv("SMS_ENV", "test")
     monkeypatch.setenv("SMS_EXECUTION_MODE", "native")
+    monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
     run_migrations = _reload_modules()
