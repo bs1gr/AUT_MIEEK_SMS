@@ -235,8 +235,9 @@ def _register_root_endpoints(app: FastAPI, version: str):
     SERVE_FRONTEND = _is_true(os.environ.get("SERVE_FRONTEND"))
     if SPA_INDEX_FILE.exists() and os.environ.get("SERVE_FRONTEND") is None:
         SERVE_FRONTEND = True
-    # In test runtime, always prefer JSON metadata to avoid HTML responses in API tests
-    if runtime_context.is_test:
+    # In test runtime, prefer JSON metadata by default to avoid HTML responses in API tests,
+    # BUT if SERVE_FRONTEND is explicitly set via environment (e.g., E2E runs), honor it.
+    if runtime_context.is_test and os.environ.get("SERVE_FRONTEND") is None:
         SERVE_FRONTEND = False
 
     def _api_metadata() -> dict:
