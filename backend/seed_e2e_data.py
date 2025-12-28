@@ -96,10 +96,14 @@ def seed_e2e_data(force: bool = False):
         ]
 
         for student_data in students_data:
-            student = Student(**student_data)
-            db.add(student)
+            existing_student = db.query(Student).filter(Student.student_id == student_data["student_id"]).first()
+            if not existing_student:
+                student = Student(**student_data)
+                db.add(student)
+            else:
+                print(f"✓ Student {student_data['student_id']} already exists, skipping")
 
-        # Create test courses
+        # Create test courses (skip if they already exist)
         courses_data = [
             {
                 "course_code": "CS101",
@@ -114,8 +118,12 @@ def seed_e2e_data(force: bool = False):
         ]
 
         for course_data in courses_data:
-            course = Course(**course_data)
-            db.add(course)
+            existing_course = db.query(Course).filter(Course.course_code == course_data["course_code"]).first()
+            if not existing_course:
+                course = Course(**course_data)
+                db.add(course)
+            else:
+                print(f"✓ Course {course_data['course_code']} already exists, skipping")
 
         db.flush()
 
