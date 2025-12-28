@@ -98,15 +98,72 @@ export async function loginViaUI(page: Page, email: string, password: string) {
   await page.waitForURL(/\/dashboard|\/students|\/home/, { timeout: 10000 });
 }
 
+export async function loginViaAPI(page: Page, email: string, password: string) {
+  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+
+  // Get JWT token from login endpoint
+  const response = await page.request.post(`${apiBase}/api/v1/auth/login`, {
+    data: { email, password },
+  });
+
+  if (!response.ok()) {
+    const text = await response.text().catch(() => 'Unknown error');
+    throw new Error(`Login failed: ${response.status()} - ${text}`);
+  }
+
+  const data = await response.json();
+  const token = data?.access_token;
+
+  if (!token) {
+    throw new Error('No access token in login response');
+  }
+
+  // Navigate to home first
+  await page.goto('/');
+
+  // Then inject token into localStorage
+  await page.evaluate((t) => {
+    try {
+      window.localStorage.setItem('sms_access_token', t);
+    } catch (e) {
+      console.error('Failed to set token:', e);
+    }
+  }, token);
+
+  // Navigate to dashboard after token is set
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+
+  // Wait for content to load
+  await page.waitForSelector('body', { timeout: 10000 }).catch(() => {});
+}
+
 export async function loginAsTeacher(page: Page): Promise<TestUser> {
   const user = generateTeacherUser();
 
   try {
     await registerUser(page, user);
-    await loginViaUI(page, user.email, user.password);
+    await loginViaAPI(page, user.email, user.password);
     return user;
   } catch (error) {
     console.error('Login as teacher failed:', error);
+    throw error;
+  }
+}
+
+export async function loginAsTestUser(page: Page): Promise<TestUser> {
+  const testUser: TestUser = {
+    email: 'test@example.com',
+    password: 'password123',
+    fullName: 'Test User',
+    role: 'admin',
+  };
+
+  try {
+    // Use UI login for better reliability
+    await loginViaUI(page, testUser.email, testUser.password);
+    return testUser;
+  } catch (error) {
+    console.error('Login as test user failed:', error);
     throw error;
   }
 }

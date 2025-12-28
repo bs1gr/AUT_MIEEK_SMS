@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, status, HTTPException, Body, Depends, Request, Response
 from sqlalchemy.orm import Session
 
-from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_WRITE, limiter
+from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.security import login_throttle
 from backend.db import get_session as get_db
 from backend.schemas import (
@@ -743,6 +743,7 @@ async def logout(
 
 
 @router.get("/admin/users")
+@limiter.limit(RATE_LIMIT_READ)
 async def admin_list_users(
     request: Request,
     db: Session = Depends(get_db),
@@ -755,6 +756,7 @@ async def admin_list_users(
 
 
 @router.post("/admin/users", status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMIT_WRITE)
 async def admin_create_user(
     request: Request,
     payload: UserCreate = Body(...),
@@ -792,6 +794,7 @@ async def admin_create_user(
 
 
 @router.patch("/admin/users/{user_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def admin_update_user(
     request: Request,
     user_id: int,
@@ -854,6 +857,7 @@ async def admin_update_user(
 
 
 @router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(RATE_LIMIT_WRITE)
 async def admin_delete_user(
     request: Request,
     user_id: int,
@@ -908,6 +912,7 @@ async def admin_delete_user(
 
 
 @router.post("/admin/users/{user_id}/reset-password")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def admin_reset_password(
     request: Request,
     user_id: int,
@@ -940,6 +945,7 @@ async def admin_reset_password(
 
 
 @router.post("/admin/users/{user_id}/unlock")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def admin_unlock_account(
     request: Request,
     user_id: int,

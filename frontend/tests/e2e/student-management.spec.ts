@@ -1,4 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginAsTestUser, loginAsTeacher, generateStudentData, generateCourseData } from './helpers';
+import { captureAndLogDiagnostics, initDiagnosticsDir } from './diagnostics';
 
 /**
  * E2E Tests for Critical Student Management Flows
@@ -11,8 +13,13 @@ import { test, expect, Page } from '@playwright/test';
  * - Analytics views
  */
 
+// Initialize diagnostics directory
+test.beforeAll(async () => {
+  await initDiagnosticsDir();
+});
+
 // Test data generators
-const generateStudentData = () => {
+const generateStudentDataLocal = () => {
   const rnd = Math.random().toString(36).slice(2, 8);
   return {
     firstName: `Test${rnd}`,
@@ -22,7 +29,7 @@ const generateStudentData = () => {
   };
 };
 
-const generateCourseData = () => {
+const generateCourseDataLocal = () => {
   const rnd = Math.random().toString(36).slice(2, 6);
   return {
     courseCode: `CS${rnd}`,
@@ -32,49 +39,49 @@ const generateCourseData = () => {
   };
 };
 
-// Helper to login as admin/teacher
-async function loginAsTeacher(page: Page) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
-
-  // Register a teacher account
-  const rnd = Math.random().toString(36).slice(2, 8);
-  const email = `teacher-${rnd}@test.edu`;
-  const password = 'Teacher-Pass-1!';
-
-  await page.request.post(`${apiBase}/api/v1/auth/register`, {
-    data: { email, password, full_name: 'E2E Teacher', role: 'teacher' },
-  });
-
-  // Login via API for stability and set access token in localStorage
-  const loginResp = await page.request.post(`${apiBase}/api/v1/auth/login`, {
-    data: { email, password },
-  });
-  const loginJson = await loginResp.json();
-  const token = loginJson?.access_token || '';
-
-  // Preload token into localStorage before navigating to the app
-  await page.addInitScript((t) => {
-    try {
-      // @ts-ignore
-      window.localStorage.setItem('sms_access_token', t);
-    } catch {}
-  }, token);
-
-  await page.goto('/dashboard');
-  await page.waitForURL(/\/dashboard|\/students/, { timeout: 10000 });
-}
-
 test.describe('Student Management - Critical Flows', () => {
-  test.beforeEach(async ({ page }) => {
-    // Ensure clean state and authenticated
-    await loginAsTeacher(page);
+  test.beforeEach(async ({ page }, testInfo) => {
+    // Try logging in as test user first, fall back to teacher if needed
+    try {
+      await loginAsTestUser(page);
+    } catch (e) {
+      console.warn('Failed to login as test user, falling back to teacher:', e);
+      await loginAsTeacher(page);
+    }
+  });
+
+  test.afterEach(async ({ page }, testInfo) => {
+    // Capture diagnostics on failure
+    if (testInfo.status !== 'passed') {
+      console.log(`\n❌ Test failed: ${testInfo.title}`);
+      try {
+        await captureAndLogDiagnostics(page, testInfo.title).catch((e) =>
+          console.error('Failed to capture diagnostics:', e)
+        );
+      } catch (e) {
+        console.error('Error in afterEach:', e);
+      }
+    }
+
+    // Ensure proper cleanup of page/context
+    try {
+      await page.close().catch(() => {});
+    } catch (e) {
+      // Page may already be closed
+    }
   });
 
   test('should create a new student successfully', async ({ page }) => {
-    const student = generateStudentData();
+    const student = generateStudentDataLocal();
 
     // Navigate to students page
     await page.goto('/students');
+
+    // Wait for page to load
+    await page.waitForLoadState('networkidle').catch(() => {});
+
+    // Wait for the Add Student button to be visible
+    await page.waitForSelector('[data-testid="add-student-btn"]', { timeout: 10000 });
 
     // Click "Add Student" button
     await page.click('[data-testid="add-student-btn"]');
@@ -93,7 +100,7 @@ test.describe('Student Management - Critical Flows', () => {
   });
 
   test('should edit an existing student', async ({ page }) => {
-    const student = generateStudentData();
+    const student = generateStudentDataLocal();
 
     // Create student via API for faster setup
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
@@ -110,6 +117,12 @@ test.describe('Student Management - Critical Flows', () => {
     // Navigate to students page
     await page.goto('/students');
 
+    // Wait for page to load
+    await page.waitForLoadState('networkidle').catch(() => {});
+
+    // Wait for student to appear in list
+    await page.waitForSelector(`tr:has-text("${student.firstName}")`, { timeout: 10000 }).catch(() => {});
+
     // Find and click edit button for the student
     await page.click(`[data-student-id="${createdStudent.id}"] button:has-text("Edit"), tr:has-text("${student.firstName}") button[aria-label*="Edit"]`);
 
@@ -125,7 +138,7 @@ test.describe('Student Management - Critical Flows', () => {
   });
 
   test('should delete a student', async ({ page }) => {
-    const student = generateStudentData();
+    const student = generateStudentDataLocal();
 
     // Create student via API
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
@@ -141,6 +154,12 @@ test.describe('Student Management - Critical Flows', () => {
 
     // Navigate to students page
     await page.goto('/students');
+
+    // Wait for page to load
+    await page.waitForLoadState('networkidle').catch(() => {});
+
+    // Wait for student to appear in list
+    await page.waitForSelector(`tr:has-text("${student.firstName}")`, { timeout: 10000 }).catch(() => {});
 
     // Find and click delete button
     await page.click(`[data-student-id="${createdStudent.id}"] button:has-text("Delete"), tr:has-text("${student.firstName}") button[aria-label*="Delete"]`);

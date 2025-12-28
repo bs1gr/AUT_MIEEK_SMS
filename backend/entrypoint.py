@@ -5,7 +5,6 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from backend.environment import get_runtime_context
 
 """Container entrypoint (Python) — runs migrations then starts the app server.
 
@@ -21,6 +20,9 @@ non-zero code so orchestrators detect the failure.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+# Import after sys.path is set
+from backend.environment import get_runtime_context
 
 # Fix database file permissions if running in Docker
 # (database may be owned by root from volumes on some systems)
