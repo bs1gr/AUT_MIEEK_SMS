@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -16,13 +17,19 @@ This script creates test users, students, courses, and other entities
 needed for end-to-end testing.
 
 Run from project root: python backend/seed_e2e_data.py
+In Docker: python /app/backend/seed_e2e_data.py
 """
 
 
 def seed_e2e_data():
     """Seed database with E2E test data."""
-    # Use SQLite database
-    DATABASE_URL = "sqlite:///./data/student_management.db"
+    # Use the same database path logic as the main application
+    is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
+    if is_docker:
+        db_path = "/data/student_management.db"
+    else:
+        db_path = str(Path(__file__).parent.parent / "data" / "student_management.db")
+    DATABASE_URL = f"sqlite:///{db_path}"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
     # Create tables if they don't exist

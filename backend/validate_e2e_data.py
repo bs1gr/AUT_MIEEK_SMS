@@ -8,6 +8,7 @@ Exit codes:
 - 1: Validation failed (missing data or inaccessible)
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -22,7 +23,13 @@ from backend.models import User, Student, Course, CourseEnrollment
 
 def validate_e2e_data():
     """Validate that E2E test data exists and is accessible."""
-    DATABASE_URL = "sqlite:///./data/student_management.db"
+    # Use the same database path logic as the main application
+    is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
+    if is_docker:
+        db_path = "/data/student_management.db"
+    else:
+        db_path = str(Path(__file__).parent.parent / "data" / "student_management.db")
+    DATABASE_URL = f"sqlite:///{db_path}"
 
     try:
         engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

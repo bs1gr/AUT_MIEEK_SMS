@@ -79,9 +79,12 @@ _IS_DOCKER_MODE = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "doc
 # Database path (container uses /data volume)
 if _IS_DOCKER_MODE:
     _DEFAULT_DB_PATH = "/data/student_management.db"
+    # For absolute paths, sqlite:// already has /// so we don't add another /
+    _DEFAULT_SQLITE_URL = f"sqlite://{_DEFAULT_DB_PATH}"
 else:
     _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
-_DEFAULT_SQLITE_URL = f"sqlite:///{_DEFAULT_DB_PATH}"
+    # For relative/Windows paths, we need the full sqlite:///
+    _DEFAULT_SQLITE_URL = f"sqlite:///{_DEFAULT_DB_PATH}"
 
 # When running inside Docker Desktop, containers can reach host services via this DNS name
 # Use it to allow the API container to talk to monitoring services (Grafana/Prometheus/Loki)
