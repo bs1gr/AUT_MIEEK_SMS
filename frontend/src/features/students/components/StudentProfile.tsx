@@ -213,7 +213,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const distribution = gradeDistribution();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+    <div data-testid="student-profile" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <button

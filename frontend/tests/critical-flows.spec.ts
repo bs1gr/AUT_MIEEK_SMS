@@ -45,6 +45,8 @@ test.describe('Dashboard Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    // Wait for dashboard to be ready
+    await page.waitForSelector('[data-testid="dashboard-page-loaded"]', { timeout: 10000 });
   });
 
   test('should navigate to Students page', async ({ page }) => {
@@ -52,6 +54,7 @@ test.describe('Dashboard Navigation', () => {
     await studentsLink.click();
     await page.waitForURL(/.*students/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="students-page-loaded"]', { timeout: 10000 });
   });
 
   test('should navigate to Courses page', async ({ page }) => {
@@ -59,6 +62,7 @@ test.describe('Dashboard Navigation', () => {
     await coursesLink.click();
     await page.waitForURL(/.*courses/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="courses-page-loaded"]', { timeout: 10000 });
   });
 
   test('should navigate to Grades page', async ({ page }) => {
@@ -66,12 +70,14 @@ test.describe('Dashboard Navigation', () => {
     await gradesLink.click();
     await page.waitForURL(/.*grad(es|ing)/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="grading-page-loaded"]', { timeout: 10000 });
   });
 
   test('should navigate to Attendance page', async ({ page }) => {
     await page.click('a:has-text("Attendance")');
     await page.waitForURL(/.*attendance/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="attendance-page-loaded"]', { timeout: 10000 });
     await expect(page.locator('text=Attendance')).toBeVisible();
   });
 });
@@ -87,6 +93,7 @@ test.describe('Students Management', () => {
     await studentsLink.click();
     await page.waitForURL(/.*students/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="students-page-loaded"]', { timeout: 10000 });
   });
 
   test('should display students list', async ({ page }) => {
@@ -135,6 +142,7 @@ test.describe('Responsive Design', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await login(page, 'test@example.com', 'password123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="dashboard-page-loaded"]', { timeout: 10000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
@@ -142,6 +150,7 @@ test.describe('Responsive Design', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await login(page, 'test@example.com', 'password123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="dashboard-page-loaded"]', { timeout: 10000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
@@ -149,6 +158,7 @@ test.describe('Responsive Design', () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await login(page, 'test@example.com', 'password123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="dashboard-page-loaded"]', { timeout: 10000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 });

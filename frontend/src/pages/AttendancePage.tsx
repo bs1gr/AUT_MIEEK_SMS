@@ -16,6 +16,8 @@ export default function AttendancePage() {
 
   return (
     <SectionErrorBoundary section="AttendancePage">
+      {/* Add page-ready indicator for E2E tests */}
+      <div data-testid="attendance-page-loaded" className="hidden">Loaded</div>
       <AttendanceView students={students} courses={courses} />
     </SectionErrorBoundary>
   );

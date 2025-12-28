@@ -10,12 +10,18 @@ test.describe('Registration UI flow (smoke)', () => {
     await page.goto(base);
     await page.waitForLoadState('networkidle', { timeout: 20000 });
 
+    // Wait for auth page to be fully loaded
+    await page.waitForSelector('[data-testid="auth-page-loaded"]', { timeout: 10000 });
+
     // Ensure unauthenticated state in case previous tests set a token
     await page.evaluate(() => {
       try { localStorage.removeItem('sms_access_token'); } catch {}
     });
     await page.reload();
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+
+    // Wait for auth page again after reload
+    await page.waitForSelector('[data-testid="auth-page-loaded"]', { timeout: 10000 });
 
     // Ensure registration form is visible (inline variant may be collapsed)
     const toggle = page.locator('[data-testid="register-toggle"]');
