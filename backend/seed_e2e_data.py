@@ -21,8 +21,12 @@ In Docker: python /app/backend/seed_e2e_data.py
 """
 
 
-def seed_e2e_data():
-    """Seed database with E2E test data."""
+def seed_e2e_data(force: bool = False):
+    """Seed database with E2E test data.
+
+    Args:
+        force: If True, delete and recreate test user even if it exists
+    """
     # Use the same database path logic as the main application
     is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
     if is_docker:
@@ -42,8 +46,13 @@ def seed_e2e_data():
         # Check if test user already exists
         existing_user = db.query(User).filter(User.email == "test@example.com").first()
         if existing_user:
-            print("✓ Test data already exists, skipping seed")
-            return
+            if force:
+                print("⚠ Deleting existing test user for recreation...")
+                db.delete(existing_user)
+                db.commit()
+            else:
+                print("✓ Test data already exists, skipping seed")
+                return
 
         print("Seeding E2E test data...")
 
@@ -152,4 +161,7 @@ def seed_e2e_data():
 
 
 if __name__ == "__main__":
-    seed_e2e_data()
+    import sys
+
+    force = "--force" in sys.argv
+    seed_e2e_data(force=force)
