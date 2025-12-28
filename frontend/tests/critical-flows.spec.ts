@@ -54,6 +54,7 @@ test.describe('Authentication Flow', () => {
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     await logout(page);
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+  });
 
   test('should handle invalid credentials', async ({ page }) => {
     await page.goto('/');
