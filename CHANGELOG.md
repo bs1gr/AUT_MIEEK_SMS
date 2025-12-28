@@ -6,6 +6,79 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+
+## [1.12.8] - 2025-12-29
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.12.8] - 2025-12-29
+
+### Features
+- add force flag to seed script for test user recreation
+- **e2e**: Add comprehensive logging for E2E tests
+- **e2e**: Expand test data seeding with course enrollments
+- **e2e**: Add seed validation and login health checks
+- **e2e**: Add page-ready indicators and explicit waits for robust CI testing
+- **rbac**: admin endpoint tests and router fix; docs: add RBAC guides (EN/EL) and help links; chore: pre-commit quick passed
+- complete release automation with preparation, documentation, and cleanup
+
+### Bug Fixes
+- correct E2E test pragma comments syntax
+- handle existing data in E2E seed script
+- update E2E test password to Test@Pass123 for validation compliance
+- update test user password to meet validation requirements
+- unify database path configuration across all components
+- resolve Docker entrypoint import order and enhance E2E testing
+- **e2e**: fix TypeScript error in selectOption with RegExp
+- **e2e**: close logout test block properly
+- **backend**: Honor SERVE_FRONTEND=1 in test mode for E2E runs
+- **e2e**: Revert page-ready indicators - they don't render in CI and hide the real React initialization issue
+- **e2e**: Add proper page load waits to prevent timeout failures in CI
+- **security,tests**: E2E stabilization and backend security hardening
+- add PyJWT/jwt import mapping to import validator
+- add missing PyJWT dependency to requirements
+- **tests**: also disable AUTH_ENABLED in test functions to prevent validation error
+- **tests**: disable AUTH_ENABLED in teardown to bypass PYTEST_CURRENT_TEST validation
+- **tests**: use os.environ directly in teardown since monkeypatch context ends after yield
+- **tests**: also set environment in reset_modules teardown fixture
+- **tests**: set SMS_EXECUTION_MODE=native in test_run_migrations
+- **ci**: Phase 1 workflow fixes - E2E and COMMIT_READY
+- **config**: handle placeholder SECRET_KEY validation for AUTH_ENABLED
+- **e2e**: use PLAYWRIGHT_BASE_URL environment variable instead of E2E_API_BASE
+- **ci**: resolve GitHub Actions workflow issues and test failures
+
+### Security
+- strengthen path traversal protection in backup operations
+
+### Documentation
+- Add comprehensive v1.12.8 deployment report
+- Add comprehensive session completion summary
+- Add session final summary - E2E diagnostics complete
+- Add comprehensive E2E testing improvements summary
+- Add session completion TL;DR summary
+- add final detailed summary of remaining issues and fixes by criticality
+- add comprehensive session summary with priority plan and achievements
+
+### Tests
+- **e2e**: enrich diagnostic to capture console and request failures
+- **e2e**: Add diagnostic test to understand page rendering in CI
+- **e2e**: fix syntax error in helpers.ts and improve setup automation
+- **e2e**: improve E2E debugging and fix frontend serving in CI
+
+### CI/CD
+- add SkipPreCommitHooks flag to prevent file modifications in CI
+
+### Chores
+- **release**: bump version to 1.12.8 and update docs
+- finalize pre-commit validation fixes (1.12.8)
+
 ## [1.12.8] - 2025-12-29
 
 **Release Type**: Maintenance Release
