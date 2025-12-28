@@ -6,6 +6,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+## [1.12.8] - 2025-12-29
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.12.8] - 2025-12-27
 
 **Release Type**: Maintenance Release
