@@ -167,6 +167,9 @@ jobs:
           echo "\n=== Checking /api response ==="
           curl -s http://127.0.0.1:8000/api | head -100
 
+          echo "\n=== Allowing app to settle (3s) ==="
+          sleep 3
+
           echo "\n=== Running Playwright E2E tests ==="
           npm run e2e -- --reporter=list --workers=1
 

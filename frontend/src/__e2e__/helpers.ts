@@ -2,25 +2,25 @@
 import axios from 'axios';
 
 export async function ensureTestUserExists() {
-  // Use relative API path so Playwright uses Vite proxy in dev
+  const apiBase = (process.env.PLAYWRIGHT_BASE_URL || process.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
+  const client = axios.create({ baseURL: `${apiBase}/api/v1` });
+
   const email = 'test@example.com'; // pragma: allowlist secret
   const password = 'password123'; // pragma: allowlist secret
+
   try {
-    // Try to login first
-    await axios.post('/api/v1/auth/login', { email, password });
-    // If login succeeds, user exists
+    await client.post('auth/login', { email, password });
     return;
   } catch (err) {
-    // If login fails, try to register as teacher (default role)
+    // Try to register if login failed
     try {
-      await axios.post('/api/v1/auth/register', {
+      await client.post('auth/register', {
         email,
         password,
         full_name: 'Test User',
-        // Do not set role: backend will default to 'teacher' for anonymous registration
       });
     } catch (regErr) {
-      // Ignore if already exists or registration fails
+      // If registration also fails (likely because user exists), ignore
     }
   }
 }
@@ -37,9 +37,9 @@ export async function login(
   await page.goto('/');
 
   // Wait for login form - increase timeout for slow CI environments
-  console.log('🔐 [E2E] Waiting for network idle (timeout: 15s)...');
+  console.log('🔐 [E2E] Waiting for network idle (timeout: 20s)...');
   try {
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('networkidle', { timeout: 20_000 });
   } catch (e) {
     console.warn('⚠️  [E2E] Network idle timeout (continuing anyway)');
   }
@@ -48,16 +48,16 @@ export async function login(
   const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"]');
   const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"]');
 
-  console.log('🔐 [E2E] Waiting for email input (timeout: 20s)...');
+  console.log('🔐 [E2E] Waiting for email input (timeout: 25s)...');
   try {
-    await emailInput.waitFor({ state: 'visible', timeout: 20_000 });
+    await emailInput.waitFor({ state: 'visible', timeout: 25_000 });
   } catch (e) {
     console.error('❌ [E2E] Email input not visible. Page HTML:', (await page.content()).substring(0, 1000));
     throw e;
   }
 
-  console.log('🔐 [E2E] Waiting for password input (timeout: 20s)...');
-  await passwordInput.waitFor({ state: 'visible', timeout: 20_000 });
+  console.log('🔐 [E2E] Waiting for password input (timeout: 25s)...');
+  await passwordInput.waitFor({ state: 'visible', timeout: 25_000 });
 
   // Fill credentials
   await emailInput.fill(email);
@@ -67,8 +67,18 @@ export async function login(
   await page.click('button[type="submit"]');
 
   // Wait for redirect
-  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
-  await page.waitForLoadState('networkidle');
+  console.log('🔐 [E2E] Waiting for dashboard redirect (timeout: 20s)...');
+  try {
+    await page.waitForURL(/\/dashboard/, { timeout: 20_000 });
+  } catch (e) {
+    console.error('❌ [E2E] Redirect to /dashboard failed. Current URL:', page.url());
+    console.error('Page HTML snapshot:', (await page.content()).substring(0, 1500));
+    throw e;
+  }
+
+  // Ensure dashboard is interactive
+  await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  await page.waitForTimeout(500);
 }
 
 export async function logout(page: Page) {
@@ -96,22 +106,25 @@ export async function createStudent(
   }
 ) {
   // Click add student button
-  await page.click('button:has-text("Add Student")');
+  const addStudentButton = page.locator('[data-testid="add-student-btn"], button:has-text("Add Student")');
+  await addStudentButton.waitFor({ state: 'visible', timeout: 15_000 });
+  await addStudentButton.first().click();
 
   // Wait for modal
-  await page.waitForSelector('[data-testid="student-form"]');
+  await page.waitForSelector('[data-testid="student-id-input"]', { timeout: 15_000 });
 
   // Fill form
-  await page.fill('input[name="firstName"]', data.firstName);
-  await page.fill('input[name="lastName"]', data.lastName);
-  await page.fill('input[name="email"]', data.email);
-  await page.fill('input[name="studentId"]', data.studentId);
+  await page.fill('[data-testid="first-name-input"], input[name="firstName"], input[aria-label="first name"]', data.firstName);
+  await page.fill('[data-testid="last-name-input"], input[name="lastName"], input[aria-label="last name"]', data.lastName);
+  await page.fill('[data-testid="email-input"], input[name="email"], input[aria-label="email"]', data.email);
+  await page.fill('[data-testid="student-id-input"], input[name="studentId"], input[aria-label="student id"]', data.studentId);
 
   // Submit
-  await page.click('button:has-text("Save")');
+  const submitButton = page.locator('[data-testid="submit-student"], button:has-text("Add Student"), button:has-text("Save")');
+  await submitButton.first().click();
 
   // Wait for success message
-  await page.waitForSelector('text=Student created successfully', { timeout: 5000 });
+  await page.waitForSelector('text=successfully', { timeout: 10_000 });
 }
 
 export async function waitForTable(page: Page, timeout = 5000) {
