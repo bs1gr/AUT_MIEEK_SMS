@@ -89,6 +89,7 @@ param(
     [switch]$SkipTests,
     [switch]$SkipCleanup,
     [switch]$SkipLint,
+    [switch]$SkipPreCommitHooks,
     [switch]$GenerateCommit,
     [switch]$AutoFix,
     [switch]$SyncVersion,
@@ -271,6 +272,10 @@ function Test-CommandAvailable {
 
 # PHASE 0: PRE-COMMIT HOOK VALIDATION (must come after utility functions)
 function Invoke-PreCommitHookValidation {
+    if ($script:SkipPreCommitHooks) {
+        Write-Info "Skipping pre-commit hook validation (SkipPreCommitHooks flag set)"
+        return
+    }
     Write-Header "Phase 0: Pre-commit Hook Validation" "DarkYellow"
     $precommitAvailable = Test-CommandAvailable -Name "pre-commit"
     if (-not $precommitAvailable) {

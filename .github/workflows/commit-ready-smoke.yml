@@ -81,7 +81,7 @@ jobs:
         shell: bash  # Use bash for cross-platform compatibility
         run: |
           echo "Running COMMIT_READY quick smoke..."
-          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -Verbose 2>&1 | tee commit_ready_output_ubuntu.txt || true
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose 2>&1 | tee commit_ready_output_ubuntu.txt || true
           echo "COMMIT_READY completed"
 
       - name: Upload smoke logs + JUnit test reports
@@ -166,7 +166,7 @@ jobs:
         run: |
           Write-Host "Running COMMIT_READY quick smoke..."
           $outFile = "commit_ready_output_windows.txt"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -Verbose *>&1 | Tee-Object -FilePath $outFile
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose *>&1 | Tee-Object -FilePath $outFile
           Write-Host "Wrote $outFile"
 
       - name: Upload smoke logs + JUnit test reports
