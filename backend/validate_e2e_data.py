@@ -17,7 +17,7 @@ sys.path.insert(0, str(project_root))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.models import User, Student, Course
+from backend.models import User, Student, Course, CourseEnrollment
 
 
 def validate_e2e_data():
@@ -67,6 +67,13 @@ def validate_e2e_data():
         courses = db.query(Course).limit(5).all()
         for c in courses:
             print(f"   - {c.course_code}: {c.course_name} ({c.semester})")
+
+        # Check enrollments exist
+        enrollment_count = db.query(CourseEnrollment).count()
+        if enrollment_count < 8:  # 4 students * 2 courses minimum
+            print(f"❌ FAILED: Expected at least 8 enrollments (4 students × 2 courses), found {enrollment_count}")
+            return False
+        print(f"✅ Enrollments found: {enrollment_count}")
 
         print("\n✅ All E2E data validation checks passed!")
         return True

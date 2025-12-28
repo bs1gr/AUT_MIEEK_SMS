@@ -7,7 +7,7 @@ sys.path.insert(0, str(project_root))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.models import User, Student, Course, Base
+from backend.models import User, Student, Course, CourseEnrollment, Base
 from backend.security.password_hash import get_password_hash
 
 """Seed test data for E2E tests.
@@ -101,12 +101,40 @@ def seed_e2e_data():
             course = Course(**course_data)
             db.add(course)
 
+        db.flush()
+
+        # Create enrollments for all students in all courses
+        students = db.query(Student).all()
+        courses = db.query(Course).all()
+
+        enrollment_count = 0
+        for student in students:
+            for course in courses:
+                # Check if enrollment already exists
+                existing = (
+                    db.query(CourseEnrollment)
+                    .filter(
+                        CourseEnrollment.student_id == student.id,
+                        CourseEnrollment.course_id == course.id,
+                    )
+                    .first()
+                )
+
+                if not existing:
+                    enrollment = CourseEnrollment(
+                        student_id=student.id,
+                        course_id=course.id,
+                    )
+                    db.add(enrollment)
+                    enrollment_count += 1
+
         db.commit()
         print("✓ E2E test data seeded successfully")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
         print("  - Created test user: test@example.com (password: password123)")
         print(f"  - Created {len(students_data)} students")
         print(f"  - Created {len(courses_data)} courses")
+        print(f"  - Created {enrollment_count} enrollments")
 
     except Exception as e:
         db.rollback()
