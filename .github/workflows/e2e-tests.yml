@@ -110,6 +110,12 @@ jobs:
           echo "Seeding E2E test data..."
           python backend/seed_e2e_data.py
 
+      # FIX: Validate seed data was created successfully
+      - name: Validate seed data
+        run: |
+          echo "Validating E2E test data..."
+          python backend/validate_e2e_data.py
+
       # FIX 5: Add health check before starting tests
       - name: Start backend in background
         env:
@@ -150,6 +156,12 @@ jobs:
             echo "⏳ Waiting for backend... ($i/30)"
             sleep 1
           done
+
+      # FIX: Validate login endpoint works before running E2E tests
+      - name: Check login health
+        run: |
+          echo "Checking login endpoint health..."
+          python backend/check_login_health.py
 
       - name: Run E2E tests
         working-directory: ./frontend
