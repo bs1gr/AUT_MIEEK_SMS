@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - main
+  release:
+    types: [published, created, edited]
   workflow_dispatch:
     inputs:
       deploy_environment:
@@ -19,6 +21,7 @@ on:
         options:
           - staging
           - production
+  workflow_call:
 
 env:
   PYTHON_VERSION: '3.11'

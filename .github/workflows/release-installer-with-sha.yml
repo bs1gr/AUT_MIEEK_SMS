@@ -135,7 +135,7 @@ jobs:
 
           if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
             Write-Host "Running VERIFY_VERSION.ps1 in CI mode..."
-            & ".\scripts\VERIFY_VERSION.ps1" -CIMode -IgnoreMissing
+            & ".\scripts\VERIFY_VERSION.ps1" -CIMode
             if ($LASTEXITCODE -ne 0) {
               Write-Warning "Version verification found issues, but continuing (may cause issues in release)"
             }

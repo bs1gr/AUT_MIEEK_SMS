@@ -39,7 +39,7 @@ jobs:
           fetch-depth: 0
       - name: Verify version consistency
         shell: pwsh
-        run: ./scripts/VERIFY_VERSION.ps1 -CIMode -Check
+        run: ./scripts/VERIFY_VERSION.ps1 -CIMode
 
   commit-ready:
     name: Commit Ready Quick

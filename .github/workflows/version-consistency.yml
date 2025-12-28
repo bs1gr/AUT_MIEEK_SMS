@@ -20,4 +20,4 @@ jobs:
       - name: Run version verification
         shell: pwsh
         run: |
-          ./scripts/VERIFY_VERSION.ps1 -CIMode -Check
+          ./scripts/VERIFY_VERSION.ps1 -CIMode

@@ -125,3 +125,32 @@ jobs:
               // Don't fail the entire job if workflow dispatch fails
               // The user can manually trigger it if needed
             }
+
+  # Trigger the full CI/CD pipeline for release validation
+  trigger-ci-cd-pipeline:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: needs.create-release.outputs.release_created == 'true'
+    steps:
+      - name: Trigger CI/CD Pipeline
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ needs.create-release.outputs.tag }}';
+            console.log(`Triggering CI/CD pipeline for new release: ${tag}`);
+
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'ci-cd-pipeline.yml',
+                ref: 'main',
+                inputs: {
+                  deploy_environment: 'production'
+                }
+              });
+              console.log(`✓ CI/CD pipeline dispatched for ${tag}`);
+            } catch (error) {
+              console.error(`Failed to dispatch CI/CD pipeline: ${error.message}`);
+            }
