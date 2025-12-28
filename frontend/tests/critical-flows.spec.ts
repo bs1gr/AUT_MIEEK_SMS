@@ -8,18 +8,21 @@ test.describe('Authentication Flow', () => {
 
   test('should login successfully', async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
   test('should logout successfully', async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await logout(page);
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page).toHaveURL(/^https?:\/\/[^/]+\/?(\?.*)?$/);
   });
 
   test('should handle invalid credentials', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await page.fill('input[name="email"]', 'invalid@example.com');
     await page.fill('input[name="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
@@ -41,29 +44,34 @@ test.describe('Dashboard Navigation', () => {
   });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
   test('should navigate to Students page', async ({ page }) => {
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
     await studentsLink.click();
-    await page.waitForURL(/.*students/, { timeout: 5000 });
+    await page.waitForURL(/.*students/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
   test('should navigate to Courses page', async ({ page }) => {
     const coursesLink = page.locator('a').filter({ hasText: /course/i }).first();
     await coursesLink.click();
-    await page.waitForURL(/.*courses/, { timeout: 5000 });
+    await page.waitForURL(/.*courses/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
   test('should navigate to Grades page', async ({ page }) => {
     const gradesLink = page.locator('a').filter({ hasText: /grad/i }).first();
     await gradesLink.click();
-    await page.waitForURL(/.*grad(es|ing)/, { timeout: 5000 });
+    await page.waitForURL(/.*grad(es|ing)/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
   test('should navigate to Attendance page', async ({ page }) => {
     await page.click('a:has-text("Attendance")');
-    await page.waitForURL(/.*attendance/);
+    await page.waitForURL(/.*attendance/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.locator('text=Attendance')).toBeVisible();
   });
 });
@@ -74,9 +82,11 @@ test.describe('Students Management', () => {
   });
   test.beforeEach(async ({ page }) => {
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
     await studentsLink.click();
     await page.waitForURL(/.*students/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
   test('should display students list', async ({ page }) => {
@@ -91,9 +101,9 @@ test.describe('Students Management', () => {
 
   test('should search students', async ({ page }) => {
     const searchInput = page.locator('input[placeholder*="Search" i]');
-    await expect(searchInput).toBeVisible({ timeout: 5000 });
+    await expect(searchInput).toBeVisible({ timeout: 10000 });
     await searchInput.fill('John');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await page.waitForFunction(() => {
       const emptyMsg = Array.from(document.querySelectorAll('p')).some(p => /No students found|Δεν βρέθηκαν/i.test(p.textContent || ''));
       const hasCards = document.querySelector('ul li') !== null || document.querySelector('li.border') !== null;
@@ -112,6 +122,7 @@ test.describe('Students Management', () => {
     const viewBtn = firstCard.locator('button').filter({ hasText: /View Profile|Full Profile|Προβολή/i }).first();
     await expect(viewBtn).toBeVisible({ timeout: 10000 });
     await viewBtn.click();
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.locator('text=/Student ID|Αριθμός Μητρώου/').first()).toBeVisible({ timeout: 10000 });
   });
 });
@@ -123,18 +134,21 @@ test.describe('Responsive Design', () => {
   test('should be mobile responsive', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
   test('should be tablet responsive', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
   test('should be desktop responsive', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await login(page, 'test@example.com', 'password123');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 });

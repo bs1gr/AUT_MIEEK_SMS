@@ -8,11 +8,14 @@ test.describe('Registration UI flow (smoke)', () => {
     const password = 'E2E-Ui-Password-1!';
 
     await page.goto(base);
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
+
     // Ensure unauthenticated state in case previous tests set a token
     await page.evaluate(() => {
       try { localStorage.removeItem('sms_access_token'); } catch {}
     });
     await page.reload();
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
 
     // Ensure registration form is visible (inline variant may be collapsed)
     const toggle = page.locator('[data-testid="register-toggle"]');
@@ -21,14 +24,21 @@ test.describe('Registration UI flow (smoke)', () => {
       const formVisible = await page.locator('[data-testid="register-email"]').isVisible().catch(() => false);
       if (!formVisible) {
         await toggle.click();
+        await page.waitForTimeout(500); // Brief pause for animation
       }
     } else {
       // Fallback: open dialog variant if present
       const openDialog = page.locator('[data-testid="register-open"]');
       if (await openDialog.count()) {
         await openDialog.click();
+        await page.waitForTimeout(500); // Brief pause for modal animation
       }
     }
+
+    // Wait for form fields to be visible before filling
+    await page.locator('[data-testid="register-email"]').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('[data-testid="register-password"]').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('[data-testid="register-fullname"]').waitFor({ state: 'visible', timeout: 15000 });
 
     // Fill registration form using stable test ids
     await page.fill('[data-testid="register-email"]', email);

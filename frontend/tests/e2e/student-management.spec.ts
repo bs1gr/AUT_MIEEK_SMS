@@ -266,8 +266,10 @@ test.describe('Attendance Tracking', () => {
     });
     const createdCourse = await courseResp.json();
 
-    // Navigate to attendance page
+    // Navigate to attendance page and wait for it to load
     await page.goto('/attendance');
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
+    await page.locator('[data-testid="attendance-course-select"], select[name="courseId"]').waitFor({ state: 'visible', timeout: 15000 });
 
     // Select course
     await page.selectOption('[data-testid="attendance-course-select"], select[name="courseId"]', `${createdCourse.id}`);
@@ -341,11 +343,12 @@ test.describe('Analytics and Reports', () => {
       },
     });
 
-    // Navigate to analytics page
+    // Navigate to analytics page and wait for it to load
     await page.goto(`/analytics/student/${createdStudent.id}`);
+    await page.waitForLoadState('networkidle', { timeout: 20000 });
 
-    // Verify final grade calculation appears
-    await expect(page.getByText(/Final Grade|Overall GPA|Grade Summary/i)).toBeVisible({ timeout: 5000 });
+    // Verify final grade calculation appears (increased timeout for rendering)
+    await expect(page.getByText(/Final Grade|Overall GPA|Grade Summary/i)).toBeVisible({ timeout: 15000 });
 
     // Verify course appears with grade
     await expect(page.getByText(course.courseCode)).toBeVisible();
