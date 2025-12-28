@@ -425,6 +425,7 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 ### Documentation
 
 - Consolidated structure (`docs/user`, `docs/deployment`, `docs/development`) & master index updated.
+- RBAC (roles & permissions): `docs/user/RBAC_GUIDE.md` explains defaults, admin endpoints, and safeguards.
 
 Full release notes: `CHANGELOG.md` (sections 1.12.8.0–1.12.8.4).
 

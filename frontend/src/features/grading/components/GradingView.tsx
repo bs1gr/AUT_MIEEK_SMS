@@ -350,19 +350,33 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{t('addGrade') || 'Add Grade'}</h2>
+        <button
+          type="button"
+          data-testid="add-grade-button"
+          className="border px-3 py-2 rounded text-sm hover:bg-gray-50"
+          onClick={() => {
+            const el = document.querySelector('[data-testid="grade-form"] input[name="assignmentName"]') as HTMLInputElement | null;
+            el?.focus();
+          }}
+        >
+          {t('addGrade') || 'Add Grade'}
+        </button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select className="border rounded px-3 py-2" value={studentId === '' ? '' : String(studentId)} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>
+        <select name="studentId" className="border rounded px-3 py-2" value={studentId === '' ? '' : String(studentId)} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>
           <option value="">{t('selectStudent')}</option>
           {filteredStudents.map(s => (<option key={s.id} value={s.id}>{s.student_id} - {s.first_name} {s.last_name}</option>))}
         </select>
-        <select className="border rounded px-3 py-2" value={courseId === '' ? '' : String(courseId)} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')} aria-label={t('selectCourse')}>
+        <select name="courseId" className="border rounded px-3 py-2" value={courseId === '' ? '' : String(courseId)} onChange={e=>setCourseId(e.target.value? Number(e.target.value): '')} aria-label={t('selectCourse')}>
           <option value="">{t('selectCourse')}</option>
           {filteredCourses.map(c => (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
         </select>
         <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
       </div>
 
-      <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3">
+      <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">
             {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
@@ -379,17 +393,54 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input className="border rounded px-3 py-2" placeholder={t('assignmentNamePlaceholder')} value={assignmentName} onChange={e=>setAssignmentName(e.target.value)} />
-          <select className="border rounded px-3 py-2" value={category} onChange={e=>setCategory(e.target.value)} aria-label={t('categoryLabel') || 'Category'}>
+          <input
+            name="assignmentName"
+            className="border rounded px-3 py-2"
+            placeholder={t('assignmentNamePlaceholder')}
+            value={assignmentName}
+            onChange={e=>setAssignmentName(e.target.value)}
+          />
+          <select
+            name="category"
+            className="border rounded px-3 py-2"
+            value={category}
+            onChange={e=>setCategory(e.target.value)}
+            aria-label={t('categoryLabel') || 'Category'}
+          >
             {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <input type="text" inputMode="decimal" className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400" placeholder={t('weightPlaceholder')} value={weight} onChange={e => setWeight(e.target.value)} disabled={category==='Midterm' || category==='Final Exam'} />
+          <input
+            name="weight"
+            type="text"
+            inputMode="decimal"
+            className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400"
+            placeholder={t('weightPlaceholder')}
+            value={weight}
+            onChange={e => setWeight(e.target.value)}
+            disabled={category==='Midterm' || category==='Final Exam'}
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('gradePlaceholder')} value={gradeValue} onChange={e => setGradeValue(e.target.value)} />
-          <input type="text" inputMode="decimal" className="border rounded px-3 py-2" placeholder={t('maxGradePlaceholder')} value={maxGrade} onChange={e => setMaxGrade(e.target.value)} />
+          <input
+            name="grade"
+            type="text"
+            inputMode="decimal"
+            className="border rounded px-3 py-2"
+            placeholder={t('gradePlaceholder')}
+            value={gradeValue}
+            onChange={e => setGradeValue(e.target.value)}
+          />
+          <input
+            name="max_grade"
+            type="text"
+            inputMode="decimal"
+            className="border rounded px-3 py-2"
+            placeholder={t('maxGradePlaceholder')}
+            value={maxGrade}
+            onChange={e => setMaxGrade(e.target.value)}
+          />
           <button disabled={submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{submitting? t('saving') : t('saveGrade')}</button>
         </div>
       </form>

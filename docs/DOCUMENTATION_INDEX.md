@@ -195,11 +195,14 @@ Documentation is organized into four main directories:
 - **[user/THEME_GUIDE.md](user/THEME_GUIDE.md)** - Customize UI themes
 - **[user/THEMES_SUMMARY.md](user/THEMES_SUMMARY.md)** - Available themes overview
 - **[user/LOCALIZATION.md](user/LOCALIZATION.md)** - Language switching (EN/EL)
+- **[user/RBAC_GUIDE.md](user/RBAC_GUIDE.md)** - Roles & permissions guide (admin endpoints, defaults, safeguards)
+- **[user/RBAC_GUIDE_EL.md](user/RBAC_GUIDE_EL.md)** - Οδηγός ρόλων & δικαιωμάτων (στα Ελληνικά)
 
 **Greek Language**:
 
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Οδηγός γρήγορης εκκίνησης
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Πλήρες εγχειρίδιο χρήστη
+- **[user/RBAC_GUIDE_EL.md](user/RBAC_GUIDE_EL.md)** - Οδηγός ρόλων & δικαιωμάτων (admin endpoints, προεπιλογές, ασφάλεια)
 
 ### 💻 For Developers
 

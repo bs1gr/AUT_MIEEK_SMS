@@ -541,6 +541,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
           <button
             onClick={() => onAddCourse && onAddCourse()}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow transition-colors"
+            data-testid="add-course-btn"
           >
             <Plus size={18} />
             <span>{t('addCourse')}</span>

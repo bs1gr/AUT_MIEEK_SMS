@@ -1062,7 +1062,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         <div className="space-y-4">
           <div className="bg-white rounded-2xl shadow p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-3">{t('course') || 'Course'}</h3>
-            <select aria-label={t('course') || 'Course'} title={t('course') || 'Course'} value={selectedCourse || ''} onChange={(e) => setSelectedCourse(e.target.value ? parseInt(e.target.value, 10) : '')} className="w-full px-3 py-2 border rounded">
+            <select
+              name="courseId"
+              aria-label={t('course') || 'Course'}
+              title={t('course') || 'Course'}
+              value={selectedCourse || ''}
+              onChange={(e) => setSelectedCourse(e.target.value ? parseInt(e.target.value, 10) : '')}
+              className="w-full px-3 py-2 border rounded"
+              data-testid="attendance-course-select"
+            >
               <option value="">{t('selectCourse') || 'Select course'}</option>
               {localCourses.filter((c) => coursesWithEnrollment.has(c.id)).map((c) => (
                 <option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>

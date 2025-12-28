@@ -605,6 +605,7 @@
 - `SESSION_EXPORT_IMPORT_GUIDE.md`
 - `LOCALIZATION.md`
 - `ARCHITECTURE.md`
+- `RBAC_GUIDE_EL.md` (Ρόλοι & Δικαιώματα)
 
 ---
 

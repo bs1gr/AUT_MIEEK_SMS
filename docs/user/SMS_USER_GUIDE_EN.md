@@ -603,6 +603,7 @@ Additional guides in the `docs/` directory:
 - `SESSION_EXPORT_IMPORT_GUIDE.md`
 - `LOCALIZATION.md`
 - `ARCHITECTURE.md`
+- `RBAC_GUIDE.md` (roles & permissions)
 
 ---
 

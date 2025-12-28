@@ -338,7 +338,9 @@ async def bulk_grant_permission(
     return {"results": results}
 
 
-router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})
+# NOTE: Avoid re-defining the router. The initial router instance above is
+# used for all endpoints in this module. Re-defining would drop endpoints
+# declared earlier in the file.
 
 logger = logging.getLogger(__name__)
 

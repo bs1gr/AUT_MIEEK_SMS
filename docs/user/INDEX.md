@@ -75,3 +75,6 @@ Documentation for end-users of the Student Management System.
 - Check troubleshooting guides in [../../docs/deployment/](../deployment/)
 - Contact system administrator
 - Report bugs via GitHub Issues
+- RBAC (Roles & Permissions):
+  - English: [RBAC_GUIDE.md](RBAC_GUIDE.md)
+  - Ελληνικά: [RBAC_GUIDE_EL.md](RBAC_GUIDE_EL.md)

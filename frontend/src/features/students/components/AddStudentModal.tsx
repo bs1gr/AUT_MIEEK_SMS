@@ -248,7 +248,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
               <Button type="button" variant="outline" onClick={onClose}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                data-testid="submit-student"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting ? t('saving') || 'Saving...' : t('addStudent')}
               </Button>
             </div>

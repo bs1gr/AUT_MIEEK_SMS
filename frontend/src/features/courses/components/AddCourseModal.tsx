@@ -135,7 +135,11 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                 <FormItem>
                   <FormLabel>{t('courseCodePlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('courseCodePlaceholder')} {...field} />
+                    <Input
+                      placeholder={t('courseCodePlaceholder')}
+                      data-testid="course-code-input"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -149,7 +153,11 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                 <FormItem>
                   <FormLabel>{t('courseNamePlaceholder')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('courseNamePlaceholder')} {...field} />
+                    <Input
+                      placeholder={t('courseNamePlaceholder')}
+                      data-testid="course-name-input"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,6 +186,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                 title={t('semester')}
                 onChange={(e) => handleSemesterTypeChange(e.target.value as SemesterType)}
                 className="w-full border px-4 py-2 rounded focus:ring-2 focus:ring-indigo-500"
+                data-testid="semester-type-select"
               >
                 <option value="spring">{t('springSemester')}</option>
                 <option value="winter">{t('winterSemester')}</option>
@@ -192,6 +201,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                   placeholder={t('customSemesterPlaceholder')}
                   value={customSemester}
                   onChange={(e) => handleCustomSemesterChange(e.target.value)}
+                  data-testid="custom-semester-input"
                 />
               ) : (
                 <Input
@@ -199,6 +209,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                   placeholder={t('yearPlaceholder')}
                   value={semesterYear}
                   onChange={(e) => handleSemesterYearChange(e.target.value)}
+                  data-testid="semester-year-input"
                 />
               )}
 
@@ -219,6 +230,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                       <Input
                         type="number"
                         placeholder={t('creditsPlaceholder')}
+                        data-testid="credits-input"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
@@ -238,6 +250,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                       <Input
                         type="number"
                         placeholder={t('yearPlaceholder') || 'Year'}
+                        data-testid="year-input"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
                       />
@@ -273,6 +286,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                       type="number"
                       step="0.1"
                       placeholder={t('absencePenalty') || 'Absence Penalty'}
+                      data-testid="absence-penalty-input"
                       {...field}
                       value={field.value || 0}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -287,7 +301,11 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
               <Button type="button" variant="outline" onClick={onClose}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                data-testid="submit-course"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting ? t('saving') || 'Saving...' : t('addCourse')}
               </Button>
             </div>
