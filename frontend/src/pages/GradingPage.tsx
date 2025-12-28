@@ -24,8 +24,6 @@ export default function GradingPage() {
 
   return (
     <SectionErrorBoundary section="GradingPage">
-      {/* Add page-ready indicator for E2E tests */}
-      <div data-testid="grading-page-loaded" className="hidden">Loaded</div>
       <GradingView students={students} courses={courses} />
     </SectionErrorBoundary>
   );

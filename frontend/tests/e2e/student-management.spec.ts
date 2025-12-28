@@ -215,9 +215,6 @@ test.describe('Grade Assignment Flow', () => {
     await page.goto('/grades');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
 
-    // Wait for page to be fully loaded and rendered
-    await page.waitForSelector('[data-testid="grading-page-loaded"]', { timeout: 10000 });
-
     // Wait for Add Grade button to be visible
     await page.waitForSelector('[data-testid="add-grade-button"]', { state: 'visible', timeout: 15000 });
 
@@ -276,9 +273,6 @@ test.describe('Attendance Tracking', () => {
     // Navigate to attendance page and wait for it to load
     await page.goto('/attendance');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
-
-    // Wait for page to be fully loaded and rendered
-    await page.waitForSelector('[data-testid="attendance-page-loaded"]', { timeout: 10000 });
 
     // Wait for course selector to be visible
     await page.locator('[data-testid="attendance-course-select"], select[name="courseId"]').waitFor({ state: 'visible', timeout: 15000 });

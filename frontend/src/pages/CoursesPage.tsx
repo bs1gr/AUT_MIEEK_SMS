@@ -41,8 +41,6 @@ export default function CoursesPage() {
 
   return (
     <SectionErrorBoundary section="CoursesPage">
-      {/* Add page-ready indicator for E2E tests */}
-      <div data-testid="courses-page-loaded" className="hidden">Loaded</div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <CoursesView

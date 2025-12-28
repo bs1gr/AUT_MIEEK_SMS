@@ -29,8 +29,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* Add page-ready indicator for E2E tests */}
-      <div data-testid="dashboard-page-loaded" className="hidden">Loaded</div>
       <EnhancedDashboardView students={students} courses={courses} stats={stats} />
     </>
   );
