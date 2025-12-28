@@ -8,14 +8,14 @@ test.describe('Authentication Flow', () => {
 
   // ...existing code...
   test('should login successfully', async ({ page }) => {
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
 
     // Verify we're on dashboard by URL only
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
   test('should logout successfully', async ({ page }) => {
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
     await logout(page);
 
     // Verify redirect to root (auth page) - full URL
@@ -56,7 +56,7 @@ test.describe('Dashboard Navigation', () => {
     await ensureTestUserExists();
   });
   test.beforeEach(async ({ page }) => {
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
   });
 
   test('should navigate to Students page', async ({ page }) => {
@@ -90,7 +90,7 @@ test.describe('Students Management', () => {
     await ensureTestUserExists();
   });
   test.beforeEach(async ({ page }) => {
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
     await studentsLink.click();
     await page.waitForURL(/.*students/, { timeout: 10000 });
@@ -152,7 +152,7 @@ test.describe('Responsive Design', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
 
     // Dashboard should still be accessible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
@@ -162,7 +162,7 @@ test.describe('Responsive Design', () => {
     // Set tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
 
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
 
     // Dashboard should be accessible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
@@ -172,7 +172,7 @@ test.describe('Responsive Design', () => {
     // Set desktop viewport (default)
     await page.setViewportSize({ width: 1920, height: 1080 });
 
-    await login(page, 'test@example.com', 'password123');
+    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
 
     // Dashboard should be visible
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();

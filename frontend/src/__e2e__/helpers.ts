@@ -6,7 +6,7 @@ export async function ensureTestUserExists() {
   const client = axios.create({ baseURL: `${apiBase}/api/v1` });
 
   const email = 'test@example.com'; // pragma: allowlist secret
-  const password = 'password123'; // pragma: allowlist secret
+  const password = 'Test@Pass123'; // pragma: allowlist secret
 
   try {
     await client.post('auth/login', { email, password });

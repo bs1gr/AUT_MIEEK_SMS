@@ -153,7 +153,7 @@ export async function loginAsTeacher(page: Page): Promise<TestUser> {
 export async function loginAsTestUser(page: Page): Promise<TestUser> {
   const testUser: TestUser = {
     email: 'test@example.com',
-    password: 'password123',
+    password: 'Test@Pass123',
     fullName: 'Test User',
     role: 'admin',
   };
