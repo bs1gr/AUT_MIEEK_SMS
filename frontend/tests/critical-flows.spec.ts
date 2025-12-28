@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { login, logout, ensureTestUserExists } from './helpers';
+import { logPhase, logAuthEvent, capturePageDiagnostics, logTest } from './e2e/logging';
 
 // DIAGNOSTIC: Check what the page actually contains in CI
 test('DIAGNOSTIC: Check page HTML structure', async ({ page }) => {
+  logPhase('PAGE_STRUCTURE_CHECK', 'Verifying page loads and renders');
+
   const consoleErrors: string[] = [];
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
@@ -22,18 +25,15 @@ test('DIAGNOSTIC: Check page HTML structure', async ({ page }) => {
   const bodyContent = await page.locator('body').innerHTML();
   const rootContentLength = await page.locator('#root').evaluate((el) => el.innerHTML.length).catch(() => 0);
 
-  console.log('=== PAGE DIAGNOSTIC ===');
-  console.log('Has root div:', hasRootDiv > 0);
-  console.log('Has React markers:', hasReactMarkers > 0);
-  console.log('Body has content:', bodyContent.trim().length > 0, `(${bodyContent.length} chars)`);
-  console.log('Root innerHTML length:', rootContentLength);
-  if (consoleErrors.length) {
-    console.log('Console errors:', consoleErrors.join(' | '));
-  }
-  if (requestFailures.length) {
-    console.log('Request failures:', requestFailures.join(' | '));
-  }
-  console.log('=== END DIAGNOSTIC ===');
+  logTest('PAGE_DIAGNOSTIC', 'Page structure check results', 'INFO', {
+    hasRootDiv: hasRootDiv > 0,
+    hasReactMarkers: hasReactMarkers > 0,
+    bodyHasContent: bodyContent.trim().length > 0,
+    bodyLength: bodyContent.length,
+    rootContentLength,
+    consoleErrors,
+    requestFailures,
+  });
 
   expect(true).toBe(true); // only logging
 });
@@ -44,16 +44,24 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should login successfully', async ({ page }) => {
+    logAuthEvent('LOGIN_START', 'test@example.com', true);
     await login(page, 'test@example.com', 'password123');
+    logPhase('NAVIGATION', 'Waiting for dashboard to load');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    logAuthEvent('LOGIN_SUCCESS', 'test@example.com', true);
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
   test('should logout successfully', async ({ page }) => {
+    logAuthEvent('LOGOUT_TEST_START', 'test@example.com', true);
     await login(page, 'test@example.com', 'password123');
+    logPhase('WAITING', 'After login, waiting for dashboard');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    logPhase('LOGOUT_ACTION', 'Clicking logout button');
     await logout(page);
+    logPhase('LOGOUT_VERIFICATION', 'Waiting for logout completion');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
+    logAuthEvent('LOGOUT_SUCCESS', 'test@example.com', true);
   });
 
   test('should handle invalid credentials', async ({ page }) => {
