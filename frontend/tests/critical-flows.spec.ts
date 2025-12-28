@@ -1,6 +1,42 @@
 import { test, expect } from '@playwright/test';
 import { login, logout, ensureTestUserExists } from './helpers';
 
+// DIAGNOSTIC: Check what the page actually contains in CI
+test('DIAGNOSTIC: Check page HTML structure', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle', { timeout: 20000 });
+
+  // Get raw HTML
+  const html = await page.content();
+  const hasRootDiv = html.includes('id="root"');
+  const hasReactApp = html.includes('__APP_VERSION__');
+
+  // Check for React elements
+  const bodyContent = await page.locator('body').innerHTML();
+  const bodyHasContent = bodyContent.length > 500; // More than just empty divs
+
+  console.log(`\n=== PAGE DIAGNOSTIC ===`);
+  console.log(`Has root div: ${hasRootDiv}`);
+  console.log(`Has React markers: ${hasReactApp}`);
+  console.log(`Body has content: ${bodyHasContent} (${bodyContent.length} chars)`);
+  console.log(`First 500 chars of body:\n${bodyContent.substring(0, 500)}`);
+
+  // Try to find any visible text
+  const allText = await page.locator('body').allTextContents();
+  console.log(`Visible text content: ${allText.length} elements`);
+  if (allText.length > 0) {
+    console.log(`First visible text: "${allText[0].substring(0, 100)}"`);
+  }
+
+  // Check for common error indicators
+  const hasError = bodyContent.includes('error') || bodyContent.includes('Error') || bodyContent.includes('ERROR');
+  console.log(`Contains error text: ${hasError}`);
+  console.log(`=== END DIAGNOSTIC ===\n`);
+
+  // This test just logs, doesn't assert
+  expect(true).toBe(true);
+});
+
 test.describe('Authentication Flow', () => {
   test.beforeAll(async () => {
     await ensureTestUserExists();
