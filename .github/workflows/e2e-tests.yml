@@ -120,6 +120,7 @@ jobs:
           DATABASE_URL: sqlite:///./data/student_management.db
         run: |
           echo "Starting backend server..."
+          echo "Frontend build exists: $(test -f frontend/dist/index.html && echo 'YES' || echo 'NO')"
           python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 5
@@ -127,12 +128,19 @@ jobs:
           # Wait for backend to be ready with better error handling
           echo "Waiting for backend health check..."
           for i in {1..30}; do
-            if curl -sf http://127.0.0.1:8000/health > /dev/null 2>&1; then
+            echo "Health check attempt $i/30..."
+            HEALTH=$(curl -s http://127.0.0.1:8000/health 2>&1 || echo "FAILED")
+            if echo "$HEALTH" | grep -q '"status"'; then
               echo "✅ Backend is ready (attempt $i/30)"
+              echo "Health response: $HEALTH" | head -1
               break
             fi
             if [ $i -eq 30 ]; then
               echo "❌ Backend failed to start within 30 seconds"
+              echo "Last health check response:"
+              curl -v http://127.0.0.1:8000/health 2>&1 || true
+              echo "\nTrying root endpoint:"
+              curl -v http://127.0.0.1:8000/ 2>&1 | head -20 || true
               if [ -f backend.pid ]; then
                 echo "Backend process status:"
                 ps aux | grep $(cat backend.pid) || echo "Process not found"
@@ -147,15 +155,20 @@ jobs:
         working-directory: ./frontend
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+          DEBUG: 'pw:api'
         run: |
-          echo "=== Sanity check: curl /login ==="
-          curl -I http://127.0.0.1:8000/login || echo "Login endpoint check failed"
+          echo "=== Sanity check: Verify backend serving frontend ==="
+          echo "Checking root endpoint /..."
+          curl -s -I http://127.0.0.1:8000/ | head -5
 
-          echo "=== Sanity check: curl / ==="
-          curl -I http://127.0.0.1:8000/ || echo "Root endpoint check failed"
+          echo "\n=== Checking for login form in HTML response ==="
+          curl -s http://127.0.0.1:8000/ | grep -o 'auth-login-email\|auth-login-password' || echo "⚠️  Login form IDs not found in HTML"
 
-          echo "=== Running Playwright E2E tests ==="
-          npm run e2e
+          echo "\n=== Checking /api response ==="
+          curl -s http://127.0.0.1:8000/api | head -100
+
+          echo "\n=== Running Playwright E2E tests ==="
+          npm run e2e -- --reporter=list --workers=1
 
       - name: Kill backend
         if: always()

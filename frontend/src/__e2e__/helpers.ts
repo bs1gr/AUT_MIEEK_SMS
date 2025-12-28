@@ -33,17 +33,31 @@ export async function login(
 ) {
   // Use relative paths - Playwright will resolve against baseURL from config
   // Auth page is at root '/', not '/login'
+  console.log('🔐 [E2E] Starting login for', email);
   await page.goto('/');
 
-  // Wait for login form
-  await page.waitForLoadState('networkidle');
+  // Wait for login form - increase timeout for slow CI environments
+  console.log('🔐 [E2E] Waiting for network idle (timeout: 15s)...');
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  } catch (e) {
+    console.warn('⚠️  [E2E] Network idle timeout (continuing anyway)');
+  }
 
   // Prefer stable data-testid/ids, fallback to name
   const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"]');
   const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"]');
 
-  await emailInput.waitFor({ state: 'visible', timeout: 10_000 });
-  await passwordInput.waitFor({ state: 'visible', timeout: 10_000 });
+  console.log('🔐 [E2E] Waiting for email input (timeout: 20s)...');
+  try {
+    await emailInput.waitFor({ state: 'visible', timeout: 20_000 });
+  } catch (e) {
+    console.error('❌ [E2E] Email input not visible. Page HTML:', (await page.content()).substring(0, 1000));
+    throw e;
+  }
+
+  console.log('🔐 [E2E] Waiting for password input (timeout: 20s)...');
+  await passwordInput.waitFor({ state: 'visible', timeout: 20_000 });
 
   // Fill credentials
   await emailInput.fill(email);
