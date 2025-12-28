@@ -229,7 +229,10 @@ test.describe('Grade Assignment Flow', () => {
     await page.fill('input[name="assignmentName"]', 'Homework 1');
     await page.fill('input[name="grade"]', '85');
     await page.fill('input[name="max_grade"]', '100');
-    await page.selectOption('select[name="category"]', { label: /Homework/i });
+    // Select category option with string instead of regex
+    const categoryOptions = await page.locator('select[name="category"] option').allTextContents();
+    const homeworkOption = categoryOptions.find(opt => /Homework/i.test(opt)) || 'Homework';
+    await page.selectOption('select[name="category"]', homeworkOption);
 
     // Submit
     await page.click('button[type="submit"]');
