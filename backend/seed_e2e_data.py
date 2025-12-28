@@ -60,7 +60,7 @@ def seed_e2e_data(force: bool = False):
         test_user = User(
             email="test@example.com",
             full_name="Test User",
-            hashed_password=get_password_hash("password123"),
+            hashed_password=get_password_hash("Test@Pass123"),  # Meets password requirements
             role="admin",
             is_active=True,
         )
@@ -147,7 +147,7 @@ def seed_e2e_data(force: bool = False):
         db.commit()
         print("✓ E2E test data seeded successfully")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
-        print("  - Created test user: test@example.com (password: password123)")
+        print("  - Created test user: test@example.com (password: Test@Pass123)")
         print(f"  - Created {len(students_data)} students")
         print(f"  - Created {len(courses_data)} courses")
         print(f"  - Created {enrollment_count} enrollments")
