@@ -100,7 +100,7 @@ def main():
 
     print()
     print("=" * 70)
-    print("✓ Greek text encoding conversion complete")
+    print("[OK] Greek text encoding conversion complete")
     print("=" * 70)
     print()
     print("Note: Files appear garbled in UTF-8 editors but display correctly")
