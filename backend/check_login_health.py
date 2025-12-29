@@ -19,7 +19,8 @@ def check_login_health(base_url="http://127.0.0.1:8000", max_retries=3):
     print(f"Checking login health at {base_url}...")
 
     login_url = f"{base_url}/api/v1/auth/login"
-    test_credentials = {"username": "test@example.com", "password": "password123"}
+    # E2E test user seeded by backend/seed_e2e_data.py
+    test_credentials = {"email": "test@example.com", "password": "Test@Pass123"}
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -28,7 +29,7 @@ def check_login_health(base_url="http://127.0.0.1:8000", max_retries=3):
             # Try to login with test credentials
             response = requests.post(
                 login_url,
-                data=test_credentials,  # FastAPI login uses form data
+                json=test_credentials,  # API expects JSON with email/password
                 timeout=10,
             )
 
