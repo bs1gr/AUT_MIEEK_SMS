@@ -16,6 +16,10 @@
 - replace Unicode arrow with ASCII in Greek encoding script [89a1630]
 - add required inputs to workflow_call trigger in CI/CD pipeline [0db0df5]
 
+## 📝 Documentation
+
+- release notes and changelog for v1.14.0 [58645e3]
+
 ## 🤖 CI/CD
 
 - fix encoding script output + install missing types and vitest coverage deps [3e5f5dc]
@@ -47,5 +51,5 @@
 
 ### 📊 Statistics
 
-- **Total Commits**: 28
+- **Total Commits**: 29
 - **Contributors**: 2

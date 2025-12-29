@@ -10,6 +10,44 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.14.0] - 2025-12-29
+
+### Bug Fixes
+- Docker security scan - use filesystem scan on Dockerfile directory instead of image-ref
+- Docker security scan - build and load image locally for Trivy scanning
+- E2E test database initialization and seeding\n\n- Add force reseed step to ensure test user (test@example.com) exists even if admin user created by bootstrap\n- Remove DISABLE_STARTUP_TASKS flag to allow migrations to run properly on startup\n- Ensures tables exist and test user is present before E2E login\n\nThis should address E2E login 400 errors seen previously.
+- disable login lockouts in E2E environment and make E2E tests non-blocking in CI
+- handle Bandit encoding issues by using CSV output format
+- replace remaining Boolean defaults (0/1 -> FALSE/TRUE) for PostgreSQL
+- use TRUE/FALSE for Boolean migrations (PostgreSQL compatibility) + adjust coverage threshold
+- replace Unicode ticks in Greek encoding script for Windows CI
+- replace Unicode arrow with ASCII in Greek encoding script
+- add required inputs to workflow_call trigger in CI/CD pipeline
+
+### Documentation
+- release notes and changelog for v1.14.0
+
+### CI/CD
+- fix encoding script output + install missing types and vitest coverage deps
+- run gitleaks via CLI for policy compliance
+- remove default on workflow_call input
+
+### Chores
+- pre-commit validation complete
+- E2E - improve timeout handling and add VITE_API_URL env variable
+
+## [1.14.0] - 2025-12-29
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.14.0] - 2025-12-29
 
 ### Bug Fixes
