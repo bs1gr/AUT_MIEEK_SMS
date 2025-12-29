@@ -9,6 +9,31 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.13.0] - 2025-12-29
+
+### ⚠️ BREAKING CHANGES
+- Release v1.13.0 - MAJOR: Remove deprecated backend modules
+
+### Documentation
+- release 1.13.0 documentation
+- **structure**: add folder map to docs index; chore: enforce root docs whitelist in COMMIT_READY and run organizer before release docs generation
+
+### Chores
+- improve repository hygiene with test-results ignore and documented whitelist
+- **docs**: organize remaining text reports and workflow fixes; move e2e error folder; cleanup tmp_e2e_artifacts
+
+## [1.13.0] - 2025-12-29
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.13.0] - 2025-12-29
 
 **Release Type**: Maintenance Release

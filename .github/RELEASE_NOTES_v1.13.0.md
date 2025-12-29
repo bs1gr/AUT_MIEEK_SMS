@@ -16,6 +16,7 @@ Docker: Run .\\DOCKER.ps1 -Update to pull the new version.
 
 - .github/copilot-instructions.md
 - .github/RELEASE_NOTES_v1.12.9.md
+- .github/RELEASE_NOTES_v1.13.0.md
 - backend/tools/CREATE_ADMIN.md
 - backend/tools/README.md
 - BACKUP_VERIFICATION_INVESTIGATION_2025-12-18.md
@@ -74,8 +75,10 @@ Docker: Run .\\DOCKER.ps1 -Update to pull the new version.
 - docs/processes/SECRET_SCANNING_SETUP.md
 - docs/processes/SECURITY_AUDIT_SCHEDULE.md
 - docs/releases/GITHUB_RELEASE_v1.12.9.md
+- docs/releases/GITHUB_RELEASE_v1.13.0.md
 - docs/releases/MAJOR_RELEASE_PREPARATION_PLAN.md
 - docs/releases/RELEASE_NOTES_v1.12.9.md
+- docs/releases/RELEASE_NOTES_v1.13.0.md
 - docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md
 - docs/releases/reports/COMPREHENSIVE_CLEANUP_AUDIT.md
 - docs/releases/reports/IMPROVEMENTS_v1.12.0_to_v1.12.9.md
@@ -97,6 +100,7 @@ Docker: Run .\\DOCKER.ps1 -Update to pull the new version.
 - FINAL_VALIDATION_REPORT.md
 - PROJECT_STATUS_REPORT_2025-12-18.md
 - README_SESSION_COMPLETE.md
+- README.md
 - SECURITY_AUDIT_COMPLETION_REPORT_2025-12-27.md
 - SECURITY_AUDIT_REPORT_2025-12-27.md
 - SECURITY_FIXES_SUMMARY.md

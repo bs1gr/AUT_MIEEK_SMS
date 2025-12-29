@@ -10,6 +10,7 @@
 
 ## 📝 Documentation
 
+- release 1.13.0 documentation [a593f2a]
 - **structure**: add folder map to docs index; chore: enforce root docs whitelist in COMMIT_READY and run organizer before release docs generation [cdcd6c9]
 
 ## 🧹 Chores
@@ -53,6 +54,6 @@
 
 ### 📊 Statistics
 
-- **Total Commits**: 32
+- **Total Commits**: 33
 - **Contributors**: 2
 - **Breaking Changes**: 1
