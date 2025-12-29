@@ -5,7 +5,7 @@
  * in CI environments.
  */
 
-import { Page } from '@playwright/test';
+import { Page, Response } from '@playwright/test';
 
 export interface TestLog {
   timestamp: string;
@@ -54,7 +54,7 @@ export async function capturePageDiagnostics(page: Page, testName: string) {
 
   const pageReady = new Promise<void>((resolve) => {
     page.on('console', (msg) => {
-      if (msg.type() === 'error' || msg.type() === 'warn') {
+      if (msg.type() === 'error' || msg.type() === 'warning') {
         consoleMessages.push(`[${msg.type()}] ${msg.text()}`);
       }
     });
@@ -81,14 +81,20 @@ export async function capturePageDiagnostics(page: Page, testName: string) {
  * Log API request/response for debugging
  */
 export async function logAPICall(
-  page: Page,
   method: string,
   url: string,
   data?: unknown,
   response?: Response
 ) {
-  const statusCode = response?.status || 'PENDING';
-  const contentType = response?.headers.get('content-type') || 'unknown';
+  const statusCode = response?.status ?? 'PENDING';
+  let contentType = 'unknown';
+  if (response?.headers) {
+    try {
+      contentType = await response.headers()?.['content-type'] ?? 'unknown';
+    } catch {
+      contentType = 'unknown';
+    }
+  }
 
   logTest('API_CALL', `${method} ${url}`, 'DEBUG', {
     statusCode,

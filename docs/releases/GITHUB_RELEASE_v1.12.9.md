@@ -1,4 +1,4 @@
-## What's New in v1.12.9
+## What's New in $11.13.0
 
 ### 📋 Full Changelog
 

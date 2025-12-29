@@ -1716,13 +1716,13 @@ function Invoke-DocumentationCheck {
     Write-Section "Root Documentation Whitelist"
     try {
         # Best Practice: Only essential and high-level docs at root
-        # Release/workflow docs consolidated here per v1.12.8+ strategy
+        # Release/workflow docs consolidated here per $11.13.0+ strategy
         $allowed = @(
             # Essential project files
-            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
+            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md','TODO.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
-            # Release workflow (v1.12.8+ consolidated release automation docs)
+            # Release workflow ($11.13.0+ consolidated release automation docs)
             'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
             'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md',
             # Security overview

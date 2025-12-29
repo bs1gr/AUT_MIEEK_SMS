@@ -45,7 +45,8 @@ test.describe('Authentication Flow', () => {
 
   test('should login successfully', async ({ page }) => {
     logAuthEvent('LOGIN_START', 'test@example.com', true);
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     logPhase('NAVIGATION', 'Waiting for dashboard to load');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     logAuthEvent('LOGIN_SUCCESS', 'test@example.com', true);
@@ -54,7 +55,8 @@ test.describe('Authentication Flow', () => {
 
   test('should logout successfully', async ({ page }) => {
     logAuthEvent('LOGOUT_TEST_START', 'test@example.com', true);
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     logPhase('WAITING', 'After login, waiting for dashboard');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     logPhase('LOGOUT_ACTION', 'Clicking logout button');
@@ -87,7 +89,8 @@ test.describe('Dashboard Navigation', () => {
     await ensureTestUserExists();
   });
   test.beforeEach(async ({ page }) => {
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
   });
 
@@ -125,7 +128,8 @@ test.describe('Students Management', () => {
     await ensureTestUserExists();
   });
   test.beforeEach(async ({ page }) => {
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     const studentsLink = page.locator('a').filter({ hasText: /student/i }).first();
     await studentsLink.click();
@@ -177,21 +181,24 @@ test.describe('Responsive Design', () => {
   });
   test('should be mobile responsive', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
   test('should be tablet responsive', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
 
   test('should be desktop responsive', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await login(page, 'test@example.com', 'Test@Pass123' // pragma: allowlist secret);
+    // pragma: allowlist secret
+    await login(page, 'test@example.com', 'Test@Pass123');
     await page.waitForLoadState('networkidle', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
   });
