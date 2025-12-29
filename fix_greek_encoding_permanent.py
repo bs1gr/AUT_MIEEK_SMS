@@ -71,9 +71,9 @@ def write_cp1253_file(filepath: Path, content: str) -> None:
     try:
         with open(filepath, "w", encoding="cp1253") as f:
             f.write(content)
-        print(f"✓ Generated: {filepath} (CP1253 encoding)")
+        print(f"[OK] Generated: {filepath} (CP1253 encoding)")
     except Exception as e:
-        print(f"✗ Failed to write {filepath}: {e}")
+        print(f"[ERROR] Failed to write {filepath}: {e}")
         raise
 
 
