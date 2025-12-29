@@ -23,28 +23,28 @@
 ## 📦 Other Changes
 
 - release: run lint/format checks before and after doc generation [8bba55b]
--  [- Valid]
--  [- Stage]
--  [- Harde]
+- [- Valid]
+- [- Stage]
+- [- Harde]
 - Vasilis
--  [- What ]
--  [- Curre]
--  [- Step-]
--  [- How t]
--  [- Futur]
+- [- What ]
+- [- Curre]
+- [- Step-]
+- [- How t]
+- [- Futur]
 - Vasilis
--  [- Promi]
--  [- Clear]
--  [- Insta]
--  [- Links]
--  [- Prope]
--  [Next st]
+- [- Promi]
+- [- Clear]
+- [- Insta]
+- [- Links]
+- [- Prope]
+- [Next st]
 - Vasilis
--  [- Add c]
--  [- Docum]
--  [- Add p]
--  [- Link ]
--  [- Focus]
+- [- Add c]
+- [- Docum]
+- [- Add p]
+- [- Link ]
+- [- Focus]
 - Vasilis
 
 ---
