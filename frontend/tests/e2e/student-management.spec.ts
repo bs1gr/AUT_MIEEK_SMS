@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { loginAsTestUser, loginAsTeacher, generateStudentData, generateCourseData } from './helpers';
 import { captureAndLogDiagnostics, initDiagnosticsDir } from './diagnostics';
 
@@ -29,18 +29,8 @@ const generateStudentDataLocal = () => {
   };
 };
 
-const generateCourseDataLocal = () => {
-  const rnd = Math.random().toString(36).slice(2, 6);
-  return {
-    courseCode: `CS${rnd}`,
-    courseName: `Test Course ${rnd}`,
-    credits: 4,
-    semester: 'Fall 2025',
-  };
-};
-
 test.describe('Student Management - Critical Flows', () => {
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     // Try logging in as test user first, fall back to teacher if needed
     try {
       await loginAsTestUser(page);

@@ -30,8 +30,10 @@ function Update-VersionReferences {
         }
     }
 
-    # Update TODO.md
-    (Get-Content "TODO.md") -replace '\*\*Current Version\*\*: [0-9\.]+', "**Current Version**: $NewVersion" | Set-Content "TODO.md"
+    # Update TODO.md (if present)
+    if (Test-Path "TODO.md") {
+        (Get-Content "TODO.md") -replace '\*\*Current Version\*\*: [0-9\.]+' , "**Current Version**: $NewVersion" | Set-Content "TODO.md"
+    }
 
     # Update DOCUMENTATION_INDEX.md
     (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Version\*\*: [0-9\.]+', "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"

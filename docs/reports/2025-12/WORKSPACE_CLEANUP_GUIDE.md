@@ -130,7 +130,7 @@ BACKUP_VERIFICATION_INVESTIGATION_2025-12-18.md
 BACKUP_VERIFICATION_REPORT_2025-12-18.md
 PROJECT_STATUS_REPORT_2025-12-18.md
 CODE_CHANGES_SUMMARY.md
-DOCUMENTATION_UPDATE_SUMMARY_v1.12.8.md
+DOCUMENTATION_UPDATE_SUMMARY_$11.14.0.md
 FINAL_VALIDATION_REPORT.md
 TEST_VALIDATION_REPORT.md
 WORK_COMPLETION_CHECKLIST.md
@@ -180,7 +180,7 @@ METRICS_EXPORT_GUIDE.md
 ### Implementation Plans → `docs/plans/`
 ```
 RBAC_PHASE2.4_PLAN.md
-INSTALLER_IMPROVEMENTS_v1.12.3+.md
+INSTALLER_IMPROVEMENTS_$11.14.0+.md
 ```
 
 ## What Stays in Root
@@ -303,7 +303,7 @@ git commit -m "chore: deep workspace cleanup"
 
 ### Workflow 5: Post-Release Cleanup
 ```powershell
-# After releasing v1.13.0, organize release artifacts
+# After releasing $11.14.0, organize release artifacts
 .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.13.0"
 
 # Wait for release to complete, then cleanup
@@ -312,7 +312,7 @@ git commit -m "chore: deep workspace cleanup"
 # Review and commit
 git status
 git add -A
-git commit -m "chore: post-release cleanup for v1.13.0"
+git commit -m "chore: post-release cleanup for $11.14.0"
 ```
 
 ## Output Example

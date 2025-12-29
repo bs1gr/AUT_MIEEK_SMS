@@ -22,12 +22,8 @@ test.beforeEach(async ({ page }, testInfo) => {
 
     logPhase('API_REQUEST', `${method} ${url}`);
 
-    const response = await route.continue();
-    logPhase('API_RESPONSE', `${method} ${url}`, {
-      status: response.status(),
-    });
-
-    return response;
+    await route.continue();
+    logPhase('API_RESPONSE', `${method} ${url} - continued`);
   });
 });
 

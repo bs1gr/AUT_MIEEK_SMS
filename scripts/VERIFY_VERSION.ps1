@@ -174,13 +174,6 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md"
-        Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
-        Replace = "**Version**: $Version"
-        Description = "QNAP deployment guide version"
-        Critical = $false
-    },
-    @{
         File = "COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $Version"
@@ -192,13 +185,6 @@ $versionChecks = @(
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $Version"
         Description = "INSTALLER_BUILDER.ps1 version"
-        Critical = $false
-    },
-    @{
-        File = "TODO.md"
-        Pattern = '\*\*Current Version\*\*:\s*\d+\.\d+\.\d+'
-        Replace = "**Current Version**: $Version"
-        Description = "TODO.md current version"
         Critical = $false
     },
     @{

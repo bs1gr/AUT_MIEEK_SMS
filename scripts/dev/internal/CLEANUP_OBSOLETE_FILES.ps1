@@ -23,7 +23,6 @@ $keepFiles = @(
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "TODO.md",
     "VERSION",
     "backend\README.md",
     "frontend\README.md",
@@ -110,7 +109,6 @@ Write-Host "Removed $removedCount file(s)." -ForegroundColor White
 Write-Host "Essential documentation preserved:" -ForegroundColor White
 Write-Host "  - README.md (main documentation)" -ForegroundColor Gray
 Write-Host "  - CHANGELOG.md (version history)" -ForegroundColor Gray
-Write-Host "  - TODO.md (development tasks)" -ForegroundColor Gray
 Write-Host "  - LICENSE (project license)" -ForegroundColor Gray
 Write-Host ""
 Write-Host "====================================================================" -ForegroundColor Cyan

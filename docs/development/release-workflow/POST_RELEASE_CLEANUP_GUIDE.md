@@ -23,14 +23,14 @@ Run this **after** a release completes:
 
 ### 1. Release Notes in Root
 ```
-RELEASE_NOTES_v1.13.0.md → docs/releases/
+RELEASE_NOTES_$11.14.0.md → docs/releases/
 ```
 
 If GENERATE_RELEASE_DOCS.ps1 created files in root instead of docs/releases/, they'll be moved.
 
 ### 2. GitHub Release Descriptions
 ```
-GITHUB_RELEASE_v1.13.0.md → docs/releases/
+GITHUB_RELEASE_$11.14.0.md → docs/releases/
 ```
 
 ### 3. Installer Executables
@@ -73,7 +73,7 @@ git status
 
 # 5. Commit
 git add -A
-git commit -m "chore: post-release cleanup for v1.13.0"
+git commit -m "chore: post-release cleanup for $11.14.0"
 git push origin main
 ```
 
@@ -91,8 +91,8 @@ git push origin main
 student-management-system/
 ├── docs/
 │   └── releases/
-│       ├── RELEASE_NOTES_v1.13.0.md     ← Moved here
-│       ├── GITHUB_RELEASE_v1.13.0.md    ← Moved here
+│       ├── RELEASE_NOTES_$11.14.0.md     ← Moved here
+│       ├── GITHUB_RELEASE_$11.14.0.md    ← Moved here
 │       └── (previous release notes...)
 ├── dist/
 │   └── StudentManagementSystem_1.13.0_Setup.exe  ← Moved here
@@ -147,8 +147,8 @@ git push origin main
 ╚═══════════════════════════════════════════════════════╝
 
 --- Release Artifacts in Root ---
-✓ Moved: Release notes: RELEASE_NOTES_v1.13.0.md
-✓ Moved: GitHub release: GITHUB_RELEASE_v1.13.0.md
+✓ Moved: Release notes: RELEASE_NOTES_$11.14.0.md
+✓ Moved: GitHub release: GITHUB_RELEASE_$11.14.0.md
 
 --- Installer Artifacts ---
 ✓ Moved: Installer: StudentManagementSystem_1.13.0_Setup.exe

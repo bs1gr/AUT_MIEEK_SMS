@@ -1,7 +1,7 @@
-# Release Notes - Version 1.12.9
+# Release Notes - Version 1.14.0
 
 **Release Date**: 2025-12-29
-**Previous Version**: $11.14.0
+**Previous Version**: v1.13.1
 
 ---
 

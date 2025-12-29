@@ -18,7 +18,7 @@ Example `.pre-commit-config.yaml` snippet:
 ```yaml
 repos:
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.76.0  # Use latest stable
+    rev: $11.14.0  # Use latest stable
     hooks:
       - id: trufflehog
         args: ["--fail", "--max-entropy=4.5"]

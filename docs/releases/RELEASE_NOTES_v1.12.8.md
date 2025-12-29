@@ -1,7 +1,7 @@
 # Release Notes - Version 1.12.8
 
 **Release Date**: 2025-12-29
-**Previous Version**: v1.12.8
+**Previous Version**: $11.14.0
 
 ## ✨ Features
 
@@ -45,7 +45,7 @@
 
 ## 📝 Documentation
 
-- Add comprehensive v1.12.8 deployment report [c4213cd]
+- Add comprehensive $11.14.0 deployment report [c4213cd]
 - Add comprehensive session completion summary [24bd54d]
 - Add session final summary - E2E diagnostics complete [c191698]
 - Add comprehensive E2E testing improvements summary [82e02b8]

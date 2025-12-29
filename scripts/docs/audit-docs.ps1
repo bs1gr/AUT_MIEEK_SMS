@@ -15,7 +15,7 @@ Write-Host "[audit] Starting documentation audit..." -ForegroundColor Cyan
 
 $now = Get-Date
 $files = Get-ChildItem -Path (Join-Path $PSScriptRoot '..' '..' 'docs') -Filter *.md -Recurse
-$rootFiles = Get-ChildItem -Path (Join-Path $PSScriptRoot '..' '..') -Filter *.md | Where-Object { $_.Name -in @('README.md','TODO.md','CHANGELOG.md','INSTALLATION_GUIDE.md','DEPLOYMENT_GUIDE.md') }
+$rootFiles = Get-ChildItem -Path (Join-Path $PSScriptRoot '..' '..') -Filter *.md | Where-Object { $_.Name -in @('README.md','CHANGELOG.md','INSTALLATION_GUIDE.md','DEPLOYMENT_GUIDE.md') }
 $all = $files + $rootFiles | Sort-Object FullName -Unique
 
 $result = @()

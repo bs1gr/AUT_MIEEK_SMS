@@ -8,54 +8,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
-
-
-## [1.13.0] - 2025-12-29
-
-### ⚠️ BREAKING CHANGES
-- Release v1.13.0 - MAJOR: Remove deprecated backend modules
-
-### Documentation
-- release 1.13.0 documentation
-- **structure**: add folder map to docs index; chore: enforce root docs whitelist in COMMIT_READY and run organizer before release docs generation
-
-### Chores
-- improve repository hygiene with test-results ignore and documented whitelist
-- **docs**: organize remaining text reports and workflow fixes; move e2e error folder; cleanup tmp_e2e_artifacts
-
-## [1.13.0] - 2025-12-29
+## [1.14.0] - 2025-12-29
 
 **Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
+**Focus**: Release automation clean-up, TODO.md check removal, TypeScript E2E fixes, line-ending normalization
 
 ### Changed
 
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.13.0] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.13.0] - 2025-12-29
-
-### ⚠️ BREAKING CHANGES
-- Release v1.13.0 - MAJOR: Remove deprecated backend modules
-
-### Documentation
-- **structure**: add folder map to docs index; chore: enforce root docs whitelist in COMMIT_READY and run organizer before release docs generation
-
-### Chores
-- improve repository hygiene with test-results ignore and documented whitelist
-- **docs**: organize remaining text reports and workflow fixes; move e2e error folder; cleanup tmp_e2e_artifacts
+- Removed TODO.md from all scripts/checks
+- Normalized line endings across scripts and docs
+- Fixed TypeScript E2E tests and Playwright logging/hooks
+- Generated release documentation (GitHub release notes, CHANGELOG entry)
 
 ## [1.13.0] - 2025-12-29
 
@@ -68,7 +31,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 The following deprecated modules have been removed. Update your imports:
 
-| Old Import (REMOVED) | New Import (v1.13.0+) |
+| Old Import (REMOVED) | New Import ($11.14.0+) |
 |---------------------|----------------------|
 | `backend.auto_import_courses` | `backend.scripts.import_.courses` |
 | `backend.tools.create_admin` | `backend.db.cli.admin` |
@@ -81,11 +44,11 @@ The following deprecated modules have been removed. Update your imports:
 **Migration Examples:**
 
 ```python
-# OLD (v1.12.9 and earlier) - NO LONGER WORKS
+# OLD ($11.14.0 and earlier) - NO LONGER WORKS
 from backend.auto_import_courses import import_courses
 from backend.tools.create_admin import create_admin_user
 
-# NEW (v1.13.0+)
+# NEW ($11.14.0+)
 from backend.scripts.import_.courses import import_courses
 from backend.db.cli.admin import create_admin_user
 ```
@@ -95,11 +58,11 @@ from backend.db.cli.admin import create_admin_user
 # OLD - NO LONGER WORKS
 python -m backend.auto_import_courses
 
-# NEW (v1.13.0+)
+# NEW ($11.14.0+)
 python -m backend.scripts.import_.courses
 ```
 
-See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
+See [Migration Guide](docs/guides/MIGRATION_$11.14.0.md) for complete details.
 
 ### Removed
 
@@ -122,7 +85,7 @@ See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
 ### Documentation
 
 - Created comprehensive cleanup execution report
-- Added migration guide for v1.13.0 breaking changes
+- Added migration guide for $11.14.0 breaking changes
 - Updated backend CLI reference documentation
 
 ### Internal
@@ -138,8 +101,8 @@ See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
 ## [1.12.9] - 2025-12-29
 
 ### Documentation
-- update documentation for v1.12.9
-- update documentation for v1.12.9
+- update documentation for $11.14.0
+- update documentation for $11.14.0
 
 ## [1.12.9] - 2025-12-29
 
@@ -219,7 +182,7 @@ See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
 - strengthen path traversal protection in backup operations
 
 ### Documentation
-- Add comprehensive v1.12.8 deployment report
+- Add comprehensive $11.14.0 deployment report
 - Add comprehensive session completion summary
 - Add session final summary - E2E diagnostics complete
 - Add comprehensive E2E testing improvements summary

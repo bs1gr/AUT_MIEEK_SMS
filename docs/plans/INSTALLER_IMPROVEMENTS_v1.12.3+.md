@@ -1,4 +1,4 @@
-# Installer Improvements - v1.12.3+ Release Notes
+# Installer Improvements - $11.14.0+ Release Notes
 
 ## Overview
 This document outlines the comprehensive installer improvements implemented to resolve critical issues with shortcut management, uninstaller naming, and Docker integration in the Student Management System installer.
@@ -199,4 +199,4 @@ powershell -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silen
 **Future Migration Path:** When upgrading to Inno Setup 7+, replace workaround with native directive for cleaner implementation.
 
 **Validation:** Build pipeline tested successfully, installer creates properly named components.</content>
-<parameter name="filePath">d:\SMS\student-management-system\INSTALLER_IMPROVEMENTS_v1.12.3+.md
+<parameter name="filePath">d:\SMS\student-management-system\INSTALLER_IMPROVEMENTS_$11.14.0+.md

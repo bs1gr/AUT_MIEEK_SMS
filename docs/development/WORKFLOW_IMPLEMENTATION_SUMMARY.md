@@ -149,7 +149,7 @@ Installer uploads to release (with graceful fallback)
 ### Test Case 3: Manual Installer Dispatch
 ```
 GitHub Actions → Release – Build & Upload Installer with SHA256
-Inputs: tag = v1.12.8
+Inputs: tag = $11.14.0
 # Expected: Resolves tag and builds installer
 ```
 

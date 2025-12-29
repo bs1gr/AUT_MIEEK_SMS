@@ -3,7 +3,7 @@
 **Audit Date:** 2025-12-29
 **Scope:** Complete repository review for deprecated, obsolete, and redundant files
 **Status:** 🔍 In Progress
-**Objective:** Identify all cleanup candidates before v1.13.0 major release
+**Objective:** Identify all cleanup candidates before $11.14.0 major release
 
 ---
 
@@ -100,11 +100,11 @@
 
 #### 5. **archive-legacy-releases.yml** ⚠️
 **Status:** ONE-TIME OPERATION - CANDIDATE FOR DEPRECATION
-- **Purpose:** Archive legacy GitHub releases (pre-v1.12.0?)
+- **Purpose:** Archive legacy GitHub releases (pre-$11.14.0?)
 - **Dependency:** Likely requires `scripts/ops/archive-releases.ps1`
 - **Usage:** Manual dispatch for archival operations
-- **Recommendation:** **DEPRECATE** after v1.13.0 release archival complete
-- **Action:** Execute once for v1.13.0, then archive this workflow
+- **Recommendation:** **DEPRECATE** after $11.14.0 release archival complete
+- **Action:** Execute once for $11.14.0, then archive this workflow
 
 ---
 
@@ -138,7 +138,7 @@ on:
 - **Migration:** `backend.scripts.import_.courses`
 - **Purpose:** Re-exports for backward compatibility
 - **Usage:** Only in old documentation (no active imports found)
-- **Recommendation:** **REMOVE** in v1.13.0 (breaking change - document in CHANGELOG)
+- **Recommendation:** **REMOVE** in $11.14.0 (breaking change - document in CHANGELOG)
 - **Affected Docs:**
   - `docs/development/phase-reports/PHASE3_TASK2_BACKEND_SCRIPTS_COMPLETE.md`
   - `docs/development/SCRIPT_REFACTORING.md`
@@ -157,7 +157,7 @@ on:
   - `inspect_db.py` - Unknown migration status
   - `rate_limit_audit.py` - Unknown migration status
 - **Usage:** Only in documentation (no active imports found)
-- **Recommendation:** **REMOVE** entire directory in v1.13.0
+- **Recommendation:** **REMOVE** entire directory in $11.14.0
 - **Migration Path:** Update documentation to use `backend.db.cli`
 - **Affected Docs:**
   - `docs/development/TOOLS_CONSOLIDATION.md`
@@ -191,7 +191,7 @@ on:
 **Status:** ONE-TIME TOOL
 - **Used By:** `.github/workflows/archive-legacy-releases.yml`
 - **Purpose:** Archive old GitHub releases
-- **Recommendation:** **KEEP** for v1.13.0 archival, then **ARCHIVE** script itself
+- **Recommendation:** **KEEP** for $11.14.0 archival, then **ARCHIVE** script itself
 
 #### 4. **scripts/ops/remove-legacy-packages.ps1** ⚠️
 **Status:** ONE-TIME TOOL
@@ -203,7 +203,7 @@ on:
 
 ### Legacy Scripts Already Archived
 
-**Good News:** Pre-v1.9.1 scripts already archived:
+**Good News:** Pre-$11.14.0 scripts already archived:
 - ✅ `RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1` → Already in archive structure
 
 **Remaining Action Item:**
@@ -252,23 +252,23 @@ on:
 #### 1. **Release Documentation** (Multiple Releases)
 **Location:** `docs/releases/`
 **Files:**
-- `RELEASE_NOTES_v1.12.9.md`
-- `RELEASE_NOTES_v1.12.8.md`
-- `RELEASE_NOTES_v1.12.7.md`
-- `RELEASE_NOTES_v1.12.2.md`
-- `RELEASE_NOTES_v1.12.0.md`
-- `RELEASE_NOTES_v1.11.2.md`
-- `GITHUB_RELEASE_v1.12.9.md`
-- `GITHUB_RELEASE_v1.12.8.md`
-- `RELEASE_SUMMARY_v1.12.0.md`
-- `RELEASE_SUMMARY_v1.11.2.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `RELEASE_NOTES_$11.14.0.md`
+- `GITHUB_RELEASE_$11.14.0.md`
+- `GITHUB_RELEASE_$11.14.0.md`
+- `RELEASE_SUMMARY_$11.14.0.md`
+- `RELEASE_SUMMARY_$11.14.0.md`
 - `VERSION_1.12.8_TECHNICAL_SUMMARY.md`
-- `v1.9.3.md`, `v1.9.0.md`
+- `$11.14.0.md`, `$11.14.0.md`
 
 **Recommendation:**
 - ✅ **KEEP** all recent release notes (v1.12.x series)
-- ⚠️ **CONSOLIDATE** pre-v1.12.0 release notes into:
-  - `docs/archive/releases/PRE_v1.12.0_RELEASE_NOTES.md` (already planned in cleanup plan)
+- ⚠️ **CONSOLIDATE** pre-$11.14.0 release notes into:
+  - `docs/archive/releases/PRE_$11.14.0_RELEASE_NOTES.md` (already planned in cleanup plan)
 - **Affected Files:** v1.9.x, v1.10.x, v1.11.x release docs
 
 **Disk Space Savings:** Minimal (better organization)
@@ -339,7 +339,7 @@ on:
 
 **Recommendation:**
 ```
-- Keep: Last 3 releases (v1.12.9, v1.12.8, v1.12.7)
+- Keep: Last 3 releases ($11.14.0, $11.14.0, $11.14.0)
 - Delete: Older than 3 releases
 - Expected Savings: ~2 MB
 ```
@@ -436,7 +436,7 @@ Get-ChildItem -Path ".\backups" -Filter "*.db" |
 
 ---
 
-### Phase 3: Code Deprecation Removal (Breaking Changes - v1.13.0)
+### Phase 3: Code Deprecation Removal (Breaking Changes - $11.14.0)
 
 #### 3.1 Remove Deprecated Backend Modules
 ```powershell
@@ -463,10 +463,10 @@ Remove-Item -Path ".\backend\tools" -Recurse -Force
 
 ---
 
-### Phase 4: Workflow & Documentation Consolidation (Post-v1.13.0)
+### Phase 4: Workflow & Documentation Consolidation (Post-$11.14.0)
 
 #### 4.1 Workflow Decisions
-**Execute after v1.13.0 release:**
+**Execute after $11.14.0 release:**
 ```bash
 # IF cache monitoring not actively used:
 git rm .github/workflows/cache-performance-monitoring.yml
@@ -484,10 +484,10 @@ git rm .github/workflows/apply-branch-protection.yml
 
 #### 4.2 Documentation Consolidation
 ```powershell
-# Consolidate pre-v1.12.0 release notes
+# Consolidate pre-$11.14.0 release notes
 # (Already planned in MAJOR_RELEASE_PREPARATION_PLAN.md)
 
-# Create: docs/archive/releases/PRE_v1.12.0_RELEASE_NOTES.md
+# Create: docs/archive/releases/PRE_$11.14.0_RELEASE_NOTES.md
 # Move: v1.9.x, v1.10.x, v1.11.x release notes
 ```
 
@@ -497,9 +497,9 @@ git rm .github/workflows/apply-branch-protection.yml
 
 #### 5.1 Delete Draft Releases
 ```bash
-gh release delete v1.12.9 --yes  # Draft only
-gh release delete v1.12.8 --yes  # Draft only
-gh release delete v1.12.7 --yes  # Draft only
+gh release delete $11.14.0 --yes  # Draft only
+gh release delete $11.14.0 --yes  # Draft only
+gh release delete $11.14.0 --yes  # Draft only
 gh release delete pr-45-load-report-20251222-175218 --yes
 ```
 
@@ -547,7 +547,7 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 ### High Risk (Breaking Changes - Careful Planning)
 - 🔴 Remove `backend.auto_import_courses` and `backend.tools`
   - **Risk:** External scripts/tools may import these
-  - **Mitigation:** Version as v1.13.0 (major version), document in CHANGELOG, provide migration guide
+  - **Mitigation:** Version as $11.14.0 (major version), document in CHANGELOG, provide migration guide
 
 ### Workflow Risk (Operational Impact)
 - ⚠️ Removing cache monitoring workflows
@@ -559,10 +559,10 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 ## 📋 Execution Checklist
 
 ### Pre-Cleanup
-- [ ] Backup entire repository: `git tag pre-cleanup-v1.13.0`
+- [ ] Backup entire repository: `git tag pre-cleanup-$11.14.0`
 - [ ] Backup database: Latest backup confirmed in `backups/`
 - [ ] Confirm external backup storage available for old DB backups
-- [ ] Review CHANGELOG for v1.13.0 breaking changes section
+- [ ] Review CHANGELOG for $11.14.0 breaking changes section
 
 ### Phase 1: Low-Risk (Execute Now)
 - [ ] Clean cache directories (`pytest`, `mypy`, `ruff`)
@@ -577,7 +577,7 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 - [ ] Execute build artifact cleanup
 - [ ] Commit: "chore: implement retention policies for backups and artifacts"
 
-### Phase 3: Breaking Changes (v1.13.0)
+### Phase 3: Breaking Changes ($11.14.0)
 - [ ] Update all affected documentation (migration guides)
 - [ ] Add breaking changes section to CHANGELOG.md
 - [ ] Remove `backend/auto_import_courses.py`
@@ -590,7 +590,7 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 - [ ] Confirm cache monitoring workflows not actively used
 - [ ] Remove cache monitoring workflows if confirmed
 - [ ] Archive one-time operation workflows after execution
-- [ ] Consolidate pre-v1.12.0 release notes
+- [ ] Consolidate pre-$11.14.0 release notes
 - [ ] Commit: "chore: consolidate workflows and documentation"
 
 ### Phase 5: GitHub Cleanup
@@ -607,15 +607,15 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 2. **User decisions needed:**
    - Keep or remove cache monitoring workflows?
    - Confirm database backup external storage strategy
-   - Approve breaking changes for v1.13.0
+   - Approve breaking changes for $11.14.0
 3. **Execute Phase 1** - Low-risk cleanup (no approval needed)
-4. **Plan Phase 2-5** - Schedule with v1.13.0 release
+4. **Plan Phase 2-5** - Schedule with $11.14.0 release
 
 **Timeline:**
 - **Phase 1:** Immediate (5 minutes)
 - **Phase 2:** After user approval (30 minutes)
-- **Phase 3:** With v1.13.0 version bump (1 hour)
-- **Phase 4:** Post-v1.13.0 release (1 hour)
+- **Phase 3:** With $11.14.0 version bump (1 hour)
+- **Phase 4:** Post-$11.14.0 release (1 hour)
 - **Phase 5:** With Phase 2 GitHub cleanup
 
 ---
@@ -624,7 +624,7 @@ TOTAL EXPECTED SAVINGS:   ~350-400 MB
 
 - [MAJOR_RELEASE_PREPARATION_PLAN.md](MAJOR_RELEASE_PREPARATION_PLAN.md)
 - [PHASE1_AUDIT_REPORT.md](PHASE1_AUDIT_REPORT.md)
-- [IMPROVEMENTS_v1.12.0_to_v1.12.9.md](IMPROVEMENTS_v1.12.0_to_v1.12.9.md)
+- [IMPROVEMENTS_$11.14.0_to_$11.14.0.md](IMPROVEMENTS_$11.14.0_to_$11.14.0.md)
 - [WORKSPACE_CLEANUP.ps1](../../../WORKSPACE_CLEANUP.ps1)
 - [docs/development/TOOLS_CONSOLIDATION.md](../../development/TOOLS_CONSOLIDATION.md)
 - [.github/workflows/](../../../.github/workflows/)

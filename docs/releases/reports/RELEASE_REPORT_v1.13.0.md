@@ -1,4 +1,4 @@
-# Release Report: v1.13.0
+# Release Report: $11.14.0
 
 **Release Date:** December 29, 2025
 **Release Type:** MAJOR
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-Version 1.13.0 is a **MAJOR** release implementing comprehensive repository cleanup with breaking changes. All deprecated backend modules (12 total) have been removed after a full deprecation cycle since v1.11.0. This release streamlines the codebase, reduces maintenance burden, and establishes a single source of truth for backend tooling.
+Version 1.13.0 is a **MAJOR** release implementing comprehensive repository cleanup with breaking changes. All deprecated backend modules (12 total) have been removed after a full deprecation cycle since $11.14.0. This release streamlines the codebase, reduces maintenance burden, and establishes a single source of truth for backend tooling.
 
 **Key Highlights:**
 - 🗑️ **12 deprecated modules removed** - Clean codebase with no backward compatibility cruft
@@ -38,7 +38,7 @@ All deprecated modules have been removed. Users must update import paths:
 | `backend.tools.verify_schema` | `backend.db.cli.schema` |
 | `backend.tools.*` (4 additional modules) | `backend.db.cli.*` |
 
-**Migration Guide:** [docs/guides/MIGRATION_v1.13.0.md](docs/guides/MIGRATION_v1.13.0.md)
+**Migration Guide:** [docs/guides/MIGRATION_$11.14.0.md](docs/guides/MIGRATION_$11.14.0.md)
 
 ### Impact Assessment
 
@@ -86,8 +86,8 @@ All deprecated modules have been removed. Users must update import paths:
 ### Added ➕
 
 **Documentation:**
-- `docs/guides/MIGRATION_v1.13.0.md` - Comprehensive migration guide with examples
-- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md` - Detailed cleanup report
+- `docs/guides/MIGRATION_$11.14.0.md` - Comprehensive migration guide with examples
+- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md` - Detailed cleanup report
 - CHANGELOG entry with breaking changes documentation
 
 **Internal:**
@@ -102,7 +102,7 @@ All deprecated modules have been removed. Users must update import paths:
 
 ### For Docker Users
 ```bash
-# Pull v1.13.0 and restart
+# Pull $11.14.0 and restart
 docker-compose pull
 docker-compose up -d
 ```
@@ -121,15 +121,15 @@ cd ../frontend && npm install
 ```
 
 ### For Custom Script Users
-**See:** [Migration Guide](docs/guides/MIGRATION_v1.13.0.md)
+**See:** [Migration Guide](docs/guides/MIGRATION_$11.14.0.md)
 
 **Quick Example:**
 ```python
-# OLD (v1.12.9) - NO LONGER WORKS
+# OLD ($11.14.0) - NO LONGER WORKS
 from backend.auto_import_courses import import_courses
 from backend.tools.create_admin import create_admin_user
 
-# NEW (v1.13.0+)
+# NEW ($11.14.0+)
 from backend.scripts.import_.courses import import_courses
 from backend.db.cli.admin import create_admin_user
 ```
@@ -194,15 +194,15 @@ python migrate_imports.py ./my_scripts/
 
 **Modified:**
 - `VERSION` - Bumped to 1.13.0
-- `CHANGELOG.md` - Added v1.13.0 entry with breaking changes
+- `CHANGELOG.md` - Added $11.14.0 entry with breaking changes
 - `backend/main.py` - Version docstring updated
 - `frontend/package.json` - Version bumped
 - `.github/copilot-instructions.md` - Version reference updated
 - 9 documentation files - Version references updated
 
 **Added:**
-- `docs/guides/MIGRATION_v1.13.0.md` - Migration guide
-- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md` - Cleanup report
+- `docs/guides/MIGRATION_$11.14.0.md` - Migration guide
+- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md` - Cleanup report
 
 **Removed:**
 - `backend/auto_import_courses.py`
@@ -217,13 +217,13 @@ python migrate_imports.py ./my_scripts/
 
 ### Documentation Resources
 
-1. **Migration Guide:** [docs/guides/MIGRATION_v1.13.0.md](docs/guides/MIGRATION_v1.13.0.md)
+1. **Migration Guide:** [docs/guides/MIGRATION_$11.14.0.md](docs/guides/MIGRATION_$11.14.0.md)
    - Complete import mapping table
    - Code examples for all modules
    - Automated migration script
    - FAQ section
 
-2. **Cleanup Report:** [docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md)
+2. **Cleanup Report:** [docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md)
    - Phase-by-phase execution details
    - Risk assessment
    - Rollback procedures
@@ -236,7 +236,7 @@ python migrate_imports.py ./my_scripts/
 
 **Issues or Questions?**
 - Open an issue: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
-- Tag: `migration`, `v1.13.0`
+- Tag: `migration`, `$11.14.0`
 - Include: Error messages, affected code snippets
 
 **Common Migration Scenarios:**
@@ -253,15 +253,15 @@ If issues arise during upgrade:
 
 ### Docker Rollback:
 ```bash
-# Use v1.12.9 image
+# Use $11.14.0 image
 docker pull your-registry/sms:1.12.9
 docker-compose up -d
 ```
 
 ### Git Rollback:
 ```bash
-# Checkout v1.12.9 tag
-git checkout v1.12.9
+# Checkout $11.14.0 tag
+git checkout $11.14.0
 
 # Reinstall dependencies
 cd backend && pip install -r requirements.txt
@@ -340,13 +340,13 @@ cd ../frontend && npm install
 **Semantic Versioning:**
 - Proper MAJOR version bump (1.12.9 → 1.13.0)
 - Clear breaking change communication
-- Backward compatibility maintained in deprecation period (v1.11.0-v1.12.9)
+- Backward compatibility maintained in deprecation period ($11.14.0-$11.14.0)
 
 ---
 
 ## Looking Forward
 
-**v1.13.0 Establishes:**
+**$11.14.0 Establishes:**
 - ✅ Clean codebase with no deprecated modules
 - ✅ Single source of truth for backend tooling (`backend.db.cli`)
 - ✅ Streamlined workflow automation (27 essential workflows)
@@ -361,10 +361,10 @@ cd ../frontend && npm install
 
 ## Quick Links
 
-- **Migration Guide:** [docs/guides/MIGRATION_v1.13.0.md](docs/guides/MIGRATION_v1.13.0.md)
-- **Cleanup Report:** [docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md)
+- **Migration Guide:** [docs/guides/MIGRATION_$11.14.0.md](docs/guides/MIGRATION_$11.14.0.md)
+- **Cleanup Report:** [docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.0.md)
 - **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md)
-- **GitHub Release:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.13.0
+- **GitHub Release:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.14.0
 - **Issues:** https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 
 ---
@@ -377,4 +377,4 @@ cd ../frontend && npm install
 
 ---
 
-*This release completes the repository cleanup initiative started in v1.11.0. All deprecated code has been successfully removed, establishing a clean foundation for future development.*
+*This release completes the repository cleanup initiative started in $11.14.0. All deprecated code has been successfully removed, establishing a clean foundation for future development.*

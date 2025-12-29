@@ -68,7 +68,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.13.0
+Version: 1.14.0
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -662,7 +662,6 @@ function Invoke-VersionPropagationAndDocs {
     if ($UpdateDocs -or $AutoFix -or ($Mode -in @('standard','full'))) {
         $targets = @(
             (Join-Path $SCRIPT_DIR 'README.md'),
-            (Join-Path $SCRIPT_DIR 'TODO.md'),
             (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1'),
             (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
             (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
@@ -1681,7 +1680,6 @@ function Invoke-DocumentationCheck {
     $keyDocs = @(
         "README.md",
         "CHANGELOG.md",
-        "TODO.md",
         "docs/DOCUMENTATION_INDEX.md"
     )
 
@@ -1716,13 +1714,13 @@ function Invoke-DocumentationCheck {
     Write-Section "Root Documentation Whitelist"
     try {
         # Best Practice: Only essential and high-level docs at root
-        # Release/workflow docs consolidated here per v1.12.8+ strategy
+        # Release/workflow docs consolidated here per $11.14.0+ strategy
         $allowed = @(
             # Essential project files
             'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
-            # Release workflow (v1.12.8+ consolidated release automation docs)
+            # Release workflow ($11.14.0+ consolidated release automation docs)
             'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
             'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md',
             # Security overview

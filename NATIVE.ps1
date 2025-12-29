@@ -62,7 +62,7 @@
     # Stop all processes
 
 .NOTES
-Version: 1.12.8 (Consolidated from SMS.ps1, run-native.ps1)
+Version: 1.14.0 (Consolidated from SMS.ps1, run-native.ps1)
     For production deployment, use: .\DOCKER.ps1
 #>
 

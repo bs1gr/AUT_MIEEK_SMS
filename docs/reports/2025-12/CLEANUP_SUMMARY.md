@@ -72,7 +72,7 @@
 
 **Implementation Plans (2 files)** → `docs/plans/`:
 - RBAC_PHASE2.4_PLAN.md
-- INSTALLER_IMPROVEMENTS_v1.12.3+.md
+- INSTALLER_IMPROVEMENTS_$11.14.0+.md
 
 ### Phase 4: Clean Build Artifacts
 
@@ -158,7 +158,7 @@ Adds patterns for:
 
 # 5. Commit cleanup
 git add -A
-git commit -m "chore: post-release cleanup for v1.13.0"
+git commit -m "chore: post-release cleanup for $11.14.0"
 git push origin main
 ```
 
@@ -185,7 +185,7 @@ git push origin main
 # 6. Generate release docs
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.13.0"
 git add CHANGELOG.md docs/releases/
-git commit -m "docs: release notes for v1.13.0"
+git commit -m "docs: release notes for $11.14.0"
 git push origin main
 
 # 7. Run release preparation

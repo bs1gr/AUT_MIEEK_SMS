@@ -1,6 +1,6 @@
 # Phase 3: Task 2 Completion Report - Backend Scripts Organization
 
-> **⚠️ DEPRECATED (v1.13.0):** This document references `backend.auto_import_courses` which was removed in v1.13.0. See [Migration Guide](../../guides/MIGRATION_v1.13.0.md) for updated import paths.
+> **⚠️ DEPRECATED ($11.14.0):** This document references `backend.auto_import_courses` which was removed in $11.14.0. See [Migration Guide](../../guides/MIGRATION_$11.14.0.md) for updated import paths.
 
 **Date:** December 9, 2025
 **Task:** Backend Scripts Organization

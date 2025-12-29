@@ -194,7 +194,7 @@ Example:
    - Runs final COMMIT_READY -Quick check
    - Commits changes: "chore(release): bump version to 1.12.9..."
    - Pushes to main branch
-   - Creates and pushes tag v1.12.9
+   - Creates and pushes tag $11.14.0
 
 2. **GitHub Actions Triggered**:
    - release-on-tag.yml runs
@@ -211,7 +211,7 @@ Release 1.12.9 is ready and pushed!
 ✓ Tag created and pushed
 
 → GitHub Actions will now:
-  1. Create GitHub Release v1.12.9
+  1. Create GitHub Release $11.14.0
   2. Build installer
   3. Upload installer to release
 ```
@@ -262,19 +262,19 @@ Release 1.12.9 is ready and pushed!
 
 **Check Release Page**:
 1. GitHub → Releases tab
-2. Find v1.12.9
+2. Find $11.14.0
 3. Should contain:
    - Release notes
-   - SMS_Installer_v1.12.9.exe (in Assets)
+   - SMS_Installer_$11.14.0.exe (in Assets)
    - SHA256 hash (in notes)
 
 **Download & Verify**:
 ```powershell
 # Download installer
-gh release download v1.12.9 --pattern "*.exe"
+gh release download $11.14.0 --pattern "*.exe"
 
 # Verify SHA256
-(Get-FileHash SMS_Installer_v1.12.9.exe -Algorithm SHA256).Hash
+(Get-FileHash SMS_Installer_$11.14.0.exe -Algorithm SHA256).Hash
 # Should match hash in release notes
 ```
 
@@ -282,7 +282,7 @@ gh release download v1.12.9 --pattern "*.exe"
 
 ## Complete Example Walkthrough
 
-### Scenario: Release v1.13.0
+### Scenario: Release $11.14.0
 
 **Step 1: Prepare** (10 min)
 ```powershell
@@ -331,7 +331,7 @@ Committing changes...
 Pushing main branch...
 ✓ Pushed to origin
 
-Creating tag v1.13.0...
+Creating tag $11.14.0...
 ✓ Tag created and pushed
 
 Release 1.13.0 is ready and pushed!
@@ -355,13 +355,13 @@ GitHub Actions:
 **Step 4: Verify** (< 1 min)
 ```
 GitHub Release Page:
-✓ v1.13.0 published
+✓ $11.14.0 published
 ✓ Release notes visible
-✓ SMS_Installer_v1.13.0.exe uploaded (156 MB)
+✓ SMS_Installer_$11.14.0.exe uploaded (156 MB)
 ✓ SHA256: abc123def456...
 
 PowerShell Verification:
-(Get-FileHash SMS_Installer_v1.13.0.exe -Algorithm SHA256).Hash
+(Get-FileHash SMS_Installer_$11.14.0.exe -Algorithm SHA256).Hash
 Result: abc123def456...
 ✓ Matches! Release is valid.
 ```

@@ -3,6 +3,9 @@
 /Obsolete
 *.pid
 
+# Development tracking (personal use)
+TODO.md
+
 # Temporary scripts
 tmp_*.ps1
 tmp_*.sh

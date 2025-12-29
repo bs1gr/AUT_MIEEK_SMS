@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.13.0
+Version: 1.14.0
     Created: 2025-12-04
     Updated: 2025-12-24
 

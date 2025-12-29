@@ -47,7 +47,7 @@ test-results/
 **Analysis:**
 - **Size:** 0.31 MB (from previous audit)
 - **File Count:** Multiple files in e2e/ subdirectory
-- **Gitignored:** ✅ Yes (added in v1.12.9, commit 384e7a0da)
+- **Gitignored:** ✅ Yes (added in $11.14.0, commit 384e7a0da)
 - **Purpose:** Stores E2E test logs, diagnostics, screenshots on failure
 
 **Recommendation:** **KEEP** - These are working artifacts, properly gitignored. Clean periodically (already handled by WORKSPACE_CLEANUP.ps1).
@@ -141,13 +141,13 @@ Set-Location "D:\SMS\student-management-system"
 - **Hardcoded Path:** `D:\SMS\student-management-system` - not portable
 - **Modern Alternative:** `NATIVE.ps1 -Backend` (supports hot-reload, dynamic paths)
 
-**Recommendation:** **ARCHIVE** - Move to `archive/pre-v1.9.1/` with other deprecated scripts.
+**Recommendation:** **ARCHIVE** - Move to `archive/pre-$11.14.0/` with other deprecated scripts.
 
 **Rationale:**
 - NATIVE.ps1 (v2.0) supersedes this functionality
 - Hardcoded paths make it non-portable
 - No documentation references found
-- Part of pre-v1.9.1 development workflow
+- Part of pre-$11.14.0 development workflow
 
 ---
 
@@ -196,7 +196,7 @@ Set-Location "D:\SMS\student-management-system"
 ### Configuration Files: ⚠️ ONE LEGACY SCRIPT
 
 **Archive:**
-- ✅ `start-backend.ps1` → Move to `archive/pre-v1.9.1/` (obsolete, replaced by NATIVE.ps1)
+- ✅ `start-backend.ps1` → Move to `archive/pre-$11.14.0/` (obsolete, replaced by NATIVE.ps1)
 
 **Keep:**
 - ✅ `.env.production.example` - Active production deployment template
@@ -221,7 +221,7 @@ Set-Location "D:\SMS\student-management-system"
 2. **Archive legacy script:**
    ```powershell
    # Ensure archive directory exists
-   $archiveDir = ".\archive\pre-v1.9.1"
+   $archiveDir = ".\archive\pre-$11.14.0"
    if (-not (Test-Path $archiveDir)) {
        New-Item -ItemType Directory -Path $archiveDir -Force
    }
