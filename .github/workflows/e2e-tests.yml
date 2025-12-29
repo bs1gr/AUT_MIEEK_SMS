@@ -111,7 +111,11 @@ jobs:
           echo "Seeding E2E test data..."
           python backend/seed_e2e_data.py
 
-      # FIX: Validate seed data was created successfully
+      - name: Force reseed with test user
+        run: |
+          echo "Force reseeding to ensure test user exists..."
+          python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+
       - name: Validate seed data
         run: |
           echo "Validating E2E test data..."
@@ -120,7 +124,6 @@ jobs:
       # FIX 5: Add health check before starting tests
       - name: Start backend in background
         env:
-          DISABLE_STARTUP_TASKS: '1'
           CSRF_ENABLED: '0'
           AUTH_MODE: permissive
           AUTH_LOGIN_THROTTLE_ENABLED: '0'
