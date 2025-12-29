@@ -83,7 +83,7 @@ def main():
     print("Greek Text Encoding Converter for Inno Setup")
     print("=" * 70)
     print(f"Version: {VERSION}")
-    print("Encoding: UTF-8 → Windows-1253 (CP1253)")
+    print("Encoding: UTF-8 -> Windows-1253 (CP1253)")
     print()
 
     # Define output paths
