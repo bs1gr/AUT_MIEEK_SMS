@@ -37,6 +37,13 @@ class LoginThrottle:
         )
 
     def get_lockout_until(self, key: str) -> Optional[datetime]:
+        # Throttle can be disabled for CI/E2E via env flags
+        if (
+            not bool(getattr(settings, "AUTH_ENABLED", False))
+            or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+            or not bool(getattr(settings, "AUTH_LOGIN_THROTTLE_ENABLED", True))
+        ):
+            return None
         now = _now()
         with self._lock:
             state = self._entries.get(key)
@@ -51,6 +58,13 @@ class LoginThrottle:
             return state.lockout_until
 
     def register_failure(self, key: str) -> Optional[datetime]:
+        # Throttle can be disabled for CI/E2E via env flags
+        if (
+            not bool(getattr(settings, "AUTH_ENABLED", False))
+            or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+            or not bool(getattr(settings, "AUTH_LOGIN_THROTTLE_ENABLED", True))
+        ):
+            return None
         now = _now()
         max_attempts, window, lockout = self._limits()
         with self._lock:

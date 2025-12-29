@@ -50,6 +50,12 @@ AUTH_ENABLED
 - Default: `0`
 - Purpose: Enables JWT authentication and role-based access control. When disabled, endpoints remain open for backward compatibility.
 
+AUTH_LOGIN_THROTTLE_ENABLED / AUTH_USER_LOCKOUT_ENABLED
+
+- Type: boolean ("1"/"0")
+- Defaults: `1` (enabled)
+- Purpose: Granular switches to disable the in-memory login throttle and per-user lockout logic. Recommended to set both to `0` in CI/E2E runs to avoid false 429 lockouts when tests retry flows.
+
 AUTH_LOGIN_MAX_ATTEMPTS / AUTH_LOGIN_LOCKOUT_SECONDS / AUTH_LOGIN_TRACKING_WINDOW_SECONDS
 
 - Type: integer / integer / integer (seconds)

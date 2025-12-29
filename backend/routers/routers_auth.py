@@ -88,8 +88,12 @@ def _build_lockout_exception(request: Request, lockout_until: datetime) -> HTTPE
 
 
 def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> None:
-    # Skip throttling entirely when auth is disabled (tests/maintenance modes)
-    if not bool(getattr(settings, "AUTH_ENABLED", False)) or getattr(settings, "AUTH_MODE", "disabled") == "disabled":
+    # Skip throttling entirely when auth is disabled (tests/maintenance modes) or throttle disabled via env
+    if (
+        not bool(getattr(settings, "AUTH_ENABLED", False))
+        or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+        or not bool(getattr(settings, "AUTH_LOGIN_THROTTLE_ENABLED", True))
+    ):
         return
     for key in keys:
         if not key:
@@ -100,8 +104,12 @@ def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> Non
 
 
 def _register_throttle_failure(keys: list[Optional[str]]) -> Optional[datetime]:
-    # Skip tracking failures when auth is disabled
-    if not bool(getattr(settings, "AUTH_ENABLED", False)) or getattr(settings, "AUTH_MODE", "disabled") == "disabled":
+    # Skip tracking failures when auth is disabled or throttle disabled via env
+    if (
+        not bool(getattr(settings, "AUTH_ENABLED", False))
+        or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+        or not bool(getattr(settings, "AUTH_LOGIN_THROTTLE_ENABLED", True))
+    ):
         return None
     lockouts: list[datetime] = []
     for key in keys:
@@ -122,8 +130,12 @@ def _reset_throttle_entries(keys: list[Optional[str]]) -> None:
 
 
 def _enforce_user_lockout(user: Any, request: Request, db: Session) -> None:
-    # Skip user-level lockout enforcement when auth is disabled
-    if not bool(getattr(settings, "AUTH_ENABLED", False)) or getattr(settings, "AUTH_MODE", "disabled") == "disabled":
+    # Skip user-level lockout enforcement when auth is disabled or user lockout disabled via env
+    if (
+        not bool(getattr(settings, "AUTH_ENABLED", False))
+        or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+        or not bool(getattr(settings, "AUTH_USER_LOCKOUT_ENABLED", True))
+    ):
         return
     if not user:
         return
@@ -147,8 +159,12 @@ def _enforce_user_lockout(user: Any, request: Request, db: Session) -> None:
 
 
 def _register_user_failed_attempt(user: Any, db: Session) -> Optional[datetime]:
-    # Skip user-level failure tracking when auth is disabled
-    if not bool(getattr(settings, "AUTH_ENABLED", False)) or getattr(settings, "AUTH_MODE", "disabled") == "disabled":
+    # Skip user-level failure tracking when auth is disabled or user lockout disabled via env
+    if (
+        not bool(getattr(settings, "AUTH_ENABLED", False))
+        or getattr(settings, "AUTH_MODE", "disabled") == "disabled"
+        or not bool(getattr(settings, "AUTH_USER_LOCKOUT_ENABLED", True))
+    ):
         return None
     if not user:
         return None

@@ -47,11 +47,11 @@ def seed_e2e_data(force: bool = False):
         existing_user = db.query(User).filter(User.email == "test@example.com").first()
         if existing_user:
             if force:
-                print("⚠ Deleting existing test user for recreation...")
+                print("[WARN] Deleting existing test user for recreation...")
                 db.delete(existing_user)
                 db.commit()
             else:
-                print("✓ Test data already exists, skipping seed")
+                print("[OK] Test data already exists, skipping seed")
                 return
 
         print("Seeding E2E test data...")
@@ -101,7 +101,7 @@ def seed_e2e_data(force: bool = False):
                 student = Student(**student_data)
                 db.add(student)
             else:
-                print(f"✓ Student {student_data['student_id']} already exists, skipping")
+                print(f"[OK] Student {student_data['student_id']} already exists, skipping")
 
         # Create test courses (skip if they already exist)
         courses_data = [
@@ -123,7 +123,7 @@ def seed_e2e_data(force: bool = False):
                 course = Course(**course_data)
                 db.add(course)
             else:
-                print(f"✓ Course {course_data['course_code']} already exists, skipping")
+                print(f"[OK] Course {course_data['course_code']} already exists, skipping")
 
         db.flush()
 
@@ -153,7 +153,7 @@ def seed_e2e_data(force: bool = False):
                     enrollment_count += 1
 
         db.commit()
-        print("✓ E2E test data seeded successfully")
+        print("[OK] E2E test data seeded successfully")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
         print("  - Created test user: test@example.com (password: Test@Pass123)")
         print(f"  - Created {len(students_data)} students")
@@ -162,7 +162,7 @@ def seed_e2e_data(force: bool = False):
 
     except Exception as e:
         db.rollback()
-        print(f"✗ Error seeding data: {e}")
+        print(f"[ERROR] Error seeding data: {e}")
         raise
     finally:
         db.close()

@@ -191,6 +191,9 @@ class Settings(BaseSettings):
     # disabled: No auth checks (legacy mode, same as AUTH_ENABLED=False)
     # permissive: Auth required but authenticated users can access all endpoints regardless of role
     # strict: Full role-based access control enforcement
+    # Granular controls for test/E2E environments
+    AUTH_LOGIN_THROTTLE_ENABLED: bool = True
+    AUTH_USER_LOCKOUT_ENABLED: bool = True
     AUTH_LOGIN_MAX_ATTEMPTS: int = 5
     AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
