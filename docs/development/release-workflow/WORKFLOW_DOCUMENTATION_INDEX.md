@@ -350,7 +350,7 @@ No aspect of the release workflow is left undocumented.
 
 ---
 
-**Last Updated**: 2024
+**Last Updated**: 2025-12-29
 **Status**: ✅ Complete
 **Coverage**: 100%
 **Includes Preparation**: ✅ Yes
@@ -656,6 +656,6 @@ No aspect of the release workflow is left undocumented.
 
 ---
 
-**Last Updated**: 2024
+**Last Updated**: 2025-12-29
 **Status**: ✅ Complete
 **Coverage**: 100%

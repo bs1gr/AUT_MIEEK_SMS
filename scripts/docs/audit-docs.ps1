@@ -36,15 +36,16 @@ foreach ($f in $all) {
     $primaryPart = $dateText -replace '\s*\|.*$','' -replace '\s*\(.*$',''
     # Accept formats: YYYY-MM-DD, YYYY/MM/DD, Month YYYY, YYYY
     $parsed = $null
+    $invariantCulture = [System.Globalization.CultureInfo]::InvariantCulture
     if ($primaryPart -match '^[0-9]{4}-[0-9]{2}-[0-9]{2}$') {
-      $parsed = [datetime]::ParseExact($primaryPart,'yyyy-MM-dd',$null)
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy-MM-dd',$invariantCulture)
     } elseif ($primaryPart -match '^[0-9]{4}/[0-9]{2}/[0-9]{2}$') {
-      $parsed = [datetime]::ParseExact($primaryPart,'yyyy/MM/dd',$null)
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy/MM/dd',$invariantCulture)
     } elseif ($primaryPart -match '^[A-Za-z]+\s+[0-9]{4}$') {
-      $parsed = [datetime]::ParseExact($primaryPart,'MMMM yyyy',$null)
+      $parsed = [datetime]::ParseExact($primaryPart,'MMMM yyyy',$invariantCulture)
     } elseif ($primaryPart -match '^[0-9]{4}$') {
       # Use Jan 1 fallback for year-only
-      $parsed = [datetime]::ParseExact($primaryPart,'yyyy',$null)
+      $parsed = [datetime]::ParseExact($primaryPart,'yyyy',$invariantCulture)
     } else {
       # Last attempt: generic parsing
       try { $parsed = [datetime]::Parse($primaryPart) } catch { $parsed = $null }
