@@ -8,6 +8,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.13.1] - 2025-12-29
+
+### ⚠️ BREAKING CHANGES
+- Release v1.13.0 - MAJOR: Remove deprecated backend modules
+
+### Bug Fixes
+- E2E test TypeScript errors and add TODO.md
+
+### Documentation
+- **structure**: add folder map to docs index; chore: enforce root docs whitelist in COMMIT_READY and run organizer before release docs generation
+
+### Chores
+- Bump version to 1.13.1
+- improve repository hygiene with test-results ignore and documented whitelist
+- **docs**: organize remaining text reports and workflow fixes; move e2e error folder; cleanup tmp_e2e_artifacts
+
 ## [1.13.0] - 2025-12-29
 
 **Release Type**: MAJOR Release 🚨
