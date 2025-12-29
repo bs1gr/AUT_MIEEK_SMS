@@ -105,6 +105,14 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
+Write-Host "Generating release documentation..."
+& .\GENERATE_RELEASE_DOCS.ps1 -Version "$ReleaseVersion"
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Release documentation generation reported issues. Continuing, but release notes may be incomplete."
+} else {
+    Write-Host "Release documentation generated successfully"
+}
+
 Write-Host "Staging all changes..."
 git add .
 
@@ -119,6 +127,16 @@ git push origin main
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to push main branch."
     exit 1
+}
+
+# Ensure release documentation is committed and pushed before tagging
+Write-Host "Staging generated release documentation..."
+git add CHANGELOG.md docs/releases/ .github/
+Write-Host "Committing release documentation..."
+git commit -m "docs: release notes and changelog for v$ReleaseVersion" 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Pushing documentation commit..."
+    git push origin main
 }
 
 if ($TagRelease) {

@@ -384,17 +384,26 @@ function Get-GitHubReleaseDescription {
     [void]$sb.AppendLine("See [CHANGELOG.md](CHANGELOG.md) for complete details.")
     [void]$sb.AppendLine()
 
-    # Installation
+    # Installation (avoid fenced code blocks to keep Actions script safe)
     [void]$sb.AppendLine("### 📦 Installation")
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("**Windows Installer**: Download `StudentManagementSystem_${Version}_Setup.exe` from the assets below.")
+    [void]$sb.AppendLine("Windows Installer: Download StudentManagementSystem_${Version}_Setup.exe from the assets below.")
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("**Docker**:")
-    [void]$sb.AppendLine("``````powershell")
-    [void]$sb.AppendLine("# Pull the new version")
-    [void]$sb.AppendLine(".\DOCKER.ps1 -Update")
-    [void]$sb.AppendLine("``````")
+    [void]$sb.AppendLine("Docker: Run .\\DOCKER.ps1 -Update to pull the new version.")
     [void]$sb.AppendLine()
+
+    # Documentation changes (aggregate across workspace)
+    try {
+        $docFiles = git diff "$Since..HEAD" --name-only -- 'docs/**' 'README.md' 'DOCUMENTATION_INDEX.md' '*.md' 2>$null
+        if ($docFiles) {
+            [void]$sb.AppendLine("### 📚 Documentation Changes")
+            [void]$sb.AppendLine()
+            foreach ($f in $docFiles | Sort-Object) {
+                [void]$sb.AppendLine("- $f")
+            }
+            [void]$sb.AppendLine()
+        }
+    } catch {}
 
     return $sb.ToString()
 }
@@ -463,6 +472,14 @@ if ($Preview) {
         $githubReleasePath = Join-Path $OutputDir "GITHUB_RELEASE_v${Version}.md"
         $githubRelease | Set-Content -Path $githubReleasePath -Encoding UTF8
         Write-Success "Created: $githubReleasePath"
+
+        # Also write to .github path so release workflow can pick it up automatically
+        $notesPath = Join-Path ".github" "RELEASE_NOTES_v${Version}.md"
+        if (-not (Test-Path ".github")) { New-Item -ItemType Directory -Path ".github" -Force | Out-Null }
+        # Sanitize: remove fenced code blocks (just in case) by replacing triple backticks
+        $sanitized = ($githubRelease -replace "```+", "")
+        $sanitized | Set-Content -Path $notesPath -Encoding UTF8
+        Write-Success "Created: $notesPath"
     }
 }
 

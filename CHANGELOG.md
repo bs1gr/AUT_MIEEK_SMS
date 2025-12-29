@@ -9,6 +9,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.12.9] - 2025-12-29
+
 ## [1.12.9] - 2025-12-29
 
 ### Documentation
