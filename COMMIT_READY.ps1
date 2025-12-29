@@ -1715,10 +1715,18 @@ function Invoke-DocumentationCheck {
     # Root documentation whitelist enforcement
     Write-Section "Root Documentation Whitelist"
     try {
+        # Best Practice: Only essential and high-level docs at root
+        # Release/workflow docs consolidated here per v1.12.8+ strategy
         $allowed = @(
-            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md','DOCUMENTATION_INDEX.md',
+            # Essential project files
+            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
+            # High-level navigation
+            'DOCUMENTATION_INDEX.md',
+            # Release workflow (v1.12.8+ consolidated release automation docs)
             'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
-            'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md','SECURITY_AUDIT_SUMMARY.md'
+            'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md',
+            # Security overview
+            'SECURITY_AUDIT_SUMMARY.md'
         )
         $rootDocs = Get-ChildItem -Path $SCRIPT_DIR -Filter '*.md' -File -ErrorAction SilentlyContinue
         $unexpected = @()
@@ -1733,7 +1741,7 @@ function Invoke-DocumentationCheck {
             Add-Result "Docs" "Root Whitelist" $false "$($unexpected.Count) unexpected .md in root"
             $allExist = $false
         } else {
-            Write-Success "Root documentation whitelist satisfied"
+            Write-Success "Root documentation whitelist satisfied (11 allowed files)"
             Add-Result "Docs" "Root Whitelist" $true
         }
     } catch {

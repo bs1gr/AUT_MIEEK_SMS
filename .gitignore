@@ -161,6 +161,7 @@ dockspace/
 AUT_MIEEK_CodeSign.pfx
 
 # Test artifacts & reporting
+test-results/
 frontend/test-results/
 frontend/playwright-report/
 .last-run.json
