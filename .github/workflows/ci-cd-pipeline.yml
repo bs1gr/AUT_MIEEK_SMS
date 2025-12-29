@@ -26,7 +26,6 @@ on:
       deploy_environment:
         description: 'Deployment environment'
         required: false
-        default: 'staging'
         type: string
 
 env:
