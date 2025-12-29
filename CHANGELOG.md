@@ -8,6 +8,33 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.14.0] - 2025-12-29
+
+### ⚠️ BREAKING CHANGES
+- docs: improve release notes with proper breaking changes documentation
+
+### Features
+- add comprehensive release documentation generator script
+
+### Documentation
+- normalize line endings for v1.14.0 release artifacts
+- add release documentation generator integration guide
+- improve release notes with proper breaking changes documentation
+- release notes and changelog for v1.13.0
+- release 1.13.0 documentation
+
+## [1.14.0] - 2025-12-29
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.14.0] - 2025-12-29
 
 **Release Type**: Maintenance Release
