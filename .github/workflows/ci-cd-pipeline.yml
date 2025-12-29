@@ -22,6 +22,12 @@ on:
           - staging
           - production
   workflow_call:
+    inputs:
+      deploy_environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'staging'
+        type: string
 
 env:
   PYTHON_VERSION: '3.11'
