@@ -126,6 +126,14 @@ try {
     Write-Info "Skipping documentation organization due to error: $_"
 }
 
+# Proactively run quick lint/format pass before generating docs to avoid later restarts
+Write-Info "Running quick pre-commit validation (AutoFix) before documentation generation..."
+try {
+    & .\COMMIT_READY.ps1 -Mode quick -SkipTests -AutoFix
+} catch {
+    Write-Info "Pre-commit quick pass encountered non-fatal issues; proceeding with doc generation. Details: $_"
+}
+
 & .\GENERATE_RELEASE_DOCS.ps1 -Version $ReleaseVersion
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Documentation generation failed."
@@ -146,10 +154,18 @@ if ($SkipDocCommit) {
     Read-Host
 } else {
     try {
+        # Run a second quick pre-commit validation to normalize newly generated docs
+        Write-Info "Validating generated documentation with pre-commit (AutoFix)..."
+        try {
+            & .\COMMIT_READY.ps1 -Mode quick -SkipTests -AutoFix
+        } catch {
+            Write-Info "Pre-commit validation returned non-fatal issues; attempting to continue. Details: $_"
+        }
+
         # Check if there are changes to commit
         $status = git status --porcelain 2>$null
         if ($status) {
-            git add CHANGELOG.md docs/releases/ 2>$null
+            git add CHANGELOG.md docs/releases/ ".github/RELEASE_NOTES_v$ReleaseVersion.md" 2>$null
             git commit -m "docs: release notes for v$ReleaseVersion" 2>$null
 
             Write-Info "Pushing documentation to remote..."

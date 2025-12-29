@@ -254,7 +254,15 @@ function Get-ReleaseNotesMarkdown {
         [void]$sb.AppendLine("## ⚠️ BREAKING CHANGES")
         [void]$sb.AppendLine()
         foreach ($commit in $BreakingChanges) {
-            [void]$sb.AppendLine("- **$($commit.Subject)** [$($commit.Hash.Substring(0,7))]")
+            $hash = ""
+            if ($commit.Hash) {
+                if ($commit.Hash.Length -ge 7) { $hash = $commit.Hash.Substring(0,7) } else { $hash = $commit.Hash }
+            }
+            if ($hash) {
+                [void]$sb.AppendLine("- **$($commit.Subject)** [$hash]")
+            } else {
+                [void]$sb.AppendLine("- **$($commit.Subject)**")
+            }
             if ($commit.Body) {
                 [void]$sb.AppendLine("  $($commit.Body)")
             }
@@ -277,7 +285,15 @@ function Get-ReleaseNotesMarkdown {
         foreach ($item in $items) {
             $prefix = if ($item.Scope) { "**$($item.Scope)**: " } else { "" }
             $breaking = if ($item.Breaking) { " 🚨 **BREAKING**" } else { "" }
-            [void]$sb.AppendLine("- $prefix$($item.Description)$breaking [$($item.Commit.Hash.Substring(0,7))]")
+            $commitHash = ""
+            if ($item.Commit -and $item.Commit.Hash) {
+                if ($item.Commit.Hash.Length -ge 7) { $commitHash = $item.Commit.Hash.Substring(0,7) } else { $commitHash = $item.Commit.Hash }
+            }
+            if ($commitHash) {
+                [void]$sb.AppendLine("- $prefix$($item.Description)$breaking [$commitHash]")
+            } else {
+                [void]$sb.AppendLine("- $prefix$($item.Description)$breaking")
+            }
         }
         [void]$sb.AppendLine()
     }
@@ -287,7 +303,15 @@ function Get-ReleaseNotesMarkdown {
         [void]$sb.AppendLine("## 📦 Other Changes")
         [void]$sb.AppendLine()
         foreach ($commit in $Unrecognized) {
-            [void]$sb.AppendLine("- $($commit.Subject) [$($commit.Hash.Substring(0,7))]")
+            $hash = ""
+            if ($commit.Hash) {
+                if ($commit.Hash.Length -ge 7) { $hash = $commit.Hash.Substring(0,7) } else { $hash = $commit.Hash }
+            }
+            if ($hash) {
+                [void]$sb.AppendLine("- $($commit.Subject) [$hash]")
+            } else {
+                [void]$sb.AppendLine("- $($commit.Subject)")
+            }
         }
         [void]$sb.AppendLine()
     }
@@ -414,8 +438,20 @@ $releaseNotes = Get-ReleaseNotesMarkdown -Version $Version -Categorized $categor
 $changelogEntry = Get-ChangelogEntry -Version $Version -Categorized $categorized `
     -BreakingChanges $breakingChanges -Since $Since
 
-$githubRelease = Get-GitHubReleaseDescription -Version $Version -Categorized $categorized `
-    -BreakingChanges $breakingChanges -Unrecognized $unrecognized
+# Prefer comprehensive external helper if available
+$__helperPath = Join-Path "scripts" "generate-release-github-description.ps1"
+if (Test-Path $__helperPath) {
+    try {
+        $githubRelease = & $__helperPath -Version $Version -BreakingChanges $breakingChanges -Categorized $categorized
+    } catch {
+        Write-Warning "Helper script failed, falling back to basic release description: $_"
+        $githubRelease = Get-GitHubReleaseDescription -Version $Version -Categorized $categorized `
+            -BreakingChanges $breakingChanges -Unrecognized $unrecognized
+    }
+} else {
+    $githubRelease = Get-GitHubReleaseDescription -Version $Version -Categorized $categorized `
+        -BreakingChanges $breakingChanges -Unrecognized $unrecognized
+}
 
 Write-Success "Generated all documentation formats"
 
