@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("jti", sa.String(length=64), nullable=False),
         sa.Column("token_hash", sa.String(length=128), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("revoked", sa.Boolean(), nullable=True, server_default=sa.text("0")),
+        sa.Column("revoked", sa.Boolean(), nullable=True, server_default=sa.text("FALSE")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_index("idx_refresh_tokens_jti", "refresh_tokens", ["jti"], unique=True)
