@@ -70,7 +70,7 @@ FINALIZE_WORKFLOWS.ps1 → One-time script
 SECURITY_FIX_2025-12-27.ps1 → One-time fix
 docker_seed_e2e.py → Old seed script
 e2e-local.ps1 → Old e2e script
-fix_greek_encoding_permanent.py → One-time fix
+~~fix_greek_encoding_permanent.py~~ → **RESTORED** (active build utility, incorrectly removed)
 ```
 
 ### Temporary Documentation (Always)

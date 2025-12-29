@@ -213,8 +213,8 @@ $deprecatedScripts = @(
     "FINALIZE_WORKFLOWS.ps1",  # One-time script
     "SECURITY_FIX_2025-12-27.ps1",  # One-time security fix
     "docker_seed_e2e.py",  # Old seed script
-    "e2e-local.ps1",  # Old e2e script
-    "fix_greek_encoding_permanent.py"  # One-time fix
+    "e2e-local.ps1"  # Old e2e script
+    # NOTE: fix_greek_encoding_permanent.py is ACTIVE (build-time utility, not deprecated)
 )
 
 foreach ($script in $deprecatedScripts) {
