@@ -1,5 +1,7 @@
 # Script Refactoring Documentation ($11.10.1+)
 
+> **⚠️ DEPRECATED (v1.13.0):** This document references `backend.auto_import_courses` which was removed in v1.13.0. See [Migration Guide](../../guides/MIGRATION_v1.13.0.md) for updated import paths.
+
 ## Overview
 
 In version 1.9.9, we reorganized the backend scripts into a structured directory hierarchy under `backend/scripts/` for better organization, maintainability, and clarity. This document explains the refactoring, migration paths, and backward compatibility measures.

@@ -6,9 +6,83 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 > **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
 
+---
 
+## [1.13.0] - 2025-12-29
 
+**Release Type**: MAJOR Release 🚨
+**Focus**: Repository cleanup with breaking changes
 
+### ⚠️ BREAKING CHANGES
+
+**Removed Deprecated Backend Modules:**
+
+The following deprecated modules have been removed. Update your imports:
+
+| Old Import (REMOVED) | New Import (v1.13.0+) |
+|---------------------|----------------------|
+| `backend.auto_import_courses` | `backend.scripts.import_.courses` |
+| `backend.tools.create_admin` | `backend.db.cli.admin` |
+| `backend.tools.reset_db` | `backend.db.cli.schema` |
+| `backend.tools.check_schema_drift` | `backend.db.cli.schema` |
+| `backend.tools.check_secret` | `backend.db.cli.diagnostics` |
+| `backend.tools.validate_first_run` | `backend.db.cli.diagnostics` |
+| `backend.tools.verify_schema` | `backend.db.cli.schema` |
+
+**Migration Examples:**
+
+```python
+# OLD (v1.12.9 and earlier) - NO LONGER WORKS
+from backend.auto_import_courses import import_courses
+from backend.tools.create_admin import create_admin_user
+
+# NEW (v1.13.0+)
+from backend.scripts.import_.courses import import_courses
+from backend.db.cli.admin import create_admin_user
+```
+
+**Command Line:**
+```bash
+# OLD - NO LONGER WORKS
+python -m backend.auto_import_courses
+
+# NEW (v1.13.0+)
+python -m backend.scripts.import_.courses
+```
+
+See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
+
+### Removed
+
+- **Backend Code:**
+  - `backend/auto_import_courses.py` - Use `backend.scripts.import_.courses`
+  - `backend/tools/` directory (11 deprecated modules) - Use `backend.db.cli`
+
+- **GitHub Workflows:**
+  - `.github/workflows/cache-performance-monitoring.yml` - Feature not actively used
+  - `.github/workflows/cache-monitor-on-e2e.yml` - Redundant monitoring
+
+- **Scripts:**
+  - `scripts/monitor_ci_cache.py` - Associated with removed workflows
+
+### Changed
+
+- **Import Paths:** Consolidated backend tooling to `backend.db.cli` namespace
+- **Workflow Count:** Reduced from 29 to 27 active workflows
+
+### Documentation
+
+- Created comprehensive cleanup execution report
+- Added migration guide for v1.13.0 breaking changes
+- Updated backend CLI reference documentation
+
+### Internal
+
+- Archived legacy `start-backend.ps1` script
+- Established 30-day retention policy for Docker backups
+- Repository cleanup optimization complete
+
+---
 
 ## [1.12.9] - 2025-12-29
 

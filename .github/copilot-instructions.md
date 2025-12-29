@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Start for AI Agents
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.9.8** (see VERSION file).
+**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.13.0** (see VERSION file).
 
 **Most common tasks:**
 
