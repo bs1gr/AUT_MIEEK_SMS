@@ -113,6 +113,19 @@ Write-Success "Preparation complete"
 # PHASE 2: DOCUMENTATION GENERATION
 Write-PhaseHeader "PHASE 2/4: DOCUMENTATION" "Generating release notes and updating CHANGELOG"
 
+# Pre-step: Organize documentation folders to avoid duplicates and align structure
+Write-Info "Organizing documentation structure before generating release docs..."
+try {
+    & .\WORKSPACE_CLEANUP.ps1 -Mode standard -SkipTests
+    if ($LASTEXITCODE -ne 0) {
+        Write-Info "Documentation organization reported non-fatal issues; proceeding with generation."
+    } else {
+        Write-Info "Documentation organized."
+    }
+} catch {
+    Write-Info "Skipping documentation organization due to error: $_"
+}
+
 & .\GENERATE_RELEASE_DOCS.ps1 -Version $ReleaseVersion
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Documentation generation failed."

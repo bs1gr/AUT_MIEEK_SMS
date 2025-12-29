@@ -391,6 +391,94 @@ if (-not $SkipDocs) {
 
     Write-Section "Audit Summary (Keep in Root)"
     Write-Info "Keeping SECURITY_AUDIT_SUMMARY.md in root (important reference)"
+
+    Write-Section "Additional Documentation Organization"
+
+    # Ensure common documentation directories exist
+    $docDirs = @(
+        "docs\ci",
+        "docs\deployment\reports",
+        "docs\releases\reports",
+        "docs\reports",
+        "docs\development\testing",
+        "docs\development\release-workflow",
+        "docs\development\ai",
+        "docs\plans",
+        "docs\misc"
+    )
+    foreach ($d in $docDirs) {
+        $abs = Join-Path $rootDir $d
+        if (-not $DryRun -and -not (Test-Path $abs)) { New-Item -ItemType Directory -Path $abs -Force | Out-Null }
+    }
+
+    # Helper: Determine YYYY-MM bucket from filename
+    function Get-DateBucketFromName {
+        param([string]$Name)
+        $nowBucket = (Get-Date).ToString('yyyy-MM')
+        $m = [regex]::Match($Name, '(?<y>20\d{2})[-_](?<m>0[1-9]|1[0-2])([-_](?<d>0[1-9]|[12]\d|3[01]))?')
+        if ($m.Success) {
+            return ("{0}-{1}" -f $m.Groups['y'].Value, $m.Groups['m'].Value)
+        }
+        return $nowBucket
+    }
+
+    # Whitelist of root-level docs to keep for quick access
+    $keepRootDocs = @(
+        'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
+        'DOCUMENTATION_INDEX.md',
+        'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
+        'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md',
+        'SECURITY_AUDIT_SUMMARY.md'
+    )
+
+    # Pattern-based movers from root → docs/
+    $patternMoves = @(
+        @{ Pattern = '^(?i)GITHUB_ACTIONS_.*\.md$';            Dest = 'docs\ci' },
+        @{ Pattern = '^(?i)E2E_.*\.md$';                        Dest = 'docs\development\testing' },
+        @{ Pattern = '^(?i)e2e-.*\.md$';                        Dest = 'docs\development\testing' },
+        @{ Pattern = '^(?i)DEPLOYMENT_REPORT_.*\.md$';          Dest = 'docs\deployment\reports' },
+        @{ Pattern = '^(?i)RELEASE_v.*_COMPLETE\.md$';          Dest = 'docs\releases\reports' },
+        @{ Pattern = '^(?i)POST_RELEASE_CLEANUP_GUIDE\.md$';    Dest = 'docs\development\release-workflow' },
+        @{ Pattern = '^(?i)LLM_AGENT_INSTRUCTIONS\.md$';        Dest = 'docs\development\ai' },
+        @{ Pattern = '^(?i)E2E_TESTING_IMPROVEMENTS\.md$';      Dest = 'docs\development\testing' },
+        @{ Pattern = '^(?i)REMAINING_ISSUES_PRIORITY_PLAN\.md$';Dest = 'docs\plans' }
+    )
+
+    # Move summary-like reports to dated buckets
+    $summaryPatterns = @('SUMMARY','REPORT','INVESTIGATION','VALIDATION','STATUS','CLEANUP')
+
+    Get-ChildItem -Path $rootDir -Filter '*.md' -File -ErrorAction SilentlyContinue |
+        Where-Object { $keepRootDocs -notcontains $_.Name } |
+        ForEach-Object {
+            $moved = $false
+
+            # First, try explicit pattern moves
+            foreach ($rule in $patternMoves) {
+                if ($_.Name -match $rule.Pattern) {
+                    $destPath = Join-Path $rootDir $rule.Dest
+                    $dest = Join-Path $destPath $_.Name
+                    Move-Item-Safe -Source $_.FullName -Destination $dest -Description "Doc: $($_.Name)"
+                    $moved = $true; break
+                }
+            }
+
+            if (-not $moved) {
+                # Then, catch generic summary/report-like docs into dated reports bucket
+                if ($_.Name -match '(?i)SUMMARY|REPORT|INVESTIGATION|VALIDATION|STATUS|CLEANUP') {
+                    $bucket = Get-DateBucketFromName -Name $_.Name
+                    $bucketDir = Join-Path $rootDir ("docs\\reports\\$bucket")
+                    if (-not $DryRun -and -not (Test-Path $bucketDir)) { New-Item -ItemType Directory -Path $bucketDir -Force | Out-Null }
+                    $dest = Join-Path $bucketDir $_.Name
+                    Move-Item-Safe -Source $_.FullName -Destination $dest -Description "Report: $($_.Name)"
+                }
+                else {
+                    # Otherwise, place remaining stray docs under docs/misc
+                    $misc = Join-Path $rootDir 'docs\misc'
+                    $destMisc = Join-Path $misc $_.Name
+                    Move-Item-Safe -Source $_.FullName -Destination $destMisc -Description "Misc doc: $($_.Name)"
+                }
+            }
+        }
 }
 
 # ============================================================================

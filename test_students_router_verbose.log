@@ -1,5 +1,0 @@
-ImportError while loading conftest 'D:\SMS\student-management-system\backend\tests\conftest.py'.
-backend\tests\conftest.py:2: in <module>
-    @pytest.fixture
-     ^^^^^^
-E   NameError: name 'pytest' is not defined

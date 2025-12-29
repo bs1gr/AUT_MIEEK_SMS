@@ -20,6 +20,28 @@ Documentation is organized into four main directories:
 
 ---
 
+## 📁 Folder Map (key subfolders)
+
+- CI:
+  - `docs/ci/` – CI diagnostics and failure reports (e.g., GitHub Actions)
+- Deployment:
+  - `docs/deployment/` – Guides, runbooks, operations
+  - `docs/deployment/reports/` – Versioned deployment reports
+- Releases:
+  - `docs/releases/` – Release notes and summaries
+  - `docs/releases/reports/` – Release completion/verification reports (non-notes)
+- Development:
+  - `docs/development/testing/` – E2E errors and testing improvements
+  - `docs/development/ai/` – Agent/automation instructions
+- Reports (dated):
+  - `docs/reports/YYYY-MM/` – Summary/report-style docs bucketed by month
+- Planning:
+  - `docs/plans/` – Plans, priority lists, roadmaps (non-archival)
+- Miscellaneous:
+  - `docs/misc/` – Temporary or uncategorized docs; move to a specific folder when clear
+
+This map complements the top-level structure and ensures stray Markdown files are consolidated under `docs/` for discoverability and consistency.
+
 ## 📚 Core Documentation (Current & Active)
 
 ### Getting Started

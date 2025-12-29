@@ -1712,6 +1712,36 @@ function Invoke-DocumentationCheck {
         Write-Warning-Msg "Git not available or not a git repository"
     }
 
+    # Root documentation whitelist enforcement
+    Write-Section "Root Documentation Whitelist"
+    try {
+        $allowed = @(
+            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md','DOCUMENTATION_INDEX.md',
+            'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
+            'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md','SECURITY_AUDIT_SUMMARY.md'
+        )
+        $rootDocs = Get-ChildItem -Path $SCRIPT_DIR -Filter '*.md' -File -ErrorAction SilentlyContinue
+        $unexpected = @()
+        foreach ($f in $rootDocs) {
+            if ($allowed -notcontains $f.Name) { $unexpected += $f }
+        }
+
+        if ($unexpected.Count -gt 0) {
+            Write-Failure "Found $($unexpected.Count) unclassified Markdown file(s) in repo root"
+            foreach ($f in $unexpected) { Write-Host "   • $($f.Name)" -ForegroundColor Red }
+            Write-Info "Run .\\WORKSPACE_CLEANUP.ps1 -Mode standard to auto-organize, or move to docs/ manually"
+            Add-Result "Docs" "Root Whitelist" $false "$($unexpected.Count) unexpected .md in root"
+            $allExist = $false
+        } else {
+            Write-Success "Root documentation whitelist satisfied"
+            Add-Result "Docs" "Root Whitelist" $true
+        }
+    } catch {
+        Write-Warning-Msg "Root documentation whitelist check failed: $_"
+        Add-Result "Docs" "Root Whitelist" $false "check errored"
+        $allExist = $false
+    }
+
     return $allExist
 }
 

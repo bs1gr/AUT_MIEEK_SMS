@@ -105,6 +105,19 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
+Write-Host "Organizing documentation before generating release artifacts..."
+try {
+    # Consolidate and de-duplicate docs to reflect current state before generating release notes
+    & .\WORKSPACE_CLEANUP.ps1 -Mode standard -SkipTests
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Workspace documentation organization reported issues. Proceeding, but review changes."
+    } else {
+        Write-Host "Documentation structure organized successfully"
+    }
+} catch {
+    Write-Warning "Failed to run WORKSPACE_CLEANUP.ps1: $_"
+}
+
 Write-Host "Generating release documentation..."
 & .\GENERATE_RELEASE_DOCS.ps1 -Version "$ReleaseVersion"
 if ($LASTEXITCODE -ne 0) {

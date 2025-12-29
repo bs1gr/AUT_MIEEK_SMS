@@ -167,3 +167,17 @@ frontend/playwright-report/
 
 # Load-testing results (generated locally)
 load-testing/results/
+
+# Test output files
+admin_bootstrap_test_output*.txt
+backend_test_output.txt
+students_router_test_output.txt
+test_*.log
+
+# Temporary markdown files
+tmp_*.md
+SESSION_*.md
+README_SESSION*.md
+
+# Archive directories
+docs/archive/
