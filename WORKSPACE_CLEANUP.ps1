@@ -479,6 +479,47 @@ if (-not $SkipDocs) {
                 }
             }
         }
+
+    # Move session/final text reports (.txt) to dated reports bucket as well
+    Get-ChildItem -Path $rootDir -Filter '*.txt' -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '(?i)SUMMARY|SESSION|REPORT' } |
+        ForEach-Object {
+            $bucket = Get-DateBucketFromName -Name $_.Name
+            $bucketDir = Join-Path $rootDir ("docs\\reports\\$bucket")
+            if (-not $DryRun -and -not (Test-Path $bucketDir)) { New-Item -ItemType Directory -Path $bucketDir -Force | Out-Null }
+            $dest = Join-Path $bucketDir $_.Name
+            Move-Item-Safe -Source $_.FullName -Destination $dest -Description "Text report: $($_.Name)"
+        }
+
+    # Move WORKFLOW_FIXES folder into release-workflow docs, if present
+    $workflowFixes = Join-Path $rootDir 'WORKFLOW_FIXES'
+    if (Test-Path $workflowFixes -PathType Container) {
+        $destDir = Join-Path $rootDir 'docs\development\release-workflow\WORKFLOW_FIXES'
+        if (-not $DryRun -and -not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
+        try {
+            Get-ChildItem -Path $workflowFixes -File -Recurse -Force | ForEach-Object {
+                $rel = $_.FullName.Substring($workflowFixes.Length).TrimStart([char[]]"/\")
+                $destPath = Join-Path $destDir $rel
+                Move-Item-Safe -Source $_.FullName -Destination $destPath -Description "WORKFLOW_FIXES: $($rel)"
+            }
+            # Clean up directory if empty
+            if (-not $DryRun) {
+                Remove-Item $workflowFixes -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        } catch {
+            Write-Warning "Could not move WORKFLOW_FIXES: $_"
+        }
+    }
+
+    # Move root e2e error folders into test-results/e2e/
+    Get-ChildItem -Path $rootDir -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^(?i)e2e-error-' } |
+        ForEach-Object {
+            $targetDir = Join-Path $rootDir 'test-results\e2e'
+            if (-not $DryRun -and -not (Test-Path $targetDir)) { New-Item -ItemType Directory -Path $targetDir -Force | Out-Null }
+            $dest = Join-Path $targetDir $_.Name
+            Move-Item-Safe -Source $_.FullName -Destination $dest -Description "E2E error folder: $($_.Name)"
+        }
 }
 
 # ============================================================================
@@ -564,7 +605,8 @@ if ($Mode -eq 'deep' -or $Mode -eq 'standard' -or $Mode -eq 'post-release') {
         "tmp_artifacts",
         "tmp_test_migrations",
         "artifacts_run_20433692089",
-        "artifacts_run_20433984258"
+        "artifacts_run_20433984258",
+        "tmp_e2e_artifacts"
     )
 
     foreach ($dir in $tempDirs) {
