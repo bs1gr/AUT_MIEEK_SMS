@@ -8,6 +8,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.12.9] - 2025-12-29
+
+### Documentation
+- update documentation for v1.12.9
+- update documentation for v1.12.9
+
 ## [1.12.9] - 2025-12-29
 
 **Release Type**: Maintenance Release

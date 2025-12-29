@@ -1,24 +1,16 @@
 # Release Notes - Version 1.12.9
 
 **Release Date**: 2025-12-29
-**Previous Version**: v1.12.8
+**Previous Version**: v1.12.9
 
-## 🤖 CI/CD
+## 📝 Documentation
 
-- Fix VERIFY_VERSION parameter error and enhance release automation [84377c7]
-
-## 📦 Other Changes
-
-- [- Add r]
-- [- Add w]
-- [- Auto-]
-- [- Ensur]
-- [Fixes w]
-- Vasilis []
+- update documentation for v1.12.9 [2d52012]
+- update documentation for v1.12.9 [31c2041]
 
 ---
 
 ### 📊 Statistics
 
-- **Total Commits**: 7
+- **Total Commits**: 2
 - **Contributors**: 1
