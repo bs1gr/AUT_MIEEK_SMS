@@ -1,56 +1,51 @@
 # Release Notes - Version 1.14.0
 
 **Release Date**: 2025-12-29
-**Previous Version**: v1.13.1
+**Previous Version**: v1.14.0
 
-## ⚠️ BREAKING CHANGES
+## 🐛 Bug Fixes
 
-- **docs: improve release notes with proper breaking changes documentation** [a965a97]
-  - Replace generic auto-generated notes with comprehensive release documentation
+- Docker security scan - use filesystem scan on Dockerfile directory instead of image-ref [13fe9db]
+- Docker security scan - build and load image locally for Trivy scanning [0fd24d3]
+- E2E test database initialization and seeding\n\n- Add force reseed step to ensure test user (test@example.com) exists even if admin user created by bootstrap\n- Remove DISABLE_STARTUP_TASKS flag to allow migrations to run properly on startup\n- Ensures tables exist and test user is present before E2E login\n\nThis should address E2E login 400 errors seen previously. [bb57e76]
+- disable login lockouts in E2E environment and make E2E tests non-blocking in CI [c00086b]
+- handle Bandit encoding issues by using CSV output format [6811897]
+- replace remaining Boolean defaults (0/1 -> FALSE/TRUE) for PostgreSQL [98ace77]
+- use TRUE/FALSE for Boolean migrations (PostgreSQL compatibility) + adjust coverage threshold [109df00]
+- replace Unicode ticks in Greek encoding script for Windows CI [49e481d]
+- replace Unicode arrow with ASCII in Greek encoding script [89a1630]
+- add required inputs to workflow_call trigger in CI/CD pipeline [0db0df5]
 
-## ✨ Features
+## 🤖 CI/CD
 
-- add comprehensive release documentation generator script [ed3fac0]
+- fix encoding script output + install missing types and vitest coverage deps [3e5f5dc]
+- run gitleaks via CLI for policy compliance [aa8a354]
+- remove default on workflow_call input [26ccbe1]
 
-## 📝 Documentation
+## 🧹 Chores
 
-- normalize line endings for v1.14.0 release artifacts [0d7c9db]
-- add release documentation generator integration guide [5d8a68c]
-- improve release notes with proper breaking changes documentation 🚨 **BREAKING** [a965a97]
-- release notes and changelog for v1.13.0 [f8a1f4f]
-- release 1.13.0 documentation [a593f2a]
+- pre-commit validation complete [7cdcdfd]
+- E2E - improve timeout handling and add VITE_API_URL env variable [8c816bb]
 
 ## 📦 Other Changes
 
-- release: run lint/format checks before and after doc generation [8bba55b]
-- [- Valid]
-- [- Stage]
-- [- Harde]
+- E2E: Fix login health check to use JSON email/password and seeded credentials [6f2f0a7]
+-  [- Updat]
+-  [- Updat]
+-  [- Updat]
+-  [- Fixed]
+-  [- Made ]
+-  [Backend]
 - Vasilis
-- [- What ]
-- [- Curre]
-- [- Step-]
-- [- How t]
-- [- Futur]
+-  [- Fixes]
 - Vasilis
-- [- Promi]
-- [- Clear]
-- [- Insta]
-- [- Links]
-- [- Prope]
-- [Next st]
-- Vasilis
-- [- Add c]
-- [- Docum]
-- [- Add p]
-- [- Link ]
-- [- Focus]
+-  [- Added]
+-  [- Fixes]
 - Vasilis
 
 ---
 
 ### 📊 Statistics
 
-- **Total Commits**: 30
+- **Total Commits**: 28
 - **Contributors**: 2
-- **Breaking Changes**: 1
