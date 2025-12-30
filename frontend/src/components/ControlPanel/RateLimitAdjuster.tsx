@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, RotateCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import Toast from '@/components/ui/Toast';
-import { CONTROL_API_BASE, attachAuthHeader } from '@/api/api';
+import { CONTROL_API_BASE } from '@/api/api';
 
 interface RateLimitSettings {
   read: number;
@@ -46,19 +47,9 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
   const loadSettings = async () => {
     try {
-      const config = { headers: { 'Accept': 'application/json' } };
-      attachAuthHeader(config);
+      const response = await axios.get(`${CONTROL_API_BASE}/rate-limits`);
 
-      const response = await fetch(`${CONTROL_API_BASE}/rate-limits`, {
-        credentials: 'include',
-        headers: config.headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to load settings: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
       setSettings(data.current);
       setDefaults(data.defaults);
       setChanges({});
@@ -83,28 +74,19 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
-      const config = { headers: { 'Content-Type': 'application/json' } };
-      attachAuthHeader(config);
-
-      const response = await fetch(`${CONTROL_API_BASE}/rate-limits/bulk-update`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: config.headers,
-        body: JSON.stringify({ limits: changes }),
+      await axios.post(`${CONTROL_API_BASE}/rate-limits/bulk-update`, {
+        limits: changes,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || `Failed to save: ${response.status}`);
-      }
 
       await loadSettings();
       showToast('Rate limits updated successfully', 'success');
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Failed to save changes',
-        'error'
-      );
+    } catch (err: unknown) {
+      const errorMsg = axios.isAxiosError(err)
+        ? err.response?.data?.detail || `Failed to save: ${err.response?.status}`
+        : err instanceof Error
+        ? err.message
+        : 'Failed to save changes';
+      showToast(errorMsg, 'error');
     } finally {
       setSaving(false);
     }
@@ -115,26 +97,17 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
-      const config = { headers: { 'Accept': 'application/json' } };
-      attachAuthHeader(config);
-
-      const response = await fetch(`${CONTROL_API_BASE}/rate-limits/reset`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: config.headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reset: ${response.status}`);
-      }
+      await axios.post(`${CONTROL_API_BASE}/rate-limits/reset`);
 
       await loadSettings();
       showToast('Rate limits reset to defaults', 'success');
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : 'Failed to reset limits',
-        'error'
-      );
+    } catch (err: unknown) {
+      const errorMsg = axios.isAxiosError(err)
+        ? err.response?.data?.detail || `Failed to reset: ${err.response?.status}`
+        : err instanceof Error
+        ? err.message
+        : 'Failed to reset limits';
+      showToast(errorMsg, 'error');
     } finally {
       setSaving(false);
     }
