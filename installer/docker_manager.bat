@@ -1,6 +1,6 @@
 @echo off
 REM Docker Desktop Application Launcher & Container Management Shortcut
-REM Version: 1.14.0
+REM Version: 1.14.2
 REM This script provides a user-friendly way to manage the SMS Docker container from a desktop shortcut
 REM Supports: Start, Stop, and opening the web application
 
@@ -9,14 +9,36 @@ setlocal enabledelayedexpansion
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
-REM Check if running elevated
+REM Relaunch self elevated if not already admin
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
-    echo Administrator Rights Required
+    echo Elevating to Administrator...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c """"%~f0""""' -Verb RunAs""
+    exit /b
+)
+
+REM Detect PowerShell 7 (real binary); if missing, instruct user and exit (Windows PowerShell fallback is not reliable for this script)
+set "PWSH_EXE="
+
+REM Registry-based detection first (stable when PATH has WindowsApps alias)
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\PowerShellCore\\InstalledVersions\\*' -ErrorAction SilentlyContinue | ForEach-Object InstallLocation | Where-Object { $_ -and (Test-Path (Join-Path $_ 'pwsh.exe')) } | Select-Object -First 1)"`) do (
+    set "PWSH_EXE=%%i\pwsh.exe"
+)
+
+if not defined PWSH_EXE if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PWSH_EXE=%ProgramFiles%\PowerShell\7\pwsh.exe"
+if not defined PWSH_EXE if exist "%ProgramFiles(x86)%\PowerShell\7\pwsh.exe" set "PWSH_EXE=%ProgramFiles(x86)%\PowerShell\7\pwsh.exe"
+if not defined PWSH_EXE if exist "%LOCALAPPDATA%\Microsoft\PowerShell\7\pwsh.exe" set "PWSH_EXE=%LOCALAPPDATA%\Microsoft\PowerShell\7\pwsh.exe"
+
+if defined PWSH_EXE (
+    "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "exit" 1>nul 2>&1
+    if errorlevel 1 set "PWSH_EXE="
+)
+
+if not defined PWSH_EXE (
     echo.
-    echo This script needs administrator privileges to manage Docker containers.
-    echo Please run as Administrator or re-run with elevated privileges.
+    echo PowerShell 7 is required to manage the SMS Docker container.
+    echo Please install PowerShell 7 from https://aka.ms/powershell and try again.
     echo.
     pause
     exit /b 1
@@ -58,7 +80,7 @@ goto menu
 echo.
 echo Starting SMS Docker container...
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command ".\DOCKER.ps1 -Start"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%DOCKER.ps1" -Start
 if %errorlevel% equ 0 (
     echo.
     echo Container started successfully. Waiting for service to be ready...
@@ -77,7 +99,7 @@ goto menu
 echo.
 echo Stopping SMS Docker container...
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command ".\DOCKER.ps1 -Stop"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%DOCKER.ps1" -Stop
 if %errorlevel% equ 0 (
     echo Container stopped successfully.
 ) else (
@@ -90,9 +112,9 @@ goto menu
 echo.
 echo Restarting SMS Docker container...
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command ".\DOCKER.ps1 -Stop"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%DOCKER.ps1" -Stop
 timeout /t 3 /nobreak
-call powershell -NoProfile -ExecutionPolicy Bypass -Command ".\DOCKER.ps1 -Start"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%DOCKER.ps1" -Start
 if %errorlevel% equ 0 (
     echo Container restarted successfully.
     echo.
@@ -109,7 +131,7 @@ goto menu
 echo.
 echo Checking container status...
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command ".\DOCKER.ps1 -Status"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%DOCKER.ps1" -Status
 echo.
 pause
 goto menu
@@ -118,7 +140,7 @@ goto menu
 echo.
 echo Container logs (last 50 lines):
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command "docker logs --tail 50 sms-fullstack 2>nul || echo 'Container not running or not found'"
+call powershell -NoProfile -ExecutionPolicy Bypass -Command "docker logs --tail 50 sms-app 2>nul || echo 'Container not running or not found'"
 echo.
 pause
 goto menu

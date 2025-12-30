@@ -13,7 +13,7 @@
 #define MyAppPublisher "AUT MIEEK"
 #define MyAppURL "https://www.mieek.ac.cy/index.php/el/"
 #define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
-#define MyAppExeName "DOCKER_TOGGLE.bat"
+#define MyAppExeName "docker_manager.bat"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
 ; Read version from VERSION file
@@ -204,7 +204,7 @@ Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-de
 ; --- Docker build and install: always use the batch file, never call PowerShell directly ---
 
 ; Option to launch app after install (only if Docker is running)
-Filename: "cmd.exe"; Parameters: "/c ""{app}\DOCKER_TOGGLE.bat"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
+Filename: "cmd.exe"; Parameters: "/c ""{app}\docker_manager.bat"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -342,7 +342,7 @@ end;
 function AppExistsOnDisk(Path: String): Boolean;
 begin
   // Check if key app files exist at the path
-  Result := (Path <> '') and (FileExists(Path + '\DOCKER_TOGGLE.vbs') or FileExists(Path + '\DOCKER.ps1'));
+  Result := (Path <> '') and (FileExists(Path + '\docker_manager.bat') or FileExists(Path + '\DOCKER.ps1'));
 end;
 
 function InitializeSetup: Boolean;

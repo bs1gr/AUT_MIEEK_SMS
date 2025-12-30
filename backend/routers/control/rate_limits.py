@@ -4,7 +4,7 @@ Admin-only endpoints for managing dynamic rate limiting configuration.
 """
 
 from typing import Dict
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Request, status, Depends
 from pydantic import BaseModel, Field
 import logging
 
@@ -39,7 +39,7 @@ class RateLimitResponse(BaseModel):
 
 
 @router.get("/rate-limits", response_model=RateLimitResponse)
-async def get_rate_limits(request: Request, current_admin: str = optional_require_role("admin")):
+async def get_rate_limits(request: Request, current_admin: str = Depends(optional_require_role("admin"))):
     """Get current rate limit configuration (admin only)."""
     from datetime import datetime, timezone
 
@@ -56,7 +56,7 @@ async def get_rate_limits(request: Request, current_admin: str = optional_requir
 async def update_rate_limit(
     request: Request,
     update: RateLimitUpdate,
-    current_admin: str = optional_require_role("admin"),
+    current_admin: str = Depends(optional_require_role("admin")),
 ):
     """Update a single rate limit (admin only)."""
     config = get_rate_limit_config()
@@ -92,7 +92,7 @@ async def update_rate_limit(
 async def bulk_update_rate_limits(
     request: Request,
     bulk_update: RateLimitBulkUpdate,
-    current_admin: str = optional_require_role("admin"),
+    current_admin: str = Depends(optional_require_role("admin")),
 ):
     """Update multiple rate limits at once (admin only)."""
     config = get_rate_limit_config()
@@ -129,7 +129,7 @@ async def bulk_update_rate_limits(
 @router.post("/rate-limits/reset")
 async def reset_rate_limits(
     request: Request,
-    current_admin: str = optional_require_role("admin"),
+    current_admin: str = Depends(optional_require_role("admin")),
 ):
     """Reset all rate limits to defaults (admin only)."""
     config = get_rate_limit_config()

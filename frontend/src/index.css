@@ -12,8 +12,8 @@
   --appearance-bg: #f3f4f6;
   --appearance-surface: #ffffff;
   --appearance-surface-subtle: #f8fafc;
-  --appearance-text: #0f172a;
-  --appearance-muted-text: #475569;
+  --appearance-text: #111827;
+  --appearance-muted-text: #374151;
   --appearance-border: rgba(15, 23, 42, 0.08);
   --appearance-accent: #4f46e5;
   --appearance-accent-fill: #4f46e5;
@@ -34,6 +34,8 @@ body {
   background: var(--appearance-bg, #f3f4f6);
   color: var(--appearance-text, #1f2937);
   transition: background 250ms ease, color 250ms ease;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 #root {

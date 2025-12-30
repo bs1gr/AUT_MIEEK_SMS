@@ -29,7 +29,12 @@ $INSTALLER_LOG = Join-Path $SCRIPT_DIR "DOCKER_INSTALL.log"
 function Write-InstallerLog {
     param([string]$Message)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $Message")
+    try {
+        Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $Message") -ErrorAction Stop
+    } catch {
+        # If the log file is temporarily locked (e.g., wrapper redirected output), don't fail installation
+        # Best-effort logging only
+    }
 }
 <#
 .SYNOPSIS
@@ -717,7 +722,8 @@ function Create-DesktopShortcut {
     Write-Info "Setting up desktop shortcut..."
 
     $desktopPath = [Environment]::GetFolderPath("Desktop")
-    $toggleScript = Join-Path $SCRIPT_DIR "DOCKER_TOGGLE.bat"
+    # Use docker_manager.bat as the primary user-facing launcher (start/stop/status)
+    $toggleScript = Join-Path $SCRIPT_DIR "docker_manager.bat"
     $iconPath = Join-Path $SCRIPT_DIR "SMS_Toggle.ico"
     $shortcutPath = Join-Path $desktopPath "SMS Toggle.lnk"
 

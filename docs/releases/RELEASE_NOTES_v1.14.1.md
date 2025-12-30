@@ -21,9 +21,9 @@
 
 ## 📦 Other Changes
 
--  [- Repla]
--  [- Remov]
--  [- Fixes]
+- [- Repla]
+- [- Remov]
+- [- Fixes]
 - Vasilis
 - Merge branch 'alert-autofix-1457' [b8ba354]
 - Merge branch 'main' into alert-autofix-1457 [f49c245]

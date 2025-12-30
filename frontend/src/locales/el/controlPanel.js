@@ -335,7 +335,7 @@ export default {
   updateInstructions: 'Οδηγίες Ενημέρωσης',
   checkingForUpdates: 'Έλεγχος ενημερώσεων...',
   // Rate Limiting Panel
-  rateLimits: 'Όρια Ρυθμού',
+  rateLimitsLabel: 'Όρια Ρυθμού',
   rateLimitsTitle: 'Διαμόρφωση Ορίων Ρυθμού',
   rateLimitsSubtitle: 'Προσαρμόστε τα όρια ρυθμού του API για να αποτρέψετε την υποβάθμιση της υπηρεσίας. Οι αλλαγές ισχύουν άμεσα.',
   rateLimits: {

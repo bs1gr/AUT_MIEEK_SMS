@@ -54,11 +54,14 @@ def register_error_handlers(app):
             e = dict(e)
             ctx = e.get("ctx")
             if isinstance(ctx, dict):
-                err_obj = ctx.get("error")
-                if isinstance(err_obj, BaseException):
-                    ctx = dict(ctx)
-                    ctx["error"] = str(err_obj)
-                    e["ctx"] = ctx
+                ctx = dict(ctx)
+                for key, val in ctx.items():
+                    # Convert non-serializable objects to strings
+                    if isinstance(val, BaseException):
+                        ctx[key] = str(val)
+                    elif callable(val) or not isinstance(val, (str, int, float, bool, list, dict, type(None))):
+                        ctx[key] = str(val)
+                e["ctx"] = ctx
             return e
 
         errs = [_sanitize_error(e) for e in (raw_errs or [])]

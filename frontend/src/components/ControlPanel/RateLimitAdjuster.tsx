@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, RotateCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Toast from '@/components/ui/Toast';
-import { CONTROL_API_BASE } from '@/api/api';
+import { CONTROL_API_BASE, attachAuthHeader } from '@/api/api';
 
 interface RateLimitSettings {
   read: number;
@@ -46,9 +46,12 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
   const loadSettings = async () => {
     try {
+      const config = { headers: { 'Accept': 'application/json' } };
+      attachAuthHeader(config);
+
       const response = await fetch(`${CONTROL_API_BASE}/rate-limits`, {
         credentials: 'include',
-        headers: { 'Accept': 'application/json' },
+        headers: config.headers,
       });
 
       if (!response.ok) {
@@ -80,10 +83,13 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
+      const config = { headers: { 'Content-Type': 'application/json' } };
+      attachAuthHeader(config);
+
       const response = await fetch(`${CONTROL_API_BASE}/rate-limits/bulk-update`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: config.headers,
         body: JSON.stringify({ limits: changes }),
       });
 
@@ -109,10 +115,13 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
+      const config = { headers: { 'Accept': 'application/json' } };
+      attachAuthHeader(config);
+
       const response = await fetch(`${CONTROL_API_BASE}/rate-limits/reset`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Accept': 'application/json' },
+        headers: config.headers,
       });
 
       if (!response.ok) {
@@ -148,11 +157,11 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   }
 
   const limitTypes = [
-    { key: 'read' as const, label: t('rateLimits.read') || 'Read (queries/min)', desc: 'GET requests' },
-    { key: 'write' as const, label: t('rateLimits.write') || 'Write (updates/min)', desc: 'POST/PUT requests' },
-    { key: 'heavy' as const, label: t('rateLimits.heavy') || 'Heavy (reports/min)', desc: 'Heavy operations' },
-    { key: 'auth' as const, label: t('rateLimits.auth') || 'Auth (logins/min)', desc: 'Login attempts' },
-    { key: 'teacher_import' as const, label: t('rateLimits.teacherImport') || 'Import (bulk/min)', desc: 'Bulk imports' },
+    { key: 'read' as const, label: t('controlPanel.rateLimits.read') || 'Read (queries/min)', desc: 'GET requests' },
+    { key: 'write' as const, label: t('controlPanel.rateLimits.write') || 'Write (updates/min)', desc: 'POST/PUT requests' },
+    { key: 'heavy' as const, label: t('controlPanel.rateLimits.heavy') || 'Heavy (reports/min)', desc: 'Heavy operations' },
+    { key: 'auth' as const, label: t('controlPanel.rateLimits.auth') || 'Auth (logins/min)', desc: 'Login attempts' },
+    { key: 'teacher_import' as const, label: t('controlPanel.rateLimits.teacherImport') || 'Import (bulk/min)', desc: 'Bulk imports' },
   ];
 
   return (
@@ -168,7 +177,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       <div className="bg-blue-50 border border-blue-200 rounded p-4 flex gap-3">
         <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
-          <p className="font-semibold">{t('rateLimits.info') || 'Rate Limit Configuration'}</p>
+          <p className="font-semibold">{t('controlPanel.rateLimits.info') || 'Rate Limit Configuration'}</p>
           <p className="text-xs mt-1">Adjust these limits if users experience 429 (Too Many Requests) errors.</p>
         </div>
       </div>
@@ -180,8 +189,8 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
           const isAboveDefault = (changes[key] ?? settings[key]) > (defaults[key] ?? 100);
 
           return (
-            <div key={key} className="border border-gray-300 rounded p-3 bg-white">
-              <div className="flex justify-between items-start mb-2">
+            <div key={key} className="border border-gray-300 rounded p-4 bg-white">
+              <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-semibold text-gray-900">{label}</p>
                   <p className="text-xs text-gray-500">{desc}</p>
@@ -193,24 +202,45 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min="1"
-                  value={current}
-                  onChange={(e) => handleChange(key, parseInt(e.target.value) || 1)}
-                  className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
-                  disabled={saving}
-                />
-                <span className="text-xs text-gray-600">{t('rateLimits.requestsPerMin') || 'req/min'}</span>
-                <span className="text-xs text-gray-500 ml-auto">
-                  {t('rateLimits.default') || 'Default'}: {defaults[key]}
-                </span>
-                {isAboveDefault && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">
-                    +{((current / (defaults[key] ?? 1)) - 1) * 100 | 0}%
-                  </span>
-                )}
+              <div className="space-y-2">
+                {/* Slider Input */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="1"
+                    max={defaults[key] ? defaults[key] * 3 : 300}
+                    step="5"
+                    value={current}
+                    onChange={(e) => handleChange(key, parseInt(e.target.value) || 1)}
+                    disabled={saving}
+                    className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <div className="w-16 flex items-center justify-end">
+                    <input
+                      type="number"
+                      min="1"
+                      value={current}
+                      onChange={(e) => handleChange(key, parseInt(e.target.value) || 1)}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+
+                {/* Info row */}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">{t('controlPanel.rateLimits.requestsPerMin') || 'req/min'}</span>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-xs text-gray-500">
+                      {t('controlPanel.rateLimits.default') || 'Default'}: <span className="font-semibold">{defaults[key]}</span>
+                    </span>
+                    {isAboveDefault && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        +{((current / (defaults[key] ?? 1)) - 1) * 100 | 0}%
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           );

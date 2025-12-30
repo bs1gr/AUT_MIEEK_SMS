@@ -440,7 +440,7 @@ function formatUptime(seconds: number): string {
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
               { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
               { id: 'environment', label: t('controlPanel.environment'), icon: Cpu },
-              { id: 'rate-limits', label: t('controlPanel.rateLimits') || 'Rate Limits', icon: Activity },
+              ...(user?.role === 'admin' ? [{ id: 'rate-limits', label: t('controlPanel.rateLimitsLabel') || 'Rate Limits', icon: Activity }] : []),
               { id: 'maintenance', label: t('controlPanel.maintenance'), icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -906,7 +906,7 @@ function formatUptime(seconds: number): string {
         )}
 
         {/* Rate Limits Tab */}
-        {activeTab === 'rate-limits' && (
+        {activeTab === 'rate-limits' && user?.role === 'admin' && (
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-300">

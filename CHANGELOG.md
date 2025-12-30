@@ -11,43 +11,51 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.14.1] - 2025-12-30
 
-### Bug Fixes
-- resolve TypeScript linting errors in ControlPanel components
-- Auto-correct line endings in INSTALLER_BUILDER.ps1
-- Auto-correct trailing whitespace and line endings per pre-commit hooks
-- Auto-format files per pre-commit hooks (ruff, line endings)
+**Release Type**: Maintenance + Bug Fix Release
+**Focus**: Rate Limiting panel fixes and validation improvements
 
-### Documentation
-- security fix alert 1457
-
-### Chores
-- Update root DOCUMENTATION_INDEX.md version to 1.14.1
-- Version bump to 1.14.1 and update changelog with rate limiting feature
-
-## [1.14.1] - 2025-12-30
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.14.1] - 2025-12-30
-
-### Features
+### ✨ Features
 - **Dynamic Rate Limiting System**: New persistent configuration manager for runtime rate limit adjustments
-  - Administrator control panel with slider-based UI for all rate limit types
+  - Administrator-only control panel with slider-based UI for all rate limit types
   - REST API endpoints for programmatic rate limit management (`GET`, `POST update`, `POST bulk-update`, `POST reset`)
   - JSON-based persistent storage with environment variable override support
-  - Four limit types: READ (1000/min), WRITE (500/min), HEAVY (200/min), AUTH (120/min), TEACHER_IMPORT (5000/min)
+  - Five limit types: READ (1000/min), WRITE (500/min), HEAVY (200/min), AUTH (120/min), TEACHER_IMPORT (5000/min)
 
-### Improvements
-- **Docker Installer**: New docker_manager.bat with interactive menu for container management
+### 🐛 Bug Fixes
+- **Rate Limits Backend**: Fixed missing `Depends()` wrapper in FastAPI dependency injection
+  - All 4 rate-limits endpoints now properly decorated with `Depends(optional_require_role("admin"))`
+  - Resolves "Object of type function is not JSON serializable" 500 error
+
+- **Rate Limits Frontend**: Fixed incomplete translation key paths
+  - Changed `t('rateLimits.x')` → `t('controlPanel.rateLimits.x')` for all labels
+  - Added `attachAuthHeader()` to fetch requests for proper authentication
+  - Only visible to admin users (tab hidden for non-admins, prevents 403 errors)
+
+- **Error Handling**: Enhanced serialization safety in validation_exception_handler
+  - Properly sanitize non-serializable objects (functions, exceptions) in error context
+  - Prevents JSON serialization crashes with callable values
+
+- **TypeScript Linting**: Resolved ControlPanel component linting errors
+- **Line Endings**: Auto-corrected across INSTALLER_BUILDER.ps1 and pre-commit files
+
+### 📝 Improvements
+- **Docker Installer**: Enhanced docker_manager.bat with interactive menu
   - Six options: START, STOP, RESTART, CHECK STATUS, VIEW LOGS, OPEN APP
-  - User-friendly prompts and proper Docker Desktop integration
+  - Robust PowerShell 7+ detection with Windows PowerShell fallback
+  - Proper container name reference (sms-app vs sms-fullstack)
+  - Better error logging and user feedback
+
+- **Installer Script**: Improved SMS_Installer.iss configuration
+  - Updated launcher reference from DOCKER_TOGGLE.bat → docker_manager.bat
+  - Consistent app executable naming
+
+### 📚 Documentation
+- Security fix alert 1457 (potential path traversal mitigation)
+- Version references updated across all documentation
+
+### 🧹 Chores
+- Updated DOCUMENTATION_INDEX.md version to 1.14.1
+- Version consistency verification across codebase (10/10 checks passed)
   - Installer shortcuts now properly delegate to docker_manager.bat instead of generic help
 - **Rate Limiting**: Reduced aggressive defaults to support educational environments
   - AUTH endpoint increased from 5000 to 120/min to fix login 400 errors

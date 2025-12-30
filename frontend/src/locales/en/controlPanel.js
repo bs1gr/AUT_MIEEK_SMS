@@ -335,7 +335,7 @@ export default {
   updateInstructions: 'Update Instructions',
   checkingForUpdates: 'Checking for updates...',
   // Rate Limiting Panel
-  rateLimits: 'Rate Limits',
+  rateLimitsLabel: 'Rate Limits',
   rateLimitsTitle: 'Rate Limiting Configuration',
   rateLimitsSubtitle: 'Adjust API rate limits to prevent service degradation. Changes apply immediately.',
   rateLimits: {
