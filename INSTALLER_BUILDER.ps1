@@ -79,9 +79,9 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.14.0
+Version: 1.14.1
     Created: 2025-12-04
-    Updated: 2025-12-24
+    Updated: 2025-12-30
 
     Integration Points:
     - Reads version from: VERSION file (single source of truth)
