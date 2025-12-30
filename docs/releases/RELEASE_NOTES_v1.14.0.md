@@ -34,17 +34,17 @@
 ## 📦 Other Changes
 
 - E2E: Fix login health check to use JSON email/password and seeded credentials [6f2f0a7]
--  [- Updat]
--  [- Updat]
--  [- Updat]
--  [- Fixed]
--  [- Made ]
--  [Backend]
+- [- Updat]
+- [- Updat]
+- [- Updat]
+- [- Fixed]
+- [- Made ]
+- [Backend]
 - Vasilis
--  [- Fixes]
+- [- Fixes]
 - Vasilis
--  [- Added]
--  [- Fixes]
+- [- Added]
+- [- Fixes]
 - Vasilis
 
 ---

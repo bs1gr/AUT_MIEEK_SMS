@@ -338,7 +338,7 @@ docs/archive/
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.14.0)
+### December 24, 2025 (v1.14.1)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
@@ -355,7 +355,7 @@ docs/archive/
 
 ## Version Information
 
-**Documentation Version:** v1.14.0
+**Documentation Version:** v1.14.1
 **Last Updated:** December 24, 2025
 **Status:** Current and Complete
 

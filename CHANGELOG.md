@@ -8,6 +8,33 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.14.1] - 2025-12-30
+
+### Bug Fixes
+- resolve TypeScript linting errors in ControlPanel components
+- Auto-correct line endings in INSTALLER_BUILDER.ps1
+- Auto-correct trailing whitespace and line endings per pre-commit hooks
+- Auto-format files per pre-commit hooks (ruff, line endings)
+
+### Documentation
+- security fix alert 1457
+
+### Chores
+- Update root DOCUMENTATION_INDEX.md version to 1.14.1
+- Version bump to 1.14.1 and update changelog with rate limiting feature
+
+## [1.14.1] - 2025-12-30
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.14.1] - 2025-12-30
 
 ### Features
