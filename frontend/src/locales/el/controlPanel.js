@@ -334,4 +334,18 @@ export default {
   dockerImageInfo: 'Για ενημέρωση της ανάπτυξης Docker, εκτελέστε: .\\DOCKER.ps1 -UpdateClean',
   updateInstructions: 'Οδηγίες Ενημέρωσης',
   checkingForUpdates: 'Έλεγχος ενημερώσεων...',
+  // Rate Limiting Panel
+  rateLimits: 'Όρια Ρυθμού',
+  rateLimitsTitle: 'Διαμόρφωση Ορίων Ρυθμού',
+  rateLimitsSubtitle: 'Προσαρμόστε τα όρια ρυθμού του API για να αποτρέψετε την υποβάθμιση της υπηρεσίας. Οι αλλαγές ισχύουν άμεσα.',
+  rateLimits: {
+    read: 'Αιτήματα Ανάγνωσης',
+    write: 'Αιτήματα Ενημέρωσης',
+    heavy: 'Βαριές Λειτουργίες',
+    auth: 'Πιστοποίηση',
+    teacherImport: 'Μαζικές Εισαγωγές',
+    info: 'Διαμόρφωση Ορίων Ρυθμού',
+    requestsPerMin: 'αιτήματα ανά λεπτό',
+    default: 'Προεπιλογή',
+  },
 };

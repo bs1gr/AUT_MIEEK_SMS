@@ -334,4 +334,18 @@ export default {
   dockerImageInfo: 'To update Docker deployment, run: .\\DOCKER.ps1 -UpdateClean',
   updateInstructions: 'Update Instructions',
   checkingForUpdates: 'Checking for updates...',
+  // Rate Limiting Panel
+  rateLimits: 'Rate Limits',
+  rateLimitsTitle: 'Rate Limiting Configuration',
+  rateLimitsSubtitle: 'Adjust API rate limits to prevent service degradation. Changes apply immediately.',
+  rateLimits: {
+    read: 'Read Requests',
+    write: 'Write Requests',
+    heavy: 'Heavy Operations',
+    auth: 'Authentication',
+    teacherImport: 'Bulk Imports',
+    info: 'Rate Limit Configuration',
+    requestsPerMin: 'requests per minute',
+    default: 'Default',
+  },
 };

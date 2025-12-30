@@ -10,6 +10,7 @@ from . import (
     maintenance,
     monitoring,
     operations,
+    rate_limits,
 )
 
 router = APIRouter(prefix="/control/api", tags=["Control Panel"])
@@ -22,3 +23,4 @@ router.include_router(logs.router)
 router.include_router(housekeeping.router)
 router.include_router(frontend_dev.router)
 router.include_router(maintenance.router)
+router.include_router(rate_limits.router)

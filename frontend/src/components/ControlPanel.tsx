@@ -13,7 +13,8 @@ import {
   Cpu,
   Server,
   Shield,
-  Download
+  Download,
+  Zap
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
@@ -23,6 +24,7 @@ import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
 import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
+import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -438,6 +440,7 @@ function formatUptime(seconds: number): string {
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
               { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
               { id: 'environment', label: t('controlPanel.environment'), icon: Cpu },
+              { id: 'rate-limits', label: t('controlPanel.rateLimits') || 'Rate Limits', icon: Zap },
               { id: 'maintenance', label: t('controlPanel.maintenance'), icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -899,6 +902,23 @@ function formatUptime(seconds: number): string {
             )}
 
             <DevToolsPanel variant="embedded" onToast={handleToast} />
+          </div>
+        )}
+
+        {/* Rate Limits Tab */}
+        {activeTab === 'rate-limits' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-300">
+                <Zap size={20} />
+                {t('controlPanel.rateLimitsTitle') || 'Rate Limiting Configuration'}
+              </h2>
+              <p className="text-sm text-yellow-200">{t('controlPanel.rateLimitsSubtitle') || 'Adjust API rate limits to prevent service degradation. Changes apply immediately.'}</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <RateLimitAdjuster onToast={handleToast} />
+            </div>
           </div>
         )}
       </main>

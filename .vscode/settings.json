@@ -14,6 +14,12 @@
 
   // Terminals for tasks should use PowerShell on Windows
   "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": ["-NoExit", "-Command", "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8"]
+    }
+  },
 
   // Python analysis
   "python.analysis.typeCheckingMode": "standard",
