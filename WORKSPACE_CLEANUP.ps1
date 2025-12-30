@@ -285,11 +285,7 @@ if (-not $SkipDocs) {
 
     # Keep these in root - they're actively referenced by other docs and users
     $keepInRoot = @(
-        "QUICK_RELEASE_GUIDE.md",
-        "RELEASE_COMMAND_REFERENCE.md",
-        "RELEASE_DOCUMENTATION_GUIDE.md",
-        "RELEASE_PREPARATION_CHECKLIST.md",
-        "RELEASE_PREPARATION_SCRIPT_GUIDE.md"
+        "QUICK_RELEASE_GUIDE.md"
     )
 
     # Move detailed implementation docs to docs/development/release-workflow/
@@ -426,8 +422,7 @@ if (-not $SkipDocs) {
     $keepRootDocs = @(
         'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
         'DOCUMENTATION_INDEX.md',
-        'QUICK_RELEASE_GUIDE.md','RELEASE_COMMAND_REFERENCE.md','RELEASE_DOCUMENTATION_GUIDE.md',
-        'RELEASE_PREPARATION_CHECKLIST.md','RELEASE_PREPARATION_SCRIPT_GUIDE.md',
+        'QUICK_RELEASE_GUIDE.md',
         'SECURITY_AUDIT_SUMMARY.md'
     )
 
