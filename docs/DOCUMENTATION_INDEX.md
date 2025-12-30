@@ -55,6 +55,15 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Backend test infrastructure improvements
   - Test results and verification checklist
 - **[user/QUICK_START_GUIDE.md](user/QUICK_START_GUIDE.md)** - Quick start for new users
+- **[user/RATE_LIMITING_GUIDE.md](user/RATE_LIMITING_GUIDE.md)** - Rate limiting control & configuration (NEW - 1.14.0)
+  - Admin control panel for dynamic rate limits
+  - Per-endpoint rate limit types and defaults
+  - Environment variable configuration
+  - REST API reference for administrators
+- **[user/RATE_LIMITING_QUICK_REFERENCE.md](user/RATE_LIMITING_QUICK_REFERENCE.md)** - Quick reference for rate limits (NEW - 1.14.0)
+  - Quick start for admins
+  - Common issue troubleshooting
+  - API examples and environment variables
 - **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](../ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Greek quick start guide
 - **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](../ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Greek user manual
 

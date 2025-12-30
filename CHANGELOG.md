@@ -8,8 +8,34 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.14.1] - 2025-12-30
 
+### Features
+- **Dynamic Rate Limiting System**: New persistent configuration manager for runtime rate limit adjustments
+  - Administrator control panel with slider-based UI for all rate limit types
+  - REST API endpoints for programmatic rate limit management (`GET`, `POST update`, `POST bulk-update`, `POST reset`)
+  - JSON-based persistent storage with environment variable override support
+  - Four limit types: READ (1000/min), WRITE (500/min), HEAVY (200/min), AUTH (120/min), TEACHER_IMPORT (5000/min)
 
+### Improvements
+- **Docker Installer**: New docker_manager.bat with interactive menu for container management
+  - Six options: START, STOP, RESTART, CHECK STATUS, VIEW LOGS, OPEN APP
+  - User-friendly prompts and proper Docker Desktop integration
+  - Installer shortcuts now properly delegate to docker_manager.bat instead of generic help
+- **Rate Limiting**: Reduced aggressive defaults to support educational environments
+  - AUTH endpoint increased from 5000 to 120/min to fix login 400 errors
+  - All limits tuned for typical student/teacher usage patterns
+
+### Bug Fixes
+- Fixed login 400 errors caused by excessive rate limiting on auth endpoints
+- Fixed Docker installer shortcuts pointing to non-functional DOCKER_TOGGLE.bat
+- Corrected Docker Desktop structure compliance in installer configuration
+
+### Documentation
+- New **[user/RATE_LIMITING_GUIDE.md](user/RATE_LIMITING_GUIDE.md)** - Comprehensive guide for rate limiting configuration and administration
+- New **[user/RATE_LIMITING_QUICK_REFERENCE.md](user/RATE_LIMITING_QUICK_REFERENCE.md)** - Quick reference for common rate limit adjustments
+
+---
 
 ## [1.14.0] - 2025-12-29
 
