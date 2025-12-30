@@ -157,7 +157,6 @@ Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Dev documentation - only for dev environment
 Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
-Source: "..\START_HERE.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 Source: "..\DOCUMENTATION_INDEX.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Example env files - only for dev environment
