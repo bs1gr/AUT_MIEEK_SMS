@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, RotateCcw, Save } from 'lucide-react';
+import { AlertTriangle, RotateCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Toast from '@/components/ui/Toast';
 import { CONTROL_API_BASE } from '@/api/api';
@@ -15,7 +15,7 @@ interface RateLimitSettings {
 interface ToastState {
   visible: boolean;
   message: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: 'success' | 'error' | 'info';
 }
 
 interface RateLimitAdjusterProps {
@@ -35,7 +35,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
     loadSettings();
   }, []);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     const state = { visible: true, message, type };
     setLocalToast(state);
     onToast?.(state);
@@ -232,7 +232,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
           disabled={saving}
           className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCw className="w-4 h-4" />
           {t('reset') || 'Reset Defaults'}
         </button>
       </div>

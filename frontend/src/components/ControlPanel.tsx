@@ -14,7 +14,7 @@ import {
   Server,
   Shield,
   Download,
-  Zap
+  Activity
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
@@ -440,7 +440,7 @@ function formatUptime(seconds: number): string {
               { id: 'ports', label: t('controlPanel.ports'), icon: Server },
               { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
               { id: 'environment', label: t('controlPanel.environment'), icon: Cpu },
-              { id: 'rate-limits', label: t('controlPanel.rateLimits') || 'Rate Limits', icon: Zap },
+              { id: 'rate-limits', label: t('controlPanel.rateLimits') || 'Rate Limits', icon: Activity },
               { id: 'maintenance', label: t('controlPanel.maintenance'), icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -910,7 +910,7 @@ function formatUptime(seconds: number): string {
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-300">
-                <Zap size={20} />
+                <Activity size={20} />
                 {t('controlPanel.rateLimitsTitle') || 'Rate Limiting Configuration'}
               </h2>
               <p className="text-sm text-yellow-200">{t('controlPanel.rateLimitsSubtitle') || 'Adjust API rate limits to prevent service degradation. Changes apply immediately.'}</p>
