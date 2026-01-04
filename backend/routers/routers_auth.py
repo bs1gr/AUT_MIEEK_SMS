@@ -758,7 +758,7 @@ async def logout(
         return {"ok": True, "message": "Logged out (with errors)"}
 
 
-@router.get("/admin/users")
+@router.get("/admin/users", response_model=list)
 @limiter.limit(RATE_LIMIT_READ)
 async def admin_list_users(
     request: Request,
