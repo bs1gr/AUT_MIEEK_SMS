@@ -20,4 +20,4 @@ jobs:
       - name: Run commit ready quick validation
         shell: pwsh
         run: |
-          ./COMMIT_READY.ps1 -Quick -CIMode
+          ./COMMIT_READY.ps1 -Quick -NonInteractive

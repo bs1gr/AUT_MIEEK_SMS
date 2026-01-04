@@ -13,6 +13,13 @@ jobs:
   release-installer:
     runs-on: windows-latest
     name: Build & Upload Installer with SHA256
+    outputs:
+      tag: ${{ steps.resolve_tag.outputs.tag }}
+      version: ${{ steps.resolve_tag.outputs.version }}
+      release_id: ${{ steps.resolve_tag.outputs.release_id }}
+      sha256: ${{ steps.hash.outputs.sha256 }}
+      size: ${{ steps.hash.outputs.size }}
+      path: ${{ steps.hash.outputs.path }}
 
     steps:
       - name: Checkout code
