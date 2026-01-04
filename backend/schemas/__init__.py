@@ -153,4 +153,9 @@ from .response import ResponseMeta as ResponseMeta
 from .response import error_response as error_response
 from .response import paginated_response as paginated_response
 from .response import success_response as success_response
+from .metrics import StudentMetrics as StudentMetrics
+from .metrics import CourseMetrics as CourseMetrics
+from .metrics import GradeMetrics as GradeMetrics
+from .metrics import AttendanceMetrics as AttendanceMetrics
+from .metrics import DashboardMetrics as DashboardMetrics
 from .users import UserResponse as UserResponse
