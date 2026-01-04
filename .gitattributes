@@ -1,35 +1,29 @@
-# Enforce consistent line endings in the repository to avoid CI pre-commit fixes
+# Enforce consistent line endings in the repository
+# All files use LF in the repo (CI runs on Linux with pre-commit hooks)
+# Git will auto-convert to CRLF on Windows checkout
+
 * text=auto eol=lf
 
-# Ensure common script types use LF in the repo (CI runs on Linux)
+# Explicitly set LF for all code and script files
 *.sh text eol=lf
 *.py text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.md text eol=lf
-*.ps1 text eol=lf
-*.bat text eol=lf
-# Normalize text files to LF by default
-* text=auto eol=lf
-
-# Scripts that must keep Windows CRLF
-*.bat text eol=crlf
-*.ps1 text eol=crlf
-
-# Common code files to LF
-*.py text eol=lf
 *.ts text eol=lf
 *.tsx text eol=lf
 *.js text eol=lf
 *.jsx text eol=lf
 *.json text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.md text eol=lf
 *.html text eol=lf
 *.css text eol=lf
-# Auto detect text files and perform LF normalization
-* text=auto
+*.txt text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+*.toml text eol=lf
 
 ## Recommended for artifact handling (optional): use Git LFS for large release artifacts
 # Uncomment or add these lines if you enable Git LFS in the repository:
