@@ -14,7 +14,7 @@ pydantic-settings==2.11.0
 alembic==1.17.0
 psutil==7.1.1
 httpx==0.27.2
-requests==2.32.3  # HTTP client (used by check_login_health.py)
+requests==2.32.5  # HTTP client (used by check_login_health.py) - Updated to fix CVE-2024-47081
 slowapi==0.1.9  # Rate limiting for API endpoints
 fastapi-csrf-protect==1.0.7  # CSRF protection for state-changing operations
 passlib[bcrypt]==1.7.4  # Password hashing
