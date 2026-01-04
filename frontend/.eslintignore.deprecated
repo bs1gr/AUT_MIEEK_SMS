@@ -1,6 +1,0 @@
-dist
-node_modules
-coverage
-.vite
-.vitest
-playwright-report

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, RotateCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -32,20 +32,16 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   const [changes, setChanges] = useState<Partial<RateLimitSettings>>({});
   const [localToast, setLocalToast] = useState<ToastState>({ visible: false, message: '', type: 'info' });
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info') => {
     const state = { visible: true, message, type };
     setLocalToast(state);
     onToast?.(state);
     setTimeout(() => {
       setLocalToast({ ...state, visible: false });
     }, 4000);
-  };
+  }, [onToast]);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const response = await axios.get(`${CONTROL_API_BASE}/rate-limits`);
 
@@ -61,7 +57,11 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const handleChange = (key: keyof RateLimitSettings, value: number) => {
     setChanges((prev) => ({ ...prev, [key]: Math.max(1, value) }));
@@ -151,7 +151,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
         <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
           <p className="font-semibold">{t('controlPanel.rateLimits.info') || 'Rate Limit Configuration'}</p>
-          <p className="text-xs mt-1">Adjust these limits if users experience 429 (Too Many Requests) errors.</p>
+          <p className="text-xs mt-1">{t('controlPanel.rateLimits.adjustInfo') || 'Adjust these limits if users experience 429 (Too Many Requests) errors.'}</p>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ export async function ensureTestUserExists() {
   try {
     await client.post('auth/login', { email, password });
     return;
-  } catch (err) {
+  } catch {
     // Try to register if login failed
     try {
       await client.post('auth/register', {
@@ -19,7 +19,7 @@ export async function ensureTestUserExists() {
         password,
         full_name: 'Test User',
       });
-    } catch (regErr) {
+    } catch {
       // If registration also fails (likely because user exists), ignore
     }
   }
@@ -33,14 +33,14 @@ export async function login(
 ) {
   // Use relative paths - Playwright will resolve against baseURL from config
   // Auth page is at root '/', not '/login'
-  console.log('🔐 [E2E] Starting login for', email);
+  console.warn('🔐 [E2E] Starting login for', email);
   await page.goto('/');
 
   // Wait for login form - increase timeout for slow CI environments
-  console.log('🔐 [E2E] Waiting for network idle (timeout: 20s)...');
+  console.warn('🔐 [E2E] Waiting for network idle (timeout: 20s)...');
   try {
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
-  } catch (e) {
+  } catch {
     console.warn('⚠️  [E2E] Network idle timeout (continuing anyway)');
   }
 
@@ -48,7 +48,7 @@ export async function login(
   const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"]');
   const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"]');
 
-  console.log('🔐 [E2E] Waiting for email input (timeout: 25s)...');
+  console.warn('🔐 [E2E] Waiting for email input (timeout: 25s)...');
   try {
     await emailInput.waitFor({ state: 'visible', timeout: 25_000 });
   } catch (e) {
@@ -56,7 +56,7 @@ export async function login(
     throw e;
   }
 
-  console.log('🔐 [E2E] Waiting for password input (timeout: 25s)...');
+  console.warn('🔐 [E2E] Waiting for password input (timeout: 25s)...');
   await passwordInput.waitFor({ state: 'visible', timeout: 25_000 });
 
   // Fill credentials
@@ -67,7 +67,7 @@ export async function login(
   await page.click('button[type="submit"]');
 
   // Wait for redirect
-  console.log('🔐 [E2E] Waiting for dashboard redirect (timeout: 20s)...');
+  console.warn('🔐 [E2E] Waiting for dashboard redirect (timeout: 20s)...');
   try {
     await page.waitForURL(/\/dashboard/, { timeout: 20_000 });
   } catch (e) {
