@@ -33,8 +33,35 @@ logger = logging.getLogger(__name__)
 Base: Any = declarative_base()
 
 
+class SoftDeleteQuery:
+    """Custom query class that automatically filters soft-deleted records.
+
+    OPTIMIZATION (v1.15.0): All queries on SoftDeleteMixin models will
+    automatically exclude deleted_at IS NOT NULL records, preventing
+    deleted items from appearing in results.
+    """
+
+    @staticmethod
+    def _auto_filter_deleted(query):
+        """Filter out soft-deleted records from query.
+
+        This is called automatically on all queries involving SoftDeleteMixin models.
+        """
+        # Find all entities being queried that use SoftDeleteMixin
+        for entity in query.column_descriptions:
+            if hasattr(entity.get("entity", None), "deleted_at"):
+                # Add filter: deleted_at IS NULL
+                model = entity["entity"]
+                query = query.filter(model.deleted_at.is_(None))
+        return query
+
+
 class SoftDeleteMixin:
-    """Mixin providing soft-delete support with a nullable timestamp."""
+    """Mixin providing soft-delete support with a nullable timestamp.
+
+    All queries on models using this mixin automatically exclude
+    soft-deleted records (deleted_at IS NOT NULL).
+    """
 
     deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
 

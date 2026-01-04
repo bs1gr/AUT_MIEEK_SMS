@@ -49,6 +49,43 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
+
+### Audit & Improvement Planning (v1.15.0 - NEW)
+
+- **[CODEBASE_AUDIT_REPORT.md](../CODEBASE_AUDIT_REPORT.md)** - Comprehensive codebase audit with 50+ recommendations
+  - Grade: A- (8.5/10) - Production Ready
+  - 12 sections covering security, architecture, performance, quality
+- **[IMPLEMENTATION_PATTERNS.md](../IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for v1.15.0 improvements
+  - Audit logging pattern (model + service + router)
+  - Query optimization with eager loading examples
+  - Soft delete auto-filtering mixin
+  - API response standardization wrapper
+  - Error handling improvements
+  - Business metrics calculation
+  - Test patterns and utilities
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md)** - Phase 1 implementation plan
+  - 8 major improvements (audit logging, performance, security, UX)
+  - 2-week sprint breakdown (Jan 7-20, 2026)
+  - Team allocation and effort estimates
+  - Success metrics and acceptance criteria
+  - Links to implementation patterns
+- **[releases/RELEASE_PREPARATION_v1.15.0.md](releases/RELEASE_PREPARATION_v1.15.0.md)** - v1.15.0 Release preparation & timeline (NEW)
+  - Phase 0 validation (current state: 1493/1493 tests passing)
+  - Phase 1 infrastructure improvements roadmap
+  - Release checklist and success metrics
+  - Timeline: Jan 7-24, 2026 (implementation + release)
+- **[releases/EXECUTION_TRACKER_v1.15.0.md](releases/EXECUTION_TRACKER_v1.15.0.md)** - v1.15.0 Phase 1 execution tracker (NEW)
+  - Pre-implementation tasks (team kickoff, environment setup, backup)
+  - Week 1 tasks: Foundation & performance improvements
+  - Week 2 tasks: Testing & stability
+  - Release day procedures and post-release validation
+  - Progress tracking with owner assignments and effort estimates
+- **[releases/QUICK_REFERENCE_v1.15.0.md](releases/QUICK_REFERENCE_v1.15.0.md)** - v1.15.0 Quick reference card (NEW - Print & Post)
+  - One-page team reference with timeline and task assignments
+  - Daily checklist for developers
+  - Blocker resolution procedure
+  - Key documents bookmarks
+  - Team contact information
 - **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
   - Frontend routing type safety and React Router v7 validation
   - International locale support (European decimal separators)

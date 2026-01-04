@@ -104,8 +104,17 @@ class AttendanceService:
         end_date: Optional[date] = None,
         status: Optional[str] = None,
     ):
-        """List attendance records with optional filters."""
+        """List attendance records with optional filters and eager loading.
+
+        OPTIMIZATION (v1.15.0): Added eager loading of student and course
+        relationships to prevent N+1 queries on large result sets.
+        """
+        from sqlalchemy.orm import selectinload
+
         query = self.db.query(self.Attendance).filter(self.Attendance.deleted_at.is_(None))
+
+        # Eager-load relationships to eliminate N+1 queries
+        query = query.options(selectinload(self.Attendance.student), selectinload(self.Attendance.course))
 
         if student_id is not None:
             query = query.filter(self.Attendance.student_id == student_id)

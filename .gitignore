@@ -185,3 +185,7 @@ README_SESSION*.md
 
 # Archive directories
 docs/archive/
+
+# Encryption keys (v1.15.0)
+.keys/
+commit_msg.txt

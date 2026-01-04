@@ -312,6 +312,8 @@ alembic downgrade -1           # Rollback
 
 ## Don't Do This
 
+❌ **Never create documentation without auditing first** → Always check `/docs/`, `/docs/plans/`, `/docs/releases/`, `/docs/processes/` directories and `DOCUMENTATION_INDEX.md` first. Review existing structure, naming conventions, and patterns before creating new docs. Consolidate findings into existing framework rather than creating standalone documents. Single source of truth prevents duplication and confusion.
+
 ❌ **Never edit DB schema directly** → Use Alembic migrations
 ❌ **Never hardcode UI strings** → Use `t('i18n.key')`
 ❌ **Never use `@app.on_event()`** → Use `@asynccontextmanager` lifespan

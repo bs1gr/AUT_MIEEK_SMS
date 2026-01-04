@@ -52,7 +52,22 @@ class StudentService:
         return db_student
 
     def list_students(self, skip: int, limit: int, is_active: Optional[bool]):
+        """List students with eager-loaded relationships.
+
+        OPTIMIZATION (v1.15.0): Added eager loading of related records
+        (enrollments, grades, attendance) to prevent N+1 queries.
+        """
+        from sqlalchemy.orm import selectinload
+
         query = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None))
+
+        # Eager-load relationships for common access patterns
+        query = query.options(
+            selectinload(self.Student.enrollments),
+            selectinload(self.Student.grades),
+            selectinload(self.Student.attendances),
+        )
+
         if is_active is not None:
             query = query.filter(self.Student.is_active == is_active)
         return paginate(query, skip, limit)
@@ -61,12 +76,25 @@ class StudentService:
         """Full-text like search on first_name + last_name with Postgres optimization.
 
         Fallback to ILIKE on non-Postgres dialects.
+
+        OPTIMIZATION (v1.15.0): Added eager loading to prevent N+1 queries
+        on search results.
         """
+        from sqlalchemy.orm import selectinload
+
         q = (q or "").strip()
         if not q:
             return self.list_students(skip, limit, is_active)
 
         query = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None))
+
+        # Eager-load relationships for search results
+        query = query.options(
+            selectinload(self.Student.enrollments),
+            selectinload(self.Student.grades),
+            selectinload(self.Student.attendances),
+        )
+
         if is_active is not None:
             query = query.filter(self.Student.is_active == is_active)
 
