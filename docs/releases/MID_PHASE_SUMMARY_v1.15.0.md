@@ -17,7 +17,7 @@
 | 2 | Query Optimization | ✅ Done | 4h | 304 backend tests |
 | 3 | Soft-Delete Filtering | ✅ Done | 6h | +11 new tests |
 | 4 | Backup Encryption | ✅ Done | 6h | +20 new tests |
-| **Total** | **50%** | **✅ 16h** | **+31 new tests** |
+| **Total** | **50%** | **✅ 16h** | **+31 new tests** | |
 
 ### Code Artifacts Created
 

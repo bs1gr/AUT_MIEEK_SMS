@@ -189,3 +189,6 @@ docs/archive/
 # Encryption keys (v1.15.0)
 .keys/
 commit_msg.txt
+detect-out.txt
+detect-output.txt
+pre-commit-output.txt
