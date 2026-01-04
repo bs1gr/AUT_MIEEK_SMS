@@ -7,6 +7,7 @@ from sqlalchemy import desc, and_
 from fastapi import APIRouter, Depends, Query
 
 from backend.db import get_session as get_db
+from backend.error_messages import ErrorCode, get_error_message
 from backend.routers.routers_auth import optional_require_role
 from backend.models import AuditLog
 from backend.schemas.audit import AuditLogResponse, AuditLogListResponse
@@ -86,7 +87,7 @@ async def get_audit_log(
     if not log:
         from fastapi import HTTPException
 
-        raise HTTPException(status_code=404, detail="Audit log not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.AUDIT_LOG_NOT_FOUND, lang="en"))
 
     return AuditLogResponse.model_validate(log)
 

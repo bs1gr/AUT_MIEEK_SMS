@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from backend.cache import cache_key, redis_cache, CacheConfig
 from backend.db import get_session
+from backend.error_messages import ErrorCode, get_error_message
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.services.report_exporters import generate_pdf_report, generate_csv_report
@@ -48,7 +49,7 @@ def _calculate_period_dates(
 
     if period == ReportPeriod.CUSTOM:
         if not start_date or not end_date:
-            raise HTTPException(status_code=400, detail="start_date and end_date required for custom period")
+            raise HTTPException(status_code=400, detail=get_error_message(ErrorCode.INVALID_PERIOD, lang="en"))
         return start_date, end_date
 
     elif period == ReportPeriod.WEEK:
@@ -205,7 +206,7 @@ async def generate_student_performance_report(
     student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.STUDENT_NOT_FOUND, lang="en"))
 
     # Calculate date range
     start_date, end_date = _calculate_period_dates(
@@ -484,7 +485,7 @@ async def download_student_performance_report(
     student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.STUDENT_NOT_FOUND, lang="en"))
 
     # Calculate date range
     start_date, end_date = _calculate_period_dates(
@@ -721,11 +722,14 @@ async def generate_bulk_student_reports(
     # Validate student count
     if len(bulk_request.student_ids) > 50:
         raise HTTPException(
-            status_code=400, detail="Maximum 50 students per bulk request. Please split into smaller batches."
+            status_code=400,
+            detail=get_error_message(
+                ErrorCode.INVALID_INPUT, lang="en", custom_detail="Maximum 50 students per bulk request"
+            ),
         )
 
     if len(bulk_request.student_ids) == 0:
-        raise HTTPException(status_code=400, detail="At least one student ID required")
+        raise HTTPException(status_code=400, detail=get_error_message(ErrorCode.EMPTY_STUDENT_LIST, lang="en"))
 
     logger.info(f"Generating bulk reports for {len(bulk_request.student_ids)} students")
 
@@ -909,7 +913,7 @@ async def invalidate_student_report_cache(
     # Verify student exists
     student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.STUDENT_NOT_FOUND, lang="en"))
 
     # Invalidate all cache entries for this student
     pattern = f"student_report:{student_id}:*"

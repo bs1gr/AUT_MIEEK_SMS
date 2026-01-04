@@ -160,7 +160,10 @@ def test_generate_report_nonexistent_student(client: TestClient, clean_db):
 
     response = client.post("/api/v1/reports/student-performance", json=report_request)
     assert response.status_code == 404
-    assert "not found" in response.json()["detail"].lower()
+    # Check standardized error response format (APIResponse wrapper)
+    response_data = response.json()
+    assert response_data.get("success") is False
+    assert "not found" in response_data["error"]["message"].lower()
 
 
 def test_generate_report_custom_date_range(client: TestClient, clean_db):

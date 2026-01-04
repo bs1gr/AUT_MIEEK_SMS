@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from backend.db import get_session
+from backend.error_messages import ErrorCode, get_error_message
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.schemas import (
     JobCreate,
@@ -58,7 +59,7 @@ async def create_job(
     job = job_manager.get_job(job_id)
 
     if not job:
-        raise HTTPException(status_code=500, detail="Failed to create job")
+        raise HTTPException(status_code=500, detail=get_error_message(ErrorCode.JOB_CREATION_FAILED, lang="en"))
 
     from backend.logging_config import safe_log_context
 
@@ -91,7 +92,7 @@ async def get_job_status(
     job = job_manager.get_job(job_id)
 
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.JOB_NOT_FOUND, lang="en"))
 
     # Check permission: users can only view their own jobs unless admin
     if current_user and job.user_id:
@@ -103,7 +104,7 @@ async def get_job_status(
         is_owner = user_id == job.user_id
 
         if not (is_admin or is_owner):
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail=get_error_message(ErrorCode.JOB_ACCESS_DENIED, lang="en"))
 
     return job
 
@@ -177,7 +178,7 @@ async def cancel_job(
     job = job_manager.get_job(job_id)
 
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.JOB_NOT_FOUND, lang="en"))
 
     # Check permission
     if current_user and job.user_id:
@@ -185,13 +186,13 @@ async def cancel_job(
         is_owner = current_user.get("user_id") == job.user_id
 
         if not (is_admin or is_owner):
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail=get_error_message(ErrorCode.JOB_ACCESS_DENIED, lang="en"))
 
     # Attempt cancellation
     cancelled = job_manager.cancel_job(job_id)
 
     if not cancelled:
-        raise HTTPException(status_code=400, detail="Job cannot be cancelled (already completed or failed)")
+        raise HTTPException(status_code=400, detail=get_error_message(ErrorCode.JOB_CANNOT_BE_CANCELLED, lang="en"))
 
     logger.info(f"Job {job_id} cancelled by user {current_user.get('user_id')}")
 
@@ -218,7 +219,7 @@ async def delete_job(
     deleted = job_manager.delete_job(job_id)
 
     if not deleted:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.JOB_NOT_FOUND, lang="en"))
 
     logger.info(f"Job {job_id} deleted by admin {current_user.get('user_id')}")
     return None
