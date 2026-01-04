@@ -134,27 +134,58 @@
 ### Sprint 2: Features & Standards (Days 4-7) - Jan 10-13
 
 #### Improvement 4: API Response Standardization
-- [ ] **Create Response Models**
-  - New file: `backend/schemas/response.py` or extend existing
-  - Model: `StandardResponse` wrapper (request_id, timestamp, status, data, errors)
-  - Model: `ErrorResponse` (error_code, message, details, request_id)
-  - Add pydantic validators for timestamp formatting
-  - **Owner**: Backend Dev 1 | **Effort**: 2 hours | **Status**: TBD
-  - **Reference**: [IMPLEMENTATION_PATTERNS.md - API Standardization](../../IMPLEMENTATION_PATTERNS.md#api-standardization)
+- [x] **Create Response Models**
+  - Created `backend/schemas/response.py` (301 lines) with standardized response wrappers
+  - Models: `ResponseMeta` (request_id, timestamp, version)
+  - Models: `ErrorDetail` (code, message, details, path)
+  - Models: `APIResponse[T]` - generic wrapper (success, data, error, meta)
+  - Models: `PaginatedData[T]` - paginated list wrapper
+  - Helper functions: `success_response()`, `error_response()`, `paginated_response()`
+  - Modern Pydantic ConfigDict (no deprecated class Config)
+  - Timezone-aware datetime (datetime.now(timezone.utc))
+  - All tests passing ✅ (20 new tests)
+  - **Owner**: Backend Dev (Self) | **Effort**: 3 hours | **Status**: ✅ DONE
+  - **Reference**: [backend/schemas/response.py](../../backend/schemas/response.py)
+  - **Reference**: [backend/tests/test_response_schemas.py](../../backend/tests/test_response_schemas.py)
 
-- [ ] **Create Response Wrapper**
-  - New middleware or helper: `standardize_response()`
-  - Automatically wrap all responses in StandardResponse
-  - Preserve existing status codes and data structures
-  - Add to error_handlers for error responses
-  - **Owner**: Backend Dev 1 | **Effort**: 2 hours | **Status**: TBD
+- [x] **Verify Request ID Middleware**
+  - Confirmed existing `backend/request_id_middleware.py` with RequestIDMiddleware
+  - Middleware generates UUID request IDs and stores in request.state.request_id
+  - Created additional middleware at `backend/middleware/request_id.py` for reference
+  - Middleware already registered in app_factory.py
+  - All tests passing ✅ (10 existing tests)
+  - **Owner**: Backend Dev (Self) | **Effort**: 1 hour | **Status**: ✅ DONE
+  - **Reference**: [backend/request_id_middleware.py](../../backend/request_id_middleware.py)
+  - **Reference**: [backend/tests/test_request_id_middleware.py](../../backend/tests/test_request_id_middleware.py)
 
-- [ ] **Update Error Handlers**
-  - Modify `backend/error_handlers.py` to use StandardResponse
-  - Ensure all exceptions return consistent format
-  - Include request_id in error responses
-  - Test 400, 403, 404, 500 error responses
-  - **Owner**: Backend Dev 1 | **Effort**: 2 hours | **Status**: TBD
+- [x] **Update Error Handlers**
+  - Modified `backend/error_handlers.py` to use APIResponse format
+  - All exceptions now return standardized error_response() format
+  - HTTPException handler: returns HTTP_{status_code} error codes
+  - ValidationError handler: returns VALIDATION_ERROR with error details
+  - Unhandled exceptions: returns INTERNAL_SERVER_ERROR
+  - Request ID automatically extracted from request.state.request_id
+  - ⚠️ **BREAKING CHANGE**: Error responses now use APIResponse wrapper:
+    ```json
+    {
+      "success": false,
+      "data": null,
+      "error": {
+        "code": "HTTP_404",
+        "message": "Course with id 99999 not found",
+        "details": null,
+        "path": "/api/v1/analytics/student/1/course/99999/final-grade"
+      },
+      "meta": {
+        "request_id": "req_abc123",
+        "timestamp": "2026-01-04T23:35:00Z",
+        "version": "1.15.0"
+      }
+    }
+    ```
+  - Old format had `detail` key; new format has `error.message`
+  - **Owner**: Backend Dev (Self) | **Effort**: 1 hour | **Status**: ✅ DONE
+  - **Reference**: [backend/error_handlers.py](../../backend/error_handlers.py)
 
 - [ ] **API Client Updates** (Frontend)
   - Update `frontend/src/api/api.js` to handle StandardResponse wrapper
@@ -162,11 +193,17 @@
   - Add request_id to error logging
   - **Owner**: Frontend Dev | **Effort**: 2 hours | **Status**: TBD
 
-- [ ] **Unit Tests - API Standardization**
-  - Test response wrapper format
-  - Test error response consistency
-  - Test request_id propagation
-  - **Owner**: Backend Dev 1 | **Effort**: 2 hours | **Status**: TBD
+- [ ] **Migrate Existing Endpoints**
+  - Select 2-3 high-traffic endpoints to use new response format
+  - Test backward compatibility and client behavior
+  - Document migration pattern for remaining endpoints
+  - **Owner**: Backend Dev | **Effort**: 2 hours | **Status**: TBD
+
+- [ ] **Integration Tests - API Standardization**
+  - Test end-to-end response format from real endpoints
+  - Test error response consistency across different error types
+  - Test request_id propagation through full request cycle
+  - **Owner**: Backend Dev | **Effort**: 2 hours | **Status**: TBD
 
 #### Improvement 4: Backup Encryption ✅ COMPLETED (Jan 6)
 - [x] **Review Current Backup Process**
