@@ -1720,7 +1720,7 @@ function Invoke-DocumentationCheck {
             'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
-            # Release workflow (v1.14.0+ consolidated release automation docs)
+            # Release workflow ($11.14.2+ consolidated release automation docs)
             'QUICK_RELEASE_GUIDE.md',
             # Security overview
             'SECURITY_AUDIT_SUMMARY.md'

@@ -1,11 +1,11 @@
 # Release Notes - Version 1.13.0
 
 **Release Date**: 2025-12-29
-**Previous Version**: v1.12.9
+**Previous Version**: $11.14.2
 
 ## ⚠️ BREAKING CHANGES
 
-- **Release v1.13.0 - MAJOR: Remove deprecated backend modules** [d26d09c]
+- **Release $11.14.2 - MAJOR: Remove deprecated backend modules** [d26d09c]
   BREAKING CHANGES:
 
 ## 📝 Documentation
@@ -20,7 +20,7 @@
 
 ## 📦 Other Changes
 
-- Release v1.13.0 - MAJOR: Remove deprecated backend modules [d26d09c]
+- Release $11.14.2 - MAJOR: Remove deprecated backend modules [d26d09c]
 - [- Remov]
 - [- Remov]
 - [- Remov]

@@ -21,9 +21,9 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 ### 📖 Migration Guide
 
-**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_v1.13.0.md)** - Complete instructions with code examples for updating imports.
+**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_$11.14.2.md)** - Complete instructions with code examples for updating imports.
 
-### 📊 What's Included in v1.13.0
+### 📊 What's Included in $11.14.2
 
 - **12 deprecated modules removed** - Clean codebase, reduced maintenance
 - **Workflow optimization** - 29 → 27 active workflows
@@ -46,7 +46,7 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 ### 📚 Documentation
 
-- **[Migration Guide](docs/guides/MIGRATION_v1.13.0.md)** - How to update your code
-- **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.13.0.md)** - Executive summary and impact assessment
-- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md)** - Detailed cleanup audit
+- **[Migration Guide](docs/guides/MIGRATION_$11.14.2.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_$11.14.2.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.14.2.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history

@@ -50,12 +50,12 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
 
-### Audit & Improvement Planning (v1.15.0 - NEW)
+### Audit & Improvement Planning ($11.14.2 - NEW)
 
 - **[CODEBASE_AUDIT_REPORT.md](../CODEBASE_AUDIT_REPORT.md)** - Comprehensive codebase audit with 50+ recommendations
   - Grade: A- (8.5/10) - Production Ready
   - 12 sections covering security, architecture, performance, quality
-- **[IMPLEMENTATION_PATTERNS.md](../IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for v1.15.0 improvements
+- **[IMPLEMENTATION_PATTERNS.md](../IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for $11.14.2 improvements
   - Audit logging pattern (model + service + router)
   - Query optimization with eager loading examples
   - Soft delete auto-filtering mixin
@@ -63,24 +63,24 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Error handling improvements
   - Business metrics calculation
   - Test patterns and utilities
-- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md)** - Phase 1 implementation plan
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_$11.14.2.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.14.2.md)** - Phase 1 implementation plan
   - 8 major improvements (audit logging, performance, security, UX)
   - 2-week sprint breakdown (Jan 7-20, 2026)
   - Team allocation and effort estimates
   - Success metrics and acceptance criteria
   - Links to implementation patterns
-- **[releases/RELEASE_PREPARATION_v1.15.0.md](releases/RELEASE_PREPARATION_v1.15.0.md)** - v1.15.0 Release preparation & timeline (NEW)
+- **[releases/RELEASE_PREPARATION_$11.14.2.md](releases/RELEASE_PREPARATION_$11.14.2.md)** - $11.14.2 Release preparation & timeline (NEW)
   - Phase 0 validation (current state: 1493/1493 tests passing)
   - Phase 1 infrastructure improvements roadmap
   - Release checklist and success metrics
   - Timeline: Jan 7-24, 2026 (implementation + release)
-- **[releases/EXECUTION_TRACKER_v1.15.0.md](releases/EXECUTION_TRACKER_v1.15.0.md)** - v1.15.0 Phase 1 execution tracker (NEW)
+- **[releases/EXECUTION_TRACKER_$11.14.2.md](releases/EXECUTION_TRACKER_$11.14.2.md)** - $11.14.2 Phase 1 execution tracker (NEW)
   - Pre-implementation tasks (team kickoff, environment setup, backup)
   - Week 1 tasks: Foundation & performance improvements
   - Week 2 tasks: Testing & stability
   - Release day procedures and post-release validation
   - Progress tracking with owner assignments and effort estimates
-- **[releases/QUICK_REFERENCE_v1.15.0.md](releases/QUICK_REFERENCE_v1.15.0.md)** - v1.15.0 Quick reference card (NEW - Print & Post)
+- **[releases/QUICK_REFERENCE_$11.14.2.md](releases/QUICK_REFERENCE_$11.14.2.md)** - $11.14.2 Quick reference card (NEW - Print & Post)
   - One-page team reference with timeline and task assignments
   - Daily checklist for developers
   - Blocker resolution procedure

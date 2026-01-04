@@ -1,4 +1,4 @@
-# Release Notes v1.14.2
+# Release Notes $11.14.2
 
 **Release Date**: December 30, 2025
 **Version**: 1.14.2
@@ -106,7 +106,7 @@ frontend/src/locales/el/controlPanel.js                      +1, -1
 ```
 CHANGELOG.md                                  +64, -0
 frontend/src/index.css                        +2, -2
-docs/releases/RELEASE_NOTES_v1.14.1.md       +3, -3
+docs/releases/RELEASE_NOTES_$11.14.2.md       +3, -3
 .github/docker_manager.bat                    +15, -5
 ```
 
@@ -155,7 +155,7 @@ installer/run_docker_install.cmd              +1, -1
 
 ## 📚 Documentation Updates
 
-- ✅ [CHANGELOG.md](../../CHANGELOG.md) - Updated with v1.14.2 fixes
+- ✅ [CHANGELOG.md](../../CHANGELOG.md) - Updated with $11.14.2 fixes
 - ✅ [COPILOT_INSTRUCTIONS.md](.github/copilot-instructions.md) - Rate limiting patterns documented
 - ✅ [API Documentation](../../CONTROL_API.md) - Already covers rate limits
 

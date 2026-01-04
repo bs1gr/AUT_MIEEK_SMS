@@ -87,7 +87,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - add required inputs to workflow_call trigger in CI/CD pipeline
 
 ### Documentation
-- release notes and changelog for v1.14.0
+- release notes and changelog for $11.14.2
 
 ### CI/CD
 - fix encoding script output + install missing types and vitest coverage deps
@@ -141,10 +141,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - add comprehensive release documentation generator script
 
 ### Documentation
-- normalize line endings for v1.14.0 release artifacts
+- normalize line endings for $11.14.2 release artifacts
 - add release documentation generator integration guide
 - improve release notes with proper breaking changes documentation
-- release notes and changelog for v1.13.0
+- release notes and changelog for $11.14.2
 - release 1.13.0 documentation
 
 ## [1.14.0] - 2025-12-29

@@ -1,4 +1,4 @@
-# v1.15.0 Release - Quick Reference Card
+# $11.14.2 Release - Quick Reference Card
 
 **Print this and post on team board!**
 
@@ -10,7 +10,7 @@
 Week of Jan 4:   Team Prep (kickoff, backup, branch setup)
 Week of Jan 7:   Week 1 - Foundation & Performance
 Week of Jan 14:  Week 2 - Testing & Stability
-Friday Jan 24:   RELEASE v1.15.0 to Production
+Friday Jan 24:   RELEASE $11.14.2 to Production
 ```
 
 ---
@@ -51,8 +51,8 @@ Copy-paste patterns for:
 **Copy to Jira/GitHub Issues** (optional):
 
 ```
-Title: [v1.15.0-Phase1] Improvement #N: [Name]
-Description: See EXECUTION_TRACKER_v1.15.0.md for details
+Title: [$11.14.2-Phase1] Improvement #N: [Name]
+Description: See EXECUTION_TRACKER_$11.14.2.md for details
 Assigned to: [Developer Name]
 Effort: [hours from tracker]
 Success Criteria: [from tracker]
@@ -64,11 +64,11 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
 
 ## ✅ Daily Checklist for Developers
 
-- [ ] Check task status in EXECUTION_TRACKER_v1.15.0.md
+- [ ] Check task status in EXECUTION_TRACKER_$11.14.2.md
 - [ ] Review success criteria for your assigned improvement
 - [ ] Reference IMPLEMENTATION_PATTERNS.md for code examples
 - [ ] Run tests: `pytest -q` (backend) or `npm test -- --run` (frontend)
-- [ ] Commit to feature branch: `feature/v1.15.0-phase1`
+- [ ] Commit to feature branch: `feature/$11.14.2-phase1`
 - [ ] Update EXECUTION_TRACKER status
 - [ ] Flag blockers in standup
 
@@ -88,7 +88,7 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
    - Emergency escalations
 
 3. **File GitHub issue** with:
-   - Label: `v1.15.0-phase1`
+   - Label: `$11.14.2-phase1`
    - Mention: blocking improvement number
    - Link: to EXECUTION_TRACKER section
 
@@ -117,13 +117,13 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
 - [ ] E2E tests passing (critical paths covered)
 - [ ] Code review completed
 - [ ] Documentation updated
-- [ ] v1.15.0 released to production
+- [ ] $11.14.2 released to production
 
 ---
 
 ## 📊 Progress Tracking
 
-**Check daily**: `docs/releases/EXECUTION_TRACKER_v1.15.0.md`
+**Check daily**: `docs/releases/EXECUTION_TRACKER_$11.14.2.md`
 
 Update your task status:
 - TBD → In Progress → Done
@@ -134,7 +134,7 @@ Update your task status:
 
 ## 🔗 Key Documents (Bookmark These!)
 
-1. **EXECUTION_TRACKER_v1.15.0.md** ← START HERE
+1. **EXECUTION_TRACKER_$11.14.2.md** ← START HERE
    - Detailed task breakdown
    - Owner assignments
    - Effort estimates
@@ -148,7 +148,7 @@ Update your task status:
    - Why we're doing this (Grade A-, 50+ recommendations)
    - Comprehensive quality assessment
 
-4. **PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md** ← BIG PICTURE
+4. **PHASE1_AUDIT_IMPROVEMENTS_$11.14.2.md** ← BIG PICTURE
    - Sprint breakdown
    - Team allocation
    - Timeline and dependencies
@@ -159,7 +159,7 @@ Update your task status:
 
 **No development!** Release manager will:
 1. Merge feature branch to main
-2. Create release tag `v1.15.0`
+2. Create release tag `$11.14.2`
 3. Build Docker image
 4. Deploy to production
 5. Run smoke tests
@@ -196,5 +196,5 @@ Update your task status:
 ---
 
 **Last Updated**: January 4, 2026
-**Version**: v1.15.0
+**Version**: $11.14.2
 **Status**: Ready for Phase 1 Implementation
