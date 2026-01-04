@@ -48,7 +48,7 @@ repos:
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: ['--fix=lf']
-        exclude: '\.(bat|cmd|vbs|iss|isl)$'
+        exclude: '(\.(bat|cmd|vbs|iss|isl)$|\.secrets\.baseline$)'
 
 
 
@@ -62,6 +62,6 @@ repos:
         language: python
         types: ["text"]
         files: .*
-        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini)
+        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini|\.secrets\.baseline$)
 
 exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
