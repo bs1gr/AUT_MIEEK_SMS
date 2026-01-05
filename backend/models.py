@@ -466,6 +466,87 @@ class UserRole(Base):
         return f"<UserRole(user_id={self.user_id}, role_id={self.role_id})>"
 
 
+class Notification(SoftDeleteMixin, Base):
+    """Real-time notifications for users.
+
+    Supports multiple notification types:
+    - grade_update: When grades are entered/modified
+    - attendance_change: When attendance is marked
+    - course_update: Course-related announcements
+    - system_message: System-wide messages
+    - assignment_posted: New assignments posted
+    """
+
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    notification_type = Column(String(50), nullable=False)  # grade_update, attendance_change, etc.
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    data = Column(JSON, nullable=True)  # Additional context (grade value, course_id, etc.)
+    is_read = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    read_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_user_notifications", "user_id", "created_at"),
+        Index("idx_unread_notifications", "user_id", "is_read"),
+    )
+
+    user: ClassVar[Any] = relationship("User")
+
+    def __repr__(self):
+        return f"<Notification(id={self.id}, user_id={self.user_id}, type={self.notification_type})>"
+
+
+class NotificationPreference(Base):
+    """User preferences for notifications.
+
+    Controls which notification types users want to receive and how (in-app, email, SMS).
+    """
+
+    __tablename__ = "notification_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+
+    # In-app notifications
+    in_app_enabled = Column(Boolean, default=True)
+    in_app_grade_updates = Column(Boolean, default=True)
+    in_app_attendance = Column(Boolean, default=True)
+    in_app_course_updates = Column(Boolean, default=True)
+    in_app_system_messages = Column(Boolean, default=True)
+
+    # Email notifications
+    email_enabled = Column(Boolean, default=True)
+    email_grade_updates = Column(Boolean, default=True)
+    email_attendance = Column(Boolean, default=False)
+    email_course_updates = Column(Boolean, default=True)
+    email_system_messages = Column(Boolean, default=False)
+
+    # SMS notifications (optional)
+    sms_enabled = Column(Boolean, default=False)
+    sms_phone = Column(String(20), nullable=True)
+    sms_grade_updates = Column(Boolean, default=False)
+    sms_attendance = Column(Boolean, default=False)
+
+    # Quiet hours
+    quiet_hours_enabled = Column(Boolean, default=False)
+    quiet_hours_start = Column(String(5), nullable=True)  # HH:MM format
+    quiet_hours_end = Column(String(5), nullable=True)  # HH:MM format
+
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    user: ClassVar[Any] = relationship("User")
+
+    def __repr__(self):
+        return f"<NotificationPreference(user_id={self.user_id})>"
+
+
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     Initialize the database engine with performance optimizations.
