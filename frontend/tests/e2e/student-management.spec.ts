@@ -34,8 +34,8 @@ test.describe('Student Management - Critical Flows', () => {
     // Try logging in as test user first, fall back to teacher if needed
     try {
       await loginAsTestUser(page);
-    } catch (e) {
-      console.warn('Failed to login as test user, falling back to teacher:', e);
+    } catch (err) {
+      console.warn('Failed to login as test user, falling back to teacher:', err);
       await loginAsTeacher(page);
     }
   });
@@ -43,6 +43,7 @@ test.describe('Student Management - Critical Flows', () => {
   test.afterEach(async ({ page }, testInfo) => {
     // Capture diagnostics on failure
     if (testInfo.status !== 'passed') {
+      // eslint-disable-next-line no-console
       console.log(`\n❌ Test failed: ${testInfo.title}`);
       try {
         await captureAndLogDiagnostics(page, testInfo.title).catch((e) =>
@@ -56,14 +57,13 @@ test.describe('Student Management - Critical Flows', () => {
     // Ensure proper cleanup of page/context
     try {
       await page.close().catch(() => {});
-    } catch (e) {
+    } catch {
       // Page may already be closed
     }
   });
 
   test('should create a new student successfully', async ({ page }) => {
     const student = generateStudentDataLocal();
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
     // Navigate to students page
     await page.goto('/students');
@@ -88,7 +88,7 @@ test.describe('Student Management - Critical Flows', () => {
     await page.click('[data-testid="submit-student"]');
 
     // Wait for the API response - listen for the create request
-    const createResponse = await page.waitForResponse(
+    await page.waitForResponse(
       (resp) =>
         resp.url().includes('/api/v1/students') && resp.request().method() === 'POST' && resp.status() === 201,
       { timeout: 10000 }
@@ -428,7 +428,7 @@ test.describe('Attendance Tracking', () => {
           await courseSelect.selectOption(`${createdCourse.id}`);
           success = true;
         }
-      } catch (e) {
+      } catch {
         attempts++;
         if (attempts < 3) {
           await page.waitForTimeout(500);
@@ -565,21 +565,8 @@ test.describe('Analytics and Reports', () => {
         return Promise.resolve();
       });
 
-    // Verify grade/analytics information appears on the profile
-    const gradeVisible = await page
-      .getByText(/Grade|GPA|Score|Results|Analytics|85|90/i)
-      .first()
-      .isVisible({ timeout: 10000 })
-      .catch(() => false);
-
-    // Verify course appears somewhere on the page (table, card, or analytics section)
-    const courseVisible = await page
-      .locator(`text=${course.courseCode}, [data-testid*="course"], td:has-text("${course.courseCode}")`)
-      .first()
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    // Page should load without errors - that's the key test
+    // Verify page loaded without errors
+    // (Not checking specific visible elements to reduce brittleness)
     expect(page.url()).toContain(`/students/${createdStudent.id}`);
   });
 });
