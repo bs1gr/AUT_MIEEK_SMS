@@ -1,7 +1,36 @@
 # Remaining Issues - Priority & Fix Plan
-**Date:** December 28, 2025
-**Status:** Post-Frontend-SPA-Rendering-Fix
-**Previous Win:** ✅ E2E page rendering now working (SPA served correctly)
+**Date:** January 5, 2026
+**Status:** ✅ E2E Authentication Fixed
+**Latest Win:** ✅ E2E tests now successfully authenticate and navigate past login
+
+---
+
+## ✅ **RESOLVED ISSUES**
+
+### 1. **E2E Authentication & Navigation Fixed** [WAS BLOCKING]
+- **Resolution Date:** January 5, 2026
+- **Status:** ✅ FIXED - Authentication layer working perfectly
+- **What Was Fixed:**
+  1. ✅ TypeScript compilation error (line 242-244 selectOption RegExp → string)
+  2. ✅ Enhanced seed script validation (logs user creation, entity counts)
+  3. ✅ Improved login helpers with diagnostics (pre-flight checks, error capture)
+  4. ✅ Fixed token persistence - now sets both `sms_access_token` AND `sms_user_v1`
+  5. ✅ E2E workflow validation (database verification, login health check)
+
+- **Root Cause (Final):** The `loginViaAPI()` helper only set the JWT token in localStorage but didn't set the user object. The AuthContext requires both `sms_access_token` and `sms_user_v1` for `RequireAuth` to recognize authenticated state.
+
+- **Solution:** Modified `loginViaAPI()` to:
+  1. POST to `/auth/login` → get token
+  2. GET from `/auth/me` → fetch user profile
+  3. Set both in localStorage
+
+- **Validation:**
+  - ✅ Login succeeds (200 OK, token length: 139-148 chars)
+  - ✅ User profile fetched (test@example.com)
+  - ✅ Navigation to `/dashboard` successful
+  - ✅ No authentication redirects
+
+- **Documentation:** See [E2E_AUTHENTICATION_FIX.md](../E2E_AUTHENTICATION_FIX.md)
 
 ---
 
@@ -9,75 +38,55 @@
 
 ### 🔴 **CRITICAL (Blocks Main Branch / CI Pipeline)**
 
-#### 1. **E2E Tests Still Failing Post-Login** [BLOCKING]
-- **Status:** Page renders ✅ | Tests fail at login/navigation ❌
-- **Symptom:** All 21 E2E test cases timeout after page loads
-- **Root Causes:**
-  - Test credentials (`test@example.com / password123`) may not exist in seeded test data
-  - Login endpoint (`/api/v1/auth/login`) not working in CI environment
-  - Test helpers (`login()`, `logout()`, etc.) may have wrong selectors or timing
-  - CSRF or session management issues in CI (permissive auth mode)
+#### 1. **E2E Test Implementation Issues** [BLOCKING]
+- **Status:** Authentication works ✅ | CRUD operations fail ❌
+- **Symptom:** Tests fail after successful login with various errors:
+  - Student creation doesn't capture ID → edit/delete fail with `undefined` ID
+  - Course creation succeeds but verification looks in wrong element (`<option>` instead of table)
+  - Attendance/grades pages timeout waiting for data or selectors
+  - Analytics page can't find course codes
 
-- **Impact:** Complete E2E test suite unavailable for deployment validation
-- **Evidence:** Error artifacts show login form renders, but tests timeout on login attempts
+- **Root Causes:**
+  1. Tests don't wait for/capture API response IDs after creating entities
+  2. Selectors target wrong elements (e.g., dropdown options vs table cells)
+  3. Test data setup incomplete (missing enrollments/prerequisites)
+  4. Timing issues (networkidle timeout vs actual data loading)
+
+**Impact:** All 7 E2E test cases fail despite successful authentication
 
 **Files to Review:**
-- [frontend/tests/helpers.ts](frontend/tests/helpers.ts) - Login/logout helper implementation
-- [backend/seed_e2e_data.py](backend/seed_e2e_data.py) - E2E test data seeding
-- [backend/routers/auth.py](backend/routers/auth.py) - Auth endpoints
+- [frontend/tests/e2e/student-management.spec.ts](../../frontend/tests/e2e/student-management.spec.ts) - All test cases
+- [frontend/tests/e2e/helpers.ts](../../frontend/tests/e2e/helpers.ts) - Helper functions
+- [backend/seed_e2e_data.py](../../backend/seed_e2e_data.py) - Test data seeding
 
 **Proposed Fixes:**
 ```
-1. Verify test user exists after seeding:
-   - Check seed_e2e_data.py creates user with email "test@example.com"
-   - Verify password hash matches "password123"
-   - Add logging to seed script
+1. Capture created entity IDs:
+   - Add helper to wait for API response and extract ID
+   - Store in test context for later use
 
-2. Test login endpoint directly in CI:
-   - Add health check that validates auth endpoint
-   - Test with sample credentials before E2E runs
+2. Fix verification selectors:
+   - Use table rows instead of dropdown options
+   - Add data-testid attributes to key elements
 
-3. Update test helpers with better error reporting:
-   - Catch login errors with details
-   - Add page.on('console') to capture JS errors
-   - Improve selector specificity for buttons/forms
+3. Enhance test data seeding:
+   - Ensure enrollments exist for grade/attendance tests
+   - Add courses with proper configuration
 
-4. Check CSRF/Session config in permissive mode:
-   - Ensure CSRF_ENABLED=0 is respected
-   - Verify session cookies are set/sent
+4. Improve wait strategies:
+   - Use waitForResponse() for API calls
+   - Add explicit waits for data to appear in UI
 ```
 
----
-
-#### 2. **TypeScript Compilation Error in E2E Tests** [BLOCKING]
-- **Status:** ❌ Syntax error in test file
-- **File:** `frontend/tests/e2e/student-management.spec.ts` Line 232
-- **Error:** `Argument of type '{ label: RegExp; }' is not assignable to parameter...`
-- **Root Cause:** Using RegExp in `selectOption()` - expects string or array
-
-**Impact:** TypeScript/vitest cannot compile test suite, preventing execution
-
-**Proposed Fix:**
-```typescript
-// WRONG (current):
-await page.selectOption('select', { label: /Option/i });
-
-// CORRECT:
-const options = await page.locator('select option').allTextContents();
-const matching = options.find(o => /Option/i.test(o));
-if (matching) await page.selectOption('select', matching);
-```
-
-**Time to Fix:** 10 minutes
+**Priority:** HIGH - Tests pass authentication but fail on core features
 
 ---
 
 ### 🟠 **HIGH (Degrades CI/Deployment Capability)**
 
-#### 3. **Diagnostic Test Not Running / Not Collecting Output** [HIGH]
-- **Status:** ❌ Added diagnostic test, but output not visible in results
-- **Root Cause:**
-  - Diagnostic test may be skipped due to Playwright test filters
+#### 2. **Diagnostic Test Not Running / Not Collecting Output** [DEPRECATED]
+- **Status:** 🔄 May be obsolete now that authentication works
+- **Note:** Original diagnostic test was to debug authentication. Now that it's fixed, this may not be needed.
   - Test output captured in browser console, not in test results
   - Reporter may not preserve console logs from diagnostic runs
 

@@ -153,16 +153,46 @@ def seed_e2e_data(force: bool = False):
                     enrollment_count += 1
 
         db.commit()
+
+        # Validate seeded data
+        final_user = db.query(User).filter(User.email == "test@example.com").first()
+        final_students = db.query(Student).all()
+        final_courses = db.query(Course).all()
+        final_enrollments = db.query(CourseEnrollment).all()
+
         print("[OK] E2E test data seeded successfully")
+        print("\n=== SEED DATA VALIDATION ===")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
-        print("  - Created test user: test@example.com (password: Test@Pass123)")
-        print(f"  - Created {len(students_data)} students")
-        print(f"  - Created {len(courses_data)} courses")
-        print(f"  - Created {enrollment_count} enrollments")
+        print("✅ Test user created: test@example.com (password: Test@Pass123)")
+        print(f"   - Role: {final_user.role if final_user else 'NOT FOUND'}")
+        print(f"   - Active: {final_user.is_active if final_user else 'NOT FOUND'}")
+        print(f"   - Has password hash: {bool(final_user.hashed_password) if final_user else False}")
+        print(f"\n✅ Students in database: {len(final_students)}")
+        for s in final_students[:5]:  # Show first 5
+            print(f"   - {s.student_id}: {s.first_name} {s.last_name} ({s.email})")
+        print(f"\n✅ Courses in database: {len(final_courses)}")
+        for c in final_courses:
+            print(f"   - {c.course_code}: {c.course_name} (Semester: {c.semester})")
+        print(f"\n✅ Enrollments in database: {len(final_enrollments)}")
+        print(f"   - Average enrollments per student: {len(final_enrollments) / max(len(final_students), 1):.1f}")
+        print("\n=== END VALIDATION ===\n")
+
+        # Verification checks
+        if not final_user:
+            raise RuntimeError("CRITICAL: Test user was not created!")
+        if len(final_students) == 0:
+            raise RuntimeError("CRITICAL: No students were created!")
+        if len(final_courses) == 0:
+            raise RuntimeError("CRITICAL: No courses were created!")
+
+        print("[SUCCESS] All validation checks passed ✅")
 
     except Exception as e:
         db.rollback()
         print(f"[ERROR] Error seeding data: {e}")
+        import traceback
+
+        traceback.print_exc()
         raise
     finally:
         db.close()

@@ -165,10 +165,39 @@ jobs:
 
       # FIX: Validate login endpoint works before running E2E tests
       - name: Check login health
-        continue-on-error: true
         run: |
-          echo "Checking login endpoint health..."
-          python backend/check_login_health.py || echo "⚠️  Login health check failed (continuing)"
+          echo "=== Verifying Authentication Setup ==="
+          echo ""
+          echo "1. Checking if test user exists in database..."
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from sqlalchemy import create_engine
+          from sqlalchemy.orm import sessionmaker
+          from backend.models import User
+
+          engine = create_engine('sqlite:///./data/student_management.db')
+          Session = sessionmaker(bind=engine)
+          db = Session()
+
+          user = db.query(User).filter(User.email == 'test@example.com').first()
+          if user:
+              print(f'✅ Test user found: {user.email} (role: {user.role}, active: {user.is_active})')
+              print(f'   Has password hash: {bool(user.hashed_password)}')
+              db.close()
+              sys.exit(0)
+          else:
+              print('❌ Test user NOT found in database!')
+              db.close()
+              sys.exit(1)
+          "
+
+          echo ""
+          echo "2. Testing login endpoint with test credentials..."
+          python backend/check_login_health.py
+
+          echo ""
+          echo "=== Authentication validation complete ==="
 
       - name: Run E2E tests
         working-directory: ./frontend
