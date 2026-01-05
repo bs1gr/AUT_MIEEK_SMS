@@ -4,6 +4,15 @@
 
 ---
 
+## Addendum (later on Jan 5, 2026)
+
+- ✅ **Type-safety cleanup**: Removed remaining `any` usages in `RBACPanel` mutations and `StudentPerformanceReport` error/config handlers by typing Axios responses and using a shared error extractor.
+- ✅ **Error handling**: Added `getErrorMessage` helper in `StudentPerformanceReport` to surface API `detail` messages safely and fall back to localized strings.
+- ✅ **Frontend tests**: Ran full Vitest suite (53 files, 1189 tests) — all passing; logs in output are expected from test doubles.
+- ℹ️ **Scope**: No backend changes; work limited to frontend typing/resilience. Changes are currently staged locally (not yet committed) — see working tree diff for details.
+
+---
+
 ## Work Completed This Session
 
 ### ✅ Primary Objectives (Completed)

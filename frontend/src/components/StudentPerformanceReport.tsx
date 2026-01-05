@@ -72,6 +72,20 @@ interface StudentPerformanceReportProps {
   onClose?: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as { response?: { data?: { detail?: string } } }).response;
+    const detail = response?.data?.detail;
+    if (detail) {
+      return detail;
+    }
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 /**
  * StudentPerformanceReport Component
  *
@@ -120,8 +134,8 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       };
       const response = await reportsAPI.generateStudentReport(reportRequest);
       setReport(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('reports.error'));
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, t('reports.error') || 'Error generating report'));
     } finally {
       setLoading(false);
     }
@@ -160,15 +174,15 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('reports.downloadError') || 'Download failed');
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, t('reports.downloadError') || 'Download failed'));
     } finally {
       setLoading(false);
     }
   };
 
   // Handle configuration changes
-  const handleConfigChange = (field: keyof ReportConfig, value: any) => {
+  const handleConfigChange = <K extends keyof ReportConfig>(field: K, value: ReportConfig[K]) => {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 

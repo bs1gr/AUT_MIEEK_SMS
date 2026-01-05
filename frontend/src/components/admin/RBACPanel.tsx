@@ -58,7 +58,7 @@ export const RBACPanel: React.FC = () => {
 
   // Ensure defaults mutation
   const ensureDefaultsMutation = useApiMutation<{ status: string }, Error, Record<string, never>>(
-    () => apiClient.post('/admin/rbac/ensure-defaults').then((r: any) => r.data),
+    () => apiClient.post<{ status: string }>('/admin/rbac/ensure-defaults').then((r) => r.data),
     {
       onSuccess: () => {
         refetchSummary();
@@ -68,7 +68,7 @@ export const RBACPanel: React.FC = () => {
 
   // Assign role mutation
   const assignRoleMutation = useApiMutation<{ status: string }, Error, { user_id: number; role_name: string }>(
-    (data) => apiClient.post('/admin/rbac/assign-role', data).then((r: any) => r.data),
+    (data) => apiClient.post<{ status: string }>('/admin/rbac/assign-role', data).then((r) => r.data),
     {
       onSuccess: () => {
         setUserId(null);
@@ -80,7 +80,7 @@ export const RBACPanel: React.FC = () => {
 
   // Grant permission mutation
   const grantPermissionMutation = useApiMutation<{ status: string }, Error, { role_name: string; permission_name: string }>(
-    (data) => apiClient.post('/admin/rbac/grant-permission', data).then((r: any) => r.data),
+    (data) => apiClient.post<{ status: string }>('/admin/rbac/grant-permission', data).then((r) => r.data),
     {
       onSuccess: () => {
         setSelectedRole(null);
