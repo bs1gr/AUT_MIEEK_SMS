@@ -11,7 +11,7 @@ This module provides structured error messages with:
 - User-friendly language instead of technical jargon
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 # Error codes for common scenarios
@@ -143,7 +143,7 @@ def get_error_message(code: str, lang: str = "en", custom_detail: Optional[str] 
     """
     messages = ERROR_MESSAGES_EL if lang == "el" else ERROR_MESSAGES_EN
 
-    message = messages.get(code, messages.get(ErrorCode.INTERNAL_ERROR))
+    message = messages.get(code) or messages.get(ErrorCode.INTERNAL_ERROR) or "An error occurred"
 
     if custom_detail:
         message = f"{message} Details: {custom_detail}"
@@ -151,7 +151,7 @@ def get_error_message(code: str, lang: str = "en", custom_detail: Optional[str] 
     return message
 
 
-def create_error_detail(code: str, lang: str = "en", custom_detail: Optional[str] = None, **kwargs) -> Dict[str, any]:
+def create_error_detail(code: str, lang: str = "en", custom_detail: Optional[str] = None, **kwargs) -> Dict[str, Any]:
     """
     Create a structured error detail dictionary.
 

@@ -1,7 +1,7 @@
 import io
 from pathlib import Path
 from backend.errors import ErrorCode
-from conftest import get_error_detail
+from backend.tests.conftest import get_error_detail
 
 
 def test_database_upload_valid(client):

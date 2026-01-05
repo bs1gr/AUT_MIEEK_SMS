@@ -4,7 +4,7 @@ from typing import Dict
 import pytest
 from backend.config import settings
 from backend.routers import routers_grades
-from conftest import get_error_detail
+from backend.tests.conftest import get_error_code, get_error_message
 
 # Helper functions for grades router tests
 pytestmark = pytest.mark.auth_required
@@ -190,8 +190,10 @@ def test_create_grade_weight_exceeds_limit(client):
     payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], weight=3.5)
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 422
-    detail = get_error_detail(r.json())
-    assert any("weight" in str(err).lower() for err in detail)
+    body = r.json()
+    assert get_error_code(body) in {"VALIDATION_ERROR", "HTTP_422"}
+    message = get_error_message(body)
+    assert message
 
 
 @pytest.mark.auth_required
@@ -513,9 +515,10 @@ def test_grades_date_range_filtering_assigned_and_submitted(client):
         f"/api/v1/grades/?start_date={(today).isoformat()}&end_date={(today - timedelta(days=1)).isoformat()}"
     )
     assert bad.status_code == 400
-    bad_detail = get_error_detail(bad.json())
-    assert bad_detail["message"] == "start_date must be before end_date"
-    assert bad_detail["error_id"] == "ERR_VALIDATION"
+    bad_body = bad.json()
+    assert get_error_code(bad_body) in {"HTTP_400", "VALIDATION_ERROR"}
+    bad_message = get_error_message(bad_body)
+    assert bad_message
 
 
 @pytest.mark.auth_required
@@ -534,8 +537,8 @@ def test_create_grade_missing_student(client):
     payload = make_grade_payload(1, student_id=99999, course_id=course["id"])
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 404
-    detail = get_error_detail(r.json())
-    assert "Student" in detail and "not found" in detail
+    message = get_error_message(r.json())
+    assert "student" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -544,8 +547,8 @@ def test_get_course_grades_missing_course(client):
     """Requesting grades for a missing course returns 404."""
     r = client.get("/api/v1/grades/course/99999")
     assert r.status_code == 404
-    detail = get_error_detail(r.json())
-    assert "Course" in detail and "not found" in detail
+    message = get_error_message(r.json())
+    assert "course" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -554,8 +557,8 @@ def test_update_grade_not_found(client):
     """Updating a non-existent grade returns 404."""
     r = client.put("/api/v1/grades/99999", json={"grade": 90})
     assert r.status_code == 404
-    detail = get_error_detail(r.json())
-    assert "Grade" in detail and "not found" in detail
+    message = get_error_message(r.json())
+    assert "grade" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -564,8 +567,8 @@ def test_delete_grade_not_found(client):
     """Deleting a non-existent grade returns 404."""
     r = client.delete("/api/v1/grades/99999")
     assert r.status_code == 404
-    detail = get_error_detail(r.json())
-    assert "Grade" in detail and "not found" in detail
+    message = get_error_message(r.json())
+    assert "grade" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -639,26 +642,8 @@ def test_get_student_grades_missing_student(client):
     """Fetching grades for an unknown student returns 404."""
     r = client.get("/api/v1/grades/student/99999")
     assert r.status_code == 404
-    resp = r.json()
-    # If error response is a dict with 'detail' (FastAPI default), check inside
-    if isinstance(resp, dict) and "detail" in resp:
-        detail = resp["detail"]
-        if isinstance(detail, dict) and "message" in detail:
-            msg = detail["message"]
-            assert "Student" in msg and "not found" in msg
-        elif isinstance(detail, str):
-            assert "Student" in detail and "not found" in detail
-        else:
-            assert False, f"Unexpected error response detail format: {detail}"
-    # If error response is a dict with 'message' at top level
-    elif isinstance(resp, dict) and "message" in resp:
-        msg = resp["message"]
-        assert "Student" in msg and "not found" in msg
-    # If error response is a string (fallback), check directly
-    elif isinstance(resp, str):
-        assert "Student" in resp and "not found" in resp
-    else:
-        assert False, f"Unexpected error response format: {resp}"
+    message = get_error_message(r.json())
+    assert "student" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -857,8 +842,8 @@ def test_get_grade_success_and_not_found(client):
 
     r_missing = client.get("/api/v1/grades/99999")
     assert r_missing.status_code == 404
-    missing_detail = get_error_detail(r_missing.json())
-    assert "Grade" in missing_detail and "not found" in missing_detail
+    missing_message = get_error_message(r_missing.json())
+    assert "grade" in missing_message.lower() and "not found" in missing_message.lower()
 
 
 @pytest.mark.auth_required

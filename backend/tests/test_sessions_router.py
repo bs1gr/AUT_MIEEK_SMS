@@ -1,5 +1,7 @@
 import json
 
+from backend.tests.conftest import get_error_message
+
 
 def get_auth_headers(client, email="testuser@example.com", password="TestPass123!", role="teacher"):
     # Register user (role is ignored unless admin token is used, so always teacher)
@@ -22,9 +24,9 @@ def test_sessions_export_missing_semester(client):
     headers = get_auth_headers(client)
     resp = client.get("/api/v1/sessions/export", params={"semester": "NON_EXISTENT"}, headers=headers)
     assert resp.status_code == 404
-    data = resp.json()
-    # Generic shape check; error code presence depends on http_error implementation
-    assert "detail" in data
+    payload = resp.json()
+    message = get_error_message(payload)
+    assert message
 
 
 def test_sessions_import_dry_run_missing_metadata(client):
@@ -35,8 +37,9 @@ def test_sessions_import_dry_run_missing_metadata(client):
     files = {"file": ("session.json", content, "application/json")}
     resp = client.post("/api/v1/sessions/import", params={"dry_run": "true"}, files=files, headers=headers)
     assert resp.status_code == 400
-    data = resp.json()
-    assert "detail" in data
+    payload = resp.json()
+    message = get_error_message(payload)
+    assert message
 
 
 def test_sessions_import_dry_run_missing_semester(client):
@@ -46,8 +49,9 @@ def test_sessions_import_dry_run_missing_semester(client):
     files = {"file": ("session.json", content, "application/json")}
     resp = client.post("/api/v1/sessions/import", params={"dry_run": "true"}, files=files, headers=headers)
     assert resp.status_code == 400
-    data = resp.json()
-    assert "detail" in data
+    payload = resp.json()
+    message = get_error_message(payload)
+    assert message
 
 
 def test_sessions_import_dry_run_valid_empty(client):

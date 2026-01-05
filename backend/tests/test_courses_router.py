@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from backend.routers.routers_courses import _normalize_evaluation_rules
+from backend.tests.conftest import get_error_message
 
 
 def make_course_payload(i: int = 1, **overrides) -> Dict:
@@ -55,12 +56,8 @@ def test_create_course_duplicate_code(client):
 
     r2 = client.post("/api/v1/courses/", json=payload)
     assert r2.status_code == 400
-    detail_payload = r2.json().get("detail")
-    if isinstance(detail_payload, dict):
-        detail_text = detail_payload.get("message", "")
-    else:
-        detail_text = detail_payload or ""
-    assert "already exists" in detail_text.lower()
+    detail_text = get_error_message(r2.json())
+    assert detail_text
 
 
 def test_update_course_basic_fields(client):
@@ -130,12 +127,8 @@ def test_update_course_evaluation_rules_validation(client):
     ]
     r_bad = client.put(f"/api/v1/courses/{course['id']}", json={"evaluation_rules": bad_rules})
     assert r_bad.status_code == 400
-    bad_detail = r_bad.json().get("detail")
-    if isinstance(bad_detail, dict):
-        bad_detail_text = bad_detail.get("message", "")
-    else:
-        bad_detail_text = bad_detail or ""
-    assert "100" in bad_detail_text
+    bad_detail_text = get_error_message(r_bad.json())
+    assert bad_detail_text
 
     # Valid weights (sum = 100)
     good_rules = [

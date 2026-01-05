@@ -35,10 +35,18 @@ def register_error_handlers(app):
         except Exception:
             detail = str(detail)
 
+        # Extract message: if detail is a dict with "message" key, use it; otherwise use string representation
+        if isinstance(detail, dict):
+            message = detail.get("message", "HTTP Exception")
+            if not isinstance(message, str):
+                message = str(message)
+        else:
+            message = str(detail) if detail else "HTTP Exception"
+
         # Create standardized error response
         response = error_response(
             code=f"HTTP_{exc.status_code}",
-            message=detail if isinstance(detail, str) else "HTTP Exception",
+            message=message,
             request_id=request_id,
             details=detail if isinstance(detail, dict) else None,
             path=str(request.url.path) if hasattr(request, "url") else None,

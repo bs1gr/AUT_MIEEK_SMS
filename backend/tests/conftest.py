@@ -32,7 +32,39 @@ def get_error_message(response_data: dict) -> str:
     if isinstance(response_data, dict):
         # Try new format first (v1.15.0+)
         if "error" in response_data and isinstance(response_data["error"], dict):
-            return response_data["error"].get("message", "")
+            err = response_data["error"]
+            # First check for message directly in error
+            if "message" in err and err["message"]:
+                return str(err["message"])
+
+            details = err.get("details")
+            if isinstance(details, dict):
+                # Check for message in details (from http_error() structured payload)
+                if "message" in details and details["message"]:
+                    return str(details["message"])
+
+                # Check for validation errors list
+                errors = details.get("errors") if isinstance(details.get("errors"), list) else None
+                if errors:
+                    first = errors[0]
+                    if isinstance(first, dict):
+                        for key in ("msg", "message", "detail"):
+                            if key in first and first[key]:
+                                return str(first[key])
+
+                # Check for context error summary
+                for key in ("error_summary", "message", "detail"):
+                    if key in details and details[key]:
+                        return str(details[key])
+
+                ctx = details.get("context") if isinstance(details.get("context"), dict) else None
+                if ctx:
+                    for key in ("error_summary", "message", "detail"):
+                        if key in ctx and ctx[key]:
+                            return str(ctx[key])
+            elif details:
+                return str(details)
+
         # Fall back to old format for legacy tests
         if "detail" in response_data:
             detail = response_data["detail"]
@@ -59,7 +91,14 @@ def get_error_detail(response_data: dict) -> dict | None:
     if isinstance(response_data, dict):
         # Try new format first
         if "error" in response_data and isinstance(response_data["error"], dict):
-            return response_data["error"].get("details")
+            details = response_data["error"].get("details")
+            if details is not None:
+                return details
+            # Fall back to message if details are missing
+            message = response_data["error"].get("message")
+            if message:
+                return message
+            return response_data["error"]
         # Fall back to old format
         if "detail" in response_data and isinstance(response_data["detail"], dict):
             return response_data["detail"]

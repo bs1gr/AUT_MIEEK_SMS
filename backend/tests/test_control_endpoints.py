@@ -9,7 +9,7 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from conftest import get_error_detail
+from backend.tests.conftest import get_error_detail
 
 import backend.main as main
 import backend.routers.routers_control as control

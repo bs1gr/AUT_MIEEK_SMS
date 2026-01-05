@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Dict
 
-from conftest import get_error_detail
+from backend.tests.conftest import get_error_detail
 
 # Uses the TestClient fixture from conftest
 

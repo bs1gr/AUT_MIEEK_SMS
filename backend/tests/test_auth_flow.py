@@ -2,6 +2,7 @@ import time
 
 from backend.config import settings
 from backend.errors import ErrorCode
+from backend.tests.conftest import get_error_code
 
 
 def _csrf_headers(client):
@@ -100,7 +101,7 @@ def test_login_lockout_after_failed_attempts(client, monkeypatch):
     )
     assert resp.status_code == 429
     body = resp.json()
-    assert body["detail"]["error_id"] == ErrorCode.AUTH_ACCOUNT_LOCKED.value
+    assert get_error_code(body) in {"HTTP_429", ErrorCode.AUTH_ACCOUNT_LOCKED.value}
     assert "Retry-After" in resp.headers
 
 

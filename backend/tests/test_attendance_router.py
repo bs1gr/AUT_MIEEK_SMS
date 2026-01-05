@@ -17,6 +17,7 @@ from datetime import date, timedelta
 
 
 import pytest
+from backend.tests.conftest import get_error_message
 
 pytestmark = pytest.mark.auth_required
 
@@ -101,9 +102,8 @@ def test_create_attendance_invalid_student(client):
     )
 
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Student" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "student" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -133,9 +133,8 @@ def test_create_attendance_invalid_course(client):
     )
 
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Course" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "course" in message.lower() and "not found" in message.lower()
 
 
 @pytest.mark.auth_required
@@ -666,9 +665,8 @@ def test_delete_attendance(client):
     # Verify deleted
     get_resp = client.get(f"/api/v1/attendance/{attendance_id}")
     assert get_resp.status_code == 404
-    payload = get_resp.json()
-    detail = payload["detail"]
-    assert "Attendance" in detail and "not found" in detail
+    message = get_error_message(get_resp.json())
+    assert "attendance" in message.lower() and "not found" in message.lower()
 
 
 def test_attendance_stats(client):
@@ -848,39 +846,34 @@ def test_attendance_date_range_with_only_end_date(client):
 def test_update_attendance_not_found(client):
     response = client.put("/api/v1/attendance/9999", json={"status": "Late"})
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Attendance" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "attendance" in message.lower() and "not found" in message.lower()
 
 
 def test_delete_attendance_not_found(client):
     response = client.delete("/api/v1/attendance/9999")
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Attendance" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "attendance" in message.lower() and "not found" in message.lower()
 
 
 def test_get_student_attendance_not_found(client):
     response = client.get("/api/v1/attendance/student/9999")
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Student" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "student" in message.lower() and "not found" in message.lower()
 
 
 def test_get_course_attendance_not_found(client):
     response = client.get("/api/v1/attendance/course/9999")
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Course" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "course" in message.lower() and "not found" in message.lower()
 
 
 def test_get_attendance_by_date_course_not_found(client):
     today = date.today().isoformat()
     response = client.get(f"/api/v1/attendance/date/{today}/course/9999")
     assert response.status_code == 404
-    payload = response.json()
-    detail = payload["detail"]
-    assert "Course" in detail and "not found" in detail
+    message = get_error_message(response.json())
+    assert "course" in message.lower() and "not found" in message.lower()
