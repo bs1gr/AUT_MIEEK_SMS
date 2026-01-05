@@ -176,7 +176,7 @@ python-dotenv==1.2.1
 python-engineio==4.12.3
 python-multipart==0.0.21
 python-pptx==1.0.2
-python-socketio==5.15.0
+python-socketio==5.14.0
 pytz==2025.2
 pywin32==311
 pywin32-ctypes==0.2.3
