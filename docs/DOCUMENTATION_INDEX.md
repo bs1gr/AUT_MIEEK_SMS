@@ -615,3 +615,15 @@ Archived 20 historical documents and scripts to `archive/` for audit/reference:
 See `archive/README.md` for complete inventory and retrieval instructions.
 
 Future drafts should increment the draft count and include **Status** & **Last Updated** lines.
+**Session & Validation Records** (Organized in docs/development/sessions/):
+
+Session validation and E2E testing fix records are now consolidated in the dedicated docs/development/sessions/ folder with consistent date-based naming:
+
+- **[E2E_FIX_QUICK_REFERENCE_2025-01-05.md](development/sessions/E2E_FIX_QUICK_REFERENCE_2025-01-05.md)** - Quick reference for E2E authentication fix
+- **[VALIDATION_REPORT_2025-01-05.md](development/sessions/VALIDATION_REPORT_2025-01-05.md)** - Validation report from session
+- **[FINAL_VALIDATION_STATUS_2025-01-05.md](development/sessions/FINAL_VALIDATION_STATUS_2025-01-05.md)** - Final validation status and checklist
+- **[RETEST_VALIDATION_2025-01-05.md](development/sessions/RETEST_VALIDATION_2025-01-05.md)** - Retest validation results
+
+This structure ensures session records are organized chronologically by date, discoverable in a dedicated location, separate from primary documentation, and properly versioned and archived.
+
+See docs/DOCUMENTATION_CONSOLIDATION_PLAN.md for the consolidation strategy and rationale.
