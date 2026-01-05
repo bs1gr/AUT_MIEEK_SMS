@@ -8,6 +8,88 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.14.3] - 2026-01-05
+
+### Features
+- implement #64 Error Messages with i18n support
+- add APIResponse format helpers for gradual v1.15.0 migration
+- implement Error Message Improvements (Phase 1 #6)
+- implement Business Metrics Dashboard (Phase 1 #5)
+- **api**: implement API response standardization (Phase 1 #4)
+- **v1.15.0**: implement Phase 1 improvements (50% complete - 4/8)
+
+### Bug Fixes
+- allow null values for optional error fields in type definitions
+- add type assertion for extracted error details in useErrorHandler
+- add extractAPIError and extractAPIResponseData exports to api.ts
+- add extractAPIError type declaration to api.d.ts
+- resolve TypeScript compilation errors in error handling components
+- align documentation index version with VERSION file (1.14.2)
+- **e2e**: guard page text lookup for null
+- adapt backend tests to APIResponse format standardization
+- **e2e**: apply final eslint fixes and catch parameter cleanup
+- **e2e**: improve test robustness and error handling
+- **e2e**: resolve authentication state persistence in E2E tests
+- update markdown table column count in MID_PHASE_SUMMARY_v1.15.0.md
+- disable KeywordDetector and exclude false-positive files from detect-secrets
+- exclude .secrets.baseline from pre-commit hook modifications
+- add response_model to /admin/users endpoint for FastAPI validation
+- **backup**: avoid float assignment type mismatch
+- Standardize .gitattributes to enforce LF line endings
+- Add missing requests dependency to requirements.txt
+- Correct GitHub Actions workflow syntax errors (#58)
+- Sync all version references to 1.14.2 and fix line endings
+
+### Refactoring
+- **frontend**: improve type safety in RBAC and reports components
+
+### Documentation
+- add Phase 1 completion summary and final status report
+- add Phase 1 readiness review and consolidation summary (Jan 5, 2026)
+- consolidate and archive outdated/duplicate documentation
+- add Phase 1 team onboarding guide for Jan 7 kickoff
+- resolve decision points and add Phase 1 kickoff checklist
+- mark Phase 1 ready for kickoff with GitHub issues created
+- add comprehensive agent coordination system and update navigation
+- update ACTIVE_WORK_STATUS with completed PHASE1-002 and PHASE1-003
+- **release**: record latest CI status and coverage context
+- **session**: add final session summary documenting E2E and test failure analysis
+- add consolidation completion summary
+- add session files reference to documentation index
+- move session files to docs/development/sessions for better organization
+- add E2E testing guides to documentation index
+- add comprehensive E2E testing guide and troubleshooting FAQ
+- add retest validation completion summary
+- add final validation status and production readiness summary
+- add comprehensive validation report and quick reference for E2E fixes
+- update priority plan with E2E fixes and session summary
+- add comprehensive E2E testing session summary
+- update execution tracker for Error Message Improvements completion
+- update execution tracker for Business Metrics Dashboard completion
+- Add comprehensive CI workflow fixes documentation
+
+### Tests
+- **backend**: add error response helper functions and update test error handling
+
+### Chores
+- bump version to 1.15.0 and update CHANGELOG for Phase 1 release
+- organize workspace documentation and cleanup temp artifacts
+- Update .secrets.baseline after code changes
+- Update .secrets.baseline after requirements.txt change
+- Update detect-secrets baseline for false positives
+
+## [1.14.3] - 2026-01-05
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.15.0] - 2026-01-05
 
 **Release Type**: Major Feature Release (Phase 1 Complete)

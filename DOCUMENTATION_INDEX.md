@@ -2,8 +2,8 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** December 30, 2025 (v1.14.2)
-**Version:** 1.14.2
+**Last Updated:** December 30, 2025 (v1.15.0)
+**Version:** 1.15.0
 **Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start
@@ -51,7 +51,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.14.2.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.0.md`
 
 ### For Operations
 
@@ -335,31 +335,31 @@ docs/archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.14.2.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.0.md`
 
 ---
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.14.2)
+### December 24, 2025 (v1.15.0)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
 - ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
-- ✅ Added release notes for v1.14.2
+- ✅ Added release notes for v1.15.0
 - ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.14.2/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.15.0/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.14.2
+**Documentation Version:** v1.15.0
 **Last Updated:** December 24, 2025
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.14.2.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.15.0.
