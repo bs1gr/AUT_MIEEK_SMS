@@ -249,12 +249,7 @@ class EmailNotificationService:
     @staticmethod
     def is_enabled() -> bool:
         """Check if email service is configured."""
-        return (
-            hasattr(settings, "SMTP_HOST")
-            and settings.SMTP_HOST
-            and hasattr(settings, "SMTP_FROM_EMAIL")
-            and settings.SMTP_FROM_EMAIL
-        )
+        return bool(settings.SMTP_HOST and settings.SMTP_FROM and settings.SMTP_USER and settings.SMTP_PASSWORD)
 
     @staticmethod
     def send_email(
@@ -277,6 +272,12 @@ class EmailNotificationService:
         if not EmailNotificationService.is_enabled():
             logger.warning("Email service not configured (SMTP_HOST not set)")
             return False
+
+        # Type narrowing: is_enabled() ensures these are not None
+        assert settings.SMTP_HOST is not None
+        assert settings.SMTP_FROM is not None
+        assert settings.SMTP_USER is not None
+        assert settings.SMTP_PASSWORD is not None
 
         try:
             # Create message
@@ -301,9 +302,8 @@ class EmailNotificationService:
                 if use_tls:
                     server.starttls()
 
-                # Authenticate if credentials provided
-                if hasattr(settings, "SMTP_USER") and settings.SMTP_USER:
-                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                # Authenticate with credentials
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
 
                 server.send_message(msg)
 
