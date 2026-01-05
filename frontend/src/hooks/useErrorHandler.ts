@@ -22,9 +22,9 @@ import { extractAPIError } from '@/api/api';
 export interface ErrorState {
   code: string;
   message: string;
-  details?: string | Record<string, unknown>;
-  path?: string;
-  request_id?: string;
+  details?: string | Record<string, unknown> | null;
+  path?: string | null;
+  request_id?: string | null;
   status?: number;
 }
 

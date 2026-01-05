@@ -904,8 +904,8 @@ export function extractAPIError(errorResponse: any): {
   message: string;
   code: string;
   details?: unknown;
-  path?: string;
-  request_id?: string;
+  path?: string | null;
+  request_id?: string | null;
   status?: number;
 } {
   const data = errorResponse?.data;
