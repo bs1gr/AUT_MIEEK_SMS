@@ -134,7 +134,7 @@ export async function loginViaUI(page: Page, email: string, password: string) {
     console.error(`Page errors:`, pageErrors);
 
     // Check for error messages on page
-    const pageText = await page.textContent('body').catch(() => '');
+    const pageText = (await page.textContent('body').catch(() => '')) ?? '';
     const errorMessages = pageText.match(/error|invalid|fail|wrong/gi) || [];
     if (errorMessages.length > 0) {
       console.error(`Potential error messages found:`, errorMessages);
