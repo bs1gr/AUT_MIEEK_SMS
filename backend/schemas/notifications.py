@@ -40,8 +40,7 @@ class NotificationResponse(NotificationBase):
     created_at: datetime
     read_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class NotificationPreferenceBase(BaseModel):
@@ -112,8 +111,7 @@ class NotificationPreferenceResponse(NotificationPreferenceBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class NotificationListResponse(BaseModel):

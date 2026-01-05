@@ -278,6 +278,8 @@ class ImportValidator:
             "mimetypes",
             "platform",
             "copy",
+            "email",
+            "smtplib",
             "zoneinfo",
             "graphlib",
             "tomllib",
