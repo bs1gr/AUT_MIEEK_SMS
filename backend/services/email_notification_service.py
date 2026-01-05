@@ -282,7 +282,7 @@ class EmailNotificationService:
             # Create message
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
-            msg["From"] = settings.SMTP_FROM_EMAIL
+            msg["From"] = settings.SMTP_FROM
             msg["To"] = to_email
 
             # Add plain text version

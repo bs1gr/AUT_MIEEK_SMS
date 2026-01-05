@@ -239,6 +239,14 @@ class Settings(BaseSettings):
     PROMETHEUS_URL: str = os.environ.get("PROMETHEUS_URL", f"http://{_DEFAULT_MONITORING_HOST}:9090")
     LOKI_URL: str = os.environ.get("LOKI_URL", f"http://{_DEFAULT_MONITORING_HOST}:3100")
 
+    # SMTP / Email Configuration
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM: str | None = None
+    SMTP_USE_TLS: bool = True
+
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
         v: Any = getattr(self, "CORS_ORIGINS", "")

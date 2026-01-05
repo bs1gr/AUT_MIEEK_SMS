@@ -181,7 +181,7 @@ async def broadcast_notification(
         ...     data={"grade": 85, "course_id": 5}
         ... )
     """
-    payload = {
+    payload: dict[str, Any] = {
         "type": notification_type,
         "title": title,
         "message": message,
@@ -205,7 +205,7 @@ async def broadcast_system_message(title: str, message: str, data: Optional[dict
     Returns:
         Total number of connections message was sent to
     """
-    payload = {
+    payload: dict[str, Any] = {
         "type": "system_message",
         "title": title,
         "message": message,

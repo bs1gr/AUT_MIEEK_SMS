@@ -116,8 +116,8 @@ class NotificationService:
         if notification.user_id != user_id:
             raise PermissionError("Cannot update notification belonging to another user")
 
-        notification.is_read = True
-        notification.read_at = datetime.now(timezone.utc)
+        notification.is_read = True  # type: ignore[assignment]
+        notification.read_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
         db.commit()
         db.refresh(notification)
@@ -181,7 +181,7 @@ class NotificationService:
         if notification.user_id != user_id:
             raise PermissionError("Cannot delete notification belonging to another user")
 
-        notification.deleted_at = datetime.now(timezone.utc)
+        notification.deleted_at = datetime.now(timezone.utc)  # type: ignore[assignment]
         db.commit()
 
         logger.info(f"Deleted notification {notification_id}")
@@ -256,7 +256,7 @@ class NotificationPreferenceService:
             if hasattr(prefs, key):
                 setattr(prefs, key, value)
 
-        prefs.updated_at = datetime.now(timezone.utc)
+        prefs.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
         db.commit()
         db.refresh(prefs)
 
