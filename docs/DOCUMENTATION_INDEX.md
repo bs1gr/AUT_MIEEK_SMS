@@ -1,11 +1,11 @@
 # Documentation Index
 
-**Last Updated**: 2025-12-30
-**Version**: 1.14.2
+**Last Updated**: 2026-01-05
+**Version**: 1.15.0 (Phase 1 Preparation)
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes (1.9.9)**: Frontend routing validation, React Router v7 type safety improvements, decimal input parsing for international locales, comprehensive routing documentation added.
+> **Recent Changes (Jan 5, 2026)**: Documentation consolidation complete. Archived 10 outdated/duplicate files to `docs/archive/consolidation-2026-01/`. Cleaner hierarchy with Phase 1 documentation ready for team kickoff. See [DOCUMENTATION_AUDIT_2026-01-05.md](DOCUMENTATION_AUDIT_2026-01-05.md) for consolidation details.
 
 ---
 
