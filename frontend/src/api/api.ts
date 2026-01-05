@@ -893,4 +893,72 @@ export const getHealthStatus = async (): Promise<HealthStatus> => {
 
 export const formatDateForAPI = (date: Date | string): string => formatLocalDate(date);
 
+/**
+ * Extract and normalize API error responses
+ * Handles both old format (detail string) and new format (error object).
+ *
+ * @param {Object} errorResponse - Error response data
+ * @returns {Object} - Normalized error object { message, code, details, request_id }
+ */
+export function extractAPIError(errorResponse: any): {
+  message: string;
+  code: string;
+  details?: unknown;
+  path?: string;
+  request_id?: string;
+  status?: number;
+} {
+  const data = errorResponse?.data;
+
+  // New format: { success: false, error: { code, message, details, path }, meta }
+  if (data && typeof data === 'object' && data.success === false && data.error) {
+    return {
+      message: data.error.message || 'An error occurred',
+      code: data.error.code || 'UNKNOWN_ERROR',
+      details: data.error.details,
+      path: data.error.path,
+      request_id: data.meta?.request_id,
+      status: errorResponse?.status,
+    };
+  }
+
+  // Old format: { detail: "error message" }
+  if (data && data.detail) {
+    return {
+      message: data.detail,
+      code: 'HTTP_ERROR',
+      details: null,
+      path: null,
+      request_id: null,
+      status: errorResponse?.status,
+    };
+  }
+
+  // Fallback
+  return {
+    message: data?.message || 'An unexpected error occurred',
+    code: 'UNKNOWN_ERROR',
+    details: null,
+    path: null,
+    request_id: null,
+    status: errorResponse?.status,
+  };
+}
+
+/**
+ * Extract API response data with type safety
+ * @param response - The response object to extract data from
+ * @param defaultValue - Default value if data is not available
+ * @returns The extracted data or default value
+ */
+export function extractAPIResponseData<T = unknown>(response: any, defaultValue?: T): T {
+  // New format: { success: true, data: T, ... }
+  if (response && typeof response === 'object' && response.success === true && response.data !== undefined) {
+    return response.data as T;
+  }
+
+  // Old format: direct data (backward compatibility)
+  return defaultValue ?? (response as T);
+}
+
 export default apiClient;
