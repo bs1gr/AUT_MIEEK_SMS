@@ -22,10 +22,12 @@ interface ErrorMessageProps {
   showDetails?: boolean;
 }
 
+export type { ErrorMessageProps };
+
 export interface ErrorInfo {
   code: string;
   message: string;
-  details?: string | Record<string, any>;
+  details?: string | Record<string, unknown>;
   path?: string;
   request_id?: string;
   status?: number;

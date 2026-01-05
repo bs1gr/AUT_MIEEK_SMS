@@ -22,7 +22,7 @@ import { extractAPIError } from '@/api/api';
 export interface ErrorState {
   code: string;
   message: string;
-  details?: string | Record<string, any>;
+  details?: string | Record<string, unknown>;
   path?: string;
   request_id?: string;
   status?: number;
@@ -46,43 +46,46 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
    * Handle an error and format it for display
    */
   const handleError = useCallback(
-    (err: any, fallbackMessage?: string) => {
+    (err: unknown, fallbackMessage?: string) => {
       let errorState: ErrorState;
 
+      // Type guard for API errors
+      const apiError = err as Record<string, unknown> & { response?: Record<string, unknown>; request?: unknown; validation?: unknown; code?: string; message?: string; details?: unknown };
+
       // Handle API response errors (from axios)
-      if (err?.response?.data) {
-        const extracted = extractAPIError(err.response);
+      if (apiError?.response?.data) {
+        const extracted = extractAPIError(apiError.response);
         errorState = {
           code: extracted.code,
           message: extracted.message,
           details: extracted.details,
           path: extracted.path,
           request_id: extracted.request_id,
-          status: err.response.status,
+          status: extracted.status,
         };
       }
       // Handle network errors
-      else if (err?.request && !err?.response) {
+      else if (apiError?.request && !apiError?.response) {
         errorState = {
           code: 'NETWORK_ERROR',
           message: t('errors.NETWORK_ERROR', { defaultValue: 'Network connection failed' }),
-          details: err.message,
+          details: apiError.message as string | undefined,
         };
       }
       // Handle validation errors
-      else if (err?.validation) {
+      else if (apiError?.validation) {
         errorState = {
           code: 'VALIDATION_ERROR',
           message: t('errors.VALIDATION_ERROR', { defaultValue: 'Please check your input' }),
-          details: err.validation,
+          details: apiError.validation as string | Record<string, unknown> | undefined,
         };
       }
       // Handle generic errors
       else {
         errorState = {
-          code: err?.code || 'UNKNOWN_ERROR',
-          message: fallbackMessage || err?.message || t('errors.UNKNOWN_ERROR', { defaultValue: 'An error occurred' }),
-          details: err?.details,
+          code: (apiError?.code as string) || 'UNKNOWN_ERROR',
+          message: fallbackMessage || (apiError?.message as string) || t('errors.UNKNOWN_ERROR', { defaultValue: 'An error occurred' }),
+          details: apiError?.details as string | Record<string, unknown> | undefined,
         };
       }
 

@@ -3,7 +3,7 @@
  * Used by ErrorMessage component and error handling throughout the app
  */
 
-export const errors_en = {
+const errors_en = {
   // Validation errors
   VALIDATION_ERROR: 'Please check your input and try again',
   VALIDATION_REQUIRED: 'This field is required',
@@ -58,7 +58,7 @@ export const errors_en = {
 };
 
 // Add suggestions as separate keys
-export const error_suggestions_en = {
+const error_suggestions_en = {
   'VALIDATION_ERROR.suggestion': 'Please check the highlighted fields and correct any errors',
   'NETWORK_ERROR.suggestion': 'Check your internet connection and try again',
   'NETWORK_TIMEOUT.suggestion': 'The request took too long. Please try again',
@@ -71,4 +71,9 @@ export const error_suggestions_en = {
   'DUPLICATE_EMAIL.suggestion': 'Try using a different email address or reset your password if this is your account',
   'INTERNAL_SERVER_ERROR.suggestion': 'Please try again in a few moments. If the problem persists, contact support',
   'SERVICE_UNAVAILABLE.suggestion': 'The service is temporarily unavailable. Please try again later',
+};
+
+export default {
+  ...errors_en,
+  ...error_suggestions_en,
 };

@@ -3,7 +3,7 @@
  * Used by ErrorMessage component and error handling throughout the app
  */
 
-export const errors_el = {
+const errors_el = {
   // Validation errors
   VALIDATION_ERROR: 'Παρακαλώ ελέγξτε την εισαγωγή σας και προσπαθήστε ξανά',
   VALIDATION_REQUIRED: 'Αυτό το πεδίο είναι υποχρεωτικό',
@@ -58,7 +58,7 @@ export const errors_el = {
 };
 
 // Add suggestions as separate keys
-export const error_suggestions_el = {
+const error_suggestions_el = {
   'VALIDATION_ERROR.suggestion': 'Παρακαλώ ελέγξτε τα επισημασμένα πεδία και διορθώστε τυχόν σφάλματα',
   'NETWORK_ERROR.suggestion': 'Ελέγξτε την σύνδεσή σας στο διαδίκτυο και προσπαθήστε ξανά',
   'NETWORK_TIMEOUT.suggestion': 'Το αίτημα διήρκεσε πολύ. Παρακαλώ προσπαθήστε ξανά',
@@ -71,4 +71,9 @@ export const error_suggestions_el = {
   'DUPLICATE_EMAIL.suggestion': 'Δοκιμάστε να χρησιμοποιήσετε διαφορετικό email ή επαναφέρετε τον κωδικό πρόσβασης εάν πρόκειται για το λογαριασμό σας',
   'INTERNAL_SERVER_ERROR.suggestion': 'Παρακαλώ προσπαθήστε ξανά σε μερικές στιγμές. Εάν το πρόβλημα επιμένει, επικοινωνήστε με την υποστήριξη',
   'SERVICE_UNAVAILABLE.suggestion': 'Η υπηρεσία είναι προσωρινά μη διαθέσιμη. Παρακαλώ προσπαθήστε ξανά αργότερα',
+};
+
+export default {
+  ...errors_el,
+  ...error_suggestions_el,
 };
