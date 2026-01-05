@@ -3,7 +3,7 @@
  * Displays real-time notifications with settings
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../api/api';

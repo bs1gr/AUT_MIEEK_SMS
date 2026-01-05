@@ -3,7 +3,7 @@
  * Shows unread notification count and toggles notification center
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/api';
 import NotificationCenter from './NotificationCenter';
@@ -29,7 +29,7 @@ export function NotificationBell({ authToken }: NotificationBellProps) {
   const { isConnected, notifications: realtimeNotifications } = useNotificationWebSocket(authToken || null);
 
   // Fetch unread count
-  const { data, refetch, isLoading } = useQuery<UnreadCountResponse>({
+  const { data, refetch } = useQuery<UnreadCountResponse>({
     queryKey: ['unreadNotificationCount'],
     queryFn: async () => {
       const response = await api.get('/notifications/unread-count');

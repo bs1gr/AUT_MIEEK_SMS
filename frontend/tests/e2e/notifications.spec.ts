@@ -93,12 +93,6 @@ async function getUnreadCount(page: Page): Promise<number> {
 }
 
 test.describe('Real-Time Notifications E2E', () => {
-  let secondPage: Page;
-
-  test.beforeAll(async ({ browser }) => {
-    // This runs once before all tests in this describe block
-  });
-
   test.beforeEach(async ({ page }) => {
     // Login before each test
     await loginAsTeacher(page);
@@ -106,21 +100,8 @@ test.describe('Real-Time Notifications E2E', () => {
     await waitForWebSocketReady(page);
   });
 
-  test.afterEach(async ({ page }) => {
-    // Cleanup after each test
-    try {
-      await page.close().catch(() => {});
-    } catch {
-      // Page may already be closed
-    }
-
-    if (secondPage) {
-      try {
-        await secondPage.close().catch(() => {});
-      } catch {
-        // Page may already be closed
-      }
-    }
+  test.afterEach(async () => {
+    // Cleanup
   });
 
   test('should display notification bell icon', async ({ page }) => {
@@ -410,7 +391,7 @@ test.describe('Real-Time Notifications E2E', () => {
 
     // Try to use the page (should handle offline gracefully)
     const bellButton = page.locator('button[title="Notifications"]');
-    const isClickable = await bellButton.isEnabled().catch(() => false);
+    await expect(bellButton).toBeEnabled();
 
     // Go back online
     await context.setOffline(false);
@@ -445,10 +426,10 @@ test.describe('Real-Time Notifications E2E', () => {
 
     // Look for timestamp text (date/time format)
     const timestamp = notification.locator('span').filter({ hasText: /\d+.*\d+.*\d+/ }).first();
-    const text = await timestamp.textContent().catch(() => '');
+    const text = await timestamp.textContent();
 
     // Should contain some kind of date/time info
-    expect(text.length).toBeGreaterThan(0);
+    expect((text || '').length).toBeGreaterThan(0);
   });
 
   test('should handle pagination in notification center', async ({ page }) => {
