@@ -310,6 +310,29 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Supersedes autosave summaries (archived to `archive/autosave-2025-12-06/`)
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
+**E2E Testing** (NEW - v1.15.0):
+
+- **[E2E_TESTING_GUIDE.md](../E2E_TESTING_GUIDE.md)** ⭐ - Comprehensive E2E testing guide
+  - Quick start (5-10 minutes)
+  - Running tests (all, specific, debug, watch modes)
+  - Debugging failing tests (inspector, screenshots, logging, patterns)
+  - Common issues & solutions (auth, selectors, timeouts, CI differences)
+  - Best practices (do's and don'ts)
+  - Architecture overview and authentication flow
+  - CI integration with GitHub Actions
+- **[E2E_TESTING_TROUBLESHOOTING.md](../E2E_TESTING_TROUBLESHOOTING.md)** ⭐ - Troubleshooting & FAQ
+  - Quick diagnosis flow
+  - 15+ FAQ entries with solutions
+  - Common fixes by symptom
+  - Get help checklist with diagnostic collection
+- **[E2E_AUTHENTICATION_FIX.md](../E2E_AUTHENTICATION_FIX.md)** - Authentication blocker resolution (v1.15.0)
+  - Issue: Tests redirect back to login after successful authentication
+  - Root cause: Missing user profile object in localStorage
+  - Solution: loginViaAPI() now fetches and sets both JWT token and user object
+  - Validation and verification procedures
+- **[development/E2E_AUTHENTICATION_FIXES.md](development/E2E_AUTHENTICATION_FIXES.md)** - Technical deep dive on authentication fixes
+- **[development/E2E_SESSION_SUMMARY_2025-01-05.md](development/E2E_SESSION_SUMMARY_2025-01-05.md)** - Complete session record of E2E fix implementation
+
 ### 🚀 For DevOps/Operators
 
 **Start here**: [deployment/INDEX.md](deployment/INDEX.md)
