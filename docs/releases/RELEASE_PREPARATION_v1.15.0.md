@@ -18,6 +18,7 @@
 - [x] Audit improvements documented in Phase 1 plan
 - [x] Documentation consolidated and single source of truth maintained
 - [x] Implementation patterns available for code copy-paste
+- [x] Latest CI (Jan 5, 2026) for commits `6d72ca496` and `fce18340d`: CI/CD pipeline green (backend + frontend tests, lint, build, Docker), coverage locally below fail-under due to optional components but no test failures
 
 **Test Results**:
 - Backend: 304 tests passed, 3 skipped (integration tests disabled)
