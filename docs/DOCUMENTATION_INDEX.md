@@ -1,11 +1,11 @@
 # Documentation Index
 
 **Last Updated**: 2026-01-05
-**Version**: 1.15.0 (Phase 1 Preparation)
+**Version**: 1.14.2
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes (Jan 5, 2026)**: Documentation consolidation complete. Archived 10 outdated/duplicate files to `docs/archive/consolidation-2026-01/`. Cleaner hierarchy with Phase 1 documentation ready for team kickoff. See [DOCUMENTATION_AUDIT_2026-01-05.md](DOCUMENTATION_AUDIT_2026-01-05.md) for consolidation details.
+> **Recent Changes (Jan 5, 2026)**: Documentation consolidation complete. Archived 10 outdated/duplicate files to `docs/archive/consolidation-2026-01/`. Phase 1 documentation ready for team kickoff (targeting v1.15.0 release on Jan 24). See [PHASE1_READINESS_REVIEW.md](PHASE1_READINESS_REVIEW.md), [PHASE1_REVIEW_FINDINGS.md](PHASE1_REVIEW_FINDINGS.md), and [CONSOLIDATION_COMPLETE_2026-01-05.md](CONSOLIDATION_COMPLETE_2026-01-05.md).
 
 ---
 
