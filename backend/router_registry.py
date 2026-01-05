@@ -100,6 +100,7 @@ def register_routers(app: FastAPI) -> None:
     _try_add("backend.routers.routers_rbac", "RBAC")
     _try_add("backend.routers.routers_metrics", "Metrics")
     _try_add("backend.routers.routers_feedback", "Feedback")
+    _try_add("backend.routers.routers_notifications", "Notifications")
 
     # Control router is mounted without the global /api/v1 prefix to keep
     # canonical paths at /control/api/* (unify prefixes and avoid double

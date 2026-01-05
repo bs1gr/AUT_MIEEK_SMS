@@ -159,3 +159,11 @@ from .metrics import GradeMetrics as GradeMetrics
 from .metrics import AttendanceMetrics as AttendanceMetrics
 from .metrics import DashboardMetrics as DashboardMetrics
 from .users import UserResponse as UserResponse
+from .notifications import NotificationCreate as NotificationCreate
+from .notifications import NotificationResponse as NotificationResponse
+from .notifications import NotificationUpdate as NotificationUpdate
+from .notifications import NotificationPreferenceCreate as NotificationPreferenceCreate
+from .notifications import NotificationPreferenceResponse as NotificationPreferenceResponse
+from .notifications import NotificationPreferenceUpdate as NotificationPreferenceUpdate
+from .notifications import NotificationListResponse as NotificationListResponse
+from .notifications import BroadcastNotificationCreate as BroadcastNotificationCreate
