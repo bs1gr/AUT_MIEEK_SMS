@@ -95,14 +95,88 @@ export function attachAuthHeader(config) {
   return config;
 }
 
+/**
+ * Helper to extract data from APIResponse wrapper (v1.15.0+).
+ * Handles both old format (direct data) and new format (APIResponse wrapper).
+ *
+ * @param {Object} response - Axios response object
+ * @returns {*} - Extracted data
+ */
+export function extractAPIResponseData(response) {
+  const data = response?.data;
+
+  // New format: { success, data, error, meta }
+  if (data && typeof data === 'object' && 'success' in data && 'meta' in data) {
+    // Log request ID for debugging
+    if (data.meta?.request_id) {
+      console.debug(`[api] Request ID: ${data.meta.request_id}`);
+    }
+
+    // Return the actual data field
+    return data.data;
+  }
+
+  // Old format: direct data (backward compatibility)
+  return data;
+}
+
+/**
+ * Helper to extract error details from APIResponse error format (v1.15.0+).
+ * Handles both old format (detail string) and new format (error object).
+ *
+ * @param {Object} errorResponse - Error response data
+ * @returns {Object} - Normalized error object { message, code, details, request_id }
+ */
+export function extractAPIError(errorResponse) {
+  const data = errorResponse?.data;
+
+  // New format: { success: false, error: { code, message, details, path }, meta }
+  if (data && typeof data === 'object' && data.success === false && data.error) {
+    return {
+      message: data.error.message || 'An error occurred',
+      code: data.error.code || 'UNKNOWN_ERROR',
+      details: data.error.details,
+      path: data.error.path,
+      request_id: data.meta?.request_id,
+    };
+  }
+
+  // Old format: { detail: "error message" }
+  if (data && data.detail) {
+    return {
+      message: data.detail,
+      code: 'HTTP_ERROR',
+      details: null,
+      path: null,
+      request_id: null,
+    };
+  }
+
+  // Fallback
+  return {
+    message: data?.message || 'An unexpected error occurred',
+    code: 'UNKNOWN_ERROR',
+    details: null,
+    path: null,
+    request_id: null,
+  };
+}
+
 // Response interceptor (for error handling)
 let hasRetriedRelative = false;
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Standard logging & classification
+    // Standard logging & classification with new format support
     if (error.response) {
-      console.error('API Error:', error.response.data);
+      const errorInfo = extractAPIError(error.response);
+      console.error('API Error:', {
+        message: errorInfo.message,
+        code: errorInfo.code,
+        request_id: errorInfo.request_id,
+        path: errorInfo.path,
+      });
+
       if (error.response.status === 404) {
         console.error('Resource not found');
       } else if (error.response.status === 500) {
