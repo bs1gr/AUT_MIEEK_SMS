@@ -265,6 +265,28 @@ declare module '*api.js' {
   export const dashboardAPI: unknown;
   export const filesAPI: unknown;
   export const coursesEnrollmentAPI: unknown;
+
+  /**
+   * Extract and normalize API error responses
+   * Handles both old format (detail string) and new format (error object).
+   */
+  export function extractAPIError(errorResponse: any): {
+    message: string;
+    code: string;
+    details?: unknown;
+    path?: string;
+    request_id?: string;
+    status?: number;
+  };
+
+  /**
+   * Extract API response data with type safety
+   */
+  export function extractAPIResponseData<T = unknown>(
+    response: any,
+    defaultValue?: T
+  ): T;
+
   const _default: unknown;
   export default _default;
 }
