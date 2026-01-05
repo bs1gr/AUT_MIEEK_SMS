@@ -58,7 +58,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
         errorState = {
           code: extracted.code,
           message: extracted.message,
-          details: extracted.details,
+          details: extracted.details as string | Record<string, unknown> | undefined,
           path: extracted.path,
           request_id: extracted.request_id,
           status: extracted.status,
