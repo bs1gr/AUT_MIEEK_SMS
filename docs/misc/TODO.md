@@ -1,12 +1,21 @@
 # Project TODO
 
-**Last updated**: 2025-12-14 (Load Testing Infrastructure Complete)
-**Review Score**: 10/10 (Production Ready - $11.12.4)
-**Current Version**: 1.12.9
+**⚠️ DEPRECATED**: This file is kept for historical reference only.
+**➡️ USE THIS INSTEAD**: [docs/ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) ← **Single Source of Truth**
+
+**For agents/developers**: Read [docs/development/AGENT_CONTINUATION_PROTOCOL.md](../development/AGENT_CONTINUATION_PROTOCOL.md) to understand how to pick up work without duplication.
 
 ---
 
-## 🔄 In Progress (v1.12.x Phase 2.3 - Integration & UI)
+**Last updated**: 2026-01-05 (Migrated to ACTIVE_WORK_STATUS)
+**Current Version**: 1.14.2 (v1.15.0 in Phase 1 planning)
+**Active Release**: [RELEASE_PREPARATION_v1.15.0.md](../releases/RELEASE_PREPARATION_v1.15.0.md)
+
+---
+
+## 🔄 In Progress (v1.15.0 Phase 1 - Infrastructure Improvements)
+
+**➡️ CURRENT STATUS**: See [docs/ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) for latest
 
 ### Phase 2.3: Integration & Frontend Components
 

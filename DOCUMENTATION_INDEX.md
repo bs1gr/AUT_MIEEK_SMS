@@ -15,7 +15,7 @@
 3. Choose your role below for specialized guides
 
 **Returning developer?** Go straight to: `docs/DOCUMENTATION_INDEX.md`
-
+**AI Agent picking up work?** → **`AGENT_QUICK_START.md`** (5 minutes to understand state + continue)
 ---
 
 ## 📍 Main Documentation Index
@@ -38,6 +38,7 @@ All documentation is organized under `docs/` into four main categories:
 - **First time?** → Read `START_HERE.md` (5 minutes)
 - **Need the overview?** → Read `README.md` (comprehensive guide)
 - **Want to deploy?** → Read `DEPLOYMENT_READINESS.md` (pre-deployment checklist)
+- **AI/Agent picking up work?** → Read `AGENT_QUICK_START.md` (understand state without re-planning)
 
 ### For Development & Architecture
 
@@ -68,14 +69,16 @@ All documentation is organized under `docs/` into four main categories:
 
 | File | Purpose | Audience |
 |------|---------|----------|
+| `AGENT_QUICK_START.md` | **How AI agents pick up work without duplication** | **Agents/Automation** |
 | `START_HERE.md` | First-time user guide | Everyone |
 | `README.md` | Complete project overview | Everyone |
 | `CHANGELOG.md` | Version history and changes | Developers |
-| `TODO.md` | Project status and roadmap | Team members |
+| `TODO.md` | Project status and roadmap (DEPRECATED — use ACTIVE_WORK_STATUS.md) | Team members |
 | `DEPLOYMENT_READINESS.md` | Pre-deployment checklist | Operators |
 | `CONTRIBUTING.md` | Contribution guidelines | Developers |
 | `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |
 | `CODEBASE_AUDIT_REPORT.md` | Detailed audit analysis | Technical leads |
+| `docs/ACTIVE_WORK_STATUS.md` | **Current state of all work (single source of truth)** | **Everyone** |
 | `docs/releases/` | Release documentation archive | Release managers |
 
 ### Development Documentation
