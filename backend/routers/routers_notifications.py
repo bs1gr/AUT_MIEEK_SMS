@@ -8,8 +8,9 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
-from backend.dependencies import get_db, optional_require_role
+from backend.db import get_session as get_db
 from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
+from backend.routers.routers_auth import optional_require_role
 from backend.schemas import (
     NotificationListResponse,
     NotificationPreferenceResponse,
@@ -24,7 +25,28 @@ from backend.models import User
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
+router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+# ==================== Helper Functions ====================
+
+
+def _get_user_id(current_user) -> int | None:
+    """Extract user_id from current_user (handles both dict and SimpleNamespace)."""
+    if current_user is None:
+        return None
+    if isinstance(current_user, dict):
+        return current_user.get("user_id")
+    return getattr(current_user, "id", None)
+
+
+def _get_user_role(current_user) -> str | None:
+    """Extract role from current_user (handles both dict and SimpleNamespace)."""
+    if current_user is None:
+        return None
+    if isinstance(current_user, dict):
+        return current_user.get("role")
+    return getattr(current_user, "role", None)
 
 
 # ==================== Notification WebSocket ====================
@@ -96,6 +118,98 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
 # ==================== Notification Management ====================
 
 
+# Put specific routes first to avoid ID matching
+@router.get("/unread-count", response_model=dict)
+@limiter.limit(RATE_LIMIT_READ)
+async def get_unread_count(
+    request: Request,
+    current_user: dict = Depends(optional_require_role("user")),
+    db: Session = Depends(get_db),
+):
+    """Get count of unread notifications for current user.
+
+    Returns:
+        Dictionary with unread_count
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    user_id = _get_user_id(current_user)
+    count = NotificationService.get_unread_count(db, user_id)
+
+    return {"unread_count": count}
+
+
+@router.post("/read-all", response_model=dict)
+@limiter.limit(RATE_LIMIT_WRITE)
+async def mark_all_as_read(
+    request: Request,
+    current_user: dict = Depends(optional_require_role("user")),
+    db: Session = Depends(get_db),
+):
+    """Mark all notifications as read for current user.
+
+    Returns:
+        Dictionary with count of marked notifications
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    user_id = _get_user_id(current_user)
+    count = NotificationService.mark_all_as_read(db, user_id)
+
+    return {"marked_count": count}
+
+
+# Preferences routes (specific paths before generic ID routes)
+@router.get("/preferences", response_model=NotificationPreferenceResponse)
+@limiter.limit(RATE_LIMIT_READ)
+async def get_preferences(
+    request: Request,
+    current_user: dict = Depends(optional_require_role("user")),
+    db: Session = Depends(get_db),
+):
+    """Get notification preferences for current user.
+
+    Returns:
+        NotificationPreferenceResponse
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    user_id = _get_user_id(current_user)
+    prefs = NotificationPreferenceService.get_or_create_preferences(db, user_id)
+
+    return NotificationPreferenceResponse.model_validate(prefs)
+
+
+@router.put("/preferences", response_model=NotificationPreferenceResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+async def update_preferences(
+    request: Request,
+    updates: NotificationPreferenceUpdate,
+    current_user: dict = Depends(optional_require_role("user")),
+    db: Session = Depends(get_db),
+):
+    """Update notification preferences for current user.
+
+    Returns:
+        Updated NotificationPreferenceResponse
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    user_id = _get_user_id(current_user)
+
+    # Convert to dict and remove None values
+    update_dict = {k: v for k, v in updates.model_dump().items() if v is not None}
+
+    prefs = NotificationPreferenceService.update_preferences(db, user_id, update_dict)
+
+    return NotificationPreferenceResponse.model_validate(prefs)
+
+
+# Generic list route (after specific routes)
 @router.get("/", response_model=NotificationListResponse)
 @limiter.limit(RATE_LIMIT_READ)
 async def get_notifications(
@@ -119,7 +233,7 @@ async def get_notifications(
     if not current_user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    user_id = current_user.get("user_id")
+    user_id = _get_user_id(current_user)
 
     notifications, total = NotificationService.get_notifications(
         db, user_id=user_id, skip=skip, limit=limit, unread_only=unread_only
@@ -132,27 +246,6 @@ async def get_notifications(
         unread_count=unread_count,
         items=[NotificationResponse.model_validate(n) for n in notifications],
     )
-
-
-@router.get("/unread-count", response_model=dict)
-@limiter.limit(RATE_LIMIT_READ)
-async def get_unread_count(
-    request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
-    db: Session = Depends(get_db),
-):
-    """Get count of unread notifications for current user.
-
-    Returns:
-        Dictionary with unread_count
-    """
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    user_id = current_user.get("user_id")
-    count = NotificationService.get_unread_count(db, user_id)
-
-    return {"unread_count": count}
 
 
 @router.put("/{notification_id}", response_model=NotificationResponse)
@@ -175,7 +268,7 @@ async def update_notification(
     if not current_user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    user_id = current_user.get("user_id")
+    user_id = _get_user_id(current_user)
 
     if update.is_read:
         notification = NotificationService.mark_as_read(db, notification_id, user_id)
@@ -213,34 +306,13 @@ async def mark_as_read(
     if not current_user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    user_id = current_user.get("user_id")
+    user_id = _get_user_id(current_user)
 
     notification = NotificationService.mark_as_read(db, notification_id, user_id)
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     return NotificationResponse.model_validate(notification)
-
-
-@router.post("/read-all", response_model=dict)
-@limiter.limit(RATE_LIMIT_WRITE)
-async def mark_all_as_read(
-    request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
-    db: Session = Depends(get_db),
-):
-    """Mark all notifications as read for current user.
-
-    Returns:
-        Dictionary with count of marked notifications
-    """
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    user_id = current_user.get("user_id")
-    count = NotificationService.mark_all_as_read(db, user_id)
-
-    return {"marked_count": count}
 
 
 @router.delete("/{notification_id}")
@@ -262,63 +334,13 @@ async def delete_notification(
     if not current_user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    user_id = current_user.get("user_id")
+    user_id = _get_user_id(current_user)
 
     success = NotificationService.delete_notification(db, notification_id, user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     return {"detail": "Notification deleted successfully"}
-
-
-# ==================== Notification Preferences ====================
-
-
-@router.get("/preferences", response_model=NotificationPreferenceResponse)
-@limiter.limit(RATE_LIMIT_READ)
-async def get_preferences(
-    request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
-    db: Session = Depends(get_db),
-):
-    """Get notification preferences for current user.
-
-    Returns:
-        NotificationPreferenceResponse
-    """
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    user_id = current_user.get("user_id")
-    prefs = NotificationPreferenceService.get_or_create_preferences(db, user_id)
-
-    return NotificationPreferenceResponse.model_validate(prefs)
-
-
-@router.put("/preferences", response_model=NotificationPreferenceResponse)
-@limiter.limit(RATE_LIMIT_WRITE)
-async def update_preferences(
-    request: Request,
-    updates: NotificationPreferenceUpdate,
-    current_user: dict = Depends(optional_require_role("user")),
-    db: Session = Depends(get_db),
-):
-    """Update notification preferences for current user.
-
-    Returns:
-        Updated NotificationPreferenceResponse
-    """
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    user_id = current_user.get("user_id")
-
-    # Convert to dict and remove None values
-    update_dict = {k: v for k, v in updates.model_dump().items() if v is not None}
-
-    prefs = NotificationPreferenceService.update_preferences(db, user_id, update_dict)
-
-    return NotificationPreferenceResponse.model_validate(prefs)
 
 
 # ==================== Admin Broadcast ====================
@@ -340,7 +362,7 @@ async def broadcast_notification_endpoint(
     Returns:
         Dictionary with broadcast statistics
     """
-    if not current_user or current_user.get("role") != "admin":
+    if not current_user or _get_user_role(current_user) != "admin":
         raise HTTPException(status_code=403, detail="Only administrators can broadcast notifications")
 
     user_ids = broadcast.user_ids or []

@@ -4,9 +4,10 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/api';
 import NotificationCenter from './NotificationCenter';
+import { useNotificationWebSocket } from '../services/notificationWebSocket';
 
 interface UnreadCountResponse {
   unread_count: number;
@@ -22,6 +23,10 @@ interface NotificationBellProps {
  */
 export function NotificationBell({ authToken }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Initialize WebSocket for real-time notifications
+  const { isConnected, notifications: realtimeNotifications } = useNotificationWebSocket(authToken || null);
 
   // Fetch unread count
   const { data, refetch, isLoading } = useQuery<UnreadCountResponse>({
@@ -44,6 +49,15 @@ export function NotificationBell({ authToken }: NotificationBellProps) {
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetch]);
 
+  // When real-time notifications arrive, refetch unread count and notification list
+  useEffect(() => {
+    if (realtimeNotifications.length > 0) {
+      console.log('[NotificationBell] Real-time notification received, refetching data');
+      refetch(); // Refetch unread count
+      queryClient.invalidateQueries({ queryKey: ['notifications'] }); // Invalidate notification list
+    }
+  }, [realtimeNotifications, refetch, queryClient]);
+
   const handleOpen = useCallback(() => {
     setIsOpen(true);
   }, []);
@@ -64,7 +78,7 @@ export function NotificationBell({ authToken }: NotificationBellProps) {
       <button
         onClick={handleOpen}
         className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-        title="Notifications"
+        title={`Notifications${isConnected ? ' (Live)' : ''}`}
       >
         <svg
           className="w-5 h-5"
@@ -79,6 +93,11 @@ export function NotificationBell({ authToken }: NotificationBellProps) {
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
           />
         </svg>
+
+        {/* WebSocket connection indicator */}
+        {isConnected && (
+          <span className="absolute top-1 left-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Live updates active" />
+        )}
 
         {/* Unread badge */}
         {unreadCount > 0 && (

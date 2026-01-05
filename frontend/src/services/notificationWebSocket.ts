@@ -162,9 +162,24 @@ export function useNotificationWebSocket(token: string | null) {
   const clientRef = useRef<NotificationWebSocketClient | null>(null);
 
   const getBaseUrl = useCallback(() => {
+    // Get API URL from environment or default
     const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
-    // Remove /api/v1 suffix to get base URL
-    return apiUrl.replace(/\/api\/v1$/, '') || window.location.origin;
+
+    // Build WebSocket URL
+    let wsUrl: string;
+
+    if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+      // Absolute URL - convert to WebSocket protocol
+      wsUrl = apiUrl.replace(/^http/, 'ws');
+    } else {
+      // Relative URL - build from current location
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      wsUrl = `${protocol}//${host}`;
+    }
+
+    // Remove /api/v1 suffix if present to get base URL
+    return wsUrl.replace(/\/api\/v1$/, '');
   }, []);
 
   const handleNotification = useCallback((notification: NotificationPayload) => {

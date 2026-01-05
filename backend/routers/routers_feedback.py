@@ -13,7 +13,7 @@ from backend.routers.routers_auth import optional_require_role
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 import logging
 
-router = APIRouter(prefix="/api/v1/feedback", tags=["Feedback"])
+router = APIRouter(prefix="/feedback", tags=["Feedback"])
 logger = logging.getLogger(__name__)
 
 
