@@ -14,6 +14,7 @@ from datetime import date
 
 from backend.tests.utils import get_error_message
 
+from conftest import get_error_detail
 
 import pytest
 
@@ -143,7 +144,7 @@ def test_enroll_nonexistent_course(client):
     response = client.post("/api/v1/enrollments/course/99999", json={"student_ids": [1]})
 
     assert response.status_code == 404
-    detail = response.json()["detail"]
+    detail = get_error_detail(response.json())
     assert "Course" in detail and "not found" in detail
 
 
@@ -246,7 +247,7 @@ def test_list_course_enrollments_not_found(client):
     """Listing enrollments for non-existent course should fail"""
     response = client.get("/api/v1/enrollments/course/99999")
     assert response.status_code == 404
-    detail = response.json()["detail"]
+    detail = get_error_detail(response.json())
     assert "Course" in detail and "not found" in detail
 
 
@@ -297,7 +298,7 @@ def test_list_student_enrollments_not_found(client):
     """Listing enrollments for non-existent student should fail"""
     response = client.get("/api/v1/enrollments/student/99999")
     assert response.status_code == 404
-    detail = response.json()["detail"]
+    detail = get_error_detail(response.json())
     assert "Student" in detail and "not found" in detail
 
 
@@ -343,7 +344,7 @@ def test_list_enrolled_students_not_found(client):
     """Listing enrolled students for non-existent course should fail"""
     response = client.get("/api/v1/enrollments/course/99999/students")
     assert response.status_code == 404
-    detail = response.json()["detail"]
+    detail = get_error_detail(response.json())
     assert "Course" in detail and "not found" in detail
 
 

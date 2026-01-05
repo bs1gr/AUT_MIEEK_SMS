@@ -4,6 +4,7 @@ from typing import Dict
 import pytest
 from backend.config import settings
 from backend.routers import routers_grades
+from conftest import get_error_detail
 
 # Helper functions for grades router tests
 pytestmark = pytest.mark.auth_required
@@ -189,7 +190,7 @@ def test_create_grade_weight_exceeds_limit(client):
     payload = make_grade_payload(1, student_id=student["id"], course_id=course["id"], weight=3.5)
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 422
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert any("weight" in str(err).lower() for err in detail)
 
 
@@ -512,7 +513,7 @@ def test_grades_date_range_filtering_assigned_and_submitted(client):
         f"/api/v1/grades/?start_date={(today).isoformat()}&end_date={(today - timedelta(days=1)).isoformat()}"
     )
     assert bad.status_code == 400
-    bad_detail = bad.json()["detail"]
+    bad_detail = get_error_detail(bad.json())
     assert bad_detail["message"] == "start_date must be before end_date"
     assert bad_detail["error_id"] == "ERR_VALIDATION"
 
@@ -533,7 +534,7 @@ def test_create_grade_missing_student(client):
     payload = make_grade_payload(1, student_id=99999, course_id=course["id"])
     r = client.post("/api/v1/grades/", json=payload)
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "Student" in detail and "not found" in detail
 
 
@@ -543,7 +544,7 @@ def test_get_course_grades_missing_course(client):
     """Requesting grades for a missing course returns 404."""
     r = client.get("/api/v1/grades/course/99999")
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "Course" in detail and "not found" in detail
 
 
@@ -553,7 +554,7 @@ def test_update_grade_not_found(client):
     """Updating a non-existent grade returns 404."""
     r = client.put("/api/v1/grades/99999", json={"grade": 90})
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "Grade" in detail and "not found" in detail
 
 
@@ -563,7 +564,7 @@ def test_delete_grade_not_found(client):
     """Deleting a non-existent grade returns 404."""
     r = client.delete("/api/v1/grades/99999")
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "Grade" in detail and "not found" in detail
 
 
@@ -856,7 +857,7 @@ def test_get_grade_success_and_not_found(client):
 
     r_missing = client.get("/api/v1/grades/99999")
     assert r_missing.status_code == 404
-    missing_detail = r_missing.json()["detail"]
+    missing_detail = get_error_detail(r_missing.json())
     assert "Grade" in missing_detail and "not found" in missing_detail
 
 

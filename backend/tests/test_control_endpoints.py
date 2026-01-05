@@ -9,6 +9,8 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from conftest import get_error_detail
+
 import backend.main as main
 import backend.routers.routers_control as control
 from backend import environment
@@ -147,7 +149,7 @@ def test_install_frontend_deps_missing_package_json(monkeypatch, client):
 
     resp = client.post("/control/api/operations/install-frontend-deps")
     assert resp.status_code == 404
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_PACKAGE_JSON_MISSING.value
     assert Path(detail["context"]["path"]).name == "package.json"
 
@@ -157,7 +159,7 @@ def test_install_frontend_deps_npm_missing(monkeypatch, client):
 
     resp = client.post("/control/api/operations/install-frontend-deps")
     assert resp.status_code == 400
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_NPM_NOT_FOUND.value
     assert detail["context"]["command"] == "npm --version"
 
@@ -175,7 +177,7 @@ def test_install_backend_deps_missing_requirements(monkeypatch, client):
 
     resp = client.post("/control/api/operations/install-backend-deps")
     assert resp.status_code == 404
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_REQUIREMENTS_MISSING.value
     assert Path(detail["context"]["path"]).name == "requirements.txt"
 
@@ -185,7 +187,7 @@ def test_docker_build_when_docker_not_running(monkeypatch, client):
 
     resp = client.post("/control/api/operations/docker-build")
     assert resp.status_code == 400
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
 
 
@@ -194,7 +196,7 @@ def test_docker_update_volume_when_docker_not_running(monkeypatch, client):
 
     resp = client.post("/control/api/operations/docker-update-volume")
     assert resp.status_code == 400
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
 
 
@@ -220,7 +222,7 @@ def test_download_database_backup_not_found(client):
     missing = f"missing_backup_{uuid.uuid4().hex}.db"
     resp = client.get(f"/control/api/operations/database-backups/{missing}/download")
     assert resp.status_code == 404
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_BACKUP_NOT_FOUND.value
 
 

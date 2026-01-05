@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Dict
 
+from conftest import get_error_detail
+
 # Uses the TestClient fixture from conftest
 
 
@@ -55,7 +57,7 @@ def test_create_student_duplicate_email(client):
     assert r1.status_code == 201
     r2 = client.post("/api/v1/students/", json=p2)
     assert r2.status_code == 400
-    payload = r2.json()["detail"]
+    payload = get_error_detail(r2.json())
     assert payload["message"] == "Email already registered"
     assert payload["error_id"] == "STD_DUP_EMAIL"
 
@@ -67,7 +69,7 @@ def test_create_student_duplicate_student_id(client):
     assert r1.status_code == 201
     r2 = client.post("/api/v1/students/", json=p2)
     assert r2.status_code == 400
-    payload = r2.json()["detail"]
+    payload = get_error_detail(r2.json())
     assert payload["message"] == "Student ID already exists"
     assert payload["error_id"] == "STD_DUP_ID"
 
@@ -211,7 +213,7 @@ def test_create_student_handles_internal_error(client, monkeypatch):
 
     r = client.post("/api/v1/students/", json=make_student_payload(10))
     assert r.status_code == 500
-    payload = r.json()["detail"]
+    payload = get_error_detail(r.json())
     # internal_server_error returns structured error
     if isinstance(payload, dict):
         assert payload.get("error_id") == "ERR_INTERNAL"

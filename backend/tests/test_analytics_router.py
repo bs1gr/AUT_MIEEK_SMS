@@ -5,6 +5,7 @@ from datetime import date
 from sqlalchemy import event
 
 from backend.tests.db_setup import engine
+from conftest import get_error_detail
 
 
 def _csrf_headers(client):
@@ -188,7 +189,7 @@ def test_final_grade_course_not_found(client):
     s = _create_student(client, 4)
     r = client.get(f"/api/v1/analytics/student/{s['id']}/course/99999/final-grade")
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "not found" in detail.lower()
 
 
@@ -244,7 +245,7 @@ def test_student_all_courses_summary_with_mixed_courses(client):
 def test_student_all_courses_summary_student_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/all-courses-summary")
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "not found" in detail.lower()
 
 
@@ -308,5 +309,5 @@ def test_student_summary_success(client):
 def test_student_summary_not_found(client):
     r = client.get("/api/v1/analytics/student/9999/summary")
     assert r.status_code == 404
-    detail = r.json()["detail"]
+    detail = get_error_detail(r.json())
     assert "not found" in detail.lower()

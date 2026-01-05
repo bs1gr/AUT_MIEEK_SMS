@@ -1,6 +1,7 @@
 import io
 from pathlib import Path
 from backend.errors import ErrorCode
+from conftest import get_error_detail
 
 
 def test_database_upload_valid(client):
@@ -23,7 +24,7 @@ def test_database_upload_invalid_extension(client):
     files = {"file": ("test.txt", io.BytesIO(b"not a db"), "application/octet-stream")}
     resp = client.post("/control/api/operations/database-upload", files=files)
     assert resp.status_code == 400
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_INVALID_FILE_TYPE.value
 
 
@@ -37,5 +38,5 @@ def test_database_upload_invalid_magic(client):
     }
     resp = client.post("/control/api/operations/database-upload", files=files)
     assert resp.status_code == 400
-    detail = resp.json()["detail"]
+    detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_INVALID_FILE_TYPE.value

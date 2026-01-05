@@ -9,6 +9,63 @@ from sqlalchemy.orm import declarative_base
 # Import shared DB setup to ensure singletons across pytest and direct imports
 from backend.tests.db_setup import engine, TestingSessionLocal
 
+
+# ============================================================================
+# Error Response Helper Functions (v1.15.0 - API Standardization)
+# ============================================================================
+# These helpers support the new standardized error response format while
+# maintaining backward compatibility with existing test expectations.
+#
+# Response format changed from: response["detail"]["message"]
+# To new standardized format: response["error"]["message"]
+
+
+def get_error_message(response_data: dict) -> str:
+    """Extract error message from new standardized error response format.
+
+    New v1.15.0 format:
+        {"error": {"message": "..."}, "data": null, "success": false, "meta": {...}}
+
+    Old format (legacy):
+        {"detail": {"message": "..."}}
+    """
+    if isinstance(response_data, dict):
+        # Try new format first (v1.15.0+)
+        if "error" in response_data and isinstance(response_data["error"], dict):
+            return response_data["error"].get("message", "")
+        # Fall back to old format for legacy tests
+        if "detail" in response_data:
+            detail = response_data["detail"]
+            if isinstance(detail, dict):
+                return detail.get("message", str(detail))
+            return str(detail)
+    return ""
+
+
+def get_error_code(response_data: dict) -> str:
+    """Extract error code from new standardized error response format."""
+    if isinstance(response_data, dict):
+        # Try new format first
+        if "error" in response_data and isinstance(response_data["error"], dict):
+            return response_data["error"].get("code", "")
+        # Fall back to old format
+        if "detail" in response_data and isinstance(response_data["detail"], dict):
+            return response_data["detail"].get("error_id", "")
+    return ""
+
+
+def get_error_detail(response_data: dict) -> dict | None:
+    """Extract detailed error info from new standardized error response format."""
+    if isinstance(response_data, dict):
+        # Try new format first
+        if "error" in response_data and isinstance(response_data["error"], dict):
+            return response_data["error"].get("details")
+        # Fall back to old format
+        if "detail" in response_data and isinstance(response_data["detail"], dict):
+            return response_data["detail"]
+    return None
+
+
 # Always use the application's Base (declared in backend.models) so metadata includes all tables.
 try:
     from backend import models as models_mod
