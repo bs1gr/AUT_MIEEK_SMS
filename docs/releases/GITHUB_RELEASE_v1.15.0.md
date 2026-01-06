@@ -1,20 +1,20 @@
-# GitHub Release Draft - v1.15.0
+# GitHub Release Draft - $11.15.0
 
 **Use this content to create the GitHub Release at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new**
 
 ---
 
 ## Tag Information
-- **Tag version**: `v1.15.0`
+- **Tag version**: `$11.15.0`
 - **Target**: `main` branch
-- **Release title**: `v1.15.0 - Phase 1 Complete: Infrastructure & UX Improvements`
+- **Release title**: `$11.15.0 - Phase 1 Complete: Infrastructure & UX Improvements`
 
 ---
 
 ## Release Body
 
 ```markdown
-# v1.15.0 - Phase 1 Complete: Infrastructure & UX Improvements
+# $11.15.0 - Phase 1 Complete: Infrastructure & UX Improvements
 
 **Release Date**: January 5, 2026
 **Type**: Major Feature Release
@@ -147,7 +147,7 @@ Copy-Item data/student_management.db data/backup_$(Get-Date -Format 'yyyyMMdd').
 
 # 2. Update code
 git pull origin main
-git checkout v1.15.0
+git checkout $11.15.0
 
 # 3. Restart
 .\DOCKER.ps1 -Start
@@ -161,7 +161,7 @@ Copy-Item backend/data/student_management.db backend/data/backup.db
 
 # 2. Update code
 git pull origin main
-git checkout v1.15.0
+git checkout $11.15.0
 
 # 3. Update dependencies
 cd backend && pip install -r requirements.txt
@@ -181,7 +181,7 @@ alembic current  # Should show latest version
 
 ## ⚠️ Breaking Changes
 
-**None** - This release is fully backward compatible with v1.14.3.
+**None** - This release is fully backward compatible with $11.15.0.
 
 The new `APIResponse[T]` format is optional. Frontend helpers handle both old and new formats automatically.
 
@@ -204,7 +204,7 @@ The new `APIResponse[T]` format is optional. Frontend helpers handle both old an
 - [Phase 1 Completion Summary](docs/PHASE1_COMPLETION_SUMMARY.md)
 - [E2E Testing Guide](docs/E2E_TESTING_GUIDE.md)
 - [Implementation Patterns](docs/misc/IMPLEMENTATION_PATTERNS.md)
-- [Release Notes v1.15.0](docs/releases/RELEASE_NOTES_v1.15.0.md)
+- [Release Notes $11.15.0](docs/releases/RELEASE_NOTES_$11.15.0.md)
 
 ### Updated Documentation
 - [Active Work Status](docs/ACTIVE_WORK_STATUS.md)
@@ -215,7 +215,7 @@ The new `APIResponse[T]` format is optional. Frontend helpers handle both old an
 
 ## 🔮 What's Next
 
-**Phase 2** (v1.16.0 - February/March 2026):
+**Phase 2** ($11.15.0 - February/March 2026):
 - Fine-grained RBAC with permission-based access
 - CI/CD improvements with coverage reporting
 - Load testing integration
@@ -229,7 +229,7 @@ See [Phase 2 Plan](docs/plans/PHASE2_CONSOLIDATED_PLAN.md) for details.
 
 - **Documentation**: [Documentation Index](docs/DOCUMENTATION_INDEX.md)
 - **Issues**: [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
-- **Changes**: [Full Changelog](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.14.3...v1.15.0)
+- **Changes**: [Full Changelog](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.15.0...$11.15.0)
 
 ---
 
@@ -250,7 +250,7 @@ Thanks to all contributors who made this release possible through testing, code 
 
 Before publishing the release:
 
-- [ ] Tag created: `v1.15.0`
+- [ ] Tag created: `$11.15.0`
 - [ ] Target branch: `main`
 - [ ] Release title set
 - [ ] Release body copied from above
@@ -275,4 +275,4 @@ After publishing:
 ---
 
 **Created**: January 6, 2026
-**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.15.0 (after creation)
+**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.0 (after creation)

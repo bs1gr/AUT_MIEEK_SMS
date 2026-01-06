@@ -1,7 +1,7 @@
 # Phase 1 Team Onboarding Guide
 **Student Management System — Infrastructure & Quality Improvements**
 
-**Release Target**: v1.15.0 (January 24, 2026)
+**Release Target**: $11.15.0 (January 24, 2026)
 **Phase 1 Duration**: January 7-20, 2026 (2 weeks)
 **Created**: January 5, 2026
 
@@ -15,13 +15,13 @@ You've been assigned to **Phase 1: Infrastructure Improvements**. Here's what yo
 1. Go to [GitHub Issues with label "phase1"](https://github.com/bs1gr/AUT_MIEEK_SMS/issues?q=label%3Aphase1)
 2. Find YOUR assigned issue (#60-#67)
 3. Read the Acceptance Criteria and Implementation Reference
-4. Clone your work: `git fetch origin && git checkout feature/v11.14.2-phase1`
+4. Clone your work: `git fetch origin && git checkout feature/$11.15.0-phase1`
 
 ### Your Role:
 - Implement ONE of the 8 Phase 1 improvements
 - Sprint duration: 2-3 days (see Sprint assignment below)
 - Deliverable: Working code with tests
-- Merge target: Pull request to `feature/v11.14.2-phase1` (tech lead reviews)
+- Merge target: Pull request to `feature/$11.15.0-phase1` (tech lead reviews)
 
 ### Need Help?
 - **Code patterns**: [IMPLEMENTATION_PATTERNS.md](../misc/IMPLEMENTATION_PATTERNS.md) — Copy-paste ready examples
@@ -55,7 +55,7 @@ You've been assigned to **Phase 1: Infrastructure Improvements**. Here's what yo
 ```bash
 # 1. Get the code
 git fetch origin
-git checkout feature/v11.14.2-phase1
+git checkout feature/$11.15.0-phase1
 
 # 2. Read your issue
 # Go to GitHub and open your assigned issue (#60-#67)
@@ -90,7 +90,7 @@ cd ../frontend && npm test -- --run  # Frontend: should pass all
 
 # 2. Create pull request
 # Go to GitHub
-# Create PR: your feature branch → feature/v11.14.2-phase1
+# Create PR: your feature branch → feature/$11.15.0-phase1
 # Title: [PHASE1-#<number>] <Task Name>
 # Link your GitHub issue in the description
 
@@ -132,7 +132,7 @@ cd ../frontend && npm test -- --run  # Frontend: should pass all
   - Testing patterns
   - Common pitfalls to avoid
 
-- **Phase Plan**: [PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md)
+- **Phase Plan**: [PHASE1_AUDIT_IMPROVEMENTS_$11.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.0.md)
   - Sprint breakdown
   - Success criteria for each improvement
   - Integration test requirements
@@ -226,7 +226,7 @@ cd ../frontend && npm test -- --run  # Frontend: should pass all
 - [ ] GitHub issue "Acceptance Criteria" all checked ✓
 - [ ] All tests passing (unit + integration + regression)
 - [ ] Code review approved
-- [ ] PR merged to feature/v11.14.2-phase1
+- [ ] PR merged to feature/$11.15.0-phase1
 - [ ] Performance benchmarks met (if applicable)
 - [ ] Documentation complete
 
@@ -237,7 +237,7 @@ cd ../frontend && npm test -- --run  # Frontend: should pass all
 - [ ] Ready for release prep (Jan 20)
 
 ### Release Success (Jan 24):
-- [ ] v1.15.0 tagged
+- [ ] $11.15.0 tagged
 - [ ] Release notes published
 - [ ] Deployment verified (Docker + native)
 
@@ -342,7 +342,7 @@ Any breaking changes? Migration needed? Special deployment steps?
 - Zero open blockers
 - Ready to finalize release notes
 - Feature branch merged back to main
-- v1.15.0 tagged and released
+- $11.15.0 tagged and released
 
 **You're part of the team making this happen.** 🚀
 

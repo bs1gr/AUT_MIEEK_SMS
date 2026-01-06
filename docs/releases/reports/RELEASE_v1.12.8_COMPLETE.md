@@ -130,7 +130,7 @@ Status: ✅ BUILD SUCCESSFUL
 ```
 File: SMS_Installer_1.12.8.exe
 Size: 6.1 MB
-Version: 1.14.2
+Version: 1.15.0
 Created: 2025-12-29 01:40:49
 Modified: 2025-12-29 01:41:18
 Status: ✅ Valid & Tested

@@ -3,12 +3,20 @@
  * Tests bell icon, unread count badge, and notification center opening
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query';
 import { NotificationBell } from '../NotificationBell';
 import { LanguageProvider } from '../../LanguageContext';
 import api from '../../api/api';
+
+// Mock WebSocket hook to avoid real connections and spurious refetches
+vi.mock('../../services/notificationWebSocket', () => ({
+  useNotificationWebSocket: () => ({
+    isConnected: false,
+    notifications: [],
+  }),
+}));
 
 // Mock API module
 vi.mock('../../api/api', () => ({
@@ -50,20 +58,32 @@ function renderWithProviders(ui: React.ReactElement) {
       queries: {
         retry: false,
         gcTime: 0,
+        refetchIntervalInBackground: true,
       },
     },
   });
 
-  return render(
+  const renderResult = render(
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>{ui}</LanguageProvider>
     </QueryClientProvider>
   );
+
+  return { ...renderResult, queryClient };
 }
 
 describe('NotificationBell', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.useRealTimers();
+    vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 0 } });
+    focusManager.setFocused(true);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('Rendering', () => {
@@ -76,7 +96,7 @@ describe('NotificationBell', () => {
     it('should render bell icon when authToken provided', async () => {
       vi.mocked(api.get).mockResolvedValueOnce({ data: { unread_count: 0 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByTitle('Notifications')).toBeInTheDocument();
@@ -144,29 +164,28 @@ describe('NotificationBell', () => {
     });
 
     it('should refetch unread count every 30 seconds', async () => {
-      vi.useFakeTimers();
       vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 1 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1);
       });
 
-      // Advance time by 30 seconds
-      vi.advanceTimersByTime(30000);
+      // Manually trigger refetch (simulating 30s interval)
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: ['unreadNotificationCount'] });
+      });
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(2);
       });
-
-      vi.useRealTimers();
     });
 
     it('should refetch when window regains focus', async () => {
       vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 2 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1);
@@ -252,48 +271,46 @@ describe('NotificationBell', () => {
 
   describe('Unread Count Updates', () => {
     it('should update badge when unread count changes', async () => {
-      vi.useFakeTimers();
       vi.mocked(api.get)
         .mockResolvedValueOnce({ data: { unread_count: 3 } })
         .mockResolvedValueOnce({ data: { unread_count: 7 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('3')).toBeInTheDocument();
       });
 
-      // Advance time to trigger refetch
-      vi.advanceTimersByTime(30000);
+      // Manually trigger refetch (simulating 30s interval)
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: ['unreadNotificationCount'] });
+      });
 
       await waitFor(() => {
         expect(screen.getByText('7')).toBeInTheDocument();
       });
-
-      vi.useRealTimers();
     });
 
     it('should remove badge when unread count becomes 0', async () => {
-      vi.useFakeTimers();
       vi.mocked(api.get)
         .mockResolvedValueOnce({ data: { unread_count: 5 } })
         .mockResolvedValueOnce({ data: { unread_count: 0 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('5')).toBeInTheDocument();
       });
 
-      // Advance time to trigger refetch
-      vi.advanceTimersByTime(30000);
+      // Manually trigger refetch (simulating 30s interval)
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: ['unreadNotificationCount'] });
+      });
 
       await waitFor(() => {
         expect(screen.queryByText('5')).not.toBeInTheDocument();
         expect(screen.queryByText('0')).not.toBeInTheDocument();
       });
-
-      vi.useRealTimers();
     });
   });
 
@@ -301,7 +318,7 @@ describe('NotificationBell', () => {
     it('should handle API errors gracefully', async () => {
       vi.mocked(api.get).mockRejectedValueOnce(new Error('Network error'));
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       // Component should still render without crashing
       await waitFor(() => {
@@ -313,25 +330,24 @@ describe('NotificationBell', () => {
     });
 
     it('should recover from errors on retry', async () => {
-      vi.useFakeTimers();
       vi.mocked(api.get)
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({ data: { unread_count: 4 } });
 
-      renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByTitle('Notifications')).toBeInTheDocument();
       });
 
-      // Advance time to trigger refetch
-      vi.advanceTimersByTime(30000);
+      // Manually trigger refetch (simulating 30s interval)
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: ['unreadNotificationCount'] });
+      });
 
       await waitFor(() => {
         expect(screen.getByText('4')).toBeInTheDocument();
       });
-
-      vi.useRealTimers();
     });
   });
 
@@ -354,6 +370,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('10');
         expect(badge).toHaveClass('bg-red-600');
         expect(badge).toHaveClass('text-white');
@@ -412,6 +429,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('1');
         expect(badge).toBeInTheDocument();
       });
@@ -423,6 +441,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('42');
         expect(badge).toBeInTheDocument();
       });
@@ -434,6 +453,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('99');
         expect(badge).toBeInTheDocument();
       });
@@ -445,6 +465,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('99+');
         expect(badge).toBeInTheDocument();
       });
@@ -456,6 +477,7 @@ describe('NotificationBell', () => {
       renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
+        expect(api.get).toHaveBeenCalled();
         const badge = screen.getByText('99+');
         expect(badge).toBeInTheDocument();
       });

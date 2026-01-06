@@ -13,11 +13,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Features
 - implement #64 Error Messages with i18n support
-- add APIResponse format helpers for gradual v1.15.0 migration
+- add APIResponse format helpers for gradual $11.15.0 migration
 - implement Error Message Improvements (Phase 1 #6)
 - implement Business Metrics Dashboard (Phase 1 #5)
 - **api**: implement API response standardization (Phase 1 #4)
-- **v1.15.0**: implement Phase 1 improvements (50% complete - 4/8)
+- **$11.15.0**: implement Phase 1 improvements (50% complete - 4/8)
 
 ### Bug Fixes
 - allow null values for optional error fields in type definitions
@@ -31,7 +31,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **e2e**: apply final eslint fixes and catch parameter cleanup
 - **e2e**: improve test robustness and error handling
 - **e2e**: resolve authentication state persistence in E2E tests
-- update markdown table column count in MID_PHASE_SUMMARY_v1.15.0.md
+- update markdown table column count in MID_PHASE_SUMMARY_$11.15.0.md
 - disable KeywordDetector and exclude false-positive files from detect-secrets
 - exclude .secrets.baseline from pre-commit hook modifications
 - add response_model to /admin/users endpoint for FastAPI validation

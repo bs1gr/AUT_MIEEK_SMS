@@ -1,7 +1,7 @@
 # Phase 2 GitHub Issues - Creation Guide
 
 **Date**: January 6, 2026
-**Purpose**: Issue templates for Phase 2 (v1.16.0) work
+**Purpose**: Issue templates for Phase 2 ($11.15.0) work
 **Total Issues**: 13 issues (#68-#80)
 
 ---
@@ -12,7 +12,7 @@
 1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/issues/new
 2. Copy the title and body
 3. Add labels: `phase-2`, `enhancement` (+ priority label)
-4. Set milestone: `v1.16.0`
+4. Set milestone: `$11.15.0`
 5. Assign to appropriate team member
 
 ---
@@ -405,7 +405,7 @@ Add automated load testing to detect performance regressions.
 ## Tasks
 - [ ] Set up Locust or k6 for load testing
 - [ ] Create test scenarios (student list, grade calc, attendance)
-- [ ] Establish performance baselines (from v1.15.0)
+- [ ] Establish performance baselines (from $11.15.0)
 - [ ] Integrate into GitHub Actions (weekly)
 - [ ] Set up regression alerts
 
@@ -451,7 +451,7 @@ Create comprehensive guide for administrators managing permissions.
 
 ## Documents to Create
 - [ ] `docs/admin/PERMISSION_MANAGEMENT.md` - How-to guide
-- [ ] `docs/admin/RBAC_MIGRATION_GUIDE.md` - Upgrade guide for v1.15.0 → v1.16.0
+- [ ] `docs/admin/RBAC_MIGRATION_GUIDE.md` - Upgrade guide for $11.15.0 → $11.15.0
 - [ ] `docs/admin/PERMISSION_TROUBLESHOOTING.md` - Common issues
 
 ## Content
@@ -459,7 +459,7 @@ Create comprehensive guide for administrators managing permissions.
 - How to assign permissions to roles
 - How to create custom roles
 - Best practices and security considerations
-- Migration steps from v1.15.0
+- Migration steps from $11.15.0
 
 ## Acceptance Criteria
 - [ ] All guides complete and reviewed
@@ -518,16 +518,16 @@ Sprint 3 (Week 2)
 
 ## 🚀 Release Issue
 
-### Issue #80: v1.16.0 Release Preparation
+### Issue #80: $11.15.0 Release Preparation
 
-**Title**: Prepare v1.16.0 release with Phase 2 improvements
+**Title**: Prepare $11.15.0 release with Phase 2 improvements
 
 **Labels**: `phase-2`, `enhancement`, `release`
 
 **Body**:
 ```markdown
 ## Overview
-Final release preparation for v1.16.0 with all Phase 2 improvements.
+Final release preparation for $11.15.0 with all Phase 2 improvements.
 
 ## Pre-Release Tasks
 - [ ] All Phase 2 issues closed (#68-#79)
@@ -539,16 +539,16 @@ Final release preparation for v1.16.0 with all Phase 2 improvements.
 ## Release Tasks
 - [ ] Update VERSION file to 1.16.0
 - [ ] Update CHANGELOG.md
-- [ ] Create release notes (docs/releases/RELEASE_NOTES_v1.16.0.md)
+- [ ] Create release notes (docs/releases/RELEASE_NOTES_$11.15.0.md)
 - [ ] Test database migration (1.15.0 → 1.16.0)
 - [ ] Build and test Docker image
 - [ ] Create GitHub Release
-- [ ] Tag: v1.16.0
+- [ ] Tag: $11.15.0
 
 ## Post-Release Tasks
 - [ ] Monitor for issues (24 hours)
 - [ ] Update project roadmap
-- [ ] Close milestone v1.16.0
+- [ ] Close milestone $11.15.0
 - [ ] Plan Phase 3 (if applicable)
 
 ## Acceptance Criteria
@@ -585,7 +585,7 @@ All Phase 2 issues (#68-#79)
 | #77 | Load Testing Integration | MEDIUM | 2-3h | Week 2-3 |
 | #78 | Admin Permission Guide | MEDIUM | 2-3h | Week 4 |
 | #79 | Testing Documentation | LOW | 1h | Week 2 |
-| #80 | v1.16.0 Release Prep | RELEASE | 4-6h | Week 6 |
+| #80 | $11.15.0 Release Prep | RELEASE | 4-6h | Week 6 |
 
 **Total Effort**: ~40-52 hours (excluding optional #73)
 
@@ -612,7 +612,7 @@ All Phase 2 issues (#68-#79)
 12. #79 - Testing Documentation
 
 **Week 6 (Create Last)**:
-13. #80 - v1.16.0 Release Preparation
+13. #80 - $11.15.0 Release Preparation
 
 ---
 

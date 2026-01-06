@@ -149,7 +149,7 @@ release-installer:
 **Outputs Provided:**
 | Output | Source | Purpose |
 |--------|--------|---------|
-| `tag` | `steps.resolve_tag` | Release tag (e.g., v1.14.2) |
+| `tag` | `steps.resolve_tag` | Release tag (e.g., $11.15.0) |
 | `version` | `steps.resolve_tag` | Version without 'v' prefix |
 | `release_id` | `steps.resolve_tag` | GitHub Release ID |
 | `sha256` | `steps.hash` | SHA256 checksum |

@@ -5,7 +5,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│  Student Management System v1.14.2                             │
+│  Student Management System $11.15.0                             │
 │  Production Readiness Assessment                               │
 │                                                                 │
 │  ████████████████████████░░  85%  (A-)                         │
@@ -296,7 +296,7 @@ READY FOR:
 ```
 ╔═════════════════════════════════════════════════════════╗
 ║                                                         ║
-║         STUDENT MANAGEMENT SYSTEM v1.14.2              ║
+║         STUDENT MANAGEMENT SYSTEM $11.15.0              ║
 ║              AUDIT COMPLETE - VERDICT                  ║
 ║                                                         ║
 ║  ★★★★★ 8.5/10 (A-)                                    ║
