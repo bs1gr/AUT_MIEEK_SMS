@@ -16,6 +16,8 @@ from backend.errors import (
     internal_server_error,
 )
 from backend.schemas.students import StudentCreate, StudentUpdate
+from backend.schemas.audit import AuditAction, AuditResource
+from backend.services.audit_service import AuditLogger
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ class StudentService:
     def __init__(self, db: Session, request: Optional[Request] = None) -> None:
         self.db = db
         self.request = request
+        self.audit = AuditLogger(db)
         try:
             # import_names returns a tuple of requested attributes; unpack the class
             (self.Student,) = self._get_import_names()("models", "Student")
@@ -49,6 +52,11 @@ class StudentService:
             self.db.refresh(db_student)
 
         logger.info("Created student: %s - %s", db_student.id, db_student.student_id)
+        self._log_audit(
+            action=AuditAction.CREATE,
+            resource_id=str(db_student.id),
+            new_values=self._serialize_student(db_student),
+        )
         return db_student
 
     def list_students(self, skip: int, limit: int, is_active: Optional[bool]):
@@ -122,6 +130,7 @@ class StudentService:
     def update_student(self, student_id: int, student_data: StudentUpdate):
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
         update_data = student_data.model_dump(exclude_unset=True)
+        old_values = self._serialize_student(db_student)
 
         with transaction(self.db):
             for key, value in update_data.items():
@@ -130,27 +139,59 @@ class StudentService:
             self.db.refresh(db_student)
 
         logger.info("Updated student: %s", student_id)
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(db_student.id),
+            old_values=old_values,
+            new_values=self._serialize_student(db_student),
+        )
         return db_student
 
     def delete_student(self, student_id: int):
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
+        old_values = self._serialize_student(db_student)
         with transaction(self.db):
             db_student.mark_deleted()
             db_student.is_active = False  # type: ignore[assignment]
         logger.info("Soft-deleted student: %s", student_id)
+        self._log_audit(
+            action=AuditAction.DELETE,
+            resource_id=str(student_id),
+            old_values=old_values,
+            new_values={
+                "deleted_at": str(db_student.deleted_at),
+                "is_active": db_student.is_active,
+            },
+        )
 
     def activate_student(self, student_id: int) -> Dict[str, Any]:
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
+        old_values = self._serialize_student(db_student)
         with transaction(self.db):
             db_student.is_active = True  # type: ignore[assignment]
         logger.info("Activated student: %s", student_id)
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(student_id),
+            old_values=old_values,
+            new_values=self._serialize_student(db_student),
+            details={"action": "activate"},
+        )
         return {"message": "Student activated successfully", "student_id": student_id}
 
     def deactivate_student(self, student_id: int) -> Dict[str, Any]:
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
+        old_values = self._serialize_student(db_student)
         with transaction(self.db):
             db_student.is_active = False  # type: ignore[assignment]
         logger.info("Deactivated student: %s", student_id)
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(student_id),
+            old_values=old_values,
+            new_values=self._serialize_student(db_student),
+            details={"action": "deactivate"},
+        )
         return {"message": "Student deactivated successfully", "student_id": student_id}
 
     def bulk_create_students(self, students_data: List[StudentCreate]) -> Dict[str, Any]:
@@ -213,6 +254,12 @@ class StudentService:
                 )
 
         logger.info("Bulk created %s students with %s errors", len(created), len(errors))
+        self._log_audit(
+            action=AuditAction.BULK_IMPORT,
+            resource_id=None,
+            new_values={"created": created},
+            details={"failed": errors},
+        )
         return {
             "created": len(created),
             "failed": len(errors),
@@ -271,3 +318,63 @@ class StudentService:
             message = "Student ID is archived; contact support to restore"
             context = {"student_id": value}
         return (409, ErrorCode.STUDENT_ARCHIVED, message, context)
+
+    # ------------------------------------------------------------------
+    # Audit helpers
+    # ------------------------------------------------------------------
+    def _serialize_student(self, student) -> Dict[str, Any]:
+        """Minimal serialization for audit logging without relationships."""
+
+        return {
+            "id": student.id,
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "email": student.email,
+            "student_id": student.student_id,
+            "enrollment_date": str(student.enrollment_date) if student.enrollment_date else None,
+            "is_active": student.is_active,
+            "father_name": student.father_name,
+            "mobile_phone": student.mobile_phone,
+            "phone": student.phone,
+            "health_issue": student.health_issue,
+            "note": student.note,
+            "study_year": student.study_year,
+        }
+
+    def _log_audit(
+        self,
+        *,
+        action: AuditAction,
+        resource_id: Optional[str],
+        details: Optional[Dict[str, Any]] = None,
+        old_values: Optional[Dict[str, Any]] = None,
+        new_values: Optional[Dict[str, Any]] = None,
+        success: bool = True,
+        error_message: Optional[str] = None,
+    ) -> None:
+        try:
+            if self.request:
+                self.audit.log_from_request(
+                    request=self.request,
+                    action=action,
+                    resource=AuditResource.STUDENT,
+                    resource_id=resource_id,
+                    details=details,
+                    success=success,
+                    error_message=error_message,
+                    old_values=old_values,
+                    new_values=new_values,
+                )
+            else:
+                self.audit.log_action(
+                    action=action,
+                    resource=AuditResource.STUDENT,
+                    resource_id=resource_id,
+                    details=details,
+                    success=success,
+                    error_message=error_message,
+                    old_values=old_values,
+                    new_values=new_values,
+                )
+        except Exception:  # pragma: no cover - audit failures must not break main flow
+            logger.exception("Failed to log audit event for student action")

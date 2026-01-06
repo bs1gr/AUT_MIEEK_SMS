@@ -4,21 +4,24 @@ from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from backend.db import get_session as get_db
 from backend.error_messages import ErrorCode, get_error_message
 from backend.routers.routers_auth import optional_require_role
 from backend.models import AuditLog
 from backend.schemas.audit import AuditLogResponse, AuditLogListResponse
+from backend.rate_limiting import RATE_LIMIT_READ, limiter
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
 
 @router.get("/logs", response_model=AuditLogListResponse)
+@limiter.limit(RATE_LIMIT_READ)
 async def list_audit_logs(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    request: Request,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=500),
     user_id: Optional[int] = Query(None),
     action: Optional[str] = Query(None),
     resource: Optional[str] = Query(None),
@@ -64,21 +67,25 @@ async def list_audit_logs(
 
     # Get total count
     total = query.count()
+    offset = (page - 1) * page_size
 
-    # Apply sorting and pagination
-    logs = query.order_by(desc(AuditLog.timestamp)).offset(skip).limit(limit).all()
+    logs = query.order_by(desc(AuditLog.timestamp)).offset(offset).limit(page_size).all()
+    has_next = offset + len(logs) < total
 
     return AuditLogListResponse(
-        logs=[AuditLogResponse.model_validate(log) for log in logs],
+        logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        skip=skip,
-        limit=limit,
+        page=page,
+        page_size=page_size,
+        has_next=has_next,
     )
 
 
 @router.get("/logs/{log_id}", response_model=AuditLogResponse)
+@limiter.limit(RATE_LIMIT_READ)
 async def get_audit_log(
     log_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: dict = Depends(optional_require_role("admin")),
 ) -> AuditLogResponse:
@@ -89,14 +96,16 @@ async def get_audit_log(
 
         raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.AUDIT_LOG_NOT_FOUND, lang="en"))
 
-    return AuditLogResponse.model_validate(log)
+    return AuditLogResponse.model_validate(log, from_attributes=True)
 
 
 @router.get("/logs/user/{user_id}", response_model=AuditLogListResponse)
+@limiter.limit(RATE_LIMIT_READ)
 async def get_user_audit_logs(
     user_id: int,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    request: Request,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: dict = Depends(optional_require_role("admin")),
 ) -> AuditLogListResponse:
@@ -104,11 +113,14 @@ async def get_user_audit_logs(
     query = db.query(AuditLog).filter(AuditLog.user_id == user_id)
 
     total = query.count()
-    logs = query.order_by(desc(AuditLog.timestamp)).offset(skip).limit(limit).all()
+    offset = (page - 1) * page_size
+    logs = query.order_by(desc(AuditLog.timestamp)).offset(offset).limit(page_size).all()
+    has_next = offset + len(logs) < total
 
     return AuditLogListResponse(
-        logs=[AuditLogResponse.model_validate(log) for log in logs],
+        logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        skip=skip,
-        limit=limit,
+        page=page,
+        page_size=page_size,
+        has_next=has_next,
     )

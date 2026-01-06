@@ -380,12 +380,17 @@ class AuditLog(Base):
     success = Column(Boolean, default=True, nullable=False)
     error_message = Column(Text, nullable=True)
     timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    old_values = Column(JSON, nullable=True)
+    new_values = Column(JSON, nullable=True)
+    change_reason = Column(String(500), nullable=True)
+    request_id = Column(String(64), nullable=True, index=True)
 
     # Composite indexes for common queries
     __table_args__ = (
         Index("idx_audit_user_action", "user_id", "action"),
         Index("idx_audit_resource_action", "resource", "action"),
         Index("idx_audit_timestamp_action", "timestamp", "action"),
+        Index("idx_audit_request_id", "request_id"),
     )
 
     # Relationship to user
