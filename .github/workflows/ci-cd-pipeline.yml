@@ -275,8 +275,8 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm ci --silent
 
-      - name: Run frontend tests
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html
+      - name: Run frontend tests with coverage
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary
 
       - name: Upload test results
         if: always()
@@ -287,6 +287,15 @@ jobs:
             frontend/coverage/
             frontend/test-results/
           retention-days: 30
+
+      - name: Upload frontend coverage to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@v4
+        with:
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
 
   smoke-tests:
     name: 💨 Smoke Tests (Integration)

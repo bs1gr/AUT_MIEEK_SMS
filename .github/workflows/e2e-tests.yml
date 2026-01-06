@@ -206,6 +206,7 @@ jobs:
           DEBUG: 'pw:api'
           VITE_API_URL: http://127.0.0.1:8000/api/v1
         timeout-minutes: 20
+        id: e2e
         run: |
           echo "=== Sanity check: Verify backend serving frontend ==="
           echo "Checking root endpoint /..."
@@ -225,7 +226,11 @@ jobs:
 
           echo ""
           echo "=== Running Playwright E2E tests ==="
-          npm run e2e -- --reporter=list --workers=1 --timeout=60000 || true
+          set +e
+          npm run e2e -- --reporter=list --workers=1 --timeout=60000
+          STATUS=$?
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          exit 0
 
       - name: Kill backend
         if: always()
@@ -246,6 +251,28 @@ jobs:
             frontend/test-results/
           retention-days: 30
           if-no-files-found: ignore
+
+      - name: Comment E2E result on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const status = core.getInput('status', { required: false }) || '${{ steps.e2e.outputs.status }}';
+            const conclusion = status === '0' ? '✅ Passed' : '❌ Failed';
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              `### E2E Tests`,
+              `- Result: ${conclusion} (exit code: ${status || 'unknown'})`,
+              `- Run: [view logs](${runUrl})`,
+              `- Artifacts: e2e-test-results`
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
 
       # FIX 6: Add logs for debugging
       - name: Upload backend logs (if failed)
