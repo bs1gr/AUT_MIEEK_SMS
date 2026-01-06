@@ -32,9 +32,11 @@ from sqlalchemy.orm import Session
 try:
     # Prefer package import when available
     from backend.control_auth import require_control_admin
+    from backend.services.backup_service_encrypted import BackupServiceEncrypted
 except Exception:
     # Fallback for tests or alternate import paths
     from control_auth import require_control_admin  # type: ignore
+    from services.backup_service_encrypted import BackupServiceEncrypted  # type: ignore
 
 
 # Robust imports when running as a package or directly
@@ -108,8 +110,16 @@ async def reset_database(_auth=Depends(require_control_admin)):
 
 
 @router.post("/backup-database")
-async def backup_database(_auth=Depends(require_control_admin)):
-    """Create a backup of the database (supports SQLite only)."""
+async def backup_database(encrypt: bool = True, _auth=Depends(require_control_admin)):
+    """
+    Create a backup of the database (supports SQLite only).
+
+    Args:
+        encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
+
+    Returns:
+        Encrypted backup file (.enc) or plain backup file (.db)
+    """
     try:
         db_url = settings.DATABASE_URL
         # Only support sqlite URLs for file backup
@@ -125,27 +135,119 @@ async def backup_database(_auth=Depends(require_control_admin)):
             raise HTTPException(status_code=404, detail="Database file not found")
 
         # Create backups directory if it doesn't exist
-        os.makedirs("backups", exist_ok=True)
+        backup_root = pathlib.Path("backups")
+        backup_root.mkdir(parents=True, exist_ok=True)
 
-        # Create backup filename with timestamp
+        # Generate timestamp for backup
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_dir = pathlib.Path("backups") / f"backup_{timestamp}"
-        backup_dir.mkdir(parents=True, exist_ok=True)
-        backup_path = backup_dir / "student_management.db"
 
-        # Copy database file
-        shutil.copy2(db_path, backup_path)
+        if encrypt:
+            # Create encrypted backup using BackupServiceEncrypted
+            backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
+            backup_name = f"backup_{timestamp}"
 
-        # Return the backup file
-        return FileResponse(
-            str(backup_path),
-            media_type="application/x-sqlite3",
-            filename=backup_path.name,
-        )
+            backup_info = backup_service.create_encrypted_backup(
+                source_path=pathlib.Path(db_path),
+                backup_name=backup_name,
+                metadata={
+                    "database_url": settings.DATABASE_URL,
+                    "backup_method": "admin_api",
+                    "encryption_enabled": True,
+                },
+            )
+
+            # Return encrypted backup file
+            return FileResponse(
+                backup_info["backup_path"],
+                media_type="application/octet-stream",
+                filename=f"{backup_name}.enc",
+                headers={
+                    "X-Backup-Encryption": "AES-256-GCM",
+                    "X-Original-Size": str(backup_info["original_size"]),
+                    "X-Encrypted-Size": str(backup_info["encrypted_size"]),
+                },
+            )
+        else:
+            # Create unencrypted backup (legacy behavior)
+            backup_dir = backup_root / f"backup_{timestamp}"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            backup_path = backup_dir / "student_management.db"
+
+            # Copy database file
+            shutil.copy2(db_path, backup_path)
+
+            # Return the backup file
+            return FileResponse(
+                str(backup_path),
+                media_type="application/x-sqlite3",
+                filename=backup_path.name,
+            )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to backup database: {e!s}")
+
+
+@router.post("/restore-encrypted-backup")
+async def restore_encrypted_backup(
+    backup_name: str, output_filename: str = "restored_database.db", _auth=Depends(require_control_admin)
+):
+    """
+    Restore an encrypted backup file.
+
+    Args:
+        backup_name: Name of the backup (without .enc extension)
+        output_filename: Name for the restored file (default: restored_database.db)
+
+    Returns:
+        Decrypted database file
+    """
+    try:
+        backup_root = pathlib.Path("backups")
+        backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
+
+        # Create temporary output directory
+        restore_dir = backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        restore_dir.mkdir(parents=True, exist_ok=True)
+        output_path = restore_dir / output_filename
+
+        # Decrypt and restore backup
+        restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=output_path)
+
+        # Return restored file
+        return FileResponse(
+            str(output_path),
+            media_type="application/x-sqlite3",
+            filename=output_filename,
+            headers={
+                "X-Backup-Decrypted": "true",
+                "X-Original-Backup": backup_name,
+                "X-Restored-Size": str(restore_info["restored_size"]),
+            },
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to restore backup: {e!s}")
+
+
+@router.get("/list-encrypted-backups")
+async def list_encrypted_backups(_auth=Depends(require_control_admin)):
+    """
+    List all available encrypted backups.
+
+    Returns:
+        List of backup information dictionaries
+    """
+    try:
+        backup_root = pathlib.Path("backups")
+        backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
+
+        backups = backup_service.list_encrypted_backups()
+
+        return {"success": True, "count": len(backups), "backups": backups}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list backups: {e!s}")
 
 
 @router.post("/sample-data")
