@@ -306,6 +306,7 @@ class User(Base):
     """Application user accounts with roles and secure passwords.
 
     Roles: 'admin', 'teacher', 'student'
+    Supports both legacy role string and new many-to-many role assignments.
     """
 
     __tablename__ = "users"
@@ -314,7 +315,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(200))
-    role = Column(String(50), nullable=False, index=True, default="teacher")
+    role = Column(String(50), nullable=False, index=True, default="teacher")  # Legacy role field
     is_active = Column(Boolean, default=True, index=True)
     password_change_required = Column(Boolean, default=False, nullable=False, index=True)
     failed_login_attempts = Column(Integer, default=0, nullable=False)
@@ -327,6 +328,11 @@ class User(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
         index=True,
+    )
+
+    # Relationships for RBAC
+    user_permissions: ClassVar[Any] = relationship(
+        "UserPermission", foreign_keys="[UserPermission.user_id]", back_populates="user", cascade="all, delete-orphan"
     )
 
     __table_args__ = (Index("idx_users_email_role", "email", "role"),)
@@ -402,6 +408,11 @@ class Role(Base):
     name = Column(String(100), unique=True, nullable=False, index=True)
     description = Column(String(255))
 
+    # Relationships
+    role_permissions: ClassVar[Any] = relationship(
+        "RolePermission", back_populates="role", cascade="all, delete-orphan"
+    )
+
     __table_args__ = (Index("idx_roles_name", "name", unique=True),)
 
     def __repr__(self):
@@ -411,19 +422,42 @@ class Role(Base):
 class Permission(Base):
     """Permission entity for fine-grained RBAC.
 
-    Permission names follow a 'resource.action' convention (e.g., 'students.read').
+    Permission keys follow a 'resource:action' convention (e.g., 'students:view', 'grades:edit').
+    Split into resource and action for flexible querying.
     """
 
     __tablename__ = "permissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(150), unique=True, nullable=False, index=True)
-    description = Column(String(255))
+    key = Column(String(100), unique=True, nullable=False, index=True)  # e.g., 'students:view'
+    resource = Column(String(50), nullable=False, index=True)  # e.g., 'students'
+    action = Column(String(50), nullable=False)  # e.g., 'view'
+    description = Column(Text)
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
-    __table_args__ = (Index("idx_permissions_name", "name", unique=True),)
+    # Relationships
+    role_permissions: ClassVar[Any] = relationship(
+        "RolePermission", back_populates="permission", cascade="all, delete-orphan"
+    )
+    user_permissions: ClassVar[Any] = relationship(
+        "UserPermission", back_populates="permission", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        Index("idx_permissions_key", "key", unique=True),
+        Index("idx_permissions_resource", "resource"),
+        Index("idx_permissions_is_active", "is_active"),
+    )
 
     def __repr__(self):
-        return f"<Permission(id={self.id}, name={self.name})>"
+        return f"<Permission(id={self.id}, key={self.key}, active={self.is_active})>"
 
 
 class RolePermission(Base):
@@ -434,15 +468,49 @@ class RolePermission(Base):
     id = Column(Integer, primary_key=True, index=True)
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # Relationships
+    role: ClassVar[Any] = relationship("Role", back_populates="role_permissions")
+    permission: ClassVar[Any] = relationship("Permission", back_populates="role_permissions")
 
     __table_args__ = (Index("idx_role_permission_unique", "role_id", "permission_id", unique=True),)
 
-    # Lightweight relationships for convenience (optional at runtime)
-    role: ClassVar[Any] = relationship("Role")
-    permission: ClassVar[Any] = relationship("Permission")
-
     def __repr__(self):
         return f"<RolePermission(role_id={self.role_id}, permission_id={self.permission_id})>"
+
+
+class UserPermission(Base):
+    """Direct permission assignments to users (bypassing role inheritance).
+
+    Allows granting specific permissions to individual users with optional expiration.
+    Useful for temporary elevated access or exceptions to role-based permissions.
+    """
+
+    __tablename__ = "user_permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+    granted_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))  # Admin who granted permission
+    granted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True, index=True)  # Optional expiration
+
+    # Relationships
+    user: ClassVar[Any] = relationship("User", foreign_keys=[user_id], back_populates="user_permissions")
+    permission: ClassVar[Any] = relationship("Permission", back_populates="user_permissions")
+    grantor: ClassVar[Any] = relationship("User", foreign_keys=[granted_by])
+
+    __table_args__ = (
+        Index("idx_user_permission_unique", "user_id", "permission_id", unique=True),
+        Index("idx_user_permission_user_id", "user_id"),
+        Index("idx_user_permission_expires_at", "expires_at"),
+    )
+
+    def __repr__(self):
+        return (
+            f"<UserPermission(user_id={self.user_id}, permission_id={self.permission_id}, expires={self.expires_at})>"
+        )
 
 
 class UserRole(Base):
