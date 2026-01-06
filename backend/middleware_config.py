@@ -3,6 +3,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from backend.request_id_middleware import RequestIDMiddleware
 from backend.security import install_csrf_protection
 from backend.config import settings
+from backend.middleware.response_standardization import ResponseStandardizationMiddleware
 import logging
 import os
 
@@ -13,6 +14,12 @@ def register_middlewares(app):
         app.add_middleware(RequestIDMiddleware)
     except Exception as e:
         logging.warning(f"RequestIDMiddleware registration failed: {e}")
+
+    # Standardize JSON responses into APIResponse envelope (success/data/error/meta)
+    try:
+        app.add_middleware(ResponseStandardizationMiddleware)
+    except Exception as e:
+        logging.warning(f"ResponseStandardizationMiddleware registration failed: {e}")
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,

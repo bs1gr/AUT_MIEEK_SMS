@@ -120,9 +120,10 @@ def get_by_id(db: Session, model: Any, id: int, include_deleted: bool = False) -
     Returns:
         Model instance or None if not found
     """
-    query = db.query(model).filter(model.id == id)
+    query = db.query(model).execution_options(include_deleted=include_deleted).filter(model.id == id)
 
     if not include_deleted and hasattr(model, "deleted_at"):
+        # Redundant with global filter but kept for explicitness and compatibility
         query = query.filter(model.deleted_at.is_(None))
 
     return query.first()
@@ -195,7 +196,7 @@ def exists(
     Returns:
         True if matching record exists
     """
-    query = db.query(model)
+    query = db.query(model).execution_options(include_deleted=include_deleted)
 
     for key, value in filters.items():
         query = query.filter(getattr(model, key) == value)
@@ -258,8 +259,11 @@ def paginate(query: Query, skip: int = 0, limit: int = 100, max_limit: int = 100
     # Enforce max limit
     limit = min(limit, max_limit)
 
-    # Get total count before pagination
-    total = query.count()
+    # Get total count before pagination (strip ORDER BY for faster counts)
+    try:
+        total = query.order_by(None).count()
+    except Exception:
+        total = query.count()
 
     # Apply pagination
     items = query.offset(skip).limit(limit).all()
