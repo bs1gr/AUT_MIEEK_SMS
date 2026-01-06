@@ -24,6 +24,11 @@ def upgrade() -> None:
     # NOTE: notification_preferences and notifications tables already exist, skipping creation
     # NOTE: user_permissions table already exists, skipping creation
 
+    # Check if old indexes exist before trying to drop them
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing_indexes = {idx["name"] for idx in inspector.get_indexes("permissions")}
+
     # SQLite doesn't support ALTER COLUMN, so we'll use batch operations
     with op.batch_alter_table("permissions", schema=None) as batch_op:
         # Add new columns
@@ -34,9 +39,11 @@ def upgrade() -> None:
         batch_op.add_column(sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
         batch_op.add_column(sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True))
 
-        # Drop old indexes
-        batch_op.drop_index("idx_permissions_name")
-        batch_op.drop_index("ix_permissions_name")
+        # Drop old indexes only if they exist
+        if "idx_permissions_name" in existing_indexes:
+            batch_op.drop_index("idx_permissions_name")
+        if "ix_permissions_name" in existing_indexes:
+            batch_op.drop_index("ix_permissions_name")
 
         # Create new indexes
         batch_op.create_index("idx_permissions_is_active", ["is_active"], unique=False)
