@@ -112,6 +112,10 @@ rewrite-preview-local/
 # Large test artifacts
 pytest-full-output.txt
 
+# E2E test diagnostics
+frontend/test-diagnostics/
+test-diagnostics/
+
 # IDE/editor
 .vscode/
 .idea/
