@@ -345,6 +345,28 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   useEffect(() => {
     if (Array.isArray(courses) && courses.length > 0) {
       setLocalCourses(courses);
+    } else if (!Array.isArray(courses) || courses.length === 0) {
+      // If courses not available from props, try to fetch them from API
+      const fetchCourses = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/courses?limit=999`);
+          if (response.ok) {
+            const data = await response.json();
+            const courseList = Array.isArray(data) ? data : data.items || [];
+            if (courseList.length > 0) {
+              console.warn('[AttendanceView] Fetched courses from API:', courseList);
+              setLocalCourses(courseList);
+            }
+          }
+        } catch (err) {
+          console.error('[AttendanceView] Error fetching courses from API:', err);
+        }
+      };
+
+      // Only fetch if we haven't already tried
+      if (localCourses.length === 0) {
+        fetchCourses();
+      }
     }
   }, [courses.length]); // Use length instead of entire array to prevent loops
 
@@ -366,7 +388,14 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       activeRequestsRef.current.add(requestKey);
 
       try {
+        // Immediately set all courses as selectable to avoid long waits
+        // The enrollment count is only used for filtering, not for functionality
+        const allCourseIds = new Set<number>();
+        localCourses.forEach(c => allCourseIds.add(c.id));
+        setCoursesWithEnrollment(allCourseIds);
+
         // Process courses in smaller batches to avoid overwhelming the server
+        // Use shorter timeout (5 seconds) per batch to avoid long waits on slow enrollments API
         const BATCH_SIZE = 3; // Fetch 3 courses at a time instead of all at once
         const results: Array<{ id: number; count: number }> = [];
 
@@ -374,23 +403,41 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           const batch = localCourses.slice(i, i + BATCH_SIZE);
           const batchResults = await Promise.all(batch.map(async (c) => {
             try {
-              const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`);
-              if (!r.ok) {
-                console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
-                return { id: c.id, count: 0 };
-              }
-              const arr = await r.json();
-                  console.warn(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
-              // Accept both array and object-with-items
-              if (Array.isArray(arr)) {
-                return { id: c.id, count: arr.length };
-              } else if (arr && Array.isArray(arr.items)) {
-                return { id: c.id, count: arr.items.length };
-              } else {
+              // Add a 5-second timeout to enrollment checks
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+              try {
+                const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`, {
+                  signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (!r.ok) {
+                  console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
+                  return { id: c.id, count: 0 };
+                }
+                const arr = await r.json();
+                console.warn(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+                // Accept both array and object-with-items
+                if (Array.isArray(arr)) {
+                  return { id: c.id, count: arr.length };
+                } else if (arr && Array.isArray(arr.items)) {
+                  return { id: c.id, count: arr.items.length };
+                } else {
+                  return { id: c.id, count: 0 };
+                }
+              } catch (fetchErr) {
+                clearTimeout(timeoutId);
+                if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+                  console.warn(`[AttendanceView] Enrollment fetch timeout for course ${c.id}`);
+                } else {
+                  console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, fetchErr);
+                }
                 return { id: c.id, count: 0 };
               }
             } catch (err) {
-              console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, err);
+              console.error(`[AttendanceView] Unexpected error for course ${c.id}:`, err);
               return { id: c.id, count: 0 };
             }
           }));
@@ -402,13 +449,20 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           }
         }
 
+        // Update with actual enrollment counts if available
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
-        console.warn('[AttendanceView] coursesWithEnrollment:', Array.from(ids));
-        setCoursesWithEnrollment(ids);
+        console.warn('[AttendanceView] coursesWithEnrollment (final):', Array.from(ids));
+        // If we found courses with enrollments, use that; otherwise keep all courses available
+        if (ids.size > 0) {
+          setCoursesWithEnrollment(ids);
+        }
       } catch (err) {
         console.error('[AttendanceView] Error in fetchEnrollments:', err);
-        setCoursesWithEnrollment(new Set());
+        // Keep all courses available as fallback
+        const allCourseIds = new Set<number>();
+        localCourses.forEach(c => allCourseIds.add(c.id));
+        setCoursesWithEnrollment(allCourseIds);
       } finally {
         activeRequestsRef.current.delete(requestKey);
       }
