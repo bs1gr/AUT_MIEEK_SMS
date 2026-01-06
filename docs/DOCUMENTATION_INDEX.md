@@ -350,6 +350,12 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
 - **[development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows
 - **[development/AUTHENTICATION.md](development/AUTHENTICATION.md)** - Auth implementation guide
+- **[development/RBAC_IMPLEMENTATION_GUIDE.md](development/RBAC_IMPLEMENTATION_GUIDE.md)** - RBAC permission system (NEW - 1.13.0) ✅
+  - Three-tier permission architecture
+  - Permission, RolePermission, UserPermission models
+  - API endpoints and permission checking patterns
+  - Complete implementation guide and examples
+  - See also: [ROLE_PERMISSIONS_MODEL.md](ROLE_PERMISSIONS_MODEL.md)
 - **[development/API_EXAMPLES.md](development/API_EXAMPLES.md)** - Common API examples
 
 **Development Tools**:
