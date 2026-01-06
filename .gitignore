@@ -34,6 +34,8 @@ backend/mypy-report.txt
 backend/pip-audit*.json
 backups/*.json
 ci-diagnose-*.zip
+trivy-*.json
+trivy-results.*
 
 # Databases & backups
 *.db

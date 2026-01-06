@@ -94,8 +94,18 @@ test.describe('Student Management - Critical Flows', () => {
       { timeout: 10000 }
     );
 
-    // Verify success message or student appears in list
-    await expect(page.getByText(student.firstName)).toBeVisible({ timeout: 5000 });
+    // Wait for modal to close and page to refresh
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(1000); // Give time for UI to update
+
+    // Clear any search filters that might hide the new student
+    await page.fill('[data-testid="student-search-input"]', '').catch(() => {});
+
+    // Verify student appears in list - look for full name or student ID (use first() to handle multiple matches)
+    const studentName = `${student.firstName} ${student.lastName}`;
+    await expect(
+      page.getByText(studentName).or(page.getByText(student.firstName)).or(page.getByText(student.studentId)).first()
+    ).toBeVisible({ timeout: 5000 });
   });
 
   test('should edit an existing student', async ({ page }) => {
@@ -126,17 +136,13 @@ test.describe('Student Management - Critical Flows', () => {
     // Wait for page to load
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // Wait for student to appear in list
-    await page.waitForSelector(`tr:has-text("${student.firstName}")`, { timeout: 10000 }).catch(() => {});
+    // Ensure search filter is cleared so the created student is visible
+    await page.fill('[data-testid="student-search-input"]', '').catch(() => {});
 
-    // Find and click edit button - use both possible selectors
-    const editButton = page
-      .locator(`[data-student-id="${studentId}"] button:has-text("Edit")`)
-      .or(page.locator(`tr:has-text("${student.firstName}") button[aria-label*="Edit"]`))
-      .first();
-
-    await editButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    await editButton.click().catch(() => {});
+    // Wait for student card controls to render
+    const editButton = page.locator(`[data-testid="student-edit-btn-${studentId}"]`).first();
+    await editButton.waitFor({ state: 'visible', timeout: 15000 });
+    await editButton.click();
 
     // Update student data
     const newLastName = `Updated${student.lastName}`;
@@ -183,17 +189,13 @@ test.describe('Student Management - Critical Flows', () => {
     // Wait for page to load
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // Wait for student to appear in list
-    await page.waitForSelector(`tr:has-text("${student.firstName}")`, { timeout: 10000 }).catch(() => {});
+    // Ensure search filter is cleared so the created student is visible
+    await page.fill('[data-testid="student-search-input"]', '').catch(() => {});
 
-    // Find and click delete button - use both possible selectors
-    const deleteButton = page
-      .locator(`[data-student-id="${studentId}"] button:has-text("Delete")`)
-      .or(page.locator(`tr:has-text("${student.firstName}") button[aria-label*="Delete"]`))
-      .first();
-
-    await deleteButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    await deleteButton.click().catch(() => {});
+    // Find and click delete button via stable data-testid
+    const deleteButton = page.locator(`[data-testid="student-delete-btn-${studentId}"]`).first();
+    await deleteButton.waitFor({ state: 'visible', timeout: 15000 });
+    await deleteButton.click();
 
     // Confirm deletion in dialog - look for confirm button
     const confirmButton = page
@@ -212,14 +214,8 @@ test.describe('Student Management - Critical Flows', () => {
     // Wait for page to refresh
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // Verify student no longer appears (or appears with tombstone/archived marker)
-    const studentStillVisible = await page
-      .getByText(student.firstName)
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    // Test passes if student is deleted or no error occurred
-    expect(!studentStillVisible).toBe(true);
+    // Verify student controls disappear (ensures deletion processed)
+    await expect(page.locator(`[data-testid="student-delete-btn-${studentId}"]`)).not.toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -250,12 +246,17 @@ test.describe('Course Management', () => {
       { timeout: 10000 }
     ).catch(() => {});
 
-    // Wait for page to refresh with new course in table
+    // Wait for page to refresh
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // Look for course code in visible table cells, not dropdown options
-    const courseCell = page.locator(`td:has-text("${course.courseCode}"), tr:has-text("${course.courseCode}")`);
-    await expect(courseCell).toBeVisible({ timeout: 5000 });
+    // Courses are shown in a select dropdown - verify course exists in options
+    // Note: option elements are never "visible" in Playwright, so we check for presence
+    const courseSelect = page.locator('#course-select');
+    await courseSelect.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Verify the option exists by checking the select has the course
+    const optionText = await courseSelect.locator(`option:has-text("${course.courseCode}")`).textContent();
+    expect(optionText).toContain(course.courseCode);
   });
 });
 
@@ -309,43 +310,54 @@ test.describe('Grade Assignment Flow', () => {
     await page.goto('/grades');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-    // Wait for Add Grade button to be visible
-    await page.waitForSelector('[data-testid="add-grade-button"]', { state: 'visible', timeout: 15000 }).catch(() => {});
+    // Check if grades page exists by looking for grading elements
+    const hasGradingUI = await page.locator('select[name="studentId"], [data-testid="grade-form"]').count() > 0;
 
-    // Click "Add Grade" button (focuses form)
-    await page.click('[data-testid="add-grade-button"]').catch(() => {});
-
-    // Select student and course using more robust selectors
-    const studentSelect = page.locator('select[name="studentId"]').first();
-    const courseSelect = page.locator('select[name="courseId"]').first();
-
-    try {
-      await studentSelect.selectOption(`${createdStudent.id}`);
-      await courseSelect.selectOption(`${createdCourse.id}`);
-    } catch (e) {
-      console.warn('Could not select student/course in grades form:', e);
+    if (!hasGradingUI) {
+      console.warn('Grades page UI not found, skipping test');
       return;
     }
 
-    // Enter grade details
-    await page.fill('input[name="assignmentName"]', 'Homework 1');
-    await page.fill('input[name="grade"]', '85');
-    await page.fill('input[name="max_grade"]', '100');
+    // Wait for the page to fully load and form to be ready
+    await page.waitForSelector('select[name="studentId"]', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('select[name="courseId"]', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('[data-testid="grade-form"]', { state: 'visible', timeout: 15000 });
 
-    // Select category - get available options and find matching one
-    const categorySelect = page.locator('select[name="category"]').first();
+    // Select student and course in filter dropdowns (not the form)
+    const studentSelect = page.locator('select[name="studentId"]').first();
+    const courseSelect = page.locator('select[name="courseId"]').first();
+
+    await studentSelect.waitFor({ state: 'visible', timeout: 10000 });
+    await studentSelect.selectOption(`${createdStudent.id}`);
+
+    await courseSelect.waitFor({ state: 'visible', timeout: 10000 });
+    await courseSelect.selectOption(`${createdCourse.id}`);
+
+    // Wait a bit for form to update based on selection
+    await page.waitForTimeout(500);
+
+    // Wait for grade form to be ready
+    const gradeForm = page.locator('[data-testid="grade-form"]');
+    await gradeForm.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Enter grade details using stable selectors within the form
+    await gradeForm.locator('input[name="assignmentName"]').fill('Homework 1');
+    await gradeForm.locator('input[name="grade"]').fill('85');
+    await gradeForm.locator('input[name="max_grade"]').fill('100');
+
+    // Select category - find the select within the form
+    const categorySelect = gradeForm.locator('select[name="category"]');
+    await categorySelect.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Get category options and select Homework
     const categoryOptions = await categorySelect.locator('option').allTextContents();
     const homeworkOption = categoryOptions.find(opt => /Homework/i.test(opt)) || 'Homework';
+    await categorySelect.selectOption({ label: homeworkOption });
 
-    try {
-      await categorySelect.selectOption(homeworkOption);
-    } catch (e) {
-      console.warn('Could not select homework category:', e);
-    }
-
-    // Submit
-    const submitButton = page.locator('button[type="submit"]').first();
-    await submitButton.click().catch(() => {});
+    // Submit the form
+    const submitButton = gradeForm.locator('button[type="submit"]');
+    await submitButton.waitFor({ state: 'visible', timeout: 5000 });
+    await submitButton.click();
 
     // Wait for API response
     await page.waitForResponse(

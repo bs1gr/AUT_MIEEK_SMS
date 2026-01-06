@@ -2,7 +2,7 @@ absl-py==2.3.1
 acres==0.5.0
 aiofiles==24.1.0
 aiohappyeyeballs==2.6.1
-aiohttp==3.12.15
+## aiohttp removed (not used)
 aiosignal==1.4.0
 aiosqlite==0.20.0
 alembic==1.17.0
@@ -173,10 +173,8 @@ pytest-metadata==3.1.1
 python-dateutil==2.9.0.post0
 python-docx==1.2.0
 python-dotenv==1.2.1
-python-engineio==4.12.3
 python-multipart==0.0.21
 python-pptx==1.0.2
-python-socketio==5.15.0
 pytz==2025.2
 pywin32==311
 pywin32-ctypes==0.2.3
