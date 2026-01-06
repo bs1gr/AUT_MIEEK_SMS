@@ -271,7 +271,7 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
     if not user:
         return []
 
-    permission_keys = set()
+    permission_keys: set[str] = set()
 
     # Get direct permissions
     direct_perms = (

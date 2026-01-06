@@ -520,11 +520,11 @@ def create_permissions(db: Session) -> dict[str, Permission]:
 
         if perm:
             # Update existing permission
-            perm.resource = perm_data["resource"]
-            perm.action = perm_data["action"]
-            perm.description = perm_data.get("description")
-            perm.is_active = True
-            perm.updated_at = datetime.now(timezone.utc)
+            perm.resource = perm_data["resource"]  # type: ignore[assignment]
+            perm.action = perm_data["action"]  # type: ignore[assignment]
+            perm.description = perm_data.get("description")  # type: ignore[assignment]
+            perm.is_active = True  # type: ignore[assignment]
+            perm.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
             updated_count += 1
             logger.debug(f"  Updated: {perm_data['key']}")
         else:
@@ -558,7 +558,7 @@ def create_permissions(db: Session) -> dict[str, Permission]:
 
     db.commit()
     logger.info(f"✓ Permissions: {created_count} created, {updated_count} updated")
-    return permission_map
+    return permission_map  # type: ignore[return-value]
 
 
 def create_roles(db: Session) -> dict[str, Role]:
