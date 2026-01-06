@@ -1,7 +1,7 @@
 """Update RBAC: enhance Permission model and add UserPermission
 
 Revision ID: d37fb9f4bd49
-Revises: 99permissions_notifications_merge
+Revises: 99perms_notifs_merge
 Create Date: 2026-01-06 19:41:38.439526
 
 """
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "d37fb9f4bd49"
-down_revision: Union[str, None] = "99permissions_notifications_merge"
+down_revision: Union[str, None] = "99perms_notifs_merge"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
