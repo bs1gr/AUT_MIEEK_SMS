@@ -89,15 +89,19 @@ async def delete_role(
 @router.post("/permissions", response_model=PermissionResponse)
 async def create_permission(
     request: Request,
-    name: str = Body(..., embed=True),
+    key: str = Body(..., embed=True),
+    resource: str = Body(..., embed=True),
+    action: str = Body(..., embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
     current_admin=Depends(require_permission("rbac.permissions.create")),
 ):
-    name = name.strip().lower()
-    if db.query(models.Permission).filter(models.Permission.name == name).first():
+    key = key.strip().lower()
+    resource = resource.strip().lower()
+    action = action.strip().lower()
+    if db.query(models.Permission).filter(models.Permission.key == key).first():
         raise http_error(status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Permission already exists", request)
-    perm = models.Permission(name=name, description=description)
+    perm = models.Permission(key=key, resource=resource, action=action, description=description)
     db.add(perm)
     db.commit()
     db.refresh(perm)
@@ -116,7 +120,9 @@ async def list_permissions(
 @router.put("/permissions/{permission_id}", response_model=PermissionResponse)
 async def update_permission(
     permission_id: int,
-    name: str = Body(None, embed=True),
+    key: str = Body(None, embed=True),
+    resource: str = Body(None, embed=True),
+    action: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
     current_admin=Depends(require_permission("rbac.permissions.update")),
@@ -124,8 +130,12 @@ async def update_permission(
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
-    if name:
-        perm.name = name.strip().lower()
+    if key:
+        perm.key = key.strip().lower()
+    if resource:
+        perm.resource = resource.strip().lower()
+    if action:
+        perm.action = action.strip().lower()
     if description is not None:
         perm.description = description
     db.commit()
@@ -273,7 +283,7 @@ async def bulk_grant_permission(
     _ = current_admin
     audit_logger = get_audit_logger(db)
     results = []
-    perm = db.query(models.Permission).filter(models.Permission.name == payload.permission_name.strip().lower()).first()
+    perm = db.query(models.Permission).filter(models.Permission.key == payload.permission_name.strip().lower()).first()
     if not perm:
         for rname in payload.role_names:
             audit_logger.log_from_request(
@@ -302,7 +312,7 @@ async def bulk_grant_permission(
                 resource_id=None,
                 details={
                     "role": rname,
-                    "permission": perm.name,
+                    "permission": perm.key,
                     "operation": "bulk_grant_permission",
                     "success": False,
                     "reason": "Role not found",
@@ -327,7 +337,7 @@ async def bulk_grant_permission(
                 resource_id=None,
                 details={
                     "role": role.name,
-                    "permission": perm.name,
+                    "permission": perm.key,
                     "operation": "bulk_grant_permission",
                     "success": True,
                 },
@@ -380,32 +390,32 @@ async def ensure_defaults(
                 )
             name_to_role[name] = r
 
-        # Ensure permissions
+        # Ensure permissions (using new Permission schema: key, resource, action)
         perm_defs = [
-            ("*", "All permissions (admin wildcard)"),
-            ("students.read", "View all student records"),
-            ("students.write", "Create or update student records"),
-            ("students.delete", "Delete student records"),
-            ("courses.read", "View all courses"),
-            ("courses.write", "Create or update courses"),
-            ("courses.delete", "Delete courses"),
-            ("attendance.read", "View attendance records"),
-            ("attendance.write", "Record or update attendance"),
-            ("grades.read", "View grades for all students"),
-            ("grades.write", "Assign or update grades"),
-            ("imports.preview", "Preview data import"),
-            ("imports.execute", "Execute data import"),
-            ("exports.generate", "Generate data export"),
-            ("exports.download", "Download exported data"),
-            ("students.self.read", "Student: view own profile"),
-            ("grades.self.read", "Student: view own grades"),
-            ("attendance.self.read", "Student: view own attendance"),
+            ("*:*", "*", "*", "All permissions (admin wildcard)"),
+            ("students:read", "students", "read", "View all student records"),
+            ("students:write", "students", "write", "Create or update student records"),
+            ("students:delete", "students", "delete", "Delete student records"),
+            ("courses:read", "courses", "read", "View all courses"),
+            ("courses:write", "courses", "write", "Create or update courses"),
+            ("courses:delete", "courses", "delete", "Delete courses"),
+            ("attendance:read", "attendance", "read", "View attendance records"),
+            ("attendance:write", "attendance", "write", "Record or update attendance"),
+            ("grades:read", "grades", "read", "View grades for all students"),
+            ("grades:write", "grades", "write", "Assign or update grades"),
+            ("imports:preview", "imports", "preview", "Preview data import"),
+            ("imports:execute", "imports", "execute", "Execute data import"),
+            ("exports:generate", "exports", "generate", "Generate data export"),
+            ("exports:download", "exports", "download", "Download exported data"),
+            ("students.self:read", "students.self", "read", "Student: view own profile"),
+            ("grades.self:read", "grades.self", "read", "Student: view own grades"),
+            ("attendance.self:read", "attendance.self", "read", "Student: view own attendance"),
         ]
         name_to_perm: dict[str, models.Permission] = {}
-        for pname, pdesc in perm_defs:
-            p = db.query(models.Permission).filter(models.Permission.name == pname).first()
+        for pkey, presource, paction, pdesc in perm_defs:
+            p = db.query(models.Permission).filter(models.Permission.key == pkey).first()
             if not p:
-                p = models.Permission(name=pname, description=pdesc)
+                p = models.Permission(key=pkey, resource=presource, action=paction, description=pdesc)
                 db.add(p)
                 db.commit()
                 db.refresh(p)
@@ -414,12 +424,12 @@ async def ensure_defaults(
                     action=AuditAction.PERMISSION_GRANT,
                     resource=AuditResource.USER,
                     resource_id=None,
-                    details={"permission": pname, "operation": "create_permission", "description": pdesc},
+                    details={"permission": pkey, "operation": "create_permission", "description": pdesc},
                 )
             elif not p.description:
                 p.description = pdesc
                 db.commit()
-            name_to_perm[pname] = p
+            name_to_perm[pkey] = p
 
         # Grants
         def grant(role_name: str, perm_name: str):
@@ -442,27 +452,27 @@ async def ensure_defaults(
                 )
 
         # Admin wildcard
-        grant("admin", "*")
+        grant("admin", "*:*")
 
         # Teacher default grants (mirror permissive defaults)
         for pn in [
-            "students.read",
-            "students.write",
-            "courses.read",
-            "courses.write",
-            "attendance.read",
-            "attendance.write",
-            "grades.read",
-            "grades.write",
-            "imports.preview",
-            "imports.execute",
-            "exports.generate",
-            "exports.download",
+            "students:read",
+            "students:write",
+            "courses:read",
+            "courses:write",
+            "attendance:read",
+            "attendance:write",
+            "grades:read",
+            "grades:write",
+            "imports:preview",
+            "imports:execute",
+            "exports:generate",
+            "exports:download",
         ]:
             grant("teacher", pn)
 
         # Guest default grants (read-only, no sensitive data)
-        for pn in ["students.read", "courses.read"]:
+        for pn in ["students:read", "courses:read"]:
             grant("guest", pn)
 
         # Backfill UserRole from legacy User.role (admin/teacher/guest only)
@@ -641,16 +651,14 @@ async def revoke_permission_from_role(
     try:
         role = db.query(models.Role).filter(models.Role.name == payload.role_name.strip().lower()).first()
         perm = (
-            db.query(models.Permission)
-            .filter(models.Permission.name == payload.permission_name.strip().lower())
-            .first()
+            db.query(models.Permission).filter(models.Permission.key == payload.permission_name.strip().lower()).first()
         )
         if not role or not perm:
             raise http_error(
                 status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Role or permission not found", request
             )
         # Prevent removing last wildcard from admin
-        if role.name == "admin" and perm.name == "*":
+        if role.name == "admin" and perm.key == "*:*":  # Updated from "*" to "*:*"
             admin_role = role
             wildcard_perm = perm
             admin_wildcard = (
@@ -682,7 +690,7 @@ async def revoke_permission_from_role(
                 action=AuditAction.PERMISSION_REVOKE,
                 resource=AuditResource.USER,
                 resource_id=None,
-                details={"role": role.name, "permission": perm.name, "operation": "revoke_permission", "success": True},
+                details={"role": role.name, "permission": perm.key, "operation": "revoke_permission", "success": True},
             )
             return {"status": "revoked"}
         return {"status": "not_granted"}

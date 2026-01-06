@@ -127,9 +127,9 @@ def test_ensure_defaults_and_summary(rbac_client: TestClient):
     assert s.status_code == 200, s.text
     data = s.json()
     role_names = {r["name"] for r in data["roles"]}
-    perm_names = {p["name"] for p in data["permissions"]}
+    perm_keys = {p["key"] for p in data["permissions"]}  # Changed from "name" to "key"
     assert {"admin", "teacher", "guest"}.issubset(role_names)
-    assert "*" in perm_names
+    assert "*:*" in perm_keys  # Changed from "*" to "*:*"
 
 
 def test_assign_and_revoke_role_with_last_admin_protection(rbac_client: TestClient):
@@ -193,7 +193,7 @@ def test_bulk_grant_permission_and_permission_crud(rbac_client: TestClient):
 
     cp = client.post(
         "/api/v1/admin/rbac/permissions",
-        json={"name": "reports.read", "description": "Read reports"},
+        json={"key": "reports:read", "resource": "reports", "action": "read", "description": "Read reports"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert cp.status_code == 200, cp.text
@@ -201,7 +201,7 @@ def test_bulk_grant_permission_and_permission_crud(rbac_client: TestClient):
     # Bulk grant the new permission to auditor
     bg = client.post(
         "/api/v1/admin/rbac/bulk-grant-permission",
-        json={"role_names": ["auditor"], "permission_name": "reports.read"},
+        json={"role_names": ["auditor"], "permission_name": "reports:read"},  # Updated key format
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert bg.status_code == 200, bg.text
@@ -213,8 +213,8 @@ def test_bulk_grant_permission_and_permission_crud(rbac_client: TestClient):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert lp.status_code == 200
-    perm_ids = {p["id"] for p in lp.json() if p["name"] == "reports.read"}
-    assert perm_ids, "Permission 'reports.read' should exist"
+    perm_ids = {p["id"] for p in lp.json() if p["key"] == "reports:read"}  # Changed from "name" to "key"
+    assert perm_ids, "Permission 'reports:read' should exist"
     pid = next(iter(perm_ids))
 
     up = client.put(
