@@ -1,4 +1,4 @@
-# Release Checklist - $11.15.0
+# Release Checklist - 1.15.0
 
 **Date**: January 6, 2026
 **Release Date**: January 5, 2026 (code) / TBD (GitHub Release)
@@ -20,8 +20,8 @@
 
 ## 📝 Release Documentation (Complete)
 
-- [x] Release notes created ([RELEASE_NOTES_$11.15.0.md](RELEASE_NOTES_$11.15.0.md))
-- [x] GitHub release draft prepared ([GITHUB_RELEASE_$11.15.0.md](GITHUB_RELEASE_$11.15.0.md))
+- [x] Release notes created ([RELEASE_NOTES_v1.15.0.md](RELEASE_NOTES_v1.15.0.md))
+- [x] GitHub release draft prepared ([GITHUB_RELEASE_v1.15.0.md](GITHUB_RELEASE_v1.15.0.md))
 - [x] Phase 1 completion summary ([../PHASE1_COMPLETION_SUMMARY.md](../PHASE1_COMPLETION_SUMMARY.md))
 - [x] Phase 2 plan consolidated ([../plans/PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md))
 - [x] Documentation index updated
@@ -30,7 +30,7 @@
 
 ## 🚀 GitHub Release Creation (Complete - Updated Jan 6, 2026)
 
-**URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.0
+**URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/1.15.0
 
 ### ✅ Release Created/Updated Successfully
 
@@ -40,7 +40,7 @@ The release was updated with comprehensive notes using the automated method belo
 
 ## 📖 Future Release Creation Methods
 
-For future releases ($11.15.0+), use one of these methods:
+For future releases (1.16.0+), use one of these methods:
 
 ### Method 1: Automated (Recommended - via gh CLI)
 
@@ -60,7 +60,7 @@ gh auth login
 .\RELEASE_HELPER.ps1 -Action CreateRelease
 
 # For custom version tag
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.0
+.\.RELEASE_HELPER.ps1 -Action CreateRelease -Tag 1.15.0
 ```
 
 **What it does**:
@@ -84,12 +84,12 @@ If gh CLI unavailable or you prefer manual control:
    - Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
 
 2. **Set Release Details**
-   - [ ] Tag version: `$11.15.0`
+   - [ ] Tag version: `1.15.0`
    - [ ] Target: `main` branch
-   - [ ] Release title: `$11.15.0 - Phase 1 Complete: Infrastructure & UX Improvements`
+   - [ ] Release title: `1.15.0 - Phase 1 Complete: Infrastructure & UX Improvements`
 
 3. **Copy Release Body**
-   - [ ] Open: `docs/releases/GITHUB_RELEASE_$11.15.0.md`
+   - [ ] Open: `docs/releases/GITHUB_RELEASE_v1.15.0.md`
    - [ ] Copy the markdown content from the "Release Body" section
    - [ ] Paste into GitHub release description
 
@@ -113,7 +113,7 @@ If gh CLI unavailable or you prefer manual control:
 
 ### Internal Announcements
 - [ ] Notify team via email/Slack
-- [ ] Update project board with $11.15.0 completion
+- [ ] Update project board with 1.15.0 completion
 - [ ] Schedule Phase 2 kickoff meeting
 
 ### External Announcements (If Applicable)
@@ -128,7 +128,7 @@ If gh CLI unavailable or you prefer manual control:
 ### Immediate (First 2 hours)
 - [ ] Verify GitHub Release published correctly
 - [ ] Test download links work
-- [ ] Verify tag created: `$11.15.0`
+- [ ] Verify tag created: `1.15.0`
 - [ ] Check GitHub Actions passed for tag
 
 ### Short-term (24 hours)
@@ -139,7 +139,7 @@ If gh CLI unavailable or you prefer manual control:
 
 ### Medium-term (48 hours)
 - [ ] Collect user feedback
-- [ ] Document any issues for $11.15.0
+- [ ] Document any issues for 1.16.0
 - [ ] Update roadmap if needed
 
 ---
@@ -153,7 +153,7 @@ If gh CLI unavailable or you prefer manual control:
 - [ ] Team onboarding materials prepared
 
 ### Technical Setup
-- [ ] Create feature branch: `feature/$11.15.0-phase2`
+- [ ] Create feature branch: `feature/v1.16.0-phase2`
 - [ ] Set up Phase 2 project board
 - [ ] Assign issues to team members
 - [ ] Schedule Sprint 1 planning meeting
@@ -170,7 +170,7 @@ If gh CLI unavailable or you prefer manual control:
 
 ### Release Success
 - [ ] GitHub Release published and visible
-- [ ] Tagged as $11.15.0 and marked "Latest"
+- [ ] Tagged as 1.15.0 and marked "Latest"
 - [ ] Release notes complete and accurate
 - [ ] No immediate critical issues reported
 
@@ -187,7 +187,7 @@ If gh CLI unavailable or you prefer manual control:
 **As of January 6, 2026**:
 
 ✅ **Complete**:
-- Code released ($11.15.0)
+- Code released (1.15.0)
 - All tests passing
 - Documentation complete
 - Phase 2 plan ready
@@ -216,12 +216,12 @@ If gh CLI unavailable or you prefer manual control:
 
 | Date | Milestone | Status |
 |------|-----------|--------|
-| Jan 5, 2026 | Code released ($11.15.0) | ✅ Complete |
+| Jan 5, 2026 | Code released (1.15.0) | ✅ Complete |
 | Jan 6, 2026 | Documentation complete | ✅ Complete |
 | Jan 6-7, 2026 | GitHub Release | ⏳ Pending |
 | Jan 7-8, 2026 | GitHub Issues created | ⏳ Pending |
 | Jan 13, 2026 | Phase 2 Sprint 1 begins | 📅 Scheduled |
-| Feb/Mar 2026 | $11.15.0 Release | 📋 Planned |
+| Feb/Mar 2026 | 1.16.0 Release | 📋 Planned |
 
 ---
 

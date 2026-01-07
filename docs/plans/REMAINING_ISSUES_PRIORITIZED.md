@@ -11,7 +11,7 @@
 With Phase 1 complete (all 8 improvements delivered), we now focus on consolidation, monitoring, and Phase 2 preparation.
 
 **Current State**:
-- ✅ $11.15.0 released (January 5, 2026)
+- ✅ 1.15.0 released (January 5, 2026)
 - ✅ 316/316 backend tests passing
 - ✅ 1189/1189 frontend tests passing
 - ✅ 30+ E2E tests implemented
@@ -65,15 +65,15 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Owner**: Project Lead
 
 **Action Items**:
-1. ✅ **Already Done**: Release notes created (`docs/releases/RELEASE_NOTES_$11.15.0.md`)
-2. ✅ **Already Done**: GitHub release draft prepared (`docs/releases/GITHUB_RELEASE_$11.15.0.md`)
+1. ✅ **Already Done**: Release notes created (`docs/releases/RELEASE_NOTES_v1.15.0.md`)
+2. ✅ **Already Done**: GitHub release draft prepared (`docs/releases/GITHUB_RELEASE_v1.15.0.md`)
 3. ⏳ **TODO**: Create GitHub Release at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
-4. ⏳ **TODO**: Tag as $11.15.0 (targeting main branch)
+4. ⏳ **TODO**: Tag as 1.15.0 (targeting main branch)
 5. ⏳ **TODO**: Mark as "Latest release"
 
 **Success Criteria**:
 - [ ] GitHub Release published and visible
-- [ ] Tag $11.15.0 created
+- [ ] Tag 1.15.0 created
 - [ ] Release notes formatted correctly
 - [ ] Marked as latest release
 
@@ -156,7 +156,7 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Action Items**:
 1. Create GitHub issues for Phase 2 work (#68-#80 estimated)
 2. Label with `phase-2`, `enhancement`, priority labels
-3. Assign to milestones ($11.15.0)
+3. Assign to milestones (1.15.0)
 4. Link to Phase 2 plan document
 
 **Issues to Create**:
@@ -180,7 +180,7 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 - #79: Testing documentation consolidation
 
 **Release** (1 issue):
-- #80: $11.15.0 Release preparation
+- #80: 1.16.0 Release preparation
 
 **Success Criteria**:
 - [ ] 12+ GitHub issues created
@@ -235,7 +235,7 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Action Items**:
 1. Set up Locust or k6 for load testing
 2. Create test scenarios (student list, grade calc, attendance)
-3. Establish performance baselines (from $11.15.0 optimizations)
+3. Establish performance baselines (from 1.15.0 optimizations)
 4. Integrate into GitHub Actions (weekly or on-demand)
 5. Set up regression alerts
 
@@ -293,7 +293,7 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 ---
 
 ### Issue #8: Installer Validation Testing
-**Status**: ✅ Mostly complete (from $11.15.0)
+**Status**: ✅ Mostly complete (from 1.15.0)
 **Impact**: LOW - Already working
 **Effort**: 1 hour
 **Owner**: QA
@@ -359,7 +359,7 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 ## 🚀 Next Actions (Immediate)
 
 **For Project Lead**:
-1. Create GitHub Release for $11.15.0 (15 minutes)
+1. Create GitHub Release for 1.15.0 (15 minutes)
 2. Create Phase 2 GitHub Issues (1 hour)
 3. Schedule Phase 2 kickoff meeting
 

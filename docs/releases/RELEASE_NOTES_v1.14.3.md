@@ -1,16 +1,16 @@
 # Release Notes - Version 1.14.3
 
 **Release Date**: 2026-01-05
-**Previous Version**: $11.15.0
+**Previous Version**: 1.14.2
 
 ## ✨ Features
 
 - implement #64 Error Messages with i18n support [aba62fe]
-- add APIResponse format helpers for gradual $11.15.0 migration [1c1b9c0]
+- add APIResponse format helpers for gradual 1.15.0 migration [1c1b9c0]
 - implement Error Message Improvements (Phase 1 #6) [55826e7]
 - implement Business Metrics Dashboard (Phase 1 #5) [b5210bf]
 - **api**: implement API response standardization (Phase 1 #4) [a1535d0]
-- **$11.15.0**: implement Phase 1 improvements (50% complete - 4/8) [e9d024c]
+- **1.15.0**: implement Phase 1 improvements (50% complete - 4/8) [e9d024c]
 
 ## 🐛 Bug Fixes
 
@@ -25,7 +25,7 @@
 - **e2e**: apply final eslint fixes and catch parameter cleanup [36e0aac]
 - **e2e**: improve test robustness and error handling [344a327]
 - **e2e**: resolve authentication state persistence in E2E tests [e2f4253]
-- update markdown table column count in MID_PHASE_SUMMARY_$11.15.0.md [44567e9]
+- update markdown table column count in MID_PHASE_SUMMARY_v1.15.0.md [44567e9]
 - disable KeywordDetector and exclude false-positive files from detect-secrets [74ebaf3]
 - exclude .secrets.baseline from pre-commit hook modifications [8705807]
 - add response_model to /admin/users endpoint for FastAPI validation [ccf86be]

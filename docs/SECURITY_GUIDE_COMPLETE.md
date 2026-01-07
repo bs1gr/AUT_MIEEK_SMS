@@ -29,7 +29,7 @@
 - 🔐 Multi-layer validation (Docker → PowerShell → Backend)
 - ✅ Comprehensive test coverage (17/17 security tests passing)
 
-**Key Improvements ($11.10.1):**
+**Key Improvements (1.10.1):**
 
 - Removed insecure SECRET_KEY defaults from Docker compose
 - Hardened admin credential configuration in .env.example
@@ -105,7 +105,7 @@ The following patterns are automatically detected and rejected:
 
 - Contains "change", "placeholder", "example", "your-secret"
 - Less than 32 characters
-- Default Docker compose fallback (removed in $11.10.1)
+- Default Docker compose fallback (removed in 1.10.1)
 - Empty or whitespace-only values
 
 ---

@@ -100,9 +100,9 @@ Watcher is automatically started by `RUN.ps1` when the application launches.
 **Critical Path Fix:**
 Originally used `/data/.triggers` which didn't match the bind mount. Fixed to use `/app/data/.triggers` to align with the Docker volume structure.
 
-### 3. (Legacy) Frontend UI (`frontend/src/pages/PowerPage.tsx` ≤ $11.9.7)
+### 3. (Legacy) Frontend UI (`frontend/src/pages/PowerPage.tsx` ≤ 1.9.7)
 
-Earlier versions surfaced a "Start Monitoring Stack" button that called the trigger endpoint directly. That UI was removed in $11.9.7 when the Power page was simplified to System Health + Control Panel. Operators can still build custom dashboards or use scripts to call the trigger endpoint (see section below for sample curl command).
+Earlier versions surfaced a "Start Monitoring Stack" button that called the trigger endpoint directly. That UI was removed in 1.9.7 when the Power page was simplified to System Health + Control Panel. Operators can still build custom dashboards or use scripts to call the trigger endpoint (see section below for sample curl command).
 
 ### 4. Startup Integration (`RUN.ps1`)
 
@@ -115,7 +115,7 @@ Earlier versions surfaced a "Start Monitoring Stack" button that called the trig
 
 ## How It Works
 
-1. **Trigger**: Operator calls the endpoint directly (CLI/scripts) or via legacy Power Page UI (≤ $11.9.7)
+1. **Trigger**: Operator calls the endpoint directly (CLI/scripts) or via legacy Power Page UI (≤ 1.9.7)
 2. **API Call**: Client sends POST to `/control/api/monitoring/trigger`
 3. **Trigger Creation**: Backend creates PowerShell script in `/app/data/.triggers/`
 4. **File Appears**: Bind mount makes file visible on host at `data/.triggers/`

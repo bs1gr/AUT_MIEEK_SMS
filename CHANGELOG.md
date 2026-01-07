@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
-> **Note**: For historical changes prior to $11.9.8, see `archive/pre-$11.9.8/CHANGELOG_ARCHIVE.md`.
+> **Note**: For historical changes prior to 1.9.8, see `archive/pre-1.9.8/CHANGELOG_ARCHIVE.md`.
 
 ---
 
@@ -13,11 +13,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Features
 - implement #64 Error Messages with i18n support
-- add APIResponse format helpers for gradual $11.15.0 migration
+- add APIResponse format helpers for gradual 1.15.0 migration
 - implement Error Message Improvements (Phase 1 #6)
 - implement Business Metrics Dashboard (Phase 1 #5)
 - **api**: implement API response standardization (Phase 1 #4)
-- **$11.15.0**: implement Phase 1 improvements (50% complete - 4/8)
+- **1.15.0**: implement Phase 1 improvements (50% complete - 4/8)
 
 ### Bug Fixes
 - allow null values for optional error fields in type definitions
@@ -31,7 +31,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **e2e**: apply final eslint fixes and catch parameter cleanup
 - **e2e**: improve test robustness and error handling
 - **e2e**: resolve authentication state persistence in E2E tests
-- update markdown table column count in MID_PHASE_SUMMARY_$11.15.0.md
+- update markdown table column count in MID_PHASE_SUMMARY_v1.15.0.md
 - disable KeywordDetector and exclude false-positive files from detect-secrets
 - exclude .secrets.baseline from pre-commit hook modifications
 - add response_model to /admin/users endpoint for FastAPI validation
@@ -261,7 +261,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - add required inputs to workflow_call trigger in CI/CD pipeline
 
 ### Documentation
-- release notes and changelog for $11.14.2
+- release notes and changelog for 1.14.2
 
 ### CI/CD
 - fix encoding script output + install missing types and vitest coverage deps
@@ -315,10 +315,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - add comprehensive release documentation generator script
 
 ### Documentation
-- normalize line endings for $11.14.2 release artifacts
+- normalize line endings for 1.14.2 release artifacts
 - add release documentation generator integration guide
 - improve release notes with proper breaking changes documentation
-- release notes and changelog for $11.14.2
+- release notes and changelog for 1.14.2
 - release 1.13.0 documentation
 
 ## [1.14.0] - 2025-12-29
@@ -355,7 +355,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 The following deprecated modules have been removed. Update your imports:
 
-| Old Import (REMOVED) | New Import ($11.14.0+) |
+| Old Import (REMOVED) | New Import (1.14.0+) |
 |---------------------|----------------------|
 | `backend.auto_import_courses` | `backend.scripts.import_.courses` |
 | `backend.tools.create_admin` | `backend.db.cli.admin` |
@@ -368,11 +368,11 @@ The following deprecated modules have been removed. Update your imports:
 **Migration Examples:**
 
 ```python
-# OLD ($11.14.0 and earlier) - NO LONGER WORKS
+# OLD (1.14.0 and earlier) - NO LONGER WORKS
 from backend.auto_import_courses import import_courses
 from backend.tools.create_admin import create_admin_user
 
-# NEW ($11.14.0+)
+# NEW (1.14.0+)
 from backend.scripts.import_.courses import import_courses
 from backend.db.cli.admin import create_admin_user
 ```
@@ -382,11 +382,11 @@ from backend.db.cli.admin import create_admin_user
 # OLD - NO LONGER WORKS
 python -m backend.auto_import_courses
 
-# NEW ($11.14.0+)
+# NEW (1.14.0+)
 python -m backend.scripts.import_.courses
 ```
 
-See [Migration Guide](docs/guides/MIGRATION_$11.14.0.md) for complete details.
+See [Migration Guide](docs/guides/MIGRATION_v1.13.0.md) for complete details.
 
 ### Removed
 
@@ -409,7 +409,7 @@ See [Migration Guide](docs/guides/MIGRATION_$11.14.0.md) for complete details.
 ### Documentation
 
 - Created comprehensive cleanup execution report
-- Added migration guide for $11.14.0 breaking changes
+- Added migration guide for 1.14.0 breaking changes
 - Updated backend CLI reference documentation
 
 ### Internal
@@ -425,8 +425,8 @@ See [Migration Guide](docs/guides/MIGRATION_$11.14.0.md) for complete details.
 ## [1.12.9] - 2025-12-29
 
 ### Documentation
-- update documentation for $11.14.0
-- update documentation for $11.14.0
+- update documentation for 1.14.0
+- update documentation for 1.14.0
 
 ## [1.12.9] - 2025-12-29
 
@@ -506,7 +506,7 @@ See [Migration Guide](docs/guides/MIGRATION_$11.14.0.md) for complete details.
 - strengthen path traversal protection in backup operations
 
 ### Documentation
-- Add comprehensive $11.14.0 deployment report
+- Add comprehensive 1.14.0 deployment report
 - Add comprehensive session completion summary
 - Add session final summary - E2E diagnostics complete
 - Add comprehensive E2E testing improvements summary
@@ -799,7 +799,7 @@ if not auth_enabled or auth_mode == "disabled":
 ### Changed
 
 **CI/CD Pipeline Documentation** 📚
-- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to $11.12.2
+- Updated `docs/deployment/CI_CD_PIPELINE_GUIDE.md` to 1.12.2
   - Added comprehensive section documenting release-installer-with-sha workflow
   - Documented 5 workflow stages: version verification, installer build, SHA256 calculation, release integration, notifications
   - Included usage examples for automatic and manual triggers
@@ -818,7 +818,7 @@ if not auth_enabled or auth_mode == "disabled":
 ## [1.12.0] - 2025-12-19
 
 **Release Status**: Phase 1, 2.1, 2.2, & 2.3 Complete (100% Progress)
-**Baseline**: $11.12.2 (Release Complete, 2025-12-11)
+**Baseline**: 1.12.2 (Release Complete, 2025-12-11)
 **Target**: Operational Excellence, Feature Expansion, Developer Experience
 **Test Coverage**: 1,461+ tests (272 backend + 1,189 frontend)
 
@@ -1032,8 +1032,8 @@ if not auth_enabled or auth_mode == "disabled":
 **Phase Documentation** 📚
 - Created `PHASE_1_2.1_COMPLETION_SUMMARY.md` - Phase 1 & 2.1 deliverables and validation
 - Created `PHASE_2.1_OPTIONALS_COMPLETION.md` - Phase 2.1 optional features completion
-- Updated `ROADMAP_$11.12.2.md` with Phase 2.3 completion and upcoming phases
-- Comprehensive CHANGELOG entries for all $11.12.2 components
+- Updated `ROADMAP_v1.12.2.md` with Phase 2.3 completion and upcoming phases
+- Comprehensive CHANGELOG entries for all 1.12.2 components
 
 **Developer Guides** 🛠️
 - `docs/development/QUERY_OPTIMIZATION.md` - Index strategies and query patterns
@@ -1162,7 +1162,7 @@ None. Full backward compatibility maintained.
 
 ### Documentation
 
-- Updated installer wizard images with $11.11.1 version
+- Updated installer wizard images with 1.11.1 version
 - Rebuilt code-signed installer: `SMS_Installer_1.11.1.exe` (5.33 MB)
 
 ## [1.11.0] - 2025-12-10
@@ -1233,7 +1233,7 @@ None. Full backward compatibility maintained.
     - 13 PowerShell stubs with full parameter forwarding
     - 2 test utilities
     - Sample data files preserved
-  - **Deprecation Timeline**: All `tools/` stubs will be removed in $11.10.1 (6 months)
+  - **Deprecation Timeline**: All `tools/` stubs will be removed in 1.10.1 (6 months)
   - **Benefits**: Clearer organization, better discoverability, consistent structure
 
 ### Fixed
@@ -1450,7 +1450,7 @@ None. Full backward compatibility maintained.
 ### Documentation
 
 - **NEW: Added `ROUTING_VALIDATION_FIXES.md`** (123 lines)
-  - Comprehensive routing architecture documentation for $11.9.9
+  - Comprehensive routing architecture documentation for 1.9.9
   - Documents React Router v7 layout pattern and type safety improvements
   - Route configuration validation against navigation settings
   - Reference documentation for future routing maintenance
@@ -1683,7 +1683,7 @@ None. Full backward compatibility maintained.
 #### Script Consolidation (2025-12-04)
 
 - **Docker Helper Scripts Archived**: Consolidated 6 Docker helper scripts
-  - Archived to `archive/pre-$11.9.7-docker-scripts/` with migration guide
+  - Archived to `archive/pre-1.9.7-docker-scripts/` with migration guide
   - Scripts: `DOCKER_UP`, `DOCKER_DOWN`, `DOCKER_REFRESH`, `DOCKER_RUN`, `DOCKER_SMOKE`, `DOCKER_UPDATE_VOLUME`
   - **DOCKER.ps1 is now single source of truth** for all Docker operations
   - Eliminates 283 lines of duplicate code
@@ -1783,7 +1783,7 @@ None. Full backward compatibility maintained.
   - Removed obsolete CI debug tools directory (`tools/ci/`)
 
 - **Updated documentation**:
-  - Updated TODO.md to $11.9.7 with completed cleanup items
+  - Updated TODO.md to 1.9.7 with completed cleanup items
   - Updated CONTRIBUTING.md to remove reference to deleted CI integration tests
   - Updated GitHub workflow (commit-ready-cleanup-smoke.yml) to remove obsolete test steps
   - Updated DOCUMENTATION_INDEX.md to remove MASTER_CONSOLIDATION_PLAN.md reference
@@ -1838,7 +1838,7 @@ None. Full backward compatibility maintained.
 
 #### Legacy Cleanup & Release Preparation
 
-- **Complete Legacy Archival**: Moved all pre-$11.9.7 artifacts to `archive/pre-$11.9.7/`
+- **Complete Legacy Archival**: Moved all pre-1.9.7 artifacts to `archive/pre-1.9.7/`
   - Archived 7 legacy release notes (v1.6.x, v1.8.x series)
   - Archived deprecated scripts and tools (SMART_SETUP.ps1, obsolete .bat wrappers)
   - Archived one-time migration scripts (reorganize_scripts.py, CONSOLIDATE_BAT_WRAPPERS.ps1)
@@ -1904,7 +1904,7 @@ None. Full backward compatibility maintained.
 
 - Added comprehensive `COMMIT_PREP_USAGE.md` guide for pre-commit workflow automation
 - Updated copilot-instructions.md with new config/docker directory paths
-- Updated DOCUMENTATION_INDEX.md to $11.9.7 with infrastructure changes
+- Updated DOCUMENTATION_INDEX.md to 1.9.7 with infrastructure changes
 - Fixed docker-compose paths in MONITORING.md and PRODUCTION_DOCKER_GUIDE.md
 - Updated README.md with v2.0 consolidated scripts
 - Updated Greek docs (ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ, ΟΔΗΓΟΣ_ΧΡΗΣΗΣ) with current scripts
@@ -1936,7 +1936,7 @@ None. Full backward compatibility maintained.
 
 - **Help & Documentation Enhancements** - Comprehensive help system improvements
   - Added "Autosave & Data Persistence" section with 7 Q&A entries
-  - Added "Recent Improvements (v1.8.x → $11.9.7)" section with 7 Q&A entries
+  - Added "Recent Improvements (v1.8.x → 1.9.7)" section with 7 Q&A entries
   - Created clickable resource cards with download links and GitHub references
   - Added PDF user guide downloads (English/Greek) with 40-45 pages each
   - Added GitHub Issues and Discussions forum links
@@ -1984,7 +1984,7 @@ None. Full backward compatibility maintained.
 ### Fixed
 
 - Fixed CI linting errors and package-lock corruption
-- Added $11.9.7 release notes
+- Added 1.9.7 release notes
 
 ### Security
 
@@ -2024,11 +2024,11 @@ None. Full backward compatibility maintained.
 
 ---
 
-## Pre-$11.9.7 History
+## Pre-1.9.7 History
 
-For detailed changelog entries from versions prior to $11.9.7, see:
+For detailed changelog entries from versions prior to 1.9.7, see:
 
-- `archive/pre-$11.9.7/CHANGELOG_ARCHIVE.md` - Summarized historical entries
+- `archive/pre-1.9.7/CHANGELOG_ARCHIVE.md` - Summarized historical entries
 - [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases) - Official release assets
 
 ### Version History Summary

@@ -1,7 +1,12 @@
 # Documentation Index
 
-**Last Updated**: 2026-01-06
-**Version**: 1.15.0
+**Last Updated**: 2026-01-07
+**Project Version (documented)**: 1.15.0
+**Current Branch**: `feature/v11.14.3-phase1-batch2`
+
+> **Branch/Version Context**: This branch tracks 11.14.3 phase 1 work while documentation reflects 1.15.0. Reconcile versioning when merging (either bump branch target to 1.15.0 or adjust docs if delivering against 11.14.3).
+
+> **Version Alignment Plan**: Use the released semantic version (e.g., 1.15.0) in all documentation going forward. Retire interim `$11.x` notation as branches merge; update any remaining docs to the release tag during the next doc sweep.
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -55,7 +60,6 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[CODEBASE_AUDIT_REPORT.md](../CODEBASE_AUDIT_REPORT.md)** - Comprehensive codebase audit with 50+ recommendations
   - Grade: A- (8.5/10) - Production Ready
   - 12 sections covering security, architecture, performance, quality
-- **[misc/IMPLEMENTATION_PATTERNS.md](misc/IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for $11.15.0 improvements
 - **[misc/IMPLEMENTATION_PATTERNS.md](misc/IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for $11.15.0 improvements
   - Audit logging pattern (model + service + router)
   - Query optimization with eager loading examples
@@ -178,7 +182,6 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[../monitoring/README.md](../monitoring/README.md)** - Monitoring quick reference
   - Configuration for Prometheus, Grafana, Loki
   - Alert rules and dashboard customization
-- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide (canonical)
 - **[user/SESSION_EXPORT_IMPORT_GUIDE.md](user/SESSION_EXPORT_IMPORT_GUIDE.md)** - Session export/import user guide (canonical)
 - **[../backend/CONTROL_API.md](../backend/CONTROL_API.md)** - Control API documentation (Updated)
   - Monitoring lifecycle endpoints
