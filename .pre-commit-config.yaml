@@ -19,7 +19,7 @@ repos:
 
   # Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+    rev: v0.14.10
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -27,15 +27,15 @@ repos:
 
   # (Optional) isort removed - ruff-format handles import formatting
   # Markdown linting
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.43.0
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.20.0
     hooks:
-      - id: markdownlint
-        args: ['--fix', '--disable', 'MD013', 'MD024', 'MD033']
+      - id: markdownlint-cli2
+        args: ['--fix']
 
   # General file checks and cleanup
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -54,7 +54,7 @@ repos:
 
 # Secret scanning (detect-secrets)
   - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
       - id: detect-secrets
         name: detect-secrets (prevent committing secrets)
