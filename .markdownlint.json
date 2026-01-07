@@ -2,9 +2,13 @@
   "default": true,
   "ignores": [
     "**/node_modules/**",
+    "**/.venv/**",
+    "**/venv/**",
     "**/dist/**",
     "backend/migrations/**",
-    "tmp_test_migrations/**"
+    "tmp_test_migrations/**",
+    "docs/archive/**",
+    "archive/**"
   ],
   "MD013": false,
   "MD022": false,

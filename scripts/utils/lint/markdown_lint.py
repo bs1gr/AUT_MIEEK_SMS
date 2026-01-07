@@ -272,11 +272,14 @@ def main():
         "archive",
         ".git",
         ".venv",
+        "venv",
         "node_modules",
         ".mypy_cache",
         ".pytest_cache",
         "dist",
         "build",
+        "htmlcov",
+        "coverage",
     }
     paths = []
     # Replace rglob with manual shallow walk to avoid WindowsApps symlink traversal issues
@@ -287,7 +290,8 @@ def main():
             paths.append(top)
         elif top.is_dir():
             for p in top.glob("**/*.md"):
-                if any(ex in p.parts for ex in EXCLUDES):
+                # Check if any part of the path contains excluded directories
+                if any(ex in str(p) for ex in EXCLUDES):
                     continue
                 paths.append(p)
 

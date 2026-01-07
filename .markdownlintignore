@@ -5,8 +5,16 @@ archive/**
 # Third-party and build artifacts
 node_modules/
 **/node_modules/**
+frontend/node_modules/**
 dist/
 **/dist/**
+.venv/
+**/.venv/**
+backend/.venv/**
+venv/
+**/venv/**
+htmlcov/
+coverage/
 
 # Database migrations and test fixtures
 backend/migrations/**
