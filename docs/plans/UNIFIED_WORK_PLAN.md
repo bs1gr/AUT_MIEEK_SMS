@@ -380,8 +380,8 @@ This document consolidates all scattered planning documents into a **single sour
 ---
 
 #### Issue #8: Installer Validation Testing
-**Status**: ✅ Mostly Complete (from v1.15.0)
-**Effort**: 1 hour
+**Status**: 🟡 Ready to Validate (checklist prepared)
+**Effort**: 1 hour (validation run pending)
 **Timeline**: Jan 24, 2026
 **Owner**: QA
 
@@ -391,6 +391,8 @@ This document consolidates all scattered planning documents into a **single sour
 - [ ] Verify all shortcuts work correctly
 - [ ] Test uninstaller functionality
 - [ ] Document validation results
+
+**Reference**: Installer validation checklist added to `installer/README.md` (Windows 10/11 steps, upgrade/uninstall checks, evidence to collect).
 
 ---
 

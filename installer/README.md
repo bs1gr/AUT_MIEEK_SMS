@@ -198,6 +198,40 @@ When upgrading from previous versions:
 - [ ] Upgrade from v1.9.6 with data preservation
 - [ ] Upgrade from v1.9.6 with fresh install
 - [ ] Uninstall with data preservation
+
+### Validation Checklist (Windows 10 & 11)
+
+Use this checklist when validating the installer on clean environments:
+
+1) **Fresh Install** (Win10 + Win11)
+   - Run installer as Admin
+   - Verify certificate prompt shows "AUT MIEEK"
+   - Confirm app installs to default path and launches
+
+2) **Shortcuts**
+   - Desktop shortcut created and launches app
+   - Start Menu entry present and launches app
+
+3) **Upgrade Scenario**
+   - Install v1.9.6 (baseline)
+   - Run new installer and choose **Update/Overwrite**
+   - Verify data preserved (`data/`, `backups/`, `logs/`, `.env`)
+   - App launches successfully after upgrade
+
+4) **Uninstall**
+   - Run uninstaller
+   - Choose **Keep data** → confirm files remain
+   - Choose **Delete data** → confirm app dir + data removed
+
+5) **Post-Checks**
+   - Health check passes after install (`http://localhost:8000/health/live`)
+   - Docker container starts/stops cleanly (if using Docker mode)
+   - No leftover services/processes after uninstall
+
+6) **Document Results**
+   - Record OS version (Win10/Win11 build)
+   - Note any warnings/prompts
+   - Attach installer logs (if any) and screenshots of dialogs
 - [ ] Uninstall with complete removal
 - [ ] Docker container builds successfully (no symlink loops)
 - [ ] Desktop shortcut launches correctly
