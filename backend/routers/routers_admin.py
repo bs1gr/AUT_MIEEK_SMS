@@ -19,5 +19,4 @@ def list_users(
     current_admin=Depends(require_role("admin")),
 ):
     """List all users (admin only)."""
-    users = db.query(User).all()
-    return [UserResponse.model_validate(u) for u in users]
+    return db.query(User).all()

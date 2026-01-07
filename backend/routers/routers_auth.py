@@ -237,9 +237,11 @@ async def fetch_csrf_token(request: Request, response: Response):
 # JWT helpers
 
 
-def create_access_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(subject: str, role: str = None, expires_delta: Optional[timedelta] = None) -> str:
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = {"sub": subject, "exp": expire}
+    if role:
+        to_encode["role"] = role
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -507,7 +509,7 @@ async def login(
             db.rollback()
             logger.exception("Failed to auto-rehash password")
 
-        access_token = create_access_token(subject=str(getattr(user, "email", "")))
+        access_token = create_access_token(subject=str(getattr(user, "email", "")), role=str(getattr(user, "role", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
         try:
             refresh_token = create_refresh_token_for_user(db, user)
