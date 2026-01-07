@@ -8,6 +8,85 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.15.1] - 2026-01-07 (Post-Phase 1 Polish)
+
+### 🛠️ Infrastructure & Monitoring
+
+**E2E Test CI Monitoring Infrastructure**
+- Added comprehensive E2E monitoring dashboard (`docs/operations/E2E_CI_MONITORING.md`)
+  - Baseline tracking with success criteria (≥95% critical, ≥75% overall, ≤5% flakiness)
+  - Historical data collection and trend analysis
+  - Monthly analysis templates for KPI tracking
+- Added step-by-step monitoring procedures (`docs/operations/E2E_MONITORING_PROCEDURES.md`)
+  - 15-20 minute weekly checklist
+  - Failure investigation guide with flakiness detection
+  - Escalation decision tree (RED/ORANGE/GREEN alerts)
+  - End-to-end example monitoring session
+- Added metrics collection automation (`scripts/e2e_metrics_collector.py`)
+  - Parses Playwright test reports automatically
+  - Calculates critical and overall pass rates
+  - Maintains historical data for trend analysis
+  - Alerts on <95% critical pass rate
+- Added failure pattern detection (`scripts/e2e_failure_detector.py`)
+  - Classifies failures by error type (timeout, selector, auth, network, assertion)
+  - Detects repeating patterns across test runs
+  - Generates severity-based alerts and recommendations
+  - Analyzes historical patterns
+
+**CI/CD Pipeline Optimization**
+- Docker layer caching enabled (type=gha) for faster builds (~30% improvement)
+- NPM and pip dependency caching configured
+- Playwright browser caching with version-based key strategy
+- E2E test artifacts preserved for 30 days
+
+**Documentation Enhancements**
+- Updated E2E Testing Guide with CI-specific troubleshooting
+- Added common issues section (timeouts, auth, network failures)
+- Added debugging procedures (Playwright Inspector, DevTools, traces)
+- Added quick reference guides (5-min and 10-min setup)
+
+**GitHub Workflow Improvements**
+- Created 9 Phase 2 tracking issues (#116-#124)
+- All Phase 2 tasks documented and linked to PHASE2_CONSOLIDATED_PLAN.md
+- Issue templates and labels standardized
+
+### 📚 Documentation
+
+- New: `docs/operations/E2E_CI_MONITORING.md` - Monitoring dashboard and baselines
+- New: `docs/operations/E2E_MONITORING_PROCEDURES.md` - Weekly runbook and procedures
+- New: `docs/operations/E2E_MONITORING_DELIVERY_SUMMARY.md` - Delivery documentation
+- New: `scripts/e2e_metrics_collector.py` - Automated metrics extraction
+- New: `scripts/e2e_failure_detector.py` - Failure pattern detection
+- Updated: `UNIFIED_WORK_PLAN.md` - Post-Phase 1 Polish marked 100% complete
+
+### ✅ Test Results
+
+- Backend: 370/370 tests passing (100%)
+- Frontend: 1,249/1,249 tests passing (100%)
+- E2E: 19/24 tests passing (100% critical path coverage)
+- Coverage: Backend 92%+, Frontend 88%+
+
+### 🐛 Known Issues
+
+- Notification broadcast test failures (5/12 tests) - 403 Forbidden on test endpoint
+  - Root cause: Permission check on test broadcast endpoint
+  - Workaround: None; use manual testing for notification features
+  - Timeline: Addressed in v1.15.2
+
+### 🔄 Changes from v1.15.0
+
+No breaking changes. All APIs remain backward compatible with v1.15.0.
+
+### ⬆️ Upgrade Instructions
+
+From v1.15.0: Simply pull latest code, no database migrations required.
+```bash
+git pull origin main
+# Restart application
+```
+
+---
+
 ## [1.15.0] - 2026-01-07
 
 ### 🎉 Phase 1 Completion: Major Release
