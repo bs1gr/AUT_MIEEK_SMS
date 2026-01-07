@@ -95,10 +95,10 @@ This document consolidates all scattered planning documents into a **single sour
 **Timeline**: Jan 7-9 ✅ COMPLETE
 
 **Status**: 19/24 tests passing (100% critical path, 79% overall)
-  - ✅ 7/7 Student Management (create, edit, list, search, detail)
-  - ✅ 5/5 Critical Flows (auth, navigation, responsive)
-  - ✅ 1/1 Registration UI
-  - ⚠️ 12/12 Notifications (403 Forbidden on test broadcast endpoint - deferred to v1.15.1)
+- ✅ 7/7 Student Management (create, edit, list, search, detail)
+- ✅ 5/5 Critical Flows (auth, navigation, responsive)
+- ✅ 1/1 Registration UI
+- ⚠️ 12/12 Notifications (403 Forbidden on test broadcast endpoint - deferred to v1.15.1)
 
 **Completed Tasks**:
 - [x] Fix test data seeding (`backend/seed_e2e_data.py`)
