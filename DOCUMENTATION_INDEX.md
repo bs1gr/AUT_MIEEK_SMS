@@ -61,6 +61,15 @@ All documentation is organized under `docs/` into four main categories:
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
 
+### For Phase 2 Planning & Execution (NEW!)
+
+- **Quick reference?** → `docs/deployment/QUICK_REFERENCE_PHASE2.md` (2 min overview)
+- **Executive summary?** → `docs/deployment/EXECUTIVE_SUMMARY_PHASE2_READY.md` (5 min status)
+- **Staging deployment?** → `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` (with commands)
+- **Risk management?** → `docs/deployment/PHASE2_RISK_REGISTER.md` (10 risks + mitigation)
+- **Team onboarding?** → `docs/deployment/PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` (3-hour path)
+- **PR standards?** → `.github/pull_request_template/PHASE2_PR_GUIDE.md` (template)
+
 ---
 
 ## Core Documentation
@@ -101,11 +110,13 @@ Located in `docs/deployment/`:
 - `POSTGRES_MIGRATION_GUIDE.md` - SQLite to PostgreSQL migration
 - `DEPLOY.md` - General deployment procedures
 - `CI_CD_PIPELINE_GUIDE.md` - GitHub Actions configuration
-- `PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` - Pre-deployment validation (7 phases)
-- `STAGING_DEPLOYMENT_PLAN_v1.15.1.md` - v1.15.1 staging deployment plan
-- `STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Complete staging deployment runbook
-- `PHASE2_RISK_REGISTER.md` - Phase 2 risk assessment & mitigation strategies
-- `PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` - Phase 2 transition guide & team onboarding
+- `PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` - Pre-deployment validation (7 phases, 30 min)
+- `STAGING_DEPLOYMENT_PLAN_v1.15.1.md` - v1.15.1 staging deployment plan (45 min)
+- `STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Complete staging deployment runbook with commands
+- `PHASE2_RISK_REGISTER.md` - Phase 2 risk assessment & mitigation strategies (10 risks)
+- `PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` - Phase 2 transition guide & team onboarding (3 hours)
+- `EXECUTIVE_SUMMARY_PHASE2_READY.md` - Phase 2 executive summary & immediate actions
+- `QUICK_REFERENCE_PHASE2.md` - Phase 2 quick reference card (2 min overview)
 
 ### User Documentation
 
