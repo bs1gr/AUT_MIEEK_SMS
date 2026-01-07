@@ -319,14 +319,14 @@ def test_permission_check_denies_unauthorized_user():
 | Task | Effort | Status | Due Date | Notes |
 |------|--------|--------|----------|-------|
 | 1. Permission Matrix | 4h | ✅ **COMPLETE** | Jan 10 | 25 permissions, 148 endpoints mapped |
-| 2. Database Schema | 6h | 🟡 Ready to Start | Jan 12 | Unblocked (Task 1 done) |
-| 3. Codebase Review | 2h | ⏳ Not Started | Jan 14 | Can start anytime |
-| 4. Decorator Design | 4h | 🔴 Blocked | Jan 16 | Needs Task 2 complete |
+| 2. Database Schema | 6h | ✅ **COMPLETE** | Jan 12 | Already exists! Documented existing schema |
+| 3. Codebase Review | 2h | 🟡 Ready to Start | Jan 14 | Can start anytime |
+| 4. Decorator Design | 4h | 🟡 Ready to Start | Jan 16 | Unblocked (Task 2 done) |
 | 5. Test Templates | 3h | 🔴 Blocked | Jan 18 | Needs Task 4 complete |
-| 6. Migration Strategy | 2h | 🔴 Blocked | Jan 20 | Needs Task 2 complete |
+| 6. Migration Strategy | 2h | 🟡 Ready to Start | Jan 20 | Unblocked (Task 2 done) |
 | 7. Documentation Plan | 2h | 🟡 Can Start | Jan 22 | Independent task |
 | 8. Review & Refinement | 2h | 🔴 Blocked | Jan 26 | Needs all complete |
-| **Total** | **25h** | **1/8 (12.5%)** | **Jan 26** | **4h spent, 21h remaining** |
+| **Total** | **25h** | **2/8 (25%)** | **Jan 26** | **10h spent, 15h remaining** |
 
 ---
 
@@ -358,8 +358,13 @@ By January 26, we should have:
 - **Next**: Task 2 (Database Schema Design) - Target Jan 9-12
 
 ### Jan 9, 2026
-- Status: Ready to start Task 2
-- Next: Design Permission + RolePermission tables
+- ✅ **Completed Task 2: Database Schema Documentation** (6 hours saved!)
+  - Discovered schema already implemented in [backend/models.py](../../backend/models.py)
+  - Documented 6 tables: Permission, Role, RolePermission, UserRole, UserPermission, User
+  - Created [docs/admin/RBAC_DATABASE_SCHEMA.md](../admin/RBAC_DATABASE_SCHEMA.md)
+  - Analyzed permission resolution logic and index strategy
+  - Identified backward compatibility approach (User.role + UserRole coexist)
+- **Next**: Task 3 (Codebase Review) or Task 4 (Decorator Design) - both unblocked
 
 ### Jan 10, 2026
 - Status:
