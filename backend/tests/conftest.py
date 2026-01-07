@@ -376,6 +376,30 @@ def admin_token(client, bootstrap_admin):
     return token
 
 
+@pytest.fixture(scope="function")
+def teacher_token(client):
+    """Create teacher user and return auth token."""
+    # Register teacher
+    teacher_data = {
+        "email": "teacher@example.com",
+        "password": "Teacher123!",
+        "full_name": "Teacher User",
+        "role": "teacher",
+    }
+
+    reg_resp = client.post("/api/v1/auth/register", json=teacher_data)
+    assert reg_resp.status_code in (200, 201), f"Teacher registration failed: {reg_resp.text}"
+
+    # Login to get token
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": teacher_data["email"], "password": teacher_data["password"]}
+    )
+    assert login_resp.status_code == 200, f"Teacher login failed: {login_resp.text}"
+    token = login_resp.json().get("access_token")
+    assert token, "No access_token in login response"
+    return token
+
+
 @pytest.fixture
 def mock_db_engine(monkeypatch):
     """Mock database engine for health check tests."""

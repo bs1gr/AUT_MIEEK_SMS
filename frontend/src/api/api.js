@@ -13,6 +13,7 @@ import axios from 'axios';
 import * as authService from '../services/authService';
 import { formatLocalDate } from '@/utils/date';
 import { API_BASE_URL } from '@/config/api';
+import { logErrorToBackend } from '@/utils/errorReporting';
 
 
 // Use API_BASE_URL from config
@@ -165,7 +166,11 @@ export function extractAPIError(errorResponse) {
 // Response interceptor (for error handling)
 let hasRetriedRelative = false;
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Non-intrusive: do not alter response shape here to keep backwards compatibility.
+    // Unwrapping is handled explicitly by callers via extractAPIResponseData().
+    return response;
+  },
   async (error) => {
     // Standard logging & classification with new format support
     if (error.response) {
@@ -176,6 +181,24 @@ apiClient.interceptors.response.use(
         request_id: errorInfo.request_id,
         path: errorInfo.path,
       });
+
+      // Send structured error to backend with request_id for correlation
+      try {
+        await logErrorToBackend(
+          new Error(errorInfo.message || 'API Error'),
+          { componentStack: 'apiClient.interceptor' },
+          {
+            code: errorInfo.code,
+            request_id: errorInfo.request_id,
+            path: errorInfo.path,
+            status: error.response.status,
+            url: error.config?.url,
+            method: error.config?.method,
+          }
+        );
+      } catch (_) {
+        // ignore error reporting failures
+      }
 
       if (error.response.status === 404) {
         console.error('Resource not found');
@@ -279,7 +302,7 @@ export const studentsAPI = {
       const response = await apiClient.get('/students/', {
         params: { skip, limit }
       });
-      const data = response.data;
+      const data = extractAPIResponseData(response);
       // Always return an array of students
       if (data && Array.isArray(data.items)) return data.items;
       if (Array.isArray(data)) return data;
@@ -297,7 +320,7 @@ export const studentsAPI = {
   getById: async (studentId) => {
     try {
       const response = await apiClient.get(`/students/${studentId}`);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -310,7 +333,7 @@ export const studentsAPI = {
   create: async (studentData) => {
     try {
       const response = await apiClient.post('/students/', studentData);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -324,7 +347,7 @@ export const studentsAPI = {
   update: async (studentId, studentData) => {
     try {
       const response = await apiClient.put(`/students/${studentId}`, studentData);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -337,7 +360,7 @@ export const studentsAPI = {
   delete: async (studentId) => {
     try {
       const response = await apiClient.delete(`/students/${studentId}`);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -370,7 +393,7 @@ export const coursesAPI = {
       const response = await apiClient.get('/courses/', {
         params: { skip, limit }
       });
-      const data = response.data;
+      const data = extractAPIResponseData(response);
       // Normalize PaginatedResponse to array for UI callers
       if (data && Array.isArray(data.items)) return data.items;
       return Array.isArray(data) ? data : [];
@@ -386,7 +409,7 @@ export const coursesAPI = {
   create: async (courseData) => {
     try {
       const response = await apiClient.post('/courses/', courseData);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -400,7 +423,7 @@ export const coursesAPI = {
   update: async (courseId, courseData) => {
     try {
       const response = await apiClient.put(`/courses/${courseId}`, courseData);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -413,7 +436,7 @@ export const coursesAPI = {
   delete: async (courseId) => {
     try {
       const response = await apiClient.delete(`/courses/${courseId}`);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -529,7 +552,7 @@ export const gradesAPI = {
   getByStudent: async (studentId) => {
     try {
       const response = await apiClient.get(`/grades/student/${studentId}`);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }
@@ -542,7 +565,7 @@ export const gradesAPI = {
   getByCourse: async (courseId) => {
     try {
       const response = await apiClient.get(`/grades/course/${courseId}`);
-      return response.data;
+      return extractAPIResponseData(response);
     } catch (error) {
       throw error;
     }

@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AuditAction(str, Enum):
@@ -69,6 +69,8 @@ class AuditLogCreate(BaseModel):
 class AuditLogResponse(BaseModel):
     """Audit log entry response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int = Field(..., description="Audit log ID")
     action: AuditAction = Field(..., description="Action performed")
     resource: AuditResource = Field(..., description="Resource affected")
@@ -88,6 +90,5 @@ class AuditLogListResponse(BaseModel):
 
     logs: list[AuditLogResponse] = Field(..., description="Audit log entries")
     total: int = Field(..., description="Total number of logs")
-    page: int = Field(..., description="Current page")
-    page_size: int = Field(..., description="Items per page")
-    has_next: bool = Field(..., description="Whether there are more pages")
+    skip: int = Field(..., description="Number of logs skipped")
+    limit: int = Field(..., description="Max items returned")

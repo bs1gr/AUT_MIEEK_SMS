@@ -81,6 +81,7 @@ export async function registerUser(page: Page, user: TestUser) {
     throw new Error(`Registration failed: ${response.status()} - ${text}`);
   }
 
+  // Registration response may be wrapped; return full JSON for caller flexibility
   return response.json();
 }
 
@@ -174,7 +175,8 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const data = await response.json();
   console.log(`🔐 [E2E API LOGIN] Login response keys: ${Object.keys(data).join(', ')}`);
 
-  const token = data?.access_token;
+  // Handle both legacy and standardized APIResponse formats
+  const token = (data && (data as any).access_token) || (data && (data as any).data && (data as any).data.access_token);
 
   if (!token) {
     console.error(`❌ [E2E API LOGIN] No access token in response!`);
@@ -200,8 +202,9 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
     throw new Error(`Failed to fetch user: ${meResponse.status()} - ${text}`);
   }
 
-  const userData = await meResponse.json();
-  console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email}`);
+  const meJson = await meResponse.json();
+  const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
+  console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
   // Navigate to home first
   console.log(`🔐 [E2E API LOGIN] Navigating to / to set token and user...`);
@@ -317,7 +320,8 @@ export async function createStudentViaAPI(page: Page, student: TestStudent) {
     throw new Error(`Create student failed: ${response.status()}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  return (json && (json as any).success === false) ? Promise.reject(new Error((json as any).error?.message || 'API error')) : ((json && (json as any).data) || json);
 }
 
 export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: Course['evaluation_rules']) {
@@ -343,7 +347,8 @@ export async function createCourseViaAPI(page: Page, course: TestCourse, evaluat
     throw new Error(`Create course failed: ${response.status()}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  return (json && (json as any).success === false) ? Promise.reject(new Error((json as any).error?.message || 'API error')) : ((json && (json as any).data) || json);
 }
 
 export async function createGradeViaAPI(
@@ -371,7 +376,8 @@ export async function createGradeViaAPI(
     throw new Error(`Create grade failed: ${response.status()}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  return (json && (json as any).success === false) ? Promise.reject(new Error((json as any).error?.message || 'API error')) : ((json && (json as any).data) || json);
 }
 
 export async function createAttendanceViaAPI(
@@ -396,7 +402,8 @@ export async function createAttendanceViaAPI(
     throw new Error(`Create attendance failed: ${response.status()}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  return (json && (json as any).success === false) ? Promise.reject(new Error((json as any).error?.message || 'API error')) : ((json && (json as any).data) || json);
 }
 
 // UI interaction helpers

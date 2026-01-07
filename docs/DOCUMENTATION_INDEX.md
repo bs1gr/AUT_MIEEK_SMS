@@ -2,6 +2,7 @@
 
 **Last Updated**: 2026-01-07
 **Project Version (documented)**: 1.15.0
+**Version**: 1.15.0
 **Current Branch**: `feature/v11.14.3-phase1-batch2`
 
 > **Branch/Version Context**: This branch tracks 11.14.3 phase 1 work while documentation reflects 1.15.0. Reconcile versioning when merging (either bump branch target to 1.15.0 or adjust docs if delivering against 11.14.3).

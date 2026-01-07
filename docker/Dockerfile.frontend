@@ -11,17 +11,18 @@ WORKDIR /app/frontend
 
 # Dependencies
 COPY frontend/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi && npm cache clean --force;
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Build
 COPY frontend/ .
 # Copy VERSION file so sync-version.cjs can find it
 COPY VERSION ../VERSION
-RUN rm -rf node_modules src test .git
 # Allow overriding API URL at build-time (default to relative /api/v1)
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
+# Clean up after build
+RUN rm -rf src test .git node_modules
 
 
 # 2) Serve with NGINX and proxy API to backend service
