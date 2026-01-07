@@ -1,9 +1,9 @@
 # Release Notes $11.15.1
 
-**Release Date**: January 7-24, 2026
+**Release Date**: January 7, 2026
 **Version**: 1.15.1
-**Type**: Post-Phase 1 Polish & Quality Improvements
-**Status**: In Development
+**Type**: Post-Phase 1 Polish & Quality Improvements + Security Fixes
+**Status**: ✅ Released
 
 ---
 
@@ -168,6 +168,40 @@ No changes required; infrastructure already in place.
 
 ---
 
+### 9. Security Dependency Upgrades
+**Status**: ✅ Complete (Jan 7)
+
+**Fixed Vulnerabilities**:
+- ✅ **aiohttp**: 3.12.15 → 3.13.3
+  - Fixed 8 CVEs: zip bomb DoS, request smuggling, memory exhaustion, chunked processing DoS, logging storm, path traversal, infinite loop, non-ASCII decimals
+
+- ✅ **filelock**: 3.20.0 → 3.20.1
+  - Fixed TOCTOU race condition enabling local privilege escalation
+
+- ✅ **pdfminer-six**: 20251107 → 20251230
+  - Fixed pickle deserialization RCE enabling privilege escalation
+
+- ✅ **urllib3**: 2.6.0 → 2.6.3
+  - Fixed streaming redirect decompression bomb vulnerability
+
+**Remaining Known Vulnerability**:
+- **ecdsa**: 0.19.1 - Minerva timing attack on P-256 curve
+  - Status: No fix available (out of scope for library maintainers)
+  - Risk: Low for this application (not using ECDSA signature operations)
+  - Decision: Acceptable risk; monitoring for future updates
+
+**Validation**:
+- ✅ All 370 backend tests passing after upgrade
+- ✅ All 1,249 frontend tests passing
+- ✅ No dependency conflicts
+- ✅ Requirements-lock.txt and package-lock.json updated
+
+**Files Changed**:
+- `backend/requirements-lock.txt` - Updated aiohttp, urllib3
+- `frontend/package-lock.json` - Version sync to 1.15.1
+
+---
+
 ## 🐛 Known Issues (Deferred to $11.15.1)
 
 ### Notification Broadcast Test Failures
@@ -187,6 +221,7 @@ No changes required; infrastructure already in place.
 - **Coverage**: 92%+ across all modules
 - **Performance**: All tests complete in <5 seconds
 - **New Tests**: 57 new tests in $11.15.1 (soft-delete, metrics, audit, encryption)
+- **Security**: All upgraded dependencies validated
 
 ### Frontend Tests
 - **Status**: ✅ 1,249/1,249 passing (100%)
