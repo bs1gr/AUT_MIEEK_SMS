@@ -249,7 +249,7 @@ class BackupServiceEncrypted:
                 # Check if encrypted data is available and complete
                 remaining = backup_path.stat().st_size - 6 - metadata_len
                 if remaining < encrypted_size:
-                    raise ValueError(f"Encrypted data incomplete: " f"expected {encrypted_size}, got {remaining}")
+                    raise ValueError(f"Encrypted data incomplete: expected {encrypted_size}, got {remaining}")
 
                 # Try to parse metadata to ensure it's valid JSON
                 json.loads(metadata_bytes.decode())

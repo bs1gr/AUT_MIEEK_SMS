@@ -49,7 +49,7 @@ class EmailTemplates:
                             </span>
                         </p>
                         <p style="margin: 10px 0;">
-                            <strong>Percentage:</strong> {(grade/max_grade*100):.1f}%
+                            <strong>Percentage:</strong> {(grade / max_grade * 100):.1f}%
                         </p>
                     </div>
 

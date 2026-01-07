@@ -142,12 +142,7 @@ class QueryProfiler:
         self.slow_query_count = 0
 
     def __repr__(self) -> str:
-        return (
-            f"QueryProfiler("
-            f"queries={len(self.queries)}, "
-            f"time={self.total_time:.3f}s, "
-            f"slow={self.slow_query_count})"
-        )
+        return f"QueryProfiler(queries={len(self.queries)}, time={self.total_time:.3f}s, slow={self.slow_query_count})"
 
 
 # Global instance

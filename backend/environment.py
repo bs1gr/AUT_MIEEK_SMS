@@ -98,9 +98,7 @@ class RuntimeContext:
     def summary(self) -> str:
         """Return a human readable summary of the detected context."""
 
-        return (
-            f"environment={self.environment.value} (source={self.source}), " f"docker={self.is_docker}, ci={self.is_ci}"
-        )
+        return f"environment={self.environment.value} (source={self.source}), docker={self.is_docker}, ci={self.is_ci}"
 
 
 def _truthy(value: Optional[str]) -> bool:

@@ -41,7 +41,7 @@ def sample_data(clean_db):
     courses = []
     for i in range(3):
         course = Course(
-            course_code=f"CS{i}01", course_name=f"Computer Science {i+1}", semester="Fall 2025", absence_penalty=0.1
+            course_code=f"CS{i}01", course_name=f"Computer Science {i + 1}", semester="Fall 2025", absence_penalty=0.1
         )
         db.add(course)
         courses.append(course)

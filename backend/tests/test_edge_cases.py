@@ -11,7 +11,7 @@ import pytest
 def test_create_student_with_max_length_fields(client):
     payload = {
         "name": "A" * 255,
-        "email": f"{'a'*64}@{'b'*63}.{'c'*63}",
+        "email": f"{'a' * 64}@{'b' * 63}.{'c' * 63}",
         "student_id": "9" * 32,
         "address": "X" * 512,
         "phone": "+357" + "7" * 15,

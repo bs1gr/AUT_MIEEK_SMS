@@ -156,7 +156,7 @@ class EncryptionService:
         expected_min_length = self.SALT_LENGTH + self.NONCE_LENGTH + self.TAG_LENGTH
         if len(encrypted_data) < expected_min_length:
             raise ValueError(
-                f"Invalid encrypted data length. " f"Expected at least {expected_min_length}, got {len(encrypted_data)}"
+                f"Invalid encrypted data length. Expected at least {expected_min_length}, got {len(encrypted_data)}"
             )
 
         # Extract components (salt not used in decryption, only for key derivation in password-based encryption)
@@ -257,7 +257,7 @@ class EncryptionService:
 
         # Verify integrity
         if len(encrypted_data) != encrypted_size:
-            raise ValueError(f"Encrypted data size mismatch. " f"Expected {encrypted_size}, got {len(encrypted_data)}")
+            raise ValueError(f"Encrypted data size mismatch. Expected {encrypted_size}, got {len(encrypted_data)}")
 
         # Decrypt
         plaintext = self.decrypt(encrypted_data, associated_data=metadata_bytes)

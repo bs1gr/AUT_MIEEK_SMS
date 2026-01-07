@@ -47,7 +47,7 @@ class LoadTestReportGenerator:
     <div class="container">
         <header>
             <h1>🎯 Student Management System Load Test Report</h1>
-            <p class="subtitle">Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p class="subtitle">Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
         </header>
 
         {self._generate_summary_section(analyses)}
@@ -240,19 +240,19 @@ class LoadTestReportGenerator:
             <h2>📊 Executive Summary</h2>
             <div class="metric-grid">
                 <div class="metric-card">
-                    <div class="metric-value">{summary['total_requests']:,}</div>
+                    <div class="metric-value">{summary["total_requests"]:,}</div>
                     <div class="metric-label">Total Requests</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value">{summary['requests_per_second']:.1f}</div>
+                    <div class="metric-value">{summary["requests_per_second"]:.1f}</div>
                     <div class="metric-label">Requests/Second</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value">{summary['95p_response_time']:.3f}s</div>
+                    <div class="metric-value">{summary["95p_response_time"]:.3f}s</div>
                     <div class="metric-label">95th Percentile Response Time</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value">{summary['error_rate']:.2f}%</div>
+                    <div class="metric-value">{summary["error_rate"]:.2f}%</div>
                     <div class="metric-label">Error Rate</div>
                 </div>
             </div>
@@ -295,12 +295,12 @@ class LoadTestReportGenerator:
 
             html += f"""
                     <tr>
-                        <td>{summary['test_id']}</td>
-                        <td>{summary['total_requests']:,}</td>
-                        <td>{summary['requests_per_second']:.1f}</td>
-                        <td>{summary['avg_response_time']:.3f}s</td>
-                        <td>{summary['95p_response_time']:.3f}s</td>
-                        <td>{summary['error_rate']:.2f}%</td>
+                        <td>{summary["test_id"]}</td>
+                        <td>{summary["total_requests"]:,}</td>
+                        <td>{summary["requests_per_second"]:.1f}</td>
+                        <td>{summary["avg_response_time"]:.3f}s</td>
+                        <td>{summary["95p_response_time"]:.3f}s</td>
+                        <td>{summary["error_rate"]:.2f}%</td>
                         <td><span class="status-badge {status_class}">{status_text}</span></td>
                     </tr>
             """
@@ -346,11 +346,11 @@ class LoadTestReportGenerator:
 
             html += f"""
                     <tr>
-                        <td class="endpoint-url">{endpoint['endpoint']}</td>
-                        <td>{endpoint['requests']:,}</td>
-                        <td>{endpoint['avg_response_time']:.3f}s</td>
-                        <td>{endpoint['95p_response_time']:.3f}s</td>
-                        <td>{endpoint['rps']:.2f}</td>
+                        <td class="endpoint-url">{endpoint["endpoint"]}</td>
+                        <td>{endpoint["requests"]:,}</td>
+                        <td>{endpoint["avg_response_time"]:.3f}s</td>
+                        <td>{endpoint["95p_response_time"]:.3f}s</td>
+                        <td>{endpoint["rps"]:.2f}</td>
                         <td>{error_rate:.2f}%</td>
                     </tr>
             """
@@ -391,9 +391,9 @@ class LoadTestReportGenerator:
 
             html += f"""
                     <tr>
-                        <td>{check['metric']}</td>
-                        <td>{check['target']:.3f}</td>
-                        <td>{check['actual']:.3f}</td>
+                        <td>{check["metric"]}</td>
+                        <td>{check["target"]:.3f}</td>
+                        <td>{check["actual"]:.3f}</td>
                         <td><span class="status-badge {status_class}">{status_text}</span></td>
                     </tr>
             """

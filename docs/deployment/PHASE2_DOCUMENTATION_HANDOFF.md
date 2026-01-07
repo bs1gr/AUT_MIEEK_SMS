@@ -29,7 +29,7 @@
    - **Timeline**: 45 minutes deployment + 1 hour testing = ~2 hours core execution
    - **Success Criteria**: All tests passing, zero critical errors
 
-3. ✅ **STAGING_DEPLOYMENT_PLAN_v1.15.1.md** (Governance document, ~800 lines)
+3. ✅ **STAGING_DEPLOYMENT_PLAN_$11.15.1.md** (Governance document, ~800 lines)
    - Formal deployment timeline and milestones
    - Stakeholder communication plan
    - Decision gates and escalation procedures
@@ -132,7 +132,7 @@ EXECUTIVE_SUMMARY_PHASE2_READY.md (5 minutes - status + decisions)
 FOR JAN 8-9 STAGING DEPLOYMENT:
 ├─ PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md (30 min validation)
 ├─ STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md (main runbook - all commands)
-└─ STAGING_DEPLOYMENT_PLAN_v1.15.1.md (governance/timeline)
+└─ STAGING_DEPLOYMENT_PLAN_$11.15.1.md (governance/timeline)
 
 FOR JAN 20-24 PREP WEEK:
 ├─ PHASE2_KICKOFF_TRANSITION_DOCUMENT.md (team onboarding)
@@ -214,7 +214,7 @@ FOR ONGOING PHASE 2 (JAN 27 - MAR 7):
 | PHASE2_RISK_REGISTER.md | ~1,200 | ~8,000 | Risk management |
 | QUICK_REFERENCE_PHASE2.md | ~400 | ~2,500 | Navigation |
 | EXECUTIVE_SUMMARY_PHASE2_READY.md | ~1,500 | ~10,000 | Status + actions |
-| STAGING_DEPLOYMENT_PLAN_v1.15.1.md | ~800 | ~5,000 | Timeline/governance |
+| STAGING_DEPLOYMENT_PLAN_$11.15.1.md | ~800 | ~5,000 | Timeline/governance |
 | PHASE2_PR_GUIDE.md | ~400 | ~2,500 | PR standards |
 | **Total** | **~8,600** | **~58,000** | **Complete Phase 2 Package** |
 
@@ -366,7 +366,7 @@ To become "Phase 2 Ready", each team member must:
 - [ ] PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md: 30+ items checked, Go decision made
 - [ ] STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md: Executed successfully, all 19 tests passing
 - [ ] 24-hour monitoring: Zero critical errors, performance within baseline
-- [ ] Sign-off: Tech Lead approves v1.15.1 ready for staging
+- [ ] Sign-off: Tech Lead approves $11.15.1 ready for staging
 
 **Jan 20-24 Prep Week** ✅
 - [ ] 100% team attendance in all 5 prep meetings
@@ -383,7 +383,7 @@ To become "Phase 2 Ready", each team member must:
 - [ ] Daily standup: 15-min morning sync, risk updates
 
 **Mar 7 Phase 2 Release** ✅
-- [ ] v1.16.0 released with RBAC system fully functional
+- [ ] $11.15.1 released with RBAC system fully functional
 - [ ] All 6 weeks completed per PHASE2_CONSOLIDATED_PLAN.md
 - [ ] 95%+ test coverage maintained throughout
 - [ ] Zero permission bypass vulnerabilities (critical security requirement)

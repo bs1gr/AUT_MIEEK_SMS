@@ -12,7 +12,7 @@ Migration path:
 """
 
 warnings.warn(
-    "backend.admin_bootstrap is deprecated. " "Use backend.scripts.admin.bootstrap instead.",
+    "backend.admin_bootstrap is deprecated. Use backend.scripts.admin.bootstrap instead.",
     DeprecationWarning,
     stacklevel=2,
 )

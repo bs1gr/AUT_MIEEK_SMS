@@ -23,8 +23,7 @@ def _load_import_checker():
     """Dynamically load the consolidated import checker module."""
     if not IMPORT_CHECKER.exists():
         raise FileNotFoundError(
-            "Unified import checker is missing at expected location: "
-            f"{IMPORT_CHECKER}"
+            f"Unified import checker is missing at expected location: {IMPORT_CHECKER}"
         )
 
     spec = importlib.util.spec_from_file_location("import_checker", str(IMPORT_CHECKER))

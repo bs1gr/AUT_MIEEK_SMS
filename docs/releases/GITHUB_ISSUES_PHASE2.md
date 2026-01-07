@@ -539,7 +539,7 @@ Final release preparation for 1.16.0 with all Phase 2 improvements.
 ## Release Tasks
 - [ ] Update VERSION file to 1.16.0
 - [ ] Update CHANGELOG.md
-- [ ] Create release notes (docs/releases/RELEASE_NOTES_v1.16.0.md)
+- [ ] Create release notes (docs/releases/RELEASE_NOTES_$11.15.1.md)
 - [ ] Test database migration (1.15.0 → 1.16.0)
 - [ ] Build and test Docker image
 - [ ] Create GitHub Release

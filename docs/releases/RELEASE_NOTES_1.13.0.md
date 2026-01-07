@@ -297,6 +297,6 @@ Thanks to the team for:
 
 ---
 
-**Download**: [GitHub Release](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.13.0)
+**Download**: [GitHub Release](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.1)
 **Documentation**: [RBAC Implementation Guide](../docs/development/RBAC_IMPLEMENTATION_GUIDE.md)
 **Issues**: [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)

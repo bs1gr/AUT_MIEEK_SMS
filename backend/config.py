@@ -68,8 +68,7 @@ def _build_postgres_url_from_data(data: Mapping[str, Any]) -> str:
         query = f"?{query}"
 
     return (
-        f"postgresql+psycopg://{quote_plus(username)}:{quote_plus(password)}@"
-        f"{host}:{port}/{quote_plus(db_name)}{query}"
+        f"postgresql+psycopg://{quote_plus(username)}:{quote_plus(password)}@{host}:{port}/{quote_plus(db_name)}{query}"
     )
 
 
@@ -152,7 +151,7 @@ class Settings(BaseSettings):
     # CORS (store as string to avoid pydantic-settings JSON decoding for complex types)
     # Include common local dev origins (localhost and 127.0.0.1 on common dev ports).
     # Operators can override via CORS_ORIGINS env var when running in different environments.
-    CORS_ORIGINS: str = "http://localhost:5173, http://127.0.0.1:5173," " http://localhost:5174, http://127.0.0.1:5174"
+    CORS_ORIGINS: str = "http://localhost:5173, http://127.0.0.1:5173, http://localhost:5174, http://127.0.0.1:5174"
 
     # Security / JWT
     # Names aligned with .env.example

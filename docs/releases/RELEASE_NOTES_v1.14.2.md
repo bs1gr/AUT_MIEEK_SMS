@@ -106,7 +106,7 @@ frontend/src/locales/el/controlPanel.js                      +1, -1
 ```
 CHANGELOG.md                                  +64, -0
 frontend/src/index.css                        +2, -2
-docs/releases/RELEASE_NOTES_v1.14.2.md       +3, -3
+docs/releases/RELEASE_NOTES_$11.15.1.md       +3, -3
 .github/docker_manager.bat                    +15, -5
 ```
 

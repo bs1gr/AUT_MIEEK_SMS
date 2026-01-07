@@ -164,7 +164,7 @@ class CourseScenarios(TaskSet):
         bulk_courses = [
             {
                 "course_code": f"BULK{random.randint(100, 999)}",
-                "course_name": f"Bulk Course {i+1}",
+                "course_name": f"Bulk Course {i + 1}",
                 "credits": random.randint(2, 4),
                 "department": "Test",
                 "semester": "Fall",

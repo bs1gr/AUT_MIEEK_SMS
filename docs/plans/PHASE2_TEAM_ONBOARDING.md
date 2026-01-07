@@ -428,7 +428,7 @@ test('should deny access when permission removed', async ({ page }) => {
 2. **Swimlanes & Dependencies**: `docs/plans/PHASE2_SWIMLANES_DEPENDENCIES.md`
 3. **Risk Assessment**: See "Risk Mitigation" section
 4. **Monitoring Scripts**: `scripts/e2e_metrics_collector.py`, `scripts/e2e_failure_detector.py`
-5. **Deployment Guide**: `docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md`
+5. **Deployment Guide**: `docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.1.md`
 
 #### Weekly Gate Checklist
 
@@ -623,7 +623,7 @@ npx playwright test --headed # Run E2E with UI
 - **Swimlanes & Dependencies**: [docs/plans/PHASE2_SWIMLANES_DEPENDENCIES.md](../../docs/plans/PHASE2_SWIMLANES_DEPENDENCIES.md)
 - **Architecture**: [docs/development/ARCHITECTURE.md](../../docs/development/ARCHITECTURE.md)
 - **E2E Testing**: [docs/operations/E2E_TESTING_GUIDE.md](../../docs/operations/E2E_TESTING_GUIDE.md)
-- **Deployment**: [docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md](../../docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md)
+- **Deployment**: [docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.1.md](../../docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.1.md)
 - **GitHub Project**: [Issues #116-#124](https://github.com/bs1gr/AUT_MIEEK_SMS/issues?q=label%3Aphase-2)
 
 ---

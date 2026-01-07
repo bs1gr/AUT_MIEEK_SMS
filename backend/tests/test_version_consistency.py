@@ -107,9 +107,9 @@ def test_developer_guide_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in DEVELOPER_GUIDE_COMPLETE.md"
-    assert (
-        extracted_version == version_file
-    ), f"Developer guide version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_file, (
+        f"Developer guide version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 def test_documentation_index_version(project_root: Path, version_file: str):
@@ -122,9 +122,9 @@ def test_documentation_index_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"\*\*Version\*\*:\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in docs/DOCUMENTATION_INDEX.md"
-    assert (
-        extracted_version == version_file
-    ), f"Documentation index version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_file, (
+        f"Documentation index version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 def test_root_documentation_index_version(project_root: Path, version_file: str):
@@ -146,9 +146,9 @@ def test_root_documentation_index_version(project_root: Path, version_file: str)
 
     # All header versions should match
     for found_version in versions_found:
-        assert (
-            found_version == version_file
-        ), f"Documentation index version ({found_version}) != VERSION ({version_file})"
+        assert found_version == version_file, (
+            f"Documentation index version ({found_version}) != VERSION ({version_file})"
+        )
 
 
 # ============================================================================
@@ -166,9 +166,9 @@ def test_installer_wizard_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_INSTALLER_WIZARD.ps1"
-    assert (
-        extracted_version == version_file
-    ), f"Installer wizard version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_file, (
+        f"Installer wizard version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 def test_uninstaller_wizard_version(project_root: Path, version_file: str):
@@ -181,9 +181,9 @@ def test_uninstaller_wizard_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_UNINSTALLER_WIZARD.ps1"
-    assert (
-        extracted_version == version_file
-    ), f"Uninstaller wizard version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_file, (
+        f"Uninstaller wizard version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 # ============================================================================
@@ -202,9 +202,9 @@ def test_commit_ready_script_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
 
     if extracted_version:
-        assert (
-            extracted_version == version_file
-        ), f"COMMIT_READY.ps1 version ({extracted_version}) != VERSION ({version_file})"
+        assert extracted_version == version_file, (
+            f"COMMIT_READY.ps1 version ({extracted_version}) != VERSION ({version_file})"
+        )
 
 
 # ============================================================================

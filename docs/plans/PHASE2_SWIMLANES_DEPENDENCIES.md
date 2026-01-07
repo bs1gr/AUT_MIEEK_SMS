@@ -1,4 +1,4 @@
-# Phase 2 (v1.16.0) Detailed Execution Plan - Swimlanes & Dependencies
+# Phase 2 ($11.15.1) Detailed Execution Plan - Swimlanes & Dependencies
 
 **Timeline**: January 27 - March 7, 2026 (6 weeks, 240 hours)
 **Team**: 6 people (2-3 backend, 1 frontend, 1 QA, 1 DevOps)
@@ -223,7 +223,7 @@
 **Blocked By**: None (can start in parallel)
 
 - [x] Task 4.1: E2E monitoring CI (8 hours) - DevOps
-  - **DEPENDS ON**: E2E scripts ready (from v1.15.1)
+  - **DEPENDS ON**: E2E scripts ready (from $11.15.1)
   - Integration: Add metrics collector to CI workflow
   - Deliverable: GitHub Actions workflow updated
 
@@ -288,7 +288,7 @@
 
 - [x] Task 5.6: Release docs (4 hours) - Tech Lead
   - **DEPENDS ON**: All work complete
-  - Deliverable: CHANGELOG, RELEASE_NOTES, MIGRATION_GUIDE for v1.16.0
+  - Deliverable: CHANGELOG, RELEASE_NOTES, MIGRATION_GUIDE for $11.15.1
 
 **Week 5 Success Gate**:
 - ✅ Admin documentation clear + usable
@@ -328,7 +328,7 @@
 - ✅ No blocking bugs
 - ✅ Staging validated (24 hours)
 - ✅ Release approved
-- ✅ **v1.16.0 READY FOR PRODUCTION**
+- ✅ **$11.15.1 READY FOR PRODUCTION**
 
 ---
 
@@ -509,7 +509,7 @@ CRITICAL PATH:
 - ✅ All testing passed
 - ✅ Staging validated (24 hours)
 - ✅ Tech lead + PM sign-off
-- ✅ v1.16.0 ready for production
+- ✅ $11.15.1 ready for production
 
 ---
 
@@ -554,7 +554,7 @@ CRITICAL PATH:
 ### Mar 7: Phase 2 Complete (Release Gate)
 - [ ] All testing passed
 - [ ] Staging validated
-- [ ] **v1.16.0 RELEASED**
+- [ ] **$11.15.1 RELEASED**
 
 ---
 
@@ -590,7 +590,7 @@ CRITICAL PATH:
 - ✅ All features working
 - ✅ No blocking bugs
 - ✅ Staging validated (24h)
-- ✅ **v1.16.0 PRODUCTION READY**
+- ✅ **$11.15.1 PRODUCTION READY**
 
 ---
 
@@ -646,8 +646,8 @@ CRITICAL PATH:
 - [ ] `docs/admin/RBAC_MIGRATION_GUIDE.md`: Operator guide
 - [ ] `docs/development/TESTING_GUIDE.md`: Testing procedures
 - [ ] `docs/operations/PERFORMANCE_MONITORING.md`: Monitoring guide
-- [ ] `CHANGELOG.md`: v1.16.0 entry
-- [ ] `RELEASE_NOTES_v1.16.0.md`: User-facing notes
+- [ ] `CHANGELOG.md`: $11.15.1 entry
+- [ ] `RELEASE_NOTES_$11.15.1.md`: User-facing notes
 
 ### Infrastructure (Acceptance Criteria)
 - [ ] CI: E2E metrics collected
@@ -655,7 +655,7 @@ CRITICAL PATH:
 - [ ] CI: Load tests running weekly
 - [ ] CI: 30% faster execution
 - [ ] GitHub: Issues #116-#124 closed
-- [ ] Staging: v1.16.0 deployed + validated
+- [ ] Staging: $11.15.1 deployed + validated
 - [ ] Production: Ready for deployment
 
 ---

@@ -333,7 +333,7 @@ alembic downgrade -1           # Rollback
 - Files: `backend/logs/app.log` (rotating 2MB, 5 backups) + `structured.json`
 - Request ID: Auto-added via `RequestIDMiddleware` to `request.state.request_id`
 - Frontend errors: POST to `/api/logs/frontend-error`
- - Note: Embedded Monitoring UI (Grafana/Prometheus panels) was removed in v1.8.3. The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external tools.
+- Note: Embedded Monitoring UI (Grafana/Prometheus panels) was removed in v1.8.3. The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external tools.
 
 ### Health Checks
 - `/health` - Detailed status (DB, disk, migrations)

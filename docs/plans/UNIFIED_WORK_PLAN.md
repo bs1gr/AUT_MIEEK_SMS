@@ -12,7 +12,7 @@
 This document consolidates all scattered planning documents into a **single source of truth** for project planning and execution. It replaces multiple overlapping trackers and eliminates duplicate planning.
 
 **Consolidated Sources**:
-- `docs/releases/EXECUTION_TRACKER_v1.15.0.md` - Phase 1 tracker
+- `docs/releases/EXECUTION_TRACKER_$11.15.1.md` - Phase 1 tracker
 - `docs/plans/REMAINING_ISSUES_PRIORITIZED.md` - Post-Phase 1 work
 - `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Phase 2 RBAC + CI/CD
 - `docs/plans/PHASE2_PLANNING.md` - Aspirational features
@@ -32,7 +32,7 @@ This document consolidates all scattered planning documents into a **single sour
 
 ---
 
-## 🔴 IMMEDIATE: Phase 1 Completion (v1.15.0)
+## 🔴 IMMEDIATE: Phase 1 Completion ($11.15.1)
 
 **Target Release**: January 7, 2026 ✅ RELEASED
 **Status**: ✅ **100% COMPLETE**
@@ -85,7 +85,7 @@ This document consolidates all scattered planning documents into a **single sour
 - [x] Database migration (alembic)
 - [x] Unit tests (target 95% coverage)
 
-**Reference**: [EXECUTION_TRACKER_v1.15.0.md](../releases/EXECUTION_TRACKER_v1.15.0.md#improvement-1-audit-logging)
+**Reference**: [EXECUTION_TRACKER_$11.15.1.md](../releases/EXECUTION_TRACKER_$11.15.1.md#improvement-1-audit-logging)
 
 ---
 
@@ -98,7 +98,7 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ 7/7 Student Management (create, edit, list, search, detail)
 - ✅ 5/5 Critical Flows (auth, navigation, responsive)
 - ✅ 1/1 Registration UI
-- ⚠️ 12/12 Notifications (403 Forbidden on test broadcast endpoint - deferred to v1.15.1)
+- ⚠️ 12/12 Notifications (403 Forbidden on test broadcast endpoint - deferred to $11.15.1)
 
 **Completed Tasks**:
 - [x] Fix test data seeding (`backend/seed_e2e_data.py`)
@@ -179,12 +179,12 @@ This document consolidates all scattered planning documents into a **single sour
 
 **Documentation Created**:
 - [x] [PHASE1_COMPLETION_REPORT.md](../releases/PHASE1_COMPLETION_REPORT.md) - Comprehensive completion report
-- [x] [RELEASE_NOTES_v1.15.0.md](../releases/RELEASE_NOTES_v1.15.0.md) - User-facing release notes
+- [x] [RELEASE_NOTES_$11.15.1.md](../releases/RELEASE_NOTES_$11.15.1.md) - User-facing release notes
 - [x] [CHANGELOG.md](../../CHANGELOG.md) - Full changelog entry
 - [x] Updated [UNIFIED_WORK_PLAN.md](./UNIFIED_WORK_PLAN.md) - This document
 - [x] Updated [DOCUMENTATION_INDEX.md](../../DOCUMENTATION_INDEX.md) - Version references
 
-**Release Status**: ✅ **v1.15.0 COMPLETE AND DOCUMENTED**
+**Release Status**: ✅ **$11.15.1 COMPLETE AND DOCUMENTED**
 
 ---
 
@@ -197,11 +197,11 @@ This document consolidates all scattered planning documents into a **single sour
 - [x] Performance: 95% faster queries (eager loading) ✅
 - [x] Code review completed ✅
 - [x] Documentation updated ✅
-- [x] v1.15.0 released to production ✅
+- [x] $11.15.1 released to production ✅
 
 ---
 
-## 🟠 SHORT-TERM: Post-Phase 1 Polish (v1.15.1)
+## 🟠 SHORT-TERM: Post-Phase 1 Polish ($11.15.1)
 
 **Timeline**: January 7-24, 2026 (parallel with Phase 1 completion)
 **Total Effort**: ~12 hours
@@ -260,9 +260,9 @@ This document consolidates all scattered planning documents into a **single sour
   - Alert on critical failures
   - Analyze historical patterns
 
-**Baseline Established** (v1.15.0 - Jan 7, 2026):
+**Baseline Established** ($11.15.1 - Jan 7, 2026):
 - ✅ Critical Path: 19/24 tests passing (100% of critical user flows)
-- ✅ Non-Critical: 5 tests (Notifications - deferred to v1.15.1)
+- ✅ Non-Critical: 5 tests (Notifications - deferred to $11.15.1)
 - ✅ Duration: 3-5 minutes locally, 8-12 minutes in CI
 - ✅ Flakiness: 0% (consistent across runs)
 - ✅ Performance: All p95 latencies within targets
@@ -280,7 +280,7 @@ This document consolidates all scattered planning documents into a **single sour
 - Continue automated monitoring (no manual action needed)
 - Collect data from 5+ CI runs
 - Analyze for patterns and flakiness
-- Establish final baseline for v1.15.1 release
+- Establish final baseline for $11.15.1 release
 
 ---
 
@@ -291,12 +291,12 @@ This document consolidates all scattered planning documents into a **single sour
 **Owner**: AI Agent / Tech Lead
 
 **Completed Tasks**:
-- [x] Create GitHub Release for v1.15.0 ✅
-- [x] Attach release notes from [RELEASE_NOTES_v1.15.0.md](../releases/RELEASE_NOTES_v1.15.0.md) ✅
+- [x] Create GitHub Release for $11.15.1 ✅
+- [x] Attach release notes from [RELEASE_NOTES_$11.15.1.md](../releases/RELEASE_NOTES_$11.15.1.md) ✅
 - [x] Publish to repository ✅
 - [x] Verify release appears on GitHub ✅
 
-**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.15.0
+**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.1
 
 **Note**: GitHub Release successfully created and published on January 7, 2026.
 
@@ -305,7 +305,7 @@ This document consolidates all scattered planning documents into a **single sour
 ### 🟠 HIGH Priority (Week 2)
 
 #### Issue #3: Coverage Reporting Setup
-**Status**: ✅ ALREADY COMPLETE (from v1.15.0)
+**Status**: ✅ ALREADY COMPLETE (from $11.15.1)
 **Effort**: 1-2 hours (previously completed)
 **Timeline**: Jan 13, 2026 (not needed)
 **Owner**: DevOps
@@ -322,7 +322,7 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ Badge displays in README.md showing live coverage
 - ✅ Coverage reports uploadable on push to main
 
-**Notes**: This feature was already implemented prior to Phase 1 completion. No additional work needed for v1.15.1.
+**Notes**: This feature was already implemented prior to Phase 1 completion. No additional work needed for $11.15.1.
 
 ---
 
@@ -335,7 +335,7 @@ This document consolidates all scattered planning documents into a **single sour
 **Completed Tasks**:
 - [x] Create GitHub issues #116-#124 (9 issues total) ✅
 - [x] Label with `phase-2`, priority labels ✅
-- [x] Assign to tasks in v1.16.0 context ✅
+- [x] Assign to tasks in $11.15.1 context ✅
 - [x] Link to PHASE2_CONSOLIDATED_PLAN.md ✅
 
 **Issues Created**:
@@ -347,7 +347,7 @@ This document consolidates all scattered planning documents into a **single sour
 - #121: RBAC: Frontend Permission UI (optional)
 - #122: E2E Test Monitoring & Stabilization
 - #123: Load Testing Integration
-- #124: Release v1.16.0 Preparation
+- #124: Release $11.15.1 Preparation
 
 **Plus existing issues**: #109-#115 (created Jan 6)
 
@@ -376,7 +376,7 @@ This document consolidates all scattered planning documents into a **single sour
 ---
 
 #### Issue #6: Load Testing Integration
-**Status**: ✅ COMPLETE (existing suite) – v1.15.0
+**Status**: ✅ COMPLETE (existing suite) – $11.15.1
 **Effort**: Already implemented (no additional work required)
 **Timeline**: Jan 20, 2026 (not needed)
 **Owner**: Backend Developer
@@ -433,7 +433,7 @@ This document consolidates all scattered planning documents into a **single sour
 
 ---
 
-## 🟡 MEDIUM-TERM: Phase 2 (v1.16.0)
+## 🟡 MEDIUM-TERM: Phase 2 ($11.15.1)
 
 **Timeline**: January 27 - March 7, 2026 (4-6 weeks, 6 weeks = 240 hours)
 **Status**: 📋 Ready to Start (Jan 27)
@@ -635,7 +635,7 @@ This document consolidates all scattered planning documents into a **single sour
 
 **Tasks**:
 - [ ] **Task 4.1**: E2E test CI integration (8 hours)
-  - Integrate E2E monitoring scripts (already ready from v1.15.1)
+  - Integrate E2E monitoring scripts (already ready from $11.15.1)
   - Configure GitHub Actions: Run e2e_metrics_collector.py post-test
   - Configure GitHub Actions: Run e2e_failure_detector.py on failures
   - Create artifacts: Store metrics.json, patterns.json, trends.json
@@ -721,9 +721,9 @@ This document consolidates all scattered planning documents into a **single sour
   - Success: Clear operational procedures
 
 - [ ] **Task 5.6**: Release documentation (4 hours)
-  - Update: CHANGELOG.md for v1.16.0
-  - Create: RELEASE_NOTES_v1.16.0.md (user-facing)
-  - Create: MIGRATION_GUIDE_v1.16.0.md (for operators)
+  - Update: CHANGELOG.md for $11.15.1
+  - Create: RELEASE_NOTES_$11.15.1.md (user-facing)
+  - Create: MIGRATION_GUIDE_$11.15.1.md (for operators)
   - Success: Complete release docs
 
 **Week 5 Success Criteria**:
@@ -754,7 +754,7 @@ This document consolidates all scattered planning documents into a **single sour
   - Success: All known issues resolved or deferred
 
 - [ ] **Task 6.3**: Staging deployment & validation (8 hours)
-  - Deploy: v1.16.0 to staging environment
+  - Deploy: $11.15.1 to staging environment
   - Validate: All smoke tests pass
   - Monitor: Run for 24 hours, check logs
   - Success: Staging environment stable
@@ -770,7 +770,7 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ No blocking bugs remaining
 - ✅ Staging validation successful
 - ✅ Release approved and documented
-- ✅ v1.16.0 ready for production deployment
+- ✅ $11.15.1 ready for production deployment
 
 ---
 
@@ -897,7 +897,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 | Work Stream | Progress | Timeline | Status |
 |-------------|----------|----------|--------|
-| **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED v1.15.0 |
+| **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED $11.15.1 |
 | **Post-Phase 1 Polish** | 🟢 100% | Jan 7-24 ✅ COMPLETE | 8/8 tasks done |
 | **Phase 2 Planning** | 🟢 100% | Complete | Fully planned |
 | **Phase 2 Execution** | 🔴 0% | Jan 27 - Mar 7 | Waiting to start |
@@ -923,7 +923,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 ### Key Deliverables by Phase
 
 **Phase 1 (Complete)**:
-✅ 8 improvements released in v1.15.0
+✅ 8 improvements released in $11.15.1
 ✅ 370/370 backend tests passing
 ✅ 1,249/1,249 frontend tests passing
 
@@ -945,7 +945,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Post-Phase 1 Polish - All 8 Tasks Done**:
 - [x] E2E Test CI Monitoring (issue #1) - Monitoring dashboard, metrics collection, failure detection ✅
-- [x] GitHub Release Creation (issue #2) - v1.15.0 released ✅
+- [x] GitHub Release Creation (issue #2) - $11.15.1 released ✅
 - [x] Coverage Reporting (issue #3) - Already complete ✅
 - [x] Phase 2 GitHub Issues (issue #4) - 9 issues created ✅
 - [x] E2E Testing Documentation (issue #5) ✅
@@ -955,7 +955,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Next Steps**:
 - Jan 8: Pre-deployment validation (staging)
-- Jan 9: Staging deployment (v1.15.1)
+- Jan 9: Staging deployment ($11.15.1)
 - Jan 27+: Begin Phase 2 (RBAC & CI/CD improvements)
 
 ---
@@ -964,7 +964,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ### Active Plans (Use These)
 - **This Document**: Unified Work Plan (single source of truth)
-- [EXECUTION_TRACKER_v1.15.0.md](../releases/EXECUTION_TRACKER_v1.15.0.md) - Phase 1 detailed tracker
+- [EXECUTION_TRACKER_$11.15.1.md](../releases/EXECUTION_TRACKER_$11.15.1.md) - Phase 1 detailed tracker
 - [PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md) - Phase 2 detailed plan
 
 ### Supporting Documentation
@@ -973,7 +973,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - [CODEBASE_AUDIT_REPORT.md](../../CODEBASE_AUDIT_REPORT.md) - Audit findings
 
 ### Archived Plans (Historical Only)
-- [PHASE1_REVIEW_FINDINGS.md](../../docs/PHASE1_REVIEW_FINDINGS.md) - v1.14.2 transition (outdated)
+- [PHASE1_REVIEW_FINDINGS.md](../../docs/PHASE1_REVIEW_FINDINGS.md) - $11.15.1 transition (outdated)
 - [PHASE2_PLANNING.md](../plans/PHASE2_PLANNING.md) - Aspirational features (merged into this doc)
 - [TODO_PRIORITIES.md](../misc/TODO_PRIORITIES.md) - General priorities (merged into this doc)
 
@@ -1022,7 +1022,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **All 6 Phase 2 Documentation Files Created & Committed**:
 - ✅ [Pre-Deployment Execution Walkthrough](../deployment/PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md) - 7-phase validation
-- ✅ [Staging Deployment Plan v1.15.1](../deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md) - 45-min procedure
+- ✅ [Staging Deployment Plan $11.15.1](../deployment/STAGING_DEPLOYMENT_PLAN_$11.15.1.md) - 45-min procedure
 - ✅ [Staging Deployment Execution Playbook](../deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md) - Complete runbook
 - ✅ [Phase 2 Risk Register](../deployment/PHASE2_RISK_REGISTER.md) - 10 risks + mitigation
 - ✅ [Phase 2 PR Guide](.../.github/pull_request_template/PHASE2_PR_GUIDE.md) - GitHub template

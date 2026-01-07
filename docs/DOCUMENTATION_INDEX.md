@@ -77,29 +77,29 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - 316/316 backend tests passing
   - 30+ E2E tests implemented
   - Complete feature breakdown and metrics
-- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md)** - Phase 1 implementation plan
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.1.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.1.md)** - Phase 1 implementation plan
   - 8 major improvements (audit logging, performance, security, UX)
   - 2-week sprint breakdown (Jan 7-20, 2026)
   - Team allocation and effort estimates
   - Success metrics and acceptance criteria
   - Links to implementation patterns
-- **[releases/RELEASE_PREPARATION_v1.15.0.md](releases/RELEASE_PREPARATION_v1.15.0.md)** - 1.15.0 Release preparation & timeline
+- **[releases/RELEASE_PREPARATION_$11.15.1.md](releases/RELEASE_PREPARATION_$11.15.1.md)** - 1.15.0 Release preparation & timeline
   - Phase 0 validation (all tests passing)
   - Phase 1 infrastructure improvements roadmap
   - Release checklist and success metrics
   - Timeline: Jan 7-24, 2026 (implementation + release)
-- **[releases/RELEASE_NOTES_v1.15.0.md](releases/RELEASE_NOTES_v1.15.0.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
+- **[releases/RELEASE_NOTES_$11.15.1.md](releases/RELEASE_NOTES_$11.15.1.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
   - Complete feature list with detailed descriptions
   - Performance improvements and metrics
   - Upgrade instructions and breaking changes
   - What's next (Phase 2 preview)
-- **[releases/EXECUTION_TRACKER_v1.15.0.md](releases/EXECUTION_TRACKER_v1.15.0.md)** - 1.15.0 Phase 1 execution tracker
+- **[releases/EXECUTION_TRACKER_$11.15.1.md](releases/EXECUTION_TRACKER_$11.15.1.md)** - 1.15.0 Phase 1 execution tracker
   - Pre-implementation tasks (team kickoff, environment setup, backup)
   - Week 1 tasks: Foundation & performance improvements
   - Week 2 tasks: Testing & stability
   - Release day procedures and post-release validation
   - Progress tracking with owner assignments and effort estimates
-- **[releases/QUICK_REFERENCE_v1.15.0.md](releases/QUICK_REFERENCE_v1.15.0.md)** - 1.15.0 Quick reference card (Print & Post)
+- **[releases/QUICK_REFERENCE_$11.15.1.md](releases/QUICK_REFERENCE_$11.15.1.md)** - 1.15.0 Quick reference card (Print & Post)
   - One-page team reference with timeline and task assignments
   - Daily checklist for developers
   - Blocker resolution procedure
@@ -145,7 +145,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Week-by-week work order
   - Effort estimates and timelines
   - Success criteria for each issue
-- **[plans/INSTALLER_IMPROVEMENTS_v1.16.0+.md](plans/INSTALLER_IMPROVEMENTS_v1.16.0+.md)** - Installer improvements (mostly complete)
+- **[plans/INSTALLER_IMPROVEMENTS_$11.15.1+.md](plans/INSTALLER_IMPROVEMENTS_$11.15.1+.md)** - Installer improvements (mostly complete)
 - **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
   - Frontend routing type safety and React Router v7 validation
   - International locale support (European decimal separators)

@@ -227,7 +227,7 @@
 1. Run full test suite: `./COMMIT_READY.ps1 -Full`
 2. Update CHANGELOG with Phase 1 summary
 3. Version bump: 1.14.2 → 1.15.0
-4. Create release branch: `release/v1.15.0`
+4. Create release branch: `release/$11.15.1`
 5. Run release prep script: `./RELEASE_READY.ps1`
 
 ### For Deployment

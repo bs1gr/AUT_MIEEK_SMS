@@ -51,8 +51,8 @@ Copy-paste patterns for:
 **Copy to Jira/GitHub Issues** (optional):
 
 ```
-Title: [v1.15.0-Phase1] Improvement #N: [Name]
-Description: See EXECUTION_TRACKER_v1.15.0.md for details
+Title: [$11.15.1-Phase1] Improvement #N: [Name]
+Description: See EXECUTION_TRACKER_$11.15.1.md for details
 Assigned to: [Developer Name]
 Effort: [hours from tracker]
 Success Criteria: [from tracker]
@@ -64,11 +64,11 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
 
 ## ✅ Daily Checklist for Developers
 
-- [ ] Check task status in EXECUTION_TRACKER_v1.15.0.md
+- [ ] Check task status in EXECUTION_TRACKER_$11.15.1.md
 - [ ] Review success criteria for your assigned improvement
 - [ ] Reference IMPLEMENTATION_PATTERNS.md for code examples
 - [ ] Run tests: `pytest -q` (backend) or `npm test -- --run` (frontend)
-- [ ] Commit to feature branch: `feature/v1.15.0-phase1`
+- [ ] Commit to feature branch: `feature/$11.15.1-phase1`
 - [ ] Update EXECUTION_TRACKER status
 - [ ] Flag blockers in standup
 
@@ -88,7 +88,7 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
    - Emergency escalations
 
 3. **File GitHub issue** with:
-   - Label: `v1.15.0-phase1`
+   - Label: `$11.15.1-phase1`
    - Mention: blocking improvement number
    - Link: to EXECUTION_TRACKER section
 
@@ -123,7 +123,7 @@ Reference: [section from IMPLEMENTATION_PATTERNS.md]
 
 ## 📊 Progress Tracking
 
-**Check daily**: `docs/releases/EXECUTION_TRACKER_v1.15.0.md`
+**Check daily**: `docs/releases/EXECUTION_TRACKER_$11.15.1.md`
 
 Update your task status:
 - TBD → In Progress → Done
@@ -134,7 +134,7 @@ Update your task status:
 
 ## 🔗 Key Documents (Bookmark These!)
 
-1. **EXECUTION_TRACKER_v1.15.0.md** ← START HERE
+1. **EXECUTION_TRACKER_$11.15.1.md** ← START HERE
    - Detailed task breakdown
    - Owner assignments
    - Effort estimates
@@ -148,7 +148,7 @@ Update your task status:
    - Why we're doing this (Grade A-, 50+ recommendations)
    - Comprehensive quality assessment
 
-4. **PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md** ← BIG PICTURE
+4. **PHASE1_AUDIT_IMPROVEMENTS_$11.15.1.md** ← BIG PICTURE
    - Sprint breakdown
    - Team allocation
    - Timeline and dependencies
