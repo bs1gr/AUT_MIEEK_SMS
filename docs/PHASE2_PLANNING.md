@@ -1,8 +1,11 @@
 # Phase 2 Planning - Student Management System
 
+> ⚠️ **SUPERSEDED**: Aspirational features consolidated into [plans/UNIFIED_WORK_PLAN.md - Backlog Section](plans/UNIFIED_WORK_PLAN.md#-long-term-backlog--future-features)
+> **Use the unified plan** for current Phase 2 work (RBAC + CI/CD). This file is kept for historical reference.
+
 **Version**: 1.15.0+ → 1.16.0
 **Target Release**: March 15, 2026
-**Status**: Planning & Scoping
+**Status**: ⚠️ Archived - See UNIFIED_WORK_PLAN.md
 **Phase Duration**: 10 weeks (Jan 6 - Mar 15)
 
 ---

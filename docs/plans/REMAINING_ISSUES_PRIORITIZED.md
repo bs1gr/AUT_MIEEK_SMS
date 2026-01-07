@@ -1,7 +1,10 @@
 # Remaining Issues - Prioritized Action Plan
 
+> ⚠️ **SUPERSEDED**: This document has been consolidated into [UNIFIED_WORK_PLAN.md](UNIFIED_WORK_PLAN.md)
+> **Use the unified plan** for current priorities and timeline. This file is kept for historical reference.
+
 **Created**: January 6, 2026
-**Status**: Post-Phase 1 Planning
+**Status**: ⚠️ Archived - See UNIFIED_WORK_PLAN.md
 **Context**: All Phase 1 improvements complete, prioritizing next actions
 
 ---
