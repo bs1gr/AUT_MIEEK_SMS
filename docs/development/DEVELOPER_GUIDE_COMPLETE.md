@@ -1,6 +1,6 @@
 # Complete Developer Guide - Student Management System
 
-**Version:** 1.15.0
+**Version:** 1.15.1
 **Last Updated:** December 30, 2025
 **Status:** ✅ Active
 
