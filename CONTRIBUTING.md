@@ -2,7 +2,9 @@
 
 Welcome — thanks for contributing! This short guide helps maintainers and contributors adopt the project's recommended pre-commit validations and local workflow.
 
-## Pre-commit validation (recommended)
+## Pre-commit validation (required)
+
+**Required:** Run `COMMIT_READY.ps1 -Quick` before **every commit**. CI assumes this baseline; do not skip it.
 
 This repository uses a unified pre-commit validation helper: `COMMIT_READY.ps1`.
 Run it before committing to ensure code quality and tests pass:

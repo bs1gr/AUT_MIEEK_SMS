@@ -305,11 +305,11 @@ def verify_seeded_data(session: Session) -> bool:
 
     # Check permissions count
     perm_count = session.query(Permission).count()
-    expected_perms = len(PERMISSIONS)
-    if perm_count != expected_perms:
-        print(f"  ❌ Permission count mismatch: {perm_count} (expected {expected_perms})")
+    expected_perm_count = len(PERMISSIONS)
+    if perm_count != expected_perm_count:
+        print(f"  ❌ Permission count mismatch: {perm_count} (expected {expected_perm_count})")
         return False
-    print(f"  ✅ Permissions: {perm_count}/{expected_perms}")
+    print(f"  ✅ Permissions: {perm_count}/{expected_perm_count}")
 
     # Check roles count
     role_count = session.query(Role).count()
