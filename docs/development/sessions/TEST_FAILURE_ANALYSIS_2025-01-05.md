@@ -2,14 +2,14 @@
 
 **Date:** January 5, 2026
 **Status:** Analysis Complete
-**Issue:** Backend tests failing due to API response format changes in $11.15.0
+**Issue:** Backend tests failing due to API response format changes in v1.15.0
 
 ---
 
 ## Root Cause Analysis
 
 ### What Changed
-The API response format was standardized in commit `a1535d074` as part of **Phase 1 API Response Standardization ($11.15.0)**.
+The API response format was standardized in commit `a1535d074` as part of **Phase 1 API Response Standardization (v1.15.0)**.
 
 **Old Format (RFC 7807 style):**
 ```json
@@ -239,7 +239,7 @@ assert body["error"]["code"].startswith("HTTP_")
 
 ## Dependencies on E2E/Documentation Work
 
-✅ **No Impact** - Test failures are pre-existing (from $11.15.0 Phase 1)
+✅ **No Impact** - Test failures are pre-existing (from v1.15.0 Phase 1)
 ✅ **No Blockers** - E2E testing and documentation are complete and working
 ✅ **Orthogonal** - Can be fixed independently in parallel or separately
 

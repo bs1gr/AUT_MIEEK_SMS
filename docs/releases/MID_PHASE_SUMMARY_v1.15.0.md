@@ -157,8 +157,8 @@ Actual:    Improvements 1-4 (50%) by Day 3  ✅ +100% ahead
 - `backend/tests/test_backup_encryption.py` (300 lines)
 
 ### Documentation
-- `docs/releases/EXECUTION_TRACKER_$11.15.1.md` (updated)
-- `docs/releases/PROGRESS_UPDATE_DAY1_$11.15.1.md` (this session)
+- `docs/releases/EXECUTION_TRACKER_v1.15.1.md` (updated)
+- `docs/releases/PROGRESS_UPDATE_DAY1_v1.15.1.md` (this session)
 
 ---
 

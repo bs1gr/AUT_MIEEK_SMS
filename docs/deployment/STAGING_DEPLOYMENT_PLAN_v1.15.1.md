@@ -1,4 +1,4 @@
-# $11.15.1 Staging Deployment Plan
+# v1.15.1 Staging Deployment Plan
 
 **Date**: January 7, 2026
 **Version**: 1.15.1
@@ -9,11 +9,11 @@
 
 ## 📋 Deployment Overview
 
-This plan guides deployment of $11.15.1 (Post-Phase 1 Polish release) to staging environment for validation testing before production release.
+This plan guides deployment of v1.15.1 (Post-Phase 1 Polish release) to staging environment for validation testing before production release.
 
 **Estimated Time**: 30-45 minutes
 **Downtime**: ~5 minutes (container restart)
-**Rollback Time**: <5 minutes (revert to $11.15.1 if needed)
+**Rollback Time**: <5 minutes (revert to v1.15.1 if needed)
 
 ---
 
@@ -44,7 +44,7 @@ This plan guides deployment of $11.15.1 (Post-Phase 1 Polish release) to staging
 # Clone or pull latest main branch
 cd /staging/student-management-system
 git pull origin main
-git log --oneline -5  # Verify $11.15.1 commit 3b9d44fd5 is latest
+git log --oneline -5  # Verify v1.15.1 commit 3b9d44fd5 is latest
 
 # Verify version file
 cat VERSION  # Should show: 1.15.1
@@ -52,15 +52,15 @@ cat VERSION  # Should show: 1.15.1
 
 - [ ] Latest commit is `3b9d44fd5`
 - [ ] VERSION file shows 1.15.1
-- [ ] CHANGELOG.md updated with $11.15.1 entry
-- [ ] Release notes available (RELEASE_NOTES_$11.15.1.md)
+- [ ] CHANGELOG.md updated with v1.15.1 entry
+- [ ] Release notes available (RELEASE_NOTES_v1.15.1.md)
 
 ### Backup Procedures (5 minutes)
 
 ```bash
-# Backup current database ($11.15.1)
+# Backup current database (v1.15.1)
 mkdir -p /staging/backups/pre-1.15.1
-docker exec sms-fullstack sqlite3 /data/student_management.db ".backup '/staging/backups/pre-1.15.1/student_management_$11.15.1.db'"
+docker exec sms-fullstack sqlite3 /data/student_management.db ".backup '/staging/backups/pre-1.15.1/student_management_v1.15.1.db'"
 
 # Verify backup
 ls -lh /staging/backups/pre-1.15.1/
@@ -107,14 +107,14 @@ docker ps  # Should show no running sms containers
 docker-compose down
 ```
 
-- [ ] $11.15.1 containers stopped
+- [ ] v1.15.1 containers stopped
 - [ ] No data loss (volumes preserved)
 - [ ] Ports freed
 
 ### Phase 3: Deployment (5 minutes)
 
 ```bash
-# Deploy $11.15.1
+# Deploy v1.15.1
 ./DOCKER.ps1 -Update
 
 # What happens:
@@ -304,17 +304,17 @@ Open in browser: `http://localhost:8080`
 
 ## 🆘 Rollback Procedure
 
-If critical issues found, rollback to $11.15.1:
+If critical issues found, rollback to v1.15.1:
 
 ```bash
 # Stop current deployment
 ./DOCKER.ps1 -Stop
 
 # Restore database backup (if needed)
-docker exec sms-fullstack sqlite3 /data/student_management.db ".restore '/staging/backups/pre-1.15.1/student_management_$11.15.1.db'"
+docker exec sms-fullstack sqlite3 /data/student_management.db ".restore '/staging/backups/pre-1.15.1/student_management_v1.15.1.db'"
 
 # Checkout previous version
-git checkout $11.15.1  # Or git checkout <commit-hash>
+git checkout v1.15.1  # Or git checkout <commit-hash>
 cat VERSION  # Verify 1.15.0
 
 # Restart with previous version
@@ -335,7 +335,7 @@ curl -s http://localhost:8080/api/v1/version | jq .
 | Item | Status | Notes |
 |------|--------|-------|
 | Pre-deployment checks | ✅ | All prerequisites met |
-| Code updated to $11.15.1 | ✅ | Commit 3b9d44fd5 |
+| Code updated to v1.15.1 | ✅ | Commit 3b9d44fd5 |
 | Containers deployed | ✅ | All health checks passing |
 | Smoke tests | ✅ | All critical tests passing |
 | E2E tests | ✅ | 19/24 critical tests passing |
@@ -349,7 +349,7 @@ curl -s http://localhost:8080/api/v1/version | jq .
 ## 📅 Timeline & Deadlines
 
 ### Jan 7 (Today)
-- ✅ $11.15.1 release prepared (DONE)
+- ✅ v1.15.1 release prepared (DONE)
 - ⏳ Staging deployment begins
 
 ### Jan 8-9 (Tomorrow-Next Day)
@@ -383,7 +383,7 @@ curl -s http://localhost:8080/api/v1/version | jq .
 ## 📚 Reference Documents
 
 - **Deployment Guide**: `docs/deployment/DOCKER_OPERATIONS.md`
-- **Release Notes**: `docs/releases/RELEASE_NOTES_$11.15.1.md`
+- **Release Notes**: `docs/releases/RELEASE_NOTES_v1.15.1.md`
 - **Monitoring Guide**: `docs/operations/E2E_MONITORING_PROCEDURES.md`
 - **Health Check Guide**: `backend/health_checks.py`
 
@@ -393,7 +393,7 @@ curl -s http://localhost:8080/api/v1/version | jq .
 
 **Staging deployment is successful when:**
 
-✅ $11.15.1 deployed without errors
+✅ v1.15.1 deployed without errors
 ✅ All smoke tests passing (100% critical path)
 ✅ E2E tests passing (≥95% critical path)
 ✅ Monitoring infrastructure functional
