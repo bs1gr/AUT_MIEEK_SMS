@@ -13,7 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
-from backend.models import Permission, User, UserPermission
+from backend.models import Permission, RolePermission, User, UserPermission, UserRole
 from backend.security.current_user import get_current_user
 
 
@@ -52,7 +52,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
         .filter(
             UserPermission.user_id == user.id,
             Permission.key == permission_key,
-            Permission.is_active,
+            Permission.is_active.is_(True),
         )
         .first()
     )
@@ -73,12 +73,11 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
         return True
 
     # Check role-based permissions (using raw SQL to avoid schema mismatch)
-    # Get permission ID
     permission = (
         db.query(Permission)
         .filter(
             Permission.key == permission_key,
-            Permission.is_active,
+            Permission.is_active.is_(True),
         )
         .first()
     )
@@ -86,20 +85,17 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
     if not permission:
         return False
 
-    # Check if any of user's roles have this permission
-    result = db.execute(
-        text("""
-            SELECT 1
-            FROM user_roles ur
-            JOIN role_permissions rp ON ur.role_id = rp.role_id
-            WHERE ur.user_id = :user_id
-              AND rp.permission_id = :perm_id
-            LIMIT 1
-        """),
-        {"user_id": user.id, "perm_id": permission.id},
+    role_perm = (
+        db.query(RolePermission)
+        .join(UserRole, RolePermission.role_id == UserRole.role_id)
+        .filter(
+            UserRole.user_id == user.id,
+            RolePermission.permission_id == permission.id,
+        )
+        .first()
     )
 
-    return result.fetchone() is not None
+    return role_perm is not None
 
 
 def _is_self_access(
@@ -191,40 +187,28 @@ def require_permission(
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Extract dependencies from kwargs
-            current_user = kwargs.get("current_user")
-            db = kwargs.get("db")
-            request = kwargs.get("request")
-
+        async def wrapper(
+            *args,
+            request: Request,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+            **kwargs,
+        ):
             if not current_user:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Authentication required",
-                )
+                raise HTTPException(status_code=401, detail="Authentication required")
 
             if not db:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Database session not available",
-                )
+                raise HTTPException(status_code=500, detail="Database session not available")
 
-            # Check if user has permission
             if has_permission(current_user, permission_key, db):
-                return await func(*args, **kwargs)
+                return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
 
-            # Check self-access if allowed
             if allow_self_access and request:
-                # Try to extract student_id from path params
                 student_id = kwargs.get("student_id")
                 if _is_self_access(current_user, permission_key, request, student_id):
-                    return await func(*args, **kwargs)
+                    return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
 
-            # Permission denied
-            raise HTTPException(
-                status_code=403,
-                detail=f"Permission denied: requires '{permission_key}'",
-            )
+            raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
         return wrapper
 
@@ -318,27 +302,27 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            current_user = kwargs.get("current_user")
-            db = kwargs.get("db")
-            request = kwargs.get("request")
-
+        async def wrapper(
+            *args,
+            request: Request,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+            **kwargs,
+        ):
             if not current_user:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
             if not db:
                 raise HTTPException(status_code=500, detail="Database session not available")
 
-            # Check if user has any of the permissions
             for perm_key in permission_keys:
                 if has_permission(current_user, perm_key, db):
-                    return await func(*args, **kwargs)
+                    return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
 
-                # Check self-access for this permission
                 if allow_self_access and request:
                     student_id = kwargs.get("student_id")
                     if _is_self_access(current_user, perm_key, request, student_id):
-                        return await func(*args, **kwargs)
+                        return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
 
             raise HTTPException(
                 status_code=403,
@@ -363,17 +347,19 @@ def require_all_permissions(*permission_keys: str) -> Callable:
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            current_user = kwargs.get("current_user")
-            db = kwargs.get("db")
-
+        async def wrapper(
+            *args,
+            request: Request,
+            db: Session = Depends(get_db),
+            current_user: User = Depends(get_current_user),
+            **kwargs,
+        ):
             if not current_user:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
             if not db:
                 raise HTTPException(status_code=500, detail="Database session not available")
 
-            # Check if user has all permissions
             for perm_key in permission_keys:
                 if not has_permission(current_user, perm_key, db):
                     raise HTTPException(
@@ -381,7 +367,7 @@ def require_all_permissions(*permission_keys: str) -> Callable:
                         detail=f"Permission denied: requires '{perm_key}'",
                     )
 
-            return await func(*args, **kwargs)
+            return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
 
         return wrapper
 

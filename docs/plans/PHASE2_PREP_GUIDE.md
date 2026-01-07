@@ -321,12 +321,12 @@ def test_permission_check_denies_unauthorized_user():
 | 1. Permission Matrix | 4h | ✅ **COMPLETE** | Jan 10 | 25 permissions, 148 endpoints mapped |
 | 2. Database Schema | 6h | ✅ **COMPLETE** | Jan 12 | Already exists! Documented existing schema |
 | 3. Codebase Review | 2h | ✅ **COMPLETE** | Jan 14 | 5 files reviewed, migration roadmap created |
-| 4. Decorator Design | 4h | 🟡 Ready to Start | Jan 16 | Unblocked (Task 2 done) |
+| 4. Decorator Design | 4h | ✅ **COMPLETE** | Jan 16 | Decorators refactored to use DI + ORM |
 | 5. Test Templates | 3h | 🔴 Blocked | Jan 18 | Needs Task 4 complete |
 | 6. Migration Strategy | 2h | 🟡 Ready to Start | Jan 20 | Unblocked (Task 2 done) |
 | 7. Documentation Plan | 2h | 🟡 Can Start | Jan 22 | Independent task |
 | 8. Review & Refinement | 2h | 🔴 Blocked | Jan 26 | Needs all complete |
-| **Total** | **25h** | **3/8 (37.5%)** | **Jan 26** | **12h spent, 13h remaining** |
+| **Total** | **25h** | **4/8 (50%)** | **Jan 26** | **16h spent, 9h remaining** |
 
 ---
 
@@ -373,8 +373,13 @@ By January 26, we should have:
 - **Next**: Task 4 (Decorator Design), Task 6 (Migration Strategy), or Task 7 (Docs Planning)
 
 ### Jan 10, 2026
-- Status:
-- Next:
+- ✅ **Completed Task 4: Decorator Design** (4 hours)
+  - Refactored @require_permission / @require_any_permission / @require_all_permissions to use FastAPI DI
+  - Decorators now inject request, db (Depends(get_db)), and current_user (Depends(get_current_user))
+  - Permission checks use ORM joins (UserRole → RolePermission) instead of raw SQL
+  - Strengthened permission filtering with is_active flag checks
+  - Self-access logic preserved (student_id path/query) via _is_self_access
+- **Next**: Task 6 (Migration Strategy) or Task 7 (Docs Planning)
 
 ---
 
