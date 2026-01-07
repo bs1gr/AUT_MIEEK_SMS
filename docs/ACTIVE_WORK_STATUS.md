@@ -301,7 +301,7 @@ SPRINT 3 (Jan 14-16): Testing & Validation
 
 PHASE 1 COMPLETE: Jan 20
 RELEASE PREP: Jan 21-24
-RELEASE: Jan 24, 2026 ($11.15.0)
+RELEASE: Jan 24, 2026 (1.15.0)
 ```
 
 ### Resources for Team
