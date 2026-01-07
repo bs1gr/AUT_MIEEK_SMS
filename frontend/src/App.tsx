@@ -121,13 +121,19 @@ function AppLayout({ children }: AppLayoutProps) {
 
   const handleSubmitFeedback = async (feedback: string) => {
     try {
-      await fetch('/api/v1/feedback/', {
+      const response = await fetch('/api/v1/feedback/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedback }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       setToast({ message: t('feedback.success'), type: 'success' });
-    } catch {
+    } catch (error) {
+      console.error('Feedback error:', error);
       setToast({ message: t('feedback.error'), type: 'error' });
     }
   };
