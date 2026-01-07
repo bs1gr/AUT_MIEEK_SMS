@@ -101,6 +101,11 @@ Located in `docs/deployment/`:
 - `POSTGRES_MIGRATION_GUIDE.md` - SQLite to PostgreSQL migration
 - `DEPLOY.md` - General deployment procedures
 - `CI_CD_PIPELINE_GUIDE.md` - GitHub Actions configuration
+- `PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` - Pre-deployment validation (7 phases)
+- `STAGING_DEPLOYMENT_PLAN_v1.15.1.md` - v1.15.1 staging deployment plan
+- `STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Complete staging deployment runbook
+- `PHASE2_RISK_REGISTER.md` - Phase 2 risk assessment & mitigation strategies
+- `PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` - Phase 2 transition guide & team onboarding
 
 ### User Documentation
 
