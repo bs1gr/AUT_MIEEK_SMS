@@ -323,10 +323,10 @@ def test_permission_check_denies_unauthorized_user():
 | 3. Codebase Review | 2h | ✅ **COMPLETE** | Jan 14 | 5 files reviewed, migration roadmap created |
 | 4. Decorator Design | 4h | ✅ **COMPLETE** | Jan 16 | Decorators refactored to use DI + ORM |
 | 5. Test Templates | 3h | 🔴 Blocked | Jan 18 | Needs Task 4 complete |
-| 6. Migration Strategy | 2h | 🟡 Ready to Start | Jan 20 | Unblocked (Task 2 done) |
+| 6. Migration Strategy | 2h | ✅ **COMPLETE** | Jan 20 | Seeding + rollout/rollback plan documented |
 | 7. Documentation Plan | 2h | 🟡 Can Start | Jan 22 | Independent task |
 | 8. Review & Refinement | 2h | 🔴 Blocked | Jan 26 | Needs all complete |
-| **Total** | **25h** | **4/8 (50%)** | **Jan 26** | **16h spent, 9h remaining** |
+| **Total** | **25h** | **5/8 (62.5%)** | **Jan 26** | **18h spent, 7h remaining** |
 
 ---
 
@@ -381,8 +381,25 @@ By January 26, we should have:
   - Self-access logic preserved (student_id path/query) via _is_self_access
 - **Next**: Task 6 (Migration Strategy) or Task 7 (Docs Planning)
 
+### Jan 11, 2026
+- ✅ **Completed Task 6: Migration Strategy** (2 hours)
+  - **Seeding Plan** (`backend/ops/seed_rbac_data.py`):
+    - Seed 25 permissions (PERMISSION_MATRIX.md)
+    - Create 3 roles: admin, teacher, viewer
+    - Assign permissions: admin=25, teacher=11, viewer=7
+    - Idempotent upsert by permission.key and role.name
+  - **Rollout Steps**:
+        1) Run seed script (native + docker) and verify counts (25 perms, 3 roles, 43 role-perms)
+        2) Smoke-check has_permission() for admin/teacher/viewer
+        3) Migrate endpoints router-by-router to @require_permission
+  - **Rollback Steps**:
+    - Use DB backup or script --dry-run for safe replays
+    - Keep legacy optional_require_role enabled during migration
+  - **Validation Hooks**: Add sanity checks in Task 5 test templates
+- **Next**: Task 7 (Documentation Plan) or start Task 5 (Test Templates)
+
 ---
 
-**Last Updated**: January 8, 2026 00:20
-**Next Review**: January 10, 2026 (after Task 2 complete)
+**Last Updated**: January 11, 2026 10:00
+**Next Review**: January 12, 2026 (after Task 5/7 kickoff)
 **Phase 2 Kickoff**: January 27, 2026
