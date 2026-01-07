@@ -1,6 +1,6 @@
-## What's New in $11.15.0
+## What's New in 1.15.0
 
-### 📊 What's Included in $11.15.0
+### 📊 What's Included in 1.15.0
 
 - **6 new features** - Enhancement and new capabilities
 - **20 bug fixes** - Stability and reliability improvements
@@ -22,7 +22,7 @@
 
 ### 📚 Documentation
 
-- **[Migration Guide](docs/guides/MIGRATION_$11.15.0.md)** - How to update your code
-- **[Release Report](docs/releases/reports/RELEASE_REPORT_$11.15.0.md)** - Executive summary and impact assessment
-- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.15.0.md)** - Detailed cleanup audit
+- **[Migration Guide](docs/guides/MIGRATION_1.15.0.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_1.15.0.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_1.15.0.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history

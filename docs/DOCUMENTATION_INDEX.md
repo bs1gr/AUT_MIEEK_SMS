@@ -1,7 +1,13 @@
 # Documentation Index
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-07
+**Project Version (documented)**: 1.15.0
 **Version**: 1.15.0
+**Current Branch**: `feature/v11.14.3-phase1-batch2`
+
+> **Branch/Version Context**: This branch tracks 11.14.3 phase 1 work while documentation reflects 1.15.0. Reconcile versioning when merging (either bump branch target to 1.15.0 or adjust docs if delivering against 11.14.3).
+
+> **Version Alignment Plan**: Use the released semantic version (e.g., 1.15.0) in all documentation going forward. Retire interim `$11.x` notation as branches merge; update any remaining docs to the release tag during the next doc sweep.
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -50,13 +56,12 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[TODO.md](../TODO.md)** - Current task list and project roadmap
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
 
-### Audit & Improvement Planning ($11.15.0 - COMPLETE ✅)
+### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)
 
 - **[CODEBASE_AUDIT_REPORT.md](../CODEBASE_AUDIT_REPORT.md)** - Comprehensive codebase audit with 50+ recommendations
   - Grade: A- (8.5/10) - Production Ready
   - 12 sections covering security, architecture, performance, quality
-- **[misc/IMPLEMENTATION_PATTERNS.md](misc/IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for $11.15.0 improvements
-- **[misc/IMPLEMENTATION_PATTERNS.md](misc/IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for $11.15.0 improvements
+- **[misc/IMPLEMENTATION_PATTERNS.md](misc/IMPLEMENTATION_PATTERNS.md)** - Copy-paste ready code patterns for 1.15.0 improvements
   - Audit logging pattern (model + service + router)
   - Query optimization with eager loading examples
   - Soft delete auto-filtering mixin
@@ -65,36 +70,36 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Business metrics calculation
   - Test patterns and utilities
 
-### Phase 1 ($11.15.0) - COMPLETE ✅
+### Phase 1 (1.15.0) - COMPLETE ✅
 
 - **[PHASE1_COMPLETION_SUMMARY.md](PHASE1_COMPLETION_SUMMARY.md)** - Phase 1 final status (NEW - Jan 5, 2026)
   - All 8 improvements delivered (100% complete)
   - 316/316 backend tests passing
   - 30+ E2E tests implemented
   - Complete feature breakdown and metrics
-- **[plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.0.md)** - Phase 1 implementation plan
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.0.md)** - Phase 1 implementation plan
   - 8 major improvements (audit logging, performance, security, UX)
   - 2-week sprint breakdown (Jan 7-20, 2026)
   - Team allocation and effort estimates
   - Success metrics and acceptance criteria
   - Links to implementation patterns
-- **[releases/RELEASE_PREPARATION_$11.15.0.md](releases/RELEASE_PREPARATION_$11.15.0.md)** - $11.15.0 Release preparation & timeline
+- **[releases/RELEASE_PREPARATION_v1.15.0.md](releases/RELEASE_PREPARATION_v1.15.0.md)** - 1.15.0 Release preparation & timeline
   - Phase 0 validation (all tests passing)
   - Phase 1 infrastructure improvements roadmap
   - Release checklist and success metrics
   - Timeline: Jan 7-24, 2026 (implementation + release)
-- **[releases/RELEASE_NOTES_$11.15.0.md](releases/RELEASE_NOTES_$11.15.0.md)** - $11.15.0 Official release notes (NEW - Jan 6, 2026)
+- **[releases/RELEASE_NOTES_v1.15.0.md](releases/RELEASE_NOTES_v1.15.0.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
   - Complete feature list with detailed descriptions
   - Performance improvements and metrics
   - Upgrade instructions and breaking changes
   - What's next (Phase 2 preview)
-- **[releases/EXECUTION_TRACKER_$11.15.0.md](releases/EXECUTION_TRACKER_$11.15.0.md)** - $11.15.0 Phase 1 execution tracker
+- **[releases/EXECUTION_TRACKER_v1.15.0.md](releases/EXECUTION_TRACKER_v1.15.0.md)** - 1.15.0 Phase 1 execution tracker
   - Pre-implementation tasks (team kickoff, environment setup, backup)
   - Week 1 tasks: Foundation & performance improvements
   - Week 2 tasks: Testing & stability
   - Release day procedures and post-release validation
   - Progress tracking with owner assignments and effort estimates
-- **[releases/QUICK_REFERENCE_$11.15.0.md](releases/QUICK_REFERENCE_$11.15.0.md)** - $11.15.0 Quick reference card (Print & Post)
+- **[releases/QUICK_REFERENCE_v1.15.0.md](releases/QUICK_REFERENCE_v1.15.0.md)** - 1.15.0 Quick reference card (Print & Post)
   - One-page team reference with timeline and task assignments
   - Daily checklist for developers
   - Blocker resolution procedure
@@ -104,7 +109,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[PHASE1_REVIEW_FINDINGS.md](PHASE1_REVIEW_FINDINGS.md)** - Quality review findings
 - **[PHASE1_TEAM_ONBOARDING.md](PHASE1_TEAM_ONBOARDING.md)** - Team kickoff guide
 
-### Phase 2 ($11.15.0) - PLANNING 📋
+### Phase 2 (1.16.0) - PLANNING 📋
 
 - **[plans/PHASE2_CONSOLIDATED_PLAN.md](plans/PHASE2_CONSOLIDATED_PLAN.md)** - Phase 2 unified implementation plan (NEW - Jan 6, 2026)
   - Fine-grained RBAC with permission-based access
@@ -140,7 +145,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Week-by-week work order
   - Effort estimates and timelines
   - Success criteria for each issue
-- **[plans/INSTALLER_IMPROVEMENTS_$11.15.0+.md](plans/INSTALLER_IMPROVEMENTS_$11.15.0+.md)** - Installer improvements (mostly complete)
+- **[plans/INSTALLER_IMPROVEMENTS_v1.16.0+.md](plans/INSTALLER_IMPROVEMENTS_v1.16.0+.md)** - Installer improvements (mostly complete)
 - **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
   - Frontend routing type safety and React Router v7 validation
   - International locale support (European decimal separators)
@@ -168,7 +173,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 - **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
-### Monitoring & Operations ($11.9.7+)
+### Monitoring & Operations (1.9.7+)
 
 - **[operations/MONITORING.md](operations/MONITORING.md)** - Canonical monitoring & alerting guide
   - On-demand vs eager activation modes
@@ -178,14 +183,13 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[../monitoring/README.md](../monitoring/README.md)** - Monitoring quick reference
   - Configuration for Prometheus, Grafana, Loki
   - Alert rules and dashboard customization
-- **[operations/MONITORING.md](operations/MONITORING.md)** - Monitoring operations guide (canonical)
 - **[user/SESSION_EXPORT_IMPORT_GUIDE.md](user/SESSION_EXPORT_IMPORT_GUIDE.md)** - Session export/import user guide (canonical)
 - **[../backend/CONTROL_API.md](../backend/CONTROL_API.md)** - Control API documentation (Updated)
   - Monitoring lifecycle endpoints
   - Audit logging specifications
   - Security considerations for control operations
 
-### Code Architecture & Refactoring (NEW - $11.9.7)
+### Code Architecture & Refactoring (NEW - 1.9.7)
 
 - **[CONTROL_ROUTER_REFACTORING.md](CONTROL_ROUTER_REFACTORING.md)** - Control router refactoring guide
   - Modular architecture design
@@ -202,7 +206,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Performance & Optimization
 
-- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - $11.9.7)
+- **[operations/SQLITE_TO_POSTGRESQL_MIGRATION.md](operations/SQLITE_TO_POSTGRESQL_MIGRATION.md)** - SQLite to PostgreSQL migration guide (NEW - 1.9.7)
   - Why migrate? (Concurrency, scalability, production requirements)
   - Step-by-step migration procedure
   - Performance tuning and monitoring
@@ -212,14 +216,14 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Response caching (+70% faster)
   - N+1 query fixes (100x reduction)
   - React optimization (+60-70% render speed)
-- **Database Connection Pooling** (NEW - $11.9.7)
+- **Database Connection Pooling** (NEW - 1.9.7)
   - PostgreSQL: pool_size=20, max_overflow=10, pool_pre_ping=True
   - SQLite: NullPool to avoid locking issues
   - See `backend/models.py` lines 367-411
 
 ### Scripts & Operations
 
-- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-$11.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
+- **[SCRIPTS_CONSOLIDATION_GUIDE.md](../archive/pre-1.9.7/SCRIPTS_CONSOLIDATION_GUIDE.md)** (archived) - v2.0 Scripts Migration Guide
   - **DOCKER.ps1** - All Docker deployment & management
   - **NATIVE.ps1** - Native development mode
   - Legacy script archive and migration notes
@@ -237,7 +241,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - `docker/docker-compose.monitoring.yml` - Monitoring stack
   - `docker/docker-compose.qnap.yml` - QNAP optimized
 
-### Workspace Consolidation ($11.10.1 - $11.10.1)
+### Workspace Consolidation (1.10.1 - 1.11.0)
 
 - **Complete Consolidation Journey** (Dec 2025):
 
@@ -254,7 +258,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Help system implemented and tested
   - Usage examples provided for all operations
 
-- **[development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md](development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - $11.10.1)
+- **[development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md](development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md)** - Phase 3: Documentation & Polish (📋 IN PROGRESS - 1.10.1)
   - Task 1: Documentation consolidation (establish `docs/DOCUMENTATION_INDEX.md` as source of truth)
   - Task 2: Backend scripts organization (`backend/scripts/` hierarchy)
   - Task 3: Symlink management strategy (Windows-compatible approach)
@@ -272,7 +276,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - .env file hierarchy and sourcing order
   - Root .env as single source of truth
   - Configuration sourcing for Docker and native modes
-  - Migration timeline ($11.10.1 → $11.10.1 → $11.10.1)
+  - Migration timeline (1.10.1 → 1.11.0 → 1.12.0)
 
 - **[archive/consolidation-planning-2025-12-09/](../archive/consolidation-planning-2025-12-09/)** - Planning documents
   - CONSOLIDATION_EXECUTIVE_SUMMARY.md - Overall plan and impact

@@ -1,4 +1,4 @@
-## What's New in $11.14.0
+## What's New in 1.14.0
 
 ### 🌟 Highlights
 

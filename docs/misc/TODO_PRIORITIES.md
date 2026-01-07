@@ -1,5 +1,8 @@
 # TODO Priorities (2025-12-18)
 
+> ⚠️ **SUPERSEDED**: General priorities consolidated into [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md)
+> **Use the unified plan** for current work organization. This file is kept for historical reference.
+
 ## Priority Levels
 - **P1: Critical/Blocking** – Must be addressed before any new features or releases. Impacts security, stability, or production data.
 - **P2: Core Feature Development** – Major features, RBAC, and essential improvements.

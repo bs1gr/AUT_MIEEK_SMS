@@ -1,4 +1,4 @@
-# Smoke Test Checklist $11.12.x
+# Smoke Test Checklist 1.12.x
 
 **Purpose**: Guided smoke test to validate core functionality, installer assets, and bilingual UX before tagging or releasing any v1.12.x build.
 

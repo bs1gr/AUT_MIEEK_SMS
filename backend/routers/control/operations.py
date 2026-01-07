@@ -5,12 +5,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.config import get_settings
 from backend.errors import ErrorCode, http_error
+from backend.services.backup_service_encrypted import BackupServiceEncrypted
 
 from .common import (
     check_docker_running,
@@ -262,8 +263,18 @@ class DeleteSelectedRequest(BaseModel):
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
-async def create_database_backup(request: Request):
-    """Create a new database backup (SQLite only)."""
+async def create_database_backup(
+    request: Request, encrypt: bool = Query(True, description="Enable AES-256 encryption for backup")
+):
+    """
+    Create a new database backup (SQLite only).
+
+    Args:
+        encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
+
+    Returns:
+        OperationResult with backup details including encryption status
+    """
     try:
         settings = get_settings()
         db_url = settings.DATABASE_URL
@@ -272,7 +283,7 @@ async def create_database_backup(request: Request):
         if not db_url.startswith("sqlite"):
             raise http_error(400, ErrorCode.BAD_REQUEST, "Backup supported only for SQLite database", request)
 
-        # Extract filesystem path (sqlite:///path or sqlite:////abs/path)
+        # Extract filesystem path
         path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
         db_path = Path(path_part.lstrip("/") if os.name == "nt" else path_part)
 
@@ -285,29 +296,64 @@ async def create_database_backup(request: Request):
                 context={"db_path": str(db_path)},
             )
 
-        # Create backups directory if it doesn't exist
+        # Create backups directory
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = project_root / "backups" / "database"
         backup_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create backup filename with timestamp
+        # Generate timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"student_management.backup_{timestamp}.db"
-        backup_path = backup_dir / backup_filename
 
-        # Copy database file
-        import shutil
+        if encrypt:
+            # Create encrypted backup
+            backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
+            backup_name = f"backup_{timestamp}"
 
-        shutil.copy2(db_path, backup_path)
+            backup_info = backup_service.create_encrypted_backup(
+                source_path=db_path,
+                backup_name=backup_name,
+                metadata={
+                    "database_url": settings.DATABASE_URL,
+                    "backup_method": "control_api",
+                    "encryption_enabled": True,
+                },
+            )
 
-        # Get file size for response
-        file_size = backup_path.stat().st_size
+            return OperationResult(
+                success=True,
+                message="Encrypted database backup created successfully",
+                details={
+                    "filename": f"{backup_name}.enc",
+                    "path": backup_info["backup_path"],
+                    "original_size": backup_info["original_size"],
+                    "encrypted_size": backup_info["encrypted_size"],
+                    "encryption": "AES-256-GCM",
+                    "timestamp": timestamp,
+                    "compression_ratio": backup_info["compression_ratio"],
+                },
+            )
+        else:
+            # Create unencrypted backup (legacy)
+            backup_filename = f"student_management.backup_{timestamp}.db"
+            backup_path = backup_dir / backup_filename
 
-        return OperationResult(
-            success=True,
-            message="Database backup created successfully",
-            details={"filename": backup_filename, "path": str(backup_path), "size": file_size, "timestamp": timestamp},
-        )
+            import shutil
+
+            shutil.copy2(db_path, backup_path)
+
+            file_size = backup_path.stat().st_size
+
+            return OperationResult(
+                success=True,
+                message="Database backup created successfully",
+                details={
+                    "filename": backup_filename,
+                    "path": str(backup_path),
+                    "size": file_size,
+                    "timestamp": timestamp,
+                    "encryption": None,
+                },
+            )
     except HTTPException:
         raise
     except Exception as exc:

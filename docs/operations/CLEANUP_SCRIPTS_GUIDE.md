@@ -23,9 +23,9 @@
 
 | Script Location | Status |
 |----------------|--------|
-| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/DEEP_DOCKER_CLEANUP.ps1 | ✅ Archived (functionality in DOCKER.ps1 -DeepClean) |
-| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/SUPER_CLEAN_AND_DEPLOY.ps1 | ✅ Archived (split into DOCKER.ps1 + COMMIT_READY.ps1) |
-| archive/pre-$11.9.7/deprecated/scripts_consolidation_2025-11-21/scripts/CLEANUP_TEMP.ps1 | ✅ Archived (functionality in CLEANUP_COMPREHENSIVE.ps1) |
+| archive/pre-1.9.7/deprecated/scripts_consolidation_2025-11-21/DEEP_DOCKER_CLEANUP.ps1 | ✅ Archived (functionality in DOCKER.ps1 -DeepClean) |
+| archive/pre-1.9.7/deprecated/scripts_consolidation_2025-11-21/SUPER_CLEAN_AND_DEPLOY.ps1 | ✅ Archived (split into DOCKER.ps1 + COMMIT_READY.ps1) |
+| archive/pre-1.9.7/deprecated/scripts_consolidation_2025-11-21/scripts/CLEANUP_TEMP.ps1 | ✅ Archived (functionality in CLEANUP_COMPREHENSIVE.ps1) |
 
 ---
 

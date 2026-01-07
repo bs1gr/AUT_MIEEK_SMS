@@ -1,7 +1,7 @@
 # Release Notes - Version 1.14.0
 
 **Release Date**: 2025-12-29
-**Previous Version**: $11.14.2
+**Previous Version**: 1.13.0
 
 ## 🐛 Bug Fixes
 
@@ -18,7 +18,7 @@
 
 ## 📝 Documentation
 
-- release notes and changelog for $11.14.2 [58645e3]
+- release notes and changelog for 1.14.2 [58645e3]
 
 ## 🤖 CI/CD
 

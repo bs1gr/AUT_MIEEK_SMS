@@ -1,7 +1,7 @@
 # Release Notes - Version 1.14.1
 
 **Release Date**: 2025-12-30
-**Previous Version**: $11.14.2
+**Previous Version**: 1.14.0
 
 ## 🐛 Bug Fixes
 

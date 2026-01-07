@@ -33,7 +33,7 @@ These documented specific fixes that are now baked into the system:
 - `PHASE1_QUICK_REFERENCE.md` → Superseded by `PHASE1_TEAM_ONBOARDING.md` (created Jan 5, 2026, more detailed and current)
 
 #### Configuration Documentation (1 file)
-- `CONFIG_STRATEGY.md` → Outdated version references (v$11.10.1 vs current 1.14.2)
+- `CONFIG_STRATEGY.md` → Outdated version references (v1.10.1 vs current 1.14.2)
 
 #### User-Specific Documentation (1 file)
 - `DESKTOP_SHORTCUT_GUIDE.md` → Not maintainable, user-specific, not widely used

@@ -29,7 +29,7 @@
 - **Method**: SQLAlchemy `selectinload()` to prevent N+1 queries
 - **Test Results**: ✅ All tests passing (304/304 backend + 1189/1189 frontend)
 - **Expected Impact**: ~95% reduction in database round-trips for list operations
-- **Code Quality**: Added documentation and version tags ($11.14.2)
+- **Code Quality**: Added documentation and version tags (1.14.2)
 - **Time Invested**: 4 hours
 
 ### Improvement #3: Soft-Delete Filtering ✅ COMPLETE (Day 2)
@@ -126,7 +126,7 @@
 - [ ] Release documentation
 
 ### Jan 24:
-- [ ] Deploy $11.14.2 to production
+- [ ] Deploy 1.14.2 to production
 - [ ] Post-release monitoring and validation
 
 ---
@@ -154,9 +154,9 @@
 
 ## 📝 Documentation Updated
 
-- ✅ [EXECUTION_TRACKER_$11.14.2.md](EXECUTION_TRACKER_$11.14.2.md) - Updated with completion status (Improvements 2-4)
-- ✅ [PROGRESS_UPDATE_DAY1_$11.14.2.md](PROGRESS_UPDATE_DAY1_$11.14.2.md) - This document
-- ✅ Code comments added with $11.14.2 version tags
+- ✅ [EXECUTION_TRACKER_1.14.2.md](EXECUTION_TRACKER_1.14.2.md) - Updated with completion status (Improvements 2-4)
+- ✅ [PROGRESS_UPDATE_DAY1_1.14.2.md](PROGRESS_UPDATE_DAY1_1.14.2.md) - This document
+- ✅ Code comments added with 1.14.2 version tags
 
 ---
 
@@ -314,7 +314,7 @@ return paginate(query, skip, limit)  # 3 total queries (1 grades + 2 batch loads
 - `backend/services/grade_service.py` - Line 73
 - `backend/services/student_service.py` - Lines 54, 75
 - `backend/services/attendance_service.py` - Line 97
-- `docs/releases/EXECUTION_TRACKER_$11.14.2.md` - Updated with progress
+- `docs/releases/EXECUTION_TRACKER_1.14.2.md` - Updated with progress
 
 ---
 

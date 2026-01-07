@@ -142,7 +142,7 @@ Agent: "Work done, updating the state"
   - Last item: PHASE1-002 ✅ DONE
   - Next item: PHASE1-003 🟥 NOT STARTED
   - Blocker: None
-  - Next Action: "git checkout -b feature/$11.14.2-phase1"
+  - Next Action: "git checkout -b feature/1.15.0-phase1"
 
 ↓ Add entry at top:
   UPDATED: 2026-01-05 18:00 UTC by Agent-Copilot
@@ -167,11 +167,11 @@ New Agent: "I'm ready to work, what do I do?"
   Last Update: 2026-01-05 18:00 UTC
 
 ↓ See PHASE1-003 status: 🟥 NOT STARTED
-  Next Action: "git checkout -b feature/$11.14.2-phase1"
+  Next Action: "git checkout -b feature/1.15.0-phase1"
 
 ↓ Know PHASE1-001 and PHASE1-002 are done (no duplication)
 
-↓ Execute: git checkout -b feature/$11.14.2-phase1
+↓ Execute: git checkout -b feature/1.15.0-phase1
 
 ↓ NO REPLANNING. NO DUPLICATED WORK.
 

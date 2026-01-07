@@ -2,7 +2,7 @@ services:
   backend:
     image: sms-backend:${VERSION:-latest}
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile.backend
       args:
         - VERSION=${VERSION:-latest}
@@ -81,7 +81,7 @@ services:
   frontend:
     image: sms-frontend:${VERSION:-latest}
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile.frontend
       args:
         - VITE_API_URL=/api/v1

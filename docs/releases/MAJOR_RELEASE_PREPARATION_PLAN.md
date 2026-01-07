@@ -1,7 +1,7 @@
-# Major Release Preparation Plan $11.14.0
+# Major Release Preparation Plan 1.14.0
 
 **Created:** 2025-12-29
-**Target Release:** $11.14.0 (Next Major Release)
+**Target Release:** 1.14.0 (Next Major Release)
 **Current Version:** 1.12.9
 **Status:** Planning Phase
 
@@ -11,11 +11,11 @@
 
 This major release aims to achieve a **"new solid status"** by:
 
-1. **Comprehensive Improvement Report** - Document all enhancements from $11.14.0 to $11.14.0
+1. **Comprehensive Improvement Report** - Document all enhancements from 1.14.0 to 1.14.0
 2. **Workspace Decluttering** - Archive old artifacts and cleanup failed/incomplete tests
 3. **GitHub Repository Cleanup** - Remove draft releases and archive old tags
 4. **Backward Compatibility** - Preserve all critical information in organized archives
-5. **Fresh Baseline** - Establish $11.14.0 as clean starting point for future development
+5. **Fresh Baseline** - Establish 1.14.0 as clean starting point for future development
 
 ---
 
@@ -31,16 +31,16 @@ This major release aims to achieve a **"new solid status"** by:
 **Total Releases:** 24+ releases found
 
 **Active Published Releases:**
-- $11.14.0 (Latest - published ~1 hour ago)
-- $11.14.0, $11.14.0, $11.14.0, $11.14.0, $11.14.0, $11.14.0, $11.14.0
-- $11.14.0, $11.14.0, $11.14.0
-- $11.14.0, $11.14.0
-- $11.14.0, $11.14.0, $11.14.0, $11.14.0, $11.14.0, $11.14.0
+- 1.14.0 (Latest - published ~1 hour ago)
+- 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0
+- 1.14.0, 1.14.0, 1.14.0
+- 1.14.0, 1.14.0
+- 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0
 
 **Draft Releases (CLEANUP CANDIDATES):**
-- ❌ $11.14.0 (Draft - duplicate, published ~1 hour ago)
-- ❌ $11.14.0 (Draft - duplicate)
-- ❌ $11.14.0 (Draft - duplicate)
+- ❌ 1.14.0 (Draft - duplicate, published ~1 hour ago)
+- ❌ 1.14.0 (Draft - duplicate)
+- ❌ 1.14.0 (Draft - duplicate)
 - ❌ pr-45-load-report-20251222-175218 (PR draft from Dec 22)
 
 **Observation:** Multiple duplicate draft releases exist for recent versions
@@ -106,11 +106,11 @@ docs/archive/
 ## 🎬 Phase 1: Pre-Release Audit & Documentation
 
 ### Task 1.1: Comprehensive Improvement Report
-**Create:** `docs/releases/reports/IMPROVEMENTS_$11.14.0_to_$11.14.0.md`
+**Create:** `docs/releases/reports/IMPROVEMENTS_1.14.0_to_1.14.0.md`
 
 **Content Sections:**
 1. **Executive Summary**
-   - Version progression: $11.14.0 → $11.14.0
+   - Version progression: 1.14.0 → 1.14.0
    - Total commits, PRs, issues closed
    - Key feature highlights
 
@@ -149,7 +149,7 @@ docs/archive/
 **Source Data:**
 - CHANGELOG.md (lines 1-100, full file 1642 lines)
 - TODO.md (Phase 2.3 completion markers)
-- Git log: `git log $11.14.0..$11.14.0 --oneline`
+- Git log: `git log 1.14.0..1.14.0 --oneline`
 - GitHub PR history
 
 **Timeline:** 2-3 hours research + documentation
@@ -198,15 +198,15 @@ docs/archive/
 gh release list --limit 50 | grep "Draft"
 
 # Delete duplicate drafts (REQUIRES CONFIRMATION)
-gh release delete $11.14.0 --yes  # Draft only, keep published
-gh release delete $11.14.0 --yes  # Draft only
-gh release delete $11.14.0 --yes  # Draft only
+gh release delete 1.14.0 --yes  # Draft only, keep published
+gh release delete 1.14.0 --yes  # Draft only
+gh release delete 1.14.0 --yes  # Draft only
 gh release delete pr-45-load-report-20251222-175218 --yes
 ```
 
 **Archive Pre-1.12.0 Releases:**
 - **Strategy:** Keep all published releases (tags remain in git)
-- **Documentation:** Create `docs/archive/releases/PRE_$11.14.0_RELEASES.md`
+- **Documentation:** Create `docs/archive/releases/PRE_1.14.0_RELEASES.md`
   - List all v1.9.x, v1.10.x, v1.11.x releases with links
   - Preserve release notes text for offline reference
   - Document upgrade paths from old versions
@@ -286,7 +286,7 @@ Get-ChildItem -Path ".\artifacts" -Recurse |
 **Strategy:**
 - **Keep:** Last successful E2E run
 - **Delete:** Failed test artifacts >7 days old
-- **Gitignore:** Ensure `test-results/` is gitignored (already added in $11.14.0)
+- **Gitignore:** Ensure `test-results/` is gitignored (already added in 1.14.0)
 
 **Actions:**
 ```powershell
@@ -343,7 +343,7 @@ Remove-Item -Path ".\.ruff_cache" -Recurse -Force -ErrorAction SilentlyContinue
 Select-String -Path "*.md","*.ps1" -Pattern "start-backend.ps1"
 
 # If unused, move to archive
-Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start-backend.ps1"
+Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-backend.ps1"
 ```
 
 **Timeline:** 10 minutes
@@ -357,13 +357,13 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 - `docs/archive/reports-2025-12/` - December 2025 audit reports
 
 **New Archives to Create:**
-1. **`docs/archive/releases/PRE_$11.14.0_RELEASES.md`**
+1. **`docs/archive/releases/PRE_1.14.0_RELEASES.md`**
    - Consolidated list of all v1.9.x - v1.11.x releases
    - Release notes excerpts from CHANGELOG.md
    - Upgrade paths and breaking changes
 
-2. **`docs/archive/reports-2025-12/WORKSPACE_CLEANUP_$11.14.0_PRE_RELEASE.md`**
-   - Document what was cleaned up before $11.14.0
+2. **`docs/archive/reports-2025-12/WORKSPACE_CLEANUP_1.14.0_PRE_RELEASE.md`**
+   - Document what was cleaned up before 1.14.0
    - File counts, sizes, and locations
    - Archival decisions and rationale
 
@@ -376,7 +376,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 
 ## 📦 Phase 3: Version Bump & Release Preparation
 
-### Task 3.1: Version Bump to $11.14.0
+### Task 3.1: Version Bump to 1.14.0
 **Files to Update:**
 - `VERSION` - Change to `1.13.0`
 - `frontend/package.json` - Update `version` field
@@ -393,11 +393,11 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 ---
 
 ### Task 3.2: CHANGELOG.md Consolidation
-**Current Issue:** CHANGELOG.md has duplicate entries for $11.14.0
+**Current Issue:** CHANGELOG.md has duplicate entries for 1.14.0
 
 **Actions:**
-1. Deduplicate $11.14.0 entries (merge into single section)
-2. Add $11.14.0 section at top:
+1. Deduplicate 1.14.0 entries (merge into single section)
+2. Add 1.14.0 section at top:
    ```markdown
    ## [1.13.0] - 2025-12-29
 
@@ -405,8 +405,8 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
    **Focus:** Comprehensive improvement report, archival cleanup, fresh baseline
 
    ### Added
-   - Comprehensive improvement report ($11.14.0 → $11.14.0)
-   - Release archival documentation for pre-$11.14.0 versions
+   - Comprehensive improvement report (1.14.0 → 1.14.0)
+   - Release archival documentation for pre-1.14.0 versions
    - Workspace cleanup automation enhancements
 
    ### Changed
@@ -416,7 +416,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 
    ### Removed
    - Old test artifacts and cache directories
-   - Duplicate GitHub draft releases ($11.14.0, $11.14.0, $11.14.0 drafts)
+   - Duplicate GitHub draft releases (1.14.0, 1.14.0, 1.14.0 drafts)
    - Test tag v-test-1
    - Obsolete configuration examples
    ```
@@ -426,14 +426,14 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 ---
 
 ### Task 3.3: Create Comprehensive Release Report
-**File:** `docs/releases/reports/RELEASE_REPORT_$11.14.0.md`
+**File:** `docs/releases/reports/RELEASE_REPORT_1.14.0.md`
 
 **Sections:**
 1. **Release Summary**
    - Version: 1.13.0
    - Release Date: 2025-12-29
    - Type: Major Release (Consolidation)
-   - Upgrade Path: $11.14.0 → $11.14.0 (no breaking changes)
+   - Upgrade Path: 1.14.0 → 1.14.0 (no breaking changes)
 
 2. **Improvements Consolidated** (link to Task 1.1 report)
    - Phase 2.3 features summary
@@ -453,7 +453,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
    - Testing checklist
 
 5. **Next Steps**
-   - $11.14.0+ roadmap (Phase 2.4 RBAC if planned)
+   - 1.14.0+ roadmap (Phase 2.4 RBAC if planned)
    - Deferred features from TODO.md
    - Community feedback integration
 
@@ -493,7 +493,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 ```
 
 **Expected Outputs:**
-- Git tag `$11.14.0` created and pushed
+- Git tag `1.14.0` created and pushed
 - GitHub release published with:
   - Comprehensive release notes
   - Installer artifact (SMS_Setup_1.13.0.exe)
@@ -517,11 +517,11 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-$11.14.0\start
 **Actions:**
 ```bash
 # Verify release
-gh release view $11.14.0
+gh release view 1.14.0
 
 # Verify tag
-git tag -l $11.14.0
-git show $11.14.0
+git tag -l 1.14.0
+git show 1.14.0
 
 # Verify documentation
 gh browse  # Check GitHub web UI
@@ -561,9 +561,9 @@ gh browse  # Check GitHub web UI
 - **Total Expected Savings:** ~350-400 MB
 
 ### GitHub Cleanup
-- Draft releases deleted: 4 ($11.14.0, $11.14.0, $11.14.0, pr-45-load-report)
+- Draft releases deleted: 4 (1.14.0, 1.14.0, 1.14.0, pr-45-load-report)
 - Test tags deleted: 1 (v-test-1)
-- Archived documentation: Pre-$11.14.0 release history
+- Archived documentation: Pre-1.14.0 release history
 
 ---
 
@@ -573,7 +573,7 @@ gh browse  # Check GitHub web UI
 ```powershell
 # Create full backup before starting
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$backupDir = ".\pre-$11.14.0-backup-$timestamp"
+$backupDir = ".\pre-1.14.0-backup-$timestamp"
 
 # Backup critical files
 Copy-Item -Path ".\VERSION" -Destination "$backupDir\"
@@ -590,13 +590,13 @@ Write-Host "✅ Backup created: $backupDir" -ForegroundColor Green
 ### Rollback Plan
 If issues occur during release:
 1. **Revert Version:** `git checkout HEAD~1 VERSION CHANGELOG.md`
-2. **Delete Tag:** `git tag -d $11.14.0 && git push origin :refs/tags/$11.14.0`
-3. **Delete Release:** `gh release delete $11.14.0 --yes`
-4. **Restore Backup:** Copy files from `pre-$11.14.0-backup-*/`
+2. **Delete Tag:** `git tag -d 1.14.0 && git push origin :refs/tags/1.14.0`
+3. **Delete Release:** `gh release delete 1.14.0 --yes`
+4. **Restore Backup:** Copy files from `pre-1.14.0-backup-*/`
 
 ### User Approval Required
 **Before executing these destructive actions, confirm with user:**
-- [ ] Delete GitHub draft releases ($11.14.0, $11.14.0, $11.14.0, pr-45 drafts)
+- [ ] Delete GitHub draft releases (1.14.0, 1.14.0, 1.14.0, pr-45 drafts)
 - [ ] Delete git tag v-test-1 (local + remote)
 - [ ] Move database backups >30 days to external storage
 - [ ] Delete old build artifacts from `artifacts/`
@@ -610,7 +610,7 @@ If issues occur during release:
 1. Are the archival strategies acceptable? (30-day backup retention, keep last 3 installers)
 2. Should we delete the test tag `v-test-1`?
 3. Are there any specific files/artifacts you want to preserve beyond this plan?
-4. Should $11.14.0 be the version, or would you prefer $11.14.0 for a major consolidation?
+4. Should 1.14.0 be the version, or would you prefer 1.14.0 for a major consolidation?
 
 **Once approved, I will:**
 1. Create the comprehensive improvement report (Task 1.1)

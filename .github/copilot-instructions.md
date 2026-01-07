@@ -1,6 +1,32 @@
 # Copilot Instructions for Student Management System
 
-## 🚀 Quick Start for AI Agents
+## � MANDATORY: Development Status & Planning
+
+**⚠️ CRITICAL DIRECTIVE FOR ALL AI AGENTS:**
+
+Before starting ANY work, you MUST:
+
+1. **Check Current Status**: Read [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) - This is the **single source of truth** for all project planning, priorities, and timelines.
+
+2. **Follow Documentation Index**: Consult [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for complete documentation navigation and understand the current project state.
+
+3. **Respect Work Streams**: All work is organized into 4 streams with clear priorities:
+   - 🔴 **IMMEDIATE: Phase 1 Completion** (v1.15.0) - Jan 7-24, 2026 - BLOCKING
+   - 🟠 **SHORT-TERM: Post-Phase 1 Polish** (v1.15.1) - Jan 7-24, 2026
+   - 🟡 **MEDIUM-TERM: Phase 2** (v1.16.0) - Jan 27 - Mar 7, 2026
+   - 🔵 **LONG-TERM: Backlog** - Q2 2026+
+
+4. **Update Progress**: When completing tasks, update the checklist in UNIFIED_WORK_PLAN.md to maintain accurate status for all agents.
+
+5. **No Duplicate Planning**: Do NOT create new TODO lists, planning documents, or trackers. Update the unified plan instead.
+
+**Current Development Phase**: Phase 1 Completion (v1.15.0) - 50% complete
+**Active Branch**: `feature/v11.14.3-phase1-batch2`
+**Next Critical Tasks**: Audit logging implementation, E2E test suite fixes, Frontend API client update
+
+---
+
+## �🚀 Quick Start for AI Agents
 
 **What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.13.0** (see VERSION file).
 
@@ -52,9 +78,11 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 1. ❌ Never edit DB schema directly → Always use Alembic migrations
 2. ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts`
 3. ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/main.py`)
-4. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
-5. ✅ Always add translations for both EN and EL (TypeScript modular structure)
-6. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
+4. ❌ Never create new TODO/planning docs → Update [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) instead
+5. ✅ Always check [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) before starting work
+6. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
+7. ✅ Always add translations for both EN and EL (TypeScript modular structure)
+8. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
 
 **File locations you'll need:**
 - Models: `backend/models.py` (with indexes on email, student_id, course_code, date, semester)
@@ -258,9 +286,10 @@ alembic downgrade -1           # Rollback
 **Version mismatch between native/Docker?** Run `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate`
 
 ### Adding New Feature (Full Flow)
-1. **Model** (if new table): Add to `backend/models.py` with indexes
-2. **Schema**: Create in `backend/schemas/{module}.py`, export in `__init__.py`
-3. **Router**: Add to `backend/routers/routers_{module}.py`
+1. **Check Work Plan**: Verify feature is in [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) and properly prioritized
+2. **Model** (if new table): Add to `backend/models.py` with indexes
+3. **Schema**: Create in `backend/schemas/{module}.py`, export in `__init__.py`
+4. **Router**: Add to `backend/routers/routers_{module}.py`
 
    ```python
    @router.post("/items/")
@@ -269,11 +298,12 @@ alembic downgrade -1           # Rollback
        pass
    ```
 
-4. **Register**: Add router in `backend/main.py` `register_routers()` if new file
-5. **Migration**: `alembic revision --autogenerate && alembic upgrade head`
-6. **Translations**: Add to `frontend/src/translations.js` (en + el)
-7. **API Client**: Add to `frontend/src/api/api.js`
-8. **Component**: Use `const { t } = useTranslation()` for all text
+5. **Register**: Add router in `backend/main.py` `register_routers()` if new file
+6. **Migration**: `alembic revision --autogenerate && alembic upgrade head`
+7. **Translations**: Add to `frontend/src/translations.js` (en + el)
+8. **API Client**: Add to `frontend/src/api/api.js`
+9. **Component**: Use `const { t } = useTranslation()` for all text
+10. **Update Plan**: Mark task complete in [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md)
 
 ## Important Technical Details
 

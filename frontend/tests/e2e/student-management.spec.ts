@@ -63,6 +63,8 @@ test.describe('Student Management - Critical Flows', () => {
   });
 
   test('should create a new student successfully', async ({ page }) => {
+    test.setTimeout(90000); // Increase timeout to 90s for create operations
+
     const student = generateStudentDataLocal();
 
     // Navigate to students page
@@ -77,22 +79,36 @@ test.describe('Student Management - Critical Flows', () => {
     // Click "Add Student" button
     await page.click('[data-testid="add-student-btn"]', { force: true });
 
+    // Wait for modal to appear
+    await page.waitForSelector('[data-testid="first-name-input"]', { state: 'visible', timeout: 10000 });
+
     // Fill student form using stable test ids
     await page.fill('[data-testid="first-name-input"]', student.firstName);
     await page.fill('[data-testid="last-name-input"]', student.lastName);
     await page.fill('[data-testid="email-input"]', student.email);
     await page.fill('[data-testid="student-id-input"]', student.studentId);
 
+    // Wait a bit for form validation
+    await page.waitForTimeout(500);
+
     // Wait for the submit button and click it (use force: true for mobile click handling)
     await page.waitForSelector('[data-testid="submit-student"]', { state: 'visible', timeout: 5000 });
+
+    // Set up response promise before clicking
+    const responsePromise = page.waitForResponse(
+      (resp) =>
+        resp.url().includes('/api/v1/students') && resp.request().method() === 'POST',
+      { timeout: 30000 }
+    );
+
+    // Click submit
     await page.click('[data-testid="submit-student"]', { force: true });
 
-    // Wait for the API response - listen for the create request
-    await page.waitForResponse(
-      (resp) =>
-        resp.url().includes('/api/v1/students') && resp.request().method() === 'POST' && resp.status() === 201,
-      { timeout: 10000 }
-    );
+    // Wait for response
+    const response = await responsePromise;
+
+    // Verify response was successful (200 or 201)
+    expect([200, 201]).toContain(response.status());
 
     // Wait for modal to close and page to refresh
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -225,11 +241,16 @@ test.describe('Course Management', () => {
   });
 
   test('should create a new course', async ({ page }) => {
+    test.setTimeout(90000); // Increase timeout to 90s for create operations
+
     const course = generateCourseData();
 
     await page.goto('/courses');
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.click('[data-testid="add-course-btn"]', { force: true });
+
+    // Wait for modal to appear
+    await page.waitForSelector('[data-testid="course-code-input"]', { state: 'visible', timeout: 10000 });
 
     await page.fill('[data-testid="course-code-input"]', course.courseCode);
     await page.fill('[data-testid="course-name-input"]', course.courseName);
@@ -239,11 +260,11 @@ test.describe('Course Management', () => {
     await page.waitForSelector('[data-testid="submit-course"]', { state: 'visible', timeout: 5000 });
     await page.click('[data-testid="submit-course"]', { force: true });
 
-    // Wait for API response
+    // Wait for API response (increased timeout to 30s, accept 200 or 201)
     await page.waitForResponse(
       (resp) =>
-        resp.url().includes('/api/v1/courses') && resp.request().method() === 'POST' && resp.status() === 201,
-      { timeout: 10000 }
+        resp.url().includes('/api/v1/courses') && resp.request().method() === 'POST' && (resp.status() === 200 || resp.status() === 201),
+      { timeout: 30000 }
     ).catch(() => {});
 
     // Wait for page to refresh

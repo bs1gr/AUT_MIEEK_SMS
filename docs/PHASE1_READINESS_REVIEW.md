@@ -13,7 +13,7 @@
 | **Code Patterns** | ✅ Complete | 8 improvement patterns with examples |
 | **Test Baseline** | ✅ Pass | 314/314 backend tests passing |
 | **GitHub Issues** | ✅ Ready | 8 issues (#60-#67) created and labeled |
-| **Feature Branch** | ✅ Ready | `feature/$11.15.0-phase1` prepared |
+| **Feature Branch** | ✅ Ready | `feature/v1.15.0-phase1` prepared |
 | **Development Environment** | ✅ Ready | All dependencies configured |
 | **Version Alignment** | ⚠️ **ACTION NEEDED** | See below |
 
@@ -47,7 +47,7 @@
   - 8. E2E Test Suite ✅ (Playwright examples)
 - **Status**: Ready for reference during implementation
 
-**3. EXECUTION_TRACKER_$11.15.0.md**
+**3. EXECUTION_TRACKER_v1.15.0.md**
 - ✅ Pre-implementation tasks (Jan 4-6)
 - ✅ Week 1 detailed breakdown (Jan 7-13)
 - ✅ Week 2 sprint assignments (Jan 10-13)
@@ -108,8 +108,8 @@
 - Test failure: Version mismatch detected
 
 **What This Means:**
-- We're currently at $11.15.0 (stable)
-- Phase 1 work targets $11.15.0 (will bump on Jan 24 release)
+- We're currently at 1.14.3 (stable)
+- Phase 1 work targets 1.15.0 (will bump on Jan 24 release)
 - Documentation correctly indicates target version
 - Tests are correctly flagging version inconsistency
 
@@ -147,7 +147,7 @@
 
 ### 3. **Feature Branch Confirmation** (5 minutes)
 
-**Branch Name**: `feature/$11.15.0-phase1`
+**Branch Name**: `feature/v1.15.0-phase1`
 
 **Actions:**
 - [ ] Verify branch exists and is up-to-date with main
@@ -185,7 +185,7 @@
    - Testing patterns they'll need
    - Common pitfalls to avoid
 
-3. **[EXECUTION_TRACKER_$11.15.0.md](docs/releases/EXECUTION_TRACKER_$11.15.0.md)** (reference)
+3. **[EXECUTION_TRACKER_v1.15.0.md](docs/releases/EXECUTION_TRACKER_v1.15.0.md)** (reference)
    - Detailed week-by-week schedule
    - Dependencies between improvements
    - Success criteria
@@ -227,7 +227,7 @@ Use this before team kickoff:
 - [ ] VERSION file versioning policy documented
 - [ ] GitHub issues all assigned to team members
 - [ ] Team members have repository access
-- [ ] Feature branch `feature/$11.15.0-phase1` created/verified
+- [ ] Feature branch `feature/v1.15.0-phase1` created/verified
 - [ ] All team members have read PHASE1_TEAM_ONBOARDING.md
 - [ ] All team members have development environment set up
 - [ ] Baseline test run verified (314/314 passing)
@@ -249,7 +249,7 @@ Use this before team kickoff:
 | **Jan 13 EOD** | Sprint 2 review + API client update | Tech Lead |
 | **Jan 14-16** | Sprint 3 testing | QA + Dev |
 | **Jan 20 EOD** | Phase 1 complete, release prep begins | Tech Lead |
-| **Jan 24** | $11.15.0 release | Ops |
+| **Jan 24** | 1.15.0 release | Ops |
 
 ---
 
@@ -274,7 +274,7 @@ All archival and consolidation completed on Jan 5. Clean documentation hierarchy
 
 Refer to:
 - **Code patterns?** → [IMPLEMENTATION_PATTERNS.md](docs/misc/IMPLEMENTATION_PATTERNS.md)
-- **Sprint schedule?** → [EXECUTION_TRACKER_$11.15.0.md](docs/releases/EXECUTION_TRACKER_$11.15.0.md)
+- **Sprint schedule?** → [EXECUTION_TRACKER_v1.15.0.md](docs/releases/EXECUTION_TRACKER_v1.15.0.md)
 - **Architecture?** → [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md)
 - **Git workflow?** → [docs/development/GIT_WORKFLOW.md](docs/development/GIT_WORKFLOW.md)
 

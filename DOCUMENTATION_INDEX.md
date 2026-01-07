@@ -2,9 +2,9 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** December 30, 2025 (v1.15.0)
-**Version:** 1.15.0
-**Status:** See `docs/DOCUMENTATION_INDEX.md` for complete status
+**Last Updated:** January 7, 2026 (v1.15.0 Released)
+**Version:** 1.15.0 ✅ Production Ready
+**Status:** Phase 1 Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start
 
@@ -148,6 +148,15 @@ Located in `docs/reference/`:
 
 ## Navigation by Use Case
 
+### I Want to Contribute or Plan Work
+
+**Start with:** `docs/plans/UNIFIED_WORK_PLAN.md` (⭐ single source of truth)
+
+1. Check unified work plan for current priorities and timeline
+2. Review contribution guidelines in `CONTRIBUTING.md`
+3. Check GitHub issues for assigned work
+4. Follow Git workflow in `docs/development/GIT_WORKFLOW.md`
+
 ### I Want to Deploy the Application
 
 **Start with:** `DEPLOYMENT_READINESS.md`
@@ -220,11 +229,11 @@ Located in `docs/reference/`:
 ├── START_HERE.md                  (5-minute start)
 ├── README.md                      (comprehensive overview)
 ├── CHANGELOG.md                   (version history)
-├── TODO.md                        (project status)
 ├── DEPLOYMENT_READINESS.md        (pre-deployment)
 ├── AUDIT_SUMMARY.md               (quick audit)
 ├── CODEBASE_AUDIT_REPORT.md       (detailed audit)
 ├── CONTRIBUTING.md                (contribution guide)
+├── docs/plans/UNIFIED_WORK_PLAN.md (⭐ planning single source of truth)
 └── docs/releases/                 (release documentation archive)
 ```
 
@@ -264,6 +273,8 @@ frontend/
 docs/
 ├── DOCUMENTATION_INDEX.md         (canonical index)
 ├── SECURITY_GUIDE_COMPLETE.md     (security hub)
+├── plans/
+│   └── UNIFIED_WORK_PLAN.md       (⭐ single source of truth for planning)
 ├── development/                   (development guides)
 │   ├── phase-reports/             (phase progress archives)
 │   └── roadmaps/                  (release roadmaps)

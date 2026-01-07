@@ -1,9 +1,10 @@
 # Release Notes - Version 1.15.0
 
-**Release Date**: January 5, 2026
-**Previous Version**: $11.15.0
+**Release Date**: January 7, 2026 ✅ FINAL
+**Previous Version**: 1.14.3
 **Release Type**: Major Feature Release (Phase 1 Complete)
 **Focus**: Infrastructure, Security, Performance, and User Experience
+**Status**: 🎉 RELEASED - All Phase 1 improvements completed and verified
 
 ---
 
@@ -370,7 +371,7 @@ npm run test:e2e -- --project=chromium
 
 ## 🚀 Upgrade Instructions
 
-### From $11.15.0 to $11.15.0
+### From 1.14.3 to 1.15.0
 
 #### 1. Backup Your Data
 ```bash
@@ -385,7 +386,7 @@ Copy-Item backend/data/student_management.db backend/data/backup_$(Get-Date -For
 #### 2. Update Code
 ```bash
 git pull origin main
-git checkout $11.15.0
+git checkout 1.15.0
 ```
 
 #### 3. Update Dependencies
@@ -433,7 +434,7 @@ BACKUP_KEY=your-secure-master-key-here
 
 ## ⚠️ Breaking Changes
 
-**None** - This release is fully backward compatible with $11.15.0.
+**None** - This release is fully backward compatible with 1.14.3.
 
 ### API Response Format (Gradual Migration)
 The new `APIResponse[T]` format is backward compatible. Old response formats continue to work. The frontend includes helpers to handle both formats:
@@ -448,7 +449,7 @@ const error = extractAPIError(errorResponse);
 
 ## 🔮 What's Next (Phase 2)
 
-### Planned for $11.15.0
+### Planned for 1.16.0
 - **Fine-Grained RBAC**: Permission-based access control
 - **Installer Improvements**: Enhanced Windows installer experience
 - **E2E Test Monitoring**: Continuous integration improvements
@@ -496,4 +497,4 @@ This project is licensed under the MIT License. See [LICENSE](../../LICENSE) for
 
 ---
 
-**Full Changelog**: [$11.15.0...$11.15.0](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.15.0...$11.15.0)
+**Full Changelog**: [1.14.3...1.15.0](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/1.14.3...1.15.0)
