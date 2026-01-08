@@ -51,7 +51,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.0.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ### For Operations
 
@@ -375,18 +375,18 @@ docs/archive/
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.15.0)
+### December 24, 2025 (v1.15.1)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
 - ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
-- ✅ Added release notes for v1.15.0
+- ✅ Added release notes for v1.15.1
 - ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.15.0/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.15.1/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
