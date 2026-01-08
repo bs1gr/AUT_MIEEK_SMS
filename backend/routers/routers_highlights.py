@@ -11,6 +11,7 @@ from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.rbac import require_permission
 from backend.schemas.highlights import (
     HighlightCreate,
     HighlightListResponse,
@@ -19,7 +20,6 @@ from backend.schemas.highlights import (
 )
 from backend.services.highlight_service import HighlightService
 
-from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +32,12 @@ router = APIRouter(
 
 @router.post("/", response_model=HighlightResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
 def create_highlight(
     request: Request,
     highlight: HighlightCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     """
     Create a new highlight for a student.
@@ -74,6 +75,7 @@ def create_highlight(
 
 @router.get("/", response_model=HighlightListResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
 def list_highlights(
     request: Request,
     skip: int = Query(0, ge=0, description="Number of records to skip"),
@@ -83,6 +85,7 @@ def list_highlights(
     category: Optional[str] = Query(None, description="Filter by category"),
     is_positive: Optional[bool] = Query(None, description="Filter by positive/negative"),
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """
     List highlights with optional filters.
@@ -130,7 +133,8 @@ def list_highlights(
 
 @router.get("/{highlight_id}", response_model=HighlightResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db)):
+@require_permission("students:view")
+def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db), current_user=None):
     """
     Get a single highlight by ID.
 
@@ -167,11 +171,13 @@ def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get
 
 @router.get("/student/{student_id}", response_model=list[HighlightResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 def get_student_highlights(
     request: Request,
     student_id: int,
     semester: Optional[str] = Query(None, description="Optional filter by semester"),
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """
     Get all highlights for a specific student.
@@ -212,12 +218,13 @@ def get_student_highlights(
 
 @router.put("/{highlight_id}", response_model=HighlightResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
 def update_highlight(
     request: Request,
     highlight_id: int,
     highlight_update: HighlightUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     """
     Update a highlight.
@@ -257,11 +264,12 @@ def update_highlight(
 
 @router.delete("/{highlight_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:delete")
 def delete_highlight(
     request: Request,
     highlight_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     """
     Delete a highlight.

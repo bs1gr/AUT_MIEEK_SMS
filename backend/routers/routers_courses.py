@@ -326,7 +326,8 @@ async def delete_course(
 
 @router.get("/{course_id}/evaluation-rules")
 @limiter.limit(RATE_LIMIT_READ)
-def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db)):
+@require_permission("courses:view")
+def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db), current_user=None):
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
