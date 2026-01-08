@@ -19,6 +19,8 @@ This document consolidates all scattered planning documents into a **single sour
 - `docs/misc/TODO_PRIORITIES.md` - General maintenance
 - `docs/PHASE1_REVIEW_FINDINGS.md` - Historical (archived)
 
+**Documentation hygiene (Jan 8, 2026)**: Root-level `PHASE2_*` summary/kickoff/quick-start files were removed to prevent plan duplication. Any legacy `PHASE2_*` files that remain in the repository are stubbed with a deprecation note and should not be updated; this document is the single source of truth for planning. Reference `PHASE2_CONSOLIDATED_PLAN.md` for detailed execution notes as needed.
+
 ---
 
 ## 🎯 Work Streams Overview
@@ -434,15 +436,95 @@ This document consolidates all scattered planning documents into a **single sour
 
 ---
 
-## 🟡 MEDIUM-TERM: Phase 2 (v1.15.1)
+## 🟡 MEDIUM-TERM: Phase 2 (v1.15.1) - Daily Execution
 
-**Timeline**: January 27 - March 7, 2026 (4-6 weeks, 6 weeks = 240 hours)
-**Status**: ✅ Week 0 Prep Complete (100%) | 📋 Ready to Start (Jan 27)
-**Team**: 2-3 backend devs + 1 frontend dev + 1 DevOps/QA
-**Source**: [PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md)
+**Timeline**: January 27 - March 7, 2026 (30 working days)
+**Status**: ✅ Week 0 Prep Complete (100%) | 📋 **Ready for Daily Execution** (Jan 27)
+**Team**: 6-person sprint (240 hours total, 8h/day average)
+**Execution Model**: Daily standup + task-driven delivery (Days 1-30)
+**Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐ PRIMARY REFERENCE
+**Original Plan**: [PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md) (archived weekly structure)
 **GitHub Issues**: #116-#124 (9 issues created and ready)
 
-### Week 0 Preparation (Jan 8-26, 2026) - ✅ COMPLETE
+---
+
+## 📅 Daily Execution Timeline (30 Days)
+
+### Phase 1: RBAC Foundation (Days 1-5, Jan 27-31)
+**Team**: Tech Lead + Backend Dev 1 (40 hours)
+**Deliverables**:
+- ✅ Day 1: Permission matrix approved
+- ✅ Day 2: Database schema designed
+- ✅ Day 3: Alembic migration tested
+- ✅ Day 4: Backend models created
+- ✅ Day 5: RBAC decorators implemented
+**Status**: Ready → In Progress (Day 1)
+
+### Phase 2: Endpoint Refactoring (Days 6-10, Feb 3-7)
+**Team**: Backend Dev 2 + Backend Dev 1 (40 hours)
+**Deliverables**:
+- ✅ Day 6: Student endpoints (8 endpoints)
+- ✅ Day 7: Course endpoints (7 endpoints)
+- ✅ Day 8: Grade endpoints (8 endpoints)
+- ✅ Day 9: Attendance endpoints (10 endpoints)
+- ✅ Day 10: Reports + analytics endpoints (10 endpoints)
+**Target**: 30+ endpoints secured with permissions
+**Status**: Waiting for Phase 1 → Starts Day 6
+
+### Phase 3: Permission API (Days 11-15, Feb 10-14)
+**Team**: Backend Dev 1 + Frontend Dev planning (40 hours)
+**Deliverables**:
+- ✅ Day 11: API design approved
+- ✅ Day 12-13: Permission CRUD endpoints
+- ✅ Day 14: 40+ endpoint tests (95%+ coverage)
+- ✅ Day 15: Documentation complete
+**Target**: 5 new endpoints, fully tested
+**Status**: Waiting for Phase 1 → Starts Day 11
+
+### Phase 4: Frontend Permission UI (Days 16-20, Feb 17-21)
+**Team**: Frontend Dev + QA (40 hours)
+**Deliverables**:
+- ✅ Day 16-17: PermissionMatrix component
+- ✅ Day 18-19: RolePermissions component + integration
+- ✅ Day 20: Testing + admin panel integration
+**Target**: Admin UI fully functional, EN/EL translations
+**Status**: Waiting for Phase 3 → Starts Day 16
+
+### Phase 5: CI/CD & Performance (Days 21-25, Feb 24-28)
+**Team**: QA Engineer + DevOps (40 hours)
+**Deliverables**:
+- ✅ Day 21: E2E metrics collection
+- ✅ Day 22: Load testing integration
+- ✅ Day 23: Coverage reporting
+- ✅ Day 24: Performance monitoring
+- ✅ Day 25: CI optimization (30% faster)
+**Status**: Waiting for Phase 2 → Starts Day 21
+
+### Phase 6: Final Testing & Release (Days 26-30, Mar 3-7)
+**Team**: All 6 people (40 hours)
+**Deliverables**:
+- ✅ Day 26: Full integration testing (95%+ coverage)
+- ✅ Day 27: Regression testing + bug fixes
+- ✅ Day 28: Staging deployment + validation
+- ✅ Day 29: Final approval + release notes
+- ✅ Day 30: Production deployment 🚀
+**Status**: Waiting for Phase 5 → Starts Day 26
+
+---
+
+## 🚀 Daily Standup Format
+
+**Time**: 9:00 AM - 9:15 AM (all days)
+**Attendees**: All 6 team members
+**Format**:
+1. What completed yesterday (30 sec each)
+2. What planned for today (30 sec each)
+3. Any blockers (2 min, team)
+4. Today's priority (1 min, Tech Lead)
+
+---
+
+**Execution Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐
 
 **Purpose**: Complete all design and planning work before Phase 2 execution
 **Branch**: `feature/phase2-rbac-prep`

@@ -12,7 +12,7 @@ from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.security.permissions import depends_on_permission
+from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 
@@ -153,11 +153,12 @@ def _normalize_evaluation_rules(er: Any) -> Optional[List[Dict[str, Any]]]:
 
 @router.post("/", response_model=CourseResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
-def create_course(
+@require_permission("courses:create")
+async def create_course(
     request: Request,
-    course: CourseCreate = Body(...),
+    course: CourseCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -200,12 +201,13 @@ def create_course(
 
 @router.get("/", response_model=PaginatedResponse[CourseResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def get_all_courses(
+@require_permission("courses:view")
+async def get_all_courses(
     request: Request,
     pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.read", "admin", "teacher")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -235,11 +237,12 @@ def get_all_courses(
 
 @router.get("/{course_id}", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_course(
+@require_permission("courses:view")
+async def get_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.read", "admin", "teacher")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -255,12 +258,13 @@ def get_course(
 
 @router.put("/{course_id}", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-def update_course(
+@require_permission("courses:edit")
+async def update_course(
     request: Request,
     course_id: int,
-    course_data: CourseUpdate = Body(...),
+    course_data: CourseUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -299,11 +303,12 @@ def update_course(
 
 @router.delete("/{course_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
-def delete_course(
+@require_permission("courses:delete")
+async def delete_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.delete", "admin")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -339,12 +344,13 @@ def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends
 
 @router.put("/{course_id}/evaluation-rules")
 @limiter.limit(RATE_LIMIT_WRITE)
-def update_evaluation_rules(
+@require_permission("courses:edit")
+async def update_evaluation_rules(
     request: Request,
     course_id: int,
     rules_data: Dict[str, Any] = Body(...),
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("courses.write", "admin", "teacher")),
+    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")

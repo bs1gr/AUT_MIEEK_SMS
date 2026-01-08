@@ -23,7 +23,7 @@ from backend.schemas.attendance import (
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.services import AttendanceService
-from backend.security.permissions import depends_on_permission
+from backend.rbac import require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -61,11 +61,12 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
 
 @router.post("/", response_model=AttendanceResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
-def create_attendance(
+@require_permission("attendance:edit")
+async def create_attendance(
     request: Request,
     attendance_data: AttendanceCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Record attendance for a student.
@@ -91,7 +92,8 @@ def create_attendance(
 
 @router.get("/", response_model=PaginatedResponse[AttendanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def get_all_attendance(
+@require_permission("attendance:view")
+async def get_all_attendance(
     request: Request,
     pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
@@ -100,7 +102,7 @@ def get_all_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("attendance.read", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Retrieve attendance records with optional filtering.
@@ -261,12 +263,13 @@ def get_attendance(request: Request, attendance_id: int, db: Session = Depends(g
 
 @router.put("/{attendance_id}", response_model=AttendanceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-def update_attendance(
+@require_permission("attendance:edit")
+async def update_attendance(
     request: Request,
     attendance_id: int,
     attendance_data: AttendanceUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
+    current_user=None,
 ):
     """Update an attendance record"""
     try:
@@ -285,11 +288,12 @@ def update_attendance(
 
 @router.delete("/{attendance_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
-def delete_attendance(
+@require_permission("attendance:delete")
+async def delete_attendance(
     request: Request,
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("attendance.write", "admin")),
+    current_user=None,
 ):
     """Soft delete an attendance record"""
     try:
@@ -353,11 +357,12 @@ def get_attendance_stats(request: Request, student_id: int, course_id: int, db: 
 
 @router.post("/bulk/create")
 @limiter.limit(RATE_LIMIT_WRITE)
-def bulk_create_attendance(
+@require_permission("attendance:edit")
+async def bulk_create_attendance(
     request: Request,
-    attendance_list: List[AttendanceCreate],
+    records: List[AttendanceCreate],
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("attendance.write", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Create multiple attendance records at once.
@@ -374,7 +379,7 @@ def bulk_create_attendance(
         errors = []
 
         with transaction(db):
-            for idx, attendance_data in enumerate(attendance_list):
+            for idx, attendance_data in enumerate(records):
                 try:
                     _student = get_by_id_or_404(db, Student, attendance_data.student_id)
                     _course = get_by_id_or_404(db, Course, attendance_data.course_id)

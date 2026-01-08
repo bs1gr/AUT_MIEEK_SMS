@@ -30,7 +30,7 @@ async def create_role(
     name: str = Body(..., embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.roles.create")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     name = name.strip().lower()
     if db.query(models.Role).filter(models.Role.name == name).first():
@@ -45,7 +45,7 @@ async def create_role(
 @router.get("/roles", response_model=list[RoleResponse])
 async def list_roles(
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.roles.read")),
+    current_admin=Depends(require_permission("permissions:view")),
 ):
     roles = db.query(models.Role).all()
     return [RoleResponse.model_validate(r) for r in roles]
@@ -57,7 +57,7 @@ async def update_role(
     name: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.roles.update")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
@@ -75,7 +75,7 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.roles.delete")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
@@ -94,7 +94,7 @@ async def create_permission(
     action: str = Body(..., embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.permissions.create")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     key = key.strip().lower()
     resource = resource.strip().lower()
@@ -111,7 +111,7 @@ async def create_permission(
 @router.get("/permissions", response_model=list[PermissionResponse])
 async def list_permissions(
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.permissions.read")),
+    current_admin=Depends(require_permission("permissions:view")),
 ):
     perms = db.query(models.Permission).all()
     return [PermissionResponse.model_validate(p) for p in perms]
@@ -125,7 +125,7 @@ async def update_permission(
     action: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.permissions.update")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
@@ -147,7 +147,7 @@ async def update_permission(
 async def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("rbac.permissions.delete")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
@@ -210,7 +210,7 @@ async def bulk_assign_role(
     request: Request,
     payload: BulkAssignRolesRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("*")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     _ = current_admin
     audit_logger = get_audit_logger(db)
@@ -278,7 +278,7 @@ async def bulk_grant_permission(
     request: Request,
     payload: BulkGrantPermissionsRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("*")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     _ = current_admin
     audit_logger = get_audit_logger(db)
@@ -372,7 +372,12 @@ async def ensure_defaults(
     audit_logger = get_audit_logger(db)
     try:
         # Ensure roles
-        role_names = {"admin": "System administrator", "teacher": "Teacher", "guest": "Guest (read-only)"}
+        role_names = {
+            "admin": "System administrator",
+            "teacher": "Teacher",
+            "guest": "Guest (read-only)",
+            "viewer": "Viewer (read-only)",
+        }
         name_to_role: dict[str, models.Role] = {}
         for name, desc in role_names.items():
             r = db.query(models.Role).filter(models.Role.name == name).first()
@@ -393,16 +398,35 @@ async def ensure_defaults(
         # Ensure permissions (using new Permission schema: key, resource, action)
         perm_defs = [
             ("*:*", "*", "*", "All permissions (admin wildcard)"),
-            ("students:read", "students", "read", "View all student records"),
-            ("students:write", "students", "write", "Create or update student records"),
+            ("students:view", "students", "view", "View all student records"),
+            ("students:create", "students", "create", "Create student records"),
+            ("students:edit", "students", "edit", "Update student records"),
             ("students:delete", "students", "delete", "Delete student records"),
-            ("courses:read", "courses", "read", "View all courses"),
-            ("courses:write", "courses", "write", "Create or update courses"),
+            ("courses:view", "courses", "view", "View all courses"),
+            ("courses:create", "courses", "create", "Create courses"),
+            ("courses:edit", "courses", "edit", "Update courses"),
             ("courses:delete", "courses", "delete", "Delete courses"),
-            ("attendance:read", "attendance", "read", "View attendance records"),
-            ("attendance:write", "attendance", "write", "Record or update attendance"),
-            ("grades:read", "grades", "read", "View grades for all students"),
-            ("grades:write", "grades", "write", "Assign or update grades"),
+            ("grades:view", "grades", "view", "View grades for all students"),
+            ("grades:edit", "grades", "edit", "Assign or update grades"),
+            ("grades:delete", "grades", "delete", "Delete grade records"),
+            ("attendance:view", "attendance", "view", "View attendance records"),
+            ("attendance:edit", "attendance", "edit", "Record or update attendance"),
+            ("attendance:delete", "attendance", "delete", "Delete attendance records"),
+            ("enrollments:view", "enrollments", "view", "View enrollments"),
+            ("enrollments:manage", "enrollments", "manage", "Create/update/delete enrollments"),
+            ("reports:view", "reports", "view", "View and generate reports"),
+            ("analytics:view", "analytics", "view", "View analytics dashboards"),
+            ("users:view", "users", "view", "View user list"),
+            ("users:manage", "users", "manage", "Create/update/delete users and roles"),
+            ("permissions:view", "permissions", "view", "View permissions and roles"),
+            ("permissions:manage", "permissions", "manage", "Assign or revoke permissions"),
+            ("audit:view", "audit", "view", "View audit logs"),
+            ("system:import", "system", "import", "Import data"),
+            ("system:export", "system", "export", "Export data"),
+            ("notifications:manage", "notifications", "manage", "Send broadcast notifications"),
+            ("adminops:backup", "adminops", "backup", "Create backups"),
+            ("adminops:restore", "adminops", "restore", "Restore database"),
+            ("adminops:clear", "adminops", "clear", "Clear database content"),
             ("imports:preview", "imports", "preview", "Preview data import"),
             ("imports:execute", "imports", "execute", "Execute data import"),
             ("exports:generate", "exports", "generate", "Generate data export"),
@@ -454,26 +478,35 @@ async def ensure_defaults(
         # Admin wildcard
         grant("admin", "*:*")
 
-        # Teacher default grants (mirror permissive defaults)
-        for pn in [
-            "students:read",
-            "students:write",
-            "courses:read",
-            "courses:write",
-            "attendance:read",
-            "attendance:write",
-            "grades:read",
-            "grades:write",
-            "imports:preview",
-            "imports:execute",
-            "exports:generate",
-            "exports:download",
-        ]:
+        teacher_perms = [
+            "students:view",
+            "students:edit",
+            "courses:view",
+            "grades:view",
+            "grades:edit",
+            "attendance:view",
+            "attendance:edit",
+            "enrollments:view",
+            "enrollments:manage",
+            "reports:view",
+            "analytics:view",
+            "system:export",
+            "notifications:manage",
+        ]
+        for pn in teacher_perms:
             grant("teacher", pn)
 
-        # Guest default grants (read-only, no sensitive data)
-        for pn in ["students:read", "courses:read"]:
+        viewer_perms = [
+            "students:view",
+            "courses:view",
+            "grades:view",
+            "attendance:view",
+            "reports:view",
+            "analytics:view",
+        ]
+        for pn in viewer_perms:
             grant("guest", pn)
+            grant("viewer", pn)
 
         # Backfill UserRole from legacy User.role (admin/teacher/guest only)
         users = db.query(models.User).all()
@@ -522,7 +555,7 @@ async def assign_role(
     request: Request,
     payload: AssignRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("*")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     _ = current_admin
     audit_logger = get_audit_logger(db)
@@ -593,7 +626,7 @@ async def revoke_role(
     request: Request,
     payload: AssignRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("*")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     _ = current_admin
     audit_logger = get_audit_logger(db)
@@ -644,7 +677,7 @@ async def revoke_permission_from_role(
     request: Request,
     payload: GrantPermissionToRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("*")),
+    current_admin=Depends(require_permission("permissions:manage")),
 ):
     _ = current_admin
     audit_logger = get_audit_logger(db)
