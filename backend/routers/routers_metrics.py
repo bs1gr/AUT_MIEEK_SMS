@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from backend.db import get_session
-from backend.security.permissions import optional_require_permission
+from backend.rbac import require_permission
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
 from backend.schemas.metrics import (
     AttendanceMetrics,
@@ -28,11 +28,12 @@ router = APIRouter(prefix="/metrics", tags=["metrics"])
 
 @router.get("/students", response_model=StudentMetrics)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def get_student_metrics(
     request: Request,
     semester: Optional[str] = None,
     db: Session = Depends(get_session),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ) -> StudentMetrics:
     """
     Get student population and enrollment metrics.
@@ -63,10 +64,11 @@ async def get_student_metrics(
 
 @router.get("/courses", response_model=CourseMetrics)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def get_course_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ) -> CourseMetrics:
     """
     Get course enrollment and completion metrics.
@@ -96,10 +98,11 @@ async def get_course_metrics(
 
 @router.get("/grades", response_model=GradeMetrics)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def get_grade_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ) -> GradeMetrics:
     """
     Get grade distribution and performance metrics.
@@ -136,10 +139,11 @@ async def get_grade_metrics(
 
 @router.get("/attendance", response_model=AttendanceMetrics)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def get_attendance_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ) -> AttendanceMetrics:
     """
     Get attendance tracking and compliance metrics.
@@ -170,10 +174,11 @@ async def get_attendance_metrics(
 
 @router.get("/dashboard", response_model=DashboardMetrics)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def get_dashboard_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ) -> DashboardMetrics:
     """
     Get comprehensive dashboard metrics for executive overview.

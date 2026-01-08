@@ -278,6 +278,11 @@ def require_permission(
 
     def decorator(func: Callable) -> Callable:
         import asyncio
+        import inspect
+
+        # Inspect function signature to determine if it accepts 'db' parameter
+        sig = inspect.signature(func)
+        accepts_db = "db" in sig.parameters
 
         # Always create async wrapper for FastAPI endpoints
         # This handles cases where func might be wrapped by other decorators (e.g., @cached)
@@ -314,8 +319,12 @@ def require_permission(
                 if not has_perm and not has_self:
                     raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
-            # Call the wrapped function
-            result = func(*args, request=request, db=db, current_user=current_user, **kwargs)
+            # Call the wrapped function, conditionally passing db if the function accepts it
+            call_kwargs = {**kwargs, "request": request, "current_user": current_user}
+            if accepts_db:
+                call_kwargs["db"] = db
+
+            result = func(*args, **call_kwargs)
 
             # Handle both sync and async functions
             if asyncio.iscoroutine(result):

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from backend.db import get_session as get_db
 from backend.errors import internal_server_error
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
-from backend.security.permissions import optional_require_permission
+from backend.rbac import require_permission
 from backend.services import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -30,12 +30,13 @@ def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:
 
 @router.get("/student/{student_id}/course/{course_id}/final-grade")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 def calculate_final_grade(
     request: Request,
     student_id: int,
     course_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ):
     """Calculate final grade using evaluation rules, grades, daily performance, and attendance."""
     try:
@@ -49,11 +50,12 @@ def calculate_final_grade(
 
 @router.get("/student/{student_id}/all-courses-summary")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 def get_student_all_courses_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ):
     try:
         return service.get_student_all_courses_summary(student_id)
@@ -66,11 +68,12 @@ def get_student_all_courses_summary(
 
 @router.get("/student/{student_id}/summary")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 def get_student_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ):
     try:
         return service.get_student_summary(student_id)
@@ -83,10 +86,11 @@ def get_student_summary(
 
 @router.get("/dashboard")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 def get_dashboard(
     request: Request,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=Depends(optional_require_permission("analytics:view")),
+    current_user=None,
 ):
     """Lightweight dashboard summary used by the frontend and load tests."""
     try:
