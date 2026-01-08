@@ -1,4 +1,4 @@
-# Pre-Deployment Validation Checklist - $11.15.1
+# Pre-Deployment Validation Checklist - v1.15.1
 
 **Date**: January 7, 2026
 **Version**: 1.15.1
@@ -13,7 +13,7 @@
 - [ ] Main branch has latest code
 - [ ] Git status clean (no uncommitted changes)
 - [ ] Latest commit: `3b9d44fd5`
-- [ ] Commit message mentions "$11.15.1"
+- [ ] Commit message mentions "v1.15.1"
 
 ```bash
 # Verification commands:
@@ -24,15 +24,15 @@ cat VERSION  # Should show 1.15.1
 
 ### File Integrity
 - [ ] VERSION file: 1.15.1
-- [ ] CHANGELOG.md: $11.15.1 entry present
-- [ ] RELEASE_NOTES_$11.15.1.md: Complete (650+ lines)
+- [ ] CHANGELOG.md: v1.15.1 entry present
+- [ ] RELEASE_NOTES_v1.15.1.md: Complete (650+ lines)
 - [ ] docker-compose.yml: Present and valid
 - [ ] .env.example: Present and correct
 - [ ] All required scripts executable
 
 ```bash
 # Verification:
-ls -la VERSION CHANGELOG.md RELEASE_NOTES_$11.15.1.md
+ls -la VERSION CHANGELOG.md RELEASE_NOTES_v1.15.1.md
 grep "## \[1.15.1\]" CHANGELOG.md  # Should find entry
 ```
 
@@ -86,7 +86,7 @@ mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
 ## 📦 Database & Data
 
 ### Current Database
-- [ ] $11.15.1 database backed up
+- [ ] v1.15.1 database backed up
 - [ ] Backup file size >100KB
 - [ ] Backup file verified (not corrupted)
 - [ ] Backup path documented
@@ -94,14 +94,14 @@ mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
 ```bash
 # Backup procedures:
 docker exec sms-fullstack sqlite3 /data/student_management.db \
-  ".backup '/backups/pre-1.15.1/student_management_$11.15.1.db'"
-ls -lh /backups/pre-1.15.1/student_management_$11.15.1.db
+  ".backup '/backups/pre-1.15.1/student_management_v1.15.1.db'"
+ls -lh /backups/pre-1.15.1/student_management_v1.15.1.db
 ```
 
 ### Data Expectations
 - [ ] Test data exists (at least 10 students, 5 courses)
 - [ ] Sample users created (test@example.com)
-- [ ] Audit log sample data present (from $11.15.1)
+- [ ] Audit log sample data present (from v1.15.1)
 - [ ] No critical data inconsistencies
 
 ```bash
@@ -116,16 +116,16 @@ sqlite3 /data/student_management.db "SELECT COUNT(*) FROM audit_logs;"
 ## 📋 Documentation Verification
 
 ### Release Documentation
-- [ ] RELEASE_NOTES_$11.15.1.md: Complete and accurate
-- [ ] CHANGELOG.md: Updated with $11.15.1
+- [ ] RELEASE_NOTES_v1.15.1.md: Complete and accurate
+- [ ] CHANGELOG.md: Updated with v1.15.1
 - [ ] Migration guide: Included and clear
 - [ ] Deployment instructions: Verified
 - [ ] Known issues: Documented (notification tests)
 
 ```bash
 # Verification:
-wc -l RELEASE_NOTES_$11.15.1.md  # Should be 600+
-grep -A 5 "## Known Issues" RELEASE_NOTES_$11.15.1.md
+wc -l RELEASE_NOTES_v1.15.1.md  # Should be 600+
+grep -A 5 "## Known Issues" RELEASE_NOTES_v1.15.1.md
 ```
 
 ### Monitoring Documentation
@@ -269,7 +269,7 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 ## 🔄 Execution Path
 
 ### If All Items Checked ✅
-→ Proceed to STAGING_DEPLOYMENT_PLAN_$11.15.1.md
+→ Proceed to STAGING_DEPLOYMENT_PLAN_v1.15.1.md
 → Execute deployment steps
 → Run validation tests
 

@@ -354,7 +354,7 @@ Timeline could slip due to:
 - Testing takes longer (flaky tests, environment issues)
 - Team goes slower than estimated velocity
 
-**Current Impact**: $11.15.1 ships after March 7 (reputational impact)
+**Current Impact**: v1.15.1 ships after March 7 (reputational impact)
 
 **Probability**: MEDIUM (45%) - 6 weeks is aggressive
 

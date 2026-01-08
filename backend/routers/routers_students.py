@@ -12,7 +12,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from backend.db import get_session as get_db
-from backend.security.permissions import depends_on_permission
+from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse
 from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
 from backend.services import StudentService
@@ -33,11 +33,12 @@ router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"desc
 
 @router.post("/", response_model=StudentResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
-def create_student(
+@require_permission("students:create")
+async def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
+    current_user=None,
 ):
     """Create a new student with duplicate protections."""
 
@@ -50,15 +51,16 @@ def create_student(
 
 @router.get("/", response_model=PaginatedResponse[StudentResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
 @cached(ttl=CacheConfig.STUDENTS_LIST)
-def get_all_students(
+async def get_all_students(
     request: Request,
     skip: int = 0,
     limit: int = 100,
     is_active: Optional[bool] = None,
     q: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
+    current_user=None,
 ):
     """Retrieve all students with optional filtering and pagination."""
 
@@ -73,12 +75,13 @@ def get_all_students(
 
 @router.get("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 @cached(ttl=CacheConfig.STUDENT_DETAIL)
-def get_student(
+async def get_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.read", "admin", "teacher")),
+    current_user=None,
 ):
     """Retrieve a specific student by ID."""
 
@@ -88,12 +91,13 @@ def get_student(
 
 @router.put("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-def update_student(
+@require_permission("students:edit")
+async def update_student(
     request: Request,
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
+    current_user=None,
 ):
     """Update a student's information."""
 
@@ -107,11 +111,12 @@ def update_student(
 
 @router.delete("/{student_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
-def delete_student(
+@require_permission("students:delete")
+async def delete_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.delete", "admin")),
+    current_user=None,
 ):
     """Soft-delete a student and hide associated records."""
 
@@ -125,11 +130,12 @@ def delete_student(
 
 @router.post("/{student_id}/activate")
 @limiter.limit(RATE_LIMIT_WRITE)
-def activate_student(
+@require_permission("students:edit")
+async def activate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
+    current_user=None,
 ):
     """Activate a student account."""
 
@@ -139,11 +145,12 @@ def activate_student(
 
 @router.post("/{student_id}/deactivate")
 @limiter.limit(RATE_LIMIT_WRITE)
-def deactivate_student(
+@require_permission("students:edit")
+async def deactivate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
+    current_user=None,
 ):
     """Deactivate a student account."""
 
@@ -156,11 +163,12 @@ def deactivate_student(
 
 @router.post("/bulk/create")
 @limiter.limit(RATE_LIMIT_WRITE)
-def bulk_create_students(
+@require_permission("students:create")
+async def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("students.write", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Create multiple students at once.

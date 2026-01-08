@@ -15,7 +15,7 @@ Before deploying 1.14.2, verify:
 - [x] Grade: A- (8.5/10) - Excellent
 - [x] All security checks passed
 - [x] All features validated
-- [x] Phase 1 improvements planned ([PHASE1_AUDIT_IMPROVEMENTS_$11.15.1.md](../plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.1.md))
+- [x] Phase 1 improvements planned ([PHASE1_AUDIT_IMPROVEMENTS_v1.15.1.md](../plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.1.md))
 
 **Audit Summary**: All core features are stable and production-ready. Infrastructure improvements documented for 1.15.0.
 

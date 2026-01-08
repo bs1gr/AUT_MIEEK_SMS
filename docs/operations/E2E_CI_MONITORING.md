@@ -12,7 +12,7 @@
 
 This document tracks E2E test runs in GitHub Actions CI, establishes baselines, and detects failure patterns or flakiness.
 
-### Baseline Established ($11.15.1 - Jan 7, 2026)
+### Baseline Established (v1.15.1 - Jan 7, 2026)
 
 **Critical Path Tests** (must maintain ≥95% pass rate):
 - ✅ Authentication: 5/5 tests (100%)
@@ -33,7 +33,7 @@ This document tracks E2E test runs in GitHub Actions CI, establishes baselines, 
 - ✅ Registration: 1/1 test (100%)
 
 **Non-Critical Tests** (nice to have, flaky exceptions acceptable):
-- ⚠️ Notifications: 5/12 tests (42% - deferred to $11.15.1)
+- ⚠️ Notifications: 5/12 tests (42% - deferred to v1.15.1)
   - Issue: 403 Forbidden on test broadcast endpoint (permission)
   - Documented as known issue
 
@@ -214,7 +214,7 @@ npx playwright show-trace frontend/test-results/[test-name]-trace.zip
 #### Pattern 1: Timeout in Test Creation
 - **Tests**: "should create a new student successfully"
 - **Error**: `Timeout waiting for element`
-- **Solution**: Increase timeout to 90s (already done in $11.15.1)
+- **Solution**: Increase timeout to 90s (already done in v1.15.1)
 - **Status**: ✅ RESOLVED (confirmed Jan 7, 2026)
 
 #### Pattern 2: Auth Flow Failures
@@ -228,7 +228,7 @@ npx playwright show-trace frontend/test-results/[test-name]-trace.zip
 - **Tests**: Notification broadcast tests (5 tests)
 - **Error**: 403 Forbidden on POST /api/v1/notifications/test/broadcast
 - **Cause**: Permission check on test endpoint
-- **Solution**: Defer to $11.15.1 (non-blocking)
+- **Solution**: Defer to v1.15.1 (non-blocking)
 - **Status**: ⚠️ Known limitation
 
 #### Pattern 4: Flaky Navigation
@@ -361,7 +361,7 @@ End of Q1 (March), Q2 (June), etc:
 
 | Date | Change | Author |
 |------|--------|--------|
-| Jan 7, 2026 | Created initial monitoring document and baseline ($11.15.1) | QA Team |
+| Jan 7, 2026 | Created initial monitoring document and baseline (v1.15.1) | QA Team |
 | TBD | First weekly review | TBD |
 | TBD | Pattern #N detected | TBD |
 

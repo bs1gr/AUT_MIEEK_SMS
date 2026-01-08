@@ -15,7 +15,7 @@ Create all issues in GitHub repository with labels, milestones, and acceptance c
 **Title**: `feat(phase2): RBAC Permission Matrix Design (Week 1)`
 **Labels**: `phase-2`, `rbac`, `priority-critical`, `backend`
 **Assignee**: Backend Developer 1
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 4 hours
 **Start Date**: Jan 27, 2026
 **Due Date**: Jan 29, 2026
@@ -70,7 +70,7 @@ Design and document the permission matrix for fine-grained RBAC system.
 **Title**: `feat(phase2): RBAC Database Schema and Alembic Migration (Week 1)`
 **Labels**: `phase-2`, `rbac`, `priority-critical`, `backend`, `database`
 **Assignee**: Backend Developer 1
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 10 hours
 **Start Date**: Jan 27, 2026
 **Due Date**: Jan 31, 2026
@@ -143,7 +143,7 @@ Create database schema for RBAC system with Permission and RolePermission tables
 **Title**: `feat(phase2): RBAC Backend Models (Week 1)`
 **Labels**: `phase-2`, `rbac`, `priority-critical`, `backend`
 **Assignee**: Backend Developer 1
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 6 hours
 **Start Date**: Jan 29, 2026
 **Due Date**: Jan 31, 2026
@@ -212,7 +212,7 @@ class RolePermission(Base):
 **Title**: `feat(phase2): RBAC Permission Check Decorator and Utilities (Week 1)`
 **Labels**: `phase-2`, `rbac`, `priority-critical`, `backend`
 **Assignee**: Backend Developer 2
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 6 hours
 **Start Date**: Jan 27, 2026
 **Due Date**: Jan 31, 2026
@@ -289,7 +289,7 @@ async def create_student(data: StudentCreate, request: Request):
 **Title**: `feat(phase2): RBAC Endpoint Refactoring - Apply Permissions (Week 2)`
 **Labels**: `phase-2`, `rbac`, `priority-critical`, `backend`
 **Assignee**: Backend Developer 1 + 2
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 20 hours
 **Start Date**: Feb 3, 2026
 **Due Date**: Feb 7, 2026
@@ -354,7 +354,7 @@ async def create_student(data: StudentCreate, request: Request, db: Session = De
 **Title**: `feat(phase2): RBAC Permission Management API (Week 3)`
 **Labels**: `phase-2`, `rbac`, `priority-high`, `backend`, `api`
 **Assignee**: Backend Developer 2
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 8 hours
 **Start Date**: Feb 10, 2026
 **Due Date**: Feb 14, 2026
@@ -416,7 +416,7 @@ Create endpoints in `backend/routers/routers_rbac.py`:
 **Title**: `feat(phase2): RBAC Permission Management UI - Admin Panel (Week 3, Optional)`
 **Labels**: `phase-2`, `rbac`, `priority-medium`, `frontend`, `optional`
 **Assignee**: Frontend Developer
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 15 hours
 **Start Date**: Feb 10, 2026
 **Due Date**: Feb 14, 2026
@@ -491,7 +491,7 @@ This is marked **optional** - core RBAC works without UI. UI improves admin expe
 **Title**: `test(phase2): E2E Testing Expansion and CI Stabilization (Week 5)`
 **Labels**: `phase-2`, `testing`, `priority-high`, `qa`
 **Assignee**: QA Engineer
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 20 hours
 **Start Date**: Feb 24, 2026
 **Due Date**: Feb 28, 2026
@@ -549,7 +549,7 @@ Expand E2E test suite to 30+ tests and ensure >95% pass rate in CI.
 **Title**: `perf(phase2): Load Testing Integration and Performance Baselines (Week 4)`
 **Labels**: `phase-2`, `performance`, `priority-high`, `devops`
 **Assignee**: QA Engineer + DevOps
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 12 hours
 **Start Date**: Feb 17, 2026
 **Due Date**: Feb 21, 2026
@@ -603,10 +603,10 @@ Set up load testing in CI/CD and establish performance baselines for all APIs.
 
 ### **Issue #125: Phase 2 - Final System Testing & Release (Week 6)**
 
-**Title**: `test(phase2): Final System Testing and $11.15.1 Release Preparation (Week 6)`
+**Title**: `test(phase2): Final System Testing and v1.15.1 Release Preparation (Week 6)`
 **Labels**: `phase-2`, `testing`, `priority-critical`, `release`
 **Assignee**: QA + Tech Lead
-**Milestone**: Phase 2 - $11.15.1
+**Milestone**: Phase 2 - v1.15.1
 **Estimate**: 20 hours
 **Start Date**: Mar 3, 2026
 **Due Date**: Mar 7, 2026
@@ -614,7 +614,7 @@ Set up load testing in CI/CD and establish performance baselines for all APIs.
 **Description**:
 ```markdown
 ## 🎯 Objective
-Execute final system testing and prepare $11.15.1 for production release.
+Execute final system testing and prepare v1.15.1 for production release.
 
 ## 📋 Requirements
 ### System Testing
@@ -630,15 +630,15 @@ Execute final system testing and prepare $11.15.1 for production release.
 - Document any deferred items
 
 ### Staging Deployment
-- Deploy $11.15.1 to staging
+- Deploy v1.15.1 to staging
 - Validate for 24 hours
 - Collect metrics
 - Monitor for issues
 
 ### Release Documentation
 - Update CHANGELOG.md
-- Create RELEASE_NOTES_$11.15.1.md
-- Create MIGRATION_GUIDE_$11.15.1.md
+- Create RELEASE_NOTES_v1.15.1.md
+- Create MIGRATION_GUIDE_v1.15.1.md
 - Get tech lead + PM sign-off
 
 ## ✅ Acceptance Criteria
@@ -678,7 +678,7 @@ For each issue above:
    - `rbac` or `testing` or `performance`
    - `priority-critical` or `priority-high` or `priority-medium`
    - `backend` or `frontend` or `devops`
-4. Set milestone: `Phase 2 - $11.15.1` (create if doesn't exist)
+4. Set milestone: `Phase 2 - v1.15.1` (create if doesn't exist)
 5. Assign to team member
 6. Click "Submit new issue"
 

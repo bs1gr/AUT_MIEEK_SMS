@@ -1,7 +1,7 @@
 # Phase 1 Review - Findings & Recommendations
 
-> ⚠️ **ARCHIVED**: This document was created during $11.15.1 → $11.15.1 transition planning.
-> **Current work tracking**: See [plans/UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md) and [releases/EXECUTION_TRACKER_$11.15.1.md](releases/EXECUTION_TRACKER_$11.15.1.md)
+> ⚠️ **ARCHIVED**: This document was created during v1.15.1 → v1.15.1 transition planning.
+> **Current work tracking**: See [plans/UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md) and [releases/EXECUTION_TRACKER_v1.15.1.md](releases/EXECUTION_TRACKER_v1.15.1.md)
 > This file is kept for historical reference only.
 
 **Review Date**: January 5, 2026
@@ -69,7 +69,7 @@ All documentation is complete, code patterns are tested and verified, and the de
 
 ---
 
-### ✅ EXECUTION_TRACKER_$11.15.1.md — Detailed & Trackable
+### ✅ EXECUTION_TRACKER_v1.15.1.md — Detailed & Trackable
 
 **Strengths:**
 - Pre-implementation tasks clearly listed (Jan 4-6)
@@ -153,7 +153,7 @@ docs/DOCUMENTATION_INDEX.md: 1.15.0 (Phase 1 target)
 - ✅ Alembic migration system ready
 
 ### Git & CI/CD
-- ✅ Feature branch `feature/$11.15.1-phase1` available
+- ✅ Feature branch `feature/v1.15.1-phase1` available
 - ✅ GitHub issues created and labeled (8 issues, #60-#67)
 - ✅ Issue acceptance criteria documented
 - ✅ PR workflow defined
@@ -213,7 +213,7 @@ docs/DOCUMENTATION_INDEX.md: 1.15.0 (Phase 1 target)
 
 ### During Phase 1 (Jan 7-20)
 
-- **Daily**: Update EXECUTION_TRACKER_$11.15.1.md with progress
+- **Daily**: Update EXECUTION_TRACKER_v1.15.1.md with progress
 - **Every 2 days**: Team sync (15 minutes)
 - **Every sprint**: Review and approve PRs
 - **End of each sprint**: Demo completed improvements

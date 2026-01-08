@@ -57,7 +57,7 @@
 ### **You're a release manager starting Phase 1:**
 
 ```
-1. Open: docs/releases/RELEASE_PREPARATION_$11.15.0.md
+1. Open: docs/releases/RELEASE_PREPARATION_v1.15.0.md
 2. Jump to: "Phase 1: Infrastructure Improvements"
 3. Verify PHASE1-001, 002, 003 are marked done in ACTIVE_WORK_STATUS
 4. For PHASE1-005 through 008:
@@ -76,7 +76,7 @@
 |------|---------|-----------|
 | **docs/ACTIVE_WORK_STATUS.md** | What's happening NOW | 3 min |
 | **docs/development/AGENT_CONTINUATION_PROTOCOL.md** | How to use the system | 5 min |
-| **docs/releases/RELEASE_PREPARATION_$11.15.0.md** | Release timeline + Phase 1 tasks | 10 min |
+| **docs/releases/RELEASE_PREPARATION_v1.15.0.md** | Release timeline + Phase 1 tasks | 10 min |
 | docs/development/sessions/SESSION_FINAL_SUMMARY_2025-01-05.md | Context from last session | 10 min |
 
 ---
