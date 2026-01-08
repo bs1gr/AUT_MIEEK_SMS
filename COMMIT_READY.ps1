@@ -1220,7 +1220,7 @@ function Invoke-TestSuite {
 
     $allPassed = $true
 
-    # Backend tests
+    # Backend tests (in batches to avoid system freeze)
     Write-Section "Backend: pytest"
     try {
         Push-Location $BACKEND_DIR
@@ -1237,12 +1237,25 @@ function Invoke-TestSuite {
             Write-Info "Using strict auth mode for local tests (AUTH_MODE not set)"
         }
 
-        if ($Mode -eq 'quick') {
-            Write-Info "Running fast backend tests only..."
-            $output = python -m pytest tests/ -x -m "not slow" -q --tb=short 2>&1
+        # Check if batch runner is available
+        $batchRunnerAvailable = Test-Path "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1"
+
+        if ($batchRunnerAvailable) {
+            Write-Info "Using batch test runner (prevents system freeze)..."
+            if ($Mode -eq 'quick') {
+                # Quick mode: smaller batches, fast-fail
+                $output = & "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1" -BatchSize 5 -FastFail 2>&1
+            } else {
+                # Full mode: larger batches, complete run
+                $output = & "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1" -BatchSize 8 2>&1
+            }
         } else {
-            Write-Info "Running full backend test suite..."
-            $output = python -m pytest tests/ -v --tb=short -q 2>&1
+            Write-Info "Batch runner not found, using standard pytest..."
+            if ($Mode -eq 'quick') {
+                $output = python -m pytest tests/ -x -m "not slow" -q --tb=short 2>&1
+            } else {
+                $output = python -m pytest tests/ -v --tb=short -q 2>&1
+            }
         }
 
         if ($LASTEXITCODE -eq 0) {

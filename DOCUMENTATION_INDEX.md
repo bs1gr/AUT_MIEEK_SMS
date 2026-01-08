@@ -2,9 +2,9 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** January 7, 2026 (v1.15.1 Released)
+**Last Updated:** January 8, 2026 (Phase 2 Week 2 & 3 RBAC Complete)
 **Version:** 1.15.1 ✅ Production Ready
-**Status:** Phase 1 Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
+**Status:** Phase 1 Complete + Phase 2 RBAC Backend Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start
 
@@ -51,7 +51,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.0.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ### For Operations
 
@@ -60,6 +60,13 @@ All documentation is organized under `docs/` into four main categories:
 - **Database migration?** → `docs/operations/DATABASE_MIGRATION_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
+
+### For Phase 2 RBAC & Administration (NEW - v1.15.1+!)
+
+- **Permission management?** → `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` (930 lines - complete workflows)
+- **RBAC operations?** → `docs/admin/RBAC_OPERATIONS_GUIDE.md` (1,050 lines - daily/weekly/monthly checklists)
+- **Permission matrix?** → `docs/admin/PERMISSION_MATRIX.md` (25 permissions, 148 endpoints)
+- **API permissions?** → `backend/API_PERMISSIONS_REFERENCE.md` (540 lines - all 79 endpoints)
 
 ### For Phase 2 Planning & Execution (NEW!)
 
@@ -334,9 +341,9 @@ docs/archive/
 
 ### Version
 
-- **Current:** 1.12.2
+- **Current:** 1.15.1
 - **Status:** Production Ready
-- **Release Date:** December 13, 2025
+- **Release Date:** January 7, 2026
 - **Repository:** github.com/bs1gr/AUT_MIEEK_SMS
 
 ---
@@ -362,31 +369,31 @@ docs/archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.0.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ---
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.15.0)
+### December 24, 2025 (v1.15.1)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
 - ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
-- ✅ Added release notes for v1.15.0
+- ✅ Added release notes for v1.15.1
 - ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.15.0/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.15.1/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.15.0
-**Last Updated:** December 24, 2025
+**Documentation Version:** v1.15.1
+**Last Updated:** January 8, 2026
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.15.0.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.15.1.

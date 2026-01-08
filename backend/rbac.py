@@ -6,7 +6,7 @@ Implements self-access logic for student-scoped permissions.
 """
 
 from functools import wraps
-from typing import Callable, Optional
+from typing import Callable, Optional, cast
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
@@ -167,13 +167,12 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
 
     # Check if user has ANY role assignments in the RBAC system
     try:
-        has_role_assignments = (
-            db.execute(
-                text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
-                {"user_id": user.id},
-            ).scalar()
-            > 0
-        )
+        count = db.execute(
+            text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
+            {"user_id": user.id},
+        ).scalar()
+        # Ensure a concrete int for type checking/comparison
+        has_role_assignments = int(cast(int, count or 0)) > 0
     except Exception:
         has_role_assignments = False
 
@@ -277,6 +276,15 @@ def require_permission(
     """
 
     def decorator(func: Callable) -> Callable:
+        import asyncio
+        import inspect
+
+        # Inspect function signature to determine if it accepts 'db' parameter
+        sig = inspect.signature(func)
+        accepts_db = "db" in sig.parameters
+
+        # Always create async wrapper for FastAPI endpoints
+        # This handles cases where func might be wrapped by other decorators (e.g., @cached)
         @wraps(func)
         async def wrapper(
             *args,
@@ -292,24 +300,36 @@ def require_permission(
             except Exception:
                 auth_mode = "disabled"
 
-            if auth_mode == "disabled":
-                return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+            # Execute the permission checks
+            if auth_mode != "disabled":
+                if not current_user:
+                    raise HTTPException(status_code=401, detail="Authentication required")
 
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+                if not db:
+                    raise HTTPException(status_code=500, detail="Database session not available")
 
-            if not db:
-                raise HTTPException(status_code=500, detail="Database session not available")
+                has_perm = has_permission(current_user, permission_key, db)
+                has_self = False
 
-            if has_permission(current_user, permission_key, db):
-                return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                if allow_self_access and request:
+                    student_id = kwargs.get("student_id")
+                    has_self = _is_self_access(current_user, permission_key, request, student_id)
 
-            if allow_self_access and request:
-                student_id = kwargs.get("student_id")
-                if _is_self_access(current_user, permission_key, request, student_id):
-                    return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                if not has_perm and not has_self:
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
-            raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
+            # Call the wrapped function, conditionally passing db if the function accepts it
+            call_kwargs = {**kwargs, "request": request, "current_user": current_user}
+            if accepts_db:
+                call_kwargs["db"] = db
+
+            result = func(*args, **call_kwargs)
+
+            # Handle both sync and async functions
+            if asyncio.iscoroutine(result):
+                return await result
+            else:
+                return result
 
         return wrapper
 
@@ -389,13 +409,11 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
         permission_keys.add(_normalize_permission_key(row[0]))
 
     # Check if user has ANY role assignments in the RBAC system
-    has_role_assignments = (
-        db.execute(
-            text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
-            {"user_id": user.id},
-        ).scalar()
-        > 0
-    )
+    count = db.execute(
+        text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
+        {"user_id": user.id},
+    ).scalar()
+    has_role_assignments = int(cast(int, count or 0)) > 0
 
     # Only include default role permissions if:
     # 1. User has no explicit RBAC permissions, AND

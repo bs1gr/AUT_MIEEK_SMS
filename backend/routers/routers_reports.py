@@ -23,6 +23,7 @@ from backend.db import get_session
 from backend.error_messages import ErrorCode, get_error_message
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.rbac import require_permission
 from backend.services.report_exporters import generate_pdf_report, generate_csv_report
 from backend.schemas import (
     AttendanceSummary,
@@ -162,10 +163,12 @@ def _generate_recommendations(report_data: dict) -> List[str]:
 
 @router.post("/student-performance", response_model=StudentPerformanceReport)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("reports:generate")
 async def generate_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Generate comprehensive performance report for a student.
@@ -452,23 +455,27 @@ async def generate_student_performance_report(
 
 
 @router.get("/formats", response_model=List[str])
-async def get_available_formats():
+@require_permission("reports:generate")
+async def get_available_formats(request: Request, current_user=None):
     """Get list of available report formats."""
     return [format.value for format in ReportFormat]
 
 
 @router.get("/periods", response_model=List[str])
-async def get_available_periods():
+@require_permission("reports:generate")
+async def get_available_periods(request: Request, current_user=None):
     """Get list of available report periods."""
     return [period.value for period in ReportPeriod]
 
 
 @router.post("/student-performance/download")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("reports:generate")
 async def download_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Generate and download student performance report in requested format.
@@ -702,10 +709,12 @@ async def download_student_performance_report(
 
 @router.post("/bulk/student-performance")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("reports:generate")
 async def generate_bulk_student_reports(
     request: Request,
     bulk_request: BulkReportRequest,
     db: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Generate performance reports for multiple students at once.
@@ -897,10 +906,12 @@ async def generate_bulk_student_reports(
 
 @router.delete("/cache/{student_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("reports:generate")
 async def invalidate_student_report_cache(
     student_id: int,
     request: Request,
     db: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Invalidate all cached reports for a specific student.
@@ -931,7 +942,8 @@ async def invalidate_student_report_cache(
 
 @router.delete("/cache")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def invalidate_all_report_caches(request: Request):
+@require_permission("reports:generate")
+async def invalidate_all_report_caches(request: Request, current_user=None):
     """
     Invalidate all cached student reports.
 

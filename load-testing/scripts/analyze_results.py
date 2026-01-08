@@ -42,23 +42,43 @@ class LoadTestAnalyzer:
         return stats_files[:1]  # Return most recent
 
     def load_results(self, stats_file: Path) -> DataFrame:
-        """Load and process results data."""
+        """Load and process results data (robust to Locust CSV variations)."""
         try:
             df = pd.read_csv(stats_file)
 
             # Clean up column names
             df.columns = df.columns.str.strip()
 
-            # Convert time columns to seconds
-            time_columns = [
-                "Average Response Time",
-                "Median Response Time",
-                "95%",
-                "99%",
-            ]
-            for col in time_columns:
-                if col in df.columns:
-                    df[col] = df[col] / 1000  # Convert ms to seconds
+            # Helper to find a suitable column name from a list of candidates
+            def _find_col(candidates):
+                for c in candidates:
+                    if c in df.columns:
+                        return c
+                # try case-insensitive fuzzy match
+                lowcols = [c.lower() for c in df.columns]
+                for cand in candidates:
+                    cand_low = cand.lower()
+                    for idx, col in enumerate(lowcols):
+                        # match if all tokens in candidate appear in the column name
+                        if all(tok in col for tok in cand_low.split()):
+                            return df.columns[idx]
+                return None
+
+            # Convert time columns to seconds (Locust may output ms)
+            avg_col = _find_col(
+                [
+                    "Average Response Time",
+                    "Avg Response Time",
+                    "Average",
+                ]
+            )
+            median_col = _find_col(["Median Response Time", "Median"])
+            p95_col = _find_col(["95%", "95%ile Response Time", "95%ile"])
+            p99_col = _find_col(["99%", "99%ile Response Time", "99%ile"])
+
+            for col in [avg_col, median_col, p95_col, p99_col]:
+                if col and col in df.columns:
+                    df[col] = df[col] / 1000.0  # Convert ms to seconds
 
             return df
 
@@ -71,32 +91,78 @@ class LoadTestAnalyzer:
         if df.empty:
             return {}
 
+        # Resolve column names robustly
+        def _find_col(candidates):
+            for c in candidates:
+                if c in df.columns:
+                    return c
+            lowcols = [c.lower() for c in df.columns]
+            for cand in candidates:
+                cand_low = cand.lower()
+                for idx, col in enumerate(lowcols):
+                    if all(tok in col for tok in cand_low.split()):
+                        return df.columns[idx]
+            return None
+
+        req_count_col = _find_col(["Request Count", "Total Request Count", "Requests"])
+        fail_count_col = _find_col(
+            ["Failure Count", "Total Failure Count", "Total Failures", "Failures"]
+        )
+        rps_col = _find_col(["Requests/s", "RPS", "Requests per Second"])
+        avg_col = _find_col(["Average Response Time", "Avg Response Time", "Average"])
+        median_col = _find_col(["Median Response Time", "Median"])
+        p95_col = _find_col(["95%", "95%ile Response Time", "95%ile"])
+        p99_col = _find_col(["99%", "99%ile Response Time", "99%ile"])
+
+        name_col = _find_col(["Name", "Endpoint", "URL"])
+        method_col = _find_col(["Method", "HTTP Method"])
+
+        # Guard against missing columns
+        if not req_count_col or not fail_count_col:
+            raise ValueError(
+                "Required columns not found in results CSV (Request/Failure counts)"
+            )
+
         summary = {
             "test_id": test_id,
             "timestamp": datetime.now().isoformat(),
-            "total_requests": int(df["Request Count"].sum()),
-            "total_failures": int(df["Failure Count"].sum()),
+            "total_requests": int(df[req_count_col].sum()) if req_count_col else 0,
+            "total_failures": int(df[fail_count_col].sum()) if fail_count_col else 0,
             "error_rate": float(
-                df["Failure Count"].sum() / df["Request Count"].sum() * 100
-            ),
-            "avg_response_time": float(df["Average Response Time"].mean()),
-            "median_response_time": float(df["Median Response Time"].median()),
-            "95p_response_time": float(df["95%"].max()),
-            "99p_response_time": float(df["99%"].max()),
-            "requests_per_second": float(df["Requests/s"].sum()),
+                df[fail_count_col].sum() / df[req_count_col].sum() * 100
+            )
+            if df[req_count_col].sum() > 0
+            else 0.0,
+            "avg_response_time": float(df[avg_col].mean()) if avg_col else 0.0,
+            "median_response_time": float(df[median_col].median())
+            if median_col
+            else 0.0,
+            "95p_response_time": float(df[p95_col].max()) if p95_col else 0.0,
+            "99p_response_time": float(df[p99_col].max()) if p99_col else 0.0,
+            "requests_per_second": float(df[rps_col].sum()) if rps_col else 0.0,
             "endpoint_stats": [],
         }
 
         # Per-endpoint statistics
         for _, row in df.iterrows():
             endpoint_stat = {
-                "endpoint": row["Name"],
-                "method": row.get("Method", "GET"),
-                "requests": int(row["Request Count"]),
-                "failures": int(row["Failure Count"]),
-                "avg_response_time": float(row["Average Response Time"]),
-                "95p_response_time": float(row["95%"]),
-                "rps": float(row["Requests/s"]),
+                "endpoint": row[name_col] if name_col else row.get("Name", ""),
+                "method": row.get(method_col or "Method", "GET"),
+                "requests": int(row[req_count_col])
+                if req_count_col in row
+                else int(row.get("Request Count", 0)),
+                "failures": int(row[fail_count_col])
+                if fail_count_col in row
+                else int(row.get("Failure Count", 0)),
+                "avg_response_time": float(row[avg_col])
+                if avg_col in row
+                else float(row.get("Average Response Time", 0.0)),
+                "95p_response_time": float(row[p95_col])
+                if p95_col in row
+                else float(row.get("95%", 0.0)),
+                "rps": float(row[rps_col])
+                if rps_col in row
+                else float(row.get("Requests/s", 0.0)),
             }
             summary["endpoint_stats"].append(endpoint_stat)
 

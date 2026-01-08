@@ -173,6 +173,51 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 - **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
+### Admin Documentation (Phase 2 - NEW v1.15.1+)
+
+- **[admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Complete permission management guide (930 lines)
+  - Permission seeding workflows (full, dry-run, verify modes)
+  - Role management procedures (create, grant, revoke)
+  - User permission workflows (assign roles, direct grants with expiration)
+  - Troubleshooting guide (403 errors, expired permissions, audit trail)
+  - Security best practices (least privilege, role-based access)
+  - Common scenarios (teacher onboarding, auditor access, custom roles)
+  - API endpoint reference for all 12 permission management endpoints
+  - Backup & restore procedures
+  - Complete SQL queries and examples
+
+- **[admin/RBAC_OPERATIONS_GUIDE.md](admin/RBAC_OPERATIONS_GUIDE.md)** ⭐ NEW - Day-to-day RBAC operations (1,050 lines)
+  - Daily health check procedures (5 minutes)
+  - Weekly maintenance tasks (permission audits, cleanup)
+  - Monthly compliance reviews and reporting
+  - Monitoring & alerting setup (metrics, thresholds)
+  - Incident response runbooks (4 common scenarios)
+  - Change management procedures (adding permissions, modifying roles)
+  - Performance optimization guide
+  - Backup & recovery procedures
+  - Automated monitoring script: `scripts/rbac_monitor.py`
+
+- **[admin/PERMISSION_MATRIX.md](admin/PERMISSION_MATRIX.md)** - Complete permission reference (25 permissions, 148 endpoints)
+  - Permission-to-endpoint mapping for all 79 endpoints
+  - Default role assignments (admin, teacher, viewer)
+  - Self-access rules for student users
+  - Implementation status tracking
+
+- **[admin/RBAC_DATABASE_SCHEMA.md](admin/RBAC_DATABASE_SCHEMA.md)** - RBAC database schema documentation
+  - 6 tables: Permission, Role, RolePermission, UserPermission, User, Enrollment
+  - ER diagram and relationships
+  - Indexes and performance considerations
+
+- **[admin/RBAC_ENDPOINT_AUDIT.md](admin/RBAC_ENDPOINT_AUDIT.md)** - Endpoint refactoring tracking (100% complete)
+  - 79 endpoints across 11 routers documented
+  - 13 unique permissions implemented
+  - Testing results and completion status
+
+- **[admin/RBAC_CODEBASE_REVIEW.md](admin/RBAC_CODEBASE_REVIEW.md)** - RBAC codebase analysis
+  - Existing implementation review (75% pre-built)
+  - Critical gaps identified and resolved
+  - Decorator refactoring details
+
 ### Monitoring & Operations (1.9.7+)
 
 - **[operations/MONITORING.md](operations/MONITORING.md)** - Canonical monitoring & alerting guide
