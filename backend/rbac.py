@@ -6,7 +6,7 @@ Implements self-access logic for student-scoped permissions.
 """
 
 from functools import wraps
-from typing import Callable, Optional
+from typing import Callable, Optional, cast
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
@@ -167,13 +167,12 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
 
     # Check if user has ANY role assignments in the RBAC system
     try:
-        has_role_assignments = (
-            db.execute(
-                text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
-                {"user_id": user.id},
-            ).scalar()
-            > 0
-        )
+        count = db.execute(
+            text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
+            {"user_id": user.id},
+        ).scalar()
+        # Ensure a concrete int for type checking/comparison
+        has_role_assignments = int(cast(int, count or 0)) > 0
     except Exception:
         has_role_assignments = False
 
@@ -410,13 +409,11 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
         permission_keys.add(_normalize_permission_key(row[0]))
 
     # Check if user has ANY role assignments in the RBAC system
-    has_role_assignments = (
-        db.execute(
-            text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
-            {"user_id": user.id},
-        ).scalar()
-        > 0
-    )
+    count = db.execute(
+        text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
+        {"user_id": user.id},
+    ).scalar()
+    has_role_assignments = int(cast(int, count or 0)) > 0
 
     # Only include default role permissions if:
     # 1. User has no explicit RBAC permissions, AND
