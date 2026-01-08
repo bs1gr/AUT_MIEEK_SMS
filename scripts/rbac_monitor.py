@@ -16,6 +16,7 @@ Exit codes:
 """
 
 import argparse
+import os
 import sqlite3
 import sys
 from datetime import datetime, timedelta
@@ -23,7 +24,8 @@ from pathlib import Path
 from typing import Tuple
 
 # Constants
-DB_PATH = Path("data/student_management.db")
+# Allow DB_PATH to be overridden via environment variable for Docker/different deployments
+DB_PATH = Path(os.getenv("SMS_DB_PATH", "data/student_management.db"))
 MAX_ADMINS = 5
 EXPIRED_CLEANUP_THRESHOLD = 100
 DIRECT_PERMISSIONS_WARNING = 20
@@ -64,13 +66,15 @@ def check_users_without_roles(verbose: bool = False) -> Tuple[bool, str]:
     """
     conn = get_db_connection()
     cursor = conn.execute(
-        "SELECT COUNT(*) as count FROM users WHERE is_active = 1 AND role_id IS NULL"
+        "SELECT COUNT(*) as count FROM users WHERE is_active = ? AND role_id IS NULL",
+        (1,),
     )
     count = cursor.fetchone()["count"]
 
     if verbose and count > 0:
         cursor = conn.execute(
-            "SELECT id, email, created_at FROM users WHERE is_active = 1 AND role_id IS NULL"
+            "SELECT id, email, created_at FROM users WHERE is_active = ? AND role_id IS NULL",
+            (1,),
         )
         users = cursor.fetchall()
         print("\n  Users without roles:")
@@ -98,7 +102,8 @@ def check_admin_count(verbose: bool = False) -> Tuple[bool, str]:
     cursor = conn.execute(
         """SELECT COUNT(*) as count FROM users u
            JOIN roles r ON u.role_id = r.id
-           WHERE u.is_active = 1 AND r.name = 'admin'"""
+           WHERE u.is_active = ? AND r.name = ?""",
+        (1, "admin"),
     )
     count = cursor.fetchone()["count"]
 
@@ -106,7 +111,8 @@ def check_admin_count(verbose: bool = False) -> Tuple[bool, str]:
         cursor = conn.execute(
             """SELECT u.email, u.last_login FROM users u
                JOIN roles r ON u.role_id = r.id
-               WHERE u.is_active = 1 AND r.name = 'admin'"""
+               WHERE u.is_active = ? AND r.name = ?""",
+            (1, "admin"),
         )
         admins = cursor.fetchall()
         print("\n  Admin users:")
@@ -134,18 +140,20 @@ def check_expired_cleanup(verbose: bool = False) -> Tuple[bool, str]:
     conn = get_db_connection()
     cutoff = (datetime.now() - timedelta(days=7)).isoformat()
     cursor = conn.execute(
-        f"SELECT COUNT(*) as count FROM user_permissions WHERE expires_at < '{cutoff}'"
+        "SELECT COUNT(*) as count FROM user_permissions WHERE expires_at < ?",
+        (cutoff,),
     )
     count = cursor.fetchone()["count"]
 
     if verbose and count > 0:
         cursor = conn.execute(
-            f"""SELECT u.email, p.key, up.expires_at
+            """SELECT u.email, p.key, up.expires_at
                 FROM user_permissions up
                 JOIN users u ON up.user_id = u.id
                 JOIN permissions p ON up.permission_id = p.id
-                WHERE up.expires_at < '{cutoff}'
-                LIMIT 10"""
+                WHERE up.expires_at < ?
+                LIMIT 10""",
+            (cutoff,),
         )
         expired = cursor.fetchall()
         print("\n  Sample expired permissions (showing up to 10):")
@@ -175,9 +183,11 @@ def check_direct_permissions(verbose: bool = False) -> Tuple[bool, str]:
         Tuple of (passed, message)
     """
     conn = get_db_connection()
+    now = datetime.now().isoformat()
     cursor = conn.execute(
         """SELECT COUNT(*) as count FROM user_permissions
-           WHERE expires_at IS NULL OR expires_at > datetime('now')"""
+           WHERE expires_at IS NULL OR expires_at > ?""",
+        (now,),
     )
     count = cursor.fetchone()["count"]
 
@@ -187,9 +197,10 @@ def check_direct_permissions(verbose: bool = False) -> Tuple[bool, str]:
                FROM user_permissions up
                JOIN users u ON up.user_id = u.id
                JOIN permissions p ON up.permission_id = p.id
-               WHERE up.expires_at IS NULL OR up.expires_at > datetime('now')
+               WHERE up.expires_at IS NULL OR up.expires_at > ?
                ORDER BY up.granted_at DESC
-               LIMIT 10"""
+               LIMIT 10""",
+            (now,),
         )
         perms = cursor.fetchall()
         print("\n  Recent direct permissions (showing up to 10):")
@@ -224,12 +235,14 @@ def check_permission_seeding(verbose: bool = False) -> Tuple[bool, str]:
 
     # Check expected permission count (should be 26 in v1.15.1)
     cursor = conn.execute(
-        "SELECT COUNT(*) as count FROM permissions WHERE is_active = 1"
+        "SELECT COUNT(*) as count FROM permissions WHERE is_active = ?", (1,)
     )
     perm_count = cursor.fetchone()["count"]
 
     # Check expected role count (should be 3: admin, teacher, viewer)
-    cursor = conn.execute("SELECT COUNT(*) as count FROM roles WHERE is_active = 1")
+    cursor = conn.execute(
+        "SELECT COUNT(*) as count FROM roles WHERE is_active = ?", (1,)
+    )
     role_count = cursor.fetchone()["count"]
 
     # Check role-permission mappings
