@@ -277,6 +277,10 @@ def require_permission(
     """
 
     def decorator(func: Callable) -> Callable:
+        import asyncio
+
+        # Always create async wrapper for FastAPI endpoints
+        # This handles cases where func might be wrapped by other decorators (e.g., @cached)
         @wraps(func)
         async def wrapper(
             *args,
@@ -292,24 +296,32 @@ def require_permission(
             except Exception:
                 auth_mode = "disabled"
 
-            if auth_mode == "disabled":
-                return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+            # Execute the permission checks
+            if auth_mode != "disabled":
+                if not current_user:
+                    raise HTTPException(status_code=401, detail="Authentication required")
 
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Authentication required")
+                if not db:
+                    raise HTTPException(status_code=500, detail="Database session not available")
 
-            if not db:
-                raise HTTPException(status_code=500, detail="Database session not available")
+                has_perm = has_permission(current_user, permission_key, db)
+                has_self = False
 
-            if has_permission(current_user, permission_key, db):
-                return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                if allow_self_access and request:
+                    student_id = kwargs.get("student_id")
+                    has_self = _is_self_access(current_user, permission_key, request, student_id)
 
-            if allow_self_access and request:
-                student_id = kwargs.get("student_id")
-                if _is_self_access(current_user, permission_key, request, student_id):
-                    return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                if not has_perm and not has_self:
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
-            raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
+            # Call the wrapped function
+            result = func(*args, request=request, db=db, current_user=current_user, **kwargs)
+
+            # Handle both sync and async functions
+            if asyncio.iscoroutine(result):
+                return await result
+            else:
+                return result
 
         return wrapper
 
