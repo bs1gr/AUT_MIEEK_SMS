@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from backend.db import get_session as get_db
 from backend.errors import internal_server_error
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
+from backend.security.permissions import optional_require_permission
 from backend.services import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ def calculate_final_grade(
     student_id: int,
     course_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
+    current_user=Depends(optional_require_permission("analytics:view")),
 ):
     """Calculate final grade using evaluation rules, grades, daily performance, and attendance."""
     try:
@@ -51,6 +53,7 @@ def get_student_all_courses_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
+    current_user=Depends(optional_require_permission("analytics:view")),
 ):
     try:
         return service.get_student_all_courses_summary(student_id)
@@ -67,6 +70,7 @@ def get_student_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
+    current_user=Depends(optional_require_permission("analytics:view")),
 ):
     try:
         return service.get_student_summary(student_id)
@@ -82,6 +86,7 @@ def get_student_summary(
 def get_dashboard(
     request: Request,
     service: AnalyticsService = Depends(get_analytics_service),
+    current_user=Depends(optional_require_permission("analytics:view")),
 ):
     """Lightweight dashboard summary used by the frontend and load tests."""
     try:
