@@ -405,7 +405,9 @@ class LoadTestReportGenerator:
         """
         return html
 
-    def generate_report(self, test_id: Optional[str] = None) -> bool:
+    def generate_report(
+        self, test_id: Optional[str] = None, output_file: Optional[Path] = None
+    ) -> bool:
         """Generate comprehensive HTML report."""
         print("📄 Generating load test report...")
 
@@ -442,10 +444,15 @@ class LoadTestReportGenerator:
         html_content = self.generate_html_report(analyses)
 
         # Save report
-        report_file = (
-            self.output_dir
-            / f"load_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-        )
+        if output_file is not None:
+            # Ensure parent dir exists
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            report_file = output_file
+        else:
+            report_file = (
+                self.output_dir
+                / f"load_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+            )
         with open(report_file, "w", encoding="utf-8") as f:
             f.write(html_content)
 
@@ -459,6 +466,7 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Load Test Report Generator")
     parser.add_argument("--test-id", help="Specific test ID to generate report for")
+    # Primary flags
     parser.add_argument(
         "--results-dir", default="load-testing/results", help="Results directory path"
     )
@@ -467,11 +475,26 @@ def main():
         default="load-testing/reports",
         help="Output directory for reports",
     )
+    # Backward-compatibility flags (as used in CI workflow)
+    parser.add_argument("--input", dest="compat_input", help="Alias for --results-dir")
+    parser.add_argument(
+        "--output", dest="compat_output", help="Alias for output HTML file path"
+    )
 
     args = parser.parse_args()
 
-    results_dir = Path(args.results_dir)
-    output_dir = Path(args.output_dir)
+    # Resolve results directory, supporting both --results-dir and legacy --input
+    results_dir_str = args.compat_input or args.results_dir
+    results_dir = Path(results_dir_str)
+
+    # Resolve output location
+    output_file: Optional[Path] = None
+    if args.compat_output:
+        # If --output is provided, use it as the exact output file path
+        output_file = Path(args.compat_output)
+        output_dir = output_file.parent
+    else:
+        output_dir = Path(args.output_dir)
 
     if not results_dir.exists():
         print(f"❌ Results directory not found: {results_dir}")
@@ -480,7 +503,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     generator = LoadTestReportGenerator(results_dir, output_dir)
-    success = generator.generate_report(args.test_id)
+    success = generator.generate_report(args.test_id, output_file)
 
     if success:
         print("🎉 Report generation complete!")
