@@ -341,9 +341,9 @@ docs/archive/
 
 ### Version
 
-- **Current:** 1.12.2
+- **Current:** 1.15.1
 - **Status:** Production Ready
-- **Release Date:** December 13, 2025
+- **Release Date:** January 7, 2026
 - **Repository:** github.com/bs1gr/AUT_MIEEK_SMS
 
 ---
@@ -369,7 +369,7 @@ docs/archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.0.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ---
 
@@ -392,8 +392,8 @@ docs/archive/
 
 ## Version Information
 
-**Documentation Version:** v1.15.0
-**Last Updated:** December 24, 2025
+**Documentation Version:** v1.15.1
+**Last Updated:** January 8, 2026
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.15.0.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.15.1.
