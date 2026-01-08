@@ -3,7 +3,7 @@
 **Created**: January 7, 2026
 **Status**: Phase 1 Complete, Post-Phase 1 Polish Complete, Phase 2 Prep Complete, **Phase 2 RBAC Backend Complete (Weeks 2-3)**
 **Current Version**: 1.15.1 (staging deployment ready)
-**Current Branch**: `feature/phase2-rbac-endpoint-refactor` (RBAC backend implementation), ready for merge or deployment verification
+**Current Branch**: `main` (Phase 2 RBAC backend merged; staging validation pending)
 
 ---
 
@@ -30,7 +30,7 @@ This document consolidates all scattered planning documents into a **single sour
 | **Phase 1 Completion** | Jan 7-20, 2026 | ✅ 100% COMPLETE | 21 hours | 🔴 CRITICAL |
 | **Post-Phase 1 Polish** | Jan 7-24, 2026 | ✅ 100% COMPLETE (8/8) | 12 hours | 🟠 HIGH |
 | **Phase 2 Prep (Week 0)** | Jan 8-13, 2026 | ✅ 100% COMPLETE (8/8) | 25 hours | 🟡 MEDIUM |
-| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | � 50% COMPLETE (Backend RBAC ✅) | 4-6 weeks | 🟡 MEDIUM |
+| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | 🟡 50% COMPLETE (Backend RBAC ✅, frontend/UI pending) | 4-6 weeks | 🟡 MEDIUM |
 | **Backlog: Future Features** | Q2 2026+ | 💡 Ideas | TBD | 🔵 LOW |
 
 ---
