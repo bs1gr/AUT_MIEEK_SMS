@@ -2,9 +2,9 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** January 7, 2026 (v1.15.1 Released)
+**Last Updated:** January 8, 2026 (Phase 2 Week 2 & 3 RBAC Complete)
 **Version:** 1.15.1 ✅ Production Ready
-**Status:** Phase 1 Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
+**Status:** Phase 1 Complete + Phase 2 RBAC Backend Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
 
 ## 🚀 Quick Start
 
@@ -60,6 +60,13 @@ All documentation is organized under `docs/` into four main categories:
 - **Database migration?** → `docs/operations/DATABASE_MIGRATION_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
+
+### For Phase 2 RBAC & Administration (NEW - v1.15.1+!)
+
+- **Permission management?** → `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` (930 lines - complete workflows)
+- **RBAC operations?** → `docs/admin/RBAC_OPERATIONS_GUIDE.md` (1,050 lines - daily/weekly/monthly checklists)
+- **Permission matrix?** → `docs/admin/PERMISSION_MATRIX.md` (25 permissions, 148 endpoints)
+- **API permissions?** → `backend/API_PERMISSIONS_REFERENCE.md` (540 lines - all 79 endpoints)
 
 ### For Phase 2 Planning & Execution (NEW!)
 
