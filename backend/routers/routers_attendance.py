@@ -151,6 +151,7 @@ async def get_all_attendance(
 
 @router.get("/student/{student_id}", response_model=List[AttendanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 def get_student_attendance(
     request: Request,
     student_id: int,
@@ -158,6 +159,7 @@ def get_student_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all attendance records for a student"""
     try:
@@ -183,12 +185,14 @@ def get_student_attendance(
 
 @router.get("/course/{course_id}", response_model=List[AttendanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
 def get_course_attendance(
     request: Request,
     course_id: int,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all attendance records for a course"""
     try:
@@ -211,11 +215,13 @@ def get_course_attendance(
 
 @router.get("/date/{attendance_date}/course/{course_id}", response_model=List[AttendanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("attendance:view")
 def get_attendance_by_date_and_course(
     request: Request,
     attendance_date: date,
     course_id: int,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all attendance records for a specific course on a given date"""
     try:
@@ -244,7 +250,8 @@ def get_attendance_by_date_and_course(
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db)):
+@require_permission("attendance:view")
+def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db), current_user=None):
     """Get a specific attendance record"""
     try:
         from backend.import_resolver import import_names
@@ -313,7 +320,10 @@ async def delete_attendance(
 
 @router.get("/stats/student/{student_id}/course/{course_id}")
 @limiter.limit(RATE_LIMIT_READ)
-def get_attendance_stats(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
+@require_permission("students:view")
+def get_attendance_stats(
+    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db), current_user=None
+):
     """Get attendance statistics for a student in a course"""
     try:
         from backend.import_resolver import import_names

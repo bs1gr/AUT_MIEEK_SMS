@@ -165,6 +165,7 @@ async def get_all_grades(
 
 @router.get("/student/{student_id}", response_model=List[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 def get_student_grades(
     request: Request,
     student_id: int,
@@ -173,6 +174,7 @@ def get_student_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
@@ -195,6 +197,7 @@ def get_student_grades(
 
 @router.get("/course/{course_id}", response_model=List[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
 def get_course_grades(
     request: Request,
     course_id: int,
@@ -202,6 +205,7 @@ def get_course_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all grades for a course"""
     try:
@@ -222,7 +226,8 @@ def get_course_grades(
 
 @router.get("/{grade_id}", response_model=GradeResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
+@require_permission("grades:view")
+def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db), current_user=None):
     """
     Get a single grade by its ID.
     """
@@ -287,7 +292,11 @@ async def delete_grade(
 
 
 @router.get("/analysis/student/{student_id}/course/{course_id}")
-def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
+def get_grade_analysis(
+    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db), current_user=None
+):
     """Get grade analysis for a student in a course"""
     try:
         (Grade,) = import_names("models", "Grade")
