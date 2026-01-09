@@ -66,7 +66,10 @@ async def update_rate_limit(
         raise http_error(
             status.HTTP_400_BAD_REQUEST,
             ErrorCode.CONTROL_INVALID_REQUEST,
-            "Invalid limit type or value. Type must be one of: read, write, heavy, auth, teacher_import. Value must be >= 1.",
+            (
+                "Invalid limit type or value. Type must be one of: "
+                "read, write, heavy, auth, teacher_import. Value must be >= 1."
+            ),
             request,
         )
 

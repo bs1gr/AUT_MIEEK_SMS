@@ -275,7 +275,10 @@ class Grade(SoftDeleteMixin, Base):
         return (grade_val / max_val) * 100 if max_val > 0 else 0.0
 
     def __repr__(self):
-        return f"<Grade(student={self.student_id}, assignment={self.assignment_name}, grade={self.grade}/{self.max_grade})>"
+        return (
+            f"<Grade(student={self.student_id}, assignment={self.assignment_name}, "
+            f"grade={self.grade}/{self.max_grade})>"
+        )
 
 
 class Highlight(SoftDeleteMixin, Base):
