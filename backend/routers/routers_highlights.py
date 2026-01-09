@@ -20,7 +20,6 @@ from backend.schemas.highlights import (
 )
 from backend.services.highlight_service import HighlightService
 
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(

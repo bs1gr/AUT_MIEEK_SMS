@@ -8,8 +8,8 @@ from __future__ import annotations
 from typing import Generator
 
 import sqlalchemy as sa
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.orm import Session, sessionmaker, with_loader_criteria
 
 # Import settings and models dynamically to avoid import-time redefinition warnings
 from backend.import_resolver import import_from_possible_locations
@@ -27,6 +27,33 @@ except Exception:
     engine = create_engine(settings.DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
+
+
+# ---------------------------------------------------------------------------
+# Soft-delete auto-filtering (global)
+# ---------------------------------------------------------------------------
+# Apply a universal filter to exclude SoftDeleteMixin.deleted_at IS NOT NULL
+# for all SELECT statements. Can be bypassed per-query with
+# execution_options(include_deleted=True).
+try:
+    SoftDeleteMixin = getattr(models, "SoftDeleteMixin", None)
+
+    if SoftDeleteMixin is not None:
+
+        @event.listens_for(SessionLocal, "do_orm_execute")
+        def _add_soft_delete_filter(execute_state):
+            if not execute_state.is_select:
+                return
+
+            if execute_state.execution_options.get("include_deleted"):
+                return
+
+            execute_state.statement = execute_state.statement.options(
+                with_loader_criteria(SoftDeleteMixin, lambda cls: cls.deleted_at.is_(None), include_aliases=True)
+            )
+except Exception:
+    # Best-effort: do not block app startup if filter registration fails
+    pass
 
 
 def get_session(_: object | None = None) -> Generator[Session, None, None]:

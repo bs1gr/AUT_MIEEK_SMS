@@ -262,11 +262,17 @@ async def start_monitoring_stack(request: Request):
             )
             return {
                 "success": True,
-                "message": "Monitoring start requested. Run 'DOCKER.ps1 -WithMonitoring' from host or wait for auto-start if watcher is enabled.",
+                "message": (
+                    "Monitoring start requested. Run 'DOCKER.ps1 -WithMonitoring' from host "
+                    "or wait for auto-start if watcher is enabled."
+                ),
                 "details": {
                     "trigger_file": str(trigger_file),
                     "mode": "container_trigger",
-                    "instructions": "Execute 'docker compose -f docker/docker-compose.monitoring.yml up -d' on the host to start monitoring.",
+                    "instructions": (
+                        "Execute 'docker compose -f docker/docker-compose.monitoring.yml up -d' "
+                        "on the host to start monitoring."
+                    ),
                 },
             }
         except Exception as e:
@@ -274,7 +280,10 @@ async def start_monitoring_stack(request: Request):
             raise http_error(
                 500,
                 ErrorCode.CONTROL_OPERATION_FAILED,
-                f"Cannot start monitoring from container. Use DOCKER.ps1 -WithMonitoring from host. Trigger creation failed: {str(e)}",
+                (
+                    f"Cannot start monitoring from container. Use DOCKER.ps1 -WithMonitoring from host. "
+                    f"Trigger creation failed: {str(e)}"
+                ),
                 request,
             )
 

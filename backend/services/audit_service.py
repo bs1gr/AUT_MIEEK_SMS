@@ -1,9 +1,10 @@
 """Audit logging service for tracking system actions."""
 
 from datetime import datetime, timezone
-from typing import Optional, Any
-from sqlalchemy.orm import Session
+from typing import Any, Optional
+
 from fastapi import Request
+from sqlalchemy.orm import Session
 
 from backend.models import AuditLog
 from backend.schemas.audit import AuditAction, AuditResource
@@ -27,6 +28,11 @@ class AuditLogger:
         details: Optional[dict[str, Any]] = None,
         success: bool = True,
         error_message: Optional[str] = None,
+        *,
+        old_values: Optional[dict[str, Any]] = None,
+        new_values: Optional[dict[str, Any]] = None,
+        change_reason: Optional[str] = None,
+        request_id: Optional[str] = None,
     ) -> AuditLog:
         """
         Log an audit event.
@@ -42,6 +48,10 @@ class AuditLogger:
             details: Additional contextual information (stored as JSON)
             success: Whether the action succeeded
             error_message: Error message if action failed
+            old_values: Previous state for updates
+            new_values: New state after change
+            change_reason: User-provided reason for change
+            request_id: Correlation ID from middleware
 
         Returns:
             The created AuditLog instance
@@ -57,6 +67,10 @@ class AuditLogger:
             details=details,
             success=success,
             error_message=error_message,
+            old_values=old_values,
+            new_values=new_values,
+            change_reason=change_reason,
+            request_id=request_id,
             timestamp=datetime.now(timezone.utc),
         )
 
@@ -75,6 +89,10 @@ class AuditLogger:
         details: Optional[dict[str, Any]] = None,
         success: bool = True,
         error_message: Optional[str] = None,
+        *,
+        old_values: Optional[dict[str, Any]] = None,
+        new_values: Optional[dict[str, Any]] = None,
+        change_reason: Optional[str] = None,
     ) -> AuditLog:
         """
         Log an audit event, extracting user/client info from the request.
@@ -100,6 +118,8 @@ class AuditLogger:
         ip_address = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent")
 
+        request_id = getattr(request.state, "request_id", None)
+
         return self.log_action(
             action=action,
             resource=resource,
@@ -111,6 +131,10 @@ class AuditLogger:
             details=details,
             success=success,
             error_message=error_message,
+            old_values=old_values,
+            new_values=new_values,
+            change_reason=change_reason,
+            request_id=request_id,
         )
 
     @staticmethod

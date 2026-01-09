@@ -21,13 +21,13 @@ from sqlalchemy.orm import Session
 
 from backend.errors import ErrorCode, http_error
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
-from backend.services.import_service import ImportService
-from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
+from backend.security.api_keys import verify_api_key_optional
+from backend.security.permissions import optional_require_permission
+from backend.services.audit_service import AuditLogger
+from backend.services.import_service import ImportService
 
 from .routers_auth import optional_require_role
-from backend.security.permissions import optional_require_permission
-from backend.security.api_keys import verify_api_key_optional
 
 logger = logging.getLogger(__name__)
 
@@ -1710,8 +1710,8 @@ async def import_execute(
     current_user=Depends(optional_require_permission("imports:execute")),
 ):
     """Create an import job (validates inputs and returns job ID)."""
-    from backend.services.job_manager import JobManager
     from backend.schemas.jobs import JobCreate, JobType
+    from backend.services.job_manager import JobManager
 
     audit = AuditLogger(db)
     try:

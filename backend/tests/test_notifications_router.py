@@ -5,13 +5,11 @@ Covers notification CRUD, preferences, and admin broadcast functionality.
 
 from __future__ import annotations
 
-
 import pytest
 from sqlalchemy.orm import Session
 
 from backend.models import Notification, User
 from backend.tests.conftest import get_error_message
-
 
 # ==================== Test Fixtures ====================
 

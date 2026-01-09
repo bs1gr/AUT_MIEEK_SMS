@@ -57,7 +57,8 @@ def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostic
     elif environment == "docker" or execution_mode == "docker":
         message = "In-container restart is disabled. Run DOCKER.ps1 -Stop then DOCKER.ps1 -Start from the host."
         hints.append(
-            "Use host-level scripts such as DOCKER.ps1 -Stop; DOCKER.ps1 -Start or restart the Docker stack from the host shell."
+            "Use host-level scripts such as DOCKER.ps1 -Stop; DOCKER.ps1 -Start "
+            "or restart the Docker stack from the host shell."
         )
     else:
         message = "Restart endpoint ready."

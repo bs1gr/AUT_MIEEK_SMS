@@ -1,42 +1,39 @@
-import uuid
 import hashlib
 import logging
-from typing import Any, Optional
+import uuid
 from datetime import datetime, timedelta, timezone
-
-from fastapi import APIRouter, status, HTTPException, Body, Depends, Request, Response
-from sqlalchemy.orm import Session
-
-from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.security import login_throttle
-from backend.db import get_session as get_db
-from backend.schemas import (
-    UserResponse,
-    UserCreate,
-    Token,
-    UserLogin,
-    RefreshRequest,
-    LogoutRequest,
-    UserUpdate,
-    PasswordResetRequest,
-)
-from backend.schemas.auth import PasswordChangeRequest
-
-from backend.errors import http_error, internal_server_error, ErrorCode
-from backend.models import User, RefreshToken
-from backend import models
-from backend.security.csrf import issue_csrf_cookie, clear_csrf_cookie
-from backend.config import settings
+from typing import Any, Optional
 
 import jwt
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import Session
 
+from backend import models
+from backend.config import settings
+from backend.db import get_session as get_db
+from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.models import RefreshToken, User
+from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.schemas import (
+    LogoutRequest,
+    PasswordResetRequest,
+    RefreshRequest,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+    UserUpdate,
+)
+from backend.schemas.auth import PasswordChangeRequest
+from backend.security import login_throttle
+from backend.security.csrf import clear_csrf_cookie, issue_csrf_cookie
+from backend.security.current_user import decode_token, get_current_user
 from backend.security.password_hash import (
     get_password_hash,
-    verify_password,
     pwd_context,
+    verify_password,
 )
-from backend.security.current_user import decode_token, get_current_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

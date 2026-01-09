@@ -7,9 +7,11 @@ These endpoints provide visibility into:
 - System health metrics
 """
 
-from fastapi import APIRouter
-from backend.db.query_profiler import profiler
 import logging
+
+from fastapi import APIRouter
+
+from backend.db.query_profiler import profiler
 
 router = APIRouter(prefix="/diagnostics", tags=["diagnostics"])
 logger = logging.getLogger(__name__)

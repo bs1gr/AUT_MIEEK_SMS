@@ -67,6 +67,12 @@ Comprehensive monitoring system for E2E tests with automated metrics collection,
 - ✅ v1.15.1 release notes (this document)
 - ✅ Complete CHANGELOG.md entries
 - ✅ Migration guides for v1.15.1 → v1.15.1 → v1.15.1
+- ✅ **Signed Windows installer attached (updated Jan 9, 2026)**
+  - File: `dist/SMS_Installer_1.15.1.exe`
+  - Signer: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
+  - Timestamp: DigiCert SHA256 RSA4096 Timestamp Responder (valid)
+  - SHA256: `697BB1E7A617BC0026A9CD9927B9A0DC181D216615664F4096A6413E370847CA`
+  - Signing flow: Store-based signing by thumbprint with verification of signer subject; PFX fallback retained
 
 ---
 

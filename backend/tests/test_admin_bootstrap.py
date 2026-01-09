@@ -6,8 +6,8 @@ from types import SimpleNamespace
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.models import RefreshToken, User
+from backend.scripts.admin.bootstrap import ensure_default_admin_account
 
 _pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 

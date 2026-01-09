@@ -12,6 +12,14 @@ import sys
 import re
 from pathlib import Path
 
+# Ensure UTF-8 output to avoid Windows console encoding issues
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    # Fall back silently if reconfigure isn't available
+    pass
+
 
 def check_migrations():
     """Validate migration files and consistency."""

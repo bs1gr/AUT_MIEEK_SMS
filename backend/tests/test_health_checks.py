@@ -2,11 +2,13 @@
 Tests for comprehensive health check system.
 """
 
+import sys
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
-import sys
+
 import pytest
 from sqlalchemy.orm import Session
+
 from backend.health_checks import HealthChecker, HealthCheckStatus
 
 

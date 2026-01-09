@@ -7,7 +7,6 @@ need to cover once permission-based enforcement is wired into all routers.
 
 import pytest
 
-
 SKIP_REASON = "TODO: Implement in Phase 2 RBAC execution (Week 1-2)"
 
 

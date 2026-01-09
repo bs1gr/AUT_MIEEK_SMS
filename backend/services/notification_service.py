@@ -4,7 +4,7 @@ Notification service - Core business logic for creating, managing, and querying 
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional, Any
+from typing import Any, Optional
 
 from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session

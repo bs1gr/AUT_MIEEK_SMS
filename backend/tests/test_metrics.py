@@ -6,8 +6,9 @@ Tests metrics calculations, aggregations, and API endpoints.
 Part of Phase 1 v1.15.0 - Improvement #5 (Business Metrics Dashboard)
 """
 
-import pytest
 from datetime import date, datetime
+
+import pytest
 
 from backend.models import Attendance, Course, CourseEnrollment, Grade, Student
 from backend.services.metrics_service import MetricsService

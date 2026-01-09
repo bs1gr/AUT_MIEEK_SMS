@@ -31,7 +31,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from models import Permission, Role, RolePermission
 
-
 # === Permission Definitions (from PERMISSION_MATRIX.md) ===
 
 PERMISSIONS = [
@@ -383,14 +382,16 @@ def main():
         print("1️⃣  Seeding Permissions...")
         perm_stats = seed_permissions(session, dry_run=args.dry_run)
         print(
-            f"\n   Created: {perm_stats['created']}, Updated: {perm_stats['updated']}, Unchanged: {perm_stats['unchanged']}\n"
+            f"\n   Created: {perm_stats['created']}, Updated: {perm_stats['updated']}, "
+            f"Unchanged: {perm_stats['unchanged']}\n"
         )
 
         # Seed roles
         print("2️⃣  Seeding Roles...")
         role_stats = seed_roles(session, dry_run=args.dry_run)
         print(
-            f"\n   Created: {role_stats['created']}, Updated: {role_stats['updated']}, Unchanged: {role_stats['unchanged']}\n"
+            f"\n   Created: {role_stats['created']}, Updated: {role_stats['updated']}, "
+            f"Unchanged: {role_stats['unchanged']}\n"
         )
 
         # Seed role-permission mappings
@@ -417,10 +418,12 @@ def main():
         print("SUMMARY")
         print("=" * 70)
         print(
-            f"Permissions: {perm_stats['created']} created, {perm_stats['updated']} updated, {perm_stats['unchanged']} unchanged"
+            f"Permissions: {perm_stats['created']} created, {perm_stats['updated']} updated, "
+            f"{perm_stats['unchanged']} unchanged"
         )
         print(
-            f"Roles: {role_stats['created']} created, {role_stats['updated']} updated, {role_stats['unchanged']} unchanged"
+            f"Roles: {role_stats['created']} created, {role_stats['updated']} updated, "
+            f"{role_stats['unchanged']} unchanged"
         )
         print(f"Role-Permission Mappings: {mapping_stats['created']} created, {mapping_stats['skipped']} skipped")
         print("=" * 70)

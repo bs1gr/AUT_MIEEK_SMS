@@ -494,7 +494,8 @@ class Settings(BaseSettings):
             explicitly_in_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PYTEST_RUNNING"))
 
             # Special case: If PYTEST_CURRENT_TEST is explicitly set with AUTH_ENABLED (but not STRICT) + placeholder
-            # This is for tests that specifically test placeholder validation (like test_auth_enabled_raises_error_with_placeholder_secret_key)
+            # This is for tests that specifically test placeholder validation
+            # (like test_auth_enabled_raises_error_with_placeholder_secret_key)
             if explicitly_in_pytest and self.AUTH_ENABLED and not self.SECRET_KEY_STRICT_ENFORCEMENT and is_placeholder:
                 raise ValueError(
                     f"🔐 SECRET_KEY SECURITY ISSUE: {security_issue}\n"
@@ -503,8 +504,9 @@ class Settings(BaseSettings):
                     f"   Set in backend/.env: SECRET_KEY=<generated_key>"
                 )
 
-            # Normal enforcement logic:
-            # Allow auto-gen in CI/pytest, except when PYTEST_CURRENT_TEST is explicitly set with AUTH_ENABLED and placeholder
+            # Normal enforcement logic: Allow auto-gen in CI/pytest,
+            # except when PYTEST_CURRENT_TEST is explicitly set
+            # with AUTH_ENABLED and placeholder
             allow_autogen_in_test = True
             return handle_insecure(security_issue, warn_only=False, allow_autogen_in_test=allow_autogen_in_test)
         else:

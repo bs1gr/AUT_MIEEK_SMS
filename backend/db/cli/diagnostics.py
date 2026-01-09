@@ -18,7 +18,6 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 PLACEHOLDER_SECRET = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 

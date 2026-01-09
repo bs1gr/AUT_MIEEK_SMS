@@ -4,12 +4,13 @@ Test suite for Backup Encryption (v1.15.0)
 Tests AES-256 encryption, backup encryption/decryption, and backup management.
 """
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from backend.services.encryption_service import EncryptionService
+import pytest
+
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
+from backend.services.encryption_service import EncryptionService
 
 
 @pytest.fixture

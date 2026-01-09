@@ -12,10 +12,11 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-
 from backend.routers.control import router as _combined_router
 from backend.routers.control.common import (
     check_docker_running as _real_check_docker_running,
+)
+from backend.routers.control.common import (
     check_npm_installed as _real_check_npm_installed,
 )
 from backend.routers.control.operations import (

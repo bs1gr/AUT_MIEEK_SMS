@@ -5,7 +5,7 @@ Provides persistent storage and runtime adjustment of rate limits for administra
 
 import json
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 # Configuration file location
 _CONFIG_DIR = Path(__file__).parent / "config"

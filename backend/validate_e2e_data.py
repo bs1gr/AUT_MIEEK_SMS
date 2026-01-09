@@ -18,7 +18,8 @@ sys.path.insert(0, str(project_root))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.models import User, Student, Course, CourseEnrollment
+
+from backend.models import Course, CourseEnrollment, Student, User
 
 
 def validate_e2e_data():

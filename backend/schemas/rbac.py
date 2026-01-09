@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 from typing import List, Optional
-from pydantic import BaseModel, Field
-from pydantic import ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Bulk assignment schemas

@@ -1,11 +1,12 @@
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 import logging
 
-from backend.schemas.response import error_response
+from fastapi import HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
+from backend.error_messages import get_error_message
+from backend.schemas.response import error_response
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +37,22 @@ def register_error_handlers(app):
             detail = str(detail)
 
         # Extract message: if detail is a dict with "message" key, use it; otherwise use string representation
+        preferred_lang = "en"
+        try:
+            accept_lang = request.headers.get("accept-language", "")
+            if accept_lang:
+                preferred_lang = accept_lang.split(",")[0].split("-")[0].strip() or "en"
+        except Exception:
+            preferred_lang = "en"
+
         if isinstance(detail, dict):
-            message = detail.get("message", "HTTP Exception")
-            if not isinstance(message, str):
-                message = str(message)
+            message = detail.get("message")
+            if not message:
+                error_code = detail.get("error_code") or detail.get("code")
+                if error_code:
+                    message = get_error_message(error_code, lang=preferred_lang)
+            if not isinstance(message, str) or not message:
+                message = "HTTP Exception"
         else:
             message = str(detail) if detail else "HTTP Exception"
 

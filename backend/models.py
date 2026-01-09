@@ -275,7 +275,10 @@ class Grade(SoftDeleteMixin, Base):
         return (grade_val / max_val) * 100 if max_val > 0 else 0.0
 
     def __repr__(self):
-        return f"<Grade(student={self.student_id}, assignment={self.assignment_name}, grade={self.grade}/{self.max_grade})>"
+        return (
+            f"<Grade(student={self.student_id}, assignment={self.assignment_name}, "
+            f"grade={self.grade}/{self.max_grade})>"
+        )
 
 
 class Highlight(SoftDeleteMixin, Base):
@@ -380,12 +383,17 @@ class AuditLog(Base):
     success = Column(Boolean, default=True, nullable=False)
     error_message = Column(Text, nullable=True)
     timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    old_values = Column(JSON, nullable=True)
+    new_values = Column(JSON, nullable=True)
+    change_reason = Column(String(500), nullable=True)
+    request_id = Column(String(64), nullable=True, index=True)
 
     # Composite indexes for common queries
     __table_args__ = (
         Index("idx_audit_user_action", "user_id", "action"),
         Index("idx_audit_resource_action", "resource", "action"),
         Index("idx_audit_timestamp_action", "timestamp", "action"),
+        Index("idx_audit_request_id", "request_id"),
     )
 
     # Relationship to user

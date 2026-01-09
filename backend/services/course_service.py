@@ -15,7 +15,9 @@ from backend.errors import (
     internal_server_error,
 )
 from backend.import_resolver import import_names
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.courses import CourseCreate, CourseUpdate
+from backend.services.audit_service import AuditLogger
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,7 @@ class CourseService:
     def __init__(self, db: Session, request: Optional[Request] = None) -> None:
         self.db = db
         self.request = request
+        self.audit = AuditLogger(db)
         try:
             (self.Course,) = import_names("models", "Course")
         except Exception as exc:  # pragma: no cover
@@ -46,6 +49,14 @@ class CourseService:
             self.db.refresh(db_course)
 
         logger.info("Created course: %s - %s", db_course.id, db_course.course_code)
+
+        # Audit log
+        self._log_audit(
+            action=AuditAction.CREATE,
+            resource_id=str(db_course.id),
+            new_values=self._serialize_course(db_course),
+        )
+
         return db_course
 
     def list_courses(
@@ -82,6 +93,7 @@ class CourseService:
     def update_course(self, course_id: int, course_update: CourseUpdate):
         """Update an existing course."""
         db_course = self.get_course(course_id)
+        old_values = self._serialize_course(db_course)
 
         # Check for duplicate course_code if changing
         update_dict = course_update.model_dump(exclude_unset=True)
@@ -95,11 +107,21 @@ class CourseService:
             self.db.refresh(db_course)
 
         logger.info("Updated course: %s - %s", db_course.id, db_course.course_code)
+
+        # Audit log
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(db_course.id),
+            old_values=old_values,
+            new_values=self._serialize_course(db_course),
+        )
+
         return db_course
 
     def delete_course(self, course_id: int):
         """Soft delete a course."""
         db_course = self.get_course(course_id)
+        old_values = self._serialize_course(db_course)
 
         with transaction(self.db):
             from datetime import datetime, timezone
@@ -108,11 +130,21 @@ class CourseService:
             self.db.flush()
 
         logger.info("Deleted course: %s - %s", db_course.id, db_course.course_code)
+
+        # Audit log
+        self._log_audit(
+            action=AuditAction.DELETE,
+            resource_id=str(db_course.id),
+            old_values=old_values,
+            new_values={"deleted_at": str(db_course.deleted_at)},
+        )
+
         return db_course
 
     def update_evaluation_rules(self, course_id: int, rules: List[Dict[str, Any]]):
         """Update course evaluation rules."""
         db_course = self.get_course(course_id)
+        old_values = self._serialize_course(db_course)
 
         with transaction(self.db):
             db_course.evaluation_rules = rules
@@ -120,6 +152,16 @@ class CourseService:
             self.db.refresh(db_course)
 
         logger.info("Updated evaluation rules for course: %s", db_course.course_code)
+
+        # Audit log
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(db_course.id),
+            old_values=old_values,
+            new_values=self._serialize_course(db_course),
+            details={"action": "update_evaluation_rules"},
+        )
+
         return db_course
 
     # ------------------------------------------------------------------
@@ -145,3 +187,59 @@ class CourseService:
                 request=self.request,
                 context={"course_code": course_code, "existing_id": existing.id},
             )
+
+    # ------------------------------------------------------------------
+    # Audit helpers
+    # ------------------------------------------------------------------
+    def _serialize_course(self, course: Any) -> dict[str, Any]:
+        """Minimal serialization for audit logging."""
+        return {
+            "id": course.id,
+            "course_code": course.course_code,
+            "course_name": course.course_name,
+            "semester": course.semester,
+            "credits": course.credits,
+            "description": course.description,
+            "evaluation_rules": course.evaluation_rules,
+            "absence_penalty": course.absence_penalty,
+            "hours_per_week": course.hours_per_week,
+            "teaching_schedule": course.teaching_schedule,
+        }
+
+    def _log_audit(
+        self,
+        *,
+        action: AuditAction,
+        resource_id: Optional[str],
+        details: Optional[dict[str, Any]] = None,
+        old_values: Optional[dict[str, Any]] = None,
+        new_values: Optional[dict[str, Any]] = None,
+        success: bool = True,
+        error_message: Optional[str] = None,
+    ) -> None:
+        try:
+            if self.request:
+                self.audit.log_from_request(
+                    request=self.request,
+                    action=action,
+                    resource=AuditResource.COURSE,
+                    resource_id=resource_id,
+                    details=details,
+                    success=success,
+                    error_message=error_message,
+                    old_values=old_values,
+                    new_values=new_values,
+                )
+            else:
+                self.audit.log_action(
+                    action=action,
+                    resource=AuditResource.COURSE,
+                    resource_id=resource_id,
+                    details=details,
+                    success=success,
+                    error_message=error_message,
+                    old_values=old_values,
+                    new_values=new_values,
+                )
+        except Exception:  # pragma: no cover
+            logger.exception("Failed to log audit event for course action")

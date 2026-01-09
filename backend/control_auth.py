@@ -115,8 +115,11 @@ async def require_control_admin(request: Request) -> None:
             status_code=HTTP_404_NOT_FOUND,
             detail={
                 "error": "control_api_disabled",
-                "message": "Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set.",
-                "hint": "Edit backend/.env (or your process manager) to set ENABLE_CONTROL_API=1 and restart the backend service.",
+                "message": ("Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set."),
+                "hint": (
+                    "Edit backend/.env (or your process manager) to set "
+                    "ENABLE_CONTROL_API=1 and restart the backend service."
+                ),
                 "env": {"ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")},
             },
         )

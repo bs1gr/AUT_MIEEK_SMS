@@ -15,8 +15,8 @@ Coverage:
 
 from datetime import date, timedelta
 
-
 import pytest
+
 from backend.tests.conftest import get_error_message
 
 pytestmark = pytest.mark.auth_required

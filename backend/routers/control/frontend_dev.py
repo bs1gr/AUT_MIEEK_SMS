@@ -252,7 +252,10 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
         if port_processes:
             stopped_services.append(f"Frontend (processes detected on ports: {list(port_processes.keys())})")
             errors.append(
-                "Processes detected on frontend ports. Prefer using scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; operators may run scripts/operator/KILL_FRONTEND_NOW.ps1 -Confirm for emergency host-level termination."
+                "Processes detected on frontend ports. Prefer using "
+                "scripts/maintenance/stop_frontend_safe.ps1 to request a frontend stop; "
+                "operators may run scripts/operator/KILL_FRONTEND_NOW.ps1 -Confirm "
+                "for emergency host-level termination."
             )
 
         def _delayed_backend_shutdown():

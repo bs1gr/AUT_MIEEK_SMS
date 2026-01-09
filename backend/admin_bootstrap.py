@@ -1,4 +1,5 @@
 import warnings
+
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
 
 """DEPRECATED: Use backend.scripts.admin.bootstrap instead.

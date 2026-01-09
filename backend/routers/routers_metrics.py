@@ -12,8 +12,8 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from backend.db import get_session
-from backend.rbac import require_permission
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
+from backend.rbac import require_permission
 from backend.schemas.metrics import (
     AttendanceMetrics,
     CourseMetrics,

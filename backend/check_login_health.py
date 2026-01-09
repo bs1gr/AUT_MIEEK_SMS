@@ -9,8 +9,9 @@ Exit codes:
 """
 
 import sys
-import requests
 from time import sleep
+
+import requests
 
 
 def check_login_health(base_url="http://127.0.0.1:8000", max_retries=3):

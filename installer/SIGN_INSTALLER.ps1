@@ -22,7 +22,10 @@
 param(
     [string]$InstallerPath,
     [string]$CertPath,
-    [string]$CertPassword
+    [string]$CertPassword,
+    [string]$Thumbprint,
+    [string]$SubjectMatch,
+    [switch]$UseStore
 )
 
 $ErrorActionPreference = "Stop"
@@ -59,17 +62,7 @@ if (-not $InstallerPath) {
     Write-Host "Found installer: $InstallerPath" -ForegroundColor Cyan
 }
 
-# Verify paths
-if (-not (Test-Path $CertPath)) {
-    Write-Error "Certificate not found: $CertPath. Provide -CertPath or set SMS_CODESIGN_PFX_PATH."
-    exit 1
-}
-
-if (-not $CertPassword) {
-    Write-Error "Certificate password not provided. Set SMS_CODESIGN_PFX_PASSWORD or pass -CertPassword."
-    exit 1
-}
-
+# Verify installer path early
 if (-not (Test-Path $InstallerPath)) {
     Write-Error "Installer not found: $InstallerPath"
     exit 1
@@ -88,12 +81,71 @@ if (-not $SignTool) {
 
 Write-Host "`n=== Signing Installer ===" -ForegroundColor Green
 Write-Host "Installer: $InstallerPath"
-Write-Host "Certificate: $CertPath"
 Write-Host "SignTool: $SignTool"
-Write-Host ""
 
-# Sign the installer
-& $SignTool sign /f $CertPath /p $CertPassword /fd SHA256 /tr $TimestampServer /td SHA256 /d "Student Management System" $InstallerPath
+# Determine signing method: Prefer store-based if requested or if Thumbprint/SubjectMatch provided
+$usedMethod = $null
+if ($UseStore -or $Thumbprint -or $SubjectMatch) {
+    # Enumerate store
+    $storeCerts = @()
+    try { $storeCerts += Get-ChildItem Cert:\CurrentUser\My -ErrorAction SilentlyContinue } catch {}
+    try { $storeCerts += Get-ChildItem Cert:\LocalMachine\My -ErrorAction SilentlyContinue } catch {}
+
+    # Filter to code-signing capable certs when EKU is present
+    $codeSigning = @()
+    foreach ($c in $storeCerts) {
+        try {
+            if ($c.EnhancedKeyUsageList.FriendlyName -contains 'Code Signing') { $codeSigning += $c }
+        } catch { $codeSigning += $c } # Some certs may not expose EKU via this property
+    }
+
+    $selected = $null
+    if ($Thumbprint) {
+        $clean = ($Thumbprint -replace '\s','').ToUpperInvariant()
+        $selected = $codeSigning | Where-Object { $_.Thumbprint.ToUpperInvariant() -eq $clean } | Select-Object -First 1
+        if (-not $selected) {
+            Write-Error "Required certificate with thumbprint $Thumbprint not found in store. Ensure the AUT MIEEK (Limassol, CY) certificate is installed."
+            exit 1
+        }
+    }
+    elseif ($SubjectMatch) {
+        $selected = $codeSigning | Where-Object { $_.Subject -match $SubjectMatch } | Sort-Object NotAfter -Descending | Select-Object -First 1
+        if (-not $selected) {
+            Write-Error "No certificate matching subject pattern '$SubjectMatch' found in store."
+            exit 1
+        }
+    }
+    else {
+        # Require explicit thumbprint or subject match when using store signing
+        Write-Error "Store-based signing requires -Thumbprint or -SubjectMatch parameter. No automatic cert selection."
+        exit 1
+    }
+
+    if ($selected) {
+        Write-Host "Using store certificate:" -ForegroundColor Cyan
+        $selected | Select-Object Subject, Thumbprint, NotAfter | Format-List | Out-String | Write-Host
+        $tp = ($selected.Thumbprint -replace '\s','')
+        & $SignTool sign /fd SHA256 /tr $TimestampServer /td SHA256 /sha1 $tp $InstallerPath
+        $usedMethod = "store:$tp"
+    } else {
+        Write-Host "No matching certificate found in store; will fall back to PFX if available." -ForegroundColor Yellow
+    }
+}
+
+if (-not $usedMethod) {
+    # PFX path method
+    if (-not (Test-Path $CertPath)) {
+        Write-Error "Certificate not found: $CertPath. Provide -CertPath or set SMS_CODESIGN_PFX_PATH, or use -UseStore/Thumbprint."
+        exit 1
+    }
+    if (-not $CertPassword) {
+        Write-Error "Certificate password not provided. Set SMS_CODESIGN_PFX_PASSWORD or pass -CertPassword, or use -UseStore/Thumbprint."
+        exit 1
+    }
+    Write-Host "Certificate: $CertPath"
+    & $SignTool sign /f $CertPath /p $CertPassword /fd SHA256 /tr $TimestampServer /td SHA256 /d "Student Management System" $InstallerPath
+    $usedMethod = "pfx:$CertPath"
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Signing failed with exit code $LASTEXITCODE"
@@ -108,7 +160,8 @@ Write-Host "Signer: $($Signature.SignerCertificate.Subject)"
 
 if ($Signature.Status -eq "Valid") {
     Write-Host "`n✅ Installer signed successfully!" -ForegroundColor Green
-    Write-Host "   Publisher will show as: AUT MIEEK" -ForegroundColor Cyan
+    Write-Host "   Publisher: $($Signature.SignerCertificate.Subject)" -ForegroundColor Cyan
+    Write-Host "   Method: $usedMethod" -ForegroundColor DarkCyan
 } else {
     Write-Error "Signature verification failed: $($Signature.StatusMessage)"
     exit 1

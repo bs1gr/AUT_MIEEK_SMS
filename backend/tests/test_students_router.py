@@ -132,8 +132,8 @@ def test_update_student_success_and_validation_errors(client, admin_token):
 
 
 def test_delete_student_and_then_404(client, admin_token, bootstrap_admin, db):
-    from backend.security.password_hash import get_password_hash
     from backend import models
+    from backend.security.password_hash import get_password_hash
 
     # Create a new admin user directly in the test DB (public /register doesn't grant admin role)
     new_admin_email = "admin_delete_test@example.com"

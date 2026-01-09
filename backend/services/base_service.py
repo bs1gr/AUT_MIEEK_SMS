@@ -7,6 +7,7 @@ This is intentionally small to avoid over-abstraction.
 from __future__ import annotations
 
 from typing import Generic, Type, TypeVar
+
 from sqlalchemy.orm import Session
 
 T = TypeVar("T")

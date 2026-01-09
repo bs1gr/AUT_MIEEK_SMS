@@ -9,13 +9,11 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from backend.tests.conftest import get_error_detail
-
 import backend.main as main
 import backend.routers.routers_control as control
 from backend import environment
 from backend.errors import ErrorCode
-
+from backend.tests.conftest import get_error_detail
 
 # Control panel tests require frontend source directory (package.json, etc)
 # Skip in Docker where only built static files are present

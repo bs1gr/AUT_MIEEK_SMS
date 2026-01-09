@@ -18,13 +18,12 @@ from fastapi.responses import Response
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from backend.cache import cache_key, redis_cache, CacheConfig
+from backend.cache import CacheConfig, cache_key, redis_cache
 from backend.db import get_session
 from backend.error_messages import ErrorCode, get_error_message
 from backend.models import Attendance, Course, DailyPerformance, Grade, Highlight, Student
 from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
-from backend.services.report_exporters import generate_pdf_report, generate_csv_report
 from backend.schemas import (
     AttendanceSummary,
     BulkReportRequest,
@@ -37,6 +36,7 @@ from backend.schemas import (
     ReportPeriod,
     StudentPerformanceReport,
 )
+from backend.services.report_exporters import generate_csv_report, generate_pdf_report
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 logger = logging.getLogger(__name__)

@@ -1,6 +1,8 @@
 import os
 from types import SimpleNamespace
+
 import pytest
+
 from backend import environment
 
 # The 'client' fixture will be provided by conftest.py

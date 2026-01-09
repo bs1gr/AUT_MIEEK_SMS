@@ -16,6 +16,7 @@ from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.logging_config import safe_log_context
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.rbac import require_permission
 from backend.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
@@ -23,7 +24,6 @@ from backend.schemas.attendance import (
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.services import AttendanceService
-from backend.rbac import require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -380,8 +380,8 @@ async def bulk_create_attendance(
     Useful for recording attendance for an entire class.
     """
     try:
-        from backend.import_resolver import import_names
         from backend.db_utils import transaction
+        from backend.import_resolver import import_names
 
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 

@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile, Query
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -683,8 +683,8 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
 
 @router.post("/operations/database-restore", response_model=OperationResult)
 async def restore_database(request: Request, backup_filename: str):
-    import shutil as _sh
     import logging
+    import shutil as _sh
 
     logger = logging.getLogger(__name__)
     try:

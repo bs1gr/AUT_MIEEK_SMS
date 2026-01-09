@@ -1,25 +1,28 @@
 from __future__ import annotations
+
 import logging
+
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-from backend.schemas.audit import AuditLogListResponse, AuditAction, AuditResource, AuditLogResponse
-from backend.services.audit_service import get_audit_logger
+
 import backend.models as models
-from backend.schemas.rbac import (
-    AssignRoleRequest,
-    GrantPermissionToRoleRequest,
-    RBACSummary,
-    BulkAssignRolesRequest,
-    BulkGrantPermissionsRequest,
-    RoleResponse,
-    PermissionResponse,
-)
-from backend.routers.routers_auth import optional_require_role
-from backend.security.permissions import require_permission
 
 # --- CRUD ENDPOINTS FOR ROLES ---
 from backend.db import get_session as get_db
-from backend.errors import http_error, internal_server_error, ErrorCode
+from backend.errors import ErrorCode, http_error, internal_server_error
+from backend.routers.routers_auth import optional_require_role
+from backend.schemas.audit import AuditAction, AuditLogListResponse, AuditLogResponse, AuditResource
+from backend.schemas.rbac import (
+    AssignRoleRequest,
+    BulkAssignRolesRequest,
+    BulkGrantPermissionsRequest,
+    GrantPermissionToRoleRequest,
+    PermissionResponse,
+    RBACSummary,
+    RoleResponse,
+)
+from backend.security.permissions import require_permission
+from backend.services.audit_service import get_audit_logger
 
 router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})
 

@@ -1,10 +1,11 @@
 import os
 import sys
 from logging.config import fileConfig
+
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 from backend.config import settings
 from backend.models import Base
+from sqlalchemy import engine_from_config, pool
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 if PROJECT_ROOT not in sys.path:

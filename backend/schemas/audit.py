@@ -64,6 +64,10 @@ class AuditLogCreate(BaseModel):
     details: Optional[Dict[str, Any]] = Field(None, description="Additional details")
     success: bool = Field(True, description="Whether action succeeded")
     error_message: Optional[str] = Field(None, description="Error message if failed")
+    old_values: Optional[Dict[str, Any]] = Field(None, description="Previous state (for updates)")
+    new_values: Optional[Dict[str, Any]] = Field(None, description="New state (for updates)")
+    change_reason: Optional[str] = Field(None, description="Reason provided by user for the change")
+    request_id: Optional[str] = Field(None, description="Request correlation ID")
 
 
 class AuditLogResponse(BaseModel):
@@ -83,6 +87,10 @@ class AuditLogResponse(BaseModel):
     success: bool = Field(..., description="Whether action succeeded")
     error_message: Optional[str] = Field(None, description="Error if failed")
     timestamp: datetime = Field(..., description="When action occurred")
+    old_values: Optional[Dict[str, Any]] = Field(None, description="Previous state (for updates)")
+    new_values: Optional[Dict[str, Any]] = Field(None, description="New state (for updates)")
+    change_reason: Optional[str] = Field(None, description="Reason provided by user for the change")
+    request_id: Optional[str] = Field(None, description="Request correlation ID")
 
 
 class AuditLogListResponse(BaseModel):
@@ -90,5 +98,6 @@ class AuditLogListResponse(BaseModel):
 
     logs: list[AuditLogResponse] = Field(..., description="Audit log entries")
     total: int = Field(..., description="Total number of logs")
-    skip: int = Field(..., description="Number of logs skipped")
-    limit: int = Field(..., description="Max items returned")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Items per page")
+    has_next: bool = Field(..., description="Whether more pages exist")

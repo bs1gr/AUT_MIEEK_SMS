@@ -4,10 +4,11 @@ Admin user management endpoints.
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
+
 from backend.db import get_session as get_db
 from backend.models import User
-from backend.schemas.users import UserResponse
 from backend.routers.routers_auth import require_role
+from backend.schemas.users import UserResponse
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

@@ -19,7 +19,9 @@ RECOMMENDED STARTUP:
 import subprocess  # noqa: F401 - Required for tests to monkeypatch subprocess.run/Popen
 import sys
 from pathlib import Path
+
 from fastapi import FastAPI
+
 from .app_factory import create_app
 
 """
