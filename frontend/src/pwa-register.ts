@@ -14,7 +14,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
-        console.log('✅ Service Worker registered successfully:', registration);
+        console.warn('✅ Service Worker registered successfully:', registration);
 
         // Check for updates periodically
         setInterval(() => {
@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New service worker ready, notify user of update
-                console.log('🔄 App update available');
+                console.warn('🔄 App update available');
                 dispatchEvent(
                   new CustomEvent('app-update-available', {
                     detail: { registration },
@@ -47,7 +47,7 @@ if ('serviceWorker' in navigator) {
 
   // Listen for messages from service worker
   navigator.serviceWorker.addEventListener('message', (event) => {
-    console.log('📨 Message from Service Worker:', event.data);
+    console.warn('📨 Message from Service Worker:', event.data);
   });
 
   // Handle app update event
@@ -70,7 +70,7 @@ if ('serviceWorker' in navigator) {
 // Detect when service worker takes control after update
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.controller?.addEventListener('controllerchange', () => {
-    console.log('🔄 Service Worker updated and activated');
+    console.warn('🔄 Service Worker updated and activated');
     window.location.reload();
   });
 }
@@ -78,7 +78,7 @@ if ('serviceWorker' in navigator) {
 // Request Persistent Storage permission for offline data
 if ('storage' in navigator && 'persist' in navigator.storage) {
   navigator.storage.persist().then((persistent) => {
-    console.log(`📦 Persistent storage ${persistent ? 'enabled' : 'disabled'}`);
+    console.warn(`📦 Persistent storage ${persistent ? 'enabled' : 'disabled'}`);
   });
 }
 

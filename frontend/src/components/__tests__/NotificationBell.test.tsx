@@ -96,7 +96,7 @@ describe('NotificationBell', () => {
     it('should render bell icon when authToken provided', async () => {
       vi.mocked(api.get).mockResolvedValueOnce({ data: { unread_count: 0 } });
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByTitle('Notifications')).toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('NotificationBell', () => {
     it('should refetch unread count every 30 seconds', async () => {
       vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 1 } });
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1);
@@ -185,7 +185,7 @@ describe('NotificationBell', () => {
     it('should refetch when window regains focus', async () => {
       vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 2 } });
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1);
@@ -275,7 +275,7 @@ describe('NotificationBell', () => {
         .mockResolvedValueOnce({ data: { unread_count: 3 } })
         .mockResolvedValueOnce({ data: { unread_count: 7 } });
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('3')).toBeInTheDocument();
@@ -296,7 +296,7 @@ describe('NotificationBell', () => {
         .mockResolvedValueOnce({ data: { unread_count: 5 } })
         .mockResolvedValueOnce({ data: { unread_count: 0 } });
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('5')).toBeInTheDocument();
@@ -318,7 +318,7 @@ describe('NotificationBell', () => {
     it('should handle API errors gracefully', async () => {
       vi.mocked(api.get).mockRejectedValueOnce(new Error('Network error'));
 
-      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       // Component should still render without crashing
       await waitFor(() => {

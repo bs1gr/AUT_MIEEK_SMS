@@ -171,10 +171,18 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               {data?.items?.map((notification) => (
                 <div
                   key={notification.id}
+                  role="button"
+                  tabIndex={0}
                   className={`p-4 cursor-pointer hover:bg-gray-50 transition ${
                     !notification.is_read ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => handleMarkAsRead(notification.id, notification.is_read)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleMarkAsRead(notification.id, notification.is_read);
+                    }
+                  }}
                 >
                   <div className="flex gap-3">
                     <span className="text-2xl flex-shrink-0">

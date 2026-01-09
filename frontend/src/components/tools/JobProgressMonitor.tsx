@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-dom-props */
 import { useEffect, useState } from 'react';
 
 import { jobsAPI } from '@/api/api';
@@ -98,21 +97,27 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
         </div>
       </div>
 
-      <div
-        className="h-3 overflow-hidden rounded-full bg-slate-100"
-        role="progressbar"
-        aria-valuenow={Math.round(job?.progress ?? 0)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={t('jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}
-      >
-        {(() => {
-          const raw = Math.min(Math.max(job?.progress ?? 0, 0), 100);
-          const step = Math.min(100, Math.max(0, Math.round(raw / 5) * 5));
-          const widthClass = widthClassMap[step] ?? 'w-0';
-          return <div className={`h-full bg-indigo-600 transition-all ${widthClass}`} aria-hidden="true" />;
-        })()}
-      </div>
+      {/* Progress bar */}
+      {(() => {
+        const progressValue = Math.round(job?.progress ?? 0);
+        return (
+          <div
+            className="h-3 overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-valuenow={progressValue}
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label={t('jobMonitorProgress', { value: progressValue })}
+          >
+            {(() => {
+              const raw = Math.min(Math.max(job?.progress ?? 0, 0), 100);
+              const step = Math.min(100, Math.max(0, Math.round(raw / 5) * 5));
+              const widthClass = widthClassMap[step] ?? 'w-0';
+              return <div className={`h-full bg-indigo-600 transition-all ${widthClass}`} aria-hidden="true" />;
+            })()}
+          </div>
+        );
+      })()}
       <div className="flex justify-between text-xs text-slate-500" aria-live="polite">
         <span>{t('jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}</span>
         {job?.message && <span className="text-slate-600">{job.message}</span>}

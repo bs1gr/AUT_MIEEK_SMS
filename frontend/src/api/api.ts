@@ -900,7 +900,7 @@ export const formatDateForAPI = (date: Date | string): string => formatLocalDate
  * @param {Object} errorResponse - Error response data
  * @returns {Object} - Normalized error object { message, code, details, request_id }
  */
-export function extractAPIError(errorResponse: any): {
+export function extractAPIError(errorResponse: unknown): {
   message: string;
   code: string;
   details?: unknown;
@@ -908,17 +908,31 @@ export function extractAPIError(errorResponse: any): {
   request_id?: string | null;
   status?: number;
 } {
-  const data = errorResponse?.data;
+  const errorObject =
+    typeof errorResponse === 'object' && errorResponse !== null
+      ? (errorResponse as { data?: unknown; status?: number })
+      : { data: undefined, status: undefined };
+
+  const data = errorObject.data;
 
   // New format: { success: false, error: { code, message, details, path }, meta }
-  if (data && typeof data === 'object' && data.success === false && data.error) {
+  if (
+    data &&
+    typeof data === 'object' &&
+    (data as { success?: unknown }).success === false &&
+    (data as { error?: unknown }).error
+  ) {
+    const { error, meta } = data as {
+      error?: { code?: string; message?: string; details?: unknown; path?: string | null };
+      meta?: { request_id?: string | null };
+    };
     return {
-      message: data.error.message || 'An error occurred',
-      code: data.error.code || 'UNKNOWN_ERROR',
-      details: data.error.details,
-      path: data.error.path,
-      request_id: data.meta?.request_id,
-      status: errorResponse?.status,
+      message: error?.message || 'An error occurred',
+      code: error?.code || 'UNKNOWN_ERROR',
+      details: error?.details,
+      path: error?.path ?? null,
+      request_id: meta?.request_id ?? null,
+      status: errorObject.status,
     };
   }
 
@@ -930,7 +944,7 @@ export function extractAPIError(errorResponse: any): {
       details: null,
       path: null,
       request_id: null,
-      status: errorResponse?.status,
+      status: errorObject.status,
     };
   }
 
@@ -941,7 +955,7 @@ export function extractAPIError(errorResponse: any): {
     details: null,
     path: null,
     request_id: null,
-    status: errorResponse?.status,
+    status: errorObject.status,
   };
 }
 
@@ -951,10 +965,15 @@ export function extractAPIError(errorResponse: any): {
  * @param defaultValue - Default value if data is not available
  * @returns The extracted data or default value
  */
-export function extractAPIResponseData<T = unknown>(response: any, defaultValue?: T): T {
+export function extractAPIResponseData<T = unknown>(response: unknown, defaultValue?: T): T {
   // New format: { success: true, data: T, ... }
-  if (response && typeof response === 'object' && response.success === true && response.data !== undefined) {
-    return response.data as T;
+  if (
+    response &&
+    typeof response === 'object' &&
+    (response as { success?: unknown }).success === true &&
+    (response as { data?: unknown }).data !== undefined
+  ) {
+    return (response as { data: T }).data;
   }
 
   // Old format: direct data (backward compatibility)

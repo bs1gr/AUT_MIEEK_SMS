@@ -38,16 +38,23 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
     return backoffMs * Math.pow(2, Math.min(attempt, 4)); // Cap at 16x to avoid huge delays
   }, [backoffMs]);
 
+  const reset = useCallback(() => {
+    setError(null);
+    setRetryCount(0);
+    setIsRetrying(false);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
   const handleError = useCallback((err: Error) => {
     setError(err);
     setIsRetrying(false);
 
     if (strategy === 'backoff' && retryCount < maxRetries) {
       const delay = getBackoffDelay(retryCount);
-      console.debug(`[ErrorRecovery] Scheduling retry ${retryCount + 1}/${maxRetries} in ${delay}ms`);
+      console.warn(`[ErrorRecovery] Scheduling retry ${retryCount + 1}/${maxRetries} in ${delay}ms`);
 
       timeoutRef.current = setTimeout(() => {
-        setRetryCount(prev => prev + 1);
+        setRetryCount((prev) => prev + 1);
       }, delay);
     }
 
@@ -55,20 +62,13 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
       reset();
       // Caller will typically use this to trigger a retry of their operation
     });
-  }, [retryCount, maxRetries, strategy, getBackoffDelay, onError]);
+  }, [retryCount, maxRetries, strategy, getBackoffDelay, onError, reset]);
 
   const retry = useCallback(() => {
-    console.debug(`[ErrorRecovery] Manual retry triggered`);
+    console.warn(`[ErrorRecovery] Manual retry triggered`);
     setError(null);
     setRetryCount(0);
     setIsRetrying(false);
-  }, []);
-
-  const reset = useCallback(() => {
-    setError(null);
-    setRetryCount(0);
-    setIsRetrying(false);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
   const shouldRetry = useCallback((): boolean => {

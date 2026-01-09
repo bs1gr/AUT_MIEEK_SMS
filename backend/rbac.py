@@ -388,7 +388,8 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
         )
         .all()
     )
-    permission_keys.update(_normalize_permission_key(p.key) for p in direct_perms)
+    # Cast p.key to str to satisfy mypy (p.key is Column[str] at static analysis but str at runtime)
+    permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_perms)
 
     # Get role-based permissions (using raw SQL to avoid schema mismatch)
     result = db.execute(

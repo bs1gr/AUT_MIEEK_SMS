@@ -33,19 +33,21 @@ export function useVirtualScroll({
 }: UseVirtualScrollOptions) {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const virtualizer = useMemo(
-    () =>
-      useVirtualizer({
-        count: itemCount,
-        getScrollElement: () => parentRef.current,
-        estimateSize: () => itemHeight,
-        overscan,
-        measureElement: typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
+  const virtualizerOptions = useMemo(
+    () => ({
+      count: itemCount,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => itemHeight,
+      overscan,
+      measureElement:
+        typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
           ? (element: Element) => element?.getBoundingClientRect().height
           : undefined,
-      }),
+    }),
     [itemCount, itemHeight, overscan]
   );
+
+  const virtualizer = useVirtualizer(virtualizerOptions);
 
   return { virtualizer, parentRef };
 }
