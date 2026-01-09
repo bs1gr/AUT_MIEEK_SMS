@@ -8,9 +8,9 @@ Part of Phase 1 v1.15.0 - API Response Standardization
 """
 
 from datetime import datetime, timezone
-from typing import Generic, Optional, TypeVar, Any
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, Generic, Optional, TypeVar
 
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 

@@ -9,7 +9,9 @@ Usage:
 
 import sys
 from pathlib import Path
+
 from sqlalchemy import inspect, text
+
 from backend.db import engine, ensure_schema
 
 # Ensure repository root is on sys.path

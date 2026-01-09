@@ -4,9 +4,9 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import Request
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import (
@@ -15,8 +15,8 @@ from backend.errors import (
     http_error,
     internal_server_error,
 )
-from backend.schemas.students import StudentCreate, StudentUpdate
 from backend.schemas.audit import AuditAction, AuditResource
+from backend.schemas.students import StudentCreate, StudentUpdate
 from backend.services.audit_service import AuditLogger
 
 logger = logging.getLogger(__name__)

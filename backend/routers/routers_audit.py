@@ -1,17 +1,18 @@
 """Router for audit log management endpoints."""
 
-from typing import Optional
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query, Request
+from sqlalchemy import and_, desc
+from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.error_messages import ErrorCode, get_error_message
-from backend.routers.routers_auth import optional_require_role
 from backend.models import AuditLog
-from backend.schemas.audit import AuditLogResponse, AuditLogListResponse
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
+from backend.routers.routers_auth import optional_require_role
+from backend.schemas.audit import AuditLogListResponse, AuditLogResponse
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 

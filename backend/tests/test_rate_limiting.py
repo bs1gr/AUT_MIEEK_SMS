@@ -9,10 +9,10 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from backend.rate_limiting import (
+    RATE_LIMIT_AUTH,
     RATE_LIMIT_HEAVY,
     RATE_LIMIT_READ,
     RATE_LIMIT_WRITE,
-    RATE_LIMIT_AUTH,
     limiter,
 )
 

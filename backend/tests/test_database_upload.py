@@ -1,5 +1,6 @@
 import io
 from pathlib import Path
+
 from backend.errors import ErrorCode
 from backend.tests.conftest import get_error_detail
 

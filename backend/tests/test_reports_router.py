@@ -8,9 +8,10 @@ Tests:
 """
 
 from datetime import date, timedelta
+
 from fastapi.testclient import TestClient
 
-from backend.models import Student, Course, Grade, Attendance, DailyPerformance, Highlight, CourseEnrollment
+from backend.models import Attendance, Course, CourseEnrollment, DailyPerformance, Grade, Highlight, Student
 
 
 def test_get_report_formats(client: TestClient):

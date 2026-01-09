@@ -16,6 +16,7 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 

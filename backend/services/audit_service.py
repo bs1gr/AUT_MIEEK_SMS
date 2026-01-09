@@ -1,9 +1,10 @@
 """Audit logging service for tracking system actions."""
 
 from datetime import datetime, timezone
-from typing import Optional, Any
-from sqlalchemy.orm import Session
+from typing import Any, Optional
+
 from fastapi import Request
+from sqlalchemy.orm import Session
 
 from backend.models import AuditLog
 from backend.schemas.audit import AuditAction, AuditResource

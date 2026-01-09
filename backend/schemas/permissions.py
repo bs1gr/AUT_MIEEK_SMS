@@ -4,9 +4,10 @@ Pydantic schemas for RBAC permission management (new structure).
 Supports the enhanced permission model with key, resource, action fields.
 """
 
-from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PermissionBase(BaseModel):

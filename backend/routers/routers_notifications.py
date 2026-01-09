@@ -9,19 +9,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
-from backend.rate_limiting import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
+from backend.models import User
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.routers.routers_auth import optional_require_role
 from backend.schemas import (
+    BroadcastNotificationCreate,
     NotificationListResponse,
     NotificationPreferenceResponse,
     NotificationPreferenceUpdate,
     NotificationResponse,
     NotificationUpdate,
-    BroadcastNotificationCreate,
 )
-from backend.services.notification_service import NotificationService, NotificationPreferenceService
-from backend.services.websocket_manager import manager, broadcast_notification
-from backend.models import User
+from backend.services.notification_service import NotificationPreferenceService, NotificationService
+from backend.services.websocket_manager import broadcast_notification, manager
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 from datetime import date, timedelta
 from typing import Dict
+
 import pytest
+
 from backend.config import settings
 from backend.routers import routers_grades
 from backend.tests.conftest import get_error_code, get_error_message

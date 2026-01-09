@@ -6,6 +6,7 @@ Handles dynamic import and registration of all API routers.
 import importlib
 import importlib.util
 import logging
+
 from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)

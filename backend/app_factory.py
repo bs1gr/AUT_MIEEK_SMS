@@ -3,24 +3,25 @@ FastAPI application factory module.
 Creates and configures the FastAPI application instance.
 """
 
-import os
 import logging
-from pathlib import Path
+import os
 from datetime import datetime
-from fastapi import FastAPI, Request, Depends, HTTPException
+from pathlib import Path
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.lifespan import get_lifespan
-from backend.middleware_config import register_middlewares
-from backend.error_handlers import register_error_handlers
-from backend.router_registry import register_routers
-from backend.logging_config import initialize_logging
-from backend.db import get_session, engine
-from backend.tracing import setup_tracing
+from backend.db import engine, get_session
 from backend.environment import get_runtime_context
+from backend.error_handlers import register_error_handlers
+from backend.lifespan import get_lifespan
+from backend.logging_config import initialize_logging
+from backend.middleware_config import register_middlewares
+from backend.router_registry import register_routers
+from backend.tracing import setup_tracing
 
 logger = logging.getLogger(__name__)
 
@@ -283,10 +284,13 @@ def _register_root_endpoints(app: FastAPI, version: str):
     @app.get("/favicon.ico")
     async def favicon():
         """Serve favicon for browser requests."""
-        svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        svg_content = (
+            """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <rect width="100" height="100" fill="#4F46E5"/>
-  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">S</text>
+    <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" """
+            """font-weight="bold" fill="white" text-anchor="middle">S</text>
 </svg>"""
+        )
         from fastapi.responses import Response
 
         return Response(content=svg_content, media_type="image/svg+xml")

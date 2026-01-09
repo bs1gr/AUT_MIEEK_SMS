@@ -7,25 +7,26 @@ Complements the existing routers_rbac.py with enhanced functionality.
 
 from datetime import datetime, timezone
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.models import Permission, Role, User, UserPermission
-from backend.rbac import has_permission, get_user_permissions, require_permission
+from backend.rbac import get_user_permissions, has_permission, require_permission
 from backend.schemas.permissions import (
     PermissionCreate,
-    PermissionUpdate,
     PermissionDetail,
     PermissionListItem,
-    UserPermissionGrant,
-    UserPermissionRevoke,
-    RolePermissionGrant,
-    RolePermissionRevoke,
-    UserPermissionsResponse,
     PermissionsByResourceResponse,
     PermissionStatsResponse,
+    PermissionUpdate,
+    RolePermissionGrant,
+    RolePermissionRevoke,
+    UserPermissionGrant,
+    UserPermissionRevoke,
+    UserPermissionsResponse,
 )
 from backend.security.current_user import get_current_user
 

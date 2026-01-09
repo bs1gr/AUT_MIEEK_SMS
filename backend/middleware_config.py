@@ -1,11 +1,13 @@
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from backend.request_id_middleware import RequestIDMiddleware
-from backend.security import install_csrf_protection
-from backend.config import settings
-from backend.middleware.response_standardization import ResponseStandardizationMiddleware
 import logging
 import os
+
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+
+from backend.config import settings
+from backend.middleware.response_standardization import ResponseStandardizationMiddleware
+from backend.request_id_middleware import RequestIDMiddleware
+from backend.security import install_csrf_protection
 
 
 def register_middlewares(app):

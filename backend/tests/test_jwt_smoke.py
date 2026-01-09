@@ -2,6 +2,7 @@
 Guards against regressions in the python-jose → PyJWT migration."""
 
 from datetime import datetime, timedelta, timezone
+
 import jwt
 
 # Secret key for testing (matches backend config pattern)

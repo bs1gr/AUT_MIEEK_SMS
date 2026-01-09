@@ -2,15 +2,16 @@
 Tests for RBAC (Role-Based Access Control) functionality.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
+
+import pytest
 from sqlalchemy import text
 
 from backend.models import Permission, Role, User, UserPermission
 from backend.rbac import (
-    has_permission,
-    get_user_permissions,
     _is_self_access,
+    get_user_permissions,
+    has_permission,
 )
 
 

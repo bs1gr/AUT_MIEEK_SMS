@@ -27,11 +27,12 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 import sqlalchemy as sa
-from backend import models
-from backend.run_migrations import run_migrations
 from sqlalchemy import create_engine, func, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.schema import Table
+
+from backend import models
+from backend.run_migrations import run_migrations
 
 LOGGER = logging.getLogger("sqlite_to_postgres")
 DEFAULT_SQLITE_PATH = Path(__file__).resolve().parents[1] / "data" / "student_management.db"

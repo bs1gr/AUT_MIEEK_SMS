@@ -134,6 +134,7 @@ def test_rate_limiting_on_students(client):
 def test_access_admin_endpoint_without_auth():
     # Try to access admin endpoint without auth (should get 401 or 403)
     from fastapi.testclient import TestClient
+
     from backend.main import app
 
     unauth_client = TestClient(app)
@@ -144,6 +145,7 @@ def test_access_admin_endpoint_without_auth():
 def test_access_admin_endpoint_with_invalid_token():
     # Try to access admin endpoint with invalid token (should get 401)
     from fastapi.testclient import TestClient
+
     from backend.main import app
 
     unauth_client = TestClient(app)

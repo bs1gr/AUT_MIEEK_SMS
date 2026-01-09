@@ -9,15 +9,17 @@ def import_names(*args, **kwargs):
 
 import logging
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
+
+from backend.cache import CacheConfig, cached, invalidate_cache
 from backend.db import get_session as get_db
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse
 from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
 from backend.services import StudentService
-from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.cache import cached, invalidate_cache, CacheConfig
 
 # Setup logging
 logger = logging.getLogger(__name__)

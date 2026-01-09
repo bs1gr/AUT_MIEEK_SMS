@@ -7,8 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import declarative_base
 
 # Import shared DB setup to ensure singletons across pytest and direct imports
-from backend.tests.db_setup import engine, TestingSessionLocal
-
+from backend.tests.db_setup import TestingSessionLocal, engine
 
 # ============================================================================
 # Error Response Helper Functions (v1.15.0 - API Standardization)
@@ -285,9 +284,9 @@ def client(db):
     """
     from types import SimpleNamespace
 
-    from backend.main import app
-    from backend.db import get_session
     from backend.config import settings as cfg
+    from backend.db import get_session
+    from backend.main import app
     from backend.security.current_user import get_current_user as real_get_current_user
 
     def _override_session():

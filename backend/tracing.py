@@ -10,8 +10,9 @@ Environment variables:
 
 from __future__ import annotations
 
-import os
 import logging
+import os
+
 from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
@@ -28,12 +29,12 @@ def setup_tracing(app: FastAPI) -> None:
 
     try:
         from opentelemetry import trace
-        from opentelemetry.sdk.resources import Resource
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
             OTLPSpanExporter,
         )
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
         resource = Resource.create({"service.name": "student-management-system"})
         provider = TracerProvider(resource=resource)

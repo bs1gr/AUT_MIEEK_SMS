@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional
 from datetime import date
+from typing import Any, List, Optional
 
 from fastapi import Request
 from sqlalchemy.orm import Session
@@ -12,12 +12,12 @@ from sqlalchemy.orm import Session
 from backend.db_utils import get_by_id_or_404, paginate, transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.grades import GradeCreate, GradeUpdate
 from backend.schemas.highlights import HighlightCreate
 from backend.services.analytics_service import AnalyticsService
-from backend.services.highlight_service import HighlightService
 from backend.services.audit_service import AuditLogger
-from backend.schemas.audit import AuditAction, AuditResource
+from backend.services.highlight_service import HighlightService
 
 logger = logging.getLogger(__name__)
 

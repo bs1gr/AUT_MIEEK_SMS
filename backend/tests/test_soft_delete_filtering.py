@@ -5,12 +5,13 @@ Tests that soft-deleted records are properly filtered from all queries
 and do not appear in list endpoints.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 from sqlalchemy.orm import Session
 
-from backend.models import Student, Course
 from backend.db_utils import paginate
+from backend.models import Course, Student
 
 
 @pytest.fixture

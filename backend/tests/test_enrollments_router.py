@@ -12,9 +12,9 @@ Coverage:
 
 from datetime import date
 
-from backend.tests.conftest import get_error_code, get_error_message
-
 import pytest
+
+from backend.tests.conftest import get_error_code, get_error_message
 
 
 @pytest.mark.auth_required

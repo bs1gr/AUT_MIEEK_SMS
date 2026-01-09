@@ -7,7 +7,8 @@ Provides:
 - diagnostics: Database diagnostics (validate_first_run, check_secret)
 """
 
-from backend.db.cli.admin import create_admin, main as admin_main
+from backend.db.cli.admin import create_admin
+from backend.db.cli.admin import main as admin_main
 from backend.db.cli.diagnostics import check_secret, validate_first_run
 from backend.db.cli.schema import check_schema_drift, inspect_schema, verify_schema
 

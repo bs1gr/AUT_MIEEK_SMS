@@ -11,6 +11,7 @@ in results unless explicitly queried.
 
 from sqlalchemy import event
 from sqlalchemy.orm import Query
+
 from backend.models import SoftDeleteMixin
 
 

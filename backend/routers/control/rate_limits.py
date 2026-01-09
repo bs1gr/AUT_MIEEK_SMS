@@ -3,15 +3,16 @@ Rate Limiting Control Endpoints
 Admin-only endpoints for managing dynamic rate limiting configuration.
 """
 
-from typing import Dict
-from fastapi import APIRouter, Request, status, Depends
-from pydantic import BaseModel, Field
 import logging
+from typing import Dict
 
-from backend.routers.routers_auth import optional_require_role
+from fastapi import APIRouter, Depends, Request, status
+from pydantic import BaseModel, Field
+
 from backend.errors import ErrorCode, http_error
 from backend.rate_limit_config import get_rate_limit_config
 from backend.rate_limiting import update_rate_limit_strings
+from backend.routers.routers_auth import optional_require_role
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

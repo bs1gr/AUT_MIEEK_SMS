@@ -13,6 +13,7 @@ from unittest.mock import patch
 def test_create_encrypted_backup_default(client, admin_token, tmp_path):
     """Test encrypted backup endpoint with default encryption=True."""
     from sqlalchemy import create_engine
+
     from backend.models import Base
 
     # Create a temporary SQLite file
@@ -49,6 +50,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
     use shutil.copy2 which requires a physical file.
     """
     from sqlalchemy import create_engine
+
     from backend.models import Base
 
     # Create a temporary SQLite file
@@ -80,6 +82,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
 def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
     """Test explicit encryption=True parameter."""
     from sqlalchemy import create_engine
+
     from backend.models import Base
 
     # Create a temporary SQLite file
@@ -110,6 +113,7 @@ def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
 def test_backup_encryption_details(client, admin_token, tmp_path):
     """Test that encrypted backups have proper encryption details."""
     from sqlalchemy import create_engine
+
     from backend.models import Base
 
     # Create a temporary SQLite file
@@ -145,6 +149,7 @@ def test_backup_encryption_details(client, admin_token, tmp_path):
 def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path):
     """Test that unencrypted backups have encryption: None."""
     from sqlalchemy import create_engine
+
     from backend.models import Base
 
     # Create a temporary SQLite file

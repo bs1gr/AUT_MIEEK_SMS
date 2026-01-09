@@ -31,7 +31,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from models import Permission, Role, RolePermission
 
-
 # === Permission Definitions (from PERMISSION_MATRIX.md) ===
 
 PERMISSIONS = [

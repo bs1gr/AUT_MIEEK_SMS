@@ -22,10 +22,10 @@ Usage:
 
 from __future__ import annotations
 
-import sys
 import importlib
 import importlib.util
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Tuple
 

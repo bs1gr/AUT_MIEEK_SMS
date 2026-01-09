@@ -15,9 +15,9 @@ from backend.errors import (
     internal_server_error,
 )
 from backend.import_resolver import import_names
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.courses import CourseCreate, CourseUpdate
 from backend.services.audit_service import AuditLogger
-from backend.schemas.audit import AuditAction, AuditResource
 
 logger = logging.getLogger(__name__)
 

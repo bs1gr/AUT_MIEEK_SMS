@@ -9,13 +9,14 @@ Tests cover:
 - IP address extraction
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from backend.models import AuditLog
-from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
+from backend.services.audit_service import AuditLogger
 
 
 class TestAuditLogger:

@@ -480,9 +480,9 @@ router = APIRouter(
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
-from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.security.permissions import optional_require_permission
+from backend.services.audit_service import AuditLogger
 
 
 @router.get("/students/excel")

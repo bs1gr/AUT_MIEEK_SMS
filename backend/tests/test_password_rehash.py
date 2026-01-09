@@ -7,8 +7,8 @@ both pbkdf2_sha256 and bcrypt, with auto-migration capability.
 
 from backend.security.password_hash import (
     get_password_hash,
-    verify_password,
     pwd_context,
+    verify_password,
 )
 
 

@@ -7,13 +7,12 @@ third-party dependencies at type-check time.
 
 from __future__ import annotations
 
-import socket
-import shutil
 import logging
+import shutil
+import socket
 from pathlib import Path
-from typing import Optional
-
 from types import SimpleNamespace
+from typing import Optional
 
 from .base import OperationResult
 

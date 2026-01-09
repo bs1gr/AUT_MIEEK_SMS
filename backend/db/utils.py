@@ -8,9 +8,10 @@ from contextlib import contextmanager
 from typing import Any, Dict, Optional, TypeVar
 
 from fastapi import HTTPException, Request
-from backend.errors import ErrorCode, http_error
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Query, Session
+
+from backend.errors import ErrorCode, http_error
 
 logger = logging.getLogger(__name__)
 

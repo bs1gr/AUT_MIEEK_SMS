@@ -8,7 +8,8 @@ sys.path.insert(0, str(project_root))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.models import User, Student, Course, CourseEnrollment, Base
+
+from backend.models import Base, Course, CourseEnrollment, Student, User
 from backend.security.password_hash import get_password_hash
 
 """Seed test data for E2E tests.

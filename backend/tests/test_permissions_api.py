@@ -2,8 +2,9 @@
 Integration tests for Permission Management API endpoints.
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 from sqlalchemy import text
 
 from backend.models import Permission

@@ -8,9 +8,8 @@ from __future__ import annotations
 from typing import Generator
 
 import sqlalchemy as sa
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker, with_loader_criteria
-from sqlalchemy import event
 
 # Import settings and models dynamically to avoid import-time redefinition warnings
 from backend.import_resolver import import_from_possible_locations

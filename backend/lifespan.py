@@ -1,13 +1,14 @@
-from contextlib import asynccontextmanager
 import logging
 import os
 import threading
 import time as _time
-from backend.scripts.migrate.runner import run_migrations
-from backend.scripts.admin.bootstrap import ensure_default_admin_account
+from contextlib import asynccontextmanager
+
+from backend.config import settings
 from backend.db import SessionLocal, engine
 from backend.db.query_profiler import profiler
-from backend.config import settings
+from backend.scripts.admin.bootstrap import ensure_default_admin_account
+from backend.scripts.migrate.runner import run_migrations
 
 STARTUP_DEBUG = os.environ.get("STARTUP_DEBUG", "0").strip().lower() in {"1", "true", "yes", "debug"}
 
