@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               const meResp = await fetchMeWithRetry();
               userPayload = meResp;
-            } catch (err) {
+            } catch {
               // Continue anyway - we have the token
             }
           }
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
           }
         }
-      } catch (err) {
+      } catch {
         // Auto-login failed - auth disabled, timeout, or wrong credentials
         // This is expected behavior, just continue as guest
         if (!mounted) return;
