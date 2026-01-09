@@ -415,12 +415,24 @@ function Invoke-CodeSigning {
     try {
         Write-Result Info "Signing installer with AUT MIEEK certificate..."
 
-        # Call signing script (it will use SMS_CODESIGN_PFX_PASSWORD env var)
-        & $SignerScript
+        # Prefer store-based signing with Limassol (CY) certificate thumbprint
+        $limassolThumb = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
+        # Call signing script (it can use SMS_CODESIGN_PFX_PASSWORD env var as fallback)
+        & $SignerScript -UseStore -Thumbprint $limassolThumb
 
         if ($LASTEXITCODE -eq 0) {
-            Write-Result Success "Installer signed successfully ✓"
-            Write-Result Info "Publisher: AUT MIEEK"
+            # Verify subject matches expected location (Limassol, CY)
+            $sig = Get-AuthenticodeSignature $InstallerExe
+            if ($sig.Status -eq 'Valid') {
+                $subj = $sig.SignerCertificate.Subject
+                Write-Result Success "Installer signed successfully ✓"
+                Write-Result Info "Publisher: $subj"
+                if ($subj -notmatch 'L=Limassol' -or $subj -notmatch 'C=CY') {
+                    Write-Result Warning "Signer subject does not match expected location (Limassol/CY)."
+                }
+            } else {
+                Write-Result Warning "Signature status after signing: $($sig.Status)"
+            }
             return $true
         } else {
             Write-Result Warning "Code signing failed (exit code: $LASTEXITCODE) - installer remains unsigned but valid"
