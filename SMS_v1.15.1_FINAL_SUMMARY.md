@@ -179,7 +179,7 @@ See: `PRODUCTION_DEPLOYMENT_STATUS_JAN9.md` for detailed 10-step procedure
 - Low: Next business day
 
 ### Contacts
-- Technical Lead: Vasilis Kontogiannis (bs1gr)
+- Technical Lead: Vasileios Samaras (bs1gr)
 - DevOps Team: [Contact info]
 - Business Owner: [Contact info]
 - Support Lead: [Contact info]

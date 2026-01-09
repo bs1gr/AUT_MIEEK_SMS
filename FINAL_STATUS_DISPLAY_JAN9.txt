@@ -136,7 +136,7 @@
 
 ┌─ KEY CONTACTS ──────────────────────────────────────────────────────────────┐
 │                                                                              │
-│  Technical Lead:  Vasilis Kontogiannis (bs1gr)                             │
+│  Technical Lead:  Vasileios Samaras (bs1gr)                                  │
 │  DevOps:          [DevOps team]                                            │
 │  Business Owner:  [Project stakeholder]                                    │
 │  Support (24/7):  [On-call contact]                                        │

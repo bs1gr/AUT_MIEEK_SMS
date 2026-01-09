@@ -205,7 +205,7 @@ v1.15.1 has completed all technical validation and is **APPROVED FOR PRODUCTION 
 
 ## 📌 Key Contacts
 
-**Technical Lead**: Vasilis Kontogiannis (bs1gr)
+**Technical Lead**: Vasileios Samaras (bs1gr)
 - Email: [contact info]
 - Phone: [phone number]
 - Available: 24/7 during deployment window

@@ -31,12 +31,12 @@ v1.15.1 is fully tested, validated, and **ready for production deployment**. All
   - Audit logging (19 tests)
   - RBAC implementation (40+ tests)
   - All critical paths verified
-  
+
 - ✅ **Frontend Tests** - 1,249/1,249 tests passing (100%)
   - All 27 NotificationBell tests fixed and passing
   - Components, hooks, utilities tested
   - 100% local and CI test parity
-  
+
 - ✅ **E2E Tests** - 19/24 tests passing (100% critical path)
   - All critical user flows verified
   - Student CRUD, course management, auth flows tested
@@ -179,7 +179,7 @@ v1.15.1 is fully tested, validated, and **ready for production deployment**. All
 
 ## 📞 Contact & Escalation
 
-**Technical Lead**: Vasilis Kontogiannis (bs1gr)
+**Technical Lead**: Vasileios Samaras (bs1gr)
 **DevOps Contact**: [DevOps team]
 **Business Owner**: [Project stakeholder]
 
