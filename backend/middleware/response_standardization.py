@@ -36,7 +36,10 @@ class ResponseStandardizationMiddleware(BaseHTTPMiddleware):
 
         try:
             raw_body = response.body
-            payload = json.loads(raw_body.decode(response.charset or "utf-8")) if raw_body else None
+            if isinstance(raw_body, bytes):
+                payload = json.loads(raw_body.decode(response.charset or "utf-8")) if raw_body else None
+            else:
+                payload = None
         except Exception:
             # If we cannot safely parse, return as-is
             return response
@@ -49,8 +52,11 @@ class ResponseStandardizationMiddleware(BaseHTTPMiddleware):
             return response
 
         request_id = getattr(request.state, "request_id", None) or response.headers.get("X-Request-ID", "unknown")
-        api_version = settings.APP_VERSION or ResponseMeta.model_fields.get("version").default  # type: ignore[arg-type]
-        meta = ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=api_version)
+        version_field = ResponseMeta.model_fields.get("version")
+        api_version = settings.APP_VERSION or (version_field.default if version_field else "1.15.0")
+        if api_version is None:
+            api_version = "1.15.0"
+        meta = ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=str(api_version))
         wrapped = APIResponse(success=True, data=payload, error=None, meta=meta)
 
         # Preserve original headers (including caching and request ID) while replacing the body

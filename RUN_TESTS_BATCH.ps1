@@ -82,85 +82,89 @@ $results = @{
 $startTime = Get-Date
 
 # Run each batch
-Push-Location "backend"
-try {
-    for ($batchNum = 0; $batchNum -lt $totalBatches; $batchNum++) {
-        $batch = $batches[$batchNum]
-        $batchIndex = $batchNum + 1
+$batchCount = 0
+$passedCount = 0
+$failedCount = 0
 
-        Write-Host "`n┌─────────────────────────────────────────┐" -ForegroundColor Yellow
-        Write-Host "│ Batch $batchIndex of $totalBatches (Files: $($batch.Count))" -ForegroundColor Yellow
-        Write-Host "└─────────────────────────────────────────┘" -ForegroundColor Yellow
+foreach ($batch in $batches) {
+    $batchCount++
 
-        # Show files in this batch
-        foreach ($file in $batch) {
-            Write-Host "  • $($file.Name)" -ForegroundColor Gray
-        }
+    Write-Host "`n┌─────────────────────────────────────────┐" -ForegroundColor Yellow
+    Write-Host "│ Batch $batchCount of $totalBatches (Files: $($batch.Count))" -ForegroundColor Yellow
+    Write-Host "└─────────────────────────────────────────┘" -ForegroundColor Yellow
 
-        # Build pytest command with absolute paths
-        $testPaths = $batch | ForEach-Object { $_.FullName }
-        $testPathsStr = ($testPaths | ForEach-Object { "`"$_`"" }) -join " "
+    # Show files in this batch
+    foreach ($file in $batch) {
+        Write-Host "  • $($file.Name)" -ForegroundColor Gray
+    }
 
-        Write-Info "Running tests..."
+    # Build pytest command - just use relative names since we're in backend dir
+    $testFiles = @()
+    foreach ($file in $batch) {
+        $testFiles += "tests/$($file.Name)"
+    }
 
-        # Run pytest with progress
-        $batchStart = Get-Date
+    Write-Info "Running tests..."
+    $batchStart = Get-Date
 
+    # Change to backend directory for running tests
+    Push-Location "backend" -ErrorAction Stop | Out-Null
+
+    try {
         if ($Verbose) {
-            $output = python -m pytest $testPathsStr -v --tb=short 2>&1
+            $output = python -m pytest @testFiles -v --tb=short 2>&1
         } else {
-            $output = python -m pytest $testPathsStr -q --tb=line 2>&1
+            $output = python -m pytest @testFiles -q --tb=line 2>&1
         }
 
-        $batchDuration = (Get-Date) - $batchStart
         $exitCode = $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
 
-        # Parse output
-        $outputStr = $output -join "`n"
+    $batchDuration = (Get-Date) - $batchStart
 
-        # Extract test counts from pytest output
-        if ($outputStr -match "(\d+) passed") {
-            $passed = [int]$matches[1]
-            $results.PassedTests += $passed
-        }
-        if ($outputStr -match "(\d+) failed") {
-            $failed = [int]$matches[1]
-            $results.FailedTests += $failed
-        }
-        if ($outputStr -match "(\d+) skipped") {
-            $skipped = [int]$matches[1]
-            $results.SkippedTests += $skipped
-        }
+    # Parse output
+    $outputStr = $output -join "`n"
 
-        # Display output
-        Write-Host $outputStr
+    # Extract test counts from pytest output
+    $skipped = 0
+    if ($outputStr -match "(\d+) passed") {
+        $passed = [int]$matches[1]
+        $passedCount += $passed
+    }
+    if ($outputStr -match "(\d+) failed") {
+        $failed = [int]$matches[1]
+        $failedCount += $failed
+    }
+    if ($outputStr -match "(\d+) skipped") {
+        $skipped = [int]$matches[1]
+    }
 
-        # Batch result
-        if ($exitCode -eq 0) {
-            $results.PassedBatches++
-            Write-Success "Batch $batchIndex completed successfully in $([math]::Round($batchDuration.TotalSeconds, 1))s"
-        } else {
-            $results.FailedBatches++
-            $results.FailedFiles += $batch.Name
-            Write-Error "Batch $batchIndex failed in $([math]::Round($batchDuration.TotalSeconds, 1))s"
+    # Display output
+    Write-Host $outputStr
 
-            if ($FastFail) {
-                Write-Warning "FastFail enabled - stopping execution"
-                break
-            }
-        }
+    # Batch result
+    if ($exitCode -eq 0) {
+        Write-Success "Batch $batchCount completed successfully in $([math]::Round($batchDuration.TotalSeconds, 1))s"
+    } else {
+        $failedFiles += $batch.Name
+        Write-Error "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s"
 
-        # Small delay between batches to let system breathe
-        if ($batchIndex -lt $totalBatches) {
-            Write-Host "  Waiting 2 seconds before next batch..." -ForegroundColor DarkGray
-            Start-Sleep -Seconds 2
+        if ($FastFail) {
+            Write-Warning "FastFail enabled - stopping execution"
+            break
         }
     }
-} finally {
-    Pop-Location
+
+    # Small delay between batches to let system breathe
+    if ($batchCount -lt $totalBatches) {
+        Write-Host "  Waiting 2 seconds before next batch..." -ForegroundColor DarkGray
+        Start-Sleep -Seconds 2
+    }
 }
 
-$results.Duration = ((Get-Date) - $startTime).TotalSeconds
+$duration = ((Get-Date) - $startTime).TotalSeconds
 
 # Final summary
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -168,38 +172,25 @@ Write-Host "║          TEST EXECUTION SUMMARY        ║" -ForegroundColor Cya
 Write-Host "╚════════════════════════════════════════╝" -ForegroundColor Cyan
 
 Write-Host "`nBatches:" -ForegroundColor White
-Write-Host "  Total:   $($results.TotalBatches)" -ForegroundColor Gray
-Write-Success "  Passed:  $($results.PassedBatches)"
-if ($results.FailedBatches -gt 0) {
-    Write-Error "  Failed:  $($results.FailedBatches)"
-}
+Write-Host "  Total:   $totalBatches" -ForegroundColor Gray
+Write-Success "  Completed: $batchCount"
 
 Write-Host "`nTests:" -ForegroundColor White
-$totalTests = $results.PassedTests + $results.FailedTests + $results.SkippedTests
+$totalTests = $passedCount + $failedCount
 Write-Host "  Total:   $totalTests" -ForegroundColor Gray
-if ($results.PassedTests -gt 0) {
-    Write-Success "  Passed:  $($results.PassedTests)"
+if ($passedCount -gt 0) {
+    Write-Success "  Passed:  $passedCount"
 }
-if ($results.FailedTests -gt 0) {
-    Write-Error "  Failed:  $($results.FailedTests)"
-}
-if ($results.SkippedTests -gt 0) {
-    Write-Warning "  Skipped: $($results.SkippedTests)"
+if ($failedCount -gt 0) {
+    Write-Error "  Failed:  $failedCount"
 }
 
-Write-Host "`nDuration: $([math]::Round($results.Duration, 1))s" -ForegroundColor Gray
-
-if ($results.FailedFiles.Count -gt 0) {
-    Write-Host "`nFailed Files:" -ForegroundColor Red
-    foreach ($file in $results.FailedFiles) {
-        Write-Host "  • $file" -ForegroundColor Red
-    }
-}
+Write-Host "`nDuration: $([math]::Round($duration, 1))s" -ForegroundColor Gray
 
 Write-Host ""
 
 # Exit code
-if ($results.FailedBatches -eq 0 -and $results.FailedTests -eq 0) {
+if ($failedCount -eq 0) {
     Write-Success "All tests passed! 🎉"
     exit 0
 } else {
