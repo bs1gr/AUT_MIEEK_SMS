@@ -22,7 +22,7 @@ vi.mock('../../api/api', () => ({
 // Mock translation hook
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, params?: Record<string, any>) => {
+    t: (key: string, params?: Record<string, unknown>) => {
       const translations: Record<string, string> = {
         // Notifications namespace
         'notifications.title': 'Notifications',

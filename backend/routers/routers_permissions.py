@@ -7,13 +7,13 @@ Complements the existing routers_rbac.py with enhanced functionality.
 
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.models import Permission, Role, User, UserPermission
-from backend.rbac import has_permission, get_user_permissions
+from backend.rbac import has_permission, get_user_permissions, require_permission
 from backend.schemas.permissions import (
     PermissionCreate,
     PermissionUpdate,
@@ -33,7 +33,9 @@ router = APIRouter(prefix="/permissions", tags=["Permissions Management"])
 
 
 @router.get("/", response_model=list[PermissionListItem])
+@require_permission("permissions:view")
 async def list_permissions(
+    request: Request,
     resource: Optional[str] = Query(None, description="Filter by resource"),
     action: Optional[str] = Query(None, description="Filter by action"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
@@ -47,9 +49,6 @@ async def list_permissions(
     List all permissions with optional filtering.
     Requires 'permissions:view' permission.
     """
-    # Check permission (admin users bypass via has_permission checking roles)
-    if not has_permission(current_user, "permissions:view", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     query = db.query(Permission)
 
@@ -70,7 +69,9 @@ async def list_permissions(
 
 
 @router.get("/by-resource", response_model=list[PermissionsByResourceResponse])
+@require_permission("permissions:view")
 async def list_permissions_by_resource(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -78,8 +79,6 @@ async def list_permissions_by_resource(
     Get all permissions grouped by resource.
     Requires 'permissions:view' permission.
     """
-    if not has_permission(current_user, "permissions:view", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Get all active permissions
     permissions = (
@@ -100,7 +99,9 @@ async def list_permissions_by_resource(
 
 
 @router.get("/stats", response_model=PermissionStatsResponse)
+@require_permission("permissions:view")
 async def get_permission_stats(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -108,8 +109,6 @@ async def get_permission_stats(
     Get statistics about permissions.
     Requires 'permissions:view' permission.
     """
-    if not has_permission(current_user, "permissions:view", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     total = db.query(Permission).count()
     active = db.query(Permission).filter(Permission.is_active).count()
@@ -147,7 +146,9 @@ async def get_permission_stats(
 
 
 @router.get("/{permission_id}", response_model=PermissionDetail)
+@require_permission("permissions:view")
 async def get_permission(
+    request: Request,
     permission_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -156,8 +157,6 @@ async def get_permission(
     Get detailed information about a specific permission.
     Requires 'permissions:view' permission.
     """
-    if not has_permission(current_user, "permissions:view", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     if not permission:
@@ -167,17 +166,17 @@ async def get_permission(
 
 
 @router.post("/", response_model=PermissionDetail, status_code=status.HTTP_201_CREATED)
+@require_permission("permissions:manage")
 async def create_permission(
+    request: Request,
     permission_data: PermissionCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Create a new permission.
-    Requires 'permissions:create' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:create", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Check if permission with this key already exists
     existing = db.query(Permission).filter(Permission.key == permission_data.key).first()
@@ -226,7 +225,9 @@ async def create_permission(
 
 
 @router.patch("/{permission_id}", response_model=PermissionDetail)
+@require_permission("permissions:manage")
 async def update_permission(
+    request: Request,
     permission_id: int,
     permission_update: PermissionUpdate,
     current_user: User = Depends(get_current_user),
@@ -234,10 +235,8 @@ async def update_permission(
 ):
     """
     Update a permission's description or active status.
-    Requires 'permissions:edit' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:edit", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     if not permission:
@@ -257,18 +256,18 @@ async def update_permission(
 
 
 @router.delete("/{permission_id}", status_code=status.HTTP_204_NO_CONTENT)
+@require_permission("permissions:manage")
 async def delete_permission(
+    request: Request,
     permission_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Delete a permission (hard delete).
-    Requires 'permissions:delete' permission.
+    Requires 'permissions:manage' permission.
     Warning: This will cascade delete all role and user assignments!
     """
-    if not has_permission(current_user, "permissions:delete", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     if not permission:
@@ -281,17 +280,17 @@ async def delete_permission(
 
 
 @router.post("/users/grant", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def grant_user_permission(
+    request: Request,
     grant: UserPermissionGrant,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Grant a permission directly to a user (with optional expiration).
-    Requires 'permissions:assign' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:assign", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Validate user exists
     user = db.query(User).filter(User.id == grant.user_id).first()
@@ -332,17 +331,17 @@ async def grant_user_permission(
 
 
 @router.post("/users/revoke", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def revoke_user_permission(
+    request: Request,
     revoke: UserPermissionRevoke,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Revoke a direct user permission.
-    Requires 'permissions:revoke' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:revoke", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Find permission
     permission = db.query(Permission).filter(Permission.key == revoke.permission_key).first()
@@ -366,17 +365,17 @@ async def revoke_user_permission(
 
 
 @router.post("/roles/grant", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def grant_role_permission(
+    request: Request,
     grant: RolePermissionGrant,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Grant a permission to a role.
-    Requires 'permissions:assign' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:assign", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Validate role exists
     role = db.query(Role).filter(Role.name == grant.role_name).first()
@@ -411,17 +410,17 @@ async def grant_role_permission(
 
 
 @router.post("/roles/revoke", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def revoke_role_permission(
+    request: Request,
     revoke: RolePermissionRevoke,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Revoke a permission from a role.
-    Requires 'permissions:revoke' permission.
+    Requires 'permissions:manage' permission.
     """
-    if not has_permission(current_user, "permissions:revoke", db):
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     # Find role
     role = db.query(Role).filter(Role.name == revoke.role_name).first()
@@ -449,6 +448,7 @@ async def revoke_role_permission(
 
 @router.get("/users/{user_id}", response_model=UserPermissionsResponse)
 async def get_user_permissions_detail(
+    request: Request,
     user_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

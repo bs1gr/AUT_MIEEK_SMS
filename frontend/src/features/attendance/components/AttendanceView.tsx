@@ -904,10 +904,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                   max_score: 10.0,
                   notes: ''
                 }).then(res => {
-                  console.warn(`[Performance] POST response (fallback): success`);
-                  // Debug log: POST response data and key
-                  console.warn('[DEBUG] POST fallback response data:', res?.data);
-                  console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
                   // Update dailyPerformanceIds with new ID from response
                   if (res?.data?.id) {
                     setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -919,7 +915,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             });
         } else {
           // Always use POST if recordId is not valid
-          console.warn(`[Performance] POST /daily-performance - student: ${studentIdStr}, score: ${score}, recordId:`, recordId);
           return apiClient.post(`/daily-performance/`, {
             student_id: parseInt(studentIdStr, 10),
             course_id: selectedCourse,
@@ -929,10 +924,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             max_score: 10.0,
             notes: ''
           }).then(res => {
-            console.warn(`[Performance] POST response: success`);
-            // Debug log: POST response data and key
-            console.warn('[DEBUG] POST direct response data:', res?.data);
-            console.warn('[DEBUG] Setting dailyPerformanceIds for key:', key);
             // Update dailyPerformanceIds with new ID from response
             if (res?.data?.id) {
               setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
@@ -1013,11 +1004,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       skipInitial: true,
     }
   );
-
-    // Debug log: track autosave dependencies
-    useEffect(() => {
-      console.warn('[DEBUG] Autosave dependencies changed:', { attendanceRecords, dailyPerformance });
-    }, [attendanceRecords, dailyPerformance]);
 
   return (
     <div className="space-y-6">

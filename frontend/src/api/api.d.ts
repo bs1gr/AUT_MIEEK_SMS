@@ -270,7 +270,7 @@ declare module '*api.js' {
    * Extract and normalize API error responses
    * Handles both old format (detail string) and new format (error object).
    */
-  export function extractAPIError(errorResponse: any): {
+  export function extractAPIError(errorResponse: unknown): {
     message: string;
     code: string;
     details?: unknown;
@@ -283,7 +283,7 @@ declare module '*api.js' {
    * Extract API response data with type safety
    */
   export function extractAPIResponseData<T = unknown>(
-    response: any,
+    response: unknown,
     defaultValue?: T
   ): T;
 

@@ -2,9 +2,35 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** January 7, 2026 (v1.15.1 Released)
-**Version:** 1.15.1 ✅ Production Ready
-**Status:** Phase 1 Complete - See `docs/DOCUMENTATION_INDEX.md` for complete status
+**Last Updated:** January 9, 2026 (Documentation cleanup complete: 78 files organized, VERSION_HISTORY added)
+**Version:** 1.15.1 ✅ Production Ready + Phase 2 RBAC Backend Complete
+**Status:** Phase 1 Complete | Phase 2 RBAC Backend Complete | Documentation Cleanup Complete | Staging Deployment Pending
+**Current Branch**: `main`
+
+---
+
+## 📋 DOCUMENTATION CONSOLIDATION STATUS (Jan 9, 2026 - COMPLETE ✅)
+
+✅ **Consolidated & Active**:
+- `docs/DOCUMENTATION_INDEX.md` - Master index (authoritative)
+- `docs/VERSION_HISTORY.md` - Version tracking and release timeline (NEW)
+- `docs/plans/UNIFIED_WORK_PLAN.md` - Single source of truth for planning
+- `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Detailed Phase 2 reference
+- `docs/plans/PHASE2_DAILY_EXECUTION_PLAN.md` - Daily execution tracker
+- `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` - Complete operational guide
+- `docs/admin/RBAC_OPERATIONS_GUIDE.md` - Daily/weekly procedures
+
+✅ **Archived (78 files, Jan 9, 2026)**:
+- **Phase Reports (24 files)** → `docs/archive/phase-reports/`
+- **Audit Reports (7 files)** → `docs/archive/audit-reports/`
+- **Consolidation Reports (6 files)** → `docs/archive/consolidation-reports/`
+- **Release Workflow (2 files)** → `docs/archive/release-workflow-v1.12-1.13/`
+
+ℹ️ **In Progress**:
+- `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Ready to execute
+- Phase 2 Daily Execution Plan - Starting Jan 27, 2026
+
+---
 
 ## 🚀 Quick Start
 
@@ -51,7 +77,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.0.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ### For Operations
 
@@ -60,6 +86,13 @@ All documentation is organized under `docs/` into four main categories:
 - **Database migration?** → `docs/operations/DATABASE_MIGRATION_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
+
+### For Phase 2 RBAC & Administration (NEW - v1.15.1+!)
+
+- **Permission management?** → `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` (930 lines - complete workflows)
+- **RBAC operations?** → `docs/admin/RBAC_OPERATIONS_GUIDE.md` (1,050 lines - daily/weekly/monthly checklists)
+- **Permission matrix?** → `docs/admin/PERMISSION_MATRIX.md` (25 permissions, 148 endpoints)
+- **API permissions?** → `backend/API_PERMISSIONS_REFERENCE.md` (540 lines - all 79 endpoints)
 
 ### For Phase 2 Planning & Execution (NEW!)
 
@@ -334,10 +367,34 @@ docs/archive/
 
 ### Version
 
-- **Current:** 1.12.2
+- **Current:** 1.15.1
 - **Status:** Production Ready
-- **Release Date:** December 13, 2025
+- **Release Date:** January 7, 2026
 - **Repository:** github.com/bs1gr/AUT_MIEEK_SMS
+
+---
+
+## 📚 Archive Documentation
+
+**Location**: `docs/archive/` (organized by type)
+
+### Phase Reports Archive
+- **`docs/archive/phase-reports/`** - Complete phase documentation (root level)
+  - 7 root-level PHASE docs (Phase 1 summaries, reviews, team guides)
+  - `development-phase-reports/` - 11 development phase docs (Phase 1-3 consolidation reports)
+  - `planning-docs/` - 6 superseded planning documents (swimlanes, kickoffs, RBAC planning)
+
+### Release Workflow Archive
+- **`docs/archive/release-workflow-v1.12-1.13/`** - Legacy release documentation
+  - MID_PHASE_SUMMARY_v1.15.0.md - v1.15.0 release summary
+  - GITHUB_ISSUES_PHASE2.md - Phase 2 issue tracking (superseded)
+
+### How to Navigate Archives
+1. **Looking for historical context?** → Check `docs/archive/phase-reports/`
+2. **Need old release procedures?** → Check `docs/archive/release-workflow-v1.12-1.13/`
+3. **Want complete lineage?** → Use `DOCUMENTATION_INDEX.md` links to archive subdirectories
+
+**Note**: Archived documents are preserved for reference. They are not updated after archival. For current procedures, always use active documents in `docs/plans/`, `docs/deployment/`, `docs/admin/`, etc.
 
 ---
 
@@ -362,31 +419,31 @@ docs/archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.0.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.15.1.md`
 
 ---
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.15.0)
+### December 24, 2025 (v1.15.1)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
 - ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
-- ✅ Added release notes for v1.15.0
+- ✅ Added release notes for v1.15.1
 - ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.15.0/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.15.1/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.15.0
-**Last Updated:** December 24, 2025
+**Documentation Version:** v1.15.1
+**Last Updated:** January 8, 2026
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.15.0.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.15.1.

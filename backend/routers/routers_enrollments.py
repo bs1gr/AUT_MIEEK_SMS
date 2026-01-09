@@ -10,7 +10,7 @@ from backend.rate_limiting import (
     RATE_LIMIT_WRITE,
     limiter,
 )
-from backend.routers.routers_auth import optional_require_role
+from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.enrollments import (
     EnrollmentCreate,
@@ -31,10 +31,12 @@ router = APIRouter(
 # ===== Endpoints =====
 @router.get("/", response_model=PaginatedResponse[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
 def get_all_enrollments(
     request: Request,
     pagination: PaginationParams = Depends(),
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all course enrollments"""
     try:
@@ -46,7 +48,8 @@ def get_all_enrollments(
 
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
+@require_permission("courses:view")
+def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
     try:
         return EnrollmentService.list_course_enrollments(db, course_id, request)
     except HTTPException:
@@ -64,7 +67,8 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
 
 @router.get("/student/{student_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
+@require_permission("students:view", allow_self_access=True)
+def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
     """Get all course enrollments for a specific student"""
     try:
         return EnrollmentService.list_student_enrollments(db, student_id, request)
@@ -83,7 +87,8 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
 
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
 @limiter.limit(RATE_LIMIT_READ)
-def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
+@require_permission("courses:view")
+def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
     try:
         return EnrollmentService.list_enrolled_students(db, course_id, request)
     except HTTPException:
@@ -101,12 +106,13 @@ def list_enrolled_students(course_id: int, request: Request, db: Session = Depen
 
 @router.post("/course/{course_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
 def enroll_students(
     course_id: int,
     payload: EnrollmentCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     """
     Enroll multiple students in a course.
@@ -132,12 +138,13 @@ def enroll_students(
 
 @router.delete("/course/{course_id}/student/{student_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
 def unenroll_student(
     course_id: int,
     student_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     try:
         with transaction(db):

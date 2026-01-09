@@ -21,7 +21,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       stored === 'system'
         ? stored
         : 'light';
-    console.warn('[ThemeProvider] Initializing with theme:', initialTheme, 'from localStorage:', stored);
     return initialTheme;
   });
 
@@ -50,15 +49,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const resolved = resolveTheme();
 
-    console.warn('[ThemeProvider] Applying theme:', theme, '| Resolved to:', resolved);
-
     // Do not update effectiveTheme synchronously here (avoid setState inside effect)
 
     // Apply theme to document with robust null checks and Edge compatibility
     const root = typeof document !== 'undefined' ? document.documentElement : null;
     const body = typeof document !== 'undefined' ? document.body : null;
     if (!root || !body) {
-      console.warn('[ThemeProvider] document root or body is null, skipping theme application');
       return undefined;
     }
 
@@ -81,11 +77,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       // Light theme - ensure all theme classes are removed
       if (root.classList && (root.classList.contains('dark') || root.classList.contains('relaxing') || root.classList.contains('fancy'))) {
-        console.warn('[ThemeProvider] Failed to remove theme classes, forcing...');
         root.className = root.className.replace(/\b(dark|relaxing|fancy)\b/g, '').trim();
       }
       if (body.classList && (body.classList.contains('dark') || body.classList.contains('relaxing') || body.classList.contains('fancy'))) {
-        console.warn('[ThemeProvider] Failed to remove theme classes from body, forcing...');
         body.className = body.className.replace(/\b(dark|relaxing|fancy)\b/g, '').trim();
       }
       void root.offsetHeight;
@@ -94,18 +88,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Log actual state after applying
     setTimeout(() => {
       if (!root || !body) return;
-      console.warn(
-        '[ThemeProvider] After apply - html classes:',
-        root.className,
-        '| body classes:',
-        body.className,
-        '| has dark:',
-        root.classList.contains('dark'),
-        '| has relaxing:',
-        root.classList.contains('relaxing'),
-        '| has fancy:',
-        root.classList.contains('fancy')
-      );
     }, 0);
 
     // Listen for system theme changes when 'system' is selected
@@ -120,7 +102,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const mediaQuery: MaybeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (e: MediaQueryListEvent | MediaQueryList) => {
         const newResolved = ('matches' in e ? e.matches : mediaQuery.matches) ? 'dark' : 'light';
-        console.warn('[ThemeProvider] System theme changed to:', newResolved);
         setEffectiveTheme(newResolved);
         if (root.classList) root.classList.remove('dark', 'relaxing', 'fancy');
         if (body.classList) body.classList.remove('dark', 'relaxing', 'fancy');
@@ -170,7 +151,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       setEffectiveTheme(newTheme as 'light' | 'dark' | 'relaxing' | 'fancy');
     }
-    console.warn('[ThemeProvider] Theme set to:', newTheme);
   };
 
   return (

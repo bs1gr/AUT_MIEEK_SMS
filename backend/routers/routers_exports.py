@@ -489,7 +489,7 @@ from backend.security.permissions import optional_require_permission
 async def export_students_excel(
     request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_permission("exports.generate")),
+    current_user=Depends(optional_require_permission("exports:generate")),
 ):
     audit = AuditLogger(db)
     try:

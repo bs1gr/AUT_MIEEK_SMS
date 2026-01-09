@@ -45,7 +45,7 @@ class GradeAnalysis(BaseModel):
 # ========== DEPENDENCY INJECTION ==========
 from backend.config import settings
 from backend.db import get_session as get_db
-from backend.security.permissions import depends_on_permission
+from backend.rbac import require_permission
 
 
 def _normalize_date_range(
@@ -75,11 +75,12 @@ def _normalize_date_range(
 
 @router.post("/", response_model=GradeResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
-def create_grade(
+@require_permission("grades:edit")
+async def create_grade(
     request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Create a new grade record.
@@ -115,7 +116,8 @@ def create_grade(
 
 @router.get("/", response_model=PaginatedResponse[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def get_all_grades(
+@require_permission("grades:view")
+async def get_all_grades(
     request: Request,
     pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
@@ -125,7 +127,7 @@ def get_all_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("grades.read", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Get all grades with optional filtering.
@@ -163,6 +165,7 @@ def get_all_grades(
 
 @router.get("/student/{student_id}", response_model=List[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 def get_student_grades(
     request: Request,
     student_id: int,
@@ -171,6 +174,7 @@ def get_student_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
@@ -193,6 +197,7 @@ def get_student_grades(
 
 @router.get("/course/{course_id}", response_model=List[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
 def get_course_grades(
     request: Request,
     course_id: int,
@@ -200,6 +205,7 @@ def get_course_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     """Get all grades for a course"""
     try:
@@ -220,7 +226,8 @@ def get_course_grades(
 
 @router.get("/{grade_id}", response_model=GradeResponse)
 @limiter.limit(RATE_LIMIT_READ)
-def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
+@require_permission("grades:view")
+def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db), current_user=None):
     """
     Get a single grade by its ID.
     """
@@ -238,12 +245,13 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{grade_id}", response_model=GradeResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-def update_grade(
+@require_permission("grades:edit")
+async def update_grade(
     request: Request,
     grade_id: int,
     grade_data: GradeUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("grades.write", "admin", "teacher")),
+    current_user=None,
 ):
     """
     Update a grade record.
@@ -263,11 +271,12 @@ def update_grade(
 
 @router.delete("/{grade_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
-def delete_grade(
+@require_permission("grades:delete")
+async def delete_grade(
     request: Request,
     grade_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(depends_on_permission("grades.write", "admin")),
+    current_user=None,
 ):
     """Delete a grade record"""
     try:
@@ -283,7 +292,11 @@ def delete_grade(
 
 
 @router.get("/analysis/student/{student_id}/course/{course_id}")
-def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
+def get_grade_analysis(
+    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db), current_user=None
+):
     """Get grade analysis for a student in a course"""
     try:
         (Grade,) = import_names("models", "Grade")

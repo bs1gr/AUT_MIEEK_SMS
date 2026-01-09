@@ -1276,7 +1276,7 @@ async def import_preview(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_permission("imports.preview")),
+    current_user=Depends(optional_require_permission("imports:preview")),
 ) -> ImportPreviewResponse:
     """Preview/validate an import without committing changes.
 
@@ -1707,7 +1707,7 @@ async def import_execute(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_permission("imports.execute")),
+    current_user=Depends(optional_require_permission("imports:execute")),
 ):
     """Create an import job (validates inputs and returns job ID)."""
     from backend.services.job_manager import JobManager

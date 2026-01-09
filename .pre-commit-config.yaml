@@ -16,6 +16,26 @@ repos:
         language: system
         files: ^scripts/operator/.*\.(ps1|sh|bat)$
         pass_filenames: true
+      - id: validate-rbac-decorators
+        name: "RBAC: Validate decorator usage consistency"
+        entry: python scripts/validate_rbac_decorators.py
+        language: system
+        files: ^backend/routers/.*\.py$
+        pass_filenames: false
+        stages: [commit]
+      - id: validate-migrations
+        name: "Database: Validate migration consistency"
+        entry: python scripts/validate_migrations.py
+        language: system
+        files: ^backend/(models\.py|migrations/).*$
+        pass_filenames: false
+        stages: [commit]
+      - id: validate-deployment-readiness
+        name: "Deployment: Validate readiness checklist"
+        entry: python scripts/validate_deployment_readiness.py
+        language: system
+        pass_filenames: false
+        stages: [manual]  # Run via: pre-commit run --hook-stage manual
 
   # Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit

@@ -65,7 +65,7 @@ export class NotificationWebSocketClient {
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
-          console.log('[WebSocket] Connected to notifications server');
+          console.warn('[WebSocket] Connected to notifications server');
           this.isConnecting = false;
           this.reconnectCount = 0;
 
@@ -80,7 +80,7 @@ export class NotificationWebSocketClient {
         this.ws.onmessage = (event) => {
           try {
             const notification = JSON.parse(event.data) as NotificationPayload;
-            console.log('[WebSocket] Received notification:', notification);
+            console.warn('[WebSocket] Received notification:', notification);
             this.options.onNotification(notification);
           } catch (error) {
             console.error('[WebSocket] Failed to parse message:', error);
@@ -95,7 +95,7 @@ export class NotificationWebSocketClient {
         };
 
         this.ws.onclose = () => {
-          console.log('[WebSocket] Connection closed');
+          console.warn('[WebSocket] Connection closed');
           this.isConnecting = false;
           this.options.onDisconnect();
           this.attemptReconnect();
@@ -121,7 +121,7 @@ export class NotificationWebSocketClient {
       this.ws = null;
     }
 
-    console.log('[WebSocket] Disconnected');
+    console.warn('[WebSocket] Disconnected');
   }
 
   /**
@@ -134,7 +134,7 @@ export class NotificationWebSocketClient {
     }
 
     const delay = this.options.reconnectInterval * Math.pow(1.5, this.reconnectCount);
-    console.log(`[WebSocket] Attempting to reconnect in ${delay}ms (attempt ${this.reconnectCount + 1})`);
+    console.warn(`[WebSocket] Attempting to reconnect in ${delay}ms (attempt ${this.reconnectCount + 1})`);
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectCount++;

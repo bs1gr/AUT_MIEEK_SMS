@@ -52,7 +52,6 @@ export function NotificationBell({ authToken }: NotificationBellProps) {
   // When real-time notifications arrive, refetch unread count and notification list
   useEffect(() => {
     if (realtimeNotifications.length > 0) {
-      console.log('[NotificationBell] Real-time notification received, refetching data');
       refetch(); // Refetch unread count
       queryClient.invalidateQueries({ queryKey: ['notifications'] }); // Invalidate notification list
     }

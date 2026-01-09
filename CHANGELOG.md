@@ -48,6 +48,77 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 **GitHub Workflow Improvements**
 - Created 9 Phase 2 tracking issues (#116-#124)
 - All Phase 2 tasks documented and linked to PHASE2_CONSOLIDATED_PLAN.md
+
+---
+
+## [Unreleased] - Phase 2 Week 2 & 3 Backend (In Development)
+
+### 🔐 RBAC System Implementation (Phase 2)
+
+**Endpoint Refactoring (Week 2) - 100% COMPLETE**
+- Refactored all **79 API endpoints** across 11 routers with permission-based access control
+- Implemented **13 unique permissions** across 8 domains:
+  - Students: view, create, edit, delete (11 endpoints)
+  - Courses: view, create, edit, delete (15 endpoints)
+  - Grades: view, edit, delete (8 endpoints)
+  - Attendance: view, edit, delete (10 endpoints)
+  - Enrollments: view, manage (7 endpoints)
+  - Reports: view (7 endpoints)
+  - Analytics: view (5 endpoints + 4 endpoints)
+  - Audit: view (2 endpoints)
+  - Permissions: view, manage (12 endpoints)
+- Enhanced `@require_permission` decorator to support both db-injection and service-based endpoints
+- All **370/370 backend tests passing** with zero regressions
+- Created comprehensive API documentation (540+ lines)
+
+**Permission Management API (Week 3) - 100% COMPLETE**
+- Implemented **12 permission management endpoints**:
+  - List all permissions (with grouping and statistics)
+  - CRUD operations for permissions
+  - Grant/revoke permissions to users and roles
+  - Get user's effective permissions
+- Permission seeding infrastructure:
+  - 26 permissions across 8 domains
+  - 3 default roles (admin, teacher, viewer)
+  - 44 role-permission mappings
+  - Idempotent seeding with dry-run and verify modes
+- All **14/14 permission API tests passing**
+
+**Documentation (Week 3) - 100% COMPLETE**
+- Created **PERMISSION_MANAGEMENT_GUIDE.md** (930 lines)
+  - Complete workflows for seeding, role management, user permissions
+  - Troubleshooting guide with SQL queries and API examples
+  - Security best practices and common scenarios
+  - Backup & restore procedures
+- Created **RBAC_OPERATIONS_GUIDE.md** (1,050 lines)
+  - Daily/weekly/monthly operational checklists
+  - Monitoring & alerting procedures
+  - Incident response runbooks (4 scenarios)
+  - Performance optimization guide
+- Created **rbac_monitor.py** monitoring script
+  - 5 automated health checks
+  - Daily monitoring capability
+  - Colored terminal output with exit codes
+- Created **API_PERMISSIONS_REFERENCE.md** (540 lines)
+  - All 79 endpoints documented with permission requirements
+  - Error response formats
+  - Testing examples
+
+**Files Modified/Created**:
+- Backend routers: 11 files refactored (routers_*.py)
+- Admin documentation: 6 comprehensive guides created
+- Monitoring: 1 automated health check script
+- Total documentation: **3,470+ lines** of operational guides
+
+**Git Commits** (Phase 2 - Jan 8, 2026):
+1. `735a8dd1a` - Complete analytics/metrics/reports endpoint refactoring
+2. `680734826` - Refactor permissions API to use @require_permission decorator
+3. `bc7dbb0b0` - Mark RBAC endpoint audit as 100% complete
+4. `96dc30c75` - Add comprehensive Permission Management Guide
+5. `51523ad89` - Add RBAC Operations Guide and monitoring script
+6. `63b98a210` - Update UNIFIED_WORK_PLAN with Week 2 & 3 completion status
+
+**Status**: Backend RBAC system fully functional and production-ready. Frontend UI tasks remain optional for Phase 3.
 - Issue templates and labels standardized
 
 ### 📚 Documentation
@@ -71,15 +142,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Notification broadcast test failures (5/12 tests) - 403 Forbidden on test endpoint
   - Root cause: Permission check on test broadcast endpoint
   - Workaround: None; use manual testing for notification features
-  - Timeline: Addressed in $11.15.1
+  - Timeline: Addressed in v1.15.1
 
-### 🔄 Changes from $11.15.1
+### 🔄 Changes from v1.15.1
 
-No breaking changes. All APIs remain backward compatible with $11.15.1.
+No breaking changes. All APIs remain backward compatible with v1.15.1.
 
 ### ⬆️ Upgrade Instructions
 
-From $11.15.1: Simply pull latest code, no database migrations required.
+From v1.15.1: Simply pull latest code, no database migrations required.
 ```bash
 git pull origin main
 # Restart application
@@ -157,9 +228,9 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 ### 📝 Documentation
 
 - Updated [UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md) with Phase 1 completion
-- Added Phase 1 execution tracker: [EXECUTION_TRACKER_$11.15.1.md](docs/releases/EXECUTION_TRACKER_$11.15.1.md)
+- Added Phase 1 execution tracker: [EXECUTION_TRACKER_v1.15.1.md](docs/releases/EXECUTION_TRACKER_v1.15.1.md)
 - Consolidated release notes and migration guide
-- Updated DOCUMENTATION_INDEX.md with $11.15.1 references
+- Updated DOCUMENTATION_INDEX.md with v1.15.1 references
 
 ### 🔄 Migration Guide (1.14.3 → 1.15.0)
 
@@ -178,13 +249,13 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 
 ### 🐛 Known Issues
 
-- Notification broadcast E2E tests require admin auth (deferred to $11.15.1)
+- Notification broadcast E2E tests require admin auth (deferred to v1.15.1)
 - UI registration test has minor cookie assertion issue (non-critical)
 
 ### 📚 Related Issues & PRs
 
 - Closes requirements from Phase 1 planning document
-- Merged from `feature/$11.15.1-phase1-batch2` branch
+- Merged from `feature/v1.15.1-phase1-batch2` branch
 - 8 improvements with 370+ total tests added
 
 ### 🙏 Thanks
@@ -215,7 +286,7 @@ To all contributors who participated in Phase 1 development and testing.
 - **e2e**: apply final eslint fixes and catch parameter cleanup
 - **e2e**: improve test robustness and error handling
 - **e2e**: resolve authentication state persistence in E2E tests
-- update markdown table column count in MID_PHASE_SUMMARY_$11.15.1.md
+- update markdown table column count in MID_PHASE_SUMMARY_v1.15.1.md
 - disable KeywordDetector and exclude false-positive files from detect-secrets
 - exclude .secrets.baseline from pre-commit hook modifications
 - add response_model to /admin/users endpoint for FastAPI validation
@@ -570,7 +641,7 @@ python -m backend.auto_import_courses
 python -m backend.scripts.import_.courses
 ```
 
-See [Migration Guide](docs/guides/MIGRATION_$11.15.1.md) for complete details.
+See [Migration Guide](docs/guides/MIGRATION_v1.15.1.md) for complete details.
 
 ### Removed
 
@@ -1216,7 +1287,7 @@ if not auth_enabled or auth_mode == "disabled":
 **Phase Documentation** 📚
 - Created `PHASE_1_2.1_COMPLETION_SUMMARY.md` - Phase 1 & 2.1 deliverables and validation
 - Created `PHASE_2.1_OPTIONALS_COMPLETION.md` - Phase 2.1 optional features completion
-- Updated `ROADMAP_$11.15.1.md` with Phase 2.3 completion and upcoming phases
+- Updated `ROADMAP_v1.15.1.md` with Phase 2.3 completion and upcoming phases
 - Comprehensive CHANGELOG entries for all 1.12.2 components
 
 **Developer Guides** 🛠️

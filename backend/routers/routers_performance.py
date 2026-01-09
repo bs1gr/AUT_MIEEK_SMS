@@ -13,10 +13,10 @@ from backend.db_utils import transaction
 from backend.errors import internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
+from backend.rbac import require_permission
 from backend.services.daily_performance_service import DailyPerformanceService
 from backend.db_utils import get_by_id_or_404
 
-from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +61,12 @@ class DailyPerformanceResponse(BaseModel):
 
 @router.get("/{id}", response_model=DailyPerformanceResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
 def get_daily_performance_by_id(
     id: int = Path(..., description="DailyPerformance record ID"),
     request: Request = None,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     try:
         import_names("models", "DailyPerformance")
@@ -85,11 +87,12 @@ def get_daily_performance_by_id(
 
 @router.post("/", response_model=DailyPerformanceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
 def create_daily_performance(
     request: Request,
     performance: DailyPerformanceCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     try:
         # Preserve error injection points used by tests
@@ -113,12 +116,13 @@ def create_daily_performance(
 
 @router.put("/{id}", response_model=DailyPerformanceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
 def update_daily_performance(
     id: int = Path(..., description="DailyPerformance record ID"),
     performance: DailyPerformanceUpdate = None,
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
+    current_user=None,
 ):
     """Update an existing daily performance record."""
     try:
@@ -142,7 +146,8 @@ def update_daily_performance(
 
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
-def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db)):
+@require_permission("students:view", allow_self_access=True)
+def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
     try:
         # Preserve error injection point used by tests
         import_names("models", "DailyPerformance")
@@ -163,11 +168,13 @@ def get_student_daily_performance(student_id: int, request: Request, db: Session
     response_model=List[DailyPerformanceResponse],
 )
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
 def get_student_course_daily_performance(
     student_id: int,
     course_id: int,
     request: Request,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     try:
         # Preserve error injection point used by tests
@@ -185,11 +192,14 @@ def get_student_course_daily_performance(
 
 
 @router.get("/date/{date_str}/course/{course_id}", response_model=List[DailyPerformanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
 def get_course_daily_performance_by_date(
     date_str: str,
     course_id: int,
     request: Request,
     db: Session = Depends(get_db),
+    current_user=None,
 ):
     try:
         # Preserve error injection point used by tests

@@ -71,13 +71,17 @@ const CourseEvaluationRules = () => {
   }, [courses, selectedCourse]);
 
   useEffect(() => {
-    loadCourses();
+    void (async () => {
+      await loadCourses();
+    })();
   }, [loadCourses]);
 
   useEffect(() => {
-    if (selectedCourse) {
-      loadEvaluationRules();
-    }
+    void (async () => {
+      if (selectedCourse) {
+        await loadEvaluationRules();
+      }
+    })();
   }, [selectedCourse, loadEvaluationRules]);
 
   const addRule = useCallback(() => {
@@ -204,7 +208,14 @@ const CourseEvaluationRules = () => {
           aria-label={t('selectCourseForRules')}
           title={t('selectCourseForRules')}
           value={selectedCourse || ''}
-          onChange={(e) => setSelectedCourse(e.target.value ? parseInt(e.target.value) : null)}
+          onChange={(e) => {
+            const value = e.target.value ? parseInt(e.target.value) : null;
+            setSelectedCourse(value);
+            if (!value) {
+              setEvaluationRules([]);
+              setAbsencePenalty(0);
+            }
+          }}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">{t('chooseCourse')}</option>

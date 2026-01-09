@@ -1,0 +1,20 @@
+[run_migrations] ENTERLogger name: backend.lifespan
+2026-01-09 10:26:32,011 - backend.security.csrf - INFO - [-] - CSRF protection disabled via settings; skipping installation
+
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+2026-01-09 10:26:32,064 - backend.router_registry - INFO - [-] - Admin router registered successfully
+2026-01-09 10:26:32,266 - backend.router_registry - INFO - [-] - Auth router registered successfully
+2026-01-09 10:26:32,946 - backend.router_registry - INFO - [-] - Registered routers: Students, Admin, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, Highlights, AdminOps, Sessions, Diagnostics, Reports, Jobs, Audit, RBAC, Permissions Management, Metrics, Feedback, Notifications, Control
+2026-01-09 10:26:32,970 - backend.middleware.prometheus_metrics - INFO - [-] - Prometheus metrics instrumentation completed
+2026-01-09 10:26:32,970 - backend.middleware.prometheus_metrics - INFO - [-] - Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)
+2026-01-09 10:26:32,972 - backend.app_factory - INFO - [-] - SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.
+2026-01-09 10:26:32,972 - backend.app_factory - INFO - [-] - έεΖ /metrics endpoint registered
+2026-01-09 10:26:32,972 - backend.app_factory - INFO - [-] - FastAPI application created successfully (version=1.15.1)
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2026-01-09 10:26:32,973 - backend.lifespan - INFO - [-] - έεΖ Query profiler registered
+2026-01-09 10:26:32,973 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.

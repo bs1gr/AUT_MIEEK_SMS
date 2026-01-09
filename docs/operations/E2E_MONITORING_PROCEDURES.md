@@ -31,7 +31,7 @@
 ### Check: Baseline Compliance
 
 ```
-Expected Baseline ($11.15.1):
+Expected Baseline (v1.15.1):
 - Critical tests: 19 passing (100%)
 - Overall tests: 19/24 passing (79%)
 - Flakiness: 0% (no inconsistent failures)

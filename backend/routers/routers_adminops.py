@@ -54,7 +54,7 @@ def _get_db_file() -> str:
 @limiter.limit(RATE_LIMIT_HEAVY)
 def backup_database(
     request: Request,
-    current_user=Depends(optional_require_permission("adminops.backup")),
+    current_user=Depends(optional_require_permission("adminops:backup")),
 ):
     try:
         db_file = _get_db_file()
@@ -84,7 +84,7 @@ def backup_database(
 def restore_database(
     request: Request,
     file: UploadFile = File(...),
-    current_user=Depends(optional_require_permission("adminops.restore")),
+    current_user=Depends(optional_require_permission("adminops:restore")),
 ):
     """
     Restore the SQLite database from an uploaded .db file.
@@ -134,7 +134,7 @@ def clear_database(
     request: Request,
     payload: ClearPayload,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_permission("adminops.clear")),
+    current_user=Depends(optional_require_permission("adminops:clear")),
 ):
     if not payload.confirm:
         raise http_error(
