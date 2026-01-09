@@ -22,14 +22,14 @@ repos:
         language: system
         files: ^backend/routers/.*\.py$
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
       - id: validate-migrations
         name: "Database: Validate migration consistency"
         entry: python scripts/validate_migrations.py
         language: system
         files: ^backend/(models\.py|migrations/).*$
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
       - id: validate-deployment-readiness
         name: "Deployment: Validate readiness checklist"
         entry: python scripts/validate_deployment_readiness.py
