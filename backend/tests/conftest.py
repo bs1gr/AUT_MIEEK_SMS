@@ -229,8 +229,11 @@ def db(setup_db):
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
     yield session
+    # Cleanup: Close session first, then rollback transaction, then close connection
+    # This order prevents SQLAlchemy warnings about transaction deassociation
     session.close()
-    transaction.rollback()
+    if transaction.is_active:
+        transaction.rollback()
     connection.close()
 
 
