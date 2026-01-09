@@ -6,6 +6,23 @@
 
 ---
 
+## 🚨 MANDATORY FIRST: Read Policy Enforcement
+
+**⚠️ BEFORE YOU DO ANYTHING:**
+Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 minutes)
+
+**Why:** Prevents system crashes, data corruption, and wasted work.
+
+**Critical Policies:**
+- ❌ **NEVER** run `pytest -q` directly → Use `.\RUN_TESTS_BATCH.ps1`
+- ❌ **NEVER** create new TODO/planning docs → Update `UNIFIED_WORK_PLAN.md`
+- ❌ **NEVER** edit DB schema directly → Use Alembic migrations
+- ✅ **ALWAYS** run `COMMIT_READY.ps1 -Quick` before committing
+
+**If you skip this:** You might crash VS Code, corrupt data, or duplicate work.
+
+---
+
 ## ⚡ The TL;DR
 
 1. **Open**: `docs/ACTIVE_WORK_STATUS.md`

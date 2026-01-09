@@ -10,6 +10,22 @@
 **Location:** Limassol, Cyprus
 **Developer:** Teacher at ΜΙΕΕΚ
 
+---
+
+## 🤖 For AI Agents & Automation
+
+**⚠️ MANDATORY:** All AI agents must read [`docs/AGENT_POLICY_ENFORCEMENT.md`](docs/AGENT_POLICY_ENFORCEMENT.md) before working on this project.
+
+**Critical Policies:**
+- ❌ NEVER run `pytest -q` directly → Use `.\RUN_TESTS_BATCH.ps1` (prevents crashes)
+- ❌ NEVER create new TODO/planning docs → Update `UNIFIED_WORK_PLAN.md`
+- ❌ NEVER edit DB schema directly → Use Alembic migrations
+- ✅ ALWAYS run `COMMIT_READY.ps1 -Quick` before committing
+
+**Quick Start for Agents:** [`docs/AGENT_QUICK_START.md`](docs/AGENT_QUICK_START.md) (5 min onboarding)
+
+---
+
 ## 📦 Quick Start
 
 ### **For End Users** — One-Click Installation ⭐ NEW

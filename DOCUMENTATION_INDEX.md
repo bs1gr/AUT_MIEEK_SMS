@@ -47,6 +47,7 @@
 
 **Returning developer?** Go straight to: `docs/DOCUMENTATION_INDEX.md`
 **AI Agent picking up work?** → **`AGENT_QUICK_START.md`** (5 minutes to understand state + continue)
+**⚠️ MANDATORY FOR ALL AGENTS** → **`docs/AGENT_POLICY_ENFORCEMENT.md`** (10 minutes - prevents crashes & duplication)
 ---
 
 ## 📍 Main Documentation Index
@@ -117,6 +118,7 @@ All documentation is organized under `docs/` into four main categories:
 | File | Purpose | Audience |
 |------|---------|----------|
 | `AGENT_QUICK_START.md` | **How AI agents pick up work without duplication** | **Agents/Automation** |
+| `docs/AGENT_POLICY_ENFORCEMENT.md` | **⚠️ MANDATORY policies - prevents crashes & duplication** | **ALL AGENTS (CRITICAL)** |
 | `START_HERE.md` | First-time user guide | Everyone |
 | `README.md` | Complete project overview | Everyone |
 | `CHANGELOG.md` | Version history and changes | Developers |
