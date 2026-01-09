@@ -166,7 +166,7 @@ describe('NotificationBell', () => {
     it('should refetch unread count every 30 seconds', async () => {
       vi.mocked(api.get).mockResolvedValue({ data: { unread_count: 1 } });
 
-      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1);
@@ -275,7 +275,7 @@ describe('NotificationBell', () => {
         .mockResolvedValueOnce({ data: { unread_count: 3 } })
         .mockResolvedValueOnce({ data: { unread_count: 7 } });
 
-      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('3')).toBeInTheDocument();
@@ -296,7 +296,7 @@ describe('NotificationBell', () => {
         .mockResolvedValueOnce({ data: { unread_count: 5 } })
         .mockResolvedValueOnce({ data: { unread_count: 0 } });
 
-      const { queryClient: _queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
+      const { queryClient } = renderWithProviders(<NotificationBell authToken="test-token" />);
 
       await waitFor(() => {
         expect(screen.getByText('5')).toBeInTheDocument();
