@@ -54,18 +54,21 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 
 ---
 
-### Policy 2: Planning - Single Source of Truth ONLY
+### Policy 2: Planning & Versioning - Single Source of Truth ONLY
 
 **❌ FORBIDDEN:**
 - Creating new TODO.md files
 - Creating new planning documents
 - Creating new status trackers
 - Creating parallel plans or roadmaps
+- Using incorrect version numbers (e.g., v11.x.x, v2.x.x)
 
 **✅ REQUIRED:**
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
+- Verify version from `VERSION` file (current: v1.15.1)
+- Use v1.MINOR.PATCH format consistently
 
 **Why This Exists:**
 - Multiple plans create confusion
@@ -208,11 +211,13 @@ function MyComponent() {
 **🔴 CRITICAL (System Damage)**
 - Running full pytest suite → **Crashes VS Code**
 - Direct DB schema edits → **Data corruption**
+- Using wrong version numbers (v11.x.x) → **Breaks version tracking**
 - **Action:** Immediate rollback + documentation update
 
 **🟠 HIGH (Work Duplication)**
 - Creating duplicate plans → **Wasted effort**
 - Skipping pre-commit checks → **Broken builds**
+- Incorrect branch names → **Merge conflicts**
 - **Action:** Revert changes + follow correct process
 
 **🟡 MEDIUM (Quality Issues)**
@@ -232,6 +237,8 @@ function MyComponent() {
 |------|----------------|-----------|
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
+| **Check version** | Read `VERSION` file (v1.15.1) | Invent version numbers |
+| **Use version** | `v1.15.1` format | `v11.x.x` or `v2.x.x` |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |
@@ -302,6 +309,7 @@ An agent has successfully integrated when they:
 ✅ **Read all entry documentation** (10 min investment)
 ✅ **Run tests using batch runner** (no crashes)
 ✅ **Update work plan** (no duplicate trackers)
+✅ **Use correct versioning** (v1.15.1 from VERSION file)
 ✅ **Use Alembic migrations** (no direct DB edits)
 ✅ **Use i18n for all strings** (no hardcoded text)
 ✅ **Run pre-commit checks** (clean commits)

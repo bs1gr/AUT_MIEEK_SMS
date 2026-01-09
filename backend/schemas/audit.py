@@ -98,5 +98,6 @@ class AuditLogListResponse(BaseModel):
 
     logs: list[AuditLogResponse] = Field(..., description="Audit log entries")
     total: int = Field(..., description="Total number of logs")
-    skip: int = Field(..., description="Number of logs skipped")
-    limit: int = Field(..., description="Max items returned")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Items per page")
+    has_next: bool = Field(..., description="Whether more pages exist")

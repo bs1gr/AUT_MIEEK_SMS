@@ -71,14 +71,12 @@ async def list_audit_logs(
     offset = (page - 1) * page_size
 
     logs = query.order_by(desc(AuditLog.timestamp)).offset(offset).limit(page_size).all()
-    has_next = offset + len(logs) < total
 
     return AuditLogListResponse(
         logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        page=page,
-        page_size=page_size,
-        has_next=has_next,
+        skip=offset,
+        limit=page_size,
     )
 
 
@@ -116,12 +114,10 @@ async def get_user_audit_logs(
     total = query.count()
     offset = (page - 1) * page_size
     logs = query.order_by(desc(AuditLog.timestamp)).offset(offset).limit(page_size).all()
-    has_next = offset + len(logs) < total
 
     return AuditLogListResponse(
         logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        page=page,
-        page_size=page_size,
-        has_next=has_next,
+        skip=offset,
+        limit=page_size,
     )

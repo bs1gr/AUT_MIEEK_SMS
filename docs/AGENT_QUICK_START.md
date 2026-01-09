@@ -120,7 +120,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 
 Example:
 ```
-Blocker: "Not clear if we should commit to main or feature/$11.14.2-phase1"
+Blocker: "Not clear if we should commit to main or feature branch"
 Owner: "Agent-Copilot, 2026-01-05 18:00 UTC"
 Related: PHASE1-002
 Escalation: Tech lead must clarify branch strategy

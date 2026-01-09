@@ -26,15 +26,22 @@ Before starting ANY work, you MUST:
     - Do not create ad‑hoc PR docs, status files, or parallel plans; reference `DOCUMENTATION_INDEX.md` and update the unified plan.
     - Always consult documentation properties and AI agent obligations before applying automated fixes or creating artifacts.
 
-**Current Development Phase**: Phase 1 Completion (v1.15.0) - 50% complete
-**Active Branch**: `feature/v11.14.3-phase1-batch2`
-**Next Critical Tasks**: Audit logging implementation, E2E test suite fixes, Frontend API client update
+**Current Development Phase**: Phase 1 Complete, Phase 2 RBAC Backend Complete (v1.15.1)
+**Active Branch**: `main` (deployed to staging, production pending)
+**Current Version**: v1.15.1 (see VERSION file)
+**Next Critical Tasks**: Staging deployment validation, production deployment planning
 
 ---
 
 ## �🚀 Quick Start for AI Agents
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.13.0** (see VERSION file).
+**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.15.1** (see VERSION file).
+
+**⚠️ CRITICAL: Version Numbering**
+- Current version: **v1.15.1** (stored in `VERSION` file)
+- Format: **v1.MINOR.PATCH** (NOT v11.x.x or v2.x.x)
+- Source of truth: `VERSION` file + `docs/plans/UNIFIED_WORK_PLAN.md`
+- Never invent version numbers - always check these files first
 
 **Most common tasks:**
 
@@ -86,11 +93,13 @@ alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migratio
 3. ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/main.py`)
 4. ❌ Never create new TODO/planning docs → Update [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) instead
 5. ❌ **Never run full pytest suite directly** → **ALWAYS use `.\RUN_TESTS_BATCH.ps1`** (prevents VS Code crashes)
-6. ✅ Always check [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) before starting work
-7. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
-8. ✅ Always add translations for both EN and EL (TypeScript modular structure)
-9. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
-10. ✅ **Always use batch test runner** for backend tests: `.\RUN_TESTS_BATCH.ps1`
+6. ❌ **Never use incorrect versioning** → **ALWAYS use v1.x.x format** (check VERSION file and UNIFIED_WORK_PLAN.md)
+7. ✅ Always check [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) before starting work
+8. ✅ Always verify version from VERSION file (currently v1.15.1)
+9. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
+10. ✅ Always add translations for both EN and EL (TypeScript modular structure)
+11. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
+12. ✅ **Always use batch test runner** for backend tests: `.\RUN_TESTS_BATCH.ps1`
 
 **File locations you'll need:**
 - Models: `backend/models.py` (with indexes on email, student_id, course_code, date, semester)
