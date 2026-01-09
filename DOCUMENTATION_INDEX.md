@@ -2,7 +2,7 @@
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
 
-**Last Updated:** January 9, 2026 (Documentation archival complete, 24 files organized)
+**Last Updated:** January 9, 2026 (Documentation cleanup complete: 78 files organized, VERSION_HISTORY added)
 **Version:** 1.15.1 ✅ Production Ready + Phase 2 RBAC Backend Complete
 **Status:** Phase 1 Complete | Phase 2 RBAC Backend Complete | Documentation Cleanup Complete | Staging Deployment Pending
 **Current Branch**: `main`
@@ -13,21 +13,18 @@
 
 ✅ **Consolidated & Active**:
 - `docs/DOCUMENTATION_INDEX.md` - Master index (authoritative)
+- `docs/VERSION_HISTORY.md` - Version tracking and release timeline (NEW)
 - `docs/plans/UNIFIED_WORK_PLAN.md` - Single source of truth for planning
 - `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Detailed Phase 2 reference
 - `docs/plans/PHASE2_DAILY_EXECUTION_PLAN.md` - Daily execution tracker
 - `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` - Complete operational guide
 - `docs/admin/RBAC_OPERATIONS_GUIDE.md` - Daily/weekly procedures
 
-✅ **Archived (24 files, Jan 9, 2026)**:
-- **Root PHASE docs (7 files)** → `docs/archive/phase-reports/`
-  - PHASE1_COMPLETION_SUMMARY.md, PHASE1_READINESS_REVIEW.md, PHASE1_REVIEW_FINDINGS.md, PHASE1_TEAM_ONBOARDING.md, PHASE2_IMPLEMENTATION.md, PHASE2_PLANNING.md, POST_PHASE1_DOCUMENTATION_COMPLETE.md
-- **Development PHASE docs (11 files)** → `docs/archive/phase-reports/development-phase-reports/`
-  - PHASE1_CONSOLIDATION_COMPLETE.md through PHASE3_TASK3_SYMLINK_STRATEGY_COMPLETE.md
-- **Planning docs (6 files)** → `docs/archive/phase-reports/planning-docs/`
-  - Superseded swimlanes, kickoff, team onboarding, RBAC planning docs
-- **Release docs (2 files)** → `docs/archive/release-workflow-v1.12-1.13/`
-  - MID_PHASE_SUMMARY_v1.15.0.md, GITHUB_ISSUES_PHASE2.md
+✅ **Archived (78 files, Jan 9, 2026)**:
+- **Phase Reports (24 files)** → `docs/archive/phase-reports/`
+- **Audit Reports (7 files)** → `docs/archive/audit-reports/`
+- **Consolidation Reports (6 files)** → `docs/archive/consolidation-reports/`
+- **Release Workflow (2 files)** → `docs/archive/release-workflow-v1.12-1.13/`
 
 ℹ️ **In Progress**:
 - `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Ready to execute
