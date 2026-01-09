@@ -1083,7 +1083,7 @@ function Restart-Application {
     return Start-Application
 }
 
-function Get-Status {
+function Show-Status {
     if ($Silent) { Write-InstallerLog "Show-Status called" }
     Write-Header "SMS Application Status"
 
