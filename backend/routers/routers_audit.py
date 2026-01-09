@@ -75,8 +75,9 @@ async def list_audit_logs(
     return AuditLogListResponse(
         logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        skip=offset,
-        limit=page_size,
+        page=page,
+        page_size=page_size,
+        has_next=(offset + page_size) < total,
     )
 
 
@@ -118,6 +119,7 @@ async def get_user_audit_logs(
     return AuditLogListResponse(
         logs=[AuditLogResponse.model_validate(log, from_attributes=True) for log in logs],
         total=total,
-        skip=offset,
-        limit=page_size,
+        page=page,
+        page_size=page_size,
+        has_next=(offset + page_size) < total,
     )

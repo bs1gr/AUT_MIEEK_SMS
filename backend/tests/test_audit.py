@@ -182,14 +182,18 @@ class TestAuditRouter:
             )
 
         # Get first page (10 items)
-        response = client.get("/api/v1/audit/logs?limit=10&skip=0", headers={"Authorization": f"Bearer {admin_token}"})
+        response = client.get(
+            "/api/v1/audit/logs?page=1&page_size=10", headers={"Authorization": f"Bearer {admin_token}"}
+        )
         assert response.status_code == 200
         data = response.json()
         assert len(data["logs"]) == 10
         assert data["total"] >= 15
 
         # Get second page (5 items)
-        response = client.get("/api/v1/audit/logs?limit=10&skip=10", headers={"Authorization": f"Bearer {admin_token}"})
+        response = client.get(
+            "/api/v1/audit/logs?page=2&page_size=10", headers={"Authorization": f"Bearer {admin_token}"}
+        )
         assert response.status_code == 200
         data = response.json()
         assert len(data["logs"]) >= 5
