@@ -103,13 +103,22 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
     if ($Thumbprint) {
         $clean = ($Thumbprint -replace '\s','').ToUpperInvariant()
         $selected = $codeSigning | Where-Object { $_.Thumbprint.ToUpperInvariant() -eq $clean } | Select-Object -First 1
+        if (-not $selected) {
+            Write-Error "Required certificate with thumbprint $Thumbprint not found in store. Ensure the AUT MIEEK (Limassol, CY) certificate is installed."
+            exit 1
+        }
     }
-    if (-not $selected -and $SubjectMatch) {
+    elseif ($SubjectMatch) {
         $selected = $codeSigning | Where-Object { $_.Subject -match $SubjectMatch } | Sort-Object NotAfter -Descending | Select-Object -First 1
+        if (-not $selected) {
+            Write-Error "No certificate matching subject pattern '$SubjectMatch' found in store."
+            exit 1
+        }
     }
-    if (-not $selected) {
-        # As a last resort, pick the most recent code-signing cert
-        $selected = $codeSigning | Sort-Object NotAfter -Descending | Select-Object -First 1
+    else {
+        # Require explicit thumbprint or subject match when using store signing
+        Write-Error "Store-based signing requires -Thumbprint or -SubjectMatch parameter. No automatic cert selection."
+        exit 1
     }
 
     if ($selected) {

@@ -33,6 +33,39 @@ jobs:
         env:
           CI: 'true'
 
+      - name: Verify Installer Signature (Fail-Fast)
+        shell: pwsh
+        run: |
+          Write-Host "Verifying installer signature..." -ForegroundColor Cyan
+          $installer = Get-ChildItem -Path dist -Filter "SMS_Installer_*.exe" | Select-Object -First 1
+          if (-not $installer) {
+            Write-Error "No installer found in dist/"
+            exit 1
+          }
+
+          $sig = Get-AuthenticodeSignature $installer.FullName
+          Write-Host "Signature Status: $($sig.Status)" -ForegroundColor $(if ($sig.Status -eq 'Valid') { 'Green' } else { 'Red' })
+
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Build blocked: Installer must be signed. Status: $($sig.Status)"
+            Write-Host "Note: CI builds currently skip signing (-SkipCodeSign). For production releases, ensure certificate is available." -ForegroundColor Yellow
+            # Soft-fail for CI without cert; production builds should have cert
+            if ($env:SMS_CODESIGN_REQUIRED -eq 'true') {
+              exit 1
+            } else {
+              Write-Warning "Unsigned installer allowed in CI (SMS_CODESIGN_REQUIRED not set to 'true')"
+            }
+          }
+
+          if ($sig.Status -eq 'Valid') {
+            $subject = $sig.SignerCertificate.Subject
+            Write-Host "Signer: $subject" -ForegroundColor Green
+            if ($subject -notmatch 'L=Limassol' -or $subject -notmatch 'C=CY') {
+              Write-Error "Signer does not match required certificate (Limassol/CY)"
+              exit 1
+            }
+          }
+
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
         with:

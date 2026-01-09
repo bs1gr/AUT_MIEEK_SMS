@@ -421,22 +421,38 @@ function Invoke-CodeSigning {
         & $SignerScript -UseStore -Thumbprint $limassolThumb
 
         if ($LASTEXITCODE -eq 0) {
-            # Verify subject matches expected location (Limassol, CY)
+            # Strict post-build signature verification
             $sig = Get-AuthenticodeSignature $InstallerExe
-            if ($sig.Status -eq 'Valid') {
-                $subj = $sig.SignerCertificate.Subject
-                Write-Result Success "Installer signed successfully ✓"
-                Write-Result Info "Publisher: $subj"
-                if ($subj -notmatch 'L=Limassol' -or $subj -notmatch 'C=CY') {
-                    Write-Result Warning "Signer subject does not match expected location (Limassol/CY)."
-                }
-            } else {
-                Write-Result Warning "Signature status after signing: $($sig.Status)"
+            if ($sig.Status -ne 'Valid') {
+                Write-Result Error "Signature verification failed after signing: $($sig.Status)"
+                Write-Result Error "Build blocked: Unsigned installer artifacts are not allowed."
+                return $false
             }
+
+            $subj = $sig.SignerCertificate.Subject
+            Write-Result Success "Installer signed successfully ✓"
+            Write-Result Info "Publisher: $subj"
+
+            # Enforce Limassol certificate
+            if ($subj -notmatch 'L=Limassol' -or $subj -notmatch 'C=CY') {
+                Write-Result Error "Signer subject does not match required certificate (Limassol/CY)."
+                Write-Result Error "Expected: L=Limassol, C=CY"
+                Write-Result Error "Got: $subj"
+                return $false
+            }
+
+            # Verify thumbprint matches expected
+            $expectedThumb = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
+            $actualThumb = $sig.SignerCertificate.Thumbprint
+            if ($actualThumb -ne $expectedThumb) {
+                Write-Result Warning "Signer thumbprint mismatch (expected: $expectedThumb, got: $actualThumb)"
+            }
+
             return $true
         } else {
-            Write-Result Warning "Code signing failed (exit code: $LASTEXITCODE) - installer remains unsigned but valid"
-            return $true  # Signing failure doesn't break the build
+            Write-Result Error "Code signing failed (exit code: $LASTEXITCODE)"
+            Write-Result Error "Build blocked: Unsigned installer artifacts are not allowed."
+            return $false
         }
     } catch {
         Write-Result Warning "Code signing failed: $($_.Exception.Message) - installer remains unsigned but valid"
