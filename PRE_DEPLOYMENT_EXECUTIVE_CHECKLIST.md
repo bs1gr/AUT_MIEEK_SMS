@@ -205,10 +205,10 @@ v1.15.1 has completed all technical validation and is **APPROVED FOR PRODUCTION 
 
 ## 📌 Key Contacts
 
-**Technical Lead**: Vasileios Samaras (bs1gr)
+**Developer & Owner**: Vasileios Samaras (bs1gr)
 - Email: [contact info]
-- Phone: [phone number]
 - Available: 24/7 during deployment window
+- Decision Making: Solo authority
 
 **DevOps/Infrastructure**: [DevOps team]
 - Email: [contact info]

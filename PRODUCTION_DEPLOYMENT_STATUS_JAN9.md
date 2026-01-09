@@ -179,9 +179,9 @@ v1.15.1 is fully tested, validated, and **ready for production deployment**. All
 
 ## 📞 Contact & Escalation
 
-**Technical Lead**: Vasileios Samaras (bs1gr)
-**DevOps Contact**: [DevOps team]
-**Business Owner**: [Project stakeholder]
+**Solo Developer & Owner**: Vasileios Samaras (bs1gr)
+**Decision Authority**: You (autonomous)
+**Support**: Self-managed (24/7 your responsibility)
 
 **Critical Issues During Deployment**:
 - Contact: Tech Lead
