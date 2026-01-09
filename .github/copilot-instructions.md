@@ -20,6 +20,12 @@ Before starting ANY work, you MUST:
 
 5. **No Duplicate Planning**: Do NOT create new TODO lists, planning documents, or trackers. Update the unified plan instead.
 
+6. **Global Policy (Single Source of Truth)**:
+    - Use ONE plan only: update `docs/plans/UNIFIED_WORK_PLAN.md` for all planning/status.
+    - Maintain ONE versioning system and ONE unified dev/prod state across the repo.
+    - Do not create ad‑hoc PR docs, status files, or parallel plans; reference `DOCUMENTATION_INDEX.md` and update the unified plan.
+    - Always consult documentation properties and AI agent obligations before applying automated fixes or creating artifacts.
+
 **Current Development Phase**: Phase 1 Completion (v1.15.0) - 50% complete
 **Active Branch**: `feature/v11.14.3-phase1-batch2`
 **Next Critical Tasks**: Audit logging implementation, E2E test suite fixes, Frontend API client update

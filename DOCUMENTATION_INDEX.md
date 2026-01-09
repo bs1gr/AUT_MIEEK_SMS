@@ -1,6 +1,11 @@
 # Documentation Index
 
 > **📌 CANONICAL SOURCE:** This file references `docs/DOCUMENTATION_INDEX.md` which is the authoritative documentation index. See that file for the complete, always-current list of all documentation.
+> **🔒 Global Policy — Single Source of Truth (for all agents):**
+> - Use ONE plan only: update `docs/plans/UNIFIED_WORK_PLAN.md` for planning/status.
+> - Maintain ONE versioning system and ONE unified dev/prod state across the repo.
+> - Do not create ad‑hoc PR docs, status files, or parallel plans; reference this index and the unified plan.
+> - Always consult documentation properties and AI agent obligations before automated fixes or new artifacts.
 
 **Last Updated:** January 9, 2026 (Documentation cleanup complete: 78 files organized, VERSION_HISTORY added)
 **Version:** 1.15.1 ✅ Production Ready + Phase 2 RBAC Backend Complete
