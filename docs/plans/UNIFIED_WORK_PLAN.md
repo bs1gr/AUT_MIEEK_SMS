@@ -1,9 +1,9 @@
 # Unified Work Plan - Student Management System
 
 **Created**: January 7, 2026
-**Status**: Phase 1 Complete, Post-Phase 1 Polish Complete, Phase 2 Prep Complete, **Phase 2 RBAC Backend Complete + Deployment Readiness (Jan 8)**
-**Current Version**: 1.15.1 (deployment guides complete)
-**Current Branch**: `main` (Phase 2 RBAC backend merged; deployment guides ready)
+**Status**: Phase 1 Complete, Post-Phase 1 Polish Complete, Phase 2 Prep Complete, **Staging Validated + Production Ready (Jan 9)**
+**Current Version**: 1.15.1 (production-ready)
+**Current Branch**: `main` (installer validated, staging validated, production pending)
 
 ---
 
@@ -420,26 +420,25 @@ This document consolidates all scattered planning documents into a **single sour
 ---
 
 #### Issue #8: Installer Validation Testing
-**Status**: 🟡 Ready to Validate (checklist prepared)
-**Effort**: 1 hour (validation run pending)
-**Timeline**: Jan 24, 2026
-**Owner**: QA
-
-**Tasks**:
 **Status**: ✅ COMPLETE (Jan 9)
-**Effort**: Completed (1 hour automated + installer rebuild)
+**Effort**: Completed (automated validation + code signing enhancements + merge to main)
 **Timeline**: Jan 9, 2026 ✅ COMPLETE
----
+**Owner**: AI Agent / QA
 
-## 🟡 MEDIUM-TERM: Phase 2 (v1.15.1) - Daily Execution
+**Completed Tasks**:
 - [x] Run automated validation tests ✅
 - [x] Detect version mismatch (v1.14.2 vs v1.15.1) ✅
 - [x] Rebuild installer to v1.15.1 ✅
 - [x] Verify new installer integrity ✅
+- [x] Implement store-based code signing with Limassol certificate ✅
+- [x] Add strict certificate selection (no fallback) ✅
+- [x] Add mandatory signature verification (blocks unsigned builds) ✅
+- [x] Add CI workflow signature verification ✅
+- [x] Merge feature branch to main (commit 0592a4ccc) ✅
 - [x] Document validation results ✅
 - [ ] Manual testing on Windows 10 (optional, deferred)
 - [ ] Manual testing on Windows 11 (optional, deferred)
-**Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐ PRIMARY REFERENCE
+
 **Completed Work**:
 - ✅ Automated validation executed (5 tests)
 - ✅ Version mismatch detected and fixed
@@ -447,6 +446,70 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ File integrity verified (SHA256 hash)
 - ✅ Wizard images regenerated with v1.15.1
 - ✅ Greek encoding fixed (Windows-1253)
+- ✅ Store-based signing with Limassol cert (CN=AUT MIEEK, L=Limassol, C=CY)
+- ✅ Security hardening: strict cert selection, mandatory verification
+- ✅ Feature branch merged to main (142 files, 3,653 insertions)
+- ✅ Signed installer uploaded to GitHub release v1.15.1
+
+**Reference**:
+- Validation: `installer/VALIDATION_COMPLETE_JAN9.md`
+- Session: `INSTALLER_VALIDATION_SESSION_COMPLETE_JAN9.md`
+
+---
+
+### 🟢 NEW: Staging Deployment Validation (Jan 9)
+
+**Status**: ✅ COMPLETE (Jan 9)
+**Effort**: 30 minutes (pre-deployment validation + smoke tests)
+**Timeline**: Jan 9, 2026 ✅ COMPLETE
+**Owner**: AI Agent / DevOps
+
+**Completed Tasks**:
+- [x] Pre-deployment validation (7 phases) ✅
+  - Repository verification (clean, v1.15.1, main branch)
+  - Infrastructure check (Docker v29.1.3, 399GB disk free)
+  - Database verification (backup present, 1.3 MB)
+  - Documentation check (all deployment docs present)
+  - Scripts validation (DOCKER.ps1, NATIVE.ps1)
+  - Test framework check (Python 3.13.3, pytest 8.4.2, npm 8.19.1)
+- [x] Smoke tests on running container (5/5 passed) ✅
+  - Health endpoint: connected
+  - Container health: healthy
+  - Frontend: serving (200 OK)
+  - Container logs: no errors
+  - Container version: 1.15.1 verified
+- [x] Container stability verified (8+ hours uptime) ✅
+
+**Status**: Staging deployment validated and production-ready
+
+---
+
+### 🟡 IN PROGRESS: Production Deployment Planning (Jan 9)
+
+**Status**: 🟡 READY FOR EXECUTION
+**Effort**: Planning complete, awaiting scheduling
+**Timeline**: Jan 9-10, 2026 (scheduling pending)
+**Owner**: Ops / Release Manager
+
+**Completed Tasks**:
+- [x] Review production deployment plan ✅
+- [x] Generate production secrets (SECRET_KEY, passwords) ✅
+- [x] Create deployment checklist (pre/during/post) ✅
+- [x] Document rollback procedures ✅
+- [ ] Configure production .env file
+- [ ] Schedule maintenance window (45-60 min)
+- [ ] Notify stakeholders
+- [ ] Execute production deployment
+- [ ] Monitor for 24 hours
+
+**Reference**: `docs/deployment/PRODUCTION_DEPLOYMENT_PLAN_v1.15.1.md`
+
+**Status**: Technical prerequisites complete, awaiting business approval
+
+---
+
+## 🟡 MEDIUM-TERM: Phase 2 (v1.16.0) - Daily Execution
+**Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐ PRIMARY REFERENCE
 
 **Deliverables**:
 - ✅ `installer/VALIDATION_TEST_PLAN_JAN9.md` - Test plan with results
