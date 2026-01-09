@@ -34,20 +34,29 @@ Write-Host "`n╔═════════════════════
 Write-Host "║   Batch Test Runner (SMS v1.15.1)     ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
-# Verify we're in the right directory
-if (-not (Test-Path "backend/tests")) {
-    Write-Error "backend/tests directory not found!"
-    Write-Host "Please run from project root directory." -ForegroundColor Red
-    exit 1
+# Verify we're in the right directory or find it
+$projectRoot = $PSScriptRoot
+if (-not (Test-Path "$projectRoot/backend/tests")) {
+    # Maybe we're being called from a different directory, try to find it
+    if (Test-Path "$projectRoot/../backend/tests") {
+        $projectRoot = Split-Path -Parent $projectRoot
+    } elseif (Test-Path "backend/tests") {
+        $projectRoot = Get-Location
+    } else {
+        Write-Error "backend/tests directory not found!"
+        Write-Host "Please run from project root directory or ensure backend folder exists." -ForegroundColor Red
+        exit 1
+    }
 }
 
 # Get all test files
 Write-Info "Scanning for test files..."
-$testFiles = Get-ChildItem -Path "backend/tests" -Filter "test_*.py" -File |
+$testFiles = Get-ChildItem -Path "$projectRoot/backend/tests" -Filter "test_*.py" -File |
     Where-Object { $_.Name -ne "test_main.py" } |  # Exclude if needed
     Sort-Object Name
 
 $totalFiles = $testFiles.Count
+
 Write-Success "Found $totalFiles test files"
 
 if ($totalFiles -eq 0) {
@@ -98,23 +107,24 @@ foreach ($batch in $batches) {
         Write-Host "  • $($file.Name)" -ForegroundColor Gray
     }
 
-    # Build pytest command - just use relative names since we're in backend dir
+    # Build pytest command with full paths
     $testFiles = @()
     foreach ($file in $batch) {
-        $testFiles += "tests/$($file.Name)"
+        $testFiles += "$($file.FullName)"
     }
 
     Write-Info "Running tests..."
     $batchStart = Get-Date
 
-    # Change to backend directory for running tests
-    Push-Location "backend" -ErrorAction Stop | Out-Null
+    # Run pytest from the backend directory
+    $backendDir = "$projectRoot/backend"
+    Push-Location $backendDir -ErrorAction Stop | Out-Null
 
     try {
         if ($Verbose) {
-            $output = python -m pytest @testFiles -v --tb=short 2>&1
+            $output = python -m pytest $testFiles -v --tb=short 2>&1
         } else {
-            $output = python -m pytest @testFiles -q --tb=line 2>&1
+            $output = python -m pytest $testFiles -q --tb=line 2>&1
         }
 
         $exitCode = $LASTEXITCODE
