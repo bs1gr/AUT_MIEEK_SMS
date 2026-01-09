@@ -1172,7 +1172,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Next Steps**:
 - Jan 8: Pre-deployment validation (staging)
-- Jan 9: Staging deployment (v1.15.1)
+- Jan 9: Staging deployment (v1.15.1) — 24h monitoring in progress (ends Jan 10 @ 10:56 UTC); production deployment planning starts next
 - Jan 27+: Begin Phase 2 (RBAC & CI/CD improvements)
 
 ---
