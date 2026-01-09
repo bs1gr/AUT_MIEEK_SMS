@@ -105,8 +105,8 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
             className="h-3 overflow-hidden rounded-full bg-slate-100"
             role="progressbar"
             aria-valuenow={progressValue}
-            aria-valuemin="0"
-            aria-valuemax="100"
+            aria-valuemin={0}
+            aria-valuemax={100}
             aria-label={t('jobMonitorProgress', { value: progressValue })}
           >
             {(() => {

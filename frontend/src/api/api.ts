@@ -937,9 +937,9 @@ export function extractAPIError(errorResponse: unknown): {
   }
 
   // Old format: { detail: "error message" }
-  if (data && data.detail) {
+  if (data && typeof data === 'object' && 'detail' in data && typeof (data as {detail?: unknown}).detail === 'string') {
     return {
-      message: data.detail,
+      message: (data as {detail: string}).detail,
       code: 'HTTP_ERROR',
       details: null,
       path: null,
@@ -950,7 +950,7 @@ export function extractAPIError(errorResponse: unknown): {
 
   // Fallback
   return {
-    message: data?.message || 'An unexpected error occurred',
+    message: (typeof data === 'object' && data && 'message' in data && typeof (data as {message?: unknown}).message === 'string' ? (data as {message: string}).message : null) || 'An unexpected error occurred',
     code: 'UNKNOWN_ERROR',
     details: null,
     path: null,
