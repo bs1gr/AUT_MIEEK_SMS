@@ -58,8 +58,10 @@ def check_migrations():
         # Check file content
         content = mig_file.read_text()
 
-        # Verify it has revision marker
-        if "revision =" not in content:
+        # Verify it has revision marker (with or without type annotation)
+        if "revision" not in content or (
+            "revision =" not in content and "revision:" not in content
+        ):
             errors.append(f"Migration {name} missing revision marker")
 
         # Verify it has upgrade/downgrade functions
