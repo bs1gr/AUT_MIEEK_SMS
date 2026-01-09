@@ -39,8 +39,6 @@ def ensure_default_admin_account(
     """
 
     log = logger or logging.getLogger(__name__)
-    log.debug(f"Logger name: {log.name}")
-    print(f"Logger name: {log.name}")
 
     raw_email = getattr(settings, "DEFAULT_ADMIN_EMAIL", None)
     raw_password = getattr(settings, "DEFAULT_ADMIN_PASSWORD", None)
@@ -52,10 +50,9 @@ def ensure_default_admin_account(
     if not email or not password:
         if auth_enabled:
             log.warning(
-                "Bootstrap: AUTH_ENABLED is True but default admin credentials are not configured; "
-                "skipping automatic administrator provisioning"
+                "⚠️  Bootstrap: AUTH_ENABLED is True but DEFAULT_ADMIN_EMAIL/PASSWORD not configured. "
+                "Application may be unusable without users!"
             )
-            print("Emitted warning log for AUTH_ENABLED is True without credentials")
         else:
             log.debug("Bootstrap: default admin credentials not configured; skipping")
         return
@@ -108,9 +105,10 @@ def ensure_default_admin_account(
             session.add(user)
             session.commit()
             log.info(
-                "Bootstrap: created default admin user %s (password_change_required=True)",
+                "✅ Bootstrap: created default admin user %s (password_change_required=True)",
                 email,
             )
+            print(f"✅ Admin user created: {email}")
             return
 
         changed_fields: list[str] = []
@@ -140,21 +138,24 @@ def ensure_default_admin_account(
             session.add(user)
             session.commit()
             log.info(
-                "Bootstrap: updated default admin user %s (%s)",
+                "✅ Bootstrap: updated default admin user %s (%s)",
                 email,
                 ", ".join(changed_fields),
             )
+            print(f"✅ Admin user updated: {email} ({', '.join(changed_fields)})")
         else:
-            log.debug("Bootstrap: default admin user %s already up to date", email)
+            log.debug("✅ Bootstrap: default admin user %s already up to date", email)
     except Exception as exc:
         if session is not None:
             session.rollback()
-        log.warning(
-            "Bootstrap: failed to ensure default admin user %s: %s",
+        log.error(
+            "❌ Bootstrap: failed to ensure default admin user %s: %s",
             email,
             exc,
             exc_info=True,
         )
+        print(f"❌ BOOTSTRAP ERROR: Failed to create admin user: {exc}")
+        raise  # Re-raise to ensure the error is visible
     finally:
         if close_session and session is not None:
             try:
