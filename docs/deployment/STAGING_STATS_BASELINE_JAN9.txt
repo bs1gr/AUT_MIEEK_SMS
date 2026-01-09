@@ -1,0 +1,2 @@
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O          BLOCK I/O   PIDS
+4f29b0337737   sms-app   0.11%     127.8MiB / 13.46GiB   0.93%     49.2kB / 105kB   0B / 0B     7
