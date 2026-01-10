@@ -20,11 +20,12 @@ jobs:
     steps:
       - name: Apply branch protection via octokit
         uses: actions/github-script@v6
+        env:
+          ADMIN_PAT: ${{ secrets.ADMIN_GH_PAT }}
         with:
-          # Prefer an admin PAT if present (stored in repo secret ADMIN_GH_PAT). Fall back
-          # to the runtime GITHUB_TOKEN if the secret is not set. ADMIN_GH_PAT should be
-          # a classic personal access token with `repo` scope.
-          github-token: ${{ secrets.ADMIN_GH_PAT || secrets.GITHUB_TOKEN }}
+          # Use ADMIN_GH_PAT from env if available, otherwise fall back to GITHUB_TOKEN
+          # ADMIN_GH_PAT should be a classic personal access token with `repo` scope.
+          github-token: ${{ env.ADMIN_PAT != '' && env.ADMIN_PAT || secrets.GITHUB_TOKEN }}
           script: |
             // Access workflow inputs from context payload
             // Note: core, github, context are already available in github-script action
