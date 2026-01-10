@@ -26,8 +26,8 @@ jobs:
           # a classic personal access token with `repo` scope.
           github-token: ${{ secrets.ADMIN_GH_PAT || secrets.GITHUB_TOKEN }}
           script: |
-            const core = require('@actions/core');
             // Access workflow inputs from context payload
+            // Note: core, github, context are already available in github-script action
             const payloadInputs = context.payload.inputs || {};
 
             // Defaults (ensure consistency when run via CLI/API without inputs)
