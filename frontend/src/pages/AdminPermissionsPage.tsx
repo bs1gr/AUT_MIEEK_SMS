@@ -20,12 +20,6 @@ interface Role {
   description?: string;
 }
 
-interface PermissionItem {
-  id?: number;
-  name: string;
-  description?: string | null;
-}
-
 interface PermissionsByResource {
   resource: string;
   permissions: Permission[];
@@ -183,16 +177,15 @@ export default function AdminPermissionsPage() {
     onError: () => showToast(t('rbac.permissionRevokedError'), 'error'),
   });
 
-  const userPermissionsQuery = useQuery<UserPermissionsResponse>({
+  const userPermissionsQuery = useQuery<UserPermissionsResponse, Error>({
     queryKey: ['permissions', 'user', auditUserId],
     enabled: Boolean(auditUserId),
-    queryFn: async () => {
+    queryFn: async (): Promise<UserPermissionsResponse> => {
       const res = await apiClient.get(`/permissions/users/${auditUserId}`);
-      return extractAPIResponseData(res);
+      return extractAPIResponseData(res) as UserPermissionsResponse;
     },
     staleTime: 60 * 1000,
     retry: 1,
-    onError: () => showToast(t('rbac.userPermissionError'), 'error'),
   });
 
   const handleGrant = () => {
@@ -524,7 +517,7 @@ export default function AdminPermissionsPage() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                    {userPermissionsQuery.data.direct_permissions.map((perm) => (
+                    {userPermissionsQuery.data.direct_permissions.map((perm: UserPermissionDetail) => (
                       <li key={`${perm.permission_key}-${perm.granted_at ?? 'na'}`} className="flex items-center gap-2">
                         <span className="font-medium">{perm.permission_key}</span>
                         {perm.expires_at && (
@@ -546,7 +539,7 @@ export default function AdminPermissionsPage() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                    {userPermissionsQuery.data.role_permissions.map((perm) => (
+                    {userPermissionsQuery.data.role_permissions.map((perm: RolePermissionDetail) => (
                       <li key={`${perm.permission_key}-${perm.role_name}`} className="flex items-center gap-2">
                         <span className="font-medium">{perm.permission_key}</span>
                         <span className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">

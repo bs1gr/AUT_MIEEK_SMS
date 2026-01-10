@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AdminPermissionsPage from '../AdminPermissionsPage';
 import * as apiModule from '../../api/api';
 
-// Mock the API client
+const mockApiClient = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
+
+// Mock the API client (default and named) to align with component imports
 vi.mock('../../api/api', () => ({
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-  },
+  __esModule: true,
+  default: mockApiClient,
+  apiClient: mockApiClient,
   extractAPIResponseData: (response: any) => response?.data || response,
 }));
 
