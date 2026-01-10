@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
-from backend.db import get_session as get_db
+from backend.db import SessionLocal, get_session as get_db
 from backend.models import User
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.routers.routers_auth import optional_require_role
@@ -22,6 +22,7 @@ from backend.schemas import (
 )
 from backend.services.notification_service import NotificationPreferenceService, NotificationService
 from backend.services.websocket_manager import broadcast_notification, manager
+from backend.security.current_user import decode_token
 
 logger = logging.getLogger(__name__)
 
@@ -73,24 +74,42 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
             console.log('Notification:', notification);
         };
     """
-    from backend.security.jwt import decode_token
-
     user_id = None
+    db = None
     try:
         # Verify token
         if not token:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Missing authentication token")
             return
 
-        payload = decode_token(token)
-        user_id = payload.get("sub")
-
-        if not user_id:
+        try:
+            payload = decode_token(token)
+        except Exception:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
             return
 
-        # Convert sub to int if it's a string
-        user_id = int(user_id)
+        subject = payload.get("sub")
+        if not subject:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
+            return
+
+        db = SessionLocal()
+
+        # Resolve subject to a real, active user
+        user = None
+        try:
+            if isinstance(subject, int) or (isinstance(subject, str) and subject.isdigit()):
+                user = db.get(User, int(subject))
+            if user is None and isinstance(subject, str):
+                user = db.query(User).filter(User.email == subject).first()
+        except Exception:
+            user = None
+
+        if not user or not getattr(user, "is_active", False):
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="User not found or inactive")
+            return
+
+        user_id = int(user.id)
 
         # Connect and add to manager
         await manager.connect(user_id, websocket)
@@ -113,6 +132,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
             await websocket.close(code=status.WS_1011_SERVER_ERROR, reason="Internal server error")
         except Exception:
             pass
+    finally:
+        if db:
+            try:
+                db.close()
+            except Exception:
+                pass
 
 
 # ==================== Notification Management ====================
@@ -123,7 +148,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
 @limiter.limit(RATE_LIMIT_READ)
 async def get_unread_count(
     request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Get count of unread notifications for current user.
@@ -144,7 +169,7 @@ async def get_unread_count(
 @limiter.limit(RATE_LIMIT_WRITE)
 async def mark_all_as_read(
     request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Mark all notifications as read for current user.
@@ -166,7 +191,7 @@ async def mark_all_as_read(
 @limiter.limit(RATE_LIMIT_READ)
 async def get_preferences(
     request: Request,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Get notification preferences for current user.
@@ -188,7 +213,7 @@ async def get_preferences(
 async def update_preferences(
     request: Request,
     updates: NotificationPreferenceUpdate,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Update notification preferences for current user.
@@ -217,7 +242,7 @@ async def get_notifications(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     unread_only: bool = Query(False),
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Get notifications for current user.
@@ -254,7 +279,7 @@ async def update_notification(
     request: Request,
     notification_id: int,
     update: NotificationUpdate,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Mark notification as read/unread.
@@ -292,7 +317,7 @@ async def update_notification(
 async def mark_as_read(
     request: Request,
     notification_id: int,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Mark a notification as read.
@@ -320,7 +345,7 @@ async def mark_as_read(
 async def delete_notification(
     request: Request,
     notification_id: int,
-    current_user: dict = Depends(optional_require_role("user")),
+    current_user: dict = Depends(optional_require_role()),
     db: Session = Depends(get_db),
 ):
     """Delete a notification.

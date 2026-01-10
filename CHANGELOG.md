@@ -8,6 +8,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased]
+
+### 🐛 Bug Fixes
+
+**Notification System Authentication**
+- Fixed WebSocket authentication to properly decode JWT tokens and resolve users by email or ID
+- Fixed notification endpoints to accept all authenticated user roles (previously blocked admin/teacher access)
+- Enhanced WebSocket token validation with proper error handling and database session cleanup
+- All notification tests passing (backend: 35/35, frontend: 1249/1249)
+
+---
+
 ## [1.15.1] - 2026-01-07 (Post-Phase 1 Polish)
 
 ### 🛠️ Infrastructure & Monitoring
