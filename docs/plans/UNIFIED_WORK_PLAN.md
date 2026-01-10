@@ -21,12 +21,10 @@
 - ✅ Secret scanning active: Gitleaks (pre-commit + CI) + detect-secrets (baseline)
 - ✅ Environment files protected: .gitignore enforced for .env.* files
 - ✅ Multi-layer validation: Docker → backend → CI → runtime (4 layers)
-- 🔴 CRITICAL: CODECOV_TOKEN missing (blocks coverage uploads)
+- ✅ Codecov uploads removed (Jan 10, 2026); coverage now via CI artifacts + job summaries (no CODECOV_TOKEN required)
 
 **Next Steps**:
-1. 🔴 **URGENT**: Add CODECOV_TOKEN secret (repository owner action)
-- Get token from https://codecov.io/
-- Create new secret at Settings → Secrets and variables → Actions
+1. 🔵 **INFO**: Keep coverage via internal artifacts and summaries (Codecov disabled due to cost)
 
 ---
 # Unified Work Plan - Student Management System
@@ -339,24 +337,24 @@ This document consolidates all scattered planning documents into a **single sour
 ### 🟠 HIGH Priority (Week 2)
 
 #### Issue #3: Coverage Reporting Setup
-**Status**: ✅ ALREADY COMPLETE (from v1.15.1)
+**Status**: ✅ COMPLETE (updated Jan 10, 2026)
 **Effort**: 1-2 hours (previously completed)
 **Timeline**: Jan 13, 2026 (not needed)
 **Owner**: DevOps
 
-**Already Implemented**:
-- [x] Codecov integration active in `.github/workflows/ci-cd-pipeline.yml`
-- [x] Backend coverage reporting: `--cov-report=xml`
-- [x] Frontend coverage reporting: `--coverage.reporter=lcov`
-- [x] Codecov badge in README.md
-- [x] Coverage thresholds can be configured
+**Current Approach (Codecov disabled due to cost)**:
+- [x] Backend coverage reporting: `--cov-report=xml` (artifact + job summary)
+- [x] Frontend coverage reporting: `--coverage.reporter=lcov` (artifact + job summary)
+- [x] Coverage artifacts retained via `actions/upload-artifact`
+- [x] CI job summaries display backend/frontend coverage percentages
+- [x] No external CODECOV_TOKEN required
 
 **Status**:
-- ✅ CI jobs: backend/test-backend and frontend/test-frontend report to Codecov
-- ✅ Badge displays in README.md showing live coverage
-- ✅ Coverage reports uploadable on push to main
+- ✅ CI jobs publish coverage summaries in the workflow run
+- ✅ Coverage artifacts available for download (HTML + XML/LCOV)
+- ✅ No third-party service required
 
-**Notes**: This feature was already implemented prior to Phase 1 completion. No additional work needed for v1.15.1.
+**Notes**: Codecov uploads and badges were removed on Jan 10, 2026; coverage is now reported internally via GitHub Actions artifacts and summaries.
 
 ---
 
@@ -596,7 +594,7 @@ This document consolidates all scattered planning documents into a **single sour
 **Strengths Identified**:
 - Comprehensive testing (unit, integration, E2E, smoke)
 - Multi-layer security scanning (secrets, dependencies, containers)
-- Codecov integration (backend + frontend coverage)
+- Coverage artifacts + job summaries (Codecov disabled Jan 10, 2026)
 - Performance optimization (caching: ~30% faster)
 - Deployment safety (staging auto, production manual)
 - Concurrency control (cancel-in-progress enabled)
@@ -637,9 +635,9 @@ This document consolidates all scattered planning documents into a **single sour
 
 **Completed Tasks**:
 - [x] Comprehensive documentation audit (4 streams) ✅
-- [x] Codecov threshold configuration (backend ≥75%, frontend ≥70%) ✅
+- [x] Codecov threshold configuration (backend ≥75%, frontend ≥70%) ✅ (historical; Codecov disabled Jan 10, 2026)
 - [x] Performance endpoint scaffolding (/api/v1/admin/performance) ✅
-- [x] Branch protection workflow updates (codecov checks) ✅
+- [x] Branch protection workflow updates (codecov checks) ✅ (initially added; removed Jan 10, 2026 after disabling Codecov)
 - [x] Session documentation complete ✅
 - [x] PR #130 created with CI checks passing ✅
 - [x] PR #130 merged to main (Jan 10, 11:12 UTC) ✅
@@ -649,9 +647,9 @@ This document consolidates all scattered planning documents into a **single sour
   - **Security**: enforce_admins verified re-enabled ✅
 
 **Deliverables**:
-- ✅ codecov.yml - Coverage enforcement (backend ≥75%, frontend ≥70%)
+- ✅ codecov.yml - Coverage thresholds retained for reference (Codecov uploads disabled)
 - ✅ /api/v1/admin/performance endpoint - Slow query monitoring
-- ✅ Updated branch protection workflow - Includes codecov checks
+- ✅ Updated branch protection workflow - Codecov checks removed (internal coverage summaries only)
 - ✅ Session documentation - Complete audit findings
 - ✅ PR_130_MERGE_OPTIONS_JAN10.md - Merge strategy documentation
 
@@ -702,11 +700,10 @@ This document consolidates all scattered planning documents into a **single sour
   - **Security**: enforce_admins verified re-enabled ✅
 
 **Issues Fixed**:
-1. **Missing CODECOV_TOKEN (Critical)**
-   - Issue: Backend and frontend coverage uploads missing token parameter
-   - Impact: Coverage reports rejected for private repositories
-   - Fixed: Added `token: ${{ secrets.CODECOV_TOKEN }}` to both uploads
-   - Files: `.github/workflows/ci-cd-pipeline.yml` (2 locations)
+1. **Coverage uploads (Codecov) removed**
+- Change: Removed Codecov uploads due to cost constraints
+- Impact: Coverage now reported via GitHub Actions artifacts and job summaries (no external token)
+- Files: `.github/workflows/ci-cd-pipeline.yml` (replaced Codecov steps with summaries)
 
 2. **Branch Protection Workflow Warning**
    - Issue: GitHub Actions linter warning for direct secret access
@@ -728,9 +725,8 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ Latest CI run: 100% success on main branch
 
 **Next Actions**:
-- [ ] Configure CODECOV_TOKEN secret in repository settings
-- [ ] Verify coverage uploads work in next CI run
-- [ ] Update branch protection to include codecov checks (codecov/project, codecov/patch)
+- [x] Coverage summaries generated inside CI (no external secrets required)
+- [x] Branch protection defaults updated (removed codecov checks)
 
 **Reference**: PR #132 (MERGED) - https://github.com/bs1gr/AUT_MIEEK_SMS/pull/132
 
@@ -1163,15 +1159,12 @@ Note (Jan 10): Coverage reporting is already integrated from v1.15.1; mark Task 
   - Success: CI workflow updated, metrics collected
 
 - [x] **Task 4.2**: Coverage reporting setup (6 hours) ✅ COMPLETE
-  - Backend: Codecov integration (already done, verified)
-  - Frontend: Coverage reporting in CI (already done, verified)
-  - Create repository-level Codecov config (codecov.yml) to enforce thresholds:
-    - thresholds: backend ≥75%, frontend ≥70%
-    - status checks: project and patch coverage
-  - Add coverage badges to README
-  - Success: Coverage reported on each push and enforced via thresholds
-  - Update (Jan 10): codecov.yml committed (commit 8b336a2f8); thresholds configured
-  - Note: Branch protection requires manual configuration or admin PAT (see branch_protection_rules)
+  - Backend: Coverage XML generated and uploaded as artifact + job summary
+  - Frontend: LCOV generated and uploaded as artifact + job summary
+  - External Codecov integration **disabled Jan 10, 2026** (cost) – no CODECOV_TOKEN required
+  - codecov.yml retained for historical reference (not used by pipeline)
+  - Success: Coverage reported on each push via GitHub Actions artifacts and summaries
+  - Note: Branch protection defaults updated to remove codecov checks
 
 - [ ] **Task 4.3**: Load testing integration (12 hours)
   - Set up Locust/k6 scenarios (use existing load-testing/ suite)

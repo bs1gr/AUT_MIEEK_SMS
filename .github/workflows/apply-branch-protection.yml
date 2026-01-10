@@ -10,7 +10,7 @@ on:
       contexts:
         description: 'Comma-separated required check names (e.g. Import checker,Require operator approval for operator scripts,CI)'
         required: false
-        default: 'Import checker,Require operator approval for operator scripts,CI,codecov/project,codecov/patch'
+        default: 'Import checker,Require operator approval for operator scripts,CI'
 
 jobs:
   apply-protection:

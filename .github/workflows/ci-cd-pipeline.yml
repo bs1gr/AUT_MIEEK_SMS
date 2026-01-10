@@ -231,7 +231,6 @@ jobs:
         run: |
           cd backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
-
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -243,15 +242,34 @@ jobs:
             backend/htmlcov/
           retention-days: 30
 
-      - name: Upload coverage to Codecov
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: codecov/codecov-action@v4
-        with:
-          files: backend/coverage.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Publish backend coverage summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+
+          path = "backend/coverage.xml"
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+
+          if not summary_path:
+            sys.exit("GITHUB_STEP_SUMMARY not set")
+
+          if not os.path.exists(path):
+            open(summary_path, "a", encoding="utf-8").write(
+              "### Backend coverage\n- coverage.xml not found (tests may have failed).\n"
+            )
+            sys.exit(0)
+
+          root = ET.parse(path).getroot()
+          line_rate = float(root.attrib.get("line-rate", 0)) * 100
+          branch_rate = float(root.attrib.get("branch-rate", 0)) * 100
+
+          open(summary_path, "a", encoding="utf-8").write(
+            f"### Backend coverage\n- Lines: {line_rate:.2f}%\n- Branches: {branch_rate:.2f}%\n"
+          )
+          PY
 
   test-frontend:
     name: 🧪 Frontend Tests (Vitest)
@@ -284,15 +302,44 @@ jobs:
             frontend/test-results/
           retention-days: 30
 
-      - name: Upload frontend coverage to Codecov
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: codecov/codecov-action@v4
-        with:
-          files: frontend/coverage/lcov.info
-          flags: frontend
-          name: frontend-coverage
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Publish frontend coverage summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+
+          path = "frontend/coverage/lcov.info"
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+
+          if not summary_path:
+            sys.exit("GITHUB_STEP_SUMMARY not set")
+
+          if not os.path.exists(path):
+            open(summary_path, "a", encoding="utf-8").write(
+              "### Frontend coverage\n- lcov.info not found (tests may have failed).\n"
+            )
+            sys.exit(0)
+
+          total_found = total_hit = branch_found = branch_hit = 0
+          with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+              if line.startswith("LF:"):
+                total_found += int(line.split(":", 1)[1])
+              elif line.startswith("LH:"):
+                total_hit += int(line.split(":", 1)[1])
+              elif line.startswith("BRF:"):
+                branch_found += int(line.split(":", 1)[1])
+              elif line.startswith("BRH:"):
+                branch_hit += int(line.split(":", 1)[1])
+
+          line_rate = (total_hit / total_found * 100) if total_found else 0.0
+          branch_rate = (branch_hit / branch_found * 100) if branch_found else 0.0
+
+          open(summary_path, "a", encoding="utf-8").write(
+            f"### Frontend coverage\n- Lines: {line_rate:.2f}% ({total_hit}/{total_found})\n- Branches: {branch_rate:.2f}% ({branch_hit}/{branch_found})\n"
+          )
+          PY
 
   smoke-tests:
     name: 💨 Smoke Tests (Integration)

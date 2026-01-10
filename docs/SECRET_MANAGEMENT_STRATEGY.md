@@ -32,11 +32,11 @@ The SMS project uses a **multi-layered secret management strategy** with respons
 | `DOCKERHUB_USERNAME` | Docker Hub credentials | DevOps/Repository Owner | ~2 months ago | ✅ Active |
 | `VASILEIOSSAMARAS` | GitHub user reference (unclear purpose) | Repository Owner | ~2 months ago | ⚠️ Review needed |
 
-**Missing Secrets** (Required for current work):
+**Additional Secrets**:
 
 | Secret | Purpose | Priority |
 |--------|---------|----------|
-| `CODECOV_TOKEN` | Code coverage uploads (PR #132 fix) | 🔴 CRITICAL - Next |
+| *(none required)* | Codecov integration disabled Jan 10, 2026 (coverage reported via CI artifacts + summaries) | ✅ Not needed |
 | `ADMIN_GH_PAT` | GitHub API admin operations (optional) | 🟡 MEDIUM |
 
 ### B. Environment Files (Local Development)
@@ -177,14 +177,14 @@ DATABASE_URL=sqlite:///./data/student_management.db
 **Responsibilities**:
 
 1. ✅ Manage GitHub secrets in Settings
-2. ✅ Configure new secrets for CI/CD needs (e.g., CODECOV_TOKEN)
+2. ✅ Configure new secrets for CI/CD needs
 3. ✅ Rotate Docker Hub credentials regularly
 4. ✅ Review secret access logs
 5. ✅ Manage production .env.production.SECURE file
 
 **Current Status**:
 - 4 secrets configured ✅
-- CODECOV_TOKEN missing (needed for PR #132 fix) ⚠️
+- No additional mandatory secrets (Codecov disabled Jan 10, 2026)
 
 ### CI/CD Pipeline Role
 
@@ -194,12 +194,12 @@ DATABASE_URL=sqlite:///./data/student_management.db
 2. Verify no secrets in pull requests
 3. Prevent merge if secrets detected
 4. Validate SECRET_KEY format before Docker start
-5. Upload coverage reports via CODECOV_TOKEN (pending setup)
+5. Publish coverage summaries via CI job summaries (Codecov disabled)
 
 **Current Status**:
 - ✅ Secret scanning active on all branches
 - ✅ Pre-commit hooks enforcing standards
-- ⏳ Coverage token uploads blocked (awaiting CODECOV_TOKEN)
+- ✅ Coverage summaries published to workflow summary (no external upload required)
 
 ### Developer Role
 
@@ -237,13 +237,7 @@ None currently listed in `.secrets.baseline`.
 
 ### 🔴 IMMEDIATE (This Week)
 
-1. **Create CODECOV_TOKEN Secret**
-   - Get token from: https://codecov.io/
-   - Go to: GitHub Repo Settings → Secrets and variables → Actions
-   - Add new secret: `CODECOV_TOKEN` = `<token>`
-   - Purpose: Enable coverage report uploads from CI
-
-2. **Verify Production Secrets**
+1. **Verify Production Secrets**
    - Confirm `.env.production.SECURE` file exists (created Jan 9)
    - Verify file is in .gitignore
    - Check permissions are restricted
@@ -282,7 +276,6 @@ None currently listed in `.secrets.baseline`.
 
 1. **Secret Rotation Schedule**
    - Quarterly rotation for DOCKERHUB_TOKEN
-   - Annual rotation for CODECOV_TOKEN
    - Post-incident rotation for compromised secrets
 
 2. **Audit Trail**
@@ -399,7 +392,7 @@ echo "SECRET_KEY=placeholder" > .env
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| **GitHub Secrets** | 🟡 4/5 | Missing CODECOV_TOKEN |
+| **GitHub Secrets** | ✅ 4/4 | No external coverage token required (Codecov disabled) |
 | **Secret Scanning** | ✅ Active | Gitleaks + detect-secrets |
 | **Pre-commit Hooks** | ✅ Enforced | Prevents secret commits |
 | **LOCAL .env Protection** | ✅ Complete | Gitignore enforced |
