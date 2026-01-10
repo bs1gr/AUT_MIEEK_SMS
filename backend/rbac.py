@@ -276,7 +276,6 @@ def require_permission(
     """
 
     def decorator(func: Callable) -> Callable:
-        import asyncio
         import inspect
 
         # Inspect function signature to determine if it accepts 'db' parameter
@@ -292,14 +291,7 @@ def require_permission(
             db: Session = Depends(get_db),
             **kwargs,
         ):
-            # Manually resolve the current_user dependency
-            # (FastAPI won't inject it since we're inside a decorator wrapper)
-            try:
-                current_user = await get_current_user(request=request, db=db)
-            except Exception:
-                # If auth fails, re-raise the HTTPException
-                raise
-
+            # Determine auth mode up-front
             try:
                 from backend.config import settings
 
@@ -307,37 +299,72 @@ def require_permission(
             except Exception:
                 auth_mode = "disabled"
 
-            # Execute the permission checks
-            if auth_mode != "disabled":
-                if not current_user:
-                    raise HTTPException(status_code=401, detail="Authentication required")
+            # When authentication is disabled (tests/emergency), skip all checks
+            if auth_mode == "disabled":
+                call_kwargs = {**kwargs, "request": request}
+                if accepts_db:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
 
-                if not db:
-                    raise HTTPException(status_code=500, detail="Database session not available")
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
 
-                has_perm = has_permission(current_user, permission_key, db)
-                has_self = False
+            # In permissive/strict modes, check for bearer token
+            auth_header = request.headers.get("Authorization") or ""
+            has_bearer = auth_header.lower().startswith("bearer ")
 
-                if allow_self_access and request:
-                    student_id = kwargs.get("student_id")
-                    has_self = _is_self_access(current_user, permission_key, request, student_id)
+            # Strict mode requires a token
+            if auth_mode == "strict" and not has_bearer:
+                raise HTTPException(status_code=401, detail="Authentication required")
 
-                if not has_perm and not has_self:
-                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
+            current_user = None
+            if has_bearer:
+                # Resolve current user only if a token is present
+                current_user = await get_current_user(request=request, db=db)
+
+            # In permissive mode without token, allow access without checks
+            if auth_mode == "permissive" and not current_user:
+                call_kwargs = {**kwargs, "request": request}
+                if accepts_db:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
+
+            # Enforce permission for authenticated users (permissive or strict)
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+
+            if not db:
+                raise HTTPException(status_code=500, detail="Database session not available")
+
+            has_perm = has_permission(current_user, permission_key, db)
+            has_self = False
+
+            if allow_self_access and request:
+                student_id = kwargs.get("student_id")
+                has_self = _is_self_access(current_user, permission_key, request, student_id)
+
+            if not has_perm and not has_self:
+                raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
             # Call the wrapped function, conditionally passing db if the function accepts it
-            # Note: current_user is NOT passed to the wrapped function - it was removed from endpoint signatures
             call_kwargs = {**kwargs, "request": request}
             if accepts_db:
                 call_kwargs["db"] = db
 
             result = func(*args, **call_kwargs)
 
-            # Handle both sync and async functions
-            if asyncio.iscoroutine(result):
+            import asyncio as _asyncio
+
+            if _asyncio.iscoroutine(result):
                 return await result
-            else:
-                return result
+            return result
 
         return wrapper
 
@@ -447,33 +474,92 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
     """
 
     def decorator(func: Callable) -> Callable:
+        import inspect
+
         @wraps(func)
         async def wrapper(
             *args,
             request: Request,
             db: Session = Depends(get_db),
-            current_user: User = Depends(get_current_user),
             **kwargs,
         ):
-            if not current_user:
+            # Determine auth mode
+            try:
+                from backend.config import settings
+
+                auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+            except Exception:
+                auth_mode = "disabled"
+
+            # Disabled: skip checks
+            if auth_mode == "disabled":
+                call_kwargs = {**kwargs, "request": request}
+                # Pass db only if target accepts it
+                if "db" in inspect.signature(func).parameters:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
+
+            # Check for bearer token
+            auth_header = request.headers.get("Authorization") or ""
+            has_bearer = auth_header.lower().startswith("bearer ")
+
+            # Strict requires token
+            if auth_mode == "strict" and not has_bearer:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
+            current_user = None
+            if has_bearer:
+                current_user = await get_current_user(request=request, db=db)
+
+            # Permissive without token: allow
+            if auth_mode == "permissive" and not current_user:
+                call_kwargs = {**kwargs, "request": request}
+                if "db" in inspect.signature(func).parameters:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
+
+            # Enforce any-of permissions for authenticated users
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
             if not db:
                 raise HTTPException(status_code=500, detail="Database session not available")
 
             for perm_key in permission_keys:
                 if has_permission(current_user, perm_key, db):
-                    return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                    call_kwargs = {**kwargs, "request": request}
+                    if "db" in inspect.signature(func).parameters:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        return await result
+                    return result
 
                 if allow_self_access and request:
                     student_id = kwargs.get("student_id")
                     if _is_self_access(current_user, perm_key, request, student_id):
-                        return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+                        call_kwargs = {**kwargs, "request": request}
+                        if "db" in inspect.signature(func).parameters:
+                            call_kwargs["db"] = db
+                        result = func(*args, **call_kwargs)
+                        import asyncio as _asyncio
 
-            raise HTTPException(
-                status_code=403,
-                detail=f"Permission denied: requires one of {permission_keys}",
-            )
+                        if _asyncio.iscoroutine(result):
+                            return await result
+                        return result
+
+            raise HTTPException(status_code=403, detail=f"Permission denied: requires one of {permission_keys}")
 
         return wrapper
 
@@ -492,28 +578,78 @@ def require_all_permissions(*permission_keys: str) -> Callable:
     """
 
     def decorator(func: Callable) -> Callable:
+        import inspect
+
         @wraps(func)
         async def wrapper(
             *args,
             request: Request,
             db: Session = Depends(get_db),
-            current_user: User = Depends(get_current_user),
             **kwargs,
         ):
-            if not current_user:
+            # Determine auth mode
+            try:
+                from backend.config import settings
+
+                auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+            except Exception:
+                auth_mode = "disabled"
+
+            # Disabled: skip checks
+            if auth_mode == "disabled":
+                call_kwargs = {**kwargs, "request": request}
+                if "db" in inspect.signature(func).parameters:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
+
+            # Check for bearer token
+            auth_header = request.headers.get("Authorization") or ""
+            has_bearer = auth_header.lower().startswith("bearer ")
+
+            # Strict requires token
+            if auth_mode == "strict" and not has_bearer:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
+            current_user = None
+            if has_bearer:
+                current_user = await get_current_user(request=request, db=db)
+
+            # Permissive without token: allow
+            if auth_mode == "permissive" and not current_user:
+                call_kwargs = {**kwargs, "request": request}
+                if "db" in inspect.signature(func).parameters:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    return await result
+                return result
+
+            # Enforce all-of permissions for authenticated users
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
             if not db:
                 raise HTTPException(status_code=500, detail="Database session not available")
 
             for perm_key in permission_keys:
                 if not has_permission(current_user, perm_key, db):
-                    raise HTTPException(
-                        status_code=403,
-                        detail=f"Permission denied: requires '{perm_key}'",
-                    )
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{perm_key}'")
 
-            return await func(*args, request=request, db=db, current_user=current_user, **kwargs)
+            call_kwargs = {**kwargs, "request": request}
+            if "db" in inspect.signature(func).parameters:
+                call_kwargs["db"] = db
+            result = func(*args, **call_kwargs)
+            import asyncio as _asyncio
+
+            if _asyncio.iscoroutine(result):
+                return await result
+            return result
 
         return wrapper
 
