@@ -1,10 +1,13 @@
 # Copilot Instructions for Student Management System
 
 **Version**: v1.15.1 (Jan 2026) | **Status**: Phase 1 Complete, Phase 2 RBAC Backend Complete
+**Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
 
 ## ⚡ Quick Onboarding
 
 **What you're working with**: Bilingual (EN/EL) student management system with dual deployment modes (Docker production + Native development). Built for ΜΙΕΕΚ Cyprus technical college.
+
+**Solo Development Context**: This project is maintained by a single developer working with AI assistant as the only support. All role references in documentation (team members, distinct roles) should be interpreted as workflow checkpoints, not actual team members.
 
 **First Steps for AI Agents**:
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
@@ -563,4 +566,4 @@ alembic current                           # Check version
 
 ---
 
-**Last Updated**: January 10, 2026 | **Maintained By**: AI Agent / Project Lead
+**Last Updated**: January 10, 2026 | **Maintained By**: Solo Developer + AI Agent
