@@ -120,6 +120,10 @@ class BackupServiceEncrypted:
         Returns:
             Dictionary with restoration information
         """
+        # Validate backup_name to prevent path traversal
+        if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
+            raise ValueError(f"Invalid backup name: {backup_name}")
+
         backup_path = self.backup_dir / f"{backup_name}.enc"
 
         if not backup_path.exists():

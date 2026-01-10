@@ -259,6 +259,12 @@ async def restore_encrypted_backup(
         Decrypted database file
     """
     try:
+        # Validate inputs to prevent path traversal
+        if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
+            raise HTTPException(status_code=400, detail="Invalid backup name")
+        if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
+            raise HTTPException(status_code=400, detail="Invalid output filename")
+
         backup_root = pathlib.Path("backups")
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
