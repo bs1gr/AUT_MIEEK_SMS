@@ -53,6 +53,14 @@ This document consolidates all scattered planning documents into a **single sour
 
 ---
 
+## 📅 Scheduling Notice
+
+- The calendar and dates in this plan are indicative guides to assist with coordination; they are not strict obligations.
+- Work proceeds sequentially: when a task finishes, continue immediately with the next prioritized task, regardless of calendar dates.
+- If tasks complete early or slip, simply roll the plan forward and update this document to reflect reality and maintain momentum.
+
+---
+
 ## 🎯 Work Streams Overview
 
 | Stream | Timeline | Status | Effort | Priority |

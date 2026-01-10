@@ -36,6 +36,14 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 
 ---
 
+## 📅 Scheduling Notice
+
+- The calendar/timeline in this plan is an indicative guide to support coordination; it is not obligatory.
+- Execution is sequential and momentum-driven: upon completing a task, proceed to the next one without waiting on calendar dates.
+- Adjust dates pragmatically if tasks finish early or take longer; keep this plan updated as the single source of truth.
+
+---
+
 ## 🗓️ Implementation Timeline
 
 ### Week 1-2: RBAC Foundation (HIGH Priority)
