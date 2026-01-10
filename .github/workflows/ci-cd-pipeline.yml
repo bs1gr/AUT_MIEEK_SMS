@@ -251,6 +251,7 @@ jobs:
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-frontend:
     name: 🧪 Frontend Tests (Vitest)
@@ -291,6 +292,7 @@ jobs:
           flags: frontend
           name: frontend-coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   smoke-tests:
     name: 💨 Smoke Tests (Integration)
