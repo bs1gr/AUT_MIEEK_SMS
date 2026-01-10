@@ -47,13 +47,14 @@ jobs:
           Write-Host "Signature Status: $($sig.Status)" -ForegroundColor $(if ($sig.Status -eq 'Valid') { 'Green' } else { 'Red' })
 
           if ($sig.Status -ne 'Valid') {
-            Write-Error "Build blocked: Installer must be signed. Status: $($sig.Status)"
-            Write-Host "Note: CI builds currently skip signing (-SkipCodeSign). For production releases, ensure certificate is available." -ForegroundColor Yellow
             # Soft-fail for CI without cert; production builds should have cert
             if ($env:SMS_CODESIGN_REQUIRED -eq 'true') {
+              Write-Error "Build blocked: Installer must be signed. Status: $($sig.Status)"
               exit 1
             } else {
-              Write-Warning "Unsigned installer allowed in CI (SMS_CODESIGN_REQUIRED not set to 'true')"
+              Write-Warning "Unsigned installer in CI (SMS_CODESIGN_REQUIRED not set to 'true')"
+              Write-Host "Note: CI builds currently skip signing (-SkipCodeSign). For production releases, ensure certificate is available." -ForegroundColor Yellow
+              Write-Host "✅ Soft-fail: Allowing unsigned installer for CI build" -ForegroundColor Green
             }
           }
 
