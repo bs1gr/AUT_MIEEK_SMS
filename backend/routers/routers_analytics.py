@@ -36,7 +36,6 @@ def calculate_final_grade(
     student_id: int,
     course_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=None,
 ):
     """Calculate final grade using evaluation rules, grades, daily performance, and attendance."""
     try:
@@ -55,7 +54,6 @@ def get_student_all_courses_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=None,
 ):
     try:
         return service.get_student_all_courses_summary(student_id)
@@ -73,7 +71,6 @@ def get_student_summary(
     request: Request,
     student_id: int,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=None,
 ):
     try:
         return service.get_student_summary(student_id)
@@ -90,7 +87,6 @@ def get_student_summary(
 def get_dashboard(
     request: Request,
     service: AnalyticsService = Depends(get_analytics_service),
-    current_user=None,
 ):
     """Lightweight dashboard summary used by the frontend and load tests."""
     try:

@@ -290,9 +290,16 @@ def require_permission(
             *args,
             request: Request,
             db: Session = Depends(get_db),
-            current_user: User = Depends(get_current_user),
             **kwargs,
         ):
+            # Manually resolve the current_user dependency
+            # (FastAPI won't inject it since we're inside a decorator wrapper)
+            try:
+                current_user = await get_current_user(request=request, db=db)
+            except Exception:
+                # If auth fails, re-raise the HTTPException
+                raise
+
             try:
                 from backend.config import settings
 
@@ -319,7 +326,8 @@ def require_permission(
                     raise HTTPException(status_code=403, detail=f"Permission denied: requires '{permission_key}'")
 
             # Call the wrapped function, conditionally passing db if the function accepts it
-            call_kwargs = {**kwargs, "request": request, "current_user": current_user}
+            # Note: current_user is NOT passed to the wrapped function - it was removed from endpoint signatures
+            call_kwargs = {**kwargs, "request": request}
             if accepts_db:
                 call_kwargs["db"] = db
 

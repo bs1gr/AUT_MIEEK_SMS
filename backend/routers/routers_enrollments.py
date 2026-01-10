@@ -38,7 +38,6 @@ def get_all_enrollments(
     request: Request,
     pagination: PaginationParams = Depends(),
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all course enrollments"""
     try:
@@ -51,7 +50,7 @@ def get_all_enrollments(
 @router.get("/course/{course_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
-def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
+def list_course_enrollments(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_course_enrollments(db, course_id, request)
     except HTTPException:
@@ -70,7 +69,7 @@ def list_course_enrollments(course_id: int, request: Request, db: Session = Depe
 @router.get("/student/{student_id}", response_model=List[EnrollmentResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view", allow_self_access=True)
-def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
+def list_student_enrollments(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Get all course enrollments for a specific student"""
     try:
         return EnrollmentService.list_student_enrollments(db, student_id, request)
@@ -90,7 +89,7 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
 @router.get("/course/{course_id}/students", response_model=List[StudentBrief])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
-def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
+def list_enrolled_students(course_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         return EnrollmentService.list_enrolled_students(db, course_id, request)
     except HTTPException:
@@ -114,7 +113,6 @@ def enroll_students(
     payload: EnrollmentCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Enroll multiple students in a course.
@@ -146,7 +144,6 @@ def unenroll_student(
     student_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         with transaction(db):

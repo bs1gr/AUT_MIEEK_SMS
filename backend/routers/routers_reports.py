@@ -168,7 +168,6 @@ async def generate_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
-    current_user=None,
 ):
     """
     Generate comprehensive performance report for a student.
@@ -456,14 +455,14 @@ async def generate_student_performance_report(
 
 @router.get("/formats", response_model=List[str])
 @require_permission("reports:generate")
-async def get_available_formats(request: Request, current_user=None):
+async def get_available_formats(request: Request):
     """Get list of available report formats."""
     return [format.value for format in ReportFormat]
 
 
 @router.get("/periods", response_model=List[str])
 @require_permission("reports:generate")
-async def get_available_periods(request: Request, current_user=None):
+async def get_available_periods(request: Request):
     """Get list of available report periods."""
     return [period.value for period in ReportPeriod]
 
@@ -475,7 +474,6 @@ async def download_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
-    current_user=None,
 ):
     """
     Generate and download student performance report in requested format.
@@ -714,7 +712,6 @@ async def generate_bulk_student_reports(
     request: Request,
     bulk_request: BulkReportRequest,
     db: Session = Depends(get_session),
-    current_user=None,
 ):
     """
     Generate performance reports for multiple students at once.
@@ -911,7 +908,6 @@ async def invalidate_student_report_cache(
     student_id: int,
     request: Request,
     db: Session = Depends(get_session),
-    current_user=None,
 ):
     """
     Invalidate all cached reports for a specific student.
@@ -943,7 +939,7 @@ async def invalidate_student_report_cache(
 @router.delete("/cache")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def invalidate_all_report_caches(request: Request, current_user=None):
+async def invalidate_all_report_caches(request: Request):
     """
     Invalidate all cached student reports.
 

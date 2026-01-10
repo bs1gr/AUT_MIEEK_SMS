@@ -36,7 +36,6 @@ def create_highlight(
     request: Request,
     highlight: HighlightCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Create a new highlight for a student.
@@ -84,7 +83,6 @@ def list_highlights(
     category: Optional[str] = Query(None, description="Filter by category"),
     is_positive: Optional[bool] = Query(None, description="Filter by positive/negative"),
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     List highlights with optional filters.
@@ -133,7 +131,7 @@ def list_highlights(
 @router.get("/{highlight_id}", response_model=HighlightResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view")
-def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db), current_user=None):
+def get_highlight(request: Request, highlight_id: int, db: Session = Depends(get_db)):
     """
     Get a single highlight by ID.
 
@@ -176,7 +174,6 @@ def get_student_highlights(
     student_id: int,
     semester: Optional[str] = Query(None, description="Optional filter by semester"),
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Get all highlights for a specific student.
@@ -223,7 +220,6 @@ def update_highlight(
     highlight_id: int,
     highlight_update: HighlightUpdate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Update a highlight.
@@ -268,7 +264,6 @@ def delete_highlight(
     request: Request,
     highlight_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Delete a highlight.

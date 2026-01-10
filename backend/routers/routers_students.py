@@ -40,7 +40,6 @@ async def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Create a new student with duplicate protections."""
 
@@ -62,7 +61,6 @@ async def get_all_students(
     is_active: Optional[bool] = None,
     q: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Retrieve all students with optional filtering and pagination."""
 
@@ -83,7 +81,6 @@ async def get_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Retrieve a specific student by ID."""
 
@@ -99,7 +96,6 @@ async def update_student(
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Update a student's information."""
 
@@ -118,7 +114,6 @@ async def delete_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Soft-delete a student and hide associated records."""
 
@@ -137,7 +132,6 @@ async def activate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Activate a student account."""
 
@@ -152,7 +146,6 @@ async def deactivate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Deactivate a student account."""
 
@@ -170,7 +163,6 @@ async def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Create multiple students at once.

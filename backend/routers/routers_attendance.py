@@ -66,7 +66,6 @@ async def create_attendance(
     request: Request,
     attendance_data: AttendanceCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Record attendance for a student.
@@ -102,7 +101,6 @@ async def get_all_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Retrieve attendance records with optional filtering.
@@ -159,7 +157,6 @@ def get_student_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all attendance records for a student"""
     try:
@@ -192,7 +189,6 @@ def get_course_attendance(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all attendance records for a course"""
     try:
@@ -221,7 +217,6 @@ def get_attendance_by_date_and_course(
     attendance_date: date,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all attendance records for a specific course on a given date"""
     try:
@@ -251,7 +246,7 @@ def get_attendance_by_date_and_course(
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("attendance:view")
-def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db), current_user=None):
+def get_attendance(request: Request, attendance_id: int, db: Session = Depends(get_db)):
     """Get a specific attendance record"""
     try:
         from backend.import_resolver import import_names
@@ -276,7 +271,6 @@ async def update_attendance(
     attendance_id: int,
     attendance_data: AttendanceUpdate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Update an attendance record"""
     try:
@@ -300,7 +294,6 @@ async def delete_attendance(
     request: Request,
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Soft delete an attendance record"""
     try:
@@ -321,9 +314,7 @@ async def delete_attendance(
 @router.get("/stats/student/{student_id}/course/{course_id}")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view")
-def get_attendance_stats(
-    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db), current_user=None
-):
+def get_attendance_stats(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get attendance statistics for a student in a course"""
     try:
         from backend.import_resolver import import_names
@@ -372,7 +363,6 @@ async def bulk_create_attendance(
     request: Request,
     records: List[AttendanceCreate],
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Create multiple attendance records at once.

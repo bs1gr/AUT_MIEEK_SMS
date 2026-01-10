@@ -80,7 +80,6 @@ async def create_grade(
     request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Create a new grade record.
@@ -127,7 +126,6 @@ async def get_all_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Get all grades with optional filtering.
@@ -174,7 +172,6 @@ def get_student_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all grades for a student, optionally filtered by course"""
     try:
@@ -205,7 +202,6 @@ def get_course_grades(
     end_date: Optional[date] = None,
     use_submitted: bool = False,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Get all grades for a course"""
     try:
@@ -227,7 +223,7 @@ def get_course_grades(
 @router.get("/{grade_id}", response_model=GradeResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("grades:view")
-def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db), current_user=None):
+def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
     """
     Get a single grade by its ID.
     """
@@ -251,7 +247,6 @@ async def update_grade(
     grade_id: int,
     grade_data: GradeUpdate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """
     Update a grade record.
@@ -276,7 +271,6 @@ async def delete_grade(
     request: Request,
     grade_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Delete a grade record"""
     try:
@@ -294,9 +288,7 @@ async def delete_grade(
 @router.get("/analysis/student/{student_id}/course/{course_id}")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view")
-def get_grade_analysis(
-    request: Request, student_id: int, course_id: int, db: Session = Depends(get_db), current_user=None
-):
+def get_grade_analysis(request: Request, student_id: int, course_id: int, db: Session = Depends(get_db)):
     """Get grade analysis for a student in a course"""
     try:
         (Grade,) = import_names("models", "Grade")

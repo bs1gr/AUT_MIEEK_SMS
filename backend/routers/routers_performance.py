@@ -64,7 +64,6 @@ def get_daily_performance_by_id(
     id: int = Path(..., description="DailyPerformance record ID"),
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         import_names("models", "DailyPerformance")
@@ -90,7 +89,6 @@ def create_daily_performance(
     request: Request,
     performance: DailyPerformanceCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         # Preserve error injection points used by tests
@@ -120,7 +118,6 @@ def update_daily_performance(
     performance: DailyPerformanceUpdate = None,
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     """Update an existing daily performance record."""
     try:
@@ -145,7 +142,7 @@ def update_daily_performance(
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view", allow_self_access=True)
-def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db), current_user=None):
+def get_student_daily_performance(student_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         # Preserve error injection point used by tests
         import_names("models", "DailyPerformance")
@@ -172,7 +169,6 @@ def get_student_course_daily_performance(
     course_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         # Preserve error injection point used by tests
@@ -197,7 +193,6 @@ def get_course_daily_performance_by_date(
     course_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         # Preserve error injection point used by tests

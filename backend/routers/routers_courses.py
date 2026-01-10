@@ -158,7 +158,6 @@ async def create_course(
     request: Request,
     course: CourseCreate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -207,7 +206,6 @@ async def get_all_courses(
     pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -242,7 +240,6 @@ async def get_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -264,7 +261,6 @@ async def update_course(
     course_id: int,
     course_data: CourseUpdate,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -308,7 +304,6 @@ async def delete_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")
@@ -327,7 +322,7 @@ async def delete_course(
 @router.get("/{course_id}/evaluation-rules")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
-def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db), current_user=None):
+def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends(get_db)):
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
@@ -351,7 +346,6 @@ async def update_evaluation_rules(
     course_id: int,
     rules_data: Dict[str, Any] = Body(...),
     db: Session = Depends(get_db),
-    current_user=None,
 ):
     try:
         (Course,) = import_names("models", "Course")

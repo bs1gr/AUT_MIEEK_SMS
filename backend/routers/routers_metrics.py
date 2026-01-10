@@ -33,7 +33,6 @@ async def get_student_metrics(
     request: Request,
     semester: Optional[str] = None,
     db: Session = Depends(get_session),
-    current_user=None,
 ) -> StudentMetrics:
     """
     Get student population and enrollment metrics.
@@ -68,7 +67,6 @@ async def get_student_metrics(
 async def get_course_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=None,
 ) -> CourseMetrics:
     """
     Get course enrollment and completion metrics.
@@ -102,7 +100,6 @@ async def get_course_metrics(
 async def get_grade_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=None,
 ) -> GradeMetrics:
     """
     Get grade distribution and performance metrics.
@@ -143,7 +140,6 @@ async def get_grade_metrics(
 async def get_attendance_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=None,
 ) -> AttendanceMetrics:
     """
     Get attendance tracking and compliance metrics.
@@ -178,7 +174,6 @@ async def get_attendance_metrics(
 async def get_dashboard_metrics(
     request: Request,
     db: Session = Depends(get_session),
-    current_user=None,
 ) -> DashboardMetrics:
     """
     Get comprehensive dashboard metrics for executive overview.
