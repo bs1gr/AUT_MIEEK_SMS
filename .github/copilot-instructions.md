@@ -1,410 +1,566 @@
 # Copilot Instructions for Student Management System
 
-## � MANDATORY: Development Status & Planning
+**Version**: v1.15.1 (Jan 2026) | **Status**: Phase 1 Complete, Phase 2 RBAC Backend Complete
 
-**⚠️ CRITICAL DIRECTIVE FOR ALL AI AGENTS:**
+## ⚡ Quick Onboarding
 
-Before starting ANY work, you MUST:
+**What you're working with**: Bilingual (EN/EL) student management system with dual deployment modes (Docker production + Native development). Built for ΜΙΕΕΚ Cyprus technical college.
 
-1. **Check Current Status**: Read [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) - This is the **single source of truth** for all project planning, priorities, and timelines.
+**First Steps for AI Agents**:
+1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
+2. Read [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for navigation
+3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
 
-2. **Follow Documentation Index**: Consult [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for complete documentation navigation and understand the current project state.
-
-3. **Respect Work Streams**: All work is organized into 4 streams with clear priorities:
-   - 🔴 **IMMEDIATE: Phase 1 Completion** (v1.15.0) - Jan 7-24, 2026 - BLOCKING
-   - 🟠 **SHORT-TERM: Post-Phase 1 Polish** (v1.15.1) - Jan 7-24, 2026
-   - 🟡 **MEDIUM-TERM: Phase 2** (v1.16.0) - Jan 27 - Mar 7, 2026
-   - 🔵 **LONG-TERM: Backlog** - Q2 2026+
-
-4. **Update Progress**: When completing tasks, update the checklist in UNIFIED_WORK_PLAN.md to maintain accurate status for all agents.
-
-5. **No Duplicate Planning**: Do NOT create new TODO lists, planning documents, or trackers. Update the unified plan instead.
-
-6. **Global Policy (Single Source of Truth)**:
-    - Use ONE plan only: update `docs/plans/UNIFIED_WORK_PLAN.md` for all planning/status.
-    - Maintain ONE versioning system and ONE unified dev/prod state across the repo.
-    - Do not create ad‑hoc PR docs, status files, or parallel plans; reference `DOCUMENTATION_INDEX.md` and update the unified plan.
-    - Always consult documentation properties and AI agent obligations before applying automated fixes or creating artifacts.
-
-**Current Development Phase**: Phase 1 Complete, Phase 2 RBAC Backend Complete (v1.15.1)
-**Active Branch**: `main` (deployed to staging, production pending)
-**Current Version**: v1.15.1 (see VERSION file)
-**Next Critical Tasks**: Staging deployment validation, production deployment planning
+**Current Version**: v1.15.1 (stored in `VERSION` file - **always check this first**)
 
 ---
 
-## �🚀 Quick Start for AI Agents
+## 🚨 Critical "Don't Do This" Rules
 
-**What you're working with:** Bilingual (EN/EL) student management system with Docker + native modes. Version: **1.15.1** (see VERSION file).
-
-**⚠️ CRITICAL: Version Numbering**
-- Current version: **v1.15.1** (stored in `VERSION` file)
-- Format: **v1.MINOR.PATCH** (NOT v11.x.x or v2.x.x)
-- Source of truth: `VERSION` file + `docs/plans/UNIFIED_WORK_PLAN.md`
-- Never invent version numbers - always check these files first
-
-**Most common tasks:**
+These are the most common mistakes that break the codebase:
 
 ```powershell
-# Docker Deployment (v2.0 Consolidated)
-.\DOCKER.ps1 -Start               # Start Docker deployment (builds if needed)
-.\DOCKER.ps1 -Stop                # Stop Docker container
-.\DOCKER.ps1 -Update              # Fast update with automatic backup
-.\DOCKER.ps1 -Install             # First-time installation
-.\DOCKER.ps1 -Prune               # Safe Docker cleanup
-.\DOCKER.ps1 -WithMonitoring      # Start with Grafana/Prometheus
-.\DOCKER.ps1 -Help                # Show all commands
+# ❌ NEVER run pytest directly - will crash VS Code with 490+ tests
+cd backend && pytest -q
 
-# Native Development (v2.0 Consolidated)
-.\NATIVE.ps1 -Setup               # Install dependencies (first time)
-.\NATIVE.ps1 -Start               # Start backend + frontend with hot-reload
-.\NATIVE.ps1 -Stop                # Stop all processes
-.\NATIVE.ps1 -Backend             # Backend only (uvicorn --reload)
-.\NATIVE.ps1 -Frontend            # Frontend only (Vite HMR)
-.\NATIVE.ps1 -Help                # Show all commands
-
-# Quality & Pre-commit (v1.9.3+)
-.\COMMIT_READY.ps1 -Quick         # Quick validation (2-3 min): format, lint, smoke test
-.\COMMIT_READY.ps1 -Standard      # Standard checks (5-8 min): + backend tests
-.\COMMIT_READY.ps1 -Full          # Full validation (15-20 min): + all frontend tests
-.\COMMIT_READY.ps1 -Cleanup       # Just cleanup (1-2 min): format + organize imports
-
-# Legacy Scripts (Deprecated & Archived)
-# archive/pre-v1.9.1/: RUN.ps1, INSTALL.ps1, SMS.ps1, run-native.ps1 → Use DOCKER.ps1/NATIVE.ps1
-# archive/pre-v1.9.7-docker-scripts/: DOCKER_UP/DOWN/REFRESH/RUN/SMOKE/UPDATE_VOLUME → Use DOCKER.ps1
-# scripts/ci/VERIFY_VERSION.ps1 → Use scripts/VERIFY_VERSION.ps1 -CIMode
-
-# Database & Testing
-cd backend && pytest -q                                             # Run tests (rate limiter auto-disabled)
-alembic revision --autogenerate -m "msg" && alembic upgrade head   # DB migration
+# ✅ ALWAYS use batch runner (splits into manageable chunks)
+.\RUN_TESTS_BATCH.ps1
 ```
 
-**Configuration Files (Moved to dedicated directories):**
-- `config/mypy.ini` - Type checking configuration
-- `config/pytest.ini` - Test runner configuration
-- `config/ruff.toml` - Linting configuration
-- `docker/docker-compose.yml` - Main Docker compose file
-- `docker/docker-compose.prod.yml` - Production overlay
-- `docker/docker-compose.monitoring.yml` - Monitoring stack
+**Why**: Running all tests at once overloads memory/CPU. Project policy enforces batch testing via guard in `backend/tests/conftest.py`. CI is exempt; local runs require `SMS_ALLOW_DIRECT_PYTEST=1` override or batch runner.
 
-**Critical rules:**
-1. ❌ Never edit DB schema directly → Always use Alembic migrations
-2. ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts`
-3. ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/main.py`)
-4. ❌ Never create new TODO/planning docs → Update [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) instead
-5. ❌ **Never run full pytest suite directly** → **ALWAYS use `.\RUN_TESTS_BATCH.ps1`** (prevents VS Code crashes)
-6. ❌ **Never use incorrect versioning** → **ALWAYS use v1.x.x format** (check VERSION file and UNIFIED_WORK_PLAN.md)
-7. ✅ Always check [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) before starting work
-8. ✅ Always verify version from VERSION file (currently v1.15.1)
-9. ✅ Always add rate limiting to new endpoints: `@limiter.limit(RATE_LIMIT_WRITE)`
-10. ✅ Always add translations for both EN and EL (TypeScript modular structure)
-11. ✅ Always run `COMMIT_READY.ps1 -Quick` before committing (auto-fix + validation)
-12. ✅ **Always use batch test runner** for backend tests: `.\RUN_TESTS_BATCH.ps1`
+**Other Critical Rules**:
+- ❌ Never edit DB schema directly → Always use Alembic migrations (`alembic revision --autogenerate`)
+- ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts` (bilingual EN/EL required)
+- ❌ Never create new TODO/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
+- ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/lifespan.py`)
+- ❌ Never use `require_role()` for admin endpoints → Use `optional_require_role()` (respects AUTH_MODE)
 
-**File locations you'll need:**
-- Models: `backend/models.py` (with indexes on email, student_id, course_code, date, semester)
-- Routers: `backend/routers/routers_*.py` (use `optional_require_role` for admin endpoints)
-- Schemas: `backend/schemas/*.py` (exported via `__init__.py` for clean imports)
-- Frontend API: `frontend/src/api/api.js` (axios client with auth interceptor)
-- Translations: `frontend/src/translations.ts` + `frontend/src/locales/{en,el}/*.ts` (modular)
-- Tests: `backend/tests/` (StaticPool in-memory DB) + `frontend/src/**/__tests__/*.test.{ts,tsx}` (Vitest)
+---
 
-## Architecture Overview
+## 🏗️ Architecture Essentials
 
-**Dual deployment modes:**
+### Dual Deployment Modes (Non-Obvious Design)
 
-| Mode | Description | Ports | Use Case |
-|------|-------------|-------|----------|
-| **Docker** | Single container (FastAPI serves built React SPA) | 8080 | Production, consistent env |
-| **Native** | Backend + Frontend separate processes | 8000 (API) + 5173 (Vite) | Development, hot reload |
+| Mode | Entry Point | Ports | Key Difference |
+|------|-------------|-------|----------------|
+| **Docker** | `DOCKER.ps1 -Start` | 8080 | FastAPI serves **pre-built** React SPA (production) |
+| **Native** | `NATIVE.ps1 -Start` | 8000 (API) + 5173 (Vite) | Backend + Frontend **separate** processes (hot reload) |
 
-**Stack:** FastAPI 0.120+ • SQLAlchemy 2.0 • SQLite/PostgreSQL • Alembic • React 18 (TypeScript/TSX) • Vite 5 • Tailwind 3 • i18next • PowerShell 7+
+**Why this matters**: In Docker mode, frontend changes require rebuild. In Native mode, Vite HMR works instantly. Frontend is built **into** Docker image at build time (see `docker/docker-compose.yml`).
 
-**Database:**
-- Native: `data/student_management.db`
-- Docker: Volume `sms_data:/data/student_management.db`
-- Models: Student, Course, Attendance, Grade, DailyPerformance, Highlight, CourseEnrollment (all with soft-delete via `SoftDeleteMixin`)
-- Auto-migrations on startup via `run_migrations.py` in FastAPI lifespan
-- **Indexing strategy**: Indexed fields include `email`, `student_id`, `course_code`, `date`, `semester`, `is_active`, `enrollment_date` for query performance
+### Modular Backend Architecture (v1.9.5+ Refactor)
 
-**Entry points:**
-- Backend: `backend/main.py` (minimal entry point, ~100 lines)
-  - **Modular Architecture (v1.9.5+):**
-    - `backend/app_factory.py` - FastAPI app creation and configuration
-    - `backend/lifespan.py` - Startup/shutdown lifecycle management
-    - `backend/middleware_config.py` - All middleware registration
-    - `backend/error_handlers.py` - Exception handler registration
-    - `backend/router_registry.py` - Router registration logic
-- Frontend: `frontend/src/App.tsx` → Main layout with navigation, auth, and error boundaries
-- Scripts:
-  - **Production/Docker:** `DOCKER.ps1` (v2.0 consolidated)
-  - **Development/Native:** `NATIVE.ps1` (v2.0 consolidated)
-  - **Quality Gate:** `COMMIT_READY.ps1` (v1.9.3+)
-  - **Legacy (Archived):** See `archive/pre-v1.9.1/` for deprecated scripts
+`backend/main.py` is just an entry point (~130 lines). All logic split into:
 
-**Environment Detection** (`backend/environment.py`):
-- Production mode requires Docker (enforced via `RuntimeContext.assert_valid()`)
-- Test mode: Auto-detected via pytest env vars or `DISABLE_STARTUP_TASKS=1`
-- Development mode: Default for native execution (no SMS_ENV set)
-
-## Critical Patterns (Learn These First)
-
-### Database Changes = Alembic Migration
-
-```bash
-cd backend
-alembic revision --autogenerate -m "description"
-alembic upgrade head
+```python
+# Don''t look for app configuration in main.py - it''s delegated:
+backend/app_factory.py          # FastAPI app creation
+backend/lifespan.py             # Startup/shutdown (migrations run here)
+backend/middleware_config.py    # All middleware registration
+backend/error_handlers.py       # Exception handlers
+backend/router_registry.py      # Router registration
 ```
 
-- Migrations run auto on startup (lifespan context)
-- Use `cascade="all, delete-orphan"` for dependent records
-- Index frequently queried fields: `email`, `student_id`, `course_code`, `date`
-- Check version mismatch: `.\scripts\CHECK_VOLUME_VERSION.ps1`
+**Why this matters**: When debugging startup issues or adding middleware, check these modules, not `main.py`.
 
-### API Endpoints Pattern
+### Environment Detection System
+
+`backend/environment.py` enforces runtime context rules:
+
+```python
+# Production mode REQUIRES Docker (enforced via RuntimeContext.assert_valid())
+# Test mode: Auto-detected via pytest env vars or DISABLE_STARTUP_TASKS=1
+# Development mode: Default (no SMS_ENV set)
+```
+
+**Key insight**: You **cannot** run production mode in native deployment - will raise error. This prevents prod config from running on dev machines.
+
+---
+
+## 🔧 Developer Workflows (Non-Obvious Commands)
+
+### Script Consolidation (v2.0 - Jan 2026)
+
+**OLD way (deprecated)**: `RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1` (100+ scripts!)
+
+**NEW way (consolidated)**:
+```powershell
+.\DOCKER.ps1 -Start      # Production/staging operations
+.\NATIVE.ps1 -Start      # Development with hot reload
+.\COMMIT_READY.ps1 -Quick # Pre-commit validation (2-3 min)
+```
+
+**Key files**:
+- `config/mypy.ini`, `config/pytest.ini`, `config/ruff.toml` (configs moved from root)
+- `docker/docker-compose.yml` (main), `docker-compose.prod.yml` (overlay)
+
+### Testing Workflow (Stability-Critical)
+
+**Batch runner configuration** (`RUN_TESTS_BATCH.ps1`):
+```powershell
+-BatchSize 5       # Default: 5 test files per batch
+-Verbose           # Show detailed output
+-FastFail          # Stop on first failure
+```
+
+**Test environment auto-setup** (`backend/tests/conftest.py`):
+- `DISABLE_STARTUP_TASKS=1` → Skips migrations/heavy startup
+- `CSRF_ENABLED=0` → CSRF disabled (TestClient doesn''t handle cookies)
+- Rate limiting auto-disabled via `limiter.enabled = False`
+- In-memory SQLite with `StaticPool` (fast, isolated)
+
+**Frontend tests**: Vitest in `frontend/src/**/__tests__/*.test.{ts,tsx}` (1249 tests)
+
+### Pre-Commit Validation (Quality Gate)
+
+```powershell
+.\COMMIT_READY.ps1 -Quick    # Fast: format, lint, smoke tests (2-3 min)
+.\COMMIT_READY.ps1 -Standard # + backend tests (5-8 min)
+.\COMMIT_READY.ps1 -Full     # + all frontend tests (15-20 min)
+.\COMMIT_READY.ps1 -AutoFix  # Fix formatting/imports automatically
+```
+
+**Why this exists**: Consolidates `COMMIT_PREP.ps1`, `PRE_COMMIT_CHECK.ps1`, `PRE_COMMIT_HOOK.ps1`, `SMOKE_TEST_AND_COMMIT_PREP.ps1` into single script. Auto-cleanup included (timeout: 120s, skips large dirs).
+
+---
+
+## 📐 Critical Patterns
+
+### Database Soft Delete (Auto-Filtering)
+
+All models inherit `SoftDeleteMixin` → `deleted_at` column. **Queries automatically filter deleted records** via `SoftDeleteQuery` (see `backend/models_soft_delete.py`).
+
+```python
+# This automatically excludes deleted_at IS NOT NULL
+students = db.query(Student).all()  # Only active students
+```
+
+**Key insight**: You don''t need explicit `filter(Student.deleted_at.is_(None))` - it''s automatic.
+
+### API Rate Limiting Pattern
 
 ```python
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE
 
-@router.post("/items/", response_model=ItemResponse)
-@limiter.limit(RATE_LIMIT_WRITE)  # configured via backend.rate_limiting (env-configurable defaults)
-async def create_item(item: ItemCreate, request: Request, db: Session = Depends(get_db)):
-    # Access request.state.request_id for logging
-    # Raise HTTPException(status_code=400, detail="error") for errors
-```
-
-**CRITICAL: Admin Endpoint Authentication**
-```python
-# ❌ WRONG - Bypasses AUTH_MODE (never use for admin endpoints)
-@router.get("/admin/users")
-async def list_users(current_admin: Any = Depends(require_role("admin"))):
-    pass
-
-# ✅ CORRECT - Respects AUTH_MODE (always use for admin endpoints)
-@router.get("/admin/users")
-async def list_users(current_admin: Any = Depends(optional_require_role("admin"))):
+@router.post("/items/")
+@limiter.limit(RATE_LIMIT_WRITE)  # Auto-configured from env
+async def create_item(request: Request, db: Session = Depends(get_db)):
+    # request.state.request_id available for logging
     pass
 ```
 
-**AUTH_MODE Behavior:**
-- `disabled`: No authentication required (emergency access)
-- `permissive`: Authentication optional (recommended for production)
-- `strict`: Full authentication required (maximum security)
+**Configuration**: Env vars in `.env` (RATE_LIMIT_WRITE, RATE_LIMIT_READ). Default: 10/min write, 60/min read.
 
-### Pydantic Validation Pattern
+### Authentication Modes (AUTH_MODE)
 
 ```python
-class GradeCreate(BaseModel):
-    grade: float = Field(ge=0)
-    max_grade: float = Field(gt=0)
+# ❌ WRONG - Bypasses AUTH_MODE
+@router.get("/admin/users")
+async def list_users(current_admin = Depends(require_role("admin"))):
+    pass
 
-    @model_validator(mode='after')
-    def validate_grade(self):
-        if self.grade > self.max_grade:
-            raise ValueError("Grade exceeds max_grade")
-        return self
+# ✅ CORRECT - Respects AUTH_MODE
+@router.get("/admin/users")
+async def list_users(current_admin = Depends(optional_require_role("admin"))):
+    pass
 ```
 
-### Frontend i18n Pattern (MANDATORY)
+**Modes**:
+- `disabled`: No auth required (emergency access)
+- `permissive`: Auth optional (recommended for production)
+- `strict`: Full auth required (maximum security)
+
+### Bilingual i18n (MANDATORY)
 
 ```tsx
-import { useTranslation } from 'react-i18next';
+// ❌ WRONG
+<button>Save</button>
 
-function MyComponent() {
-  const { t } = useTranslation();
-  return <button>{t('common.save')}</button>;  // Never hardcode strings!
-}
+// ✅ CORRECT
+import { useTranslation } from ''react-i18next'';
+const { t } = useTranslation();
+<button>{t(''common.save'')}</button>
 ```
 
-**Translation Structure (Modular TypeScript):**
-- Main: `frontend/src/translations.ts` (imports all locale modules)
-- English: `frontend/src/locales/en/*.ts` (common, auth, students, courses, etc.)
-- Greek: `frontend/src/locales/el/*.ts` (parallel structure)
-- Nested access: `t('students.addStudent')` or flat: `t('addStudent')`
-- **Always add both EN and EL** - translation integrity tests will catch missing keys
+**Translation structure**:
+- `frontend/src/translations.ts` (imports locale modules)
+- `frontend/src/locales/en/*.ts` (English: common, auth, students, courses, etc.)
+- `frontend/src/locales/el/*.ts` (Greek: parallel structure)
 
-### Date Range Queries (Auto-fill Logic)
+**Key insight**: Translation integrity tests will fail if EN/EL don''t match. Always add both.
 
-```python
-# If only start_date: end_date = start + SEMESTER_WEEKS*7 days
-# If only end_date: start_date = end - SEMESTER_WEEKS*7 days
-# Use _normalize_date_range() helper in routers
-```
-
-## Common Workflows
-
-### Start/Stop Application (v2.0 - Consolidated Scripts)
-
-```powershell
-# Docker Deployment
-.\DOCKER.ps1 -Install         # First-time installation
-.\DOCKER.ps1 -Start           # Start (default, builds if needed)
-.\DOCKER.ps1 -Update          # Fast update with backup
-.\DOCKER.ps1 -UpdateClean     # Clean update (no-cache + backup)
-.\DOCKER.ps1 -Stop            # Stop cleanly
-.\DOCKER.ps1 -Status          # Check status
-.\DOCKER.ps1 -WithMonitoring  # Start with monitoring stack
-.\DOCKER.ps1 -Prune           # Safe cleanup
-.\DOCKER.ps1 -DeepClean       # Nuclear cleanup
-
-# Native Development
-.\NATIVE.ps1 -Setup           # Install dependencies
-.\NATIVE.ps1 -Start           # Start backend + frontend
-.\NATIVE.ps1 -Backend         # Backend only (hot-reload)
-.\NATIVE.ps1 -Frontend        # Frontend only (HMR)
-.\NATIVE.ps1 -Stop            # Stop all
-.\NATIVE.ps1 -Status          # Check status
-```
-
-**Migration Note:** Old scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) are deprecated and archived in `archive/pre-v1.9.1/`.
-
-### Development Setup
-
-```powershell
-# Backend (hot reload)
-cd backend && python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
-
-# Frontend (HMR)
-cd frontend && npm run dev  # http://localhost:5173
-
-# Force rebuild Docker images
-.\DOCKER.ps1 -UpdateClean   # Clean rebuild with no-cache
-```
-
-**Environment files:** Copy `.env.example` to `.env` in `backend/` and `frontend/` directories.
-
-### Testing
-
-**⚠️ CRITICAL: ALWAYS USE BATCH TEST RUNNER TO PREVENT SYSTEM CRASHES**
-
-```powershell
-# ✅ CORRECT - Use batch runner (prevents crashes)
-.\RUN_TESTS_BATCH.ps1                    # Default: 5 files per batch
-.\RUN_TESTS_BATCH.ps1 -BatchSize 3       # Smaller batches for stability
-.\RUN_TESTS_BATCH.ps1 -Verbose           # Detailed output
-.\RUN_TESTS_BATCH.ps1 -FastFail          # Stop on first failure
-
-# ❌ NEVER RUN DIRECTLY - Will crash VS Code
-cd backend && pytest -q                  # DON'T USE THIS
-cd backend && pytest tests/              # DON'T USE THIS
-
-# ✅ OK for single test file (development only)
-cd backend && pytest tests/test_specific_file.py -v
-
-# ✅ Coverage reporting (after batch tests pass)
-cd backend && pytest --cov=backend --cov-report=html tests/test_specific_file.py
-```
-
-**Why Batch Testing is Mandatory:**
-- Running all 490+ tests at once overloads system memory/CPU
-- Causes VS Code to freeze or crash
-- Batch runner splits tests into manageable chunks (default: 5 files)
-- Provides progress reporting and recovery options
-- Required by project policy for all test suite runs
-
-**Test Configuration:**
-- `DISABLE_STARTUP_TASKS=1`: Auto-set in conftest to skip migrations/heavy startup
-- `CSRF_ENABLED=0`: CSRF disabled in tests (TestClient doesn't handle cookies easily)
-- Rate limiting: Auto-disabled via `limiter.enabled = False`
-- Clean DB: `clean_db` fixture resets schema before each test function
-
-Tests use in-memory SQLite with `StaticPool` (see `backend/tests/conftest.py`).
-
-### Database Migrations
+### Alembic Migrations (Auto-Run)
 
 ```bash
 cd backend
-alembic revision --autogenerate -m "Add phone field"  # Create
-alembic upgrade head           # Apply
-alembic current                # Check version
-alembic downgrade -1           # Rollback
+alembic revision --autogenerate -m "Add phone field"
+alembic upgrade head  # Runs automatically on startup (see lifespan.py)
 ```
 
-**Version mismatch between native/Docker?** Run `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate`
+**Version mismatch between Docker/Native?** Run `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate`
 
-### Adding New Feature (Full Flow)
-1. **Check Work Plan**: Verify feature is in [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) and properly prioritized
-2. **Model** (if new table): Add to `backend/models.py` with indexes
-3. **Schema**: Create in `backend/schemas/{module}.py`, export in `__init__.py`
-4. **Router**: Add to `backend/routers/routers_{module}.py`
+**Key insight**: Migrations run automatically on FastAPI startup via `lifespan.py` - don''t run manually unless debugging.
 
-   ```python
-   @router.post("/items/")
-   @limiter.limit(RATE_LIMIT_WRITE)
-   async def create_item(item: ItemCreate, db: Session = Depends(get_db)):
-       pass
-   ```
+---
 
-5. **Register**: Add router in `backend/main.py` `register_routers()` if new file
-6. **Migration**: `alembic revision --autogenerate && alembic upgrade head`
-7. **Translations**: Add to `frontend/src/translations.js` (en + el)
-8. **API Client**: Add to `frontend/src/api/api.js`
-9. **Component**: Use `const { t } = useTranslation()` for all text
-10. **Update Plan**: Mark task complete in [UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md)
+## 📦 Key File Locations (Save You Time)
 
-## Important Technical Details
+```
+backend/
+├── app_factory.py              # FastAPI creation (not main.py)
+├── lifespan.py                 # Startup/shutdown (migrations here)
+├── models.py                   # DB models (with SoftDeleteMixin)
+├── routers/routers_*.py        # API endpoints (15 routers)
+├── schemas/*.py                # Pydantic models (exported via __init__.py)
+├── tests/conftest.py           # Test guards & fixtures
+├── rate_limiting.py            # Rate limit config
+└── environment.py              # Runtime context detection
 
-### Operations UI (Control Features)
-- React Operations page at `/operations` provides all control features
-- Manage Backups panel: list, download, save to path, ZIP (all/selected), delete selected
-- Control API endpoints: `/control/api/operations/*` (used by Operations UI)
-- **Can't stop Docker container from inside itself** - use `DOCKER.ps1 -Stop` on host
+frontend/src/
+├── App.tsx                     # Main layout (navigation, auth, error boundaries)
+├── translations.ts             # i18n setup
+├── locales/{en,el}/*.ts        # Translation modules
+├── api/api.js                  # Axios client (VITE_API_URL, auth interceptor)
+└── features/                   # Feature modules
 
-### Grade Calculation
-- Weighted components: Each grade has `component_type` + `weight` (% of final)
-- Absence penalty: Deducted from final (set in `courses.absence_penalty`)
-- Scale: Greek 0-20 (exports convert to %)
-- Date filtering: Use `use_submitted=true` for `date_submitted` vs `date_assigned`
+scripts/
+├── RUN_TESTS_BATCH.ps1         # Batch test runner (REQUIRED)
+├── COMMIT_READY.ps1            # Pre-commit validation
+├── DOCKER.ps1                  # Docker operations
+└── NATIVE.ps1                  # Native development
+```
 
-### Frontend Architecture
-- Hierarchy: `App.tsx` → Main layout with navigation, auth, error boundaries
-- Providers: `LanguageProvider`, `ThemeProvider`, `AppearanceThemeProvider`, `AuthContext`, `ErrorBoundary`
-- i18n: Greek fallback, localStorage → navigator detection, modular TypeScript structure
-- API: Single axios client in `api/api.js`, uses `VITE_API_URL` env (defaults to `/api/v1`)
-- Control API: Canonical base at `/control/api` (exported as `CONTROL_API_BASE` from `api.js`)
-- State: React Query for server state, local state for UI (no Redux/Zustand)
-- Routing: React Router v6 with protected routes and auth guards
+---
 
-### Logging & Monitoring
-- Format: `%(asctime)s - %(name)s - [%(request_id)s] - %(message)s`
-- Files: `backend/logs/app.log` (rotating 2MB, 5 backups) + `structured.json`
-- Request ID: Auto-added via `RequestIDMiddleware` to `request.state.request_id`
-- Frontend errors: POST to `/api/logs/frontend-error`
-- Note: Embedded Monitoring UI (Grafana/Prometheus panels) was removed in v1.8.3. The `/metrics` endpoint remains available when `ENABLE_METRICS=1` for external tools.
+## 🐛 Troubleshooting Quick Reference
 
-### Health Checks
-- `/health` - Detailed status (DB, disk, migrations)
-- `/health/ready` - Readiness probe (for K8s)
-- `/health/live` - Liveness probe (process alive)
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| "Direct pytest execution is disabled" | Running `pytest` without batch runner | Use `.\RUN_TESTS_BATCH.ps1` |
+| Port 8000/5173 already in use | Native mode processes not stopped | `.\NATIVE.ps1 -Stop` or `netstat -ano \| findstr ":8000"` |
+| Schema mismatch after pull | Docker volume DB version != code version | `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate` |
+| Frontend build fails in Docker | Missing `VITE_API_URL` env var | Check `.env` has `VITE_API_URL=/api/v1` |
+| Tests fail with "deleted" records | Forgot soft-delete auto-filter | Check if `deleted_at IS NOT NULL` - should be automatic |
 
-## Don't Do This
+---
 
-❌ **Never create documentation without auditing first** → Always check `/docs/`, `/docs/plans/`, `/docs/releases/`, `/docs/processes/` directories and `DOCUMENTATION_INDEX.md` first. Review existing structure, naming conventions, and patterns before creating new docs. Consolidate findings into existing framework rather than creating standalone documents. Single source of truth prevents duplication and confusion.
+## 📚 Reference Documentation
 
-❌ **Never edit DB schema directly** → Use Alembic migrations
-❌ **Never hardcode UI strings** → Use `t('i18n.key')`
-❌ **Never use `@app.on_event()`** → Use `@asynccontextmanager` lifespan
-❌ **Never stop Docker from Control Panel** → Use `DOCKER.ps1 -Stop` on host
-❌ **Never forget date validation** → Check `start_date <= end_date`
-❌ **Never commit `.env` files** → Use `.env.example` templates
+- **Architecture deep-dive**: `docs/development/ARCHITECTURE.md`
+- **Git workflow & commit standards**: `docs/development/GIT_WORKFLOW.md`
+- **Localization setup**: `docs/user/LOCALIZATION.md`
+- **Docker operations**: `docs/deployment/DOCKER_OPERATIONS.md`
+- **Master index**: `docs/DOCUMENTATION_INDEX.md`
 
-## Quick Troubleshooting
+---
 
-| Problem | Solution |
-|---------|----------|
-| Port conflicts | `DOCKER.ps1 -Status` or `netstat -ano \| findstr ":8000"` |
-| Docker issues | `docker ps`, `docker logs sms-fullstack` |
-| Schema mismatch | `.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate` |
-| Frontend build fails | Check `VITE_API_URL=/api/v1` in env |
-| Tests failing | Verify in-memory DB setup in `conftest.py` |
-| Migrations not running | Check logs for `run_migrations.py` output |
+## 🔐 RBAC & Permissions (v1.15.1+ Critical)
 
-## Reference Docs
+### Permission Decorator Pattern (NEW)
 
-- **Architecture**: `docs/development/ARCHITECTURE.md` - System design, deployment modes
-- **Localization**: `docs/user/LOCALIZATION.md` - i18n setup, adding translations
-- **Docker**: `docs/DOCKER_NAMING_CONVENTIONS.md` - Volume versioning
-- **Deployment**: `DEPLOYMENT_GUIDE.md`, `docs/user/QUICK_START_GUIDE.md`
-- **Git Workflow**: `docs/development/GIT_WORKFLOW.md` - Commit standards, branching strategy
-- **Master Index**: `docs/DOCUMENTATION_INDEX.md` - Complete documentation navigation
+```python
+from backend.rbac import require_permission
+
+@router.post("/students/")
+@require_permission("students:create")
+async def create_student(request: Request, student: StudentCreate, db: Session = Depends(get_db)):
+    # Permission checked automatically before endpoint execution
+    pass
+```
+
+**Permission Format**: `resource:action` (e.g., `students:view`, `grades:edit`, `*:*` for admin)
+
+**Key Functions**:
+- `@require_permission(perm)` - Decorator for endpoint protection
+- `has_permission(user, perm, db)` - Manual permission check
+- `allow_self_access=True` - Allows students to access their own data
+
+**Default Permissions by Role**:
+- **admin**: `*:*` (all permissions)
+- **teacher**: students, courses, grades, attendance (view/edit)
+- **student**: Own data only (students.self:read, grades.self:read)
+- **viewer**: Read-only access
+
+### Authentication Context (AUTH_MODE Modes)
+
+```python
+# Get current user with role/permissions (use in endpoints)
+from backend.security.current_user import get_current_user
+
+@router.get("/profile")
+async def get_profile(current_user: User = Depends(get_current_user)):
+    # current_user has: id, email, role, full_name, is_active
+    pass
+```
+
+**AUTH_MODE behavior**:
+- `disabled` (emergency): All endpoints accessible without auth
+- `permissive` (production default): Auth optional, permissions enforced when authenticated
+- `strict` (maximum security): All endpoints require authentication
+
+---
+
+## 📊 Response Standardization (v1.15.0+)
+
+### API Response Wrapper
+
+All endpoints use standardized `APIResponse` wrapper:
+
+```python
+from backend.schemas.response import APIResponse, success_response, error_response
+
+@router.get("/students/{id}", response_model=APIResponse[StudentResponse])
+async def get_student(id: int, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return success_response(student)
+```
+
+**Response Format**:
+```json
+{
+  "success": true,
+  "data": {...},
+  "error": null,
+  "meta": {
+    "request_id": "req_abc123",
+    "timestamp": "2026-01-10T12:00:00Z",
+    "version": "1.15.1"
+  }
+}
+```
+
+**Error Format**:
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Student with id 999 not found",
+    "details": null
+  },
+  "meta": {...}
+}
+```
+
+### Frontend API Client (Wrapper Aware)
+
+```javascript
+// frontend/src/api/api.js automatically unwraps APIResponse
+import { apiClient, unwrapResponse } from '@/api/api';
+
+// Automatically extracts .data field from APIResponse wrapper
+const students = await apiClient.get('/students/');
+// students = [{id: 1, name: "..."}, ...] (NOT wrapped)
+```
+
+---
+
+## 🧪 Testing Patterns
+
+### Backend Test Structure
+
+```python
+# backend/tests/test_*.py
+def test_create_student(client, clean_db, admin_headers):
+    # client = TestClient (from conftest.py)
+    # clean_db = Fresh DB fixture (auto-reset)
+    # admin_headers = Auth headers fixture
+
+    response = client.post("/api/v1/students/", json={...}, headers=admin_headers)
+    assert response.status_code == 201
+
+    # Extract data from APIResponse wrapper (v1.15.0+)
+    data = response.json()
+    assert data["success"] is True
+    student = data["data"]
+    assert student["first_name"] == "John"
+```
+
+**Key Test Fixtures** (`backend/tests/conftest.py`):
+- `client` - FastAPI TestClient with auto-configured TestingSessionLocal
+- `clean_db` - Resets database schema before each test
+- `admin_headers` - Authentication headers for admin user
+- `admin_user` - Pre-created admin user object
+- Environment auto-configured: `CSRF_ENABLED=0`, `DISABLE_STARTUP_TASKS=1`, rate limiting disabled
+
+### Frontend Test Structure
+
+```tsx
+// frontend/src/**/__tests__/*.test.{ts,tsx}
+import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+test('renders student list', async () => {
+  const queryClient = new QueryClient();
+  render(
+    <QueryClientProvider client={queryClient}>
+      <StudentList />
+    </QueryClientProvider>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('Student Name')).toBeInTheDocument();
+  });
+});
+```
+
+**Test Command**: `npm --prefix frontend run test` (auto-sets `SMS_ALLOW_DIRECT_VITEST=1`)
+
+---
+
+## 🔄 CI/CD Patterns
+
+### GitHub Actions Versions (Standard)
+
+- **Python**: 3.11 (`.github/workflows/*.yml`)
+- **Node**: 20 (frontend builds)
+- **Actions**: `actions/checkout@v4`, `actions/setup-python@v5`, `actions/setup-node@v4`
+
+### Workflow Triggers
+
+```yaml
+# Standard pattern for all workflows
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+```
+
+### Required CI Checks (v1.15.1)
+
+1. **Backend Tests** - `RUN_TESTS_BATCH.ps1` (370 tests)
+2. **Frontend Tests** - Vitest (1249 tests)
+3. **E2E Tests** - Playwright (19 critical tests)
+4. **Linting** - Ruff (backend), ESLint (frontend)
+5. **Type Checking** - MyPy (backend), TSC (frontend)
+6. **Security Scans** - Bandit, npm audit, Docker scan
+7. **Coverage** - Backend ≥75%, Frontend ≥70% (via artifacts + summaries; Codecov disabled Jan 10, 2026)
+
+---
+
+## 🐞 Common Gotchas & Solutions
+
+### 1. "Permission denied" on New Endpoints
+
+**Symptom**: 403 Forbidden on newly created admin endpoints
+
+**Cause**: Using `require_role()` instead of `optional_require_role()` - doesn't respect AUTH_MODE
+
+**Solution**:
+```python
+# ❌ WRONG
+@router.get("/admin/settings")
+async def get_settings(admin = Depends(require_role("admin"))):
+
+# ✅ CORRECT
+@router.get("/admin/settings")
+async def get_settings(admin = Depends(optional_require_role("admin"))):
+```
+
+### 2. Frontend APIResponse Extraction Errors
+
+**Symptom**: `Cannot read property 'name' of undefined` after API call
+
+**Cause**: Accessing wrapped response directly instead of using .data
+
+**Solution**:
+```javascript
+// ❌ WRONG - response is APIResponse wrapper
+const student = response.data;
+console.log(student.name); // Error: student is {success: true, data: {...}}
+
+// ✅ CORRECT - unwrap using utility
+import { unwrapResponse } from '@/api/api';
+const student = unwrapResponse(response);
+console.log(student.name); // Works!
+
+// OR use apiClient which auto-unwraps
+const student = await apiClient.get('/students/1');
+console.log(student.name); // Auto-unwrapped!
+```
+
+### 3. Docker Volume DB Version Mismatch
+
+**Symptom**: "Table X has no column Y" after git pull
+
+**Cause**: Docker volume DB schema != code migrations
+
+**Solution**:
+```powershell
+.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate  # Auto-detects and fixes
+```
+
+### 4. Rate Limiting in Tests
+
+**Symptom**: Tests fail with 429 Too Many Requests
+
+**Cause**: Rate limiting not auto-disabled
+
+**Solution**: Should auto-disable in tests, but if fails:
+```python
+# backend/tests/conftest.py should have:
+from backend.rate_limiting import limiter
+limiter.enabled = False  # Already configured
+```
+
+---
+
+## 📁 Schema Export Pattern (Clean Imports)
+
+All schemas exported via `__init__.py` for clean imports:
+
+```python
+# ❌ AVOID
+from backend.schemas.students import StudentCreate, StudentUpdate, StudentResponse
+
+# ✅ PREFER (cleaner)
+from backend.schemas import StudentCreate, StudentUpdate, StudentResponse
+```
+
+**How it works**: `backend/schemas/__init__.py` exports all schemas:
+```python
+from .students import StudentCreate, StudentUpdate, StudentResponse
+from .courses import CourseCreate, CourseUpdate, CourseResponse
+# ... etc
+```
+
+---
+
+## 🎯 Quick Command Reference
+
+```powershell
+# Development
+.\NATIVE.ps1 -Start              # Backend (8000) + Frontend (5173)
+.\DOCKER.ps1 -Start              # Production mode (8080)
+
+# Testing
+.\RUN_TESTS_BATCH.ps1            # Backend tests (REQUIRED)
+npm --prefix frontend run test   # Frontend tests (auto-flag set)
+.\RUN_E2E_TESTS.ps1              # E2E tests (Playwright)
+
+# Quality Gates
+.\COMMIT_READY.ps1 -Quick        # Pre-commit (2-3 min)
+.\COMMIT_READY.ps1 -Standard     # Standard check (5-8 min)
+.\COMMIT_READY.ps1 -Full         # Full validation (15-20 min)
+
+# Database
+cd backend
+alembic revision --autogenerate -m "msg"  # Create migration
+alembic upgrade head                      # Apply migrations
+alembic current                           # Check version
+
+# Docker
+.\DOCKER.ps1 -Update             # Fast update (cached build + backup)
+.\DOCKER.ps1 -UpdateClean        # Clean rebuild (no-cache + backup)
+.\DOCKER.ps1 -Prune              # Safe cleanup
+.\DOCKER.ps1 -Status             # Check status
+```
+
+---
+
+**Last Updated**: January 10, 2026 | **Maintained By**: AI Agent / Project Lead
