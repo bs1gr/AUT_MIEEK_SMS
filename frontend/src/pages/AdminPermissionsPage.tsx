@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, extractAPIResponseData } from '@/api/api';
+import apiClient, { extractAPIResponseData } from '@/api/api';
 import Spinner from '@/components/ui/Spinner';
 import Toast from '@/components/ui/Toast';
 import { useState } from 'react';
