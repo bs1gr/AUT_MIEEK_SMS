@@ -1,3 +1,26 @@
+### 🟢 NEW: Admin Permissions TypeScript Fix (Jan 11)
+
+**Status**: ✅ COMPLETE
+**Effort**: 0.5 hours (typing + test mock)
+**Timeline**: Jan 11, 2026 ✅ COMPLETE
+**Owner**: AI Agent / Frontend Maintainer
+
+**Completed Tasks**:
+- [x] Resolved `AdminPermissionsPage` TypeScript errors (removed unused type, tightened `useQuery` typing, aligned data accessors)
+- [x] Fixed vitest mock to handle default `apiClient` export via `vi.hoisted`
+- [x] Verified `npx tsc --noEmit` and AdminPermissionsPage vitest suite passing
+
+**Deliverables**:
+- ✅ Commit `6eb0a641c` (main) — "Fix admin permissions TS typing and vitest mock"
+
+**Impact**:
+- Frontend fast tests unblock (JUnit run now clean for AdminPermissionsPage)
+- Keeps RBAC admin UI stable and typed for CI
+
+**Next Steps**:
+1. 🔵 **INFO**: Monitor next CI run to confirm green; no further action expected
+
+---
 ### 🟢 NEW: Secret Management Audit (Jan 10)
 
 **Status**: ✅ COMPLETE
