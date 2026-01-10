@@ -256,23 +256,61 @@ def analyze_historical_patterns(metrics_dir: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python e2e_failure_detector.py <report.json> [timestamp]")
-        print(
-            "Example: python e2e_failure_detector.py frontend/playwright-report/report.json 2026-01-07T15:30:00Z"
-        )
-        sys.exit(1)
+    import argparse
+    from datetime import datetime
 
-    report_path = sys.argv[1]
-    timestamp = sys.argv[2] if len(sys.argv) > 2 else "2026-01-07T00:00:00Z"
+    parser = argparse.ArgumentParser(
+        description="Detect and analyze E2E test failure patterns"
+    )
+    parser.add_argument(
+        "--report",
+        type=str,
+        default="frontend/test-results/report.json",
+        help="Path to Playwright test report",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="ci-artifacts",
+        help="Output directory for failure patterns",
+    )
+    parser.add_argument(
+        "--timestamp",
+        type=str,
+        default=None,
+        help="Test run timestamp (defaults to now)",
+    )
+
+    args = parser.parse_args()
+
+    timestamp = args.timestamp or datetime.utcnow().isoformat() + "Z"
+
+    # Check if report exists
+    if not Path(args.report).exists():
+        print(f"⚠️  Report not found at {args.report}")
+        print("Creating empty failure patterns file...")
+        # Create directory for output
+        Path(args.output).mkdir(parents=True, exist_ok=True)
+        patterns_file = Path(args.output) / "failure-patterns.json"
+        with open(patterns_file, "w") as f:
+            json.dump({"status": "no_report", "patterns": {}}, f, indent=2)
+        print(f"✅ Patterns file created at {patterns_file}")
+        sys.exit(0)
 
     # Read report
     try:
-        with open(report_path, "r") as f:
+        with open(args.report, "r") as f:
             report_data = json.load(f)
     except Exception as e:
-        print(f"❌ Error reading report: {e}")
-        sys.exit(1)
+        print(f"⚠️  Error reading report: {e}")
+        Path(args.output).mkdir(parents=True, exist_ok=True)
+        patterns_file = Path(args.output) / "failure-patterns.json"
+        with open(patterns_file, "w") as f:
+            json.dump(
+                {"status": "read_error", "error": str(e), "patterns": {}}, f, indent=2
+            )
+        print(f"✅ Patterns file created at {patterns_file}")
+        sys.exit(0)
 
     # Detect patterns
     detector = FailureDetector()
@@ -280,6 +318,13 @@ if __name__ == "__main__":
 
     if not failures:
         print("✅ No test failures detected")
+        Path(args.output).mkdir(parents=True, exist_ok=True)
+        patterns_file = Path(args.output) / "failure-patterns.json"
+        with open(patterns_file, "w") as f:
+            json.dump(
+                {"status": "success", "failure_count": 0, "patterns": {}}, f, indent=2
+            )
+        print(f"✅ Patterns file created at {patterns_file}")
         sys.exit(0)
 
     print(f"🔍 Analyzing {len(failures)} failures...")
@@ -287,8 +332,19 @@ if __name__ == "__main__":
     patterns = detector.detect_patterns(failures, timestamp)
 
     # Save patterns
-    output_dir = "artifacts/e2e-metrics"
-    detector.save_patterns(patterns, output_dir)
+    Path(args.output).mkdir(parents=True, exist_ok=True)
+    patterns_file = Path(args.output) / "failure-patterns.json"
+    patterns_data = {
+        "status": "success",
+        "timestamp": timestamp,
+        "failure_count": len(failures),
+        "pattern_count": len(patterns),
+        "patterns": {key: asdict(pattern) for key, pattern in patterns.items()},
+    }
+    with open(patterns_file, "w") as f:
+        json.dump(patterns_data, f, indent=2)
+
+    print(f"✅ Failure patterns saved to {patterns_file}")
 
     # Print summary
     print(f"\n📋 Detected {len(patterns)} failure pattern(s):")
@@ -297,12 +353,5 @@ if __name__ == "__main__":
             f"  [{pattern.severity.upper():8}] {pattern.test_name:40} - {pattern.error_type}"
         )
 
-    # Print alerts
-    detector.print_alert(patterns)
-
-    # Analyze historical
-    analyze_historical_patterns(output_dir)
-
-    # Exit with error if critical failures
-    critical = any(p.severity == "critical" for p in patterns.values())
-    sys.exit(1 if critical else 0)
+    # Exit successfully (failure detection is non-blocking)
+    sys.exit(0)

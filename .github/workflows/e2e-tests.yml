@@ -327,6 +327,53 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+      - name: Collect E2E test metrics (NEW)
+        if: always()
+        id: metrics
+        run: |
+          echo "=== Collecting E2E Test Metrics ==="
+          mkdir -p ci-artifacts
+
+          python scripts/e2e_metrics_collector.py \
+            --report frontend/test-results/report.json \
+            --run-id "${{ github.run_id }}" \
+            --branch "${{ github.ref_name }}" \
+            --commit "${{ github.sha }}" \
+            --output ci-artifacts/metrics.json \
+            || echo "⚠️  Metrics collection encountered an issue (non-blocking)"
+
+          if [ -f ci-artifacts/metrics.json ]; then
+            echo "✅ Metrics collected successfully"
+            cat ci-artifacts/metrics.json
+          else
+            echo "⚠️  No metrics file generated"
+          fi
+
+      - name: Detect E2E failure patterns (NEW)
+        if: always()
+        run: |
+          echo "=== Analyzing Test Failure Patterns ==="
+          mkdir -p ci-artifacts
+
+          python scripts/e2e_failure_detector.py \
+            --report frontend/test-results/report.json \
+            --output ci-artifacts/failure-patterns.json \
+            || echo "⚠️  Failure detection encountered an issue (non-blocking)"
+
+          if [ -f ci-artifacts/failure-patterns.json ]; then
+            echo "✅ Failure patterns analyzed"
+            python -m json.tool ci-artifacts/failure-patterns.json || true
+          fi
+
+      - name: Archive metrics and patterns (NEW)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-metrics-and-patterns
+          path: ci-artifacts/
+          retention-days: 90
+          if-no-files-found: ignore
+
       - name: Generate test summary
         if: always()
         run: |
@@ -346,6 +393,9 @@ jobs:
           echo "- ❌ Failed: ${{ steps.test-results.outputs.failed }}" >> $GITHUB_STEP_SUMMARY
           echo "- ⏭️ Skipped: ${{ steps.test-results.outputs.skipped }}" >> $GITHUB_STEP_SUMMARY
           echo "- 📊 Total: ${{ steps.test-results.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Monitoring Data" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Metrics and failure patterns saved to \`e2e-metrics-and-patterns\` artifact (90-day retention)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Test report, screenshots, and videos available in \`e2e-test-results\` artifact" >> $GITHUB_STEP_SUMMARY
