@@ -8,6 +8,7 @@
     "prebuild": "node ./sync-version.cjs",
     "build": "npm run prebuild && vite build",
     "build:analyze": "npm run prebuild && vite build --mode analyze",
+    "pretest": "node ../tools/enforce-vitest-policy.cjs",
     "ci:install": "npm ci --no-audit --silent",
     "ci:build": "npm run prebuild && vite build --logLevel error",
     "preview": "vite preview",

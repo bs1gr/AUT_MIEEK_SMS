@@ -1,6 +1,46 @@
 import logging
 import os
 
+
+# ---------------------------------------------------------------------------
+# Test runner guard (stability + policy enforcement)
+# ---------------------------------------------------------------------------
+# Direct pytest execution has been a recurrent source of VS Code crashes on
+# this project. The official policy requires using RUN_TESTS_BATCH.ps1 for
+# local runs. CI is allowed to invoke pytest directly. To bypass for a
+# legitimate one-off, explicitly set SMS_ALLOW_DIRECT_PYTEST=1.
+
+
+def _is_env_flag_set(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_test_runner_permitted() -> bool:
+    # CI contexts are allowed to call pytest directly.
+    if _is_env_flag_set(os.environ.get("GITHUB_ACTIONS")) or _is_env_flag_set(os.environ.get("CI")):
+        return True
+
+    # Batch runner sets this flag automatically; manual override is possible
+    # with SMS_ALLOW_DIRECT_PYTEST=1 when absolutely necessary.
+    if _is_env_flag_set(os.environ.get("SMS_ALLOW_DIRECT_PYTEST")):
+        return True
+
+    # RUN_TESTS_BATCH.ps1 also sets this marker.
+    if os.environ.get("SMS_TEST_RUNNER", "").strip().lower() == "batch":
+        return True
+
+    return False
+
+
+if not _is_test_runner_permitted():
+    raise RuntimeError(
+        "Direct pytest execution is disabled for stability. "
+        "Use RUN_TESTS_BATCH.ps1 (see docs/plans/UNIFIED_WORK_PLAN.md and Copilot instructions). "
+        "To override intentionally, set SMS_ALLOW_DIRECT_PYTEST=1 for that invocation."
+    )
+
 import pytest
 from fastapi import Depends, Request
 from fastapi.testclient import TestClient

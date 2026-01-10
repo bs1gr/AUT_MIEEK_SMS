@@ -30,6 +30,29 @@ function Write-Info { param($msg) Write-Host "ℹ $msg" -ForegroundColor Cyan }
 function Write-Warning { param($msg) Write-Host "⚠ $msg" -ForegroundColor Yellow }
 function Write-Error { param($msg) Write-Host "✗ $msg" -ForegroundColor Red }
 
+function Restore-TestEnv {
+    param($prevAllow, $prevRunner)
+
+    if ($null -ne $prevAllow) {
+        $env:SMS_ALLOW_DIRECT_PYTEST = $prevAllow
+    } else {
+        Remove-Item Env:SMS_ALLOW_DIRECT_PYTEST -ErrorAction SilentlyContinue
+    }
+
+    if ($null -ne $prevRunner) {
+        $env:SMS_TEST_RUNNER = $prevRunner
+    } else {
+        Remove-Item Env:SMS_TEST_RUNNER -ErrorAction SilentlyContinue
+    }
+}
+
+$previousAllow = $env:SMS_ALLOW_DIRECT_PYTEST
+$previousRunner = $env:SMS_TEST_RUNNER
+
+# Mark as compliant runner for conftest.py guard and policy enforcement
+$env:SMS_ALLOW_DIRECT_PYTEST = "1"
+$env:SMS_TEST_RUNNER = "batch"
+
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║   Batch Test Runner (SMS v1.15.1)     ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
@@ -45,6 +68,7 @@ if (-not (Test-Path "$projectRoot/backend/tests")) {
     } else {
         Write-Error "backend/tests directory not found!"
         Write-Host "Please run from project root directory or ensure backend folder exists." -ForegroundColor Red
+        Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
         exit 1
     }
 }
@@ -61,6 +85,7 @@ Write-Success "Found $totalFiles test files"
 
 if ($totalFiles -eq 0) {
     Write-Warning "No test files found!"
+    Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 0
 }
 
@@ -202,8 +227,10 @@ Write-Host ""
 # Exit code
 if ($failedCount -eq 0) {
     Write-Success "All tests passed! 🎉"
+    Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 0
 } else {
     Write-Error "Some tests failed"
+    Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 1
 }
