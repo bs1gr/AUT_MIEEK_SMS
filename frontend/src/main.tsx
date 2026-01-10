@@ -6,6 +6,7 @@ import './i18n/config'; // Initialize i18n before rendering
 import './pwa-register'; // Initialize PWA service worker
 import { AuthProvider } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/auth/RequireAuth';
+import RequireAdmin from '@/components/auth/RequireAdmin';
 
 // Import route components and preload utility
 import { Suspense } from 'react';
@@ -21,6 +22,7 @@ import {
   CalendarPage,
   OperationsPage,
   PowerPage,
+  AdminPermissionsPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -54,6 +56,10 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />
+              {/* Admin: Permissions management */}
+              <Route element={<RequireAdmin />}>
+                <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
+              </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
