@@ -1,0 +1,42 @@
+# Codecov repository-level configuration
+# Enforces coverage thresholds for backend and frontend and enables project+patch status checks.
+# https://docs.codecov.com/docs/codecov-yaml
+
+codecov:
+  require_ci_to_pass: true
+
+comment: false
+
+coverage:
+  precision: 2
+  round: nearest
+  range: "0..100"
+  status:
+    project:
+      backend:
+        target: 75%
+        threshold: 2%
+      frontend:
+        target: 70%
+        threshold: 2%
+      default:
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: 75%
+        threshold: 2%
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 2%
+  individual_components:
+    - name: backend
+      path_patterns:
+        - "backend/**"
+    - name: frontend
+      path_patterns:
+        - "frontend/**"

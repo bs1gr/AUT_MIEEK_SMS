@@ -188,6 +188,62 @@ async def backup_database(encrypt: bool = True, _auth=Depends(require_control_ad
         raise HTTPException(status_code=500, detail=f"Failed to backup database: {e!s}")
 
 
+@router.get("/performance")
+async def get_performance(limit: int = 50, _auth=Depends(require_control_admin)):
+    """Return recent slow SQL query diagnostics.
+
+    Data source: SQLAlchemy slow query monitor attached to the global engine
+    via backend.performance_monitor.setup_sqlalchemy_query_monitoring.
+
+    Args:
+        limit: Optional max number of records to return (most recent first)
+
+    Returns:
+        JSON payload with monitoring configuration and recent records.
+    """
+    try:
+        monitor = None
+        try:
+            info = getattr(engine, "info", None)
+            if isinstance(info, dict):
+                monitor = info.get("slow_query_monitor")
+        except Exception:
+            monitor = None
+
+        threshold = getattr(settings, "SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS", 0)
+        max_entries = getattr(settings, "SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES", 100)
+        export_path = getattr(settings, "SQLALCHEMY_SLOW_QUERY_EXPORT_PATH", None)
+
+        if monitor is None:
+            return {
+                "enabled": False,
+                "threshold_ms": threshold,
+                "max_entries": max_entries,
+                "export_path": export_path,
+                "count": 0,
+                "records": [],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        records = monitor.get_records()
+        if isinstance(limit, int) and limit > 0:
+            records = records[-limit:]
+
+        return {
+            "enabled": True,
+            "threshold_ms": threshold,
+            "max_entries": max_entries,
+            "export_path": export_path,
+            "count": len(records),
+            "records": records,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve performance data: {e!s}")
+
+
 @router.post("/restore-encrypted-backup")
 async def restore_encrypted_backup(
     backup_name: str, output_filename: str = "restored_database.db", _auth=Depends(require_control_admin)

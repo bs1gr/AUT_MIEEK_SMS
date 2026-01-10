@@ -97,11 +97,11 @@ This document consolidates all scattered planning documents into a **single sour
 **Effort**: Completed (2 hours resolution)
 **Timeline**: Jan 7-9 ✅ COMPLETE
 
-**Status**: 19/24 tests passing (100% critical path, 79% overall)
+**Status**: All tests passing (Jan 9 CI run)
 - ✅ 7/7 Student Management (create, edit, list, search, detail)
 - ✅ 5/5 Critical Flows (auth, navigation, responsive)
 - ✅ 1/1 Registration UI
-- ⚠️ 12/12 Notifications (403 Forbidden on test broadcast endpoint - deferred to v1.15.1)
+- ✅ Notifications broadcast endpoint issue resolved; tests passing
 
 **Completed Tasks**:
 - [x] Fix test data seeding (`backend/seed_e2e_data.py`)
@@ -120,7 +120,7 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ All critical user flows working (Student CRUD, Course management, Auth, Navigation)
 - ✅ Performance verified (no timeout errors after 90s timeout increase)
 - ✅ Multi-browser compatibility verified (5 browser profiles)
-- ⚠️ Notification broadcast endpoint permission issue (non-critical, deferred)
+- ✅ Notification broadcast endpoint permission issue resolved
 
 **Reference**: [PHASE1_COMPLETION_REPORT.md](../releases/PHASE1_COMPLETION_REPORT.md)
 
@@ -501,8 +501,8 @@ This document consolidates all scattered planning documents into a **single sour
 - [x] Create comprehensive deployment readiness report ✅
 - [x] Commit security changes (60aeb73a1) ✅
 - [x] Configure production .env file (secrets generated and ready) ✅
-- [ ] Review and fix errors before final deployment (solo owner validation)
-- [ ] Execute production deployment (automated via CI/CD on tag push)
+- [ ] Final solo-owner validation before deployment (Owner: Release Manager, Target: Jan 10-11)
+- [ ] Execute production deployment via CI/CD tag push (Owner: Release Manager, Target: Jan 11-12)
 - [x] Continuous monitoring enabled (runs on every push via GitHub Actions) ✅
 
 **Deliverables**:
@@ -1036,6 +1036,8 @@ This document consolidates all scattered planning documents into a **single sour
 **Focus**: Testing infrastructure and performance baselines
 **Owner**: 1 DevOps/Backend Dev + 1 QA
 
+Note (Jan 10): Coverage reporting is already integrated from v1.15.1; mark Task 4.2 as complete once CI thresholds (backend ≥75%, frontend ≥70%) are verified in the pipeline.
+
 **Tasks**:
 - [ ] **Task 4.1**: E2E test CI integration (8 hours)
   - Integrate E2E monitoring scripts (already ready from v1.15.1)
@@ -1046,10 +1048,13 @@ This document consolidates all scattered planning documents into a **single sour
 
 - [ ] **Task 4.2**: Coverage reporting setup (6 hours)
   - Backend: Codecov integration (already done, verify)
-  - Frontend: Coverage reporting in CI
-  - Set thresholds: 75% backend, 70% frontend
+  - Frontend: Coverage reporting in CI (already done, verify)
+  - Create repository-level Codecov config (codecov.yml) to enforce thresholds:
+    - thresholds: backend ≥75%, frontend ≥70%
+    - status checks: project and patch coverage
   - Add coverage badges to README
-  - Success: Coverage reported on each push
+  - Success: Coverage reported on each push and enforced via thresholds
+  - Update (Jan 10): codecov.yml committed; thresholds ready for CI enforcement
 
 - [ ] **Task 4.3**: Load testing integration (12 hours)
   - Set up Locust/k6 scenarios (use existing load-testing/ suite)
@@ -1064,6 +1069,7 @@ This document consolidates all scattered planning documents into a **single sour
 - [ ] **Task 4.4**: Performance monitoring setup (8 hours)
   - Database query logging: Log queries >100ms
   - Create endpoint: GET /api/v1/admin/performance (show slow queries)
+    - Update (Jan 10): Endpoint scaffolded in `backend/admin_routes.py` as `/performance` under `/api/v1/admin` (returns slow query monitor records and config)
   - Create dashboard: Show performance over time
   - Regression detection: Alert if latency increases >20%
   - Success: Monitoring operational, data collected
@@ -1307,7 +1313,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 | **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED v1.15.1 |
 | **Post-Phase 1 Polish** | 🟢 100% | Jan 7-24 ✅ COMPLETE | 8/8 tasks done |
 | **Phase 2 Planning** | 🟢 100% | Complete | Fully planned |
-| **Phase 2 Execution** | 🔴 0% | Jan 27 - Mar 7 | Waiting to start |
+| **Phase 2 Execution** | 🟡 60% | Jan 27 - Mar 7 | Backend RBAC complete; deployment guides ready; staging/prod pending |
 | **Backlog Features** | 💡 Ideas | Q2 2026+ | On backlog |
 
 ### Phase 2 Team & Effort Breakdown
