@@ -96,12 +96,16 @@
 
 This document consolidates all scattered planning documents into a **single source of truth** for project planning and execution. It replaces multiple overlapping trackers and eliminates duplicate planning.
 
+**Single Source of Truth**: All work tracking, planning, and execution status is maintained ONLY in this document. All other plans, trackers, or status files are consolidated here.
+
+**GitHub Issues Alignment (Jan 11, 2026)**: 30 open GitHub issues reviewed and mapped to Phase 2 sequential execution. Complete analysis in `GITHUB_ISSUES_REVIEW_JAN11.md`.
+
 **Consolidated Sources**:
-- `docs/releases/EXECUTION_TRACKER_v1.15.1.md` - Phase 1 tracker
-- `docs/plans/REMAINING_ISSUES_PRIORITIZED.md` - Post-Phase 1 work
-- `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Phase 2 RBAC + CI/CD
-- `docs/plans/PHASE2_PLANNING.md` - Aspirational features
-- `docs/misc/TODO_PRIORITIES.md` - General maintenance
+- `docs/releases/EXECUTION_TRACKER_v1.15.1.md` - Phase 1 tracker (archived)
+- `docs/plans/REMAINING_ISSUES_PRIORITIZED.md` - Post-Phase 1 work (consolidated here)
+- `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Phase 2 detailed notes (reference only)
+- `docs/plans/PHASE2_PLANNING.md` - Aspirational features (backlog in Phase 3 section)
+- `docs/misc/TODO_PRIORITIES.md` - General maintenance (consolidated here)
 - `docs/PHASE1_REVIEW_FINDINGS.md` - Historical (archived)
 
 **Documentation hygiene (Jan 8, 2026)**: Root-level `PHASE2_*` summary/kickoff/quick-start files were removed to prevent plan duplication. Any legacy `PHASE2_*` files that remain in the repository are stubbed with a deprecation note and should not be updated; this document is the single source of truth for planning. Reference `PHASE2_CONSOLIDATED_PLAN.md` for detailed execution notes as needed.
