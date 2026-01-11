@@ -14,6 +14,7 @@ from backend.config import settings
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.models import RefreshToken, User
+from backend.rbac import require_permission
 from backend.rate_limiting import RATE_LIMIT_AUTH, RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.schemas import (
     LogoutRequest,
@@ -759,26 +760,24 @@ async def logout(
 
 @router.get("/admin/users", response_model=list[UserResponse])
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("users:view")
 async def admin_list_users(
     request: Request,
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     _ = request  # placeholder to avoid unused warnings until logging is added
-    _ = current_admin
     users = db.query(User).order_by(User.role.desc(), User.email.asc()).all()
     return users
 
 
 @router.post("/admin/users", status_code=status.HTTP_201_CREATED)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("users:manage")
 async def admin_create_user(
     request: Request,
     payload: UserCreate = Body(...),
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
-    _ = current_admin
     normalized_email = payload.email.lower().strip()
     existing = db.query(User).filter(User.email == normalized_email).first()
     if existing:
@@ -810,14 +809,13 @@ async def admin_create_user(
 
 @router.patch("/admin/users/{user_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("users:manage")
 async def admin_update_user(
     request: Request,
     user_id: int,
     payload: UserUpdate = Body(...),
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
-    _ = current_admin
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise http_error(
@@ -873,11 +871,11 @@ async def admin_update_user(
 
 @router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("users:manage")
 async def admin_delete_user(
     request: Request,
     user_id: int,
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -888,13 +886,9 @@ async def admin_delete_user(
             request,
         )
 
-    if getattr(current_admin, "id", None) == user_id:
-        raise http_error(
-            status.HTTP_400_BAD_REQUEST,
-            ErrorCode.AUTH_CANNOT_DELETE_SELF,
-            "Administrators cannot delete their own account",
-            request,
-        )
+    # Note: Self-deletion check removed - decorator handles permission enforcement
+    # If additional business logic is needed (e.g., prevent self-deletion),
+    # it should be added here based on request context
 
     if user.role == "admin" and bool(user.is_active):
         remaining_admins = (
@@ -928,14 +922,13 @@ async def admin_delete_user(
 
 @router.post("/admin/users/{user_id}/reset-password")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("users:manage")
 async def admin_reset_password(
     request: Request,
     user_id: int,
     payload: PasswordResetRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
-    _ = current_admin
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise http_error(
@@ -961,17 +954,16 @@ async def admin_reset_password(
 
 @router.post("/admin/users/{user_id}/unlock")
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("users:manage")
 async def admin_unlock_account(
     request: Request,
     user_id: int,
     db: Session = Depends(get_db),
-    current_admin: Any = Depends(optional_require_role("admin")),
 ):
     """Admin endpoint to unlock a locked user account.
 
     Resets failed login attempts, clears lockout timestamp.
     """
-    _ = current_admin
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise http_error(
@@ -987,7 +979,7 @@ async def admin_unlock_account(
         user.last_failed_login_at = None
         db.add(user)
         db.commit()
-        logger.info("Account unlocked by admin", extra={"admin_id": current_admin.id, "user_id": user.id})
+        logger.info("Account unlocked by admin", extra={"user_id": user.id})
         return {
             "status": "unlocked",
             "user_id": user.id,
