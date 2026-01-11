@@ -29,6 +29,7 @@
   // Fix Greek character encoding issues
   "files.encoding": "utf8",
   "files.autoGuessEncoding": false,
+  "files.eol": "\n",  // Always use LF (Unix) line endings - prevents CRLF/LF mixed line ending errors
   "terminal.integrated.unicodeVersion": "11",
   "terminal.integrated.gpuAcceleration": "off",
   "terminal.integrated.localEchoEnabled": "off",
