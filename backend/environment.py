@@ -7,8 +7,6 @@ as CI flags or Docker specific markers. The goal is to ensure production builds
 run strictly inside Docker while keeping local development ergonomic.
 """
 
-from __future__ import annotations
-
 import os
 import sys
 from dataclasses import dataclass

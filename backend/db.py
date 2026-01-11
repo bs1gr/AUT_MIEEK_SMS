@@ -16,8 +16,6 @@ MIGRATION PATH:
 This file will be removed in v1.12.0. Please update imports.
 """
 
-from __future__ import annotations
-
 # Re-export all functionality from new locations for backward compatibility
 from backend.db.connection import (
     SessionLocal,
