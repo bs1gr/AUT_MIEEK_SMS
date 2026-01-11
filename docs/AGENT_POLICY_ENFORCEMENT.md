@@ -71,15 +71,17 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
 - Verify version from `VERSION` file (current: v1.15.1)
-- Use v1.MINOR.PATCH format consistently
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.15.1)
+- **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
 **Why This Exists:**
 - Multiple plans create confusion
 - Agents duplicate work when plans diverge
 - Single source of truth prevents conflicts
+- **CRITICAL**: Incorrect version format (v11.x.x) breaks all version tracking
 - Documented in: `docs/plans/UNIFIED_WORK_PLAN.md`, `.github/copilot-instructions.md`
 
-**Enforcement:** Documentation audits flag duplicate planning files.
+**Enforcement:** Documentation audits flag duplicate planning files and incorrect version formats.
 
 ---
 
@@ -258,8 +260,8 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 **🔴 CRITICAL (System Damage)**
 - Running full pytest suite → **Crashes VS Code**
 - Direct DB schema edits → **Data corruption**
-- Using wrong version numbers (v11.x.x) → **Breaks version tracking**
-- **Action:** Immediate rollback + documentation update
+- **Using wrong version format (v11.x.x, $11.x.x)** → **BREAKS ALL VERSION TRACKING** (MUST be v1.x.x)
+- **Action:** Immediate rollback + revert to correct v1.x.x format
 
 **🟠 HIGH (Work Duplication)**
 - Creating duplicate plans → **Wasted effort**
@@ -285,7 +287,7 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
 | **Check version** | Read `VERSION` file (v1.15.1) | Invent version numbers |
-| **Use version** | `v1.15.1` format | `v11.x.x` or `v2.x.x` |
+| **Use version** | **ONLY `v1.x.x`** (v1.15.1) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |

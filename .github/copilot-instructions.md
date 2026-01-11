@@ -37,6 +37,7 @@ cd backend && pytest -q
 - ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts` (bilingual EN/EL required)
 - ❌ Never create new TODO/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
 - ❌ Never start new work without checking git status → Run `git status` and verify no uncommitted changes
+- ❌ **NEVER use incorrect version format** → ALWAYS use `v1.x.x` format (e.g., v1.15.1), NEVER `v11.x.x` or `$11.x.x`
 - ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/lifespan.py`)
 - ❌ Never use `require_role()` for admin endpoints → Use `optional_require_role()` (respects AUTH_MODE)
 
