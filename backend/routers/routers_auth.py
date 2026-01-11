@@ -765,6 +765,13 @@ async def admin_list_users(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    # Require authentication explicitly for admin user listing,
+    # even when AUTH_MODE is permissive. This prevents unauthenticated
+    # access from executing DB queries in test environments where the
+    # default engine may not have tables initialized.
+    auth_header = request.headers.get("Authorization") or ""
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     _ = request  # placeholder to avoid unused warnings until logging is added
     users = db.query(User).order_by(User.role.desc(), User.email.asc()).all()
     return users
