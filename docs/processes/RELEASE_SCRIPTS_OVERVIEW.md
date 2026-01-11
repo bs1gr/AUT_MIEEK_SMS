@@ -10,7 +10,7 @@
 ### 1. RELEASE_WITH_DOCS.ps1 ⭐ **PRIMARY ORCHESTRATOR**
 
 **Purpose**: Complete end-to-end release automation from preparation to GitHub Release creation
-**Created**: Previous session (v1.15.0 era)
+**Created**: Previous session ($11.15.2 era)
 **Scope**: Full release workflow
 
 **What it does**:
@@ -122,20 +122,20 @@
 
 # Automated workflow (NEW - Jan 6, 2026)
 .\RELEASE_HELPER.ps1 -Action CreateRelease          # Current version
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0  # Custom version
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2  # Custom version
 ```
 
 ---
 
 ### 6. UPDATE_RELEASE.ps1 ⚠️ **ONE-TIME USE - CAN DELETE**
 
-**Purpose**: One-off script to update v1.15.0 GitHub Release
+**Purpose**: One-off script to update $11.15.2 GitHub Release
 **Created**: January 6, 2026 (this session)
-**Scope**: Single-use for v1.15.0 only
+**Scope**: Single-use for $11.15.2 only
 
 **What it does**:
-- Hardcoded to update v1.15.0 specifically
-- Extracts release body from `GITHUB_RELEASE_v1.15.0.md`
+- Hardcoded to update $11.15.2 specifically
+- Extracts release body from `GITHUB_RELEASE_$11.15.2.md`
 - Updates GitHub Release via gh CLI
 
 **Status**: ⚠️ **DEPRECATED** - Functionality now in `RELEASE_HELPER.ps1 -Action CreateRelease`
@@ -163,7 +163,7 @@
 # → GitHub Actions creates installer + draft release
 
 # Then manually:
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0  # Publish GitHub Release
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2  # Publish GitHub Release
 ```
 
 **Timeline**: ~10 minutes (Quick mode)
@@ -183,13 +183,13 @@
 
 # Step 3: Review and commit docs
 git add CHANGELOG.md docs/releases/
-git commit -m "docs: release notes for v1.15.0"
+git commit -m "docs: release notes for $11.15.2"
 
 # Step 4: Tag and trigger release
 .\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
 
 # Step 5: Create GitHub Release (after Actions complete)
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
 ```
 
 **Timeline**: ~15 minutes (with review time)
@@ -205,19 +205,19 @@ git commit -m "docs: release notes for v1.15.0"
 .\RELEASE_PREPARATION.ps1 -Mode Quick
 
 # Step 2: Skip auto-generation, write manually:
-# - Create docs/releases/RELEASE_NOTES_v1.15.0.md
-# - Create docs/releases/GITHUB_RELEASE_v1.15.0.md
+# - Create docs/releases/RELEASE_NOTES_$11.15.2.md
+# - Create docs/releases/GITHUB_RELEASE_$11.15.2.md
 # - Update CHANGELOG.md
 
 # Step 3: Commit
 git add CHANGELOG.md docs/releases/
-git commit -m "docs: release notes for v1.15.0"
+git commit -m "docs: release notes for $11.15.2"
 
 # Step 4: Tag
 .\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
 
 # Step 5: Create GitHub Release
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
 ```
 
 ---
@@ -226,16 +226,16 @@ git commit -m "docs: release notes for v1.15.0"
 
 | Feature | RELEASE_WITH_DOCS.ps1 | RELEASE_HELPER.ps1 | UPDATE_RELEASE.ps1 |
 |---------|----------------------|-------------------|-------------------|
-| **Purpose** | Full release automation | Post-release GitHub UI | One-time v1.15.0 update |
+| **Purpose** | Full release automation | Post-release GitHub UI | One-time $11.15.2 update |
 | **Scope** | Pre-release → Git tag | GitHub Release only | Single release update |
 | **When to use** | New release prep | After code tagged | **NEVER (deprecated)** |
 | **Validates code** | ✅ Yes | ❌ No | ❌ No |
 | **Generates docs** | ✅ Yes (from commits) | ❌ No | ❌ No |
 | **Creates git tag** | ✅ Yes | ❌ No | ❌ No |
 | **Creates GitHub Release** | ❌ No (Actions does) | ✅ Yes (via gh CLI) | ✅ Yes (hardcoded) |
-| **Updates GitHub Release** | ❌ No | ✅ Yes | ✅ Yes (v1.15.0 only) |
+| **Updates GitHub Release** | ❌ No | ✅ Yes | ✅ Yes ($11.15.2 only) |
 | **Interactive** | ❌ No | ✅ Yes | ❌ No |
-| **Reusable** | ✅ Yes | ✅ Yes | ❌ No (v1.15.0 only) |
+| **Reusable** | ✅ Yes | ✅ Yes | ❌ No ($11.15.2 only) |
 | **Status** | ✅ Active | ✅ Active | ⚠️ **DELETE** |
 
 ---
@@ -245,11 +245,11 @@ git commit -m "docs: release notes for v1.15.0"
 **DELETE** `UPDATE_RELEASE.ps1` - It's now redundant:
 
 ```powershell
-# Old way (UPDATE_RELEASE.ps1 - hardcoded v1.15.0):
+# Old way (UPDATE_RELEASE.ps1 - hardcoded $11.15.2):
 .\UPDATE_RELEASE.ps1
 
 # New way (RELEASE_HELPER.ps1 - any version):
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
 ```
 
 The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
@@ -273,15 +273,15 @@ The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 
 **Tag the release**: `.\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease`
 
-**Create GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0`
+**Create GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2`
 
-**Update existing GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0` (detects existing)
+**Update existing GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2` (detects existing)
 
 **Create Phase 2 issues**: `.\RELEASE_HELPER.ps1 -Action CopyIssue`
 
 ---
 
-## 🎯 Recommended Workflow for v1.15.0+
+## 🎯 Recommended Workflow for $11.15.2+
 
 ```powershell
 # 1. Complete automation
@@ -290,7 +290,7 @@ The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 # 2. Wait for GitHub Actions to build installer (~5 min)
 
 # 3. Create/publish GitHub Release
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.15.0
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
 
 # Done! 🎉
 ```
@@ -314,6 +314,6 @@ Agents must use these two scripts instead of writing new release scripts. If a r
 ---
 
 **See Also**:
-- [Release Checklist Template](../releases/RELEASE_CHECKLIST_v1.15.0.md)
-- [GitHub Release Template](../releases/GITHUB_RELEASE_v1.15.0.md)
+- [Release Checklist Template](../releases/RELEASE_CHECKLIST_$11.15.2.md)
+- [GitHub Release Template](../releases/GITHUB_RELEASE_$11.15.2.md)
 - [Phase 2 Issues](../releases/GITHUB_ISSUES_PHASE2.md)

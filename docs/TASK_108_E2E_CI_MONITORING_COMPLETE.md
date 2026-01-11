@@ -235,7 +235,7 @@ Artifacts Retention: 90 days
 
 ## 🎯 95% Pass Rate Target
 
-### Current Baseline (v1.15.1)
+### Current Baseline ($11.15.2)
 
 **Critical Tests**: 19/19 passing (100%)
 **Overall Tests**: 19-24 passing (79-100%)

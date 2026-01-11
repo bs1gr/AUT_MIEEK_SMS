@@ -8,12 +8,12 @@
 ---
 
 **Last updated**: 2026-01-05 (Migrated to ACTIVE_WORK_STATUS)
-**Current Version**: 1.14.2 (v1.15.0 in Phase 1 planning)
-**Active Release**: [RELEASE_PREPARATION_v1.15.0.md](../releases/RELEASE_PREPARATION_v1.15.0.md)
+**Current Version**: 1.14.2 ($11.15.2 in Phase 1 planning)
+**Active Release**: [RELEASE_PREPARATION_$11.15.2.md](../releases/RELEASE_PREPARATION_$11.15.2.md)
 
 ---
 
-## 🔄 In Progress (v1.15.0 Phase 1 - Infrastructure Improvements)
+## 🔄 In Progress ($11.15.2 Phase 1 - Infrastructure Improvements)
 
 **➡️ CURRENT STATUS**: See [docs/ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) for latest
 

@@ -98,8 +98,8 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
-- Verify version from `VERSION` file (current: v1.15.1)
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.15.1)
+- Verify version from `VERSION` file (current: $11.15.2)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., $11.15.2)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
 **Why This Exists:**
@@ -314,8 +314,8 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 |------|----------------|-----------|
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
-| **Check version** | Read `VERSION` file (v1.15.1) | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** (v1.15.1) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
+| **Check version** | Read `VERSION` file ($11.15.2) | Invent version numbers |
+| **Use version** | **ONLY `v1.x.x`** ($11.15.2) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |
@@ -386,7 +386,7 @@ An agent has successfully integrated when they:
 ✅ **Read all entry documentation** (10 min investment)
 ✅ **Run tests using batch runner** (no crashes)
 ✅ **Update work plan** (no duplicate trackers)
-✅ **Use correct versioning** (v1.15.1 from VERSION file)
+✅ **Use correct versioning** ($11.15.2 from VERSION file)
 ✅ **Verify clean state before new tasks** (no uncommitted work)
 ✅ **Use Alembic migrations** (no direct DB edits)
 ✅ **Use i18n for all strings** (no hardcoded text)

@@ -77,7 +77,7 @@ Feature `feature/69-realtime-notifications` is **production-ready** and has achi
 ### Style & Linting
 - **Backend:** Follows SMS patterns (routers, schemas, models, soft deletes)
 - **Frontend:** TypeScript strict mode, ESLint rules, React best practices
-- **Consistency:** Matches codebase conventions (v1.15.0)
+- **Consistency:** Matches codebase conventions ($11.15.2)
 
 ### Documentation
 - ✅ `TESTING_COMPLETE_SUMMARY.md` - Comprehensive testing report
@@ -215,7 +215,7 @@ VITE_WS_URL=/api/v1/notifications/ws  # WebSocket endpoint
 
 ### Deployment Steps
 1. Merge `feature/69-realtime-notifications` to `main`
-2. Tag new release (e.g., v1.15.0 with notification feature)
+2. Tag new release (e.g., $11.15.2 with notification feature)
 3. Build Docker image: `DOCKER.ps1 -UpdateClean`
 4. Deploy to staging: Run smoke tests
 5. Deploy to production: Monitor logs for errors

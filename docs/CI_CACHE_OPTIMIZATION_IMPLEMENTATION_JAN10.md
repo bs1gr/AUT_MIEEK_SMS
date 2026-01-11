@@ -132,7 +132,7 @@ lint-backend, test-backend, security-scan-backend:
 
 ### CI Execution Time
 
-**Baseline (v1.15.1 - with existing caching)**:
+**Baseline ($11.15.2 - with existing caching)**:
 - Typical run: 12-15 minutes
 - Lint: 2-3 min (Python + Node)
 - Test: 6-8 min (Backend + Frontend)

@@ -1,4 +1,4 @@
-# Installer Improvements - v1.15.0+ Release Notes
+# Installer Improvements - $11.15.2+ Release Notes
 
 ## Overview
 This document outlines the comprehensive installer improvements implemented to resolve critical issues with shortcut management, uninstaller naming, and Docker integration in the Student Management System installer.
