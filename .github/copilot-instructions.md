@@ -43,6 +43,156 @@ cd backend && pytest -q
 
 ---
 
+## 📜 Mandatory Policies - Zero Exceptions
+
+**⚠️ CRITICAL**: All agents MUST follow these policies. Violations cause system crashes, data loss, and work duplication. See [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) for complete details.
+
+### Policy 1: Testing - NEVER Run Full Test Suite Directly
+
+**❌ FORBIDDEN:**
+```powershell
+# These commands WILL crash VS Code - DO NOT USE
+cd backend && pytest -q
+cd backend && pytest tests/
+python -m pytest
+```
+
+**✅ REQUIRED:**
+```powershell
+# ALWAYS use the batch test runner
+.\RUN_TESTS_BATCH.ps1                    # Default: 5 files per batch
+.\RUN_TESTS_BATCH.ps1 -BatchSize 3       # Smaller batches
+.\RUN_TESTS_BATCH.ps1 -Verbose           # Detailed output
+```
+
+**Why**: 490+ test files overload system memory/CPU and crash VS Code. Exception: Single test files OK (`pytest tests/test_specific_file.py -v`).
+
+---
+
+### Policy 2: Planning & Versioning - Single Source of Truth ONLY
+
+**❌ FORBIDDEN:**
+- Creating new TODO.md files or planning documents
+- Creating new status trackers or parallel plans
+- Using incorrect version format (v11.x.x, $11.x.x, v2.x.x)
+
+**✅ REQUIRED:**
+- Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
+- Check work plan BEFORE starting work, update AFTER completing tasks
+- Verify version from `VERSION` file (current: v1.15.1)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.15.1)
+- **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
+
+**Why**: Multiple plans create confusion. Incorrect version format breaks all version tracking.
+
+---
+
+### Policy 3: Database - Alembic Migrations ONLY
+
+**❌ FORBIDDEN:**
+```python
+# NEVER edit DB schema directly
+Base.metadata.create_all(engine)
+db.execute("ALTER TABLE ...")
+```
+
+**✅ REQUIRED:**
+```bash
+cd backend
+alembic revision --autogenerate -m "description"
+alembic upgrade head
+```
+
+**Why**: Direct schema changes corrupt data. Migrations provide version control and rollback capability.
+
+---
+
+### Policy 4: Frontend - i18n ALWAYS Required
+
+**❌ FORBIDDEN:**
+```tsx
+// NEVER hardcode strings
+<button>Save</button>
+<p>Student not found</p>
+```
+
+**✅ REQUIRED:**
+```tsx
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  return <button>{t('common.save')}</button>;
+}
+```
+
+**Why**: Bilingual system (EN/EL) requires translations. Hardcoded strings break Greek users.
+
+---
+
+### Policy 5: Pre-Commit - Validation ALWAYS Required
+
+**❌ FORBIDDEN:**
+- Committing without running pre-commit checks
+- Skipping `COMMIT_READY.ps1`
+- Bypassing validation with `--no-verify`
+
+**✅ REQUIRED:**
+```powershell
+.\COMMIT_READY.ps1 -Quick         # Quick validation (2-3 min)
+.\COMMIT_READY.ps1 -Standard      # Standard checks (5-8 min)
+.\COMMIT_READY.ps1 -Full          # Full validation (15-20 min)
+```
+
+**Why**: Prevents broken code, auto-fixes formatting, catches bugs before commit.
+
+---
+
+### Policy 6: Documentation - Audit Before Creating
+
+**❌ FORBIDDEN:**
+- Creating docs without checking existing structure
+- Creating standalone reports without consolidation
+- Duplicating information across files
+
+**✅ REQUIRED:**
+1. Check `DOCUMENTATION_INDEX.md` first
+2. Review existing structure in `/docs/`
+3. Consolidate findings into existing framework
+4. Update index when adding new docs
+
+**Why**: Prevents documentation sprawl and maintains single source of truth.
+
+---
+
+### Policy 7: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
+
+**❌ FORBIDDEN:**
+- Starting new work without checking git status
+- Proceeding to next task with uncommitted changes
+- Ignoring pending work items in task lists
+- Switching contexts without completing current task
+
+**✅ REQUIRED:**
+```powershell
+# ALWAYS check before starting new work
+git status                        # Check for uncommitted changes
+git diff                          # Review pending changes
+# Check docs/plans/UNIFIED_WORK_PLAN.md for incomplete items
+```
+
+**Pre-Task Checklist:**
+1. Run `git status` to verify no uncommitted changes
+2. Review `docs/plans/UNIFIED_WORK_PLAN.md` for pending tasks
+3. Commit or stash any pending changes before switching tasks
+4. Update work plan with completed tasks before starting new ones
+
+**Why**: Prevents context switching with incomplete work, avoids losing changes, maintains clean history.
+
+**Exception**: Intentional WIP commits allowed: `git commit -m "WIP: feature description"`
+
+---
+
 ## 🏗️ Architecture Essentials
 
 ### Dual Deployment Modes (Non-Obvious Design)
