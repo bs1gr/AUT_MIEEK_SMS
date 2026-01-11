@@ -17,7 +17,7 @@ from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
-from backend.routers.routers_auth import optional_require_role
+from backend.rbac import require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -185,11 +185,11 @@ async def list_semesters(request: Request, db: Session = Depends(get_db)):
 @router.get("/export")
 @router.post("/export")  # Legacy compatibility; prefer GET. POST will be removed in future release.
 @limiter.limit(RATE_LIMIT_HEAVY)
+@require_permission("sessions:manage")
 async def export_session(
     request: Request,
     semester: str,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """
     Export complete session data package for a specific semester.
@@ -287,7 +287,7 @@ async def export_session(
             "metadata": {
                 "semester": semester,
                 "exported_at": datetime.now().isoformat(),
-                "exported_by": getattr(current_user, "email", "system"),
+                "exported_by": "system",  # User identity tracked via request.state
                 "version": "1.0",
                 "counts": {
                     "courses": len(courses),
@@ -339,13 +339,13 @@ async def export_session(
 
 @router.post("/import")
 @limiter.limit(RATE_LIMIT_HEAVY)
+@require_permission("sessions:manage")
 async def import_session(
     request: Request,
     file: UploadFile = File(...),
     merge_strategy: str = "update",  # "update" or "skip"
     dry_run: bool = False,  # Validate only, don't import
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """
     Import session data package and merge with existing database.
@@ -468,7 +468,7 @@ async def import_session(
         results = {
             "semester": semester,
             "imported_at": datetime.now().isoformat(),
-            "imported_by": getattr(current_user, "email", "system"),
+            "imported_by": "system",  # User identity tracked via request.state
             "merge_strategy": merge_strategy,
             "backup_created": backup_path is not None,
             "backup_path": str(backup_path) if backup_path else None,
@@ -653,9 +653,8 @@ async def import_session(
 
 @router.post("/rollback")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def rollback_import(
-    request: Request, backup_filename: str, current_user=Depends(optional_require_role("admin", "teacher"))
-):
+@require_permission("sessions:manage")
+async def rollback_import(request: Request, backup_filename: str):
     """
     Rollback/restore database from a backup file created before session import.
 
@@ -718,10 +717,7 @@ async def rollback_import(
         # Perform rollback: Replace current DB with backup
         shutil.copy2(backup_path, db_path)
 
-        logger.warning(
-            f"DATABASE ROLLBACK performed by {getattr(current_user, 'email', 'system')}: "
-            f"Restored from {backup_filename}"
-        )
+        logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")
 
         return {
             "success": True,
@@ -729,7 +725,7 @@ async def rollback_import(
             "backup_restored": str(backup_path),
             "pre_rollback_backup_created": str(pre_rollback_backup) if pre_rollback_backup else None,
             "timestamp": datetime.now().isoformat(),
-            "performed_by": getattr(current_user, "email", "system"),
+            "performed_by": "system",  # User identity tracked via request.state
             "warning": "Database has been restored to previous state. Please restart the application to clear caches.",
         }
 
