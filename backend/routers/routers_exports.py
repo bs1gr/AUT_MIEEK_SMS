@@ -481,15 +481,15 @@ from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.schemas.audit import AuditAction, AuditResource
-from backend.security.permissions import optional_require_permission
+from backend.rbac import require_permission
 from backend.services.audit_service import AuditLogger
 
 
 @router.get("/students/excel")
+@require_permission("exports:generate")
 async def export_students_excel(
     request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_permission("exports:generate")),
 ):
     audit = AuditLogger(db)
     try:
@@ -548,6 +548,7 @@ async def export_students_excel(
 
 
 @router.get("/grades/excel/{student_id}")
+@require_permission("exports:generate")
 async def export_student_grades_excel(student_id: int, request: Request, db: Session = Depends(get_db)):
     try:
         Student, Grade = import_names("models", "Student", "Grade")
@@ -647,6 +648,7 @@ def _letter_grade(percentage: float) -> str:
 
 
 @router.get("/students/pdf")
+@require_permission("exports:generate")
 async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
     try:
         (Student,) = import_names("models", "Student")
@@ -727,6 +729,7 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/attendance/excel")
+@require_permission("exports:generate")
 async def export_attendance_excel(request: Request, db: Session = Depends(get_db)):
     audit = AuditLogger(db)
     try:
@@ -789,6 +792,7 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/attendance/analytics/excel")
+@require_permission("exports:generate")
 async def export_attendance_analytics_excel(request: Request, db: Session = Depends(get_db)):
     try:
         Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
@@ -1051,6 +1055,7 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
 
 
 @router.get("/courses/excel")
+@require_permission("exports:generate")
 async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
     """Export all courses to Excel"""
     audit = AuditLogger(db)
@@ -1119,6 +1124,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/enrollments/excel")
+@require_permission("exports:generate")
 async def export_enrollments_excel(request: Request, db: Session = Depends(get_db)):
     """Export all course enrollments to Excel"""
     audit = AuditLogger(db)
@@ -1191,6 +1197,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
 
 
 @router.get("/grades/excel")
+@require_permission("exports:generate")
 async def export_all_grades_excel(request: Request, db: Session = Depends(get_db)):
     """Export all grades to Excel"""
     audit = AuditLogger(db)
@@ -1269,6 +1276,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/performance/excel")
+@require_permission("exports:generate")
 async def export_daily_performance_excel(request: Request, db: Session = Depends(get_db)):
     """Export all daily performance records to Excel"""
     audit = AuditLogger(db)
@@ -1345,6 +1353,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
 
 
 @router.get("/highlights/excel")
+@require_permission("exports:generate")
 async def export_highlights_excel(request: Request, db: Session = Depends(get_db)):
     """Export all student highlights to Excel"""
     audit = AuditLogger(db)
@@ -1418,6 +1427,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
 
 
 @router.get("/student-report/pdf/{student_id}")
+@require_permission("exports:generate")
 async def export_student_report_pdf(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Generate comprehensive student report PDF with grades, attendance, and analytics"""
     try:
@@ -1638,6 +1648,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
 
 
 @router.get("/courses/pdf")
+@require_permission("exports:generate")
 async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
     """Export all courses to PDF"""
     try:
@@ -1722,6 +1733,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
 
 
 @router.get("/analytics/course/{course_id}/pdf")
+@require_permission("exports:generate")
 async def export_course_analytics_pdf(course_id: int, request: Request, db: Session = Depends(get_db)):
     """Export course analytics report to PDF"""
     try:
