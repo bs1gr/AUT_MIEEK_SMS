@@ -36,6 +36,7 @@ cd backend && pytest -q
 - ❌ Never edit DB schema directly → Always use Alembic migrations (`alembic revision --autogenerate`)
 - ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts` (bilingual EN/EL required)
 - ❌ Never create new TODO/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
+- ❌ Never start new work without checking git status → Run `git status` and verify no uncommitted changes
 - ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/lifespan.py`)
 - ❌ Never use `require_role()` for admin endpoints → Use `optional_require_role()` (respects AUTH_MODE)
 

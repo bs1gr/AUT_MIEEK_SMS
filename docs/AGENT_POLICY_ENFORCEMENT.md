@@ -1,7 +1,7 @@
 # Agent Policy Enforcement - Mandatory Compliance
 
-**Version**: 1.0
-**Date**: January 9, 2026
+**Version**: 1.1
+**Date**: January 11, 2026
 **Status**: ACTIVE - ALL AGENTS MUST COMPLY
 **Authority**: Project-wide mandatory policy
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer with AI assistant as only support
@@ -186,6 +186,49 @@ function MyComponent() {
 
 ---
 
+### Policy 7: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
+
+**❌ FORBIDDEN:**
+- Starting new work without checking git status
+- Proceeding to next task with uncommitted changes
+- Ignoring pending work items in task lists
+- Switching contexts without completing current task
+
+**✅ REQUIRED:**
+```powershell
+# ALWAYS check before starting new work
+git status                        # Check for uncommitted changes
+3. **MANDATORY**: Run `git status` to check for uncommitted changes
+4. **MANDATORY**: Review any pending tasks before starting new work
+git diff                          # Review pending changes
+# Check task tracker/work plan for incomplete items
+```
+
+**Pre-Task Checklist:**
+1. Run `git status` to verify no uncommitted changes
+2. Review `docs/plans/UNIFIED_WORK_PLAN.md` for pending tasks
+3. Check for incomplete work in current session
+4. Commit or stash any pending changes before switching tasks
+5. Update work plan with completed tasks before starting new ones
+
+**Why This Exists:**
+- Prevents context switching with incomplete work
+- Avoids losing uncommitted changes
+- Ensures task completion before moving forward
+- Maintains clean work history and traceability
+- Prevents work fragmentation and partial implementations
+- Documented in: `docs/development/GIT_WORKFLOW.md`
+
+**Exception:** Intentional WIP (work in progress) commits are allowed:
+```powershell
+git add .
+git commit -m "WIP: feature description"  # OK for checkpoint
+```
+
+**Enforcement:** Agents must verify clean state before accepting new tasks.
+
+---
+
 ## 🔍 How to Verify Compliance
 
 ### For Agents Starting Work
@@ -201,7 +244,8 @@ function MyComponent() {
 
 **Step 3: Verify Policies (2 min)**
 1. Review this document (`docs/AGENT_POLICY_ENFORCEMENT.md`)
-2. Confirm understanding of mandatory policies
+2. Confirm new task** | `git status` + check work plan | Start without verification |
+| **Before understanding of mandatory policies
 
 **Total Time: 10 minutes** to avoid hours of rework.
 
@@ -313,6 +357,7 @@ An agent has successfully integrated when they:
 ✅ **Run tests using batch runner** (no crashes)
 ✅ **Update work plan** (no duplicate trackers)
 ✅ **Use correct versioning** (v1.15.1 from VERSION file)
+✅ **Verify clean state before new tasks** (no uncommitted work)
 ✅ **Use Alembic migrations** (no direct DB edits)
 ✅ **Use i18n for all strings** (no hardcoded text)
 ✅ **Run pre-commit checks** (clean commits)
@@ -327,12 +372,8 @@ An agent has successfully integrated when they:
 If you encounter:
 - **Policy conflicts** → Update this document via commit
 - **Unclear requirements** → Clarify with solo developer
-- **Technical blocks** → Create GitHub issue
-- **System crashes** → Report in incident log
-
-**Document Owner:** Solo Developer
-**Last Updated:** January 9, 2026
-**Next Review:** February 9, 2026
+- **Technical blocks** → C11, 2026
+**Next Review:** February 11, 2026
 
 ---
 
@@ -340,6 +381,7 @@ If you encounter:
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 1.1 | Jan 11, 2026 | Added Policy 7: Work Verification (uncommitted & pending tasks) | AI Agent |
 | 1.0 | Jan 9, 2026 | Initial policy enforcement document | AI Agent |
 
 ---
