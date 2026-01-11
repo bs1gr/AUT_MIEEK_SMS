@@ -10,7 +10,7 @@ import backend.models as models
 # --- CRUD ENDPOINTS FOR ROLES ---
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error, internal_server_error
-from backend.routers.routers_auth import optional_require_role
+from backend.rbac import require_permission
 from backend.schemas.audit import AuditAction, AuditLogListResponse, AuditLogResponse, AuditResource
 from backend.schemas.rbac import (
     AssignRoleRequest,
@@ -21,19 +21,18 @@ from backend.schemas.rbac import (
     RBACSummary,
     RoleResponse,
 )
-from backend.security.permissions import require_permission
 from backend.services.audit_service import get_audit_logger
 
 router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})
 
 
 @router.post("/roles", response_model=RoleResponse)
+@require_permission("permissions:manage")
 async def create_role(
     request: Request,
     name: str = Body(..., embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     name = name.strip().lower()
     if db.query(models.Role).filter(models.Role.name == name).first():
@@ -46,21 +45,21 @@ async def create_role(
 
 
 @router.get("/roles", response_model=list[RoleResponse])
+@require_permission("permissions:view")
 async def list_roles(
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:view")),
 ):
     roles = db.query(models.Role).all()
     return [RoleResponse.model_validate(r) for r in roles]
 
 
 @router.put("/roles/{role_id}", response_model=RoleResponse)
+@require_permission("permissions:manage")
 async def update_role(
     role_id: int,
     name: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
@@ -75,10 +74,10 @@ async def update_role(
 
 
 @router.delete("/roles/{role_id}")
+@require_permission("permissions:manage")
 async def delete_role(
     role_id: int,
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
@@ -90,6 +89,7 @@ async def delete_role(
 
 # --- CRUD ENDPOINTS FOR PERMISSIONS ---
 @router.post("/permissions", response_model=PermissionResponse)
+@require_permission("permissions:manage")
 async def create_permission(
     request: Request,
     key: str = Body(..., embed=True),
@@ -97,7 +97,6 @@ async def create_permission(
     action: str = Body(..., embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     key = key.strip().lower()
     resource = resource.strip().lower()
@@ -112,15 +111,16 @@ async def create_permission(
 
 
 @router.get("/permissions", response_model=list[PermissionResponse])
+@require_permission("permissions:view")
 async def list_permissions(
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:view")),
 ):
     perms = db.query(models.Permission).all()
     return [PermissionResponse.model_validate(p) for p in perms]
 
 
 @router.put("/permissions/{permission_id}", response_model=PermissionResponse)
+@require_permission("permissions:manage")
 async def update_permission(
     permission_id: int,
     key: str = Body(None, embed=True),
@@ -128,7 +128,6 @@ async def update_permission(
     action: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
@@ -147,10 +146,10 @@ async def update_permission(
 
 
 @router.delete("/permissions/{permission_id}")
+@require_permission("permissions:manage")
 async def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
@@ -162,17 +161,16 @@ async def delete_permission(
 
 # --- RBAC CHANGE HISTORY ENDPOINT ---
 @router.get("/change-history", response_model=AuditLogListResponse)
+@require_permission("audit:view")
 async def get_rbac_change_history(
     request: Request,
     db: Session = Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
     page: int = 1,
     page_size: int = 50,
     action: str = None,
     user_id: int = None,
 ):
     """Get paginated RBAC change history (role/permission changes only)."""
-    _ = current_admin
     q = db.query(models.AuditLog).filter(
         models.AuditLog.action.in_(
             [AuditAction.ROLE_CHANGE.value, AuditAction.PERMISSION_GRANT.value, AuditAction.PERMISSION_REVOKE.value]
@@ -209,13 +207,12 @@ async def get_rbac_change_history(
 
 # --- BULK ADMIN ENDPOINTS ---
 @router.post("/bulk-assign-role", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def bulk_assign_role(
     request: Request,
     payload: BulkAssignRolesRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     results = []
     role = db.query(models.Role).filter(models.Role.name == payload.role_name.strip().lower()).first()
@@ -277,13 +274,12 @@ async def bulk_assign_role(
 
 
 @router.post("/bulk-grant-permission", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def bulk_grant_permission(
     request: Request,
     payload: BulkGrantPermissionsRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     results = []
     perm = db.query(models.Permission).filter(models.Permission.key == payload.permission_name.strip().lower()).first()
@@ -359,10 +355,10 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/ensure-defaults", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def ensure_defaults(
     request: Request,
     db: Session = Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
 ):
     """Create default roles and permissions if they don't exist.
 
@@ -371,7 +367,6 @@ async def ensure_defaults(
     - Teacher gets permissive academic operations; student gets self-* reads
     - Assign User.role -> UserRole when applicable
     """
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     try:
         # Ensure roles
@@ -535,12 +530,11 @@ async def ensure_defaults(
 
 
 @router.get("/summary", response_model=RBACSummary)
+@require_permission("permissions:view")
 async def get_rbac_summary(
     request: Request,
     db: Session = Depends(get_db),
-    current_admin=Depends(optional_require_role("admin")),
 ):
-    _ = current_admin
     roles = db.query(models.Role).all()
     perms = db.query(models.Permission).all()
     role_perms = db.query(models.RolePermission).all()
@@ -554,13 +548,12 @@ async def get_rbac_summary(
 
 
 @router.post("/assign-role", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def assign_role(
     request: Request,
     payload: AssignRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     try:
         user = db.query(models.User).filter(models.User.id == payload.user_id).first()
@@ -625,13 +618,12 @@ async def assign_role(
 
 
 @router.post("/revoke-role", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def revoke_role(
     request: Request,
     payload: AssignRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     try:
         user = db.query(models.User).filter(models.User.id == payload.user_id).first()
@@ -676,13 +668,12 @@ async def revoke_role(
 
 
 @router.post("/revoke-permission", status_code=status.HTTP_200_OK)
+@require_permission("permissions:manage")
 async def revoke_permission_from_role(
     request: Request,
     payload: GrantPermissionToRoleRequest = Body(...),
     db: Session = Depends(get_db),
-    current_admin=Depends(require_permission("permissions:manage")),
 ):
-    _ = current_admin
     audit_logger = get_audit_logger(db)
     try:
         role = db.query(models.Role).filter(models.Role.name == payload.role_name.strip().lower()).first()
