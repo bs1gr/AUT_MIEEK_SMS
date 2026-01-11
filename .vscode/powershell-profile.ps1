@@ -22,7 +22,23 @@ $env:GIT_TERMINAL_PROMPT = "0"
 # Set Git to use UTF-8
 $env:LESSCHARSET = "utf-8"
 
-# Clean output format
-$PSStyle.OutputRendering = 'PlainText'
+# Clean output format (fallback for Windows PowerShell without PSStyle)
+if ($PSStyle -and $PSStyle.PSObject.Properties.Name -contains 'OutputRendering') {
+	$PSStyle.OutputRendering = 'PlainText'
+}
+
+# Ensure Ctrl+L (and cls alias) reliably clear the screen without stray characters (ψ)
+if (Get-Module -ListAvailable -Name PSReadLine) {
+	Set-PSReadLineKeyHandler -Key Ctrl+l -Function ClearScreen
+}
+# Only set alias if not already defined (avoids AllScope errors on Windows PowerShell)
+if (-not (Get-Command cls -ErrorAction SilentlyContinue)) {
+	Set-Alias cls Clear-Host
+}
+
+# Keep the prompt simple (prevents hidden characters that can confuse command detection)
+function global:prompt {
+	"PS $((Get-Location).Path)> "
+}
 
 Write-Host "PowerShell profile loaded - UTF-8 encoding configured" -ForegroundColor Green
