@@ -12,12 +12,14 @@ import logging
 from fastapi import APIRouter
 
 from backend.db.query_profiler import profiler
+from backend.rbac import require_permission
 
 router = APIRouter(prefix="/diagnostics", tags=["diagnostics"])
 logger = logging.getLogger(__name__)
 
 
 @router.get("/queries/summary")
+@require_permission("diagnostics:view")
 async def get_query_summary():
     """
     Get summary of database query profiling data.
@@ -39,6 +41,7 @@ async def get_query_summary():
 
 
 @router.get("/queries/slow")
+@require_permission("diagnostics:view")
 async def get_slow_queries(limit: int = 20):
     """
     Get list of slow queries (>100ms).
@@ -59,6 +62,7 @@ async def get_slow_queries(limit: int = 20):
 
 
 @router.get("/queries/patterns")
+@require_permission("diagnostics:view")
 async def get_query_patterns():
     """
     Get analysis of query patterns per table.
@@ -79,6 +83,7 @@ async def get_query_patterns():
 
 
 @router.post("/queries/reset")
+@require_permission("diagnostics:manage")
 async def reset_profiler():
     """
     Reset query profiler statistics.
@@ -101,6 +106,7 @@ async def reset_profiler():
 
 
 @router.get("/health/queries")
+@require_permission("diagnostics:view")
 async def health_check_queries():
     """
     Health check for database query performance.
