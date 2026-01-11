@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 from backend.db import SessionLocal, get_session as get_db
 from backend.models import User
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.routers.routers_auth import optional_require_role
+from backend.rbac import require_permission
+from backend.security.current_user import get_current_user
 from backend.schemas import (
     BroadcastNotificationCreate,
     NotificationListResponse,
@@ -148,7 +149,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
 @limiter.limit(RATE_LIMIT_READ)
 async def get_unread_count(
     request: Request,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get count of unread notifications for current user.
@@ -169,7 +170,7 @@ async def get_unread_count(
 @limiter.limit(RATE_LIMIT_WRITE)
 async def mark_all_as_read(
     request: Request,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark all notifications as read for current user.
@@ -191,7 +192,7 @@ async def mark_all_as_read(
 @limiter.limit(RATE_LIMIT_READ)
 async def get_preferences(
     request: Request,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get notification preferences for current user.
@@ -213,7 +214,7 @@ async def get_preferences(
 async def update_preferences(
     request: Request,
     updates: NotificationPreferenceUpdate,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update notification preferences for current user.
@@ -242,7 +243,7 @@ async def get_notifications(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     unread_only: bool = Query(False),
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get notifications for current user.
@@ -279,7 +280,7 @@ async def update_notification(
     request: Request,
     notification_id: int,
     update: NotificationUpdate,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark notification as read/unread.
@@ -317,7 +318,7 @@ async def update_notification(
 async def mark_as_read(
     request: Request,
     notification_id: int,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark a notification as read.
@@ -345,7 +346,7 @@ async def mark_as_read(
 async def delete_notification(
     request: Request,
     notification_id: int,
-    current_user: dict = Depends(optional_require_role()),
+    current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Delete a notification.
@@ -373,10 +374,10 @@ async def delete_notification(
 
 @router.post("/broadcast", response_model=dict)
 @limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("notifications:broadcast")
 async def broadcast_notification_endpoint(
     request: Request,
     broadcast: BroadcastNotificationCreate,
-    current_user: dict = Depends(optional_require_role("admin")),
     db: Session = Depends(get_db),
 ):
     """Broadcast a notification to users (admin only).
@@ -387,8 +388,6 @@ async def broadcast_notification_endpoint(
     Returns:
         Dictionary with broadcast statistics
     """
-    if not current_user or _get_user_role(current_user) != "admin":
-        raise HTTPException(status_code=403, detail="Only administrators can broadcast notifications")
 
     user_ids = broadcast.user_ids or []
 
