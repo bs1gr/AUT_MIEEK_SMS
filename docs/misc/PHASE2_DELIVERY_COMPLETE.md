@@ -22,7 +22,7 @@
    - Emergency rollback (5-minute recovery)
    - Committed: `1b7e5bce0`
 
-3. ✅ **STAGING_DEPLOYMENT_PLAN_v1.15.1.md** (9,629 bytes)
+3. ✅ **STAGING_DEPLOYMENT_PLAN_$11.15.2.md** (9,629 bytes)
    - Governance and timeline document
    - Stakeholder communication plan
    - Committed: `1328e76c5`
@@ -115,7 +115,7 @@ docs/deployment/
 ├── QUICK_REFERENCE_PHASE2.md                   (2-min navigation)
 ├── PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md     (Jan 8, 30-min validation)
 ├── STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md    (Jan 8, main runbook)
-├── STAGING_DEPLOYMENT_PLAN_v1.15.1.md          (Governance)
+├── STAGING_DEPLOYMENT_PLAN_$11.15.2.md          (Governance)
 ├── PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md      (Quick checklist)
 ├── PHASE2_KICKOFF_TRANSITION_DOCUMENT.md       (Jan 20-24 prep)
 ├── PHASE2_RISK_REGISTER.md                     (Risk management)
@@ -221,7 +221,7 @@ docs/deployment/
 
 **Jan 10-20**: Validation & Sign-Off Period
 - Use: 24-hour monitoring checklist
-- Tech Lead approval for v1.15.1 readiness
+- Tech Lead approval for $11.15.2 readiness
 
 **Jan 20-24**: Phase 2 Preparation Week
 - Use: PHASE2_KICKOFF_TRANSITION_DOCUMENT.md
@@ -241,7 +241,7 @@ docs/deployment/
 - Enforce PHASE2_PR_GUIDE.md on all PRs
 - Weekly risk monitoring via dashboard template
 
-**Mar 7-10**: Phase 2 Release (v1.16.0)
+**Mar 7-10**: Phase 2 Release ($11.15.2)
 
 ---
 
@@ -254,7 +254,7 @@ docs/deployment/
 **For Deployment Questions** (Jan 8-9):
 - Primary: STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
 - Pre-flight: PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md
-- Governance: STAGING_DEPLOYMENT_PLAN_v1.15.1.md
+- Governance: STAGING_DEPLOYMENT_PLAN_$11.15.2.md
 
 **For Preparation Week Questions** (Jan 20-24):
 - Primary: PHASE2_KICKOFF_TRANSITION_DOCUMENT.md
@@ -355,7 +355,7 @@ Before Jan 27 kickoff, all team members must:
 | Executive Summary | `docs/deployment/EXECUTIVE_SUMMARY_PHASE2_READY.md` | Status | 5 min |
 | Pre-Deployment Walkthrough | `docs/deployment/PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` | Validation | 15 min |
 | Deployment Playbook | `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` | Main Runbook | 20 min |
-| Deployment Plan | `docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md` | Governance | 10 min |
+| Deployment Plan | `docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md` | Governance | 10 min |
 | Prep Week Guide | `docs/deployment/PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` | Onboarding | 30 min |
 | Risk Register | `docs/deployment/PHASE2_RISK_REGISTER.md` | Risk Mgmt | 20 min |
 | Handoff Checklist | `docs/deployment/PHASE2_DOCUMENTATION_HANDOFF.md` | Handoff | 10 min |

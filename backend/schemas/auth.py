@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Callable, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator

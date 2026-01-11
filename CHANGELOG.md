@@ -154,15 +154,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Notification broadcast test failures (5/12 tests) - 403 Forbidden on test endpoint
   - Root cause: Permission check on test broadcast endpoint
   - Workaround: None; use manual testing for notification features
-  - Timeline: Addressed in v1.15.1
+  - Timeline: Addressed in $11.15.2
 
-### 🔄 Changes from v1.15.1
+### 🔄 Changes from $11.15.2
 
-No breaking changes. All APIs remain backward compatible with v1.15.1.
+No breaking changes. All APIs remain backward compatible with $11.15.2.
 
 ### ⬆️ Upgrade Instructions
 
-From v1.15.1: Simply pull latest code, no database migrations required.
+From $11.15.2: Simply pull latest code, no database migrations required.
 ```bash
 git pull origin main
 # Restart application
@@ -240,9 +240,9 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 ### 📝 Documentation
 
 - Updated [UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md) with Phase 1 completion
-- Added Phase 1 execution tracker: [EXECUTION_TRACKER_v1.15.1.md](docs/releases/EXECUTION_TRACKER_v1.15.1.md)
+- Added Phase 1 execution tracker: [EXECUTION_TRACKER_$11.15.2.md](docs/releases/EXECUTION_TRACKER_$11.15.2.md)
 - Consolidated release notes and migration guide
-- Updated DOCUMENTATION_INDEX.md with v1.15.1 references
+- Updated DOCUMENTATION_INDEX.md with $11.15.2 references
 
 ### 🔄 Migration Guide (1.14.3 → 1.15.0)
 
@@ -261,13 +261,13 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 
 ### 🐛 Known Issues
 
-- Notification broadcast E2E tests require admin auth (deferred to v1.15.1)
+- Notification broadcast E2E tests require admin auth (deferred to $11.15.2)
 - UI registration test has minor cookie assertion issue (non-critical)
 
 ### 📚 Related Issues & PRs
 
 - Closes requirements from Phase 1 planning document
-- Merged from `feature/v1.15.1-phase1-batch2` branch
+- Merged from `feature/$11.15.2-phase1-batch2` branch
 - 8 improvements with 370+ total tests added
 
 ### 🙏 Thanks
@@ -298,7 +298,7 @@ To all contributors who participated in Phase 1 development and testing.
 - **e2e**: apply final eslint fixes and catch parameter cleanup
 - **e2e**: improve test robustness and error handling
 - **e2e**: resolve authentication state persistence in E2E tests
-- update markdown table column count in MID_PHASE_SUMMARY_v1.15.1.md
+- update markdown table column count in MID_PHASE_SUMMARY_$11.15.2.md
 - disable KeywordDetector and exclude false-positive files from detect-secrets
 - exclude .secrets.baseline from pre-commit hook modifications
 - add response_model to /admin/users endpoint for FastAPI validation
@@ -653,7 +653,7 @@ python -m backend.auto_import_courses
 python -m backend.scripts.import_.courses
 ```
 
-See [Migration Guide](docs/guides/MIGRATION_v1.15.1.md) for complete details.
+See [Migration Guide](docs/guides/MIGRATION_$11.15.2.md) for complete details.
 
 ### Removed
 
@@ -1299,7 +1299,7 @@ if not auth_enabled or auth_mode == "disabled":
 **Phase Documentation** 📚
 - Created `PHASE_1_2.1_COMPLETION_SUMMARY.md` - Phase 1 & 2.1 deliverables and validation
 - Created `PHASE_2.1_OPTIONALS_COMPLETION.md` - Phase 2.1 optional features completion
-- Updated `ROADMAP_v1.15.1.md` with Phase 2.3 completion and upcoming phases
+- Updated `ROADMAP_$11.15.2.md` with Phase 2.3 completion and upcoming phases
 - Comprehensive CHANGELOG entries for all 1.12.2 components
 
 **Developer Guides** 🛠️

@@ -477,7 +477,7 @@ k6 run scripts/main_scenario.js --out json=results.json
 
 ### Performance Baselines
 
-**Established Baselines** (v1.15.1):
+**Established Baselines** ($11.15.2):
 ```json
 {
   "student_list": {

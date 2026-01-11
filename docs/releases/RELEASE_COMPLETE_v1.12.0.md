@@ -279,7 +279,7 @@ Installer:
 - Smoke test: PASSED ✅
 
 Backward Compatibility: 100% (zero breaking changes)
-Version: 1.15.1 → 1.12.0
+Version: 1.15.2 → 1.12.0
 ```
 
 ---

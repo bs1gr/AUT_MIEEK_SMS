@@ -16,12 +16,12 @@
 **File**: `docs/VERSION_HISTORY.md` (850+ lines)
 
 **Content**:
-- Version releases: v1.12.x through v1.15.1 documented
+- Version releases: v1.12.x through $11.15.2 documented
 - Version evolution timeline with release dates
 - Key improvements per version
 - Upgrade paths and support policy
 - Documentation references for each version
-- Next scheduled releases (v1.15.1+ staging, v1.16.0 Phase 2)
+- Next scheduled releases ($11.15.2+ staging, $11.15.2 Phase 2)
 - Maintenance schedule (weekly, monthly, quarterly)
 - References to planning and release documentation
 
@@ -225,7 +225,7 @@ Total: 24 files archived
 ## ✅ Verification Checklist
 
 - [x] VERSION_HISTORY.md created (850+ lines)
-- [x] All version releases documented (v1.12.x - v1.15.1)
+- [x] All version releases documented (v1.12.x - $11.15.2)
 - [x] Upgrade paths documented
 - [x] Support policy defined
 - [x] 7 audit reports archived

@@ -20,8 +20,8 @@
 
 ## 📝 Release Documentation (Complete)
 
-- [x] Release notes created ([RELEASE_NOTES_v1.15.1.md](RELEASE_NOTES_v1.15.1.md))
-- [x] GitHub release draft prepared ([GITHUB_RELEASE_v1.15.1.md](GITHUB_RELEASE_v1.15.1.md))
+- [x] Release notes created ([RELEASE_NOTES_$11.15.2.md](RELEASE_NOTES_$11.15.2.md))
+- [x] GitHub release draft prepared ([GITHUB_RELEASE_$11.15.2.md](GITHUB_RELEASE_$11.15.2.md))
 - [x] Phase 1 completion summary ([../PHASE1_COMPLETION_SUMMARY.md](../PHASE1_COMPLETION_SUMMARY.md))
 - [x] Phase 2 plan consolidated ([../plans/PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md))
 - [x] Documentation index updated
@@ -89,7 +89,7 @@ If gh CLI unavailable or you prefer manual control:
    - [ ] Release title: `1.15.0 - Phase 1 Complete: Infrastructure & UX Improvements`
 
 3. **Copy Release Body**
-   - [ ] Open: `docs/releases/GITHUB_RELEASE_v1.15.1.md`
+   - [ ] Open: `docs/releases/GITHUB_RELEASE_$11.15.2.md`
    - [ ] Copy the markdown content from the "Release Body" section
    - [ ] Paste into GitHub release description
 
@@ -153,7 +153,7 @@ If gh CLI unavailable or you prefer manual control:
 - [ ] Team onboarding materials prepared
 
 ### Technical Setup
-- [ ] Create feature branch: `feature/v1.15.1-phase2`
+- [ ] Create feature branch: `feature/$11.15.2-phase2`
 - [ ] Set up Phase 2 project board
 - [ ] Assign issues to team members
 - [ ] Schedule Sprint 1 planning meeting
