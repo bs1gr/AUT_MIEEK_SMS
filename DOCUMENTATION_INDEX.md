@@ -7,9 +7,9 @@
 > - Do not create ad‑hoc PR docs, status files, or parallel plans; reference this index and the unified plan.
 > - Always consult documentation properties and AI agent obligations before automated fixes or new artifacts.
 
-**Last Updated:** January 10, 2026 (7 quick win issues closed, master TESTING_GUIDE created)
-**Version:** 1.15.1 ✅ Production Ready + Phase 2 RBAC Backend Complete
-**Status:** Phase 1 Complete | Phase 2 RBAC Backend Complete | Production Deployed | Quick Wins Complete (#103-#106/#109/#112/#113)
+**Last Updated:** January 11, 2026 (Phase 3 scope locked in: Analytics + Notifications + Bulk Import)
+**Version:** 1.15.2 ✅ Production Ready + Phase 2 RBAC Backend Complete
+**Status:** Phase 1 Complete | Phase 2 Complete (v1.15.2) | Phase 3 PLANNED & DOCUMENTED
 **Current Branch**: `main`
 
 ---
@@ -22,6 +22,8 @@
 - `docs/plans/UNIFIED_WORK_PLAN.md` - Single source of truth for planning
 - `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Detailed Phase 2 reference
 - `docs/plans/PHASE2_DAILY_EXECUTION_PLAN.md` - Daily execution tracker
+- `docs/plans/PHASE3_ROADMAP.md` - Phase 3 feature planning & deployment options (NEW - Jan 11)
+- `docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md` - GitHub issue templates for Phase 3 (#125-128) (NEW - Jan 11)
 - `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` - Complete operational guide
 - `docs/admin/RBAC_OPERATIONS_GUIDE.md` - Daily/weekly procedures
 
@@ -111,6 +113,13 @@ All documentation is organized under `docs/` into four main categories:
 - **Risk management?** → `docs/deployment/PHASE2_RISK_REGISTER.md` (10 risks + mitigation)
 - **Team onboarding?** → `docs/deployment/PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` (3-hour path)
 - **PR standards?** → `.github/pull_request_template/PHASE2_PR_GUIDE.md` (template)
+
+### For Phase 3 Planning (NEW - Jan 11!)
+
+- **Feature roadmap?** → `docs/plans/PHASE3_ROADMAP.md` (2,000+ lines - all 7 features analyzed, 3 deployment options)
+- **GitHub issues?** → `docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md` (441 lines - issue #125-128 templates with acceptance criteria)
+- **Scope decision?** → User selected: Analytics Dashboard + Real-Time Notifications + Bulk Import/Export (6-7 weeks, ~60-70 hours)
+- **Work plan?** → See `docs/plans/UNIFIED_WORK_PLAN.md` "MEDIUM-TERM: Phase 3 Execution" section (Week 1-7 breakdown)
 
 ---
 
