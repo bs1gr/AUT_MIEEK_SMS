@@ -24,6 +24,34 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ## 📜 Mandatory Policies - Zero Exceptions
 
+### Policy 0: Deployment - NATIVE for Testing, DOCKER for Production
+
+**❌ FORBIDDEN:**
+```powershell
+# These create ad-hoc procedures and break the system
+.\DOCKER.ps1 -Start                    # ❌ WRONG for testing - only for production
+.\NATIVE.ps1 -Start                    # ❌ WRONG for production - only for testing
+# Custom deployment scripts or procedures
+```
+
+**✅ REQUIRED:**
+```powershell
+# ALWAYS use the correct script for the correct purpose
+.\NATIVE.ps1 -Start                    # ✅ Test/develop only (hot reload, 8000/5173)
+.\DOCKER.ps1 -Start                    # ✅ Deploy to production only (8080)
+```
+
+**Why This Exists:**
+- `DOCKER.ps1` and `NATIVE.ps1` are the **ONLY TWO** deployment entry points
+- They are comprehensive, tested, and documented
+- Creating custom procedures bypasses safety checks
+- Using wrong script causes environment mismatches
+- Documented in: `.github/copilot-instructions.md`, `README.md`, `docs/deployment/DOCKER_OPERATIONS.md`
+
+**Enforcement:** All deployment requests must use one of these two scripts. Period.
+
+---
+
 ### Policy 1: Testing - NEVER Run Full Test Suite Directly
 
 **❌ FORBIDDEN:**

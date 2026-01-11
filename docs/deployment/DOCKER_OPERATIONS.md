@@ -3,6 +3,15 @@
 **Version:** 1.9.3+
 **Mode:** Docker Deployment
 
+**🎯 CRITICAL WORKFLOW RULE:**
+```powershell
+# ✅ Use DOCKER.ps1 ONLY for production deployment
+.\DOCKER.ps1 -Start          # Production container (8080)
+
+# ✅ Use NATIVE.ps1 for testing/development (NOT here)
+.\NATIVE.ps1 -Start          # Testing only (8000/5173, hot reload)
+```
+
 This guide explains the operational architecture for the Student Management System Docker deployment and how to perform common tasks.
 
 ---

@@ -82,6 +82,18 @@ Troubleshooting & full walkthrough: [DEPLOY_ON_NEW_PC.md](DEPLOY_ON_NEW_PC.md)
 
 We migrated from 100+ scripts (RUN.ps1 / INSTALL.ps1 / SMS.ps1 / run-native.ps1 / SUPER_CLEAN_AND_DEPLOY.ps1) to **two primary entry points**:
 
+**🎯 CRITICAL WORKFLOW RULE:**
+```powershell
+# ✅ TEST on Native (development with hot reload)
+.\NATIVE.ps1 -Start          # Backend 8000 + Frontend 5173 (hot reload)
+
+# ✅ DEPLOY on Docker (production container)
+.\DOCKER.ps1 -Start          # Production deployment (port 8080)
+```
+
+**This is the ONLY correct workflow. Use NATIVE for testing, use DOCKER for deploying to production.**
+
+Detailed commands:
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 

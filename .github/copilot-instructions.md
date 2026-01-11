@@ -9,6 +9,16 @@
 
 **Solo Development Context**: This project is maintained by a single developer working with AI assistant as the only support. All role references in documentation (team members, distinct roles) should be interpreted as workflow checkpoints, not actual team members.
 
+**🎯 THE DEPLOYMENT WORKFLOW (CRITICAL - MEMORIZE THIS):**
+```powershell
+# ✅ TEST on Native (development with hot reload)
+.\NATIVE.ps1 -Start          # Backend (8000) + Frontend (5173)
+
+# ✅ DEPLOY on Docker (production container)
+.\DOCKER.ps1 -Start          # Production deployment (8080)
+```
+**This is the only correct workflow. Use NATIVE for testing, use DOCKER for production.**
+
 **First Steps for AI Agents**:
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
 2. Read [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for navigation
@@ -22,6 +32,20 @@
 
 These are the most common mistakes that break the codebase:
 
+**🎯 DEPLOYMENT RULE (MOST CRITICAL):**
+```powershell
+# ❌ NEVER use wrong script for wrong purpose
+.\DOCKER.ps1 -Start                    # ❌ WRONG for testing - ONLY for production
+.\NATIVE.ps1 -Start                    # ❌ WRONG for production - ONLY for testing
+
+# ✅ CORRECT WORKFLOW ONLY
+.\NATIVE.ps1 -Start                    # ✅ Test/develop (hot reload, 8000/5173)
+.\DOCKER.ps1 -Start                    # ✅ Deploy to production (8080)
+```
+
+**Why**: These are the ONLY two deployment entry points. Using anything else creates custom procedures that break the system.
+
+**Testing Only:**
 ```powershell
 # ❌ NEVER run pytest directly - will crash VS Code with 490+ tests
 cd backend && pytest -q
