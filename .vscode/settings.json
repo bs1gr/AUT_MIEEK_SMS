@@ -19,8 +19,9 @@
       "source": "PowerShell",
       "args": [
         "-NoExit",
-        "-Command",
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; [Console]::InputEncoding=[System.Text.Encoding]::UTF8; chcp 65001 | Out-Null"
+        "-NoLogo",
+        "-File",
+        "${workspaceFolder}/.vscode/powershell-profile.ps1"
       ]
     }
   },
@@ -30,6 +31,15 @@
   "files.autoGuessEncoding": false,
   "terminal.integrated.unicodeVersion": "11",
   "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.localEchoEnabled": "off",
+  "terminal.integrated.enablePersistentSessions": false,
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.suggestEnabled": false,
+
+  // PowerShell specific settings
+  "powershell.integratedConsole.suppressStartupBanner": true,
+  "powershell.integratedConsole.startInBackground": false,
+  "powershell.powerShellDefaultVersion": "PowerShell (x64)",
 
   // Python analysis
   "python.analysis.typeCheckingMode": "standard",
