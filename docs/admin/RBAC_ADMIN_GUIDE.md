@@ -9,7 +9,7 @@
 
 ## 📋 Quick Summary
 
-This guide covers Role-Based Access Control (RBAC) administration for SMS v1.15.1+. It explains how permissions work, how to assign them, and how to troubleshoot access issues.
+This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15.2+. It explains how permissions work, how to assign them, and how to troubleshoot access issues.
 
 **Key Concepts**:
 - **Permission**: A specific action on a resource (e.g., `students:view`, `grades:edit`)

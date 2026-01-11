@@ -22,7 +22,7 @@
 - Repository, infrastructure, DB checks
 
 ### 3. Staging Deployment Plan
-📄 `docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md`
+📄 `docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md`
 - 45-minute procedure
 - Timeline breakdown
 - What to expect at each phase

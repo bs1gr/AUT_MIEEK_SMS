@@ -1,4 +1,4 @@
-# Enhanced Pre-commit Hooks for SMS (v1.15.1+)
+# Enhanced Pre-commit Hooks for SMS ($11.15.2+)
 
 **Created**: January 8, 2026
 **Status**: ✅ Ready for use

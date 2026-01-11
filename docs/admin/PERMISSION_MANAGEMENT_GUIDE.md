@@ -42,7 +42,7 @@ This guide covers operational procedures for managing RBAC permissions in the St
 
 ### First-Time Setup
 
-After deploying v1.15.1+, run the permission seeding script:
+After deploying $11.15.2+, run the permission seeding script:
 
 ```bash
 cd backend

@@ -95,7 +95,7 @@
 
 ### Phase 2 Deployment & Operations (7 issues)
 
-12. **#124: Release v1.15.1 Preparation**
+12. **#124: Release $11.15.2 Preparation**
     - Status: ✅ RELEASED (Jan 7)
     - Effort: 8 hours (COMPLETED)
     - Task: Release notes, migration guide, GitHub release
@@ -173,7 +173,7 @@
     - Status: Waiting (starts Feb 24)
     - Effort: 80 hours
     - Tasks: Full test suite, staging validation, production deployment
-    - Deliverable: v1.15.1 released to production
+    - Deliverable: $11.15.2 released to production
 
 ---
 

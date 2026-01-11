@@ -254,7 +254,7 @@ All admin endpoints now map to specific permissions in a `resource:action` forma
 
 ---
 
-## 🔄 Migration Guide: v1.15.1 → v1.15.2
+## 🔄 Migration Guide: $11.15.2 → $11.15.2
 
 ### For End Users
 **No action required.** Your roles and permissions are automatically mapped to the new system.
@@ -382,7 +382,7 @@ All features working as expected. Please report any issues via GitHub.
 
 ---
 
-## 🎯 Next Steps (v1.15.3+)
+## 🎯 Next Steps ($11.15.2+)
 
 ### Planned Features
 - [ ] Permission UI in admin panel (Phase 3)
