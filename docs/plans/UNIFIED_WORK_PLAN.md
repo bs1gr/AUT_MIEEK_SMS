@@ -989,115 +989,193 @@ This document consolidates all scattered planning documents into a **single sour
 🟢 Phase 2 preparation: Jan 13-26 (READY TO BEGIN)
 - Review Phase 2 consolidated plan
 - Prepare dev environment for Phase 2 RBAC + CI/CD work
-- Phase 2 execution starts Jan 27, 2026
+- Phase 2 execution starts when ready (no fixed date)
 
 ---
 
-## �📅 Daily Execution Timeline (30 Days)
+## 📊 Sequential Execution (Progress-Based, Not Calendar-Dependent)
 
-### Phase 1: RBAC Foundation (Days 1-5, Jan 27-31)
-**Team**: Tech Lead + Backend Dev 1 (40 hours)
-**Deliverables**:
-- ✅ Day 1: Permission matrix approved
-- ✅ Day 2: Database schema designed
-- ✅ Day 3: Alembic migration tested
-- ✅ Day 4: Backend models created
-- ✅ Day 5: RBAC decorators implemented
-**Status**: Ready → In Progress (Day 1)
+### Phase 2: RBAC Implementation
+**Status**: ⏳ NEXT (begins when production monitoring complete)
+**Duration**: ~40 hours of work (proportional to actual complexity)
+**Progression**: Sequential steps, each unblocking the next
 
-### Phase 2: Endpoint Refactoring (Days 6-10, Feb 3-7)
-**Team**: Backend Dev 2 + Backend Dev 1 (40 hours)
-**Deliverables**:
-- ✅ Day 6: Student endpoints (8 endpoints)
-- ✅ Day 7: Course endpoints (7 endpoints)
-- ✅ Day 8: Grade endpoints (8 endpoints)
-- ✅ Day 9: Attendance endpoints (10 endpoints)
-- ✅ Day 10: Reports + analytics endpoints (10 endpoints)
-**Target**: 30+ endpoints secured with permissions
-**Status**: Waiting for Phase 1 → Starts Day 6
+**Sequential Steps**:
 
-### Phase 3: Permission API (Days 11-15, Feb 10-14)
-**Team**: Backend Dev 1 + Frontend Dev planning (40 hours)
-**Deliverables**:
-- ✅ Day 11: API design approved
-- ✅ Day 12-13: Permission CRUD endpoints
-- ✅ Day 14: 40+ endpoint tests (95%+ coverage)
-- ✅ Day 15: Documentation complete
-**Target**: 5 new endpoints, fully tested
-**Status**: Waiting for Phase 1 → Starts Day 11
+#### Step 1: Permission Matrix Design
+**Effort**: 4 hours
+**Start Trigger**: When production monitoring approved
+**Deliverable**: docs/admin/PERMISSION_MATRIX.md updated with final spec
+**Tasks**:
+- [ ] Define final 25 permissions across 8 domains
+- [ ] Map permissions to all 148 endpoints
+- [ ] Review for conflicts/gaps
+- [ ] Document approval
+**Completion Criteria**: Matrix finalized and documented
+**Progression**: When complete → Move to Step 2
 
-### Phase 4: Frontend Permission UI (Days 16-20, Feb 17-21)
-**Team**: Frontend Dev + QA (40 hours)
-**Deliverables**:
-- ✅ Day 16-17: PermissionMatrix component
-- ✅ Day 18-19: RolePermissions component + integration
-- ✅ Day 20: Testing + admin panel integration
-**Target**: Admin UI fully functional, EN/EL translations
-**Status**: Waiting for Phase 3 → Starts Day 16
+#### Step 2: Database Schema & Migrations
+**Effort**: 6 hours
+**Start Trigger**: Step 1 complete
+**Deliverable**: Alembic migration for Permission, RolePermission tables
+**Tasks**:
+- [ ] Design Permission, RolePermission table schemas
+- [ ] Create Alembic migration file
+- [ ] Test upgrade cycle (create tables, verify schema)
+- [ ] Test downgrade cycle (drop tables, verify rollback)
+- [ ] Verify no migration order issues
+**Completion Criteria**: Migration tested and working both directions
+**Progression**: When complete → Move to Step 3
 
-### Phase 5: CI/CD & Performance (Days 21-25, Feb 24-28)
-**Team**: QA Engineer + DevOps (40 hours)
-**Deliverables**:
-- ✅ Day 21: E2E metrics collection
-- ✅ Day 22: Load testing integration
-- ✅ Day 23: Coverage reporting
-- ✅ Day 24: Performance monitoring
-- ✅ Day 25: CI optimization (30% faster)
-**Status**: Waiting for Phase 2 → Starts Day 21
+#### Step 3: Backend Models & Decorators
+**Effort**: 8 hours
+**Start Trigger**: Step 2 complete
+**Deliverable**: backend/models.py updated + backend/rbac.py decorator working
+**Tasks**:
+- [ ] Implement Permission model with name, description, resource, action
+- [ ] Implement RolePermission relationship (Role ↔ Permission many-to-many)
+- [ ] Create @require_permission(perm_name) decorator
+- [ ] Implement has_permission(), has_all_permissions() utility functions
+- [ ] Verify ORM relationships work bi-directionally
+- [ ] Unit test all permission checks (20+ tests)
+**Completion Criteria**: Decorator tested, models working, 20+ unit tests passing
+**Progression**: When complete → Move to Step 4
 
-### Phase 6: Final Testing & Release (Days 26-30, Mar 3-7)
-**Team**: All 6 people (40 hours)
-**Deliverables**:
-- ✅ Day 26: Full integration testing (95%+ coverage)
-- ✅ Day 27: Regression testing + bug fixes
-- ✅ Day 28: Staging deployment + validation
-- ✅ Day 29: Final approval + release notes
-- ✅ Day 30: Production deployment 🚀
-**Status**: Waiting for Phase 5 → Starts Day 26
+#### Step 4: Endpoint Refactoring (All 79 Admin Endpoints)
+**Effort**: 15 hours
+**Start Trigger**: Step 3 complete
+**Deliverable**: All admin endpoints secured with @require_permission
+**Tasks**:
+- [ ] Apply @require_permission to 79 endpoints across 11 routers
+- [ ] Categorize endpoints: students (11), courses (15), grades (8), attendance (10), audit (2), analytics (5), reports (7), admin (21)
+- [ ] Verify error messages mention permission denial
+- [ ] Run full backend test suite (370+ tests must pass)
+- [ ] Run E2E tests (19+ critical tests must pass)
+- [ ] Verify no regressions in existing functionality
+**Completion Criteria**: All 79 endpoints secured, all tests passing, zero regressions
+**Progression**: When complete → Move to Step 5
+
+#### Step 5: Permission Management API
+**Effort**: 4 hours
+**Start Trigger**: Step 4 complete
+**Deliverable**: 12 permission CRUD endpoints + seeding script
+**Tasks**:
+- [ ] Implement GET /api/v1/permissions (list all)
+- [ ] Implement GET /api/v1/permissions/{id} (get one)
+- [ ] Implement POST /api/v1/permissions (create)
+- [ ] Implement PUT /api/v1/permissions/{id} (update)
+- [ ] Implement DELETE /api/v1/permissions/{id} (delete)
+- [ ] Implement grant/revoke endpoints (to roles/users)
+- [ ] Create permission seeding script (idempotent)
+- [ ] Document API with examples
+**Completion Criteria**: All 12 endpoints working, seeding script tested
+**Progression**: When complete → Move to Step 6
+
+#### Step 6: Testing, Documentation & Sign-Off
+**Effort**: 3 hours
+**Start Trigger**: Step 5 complete
+**Deliverable**: RBAC module 95%+ tested, operational guides complete
+**Tasks**:
+- [ ] Implement 40+ RBAC unit tests (decorator, models, utilities)
+- [ ] Achieve 95%+ code coverage for RBAC module
+- [ ] Create admin operational guide (permission management workflows)
+- [ ] Create migration procedures (seeding, rollout, rollback)
+- [ ] Document all permission strings and their meanings
+- [ ] Final validation: all 370+ tests passing
+**Completion Criteria**: 95%+ coverage, guides complete, all tests passing
+**Progression**: When complete → Phase 2 RBAC DONE ✅
 
 ---
 
-## 🚀 Daily Progress Check Format
+### Checkpoint Validations (Run After Each Step)
 
-**Frequency**: Daily log to `docs/plans/UNIFIED_WORK_PLAN.md`
-**Format**:
-1. What completed yesterday
-2. What planned for today
-3. Any blockers
-4. Today's priority
+**After Each Step Completion**:
+```
+Run: .\RUN_TESTS_BATCH.ps1
+Expected: 370+ backend tests passing ✅
+
+Run: npm --prefix frontend run test
+Expected: 1,249+ frontend tests passing ✅
+
+Run: .\RUN_E2E_TESTS.ps1
+Expected: 19+ critical E2E tests passing ✅
+```
+
+**If Tests Fail**:
+- Stop work
+- Debug test failures
+- Complete this step fully before moving to next
+- Do not proceed until all tests pass
 
 ---
 
-**Execution Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐
+### CI/CD & Performance Infrastructure (Optional Parallel)
+
+**Status**: ✅ Already 90% complete (no blocking items)
+**Can work on if**: Running parallel to RBAC steps
+**Already Done**:
+- ✅ E2E test monitoring (24 tests, metrics collection)
+- ✅ Load testing integration (5 scenarios, weekly runs)
+- ✅ Coverage reporting (internal via GitHub Actions)
+
+**Optional Enhancements** (low priority):
+- E2E test expansion (24 → 30+ tests)
+- Load scenario refinement
+- Performance baseline updates
+
+---
+
+### Frontend Permission UI (Optional, Not Required for MVP)
+
+**Status**: 💡 OPTIONAL (deferred to Phase 3 / Q2 2026)
+**Reason**: Backend API fully functional; frontend is nice-to-have
+**Can implement if**: All RBAC backend steps complete AND desire to add UI
+**Effort if needed**: ~20 hours for full UI
+
+**Not Blocking**: Permission management works via API + seeding scripts
+
+---
+
+## 🎯 Current Work Status
+
+**When starting Phase 2 RBAC**:
+
+1. **Read this section**: Understand sequential progression
+2. **Start Step 1**: Permission matrix design
+3. **After completing Step 1**: Mark complete ✅, move to Step 2
+4. **Repeat**: Steps 2 → 3 → 4 → 5 → 6 (in order)
+5. **No calendar dates**: Progression based on completion
+
+**Update Format**:
+```
+Step [N]: [Name]
+- Status: ⏳ IN PROGRESS / ✅ COMPLETE
+- Started: [when work began]
+- Completed: [when finished]
+- Tests Passing: [yes/no]
+- Blockers: [any issues]
+- Time Spent: [hours]
+- Next: Step [N+1]
+```
+
+---
+
+**Historical Design Work** (Completed, Reference Only):
 
 **Purpose**: Complete all design and planning work before Phase 2 execution
-**Branch**: `feature/phase2-rbac-prep`
-**Documentation**: [PHASE2_PREP_GUIDE.md](./PHASE2_PREP_GUIDE.md)
 **Status**: ✅ **100% COMPLETE** (8/8 tasks, 25h/25h)
 
 **Completed Tasks**:
 - ✅ Task 1: Permission Matrix Design (4h) - 25 permissions, 148 endpoints mapped
-  - Reference: [docs/admin/PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md)
-- ✅ Task 2: Database Schema Design (6h) - Documented existing RBAC schema
-  - Reference: [docs/admin/RBAC_DATABASE_SCHEMA.md](../admin/RBAC_DATABASE_SCHEMA.md)
-- ✅ Task 3: Codebase Review (2h) - 5 files, 1,955 lines reviewed
-  - Reference: [docs/admin/RBAC_CODEBASE_REVIEW.md](../admin/RBAC_CODEBASE_REVIEW.md)
+- ✅ Task 2: Database Schema Design (6h) - RBAC schema documented
+- ✅ Task 3: Codebase Review (2h) - Verified 75% already built
 - ✅ Task 4: Decorator Design (4h) - Refactored to DI + ORM joins
-  - Reference: [backend/rbac.py](../../backend/rbac.py)
-- ✅ Task 5: Test Templates (3h) - 45 skipped RBAC test stubs
-  - Reference: [backend/tests/test_rbac_templates.py](../../backend/tests/test_rbac_templates.py)
-- ✅ Task 6: Migration Strategy (2h) - Seeding + rollout/rollback plan
-  - Documented in PHASE2_PREP_GUIDE.md (Jan 11 log)
-- ✅ Task 7: Documentation Planning (2h) - 7 docs scoped, owners assigned
-  - Documented in PHASE2_PREP_GUIDE.md (Jan 13 log)
-- ✅ Task 8: Review & Refinement (2h) - Final checklist approved, kickoff scheduled
-  - Documented in PHASE2_PREP_GUIDE.md (Jan 13 log)
+- ✅ Task 5: Test Templates (3h) - 45 test stubs created
+- ✅ Task 6: Migration Strategy (2h) - Rollout/rollback documented
+- ✅ Task 7: Documentation Planning (2h) - 7 docs scoped
+- ✅ Task 8: Review & Refinement (2h) - Kickoff checklist approved
 
-**Deliverables**:
-- Permission matrix (25 permissions across 8 domains)
-- Database schema documentation (6 tables)
-- Codebase analysis (75% RBAC already built, 4 critical gaps identified)
-- Refactored decorators (DI-based, ORM joins, is_active filtering)
+**Current Status**: All design work done, ready to execute Step 1
 - Test templates (45 scenarios ready for implementation)
 - Migration strategy (seeding script plan, rollout steps, rollback procedure)
 - Documentation plan (7 docs, owners assigned)
