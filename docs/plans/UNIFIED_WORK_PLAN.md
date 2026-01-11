@@ -1934,20 +1934,191 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ---
 
-## 🔵 FUTURE: Phase 3 Features & Enhancements
+## � MEDIUM-TERM: Phase 3 (v1.16.0) - Feature-by-Feature Sequential Execution
 
-**Status**: 💡 PLANNING (Not Started)
-**Timeline**: Q2 2026+ (February-March or when ready)
-**Effort**: 4-10 weeks depending on scope
+**Status**: 🟡 **PLANNED & DOCUMENTED** (NOT YET STARTED)
+**Start Timeline**: When ready (no fixed date - sequential after Phase 2)
+**Execution Model**: Feature-by-Feature sequential completion (NOT calendar-based weeks)
+**Owner**: Solo Developer + AI Assistant
+**Version Target**: v1.16.0
+
+### Phase 3 Scope (User-Selected "A+C" - Balanced Approach)
+
+**Selected Features** (3 features, ~60-70 hours total, sequential execution):
+- **Feature #125**: Analytics Dashboard (40-50 hours estimated, sequential)
+- **Feature #126**: Real-Time Notifications (40-50 hours estimated, sequential after #125)
+- **Feature #127**: Bulk Import/Export (50-60 hours estimated, sequential after #126)
+
+**NOT Selected** (Deferred to Phase 4 / Q2+ 2026):
+- Advanced Search & Filtering (Tier 2)
+- ML Predictive Analytics (Tier 3 - research)
+- Calendar Integration (Tier 2)
+- PWA Enhancement (Tier 2)
+
+**Reference Documentation**:
+- Complete roadmap: [PHASE3_ROADMAP.md](./PHASE3_ROADMAP.md) (425 lines)
+- GitHub issues: [PHASE3_GITHUB_ISSUES_PLAN.md](./PHASE3_GITHUB_ISSUES_PLAN.md) (441 lines - #125-128)
+- Project management: `/memories/phase3_project_management.md` (saved to memory)
+
+### Phase 3 Feature Execution Tracking
+
+**⚠️ CRITICAL NOTE**: This plan uses **Feature-by-Feature sequential completion** (NOT week-based scheduling). Actual start/end dates are recorded as events occur, not predicted. Effort estimates (40-50h, 40-50h, 50-60h) are for planning reference only, NOT as scheduling deadlines.
+
+#### Feature #125: Analytics Dashboard
+
+**Status**: NOT STARTED
+**Started**: N/A
+**Completed**: N/A
+**Estimated Effort**: 40-50 hours
+**Progression**: Starts after Phase 3 kickoff
+
+**Deliverables**:
+- [ ] Analytics service (student performance, grades, attendance aggregation)
+- [ ] Chart components (line, bar, pie, heatmap)
+- [ ] Dashboard page with multi-widget layout
+- [ ] Export functionality (PDF, Excel, CSV)
+- [ ] Caching for heavy queries
+- [ ] E2E tests for dashboard flows
+- [ ] Admin operational guide
+
+**Success Criteria**:
+- ✅ All analytics queries return data in <1s
+- ✅ Charts render with no browser lag
+- ✅ 95%+ test coverage for analytics service
+- ✅ Admin can export data in multiple formats
+- ✅ Documentation covers setup and troubleshooting
+
+**Progress**:
+- [ ] Architecture design (2-3 hours) - NOT STARTED
+- [ ] Backend service implementation (15-20 hours) - NOT STARTED
+- [ ] Frontend components (15-20 hours) - NOT STARTED
+- [ ] Testing & documentation (5-8 hours) - NOT STARTED
+
+---
+
+#### Feature #126: Real-Time Notifications
+
+**Status**: NOT STARTED (Starts after Feature #125 complete)
+**Started**: N/A
+**Completed**: N/A
+**Estimated Effort**: 40-50 hours
+**Progression**: Starts when Feature #125 complete
+
+**Deliverables**:
+- [ ] WebSocket server with python-socketio
+- [ ] Notification models and schema
+- [ ] Notification center component (React)
+- [ ] Notification preferences UI
+- [ ] Email templates for notifications
+- [ ] Redis Pub/Sub integration
+- [ ] E2E tests for notification flows
+- [ ] Operations guide
+
+**Success Criteria**:
+- ✅ Notifications deliver in <1s
+- ✅ Users see real-time updates (no page refresh needed)
+- ✅ 95%+ test coverage for notification system
+- ✅ Email notifications working for critical events
+- ✅ Admin can manage notification preferences
+
+**Progress**:
+- [ ] Architecture design (2-3 hours) - NOT STARTED
+- [ ] Backend WebSocket server (15-20 hours) - NOT STARTED
+- [ ] Frontend notification components (15-20 hours) - NOT STARTED
+- [ ] Testing & documentation (5-8 hours) - NOT STARTED
+
+---
+
+#### Feature #127: Bulk Import/Export
+
+**Status**: NOT STARTED (Starts after Feature #126 complete)
+**Started**: N/A
+**Completed**: N/A
+**Estimated Effort**: 50-60 hours
+**Progression**: Starts when Feature #126 complete
+
+**Deliverables**:
+- [ ] Import workflow with validation
+- [ ] Excel/CSV parsers
+- [ ] Import preview UI component
+- [ ] Scheduled export jobs (Celery)
+- [ ] Export templates (Excel, CSV, PDF)
+- [ ] Import/export history tracking
+- [ ] Rollback mechanism for failed imports
+- [ ] E2E tests for import/export flows
+- [ ] Admin operational guide
+
+**Success Criteria**:
+- ✅ Import validates data before committing
+- ✅ Users can preview data before import
+- ✅ Exports complete in <10s for standard sizes
+- ✅ 95%+ test coverage for import/export
+- ✅ Rollback works for failed imports
+
+**Progress**:
+- [ ] Architecture design (2-3 hours) - NOT STARTED
+- [ ] Import backend implementation (20-25 hours) - NOT STARTED
+- [ ] Export backend implementation (15-20 hours) - NOT STARTED
+- [ ] Frontend UI components (10-15 hours) - NOT STARTED
+- [ ] Testing & documentation (5-8 hours) - NOT STARTED
+
+---
+
+### Phase 3 Project Management Approach
+
+**Decision Locked**: Feature-by-Feature sequential execution (NOT calendar-based)
+
+**Why This Works**:
+- ✅ Solo developer completes features when complete, not on predetermined schedules
+- ✅ Each feature fully delivered before starting next (no context switching)
+- ✅ Actual dates recorded as work progresses (not predicted)
+- ✅ Allows for blockers and learning without schedule pressure
+- ✅ Maintains momentum: complete Feature #125 → start Feature #126 immediately
+
+**How to Track Progress**:
+1. When starting Feature #N: Update "Started" field with actual date
+2. As working: Update "Progress" checkboxes
+3. When complete: Update "Completed" field with actual date
+4. Never skip ahead: Features execute in order (#125 → #126 → #127)
+
+**Effort Estimates (Reference Only)**:
+- Feature #125 (Analytics): 40-50 hours estimated (use for planning, NOT scheduling)
+- Feature #126 (Notifications): 40-50 hours estimated (use for planning, NOT scheduling)
+- Feature #127 (Bulk Import): 50-60 hours estimated (use for planning, NOT scheduling)
+- **Total**: ~60-70 hours (reference only)
+
+**Important**: Do NOT create calendar dates for these estimates. Actual execution will take however long it takes, with start/end dates recorded as real events occur.
+
+---
+
+### When to Start Phase 3
+
+**Prerequisites**:
+- ✅ Phase 2 complete (v1.15.2 released)
+- ✅ Production stable (24+ hour monitoring passed)
+- ✅ Phase 3 features finalized (#125-127 selected)
+- ✅ GitHub issues #125-128 created
+- ✅ Feature branches created (feature/analytics-dashboard, etc.)
+
+**Trigger**: When user confirms ready to begin Phase 3
+
+**First Steps**:
+1. Create GitHub issues #125-128 from templates
+2. Create feature branches
+3. Begin Feature #125 architecture design
+4. Kick off daily execution with feature tracking
+
+---
+
+## 🔵 FUTURE: Backlog Features & Phase 4 Options
+
+**Status**: 💡 PLANNING (Deferred to Phase 4+)
+**Timeline**: Q2 2026+ (after Phase 3 complete)
 **Owner**: Solo Developer + AI Assistant
 
-### Phase 3 Purpose
+### Phase 4 Feature Options (Aspirational)
 
-Phase 3 focuses on **enhanced user experience** and **operational features** after completing the core RBAC system in Phase 2. This phase is **flexible** and can be adjusted based on priorities.
-
-### Phase 3 Feature Options
-
-**Tier 1: High Impact (2-3 weeks each)**
+**Tier 1: Medium Impact (1-2 weeks each)**
 - **Analytics Dashboard** - Actionable insights into student performance (grades, attendance trends)
 - **Real-Time Notifications** - WebSocket-based event system with notification center
 - **Bulk Import/Export** - CSV/Excel import with validation, multi-format export
