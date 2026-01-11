@@ -23,11 +23,9 @@ from backend.errors import ErrorCode, http_error
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.security.api_keys import verify_api_key_optional
-from backend.security.permissions import optional_require_permission
+from backend.rbac import require_permission
 from backend.services.audit_service import AuditLogger
 from backend.services.import_service import ImportService
-
-from .routers_auth import optional_require_role
 
 logger = logging.getLogger(__name__)
 
@@ -445,7 +443,6 @@ def import_courses(
     request: Request,
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import all courses from JSON files in the courses templates directory.
 
@@ -810,6 +807,7 @@ def import_courses(
 
 @router.post("/upload")
 @limiter.limit(RATE_LIMIT_HEAVY)
+@require_permission("imports:create")
 async def import_from_upload(
     request: Request,
     import_type: str = Form(...),
@@ -818,7 +816,6 @@ async def import_from_upload(
     json_text: str | None = Form(None),  # optional raw JSON text when file picker is unavailable
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import courses or students from uploaded JSON files.
 
@@ -1267,6 +1264,7 @@ async def import_from_upload(
 
 @router.post("/preview")
 @limiter.limit(RATE_LIMIT_HEAVY)
+@require_permission("imports:preview")
 async def import_preview(
     request: Request,
     import_type: str = Form(...),
@@ -1276,7 +1274,6 @@ async def import_preview(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_permission("imports:preview")),
 ) -> ImportPreviewResponse:
     """Preview/validate an import without committing changes.
 
@@ -1558,11 +1555,11 @@ async def import_preview(
 
 @router.post("/students")
 @limiter.limit(RATE_LIMIT_TEACHER_IMPORT)
+@require_permission("imports:create")
 def import_students(
     request: Request,
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_role("admin", "teacher")),
 ):
     """Import all students from JSON files in the students templates directory.
 
@@ -1698,6 +1695,7 @@ def import_students(
 
 @router.post("/execute")
 @limiter.limit(RATE_LIMIT_HEAVY)
+@require_permission("imports:execute")
 async def import_execute(
     request: Request,
     import_type: str = Form(...),
@@ -1707,7 +1705,6 @@ async def import_execute(
     skip_duplicates: bool = Form(True),
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
-    current_user=Depends(optional_require_permission("imports:execute")),
 ):
     """Create an import job (validates inputs and returns job ID)."""
     from backend.schemas.jobs import JobCreate, JobType
@@ -1791,15 +1788,10 @@ async def import_execute(
         }
         job_type = job_type_map.get(norm, JobType.STUDENT_IMPORT)
 
-        # Get user ID if available
-        user_id = None
-        if hasattr(current_user, "id"):
-            user_id = current_user.id
-
         # Create background job with import parameters
         job_create = JobCreate(
             job_type=job_type,
-            user_id=user_id,
+            user_id=None,
             parameters={
                 "import_type": norm,
                 "allow_updates": allow_updates,
