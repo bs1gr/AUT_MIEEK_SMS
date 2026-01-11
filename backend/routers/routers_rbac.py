@@ -208,7 +208,7 @@ async def get_rbac_change_history(
 @require_permission("permissions:manage")
 async def bulk_assign_role(
     request: Request,
-    payload: BulkAssignRolesRequest = Body(...),
+    payload: "BulkAssignRolesRequest" = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
@@ -275,7 +275,7 @@ async def bulk_assign_role(
 @require_permission("permissions:manage")
 async def bulk_grant_permission(
     request: Request,
-    payload: BulkGrantPermissionsRequest = Body(...),
+    payload: "BulkGrantPermissionsRequest" = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
@@ -549,7 +549,7 @@ async def get_rbac_summary(
 @require_permission("permissions:manage")
 async def assign_role(
     request: Request,
-    payload: AssignRoleRequest = Body(...),
+    payload: "AssignRoleRequest" = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
@@ -619,7 +619,7 @@ async def assign_role(
 @require_permission("permissions:manage")
 async def revoke_role(
     request: Request,
-    payload: AssignRoleRequest = Body(...),
+    payload: "AssignRoleRequest" = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
@@ -669,7 +669,7 @@ async def revoke_role(
 @require_permission("permissions:manage")
 async def revoke_permission_from_role(
     request: Request,
-    payload: GrantPermissionToRoleRequest = Body(...),
+    payload: "GrantPermissionToRoleRequest" = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
