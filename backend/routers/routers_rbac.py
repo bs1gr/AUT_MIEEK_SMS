@@ -45,6 +45,7 @@ async def create_role(
 @router.get("/roles", response_model=list[RoleResponse])
 @require_permission("permissions:view")
 async def list_roles(
+    request: Request,
     db: Session = Depends(get_db),
 ):
     roles = db.query(models.Role).all()
@@ -54,6 +55,7 @@ async def list_roles(
 @router.put("/roles/{role_id}", response_model=RoleResponse)
 @require_permission("permissions:manage")
 async def update_role(
+    request: Request,
     role_id: int,
     name: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
@@ -74,6 +76,7 @@ async def update_role(
 @router.delete("/roles/{role_id}")
 @require_permission("permissions:manage")
 async def delete_role(
+    request: Request,
     role_id: int,
     db: Session = Depends(get_db),
 ):
@@ -111,6 +114,7 @@ async def create_permission(
 @router.get("/permissions", response_model=list[PermissionResponse])
 @require_permission("permissions:view")
 async def list_permissions(
+    request: Request,
     db: Session = Depends(get_db),
 ):
     perms = db.query(models.Permission).all()
@@ -120,6 +124,7 @@ async def list_permissions(
 @router.put("/permissions/{permission_id}", response_model=PermissionResponse)
 @require_permission("permissions:manage")
 async def update_permission(
+    request: Request,
     permission_id: int,
     key: str = Body(None, embed=True),
     resource: str = Body(None, embed=True),
@@ -146,6 +151,7 @@ async def update_permission(
 @router.delete("/permissions/{permission_id}")
 @require_permission("permissions:manage")
 async def delete_permission(
+    request: Request,
     permission_id: int,
     db: Session = Depends(get_db),
 ):
