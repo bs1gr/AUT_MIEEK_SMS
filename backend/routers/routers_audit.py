@@ -11,7 +11,7 @@ from backend.db import get_session as get_db
 from backend.error_messages import ErrorCode, get_error_message
 from backend.models import AuditLog
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
-from backend.routers.routers_auth import optional_require_role
+from backend.rbac import require_permission
 from backend.schemas.audit import AuditLogListResponse, AuditLogResponse
 
 router = APIRouter(prefix="/audit", tags=["audit"])
@@ -19,6 +19,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 
 @router.get("/logs", response_model=AuditLogListResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("audit:view")
 async def list_audit_logs(
     request: Request,
     page: int = Query(1, ge=1),
@@ -31,7 +32,6 @@ async def list_audit_logs(
     end_date: Optional[datetime] = Query(None),
     success: Optional[bool] = Query(None),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(optional_require_role("admin")),
 ) -> AuditLogListResponse:
     """
     List audit logs with optional filtering.
@@ -83,11 +83,11 @@ async def list_audit_logs(
 
 @router.get("/logs/{log_id}", response_model=AuditLogResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("audit:view")
 async def get_audit_log(
     log_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(optional_require_role("admin")),
 ) -> AuditLogResponse:
     """Get a specific audit log by ID. Admin only."""
     log = db.query(AuditLog).filter(AuditLog.id == log_id).first()
@@ -101,13 +101,13 @@ async def get_audit_log(
 
 @router.get("/logs/user/{user_id}", response_model=AuditLogListResponse)
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("audit:view")
 async def get_user_audit_logs(
     user_id: int,
     request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=500),
     db: Session = Depends(get_db),
-    current_user: dict = Depends(optional_require_role("admin")),
 ) -> AuditLogListResponse:
     """Get audit logs for a specific user. Admin only."""
     query = db.query(AuditLog).filter(AuditLog.user_id == user_id)
