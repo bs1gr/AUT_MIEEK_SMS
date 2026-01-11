@@ -93,12 +93,15 @@ All documentation is organized under `docs/` into four main categories:
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
 
-### For Phase 2 RBAC & Administration (NEW - v1.15.1+!)
+### For Phase 2 RBAC & Administration (NEW - v1.15.2!)
 
+- **Admin Guide?** → `docs/admin/RBAC_ADMIN_GUIDE.md` (1,200+ lines - complete admin reference)
+- **Permission Reference?** → `docs/admin/PERMISSION_REFERENCE.md` (800+ lines - all 26 permissions explained)
 - **Permission management?** → `docs/admin/PERMISSION_MANAGEMENT_GUIDE.md` (930 lines - complete workflows)
 - **RBAC operations?** → `docs/admin/RBAC_OPERATIONS_GUIDE.md` (1,050 lines - daily/weekly/monthly checklists)
 - **Permission matrix?** → `docs/admin/PERMISSION_MATRIX.md` (25 permissions, 148 endpoints)
 - **API permissions?** → `backend/API_PERMISSIONS_REFERENCE.md` (540 lines - all 79 endpoints)
+- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.15.2.md` - What's new in v1.15.2
 
 ### For Phase 2 Planning & Execution (NEW!)
 
