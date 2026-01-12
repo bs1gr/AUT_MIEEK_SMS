@@ -894,6 +894,53 @@ function Invoke-VersionConsistencyCheck {
     }
 }
 
+function Invoke-VersionFormatValidation {
+    Write-Header "Phase 0.5: Version Format Enforcement" "Red"
+
+    # CRITICAL: Validate v1.x.x format ONLY
+    $versionFile = Join-Path $SCRIPT_DIR "VERSION"
+    if (-not (Test-Path $versionFile)) {
+        Write-Failure "VERSION file not found"
+        return $false
+    }
+
+    $version = (Get-Content $versionFile).Trim()
+
+    # Forbidden patterns that BREAK version tracking
+    $forbiddenPatterns = @{
+        '^v11\.' = 'v11.x.x format breaks version tracking (CRITICAL)'
+        '^\$11\.' = '$11.x.x format breaks version tracking (CRITICAL)'
+        '^v2\.' = 'v2.x.x uses wrong major version (CRITICAL)'
+    }
+
+    # Check for violations
+    foreach ($pattern in $forbiddenPatterns.Keys) {
+        if ($version -match $pattern) {
+            Write-Failure "CRITICAL VERSION VIOLATION DETECTED"
+            Write-Host "  Pattern: $pattern" -ForegroundColor Red
+            Write-Host "  Reason: $($forbiddenPatterns[$pattern])" -ForegroundColor Red
+            Write-Host "  Current: $version" -ForegroundColor Red
+            Write-Host "  Required: v1.x.x format (e.g., v1.17.1)" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Fix: Update VERSION file to v1.x.x format and retry" -ForegroundColor Yellow
+            Add-Result "Linting" "Version Format" $false "CRITICAL: Forbidden version format"
+            return $false
+        }
+    }
+
+    # Validate v1.x.x format (with or without 'v' prefix)
+    if ($version -match '^v?1\.\d+\.\d+$') {
+        Write-Success "Version format valid: $version"
+        Add-Result "Linting" "Version Format" $true "v1.x.x compliance verified"
+        return $true
+    } else {
+        Write-Failure "Invalid version format: $version"
+        Write-Host "  Required: v1.x.x or 1.x.x format (e.g., v1.17.1 or 1.17.1)" -ForegroundColor Red
+        Add-Result "Linting" "Version Format" $false "Invalid format (not v1.x.x)"
+        return $false
+    }
+}
+
 # ============================================================================
 # PHASE 1: CODE QUALITY & LINTING
 # ============================================================================
@@ -1924,6 +1971,15 @@ function Invoke-MainWorkflow {
 
     # Phase 0: Version Consistency (always)
     Invoke-VersionConsistencyCheck | Out-Null
+
+    # Phase 0.5: Version Format Enforcement (CRITICAL - always)
+    if (-not (Invoke-VersionFormatValidation)) {
+        Write-Host ""
+        Write-Failure "❌ Version format validation FAILED - commit blocked"
+        Write-Host "This is a CRITICAL enforcement check to prevent version tracking corruption"
+        Write-Host ""
+        exit 1
+    }
 
     # Phase 0.5: Ensure Dependencies (Before hooks or tests run)
     if ($Mode -ne 'cleanup') {

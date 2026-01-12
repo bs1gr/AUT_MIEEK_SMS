@@ -109,6 +109,31 @@ python -m pytest
 
 **Why**: Multiple plans create confusion. Incorrect version format breaks all version tracking.
 
+**⚠️ AUTOMATED ENFORCEMENT (Version Format)**
+
+Version format violations are **AUTOMATICALLY BLOCKED** by multiple layers:
+
+1. **Pre-commit hooks**: Local validation blocks commits with wrong format
+2. **COMMIT_READY.ps1**: Phase 0.5 validates v1.x.x format (critical check)
+3. **GitHub Actions CI/CD**: Rejects pushes with version violations
+4. **Version validator script**: `scripts/validate_version_format.ps1`
+
+**If version format validation fails:**
+- COMMIT_READY.ps1 will display: `❌ CRITICAL VERSION VIOLATION DETECTED`
+- Pre-commit hooks will block commit with error message
+- CI/CD pipeline will reject the push
+
+**Forbidden formats that WILL be rejected:**
+- `v11.x.x` - Breaks version tracking (CRITICAL)
+- `$11.x.x` - Breaks version tracking (CRITICAL)
+- `v2.x.x` - Wrong major version
+- Any format without `v1.` prefix
+
+**To fix:**
+1. Edit `VERSION` file to use `v1.x.x` format
+2. Re-run `.\COMMIT_READY.ps1` to validate
+3. Retry commit
+
 ---
 
 ### Policy 3: Database - Alembic Migrations ONLY
