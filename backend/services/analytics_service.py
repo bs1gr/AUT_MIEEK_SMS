@@ -334,6 +334,7 @@ class AnalyticsService:
         student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)
+        assert student is not None  # Type narrowing for MyPy
 
         cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 
@@ -351,7 +352,7 @@ class AnalyticsService:
         )
 
         # Calculate by course
-        by_course = {}
+        by_course: dict[int, dict[str, Any]] = {}
         for grade in grades:
             course_id = grade.course_id
             if course_id not in by_course:
@@ -411,6 +412,7 @@ class AnalyticsService:
         student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)
+        assert student is not None  # Type narrowing for MyPy
 
         # Get all grades ordered by date
         grades = (
@@ -479,6 +481,7 @@ class AnalyticsService:
         course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
         if not course:
             get_by_id_or_404(self.db, self.Course, course_id)
+        assert course is not None  # Type narrowing for MyPy
 
         # Get all students enrolled in course
         enrollments = (
@@ -554,6 +557,7 @@ class AnalyticsService:
         student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
         if not student:
             get_by_id_or_404(self.db, self.Student, student_id)
+        assert student is not None  # Type narrowing for MyPy
 
         query = self.db.query(self.Attendance).filter(
             self.Attendance.student_id == student_id, self.Attendance.deleted_at.is_(None)
@@ -565,7 +569,7 @@ class AnalyticsService:
         attendance_records = query.all()
 
         # Group by course
-        by_course = {}
+        by_course: dict[int, dict[str, Any]] = {}
         for record in attendance_records:
             course_id = record.course_id
             if course_id not in by_course:
@@ -626,6 +630,7 @@ class AnalyticsService:
         course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
         if not course:
             get_by_id_or_404(self.db, self.Course, course_id)
+        assert course is not None  # Type narrowing for MyPy
 
         # Get all grades for course
         grades = (
