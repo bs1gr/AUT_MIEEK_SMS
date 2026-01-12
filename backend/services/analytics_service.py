@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from backend.db_utils import get_by_id_or_404
 from backend.import_resolver import import_names
-from backend.services.cache_service import cached, get_cache_manager
+from backend.services.cache_service import get_cache_manager
 
 logger = logging.getLogger(__name__)
 
@@ -877,7 +877,7 @@ class AnalyticsService:
             course_id: Optional specific course ID (if None, invalidates all courses)
         """
         cache = get_cache_manager()
-        
+
         if course_id:
             # Specific course invalidation
             cache.invalidate_student_cache(student_id)
@@ -885,7 +885,7 @@ class AnalyticsService:
         else:
             # Full student invalidation
             cache.invalidate_student_cache(student_id)
-        
+
         logger.debug("Invalidated analytics cache: student_id=%d, course_id=%s", student_id, course_id)
 
     def invalidate_cache_for_course(self, course_id: int) -> None:
@@ -904,4 +904,3 @@ class AnalyticsService:
         cache = get_cache_manager()
         cache.delete_pattern("analytics:*")
         logger.info("Cleared all analytics cache")
-

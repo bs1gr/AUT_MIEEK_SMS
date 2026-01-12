@@ -346,7 +346,8 @@ describe('NotificationItem Component', () => {
 
     it('should navigate if data.url exists and notification is read', async () => {
       const navigate = vi.fn();
-      vi.mocked(require('react-router-dom')).useNavigate.mockReturnValue(navigate);
+      const { useNavigate } = await import('react-router-dom');
+      vi.mocked(useNavigate).mockReturnValue(navigate);
 
       const readNotif = { ...mockNotification, is_read: true, data: { url: '/grades/123' } };
       const { container } = render(<NotificationItem notification={readNotif} />);
@@ -364,7 +365,7 @@ describe('NotificationItem Component', () => {
       const deleteBtn = screen.getByRole('button', { name: /item.delete/i });
 
       const event = new MouseEvent('click', { bubbles: true });
-      const stopPropagationSpy = vi.spyOn(event, 'stopPropagation');
+      const _stopPropagationSpy = vi.spyOn(event, 'stopPropagation');
 
       fireEvent.click(deleteBtn);
 

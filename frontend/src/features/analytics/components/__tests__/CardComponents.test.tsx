@@ -73,7 +73,7 @@ describe("Analytics Component Cards", () => {
 
     it("displays correct grade for A (90+)", () => {
       const data = { ...mockPerformanceData, overall_average: 95 };
-      const { container } = render(<PerformanceCard data={data} />);
+      render(<PerformanceCard data={data} />);
       expect(screen.getByText("A")).toBeInTheDocument();
     });
 

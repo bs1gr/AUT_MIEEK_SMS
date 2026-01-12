@@ -19,11 +19,11 @@ from functools import wraps
 from typing import Any, Callable, Dict, Optional
 
 import redis
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 # ==================== In-Memory Cache ====================
+
 
 class InMemoryCache:
     """Simple in-memory cache with TTL support."""
