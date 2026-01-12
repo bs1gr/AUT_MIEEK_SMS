@@ -27,8 +27,9 @@ $env:TERM = "dumb"  # Disable fancy terminal features
 $env:LESSCHARSET = "utf-8"
 
 # Clear any stray terminal state
-[Console]::ResetColor()
-Clear-Host
+
+# [Console]::ResetColor()
+# Clear-Host  # Disabled to avoid terminal blocking and speed up startup
 
 # Clean output format (fallback for Windows PowerShell without PSStyle)
 if ($PSStyle -and $PSStyle.PSObject.Properties.Name -contains 'OutputRendering') {
