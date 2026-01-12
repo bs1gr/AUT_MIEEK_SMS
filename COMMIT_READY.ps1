@@ -920,7 +920,7 @@ function Invoke-VersionFormatValidation {
             Write-Host "  Pattern: $pattern" -ForegroundColor Red
             Write-Host "  Reason: $($forbiddenPatterns[$pattern])" -ForegroundColor Red
             Write-Host "  Current: $version" -ForegroundColor Red
-            Write-Host "  Required: v1.x.x format (e.g., v1.17.1)" -ForegroundColor Red
+            Write-Host '  Required: v1.x.x format (e.g., v1.17.1)' -ForegroundColor Red
             Write-Host ""
             Write-Host "Fix: Update VERSION file to v1.x.x format and retry" -ForegroundColor Yellow
             Add-Result "Linting" "Version Format" $false "CRITICAL: Forbidden version format"
@@ -935,7 +935,7 @@ function Invoke-VersionFormatValidation {
         return $true
     } else {
         Write-Failure "Invalid version format: $version"
-        Write-Host "  Required: v1.x.x or 1.x.x format (e.g., v1.17.1 or 1.17.1)" -ForegroundColor Red
+        Write-Host '  Required: v1.x.x or 1.x.x format (e.g., v1.17.1 or 1.17.1)' -ForegroundColor Red
         Add-Result "Linting" "Version Format" $false "Invalid format (not v1.x.x)"
         return $false
     }

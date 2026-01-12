@@ -56,7 +56,7 @@ function Test-VersionFormat {
 }
 
 # Main validation
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$repoRoot = Split-Path -Parent $PSScriptRoot
 $versionFile = Join-Path $repoRoot "VERSION"
 
 if (-not (Test-Path $versionFile)) {
