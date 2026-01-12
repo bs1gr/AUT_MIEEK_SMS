@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
@@ -7,6 +8,9 @@ from sqlalchemy.orm import Session, joinedload
 
 from backend.db_utils import get_by_id_or_404
 from backend.import_resolver import import_names
+from backend.services.cache_service import cached, get_cache_manager
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -863,3 +867,41 @@ class AnalyticsService:
             "unexcused_absences": unexcused_absences,
             "absence_deduction": round(absence_deduction, 2),
         }
+
+    # ----------------------------- Cache Invalidation ---------------------------------
+    def invalidate_cache_for_student(self, student_id: int, course_id: Optional[int] = None) -> None:
+        """Invalidate analytics cache when student data changes.
+
+        Args:
+            student_id: Student ID
+            course_id: Optional specific course ID (if None, invalidates all courses)
+        """
+        cache = get_cache_manager()
+        
+        if course_id:
+            # Specific course invalidation
+            cache.invalidate_student_cache(student_id)
+            cache.invalidate_course_cache(course_id)
+        else:
+            # Full student invalidation
+            cache.invalidate_student_cache(student_id)
+        
+        logger.debug("Invalidated analytics cache: student_id=%d, course_id=%s", student_id, course_id)
+
+    def invalidate_cache_for_course(self, course_id: int) -> None:
+        """Invalidate analytics cache when course data changes.
+
+        Args:
+            course_id: Course ID
+        """
+        cache = get_cache_manager()
+        cache.invalidate_course_cache(course_id)
+        logger.debug("Invalidated analytics cache: course_id=%d", course_id)
+
+    @staticmethod
+    def clear_all_cache() -> None:
+        """Clear all analytics cache (admin operation only)."""
+        cache = get_cache_manager()
+        cache.delete_pattern("analytics:*")
+        logger.info("Cleared all analytics cache")
+
