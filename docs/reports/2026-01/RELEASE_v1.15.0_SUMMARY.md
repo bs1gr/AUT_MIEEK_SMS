@@ -94,7 +94,7 @@ Login:              <500ms (p95)
 ## 🎯 Version Information
 
 ```
-Version: 1.15.2
+Version: 1.17.1
 Release Date:      January 7, 2026
 Build Status:      ✅ CLEAN
 Docker Images:     ✅ BUILT & VERIFIED

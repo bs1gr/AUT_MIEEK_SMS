@@ -1,4 +1,4 @@
-# Release Notes - v1.17.1
+# Release Notes - $11.17.1
 
 **Release Date**: January 12, 2026
 **Version**: 1.17.1 (Bugfix Release)
@@ -8,7 +8,7 @@
 
 ## Summary
 
-v1.17.1 is a critical bugfix release that resolves a schema validation issue discovered in v1.17.0 testing. All backend tests verified passing (100% success rate, 16/16 batches).
+$11.17.1 is a critical bugfix release that resolves a schema validation issue discovered in $11.17.1 testing. All backend tests verified passing (100% success rate, 16/16 batches).
 
 ---
 
@@ -72,7 +72,7 @@ Duration:        127.1 seconds
 ---
 
 ## Backward Compatibility
-✅ **Fully compatible** with v1.17.0 and earlier versions.
+✅ **Fully compatible** with $11.17.1 and earlier versions.
 
 ---
 
@@ -105,7 +105,7 @@ Duration:        127.1 seconds
 ---
 
 ## Performance
-- No performance changes from v1.17.0
+- No performance changes from $11.17.1
 - All endpoints respond within SLA targets
 - Test execution: 127.1 seconds (16 batches in parallel)
 
@@ -122,8 +122,8 @@ Duration:        127.1 seconds
 
 ### Via Docker
 ```bash
-docker pull bs1gr/sms:v1.17.1
-docker run -d -p 8080:8080 bs1gr/sms:v1.17.1
+docker pull bs1gr/sms:$11.17.1
+docker run -d -p 8080:8080 bs1gr/sms:$11.17.1
 ```
 
 ### Via Native
@@ -133,7 +133,7 @@ docker run -d -p 8080:8080 bs1gr/sms:v1.17.1
 
 ---
 
-## Migration from v1.17.0
+## Migration from $11.17.1
 
 **Action Required**: None
 **Data Compatibility**: 100% compatible
@@ -161,14 +161,14 @@ Simply deploy the new version. All existing data and configurations will work wi
 
 ## Version History
 
-**v1.17.1** (Jan 12, 2026) - Bugfix: Missing RBAC schema exports ✅
-**v1.17.0** (Previous) - Real-Time Notifications system
+**$11.17.1** (Jan 12, 2026) - Bugfix: Missing RBAC schema exports ✅
+**$11.17.1** (Previous) - Real-Time Notifications system
 
 ---
 
 ## Support
 
-For issues or questions about v1.17.1:
+For issues or questions about $11.17.1:
 1. Check the audit documentation in `COMPREHENSIVE_AUDIT_REPORT_JAN12.md`
 2. Review agent instructions for lesson learned (`.github/copilot-instructions.md`)
 3. Verify all tests passing with `.\RUN_TESTS_BATCH.ps1`

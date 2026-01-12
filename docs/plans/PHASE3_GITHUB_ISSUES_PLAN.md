@@ -2,7 +2,7 @@
 
 **Created**: January 11, 2026
 **Status**: Ready for GitHub issue creation
-**Target**: v1.16.0 release (Q1 2026)
+**Target**: $11.17.1 release (Q1 2026)
 **Scope**: 3 major features + meta release issue
 
 ---
@@ -11,9 +11,9 @@
 
 ### Issue #125: Phase 3 Feature - Analytics Dashboard
 
-**Title**: `Feature: Analytics Dashboard (v1.16.0 - Week 1-2)`
+**Title**: `Feature: Analytics Dashboard ($11.17.1 - Week 1-2)`
 
-**Labels**: `phase-3`, `v1.16.0`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.1`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -95,9 +95,9 @@ Implement comprehensive analytics and reporting dashboard for administrators and
 
 ### Issue #126: Phase 3 Feature - Real-Time Notifications
 
-**Title**: `Feature: Real-Time Notifications (v1.16.0 - Week 3-4)`
+**Title**: `Feature: Real-Time Notifications ($11.17.1 - Week 3-4)`
 
-**Labels**: `phase-3`, `v1.16.0`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.1`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -185,9 +185,9 @@ Implement real-time notification system with WebSocket support for instant messa
 
 ### Issue #127: Phase 3 Feature - Bulk Import/Export
 
-**Title**: `Feature: Bulk Import/Export (v1.16.0 - Week 5-6)`
+**Title**: `Feature: Bulk Import/Export ($11.17.1 - Week 5-6)`
 
-**Labels**: `phase-3`, `v1.16.0`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.1`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -282,18 +282,18 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 
 ---
 
-### Issue #128: Meta - Phase 3 Release Tracking (v1.16.0)
+### Issue #128: Meta - Phase 3 Release Tracking ($11.17.1)
 
-**Title**: `Meta: Phase 3 Release v1.16.0 Tracking`
+**Title**: `Meta: Phase 3 Release $11.17.1 Tracking`
 
-**Labels**: `phase-3`, `v1.16.0`, `release`, `meta`, `tracking`
+**Labels**: `phase-3`, `$11.17.1`, `release`, `meta`, `tracking`
 
 **Assignee**: Solo Developer
 
 **Description**:
 ```
 ## Objective
-Track Phase 3 completion and v1.16.0 release readiness.
+Track Phase 3 completion and $11.17.1 release readiness.
 
 ## Release Contents
 - #125: Analytics Dashboard
@@ -309,7 +309,7 @@ Track Phase 3 completion and v1.16.0 release readiness.
 - [ ] Documentation complete
 - [ ] Release notes prepared
 - [ ] GitHub release created
-- [ ] Tag v1.16.0 pushed
+- [ ] Tag $11.17.1 pushed
 - [ ] Deployed to staging
 - [ ] Deployed to production
 
@@ -338,12 +338,12 @@ Track Phase 3 completion and v1.16.0 release readiness.
 
 ### Step 3: Configure Each Issue
 - [ ] Copy description from template
-- [ ] Add all labels: `phase-3`, `v1.16.0`, `release`, plus feature-specific
+- [ ] Add all labels: `phase-3`, `$11.17.1`, `release`, plus feature-specific
 - [ ] Set effort/size estimate in GitHub Projects
 - [ ] Link to epic (if using GitHub Projects)
 
 ### Step 4: Post-Creation Actions
-- [ ] Link issues to v1.16.0 milestone
+- [ ] Link issues to $11.17.1 milestone
 - [ ] Add to project board
 - [ ] Create feature branches per issue
 

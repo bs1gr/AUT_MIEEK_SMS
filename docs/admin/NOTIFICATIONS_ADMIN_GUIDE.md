@@ -1,6 +1,6 @@
 # Notifications Administration Guide
 
-**Version**: 1.0 (v1.17.0)
+**Version**: 1.0 ($11.17.1)
 **Last Updated**: January 12, 2026
 **Status**: Production Ready
 **Audience**: System Administrators
@@ -9,7 +9,7 @@
 
 ## Overview
 
-The Notifications system in SMS v1.17.0 provides administrators with tools to:
+The Notifications system in SMS $11.17.1 provides administrators with tools to:
 
 - ✅ Configure notification types and behaviors
 - ✅ Manage notification preferences at system level
@@ -464,7 +464,7 @@ Admin > Backup & Recovery > Restore
 
 ## 📝 Change Log
 
-### v1.17.0 (January 12, 2026) - Initial Release
+### $11.17.1 (January 12, 2026) - Initial Release
 - WebSocket-based real-time notifications
 - Email notification support
 - User preference management
@@ -472,7 +472,7 @@ Admin > Backup & Recovery > Restore
 - Security and audit logging
 - Health checks and alerting
 
-### Planned for v1.17.1
+### Planned for $11.17.1
 - Email templates customization
 - Notification batching
 - Advanced filtering options
@@ -481,7 +481,7 @@ Admin > Backup & Recovery > Restore
 
 ---
 
-**Version**: 1.0 (v1.17.0)
+**Version**: 1.0 ($11.17.1)
 **Status**: Production Ready
 **Last Updated**: January 12, 2026
 **Next Review**: February 12, 2026
