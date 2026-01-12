@@ -8,8 +8,8 @@
 > - Always consult documentation properties and AI agent obligations before automated fixes or new artifacts.
 
 **Last Updated:** January 11, 2026 (Phase 3 scope locked in: Analytics + Notifications + Bulk Import)
-**Version:** 1.17.0 ✅ Production Ready + Phase 2 RBAC Backend Complete
-**Status:** Phase 1 Complete | Phase 2 Complete (v1.17.0) | Phase 3 PLANNED & DOCUMENTED
+**Version:** 1.17.1 ✅ Production Ready + Phase 2 RBAC Backend Complete
+**Status:** Phase 1 Complete | Phase 2 Complete (v1.17.1) | Phase 3 PLANNED & DOCUMENTED
 **Current Branch**: `main`
 
 ---
@@ -85,7 +85,7 @@ All documentation is organized under `docs/` into four main categories:
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 - **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.17.0.md`
+- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.17.1.md`
 
 ### For Operations
 
@@ -95,7 +95,7 @@ All documentation is organized under `docs/` into four main categories:
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
 
-### For Phase 2 RBAC & Administration (NEW - v1.17.0!)
+### For Phase 2 RBAC & Administration (NEW - v1.17.1!)
 
 - **Admin Guide?** → `docs/admin/RBAC_ADMIN_GUIDE.md` (1,200+ lines - complete admin reference)
 - **Permission Reference?** → `docs/admin/PERMISSION_REFERENCE.md` (800+ lines - all 26 permissions explained)
@@ -103,7 +103,7 @@ All documentation is organized under `docs/` into four main categories:
 - **RBAC operations?** → `docs/admin/RBAC_OPERATIONS_GUIDE.md` (1,050 lines - daily/weekly/monthly checklists)
 - **Permission matrix?** → `docs/admin/PERMISSION_MATRIX.md` (25 permissions, 148 endpoints)
 - **API permissions?** → `backend/API_PERMISSIONS_REFERENCE.md` (540 lines - all 79 endpoints)
-- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.0.md` - What's new in v1.17.0
+- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.1.md` - What's new in v1.17.1
 
 ### For Phase 2 Planning & Execution (NEW!)
 
@@ -120,12 +120,12 @@ All documentation is organized under `docs/` into four main categories:
 - **GitHub issues?** → `docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md` (441 lines - issue #125-128 templates with acceptance criteria)
 - **Scope decision?** → User selected: Analytics Dashboard + Real-Time Notifications + Bulk Import/Export (6-7 weeks, ~60-70 hours)
 - **Work plan?** → See `docs/plans/UNIFIED_WORK_PLAN.md` "MEDIUM-TERM: Phase 3 Execution" section (Week 1-7 breakdown)
-### Real-Time Notifications (NEW - v1.17.0 - Jan 12!)
+### Real-Time Notifications (NEW - v1.17.1 - Jan 12!)
 
 - **User guide?** → `docs/user/NOTIFICATIONS_USER_GUIDE.md` (600+ lines - how to use notifications)
 - **Admin guide?** → `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` (800+ lines - system administration)
-- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.0.md` - What's new in v1.17.0
-- **Feature status?** → v1.17.0 Real-Time Notifications COMPLETE & PRODUCTION READY
+- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.1.md` - What's new in v1.17.1
+- **Feature status?** → v1.17.1 Real-Time Notifications COMPLETE & PRODUCTION READY
 ---
 
 ## Core Documentation
@@ -169,7 +169,7 @@ Located in `docs/deployment/`:
 - `DEPLOY.md` - General deployment procedures
 - `CI_CD_PIPELINE_GUIDE.md` - GitHub Actions configuration
 - `PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` - Pre-deployment validation (7 phases, 30 min)
-- `STAGING_DEPLOYMENT_PLAN_v1.17.0.md` - v1.17.0 staging deployment plan (45 min)
+- `STAGING_DEPLOYMENT_PLAN_v1.17.1.md` - v1.17.1 staging deployment plan (45 min)
 - `STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` - Complete staging deployment runbook with commands
 - `PHASE2_RISK_REGISTER.md` - Phase 2 risk assessment & mitigation strategies (10 risks)
 - `PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` - Phase 2 transition guide & team onboarding (3 hours)
@@ -411,7 +411,7 @@ docs/archive/
 
 ### Release Workflow Archive
 - **`docs/archive/release-workflow-v1.12-1.13/`** - Legacy release documentation
-  - MID_PHASE_SUMMARY_v1.17.0.md - v1.17.0 release summary
+  - MID_PHASE_SUMMARY_v1.17.1.md - v1.17.1 release summary
   - GITHUB_ISSUES_PHASE2.md - Phase 2 issue tracking (superseded)
 
 ### How to Navigate Archives
@@ -444,31 +444,31 @@ docs/archive/
 1. **Code quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
 2. **Detailed analysis?** → `CODEBASE_AUDIT_REPORT.md`
 3. **Security posture?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.17.0.md`
+4. **Release info?** → `docs/releases/RELEASE_NOTES_v1.17.1.md`
 
 ---
 
 ## Documentation Updates
 
-### December 24, 2025 (v1.17.0)
+### December 24, 2025 (v1.17.1)
 
 - ✅ Moved release documentation into `docs/releases/`
 - ✅ Organized roadmap and phase progress reports under `docs/development/`
 - ✅ Archived legacy reports, audits, and checklists under `docs/archive/documentation/`
-- ✅ Added release notes for v1.17.0
+- ✅ Added release notes for v1.17.1
 - ✅ Refreshed index pointers and metadata after cleanup
 
 ### Previous Updates
 
 - See `CHANGELOG.md` for complete version history
-- See `archive/pre-v1.17.0/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.17.1/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 
 ## Version Information
 
-**Documentation Version:** v1.17.0
+**Documentation Version:** v1.17.1
 **Last Updated:** January 8, 2026
 **Status:** Current and Complete
 
-All documentation reflects the current state of the codebase and is verified accurate as of v1.17.0.
+All documentation reflects the current state of the codebase and is verified accurate as of v1.17.1.
