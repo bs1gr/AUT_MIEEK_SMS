@@ -50,6 +50,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: 🔒 Validate Version Format (v1.x.x or 1.x.x ONLY)
+        shell: pwsh
+        run: |
+          Write-Host "Validating version format (v1.x.x or 1.x.x)..." -ForegroundColor Cyan
+          $versionFile = "VERSION"
+          $version = (Get-Content $versionFile).Trim()
+          Write-Host "Current version: $version" -ForegroundColor Blue
+
+          # Check for forbidden patterns
+          $forbiddenPatterns = @{
+              'v11\.' = 'Version format v11.x.x breaks version tracking (CRITICAL)'
+              '\$11\.' = 'Version format $11.x.x breaks version tracking (CRITICAL)'
+              '^v2\.' = 'Version format v2.x.x uses wrong major version'
+          }
+
+          foreach ($pattern in $forbiddenPatterns.Keys) {
+              if ($version -match $pattern) {
+                  Write-Error "❌ CRITICAL VERSION VIOLATION: $($forbiddenPatterns[$pattern])" -ErrorAction Continue
+                  Write-Error "Detected: $version (forbidden)" -ErrorAction Continue
+                  Write-Error "Required format: v1.x.x or 1.x.x (e.g., v1.17.1 or 1.17.1)" -ErrorAction Continue
+                  exit 1
+              }
+          }
+
+          # Validate v1.x.x or 1.x.x format (both acceptable)
+          if ($version -match '^v?1\.\d+\.\d+$') {
+              Write-Host "✅ Version format valid: $version" -ForegroundColor Green
+          } else {
+              Write-Error "❌ Invalid version format: $version" -ErrorAction Continue
+              Write-Error "Required format: v1.x.x or 1.x.x (e.g., v1.17.1 or 1.17.1)" -ErrorAction Continue
+              exit 1
+          }
+
       - name: Verify version consistency
         shell: pwsh
         run: |
