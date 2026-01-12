@@ -11,7 +11,7 @@ import LogoutButton from './components/auth/LogoutButton';
 import { Navigation, type NavigationTab, type NavigationView } from './components/layout';
 import { useLanguage } from './LanguageContext';
 import Toast from './components/ui/Toast';
-import NotificationBell from './components/NotificationBell';
+import NotificationBell from './components/notifications/NotificationBell';
 
 import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
@@ -56,7 +56,7 @@ function AppLayout({ children }: AppLayoutProps) {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isInitializing, accessToken } = useAuth();
+  const { user, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -174,7 +174,7 @@ function AppLayout({ children }: AppLayoutProps) {
             tabs={navigationTabs}
           />
           <div className="flex items-center gap-3 self-end lg:self-auto">
-            <NotificationBell authToken={accessToken || undefined} />
+            <NotificationBell />
             <LogoutButton />
           </div>
         </div>
