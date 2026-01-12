@@ -13,11 +13,12 @@ vi.mock("../../../api/api", () => ({
   },
 }));
 
+import { apiClient } from "../../../api/api";
+
 describe("useAnalytics Hook", () => {
   let mockGet: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    const { apiClient } = require("../../../api/api");
     mockGet = apiClient.get;
     vi.clearAllMocks();
   });
