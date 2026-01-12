@@ -190,3 +190,99 @@ def get_grade_distribution(
     except Exception as exc:
         logger.error("Grade distribution failed: %s", exc, exc_info=True)
         raise internal_server_error("Grade distribution failed", request)
+
+
+# ==================== Cache Management ====================
+
+
+@router.delete("/cache/clear")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("admin:manage")
+def clear_analytics_cache(request: Request, service: AnalyticsService = Depends(get_analytics_service)):
+    """
+    Clear all cached analytics data.
+
+    This endpoint clears the entire analytics cache and should only be used
+    when data integrity is critical (e.g., after bulk imports or system corrections).
+
+    **Requires**: admin:manage permission
+    **Rate limit**: 60 requests per minute (read limit)
+    """
+    try:
+        service.clear_all_cache()
+        logger.info("Analytics cache cleared by %s", request.state.request_id)
+        return {
+            "success": True,
+            "message": "All analytics cache cleared",
+            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        }
+    except Exception as exc:
+        logger.error("Failed to clear analytics cache: %s", exc, exc_info=True)
+        raise internal_server_error("Failed to clear analytics cache", request)
+
+
+@router.delete("/cache/student/{student_id}")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("admin:manage")
+def clear_student_analytics_cache(
+    request: Request,
+    student_id: int,
+    course_id: int = None,
+    service: AnalyticsService = Depends(get_analytics_service),
+):
+    """
+    Clear cached analytics for a specific student.
+
+    Optionally target a specific course for that student.
+
+    **Requires**: admin:manage permission
+    **Rate limit**: 60 requests per minute (read limit)
+
+    Args:
+        student_id: Student ID
+        course_id: Optional course ID to target specific course analytics
+    """
+    try:
+        service.invalidate_cache_for_student(student_id, course_id)
+        logger.info("Analytics cache cleared for student %d by %s", student_id, request.state.request_id)
+        return {
+            "success": True,
+            "student_id": student_id,
+            "course_id": course_id,
+            "message": f"Cleared analytics cache for student {student_id}",
+            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        }
+    except Exception as exc:
+        logger.error("Failed to clear student analytics cache: %s", exc, exc_info=True)
+        raise internal_server_error("Failed to clear student analytics cache", request)
+
+
+@router.delete("/cache/course/{course_id}")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("admin:manage")
+def clear_course_analytics_cache(
+    request: Request,
+    course_id: int,
+    service: AnalyticsService = Depends(get_analytics_service),
+):
+    """
+    Clear cached analytics for a specific course.
+
+    **Requires**: admin:manage permission
+    **Rate limit**: 60 requests per minute (read limit)
+
+    Args:
+        course_id: Course ID
+    """
+    try:
+        service.invalidate_cache_for_course(course_id)
+        logger.info("Analytics cache cleared for course %d by %s", course_id, request.state.request_id)
+        return {
+            "success": True,
+            "course_id": course_id,
+            "message": f"Cleared analytics cache for course {course_id}",
+            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        }
+    except Exception as exc:
+        logger.error("Failed to clear course analytics cache: %s", exc, exc_info=True)
+        raise internal_server_error("Failed to clear course analytics cache", request)
