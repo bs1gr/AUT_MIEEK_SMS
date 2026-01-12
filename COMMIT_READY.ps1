@@ -2046,6 +2046,18 @@ function Invoke-MainWorkflow {
 # ============================================================================
 try {
     $exitCode = Invoke-MainWorkflow
+
+    # CRITICAL ENFORCEMENT: Create validation checkpoint if successful
+    # This prevents commits without proper COMMIT_READY validation (Policy 5)
+    if ($exitCode -eq 0) {
+        Write-Host ""
+        Write-Host "🔒 Enforcing COMMIT_READY validation checkpoint..." -ForegroundColor Cyan
+        & .\scripts\ENFORCE_COMMIT_READY_GUARD.ps1 | Out-Null
+        Write-Host "   ✅ Checkpoint valid for next 5 minutes" -ForegroundColor Green
+        Write-Host "   📋 Next: Stage files with: git add -A" -ForegroundColor Yellow
+        Write-Host "   📋 Then: Commit with: git commit -m 'message'" -ForegroundColor Yellow
+    }
+
     exit $exitCode
 }
 catch {
