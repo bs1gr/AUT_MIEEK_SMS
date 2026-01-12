@@ -30,3 +30,5 @@ opentelemetry-instrumentation-fastapi==0.48b0
 redis==5.0.1  # Redis caching support (optional, enable via REDIS_ENABLED=true)
 psycopg2-binary==2.9.9  # Fallback driver for postgresql:// connection strings
 aioredis==2.0.1  # Async Redis client for real-time pub/sub
+python-socketio[aiohttp]==5.11.2  # WebSocket support for real-time notifications
+python-engineio==4.8.1  # SocketIO dependency
