@@ -9,6 +9,7 @@ from backend.db import SessionLocal, engine
 from backend.db.query_profiler import profiler
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.scripts.migrate.runner import run_migrations
+from backend.websocket_background_tasks import start_background_tasks, stop_background_tasks
 
 STARTUP_DEBUG = os.environ.get("STARTUP_DEBUG", "0").strip().lower() in {"1", "true", "yes", "debug"}
 
@@ -23,6 +24,13 @@ def get_lifespan():
         # Register query profiler for performance monitoring
         profiler.register(engine)
         logging.getLogger(__name__).info("✅ Query profiler registered")
+
+        # Start WebSocket background tasks
+        try:
+            await start_background_tasks()
+            logging.getLogger(__name__).info("✅ WebSocket background tasks started")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"❌ Failed to start WebSocket tasks: {e}", exc_info=True)
 
         disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in {"1", "true", "yes"}
         if not disable_startup:
@@ -63,5 +71,12 @@ def get_lifespan():
         yield
         if STARTUP_DEBUG:
             logging.info("[LIFESPAN DEBUG] Minimal shutdown path executing")
+
+        # Stop WebSocket background tasks on shutdown
+        try:
+            await stop_background_tasks()
+            logging.getLogger(__name__).info("✅ WebSocket background tasks stopped")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"⚠️  Error stopping WebSocket tasks: {e}", exc_info=True)
 
     return lifespan

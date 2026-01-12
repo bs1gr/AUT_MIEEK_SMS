@@ -116,6 +116,15 @@ def create_app() -> FastAPI:
     # Register metrics endpoint if enabled (exposes /metrics)
     _register_metrics_endpoint(app)
 
+    # Mount WebSocket server (SocketIO) for real-time notifications
+    try:
+        from backend.websocket_server import sio
+
+        app.mount("/socket.io", sio.asgi_app)
+        logger.info("✅ WebSocket server mounted at /socket.io")
+    except Exception as e:
+        logger.warning("⚠️  Failed to mount WebSocket server: %s", e)
+
     logger.info("FastAPI application created successfully (version=%s)", VERSION)
 
     return app
