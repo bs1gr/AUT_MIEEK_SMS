@@ -1,0 +1,119 @@
+/* NotificationBell Styles */
+
+.notification-bell-container {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-bell-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary, #333);
+}
+
+.notification-bell-button:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+.notification-bell-button:focus {
+  outline: 2px solid var(--primary-color, #1976d2);
+  outline-offset: 2px;
+}
+
+.notification-bell-button:active {
+  transform: scale(0.95);
+}
+
+.notification-bell-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.notification-bell-button.has-unread .notification-bell-icon {
+  animation: bell-ring 0.5s ease-in-out;
+}
+
+/* Badge for unread count */
+.notification-bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--error-color, #d32f2f);
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* Offline indicator */
+.notification-bell-offline {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--warning-color, #ff9800);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+/* Bell ring animation */
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+  20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notification-bell-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .notification-bell-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .notification-bell-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: 2px;
+    right: 2px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .notification-bell-button {
+    color: var(--text-primary-dark, #e0e0e0);
+  }
+
+  .notification-bell-button:hover {
+    background-color: var(--hover-bg-dark, rgba(255, 255, 255, 0.1));
+  }
+}

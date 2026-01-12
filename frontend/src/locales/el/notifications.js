@@ -38,6 +38,49 @@ export const notificationsEL = {
   websocketReconnecting: 'Επανασύνδεση με τον διακομιστή ειδοποιήσεων...',
   websocketError: 'Σφάλμα σύνδεσης ειδοποιήσεων',
   notificationsCount: 'Έχετε {count} ειδοποιήσεις',
+
+  // Bell component
+  bell: {
+    ariaLabel: 'Ειδοποιήσεις',
+    title: 'Ειδοποιήσεις',
+    unreadCount: '{{count}} μη αναγνωσμένη(ες) ειδοποίηση(εις)',
+    offline: 'Εκτός σύνδεσης',
+  },
+
+  // Dropdown component
+  dropdown: {
+    ariaLabel: 'Αναπτυσσόμενη λίστα ειδοποιήσεων',
+    title: 'Ειδοποιήσεις',
+    markAllRead: 'Σημείωση όλων ως διαβασμένες',
+    viewAll: 'Προβολή όλων των ειδοποιήσεων',
+    empty: 'Δεν υπάρχουν ειδοποιήσεις',
+    loading: 'Φόρτωση ειδοποιήσεων...',
+  },
+
+  // Item component
+  item: {
+    markAsRead: 'Σημείωση ως διαβασμένη',
+    delete: 'Διαγραφή ειδοποίησης',
+  },
+
+  // Notification types
+  types: {
+    grade: 'Βαθμός',
+    attendance: 'Παρουσία',
+    announcement: 'Ανακοίνωση',
+    system: 'Σύστημα',
+    course: 'Μάθημα',
+    enrollment: 'Εγγραφή',
+    general: 'Γενική',
+  },
+
+  // Time formats
+  time: {
+    justNow: 'Μόλις τώρα',
+    minutesAgo: 'Πριν {{count}} λεπτό(ά)',
+    hoursAgo: 'Πριν {{count}} ώρα(ες)',
+    daysAgo: 'Πριν {{count}} ημέρα(ες)',
+  },
 };
 
 export default notificationsEL;

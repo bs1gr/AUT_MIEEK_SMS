@@ -38,6 +38,49 @@ export const notificationsEN = {
   websocketReconnecting: 'Reconnecting to notification server...',
   websocketError: 'Notification connection error',
   notificationsCount: 'You have {count} notifications',
+
+  // Bell component
+  bell: {
+    ariaLabel: 'Notifications',
+    title: 'Notifications',
+    unreadCount: '{{count}} unread notification(s)',
+    offline: 'Offline',
+  },
+
+  // Dropdown component
+  dropdown: {
+    ariaLabel: 'Notifications dropdown',
+    title: 'Notifications',
+    markAllRead: 'Mark all as read',
+    viewAll: 'View all notifications',
+    empty: 'No notifications',
+    loading: 'Loading notifications...',
+  },
+
+  // Item component
+  item: {
+    markAsRead: 'Mark as read',
+    delete: 'Delete notification',
+  },
+
+  // Notification types
+  types: {
+    grade: 'Grade',
+    attendance: 'Attendance',
+    announcement: 'Announcement',
+    system: 'System',
+    course: 'Course',
+    enrollment: 'Enrollment',
+    general: 'General',
+  },
+
+  // Time formats
+  time: {
+    justNow: 'Just now',
+    minutesAgo: '{{count}} minute(s) ago',
+    hoursAgo: '{{count}} hour(s) ago',
+    daysAgo: '{{count}} day(s) ago',
+  },
 };
 
 export default notificationsEN;

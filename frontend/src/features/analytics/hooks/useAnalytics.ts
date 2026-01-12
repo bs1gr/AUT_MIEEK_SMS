@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { apiClient } from "../../../api/api";
+import apiClient from "../../../api/api";
 
 interface AnalyticsError {
   code: string;

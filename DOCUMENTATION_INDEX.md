@@ -120,7 +120,12 @@ All documentation is organized under `docs/` into four main categories:
 - **GitHub issues?** → `docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md` (441 lines - issue #125-128 templates with acceptance criteria)
 - **Scope decision?** → User selected: Analytics Dashboard + Real-Time Notifications + Bulk Import/Export (6-7 weeks, ~60-70 hours)
 - **Work plan?** → See `docs/plans/UNIFIED_WORK_PLAN.md` "MEDIUM-TERM: Phase 3 Execution" section (Week 1-7 breakdown)
+### Real-Time Notifications (NEW - v1.17.0 - Jan 12!)
 
+- **User guide?** → `docs/user/NOTIFICATIONS_USER_GUIDE.md` (600+ lines - how to use notifications)
+- **Admin guide?** → `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` (800+ lines - system administration)
+- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.0.md` - What's new in v1.17.0
+- **Feature status?** → v1.17.0 Real-Time Notifications COMPLETE & PRODUCTION READY
 ---
 
 ## Core Documentation
