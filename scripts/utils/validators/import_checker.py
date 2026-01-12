@@ -310,6 +310,8 @@ class ImportValidator:
         # e.g., "import jwt" comes from the "PyJWT" package
         import_to_package = {
             "jwt": "pyjwt",
+            "socketio": "python-socketio",
+            "engineio": "python-engineio",
         }
 
         external = set()
