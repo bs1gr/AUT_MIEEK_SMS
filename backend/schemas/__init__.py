@@ -112,6 +112,12 @@ from .rbac import (
     AssignRoleRequest as AssignRoleRequest,
 )
 from .rbac import (
+    BulkAssignRolesRequest as BulkAssignRolesRequest,
+)
+from .rbac import (
+    BulkGrantPermissionsRequest as BulkGrantPermissionsRequest,
+)
+from .rbac import (
     GrantPermissionToRoleRequest as GrantPermissionToRoleRequest,
 )
 from .rbac import (
