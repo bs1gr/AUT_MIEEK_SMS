@@ -314,6 +314,360 @@ class AnalyticsService:
             return "D"
         return "F"
 
+    def get_student_performance(self, student_id: int, days_back: int = 90) -> Dict[str, Any]:
+        """Get student performance metrics over time (last N days).
+
+        Args:
+            student_id: Student ID
+            days_back: Number of days to look back (default 90)
+
+        Returns:
+            Dictionary with performance trends, course breakdown, and averages
+        """
+        from datetime import datetime, timedelta
+        from sqlalchemy import and_
+
+        student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
+        if not student:
+            get_by_id_or_404(self.db, self.Student, student_id)
+
+        cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+
+        # Get grades in date range
+        grades = (
+            self.db.query(self.Grade)
+            .filter(
+                and_(
+                    self.Grade.student_id == student_id,
+                    self.Grade.deleted_at.is_(None),
+                    self.Grade.date_submitted >= cutoff_date,
+                )
+            )
+            .all()
+        )
+
+        # Calculate by course
+        by_course = {}
+        for grade in grades:
+            course_id = grade.course_id
+            if course_id not in by_course:
+                course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
+                by_course[course_id] = {
+                    "course_code": course.course_code if course else f"Course {course_id}",
+                    "course_name": course.course_name if course else f"Course {course_id}",
+                    "grades": [],
+                }
+            if grade.max_grade:
+                by_course[course_id]["grades"].append(
+                    {
+                        "category": grade.category,
+                        "percentage": round((grade.grade / grade.max_grade) * 100, 2),
+                        "date": grade.date_submitted.isoformat() if grade.date_submitted else None,
+                    }
+                )
+
+        # Calculate averages per course
+        course_averages = {}
+        for course_id, data in by_course.items():
+            if data["grades"]:
+                avg = sum(g["percentage"] for g in data["grades"]) / len(data["grades"])
+                course_averages[course_id] = {
+                    "course_code": data["course_code"],
+                    "course_name": data["course_name"],
+                    "average": round(avg, 2),
+                    "grade_count": len(data["grades"]),
+                    "grades": data["grades"],
+                }
+
+        overall_avg = (
+            sum(c["average"] for c in course_averages.values()) / len(course_averages) if course_averages else 0
+        )
+
+        return {
+            "student": {
+                "id": student.id,
+                "name": f"{student.first_name} {student.last_name}",
+                "student_id": student.student_id,
+            },
+            "period_days": days_back,
+            "overall_average": round(overall_avg, 2),
+            "courses": course_averages,
+        }
+
+    def get_student_trends(self, student_id: int, limit: int = 10) -> Dict[str, Any]:
+        """Get student performance trends showing improvement/decline over time.
+
+        Args:
+            student_id: Student ID
+            limit: Maximum number of time periods to show
+
+        Returns:
+            Dictionary with trend data, moving averages, and trajectory
+        """
+        student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
+        if not student:
+            get_by_id_or_404(self.db, self.Student, student_id)
+
+        # Get all grades ordered by date
+        grades = (
+            self.db.query(self.Grade)
+            .filter(self.Grade.student_id == student_id, self.Grade.deleted_at.is_(None))
+            .order_by(self.Grade.date_submitted.desc())
+            .limit(limit * 3)
+            .all()
+        )
+
+        if not grades:
+            return {
+                "student": {"id": student.id, "name": f"{student.first_name} {student.last_name}"},
+                "trend_data": [],
+                "overall_trend": "stable",
+                "moving_average": 0,
+            }
+
+        # Convert to percentages and group by submission date
+        trend_data = []
+        for grade in reversed(grades):
+            if grade.max_grade:
+                pct = round((grade.grade / grade.max_grade) * 100, 2)
+                trend_data.append(
+                    {
+                        "date": grade.date_submitted.isoformat() if grade.date_submitted else None,
+                        "percentage": pct,
+                        "category": grade.category,
+                    }
+                )
+
+        # Calculate moving average (last 5 grades)
+        percentages = [t["percentage"] for t in trend_data[-5:]]
+        moving_avg = sum(percentages) / len(percentages) if percentages else 0
+
+        # Determine trend direction
+        if len(trend_data) >= 2:
+            recent = sum(t["percentage"] for t in trend_data[-5:]) / min(5, len(trend_data))
+            earlier = sum(t["percentage"] for t in trend_data[:-5]) / max(1, len(trend_data) - 5)
+            if recent > earlier + 3:
+                trend = "improving"
+            elif recent < earlier - 3:
+                trend = "declining"
+            else:
+                trend = "stable"
+        else:
+            trend = "stable"
+
+        return {
+            "student": {"id": student.id, "name": f"{student.first_name} {student.last_name}"},
+            "trend_data": trend_data[-limit:],  # Last N grades
+            "overall_trend": trend,
+            "moving_average": round(moving_avg, 2),
+        }
+
+    def get_students_comparison(self, course_id: int, limit: int = 50) -> Dict[str, Any]:
+        """Get comparison data for all students in a course.
+
+        Args:
+            course_id: Course ID
+            limit: Maximum number of students to return
+
+        Returns:
+            Dictionary with course info and ranked student performance
+        """
+        course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
+        if not course:
+            get_by_id_or_404(self.db, self.Course, course_id)
+
+        # Get all students enrolled in course
+        enrollments = (
+            self.db.query(self.CourseEnrollment)
+            .filter(self.CourseEnrollment.course_id == course_id, self.CourseEnrollment.deleted_at.is_(None))
+            .all()
+        )
+
+        student_ids = [e.student_id for e in enrollments]
+
+        # Calculate grades for each student
+        student_stats = []
+        for student_id in student_ids:
+            grades = (
+                self.db.query(self.Grade)
+                .filter(
+                    self.Grade.student_id == student_id,
+                    self.Grade.course_id == course_id,
+                    self.Grade.deleted_at.is_(None),
+                )
+                .all()
+            )
+
+            if grades:
+                avg_pct = sum((g.grade / g.max_grade) * 100 for g in grades if g.max_grade) / len(grades)
+                student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
+                if student:
+                    student_stats.append(
+                        {
+                            "student_id": student.student_id,
+                            "student_name": f"{student.first_name} {student.last_name}",
+                            "average_percentage": round(avg_pct, 2),
+                            "grade_count": len(grades),
+                            "letter_grade": self.get_letter_grade(avg_pct),
+                        }
+                    )
+
+        # Sort by average descending
+        student_stats.sort(key=lambda s: s["average_percentage"], reverse=True)
+
+        # Calculate class statistics
+        if student_stats:
+            percentages = [s["average_percentage"] for s in student_stats]
+            class_avg = sum(percentages) / len(percentages)
+            class_median = sorted(percentages)[len(percentages) // 2]
+            class_min = min(percentages)
+            class_max = max(percentages)
+        else:
+            class_avg = class_median = class_min = class_max = 0
+
+        return {
+            "course": {"id": course.id, "code": course.course_code, "name": course.course_name},
+            "class_statistics": {
+                "average": round(class_avg, 2),
+                "median": round(class_median, 2),
+                "min": round(class_min, 2),
+                "max": round(class_max, 2),
+                "student_count": len(student_stats),
+            },
+            "students": student_stats[:limit],
+        }
+
+    def get_attendance_summary(self, student_id: int, course_id: Optional[int] = None) -> Dict[str, Any]:
+        """Get attendance summary for a student (all courses or specific course).
+
+        Args:
+            student_id: Student ID
+            course_id: Optional course ID (if None, returns all courses)
+
+        Returns:
+            Dictionary with attendance rates and details
+        """
+        student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
+        if not student:
+            get_by_id_or_404(self.db, self.Student, student_id)
+
+        query = self.db.query(self.Attendance).filter(
+            self.Attendance.student_id == student_id, self.Attendance.deleted_at.is_(None)
+        )
+
+        if course_id:
+            query = query.filter(self.Attendance.course_id == course_id)
+
+        attendance_records = query.all()
+
+        # Group by course
+        by_course = {}
+        for record in attendance_records:
+            course_id = record.course_id
+            if course_id not in by_course:
+                course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
+                by_course[course_id] = {
+                    "course_code": course.course_code if course else f"Course {course_id}",
+                    "course_name": course.course_name if course else f"Course {course_id}",
+                    "attendance_records": [],
+                }
+            by_course[course_id]["attendance_records"].append(
+                {"date": record.date.isoformat() if record.date else None, "status": record.status}
+            )
+
+        # Calculate rates
+        course_summaries = {}
+        for course_id, data in by_course.items():
+            records = data["attendance_records"]
+            total = len(records)
+            present = len([r for r in records if r["status"].lower() == "present"])
+            absent = len([r for r in records if r["status"].lower() == "absent"])
+            late = len([r for r in records if r["status"].lower() == "late"])
+
+            course_summaries[course_id] = {
+                "course_code": data["course_code"],
+                "course_name": data["course_name"],
+                "total_classes": total,
+                "present": present,
+                "absent": absent,
+                "late": late,
+                "attendance_rate": round((present / total * 100), 2) if total > 0 else 0,
+            }
+
+        # Overall summary
+        all_records = attendance_records
+        total_all = len(all_records)
+        present_all = len([r for r in all_records if r.status.lower() == "present"])
+
+        return {
+            "student": {
+                "id": student.id,
+                "name": f"{student.first_name} {student.last_name}",
+                "student_id": student.student_id,
+            },
+            "overall_attendance_rate": round((present_all / total_all * 100), 2) if total_all > 0 else 0,
+            "total_classes": total_all,
+            "courses": course_summaries,
+        }
+
+    def get_grade_distribution(self, course_id: int) -> Dict[str, Any]:
+        """Get grade distribution for a course (histogram data).
+
+        Args:
+            course_id: Course ID
+
+        Returns:
+            Dictionary with grade distribution buckets
+        """
+        course = self.db.query(self.Course).filter(self.Course.id == course_id).first()
+        if not course:
+            get_by_id_or_404(self.db, self.Course, course_id)
+
+        # Get all grades for course
+        grades = (
+            self.db.query(self.Grade).filter(self.Grade.course_id == course_id, self.Grade.deleted_at.is_(None)).all()
+        )
+
+        if not grades:
+            return {
+                "course": {"id": course.id, "code": course.course_code, "name": course.course_name},
+                "distribution": {},
+                "total_grades": 0,
+            }
+
+        # Calculate percentages and bucket them
+        buckets = {"A (90-100%)": 0, "B (80-89%)": 0, "C (70-79%)": 0, "D (60-69%)": 0, "F (0-59%)": 0}
+
+        percentages = []
+        for grade in grades:
+            if grade.max_grade:
+                pct = (grade.grade / grade.max_grade) * 100
+                percentages.append(pct)
+
+                if pct >= 90:
+                    buckets["A (90-100%)"] += 1
+                elif pct >= 80:
+                    buckets["B (80-89%)"] += 1
+                elif pct >= 70:
+                    buckets["C (70-79%)"] += 1
+                elif pct >= 60:
+                    buckets["D (60-69%)"] += 1
+                else:
+                    buckets["F (0-59%)"] += 1
+
+        # Convert to percentages
+        total = len(percentages)
+        distribution = {k: round((v / total * 100), 2) if total > 0 else 0 for k, v in buckets.items()}
+
+        avg_pct = sum(percentages) / len(percentages) if percentages else 0
+
+        return {
+            "course": {"id": course.id, "code": course.course_code, "name": course.course_name},
+            "distribution": distribution,
+            "average_percentage": round(avg_pct, 2),
+            "total_grades": total,
+        }
+
     def _calculate_final_grade_from_records(
         self,
         student_id: int,

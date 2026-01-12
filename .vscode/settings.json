@@ -13,18 +13,19 @@
   "testing.showInlineErrorMessages": true,
 
   // Terminals for tasks should use PowerShell on Windows
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "args": [
-        "-NoExit",
-        "-NoLogo",
-        "-File",
-        "${workspaceFolder}/.vscode/powershell-profile.ps1"
-      ]
-    }
-  },
+  // Reset terminal to default profile and remove custom PowerShell profile for troubleshooting
+  // "terminal.integrated.defaultProfile.windows": "PowerShell",
+  // "terminal.integrated.profiles.windows": {
+  //   "PowerShell": {
+  //     "source": "PowerShell",
+  //     "args": [
+  //       "-NoExit",
+  //       "-NoLogo",
+  //       "-File",
+  //       "${workspaceFolder}/.vscode/powershell-profile.ps1"
+  //     ]
+  //   }
+  // },
 
   // Fix Greek character encoding issues
   "files.encoding": "utf8",
@@ -34,7 +35,7 @@
   "terminal.integrated.gpuAcceleration": "off",
   "terminal.integrated.localEchoEnabled": "off",
   "terminal.integrated.enablePersistentSessions": false,
-  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.enabled": false,
   "terminal.integrated.shellIntegration.suggestEnabled": false,
 
   // PowerShell specific settings
