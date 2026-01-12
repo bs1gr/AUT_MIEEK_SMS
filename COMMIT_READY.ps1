@@ -1774,13 +1774,14 @@ function Invoke-DocumentationCheck {
     Write-Section "Root Documentation Whitelist"
     try {
         # Best Practice: Only essential and high-level docs at root
-        # Release/workflow docs consolidated here per $11.14.0+ strategy
+        # Release/workflow docs consolidated here per versioning strategy
+        # Release workflow - consolidated release automation docs
         $allowed = @(
             # Essential project files
             'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
-            # Release workflow ($11.14.2+ consolidated release automation docs)
+            # Release guides
             'QUICK_RELEASE_GUIDE.md',
             # Security overview
             'SECURITY_AUDIT_SUMMARY.md'
@@ -1798,7 +1799,7 @@ function Invoke-DocumentationCheck {
             Add-Result "Docs" "Root Whitelist" $false "$($unexpected.Count) unexpected .md in root"
             $allExist = $false
         } else {
-            Write-Success "Root documentation whitelist satisfied (11 allowed files)"
+            Write-Success "Root documentation whitelist satisfied"
             Add-Result "Docs" "Root Whitelist" $true
         }
     } catch {
@@ -2069,7 +2070,7 @@ function Invoke-MainWorkflow {
                 git tag "v$finalVersion"
                 git push
                 git push origin "v$finalVersion" --force
-                Write-Success "Release push & tag complete"
+                Write-Success "Release push `& tag complete"
             }
             catch {
                 Write-Warning-Msg "Release push/tag failed: $_"
