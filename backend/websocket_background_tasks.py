@@ -10,6 +10,7 @@ Provides:
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from typing import Optional, Any
 
 from backend.websocket_server import cleanup_stale_connections
 from backend.websocket_config import connection_manager
@@ -17,8 +18,8 @@ from backend.websocket_config import connection_manager
 logger = logging.getLogger(__name__)
 
 # Global task references
-cleanup_task: asyncio.Task = None
-monitoring_task: asyncio.Task = None
+cleanup_task: Optional[asyncio.Task[Any]] = None
+monitoring_task: Optional[asyncio.Task[Any]] = None
 
 
 async def cleanup_stale_connections_task():

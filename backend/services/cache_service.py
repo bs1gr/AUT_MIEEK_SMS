@@ -117,7 +117,7 @@ class RedisCache:
         if self.enabled:
             try:
                 redis_url = url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
-                self.client = redis.from_url(redis_url, decode_responses=True)
+                self.client = redis.from_url(str(redis_url), decode_responses=True)
                 # Test connection
                 self.client.ping()
                 logger.info("Redis cache connected: %s", redis_url)
