@@ -1,4 +1,4 @@
-# Release Notes - v1.17.0
+# Release Notes - $11.17.1
 
 **Release Date**: January 12, 2026
 **Version**: 1.17.0
@@ -119,7 +119,7 @@ The Student Management System now features a fully-functional real-time notifica
 
 ## Breaking Changes
 
-**None**. Version 1.17.0 is fully backward compatible with v1.16.0.
+**None**. Version 1.17.0 is fully backward compatible with $11.17.1.
 
 All existing functionality continues to work unchanged:
 - ✅ API endpoints (all working)
@@ -130,7 +130,7 @@ All existing functionality continues to work unchanged:
 
 ---
 
-## Migration Guide (v1.16.0 → v1.17.0)
+## Migration Guide ($11.17.1 → $11.17.1)
 
 ### For Users
 **No action required**. Notifications are opt-in:
@@ -187,7 +187,7 @@ To enable:
 ### Docker Deployment (Recommended)
 ```bash
 # Pull latest image
-docker pull bs1gr/sms:v1.17.0
+docker pull bs1gr/sms:$11.17.1
 
 # Or build locally
 cd /path/to/sms
@@ -204,8 +204,8 @@ cd /path/to/sms
 ```
 
 ### Windows Installer
-Download: `SMS_Installer_v1.17.0.exe` from releases
-- Installs v1.17.0
+Download: `SMS_Installer_$11.17.1.exe` from releases
+- Installs $11.17.1
 - Includes all dependencies
 - One-click setup
 
@@ -289,9 +289,9 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 
 ## Upgrade Path
 
-From v1.16.0:
+From $11.17.1:
 ```
-1. Download v1.17.0
+1. Download $11.17.1
 2. Run database migration (automatic on startup)
 3. Restart application
 4. Test notifications in browser
@@ -314,7 +314,7 @@ From v1.16.0:
 - 📧 Email: support@school.edu
 
 ### Feedback
-Share feedback about v1.17.0:
+Share feedback about $11.17.1:
 1. GitHub Discussions
 2. Email to administrator
 3. In-app feedback form (coming soon)
@@ -333,13 +333,13 @@ Found a bug?
 
 ## What's Next
 
-### v1.17.1 (Planned Q1 2026)
+### $11.17.1 (Planned Q1 2026)
 - Email template customization
 - Advanced filtering options
 - Performance optimizations
 - Bug fixes from user feedback
 
-### v1.18.0 (Planned Q2 2026)
+### $11.17.1 (Planned Q2 2026)
 - Mobile push notifications
 - Webhook integrations
 - Notification analytics
@@ -362,9 +362,9 @@ Special thanks to:
 **Version**: 1.17.0
 **Release Date**: January 12, 2026
 **Status**: 🟢 Production Ready
-**Compatibility**: v1.16.0 compatible (fully backward compatible)
+**Compatibility**: $11.17.1 compatible (fully backward compatible)
 **Support**: 12 months (through January 2027)
-**Next Major Release**: v1.18.0 (planned mid-2026)
+**Next Major Release**: $11.17.1 (planned mid-2026)
 
 ---
 
@@ -374,6 +374,6 @@ SMS is released under the [MIT License](../../LICENSE).
 
 ---
 
-**Download v1.17.0** from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.0)
+**Download $11.17.1** from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.1)
 
-**Questions?** See [Frequently Asked Questions](./FAQ_v1.17.0.md) or contact support.
+**Questions?** See [Frequently Asked Questions](./FAQ_$11.17.1.md) or contact support.
