@@ -675,7 +675,7 @@ async def revoke_role(
 @require_permission("permissions:manage")
 async def revoke_permission_from_role(
     request: Request,
-    payload: "GrantPermissionToRoleRequest" = Body(...),
+    payload: GrantPermissionToRoleRequest = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
