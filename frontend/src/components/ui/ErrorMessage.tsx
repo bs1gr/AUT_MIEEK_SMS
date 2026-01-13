@@ -238,7 +238,7 @@ function getDefaultSuggestion(code: string): string {
 /**
  * Format error details for display
  */
-function formatErrorDetails(details?: string | Record<string, any>): string | null {
+function formatErrorDetails(details?: string | Record<string, unknown>): string | null {
   if (!details) return null;
 
   if (typeof details === 'string') {

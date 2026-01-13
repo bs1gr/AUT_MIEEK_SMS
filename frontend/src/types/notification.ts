@@ -20,7 +20,7 @@ export interface Notification {
   notification_type: NotificationType;
   title: string;
   message: string;
-  data?: Record<string, any> | null;
+  data?: Record<string, unknown> | null;
   is_read: boolean;
   priority?: NotificationPriority;
   icon?: string;

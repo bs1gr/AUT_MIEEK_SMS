@@ -7,6 +7,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AnalyticsDashboard from "../components/AnalyticsDashboard";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 // Mock the analytics hook
 vi.mock("../hooks/useAnalytics", () => ({
@@ -46,16 +47,18 @@ vi.mock("react-i18next", () => ({
 }));
 
 describe("AnalyticsDashboard", () => {
-  let mockUseAnalytics: ReturnType<typeof vi.fn>;
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
     },
   });
 
+  // Fixed: Use ES6 import instead of require()
+  const mockUseAnalytics = vi.mocked(useAnalytics);
+
   beforeEach(() => {
-    const { useAnalytics } = require("../hooks/useAnalytics");
-    mockUseAnalytics = useAnalytics;
+    // Reset mock before each test
+    mockUseAnalytics.mockReset();
   });
 
   it("renders dashboard with title", () => {

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Configure SocketIO server
 sio = AsyncServer(
-    async_mode="aiohttp",
+    async_mode="asgi",  # Fixed: Use 'asgi' for FastAPI (was 'aiohttp')
     cors_allowed_origins="*",  # Configure properly for production
     logger=False,  # Disable socketio logging (use app logging instead)
     engineio_logger=False,
