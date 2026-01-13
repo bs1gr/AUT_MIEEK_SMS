@@ -86,7 +86,7 @@
 
 **Created**: January 7, 2026
 **Status**: Phase 1 Complete, Phase 2 Complete ✅ ($11.17.1 - RBAC backend + 65 endpoints refactored + 17 security fixes)
-**Current Version**: 1.15.2 (production-ready, all Phase 2 deliverables complete)
+**Current Version**: 1.17.1 (production-ready, all Phase 2 deliverables complete)
 **Current Branch**: `main` (Phase 2 merged and pushed, all CI checks passing ✅)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer + AI assistant only. All role references below are workflow checkpoints, not actual team assignments.
 
@@ -1165,7 +1165,7 @@ This document consolidates all scattered planning documents into a **single sour
 **Next Steps**:
 1. 🟢 **COMPLETE**: Phase 2 Steps 1-6 all done
 2. ✅ **COMPLETE**: Commit all changes to main
-3. ✅ **COMPLETE**: Tag $11.15.2 for release
+3. ✅ **COMPLETE**: Tag $11.17.1 for release
 4. ✅ **COMPLETE**: Update version numbers and release
 
 ---
@@ -2137,7 +2137,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 **Total Time**: 6.75 hours (estimated 40-50 hours - 86% EFFICIENCY GAIN!)
 **Issue**: #135
 **GitHub Issue URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues/135
-**GitHub Tag**: v1.17.1 (created and pushed)
+**GitHub Tag**: $11.17.1 (created and pushed)
 
 **Step 1: Backend WebSocket Setup** - ✅ **COMPLETE** (Jan 12, 4 hours)
 - [x] WebSocket server with python-socketio ✅
@@ -2207,18 +2207,18 @@ These are aspirational features with no assigned timeline or team. To be revisit
   - Updated `DOCUMENTATION_INDEX.md`
 
 **Step 8: Release & Deployment** - ✅ **COMPLETE** (Jan 12, 2:45 PM UTC)
-- [x] Create GitHub tag v1.17.1 ✅ (already existed, verified)
+- [x] Create GitHub tag $11.17.1 ✅ (already existed, verified)
 - [x] Build Docker image ✅ (CI/CD handled)
 - [x] Create GitHub Release with notes ✅ (metadata prepared, tag pushed)
-- [x] Update VERSION file ✅ (v1.17.1 confirmed)
+- [x] Update VERSION file ✅ ($11.17.1 confirmed)
 - [x] Commit pending changes ✅ (COMMIT_READY.ps1 minor fixes)
 - [x] Final smoke tests ✅ (All systems verified)
 - [x] All components verified ✅ (Backend, frontend, docs, tests)
 
 **Smoke Test Results**:
 - ✅ Git status: Clean (all committed)
-- ✅ Version: v1.17.1 (confirmed in VERSION file)
-- ✅ Tag: v1.17.1 (created and pushed to origin)
+- ✅ Version: $11.17.1 (confirmed in VERSION file)
+- ✅ Tag: $11.17.1 (created and pushed to origin)
 - ✅ Recent commits: All pushed successfully
 - ✅ Key files: All in place
   - Backend: notification_service.py, routers_notifications.py, migrations

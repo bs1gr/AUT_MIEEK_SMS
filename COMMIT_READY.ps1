@@ -300,8 +300,6 @@ function Invoke-PreCommitHookValidation {
         if (Test-Path ".pre-commit-config.yaml") {
             Write-Info "Running pre-commit hooks on staged files..."
             try {
-                $out = pre-commit install 2>&1
-                if ($LASTEXITCODE -ne 0) { $out | Write-Host; throw "pre-commit install failed" }
                 pre-commit run --all-files
                 if ($LASTEXITCODE -ne 0) { throw "Pre-commit hooks failed" }
                 Write-Success "Pre-commit hooks passed."

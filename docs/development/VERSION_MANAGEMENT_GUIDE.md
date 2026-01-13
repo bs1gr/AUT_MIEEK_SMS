@@ -1,6 +1,6 @@
 # Version Management Guide (Consolidated)
 
-**Version:** 1.9.9
+**Version:** 1.17.1
 **Last Updated:** 2025-12-06
 **Scope:** Single source for VERIFY_VERSION.ps1 usage, release workflow, CI/CD integration, and pip version note.
 
@@ -23,7 +23,7 @@
 ### Check/update specific version + report
 
 ```powershell
-.\scripts\VERIFY_VERSION.ps1 -Version "1.9.9" -Update -Report
+.\scripts\VERIFY_VERSION.ps1 -Version "1.17.1" -Update -Report
 ```
 
 ### Generate report only
