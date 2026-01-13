@@ -21,6 +21,7 @@ from backend.schemas import (
     NotificationResponse,
     NotificationUpdate,
 )
+from backend.dependencies import get_notification_service
 from backend.services.notification_service import NotificationPreferenceService, NotificationService
 from backend.services.websocket_manager import broadcast_notification, manager
 from backend.security.current_user import decode_token
@@ -150,7 +151,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
 async def get_unread_count(
     request: Request,
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Get count of unread notifications for current user.
 
@@ -161,7 +162,7 @@ async def get_unread_count(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     user_id = _get_user_id(current_user)
-    count = NotificationService.get_unread_count(db, user_id)
+    count = service.get_unread_count(user_id)
 
     return {"unread_count": count}
 
@@ -171,7 +172,7 @@ async def get_unread_count(
 async def mark_all_as_read(
     request: Request,
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Mark all notifications as read for current user.
 
@@ -182,7 +183,7 @@ async def mark_all_as_read(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     user_id = _get_user_id(current_user)
-    count = NotificationService.mark_all_as_read(db, user_id)
+    count = service.mark_all_as_read(user_id)
 
     return {"marked_count": count}
 
@@ -244,7 +245,7 @@ async def get_notifications(
     limit: int = Query(50, ge=1, le=100),
     unread_only: bool = Query(False),
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Get notifications for current user.
 
@@ -261,11 +262,9 @@ async def get_notifications(
 
     user_id = _get_user_id(current_user)
 
-    notifications, total = NotificationService.get_notifications(
-        db, user_id=user_id, skip=skip, limit=limit, unread_only=unread_only
-    )
+    notifications, total = service.get_notifications(user_id=user_id, skip=skip, limit=limit, unread_only=unread_only)
 
-    unread_count = NotificationService.get_unread_count(db, user_id)
+    unread_count = service.get_unread_count(user_id)
 
     return NotificationListResponse(
         total=total,
@@ -281,7 +280,7 @@ async def update_notification(
     notification_id: int,
     update: NotificationUpdate,
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Mark notification as read/unread.
 
@@ -297,12 +296,12 @@ async def update_notification(
     user_id = _get_user_id(current_user)
 
     if update.is_read:
-        notification = NotificationService.mark_as_read(db, notification_id, user_id)
+        notification = service.mark_as_read(notification_id, user_id)
     else:
         # For now, we only support marking as read
         from backend.models import Notification
 
-        notification = db.query(Notification).filter(Notification.id == notification_id).first()
+        notification = service.db.query(Notification).filter(Notification.id == notification_id).first()
 
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
@@ -319,7 +318,7 @@ async def mark_as_read(
     request: Request,
     notification_id: int,
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Mark a notification as read.
 
@@ -334,7 +333,7 @@ async def mark_as_read(
 
     user_id = _get_user_id(current_user)
 
-    notification = NotificationService.mark_as_read(db, notification_id, user_id)
+    notification = service.mark_as_read(notification_id, user_id)
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
@@ -347,7 +346,7 @@ async def delete_notification(
     request: Request,
     notification_id: int,
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Delete a notification.
 
@@ -362,7 +361,7 @@ async def delete_notification(
 
     user_id = _get_user_id(current_user)
 
-    success = NotificationService.delete_notification(db, notification_id, user_id)
+    success = service.delete_notification(notification_id, user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Notification not found")
 
@@ -379,6 +378,7 @@ async def broadcast_notification_endpoint(
     request: Request,
     broadcast: BroadcastNotificationCreate,
     db: Session = Depends(get_db),
+    service: NotificationService = Depends(get_notification_service),
 ):
     """Broadcast a notification to users (admin only).
 
@@ -403,8 +403,7 @@ async def broadcast_notification_endpoint(
     for user_id in user_ids:
         try:
             # Create in database
-            NotificationService.create_notification(
-                db,
+            service.create_notification(
                 user_id=user_id,
                 notification_type=broadcast.notification_type,
                 title=broadcast.title,

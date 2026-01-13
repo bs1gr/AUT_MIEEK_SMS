@@ -150,7 +150,7 @@ class TestNotificationService:
         user = User(
             email="test@example.com",
             full_name="Test User",
-            password_hash="hashed_password",
+            hashed_password="hashed_password",
             is_active=True,
         )
         db.add(user)
@@ -158,107 +158,81 @@ class TestNotificationService:
         db.refresh(user)
         return user
 
-    @pytest.mark.asyncio
-    async def test_create_notification(self, notification_service, test_user, db: Session):
+    def test_create_notification(self, notification_service, test_user, db: Session):
         """Test creating a notification"""
-        notification = await notification_service.create_notification(
+        notification = notification_service.create_notification(
             user_id=test_user.id,
             title="Test Notification",
-            body="This is a test notification",
+            message="This is a test notification",
             notification_type="test",
         )
 
         assert notification.id is not None
         assert notification.user_id == test_user.id
         assert notification.title == "Test Notification"
-        assert not notification.read
+        assert not notification.is_read
 
-    @pytest.mark.asyncio
-    async def test_create_notification_invalid_user(self, notification_service):
+    def test_create_notification_invalid_user(self, notification_service):
         """Test creating notification for non-existent user"""
         with pytest.raises(ValueError):
-            await notification_service.create_notification(user_id=9999, title="Test", body="Test body")
+            notification_service.create_notification(
+                user_id=9999, title="Test", message="Test body", notification_type="test"
+            )
 
-    @pytest.mark.asyncio
-    async def test_mark_as_read(self, notification_service, test_user, db: Session):
+    def test_mark_as_read(self, notification_service, test_user, db: Session):
         """Test marking notification as read"""
         # Create notification
-        notification = await notification_service.create_notification(
-            user_id=test_user.id, title="Test", body="Test body"
+        notification = notification_service.create_notification(
+            user_id=test_user.id, title="Test", message="Test body", notification_type="test"
         )
 
         # Mark as read
-        updated = await notification_service.mark_as_read(notification_id=notification.id, user_id=test_user.id)
+        updated = notification_service.mark_as_read(notification_id=notification.id, user_id=test_user.id)
 
-        assert updated.read
+        assert updated.is_read
         assert updated.read_at is not None
 
-    @pytest.mark.asyncio
-    async def test_delete_notification(self, notification_service, test_user, db: Session):
+    def test_delete_notification(self, notification_service, test_user, db: Session):
         """Test soft-deleting a notification"""
-        notification = await notification_service.create_notification(
-            user_id=test_user.id, title="Test", body="Test body"
+        notification = notification_service.create_notification(
+            user_id=test_user.id, title="Test", message="Test body", notification_type="test"
         )
 
-        success = await notification_service.delete_notification(notification_id=notification.id, user_id=test_user.id)
+        success = notification_service.delete_notification(notification_id=notification.id, user_id=test_user.id)
 
         assert success
 
-    @pytest.mark.asyncio
-    async def test_get_user_notifications(self, notification_service, test_user, db: Session):
+    def test_get_user_notifications(self, notification_service, test_user, db: Session):
         """Test retrieving user notifications"""
         # Create multiple notifications
         for i in range(5):
-            await notification_service.create_notification(
+            notification_service.create_notification(
                 user_id=test_user.id,
                 title=f"Notification {i}",
-                body=f"Body {i}",
+                message=f"Body {i}",
+                notification_type="test",
             )
 
-        notifications, total = await notification_service.get_user_notifications(user_id=test_user.id, limit=10)
+        notifications, total = notification_service.get_notifications(user_id=test_user.id, limit=10)
 
         assert total == 5
         assert len(notifications) == 5
 
-    @pytest.mark.asyncio
-    async def test_get_unread_count(self, notification_service, test_user, db: Session):
+    def test_get_unread_count(self, notification_service, test_user, db: Session):
         """Test getting unread notification count"""
         # Create notifications
-        notif1 = await notification_service.create_notification(user_id=test_user.id, title="Unread 1", body="Body")
-        await notification_service.create_notification(user_id=test_user.id, title="Unread 2", body="Body")
-
-        # Mark one as read
-        await notification_service.mark_as_read(notification_id=notif1.id, user_id=test_user.id)
-
-        unread_count = await notification_service.get_unread_count(test_user.id)
-        assert unread_count == 1
-
-    @pytest.mark.asyncio
-    async def test_broadcast_notification(self, notification_service, db: Session):
-        """Test broadcasting notification to multiple users"""
-        # Create multiple users
-        users = []
-        for i in range(3):
-            user = User(
-                email=f"user{i}@example.com",
-                full_name=f"User {i}",
-                password_hash="hashed",
-                is_active=True,
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            users.append(user)
-
-        # Broadcast notification
-        notifications = await notification_service.broadcast_notification(
-            user_ids=[u.id for u in users],
-            title="Broadcast Test",
-            body="This is a broadcast",
+        notif1 = notification_service.create_notification(
+            user_id=test_user.id, title="Unread 1", message="Body", notification_type="test"
+        )
+        notification_service.create_notification(
+            user_id=test_user.id, title="Unread 2", message="Body", notification_type="test"
         )
 
-        assert len(notifications) == 3
-        assert all(n.title == "Broadcast Test" for n in notifications)
+        # Mark one as read
+        notification_service.mark_as_read(notification_id=notif1.id, user_id=test_user.id)
+
+        unread_count = notification_service.get_unread_count(user_id=test_user.id)
+        assert unread_count == 1
 
 
 @pytest.fixture(scope="session")

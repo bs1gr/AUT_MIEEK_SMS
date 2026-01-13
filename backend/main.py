@@ -34,11 +34,6 @@ if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent))
 # Entrypoint for Uvicorn/Gunicorn
 app: FastAPI = create_app()
-# For local dev: run with `python backend/main.py`
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 # NOTE: `app` is created above. Do NOT recreate it here to avoid multiple
 # FastAPI instances which break test dependency overrides.
 
@@ -50,7 +45,7 @@ def _detect_frontend_port():
     return None
 
 
-def _is_port_open(host, port, timeout=0.5):
+def _is_port_open(_host, _port, _timeout=0.5):
     """Stub for backward compatibility - actual implementation in health_checks.py"""
     return False
 
@@ -60,12 +55,12 @@ def _resolve_npm_command():
     return None
 
 
-def _find_pids_on_port(port):
+def _find_pids_on_port(_port):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     return []
 
 
-def _safe_run(cmd_args, timeout=5):
+def _safe_run(_cmd_args, _timeout=5):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     from types import SimpleNamespace
 
@@ -77,7 +72,7 @@ def _infer_restart_command():
     return None
 
 
-def _spawn_restart_thread(command, delay_seconds=0.75):
+def _spawn_restart_thread(_command, _delay_seconds=0.75):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     pass
 
@@ -99,6 +94,8 @@ def main() -> None:
 
     Configures and starts the Uvicorn server.
     """
+    import uvicorn
+
     VERSION = get_version()
 
     print("\n" + "=" * 70)

@@ -17,9 +17,11 @@ logger = logging.getLogger(__name__)
 class NotificationService:
     """Service for managing notifications."""
 
-    @staticmethod
+    def __init__(self, db: Session):
+        self.db = db
+
     def create_notification(
-        db: Session,
+        self,
         user_id: int,
         notification_type: str,
         title: str,
@@ -29,7 +31,6 @@ class NotificationService:
         """Create a new notification for a user.
 
         Args:
-            db: Database session
             user_id: ID of user receiving notification
             notification_type: Type of notification
             title: Notification title
@@ -43,7 +44,7 @@ class NotificationService:
             ValueError: If user not found
         """
         # Verify user exists
-        user = db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
 
@@ -55,17 +56,16 @@ class NotificationService:
             data=data,
         )
 
-        db.add(notification)
-        db.commit()
-        db.refresh(notification)
+        self.db.add(notification)
+        self.db.commit()
+        self.db.refresh(notification)
 
         logger.info(f"Created notification {notification.id} for user {user_id}")
 
         return notification
 
-    @staticmethod
     def get_notifications(
-        db: Session,
+        self,
         user_id: int,
         skip: int = 0,
         limit: int = 50,
@@ -74,7 +74,6 @@ class NotificationService:
         """Get notifications for a user.
 
         Args:
-            db: Database session
             user_id: ID of user
             skip: Number of records to skip
             limit: Maximum records to return
@@ -83,7 +82,9 @@ class NotificationService:
         Returns:
             Tuple of (notifications list, total count)
         """
-        query = db.query(Notification).filter(and_(Notification.user_id == user_id, Notification.deleted_at.is_(None)))
+        query = self.db.query(Notification).filter(
+            and_(Notification.user_id == user_id, Notification.deleted_at.is_(None))
+        )
 
         if unread_only:
             query = query.filter(~Notification.is_read)
@@ -93,12 +94,10 @@ class NotificationService:
 
         return notifications, total
 
-    @staticmethod
-    def mark_as_read(db: Session, notification_id: int, user_id: int) -> Optional[Notification]:
+    def mark_as_read(self, notification_id: int, user_id: int) -> Optional[Notification]:
         """Mark a notification as read.
 
         Args:
-            db: Database session
             notification_id: ID of notification
             user_id: ID of user (for authorization)
 
@@ -108,7 +107,7 @@ class NotificationService:
         Raises:
             PermissionError: If user doesn't own the notification
         """
-        notification = db.query(Notification).filter(Notification.id == notification_id).first()
+        notification = self.db.query(Notification).filter(Notification.id == notification_id).first()
 
         if not notification:
             return None
@@ -119,26 +118,24 @@ class NotificationService:
         notification.is_read = True  # type: ignore[assignment]
         notification.read_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
-        db.commit()
-        db.refresh(notification)
+        self.db.commit()
+        self.db.refresh(notification)
 
         logger.info(f"Marked notification {notification_id} as read")
 
         return notification
 
-    @staticmethod
-    def mark_all_as_read(db: Session, user_id: int) -> int:
+    def mark_all_as_read(self, user_id: int) -> int:
         """Mark all notifications as read for a user.
 
         Args:
-            db: Database session
             user_id: ID of user
 
         Returns:
             Number of notifications marked as read
         """
         count = (
-            db.query(Notification)
+            self.db.query(Notification)
             .filter(
                 and_(
                     Notification.user_id == user_id,
@@ -152,18 +149,16 @@ class NotificationService:
             )
         )
 
-        db.commit()
+        self.db.commit()
 
         logger.info(f"Marked {count} notifications as read for user {user_id}")
 
         return count
 
-    @staticmethod
-    def delete_notification(db: Session, notification_id: int, user_id: int) -> bool:
+    def delete_notification(self, notification_id: int, user_id: int) -> bool:
         """Soft-delete a notification.
 
         Args:
-            db: Database session
             notification_id: ID of notification
             user_id: ID of user (for authorization)
 
@@ -173,7 +168,7 @@ class NotificationService:
         Raises:
             PermissionError: If user doesn't own the notification
         """
-        notification = db.query(Notification).filter(Notification.id == notification_id).first()
+        notification = self.db.query(Notification).filter(Notification.id == notification_id).first()
 
         if not notification:
             return False
@@ -182,25 +177,23 @@ class NotificationService:
             raise PermissionError("Cannot delete notification belonging to another user")
 
         notification.deleted_at = datetime.now(timezone.utc)  # type: ignore[assignment]
-        db.commit()
+        self.db.commit()
 
         logger.info(f"Deleted notification {notification_id}")
 
         return True
 
-    @staticmethod
-    def get_unread_count(db: Session, user_id: int) -> int:
+    def get_unread_count(self, user_id: int) -> int:
         """Get count of unread notifications for a user.
 
         Args:
-            db: Database session
             user_id: ID of user
 
         Returns:
             Number of unread notifications
         """
         return (
-            db.query(func.count(Notification.id))
+            self.db.query(func.count(Notification.id))
             .filter(
                 and_(
                     Notification.user_id == user_id,

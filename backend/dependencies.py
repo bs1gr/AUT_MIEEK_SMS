@@ -366,6 +366,15 @@ def log_database_operation(operation: str, model: str, record_id: Optional[int] 
         logger.debug("Database operation", extra={"operation": operation, "model": model})
 
 
+from backend.services.notification_service import NotificationService
+from backend.db import get_session
+from fastapi import Depends
+
+
+def get_notification_service(db: Session = Depends(get_session)) -> NotificationService:
+    return NotificationService(db)
+
+
 if __name__ == "__main__":
     print("Testing validation utilities...\n")
 

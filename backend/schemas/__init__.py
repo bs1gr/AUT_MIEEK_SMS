@@ -56,6 +56,21 @@ from .enrollments import (
 from .enrollments import (
     StudentBrief as StudentBrief,
 )
+from .import_export import (
+    ExportJobCreate as ExportJobCreate,
+    ExportJobResponse as ExportJobResponse,
+    ExportListResponse as ExportListResponse,
+    ImportExportHistoryEntry as ImportExportHistoryEntry,
+    ImportExportHistoryResponse as ImportExportHistoryResponse,
+    ImportJobCommitRequest as ImportJobCommitRequest,
+    ImportJobCreate as ImportJobCreate,
+    ImportJobPreview as ImportJobPreview,
+    ImportJobResponse as ImportJobResponse,
+    ImportJobRollbackRequest as ImportJobRollbackRequest,
+    ImportRowData as ImportRowData,
+    ImportValidationResult as ImportValidationResult,
+    ValidationError as ValidationError,
+)
 from .grades import GradeCreate as GradeCreate
 from .grades import GradeResponse as GradeResponse
 from .grades import GradeUpdate as GradeUpdate
