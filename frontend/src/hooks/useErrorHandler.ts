@@ -111,7 +111,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
    * Set a custom error
    */
   const setCustomError = useCallback(
-    (code: string, message: string, details?: string | Record<string, any>) => {
+    (code: string, message: string, details?: string | Record<string, unknown>) => {
       const errorState: ErrorState = {
         code,
         message: t(`errors.${code}`, { defaultValue: message }),
