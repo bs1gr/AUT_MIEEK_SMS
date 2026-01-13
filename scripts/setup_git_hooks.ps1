@@ -39,6 +39,9 @@ $hookContent = @'
 
 echo "🔒 Running Pre-Commit Validation..."
 
+# Determine hooks directory
+HOOKS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # 1. Validate Version Format (Layer 4)
 # Uses the standalone validator script
 if [ -f "scripts/validate_version_format.ps1" ]; then
@@ -52,13 +55,15 @@ else
 fi
 
 # 2. Run legacy/framework hooks if they exist
-LEGACY_HOOK=".git/hooks/pre-commit-legacy"
+LEGACY_HOOK="$HOOKS_DIR/pre-commit-legacy"
 if [ -f "$LEGACY_HOOK" ]; then
     echo "🔄 Running legacy pre-commit hooks..."
     "$LEGACY_HOOK" "$@"
-    if [ $? -ne 0 ]; then
-        echo "❌ Legacy hooks failed."
-        exit 1
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo "❌ Legacy hooks failed (Exit Code: $EXIT_CODE)."
+        echo "   💡 Tip: Run 'pre-commit run --all-files' to see details and auto-fix issues."
+        exit $EXIT_CODE
     fi
 fi
 

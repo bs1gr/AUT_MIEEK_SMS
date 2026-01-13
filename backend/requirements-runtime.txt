@@ -1,8 +1,0 @@
-fastapi==0.121.2
-starlette==0.49.1
-uvicorn[standard]==0.38.0
-sqlalchemy==2.0.44
-pydantic==2.12.3
-httpx==0.27.2
-fastapi-csrf-protect==1.0.7
-PyJWT==2.10.1

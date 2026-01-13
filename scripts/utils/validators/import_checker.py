@@ -44,7 +44,7 @@ class ImportValidator:
             sys.path.insert(0, str(self.root))
 
         self.backend_dir = self.root / "backend"
-        self.requirements_file = self.backend_dir / "requirements.txt"
+        self.pyproject_file = self.root / "pyproject.toml"
         self.errors: List[str] = []
         self.warnings: List[str] = []
 
@@ -60,16 +60,16 @@ class ImportValidator:
         )
 
     def validate_requirements(self) -> bool:
-        """Validate all backend imports are in requirements.txt."""
+        """Validate all backend imports are in pyproject.toml."""
         print("=" * 70)
         print("MODE: Requirements Validation")
         print("=" * 70)
         print(f"Checking: {self.backend_dir}")
-        print(f"Requirements: {self.requirements_file}")
+        print(f"Project File: {self.pyproject_file}")
         print("")
 
         required_modules = self._parse_requirements()
-        print(f"Found {len(required_modules)} modules in requirements.txt\n")
+        print(f"Found {len(required_modules)} modules in pyproject.toml\n")
 
         # Find all imports in backend
         found_issues = False
@@ -86,19 +86,19 @@ class ImportValidator:
             imports = self._find_imports_in_file(py_file)
             external_imports = self._filter_external_imports(imports)
 
-            # Normalize imports (replace _ with -) to match requirements.txt style
+            # Normalize imports (replace _ with -) to match pyproject.toml style
             normalized_external = {i.replace("_", "-") for i in external_imports}
 
             missing = normalized_external - required_modules
             if missing:
                 found_issues = True
                 rel_path = py_file.relative_to(self.root)
-                msg = f"  X {rel_path}: Missing in requirements: {', '.join(sorted(missing))}"
+                msg = f"  X {rel_path}: Missing in pyproject.toml: {', '.join(sorted(missing))}"
                 self.errors.append(msg)
                 print(msg)
 
         if not found_issues:
-            print("  [OK] All imports found in requirements.txt")
+            print("  [OK] All imports found in pyproject.toml")
             return True
 
         return False
@@ -166,23 +166,49 @@ class ImportValidator:
         return all_passed
 
     def _parse_requirements(self) -> Set[str]:
-        """Parse requirements.txt and return set of module names."""
+        """Parse pyproject.toml and return set of module names."""
         names: Set[str] = set()
-        if not self.requirements_file.exists():
+        if not self.pyproject_file.exists():
             return names
 
-        for line in self.requirements_file.read_text(encoding="utf-8").splitlines():
-            s = line.strip()
-            if not s or s.startswith("#"):
-                continue
+        try:
+            import tomllib
+        except ImportError:
+            # For Python < 3.11
+            import toml as tomllib
 
-            # Remove extras and version specifiers
-            for sep in ("==", ">=", "<=", ">", "<", "~=", "!=", " "):
-                if sep in s:
-                    s = s.split(sep, 1)[0]
-            s = s.split("[", 1)[0].strip()
-            if s:
-                names.add(s.lower())
+        with open(self.pyproject_file, "rb") as f:
+            pyproject_data = tomllib.load(f)
+
+        if "project" in pyproject_data and "dependencies" in pyproject_data["project"]:
+            for line in pyproject_data["project"]["dependencies"]:
+                s = line.strip()
+                if not s or s.startswith("#"):
+                    continue
+                # Remove extras and version specifiers
+                for sep in ("==", ">=", "<=", ">", "<", "~=", "!=", " "):
+                    if sep in s:
+                        s = s.split(sep, 1)[0]
+                s = s.split("[", 1)[0].strip()
+                if s:
+                    names.add(s.lower())
+
+        if (
+            "project" in pyproject_data
+            and "optional-dependencies" in pyproject_data["project"]
+        ):
+            for group in pyproject_data["project"]["optional-dependencies"].values():
+                for line in group:
+                    s = line.strip()
+                    if not s or s.startswith("#"):
+                        continue
+                    # Remove extras and version specifiers
+                    for sep in ("==", ">=", "<=", ">", "<", "~=", "!=", " "):
+                        if sep in s:
+                            s = s.split(sep, 1)[0]
+                    s = s.split("[", 1)[0].strip()
+                    if s:
+                        names.add(s.lower())
 
         return names
 

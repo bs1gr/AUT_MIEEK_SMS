@@ -3,6 +3,7 @@ import os
 import threading
 import time as _time
 from contextlib import asynccontextmanager
+from importlib.util import find_spec
 
 from backend.config import settings
 from backend.db import SessionLocal, engine
@@ -32,8 +33,9 @@ def get_lifespan():
         except Exception as e:
             logging.getLogger(__name__).error(f"❌ Failed to start WebSocket tasks: {e}", exc_info=True)
 
+        is_pytest_run = find_spec("pytest") is not None
         disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in {"1", "true", "yes"}
-        if not disable_startup:
+        if not (disable_startup or is_pytest_run):
 
             def _migrate_bg():
                 run_migrations(False)

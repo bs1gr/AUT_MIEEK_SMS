@@ -250,12 +250,25 @@ def patch_settings_for_tests(request, monkeypatch):
 def setup_db():
     """Ensure a clean database schema for each test function.
 
+
+
+
+
     Drop and recreate all tables before every test to isolate data across tests,
+
+
     including those that open their own sessions outside the shared db fixture.
+
+
     """
+
     Base.metadata.drop_all(bind=engine)
+
     Base.metadata.create_all(bind=engine)
+
     yield
+
+    # next test will recreate schema
     # next test will recreate schema
 
 
