@@ -19,7 +19,7 @@ User identified that **instructions alone are insufficient** for compliance. An 
 - ✅ Layer 1: COMMIT_READY.ps1 Phase 0.5 (active)
 - ✅ Layer 2: Standalone validator script (ready for pre-commit hooks + CI)
 - ✅ Layer 3: CI/CD pipeline job (now active)
-- ⏳ Layer 4: Git pre-commit hook (pending local setup)
+- ✅ Layer 4: Git pre-commit hook (setup script created)
 
 ---
 
@@ -146,7 +146,7 @@ exit 1
 
 ---
 
-### Layer 4: Git Pre-Commit Hook ⏳ PENDING
+### Layer 4: Git Pre-Commit Hook ✅ ACTIVE
 
 **Location**: `.git/hooks/pre-commit` (to be created)
 
