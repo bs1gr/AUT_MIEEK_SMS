@@ -58,40 +58,20 @@
 
 All documentation is organized under `docs/` into four main categories:
 
-- **[docs/user/](docs/user/)** - User guides, quick starts, and how-tos
-- **[docs/development/](docs/development/)** - Technical docs, architecture, APIs
-- **[docs/deployment/](docs/deployment/)** - Operations, deployment, troubleshooting
-- **[docs/reference/](docs/reference/)** - Quick reference guides (scripts, security, Docker)
 
----
 
 ## 🎯 Quick Navigation
 
 ### For Quick Start
 
-- **First time?** → Read `START_HERE.md` (5 minutes)
-- **Need the overview?** → Read `README.md` (comprehensive guide)
-- **Want to deploy?** → Read `DEPLOYMENT_READINESS.md` (pre-deployment checklist)
-- **AI/Agent picking up work?** → Read `AGENT_QUICK_START.md` (understand state without re-planning)
-
 ### For Development & Architecture
 
 - **System architecture?** → `docs/development/ARCHITECTURE.md`
-- **Security details?** → `docs/SECURITY_GUIDE_COMPLETE.md`
-- **Git workflow?** → `docs/development/GIT_WORKFLOW.md`
-- **API reference?** → `backend/CONTROL_API.md`
-
 ### For Audits & Reports
 
 - **Codebase quality?** → `AUDIT_SUMMARY.md` (10/10 rating)
-- **Detailed audit?** → `CODEBASE_AUDIT_REPORT.md` (comprehensive)
-- **Release notes?** → `CHANGELOG.md` or `docs/releases/RELEASE_NOTES_v1.17.1.md`
-
-### For Operations
 
 - **Docker guide?** → `docs/deployment/DOCKER_OPERATIONS.md`
-- **Production setup?** → `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
-- **Database migration?** → `docs/operations/DATABASE_MIGRATION_GUIDE.md`
 - **PostgreSQL migration?** → `docs/deployment/POSTGRES_MIGRATION_GUIDE.md`
 - **Monitoring setup?** → `docs/deployment/INDEX.md`
 
@@ -111,31 +91,65 @@ All documentation is organized under `docs/` into four main categories:
 - **Executive summary?** → `docs/deployment/EXECUTIVE_SUMMARY_PHASE2_READY.md` (5 min status)
 - **Staging deployment?** → `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` (with commands)
 - **Risk management?** → `docs/deployment/PHASE2_RISK_REGISTER.md` (10 risks + mitigation)
-- **Team onboarding?** → `docs/deployment/PHASE2_KICKOFF_TRANSITION_DOCUMENT.md` (3-hour path)
 - **PR standards?** → `.github/pull_request_template/PHASE2_PR_GUIDE.md` (template)
 
 ### For Phase 3 Planning (NEW - Jan 11!)
 
-- **Feature roadmap?** → `docs/plans/PHASE3_ROADMAP.md` (2,000+ lines - all 7 features analyzed, 3 deployment options)
-- **GitHub issues?** → `docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md` (441 lines - issue #125-128 templates with acceptance criteria)
-- **Scope decision?** → User selected: Analytics Dashboard + Real-Time Notifications + Bulk Import/Export (6-7 weeks, ~60-70 hours)
-- **Work plan?** → See `docs/plans/UNIFIED_WORK_PLAN.md` "MEDIUM-TERM: Phase 3 Execution" section (Week 1-7 breakdown)
+
+  ```tsx
+  import ImportWizard from 'src/features/importExport/ImportWizard';
+- See the component and test file for usage patterns and integration details.
+
+- `frontend/src/features/importExport/ImportWizard.tsx` — ImportWizard component with stepper UI (4 steps: Select File, Preview Data, Validate, Commit)
+- File upload implemented (step 1, supports .csv/.xlsx, Jan 13, 2026)
+- Data preview implemented (step 2, parses and displays first 10 rows, Jan 13, 2026)
+- Validation and commit steps implemented (steps 3-4, mock actions, Jan 13, 2026)
+- Smoke test added (renders, stepper, file input, Jan 13, 2026)
+- Backend API integration: preview, validate, commit (Jan 13, 2026)
 ### Real-Time Notifications (NEW - v1.17.1 - Jan 12!)
 
-- **User guide?** → `docs/user/NOTIFICATIONS_USER_GUIDE.md` (600+ lines - how to use notifications)
-- **Admin guide?** → `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` (800+ lines - system administration)
-- **Release notes?** → `docs/releases/RELEASE_NOTES_v1.17.1.md` - What's new in v1.17.1
-- **Feature status?** → v1.17.1 Real-Time Notifications COMPLETE & PRODUCTION READY
 ---
+  import ImportWizard from 'src/features/importExport/ImportWizard';
+  // ...
+  <ImportWizard />
 
-## Core Documentation
+ See the component and test file for usage patterns and integration details.
 
-### Root Level Files
+ `frontend/src/features/importExport/ImportWizard.tsx` — ImportWizard component with stepper UI (4 steps: Select File, Preview Data, Validate, Commit)
+ File upload implemented (step 1, supports .csv/.xlsx, Jan 13, 2026)
+ Data preview implemented (step 2, parses and displays first 10 rows, Jan 13, 2026)
+ Validation and commit steps implemented (steps 3-4, mock actions, Jan 13, 2026)
+ Smoke test added (renders, stepper, file input, Jan 13, 2026)
+ Backend API integration: preview, validate, commit (Jan 13, 2026)
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| `AGENT_QUICK_START.md` | **How AI agents pick up work without duplication** | **Agents/Automation** |
-| `docs/AGENT_POLICY_ENFORCEMENT.md` | **⚠️ MANDATORY policies - prevents crashes & duplication** | **ALL AGENTS (CRITICAL)** |
+ `frontend/src/features/importExport/ExportDialog.tsx` — ExportDialog component (dialog/modal for export actions, Jan 13, 2026)
+ `frontend/src/features/importExport/ExportDialog.test.tsx` — Smoke test for ExportDialog (open/close, Jan 13, 2026)
+ `frontend/src/features/importExport/HistoryTable.tsx` — HistoryTable component (import/export job history table, now uses useImportExport hook to display jobs, loading, and error states, Jan 13, 2026)
+ `frontend/src/features/importExport/HistoryTable.test.tsx` — Smoke test for HistoryTable (renders, placeholder text, Jan 13, 2026)
+ `frontend/src/features/importExport/useImportExport.ts` — `useImportExport` React hook (skeleton, manages import/export job state, Jan 13, 2026)
+ `frontend/src/features/importExport/useImportExport.test.ts` — Smoke test for useImportExport (returns initial state, Jan 13, 2026)
+
+ #### Usage
+
+ To use the HistoryTable, import and render the component in your feature or page:
+
+ ```tsx
+ import HistoryTable from 'src/features/importExport/HistoryTable';
+ // ...
+ <HistoryTable />
+ ```
+
+ To use the useImportExport hook:
+
+ ```tsx
+ import { useImportExport } from 'src/features/importExport/useImportExport';
+ const { importJobs, exportJobs, loading, error } = useImportExport();
+ ```
+
+ The table currently displays a placeholder. Future micro-batches will implement data fetching, table columns, and backend integration.
+ The hook currently returns empty job lists and loading/error state. Future micro-batches will add API integration and job management.
+
+ See the component, hook, and test files for usage patterns and integration details.
 | `START_HERE.md` | First-time user guide | Everyone |
 | `README.md` | Complete project overview | Everyone |
 | `CHANGELOG.md` | Version history and changes | Developers |
@@ -200,6 +214,7 @@ Located in `docs/`:
 Located in `docs/`:
 
 - `GREEK_ENCODING_FIX.md` - Greek text encoding solution for Inno Setup
+- `TERMINAL_ENCODING_FIX.md` - **NEW (Jan 13, 2026)** - Terminal encoding corruption (ψ character) fix for VS Code PowerShell
 - `DOCKER_NAMING_CONVENTIONS.md` - Volume versioning and naming conventions
 
 Located in root:
