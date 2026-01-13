@@ -71,7 +71,10 @@ exit 0
 '@
 
 # Write the hook file
-Set-Content -Path $preCommitPath -Value $hookContent -Encoding utf8NoBOM -Force
+# Use [IO.File] to ensure LF line endings (bash friendly) and UTF-8 without BOM
+$hookContent = $hookContent -replace "`r`n", "`n"
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($preCommitPath, $hookContent, $utf8NoBom)
 
 # Attempt to make executable (Git Bash/Unix compatibility)
 try {
