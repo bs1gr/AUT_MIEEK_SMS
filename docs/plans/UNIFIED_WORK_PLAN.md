@@ -2241,11 +2241,13 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 #### Feature #127: Bulk Import/Export
 
-**Status**: NOT STARTED (Starts after Feature #126 complete)
-**Started**: N/A
+**Status**: 🟢 **ARCHITECTURE DESIGN COMPLETE - IMPLEMENTATION STARTING**
+**Started**: January 13, 2026
 **Completed**: N/A
-**Estimated Effort**: 50-60 hours
-**Progression**: Starts when Feature #126 complete
+**Estimated Effort**: 50-60 hours total
+**Progression**: Phase 1 (Database) starting now after Feature #126 complete
+
+**Architecture Document**: [PHASE3_FEATURE127_ARCHITECTURE.md](../development/PHASE3_FEATURE127_ARCHITECTURE.md) ✅
 
 **Deliverables**:
 - [ ] Import workflow with validation
@@ -2266,11 +2268,25 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - ✅ Rollback works for failed imports
 
 **Progress**:
-- [ ] Architecture design (2-3 hours) - NOT STARTED
-- [ ] Import backend implementation (20-25 hours) - NOT STARTED
-- [ ] Export backend implementation (15-20 hours) - NOT STARTED
-- [ ] Frontend UI components (10-15 hours) - NOT STARTED
-- [ ] Testing & documentation (5-8 hours) - NOT STARTED
+- [x] Architecture design (2-3 hours) - ✅ COMPLETE (Jan 13)
+- [ ] Phase 1: Database setup & migrations (2-3 hours) - IN QUEUE
+- [ ] Phase 2: Import backend implementation (12-15 hours) - IN QUEUE
+- [ ] Phase 3: Export backend implementation (8-12 hours) - IN QUEUE
+- [ ] Phase 4: API endpoints (8-10 hours) - IN QUEUE
+- [ ] Phase 5: Frontend UI components (10-15 hours) - IN QUEUE
+- [ ] Phase 6: Testing & documentation (5-8 hours) - IN QUEUE
+
+**Completed Work**:
+- ✅ Comprehensive architecture document (500+ lines)
+- ✅ Database schema design (ImportJob, ImportRow, ExportJob, History)
+- ✅ Backend service architecture (ImportExportService)
+- ✅ Frontend component design (ImportWizard, ExportDialog, HistoryTable)
+- ✅ Validation rules for students, courses, grades
+- ✅ Export formats (CSV, Excel, PDF)
+- ✅ Error message catalog (i18n ready)
+- ✅ Database migration plan
+- ✅ Risk assessment and mitigation
+- ✅ Timeline with 6 implementation phases
 
 ---
 
