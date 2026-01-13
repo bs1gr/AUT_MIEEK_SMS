@@ -169,12 +169,6 @@ from .response import ResponseMeta as ResponseMeta
 from .response import error_response as error_response
 from .response import paginated_response as paginated_response
 from .response import success_response as success_response
-from .rbac import (
-    BulkAssignRolesRequest as BulkAssignRolesRequest,
-)
-from .rbac import (
-    BulkGrantPermissionsRequest as BulkGrantPermissionsRequest,
-)
 from .students import StudentCreate as StudentCreate
 from .students import StudentResponse as StudentResponse
 from .students import StudentUpdate as StudentUpdate
