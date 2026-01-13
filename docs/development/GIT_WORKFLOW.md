@@ -1,13 +1,16 @@
 # Git Workflow & Commit Standards
 
-**Last Updated**: 2025-12-14
-**Version**: 2.1
+**Last Updated**: 2026-01-13
+**Version**: 2.2
 
 This document consolidates all git workflow procedures, commit standards, and automation tools for the Student Management System project.
 
 ## Quick Start
 
 ### 1. Automated Pre-Commit Workflow (Recommended)
+
+First, ensure you have installed the git hooks (one-time setup):
+`.\scripts\setup_git_hooks.ps1`
 
 ```powershell
 # Run comprehensive pre-commit checks and generate commit message
@@ -259,28 +262,28 @@ git push origin main
 
 ```powershell
 # Update version
-echo "1.9.1" > VERSION
+echo "1.17.1" > VERSION
 
 # Update CHANGELOG.md
-# Move [Unreleased] section to [1.9.1] - YYYY-MM-DD
+# Move [Unreleased] section to [1.17.1] - YYYY-MM-DD
 
 # Commit version bump
 git add VERSION CHANGELOG.md
-git commit -m "chore(release): bump version to 1.9.1"
+git commit -m "chore(release): bump version to 1.17.1"
 ```
 
 ### 2. Create Tag
 
 ```powershell
 # Create annotated tag
-git tag -a $11.9.7 -m "Release $11.9.7: Description
+git tag -a $11.17.1 -m "Release $11.17.1: Description
 
 - Feature 1
 - Feature 2
 - Bug fix 1"
 
 # Push tag
-git push origin $11.9.7
+git push origin $11.17.1
 ```
 
 ### 3. Create GitHub Release
