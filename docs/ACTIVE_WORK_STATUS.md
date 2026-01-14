@@ -69,7 +69,7 @@ Fixes were applied in commit `6d72ca496` ("fix: adapt backend tests to APIRespon
 and helpers added in `906173978` ("test(backend): add error response helper functions").
 These fixes are now verified working.
 
-**Impact**: Phase 0 "all tests passing" claim in RELEASE_PREPARATION_$11.15.2.md is **ACCURATE ✅**
+**Impact**: Phase 0 "all tests passing" claim in RELEASE_PREPARATION_1.15.2.md is **ACCURATE ✅**
 
 **Progress**:
 ```

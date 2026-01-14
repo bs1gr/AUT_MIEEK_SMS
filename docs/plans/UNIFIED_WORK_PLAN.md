@@ -85,7 +85,7 @@
 # Unified Work Plan - Student Management System
 
 **Created**: January 7, 2026
-**Status**: Phase 1 Complete, Phase 2 Complete ✅ ($11.17.1 - RBAC backend + 65 endpoints refactored + 17 security fixes)
+**Status**: Phase 1 Complete, Phase 2 Complete ✅ (1.17.1 - RBAC backend + 65 endpoints refactored + 17 security fixes)
 **Current Version**: 1.17.1 (production-ready, all Phase 2 deliverables complete)
 **Current Branch**: `main` (Phase 2 merged and pushed, all CI checks passing ✅)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer + AI assistant only. All role references below are workflow checkpoints, not actual team assignments.
@@ -132,7 +132,7 @@ This document consolidates all scattered planning documents into a **single sour
 
 ---
 
-## 🔴 IMMEDIATE: Phase 1 Completion ($11.15.2)
+## 🔴 IMMEDIATE: Phase 1 Completion 11.15.2)
 
 **Target Release**: January 7, 2026 ✅ RELEASED
 **Status**: ✅ **100% COMPLETE**
@@ -1604,7 +1604,7 @@ All 4 Week 4 tasks completed on Jan 10, 2026:
   - **BONUS**: Also created RBAC_OPERATIONS_GUIDE.md (1,050 lines) with daily/weekly/monthly checklists
 
 - [x] **Task 5.2**: Testing guide (6 hours) ✅
-  - ✅ Existing: `docs/development/TESTING_GUIDE.md` (already exists from $11.15.2)
+  - ✅ Existing: `docs/development/TESTING_GUIDE.md` (already exists from 1.15.2)
   - ✅ Coverage: Backend tests, frontend tests, E2E tests documented
   - ✅ Instructions: How to run locally and in CI
   - Success: Developers can easily run tests ✅
@@ -1632,9 +1632,9 @@ All 4 Week 4 tasks completed on Jan 10, 2026:
   - Success: Clear operational procedures
 
 - [ ] **Task 5.6**: Release documentation (4 hours)
-  - Update: CHANGELOG.md for $11.15.2
-  - Create: RELEASE_NOTES_$11.15.2.md (user-facing)
-  - Create: MIGRATION_GUIDE_$11.15.2.md (for operators)
+  - Update: CHANGELOG.md for 1.15.2
+  - Create: RELEASE_NOTES_1.15.2.md (user-facing)
+  - Create: MIGRATION_GUIDE_1.15.2.md (for operators)
   - Success: Complete release docs
 
 **Week 5 Success Criteria**:
@@ -1665,7 +1665,7 @@ All 4 Week 4 tasks completed on Jan 10, 2026:
   - Success: All known issues resolved or deferred
 
 - [ ] **Task 6.3**: Staging deployment & validation (8 hours)
-  - Deploy: $11.15.2 to staging environment
+  - Deploy: 1.15.2 to staging environment
   - Validate: All smoke tests pass
   - Monitor: Run for 24 hours, check logs
   - Success: Staging environment stable
@@ -1681,7 +1681,7 @@ All 4 Week 4 tasks completed on Jan 10, 2026:
 - ✅ No blocking bugs remaining
 - ✅ Staging validation successful
 - ✅ Release approved and documented
-- ✅ $11.15.2 ready for production deployment
+  - ✅ 1.15.2 ready for production deployment
 
 ---
 
@@ -1867,7 +1867,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 | **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED $11.15.2 |
 | **Post-Phase 1 Polish** | 🟢 100% | Jan 7-24 ✅ COMPLETE | 8/8 tasks done |
 | **Phase 2 Planning** | 🟢 100% | Complete ✅ | Fully planned |
-| **Phase 2 Execution** | 🟢 100% | Jan 27-Jan 11 ✅ COMPLETE | RELEASED $11.17.1 (65 endpoints + 17 security fixes) |
+| **Phase 2 Execution** | 🟢 100% | Jan 27-Jan 11 ✅ COMPLETE | RELEASED 1.17.1 (65 endpoints + 17 security fixes) |
 | **Backlog Features** | 💡 Ideas | Q2 2026+ | On backlog |
 
 ### Phase 2 Actual Effort (Solo Developer) - EXCEEDED ESTIMATES!
@@ -1901,7 +1901,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 ✅ Comprehensive documentation (2,500+ lines of guides)
 ✅ 17 security vulnerabilities fixed
 ✅ All 370+ tests passing
-✅ $11.17.1 released and production-ready
+✅ 1.17.1 released and production-ready
 
 **Post-Phase 2 (Backlog / Future)**:
 🔵 Real-time notifications
@@ -1923,7 +1923,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Post-Phase 1 Polish - All 8 Tasks Done**:
 - [x] E2E Test CI Monitoring (issue #1) - Monitoring dashboard, metrics collection, failure detection ✅
-- [x] GitHub Release Creation (issue #2) - $11.15.2 released ✅
+- [x] GitHub Release Creation (issue #2) - 1.15.2 released ✅
 - [x] Coverage Reporting (issue #3) - Already complete ✅
 - [x] Phase 2 GitHub Issues (issue #4) - 9 issues created ✅
 - [x] E2E Testing Documentation (issue #5) ✅
@@ -1933,7 +1933,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Next Steps**:
 - Jan 8: Pre-deployment validation (staging)
-- Jan 9: Staging deployment ($11.15.2) — 24h monitoring in progress (ends Jan 10 @ 10:56 UTC); production deployment planning starts next
+- Jan 9: Staging deployment (1.15.2) — 24h monitoring in progress (ends Jan 10 @ 10:56 UTC); production deployment planning starts next
 - Jan 27+: Begin Phase 2 (RBAC & CI/CD improvements)
 
 ---
@@ -1951,7 +1951,6 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - [CODEBASE_AUDIT_REPORT.md](../../CODEBASE_AUDIT_REPORT.md) - Audit findings
 
 ### Archived Plans (Historical Only)
-- [PHASE1_REVIEW_FINDINGS.md](../../docs/PHASE1_REVIEW_FINDINGS.md) - $11.15.2 transition (outdated)
 - [PHASE2_PLANNING.md](../plans/PHASE2_PLANNING.md) - Aspirational features (merged into this doc)
 - [TODO_PRIORITIES.md](../misc/TODO_PRIORITIES.md) - General priorities (merged into this doc)
 
@@ -1990,13 +1989,13 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ---
 
-## 🟢 MEDIUM-TERM: Phase 3 ($11.17.1) - Feature-by-Feature Sequential Execution
+## 🟢 MEDIUM-TERM: Phase 3 (1.17.1) - Feature-by-Feature Sequential Execution
 
 **Status**: 🟢 **KICKOFF COMPLETE - FEATURE #125 IN PROGRESS**
 **Start Date**: January 12, 2026
 **Execution Model**: Feature-by-Feature sequential completion (NOT calendar-based weeks)
 **Owner**: Solo Developer + AI Assistant
-**Version Target**: $11.17.1
+**Version Target**: 1.17.1
 
 ### Phase 3 Scope (User-Selected "A+C" - Balanced Approach)
 
@@ -2027,10 +2026,10 @@ These are aspirational features with no assigned timeline or team. To be revisit
 **Completed Tasks**:
 - [x] Review Phase 3 roadmap and feature selection ✅
 - [x] Create GitHub issues #125-128 for Phase 3 features ✅
-  - #134: Feature: Analytics Dashboard ($11.17.1 - Phase 3)
-  - #135: Feature: Real-Time Notifications ($11.17.1 - Phase 3)
-  - #137: Feature: Bulk Import/Export ($11.17.1 - Phase 3)
-  - #136: Meta: Phase 3 Release $11.17.1 Tracking
+  - #134: Feature: Analytics Dashboard (1.17.1 - Phase 3)
+  - #135: Feature: Real-Time Notifications (1.17.1 - Phase 3)
+  - #137: Feature: Bulk Import/Export (1.17.1 - Phase 3)
+  - #136: Meta: Phase 3 Release 1.17.1 Tracking
 - [x] Design Architecture for Feature #125 (Analytics Dashboard) ✅
 
 **Deliverables**:
@@ -2137,7 +2136,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 **Total Time**: 6.75 hours (estimated 40-50 hours - 86% EFFICIENCY GAIN!)
 **Issue**: #135
 **GitHub Issue URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues/135
-**GitHub Tag**: $11.17.1 (created and pushed)
+**GitHub Tag**: 1.17.1 (created and pushed)
 
 **Step 1: Backend WebSocket Setup** - ✅ **COMPLETE** (Jan 12, 4 hours)
 - [x] WebSocket server with python-socketio ✅
@@ -2190,7 +2189,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - **Status**: Production ready, all quality gates passed
 
 **Step 6: Email Integration** - ⏭️ **SKIPPED** (Option B choice)
-- Email integration deferred to $11.17.1
+- Email integration deferred to 1.17.1
 - All backend infrastructure ready
 - Can be added with minimal effort
 
@@ -2203,22 +2202,22 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - **Files**:
   - `docs/user/NOTIFICATIONS_USER_GUIDE.md` (user documentation)
   - `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` (admin documentation)
-  - `docs/releases/RELEASE_NOTES_$11.17.1.md` (release documentation)
+  - `docs/releases/RELEASE_NOTES_1.17.1.md` (release documentation)
   - Updated `DOCUMENTATION_INDEX.md`
 
 **Step 8: Release & Deployment** - ✅ **COMPLETE** (Jan 12, 2:45 PM UTC)
-- [x] Create GitHub tag $11.17.1 ✅ (already existed, verified)
+- [x] Create GitHub tag 1.17.1 ✅ (already existed, verified)
 - [x] Build Docker image ✅ (CI/CD handled)
 - [x] Create GitHub Release with notes ✅ (metadata prepared, tag pushed)
-- [x] Update VERSION file ✅ ($11.17.1 confirmed)
+- [x] Update VERSION file ✅ (1.17.1 confirmed)
 - [x] Commit pending changes ✅ (COMMIT_READY.ps1 minor fixes)
 - [x] Final smoke tests ✅ (All systems verified)
 - [x] All components verified ✅ (Backend, frontend, docs, tests)
 
 **Smoke Test Results**:
 - ✅ Git status: Clean (all committed)
-- ✅ Version: $11.17.1 (confirmed in VERSION file)
-- ✅ Tag: $11.17.1 (created and pushed to origin)
+- ✅ Version: 1.17.1 (confirmed in VERSION file)
+- ✅ Tag: 1.17.1 (created and pushed to origin)
 - ✅ Recent commits: All pushed successfully
 - ✅ Key files: All in place
   - Backend: notification_service.py, routers_notifications.py, migrations
@@ -2314,12 +2313,12 @@ These are aspirational features with no assigned timeline or team. To be revisit
   - [x] Actual database write logic
   - [x] Export format generation (CSV, Excel)
   - [x] Background tasks (FastAPI BackgroundTasks)
-- [ ] Phase 6: Testing & documentation (5-8 hours) - IN PROGRESS
+- [x] Phase 6: Testing & documentation (5-8 hours) - ✅ COMPLETE
   - [x] Unit tests (20+ backend tests)
   - [x] Frontend Component tests
-  - [ ] E2E tests for workflows
-  - [ ] Admin operational guide
-  - [ ] User documentation
+  - [x] E2E tests for workflows
+  - [x] Admin operational guide
+  - [x] User documentation
 
 **Completed Work**:
 - ✅ Comprehensive architecture document (500+ lines)
@@ -2369,7 +2368,8 @@ These are aspirational features with no assigned timeline or team. To be revisit
 ### When to Start Phase 3
 
 **Prerequisites**:
-- ✅ Phase 2 complete ($11.17.1 released)
+- ✅ Phase 2 complete (1.17.1 released)
+- ✅ Phase 2 complete (1.17.1 released)
 - ✅ Production stable (24+ hour monitoring passed)
 - ✅ Phase 3 features finalized (#125-127 selected)
 - ✅ GitHub issues #125-128 created
@@ -2587,7 +2587,7 @@ Before starting Phase 3, **choose**:
 - ✅ Staging deployment successful
 - ✅ Docker images built and scanned
 - ✅ E2E tests passing
-- **Status**: $11.15.2 **PRODUCTION READY** 🚀
+- **Status**: 1.15.2 **PRODUCTION READY** 🚀
 
 **Next Phase**: Production Deployment (awaiting business approval)
 - Production maintenance window scheduling
