@@ -47,7 +47,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
 
     // Navigate if URL provided
     if (notification.data?.url) {
-      window.location.href = notification.data.url;
+      window.location.href = notification.data.url as string;
     }
   };
 

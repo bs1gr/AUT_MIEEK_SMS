@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+// @ts-ignore
 import Papa from 'papaparse';
-import { apiClient } from '@/api/api';
+import apiClient from '@/api/api';
 
 // ImportWizard: Step 2 - Add stepper UI (basic, no logic)
 interface ImportWizardProps {}
