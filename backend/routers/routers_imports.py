@@ -665,7 +665,7 @@ def import_courses(
                                     joined_entries.append(current_entry)
 
                                 # Now use joined_entries instead of er for parsing
-                                er = joined_entries
+                                er = joined_entries  # type: ignore
                                 rules = []
                                 buf = []
                                 # Pairing of consecutive primitives (category, weight)
@@ -1078,7 +1078,7 @@ async def import_from_upload(
                                 joined_entries.append(current_entry)
 
                             # Now use joined_entries instead of er for parsing
-                            er = joined_entries
+                            er = joined_entries  # type: ignore
                             rules = []
                             buf = []
                             # Pairing of consecutive primitives (category, weight)
@@ -1465,16 +1465,16 @@ async def import_preview(
 
                 else:  # courses
                     code = obj.get("course_code") if isinstance(obj, dict) else None
-                    issues: list[str] = []
+                    course_issues: list[str] = []
                     if not code:
-                        issues.append("item: missing course_code")
+                        course_issues.append("item: missing course_code")
                     # Normalize semester default
                     if "semester" in obj and not obj["semester"]:
                         obj["semester"] = "Α' Εξάμηνο"
 
                     key = f"course:{code}|{obj.get('semester', '')}"
                     if key in seen_keys and skip_duplicates:
-                        add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
+                        add_item("skip", obj, course_issues + ["warning: duplicate in uploaded data, will be skipped"])
                         continue
                     seen_keys.add(key)
 
@@ -1489,9 +1489,9 @@ async def import_preview(
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"
-                        issues.append("warning: would update existing record; updates not allowed")
+                        course_issues.append("warning: would update existing record; updates not allowed")
 
-                    add_item(action, obj, issues)
+                    add_item(action, obj, course_issues)
 
         total_rows = row_no
         can_proceed = error_count == 0

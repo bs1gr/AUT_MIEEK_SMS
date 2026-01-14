@@ -242,7 +242,7 @@ git diff                          # Review pending changes
 
 ---
 
-## � CRITICAL LESSON LEARNED - Verification Before Claims (Jan 12, 2026)
+## 🚨 CRITICAL LESSON LEARNED - Verification Before Claims (Jan 12, 2026)
 
 ### The Problem That Occurred
 An agent claimed "all 370 backend tests passing" and "100% success" **WITHOUT verifying actual test output files**. This resulted in:
@@ -381,7 +381,7 @@ Result: Fixed v1.18.0, all 16 batches passing
 
 ---
 
-## �🏗️ Architecture Essentials
+## 🏗️ Architecture Essentials
 
 ### Dual Deployment Modes (Non-Obvious Design)
 

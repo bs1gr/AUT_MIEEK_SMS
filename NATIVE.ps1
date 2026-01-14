@@ -627,16 +627,17 @@ function Start-Frontend {
         # Start process in new window
         # Use a PowerShell process to run the npm dev script so the process stays alive
         # (Start-Process npm may spawn child processes and exit immediately).
+        # Bind to 0.0.0.0 (all interfaces) to ensure both IPv4 and IPv6 work
         $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
         if ($pwsh) {
             $processInfo = Start-Process -FilePath "pwsh" `
-                -ArgumentList "-NoExit", "-Command", "npm run dev" `
+                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev -- --host 127.0.0.1 --port $FRONTEND_PORT" `
                 -WindowStyle Normal `
                 -PassThru
         } else {
             # Fall back to starting npm directly
             $processInfo = Start-Process -FilePath "npm" `
-                -ArgumentList "run", "dev" `
+                -ArgumentList "run", "dev", "--", "--host", "127.0.0.1", "--port", "$FRONTEND_PORT" `
                 -WindowStyle Normal `
                 -PassThru
         }

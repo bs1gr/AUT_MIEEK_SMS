@@ -23,6 +23,7 @@ import {
   OperationsPage,
   PowerPage,
   AdminPermissionsPage,
+  ImportExportPage,
   AnalyticsPage,
   preloadCriticalRoutes,
 } from './routes';
@@ -61,6 +62,7 @@ ReactDOM.createRoot(rootElement).render(
               {/* Admin: Permissions management */}
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
+                <Route path="/admin/import-export" element={<ImportExportPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

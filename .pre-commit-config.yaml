@@ -82,6 +82,6 @@ repos:
         language: python
         types: ["text"]
         files: .*
-        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|frontend/src/i18n/|.*package-lock.json$|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini|\.secrets\.baseline$)
+        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|frontend/src/i18n/|.*package-lock.json$|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini|\.secrets\.baseline$|build/|dist/|.*\.egg-info/)
 
-exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules)(/|$)'
+exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules|build|dist|.*\.egg-info)(/|$)'

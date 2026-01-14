@@ -10,7 +10,7 @@ Endpoints for:
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
@@ -38,6 +38,7 @@ service = ImportExportService()
 @router.post("/imports/students", response_model=APIResponse[ImportJobResponse])
 async def create_student_import(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("imports:create")),
@@ -63,10 +64,14 @@ async def create_student_import(
             db=db,
             file_name=file.filename,
             file_type=file.filename.split(".")[-1].lower(),
+            file_object=file,
             import_type="students",
             total_rows=0,  # Will update after parsing
             user_id=current_user.id if current_user else None,
         )
+
+        # Trigger background processing
+        background_tasks.add_task(service.process_import_job, db, job.id)
 
         return success_response(
             ImportJobResponse(
@@ -96,6 +101,7 @@ async def create_student_import(
 @router.post("/imports/courses", response_model=APIResponse[ImportJobResponse])
 async def create_course_import(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("imports:create")),
@@ -113,10 +119,13 @@ async def create_course_import(
             db=db,
             file_name=file.filename,
             file_type=file.filename.split(".")[-1].lower(),
+            file_object=file,
             import_type="courses",
             total_rows=0,
             user_id=current_user.id if current_user else None,
         )
+
+        background_tasks.add_task(service.process_import_job, db, job.id)
 
         return success_response(
             ImportJobResponse(
@@ -146,6 +155,7 @@ async def create_course_import(
 @router.post("/imports/grades", response_model=APIResponse[ImportJobResponse])
 async def create_grade_import(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("imports:create")),
@@ -163,10 +173,13 @@ async def create_grade_import(
             db=db,
             file_name=file.filename,
             file_type=file.filename.split(".")[-1].lower(),
+            file_object=file,
             import_type="grades",
             total_rows=0,
             user_id=current_user.id if current_user else None,
         )
+
+        background_tasks.add_task(service.process_import_job, db, job.id)
 
         return success_response(
             ImportJobResponse(
@@ -278,12 +291,55 @@ async def list_import_jobs(
     )
 
 
+@router.post("/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse])
+async def commit_import_job(
+    import_job_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user=Depends(optional_require_role("imports:create")),
+) -> APIResponse[ImportJobResponse]:
+    """
+    Commit a validated import job to the database.
+
+    **Permissions**: imports:create
+    """
+    job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
+    if not job:
+        return error_response("NOT_FOUND", "Import job not found")
+
+    if job.status != "ready":
+        return error_response("INVALID_STATE", f"Job is in '{job.status}' state, must be 'ready' to commit")
+
+    # Trigger background processing
+    background_tasks.add_task(service.commit_import_job, db, job.id)
+
+    # Optimistic status update for response
+    return success_response(
+        ImportJobResponse(
+            id=job.id,
+            file_name=job.file_name,
+            file_type=job.file_type,
+            import_type=job.import_type,
+            status="importing",
+            total_rows=job.total_rows,
+            successful_rows=job.successful_rows,
+            failed_rows=job.failed_rows,
+            validation_errors=job.validation_errors,
+            file_path=job.file_path,
+            imported_by=job.imported_by,
+            created_at=job.created_at,
+            completed_at=job.completed_at,
+        )
+    )
+
+
 # ========== EXPORT ENDPOINTS ==========
 
 
 @router.post("/exports", response_model=APIResponse[ExportJobResponse])
 async def create_export(
     request: Request,
+    background_tasks: BackgroundTasks,
     export_request: ExportJobCreate,
     db: Session = Depends(get_db),
     current_user=Depends(optional_require_role("exports:generate")),
@@ -305,6 +361,8 @@ async def create_export(
             filters=export_request.filters,
             user_id=current_user.id if current_user else None,
         )
+
+        background_tasks.add_task(service.process_export_job, db, job.id)
 
         return success_response(
             ExportJobResponse(

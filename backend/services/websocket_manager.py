@@ -6,6 +6,7 @@ Handles real-time notification delivery to connected clients.
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Set
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +18,12 @@ class ConnectionManager:
     to broadcast notifications to specific users or all connected clients.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the connection manager."""
         # Map of user_id -> set of WebSocket connections
-        self.active_connections: Dict[int, Set[Any]] = {}
+        self.active_connections: Dict[int, Set[WebSocket]] = {}
 
-    async def connect(self, user_id: int, websocket) -> None:
+    async def connect(self, user_id: int, websocket: WebSocket) -> None:
         """Register a new WebSocket connection for a user.
 
         Args:
@@ -44,7 +45,7 @@ class ConnectionManager:
             logger.error(f"Failed to accept WebSocket connection for user {user_id}: {e}")
             raise
 
-    async def disconnect(self, user_id: int, websocket) -> None:
+    async def disconnect(self, user_id: int, websocket: WebSocket) -> None:
         """Unregister a WebSocket connection for a user.
 
         Args:
@@ -60,7 +61,7 @@ class ConnectionManager:
         except Exception as e:
             logger.error(f"Error disconnecting user {user_id}: {e}")
 
-    async def send_personal_message(self, message: dict, websocket) -> None:
+    async def send_personal_message(self, message: dict, websocket: WebSocket) -> None:
         """Send a message to a specific WebSocket connection.
 
         Args:

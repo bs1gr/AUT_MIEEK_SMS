@@ -158,9 +158,9 @@ exit 1
 
 **Planned Implementation**:
 ```bash
-#!/bin/bash
-# Pre-commit hook: validate version format
-pwsh -Command "& 'scripts/validate_version_format.ps1'" || exit 1
+#!/bin/sh
+# Pre-commit hook: Delegate to COMMIT_READY.ps1 (handles version + env + checks)
+exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode quick
 ```
 
 **Status**:

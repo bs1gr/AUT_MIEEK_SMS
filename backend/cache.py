@@ -53,7 +53,7 @@ class TimedLRUCache:
     Thread-safe for simple use cases.
     """
 
-    def __init__(self, maxsize: int = 128, ttl_seconds: int = 300):
+    def __init__(self, maxsize: int = 128, ttl_seconds: int = 300) -> None:
         """
         Initialize cache with maximum size and time-to-live.
 
@@ -170,7 +170,7 @@ def cached_response(ttl_seconds: int = 300, maxsize: int = 128):
 class RedisCache:
     """Redis caching client with fallback to in-memory cache"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.enabled = os.getenv("REDIS_ENABLED", "false").lower() == "true" and REDIS_AVAILABLE
         self.client: Optional[redis.Redis] = None
         self.fallback_cache = TimedLRUCache(maxsize=256, ttl_seconds=300)

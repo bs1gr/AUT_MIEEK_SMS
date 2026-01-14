@@ -228,8 +228,6 @@ function MyComponent() {
 ```powershell
 # ALWAYS check before starting new work
 git status                        # Check for uncommitted changes
-3. **MANDATORY**: Run `git status` to check for uncommitted changes
-4. **MANDATORY**: Review any pending tasks before starting new work
 git diff                          # Review pending changes
 # Check task tracker/work plan for incomplete items
 ```
@@ -274,8 +272,7 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 
 **Step 3: Verify Policies (2 min)**
 1. Review this document (`docs/AGENT_POLICY_ENFORCEMENT.md`)
-2. Confirm new task** | `git status` + check work plan | Start without verification |
-| **Before understanding of mandatory policies
+2. Verify clean state: Run `git status` and check work plan
 
 **Total Time: 10 minutes** to avoid hours of rework.
 
