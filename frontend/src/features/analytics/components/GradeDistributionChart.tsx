@@ -60,15 +60,6 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
 
   const chartData = getChartData();
 
-  // Get color for grade range
-  const getGradeColor = (range: string): string => {
-    if (range.includes("90") || range.includes("A")) return "#4CAF50";
-    if (range.includes("80") || range.includes("B")) return "#8BC34A";
-    if (range.includes("70") || range.includes("C")) return "#FFC107";
-    if (range.includes("60") || range.includes("D")) return "#FF9800";
-    return "#F44336"; // F or < 60
-  };
-
   return (
     <div className="grade-distribution-chart widget-card">
       <h3>{t("analytics.grade_distribution_title")}</h3>
@@ -84,7 +75,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
               />
               <YAxis label={{ value: "Count", angle: -90, position: "insideLeft" }} />
               <Tooltip
-                formatter={(value: number) => value}
+                formatter={(value: any) => value}
                 labelFormatter={(label) => `Range: ${label}`}
               />
               <Legend />

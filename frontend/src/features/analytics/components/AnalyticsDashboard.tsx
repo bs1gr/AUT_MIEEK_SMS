@@ -3,7 +3,7 @@
  * Main dashboard component displaying student performance, trends, attendance, and grades
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { PerformanceCard } from "./PerformanceCard";

@@ -13,10 +13,10 @@ interface AnalyticsError {
 }
 
 interface AnalyticsData {
-  performance: unknown | null;
-  trends: unknown | null;
-  attendance: unknown | null;
-  gradeDistribution: unknown | null;
+  performance: any;
+  trends: any;
+  attendance: any;
+  gradeDistribution: any;
   isLoading: boolean;
   error: AnalyticsError | null;
   refetch: () => Promise<void>;
@@ -67,7 +67,7 @@ export const useAnalytics = (
               const perfRes = await apiClient.get(
                 `/analytics/student/${studentId}/performance`
               );
-              setPerformance(perfRes);
+              setPerformance(perfRes.data);
             } catch (err) {
               console.error("Error fetching performance:", err);
             }
@@ -77,7 +77,7 @@ export const useAnalytics = (
               const trendsRes = await apiClient.get(
                 `/analytics/student/${studentId}/trends`
               );
-              setTrends(trendsRes);
+              setTrends(trendsRes.data);
             } catch (err) {
               console.error("Error fetching trends:", err);
             }
@@ -87,7 +87,7 @@ export const useAnalytics = (
               const attRes = await apiClient.get(
                 `/analytics/student/${studentId}/attendance`
               );
-              setAttendance(attRes);
+              setAttendance(attRes.data);
             } catch (err) {
               console.error("Error fetching attendance:", err);
             }
@@ -103,7 +103,7 @@ export const useAnalytics = (
               const distRes = await apiClient.get(
                 `/analytics/course/${courseId}/grade-distribution`
               );
-              setGradeDistribution(distRes);
+              setGradeDistribution(distRes.data);
             } catch (err) {
               console.error("Error fetching grade distribution:", err);
             }
