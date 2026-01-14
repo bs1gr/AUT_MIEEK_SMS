@@ -1,65 +1,99 @@
-# Bulk Import/Export - User Guide
+# Bulk Import/Export User Guide
 
-**Version**: 1.0
-**Date**: January 14, 2026
-**Feature**: #127
+**Version**: 1.0 (1.17.1)
+**Last Updated**: January 14, 2026
+**Status**: Production Ready
+
+---
 
 ## Overview
 
-The Bulk Import/Export feature allows you to easily manage large sets of data in the Student Management System. You can import students, courses, and grades from CSV or Excel files, and export data for reporting.
+The Bulk Import/Export tool allows you to manage large sets of data efficiently. You can import students, courses, and grades from Excel or CSV files, and export data for reporting or backup.
+
+**What you can do:**
+- 📥 **Import**: Add many students, courses, or grades at once
+- 📤 **Export**: Download data lists to Excel, CSV, or PDF
+- 📜 **History**: View past import/export operations
+
+---
+
+## 📍 Accessing the Tool
+
+1. Log in to the **Admin Panel**.
+2. Click **Data Management** in the sidebar.
+3. Select **Import/Export**.
+
+---
 
 ## 📥 Importing Data
 
-### 1. Navigate to Import/Export
-1. Log in to the application.
-2. Click on **Admin** in the sidebar (if you have admin permissions).
-3. Select **Import/Export**.
+### Step 1: Choose Data Type
+Click the **Import Data** button and select what you want to import:
+- **Import Students**: For student registration
+- **Import Courses**: For course catalog
+- **Import Grades**: For bulk grade entry
 
-### 2. Start an Import
-1. Click the **Import** tab.
-2. Select the type of data you want to import:
-   - **Students**
-   - **Courses**
-   - **Grades**
-3. Click the **Upload** area or drag and drop your file.
-   - Supported formats: `.csv`, `.xlsx`
+### Step 2: Prepare Your File
+Your file must be in **CSV** (`.csv`) or **Excel** (`.xlsx`) format.
 
-### 3. Validation & Preview
-Once uploaded, the system will validate your file:
-- **Valid Rows**: Ready to be imported.
-- **Warnings**: Issues found (e.g., formatting), but can still be imported.
-- **Errors**: Critical issues; these rows will be skipped.
+**Required Columns:**
 
-Review the preview table to ensure your data looks correct.
+| Type | Required Columns |
+|------|------------------|
+| **Students** | `first_name`, `last_name`, `email` |
+| **Courses** | `course_code`, `course_name` |
+| **Grades** | `student_id` (or `email`), `course_code`, `grade` |
 
-### 4. Commit Import
-1. If the validation looks good, click **Commit Import**.
-2. The system will process the data in the background.
-3. You will be notified when the import is complete.
+> **Tip**: You can download a template file from the import wizard.
+
+### Step 3: Upload and Validate
+1. Drag and drop your file or click to browse.
+2. The system will **validate** your data automatically.
+3. You will see a summary:
+   - ✅ **Valid Rows**: Ready to import
+   - ❌ **Errors**: Rows with issues (missing data, duplicates)
+
+### Step 4: Commit
+If the validation looks good, click **Import** to save the data to the system.
 
 ---
 
 ## 📤 Exporting Data
 
-1. Navigate to the **Export** tab.
-2. Select the entity you wish to export (Students, Courses, Grades).
-3. (Optional) Apply filters to narrow down the data.
-4. Click **Generate Export**.
-5. The file will be generated and downloaded automatically.
+1. Click the **Export Data** button.
+2. Select the **Resource** (Students, Courses, Grades).
+3. Choose a **Format**:
+   - **Excel**: Best for editing
+   - **CSV**: Best for other software
+   - **PDF**: Best for printing/reporting
+4. Click **Export** to download the file.
 
 ---
 
-## 🕒 History
+## 📜 Viewing History
 
-The **History** tab shows a log of all past import and export operations, including:
-- Date and time
-- User who performed the action
-- Type of operation
-- Status (Success, Failed, Partial)
-- Details (number of rows processed)
+The **History** table at the bottom of the page shows all past operations.
 
-## 📝 File Templates
+- **Status Icons**:
+  - ✅ Completed successfully
+  - ❌ Failed
+  - ⏳ In progress
+- **Details**: Click a row to see more details (e.g., error messages).
 
-To ensure your imports are successful, please use the standard templates provided in the application interface.
+---
 
-*Note: Ensure your CSV files use UTF-8 encoding.*
+## 🆘 Troubleshooting
+
+### Common Import Errors
+
+**"Missing required columns"**
+- **Fix**: Check your file headers. They must match exactly (e.g., `email`, not `E-mail`).
+
+**"Duplicate entry"**
+- **Fix**: A student with that ID or email already exists. The system prevents duplicates.
+
+**"Invalid file format"**
+- **Fix**: Ensure you are using `.csv` or `.xlsx`.
+
+### Need Help?
+Contact your system administrator if you encounter persistent issues. Provide the **Job ID** from the History table.
