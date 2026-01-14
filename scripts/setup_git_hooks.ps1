@@ -58,7 +58,7 @@ fi
 LEGACY_HOOK="$HOOKS_DIR/pre-commit-legacy"
 if [ -f "$LEGACY_HOOK" ]; then
     echo "🔄 Running legacy pre-commit hooks..."
-    sh "$LEGACY_HOOK" "$@"
+    bash "$LEGACY_HOOK" "$@"
     EXIT_CODE=$?
     if [ $EXIT_CODE -ne 0 ]; then
         echo "❌ Legacy hooks failed (Exit Code: $EXIT_CODE)."

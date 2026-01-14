@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-// @ts-ignore
+// @ts-expect-error - papaparse types missing
 import Papa from 'papaparse';
 import apiClient from '@/api/api';
 
