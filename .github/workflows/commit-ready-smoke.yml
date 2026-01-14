@@ -80,8 +80,9 @@ jobs:
           DEV_EASE: '1'
         shell: bash  # Use bash for cross-platform compatibility
         run: |
+          set -o pipefail
           echo "Running COMMIT_READY quick smoke..."
-          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose 2>&1 | tee commit_ready_output_ubuntu.txt || true
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose 2>&1 | tee commit_ready_output_ubuntu.txt
           echo "COMMIT_READY completed"
 
       - name: Upload smoke logs + JUnit test reports
@@ -166,7 +167,8 @@ jobs:
         run: |
           Write-Host "Running COMMIT_READY quick smoke..."
           $outFile = "commit_ready_output_windows.txt"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose *>&1 | Tee-Object -FilePath $outFile
+          & ./COMMIT_READY.ps1 -Mode quick -SkipTests -SkipCleanup -SkipPreCommitHooks -Verbose *>&1 | Tee-Object -FilePath $outFile
+          if ($LASTEXITCODE -ne 0) { Write-Error "COMMIT_READY failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
           Write-Host "Wrote $outFile"
 
       - name: Upload smoke logs + JUnit test reports

@@ -405,7 +405,7 @@ Provides endpoints to export data to Excel/PDF.
 import logging
 from datetime import datetime
 from io import BytesIO
-from typing import cast
+from typing import Any
 
 import openpyxl
 from fastapi.responses import StreamingResponse
@@ -416,7 +416,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Flowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy.orm import Session
 
 HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
@@ -443,7 +443,7 @@ def _apply_table_header(ws: Worksheet, headers, row: int = 1):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
 
-def _auto_fit_columns(ws: Worksheet):
+def _auto_fit_columns(ws: Any):
     for column_cells in ws.columns:
         max_length = 0
         column_letter = get_column_letter(column_cells[0].column)
@@ -499,7 +499,7 @@ async def export_students_excel(
         students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_students", lang)
         headers = get_header_row("students", lang)
         for col, header in enumerate(headers, 1):
@@ -566,7 +566,7 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_grades", lang)
         ws.merge_cells("A1:H1")
         title = ws["A1"]
@@ -659,7 +659,7 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
         students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
+        elements: list[Flowable] = []
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
             "CustomTitle",
@@ -738,7 +738,7 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
 
         records = db.query(Attendance).filter(Attendance.deleted_at.is_(None)).all()
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_attendance", lang)
         headers = get_header_row("attendance", lang)
         for col, header in enumerate(headers, 1):
@@ -820,11 +820,11 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
         )
 
         overall_counts = _init_status_counts()
-        course_summary = {}
-        period_summary = {}
-        course_period_summary = {}
-        student_summary = {}
-        daily_summary = {}
+        course_summary: dict[int, dict[str, Any]] = {}
+        period_summary: dict[int, dict[str, Any]] = {}
+        course_period_summary: dict[tuple[int, int], dict[str, Any]] = {}
+        student_summary: dict[int, dict[str, Any]] = {}
+        daily_summary: dict[Any, dict[str, Any]] = {}
         unique_students = set()
         unique_courses = set()
         date_values = set()
@@ -906,7 +906,7 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
             date_range = f"{sorted_dates[0].isoformat()} → {sorted_dates[-1].isoformat()}"
 
         wb = openpyxl.Workbook()
-        overview_ws = cast(Worksheet, wb.active)
+        overview_ws: Any = wb.active
         overview_ws.title = t("sheet_overview", lang)
         overview_ws["A1"] = t("title_attendance_export", lang)
         overview_ws["A1"].font = Font(size=16, bold=True)
@@ -1066,7 +1066,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         courses = db.query(Course).filter(Course.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_courses", lang)
         headers = get_header_row("courses", lang)
         for col, header in enumerate(headers, 1):
@@ -1136,7 +1136,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_enrollments", lang)
         headers = get_header_row("enrollments", lang)
         for col, header in enumerate(headers, 1):
@@ -1209,7 +1209,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         grades = db.query(Grade).filter(Grade.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_all_grades", lang)
         headers = get_header_row("all_grades", lang)
         for col, header in enumerate(headers, 1):
@@ -1288,7 +1288,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_daily_performance", lang)
         headers = get_header_row("daily_performance", lang)
         for col, header in enumerate(headers, 1):
@@ -1365,7 +1365,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         highlights = db.query(Highlight).filter(Highlight.deleted_at.is_(None)).all()
 
         wb = openpyxl.Workbook()
-        ws = cast(Worksheet, wb.active)
+        ws: Any = wb.active
         ws.title = t("sheet_highlights", lang)
         headers = get_header_row("highlights", lang)
         for col, header in enumerate(headers, 1):
@@ -1440,7 +1440,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
-        elements = []
+        elements: list[Flowable] = []
         styles = getSampleStyleSheet()
         # Title
         title_style = ParagraphStyle(
@@ -1661,7 +1661,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
+        elements: list[Flowable] = []
         styles = getSampleStyleSheet()
 
         title_style = ParagraphStyle(
@@ -1754,7 +1754,7 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch)
-        elements = []
+        elements: list[Flowable] = []
         styles = getSampleStyleSheet()
 
         # Title

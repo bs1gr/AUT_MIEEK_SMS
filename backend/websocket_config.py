@@ -9,7 +9,7 @@ This module handles:
 - Reconnection handling
 """
 
-from typing import Dict, Set
+from typing import Dict, Set, Any
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
@@ -26,7 +26,7 @@ class ClientConnection:
     connected_at: datetime = field(default_factory=datetime.utcnow)
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
 
-    def update_heartbeat(self):
+    def update_heartbeat(self) -> None:
         """Update the last heartbeat timestamp"""
         self.last_heartbeat = datetime.utcnow()
 
@@ -43,7 +43,7 @@ class ConnectionManager:
     - Support room-based messaging (e.g., 'course_123')
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the connection manager"""
         # Map of user_id -> Set of session_ids
         self.active_connections: Dict[int, Set[str]] = {}
@@ -52,7 +52,7 @@ class ConnectionManager:
         # Map of room_name -> Set of user_ids
         self.rooms: Dict[str, Set[int]] = {}
 
-    async def connect(self, user_id: int, session_id: str):
+    async def connect(self, user_id: int, session_id: str) -> ClientConnection:
         """
         Register a new WebSocket connection.
 
@@ -75,7 +75,7 @@ class ConnectionManager:
         )
         return connection
 
-    async def disconnect(self, user_id: int, session_id: str):
+    async def disconnect(self, user_id: int, session_id: str) -> None:
         """
         Unregister a WebSocket connection.
 
@@ -136,7 +136,7 @@ class ConnectionManager:
         """
         return set(self.active_connections.keys())
 
-    async def join_room(self, user_id: int, room_name: str):
+    async def join_room(self, user_id: int, room_name: str) -> None:
         """
         Add a user to a room for room-based broadcasting.
 
@@ -149,7 +149,7 @@ class ConnectionManager:
         self.rooms[room_name].add(user_id)
         logger.debug(f"User {user_id} joined room {room_name}")
 
-    async def leave_room(self, user_id: int, room_name: str):
+    async def leave_room(self, user_id: int, room_name: str) -> None:
         """
         Remove a user from a room.
 
@@ -175,7 +175,7 @@ class ConnectionManager:
         """
         return self.rooms.get(room_name, set())
 
-    def update_heartbeat(self, session_id: str):
+    def update_heartbeat(self, session_id: str) -> None:
         """
         Update the heartbeat for a session.
 
@@ -203,7 +203,7 @@ class ConnectionManager:
                 stale.add(session_id)
         return stale
 
-    def get_connection_stats(self) -> Dict:
+    def get_connection_stats(self) -> Dict[str, Any]:
         """
         Get statistics about active connections.
 

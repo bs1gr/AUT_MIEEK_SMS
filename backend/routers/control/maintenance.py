@@ -31,6 +31,7 @@ class AuthSettingsResponse(BaseModel):
     auth_login_tracking_window_seconds: int = Field(description="Time window for tracking attempts")
     source: str = Field(description="Configuration source (env, .env file, defaults)")
     effective_policy: str = Field(description="Human-readable policy description")
+    effective_policy_key: str = Field(description="Localization key for policy description")
 
 
 class AuthSettingsUpdate(BaseModel):
@@ -64,6 +65,7 @@ class UpdateCheckResponse(BaseModel):
     installer_hash: Optional[str] = None
     docker_image_url: Optional[str] = None
     update_instructions: str
+    deployment_mode: Literal["docker", "native"] = Field(description="Detected deployment mode for localization")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -81,8 +83,28 @@ def _get_policy_description(enabled: bool, mode: str) -> str:
     return f"⚠️ Unknown mode: {mode}"
 
 
+def _get_policy_key(enabled: bool, mode: str) -> str:
+    """Generate localization key for policy."""
+    if not enabled:
+        return "auth.policy.disabled"
+    if mode in ["disabled", "permissive", "strict"]:
+        return f"auth.policy.{mode}"
+    return "auth.policy.unknown"
+
+
+def _resolve_env_file() -> tuple[Path, str]:
+    """Resolve the active .env file path and its source name."""
+    project_root = Path(__file__).resolve().parents[3]
+    backend_env = project_root / "backend" / ".env"
+    root_env = project_root / ".env"
+
+    if backend_env.exists():
+        return backend_env, "backend/.env"
+    return root_env, ".env"
+
+
 @router.get("/maintenance/auth-settings", response_model=AuthSettingsResponse)
-async def get_auth_settings(_request: Request):
+def get_auth_settings(_request: Request):
     """Get current authentication and authorization settings.
 
     Returns the effective configuration including AUTH_ENABLED and AUTH_MODE.
@@ -90,17 +112,14 @@ async def get_auth_settings(_request: Request):
     from backend.config import settings
 
     # Determine source
-    source = "defaults"
-    project_root = Path(__file__).resolve().parents[3]
-    backend_env = project_root / "backend" / ".env"
-    root_env = project_root / ".env"
+    env_file, source_name = _resolve_env_file()
 
-    if backend_env.exists():
-        source = "backend/.env"
-    elif root_env.exists():
-        source = ".env"
+    if env_file.exists():
+        source = source_name
     elif any(k.startswith("AUTH_") for k in os.environ):
         source = "environment variables"
+    else:
+        source = "defaults"
 
     auth_enabled = getattr(settings, "AUTH_ENABLED", False)
     auth_mode = getattr(settings, "AUTH_MODE", "disabled")
@@ -113,11 +132,12 @@ async def get_auth_settings(_request: Request):
         auth_login_tracking_window_seconds=getattr(settings, "AUTH_LOGIN_TRACKING_WINDOW_SECONDS", 300),
         source=source,
         effective_policy=_get_policy_description(auth_enabled, auth_mode),
+        effective_policy_key=_get_policy_key(auth_enabled, auth_mode),
     )
 
 
 @router.post("/maintenance/auth-settings", response_model=OperationResult)
-async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
+def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
     """Update authentication settings by modifying .env file.
 
     ⚠️ Requires application restart to take effect.
@@ -129,11 +149,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
     - AUTH_LOGIN_LOCKOUT_SECONDS: Lockout duration
     """
     try:
-        project_root = Path(__file__).resolve().parents[3]
-        backend_env = project_root / "backend" / ".env"
-        root_env = project_root / ".env"
-
-        env_file = backend_env if backend_env.exists() else root_env
+        env_file, _ = _resolve_env_file()
 
         if not env_file.exists():
             # Create from .env.example if available
@@ -244,7 +260,7 @@ async def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
 
 
 @router.get("/maintenance/auth-policy-guide")
-async def get_auth_policy_guide():
+def get_auth_policy_guide():
     """Get detailed guide on authentication policies."""
     return {
         "policies": {
@@ -317,9 +333,12 @@ async def get_auth_policy_guide():
 
 
 @router.get("/maintenance/updates/check", response_model=UpdateCheckResponse)
-async def check_for_updates(_request: Request):
+def check_for_updates(_request: Request):
     """Check for available updates from GitHub releases."""
     from backend.environment import get_runtime_context
+
+    context = get_runtime_context()
+    deployment_mode = "docker" if context.is_docker else "native"
 
     current_version = _get_version()
 
@@ -331,6 +350,7 @@ async def check_for_updates(_request: Request):
                 latest_version=None,
                 update_available=False,
                 update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
+                deployment_mode=deployment_mode,
             )
 
         latest_version = str(latest_release.get("tag_name", "")).lstrip("v")
@@ -351,7 +371,6 @@ async def check_for_updates(_request: Request):
             elif name.endswith(".sha256") and not installer_hash:
                 installer_hash = _download_text(url)
 
-        context = get_runtime_context()
         if context.is_docker:
             instructions = (
                 "To update your Docker deployment:\n\n"
@@ -387,6 +406,7 @@ async def check_for_updates(_request: Request):
             installer_hash=installer_hash,
             docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
             update_instructions=instructions,
+            deployment_mode=deployment_mode,
         )
     except Exception as exc:
         logger.error("Error checking for updates: %s", exc, exc_info=True)
@@ -395,6 +415,7 @@ async def check_for_updates(_request: Request):
             latest_version=None,
             update_available=False,
             update_instructions=f"Error checking for updates: {str(exc)}. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
+            deployment_mode=deployment_mode,
         )
 
 
