@@ -94,7 +94,7 @@ Login:              <500ms (p95)
 ## 🎯 Version Information
 
 ```
-Version: vvvv1.18.0
+Version: vvvvv1.18.0
 Release Date:      January 7, 2026
 Build Status:      ✅ CLEAN
 Docker Images:     ✅ BUILT & VERIFIED
