@@ -444,6 +444,13 @@ export async function waitForTableRow(page: Page, rowText: string) {
   await expect(page.locator(`tr:has-text("${rowText}")`)).toBeVisible({ timeout: 5000 });
 }
 
+// Quick admin login helper
+export async function loginAsAdmin(page: Page) {
+  const adminEmail = 'admin@example.com';
+  const adminPassword = 'YourSecurePassword123!';
+  await loginViaAPI(page, adminEmail, adminPassword);
+}
+
 // Cleanup helpers
 export async function cleanupTestData(page: Page, resourceType: string, id: number) {
   const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';

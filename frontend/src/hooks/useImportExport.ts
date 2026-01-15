@@ -10,8 +10,8 @@ export const useImportExport = () => {
         setError(null);
         try {
             const response = await importExportApi.uploadImportFile(type, file);
-            if (!response.success || !response.data) {
-                setError(response.error?.message || 'Upload failed');
+            if (!response.data) {
+                setError('Upload failed: No data received');
                 return null;
             }
             return response.data;
@@ -28,8 +28,8 @@ export const useImportExport = () => {
         setError(null);
         try {
             const response = await importExportApi.createExport(data);
-            if (!response.success || !response.data) {
-                setError(response.error?.message || 'Export failed');
+            if (!response.data) {
+                setError('Export failed: No data received');
                 return null;
             }
             return response.data;

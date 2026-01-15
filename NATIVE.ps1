@@ -62,7 +62,7 @@
     # Stop all processes
 
 .NOTES
-Version: 1.17.1 (Consolidated from SMS.ps1, run-native.ps1)
+Version: vvvv1.18.0 (Consolidated from SMS.ps1, run-native.ps1)
     For production deployment, use: .\DOCKER.ps1
 #>
 
@@ -631,13 +631,13 @@ function Start-Frontend {
         $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
         if ($pwsh) {
             $processInfo = Start-Process -FilePath "pwsh" `
-                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev -- --host 127.0.0.1 --port $FRONTEND_PORT" `
+                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT" `
                 -WindowStyle Normal `
                 -PassThru
         } else {
             # Fall back to starting npm directly
             $processInfo = Start-Process -FilePath "npm" `
-                -ArgumentList "run", "dev", "--", "--host", "127.0.0.1", "--port", "$FRONTEND_PORT" `
+                -ArgumentList "run", "dev", "--", "--host", "0.0.0.0", "--port", "$FRONTEND_PORT" `
                 -WindowStyle Normal `
                 -PassThru
         }

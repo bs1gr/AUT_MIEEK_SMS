@@ -10,6 +10,40 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-01-14
+
+### ✨ Phase 3 Features (Major Release)
+
+**Feature #125: Analytics Dashboard**
+- Comprehensive student performance metrics and trends
+- Attendance analysis and grade distribution charts
+- Course effectiveness tracking
+- Exportable reports (PDF/Excel)
+
+**Feature #126: Real-Time Notifications**
+- WebSocket-based instant alerts
+- Notification center with read/unread tracking
+- Configurable user preferences (email/in-app)
+
+**Feature #127: Bulk Import/Export**
+- Bulk import for Students, Courses, and Grades (CSV/Excel)
+- Validation wizard with error preview
+- Export data to CSV, Excel, and PDF
+- Operation history and audit logging
+
+## [1.17.1] - 2026-01-12
+
+### 🔐 RBAC System Implementation (Phase 2)
+
+**Endpoint Refactoring (Week 2) - 100% COMPLETE**
+- Refactored all **79 API endpoints** across 11 routers with permission-based access control
+- Implemented **13 unique permissions** across 8 domains
+- All **370/370 backend tests passing** with zero regressions
+
+**Permission Management API (Week 3) - 100% COMPLETE**
+- Implemented **12 permission management endpoints**
+- Permission seeding infrastructure
+
 ### 🐛 Bug Fixes
 
 **Notification System Authentication**
@@ -156,13 +190,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Workaround: None; use manual testing for notification features
   - Timeline: Addressed in $11.15.2
 
-### 🔄 Changes from $11.15.2
+### 🔄 Changes from 1.15.2
 
-No breaking changes. All APIs remain backward compatible with $11.15.2.
+No breaking changes. All APIs remain backward compatible with 1.15.2.
 
 ### ⬆️ Upgrade Instructions
 
-From $11.15.2: Simply pull latest code, no database migrations required.
+From 1.15.2: Simply pull latest code, no database migrations required.
 ```bash
 git pull origin main
 # Restart application
@@ -267,7 +301,7 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 ### 📚 Related Issues & PRs
 
 - Closes requirements from Phase 1 planning document
-- Merged from `feature/$11.15.2-phase1-batch2` branch
+- Merged from `feature/1.15.2-phase1-batch2` branch
 - 8 improvements with 370+ total tests added
 
 ### 🙏 Thanks
@@ -298,7 +332,7 @@ To all contributors who participated in Phase 1 development and testing.
 - **e2e**: apply final eslint fixes and catch parameter cleanup
 - **e2e**: improve test robustness and error handling
 - **e2e**: resolve authentication state persistence in E2E tests
-- update markdown table column count in MID_PHASE_SUMMARY_$11.15.2.md
+- update markdown table column count in MID_PHASE_SUMMARY_1.15.2.md
 - disable KeywordDetector and exclude false-positive files from detect-secrets
 - exclude .secrets.baseline from pre-commit hook modifications
 - add response_model to /admin/users endpoint for FastAPI validation
